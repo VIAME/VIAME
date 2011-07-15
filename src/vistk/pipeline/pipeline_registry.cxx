@@ -60,6 +60,20 @@ pipeline_registry
   return types;
 }
 
+pipeline_registry::description_t
+pipeline_registry
+::description(type_t const& type) const
+{
+  pipeline_store_t::const_iterator const i = m_registry.find(type);
+
+  if (i == m_registry.end())
+  {
+    throw no_such_pipeline_type(type);
+  }
+
+  return i->second.get<0>();
+}
+
 pipeline_registry_t
 pipeline_registry
 ::self()

@@ -63,6 +63,20 @@ process_registry
   return types;
 }
 
+process_registry::description_t
+process_registry
+::description(type_t const& type) const
+{
+  process_store_t::const_iterator const i = m_registry.find(type);
+
+  if (i == m_registry.end())
+  {
+    throw no_such_process_type(type);
+  }
+
+  return i->second.get<0>();
+}
+
 process_registry_t
 process_registry
 ::self()

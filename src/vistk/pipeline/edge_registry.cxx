@@ -60,6 +60,20 @@ edge_registry
   return types;
 }
 
+edge_registry::description_t
+edge_registry
+::description(type_t const& type) const
+{
+  edge_store_t::const_iterator const i = m_registry.find(type);
+
+  if (i == m_registry.end())
+  {
+    throw no_such_edge_type(type);
+  }
+
+  return i->second.get<0>();
+}
+
 edge_registry_t
 edge_registry
 ::self()

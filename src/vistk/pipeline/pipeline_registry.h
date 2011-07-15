@@ -69,6 +69,10 @@ class VISTK_PIPELINE_EXPORT pipeline_registry
      * \brief Returns all of the known types.
      */
     types_t types() const;
+    /**
+     * \brief Returns the description for a type.
+     */
+    description_t description(type_t const& type) const;
 
     /**
      * \brief Returns a pointer to the registry to use.
