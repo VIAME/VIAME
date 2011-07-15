@@ -29,17 +29,25 @@ class number_process::priv
 
     edges_t output_edges;
 
+    static number_t const DEFAULT_START_VALUE;
+    static number_t const DEFAULT_END_VALUE;
+    static config::key_t const START_CONFIG_NAME;
+    static config::key_t const END_CONFIG_NAME;
     static port_t const output_port_name;
 };
 
+number_process::priv::number_t const number_process::priv::DEFAULT_START_VALUE = 0;
+number_process::priv::number_t const number_process::priv::DEFAULT_END_VALUE = 100;
+config::key_t const number_process::priv::START_CONFIG_NAME = config::key_t("start");
+config::key_t const number_process::priv::END_CONFIG_NAME = config::key_t("end");
 process::port_t const number_process::priv::output_port_name = process::port_t("number");
 
 number_process
 ::number_process(config_t const& config)
   : process(config)
 {
-  priv::number_t start = config->get_value<priv::number_t>("start", 0);
-  priv::number_t end = config->get_value<priv::number_t>("end", 100);
+  priv::number_t start = config->get_value<priv::number_t>(priv::START_CONFIG_NAME, priv::DEFAULT_START_VALUE);
+  priv::number_t end = config->get_value<priv::number_t>(priv::END_CONFIG_NAME, priv::DEFAULT_END_VALUE);
 
   d = boost::shared_ptr<priv>(new priv(start, end));
 }
@@ -47,6 +55,34 @@ number_process
 number_process
 ::~number_process()
 {
+}
+
+config::keys_t
+number_process
+::available_config() const
+{
+  config::keys_t keys;
+
+  keys.push_back(priv::START_CONFIG_NAME);
+  keys.push_back(priv::END_CONFIG_NAME);
+
+  return keys;
+}
+
+config::description_t
+number_process
+::config_description(config::key_t const& key) const
+{
+  if (key == priv::START_CONFIG_NAME)
+  {
+    return config::description_t("The value to start counting at");
+  }
+  else if (key == priv::END_CONFIG_NAME)
+  {
+    return config::description_t("The value to stop counting at");
+  }
+
+  return process::config_description(key);
 }
 
 process_registry::type_t
