@@ -21,8 +21,8 @@ register_edges()
 {
   edge_registry_t const registry = edge_registry::self();
 
-  registry->register_edge("blocking_dumb_pipe", create_blocking_dumb_pipe);
-  registry->register_edge("dumb_pipe", create_dumb_pipe);
+  registry->register_edge("blocking_dumb_pipe", "An edge with a capacity", create_blocking_dumb_pipe);
+  registry->register_edge("dumb_pipe", "Unlimited-sized edge", create_dumb_pipe);
 }
 
 edge_t create_blocking_dumb_pipe(config_t const& config)

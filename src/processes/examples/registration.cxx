@@ -19,7 +19,7 @@ register_processes()
 {
   process_registry_t const registry = process_registry::self();
 
-  registry->register_process("numbers", create_number_process);
+  registry->register_process("numbers", "Outputs numbers within a range", create_number_process);
 }
 
 process_t

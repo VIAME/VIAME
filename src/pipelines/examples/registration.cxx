@@ -22,8 +22,8 @@ register_pipelines()
 {
   pipeline_registry_t const registry = pipeline_registry::self();
 
-  registry->register_pipeline("thread_per_process", create_thread_per_process_pipeline);
-  registry->register_pipeline("thread_pool", create_thread_pool_pipeline);
+  registry->register_pipeline("thread_per_process", "Runs each process in its own thread", create_thread_per_process_pipeline);
+  registry->register_pipeline("thread_pool", "Uses a pool of threads to step processes", create_thread_pool_pipeline);
 }
 
 pipeline_t
