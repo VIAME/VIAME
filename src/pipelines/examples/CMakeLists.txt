@@ -2,7 +2,8 @@ project(vistk_pipelines_examples)
 
 set(examples_srcs
   registration.cxx
-  thread_per_process_pipeline.cxx)
+  thread_per_process_pipeline.cxx
+  thread_pool_pipeline.cxx)
 
 add_vistk_plugin(pipelines_examples
   MAKE_VISTK_PIPELINES_EXAMPLES_LIB
