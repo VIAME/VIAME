@@ -69,6 +69,22 @@ number_process
   return keys;
 }
 
+config::value_t
+number_process
+::config_default(config::key_t const& key) const
+{
+  if (key == priv::START_CONFIG_NAME)
+  {
+    return boost::lexical_cast<config::value_t>(priv::DEFAULT_START_VALUE);
+  }
+  if (key == priv::END_CONFIG_NAME)
+  {
+    return boost::lexical_cast<config::value_t>(priv::DEFAULT_END_VALUE);
+  }
+
+  return process::config_default(key);
+}
+
 config::description_t
 number_process
 ::config_description(config::key_t const& key) const
