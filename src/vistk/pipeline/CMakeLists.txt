@@ -7,6 +7,7 @@ set(pipeline_srcs
   edge_exception.cxx
   edge_registry.cxx
   edge_registry_exception.cxx
+  modules.cxx
   pipeline.cxx
   pipeline_exception.cxx
   pipeline_registry.cxx
@@ -39,6 +40,9 @@ set(pipeline_headers
 
 add_library(vistk_pipeline
   ${pipeline_srcs})
+target_link_libraries(vistk_pipeline
+  ${CMAKE_DL_LIBS})
+target_link_libraries(vistk_pipeline LINK_INTERFACE_LIBRARIES)
 set_target_properties(vistk_pipeline
   PROPERTIES
     VERSION       ${vistk_version}
