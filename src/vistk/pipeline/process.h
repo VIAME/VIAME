@@ -94,7 +94,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Request available configuration options for the process.
      *
-     * \throws no_such_configuration_value Thrown when \p key is not a valid configuration key.
+     * \throws unknown_configuration_value Thrown when \p key is not a valid configuration key.
      *
      * \param key The name of the configuration value to describe.
      */
