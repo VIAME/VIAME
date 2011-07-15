@@ -1,6 +1,7 @@
 project(vistk_edges_examples)
 
 set(examples_srcs
+  blocking_pipe_edge.cxx
   dumb_pipe_edge.cxx
   registration.cxx)
 
