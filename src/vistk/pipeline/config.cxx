@@ -95,6 +95,16 @@ config
   }
 }
 
+void
+config
+::merge_config(config_t config)
+{
+  BOOST_FOREACH (store_t::value_type const& value, config->m_store)
+  {
+    set_value(value.first, value.second);
+  }
+}
+
 config::keys_t
 config
 ::available_values() const

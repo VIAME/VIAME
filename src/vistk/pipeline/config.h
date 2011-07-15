@@ -110,6 +110,15 @@ class VISTK_PIPELINE_EXPORT config
     void unset_value(key_t const& key);
 
     /**
+     * \brief Merges the values in \p config into the current config.
+     *
+     * \note Any values currently set within \c *this will be overwritten if conficts occur.
+     *
+     * \param config The other configuration.
+     */
+    void merge_config(config_t config);
+
+    /**
      * \brief Returns the values available in the configuration.
      */
     keys_t available_values() const;
