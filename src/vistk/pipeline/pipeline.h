@@ -107,26 +107,26 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \param name The name of the process to lookup.
      */
-    processes_t upstream_for_process(process::name_t const& name);
+    processes_t upstream_for_process(process::name_t const& name) const;
     /**
      * \brief Find processes that are siphoning data directly from a process.
      *
      * \param name The name of the process to lookup.
      */
-    processes_t downstream_for_process(process::name_t const& name);
+    processes_t downstream_for_process(process::name_t const& name) const;
 
     /**
      * \brief Find edges that are feeding data directly into a process.
      *
      * \param name The name of the process to lookup.
      */
-    edges_t input_edges_for_process(process::name_t const& name);
+    edges_t input_edges_for_process(process::name_t const& name) const;
     /**
      * \brief Find processes that are siphoning data directly from an edge.
      *
      * \param name The name of the process to lookup.
      */
-    edges_t output_edges_for_process(process::name_t const& name);
+    edges_t output_edges_for_process(process::name_t const& name) const;
 
     connections_t m_connections;
 

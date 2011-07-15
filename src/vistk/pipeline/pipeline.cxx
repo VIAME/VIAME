@@ -98,7 +98,7 @@ pipeline
 
 processes_t
 pipeline
-::upstream_for_process(process::name_t const& /*name*/)
+::upstream_for_process(process::name_t const& /*name*/) const
 {
   /// \todo Find upstream processes of another process.
 
@@ -107,7 +107,7 @@ pipeline
 
 processes_t
 pipeline
-::downstream_for_process(process::name_t const& /*name*/)
+::downstream_for_process(process::name_t const& /*name*/) const
 {
   /// \todo Find downstream processes of another process.
 
@@ -116,7 +116,7 @@ pipeline
 
 edges_t
 pipeline
-::input_edges_for_process(process::name_t const& /*name*/)
+::input_edges_for_process(process::name_t const& /*name*/) const
 {
   /// \todo Find input edges for a given process.
 
@@ -125,7 +125,7 @@ pipeline
 
 edges_t
 pipeline
-::output_edges_for_process(process::name_t const& /*name*/)
+::output_edges_for_process(process::name_t const& /*name*/) const
 {
   /// \todo Find output edges for a given process.
 
