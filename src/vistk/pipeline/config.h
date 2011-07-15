@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 #include <typeinfo>
+#include <vector>
 
 namespace vistk
 {
@@ -35,6 +36,8 @@ class VISTK_PIPELINE_EXPORT config
   public:
     /// The type that represents a configuration value key.
     typedef std::string key_t;
+    /// The type that represents a collection of configuration keys.
+    typedef std::vector<key_t> keys_t;
     /// The type that represents a stored configuration value.
     typedef std::string value_t;
 
@@ -103,6 +106,11 @@ class VISTK_PIPELINE_EXPORT config
      * \param key The index of the configuration value to unset.
      */
     void unset_value(key_t const& key);
+
+    /**
+     * \brief Returns the values available in the configuration.
+     */
+    keys_t available_values() const;
 
     /**
      * \brief Returns true if the value is set in the configuration.

@@ -7,8 +7,11 @@
 #include "config.h"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 #include <boost/none.hpp>
 
+#include <algorithm>
 #include <sstream>
 
 namespace vistk
@@ -16,6 +19,8 @@ namespace vistk
 
 char const config::block_sep = ':';
 config::key_t const config::global_value = key_t("_global");
+
+static bool does_not_begin_with(config::key_t const& key, config::key_t const& name);
 
 config_t
 config
@@ -88,6 +93,31 @@ config
   {
     m_store.erase(key);
   }
+}
+
+config::keys_t
+config
+::available_values() const
+{
+  keys_t keys;
+
+  if (m_parent)
+  {
+    keys = m_parent->available_values();
+
+    keys_t::iterator const i = std::remove_if(keys.begin(), keys.end(), boost::bind(does_not_begin_with, _1, m_name));
+
+    keys.erase(i, keys.end());
+  }
+  else
+  {
+    BOOST_FOREACH (store_t::value_type const& value, m_store)
+    {
+      keys.push_back(value.first);
+    }
+  }
+
+  return keys;
 }
 
 bool
@@ -204,6 +234,13 @@ bad_configuration_cast
 ::what() const throw()
 {
   return m_what.c_str();
+}
+
+bool
+does_not_begin_with(config::key_t const& key, config::key_t const& name)
+{
+  return (!boost::starts_with(key, name + config::block_sep) &&
+          !boost::starts_with(key, config::global_value + config::block_sep));
 }
 
 } // end namespace vistk
