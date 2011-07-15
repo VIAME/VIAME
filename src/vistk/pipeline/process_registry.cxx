@@ -25,14 +25,14 @@ process_registry
 
 void
 process_registry
-::register_process(type_t const& type, process_ctor_t ctor)
+::register_process(type_t const& type, description_t const& desc, process_ctor_t ctor)
 {
   if (m_registry.find(type) != m_registry.end())
   {
     throw process_type_already_exists(type);
   }
 
-  m_registry[type] = ctor;
+  m_registry[type] = process_typeinfo_t(desc, ctor);
 }
 
 process_t
@@ -44,7 +44,7 @@ process_registry
     throw no_such_process_type(type);
   }
 
-  return m_registry[type](config);
+  return m_registry[type].get<1>()(config);
 }
 
 process_registry::types_t

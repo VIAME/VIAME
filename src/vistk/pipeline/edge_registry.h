@@ -12,6 +12,7 @@
 #include "types.h"
 
 #include <boost/function.hpp>
+#include <boost/tuple/tuple.hpp>
 
 #include <string>
 #include <map>
@@ -35,6 +36,8 @@ class VISTK_PIPELINE_EXPORT edge_registry
   public:
     /// The type of registry keys.
     typedef std::string type_t;
+    /// The type for a description of the pipeline.
+    typedef std::string description_t;
     /// A group of types.
     typedef std::vector<type_t> types_t;
 
@@ -51,7 +54,7 @@ class VISTK_PIPELINE_EXPORT edge_registry
      * \param type The name of the \ref edge type.
      * \param ctor The function which creates the edge of the \p type.
      */
-    void register_edge(type_t const& type, edge_ctor_t ctor);
+    void register_edge(type_t const& type, description_t const& desc, edge_ctor_t ctor);
     /**
      * \brief Creates an edge of a specific type.
      *
@@ -79,7 +82,8 @@ class VISTK_PIPELINE_EXPORT edge_registry
 
     static edge_registry_t m_self;
 
-    typedef std::map<type_t, edge_ctor_t> edge_store_t;
+    typedef boost::tuple<description_t, edge_ctor_t> edge_typeinfo_t;
+    typedef std::map<type_t, edge_typeinfo_t> edge_store_t;
     edge_store_t m_registry;
 };
 

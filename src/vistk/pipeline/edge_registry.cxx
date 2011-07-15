@@ -22,14 +22,14 @@ edge_registry
 
 void
 edge_registry
-::register_edge(type_t const& type, edge_ctor_t ctor)
+::register_edge(type_t const& type, description_t const& desc, edge_ctor_t ctor)
 {
   if (m_registry.find(type) != m_registry.end())
   {
     throw edge_type_already_exists(type);
   }
 
-  m_registry[type] = ctor;
+  m_registry[type] = edge_typeinfo_t(desc, ctor);
 }
 
 edge_t
@@ -41,7 +41,7 @@ edge_registry
     throw no_such_edge_type(type);
   }
 
-  return m_registry[type](config);
+  return m_registry[type].get<1>()(config);
 }
 
 edge_registry::types_t

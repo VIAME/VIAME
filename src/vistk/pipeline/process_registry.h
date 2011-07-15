@@ -12,6 +12,7 @@
 #include "types.h"
 
 #include <boost/function.hpp>
+#include <boost/tuple/tuple.hpp>
 
 #include <map>
 #include <string>
@@ -35,6 +36,8 @@ class VISTK_PIPELINE_EXPORT process_registry
   public:
     /// The type of registry keys.
     typedef std::string type_t;
+    /// The type for a description of the pipeline.
+    typedef std::string description_t;
     /// A group of types.
     typedef std::vector<type_t> types_t;
 
@@ -51,7 +54,7 @@ class VISTK_PIPELINE_EXPORT process_registry
      * \param type The name of the \ref process type.
      * \param ctor The function which creates the process of the \p type.
      */
-    void register_process(type_t const& type, process_ctor_t ctor);
+    void register_process(type_t const& type, description_t const& desc, process_ctor_t ctor);
     /**
      * \brief Creates process of a specific type.
      *
@@ -76,7 +79,8 @@ class VISTK_PIPELINE_EXPORT process_registry
 
     static process_registry_t m_self;
 
-    typedef std::map<type_t, process_ctor_t> process_store_t;
+    typedef boost::tuple<description_t, process_ctor_t> process_typeinfo_t;
+    typedef std::map<type_t, process_typeinfo_t> process_store_t;
     process_store_t m_registry;
 };
 
