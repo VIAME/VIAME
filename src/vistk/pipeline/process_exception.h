@@ -103,6 +103,18 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
 };
 
 /**
+ * \class process_configuration_exception
+ *
+ * \brief Thrown when a \ref process has a configuration issue.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT process_configuration_exception
+  : public process_exception
+{
+};
+
+/**
  * \class unknown_configuration_value
  *
  * \brief Thrown when a requested configuration value does not exist.
@@ -110,7 +122,7 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
  * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT unknown_configuration_value
-  : public process_exception
+  : public process_configuration_exception
 {
   public:
     unknown_configuration_value(process::name_t const& process, config::key_t const& key) throw();
@@ -134,7 +146,7 @@ class VISTK_PIPELINE_EXPORT unknown_configuration_value
  * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT invalid_configuration_value
-  : public process_exception
+  : public process_configuration_exception
 {
   public:
     invalid_configuration_value(process::name_t const& process, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw();

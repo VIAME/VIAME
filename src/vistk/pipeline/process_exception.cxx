@@ -101,7 +101,7 @@ port_reconnect_exception
 
 unknown_configuration_value
 ::unknown_configuration_value(process::name_t const& process, config::key_t const& key) throw()
-  : process_exception()
+  : process_configuration_exception()
   , m_process(process)
   , m_key(key)
 {
@@ -128,7 +128,7 @@ unknown_configuration_value
 
 invalid_configuration_value
 ::invalid_configuration_value(process::name_t const& process, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw()
-  : process_exception()
+  : process_configuration_exception()
   , m_process(process)
   , m_key(key)
   , m_value(value)
