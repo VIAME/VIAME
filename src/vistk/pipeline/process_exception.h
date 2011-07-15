@@ -103,6 +103,26 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
 };
 
 /**
+ * \class missing_connection
+ *
+ * \brief Thrown when a connection to a port that is necessary is missing.
+ */
+class VISTK_PIPELINE_EXPORT missing_connection
+  : public port_connection_exception
+{
+  public:
+    missing_connection(process::name_t const& process, process::port_t const& port, std::string const& reason) throw();
+    ~missing_connection() throw();
+
+    /// A reason for the missing connection.
+    std::string const m_reason;
+
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class process_configuration_exception
  *
  * \brief Thrown when a \ref process has a configuration issue.

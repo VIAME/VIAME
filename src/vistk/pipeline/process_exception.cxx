@@ -99,6 +99,32 @@ port_reconnect_exception
   return m_what.c_str();
 }
 
+missing_connection
+::missing_connection(process::name_t const& process, process::port_t const& port, std::string const& reason) throw()
+  : port_connection_exception(process, port)
+  , m_reason(reason)
+{
+  std::ostringstream sstr;
+
+  sstr << "The port \'" << m_port << "\' "
+       << "on process \'" << m_process << "\' "
+       << "is not connected: " << m_reason << ".";
+
+  m_what = sstr.str();
+}
+
+missing_connection
+::~missing_connection() throw()
+{
+}
+
+char const*
+missing_connection
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 unknown_configuration_value
 ::unknown_configuration_value(process::name_t const& process, config::key_t const& key) throw()
   : process_configuration_exception()
