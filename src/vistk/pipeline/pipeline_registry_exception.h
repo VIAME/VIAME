@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_PIPELINE_REGISTRY_EXCEPTION_H
 #define VISTK_PIPELINE_PIPELINE_REGISTRY_EXCEPTION_H
 
+#include "pipeline-config.h"
+
 #include "pipeline_registry.h"
 #include "types.h"
 
@@ -22,7 +24,7 @@ namespace vistk
  *
  * \ingroup exceptions
  */
-class pipeline_registry_exception
+class VISTK_PIPELINE_EXPORT pipeline_registry_exception
   : public pipeline_exception
 {
 };
@@ -34,7 +36,7 @@ class pipeline_registry_exception
  *
  * \ingroup exceptions
  */
-class no_such_pipeline_type
+class VISTK_PIPELINE_EXPORT no_such_pipeline_type
   : public pipeline_registry_exception
 {
   public:
@@ -56,7 +58,7 @@ class no_such_pipeline_type
  *
  * \ingroup exceptions
  */
-class pipeline_type_already_exists
+class VISTK_PIPELINE_EXPORT pipeline_type_already_exists
   : public pipeline_registry_exception
 {
   public:

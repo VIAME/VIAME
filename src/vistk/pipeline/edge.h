@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_EDGE_H
 #define VISTK_PIPELINE_EDGE_H
 
+#include "pipeline-config.h"
+
 #include "types.h"
 
 #include <boost/tuple/tuple.hpp>
@@ -31,7 +33,7 @@ typedef std::vector<edge_t> edges_t;
  *
  * \ingroup base_classes
  */
-class edge
+class VISTK_PIPELINE_EXPORT edge
   : boost::noncopyable
 {
   public:

@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_PROCESS_EXCEPTION_H
 #define VISTK_PIPELINE_PROCESS_EXCEPTION_H
 
+#include "pipeline-config.h"
+
 #include "process.h"
 #include "types.h"
 
@@ -22,7 +24,7 @@ namespace vistk
  *
  * \ingroup exceptions
  */
-class process_exception
+class VISTK_PIPELINE_EXPORT process_exception
   : public pipeline_exception
 {
 };
@@ -34,7 +36,7 @@ class process_exception
  *
  * \ingroup exceptions
  */
-class port_connection_exception
+class VISTK_PIPELINE_EXPORT port_connection_exception
   : public process_exception
 {
   public:
@@ -54,7 +56,7 @@ class port_connection_exception
  *
  * \ingroup exceptions
  */
-class no_such_port_exception
+class VISTK_PIPELINE_EXPORT no_such_port_exception
   : public port_connection_exception
 {
   public:
@@ -71,7 +73,7 @@ class no_such_port_exception
  *
  * \brief Thrown when a connection to a port is given an \ref edge that is \c NULL.
  */
-class null_edge_port_connection
+class VISTK_PIPELINE_EXPORT null_edge_port_connection
   : public port_connection_exception
 {
   public:
@@ -88,7 +90,7 @@ class null_edge_port_connection
  *
  * \brief Thrown when a port that is already connected is connected to again.
  */
-class port_reconnect_exception
+class VISTK_PIPELINE_EXPORT port_reconnect_exception
   : public port_connection_exception
 {
   public:
@@ -107,7 +109,7 @@ class port_reconnect_exception
  *
  * \ingroup exceptions
  */
-class broken_pass_through_exception
+class VISTK_PIPELINE_EXPORT broken_pass_through_exception
   : public process_exception
 {
   public:
@@ -131,7 +133,7 @@ class broken_pass_through_exception
  *
  * \ingroup exceptions
  */
-class missing_input_pass_through
+class VISTK_PIPELINE_EXPORT missing_input_pass_through
   : public broken_pass_through_exception
 {
   public:
@@ -146,7 +148,7 @@ class missing_input_pass_through
  *
  * \ingroup exceptions
  */
-class missing_output_pass_through
+class VISTK_PIPELINE_EXPORT missing_output_pass_through
   : public broken_pass_through_exception
 {
   public:

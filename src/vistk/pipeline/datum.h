@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_DATUM_H
 #define VISTK_PIPELINE_DATUM_H
 
+#include "pipeline-config.h"
+
 #include "types.h"
 
 #include <boost/any.hpp>
@@ -23,7 +25,7 @@ namespace vistk
  *
  * \ingroup base_classes
  */
-class datum
+class VISTK_PIPELINE_EXPORT datum
 {
   public:
     /// Information about an error that occurred within a process.
@@ -91,7 +93,7 @@ class datum
  *
  * \brief The base class for all exceptions thrown from \ref datum.
  */
-class datum_exception
+class VISTK_PIPELINE_EXPORT datum_exception
   : public pipeline_exception
 {
 };
@@ -101,7 +103,7 @@ class datum_exception
  *
  * \brief Thrown when the \ref datum cannot be converted to the requested type.
  */
-class bad_datum_cast
+class VISTK_PIPELINE_EXPORT bad_datum_cast
   : public datum_exception
 {
   public:

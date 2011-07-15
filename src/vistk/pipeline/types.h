@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_TYPES_H
 #define VISTK_PIPELINE_TYPES_H
 
+#include "pipeline-config.h"
+
 #include <boost/shared_ptr.hpp>
 
 #include <exception>
@@ -63,7 +65,7 @@ typedef boost::shared_ptr<stamp const> stamp_t;
  *
  * \ingroup exceptions
  */
-class pipeline_exception
+class VISTK_PIPELINE_EXPORT pipeline_exception
   : public std::exception
 {
 };

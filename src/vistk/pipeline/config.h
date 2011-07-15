@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_CONFIG_H
 #define VISTK_PIPELINE_CONFIG_H
 
+#include "pipeline-config.h"
+
 #include "types.h"
 
 #include <boost/lexical_cast.hpp>
@@ -27,7 +29,7 @@ namespace vistk
  *
  * \ingroup base_classes
  */
-class config
+class VISTK_PIPELINE_EXPORT config
   : boost::noncopyable
 {
   public:
@@ -130,7 +132,7 @@ class config
  *
  * \brief The base class for all exceptions thrown from \ref config.
  */
-class configuration_exception
+class VISTK_PIPELINE_EXPORT configuration_exception
   : public pipeline_exception
 {
   public:
@@ -143,7 +145,7 @@ class configuration_exception
  *
  * \brief Thrown when a value is requested for a value which does not exist.
  */
-class no_such_configuration_value
+class VISTK_PIPELINE_EXPORT no_such_configuration_value
   : public configuration_exception
 {
   public:
@@ -163,7 +165,7 @@ class no_such_configuration_value
  *
  * \brief Thrown when a value cannot be converted to the requested type.
  */
-class bad_configuration_cast
+class VISTK_PIPELINE_EXPORT bad_configuration_cast
   : public configuration_exception
 {
   public:

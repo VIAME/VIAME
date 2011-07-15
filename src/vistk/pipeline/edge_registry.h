@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_EDGE_REGISTRY_H
 #define VISTK_PIPELINE_EDGE_REGISTRY_H
 
+#include "pipeline-config.h"
+
 #include "types.h"
 
 #include <boost/function.hpp>
@@ -28,7 +30,7 @@ typedef boost::function<edge_t (config_t const& config)> edge_ctor_t;
  *
  * \ingroup registries
  */
-class edge_registry
+class VISTK_PIPELINE_EXPORT edge_registry
 {
   public:
     /// The type of registry keys.

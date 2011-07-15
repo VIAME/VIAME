@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_PIPELINE_EXCEPTION_H
 #define VISTK_PIPELINE_PIPELINE_EXCEPTION_H
 
+#include "pipeline-config.h"
+
 #include "process.h"
 #include "types.h"
 
@@ -22,7 +24,7 @@ namespace vistk
  *
  * \ingroup exceptions
  */
-class pipeline_addition_exception
+class VISTK_PIPELINE_EXPORT pipeline_addition_exception
   : public pipeline_exception
 {
 };
@@ -34,7 +36,7 @@ class pipeline_addition_exception
  *
  * \ingroup exceptions
  */
-class null_process_addition
+class VISTK_PIPELINE_EXPORT null_process_addition
   : public pipeline_addition_exception
 {
   public:
@@ -53,7 +55,7 @@ class null_process_addition
  *
  * \ingroup exceptions
  */
-class duplicate_process_name
+class VISTK_PIPELINE_EXPORT duplicate_process_name
   : public pipeline_addition_exception
 {
   public:
@@ -75,7 +77,7 @@ class duplicate_process_name
  *
  * \ingroup exceptions
  */
-class pipeline_connection_exception
+class VISTK_PIPELINE_EXPORT pipeline_connection_exception
   : public pipeline_exception
 {
 };
@@ -87,7 +89,7 @@ class pipeline_connection_exception
  *
  * \ingroup exceptions
  */
-class null_edge_connection
+class VISTK_PIPELINE_EXPORT null_edge_connection
   : public pipeline_connection_exception
 {
   public:
@@ -118,7 +120,7 @@ class null_edge_connection
  *
  * \ingroup exceptions
  */
-class no_such_process
+class VISTK_PIPELINE_EXPORT no_such_process
   : public pipeline_connection_exception
 {
   public:

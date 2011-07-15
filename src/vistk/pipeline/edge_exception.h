@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_EDGE_EXCEPTION_H
 #define VISTK_PIPELINE_EDGE_EXCEPTION_H
 
+#include "pipeline-config.h"
+
 #include "edge.h"
 #include "process.h"
 #include "types.h"
@@ -23,7 +25,7 @@ namespace vistk
  *
  * \ingroup exceptions
  */
-class edge_exception
+class VISTK_PIPELINE_EXPORT edge_exception
   : public pipeline_exception
 {
 };
@@ -35,7 +37,7 @@ class edge_exception
  *
  * \ingroup exceptions
  */
-class edge_connection_exception
+class VISTK_PIPELINE_EXPORT edge_connection_exception
   : public edge_exception
 {
 };
@@ -47,7 +49,7 @@ class edge_connection_exception
  *
  * \ingroup exceptions
  */
-class null_process_connection
+class VISTK_PIPELINE_EXPORT null_process_connection
   : public edge_connection_exception
 {
   public:
@@ -66,7 +68,7 @@ class null_process_connection
  *
  * \ingroup exceptions
  */
-class duplicate_edge_connection_exception
+class VISTK_PIPELINE_EXPORT duplicate_edge_connection_exception
   : public edge_connection_exception
 {
   public:
@@ -90,7 +92,7 @@ class duplicate_edge_connection_exception
  *
  * \ingroup exceptions
  */
-class input_already_connected
+class VISTK_PIPELINE_EXPORT input_already_connected
   : public duplicate_edge_connection_exception
 {
   public:
@@ -105,7 +107,7 @@ class input_already_connected
  *
  * \ingroup exceptions
  */
-class output_already_connected
+class VISTK_PIPELINE_EXPORT output_already_connected
   : public duplicate_edge_connection_exception
 {
   public:

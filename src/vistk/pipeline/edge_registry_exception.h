@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_EDGE_REGISTRY_EXCEPTION_H
 #define VISTK_PIPELINE_EDGE_REGISTRY_EXCEPTION_H
 
+#include "pipeline-config.h"
+
 #include "edge_registry.h"
 #include "types.h"
 
@@ -22,7 +24,7 @@ namespace vistk
  *
  * \ingroup exceptions
  */
-class edge_registry_exception
+class VISTK_PIPELINE_EXPORT edge_registry_exception
   : public pipeline_exception
 {
 };
@@ -34,7 +36,7 @@ class edge_registry_exception
  *
  * \ingroup exceptions
  */
-class no_such_edge_type
+class VISTK_PIPELINE_EXPORT no_such_edge_type
   : public edge_registry_exception
 {
   public:
@@ -56,7 +58,7 @@ class no_such_edge_type
  *
  * \ingroup exceptions
  */
-class edge_type_already_exists
+class VISTK_PIPELINE_EXPORT edge_type_already_exists
   : public edge_registry_exception
 {
   public:

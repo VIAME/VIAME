@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_STAMP_H
 #define VISTK_PIPELINE_STAMP_H
 
+#include "pipeline-config.h"
+
 #include "types.h"
 
 #include <boost/cstdint.hpp>
@@ -30,7 +32,7 @@ namespace vistk
  * of the desired color, so the separate data streams can eventually be
  * reconciled.
  */
-class stamp
+class VISTK_PIPELINE_EXPORT stamp
   : boost::noncopyable
 {
   public:

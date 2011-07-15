@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_PIPELINE_H
 #define VISTK_PIPELINE_PIPELINE_H
 
+#include "pipeline-config.h"
+
 #include "process.h"
 #include "types.h"
 
@@ -25,7 +27,7 @@ namespace vistk
  *
  * \ingroup base_classes
  */
-class pipeline
+class VISTK_PIPELINE_EXPORT pipeline
   : boost::noncopyable
 {
   public:

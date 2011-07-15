@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_PROCESS_H
 #define VISTK_PIPELINE_PROCESS_H
 
+#include "pipeline-config.h"
+
 #include "edge.h"
 #include "process_registry.h"
 #include "types.h"
@@ -29,7 +31,7 @@ typedef std::vector<process_t> processes_t;
  *
  * \ingroup base_classes
  */
-class process
+class VISTK_PIPELINE_EXPORT process
   : boost::noncopyable
 {
   public:

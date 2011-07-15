@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINE_PROCESS_REGISTRY_H
 #define VISTK_PIPELINE_PROCESS_REGISTRY_H
 
+#include "pipeline-config.h"
+
 #include "types.h"
 
 #include <boost/function.hpp>
@@ -28,7 +30,7 @@ typedef boost::function<process_t (config_t const& config)> process_ctor_t;
  *
  * \ingroup registries
  */
-class process_registry
+class VISTK_PIPELINE_EXPORT process_registry
 {
   public:
     /// The type of registry keys.
