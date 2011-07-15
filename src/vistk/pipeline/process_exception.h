@@ -103,23 +103,51 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
 };
 
 /**
- * \class no_such_configuration_value
+ * \class unknown_configuration_value
  *
  * \brief Thrown when a requested configuration value does not exist.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_such_configuration_value
+class VISTK_PIPELINE_EXPORT unknown_configuration_value
   : public process_exception
 {
   public:
-    no_such_configuration_value(process::name_t const& process, config::key_t const& key) throw();
-    ~no_such_configuration_value() throw();
+    unknown_configuration_value(process::name_t const& process, config::key_t const& key) throw();
+    ~unknown_configuration_value() throw();
 
     /// The name of the \ref process which was connected to.
     process::name_t const m_process;
     /// The name of the key which was given.
     config::key_t const m_key;
+
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
+ * \class invalid_configuration_value
+ *
+ * \brief Thrown when a configuration value has an invalid value.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT invalid_configuration_value
+  : public process_exception
+{
+  public:
+    invalid_configuration_value(process::name_t const& process, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw();
+    ~invalid_configuration_value() throw();
+
+    /// The name of the \ref process which was connected to.
+    process::name_t const m_process;
+    /// The name of the key which was given.
+    config::key_t const m_key;
+    /// The invalid value.
+    config::value_t const m_value;
+    /// A description of the key.
+    config::description_t const m_desc;
 
     char const* what() const throw();
   private:

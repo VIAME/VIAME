@@ -99,8 +99,8 @@ port_reconnect_exception
   return m_what.c_str();
 }
 
-no_such_configuration_value
-::no_such_configuration_value(process::name_t const& process, config::key_t const& key) throw()
+unknown_configuration_value
+::unknown_configuration_value(process::name_t const& process, config::key_t const& key) throw()
   : process_exception()
   , m_process(process)
   , m_key(key)
@@ -114,13 +114,43 @@ no_such_configuration_value
   m_what = sstr.str();
 }
 
-no_such_port_exception
-::~no_such_port_exception() throw()
+unknown_configuration_value
+::~unknown_configuration_value() throw()
 {
 }
 
 char const*
-no_such_port_exception
+unknown_configuration_value
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
+invalid_configuration_value
+::invalid_configuration_value(process::name_t const& process, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw()
+  : process_exception()
+  , m_process(process)
+  , m_key(key)
+  , m_value(value)
+  , m_desc(desc)
+{
+  std::ostringstream sstr;
+
+  sstr << "The configuration value \'" << m_key << "\' "
+       << "on process \'" << m_process << "\' "
+       << "was set to an invalid value \'" << m_value << "\'. "
+       << "A description of the value is: " << m_desc << ".";
+
+  m_what = sstr.str();
+}
+
+invalid_configuration_value
+::~invalid_configuration_value() throw()
+{
+}
+
+char const*
+invalid_configuration_value
 ::what() const throw()
 {
   return m_what.c_str();
