@@ -80,7 +80,6 @@ class VISTK_PIPELINE_EXPORT config
      */
     template <typename T>
     T get_value(key_t const& key) const;
-
     /**
      * \brief Casts the value, returning a default value in case of an error.
      *
@@ -111,6 +110,11 @@ class VISTK_PIPELINE_EXPORT config
      * \param key The index of the configuration value to check.
      */
     bool has_value(key_t const& key) const;
+
+    /// The separator character between blocks.
+    static char const block_sep;
+    /// The magic group for global parameters.
+    static key_t const global_value;
   private:
     config(key_t const& name, config* parent = NULL);
 
@@ -122,9 +126,6 @@ class VISTK_PIPELINE_EXPORT config
     config* m_parent;
     key_t m_name;
     store_t m_store;
-
-    static char const BLOCK_SEP;
-    static key_t const GLOBAL_VALUE;
 };
 
 /**

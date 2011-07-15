@@ -14,8 +14,8 @@
 namespace vistk
 {
 
-char const config::BLOCK_SEP = ':';
-config::key_t const config::GLOBAL_VALUE = key_t("_global");
+char const config::block_sep = ':';
+config::key_t const config::global_value = key_t("_global");
 
 config_t
 config
@@ -34,8 +34,8 @@ config
 ::subblock(key_t const& key) const
 {
   config_t config = empty_config(key);
-  key_t const block_start = key + BLOCK_SEP;
-  key_t const global_start = GLOBAL_VALUE + BLOCK_SEP;
+  key_t const block_start = key + block_sep;
+  key_t const global_start = global_value + block_sep;
 
   store_t::const_iterator i = m_store.begin();
   store_t::const_iterator i_end = m_store.end();
@@ -68,7 +68,7 @@ config
 {
   if (m_parent)
   {
-    m_parent->set_value(m_name + BLOCK_SEP + key, value);
+    m_parent->set_value(m_name + block_sep + key, value);
   }
   else
   {
@@ -82,7 +82,7 @@ config
 {
   if (m_parent)
   {
-    m_parent->unset_value(m_name + BLOCK_SEP + key);
+    m_parent->unset_value(m_name + block_sep + key);
   }
   else
   {
@@ -96,7 +96,7 @@ config
 {
   if (m_parent)
   {
-    return m_parent->has_value(m_name + BLOCK_SEP + key);
+    return m_parent->has_value(m_name + block_sep + key);
   }
 
   return (m_store.find(key) != m_store.end());
@@ -128,7 +128,7 @@ config
 {
   if (m_parent)
   {
-    return m_parent->get_value(m_name + BLOCK_SEP + key);
+    return m_parent->get_value(m_name + block_sep + key);
   }
 
   store_t::const_iterator i = m_store.find(key);
