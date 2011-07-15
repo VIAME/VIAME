@@ -38,6 +38,8 @@ class VISTK_PIPELINE_EXPORT config
     typedef std::string key_t;
     /// The type that represents a collection of configuration keys.
     typedef std::vector<key_t> keys_t;
+    /// The type that represents a description of a configuration key.
+    typedef std::string description_t;
     /// The type that represents a stored configuration value.
     typedef std::string value_t;
 
