@@ -14,7 +14,6 @@
 #include <boost/utility.hpp>
 
 #include <map>
-#include <sstream>
 #include <string>
 #include <typeinfo>
 
