@@ -25,6 +25,7 @@ set(pipeline_headers
   edge_registry.h
   edge_registry_exception.h
   modules.h
+  pipeline-config.h
   pipeline.h
   pipeline_exception.h
   pipeline_registry.h
@@ -38,6 +39,11 @@ set(pipeline_headers
 
 add_library(vistk_pipeline
   ${pipeline_srcs})
+set_target_properties(vistk_pipeline
+  PROPERTIES
+    VERSION       ${vistk_version}
+    SOVERSION     0
+    DEFINE_SYMBOL MAKE_VISTK_PIPELINE_LIB)
 
 if (VISTK_ENABLE_DOCUMENTATION)
   create_doxygen(
