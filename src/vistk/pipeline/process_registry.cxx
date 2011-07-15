@@ -9,6 +9,8 @@
 
 #include "types.h"
 
+#include <boost/foreach.hpp>
+
 #include <utility>
 
 namespace vistk
@@ -49,7 +51,14 @@ process_registry::types_t
 process_registry
 ::types() const
 {
-  /// \todo Return all known types.
+  types_t types;
+
+  BOOST_FOREACH (process_store_t::value_type const& entry, m_registry)
+  {
+    types.push_back(entry.first);
+  }
+
+  return types;
 }
 
 process_registry_t

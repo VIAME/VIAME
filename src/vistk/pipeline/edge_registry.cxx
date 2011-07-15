@@ -7,6 +7,8 @@
 #include "edge_registry.h"
 #include "edge_registry_exception.h"
 
+#include <boost/foreach.hpp>
+
 namespace vistk
 {
 
@@ -46,7 +48,14 @@ edge_registry::types_t
 edge_registry
 ::types() const
 {
-  /// \todo Return all known types.
+  types_t types;
+
+  BOOST_FOREACH (edge_store_t::value_type const& entry, m_registry)
+  {
+    types.push_back(entry.first);
+  }
+
+  return types;
 }
 
 edge_registry_t

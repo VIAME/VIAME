@@ -7,6 +7,8 @@
 #include "pipeline_registry.h"
 #include "pipeline_registry_exception.h"
 
+#include <boost/foreach.hpp>
+
 namespace vistk
 {
 
@@ -46,7 +48,14 @@ pipeline_registry::types_t
 pipeline_registry
 ::types() const
 {
-  /// \todo Return all known types.
+  types_t types;
+
+  BOOST_FOREACH (pipeline_store_t::value_type const& entry, m_registry)
+  {
+    types.push_back(entry.first);
+  }
+
+  return types;
 }
 
 pipeline_registry_t
