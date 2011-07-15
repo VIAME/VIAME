@@ -7,6 +7,10 @@
 #include "pipeline.h"
 #include "pipeline_exception.h"
 
+#include <boost/foreach.hpp>
+
+#include <set>
+
 namespace vistk
 {
 
@@ -98,38 +102,90 @@ pipeline
 
 processes_t
 pipeline
-::upstream_for_process(process::name_t const& /*name*/) const
+::upstream_for_process(process::name_t const& name) const
 {
-  /// \todo Find upstream processes of another process.
+  std::set<process::name_t> process_names;
 
-  return processes_t();
+  BOOST_FOREACH (connection_t const& connection, m_connections)
+  {
+    if (connection.second.first == name)
+    {
+      process::name_t const& upstream_name = connection.first.first;
+
+      process_names.insert(upstream_name);
+    }
+  }
+
+  processes_t processes;
+
+  BOOST_FOREACH (process::name_t const& process_name, process_names)
+  {
+    process_map_t::const_iterator i = m_process_map.find(process_name);
+
+    processes.push_back(i->second);
+  }
+
+  return processes;
 }
 
 processes_t
 pipeline
-::downstream_for_process(process::name_t const& /*name*/) const
+::downstream_for_process(process::name_t const& name) const
 {
-  /// \todo Find downstream processes of another process.
+  std::set<process::name_t> process_names;
 
-  return processes_t();
+  BOOST_FOREACH (connection_t const& connection, m_connections)
+  {
+    if (connection.first.first == name)
+    {
+      process_names.insert(connection.second.first);
+    }
+  }
+
+  processes_t processes;
+
+  BOOST_FOREACH (process::name_t const& process_name, process_names)
+  {
+    process_map_t::const_iterator i = m_process_map.find(process_name);
+
+    processes.push_back(i->second);
+  }
+
+  return processes;
 }
 
 edges_t
 pipeline
-::input_edges_for_process(process::name_t const& /*name*/) const
+::input_edges_for_process(process::name_t const& name) const
 {
-  /// \todo Find input edges for a given process.
+  edges_t edges;
 
-  return edges_t();
+  BOOST_FOREACH (edge_map_t::value_type const& edge_index, m_edge_map)
+  {
+    if (m_connections[edge_index.first].second.first == name)
+    {
+      edges.push_back(edge_index.second);
+    }
+  }
+
+  return edges;
 }
 
 edges_t
 pipeline
-::output_edges_for_process(process::name_t const& /*name*/) const
+::output_edges_for_process(process::name_t const& name) const
 {
-  /// \todo Find output edges for a given process.
+  edges_t edges;
 
-  return edges_t();
+  BOOST_FOREACH (edge_map_t::value_type const& edge_index, m_edge_map)
+  {
+    if (m_connections[edge_index.first].first.first == name)
+    {
+      edges.push_back(edge_index.second);
+    }
+  }
+
+  return edges;
 }
 
 void
