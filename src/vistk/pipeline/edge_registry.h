@@ -63,7 +63,7 @@ class VISTK_PIPELINE_EXPORT edge_registry
      * \param type The name of the type of \ref edge to create.
      * \param config The configuration to pass the \ref edge.
      */
-    edge_t create_edge(type_t const& type, config_t const& config);
+    edge_t create_edge(type_t const& type, config_t const& config) const;
 
     /**
      * \brief Returns all of the known types.

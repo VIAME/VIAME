@@ -34,14 +34,16 @@ edge_registry
 
 edge_t
 edge_registry
-::create_edge(type_t const& type, config_t const& config)
+::create_edge(type_t const& type, config_t const& config) const
 {
-  if (m_registry.find(type) == m_registry.end())
+  edge_store_t::const_iterator const i = m_registry.find(type);
+
+  if (i == m_registry.end())
   {
     throw no_such_edge_type(type);
   }
 
-  return m_registry[type].get<1>()(config);
+  return i->second.get<1>()(config);
 }
 
 edge_registry::types_t

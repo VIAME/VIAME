@@ -63,7 +63,7 @@ class VISTK_PIPELINE_EXPORT process_registry
      * \param type The name of the type of \ref process to create.
      * \param config The configuration to pass the \ref process.
      */
-    process_t create_process(type_t const& type, config_t const& config);
+    process_t create_process(type_t const& type, config_t const& config) const;
 
     /**
      * \brief Returns all of the known types.

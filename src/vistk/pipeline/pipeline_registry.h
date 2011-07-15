@@ -63,7 +63,7 @@ class VISTK_PIPELINE_EXPORT pipeline_registry
      * \param type The name of the type of \ref pipeline to create.
      * \param config The configuration to pass the \ref pipeline.
      */
-    pipeline_t create_pipeline(type_t const& type, config_t const& config);
+    pipeline_t create_pipeline(type_t const& type, config_t const& config) const;
 
     /**
      * \brief Returns all of the known types.

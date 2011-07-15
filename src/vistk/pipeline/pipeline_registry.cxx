@@ -34,14 +34,16 @@ pipeline_registry
 
 pipeline_t
 pipeline_registry
-::create_pipeline(type_t const& type, config_t const& config)
+::create_pipeline(type_t const& type, config_t const& config) const
 {
-  if (m_registry.find(type) == m_registry.end())
+  pipeline_store_t::const_iterator const i = m_registry.find(type);
+
+  if (i == m_registry.end())
   {
     throw no_such_pipeline_type(type);
   }
 
-  return m_registry[type].get<1>()(config);
+  return i->second.get<1>()(config);
 }
 
 pipeline_registry::types_t

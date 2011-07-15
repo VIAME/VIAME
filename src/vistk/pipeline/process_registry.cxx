@@ -37,14 +37,16 @@ process_registry
 
 process_t
 process_registry
-::create_process(type_t const& type, config_t const& config)
+::create_process(type_t const& type, config_t const& config) const
 {
-  if (m_registry.find(type) == m_registry.end())
+  process_store_t::const_iterator const i = m_registry.find(type);
+
+  if (i == m_registry.end())
   {
     throw no_such_process_type(type);
   }
 
-  return m_registry[type].get<1>()(config);
+  return i->second.get<1>()(config);
 }
 
 process_registry::types_t
