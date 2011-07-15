@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINES_EXAMPLES_THREAD_POOL_PIPELINE_H
 #define VISTK_PIPELINES_EXAMPLES_THREAD_POOL_PIPELINE_H
 
+#include "examples-config.h"
+
 #include <vistk/pipeline/pipeline.h>
 
 #include <boost/shared_ptr.hpp>
@@ -19,7 +21,7 @@ namespace vistk
  *
  * \brief A pipeline which process execution among a group of threads.
  */
-class thread_pool_pipeline
+class VISTK_PIPELINES_EXAMPLES_NO_EXPORT thread_pool_pipeline
   : public pipeline
 {
   public:

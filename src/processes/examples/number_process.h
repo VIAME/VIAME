@@ -7,6 +7,8 @@
 #ifndef VISTK_PROCESSES_EXAMPLES_NUMBER_PROCESS_H
 #define VISTK_PROCESSES_EXAMPLES_NUMBER_PROCESS_H
 
+#include "examples-config.h"
+
 #include <vistk/pipeline/process.h>
 
 namespace vistk
@@ -17,7 +19,7 @@ namespace vistk
  *
  * \brief A connection between two process ports which can carry data.
  */
-class number_process
+class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
   : public process
 {
   public:

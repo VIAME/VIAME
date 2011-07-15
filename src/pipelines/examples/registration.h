@@ -7,10 +7,12 @@
 #ifndef VISTK_PIPELINES_EXAMPLES_REGISTRATION_H
 #define VISTK_PIPELINES_EXAMPLES_REGISTRATION_H
 
+#include "examples-config.h"
+
 extern "C"
 {
 
-void register_pipelines();
+void VISTK_PIPELINE_CORE_EXPORT register_pipelines();
 
 }
 

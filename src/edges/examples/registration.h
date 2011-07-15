@@ -7,10 +7,12 @@
 #ifndef VISTK_EDGES_EXAMPLES_REGISTRATION_H
 #define VISTK_EDGES_EXAMPLES_REGISTRATION_H
 
+#include "examples-config.h"
+
 extern "C"
 {
 
-void register_edges();
+void VISTK_PIPELINE_CORE_EXPORT register_edges();
 
 }
 

@@ -7,10 +7,12 @@
 #ifndef VISTK_PROCESSES_EXAMPLES_REGISTRATION_H
 #define VISTK_PROCESSES_EXAMPLES_REGISTRATION_H
 
+#include "examples-config.h"
+
 extern "C"
 {
 
-void register_processes();
+void VISTK_PROCESSES_EXAMPLES_EXPORT register_processes();
 
 }
 

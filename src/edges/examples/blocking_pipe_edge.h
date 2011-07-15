@@ -7,6 +7,8 @@
 #ifndef VISTK_EDGES_EXAMPLES_BLOCKING_PIPE_EDGE_H
 #define VISTK_EDGES_EXAMPLES_BLOCKING_PIPE_EDGE_H
 
+#include "examples-config.h"
+
 #include <vistk/pipeline/edge.h>
 
 #include <boost/shared_ptr.hpp>
@@ -19,7 +21,7 @@ namespace vistk
  *
  * \brief A connection between two process ports which can carry data.
  */
-class blocking_pipe_edge
+class VISTK_EDGES_EXAMPLES_NO_EXPORT blocking_pipe_edge
   : public edge
 {
   public:

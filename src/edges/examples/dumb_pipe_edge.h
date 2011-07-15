@@ -7,6 +7,8 @@
 #ifndef VISTK_EDGES_EXAMPLES_DUMB_PIPE_EDGE_H
 #define VISTK_EDGES_EXAMPLES_DUMB_PIPE_EDGE_H
 
+#include "examples-config.h"
+
 #include <vistk/pipeline/edge.h>
 
 namespace vistk
@@ -17,7 +19,7 @@ namespace vistk
  *
  * \brief A connection between two process ports which can carry data.
  */
-class dumb_pipe_edge
+class VISTK_EDGES_EXAMPLES_NO_EXPORT dumb_pipe_edge
   : public edge
 {
   public:

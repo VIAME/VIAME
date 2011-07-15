@@ -7,6 +7,8 @@
 #ifndef VISTK_PIPELINES_EXAMPLES_THREAD_PER_PROCESS_PIPELINE_H
 #define VISTK_PIPELINES_EXAMPLES_THREAD_PER_PROCESS_PIPELINE_H
 
+#include "examples-config.h"
+
 #include <vistk/pipeline/pipeline.h>
 
 #include <boost/shared_ptr.hpp>
@@ -19,7 +21,7 @@ namespace vistk
  *
  * \brief A pipeline which runs each process in its own thread.
  */
-class thread_per_process_pipeline
+class VISTK_PIPELINES_EXAMPLES_NO_EXPORT thread_per_process_pipeline
   : public pipeline
 {
   public:
