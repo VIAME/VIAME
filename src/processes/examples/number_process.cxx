@@ -33,14 +33,14 @@ class number_process::priv
     static number_t const DEFAULT_END_VALUE;
     static config::key_t const START_CONFIG_NAME;
     static config::key_t const END_CONFIG_NAME;
-    static port_t const output_port_name;
+    static port_t const OUTPUT_PORT_NAME;
 };
 
 number_process::priv::number_t const number_process::priv::DEFAULT_START_VALUE = 0;
 number_process::priv::number_t const number_process::priv::DEFAULT_END_VALUE = 100;
 config::key_t const number_process::priv::START_CONFIG_NAME = config::key_t("start");
 config::key_t const number_process::priv::END_CONFIG_NAME = config::key_t("end");
-process::port_t const number_process::priv::output_port_name = process::port_t("number");
+process::port_t const number_process::priv::OUTPUT_PORT_NAME = process::port_t("number");
 
 number_process
 ::number_process(config_t const& config)
@@ -105,7 +105,7 @@ number_process
   // Ensure the output port is connected.
   if (!d->output_edges.size())
   {
-    throw missing_connection(name(), d->output_port_name, "The " + type() + " process is not much use without something out output to");
+    throw missing_connection(name(), priv::OUTPUT_PORT_NAME, "The " + type() + " process is not much use without something out output to");
   }
 }
 
@@ -138,7 +138,7 @@ void
 number_process
 ::_connect_output_port(port_t const& port, edge_t edge)
 {
-  if (port == d->output_port_name)
+  if (port == priv::OUTPUT_PORT_NAME)
   {
     d->output_edges.push_back(edge);
   }
@@ -152,7 +152,7 @@ number_process
 {
   ports_t ports;
 
-  ports.push_back(d->output_port_name);
+  ports.push_back(priv::OUTPUT_PORT_NAME);
 
   return ports;
 }
