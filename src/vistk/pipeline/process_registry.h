@@ -52,6 +52,7 @@ class VISTK_PIPELINE_EXPORT process_registry
      * \throws process_type_already_exists Thrown if the type already exists.
      *
      * \param type The name of the \ref process type.
+     * \param desc A description of the type.
      * \param ctor The function which creates the process of the \p type.
      */
     void register_process(type_t const& type, description_t const& desc, process_ctor_t ctor);
@@ -71,6 +72,8 @@ class VISTK_PIPELINE_EXPORT process_registry
     types_t types() const;
     /**
      * \brief Returns the description for a type.
+     *
+     * \param type The name of the type to description.
      */
     description_t description(type_t const& type) const;
 

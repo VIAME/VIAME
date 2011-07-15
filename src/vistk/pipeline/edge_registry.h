@@ -52,6 +52,7 @@ class VISTK_PIPELINE_EXPORT edge_registry
      * \throws edge_type_already_exists Thrown if the type already exists.
      *
      * \param type The name of the \ref edge type.
+     * \param desc A description of the type.
      * \param ctor The function which creates the edge of the \p type.
      */
     void register_edge(type_t const& type, description_t const& desc, edge_ctor_t ctor);
@@ -71,6 +72,8 @@ class VISTK_PIPELINE_EXPORT edge_registry
     types_t types() const;
     /**
      * \brief Returns the description for a type.
+     *
+     * \param type The name of the type to description.
      */
     description_t description(type_t const& type) const;
 

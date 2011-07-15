@@ -52,6 +52,7 @@ class VISTK_PIPELINE_EXPORT pipeline_registry
      * \throws pipeline_type_already_exists Thrown if the type already exists.
      *
      * \param type The name of the \ref pipeline type.
+     * \param desc A description of the type.
      * \param ctor The function which creates the pipeline of the \p type.
      */
     void register_pipeline(type_t const& type, description_t const& desc, pipeline_ctor_t ctor);
@@ -71,6 +72,8 @@ class VISTK_PIPELINE_EXPORT pipeline_registry
     types_t types() const;
     /**
      * \brief Returns the description for a type.
+     *
+     * \param type The name of the type to description.
      */
     description_t description(type_t const& type) const;
 
