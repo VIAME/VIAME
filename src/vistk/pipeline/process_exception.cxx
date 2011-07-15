@@ -182,4 +182,30 @@ invalid_configuration_value
   return m_what.c_str();
 }
 
+invalid_configuration
+::invalid_configuration(process::name_t const& process, std::string const& reason) throw()
+  : process_configuration_exception()
+  , m_process(process)
+  , m_reason(reason)
+{
+  std::ostringstream sstr;
+
+  sstr << "The process \'" << m_process << "\' "
+       << "has a configuration issue: " << m_reason << ".";
+
+  m_what = sstr.str();
+}
+
+invalid_configuration
+::~invalid_configuration() throw()
+{
+}
+
+char const*
+invalid_configuration
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 } // end namespace vistk

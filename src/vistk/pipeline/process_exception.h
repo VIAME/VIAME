@@ -186,6 +186,30 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_value
     std::string m_what;
 };
 
+/**
+ * \class invalid_configuration
+ *
+ * \brief Thrown when a configuration for a \ref process is invalid.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT invalid_configuration
+  : public process_configuration_exception
+{
+  public:
+    invalid_configuration(process::name_t const& process, std::string const& reason) throw();
+    ~invalid_configuration() throw();
+
+    /// The name of the \ref process which was connected to.
+    process::name_t const m_process;
+    /// A reason for the invalid configuration.
+    std::string const m_reason;
+
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
 } // end namespace vistk
 
 #endif // VISTK_PIPELINE_PROCESS_EXCEPTION_H
