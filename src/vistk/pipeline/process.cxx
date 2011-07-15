@@ -44,10 +44,12 @@ class process::priv
 
     static port_t const HEARTBEAT_PORT_NAME;
     static config::key_t const NAME_CONFIG_KEY;
+    static config::value_t const DEFAULT_PROCESS_NAME;
 };
 
 process::port_t const process::priv::HEARTBEAT_PORT_NAME = "heartbeat";
 config::key_t const process::priv::NAME_CONFIG_KEY = "_name";
+config::key_t const process::priv::DEFAULT_PROCESS_NAME = "(unnamed)";
 
 void
 process
@@ -144,7 +146,7 @@ process
 ::process(config_t const& config)
   : d(new priv)
 {
-  d->name = config->get_value<name_t>(priv::NAME_CONFIG_KEY, "(unnamed)");
+  d->name = config->get_value<name_t>(priv::NAME_CONFIG_KEY, priv::DEFAULT_PROCESS_NAME);
 }
 
 process
