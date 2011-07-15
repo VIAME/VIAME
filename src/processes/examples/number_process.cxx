@@ -63,13 +63,13 @@ number_process
   // Check the configuration.
   if (d->end <= d->start)
   {
-    /// \todo Throw an exception for a misconfiguration.
+    throw invalid_configuration(name(), "The start value must be greater than the end value");
   }
 
   // Ensure the output port is connected.
   if (!d->output_edges.size())
   {
-    /// \todo Throw an exception due to a port not being connected.
+    throw missing_connection(name(), d->output_port_name, "The " + type() + " process is not much use without something out output to");
   }
 }
 
