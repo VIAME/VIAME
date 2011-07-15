@@ -99,6 +99,33 @@ port_reconnect_exception
   return m_what.c_str();
 }
 
+no_such_configuration_value
+::no_such_configuration_value(process::name_t const& process, config::key_t const& key) throw()
+  : process_exception()
+  , m_process(process)
+  , m_key(key)
+{
+  std::ostringstream sstr;
+
+  sstr << "The configuration value \'" << m_key << "\' "
+       << "on process \'" << m_process << "\' "
+       << "does not exist.";
+
+  m_what = sstr.str();
+}
+
+no_such_port_exception
+::~no_such_port_exception() throw()
+{
+}
+
+char const*
+no_such_port_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 broken_pass_through_exception
 ::broken_pass_through_exception(process::name_t const& process, process::port_t const& port, std::string const& type) throw()
   : process_exception()

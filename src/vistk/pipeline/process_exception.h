@@ -103,6 +103,30 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
 };
 
 /**
+ * \class no_such_configuration_value
+ *
+ * \brief Thrown when a requested configuration value does not exist.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT no_such_configuration_value
+  : public process_exception
+{
+  public:
+    no_such_configuration_value(process::name_t const& process, config::key_t const& key) throw();
+    ~no_such_configuration_value() throw();
+
+    /// The name of the \ref process which was connected to.
+    process::name_t const m_process;
+    /// The name of the key which was given.
+    config::key_t const m_key;
+
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class broken_pass_through_exception
  *
  * \brief Thrown when a pass-through port is missing in input or an output connection.

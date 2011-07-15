@@ -121,6 +121,18 @@ process
   return ports;
 }
 
+config::description_t
+process
+::config_description(config::key_t const& key) const
+{
+  if (key == priv::NAME_CONFIG_KEY)
+  {
+    return config::description_t("The name of the process");
+  }
+
+  throw unknown_configuration_value(d->name, key);
+}
+
 process::name_t
 process
 ::name() const

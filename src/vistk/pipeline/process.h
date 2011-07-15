@@ -10,6 +10,7 @@
 #include "pipeline-config.h"
 
 #include "edge.h"
+#include "config.h"
 #include "process_registry.h"
 #include "types.h"
 
@@ -77,6 +78,19 @@ class VISTK_PIPELINE_EXPORT process
      * \brief A list of output ports available on the process.
      */
     ports_t output_ports() const;
+
+    /**
+     * \brief Request available configuration options for the process.
+     */
+    virtual config::keys_t available_config() const = 0;
+    /**
+     * \brief Request available configuration options for the process.
+     *
+     * \throws no_such_configuration_value Thrown when \p key is not a valid configuration key.
+     *
+     * \param key The name of the configuration value to describe.
+     */
+    virtual config::description_t config_description(config::key_t const& key) const;
 
     /**
      * \brief The name of the process.
