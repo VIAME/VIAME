@@ -84,6 +84,14 @@ class VISTK_PIPELINE_EXPORT process
      */
     virtual config::keys_t available_config() const = 0;
     /**
+     * \brief Request the default value for a configuration.
+     *
+     * \throws unknown_configuration_value Thrown when \p key is not a valid configuration key.
+     *
+     * \param key The name of the configuration value.
+     */
+    virtual config::value_t config_default(config::key_t const& key) const;
+    /**
      * \brief Request available configuration options for the process.
      *
      * \throws no_such_configuration_value Thrown when \p key is not a valid configuration key.

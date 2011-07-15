@@ -123,6 +123,18 @@ process
   return ports;
 }
 
+config::value_t
+process
+::config_default(config::key_t const& key) const
+{
+  if (key == priv::NAME_CONFIG_KEY)
+  {
+    return boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME);
+  }
+
+  throw unknown_configuration_value(d->name, key);
+}
+
 config::description_t
 process
 ::config_description(config::key_t const& key) const
