@@ -154,60 +154,6 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_value
     std::string m_what;
 };
 
-/**
- * \class broken_pass_through_exception
- *
- * \brief Thrown when a pass-through port is missing in input or an output connection.
- *
- * \ingroup exceptions
- */
-class VISTK_PIPELINE_EXPORT broken_pass_through_exception
-  : public process_exception
-{
-  public:
-    broken_pass_through_exception(process::name_t const& process, process::port_t const& port, std::string const& type) throw();
-    virtual ~broken_pass_through_exception() throw();
-
-    /// The name of the \ref process which was connected to.
-    process::name_t const m_process;
-    /// The name of the port which was connected to.
-    process::port_t const m_port;
-
-    char const* what() const throw();
-  private:
-    std::string m_what;
-};
-
-/**
- * \class missing_input_pass_through
- *
- * \brief Thrown when a pass-through port is missing an input connection.
- *
- * \ingroup exceptions
- */
-class VISTK_PIPELINE_EXPORT missing_input_pass_through
-  : public broken_pass_through_exception
-{
-  public:
-    missing_input_pass_through(process::name_t const& process, process::port_t const& port) throw();
-    ~missing_input_pass_through() throw();
-};
-
-/**
- * \class missing_output_pass_through
- *
- * \brief Thrown when a pass-through port is missing an output connection.
- *
- * \ingroup exceptions
- */
-class VISTK_PIPELINE_EXPORT missing_output_pass_through
-  : public broken_pass_through_exception
-{
-  public:
-    missing_output_pass_through(process::name_t const& process, process::port_t const& port) throw();
-    ~missing_output_pass_through() throw();
-};
-
 } // end namespace vistk
 
 #endif // VISTK_PIPELINE_PROCESS_EXCEPTION_H
