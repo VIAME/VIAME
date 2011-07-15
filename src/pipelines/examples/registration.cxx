@@ -6,6 +6,8 @@
 
 #include "registration.h"
 
+#include "thread_per_process_pipeline.h"
+
 #include <vistk/pipeline/pipeline_registry.h>
 
 using namespace vistk;

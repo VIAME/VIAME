@@ -1,6 +1,7 @@
 project(vistk_edges_examples)
 
 set(examples_srcs
+  dumb_pipe_edge.cxx
   registration.cxx)
 
 add_vistk_plugin(edges_examples
