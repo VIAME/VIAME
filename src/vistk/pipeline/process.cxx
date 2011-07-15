@@ -43,9 +43,11 @@ class process::priv
     stamp_t hb_stamp;
 
     static port_t const HEARTBEAT_PORT_NAME;
+    static config::key_t const NAME_CONFIG_KEY;
 };
 
 process::port_t const process::priv::HEARTBEAT_PORT_NAME = "heartbeat";
+config::key_t const process::priv::NAME_CONFIG_KEY = "_name";
 
 void
 process
@@ -130,7 +132,7 @@ process
 ::process(config_t const& config)
   : d(new priv)
 {
-  d->name = config->get_value<name_t>("_name", "(unnamed)");
+  d->name = config->get_value<name_t>(priv::NAME_CONFIG_KEY, "(unnamed)");
 }
 
 process
