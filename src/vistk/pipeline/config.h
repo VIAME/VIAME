@@ -155,9 +155,6 @@ class VISTK_PIPELINE_EXPORT config
 class VISTK_PIPELINE_EXPORT configuration_exception
   : public pipeline_exception
 {
-  public:
-    configuration_exception() throw();
-    ~configuration_exception() throw();
 };
 
 /**

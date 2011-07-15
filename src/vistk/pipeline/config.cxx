@@ -181,17 +181,6 @@ config
   return i->second;
 }
 
-configuration_exception
-::configuration_exception() throw()
-  : pipeline_exception()
-{
-}
-
-configuration_exception
-::~configuration_exception() throw()
-{
-}
-
 no_such_configuration_value
 ::no_such_configuration_value(config::key_t const& key) throw()
   : configuration_exception()

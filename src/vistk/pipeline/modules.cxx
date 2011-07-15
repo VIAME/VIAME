@@ -6,7 +6,6 @@
 
 #include "modules.h"
 
-#include <iostream>
 #include <string>
 
 #include <dlfcn.h>
@@ -63,17 +62,14 @@ void load_from_module(module_path_t const path)
 
   if (edge_registrar)
   {
-    std::cerr << "Adding edges" << std::endl;
     (*edge_registrar)();
   }
   if (pipeline_registrar)
   {
-    std::cerr << "Adding pipelines" << std::endl;
     (*pipeline_registrar)();
   }
   if (process_registrar)
   {
-    std::cerr << "Adding processes" << std::endl;
     (*process_registrar)();
   }
 }
