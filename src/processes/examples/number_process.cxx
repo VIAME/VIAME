@@ -77,7 +77,7 @@ number_process
   {
     return config::description_t("The value to start counting at");
   }
-  else if (key == priv::END_CONFIG_NAME)
+  if (key == priv::END_CONFIG_NAME)
   {
     return config::description_t("The value to stop counting at");
   }
