@@ -38,9 +38,35 @@ set(pipeline_headers
   stamp.h
   types.h)
 
+set(vistk_library_options)
+
+option(VISTK_MODULE_USE_BUILD_PATH "Turn on to search the build path for modules" OFF)
+if (VISTK_MODULE_USE_BUILD_PATH)
+  set(vistk_library_options
+    ${vistk_library_options}
+    "VISTK_LIBRARY_OUTPUT_PATH=\"${MODULE_OUTPUT_PATH}\"")
+endif (VISTK_MODULE_USE_BUILD_PATH)
+
+option(VISTK_MODULE_USE_INSTALL_PATH "Turn on to search the install path for modules" OFF)
+if (VISTK_MODULE_USE_INSTALL_PATH)
+  set(vistk_library_options
+    ${vistk_library_options}
+    "VISTK_MODULE_INSTALL_PATH=\"${MODULE_INSTALL_PATH}\"")
+endif (VISTK_MODULE_USE_INSTALL_PATH)
+
+set(module_build_options
+  ${boost_filesystem_options}
+  ${vistk_library_options})
+
+set_source_files_properties(modules.cxx
+  PROPERTIES
+    COMPILE_DEFINITIONS "${module_build_options}")
+
 add_library(vistk_pipeline
   ${pipeline_srcs})
 target_link_libraries(vistk_pipeline
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
   ${CMAKE_DL_LIBS})
 target_link_libraries(vistk_pipeline LINK_INTERFACE_LIBRARIES)
 set_target_properties(vistk_pipeline

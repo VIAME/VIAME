@@ -136,10 +136,16 @@ set(vistk_boost_version 1.44)
 set(BOOST_ROOT "" CACHE PATH "The root path to Boost")
 find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
+    filesystem
+    system
     thread)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
+
+set(boost_filesystem_options
+  "BOOST_FILESYSTEM_NO_DEPRECATED"
+  "BOOST_FILESYSTEM_VERSION=3")
 
 add_subdirectory(src)
 
