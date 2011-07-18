@@ -164,16 +164,22 @@ void load_from_module(module_path_t const path)
 
   if (edge_registrar)
   {
+    /// \todo Log info that we have loaded edges.
+
     (*edge_registrar)();
     functions_found = true;
   }
   if (pipeline_registrar)
   {
+    /// \todo Log info that we have loaded pipelines.
+
     (*pipeline_registrar)();
     functions_found = true;
   }
   if (process_registrar)
   {
+    /// \todo Log info that we have loaded processes.
+
     (*process_registrar)();
     functions_found = true;
   }
