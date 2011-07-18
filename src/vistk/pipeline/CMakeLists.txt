@@ -16,7 +16,8 @@ set(pipeline_srcs
   process_exception.cxx
   process_registry.cxx
   process_registry_exception.cxx
-  stamp.cxx)
+  stamp.cxx
+  utils.cxx)
 
 set(pipeline_headers
   config.h
@@ -36,7 +37,8 @@ set(pipeline_headers
   process_registry.h
   process_registry_exception.h
   stamp.h
-  types.h)
+  types.h
+  utils.h)
 
 set(vistk_library_options)
 
@@ -61,6 +63,20 @@ set(module_build_options
 set_source_files_properties(modules.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${module_build_options}")
+
+set(utils_build_options)
+
+include(CheckFunctionExists)
+check_function_exists(setproctitle HAVE_SETPROCTITLE)
+
+if (HAVE_SETPROCTITLE)
+  set(utils_build_options
+    "HAVE_SETPROCTITLE")
+endif (HAVE_SETPROCTITLE)
+
+set_source_files_properties(utils.cxx
+  PROPERTIES
+    COMPILE_DEFINITIONS "${utils_build_options}")
 
 add_library(vistk_pipeline
   ${pipeline_srcs})
