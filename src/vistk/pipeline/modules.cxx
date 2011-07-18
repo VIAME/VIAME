@@ -14,13 +14,22 @@
 #include <string>
 #include <vector>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
 #include <dlfcn.h>
+#endif
 
 namespace vistk
 {
 
+#if defined(_WIN32) || defined(_WIN64)
+typedef HMODULE library_t;
+typedef FARPROC function_t;
+#else
 typedef void* library_t;
 typedef void* function_t;
+#endif
 typedef void (*load_module_t)();
 typedef char const* envvar_name_t;
 typedef char const* envvar_value_t;
@@ -111,17 +120,41 @@ void load_known_modules()
 
 void load_from_module(module_path_t const path)
 {
-  /// \todo Support more than POSIX. Use kwsys?
-  library_t library = dlopen(path, RTLD_LAZY);
+  library_t library = NULL;
+
+#if defined(_WIN32) || defined(_WIN64)
+  {
+    wchar_t path_wide[MB_CUR_MAX];
+    mbstowcs(path_wide, path.c_str(), MB_CUR_MAX);
+    library = LoadLibrary(path_wide);
+  }
+#else
+  library = dlopen(path.c_str(), RTLD_LAZY);
+#endif
 
   if (!library)
   {
     return;
   }
 
+#if defined(_WIN32) || defined(_WIN64)
+  {
+    wchar_t function_name[MB_CUR_MAX];
+
+    mbstowcs(function_name, edge_function_name.c_str(), MB_CUR_MAX);
+    edge_function = GetProcAddress(library, function_name);
+
+    mbstowcs(function_name, pipeline_function_name.c_str(), MB_CUR_MAX);
+    pipeline_function = GetProcAddress(library, function_name);
+
+    mbstowcs(function_name, process_function_name.c_str(), MB_CUR_MAX);
+    process_function = GetProcAddress(library, function_name);
+  }
+#else
   function_t edge_function = dlsym(library, edge_function_name.c_str());
   function_t pipeline_function = dlsym(library, pipeline_function_name.c_str());
   function_t process_function = dlsym(library, process_function_name.c_str());
+#endif
 
   load_module_t edge_registrar = reinterpret_cast<load_module_t>(edge_function);
   load_module_t pipeline_registrar = reinterpret_cast<load_module_t>(pipeline_function);
@@ -147,12 +180,21 @@ void load_from_module(module_path_t const path)
 
   if (!functions_found)
   {
+#if defined(_WIN32) || defined(_WIN64)
+    int const ret = FreeLibrary(library);
+
+    if (!ret)
+    {
+      /// \todo Log the error.
+    }
+#else
     int const ret = dlclose(library);
 
     if (ret)
     {
       /// \todo Log the error.
     }
+#endif
   }
 }
 
