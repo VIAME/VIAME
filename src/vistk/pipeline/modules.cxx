@@ -27,7 +27,7 @@ typedef char const* envvar_value_t;
 typedef std::string module_path_t;
 typedef std::vector<module_path_t> module_paths_t;
 typedef std::string lib_suffix_t;
-typedef char const* const function_name_t;
+typedef std::string function_name_t;
 
 static void load_from_module(module_path_t const path);
 static bool is_separator(char ch);
@@ -111,9 +111,9 @@ void load_from_module(module_path_t const path)
     return;
   }
 
-  function_t edge_function = dlsym(library, edge_function_name);
-  function_t pipeline_function = dlsym(library, pipeline_function_name);
-  function_t process_function = dlsym(library, process_function_name);
+  function_t edge_function = dlsym(library, edge_function_name.c_str());
+  function_t pipeline_function = dlsym(library, pipeline_function_name.c_str());
+  function_t process_function = dlsym(library, process_function_name.c_str());
 
   load_module_t edge_registrar = reinterpret_cast<load_module_t>(edge_function);
   load_module_t pipeline_registrar = reinterpret_cast<load_module_t>(pipeline_function);
