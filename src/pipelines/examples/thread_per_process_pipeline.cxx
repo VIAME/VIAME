@@ -6,6 +6,8 @@
 
 #include "thread_per_process_pipeline.h"
 
+#include <vistk/pipeline/utils.h>
+
 #include <boost/foreach.hpp>
 #include <boost/thread/thread.hpp>
 
@@ -64,9 +66,9 @@ thread_per_process_pipeline::priv
 }
 
 void
-run_process(process_t /*process*/)
+run_process(process_t process)
 {
-  //name_thread(process->name());
+  name_thread(process->name());
 
   /// \todo Run the process until it is complete.
 }
