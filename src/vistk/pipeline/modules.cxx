@@ -36,7 +36,15 @@ static function_name_t const edge_function_name = function_name_t("register_edge
 static function_name_t const pipeline_function_name = function_name_t("register_pipelines");
 static function_name_t const process_function_name = function_name_t("register_processes");
 static envvar_name_t const vistk_module_envvar = envvar_name_t("VISTK_MODULE_PATH");
-static lib_suffix_t const library_suffix = lib_suffix_t(".so");
+static lib_suffix_t const library_suffix = lib_suffix_t(
+#if defined(_WIN32) || defined(_WIN64)
+  ".dll"
+#elif defined(__APPLE__)
+  ".dylib"
+#else
+  ".so"
+#endif
+  );
 
 void load_known_modules()
 {
