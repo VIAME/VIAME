@@ -119,17 +119,32 @@ void load_from_module(module_path_t const path)
   load_module_t pipeline_registrar = reinterpret_cast<load_module_t>(pipeline_function);
   load_module_t process_registrar = reinterpret_cast<load_module_t>(process_function);
 
+  bool functions_found = false;
+
   if (edge_registrar)
   {
     (*edge_registrar)();
+    functions_found = true;
   }
   if (pipeline_registrar)
   {
     (*pipeline_registrar)();
+    functions_found = true;
   }
   if (process_registrar)
   {
     (*process_registrar)();
+    functions_found = true;
+  }
+
+  if (!functions_found)
+  {
+    int const ret = dlclose(library);
+
+    if (ret)
+    {
+      /// \todo Log the error.
+    }
   }
 }
 
