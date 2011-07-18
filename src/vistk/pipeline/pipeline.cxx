@@ -88,8 +88,7 @@ void
 pipeline
 ::setup_pipeline()
 {
-  /// \todo Check for orphan processes
-  /// \todo Check for disconnected pipelines
+  /// \todo Check for disconnected pipelines.
 
   _setup_pipeline();
 }
