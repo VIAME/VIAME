@@ -53,9 +53,20 @@ class VISTK_PIPELINE_EXPORT null_process_connection
   : public edge_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     */
     null_process_connection() throw();
+    /**
+     * \brief Destructor.
+     */
     ~null_process_connection() throw();
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -72,9 +83,24 @@ class VISTK_PIPELINE_EXPORT duplicate_edge_connection_exception
   : public edge_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process that was already connected.
+     * \param new_process The name of the process which was attemted to be connected.
+     * \param type The type of connection.
+     */
     duplicate_edge_connection_exception(process::name_t const& process, process::name_t const& new_process, std::string const& type) throw();
+    /**
+     * \brief Destructor.
+     */
     virtual ~duplicate_edge_connection_exception() throw();
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
 
     /// The name of the process which was already connected.
@@ -96,7 +122,16 @@ class VISTK_PIPELINE_EXPORT input_already_connected
   : public duplicate_edge_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process that was already connected.
+     * \param new_process The name of the process which was attemted to be connected.
+     */
     input_already_connected(process::name_t const& process, process::name_t const& new_process) throw();
+    /**
+     * \brief Destructor.
+     */
     ~input_already_connected() throw();
 };
 
@@ -111,7 +146,16 @@ class VISTK_PIPELINE_EXPORT output_already_connected
   : public duplicate_edge_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process that was already connected.
+     * \param new_process The name of the process which was attemted to be connected.
+     */
     output_already_connected(process::name_t const& process, process::name_t const& new_process) throw();
+    /**
+     * \brief Destructor.
+     */
     ~output_already_connected() throw();
 };
 

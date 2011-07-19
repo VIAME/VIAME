@@ -40,12 +40,25 @@ class VISTK_PIPELINE_EXPORT no_such_process_type
   : public process_registry_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param type The type requested.
+     */
     no_such_process_type(process_registry::type_t const& type) throw();
+    /**
+     * \brief Destructor.
+     */
     ~no_such_process_type() throw();
 
     /// The type that was requested from the \link process_registry process registry\endlink.
     process_registry::type_t const m_type;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -62,12 +75,25 @@ class VISTK_PIPELINE_EXPORT process_type_already_exists
   : public process_registry_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param type The type requested.
+     */
     process_type_already_exists(process_registry::type_t const& type) throw();
+    /**
+     * \brief Destructor.
+     */
     ~process_type_already_exists() throw();
 
     /// The type that was requested from the \link process_registry process registry\endlink.
     process_registry::type_t const m_type;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;

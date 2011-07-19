@@ -180,12 +180,25 @@ class VISTK_PIPELINE_EXPORT no_such_configuration_value
   : public configuration_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param key The key that was requested from the configuration.
+     */
     no_such_configuration_value(config::key_t const& key) throw();
+    /**
+     * \brief Destructor.
+     */
     ~no_such_configuration_value() throw();
 
     /// The requested key name.
     config::key_t const m_key;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -200,7 +213,20 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast
   : public configuration_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \todo Document constructor.
+     *
+     * \param key The key that was requested.
+     * \param value The value that was failed to cast.
+     * \param type The type that was requested.
+     * \param reason The reason for the bad cast.
+     */
     bad_configuration_cast(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) throw();
+    /**
+     * \brief Destructor.
+     */
     ~bad_configuration_cast() throw();
 
     /// The requested key name.
@@ -212,6 +238,11 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast
     /// The reason for the failed cast.
     std::string const m_reason;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;

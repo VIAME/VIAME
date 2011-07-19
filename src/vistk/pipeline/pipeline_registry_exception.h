@@ -40,12 +40,25 @@ class VISTK_PIPELINE_EXPORT no_such_pipeline_type
   : public pipeline_registry_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param type The type requested.
+     */
     no_such_pipeline_type(pipeline_registry::type_t const& type) throw();
+    /**
+     * \brief Destructor.
+     */
     ~no_such_pipeline_type() throw();
 
     /// The type that was requested from the \link pipeline_registry pipeline registry\endlink.
     pipeline_registry::type_t const m_type;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -62,12 +75,25 @@ class VISTK_PIPELINE_EXPORT pipeline_type_already_exists
   : public pipeline_registry_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param type The type requested.
+     */
     pipeline_type_already_exists(pipeline_registry::type_t const& type) throw();
+    /**
+     * \brief Destructor.
+     */
     ~pipeline_type_already_exists() throw();
 
     /// The type that was requested for the \link pipeline_registry pipeline registry\endlink.
     pipeline_registry::type_t const m_type;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;

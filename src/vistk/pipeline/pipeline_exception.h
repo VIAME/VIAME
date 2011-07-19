@@ -40,9 +40,20 @@ class VISTK_PIPELINE_EXPORT null_process_addition
   : public pipeline_addition_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     */
     null_process_addition() throw();
+    /**
+     * \brief Destructor.
+     */
     ~null_process_addition() throw();
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -59,9 +70,22 @@ class VISTK_PIPELINE_EXPORT duplicate_process_name
   : public pipeline_addition_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name requested.
+     */
     duplicate_process_name(process::name_t const& name) throw();
+    /**
+     * \brief Destructor.
+     */
     ~duplicate_process_name() throw();
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
 
     /// The name of the process.
@@ -93,10 +117,21 @@ class VISTK_PIPELINE_EXPORT null_edge_connection
   : public pipeline_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param upstream_process The name of the upstream process.
+     * \param upstream_port The name of the port on the upstream process.
+     * \param downstream_process The name of the downstream process.
+     * \param downstream_port The name of the port on the downstream process.
+     */
     null_edge_connection(process::name_t const& upstream_process,
                          process::port_t const& upstream_port,
                          process::name_t const& downstream_process,
                          process::port_t const& downstream_port) throw();
+    /**
+     * \brief Destructor.
+     */
     ~null_edge_connection() throw();
 
     /// The name of the upstream process for the edge.
@@ -108,6 +143,11 @@ class VISTK_PIPELINE_EXPORT null_edge_connection
     /// The name of the port on the downstream process.
     process::port_t const m_downstream_port;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
      char const* what() const throw();
   private:
      std::string m_what;
@@ -124,12 +164,25 @@ class VISTK_PIPELINE_EXPORT no_such_process
   : public pipeline_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name requested.
+     */
     no_such_process(process::name_t const& name) throw();
+    /**
+     * \brief Destructor.
+     */
     ~no_such_process() throw();
 
     /// The name of the process requested.
     process::name_t const m_name;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;

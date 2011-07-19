@@ -119,7 +119,16 @@ class VISTK_PIPELINE_EXPORT bad_datum_cast
   : public datum_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param type The type that was requested.
+     * \param reason The reason for the bad cast.
+     */
     bad_datum_cast(datum::datum_type_t const& type, char const* reason) throw();
+    /**
+     * \brief Destructor.
+     */
     ~bad_datum_cast() throw();
 
     /// The datum type.
@@ -127,6 +136,11 @@ class VISTK_PIPELINE_EXPORT bad_datum_cast
     /// The reason for the failed cast.
     std::string const m_reason;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;

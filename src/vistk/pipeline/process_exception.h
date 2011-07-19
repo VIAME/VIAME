@@ -40,7 +40,16 @@ class VISTK_PIPELINE_EXPORT port_connection_exception
   : public process_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The name of the port.
+     */
     port_connection_exception(process::name_t const& process, process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
     virtual ~port_connection_exception() throw();
 
     /// The name of the \ref process which was connected to.
@@ -60,9 +69,23 @@ class VISTK_PIPELINE_EXPORT no_such_port_exception
   : public port_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The name of the port.
+     */
     no_such_port_exception(process::name_t const& process, process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
     ~no_such_port_exception() throw();
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -77,9 +100,23 @@ class VISTK_PIPELINE_EXPORT null_edge_port_connection
   : public port_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The name of the port.
+     */
     null_edge_port_connection(process::name_t const& process, process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
     ~null_edge_port_connection() throw();
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -94,9 +131,23 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
   : public port_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The name of the port.
+     */
     port_reconnect_exception(process::name_t const& process, process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
     ~port_reconnect_exception() throw();
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -111,12 +162,27 @@ class VISTK_PIPELINE_EXPORT missing_connection
   : public port_connection_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The name of the port.
+     * \param reason The reason why the connection is necessary.
+     */
     missing_connection(process::name_t const& process, process::port_t const& port, std::string const& reason) throw();
+    /**
+     * \brief Destructor.
+     */
     ~missing_connection() throw();
 
     /// A reason for the missing connection.
     std::string const m_reason;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -145,7 +211,16 @@ class VISTK_PIPELINE_EXPORT unknown_configuration_value
   : public process_configuration_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param key The key requested.
+     */
     unknown_configuration_value(process::name_t const& process, config::key_t const& key) throw();
+    /**
+     * \brief Destructor.
+     */
     ~unknown_configuration_value() throw();
 
     /// The name of the \ref process which was connected to.
@@ -153,6 +228,11 @@ class VISTK_PIPELINE_EXPORT unknown_configuration_value
     /// The name of the key which was given.
     config::key_t const m_key;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -169,7 +249,18 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_value
   : public process_configuration_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param key The key requested.
+     * \param value The value given.
+     * \param desc A description of the configuration value.
+     */
     invalid_configuration_value(process::name_t const& process, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw();
+    /**
+     * \brief Destructor.
+     */
     ~invalid_configuration_value() throw();
 
     /// The name of the \ref process which was connected to.
@@ -181,6 +272,11 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_value
     /// A description of the key.
     config::description_t const m_desc;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
@@ -197,7 +293,16 @@ class VISTK_PIPELINE_EXPORT invalid_configuration
   : public process_configuration_exception
 {
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param reason The reason why the configuration is invalid.
+     */
     invalid_configuration(process::name_t const& process, std::string const& reason) throw();
+    /**
+     * \brief Destructor.
+     */
     ~invalid_configuration() throw();
 
     /// The name of the \ref process which was connected to.
@@ -205,6 +310,11 @@ class VISTK_PIPELINE_EXPORT invalid_configuration
     /// A reason for the invalid configuration.
     std::string const m_reason;
 
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
     char const* what() const throw();
   private:
     std::string m_what;
