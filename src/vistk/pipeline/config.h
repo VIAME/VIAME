@@ -24,7 +24,7 @@ namespace vistk
 {
 
 /**
- * \class config
+ * \class config config.h <vistk/pipeline/config.h>
  *
  * \brief Stores configuration values for use within a \ref pipeline.
  *
@@ -162,7 +162,7 @@ class VISTK_PIPELINE_EXPORT config
 };
 
 /**
- * \class configuration_exception
+ * \class configuration_exception config.h <vistk/pipeline/config.h>
  *
  * \brief The base class for all exceptions thrown from \ref config.
  */
@@ -172,7 +172,7 @@ class VISTK_PIPELINE_EXPORT configuration_exception
 };
 
 /**
- * \class no_such_configuration_value
+ * \class no_such_configuration_value config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value is requested for a value which does not exist.
  */
@@ -205,7 +205,7 @@ class VISTK_PIPELINE_EXPORT no_such_configuration_value
 };
 
 /**
- * \class bad_configuration_cast
+ * \class bad_configuration_cast config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value cannot be converted to the requested type.
  */

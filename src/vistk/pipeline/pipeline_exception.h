@@ -18,7 +18,7 @@ namespace vistk
 {
 
 /**
- * \class pipeline_addition_exception
+ * \class pipeline_addition_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief The base exception thrown when adding processes to the pipeline.
  *
@@ -30,7 +30,7 @@ class VISTK_PIPELINE_EXPORT pipeline_addition_exception
 };
 
 /**
- * \class null_process_addition
+ * \class null_process_addition pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \c NULL is given as a \ref process to add to a \ref pipeline.
  *
@@ -60,7 +60,7 @@ class VISTK_PIPELINE_EXPORT null_process_addition
 };
 
 /**
- * \class duplicate_process_name
+ * \class duplicate_process_name pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref process with a duplicate name is added to the \ref pipeline.
  *
@@ -95,7 +95,7 @@ class VISTK_PIPELINE_EXPORT duplicate_process_name
 };
 
 /**
- * \class pipeline_connection_exception
+ * \class pipeline_connection_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref pipeline due to connections.
  *
@@ -107,7 +107,7 @@ class VISTK_PIPELINE_EXPORT pipeline_connection_exception
 };
 
 /**
- * \class null_edge_connection
+ * \class null_edge_connection pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when an \ref edge passed to a \ref pipeline is \c NULL.
  *
@@ -154,7 +154,7 @@ class VISTK_PIPELINE_EXPORT null_edge_connection
 };
 
 /**
- * \class no_such_process
+ * \class no_such_process pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when an \ref edge already has an input process set.
  *

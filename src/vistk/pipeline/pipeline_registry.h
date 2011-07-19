@@ -25,7 +25,7 @@ namespace vistk
 typedef boost::function<pipeline_t (config_t const& config)> pipeline_ctor_t;
 
 /**
- * \class pipeline_registry
+ * \class pipeline_registry pipeline_registry.h <vistk/pipeline/pipeline_registry.h>
  *
  * \brief A registry of pipelines which can generate pipelines of a different types.
  *

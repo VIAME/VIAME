@@ -18,7 +18,7 @@ namespace vistk
 {
 
 /**
- * \class process_exception
+ * \class process_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref process.
  *
@@ -30,7 +30,7 @@ class VISTK_PIPELINE_EXPORT process_exception
 };
 
 /**
- * \class port_connection_exception
+ * \class port_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief The base class used when an error occurs when connecting to a port.
  *
@@ -59,7 +59,7 @@ class VISTK_PIPELINE_EXPORT port_connection_exception
 };
 
 /**
- * \class no_such_port_exception
+ * \class no_such_port_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection to a port that does not exist is requested.
  *
@@ -92,7 +92,7 @@ class VISTK_PIPELINE_EXPORT no_such_port_exception
 };
 
 /**
- * \class null_edge_port_connection
+ * \class null_edge_port_connection process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection to a port is given an \ref edge that is \c NULL.
  */
@@ -123,7 +123,7 @@ class VISTK_PIPELINE_EXPORT null_edge_port_connection
 };
 
 /**
- * \class port_reconnect_exception
+ * \class port_reconnect_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a port that is already connected is connected to again.
  */
@@ -154,7 +154,7 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
 };
 
 /**
- * \class missing_connection
+ * \class missing_connection process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection to a port that is necessary is missing.
  */
@@ -189,7 +189,7 @@ class VISTK_PIPELINE_EXPORT missing_connection
 };
 
 /**
- * \class process_configuration_exception
+ * \class process_configuration_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a \ref process has a configuration issue.
  *
@@ -201,7 +201,7 @@ class VISTK_PIPELINE_EXPORT process_configuration_exception
 };
 
 /**
- * \class unknown_configuration_value
+ * \class unknown_configuration_value process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a requested configuration value does not exist.
  *
@@ -239,7 +239,7 @@ class VISTK_PIPELINE_EXPORT unknown_configuration_value
 };
 
 /**
- * \class invalid_configuration_value
+ * \class invalid_configuration_value process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a configuration value has an invalid value.
  *
@@ -283,7 +283,7 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_value
 };
 
 /**
- * \class invalid_configuration
+ * \class invalid_configuration process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a configuration for a \ref process is invalid.
  *

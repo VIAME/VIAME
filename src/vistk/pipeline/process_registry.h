@@ -25,7 +25,7 @@ namespace vistk
 typedef boost::function<process_t (config_t const& config)> process_ctor_t;
 
 /**
- * \class process_registry
+ * \class process_registry process_registry.h <vistk/pipeline/process_registry.h>
  *
  * \brief A registry of processes which can generate processes of a different types.
  *

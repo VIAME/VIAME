@@ -25,7 +25,7 @@ namespace vistk
 typedef boost::function<edge_t (config_t const& config)> edge_ctor_t;
 
 /**
- * \class edge_registry
+ * \class edge_registry edge_registry.h <vistk/pipeline/edge_registry.h>
  *
  * \brief A registry of edges which can generate edges of a different types.
  *

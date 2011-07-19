@@ -19,7 +19,7 @@ namespace vistk
 {
 
 /**
- * \class datum
+ * \class datum datum.h <vistk/pipeline/datum.h>
  *
  * \brief A wrapper for data that passes through an \ref edge in the \ref pipeline.
  *
@@ -101,7 +101,7 @@ class VISTK_PIPELINE_EXPORT datum
 };
 
 /**
- * \class datum_exception
+ * \class datum_exception datum.h <vistk/pipeline/datum.h>
  *
  * \brief The base class for all exceptions thrown from \ref datum.
  */
@@ -111,7 +111,7 @@ class VISTK_PIPELINE_EXPORT datum_exception
 };
 
 /**
- * \class bad_datum_cast
+ * \class bad_datum_cast datum.h <vistk/pipeline/datum.h>
  *
  * \brief Thrown when the \ref datum cannot be converted to the requested type.
  */

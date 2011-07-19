@@ -27,7 +27,7 @@ typedef boost::tuple<datum_t, stamp_t> edge_datum_t;
 typedef std::vector<edge_t> edges_t;
 
 /**
- * \class edge
+ * \class edge edge.h <vistk/pipeline/edge.h>
  *
  * \brief A connection between two process ports which can carry data.
  *

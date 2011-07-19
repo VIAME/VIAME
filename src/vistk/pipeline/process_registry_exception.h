@@ -18,7 +18,7 @@ namespace vistk
 {
 
 /**
- * \class process_registry_exception
+ * \class process_registry_exception process_registry_exception.h <vistk/pipeline/process_registry_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref process_registry.
  *
@@ -30,7 +30,7 @@ class VISTK_PIPELINE_EXPORT process_registry_exception
 };
 
 /**
- * \class no_such_process_type
+ * \class no_such_process_type process_registry_exception.h <vistk/pipeline/process_registry_exception.h>
  *
  * \brief Thrown when a type is requested, but does not exist in the registry.
  *
@@ -65,7 +65,7 @@ class VISTK_PIPELINE_EXPORT no_such_process_type
 };
 
 /**
- * \class process_type_already_exists
+ * \class process_type_already_exists process_registry_exception.h <vistk/pipeline/process_registry_exception.h>
  *
  * \brief Thrown when a type is added, but does already exists in the registry.
  *

@@ -18,7 +18,7 @@ namespace vistk
 {
 
 /**
- * \class pipeline_registry_exception
+ * \class pipeline_registry_exception pipeline_registry_exception.h <vistk/pipeline/pipeline_registry_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref pipeline_registry.
  *
@@ -30,7 +30,7 @@ class VISTK_PIPELINE_EXPORT pipeline_registry_exception
 };
 
 /**
- * \class no_such_pipeline_type
+ * \class no_such_pipeline_type pipeline_registry_exception.h <vistk/pipeline/pipeline_registry_exception.h>
  *
  * \brief Thrown when a type is requested, but does not exist in the registry.
  *
@@ -65,7 +65,7 @@ class VISTK_PIPELINE_EXPORT no_such_pipeline_type
 };
 
 /**
- * \class pipeline_type_already_exists
+ * \class pipeline_type_already_exists pipeline_registry_exception.h <vistk/pipeline/pipeline_registry_exception.h>
  *
  * \brief Thrown when a type is added, but does already exists in the registry.
  *

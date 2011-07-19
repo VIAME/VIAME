@@ -19,7 +19,7 @@ namespace vistk
 {
 
 /**
- * \class edge_exception
+ * \class edge_exception edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief The base class for all exceptions thrown from an \ref edge.
  *
@@ -31,7 +31,7 @@ class VISTK_PIPELINE_EXPORT edge_exception
 };
 
 /**
- * \class edge_connection_exception
+ * \class edge_connection_exception edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief The base class for all exceptions thrown from an \ref edge due to connections.
  *
@@ -43,7 +43,7 @@ class VISTK_PIPELINE_EXPORT edge_connection_exception
 };
 
 /**
- * \class null_process_connection
+ * \class null_process_connection edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief Thrown when a \c NULL is given to connect to an \ref edge.
  *
@@ -73,7 +73,7 @@ class VISTK_PIPELINE_EXPORT null_process_connection
 };
 
 /**
- * \class duplicate_edge_connection_exception
+ * \class duplicate_edge_connection_exception edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief Thrown when an \ref edge is given a second \ref process to connect to the \ref edge.
  *
@@ -112,7 +112,7 @@ class VISTK_PIPELINE_EXPORT duplicate_edge_connection_exception
 };
 
 /**
- * \class input_already_connected
+ * \class input_already_connected edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief Thrown when an \ref edge already has an input process set.
  *
@@ -136,7 +136,7 @@ class VISTK_PIPELINE_EXPORT input_already_connected
 };
 
 /**
- * \class output_already_connected
+ * \class output_already_connected edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief Thrown when an \ref edge already has an output process set.
  *

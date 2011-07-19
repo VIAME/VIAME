@@ -62,7 +62,7 @@ class stamp;
 typedef boost::shared_ptr<stamp const> stamp_t;
 
 /**
- * \class pipeline_exception
+ * \class pipeline_exception types.h <vistk/pipeline/types.h>
  *
  * \brief The base of all exceptions thrown within the pipeline.
  *

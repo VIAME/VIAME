@@ -19,7 +19,7 @@ namespace vistk
 {
 
 /**
- * \class stamp
+ * \class stamp stamp.h <vistk/pipeline/stamp.h>
  *
  * \brief A class to timestamp data in the pipeline.
  *

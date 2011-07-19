@@ -26,7 +26,7 @@ namespace vistk
 typedef std::vector<process_t> processes_t;
 
 /**
- * \class process
+ * \class process process.h <vistk/pipeline/process.h>
  *
  * \brief A node within a \ref pipeline which runs computations on data.
  *

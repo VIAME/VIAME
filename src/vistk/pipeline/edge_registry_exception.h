@@ -18,7 +18,7 @@ namespace vistk
 {
 
 /**
- * \class edge_registry_exception
+ * \class edge_registry_exception edge_registry_exception.h <vistk/pipeline/edge_registry_exception.h>
  *
  * \brief The base class for all exceptions thrown from an \ref edge_registry.
  *
@@ -30,7 +30,7 @@ class VISTK_PIPELINE_EXPORT edge_registry_exception
 };
 
 /**
- * \class no_such_edge_type
+ * \class no_such_edge_type edge_registry_exception.h <vistk/pipeline/edge_registry_exception.h>
  *
  * \brief Thrown when a type is requested, but does not exist in the registry.
  *
@@ -65,7 +65,7 @@ class VISTK_PIPELINE_EXPORT no_such_edge_type
 };
 
 /**
- * \class edge_type_already_exists
+ * \class edge_type_already_exists edge_registry_exception.h <vistk/pipeline/edge_registry_exception.h>
  *
  * \brief Thrown when a type is added, but does already exists in the registry.
  *
