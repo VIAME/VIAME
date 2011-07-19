@@ -79,6 +79,8 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Extract a datum from the edge.
      *
+     * This calls \ref edge::peek_datum and then removes it from the edge.
+     *
      * \note Some edge implementations may block if they are empty.
      *
      * \returns The next datum available from the edge.
