@@ -28,6 +28,8 @@ typedef std::string thread_name_t;
  * This is to help performance.
  *
  * \param name The name of the thread.
+ *
+ * \returns True if the name was successfully set, false otherwise.
  */
 bool VISTK_PIPELINE_EXPORT name_thread(thread_name_t const& name);
 

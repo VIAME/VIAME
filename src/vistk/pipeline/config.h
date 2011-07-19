@@ -47,6 +47,8 @@ class VISTK_PIPELINE_EXPORT config
      * \brief Creates an empty configuration.
      *
      * \param name The name of the configuration block.
+     *
+     * \returns An empty configuration block.
      */
     static config_t empty_config(key_t const& name = "");
 
@@ -62,6 +64,8 @@ class VISTK_PIPELINE_EXPORT config
      * configuration. Changes made to it do not affect \c *this.
      *
      * \param key The name of the sub-configuration to retrieve.
+     *
+     * \returns A subblock with copies of the values.
      */
     config_t subblock(key_t const& key) const;
 
@@ -72,6 +76,8 @@ class VISTK_PIPELINE_EXPORT config
      * are seen through the view and vice versa.
      *
      * \param key The name of the sub-configuration to retrieve.
+     *
+     * \returns A subblock which links to the \c *this.
      */
     config_t subblock_view(key_t const& key);
 
@@ -82,6 +88,8 @@ class VISTK_PIPELINE_EXPORT config
      * \throw bad_configuration_cast Thrown if the cast fails.
      *
      * \param key The index of the configuration value to retrieve.
+     *
+     * \returns The value stored within the configuration.
      */
     template <typename T>
     T get_value(key_t const& key) const;
@@ -90,6 +98,8 @@ class VISTK_PIPELINE_EXPORT config
      *
      * \param key The index of the configuration value to retrieve.
      * \param def The value \p key does not exist or the cast fails.
+     *
+     * \returns The value stored within the configuration, or \p def if something goes wrong.
      */
     template <typename T>
     T get_value(key_t const& key, T const& def) const;
@@ -120,13 +130,17 @@ class VISTK_PIPELINE_EXPORT config
 
     /**
      * \brief Returns the values available in the configuration.
+     *
+     * \returns All of the keys available within the block.
      */
     keys_t available_values() const;
 
     /**
-     * \brief Returns true if the value is set in the configuration.
+     * \brief Check if a value exists for \p key.
      *
      * \param key The index of the configuration value to check.
+     *
+     * \returns Whether the key exists.
      */
     bool has_value(key_t const& key) const;
 

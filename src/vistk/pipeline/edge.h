@@ -44,19 +44,27 @@ class VISTK_PIPELINE_EXPORT edge
 
     /**
      * \brief Whether the edge represents a dependency from upstream to downstream.
+     *
+     * \returns True if the edge expresses that upstream must be executed before downstream, false otherwise.
      */
     virtual bool makes_dependency() const;
 
     /**
      * \brief Whether the edge has any data in it or not.
+     *
+     * \returns True if there is data available within the edge, false otherwise.
      */
     virtual bool has_data() const;
     /**
      * \brief Whether the edge can accept more data or not.
+     *
+     * \returns True if the edge can hold no more data, false otherwise.
      */
     virtual bool full_of_data() const = 0;
     /**
      * \brief How many results are in the edge.
+     *
+     * \returns The number of data items the edge holds.
      */
     virtual size_t datum_count() const = 0;
 
@@ -72,12 +80,16 @@ class VISTK_PIPELINE_EXPORT edge
      * \brief Extract a datum from the edge.
      *
      * \note Some edge implementations may block if they are empty.
+     *
+     * \returns The next datum available from the edge.
      */
     virtual edge_datum_t get_datum();
     /**
      * \brief Look at the next datum in the edge.
      *
      * \note Some edge implementations may block if they are empty.
+     *
+     * \returns The next datum available from the edge.
      */
     virtual edge_datum_t peek_datum() = 0;
 
@@ -89,6 +101,8 @@ class VISTK_PIPELINE_EXPORT edge
     void set_required_by_downstream(bool required);
     /**
      * \brief Whether the data the edge delivers is required for downstream.
+     *
+     * \returns True if the edge carries required data for downstream, false otherwise.
      */
     bool required_by_downstream() const;
 

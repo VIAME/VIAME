@@ -40,18 +40,24 @@ class VISTK_PIPELINE_EXPORT stamp
      * \brief Creates a new stamp.
      *
      * All stamps created with this call have a unique color.
+     *
+     * \returns A new stamp with a unique coloring.
      */
     static stamp_t new_stamp();
     /**
      * \brief Copies a stamp.
      *
      * Since stamps are not implicitly copyable, this is provided to copy them.
+     *
+     * \returns A stamp that is equivalent to \p st.
      */
     static stamp_t copied_stamp(stamp_t const& st);
     /**
      * \brief Creates a new stamp that is has an incremented index.
      *
      * \param st The stamp to increment.
+     *
+     * \returns A stamp that is greater than \p st.
      */
     static stamp_t incremented_stamp(stamp_t const& st);
     /**
@@ -59,6 +65,8 @@ class VISTK_PIPELINE_EXPORT stamp
      *
      * \param st The original stamp.
      * \param st2 The stamp to obtain the new color from.
+     *
+     * \returns A new stamp with the color of \p st2 and value of \p st.
      */
     static stamp_t recolored_stamp(stamp_t const& st, stamp_t const& st2);
 
@@ -66,6 +74,8 @@ class VISTK_PIPELINE_EXPORT stamp
      * \brief Tests if a given stamp has the same color another stamp.
      *
      * \param st The stamp to compare to.
+     *
+     * \returns True if \p st is the same color as \c *this, false otherwise.
      */
     bool is_same_color(stamp_t const& st) const;
 
@@ -73,6 +83,8 @@ class VISTK_PIPELINE_EXPORT stamp
      * \brief Compares two stamps for equality.
      *
      * \param st The stamp to compare to.
+     *
+     * \returns True if \p st and \c *this have the same color and value, false otherwise.
      */
     bool operator == (stamp const& st) const;
     /**
@@ -82,6 +94,8 @@ class VISTK_PIPELINE_EXPORT stamp
      * function.
      *
      * \param st The stamp to compare to.
+     *
+     * \returns True if \p st and \c *this are the same color and \p st has a higher value, false otherwise.
      */
     bool operator <  (stamp const& st) const;
   private:

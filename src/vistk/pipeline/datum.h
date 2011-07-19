@@ -46,35 +46,47 @@ class VISTK_PIPELINE_EXPORT datum
 
     /**
      * \brief Create a datum with the #DATUM_EMPTY type.
+     *
+     * \returns A new datum which indicates that a result could not be computed.
      */
     static datum_t empty_datum();
     /**
      * \brief Create a datum with the #DATUM_COMPLETE type.
+     *
+     * \returns A new datum which indicates that the calculation of results is complete.
      */
     static datum_t complete_datum();
     /**
      * \brief Create a datum with the #DATUM_ERROR type.
      *
      * \param error Information about the error that occurred.
+     *
+     * \returns A new datum that indicates that an error occurred.
      */
     static datum_t error_datum(error_t const& error);
     /**
      * \brief Create a datum with the #DATUM_DATA type.
      *
      * \param datum The data to pass through the edge.
+     *
+     * \returns A new datum containing a result.
      */
     template <typename T>
     static datum_t new_datum(T const& datum);
 
     /**
-     * \brief Returns the type of the datum.
+     * \brief Query a datum for the type.
+     *
+     * \returns The type of the datum.
      */
     datum_type_t type() const;
 
     /**
-     * \brief Returns the data in the edge.
+     * \brief Extract a result from a datum.
      *
      * \throws bad_datum_cast Thrown when the data cannot be cast as requested.
+     *
+     * \returns The result contained within the datum.
      */
     template <typename T>
     T get_datum() const;

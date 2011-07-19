@@ -63,22 +63,30 @@ class VISTK_PIPELINE_EXPORT edge_registry
      *
      * \param type The name of the type of \ref edge to create.
      * \param config The configuration to pass the \ref edge.
+     *
+     * \returns A new pipeline of type \p type.
      */
     edge_t create_edge(type_t const& type, config_t const& config) const;
 
     /**
-     * \brief Returns all of the known types.
+     * \brief Query for all available types.
+     *
+     * \returns All available types in the registry.
      */
     types_t types() const;
     /**
-     * \brief Returns the description for a type.
+     * \brief Query for a description of a type.
      *
      * \param type The name of the type to description.
+     *
+     * \returns The description for the type \p type.
      */
     description_t description(type_t const& type) const;
 
     /**
-     * \brief Returns a pointer to the registry to use.
+     * \brief Accessor to the registry.
+     *
+     * \returns The instance of the registry to use.
      */
     static edge_registry_t self();
 

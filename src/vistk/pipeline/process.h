@@ -72,15 +72,21 @@ class VISTK_PIPELINE_EXPORT process
 
     /**
      * \brief A list of input ports available on the process.
+     *
+     * \returns The names of all input ports available.
      */
     ports_t input_ports() const;
     /**
      * \brief A list of output ports available on the process.
+     *
+     * \returns The names of all output ports available.
      */
     ports_t output_ports() const;
 
     /**
      * \brief Request available configuration options for the process.
+     *
+     * \returns The names of all available configuration keys.
      */
     virtual config::keys_t available_config() const = 0;
     /**
@@ -89,6 +95,8 @@ class VISTK_PIPELINE_EXPORT process
      * \throws unknown_configuration_value Thrown when \p key is not a valid configuration key.
      *
      * \param key The name of the configuration value.
+     *
+     * \returns The default value for \p key.
      */
     virtual config::value_t config_default(config::key_t const& key) const;
     /**
@@ -97,15 +105,21 @@ class VISTK_PIPELINE_EXPORT process
      * \throws unknown_configuration_value Thrown when \p key is not a valid configuration key.
      *
      * \param key The name of the configuration value to describe.
+     *
+     * \returns A description of the value expected for \p key.
      */
     virtual config::description_t config_description(config::key_t const& key) const;
 
     /**
      * \brief The name of the process.
+     *
+     * \returns The name of the process.
      */
     name_t name() const;
     /**
      * \brief The type of the process.
+     *
+     * \returns A name for the type of the process.
      */
     virtual process_registry::type_t type() const = 0;
   protected:
@@ -147,10 +161,14 @@ class VISTK_PIPELINE_EXPORT process
 
     /**
      * \brief Subclass input ports.
+     *
+     * \returns The names of all input ports available in the subclass.
      */
     virtual ports_t _input_ports() const;
     /**
      * \brief Subclass output ports.
+     *
+     * \returns The names of all output ports available in the subclass.
      */
     virtual ports_t _output_ports() const;
 
@@ -160,12 +178,16 @@ class VISTK_PIPELINE_EXPORT process
     void mark_as_complete();
     /**
      * \brief The \ref stamp that the hearbeat is based off of.
+     *
+     * \returns The stamp that the heartbeat uses.
      */
     stamp_t heartbeat_stamp() const;
     /**
      * \brief Check if a set of edges carry the same colored data.
      *
      * \param edges The edges to check the color of.
+     *
+     * \returns True if the available data in each of \p edges have the same coloring, false otherwise.
      */
     static bool same_colored_edges(edges_t const& edges);
     /**
@@ -175,6 +197,8 @@ class VISTK_PIPELINE_EXPORT process
      * stamps.
      *
      * \param edges The edges to check.
+     *
+     * \returns True if the available data in each of \p edges have equivalent stamps, false otherwise.
      */
     static bool sync_edges(edges_t const& edges);
   private:
