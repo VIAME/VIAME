@@ -159,6 +159,33 @@ pipeline
   return processes;
 }
 
+processes_t
+pipeline
+::downstream_for_port(process::name_t const& name, process::port_t const& port) const
+{
+  std::set<process::name_t> process_names;
+
+  BOOST_FOREACH (connection_t const& connection, m_connections)
+  {
+    if ((connection.first.first == name) &&
+        (connection.first.second == port))
+    {
+      process_names.insert(connection.second.first);
+    }
+  }
+
+  processes_t processes;
+
+  BOOST_FOREACH (process::name_t const& process_name, process_names)
+  {
+    process_map_t::const_iterator i = m_process_map.find(process_name);
+
+    processes.push_back(i->second);
+  }
+
+  return processes;
+}
+
 edges_t
 pipeline
 ::input_edges_for_process(process::name_t const& name) const
@@ -185,6 +212,24 @@ pipeline
   BOOST_FOREACH (edge_map_t::value_type const& edge_index, m_edge_map)
   {
     if (m_connections[edge_index.first].first.first == name)
+    {
+      edges.push_back(edge_index.second);
+    }
+  }
+
+  return edges;
+}
+
+edges_t
+pipeline
+::output_edges_for_port(process::name_t const& name, process::port_t const& port) const
+{
+  edges_t edges;
+
+  BOOST_FOREACH (edge_map_t::value_type const& edge_index, m_edge_map)
+  {
+    if ((m_connections[edge_index.first].first.first == name) &&
+        (m_connections[edge_index.first].first.second == port))
     {
       edges.push_back(edge_index.second);
     }

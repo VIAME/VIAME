@@ -124,6 +124,15 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \returns All processes that receive data from \p name.
      */
     processes_t downstream_for_process(process::name_t const& name) const;
+    /**
+     * \brief Find processes that are siphoning data directly from a port.
+     *
+     * \param name The name of the process to lookup.
+     * \param port The name of the port on the process.
+     *
+     * \returns All processes that receive data from \p name's \p port.
+     */
+    processes_t downstream_for_port(process::name_t const& name, process::port_t const& port) const;
 
     /**
      * \brief Find edges that are feeding data directly into a process.
@@ -141,6 +150,15 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \returns All edges that carry data from \p name.
      */
     edges_t output_edges_for_process(process::name_t const& name) const;
+    /**
+     * \brief Find edges that are siphoning data directly from a port.
+     *
+     * \param name The name of the process to lookup.
+     * \param port The name of the port on the process.
+     *
+     * \returns All edges that carry data from \p name's \p port.
+     */
+    edges_t output_edges_for_port(process::name_t const& name, process::port_t const& port) const;
 
     /// All connections made within the pipeline.
     connections_t m_connections;
