@@ -118,6 +118,9 @@ config
     keys_t::iterator const i = std::remove_if(keys.begin(), keys.end(), boost::bind(does_not_begin_with, _1, m_name));
 
     keys.erase(i, keys.end());
+
+    /// \todo Remove the name prefix from the keys.
+    //std::for_each(keys.begin(), keys.end(), remove_block_name);
   }
   else
   {
