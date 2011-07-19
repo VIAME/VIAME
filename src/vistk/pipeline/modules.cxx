@@ -23,6 +23,9 @@
 namespace vistk
 {
 
+namespace
+{
+
 #if defined(_WIN32) || defined(_WIN64)
 typedef HMODULE library_t;
 typedef FARPROC function_t;
@@ -37,6 +40,8 @@ typedef std::string module_path_t;
 typedef std::vector<module_path_t> module_paths_t;
 typedef std::string lib_suffix_t;
 typedef std::string function_name_t;
+
+}
 
 static void load_from_module(module_path_t const path);
 static bool is_separator(char ch);
