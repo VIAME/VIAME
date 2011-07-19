@@ -143,7 +143,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     edges_t input_edges_for_process(process::name_t const& name) const;
     /**
-     * \brief Find processes that are siphoning data directly from an edge.
+     * \brief Find edges that are siphoning data directly from a process.
      *
      * \param name The name of the process to lookup.
      *
