@@ -14,6 +14,12 @@
 
 #include <string>
 
+/**
+ * \file process_registry_exception.h
+ *
+ * \brief Header for exceptions used within the \link process_registry process registry\endlink.
+ */
+
 namespace vistk
 {
 

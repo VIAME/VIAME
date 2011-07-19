@@ -18,6 +18,12 @@
 #include <map>
 #include <vector>
 
+/**
+ * \file edge_registry.h
+ *
+ * \brief Header for the \link edge_registry edge registry\endlink.
+ */
+
 namespace vistk
 {
 

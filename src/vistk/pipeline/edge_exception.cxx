@@ -8,6 +8,12 @@
 
 #include <sstream>
 
+/**
+ * \file edge_exception.cxx
+ *
+ * \brief Implementation of exceptions used within \link edge edges\endlink.
+ */
+
 namespace vistk
 {
 

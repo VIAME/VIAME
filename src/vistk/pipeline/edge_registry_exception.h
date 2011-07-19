@@ -14,6 +14,12 @@
 
 #include <string>
 
+/**
+ * \file edge_registry_exception.h
+ *
+ * \brief Header for exceptions used within the \link edge_registry edge registry\endlink.
+ */
+
 namespace vistk
 {
 

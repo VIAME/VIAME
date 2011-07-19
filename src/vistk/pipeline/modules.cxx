@@ -20,6 +20,12 @@
 #include <dlfcn.h>
 #endif
 
+/**
+ * \file modules.cxx
+ *
+ * \brief Implementation of module loading.
+ */
+
 namespace vistk
 {
 

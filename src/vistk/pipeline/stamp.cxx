@@ -9,6 +9,12 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 
+/**
+ * \file stamp.cxx
+ *
+ * \brief Implementation of \link stamp stamps\endlink.
+ */
+
 namespace vistk
 {
 

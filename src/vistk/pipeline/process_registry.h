@@ -18,6 +18,12 @@
 #include <string>
 #include <vector>
 
+/**
+ * \file process_registry.h
+ *
+ * \brief Header for the \link process_registry process registry\endlink.
+ */
+
 namespace vistk
 {
 

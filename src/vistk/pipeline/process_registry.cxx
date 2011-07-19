@@ -13,6 +13,12 @@
 
 #include <utility>
 
+/**
+ * \file process_registry.cxx
+ *
+ * \brief Implementation of the \link process_registry process registry\endlink.
+ */
+
 namespace vistk
 {
 

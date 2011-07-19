@@ -18,6 +18,12 @@
 #include <map>
 #include <vector>
 
+/**
+ * \file pipeline_registry.h
+ *
+ * \brief Header for the \link pipeline_registry pipeline registry\endlink.
+ */
+
 namespace vistk
 {
 

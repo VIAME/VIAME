@@ -8,6 +8,12 @@
 
 #include <sstream>
 
+/**
+ * \file process_exception.cxx
+ *
+ * \brief Implementation of exceptions used within \link process processes\endlink.
+ */
+
 namespace vistk
 {
 

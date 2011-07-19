@@ -9,6 +9,12 @@
 
 #include <vistk/config.h>
 
+/**
+ * \file examples-config.h
+ *
+ * \brief Defines for symbol visibility in example processes.
+ */
+
 #ifndef VISTK_PROCESSES_EXAMPLES_EXPORT
 #ifdef MAKE_VISTK_PROCESSES_EXAMPLES_LIB
 /// Export the symbol if building the library.

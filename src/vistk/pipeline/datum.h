@@ -15,6 +15,12 @@
 
 #include <string>
 
+/**
+ * \file datum.h
+ *
+ * \brief Header for a piece of \link datum data\endlink in the pipeline.
+ */
+
 namespace vistk
 {
 

@@ -8,6 +8,12 @@
 
 #include <sstream>
 
+/**
+ * \file edge_registry_exception.cxx
+ *
+ * \brief Implementation of exceptions used within the \link edge_registry edge registry\endlink.
+ */
+
 namespace vistk
 {
 

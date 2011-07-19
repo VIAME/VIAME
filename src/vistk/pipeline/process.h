@@ -19,6 +19,12 @@
 #include <string>
 #include <vector>
 
+/**
+ * \file process.h
+ *
+ * \brief Header for \link process processes\endlink.
+ */
+
 namespace vistk
 {
 

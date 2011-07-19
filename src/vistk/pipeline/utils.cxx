@@ -18,6 +18,12 @@
 static void SetThreadName(DWORD dwThreadID, char* threadName);
 #endif
 
+/**
+ * \file utils.cxx
+ *
+ * \brief Implementation of pipeline utilities.
+ */
+
 namespace vistk
 {
 

@@ -14,6 +14,12 @@
 
 #include <string>
 
+/**
+ * \file pipeline_registry_exception.h
+ *
+ * \brief Header for exceptions used within the \link pipeline_registry pipeline registry\endlink.
+ */
+
 namespace vistk
 {
 

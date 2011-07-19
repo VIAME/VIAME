@@ -8,6 +8,12 @@
 
 #include <sstream>
 
+/**
+ * \file pipeline_exception.cxx
+ *
+ * \brief Implementation of exceptions used within \link pipeline pipelines\endlink.
+ */
+
 namespace vistk
 {
 

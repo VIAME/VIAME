@@ -9,6 +9,12 @@
 
 #include <vistk/config.h>
 
+/**
+ * \file pipeline-config.h
+ *
+ * \brief Defines for symbol visibility in pipeline.
+ */
+
 #ifndef VISTK_PIPELINE_EXPORT
 #ifdef MAKE_VISTK_PIPELINE_LIB
 /// Export the symbol if building the library.

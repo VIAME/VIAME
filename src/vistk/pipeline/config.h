@@ -20,6 +20,12 @@
 #include <typeinfo>
 #include <vector>
 
+/**
+ * \file config.h
+ *
+ * \brief Header for \link config configuration\endlink in the pipeline.
+ */
+
 namespace vistk
 {
 

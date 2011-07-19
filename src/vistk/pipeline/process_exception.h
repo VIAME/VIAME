@@ -14,6 +14,12 @@
 
 #include <string>
 
+/**
+ * \file process_exception.h
+ *
+ * \brief Header for exceptions used within \link process processes\endlink.
+ */
+
 namespace vistk
 {
 

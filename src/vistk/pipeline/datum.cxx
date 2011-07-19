@@ -8,6 +8,12 @@
 
 #include <sstream>
 
+/**
+ * \file datum.cxx
+ *
+ * \brief Implementation of a piece of \link datum data\endlink in the pipeline.
+ */
+
 namespace vistk
 {
 

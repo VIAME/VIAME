@@ -11,6 +11,12 @@
 
 #include <string>
 
+/**
+ * \file utils.h
+ *
+ * \brief Common utilities when dealing with pipelines.
+ */
+
 namespace vistk
 {
 

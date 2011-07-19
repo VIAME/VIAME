@@ -7,6 +7,12 @@
 #include "edge.h"
 #include "edge_exception.h"
 
+/**
+ * \file edge.cxx
+ *
+ * \brief Implementation of the base class for \link edge edges\endlink.
+ */
+
 namespace vistk
 {
 

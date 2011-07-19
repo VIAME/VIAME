@@ -15,6 +15,12 @@
 
 #include <string>
 
+/**
+ * \file edge_exception.h
+ *
+ * \brief Header for exceptions used within \link edge edges\endlink.
+ */
+
 namespace vistk
 {
 

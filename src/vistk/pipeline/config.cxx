@@ -14,6 +14,12 @@
 #include <algorithm>
 #include <sstream>
 
+/**
+ * \file config.cxx
+ *
+ * \brief Implementation of \link config configuration\endlink in the pipeline.
+ */
+
 namespace vistk
 {
 

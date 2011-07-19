@@ -18,6 +18,12 @@
 #include <map>
 #include <vector>
 
+/**
+ * \file edge.h
+ *
+ * \brief Header for \link edge edges\endlink.
+ */
+
 namespace vistk
 {
 

@@ -9,6 +9,12 @@
 
 #include <boost/foreach.hpp>
 
+/**
+ * \file edge_registry.cxx
+ *
+ * \brief Implementation of the \link edge_registry edge registry\endlink.
+ */
+
 namespace vistk
 {
 

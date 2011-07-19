@@ -14,6 +14,12 @@
 #include <exception>
 
 /**
+ * \file types.h
+ *
+ * \brief Common types used in the pipeline library.
+ */
+
+/**
  * \brief The namespace for all vistk-related symbols.
  */
 namespace vistk

@@ -9,6 +9,12 @@
 
 #include "pipeline-config.h"
 
+/**
+ * \file modules.h
+ *
+ * \brief Functions dealing with modules in vistk.
+ */
+
 namespace vistk
 {
 

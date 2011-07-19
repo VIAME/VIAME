@@ -11,6 +11,12 @@
 
 #include <set>
 
+/**
+ * \file pipeline.cxx
+ *
+ * \brief Implementation of the base class for \link pipeline pipelines\endlink.
+ */
+
 namespace vistk
 {
 

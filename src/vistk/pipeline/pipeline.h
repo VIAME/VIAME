@@ -17,6 +17,12 @@
 #include <map>
 #include <utility>
 
+/**
+ * \file pipeline.h
+ *
+ * \brief Header for \link pipeline pipelines\endlink.
+ */
+
 namespace vistk
 {
 

@@ -9,6 +9,12 @@
 
 #include <boost/foreach.hpp>
 
+/**
+ * \file pipeline_registry.cxx
+ *
+ * \brief Implementation of the \link pipeline_registry pipeline registry\endlink.
+ */
+
 namespace vistk
 {
 

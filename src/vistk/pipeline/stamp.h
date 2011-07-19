@@ -15,6 +15,12 @@
 #include <boost/operators.hpp>
 #include <boost/utility.hpp>
 
+/**
+ * \file stamp.h
+ *
+ * \brief Header for \link stamp stamps\endlink.
+ */
+
 namespace vistk
 {
 
