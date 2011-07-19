@@ -136,9 +136,12 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     edges_t output_edges_for_process(process::name_t const& name) const;
 
+    /// All connections made within the pipeline.
     connections_t m_connections;
 
+    /// All processes within the pipeline.
     process_map_t m_process_map;
+    /// All edges within the pipeline.
     edge_map_t m_edge_map;
   private:
     class priv;
