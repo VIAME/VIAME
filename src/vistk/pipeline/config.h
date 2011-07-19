@@ -222,8 +222,6 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast
     /**
      * \brief Constructor.
      *
-     * \todo Document constructor.
-     *
      * \param key The key that was requested.
      * \param value The value that was failed to cast.
      * \param type The type that was requested.
