@@ -13,6 +13,9 @@
 
 #include <exception>
 
+/**
+ * \brief The namespace for all vistk-related symbols.
+ */
 namespace vistk
 {
 
