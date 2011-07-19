@@ -49,6 +49,8 @@ class VISTK_PIPELINE_EXPORT stamp
      *
      * Since stamps are not implicitly copyable, this is provided to copy them.
      *
+     * \param st The stamp to copy.
+     *
      * \returns A stamp that is equivalent to \p st.
      */
     static stamp_t copied_stamp(stamp_t const& st);
