@@ -32,6 +32,8 @@ bool name_thread(thread_name_t const& name)
 #elif defined(_WIN32) || defined(_WIN64)
 #ifndef NDEBUG
   SetThreadName(-1, const_cast<char*>(name.c_str()));
+#else
+  return false;
 #endif
 #else
   return false;
