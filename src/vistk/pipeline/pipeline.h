@@ -101,6 +101,8 @@ class VISTK_PIPELINE_EXPORT pipeline
     typedef std::map<process::name_t, process_t> process_map_t;
     /// Type for the address of a port within the pipeline.
     typedef std::pair<process::name_t, process::port_t> port_addr_t;
+    /// A group of port addresses.
+    typedef std::vector<port_addr_t> port_addrs_t;
     /// Type for a connection between two ports.
     typedef std::pair<port_addr_t, port_addr_t> connection_t;
     /// Type for a collection of connections.
@@ -133,6 +135,15 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \returns All processes that receive data from \p name's \p port.
      */
     processes_t downstream_for_port(process::name_t const& name, process::port_t const& port) const;
+    /**
+     * \brief Find ports that are siphoning data directly from a port.
+     *
+     * \param name The name of the process to lookup.
+     * \param port The name of the port on the process.
+     *
+     * \returns All port addresses that receive data from \p name's \p port.
+     */
+    port_addrs_t receivers_for_port(process::name_t const& name, process::port_t const& port) const;
 
     /**
      * \brief Find edges that are feeding data directly into a process.

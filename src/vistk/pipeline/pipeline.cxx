@@ -186,6 +186,24 @@ pipeline
   return processes;
 }
 
+pipeline::port_addrs_t
+pipeline
+::receivers_for_port(process::name_t const& name, process::port_t const& port) const
+{
+  port_addrs_t port_addrs;
+
+  BOOST_FOREACH (connection_t const& connection, m_connections)
+  {
+    if ((connection.first.first == name) &&
+        (connection.first.second == port))
+    {
+      port_addrs.push_back(connection.second);
+    }
+  }
+
+  return port_addrs;
+}
+
 edges_t
 pipeline
 ::input_edges_for_process(process::name_t const& name) const
