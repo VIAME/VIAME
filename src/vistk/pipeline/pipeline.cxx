@@ -105,6 +105,34 @@ pipeline
   d = boost::shared_ptr<priv>(new priv);
 }
 
+process::names_t
+pipeline
+::process_names() const
+{
+  process::names_t names;
+
+  BOOST_FOREACH (process_map_t::value_type const& process_index, m_process_map)
+  {
+    names.push_back(process_index.first);
+  }
+
+  return names;
+}
+
+process_t
+pipeline
+::process_by_name(process::name_t const& name) const
+{
+  process_map_t::const_iterator i = m_process_map.find(name);
+
+  if (i == m_process_map.end())
+  {
+    throw no_such_process(name);
+  }
+
+  return i->second;
+}
+
 processes_t
 pipeline
 ::upstream_for_process(process::name_t const& name) const

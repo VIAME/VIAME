@@ -50,6 +50,8 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::string name_t;
     /// The type for the name of a port on a process.
     typedef std::string port_t;
+    /// A group of process names.
+    typedef std::vector<name_t> names_t;
     /// A group of ports.
     typedef std::vector<port_t> ports_t;
 

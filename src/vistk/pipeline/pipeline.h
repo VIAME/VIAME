@@ -111,6 +111,21 @@ class VISTK_PIPELINE_EXPORT pipeline
     typedef std::map<size_t, edge_t> edge_map_t;
 
     /**
+     * \brief Get a list of processes in the pipeline.
+     *
+     * \returns The names of all processes in the pipeline.
+     */
+    process::names_t process_names() const;
+    /**
+     * \brief Get a list process by name.
+     *
+     * \throws no_such_process Thrown when \p name does not exist in the pipeline.
+     *
+     * \returns The process in the pipeline with the given name.
+     */
+    process_t process_by_name(process::name_t const& name) const;
+
+    /**
      * \brief Find processes that are feeding data directly into a process.
      *
      * \param name The name of the process to lookup.
