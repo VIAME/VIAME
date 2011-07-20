@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINES_EXAMPLES_THREAD_POOL_PIPELINE_H
-#define VISTK_PIPELINES_EXAMPLES_THREAD_POOL_PIPELINE_H
+#ifndef VISTK_SCHEDULES_EXAMPLES_SCHEDULES_THREAD_POOL_SCHEDULE_H
+#define VISTK_SCHEDULES_EXAMPLES_SCHEDULES_THREAD_POOL_SCHEDULE_H
 
 #include "examples-config.h"
 
-#include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/schedule.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -17,16 +17,16 @@ namespace vistk
 {
 
 /**
- * \class thread_pool_pipeline
+ * \class thread_pool_schedule
  *
- * \brief A pipeline which process execution among a group of threads.
+ * \brief A schedule which process execution among a group of threads.
  *
  * \section config Configuration
  *
  * \li \c num_threads The number of threads to run. A setting of \c 0 means "auto".
  */
-class VISTK_PIPELINES_EXAMPLES_NO_EXPORT thread_pool_pipeline
-  : public pipeline
+class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_pool_schedule
+  : public schedule
 {
   public:
     /**
@@ -35,21 +35,20 @@ class VISTK_PIPELINES_EXAMPLES_NO_EXPORT thread_pool_pipeline
      * \param config Contains config for the edge.
      * \param num_threads The number of threads to use. 0 means the number of processors available.
      */
-    thread_pool_pipeline(config_t const& config, size_t num_threads);
+    thread_pool_schedule(config_t const& config, pipeline_t const& pipe, size_t num_threads);
     /**
      * \brief Destructor.
      */
-    virtual ~thread_pool_pipeline();
+    virtual ~thread_pool_schedule();
 
     /**
-     * \brief Runs the pipeline.
+     * \brief Starts execution.
      */
-    virtual void run();
-
+    virtual void start();
     /**
-     * \brief Shuts the pipeline down.
+     * \brief Stop execution of the pipeline.
      */
-    virtual void shutdown();
+    virtual void stop();
   protected:
     /// The number of threads to run.
     size_t const m_num_threads;
@@ -60,4 +59,4 @@ class VISTK_PIPELINES_EXAMPLES_NO_EXPORT thread_pool_pipeline
 
 } // end namespace vistk
 
-#endif // VISTK_PIPELINES_EXAMPLES_THREAD_POOL_PIPELINE_H
+#endif // VISTK_SCHEDULES_EXAMPLES_SCHEDULES_THREAD_POOL_SCHEDULE_H

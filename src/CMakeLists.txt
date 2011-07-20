@@ -26,3 +26,4 @@ function (add_vistk_plugin name define)
 endfunction (add_vistk_plugin name define)
 
 add_subdirectory(processes)
+add_subdirectory(schedules)
