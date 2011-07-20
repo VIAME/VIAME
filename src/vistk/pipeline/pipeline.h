@@ -45,7 +45,7 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Destructor.
      */
-    virtual ~pipeline();
+    ~pipeline();
 
     /**
      * \brief Add a process to the pipeline.
@@ -55,7 +55,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \param process The process to add to the pipeline.
      */
-    virtual void add_process(process_t process);
+    void add_process(process_t process);
 
     /**
      * \brief Connect two ports in the pipeline together with an edge.
@@ -69,11 +69,11 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \param downstream_port The downstream process port.
      * \param edge The edge to connect the ports with.
      */
-    virtual void connect(process::name_t const& upstream_process,
-                         process::port_t const& upstream_port,
-                         process::name_t const& downstream_process,
-                         process::port_t const& downstream_port,
-                         edge_t edge);
+    void connect(process::name_t const& upstream_process,
+                 process::port_t const& upstream_port,
+                 process::name_t const& downstream_process,
+                 process::port_t const& downstream_port,
+                 edge_t edge);
 
     /**
      * \brief Sets the pipeline up for execution.
@@ -83,11 +83,15 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Runs the pipeline.
      */
-    virtual void run() = 0;
+    void run();
+    /**
+     * \brief Resets the pipeline.
+     */
+    void reset();
     /**
      * \brief Shuts the pipeline down.
      */
-    virtual void shutdown() = 0;
+    void shutdown();
 
     /**
      * \brief Get a list of processes in the pipeline.

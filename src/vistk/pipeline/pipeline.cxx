@@ -96,8 +96,6 @@ pipeline
 {
   /// \todo Check for disconnected pipelines.
   /// \todo Check for types of connections.
-
-  _setup_pipeline();
 }
 
 process::names_t
@@ -283,12 +281,6 @@ pipeline
 ::pipeline(config_t const& /*config*/)
 {
   d = boost::shared_ptr<priv>(new priv);
-}
-
-void
-pipeline
-::_setup_pipeline()
-{
 }
 
 pipeline::priv
