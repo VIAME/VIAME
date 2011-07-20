@@ -177,9 +177,11 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Constructor.
      *
+     * \warning Configuration errors must \em not throw exceptions here.
+     *
      * \param config Contains configuration for the process.
      */
-    process(config_t const& config);
+    process(config_t const& config) throw();
     /**
      * \brief Destructor.
      */

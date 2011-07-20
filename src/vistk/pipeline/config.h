@@ -108,7 +108,7 @@ class VISTK_PIPELINE_EXPORT config
      * \returns The value stored within the configuration, or \p def if something goes wrong.
      */
     template <typename T>
-    T get_value(key_t const& key, T const& def) const;
+    T get_value(key_t const& key, T const& def) const throw();
 
     /**
      * \brief Sets a value within the configuration.
@@ -277,7 +277,7 @@ config
 template <typename T>
 T
 config
-::get_value(key_t const& key, T const& def) const
+::get_value(key_t const& key, T const& def) const throw()
 {
   try
   {

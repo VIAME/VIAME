@@ -185,7 +185,7 @@ process
 }
 
 process
-::process(config_t const& config)
+::process(config_t const& config) throw()
 {
   d = boost::shared_ptr<priv>(new priv);
 
