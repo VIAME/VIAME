@@ -36,6 +36,10 @@ typedef std::vector<process_t> processes_t;
  *
  * \brief A node within a \ref pipeline which runs computations on data.
  *
+ * \oports
+ *
+ * \oport{heartbeat} Carries the status of the process.
+ *
  * \ingroup base_classes
  */
 class VISTK_PIPELINE_EXPORT process
