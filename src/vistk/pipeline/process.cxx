@@ -134,6 +134,25 @@ process
   return ports;
 }
 
+process::port_type_t
+process
+::input_port_type(port_t const& port) const
+{
+  _input_port_type(port);
+}
+
+process::port_type_t
+process
+::output_port_type(port_t const& port) const
+{
+  if (port == priv::HEARTBEAT_PORT_NAME)
+  {
+    return port_type_t(none_type, port_flags_t());
+  }
+
+  _output_port_type(port);
+}
+
 config::value_t
 process
 ::config_default(config::key_t const& key) const
@@ -216,6 +235,20 @@ process
 ::_output_ports() const
 {
   return ports_t();
+}
+
+process::port_type_t
+process
+::_input_port_type(port_t const& port) const
+{
+  throw no_such_port_exception(d->name, port);
+}
+
+process::port_type_t
+process
+::_output_port_type(port_t const& port) const
+{
+  throw no_such_port_exception(d->name, port);
 }
 
 void

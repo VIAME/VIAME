@@ -109,6 +109,23 @@ class VISTK_PIPELINE_EXPORT process
     ports_t output_ports() const;
 
     /**
+     * \brief The type of data that is accepted on an input port.
+     *
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     *
+     * \returns The type of data expected.
+     */
+    port_type_t input_port_type(port_t const& port) const;
+    /**
+     * \brief The type of data that is available on an output port.
+     *
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     *
+     * \returns The type of data available.
+     */
+    port_type_t output_port_type(port_t const& port) const;
+
+    /**
      * \brief Request available configuration options for the process.
      *
      * \returns The names of all available configuration keys.
@@ -205,6 +222,19 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The names of all output ports available in the subclass.
      */
     virtual ports_t _output_ports() const;
+
+    /**
+     * \brief Subclass input port types.
+     *
+     * \returns The type of data expected.
+     */
+    virtual port_type_t _input_port_type(port_t const& port) const;
+    /**
+     * \brief Subclass output port types.
+     *
+     * \returns The type of data available.
+     */
+    virtual port_type_t _output_port_type(port_t const& port) const;
 
     /**
      * \brief Marks the process as complete.
