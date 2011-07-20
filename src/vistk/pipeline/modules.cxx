@@ -53,6 +53,7 @@ static void load_from_module(module_path_t const path);
 static bool is_separator(char ch);
 
 static function_name_t const process_function_name = function_name_t("register_processes");
+static function_name_t const schedule_function_name = function_name_t("register_schedules");
 static envvar_name_t const vistk_module_envvar = envvar_name_t("VISTK_MODULE_PATH");
 static lib_suffix_t const library_suffix = lib_suffix_t(
 #if defined(_WIN32) || defined(_WIN64)
@@ -152,12 +153,17 @@ void load_from_module(module_path_t const path)
 
     mbstowcs(function_name, process_function_name.c_str(), MB_CUR_MAX);
     process_function = GetProcAddress(library, function_name);
+
+    mbstowcs(function_name, schedule_function_name.c_str(), MB_CUR_MAX);
+    schedule_function = GetProcAddress(library, function_name);
   }
 #else
   function_t process_function = dlsym(library, process_function_name.c_str());
+  function_t schedule_function = dlsym(library, schedule_function_name.c_str());
 #endif
 
   load_module_t process_registrar = reinterpret_cast<load_module_t>(process_function);
+  load_module_t schedule_registrar = reinterpret_cast<load_module_t>(schedule_function);
 
   bool functions_found = false;
 
@@ -166,6 +172,13 @@ void load_from_module(module_path_t const path)
     /// \todo Log info that we have loaded processes.
 
     (*process_registrar)();
+    functions_found = true;
+  }
+  if (schedule_registrar)
+  {
+    /// \todo Log info that we have loaded schedules.
+
+    (*schedule_registrar)();
     functions_found = true;
   }
 
