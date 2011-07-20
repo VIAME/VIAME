@@ -88,7 +88,7 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Constructor.
      *
-     * \param config Contains configuration for the edge.
+     * \param config Contains configuration for the pipeline.
      */
     pipeline(config_t const& config);
 
