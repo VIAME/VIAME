@@ -1,0 +1,10 @@
+/**
+ * \mainpage Pipeline 2.0 API Documentation
+ *
+ * \section introduction Introduction
+ *
+ * This is a new pipeline API that addresses issues that have arisen in the
+ * original pipeline.
+ *
+ * \todo Write introduction.
+ */
