@@ -51,6 +51,8 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Whether the edge represents a dependency from upstream to downstream.
      *
+     * \todo Is this really necessary?
+     *
      * \returns True if the edge expresses that upstream must be executed before downstream, false otherwise.
      */
     bool makes_dependency() const;
