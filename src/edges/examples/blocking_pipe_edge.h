@@ -20,6 +20,10 @@ namespace vistk
  * \class blocking_pipe_edge
  *
  * \brief A connection between two process ports which can carry data.
+ *
+ * \section config Configuration
+ *
+ * \li \c max_size The maximum number of elements that the edge can hold at once.
  */
 class VISTK_EDGES_EXAMPLES_NO_EXPORT blocking_pipe_edge
   : public edge

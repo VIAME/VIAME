@@ -17,7 +17,21 @@ namespace vistk
 /**
  * \class number_process
  *
- * \brief A connection between two process ports which can carry data.
+ * \brief A process which generates increasing numbers within a range.
+ *
+ * \oports
+ *
+ * \oport{number} The number generated for the step.
+ *
+ * \configs
+ *
+ * \config{start} The start of the range.
+ * \config{end} The end of the range.
+ *
+ * \reqs
+ *
+ * \req \key{start} must be less than \key{end}.
+ * \req The \port{number} output must be connected to at least one edge.
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
   : public process

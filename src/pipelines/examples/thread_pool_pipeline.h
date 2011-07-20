@@ -20,6 +20,10 @@ namespace vistk
  * \class thread_pool_pipeline
  *
  * \brief A pipeline which process execution among a group of threads.
+ *
+ * \section config Configuration
+ *
+ * \li \c num_threads The number of threads to run. A setting of \c 0 means "auto".
  */
 class VISTK_PIPELINES_EXAMPLES_NO_EXPORT thread_pool_pipeline
   : public pipeline
