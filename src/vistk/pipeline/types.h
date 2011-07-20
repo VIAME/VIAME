@@ -59,6 +59,10 @@ class process_registry;
 /// A typedef used to handle \link process_registry process registries\endlink.
 typedef boost::shared_ptr<process_registry> process_registry_t;
 
+class schedule;
+/// A typedef used to handle \link schedule schedules\endlink.
+typedef boost::shared_ptr<schedule> schedule_t;
+
 class stamp;
 /// A typedef used to handle \link stamp stamps\endlink.
 typedef boost::shared_ptr<stamp const> stamp_t;
