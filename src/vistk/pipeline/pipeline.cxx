@@ -99,12 +99,6 @@ pipeline
   _setup_pipeline();
 }
 
-pipeline
-::pipeline(config_t const& /*config*/)
-{
-  d = boost::shared_ptr<priv>(new priv);
-}
-
 process::names_t
 pipeline
 ::process_names() const
@@ -282,6 +276,12 @@ pipeline
   }
 
   return edges;
+}
+
+pipeline
+::pipeline(config_t const& /*config*/)
+{
+  d = boost::shared_ptr<priv>(new priv);
 }
 
 void

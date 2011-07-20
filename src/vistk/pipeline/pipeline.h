@@ -37,6 +37,11 @@ class VISTK_PIPELINE_EXPORT pipeline
   : boost::noncopyable
 {
   public:
+    /// Type for the address of a port within the pipeline.
+    typedef std::pair<process::name_t, process::port_t> port_addr_t;
+    /// A group of port addresses.
+    typedef std::vector<port_addr_t> port_addrs_t;
+
     /**
      * \brief Destructor.
      */
@@ -79,36 +84,10 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \brief Runs the pipeline.
      */
     virtual void run() = 0;
-
     /**
      * \brief Shuts the pipeline down.
      */
     virtual void shutdown() = 0;
-  protected:
-    /**
-     * \brief Constructor.
-     *
-     * \param config Contains configuration for the pipeline.
-     */
-    pipeline(config_t const& config);
-
-    /**
-     * \brief Subclass pipeline setup method.
-     */
-    virtual void _setup_pipeline();
-
-    /// Type for a map of processes.
-    typedef std::map<process::name_t, process_t> process_map_t;
-    /// Type for the address of a port within the pipeline.
-    typedef std::pair<process::name_t, process::port_t> port_addr_t;
-    /// A group of port addresses.
-    typedef std::vector<port_addr_t> port_addrs_t;
-    /// Type for a connection between two ports.
-    typedef std::pair<port_addr_t, port_addr_t> connection_t;
-    /// Type for a collection of connections.
-    typedef std::vector<connection_t> connections_t;
-    /// Type for referencing edges by the connection.
-    typedef std::map<size_t, edge_t> edge_map_t;
 
     /**
      * \brief Get a list of processes in the pipeline.
@@ -185,6 +164,22 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \returns All edges that carry data from \p name's \p port.
      */
     edges_t output_edges_for_port(process::name_t const& name, process::port_t const& port) const;
+  protected:
+    /**
+     * \brief Constructor.
+     *
+     * \param config Contains configuration for the pipeline.
+     */
+    pipeline(config_t const& config);
+
+    /// Type for a map of processes.
+    typedef std::map<process::name_t, process_t> process_map_t;
+    /// Type for a connection between two ports.
+    typedef std::pair<port_addr_t, port_addr_t> connection_t;
+    /// Type for a collection of connections.
+    typedef std::vector<connection_t> connections_t;
+    /// Type for referencing edges by the connection.
+    typedef std::map<size_t, edge_t> edge_map_t;
 
     /// All connections made within the pipeline.
     connections_t m_connections;
