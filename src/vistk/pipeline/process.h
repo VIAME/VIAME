@@ -68,6 +68,9 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Connects an edge to an input port on the process.
      *
+     * \throws null_edge_port_connection Thrown when \p edge is \c NULL.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     *
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
      */
@@ -76,6 +79,7 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Connects an edge to an output port on the process.
      *
      * \throws null_edge_port_connection Thrown when \p edge is \c NULL.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
