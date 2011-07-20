@@ -29,7 +29,7 @@ namespace vistk
 /**
  * \class pipeline pipeline.h <vistk/pipeline/pipeline.h>
  *
- * \brief A connection between two process ports which can carry data.
+ * \brief A collection of interconnected processes.
  *
  * \ingroup base_classes
  */
