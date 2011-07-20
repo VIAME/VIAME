@@ -52,7 +52,6 @@ typedef std::string function_name_t;
 static void load_from_module(module_path_t const path);
 static bool is_separator(char ch);
 
-static function_name_t const edge_function_name = function_name_t("register_edges");
 static function_name_t const pipeline_function_name = function_name_t("register_pipelines");
 static function_name_t const process_function_name = function_name_t("register_processes");
 static envvar_name_t const vistk_module_envvar = envvar_name_t("VISTK_MODULE_PATH");
@@ -152,9 +151,6 @@ void load_from_module(module_path_t const path)
   {
     wchar_t function_name[MB_CUR_MAX];
 
-    mbstowcs(function_name, edge_function_name.c_str(), MB_CUR_MAX);
-    edge_function = GetProcAddress(library, function_name);
-
     mbstowcs(function_name, pipeline_function_name.c_str(), MB_CUR_MAX);
     pipeline_function = GetProcAddress(library, function_name);
 
@@ -162,24 +158,15 @@ void load_from_module(module_path_t const path)
     process_function = GetProcAddress(library, function_name);
   }
 #else
-  function_t edge_function = dlsym(library, edge_function_name.c_str());
   function_t pipeline_function = dlsym(library, pipeline_function_name.c_str());
   function_t process_function = dlsym(library, process_function_name.c_str());
 #endif
 
-  load_module_t edge_registrar = reinterpret_cast<load_module_t>(edge_function);
   load_module_t pipeline_registrar = reinterpret_cast<load_module_t>(pipeline_function);
   load_module_t process_registrar = reinterpret_cast<load_module_t>(process_function);
 
   bool functions_found = false;
 
-  if (edge_registrar)
-  {
-    /// \todo Log info that we have loaded edges.
-
-    (*edge_registrar)();
-    functions_found = true;
-  }
   if (pipeline_registrar)
   {
     /// \todo Log info that we have loaded pipelines.
