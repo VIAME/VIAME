@@ -41,6 +41,17 @@ typedef std::vector<process_t> processes_t;
  *
  * \oport{heartbeat} Carries the status of the process.
  *
+ * \par Initialization Routine
+ *
+ * <ol>
+ *   <li>Configuration is given to the process when constructed.</li>
+ *   <li>Connections are made.</li>
+ *   <li>The \ref process::_init() method is called.</li>
+ * </ol>
+ *
+ * Exceptions for misconfiguration should be thrown from \ref process::_init()
+ * reimplementations. This is to facilitate querying of processes.
+ *
  * \ingroup base_classes
  */
 class VISTK_PIPELINE_EXPORT process
