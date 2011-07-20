@@ -16,6 +16,7 @@
 
 #include <boost/utility.hpp>
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -50,10 +51,18 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::string name_t;
     /// The type for the name of a port on a process.
     typedef std::string port_t;
+    /// The type for the type of data on a port.
+    typedef std::string port_type_name_t;
+    /// The type for a flag on a port.
+    typedef std::string port_flag_t;
     /// A group of process names.
     typedef std::vector<name_t> names_t;
     /// A group of ports.
     typedef std::vector<port_t> ports_t;
+    /// A group of port flags.
+    typedef std::set<port_flag_t> port_flags_t;
+    /// A type the describes the type of data for a port.
+    typedef boost::tuple<port_type_name_t, port_flags_t> port_type_t;
 
     /**
      * \brief Post-connection initialization.
