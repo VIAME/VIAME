@@ -43,10 +43,6 @@ class edge;
 /// A typedef used to handle \link edge edges\endlink.
 typedef boost::shared_ptr<edge> edge_t;
 
-class edge_registry;
-/// A typedef used to handle \link edge_registry edge registries\endlink.
-typedef boost::shared_ptr<edge_registry> edge_registry_t;
-
 class pipeline;
 /// A typedef used to handle \link pipeline pipelines\endlink.
 typedef boost::shared_ptr<pipeline> pipeline_t;

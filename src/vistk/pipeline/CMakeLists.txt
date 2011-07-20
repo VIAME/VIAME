@@ -5,8 +5,6 @@ set(pipeline_srcs
   datum.cxx
   edge.cxx
   edge_exception.cxx
-  edge_registry.cxx
-  edge_registry_exception.cxx
   modules.cxx
   pipeline.cxx
   pipeline_exception.cxx
@@ -24,8 +22,6 @@ set(pipeline_headers
   datum.h
   edge.h
   edge_exception.h
-  edge_registry.h
-  edge_registry_exception.h
   modules.h
   pipeline-config.h
   pipeline.h
