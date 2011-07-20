@@ -178,6 +178,7 @@ edge
 edge
 ::edge(config_t const& /*config*/)
 {
+  d = boost::shared_ptr<priv>(new priv);
 }
 
 edge::priv

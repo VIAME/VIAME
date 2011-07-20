@@ -141,7 +141,7 @@ class VISTK_PIPELINE_EXPORT edge
     edge(config_t const& config);
   private:
     class priv;
-    const boost::shared_ptr<priv> d;
+    boost::shared_ptr<priv> d;
 };
 
 } // end namespace vistk

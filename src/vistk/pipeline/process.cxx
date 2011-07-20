@@ -162,8 +162,9 @@ process
 
 process
 ::process(config_t const& config)
-  : d(new priv)
 {
+  d = boost::shared_ptr<priv>(new priv);
+
   d->name = config->get_value<name_t>(priv::NAME_CONFIG_KEY, priv::DEFAULT_PROCESS_NAME);
 }
 
