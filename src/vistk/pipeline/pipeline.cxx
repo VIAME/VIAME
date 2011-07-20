@@ -95,6 +95,7 @@ pipeline
 ::setup_pipeline()
 {
   /// \todo Check for disconnected pipelines.
+  /// \todo Check for types of connections.
 
   _setup_pipeline();
 }
