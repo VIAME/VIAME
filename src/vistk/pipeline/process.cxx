@@ -32,6 +32,7 @@ process::port_type_name_t const process::type_any = process::port_type_name_t("_
 process::port_type_name_t const process::type_none = process::port_type_name_t("_none");
 process::port_flag_t const process::flag_output_const = process::port_flag_t("_const");
 process::port_flag_t const process::flag_input_mutable = process::port_flag_t("_mutable");
+process::port_flag_t const process::flag_required = process::port_flag_t("_required");
 
 class process::priv
 {
