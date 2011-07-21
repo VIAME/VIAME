@@ -182,13 +182,13 @@ class VISTK_PIPELINE_EXPORT process
     virtual process_registry::type_t type() const = 0;
 
     /// A type which means that the type of the data is irrelevant.
-    static port_type_name_t const any_type;
+    static port_type_name_t const type_any;
     /// A type which indicates that no actual data is ever created.
-    static port_type_name_t const none_type;
+    static port_type_name_t const type_none;
     /// A flag which indicates that the output cannot be modified.
-    static port_flag_t const flag_const_output;
+    static port_flag_t const flag_output_const;
     /// A flag which indicates that the input may be modified.
-    static port_flag_t const flag_mutable_input;
+    static port_flag_t const flag_input_mutable;
   protected:
     /**
      * \brief Constructor.
