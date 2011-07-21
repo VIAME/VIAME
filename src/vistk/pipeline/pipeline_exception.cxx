@@ -163,7 +163,13 @@ group_output_already_mapped
 {
   std::ostringstream sstr;
 
-  /// \todo
+  sstr << "The \'" << m_name << "\' group output port "
+       << "\'" << m_port << "\' is already connected to "
+       << "the \'" << m_current_port << "\' port of the "
+       << "\'" << m_current_process << "\' process, but "
+       << "was attempted to be connected to the "
+       << "\'" << m_new_port << "\' port of the "
+       << "\'" << m_new_process << "\' process.";
 
   m_what = sstr.str();
 }
