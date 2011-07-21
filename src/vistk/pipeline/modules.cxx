@@ -147,6 +147,9 @@ void load_from_module(module_path_t const path)
     return;
   }
 
+  function_t process_function = NULL;
+  function_t schedule_function = NULL;
+
 #if defined(_WIN32) || defined(_WIN64)
   {
     wchar_t function_name[MB_CUR_MAX];
@@ -158,8 +161,8 @@ void load_from_module(module_path_t const path)
     schedule_function = GetProcAddress(library, function_name);
   }
 #else
-  function_t process_function = dlsym(library, process_function_name.c_str());
-  function_t schedule_function = dlsym(library, schedule_function_name.c_str());
+  process_function = dlsym(library, process_function_name.c_str());
+  schedule_function = dlsym(library, schedule_function_name.c_str());
 #endif
 
   load_module_t process_registrar = reinterpret_cast<load_module_t>(process_function);
