@@ -88,6 +88,13 @@ class VISTK_PIPELINE_EXPORT datum
     datum_type_t type() const;
 
     /**
+     * \brief Queries for the error that occurred.
+     *
+     * \returns The error that occurred.
+     */
+    error_t get_error() const;
+
+    /**
      * \brief Extract a result from a datum.
      *
      * \throws bad_datum_cast Thrown when the data cannot be cast as requested.

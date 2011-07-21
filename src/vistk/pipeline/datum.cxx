@@ -45,6 +45,13 @@ datum
   return m_type;
 }
 
+datum::error_t
+datum
+::get_error() const
+{
+  return m_error;
+}
+
 datum
 ::datum(bool is_complete)
   : m_type(is_complete ? DATUM_EMPTY : DATUM_COMPLETE)
