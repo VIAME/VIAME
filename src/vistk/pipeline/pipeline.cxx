@@ -113,7 +113,42 @@ pipeline
           process::name_t const& downstream_process,
           process::port_t const& downstream_port)
 {
-  /// \todo Check if up or downstream is a group.
+  priv::group_t::const_iterator const up_group_it = d->groups.find(upstream_process);
+
+  if (up_group_it != d->groups.end())
+  {
+    priv::output_port_mapping_t const& mapping = up_group_it->second.second;
+
+    priv::output_port_mapping_t::const_iterator const mapping_it = mapping.find(upstream_port);
+
+    if (mapping_it != mapping.end())
+    {
+      connect(mapping_it->second.first, mapping_it->second.second,
+              downstream_process, downstream_port);
+
+      return;
+    }
+  }
+
+  priv::group_t::const_iterator const down_group_it = d->groups.find(upstream_process);
+
+  if (down_group_it != d->groups.end())
+  {
+    priv::input_port_mapping_t const& mapping = down_group_it->second.first;
+
+    priv::input_port_mapping_t::const_iterator const mapping_it = mapping.find(downstream_port);
+
+    if (mapping_it != mapping.end())
+    {
+      BOOST_FOREACH (process::port_addr_t const& port_addr, mapping_it->second)
+      {
+        connect(upstream_process, upstream_port,
+                port_addr.first, port_addr.second);
+      }
+
+      return;
+    }
+  }
 
   config_t edge_config = config::empty_config();
 
