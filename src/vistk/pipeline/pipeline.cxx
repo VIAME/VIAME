@@ -362,6 +362,104 @@ pipeline
   return edges;
 }
 
+process::names_t
+pipeline
+::groups() const
+{
+  process::names_t names;
+
+  BOOST_FOREACH (group_t::value_type const& group, m_groups)
+  {
+    names.push_back(group.first);
+  }
+
+  return names;
+}
+
+process::ports_t
+pipeline
+::input_ports_for_group(process::name_t const& name) const
+{
+  process::ports_t ports;
+
+  group_t::const_iterator group_it = m_groups.find(name);
+
+  if (group_it == m_groups.end())
+  {
+    throw no_such_group(name);
+  }
+
+  BOOST_FOREACH (input_port_mapping_t::value_type const& port_it, group_it->second.first)
+  {
+    ports.push_back(port_it.first);
+  }
+
+  return ports;
+}
+
+process::ports_t
+pipeline
+::output_ports_for_group(process::name_t const& name) const
+{
+  process::ports_t ports;
+
+  group_t::const_iterator group_it = m_groups.find(name);
+
+  if (group_it == m_groups.end())
+  {
+    throw no_such_group(name);
+  }
+
+  BOOST_FOREACH (output_port_mapping_t::value_type const& port_it, group_it->second.second)
+  {
+    ports.push_back(port_it.first);
+  }
+
+  return ports;
+}
+
+pipeline::port_addrs_t
+pipeline
+::mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const
+{
+  group_t::const_iterator group_it = m_groups.find(name);
+
+  if (group_it == m_groups.end())
+  {
+    throw no_such_group(name);
+  }
+
+  input_port_mapping_t::const_iterator mapping_it = group_it->second.first.find(port);
+
+  if (mapping_it == group_it->second.first.end())
+  {
+    throw no_such_group_port(name, port);
+  }
+
+  return mapping_it->second;
+}
+
+pipeline::port_addr_t
+pipeline
+::mapped_group_output_ports(process::name_t const& name, process::port_t const& port) const
+{
+  group_t::const_iterator group_it = m_groups.find(name);
+
+  if (group_it == m_groups.end())
+  {
+    throw no_such_group(name);
+  }
+
+  output_port_mapping_t::const_iterator mapping_it = group_it->second.second.find(port);
+
+  if (mapping_it == group_it->second.second.end())
+  {
+    throw no_such_group_port(name, port);
+  }
+
+  return mapping_it->second;
+}
+
 pipeline
 ::pipeline(config_t const& /*config*/)
 {
