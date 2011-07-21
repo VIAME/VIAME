@@ -67,40 +67,6 @@ duplicate_process_name
   return m_what.c_str();
 }
 
-null_edge_connection
-::null_edge_connection(process::name_t const& upstream_process,
-                       process::port_t const& upstream_port,
-                       process::name_t const& downstream_process,
-                       process::port_t const& downstream_port) throw()
-  : pipeline_connection_exception()
-  , m_upstream_process(upstream_process)
-  , m_upstream_port(upstream_port)
-  , m_downstream_process(downstream_process)
-  , m_downstream_port(downstream_port)
-{
-  std::ostringstream sstr;
-
-  sstr << "The edge connecting the upstream port "
-       << "\'" << m_upstream_process << "."
-       << m_upstream_port << "\' to "
-       << "\'" << m_downstream_process << "."
-       << m_downstream_port << "\' was NULL.";
-
-  m_what = sstr.str();
-}
-
-null_edge_connection
-::~null_edge_connection() throw()
-{
-}
-
-char const*
-null_edge_connection
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 no_such_process
 ::no_such_process(process::name_t const& name) throw()
   : pipeline_connection_exception()

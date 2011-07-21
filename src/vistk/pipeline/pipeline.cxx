@@ -7,6 +7,8 @@
 #include "pipeline.h"
 #include "pipeline_exception.h"
 
+#include "edge.h"
+
 #include <boost/foreach.hpp>
 
 #include <set>
@@ -109,16 +111,13 @@ pipeline
 ::connect(process::name_t const& upstream_process,
           process::port_t const& upstream_port,
           process::name_t const& downstream_process,
-          process::port_t const& downstream_port,
-          edge_t edge)
+          process::port_t const& downstream_port)
 {
-  if (!edge)
-  {
-    throw null_edge_connection(upstream_process, upstream_port,
-                               downstream_process, downstream_port);
-  }
-
   /// \todo Check if up or downstream is a group.
+
+  config_t edge_config = config::empty_config();
+
+  edge_t e = edge_t(new edge(edge_config));
 
   process::port_addr_t const up_port = process::port_addr_t(upstream_process, upstream_port);
   process::port_addr_t const down_port = process::port_addr_t(downstream_process, downstream_port);
@@ -136,10 +135,10 @@ pipeline
     throw no_such_process(downstream_process);
   }
 
-  up_it->second->connect_output_port(upstream_port, edge);
-  down_it->second->connect_input_port(downstream_port, edge);
+  up_it->second->connect_output_port(upstream_port, e);
+  down_it->second->connect_input_port(downstream_port, e);
 
-  d->edge_map[d->connections.size()] = edge;
+  d->edge_map[d->connections.size()] = e;
   d->connections.push_back(conn);
 }
 

@@ -69,20 +69,17 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Connect two ports in the pipeline together with an edge.
      *
-     * \throws null_edge_connection Thrown when \p edge is \c NULL.
      * \throws no_such_process Thrown when either \p upstream_process or \p downstream_process do not exist in the pipeline.
      *
      * \param upstream_process The upstream process name.
      * \param upstream_port The upstream process port.
      * \param downstream_process The downstream process name.
      * \param downstream_port The downstream process port.
-     * \param edge The edge to connect the ports with.
      */
     void connect(process::name_t const& upstream_process,
                  process::port_t const& upstream_port,
                  process::name_t const& downstream_process,
-                 process::port_t const& downstream_port,
-                 edge_t edge);
+                 process::port_t const& downstream_port);
 
     /**
      * \brief Map a group input port to a process input port.

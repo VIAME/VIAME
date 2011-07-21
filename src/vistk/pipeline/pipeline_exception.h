@@ -113,53 +113,6 @@ class VISTK_PIPELINE_EXPORT pipeline_connection_exception
 };
 
 /**
- * \class null_edge_connection pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
- *
- * \brief Thrown when an \ref edge passed to a \ref pipeline is \c NULL.
- *
- * \ingroup exceptions
- */
-class VISTK_PIPELINE_EXPORT null_edge_connection
-  : public pipeline_connection_exception
-{
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param upstream_process The name of the upstream process.
-     * \param upstream_port The name of the port on the upstream process.
-     * \param downstream_process The name of the downstream process.
-     * \param downstream_port The name of the port on the downstream process.
-     */
-    null_edge_connection(process::name_t const& upstream_process,
-                         process::port_t const& upstream_port,
-                         process::name_t const& downstream_process,
-                         process::port_t const& downstream_port) throw();
-    /**
-     * \brief Destructor.
-     */
-    ~null_edge_connection() throw();
-
-    /// The name of the upstream process for the edge.
-    process::name_t const m_upstream_process;
-    /// The name of the port on the upstream process.
-    process::port_t const m_upstream_port;
-    /// The name of the downstream process for the edge.
-    process::name_t const m_downstream_process;
-    /// The name of the port on the downstream process.
-    process::port_t const m_downstream_port;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-     char const* what() const throw();
-  private:
-     std::string m_what;
-};
-
-/**
  * \class no_such_process pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref process is requested that does not exist in a \ref pipeline.
