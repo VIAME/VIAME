@@ -342,12 +342,27 @@ bool
 process
 ::sync_edges(edges_t const& edges)
 {
-  stamp_t max_stamp;
-
   edges_t::const_iterator it = edges.begin();
   edges_t::const_iterator it_end = edges.end();
 
-  /// \todo Compute whether the given edges are synchronized.
+  for ( ; it != it_end; ++it)
+  {
+    edges_t::const_iterator it2 = it;
+
+    stamp_t const st = (*it)->peek_datum().get<1>();
+
+    for (++it2; it2 != it_end; ++it2)
+    {
+      stamp_t const st2 = (*it2)->peek_datum().get<1>();
+
+      if (*st != *st2)
+      {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 process::priv
