@@ -25,6 +25,23 @@ class pipeline::priv
   public:
     priv();
     ~priv();
+
+    typedef std::map<process::name_t, process_t> process_map_t;
+    typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
+    typedef std::vector<connection_t> connections_t;
+    typedef std::map<size_t, edge_t> edge_map_t;
+
+    typedef std::map<process::port_t, process::port_addrs_t> input_port_mapping_t;
+    typedef std::map<process::port_t, process::port_addr_t> output_port_mapping_t;
+    typedef std::pair<input_port_mapping_t, output_port_mapping_t> port_mapping_t;
+    typedef std::map<process::name_t, port_mapping_t> group_t;
+
+    connections_t connections;
+
+    process_map_t process_map;
+    edge_map_t edge_map;
+
+    group_t groups;
 };
 
 pipeline
@@ -49,42 +66,42 @@ pipeline
 
   process::name_t const name = process->name();
 
-  process_map_t::const_iterator proc_it = m_process_map.find(name);
+  priv::process_map_t::const_iterator proc_it = d->process_map.find(name);
 
-  if (proc_it != m_process_map.end())
+  if (proc_it != d->process_map.end())
   {
     throw duplicate_process_name(name);
   }
 
-  group_t::const_iterator group_it = m_groups.find(name);
+  priv::group_t::const_iterator group_it = d->groups.find(name);
 
-  if (group_it != m_groups.end())
+  if (group_it != d->groups.end())
   {
     throw duplicate_process_name(name);
   }
 
-  m_process_map[name] = process;
+  d->process_map[name] = process;
 }
 
 void
 pipeline
 ::add_group(process::name_t const& name)
 {
-  process_map_t::const_iterator proc_it = m_process_map.find(name);
+  priv::process_map_t::const_iterator proc_it = d->process_map.find(name);
 
-  if (proc_it != m_process_map.end())
+  if (proc_it != d->process_map.end())
   {
     throw duplicate_process_name(name);
   }
 
-  group_t::const_iterator group_it = m_groups.find(name);
+  priv::group_t::const_iterator group_it = d->groups.find(name);
 
-  if (group_it != m_groups.end())
+  if (group_it != d->groups.end())
   {
     throw duplicate_process_name(name);
   }
 
-  m_groups[name] = port_mapping_t();
+  d->groups[name] = priv::port_mapping_t();
 }
 
 void
@@ -105,16 +122,16 @@ pipeline
 
   process::port_addr_t const up_port = process::port_addr_t(upstream_process, upstream_port);
   process::port_addr_t const down_port = process::port_addr_t(downstream_process, downstream_port);
-  connection_t const conn = connection_t(up_port, down_port);
+  priv::connection_t const conn = priv::connection_t(up_port, down_port);
 
-  process_map_t::iterator up_it = m_process_map.find(upstream_process);
-  process_map_t::iterator down_it = m_process_map.find(downstream_process);
+  priv::process_map_t::iterator up_it = d->process_map.find(upstream_process);
+  priv::process_map_t::iterator down_it = d->process_map.find(downstream_process);
 
-  if (up_it == m_process_map.end())
+  if (up_it == d->process_map.end())
   {
     throw no_such_process(upstream_process);
   }
-  if (down_it == m_process_map.end())
+  if (down_it == d->process_map.end())
   {
     throw no_such_process(downstream_process);
   }
@@ -122,8 +139,8 @@ pipeline
   up_it->second->connect_output_port(upstream_port, edge);
   down_it->second->connect_input_port(downstream_port, edge);
 
-  m_edge_map[m_connections.size()] = edge;
-  m_connections.push_back(conn);
+  d->edge_map[d->connections.size()] = edge;
+  d->connections.push_back(conn);
 }
 
 void
@@ -133,16 +150,16 @@ pipeline
                  process::name_t const& mapped_process,
                  process::port_t const& mapped_port)
 {
-  group_t::iterator group_it = m_groups.find(group);
+  priv::group_t::iterator group_it = d->groups.find(group);
 
-  if (group_it == m_groups.end())
+  if (group_it == d->groups.end())
   {
     throw no_such_group(group);
   }
 
-  process_map_t::iterator proc_it = m_process_map.find(mapped_process);
+  priv::process_map_t::iterator proc_it = d->process_map.find(mapped_process);
 
-  if (proc_it == m_process_map.end())
+  if (proc_it == d->process_map.end())
   {
     throw no_such_process(mapped_process);
   }
@@ -157,21 +174,21 @@ pipeline
                   process::name_t const& mapped_process,
                   process::port_t const& mapped_port)
 {
-  group_t::iterator group_it = m_groups.find(group);
+  priv::group_t::iterator group_it = d->groups.find(group);
 
-  if (group_it == m_groups.end())
+  if (group_it == d->groups.end())
   {
     throw no_such_group(group);
   }
 
-  process_map_t::iterator proc_it = m_process_map.find(mapped_process);
+  priv::process_map_t::iterator proc_it = d->process_map.find(mapped_process);
 
-  if (proc_it == m_process_map.end())
+  if (proc_it == d->process_map.end())
   {
     throw no_such_process(mapped_process);
   }
 
-  output_port_mapping_t::const_iterator port_it = group_it->second.second.find(port);
+  priv::output_port_mapping_t::const_iterator port_it = group_it->second.second.find(port);
 
   if (port_it != group_it->second.second.end())
   {
@@ -195,7 +212,7 @@ pipeline
 {
   process::names_t names;
 
-  BOOST_FOREACH (process_map_t::value_type const& process_index, m_process_map)
+  BOOST_FOREACH (priv::process_map_t::value_type const& process_index, d->process_map)
   {
     names.push_back(process_index.first);
   }
@@ -207,9 +224,9 @@ process_t
 pipeline
 ::process_by_name(process::name_t const& name) const
 {
-  process_map_t::const_iterator i = m_process_map.find(name);
+  priv::process_map_t::const_iterator i = d->process_map.find(name);
 
-  if (i == m_process_map.end())
+  if (i == d->process_map.end())
   {
     throw no_such_process(name);
   }
@@ -223,7 +240,7 @@ pipeline
 {
   std::set<process::name_t> process_names;
 
-  BOOST_FOREACH (connection_t const& connection, m_connections)
+  BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
     if (connection.second.first == name)
     {
@@ -237,7 +254,7 @@ pipeline
 
   BOOST_FOREACH (process::name_t const& process_name, process_names)
   {
-    process_map_t::const_iterator i = m_process_map.find(process_name);
+    priv::process_map_t::const_iterator i = d->process_map.find(process_name);
 
     processes.push_back(i->second);
   }
@@ -251,7 +268,7 @@ pipeline
 {
   std::set<process::name_t> process_names;
 
-  BOOST_FOREACH (connection_t const& connection, m_connections)
+  BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
     if (connection.first.first == name)
     {
@@ -263,7 +280,7 @@ pipeline
 
   BOOST_FOREACH (process::name_t const& process_name, process_names)
   {
-    process_map_t::const_iterator i = m_process_map.find(process_name);
+    priv::process_map_t::const_iterator i = d->process_map.find(process_name);
 
     processes.push_back(i->second);
   }
@@ -277,7 +294,7 @@ pipeline
 {
   std::set<process::name_t> process_names;
 
-  BOOST_FOREACH (connection_t const& connection, m_connections)
+  BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
     if ((connection.first.first == name) &&
         (connection.first.second == port))
@@ -290,7 +307,7 @@ pipeline
 
   BOOST_FOREACH (process::name_t const& process_name, process_names)
   {
-    process_map_t::const_iterator i = m_process_map.find(process_name);
+    priv::process_map_t::const_iterator i = d->process_map.find(process_name);
 
     processes.push_back(i->second);
   }
@@ -304,7 +321,7 @@ pipeline
 {
   process::port_addrs_t port_addrs;
 
-  BOOST_FOREACH (connection_t const& connection, m_connections)
+  BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
     if ((connection.first.first == name) &&
         (connection.first.second == port))
@@ -322,9 +339,9 @@ pipeline
 {
   edges_t edges;
 
-  BOOST_FOREACH (edge_map_t::value_type const& edge_index, m_edge_map)
+  BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
   {
-    if (m_connections[edge_index.first].second.first == name)
+    if (d->connections[edge_index.first].second.first == name)
     {
       edges.push_back(edge_index.second);
     }
@@ -339,9 +356,9 @@ pipeline
 {
   edges_t edges;
 
-  BOOST_FOREACH (edge_map_t::value_type const& edge_index, m_edge_map)
+  BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
   {
-    if (m_connections[edge_index.first].first.first == name)
+    if (d->connections[edge_index.first].first.first == name)
     {
       edges.push_back(edge_index.second);
     }
@@ -356,10 +373,10 @@ pipeline
 {
   edges_t edges;
 
-  BOOST_FOREACH (edge_map_t::value_type const& edge_index, m_edge_map)
+  BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
   {
-    if ((m_connections[edge_index.first].first.first == name) &&
-        (m_connections[edge_index.first].first.second == port))
+    if ((d->connections[edge_index.first].first.first == name) &&
+        (d->connections[edge_index.first].first.second == port))
     {
       edges.push_back(edge_index.second);
     }
@@ -374,7 +391,7 @@ pipeline
 {
   process::names_t names;
 
-  BOOST_FOREACH (group_t::value_type const& group, m_groups)
+  BOOST_FOREACH (priv::group_t::value_type const& group, d->groups)
   {
     names.push_back(group.first);
   }
@@ -388,14 +405,14 @@ pipeline
 {
   process::ports_t ports;
 
-  group_t::const_iterator group_it = m_groups.find(name);
+  priv::group_t::const_iterator group_it = d->groups.find(name);
 
-  if (group_it == m_groups.end())
+  if (group_it == d->groups.end())
   {
     throw no_such_group(name);
   }
 
-  BOOST_FOREACH (input_port_mapping_t::value_type const& port_it, group_it->second.first)
+  BOOST_FOREACH (priv::input_port_mapping_t::value_type const& port_it, group_it->second.first)
   {
     ports.push_back(port_it.first);
   }
@@ -409,14 +426,14 @@ pipeline
 {
   process::ports_t ports;
 
-  group_t::const_iterator group_it = m_groups.find(name);
+  priv::group_t::const_iterator group_it = d->groups.find(name);
 
-  if (group_it == m_groups.end())
+  if (group_it == d->groups.end())
   {
     throw no_such_group(name);
   }
 
-  BOOST_FOREACH (output_port_mapping_t::value_type const& port_it, group_it->second.second)
+  BOOST_FOREACH (priv::output_port_mapping_t::value_type const& port_it, group_it->second.second)
   {
     ports.push_back(port_it.first);
   }
@@ -428,14 +445,14 @@ process::port_addrs_t
 pipeline
 ::mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const
 {
-  group_t::const_iterator group_it = m_groups.find(name);
+  priv::group_t::const_iterator group_it = d->groups.find(name);
 
-  if (group_it == m_groups.end())
+  if (group_it == d->groups.end())
   {
     throw no_such_group(name);
   }
 
-  input_port_mapping_t::const_iterator mapping_it = group_it->second.first.find(port);
+  priv::input_port_mapping_t::const_iterator mapping_it = group_it->second.first.find(port);
 
   if (mapping_it == group_it->second.first.end())
   {
@@ -449,14 +466,14 @@ process::port_addr_t
 pipeline
 ::mapped_group_output_ports(process::name_t const& name, process::port_t const& port) const
 {
-  group_t::const_iterator group_it = m_groups.find(name);
+  priv::group_t::const_iterator group_it = d->groups.find(name);
 
-  if (group_it == m_groups.end())
+  if (group_it == d->groups.end())
   {
     throw no_such_group(name);
   }
 
-  output_port_mapping_t::const_iterator mapping_it = group_it->second.second.find(port);
+  priv::output_port_mapping_t::const_iterator mapping_it = group_it->second.second.find(port);
 
   if (mapping_it == group_it->second.second.end())
   {
