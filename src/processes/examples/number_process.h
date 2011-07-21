@@ -19,6 +19,8 @@ namespace vistk
  *
  * \brief A process which generates increasing numbers within a range.
  *
+ * \process A process for generating numbers.
+ *
  * \oports
  *
  * \oport{number} The number generated for the step.
