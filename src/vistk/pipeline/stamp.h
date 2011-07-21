@@ -39,7 +39,10 @@ namespace vistk
  * reconciled.
  */
 class VISTK_PIPELINE_EXPORT stamp
-  : boost::noncopyable
+  : boost::equality_comparable<vistk::stamp
+  , boost::partially_ordered1<vistk::stamp
+  , boost::noncopyable
+    > >
 {
   public:
     /**
@@ -119,8 +122,5 @@ class VISTK_PIPELINE_EXPORT stamp
 };
 
 } // end namespace vistk
-
-template struct boost::partially_ordered<vistk::stamp>;
-template struct boost::equality_comparable<vistk::stamp>;
 
 #endif // VISTK_PIPELINE_STAMP_H
