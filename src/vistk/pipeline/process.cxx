@@ -71,6 +71,8 @@ void
 process
 ::step()
 {
+  /// \todo Make reentrant.
+
   /// \todo Are there any pre-_step actions?
 
   if (d->is_complete)
@@ -85,6 +87,13 @@ process
   /// \todo Are there any post-_step actions?
 
   d->run_heartbeat();
+}
+
+bool
+process
+::is_reentrant() const
+{
+  return false;
 }
 
 void

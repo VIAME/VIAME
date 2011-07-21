@@ -93,6 +93,22 @@ class VISTK_PIPELINE_EXPORT process
     void step();
 
     /**
+     * \brief Query if a process is reentrant.
+     *
+     * \warning The base class is not yet reentrant.
+     *
+     * If \c true, it indicates that the \ref process::_step() method is
+     * reentrant and does data collation of its edges properly. The default
+     * implementation returns \c false for safety.
+     *
+     * \warning Please be sure that your process is \em actually reentrant
+     * before returning \c true from this method.
+     *
+     * \returns True if the process can be \ref process::step()'d recursively, false otherwise.
+     */
+    virtual bool is_reentrant() const;
+
+    /**
      * \brief Connects an edge to an input port on the process.
      *
      * \throws null_edge_port_connection Thrown when \p edge is \c NULL.
