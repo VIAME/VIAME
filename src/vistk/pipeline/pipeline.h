@@ -84,6 +84,8 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Map a group input port to a process input port.
      *
+     * \todo How to declare types/desc for these ports?
+     *
      * \throws no_such_group Thrown when \p group does not exist in the pipeline.
      * \throws no_such_process Thrown when \p mapped_process does not exist in the pipeline.
      *
@@ -98,6 +100,8 @@ class VISTK_PIPELINE_EXPORT pipeline
                         process::port_t const& mapped_port);
     /**
      * \brief Map a group output port to a process output port.
+     *
+     * \todo How to declare types/desc for these ports?
      *
      * \throws no_such_group Thrown when \p group does not exist in the pipeline.
      * \throws no_such_process Thrown when \p mapped_process does not exist in the pipeline.

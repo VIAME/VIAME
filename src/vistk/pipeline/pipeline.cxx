@@ -170,6 +170,8 @@ pipeline
     throw no_such_process(downstream_process);
   }
 
+  /// \todo Port type checking here?
+
   up_it->second->connect_output_port(upstream_port, e);
   down_it->second->connect_input_port(downstream_port, e);
 
@@ -242,6 +244,7 @@ pipeline
 {
   /// \todo Check for disconnected pipelines.
   /// \todo Check for types of connections.
+  /// \todo Check for required grouping input/output ports (requires flags for ports).
 }
 
 process::names_t
