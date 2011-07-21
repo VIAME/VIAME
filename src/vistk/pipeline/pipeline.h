@@ -225,6 +225,15 @@ class VISTK_PIPELINE_EXPORT pipeline
     /// Type for referencing edges by the connection.
     typedef std::map<size_t, edge_t> edge_map_t;
 
+    /// Type for a mapping of group input ports.
+    typedef std::map<process::port_t, port_addrs_t> input_port_mapping_t;
+    /// Type for a mapping of group output ports.
+    typedef std::map<process::port_t, port_addr_t> output_port_mapping_t;
+    /// Type for a mapping of group ports.
+    typedef std::pair<input_port_mapping_t, output_port_mapping_t> port_mapping_t;
+    /// Type for a group of processes.
+    typedef std::map<process::name_t, port_mapping_t> group_t;
+
     /// All connections made within the pipeline.
     connections_t m_connections;
 
@@ -232,6 +241,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     process_map_t m_process_map;
     /// All edges within the pipeline.
     edge_map_t m_edge_map;
+
+    /// All groups declared in the pipeline.
+    group_t m_groups;
   private:
     class priv;
     boost::shared_ptr<priv> d;
