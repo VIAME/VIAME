@@ -37,11 +37,6 @@ class VISTK_PIPELINE_EXPORT pipeline
   : boost::noncopyable
 {
   public:
-    /// Type for the address of a port within the pipeline.
-    typedef std::pair<process::name_t, process::port_t> port_addr_t;
-    /// A group of port addresses.
-    typedef std::vector<port_addr_t> port_addrs_t;
-
     /**
      * \brief Destructor.
      */
@@ -181,7 +176,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \returns All port addresses that receive data from \p name's \p port.
      */
-    port_addrs_t receivers_for_port(process::name_t const& name, process::port_t const& port) const;
+    process::port_addrs_t receivers_for_port(process::name_t const& name, process::port_t const& port) const;
 
     /**
      * \brief Find edges that are feeding data directly into a process.
@@ -246,7 +241,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \returns The list of input ports mapped for \p name on the \p port port.
      */
-    port_addrs_t mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const;
+    process::port_addrs_t mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const;
     /**
      * \brief The port that is mapped to the group output port.
      *
@@ -258,7 +253,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \returns The output port mapped for \p name on the \p port port.
      */
-    port_addr_t mapped_group_output_ports(process::name_t const& name, process::port_t const& port) const;
+    process::port_addr_t mapped_group_output_ports(process::name_t const& name, process::port_t const& port) const;
   protected:
     /**
      * \brief Constructor.
@@ -270,16 +265,16 @@ class VISTK_PIPELINE_EXPORT pipeline
     /// Type for a map of processes.
     typedef std::map<process::name_t, process_t> process_map_t;
     /// Type for a connection between two ports.
-    typedef std::pair<port_addr_t, port_addr_t> connection_t;
+    typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
     /// Type for a collection of connections.
     typedef std::vector<connection_t> connections_t;
     /// Type for referencing edges by the connection.
     typedef std::map<size_t, edge_t> edge_map_t;
 
     /// Type for a mapping of group input ports.
-    typedef std::map<process::port_t, port_addrs_t> input_port_mapping_t;
+    typedef std::map<process::port_t, process::port_addrs_t> input_port_mapping_t;
     /// Type for a mapping of group output ports.
-    typedef std::map<process::port_t, port_addr_t> output_port_mapping_t;
+    typedef std::map<process::port_t, process::port_addr_t> output_port_mapping_t;
     /// Type for a mapping of group ports.
     typedef std::pair<input_port_mapping_t, output_port_mapping_t> port_mapping_t;
     /// Type for a group of processes.

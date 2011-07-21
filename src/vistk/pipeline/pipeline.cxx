@@ -97,8 +97,8 @@ pipeline
 
   /// \todo Check if up or downstream is a group.
 
-  port_addr_t const up_port = port_addr_t(upstream_process, upstream_port);
-  port_addr_t const down_port = port_addr_t(downstream_process, downstream_port);
+  process::port_addr_t const up_port = process::port_addr_t(upstream_process, upstream_port);
+  process::port_addr_t const down_port = process::port_addr_t(downstream_process, downstream_port);
   connection_t const conn = connection_t(up_port, down_port);
 
   process_map_t::iterator up_it = m_process_map.find(upstream_process);
@@ -141,7 +141,7 @@ pipeline
     throw no_such_process(mapped_process);
   }
 
-  group_it->second.first[port].push_back(port_addr_t(mapped_process, mapped_port));
+  group_it->second.first[port].push_back(process::port_addr_t(mapped_process, mapped_port));
 }
 
 void
@@ -172,7 +172,7 @@ pipeline
     throw group_output_already_mapped(group, port, port_it->second.first, port_it->second.second, mapped_process, mapped_port);
   }
 
-  group_it->second.second[port] = port_addr_t(mapped_process, mapped_port);
+  group_it->second.second[port] = process::port_addr_t(mapped_process, mapped_port);
 }
 
 void
@@ -292,11 +292,11 @@ pipeline
   return processes;
 }
 
-pipeline::port_addrs_t
+process::port_addrs_t
 pipeline
 ::receivers_for_port(process::name_t const& name, process::port_t const& port) const
 {
-  port_addrs_t port_addrs;
+  process::port_addrs_t port_addrs;
 
   BOOST_FOREACH (connection_t const& connection, m_connections)
   {
@@ -418,7 +418,7 @@ pipeline
   return ports;
 }
 
-pipeline::port_addrs_t
+process::port_addrs_t
 pipeline
 ::mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const
 {
@@ -439,7 +439,7 @@ pipeline
   return mapping_it->second;
 }
 
-pipeline::port_addr_t
+process::port_addr_t
 pipeline
 ::mapped_group_output_ports(process::name_t const& name, process::port_t const& port) const
 {

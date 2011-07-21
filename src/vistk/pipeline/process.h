@@ -18,6 +18,7 @@
 
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 /**
@@ -74,6 +75,10 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::set<port_flag_t> port_flags_t;
     /// A type the describes the type of data for a port.
     typedef boost::tuple<port_type_name_t, port_flags_t> port_type_t;
+    /// Type for the address of a port within the pipeline.
+    typedef std::pair<name_t, port_t> port_addr_t;
+    /// A group of port addresses.
+    typedef std::vector<port_addr_t> port_addrs_t;
 
     /**
      * \brief Post-connection initialization.
