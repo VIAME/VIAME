@@ -56,6 +56,14 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \param process The process to add to the pipeline.
      */
     void add_process(process_t process);
+    /**
+     * \brief Declares a logical group of processes in the pipeline.
+     *
+     * \throws duplicate_process_name Thrown when a process or group is already named \p name.
+     *
+     * \param name The name of the group.
+     */
+    void add_group(process::name_t const& name);
 
     /**
      * \brief Connect two ports in the pipeline together with an edge.
@@ -74,6 +82,38 @@ class VISTK_PIPELINE_EXPORT pipeline
                  process::name_t const& downstream_process,
                  process::port_t const& downstream_port,
                  edge_t edge);
+
+    /**
+     * \brief Map a group input port to a process input port.
+     *
+     * \throws no_such_group Thrown when \p group does not exist in the pipeline.
+     * \throws no_such_process Thrown when \p mapped_process does not exist in the pipeline.
+     *
+     * \param group The group name.
+     * \param port The group port.
+     * \param mapped_process The mapped process name.
+     * \param mapped_port The mapped process port.
+     */
+    void map_input_port(process::name_t const& group,
+                        process::port_t const& port,
+                        process::name_t const& mapped_process,
+                        process::port_t const& mapped_port);
+    /**
+     * \brief Map a group output port to a process output port.
+     *
+     * \throws no_such_group Thrown when \p group does not exist in the pipeline.
+     * \throws no_such_process Thrown when \p mapped_process does not exist in the pipeline.
+     * \throws group_output_already_mapped Thrown when \p port on \p group has already been mapped.
+     *
+     * \param group The group name.
+     * \param port The group port.
+     * \param mapped_process The mapped process name.
+     * \param mapped_port The mapped process port.
+     */
+    void map_output_port(process::name_t const& group,
+                         process::port_t const& port,
+                         process::name_t const& mapped_process,
+                         process::port_t const& mapped_port);
 
     /**
      * \brief Sets the pipeline up for execution.
