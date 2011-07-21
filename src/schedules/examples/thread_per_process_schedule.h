@@ -20,6 +20,8 @@ namespace vistk
  * \class thread_per_process_schedule
  *
  * \brief A schedule which runs each process in its own thread.
+ *
+ * \schedule Runs a thread for each process.
  */
 class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_per_process_schedule
   : public schedule

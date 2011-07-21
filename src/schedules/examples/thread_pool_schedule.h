@@ -21,6 +21,8 @@ namespace vistk
  *
  * \brief A schedule which process execution among a group of threads.
  *
+ * \schedule Manages execution using a set number of threads.
+ *
  * \section config Configuration
  *
  * \li \c num_threads The number of threads to run. A setting of \c 0 means "auto".
