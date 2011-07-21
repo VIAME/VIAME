@@ -16,6 +16,7 @@
 #include <boost/utility.hpp>
 
 #include <map>
+#include <set>
 #include <string>
 #include <typeinfo>
 #include <vector>
@@ -113,6 +114,8 @@ class VISTK_PIPELINE_EXPORT config
     /**
      * \brief Sets a value within the configuration.
      *
+     * \throws set_on_read_only_value Thrown if \p key is marked as read-only.
+     *
      * \param key The index of the configuration value to set.
      * \param value The value to set for the \p key.
      */
@@ -121,14 +124,31 @@ class VISTK_PIPELINE_EXPORT config
     /**
      * \brief Removes a value from the configuration.
      *
+     * \throws unset_on_read_only_value Thrown if \p key is marked as read-only.
+     *
      * \param key The index of the configuration value to unset.
      */
     void unset_value(key_t const& key);
 
     /**
+     * \brief Queries if a value is read-only.
+     *
+     * \param key The key of the value query.
+     */
+    bool is_read_only(key_t const& key) const;
+    /**
+     * \brief Sets the value within the configuration as read-only.
+     *
+     * \param key The key of the value to mark as read-only.
+     */
+    void mark_read_only(key_t const& key);
+
+    /**
      * \brief Merges the values in \p config into the current config.
      *
      * \note Any values currently set within \c *this will be overwritten if conficts occur.
+     *
+     * \throws set_on_read_only_value Thrown if \p key is marked as read-only.
      *
      * \param config The other configuration.
      */
@@ -161,10 +181,12 @@ class VISTK_PIPELINE_EXPORT config
     value_t get_value(key_t const& key) const;
 
     typedef std::map<key_t, value_t> store_t;
+    typedef std::set<key_t> ro_list_t;
 
     config* m_parent;
     key_t m_name;
     store_t m_store;
+    ro_list_t m_ro_list;
 };
 
 /**
@@ -241,6 +263,78 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast
     std::string const m_type;
     /// The reason for the failed cast.
     std::string const m_reason;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
+ * \class set_on_read_only_value config.h <vistk/pipeline/config.h>
+ *
+ * \brief Thrown when a value is set but is marked as read-only.
+ */
+class VISTK_PIPELINE_EXPORT set_on_read_only_value
+  : public configuration_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param key The key that was requested from the configuration.
+     */
+    set_on_read_only_value(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~set_on_read_only_value() throw();
+
+    /// The requested key name.
+    config::key_t const m_key;
+    /// The existing value.
+    config::value_t const m_value;
+    /// The new value.
+    config::value_t const m_new_value;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
+ * \class unset_on_read_only_value config.h <vistk/pipeline/config.h>
+ *
+ * \brief Thrown when a value is unset but is marked as read-only.
+ */
+class VISTK_PIPELINE_EXPORT unset_on_read_only_value
+  : public configuration_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param key The key that was requested from the configuration.
+     */
+    unset_on_read_only_value(config::key_t const& key, config::value_t const& value) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~unset_on_read_only_value() throw();
+
+    /// The requested key name.
+    config::key_t const m_key;
+    /// The existing value.
+    config::value_t const m_value;
 
     /**
      * \brief A description of the exception.

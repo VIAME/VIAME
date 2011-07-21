@@ -83,6 +83,11 @@ config
   }
   else
   {
+    if (is_read_only(key))
+    {
+      throw set_on_read_only_value(key, get_value<value_t>(key, value_t()), value);
+    }
+
     m_store[key] = value;
   }
 }
@@ -97,8 +102,29 @@ config
   }
   else
   {
+    if (is_read_only(key))
+    {
+      throw unset_on_read_only_value(key, get_value<value_t>(key, value_t()));
+    }
+
     m_store.erase(key);
   }
+}
+
+bool
+config
+::is_read_only(key_t const& key) const
+{
+  ro_list_t::iterator i = m_ro_list.find(key);
+
+  return (i != m_ro_list.end());
+}
+
+void
+config
+::mark_read_only(key_t const& key)
+{
+  m_ro_list.insert(key);
 }
 
 void
@@ -239,6 +265,63 @@ bad_configuration_cast
 
 char const*
 bad_configuration_cast
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
+set_on_read_only_value
+::set_on_read_only_value(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) throw()
+  : configuration_exception()
+  , m_key(key)
+  , m_value(value)
+  , m_new_value(new_value)
+{
+  std::ostringstream sstr;
+
+  sstr << "The key \'" << m_key << "\' "
+       << "was marked as read-only with the value "
+       << "\'" << m_value << "\' was attempted to be "
+       << "set to \'" << m_key << "\'.";
+
+  m_what = sstr.str();
+}
+
+set_on_read_only_value
+::~set_on_read_only_value() throw()
+{
+}
+
+char const*
+set_on_read_only_value
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
+unset_on_read_only_value
+::unset_on_read_only_value(config::key_t const& key, config::value_t const& value) throw()
+  : configuration_exception()
+  , m_key(key)
+  , m_value(value)
+{
+  std::ostringstream sstr;
+
+  sstr << "The key \'" << m_key << "\' "
+       << "was marked as read-only with the value "
+       << "\'" << m_value << "\' was attempted to be "
+       << "unset.";
+
+  m_what = sstr.str();
+}
+
+unset_on_read_only_value
+::~unset_on_read_only_value() throw()
+{
+}
+
+char const*
+unset_on_read_only_value
 ::what() const throw()
 {
   return m_what.c_str();
