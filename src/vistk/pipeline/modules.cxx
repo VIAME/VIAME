@@ -42,7 +42,11 @@ typedef void* function_t;
 #endif
 typedef void (*load_module_t)();
 typedef char const* envvar_name_t;
+#if defined(_WIN32) || defined(_WIN64)
+typedef char* envvar_value_t;
+#else
 typedef char const* envvar_value_t;
+#endif
 typedef std::string module_path_t;
 typedef std::vector<module_path_t> module_paths_t;
 typedef std::string lib_suffix_t;
@@ -78,12 +82,35 @@ void load_known_modules()
   module_dirs.push_back(VISTK_MODULE_INSTALL_PATH);
 #endif
 
-  envvar_value_t const extra_module_dirs = getenv(vistk_module_envvar);
+  envvar_value_t extra_module_dirs = NULL;
+
+#if defined(_WIN32) || defined(_WIN64)
+  DWORD sz = GetEnvironmentVariable(envvar_name_t, NULL, 0);
+
+  if (sz)
+  {
+    extra_module_dirs = new char[sz];
+
+    sz = GetEnvironmentVariable(envvar_name_t, extra_module_dirs, sz);
+  }
+
+  if (!sz)
+  {
+    /// \todo Log error that the environment reading failed.
+  }
+#else
+  extra_module_dirs = getenv(vistk_module_envvar);
+#endif
 
   if (extra_module_dirs)
   {
     boost::split(module_dirs, extra_module_dirs, is_separator, boost::token_compress_on);
   }
+
+#if defined(_WIN32) || defined(_WIN64)
+  delete[] extra_module_dirs;
+  extra_module_dirs = NULL;
+#endif
 
   BOOST_FOREACH (module_path_t const& module_dir, module_dirs)
   {
