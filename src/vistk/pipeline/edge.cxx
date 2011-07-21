@@ -41,6 +41,12 @@ class edge::priv
 };
 
 edge
+::edge(config_t const& /*config*/)
+{
+  d = boost::shared_ptr<priv>(new priv);
+}
+
+edge
 ::~edge()
 {
 }
@@ -173,12 +179,6 @@ edge
   }
 
   d->downstream = process;
-}
-
-edge
-::edge(config_t const& /*config*/)
-{
-  d = boost::shared_ptr<priv>(new priv);
 }
 
 edge::priv

@@ -44,6 +44,12 @@ class VISTK_PIPELINE_EXPORT edge
 {
   public:
     /**
+     * \brief Constructor.
+     *
+     * \param config Contains configuration for the edge.
+     */
+    edge(config_t const& config);
+    /**
      * \brief Destructor.
      */
     ~edge();
@@ -132,13 +138,6 @@ class VISTK_PIPELINE_EXPORT edge
      * \param process The process which can pull data from the edge.
      */
     void set_downstream_process(process_t process);
-  protected:
-    /**
-     * \brief Constructor.
-     *
-     * \param config Contains configuration for the edge.
-     */
-    edge(config_t const& config);
   private:
     class priv;
     boost::shared_ptr<priv> d;
