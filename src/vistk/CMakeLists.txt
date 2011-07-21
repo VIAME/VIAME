@@ -4,6 +4,7 @@ configure_file(config.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 add_subdirectory(pipeline)
+add_subdirectory(pipeline_util)
 
 install(
   FILES       ${CMAKE_CURRENT_BINARY_DIR}/config.h
