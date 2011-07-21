@@ -50,7 +50,35 @@ pipeline
     throw duplicate_process_name(name);
   }
 
+  group_t::const_iterator group_it = m_groups.find(name);
+
+  if (group_it != m_groups.end())
+  {
+    throw duplicate_process_name(name);
+  }
+
   m_process_map[name] = process;
+}
+
+void
+pipeline
+::add_group(process::name_t const& name)
+{
+  process_map_t::const_iterator proc_it = m_process_map.find(name);
+
+  if (proc_it != m_process_map.end())
+  {
+    throw duplicate_process_name(name);
+  }
+
+  group_t::const_iterator group_it = m_groups.find(name);
+
+  if (group_it != m_groups.end())
+  {
+    throw duplicate_process_name(name);
+  }
+
+  m_groups[name] = port_mapping_t();
 }
 
 void
@@ -66,6 +94,8 @@ pipeline
     throw null_edge_connection(upstream_process, upstream_port,
                                downstream_process, downstream_port);
   }
+
+  /// \todo Check if up or downstream is a group.
 
   port_addr_t const up_port = port_addr_t(upstream_process, upstream_port);
   port_addr_t const down_port = port_addr_t(downstream_process, downstream_port);
@@ -88,6 +118,61 @@ pipeline
 
   m_edge_map[m_connections.size()] = edge;
   m_connections.push_back(conn);
+}
+
+void
+pipeline
+::map_input_port(process::name_t const& group,
+                 process::port_t const& port,
+                 process::name_t const& mapped_process,
+                 process::port_t const& mapped_port)
+{
+  group_t::iterator group_it = m_groups.find(group);
+
+  if (group_it == m_groups.end())
+  {
+    throw no_such_group(group);
+  }
+
+  process_map_t::iterator proc_it = m_process_map.find(mapped_process);
+
+  if (proc_it == m_process_map.end())
+  {
+    throw no_such_process(mapped_process);
+  }
+
+  group_it->second.first[port].push_back(port_addr_t(mapped_process, mapped_port));
+}
+
+void
+pipeline
+::map_output_port(process::name_t const& group,
+                  process::port_t const& port,
+                  process::name_t const& mapped_process,
+                  process::port_t const& mapped_port)
+{
+  group_t::iterator group_it = m_groups.find(group);
+
+  if (group_it == m_groups.end())
+  {
+    throw no_such_group(group);
+  }
+
+  process_map_t::iterator proc_it = m_process_map.find(mapped_process);
+
+  if (proc_it == m_process_map.end())
+  {
+    throw no_such_process(mapped_process);
+  }
+
+  output_port_mapping_t::const_iterator port_it = group_it->second.second.find(port);
+
+  if (port_it != group_it->second.second.end())
+  {
+    throw group_output_already_mapped(group, port, port_it->second.first, port_it->second.second, mapped_process, mapped_port);
+  }
+
+  group_it->second.second[port] = port_addr_t(mapped_process, mapped_port);
 }
 
 void
