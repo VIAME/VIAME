@@ -127,4 +127,91 @@ no_such_process
   return m_what.c_str();
 }
 
+no_such_group
+::no_such_group(process::name_t const& name) throw()
+  : pipeline_exception()
+  , m_name(name)
+{
+  std::ostringstream sstr;
+
+  sstr << "A group named \'" << m_name << "\' "
+       << "was requested it does not exist in "
+       << "the pipeline.";
+
+  m_what = sstr.str();
+}
+
+no_such_group
+::~no_such_group() throw()
+{
+}
+
+char const*
+no_such_group
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
+no_such_group_port
+::no_such_group_port(process::name_t const& name, process::port_t const& port) throw()
+  : pipeline_exception()
+  , m_name(name)
+  , m_port(port)
+{
+  std::ostringstream sstr;
+
+  sstr << "The \'" << m_port << "\' on the group "
+       << "named \'" << m_name << "\' was "
+       << "requested it does not exist.";
+
+  m_what = sstr.str();
+}
+
+no_such_group_port
+::~no_such_group_port() throw()
+{
+}
+
+char const*
+no_such_group_port
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
+group_output_already_mapped
+::group_output_already_mapped(process::name_t const& name,
+                              process::port_t const& port,
+                              process::name_t const& current_process,
+                              process::port_t const& current_port,
+                              process::name_t const& new_process,
+                              process::port_t const& new_port) throw()
+  : pipeline_exception()
+  , m_name(name)
+  , m_port(port)
+  , m_current_process(current_process)
+  , m_current_port(current_port)
+  , m_new_process(new_process)
+  , m_new_port(new_port)
+{
+  std::ostringstream sstr;
+
+  /// \todo
+
+  m_what = sstr.str();
+}
+
+group_output_already_mapped
+::~group_output_already_mapped() throw()
+{
+}
+
+char const*
+group_output_already_mapped
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 } // end namespace vistk

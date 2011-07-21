@@ -194,6 +194,134 @@ class VISTK_PIPELINE_EXPORT no_such_process
     std::string m_what;
 };
 
+/**
+ * \class no_such_group pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a group is requested that does not exist in a \ref pipeline.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT no_such_group
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name requested.
+     */
+    no_such_group(process::name_t const& name) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~no_such_group() throw();
+
+    /// The name of the group requested.
+    process::name_t const m_name;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
+ * \class no_such_group_port pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a port on a group is requested that does not exist.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT no_such_group_port
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name requested.
+     * \param port The port requested.
+     */
+    no_such_group_port(process::name_t const& name, process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~no_such_group_port() throw();
+
+    /// The name of the group requested.
+    process::name_t const m_name;
+    /// The name of the port requested.
+    process::port_t const m_port;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
+ * \class group_output_already_mapped pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when an output port on a group is attempted to be remapped.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT group_output_already_mapped
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name requested.
+     * \param port The port requested.
+     * \param current_process The current process mapped.
+     * \param current_port The current port mapped.
+     * \param new_process The process requested to be mapped.
+     * \param new_port The port requested to be mapped.
+     */
+    group_output_already_mapped(process::name_t const& name,
+                                process::port_t const& port,
+                                process::name_t const& current_process,
+                                process::port_t const& current_port,
+                                process::name_t const& new_process,
+                                process::port_t const& new_port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~group_output_already_mapped() throw();
+
+    /// The name of the group requested.
+    process::name_t const m_name;
+    /// The name of the port requested.
+    process::port_t const m_port;
+    /// The name of the current process requested.
+    process::name_t const m_current_process;
+    /// The name of the current port requested.
+    process::port_t const m_current_port;
+    /// The name of the new process requested.
+    process::name_t const m_new_process;
+    /// The name of the new port requested.
+    process::port_t const m_new_port;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
 } // end namespace vistk
 
 #endif // VISTK_PIPELINE_PIPELINE_EXCEPTION_H
