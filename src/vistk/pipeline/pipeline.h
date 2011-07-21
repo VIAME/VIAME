@@ -208,6 +208,57 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \returns All edges that carry data from \p name's \p port.
      */
     edges_t output_edges_for_port(process::name_t const& name, process::port_t const& port) const;
+
+    /**
+     * \brief The groups within the pipeline.
+     *
+     * \returns The list of all group names in the pipeline.
+     */
+    process::names_t groups() const;
+    /**
+     * \brief The input port names for a group.
+     *
+     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
+     *
+     * \param name The name of the group.
+     *
+     * \returns The list of input ports available for \p name.
+     */
+    process::ports_t input_ports_for_group(process::name_t const& name) const;
+    /**
+     * \brief The output port names for a group.
+     *
+     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
+     *
+     * \param name The name of the group.
+     *
+     * \returns The list of output ports available for \p name.
+     */
+    process::ports_t output_ports_for_group(process::name_t const& name) const;
+    /**
+     * \brief Ports that are mapped to the group input port.
+     *
+     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_port Thrown when \p port is not an input port on the group.
+     *
+     * \param name The name of the group.
+     * \param port The name of the port.
+     *
+     * \returns The list of input ports mapped for \p name on the \p port port.
+     */
+    port_addrs_t mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const;
+    /**
+     * \brief The port that is mapped to the group output port.
+     *
+     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_port Thrown when \p port is not an output port on the group.
+     *
+     * \param name The name of the group.
+     * \param port The name of the port.
+     *
+     * \returns The output port mapped for \p name on the \p port port.
+     */
+    port_addr_t mapped_group_output_ports(process::name_t const& name, process::port_t const& port) const;
   protected:
     /**
      * \brief Constructor.
