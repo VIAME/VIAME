@@ -134,6 +134,8 @@ class VISTK_PIPELINE_EXPORT config
      * \brief Queries if a value is read-only.
      *
      * \param key The key of the value query.
+     *
+     * \returns True if \p key is read-only, false otherwise.
      */
     bool is_read_only(key_t const& key) const;
     /**
@@ -287,6 +289,8 @@ class VISTK_PIPELINE_EXPORT set_on_read_only_value
      * \brief Constructor.
      *
      * \param key The key that was requested from the configuration.
+     * \param value The current read-only value of \p key.
+     * \param new_value The value that was attempted to be set.
      */
     set_on_read_only_value(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) throw();
     /**
@@ -324,6 +328,7 @@ class VISTK_PIPELINE_EXPORT unset_on_read_only_value
      * \brief Constructor.
      *
      * \param key The key that was requested from the configuration.
+     * \param value The current value for \p key.
      */
     unset_on_read_only_value(config::key_t const& key, config::value_t const& value) throw();
     /**

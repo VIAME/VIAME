@@ -142,6 +142,8 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \throws no_such_process Thrown when \p name does not exist in the pipeline.
      *
+     * \param name The name of the process to retrieve.
+     *
      * \returns The process in the pipeline with the given name.
      */
     process_t process_by_name(process::name_t const& name) const;

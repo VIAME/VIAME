@@ -131,6 +131,8 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
+     * \param port The port to return the type of.
+     *
      * \returns The type of data expected.
      */
     port_type_t input_port_type(port_t const& port) const;
@@ -138,6 +140,8 @@ class VISTK_PIPELINE_EXPORT process
      * \brief The type of data that is available on an output port.
      *
      * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     *
+     * \param port The port to return the type of.
      *
      * \returns The type of data available.
      */
@@ -148,6 +152,8 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
+     * \param port The port to describe.
+     *
      * \returns A description of the port.
      */
     port_description_t input_port_description(port_t const& port) const;
@@ -155,6 +161,8 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Describe output ports on the process.
      *
      * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     *
+     * \param port The port to describe.
      *
      * \returns A description of the port.
      */
@@ -267,11 +275,15 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Subclass input port types.
      *
+     * \param port The port to return the type of.
+     *
      * \returns The type of data expected.
      */
     virtual port_type_t _input_port_type(port_t const& port) const;
     /**
      * \brief Subclass output port types.
+     *
+     * \param port The port to return the type of.
      *
      * \returns The type of data available.
      */
@@ -280,11 +292,15 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Subclass input port descriptions.
      *
+     * \param port The port to describe.
+     *
      * \returns A description of the port.
      */
     virtual port_description_t _input_port_description(port_t const& port) const;
     /**
      * \brief Subclass output port descriptions.
+     *
+     * \param port The port to describe.
      *
      * \returns A description of the port.
      */
