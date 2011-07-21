@@ -44,6 +44,8 @@ ALIASES               += configs="\par Configuration"
 ALIASES               += config{1}="\li \key{\1} —"
 ALIASES               += reqs="\par Requirements"
 ALIASES               += req="\li"
+ALIASES               += process="\xrefitem processes \"Process description\" \"Process listing\""
+ALIASES               += schedule="\xrefitem schedules \"Schedule description\" \"Schedule listing\""
 OPTIMIZE_OUTPUT_FOR_C  = NO
 OPTIMIZE_OUTPUT_JAVA   = NO
 OPTIMIZE_FOR_FORTRAN   = NO
