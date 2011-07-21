@@ -26,6 +26,8 @@
 namespace vistk
 {
 
+process::port_t const process::port_heartbeat = process::port_t("heartbeat");
+config::key_t const process::config_name = config::key_t("_name");
 process::port_type_name_t const process::type_any = process::port_type_name_t("_any");
 process::port_type_name_t const process::type_none = process::port_type_name_t("_none");
 process::port_flag_t const process::flag_output_const = process::port_flag_t("_const");
@@ -53,13 +55,9 @@ class process::priv
 
     stamp_t hb_stamp;
 
-    static port_t const HEARTBEAT_PORT_NAME;
-    static config::key_t const NAME_CONFIG_KEY;
     static config::value_t const DEFAULT_PROCESS_NAME;
 };
 
-process::port_t const process::priv::HEARTBEAT_PORT_NAME = "heartbeat";
-config::key_t const process::priv::NAME_CONFIG_KEY = "_name";
 config::key_t const process::priv::DEFAULT_PROCESS_NAME = "(unnamed)";
 
 void
@@ -104,7 +102,7 @@ process
     throw null_edge_port_connection(d->name, port);
   }
 
-  if (port == priv::HEARTBEAT_PORT_NAME)
+  if (port == port_heartbeat)
   {
     d->heartbeats.push_back(edge);
 
@@ -129,7 +127,7 @@ process
 {
   ports_t ports = _output_ports();
 
-  ports.push_back(d->HEARTBEAT_PORT_NAME);
+  ports.push_back(port_heartbeat);
 
   return ports;
 }
@@ -145,7 +143,7 @@ process::port_type_t
 process
 ::output_port_type(port_t const& port) const
 {
-  if (port == priv::HEARTBEAT_PORT_NAME)
+  if (port == port_heartbeat)
   {
     return port_type_t(type_none, port_flags_t());
   }
@@ -157,7 +155,7 @@ config::value_t
 process
 ::config_default(config::key_t const& key) const
 {
-  if (key == priv::NAME_CONFIG_KEY)
+  if (key == config_name)
   {
     return boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME);
   }
@@ -169,7 +167,7 @@ config::description_t
 process
 ::config_description(config::key_t const& key) const
 {
-  if (key == priv::NAME_CONFIG_KEY)
+  if (key == config_name)
   {
     return config::description_t("The name of the process");
   }
@@ -189,7 +187,7 @@ process
 {
   d = boost::shared_ptr<priv>(new priv);
 
-  d->name = config->get_value<name_t>(priv::NAME_CONFIG_KEY, priv::DEFAULT_PROCESS_NAME);
+  d->name = config->get_value<name_t>(config_name, priv::DEFAULT_PROCESS_NAME);
 }
 
 process

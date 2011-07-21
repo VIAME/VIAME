@@ -181,6 +181,10 @@ class VISTK_PIPELINE_EXPORT process
      */
     virtual process_registry::type_t type() const = 0;
 
+    /// The name of the heartbeat port.
+    static port_t const port_heartbeat;
+    /// The name of the configuration value for the name.
+    static config::key_t const config_name;
     /// A type which means that the type of the data is irrelevant.
     static port_type_name_t const type_any;
     /// A type which indicates that no actual data is ever created.
