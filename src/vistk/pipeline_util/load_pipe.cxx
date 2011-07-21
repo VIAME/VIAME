@@ -18,7 +18,13 @@ namespace vistk
 {
 
 pipeline_t
-load_pipe(std::string const& fname)
+load_pipe_file(boost::filesystem::path const& fname)
+{
+  /// \todo Load the pipeline from a file.
+}
+
+pipeline_t
+load_pipe(std::istream& istr)
 {
   pipeline_t pipe;
 

@@ -11,6 +11,8 @@
 
 #include <vistk/pipeline/types.h>
 
+#include <boost/filesystem/path.hpp>
+
 #include <istream>
 
 /**
@@ -23,13 +25,22 @@ namespace vistk
 {
 
 /**
- * \brief Convert a pipeline description into a pipeline.
+ * \brief Convert a pipeline description file into a pipeline.
  *
  * \param fname The file to load the pipeline from
  *
  * \returns A new pipeline.
  */
-pipeline_t VISTK_PIPELINE_UTIL_EXPORT load_pipe(std::string const& fname);
+pipeline_t VISTK_PIPELINE_UTIL_EXPORT load_pipe_file(boost::filesystem::path const& fname);
+
+/**
+ * \brief Convert a pipeline description into a pipeline.
+ *
+ * \param istr The stream to load the pipeline from.
+ *
+ * \returns A new pipeline.
+ */
+pipeline_t VISTK_PIPELINE_UTIL_EXPORT load_pipe(std::istream& istr);
 
 }
 
