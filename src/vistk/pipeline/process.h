@@ -75,6 +75,8 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::set<port_flag_t> port_flags_t;
     /// A type the describes the type of data for a port.
     typedef boost::tuple<port_type_name_t, port_flags_t> port_type_t;
+    /// A type for a description of a port.
+    typedef std::string port_description_t;
     /// Type for the address of a port within the pipeline.
     typedef std::pair<name_t, port_t> port_addr_t;
     /// A group of port addresses.
@@ -140,6 +142,23 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The type of data available.
      */
     port_type_t output_port_type(port_t const& port) const;
+
+    /**
+     * \brief Describe input ports on the process.
+     *
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     *
+     * \returns A description of the port.
+     */
+    port_description_t input_port_description(port_t const& port) const;
+    /**
+     * \brief Describe output ports on the process.
+     *
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     *
+     * \returns A description of the port.
+     */
+    port_description_t output_port_description(port_t const& port) const;
 
     /**
      * \brief Request available configuration options for the process.
@@ -257,6 +276,19 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The type of data available.
      */
     virtual port_type_t _output_port_type(port_t const& port) const;
+
+    /**
+     * \brief Subclass input port descriptions.
+     *
+     * \returns A description of the port.
+     */
+    virtual port_description_t _input_port_description(port_t const& port) const;
+    /**
+     * \brief Subclass output port descriptions.
+     *
+     * \returns A description of the port.
+     */
+    virtual port_description_t _output_port_description(port_t const& port) const;
 
     /**
      * \brief Marks the process as complete.

@@ -151,6 +151,25 @@ process
   _output_port_type(port);
 }
 
+process::port_description_t
+process
+::input_port_description(port_t const& port) const
+{
+  _input_port_description(port);
+}
+
+process::port_description_t
+process
+::output_port_description(port_t const& port) const
+{
+  if (port == port_heartbeat)
+  {
+    return port_description_t("Outputs the hearbeat stamp with an empty datum.");
+  }
+
+  _output_port_description(port);
+}
+
 config::keys_t
 process
 ::available_config() const
@@ -252,6 +271,20 @@ process
 process::port_type_t
 process
 ::_output_port_type(port_t const& port) const
+{
+  throw no_such_port_exception(d->name, port);
+}
+
+process::port_description_t
+process
+::_input_port_description(port_t const& port) const
+{
+  throw no_such_port_exception(d->name, port);
+}
+
+process::port_description_t
+process
+::_output_port_description(port_t const& port) const
 {
   throw no_such_port_exception(d->name, port);
 }
