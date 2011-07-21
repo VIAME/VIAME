@@ -162,7 +162,7 @@ class VISTK_PIPELINE_EXPORT null_edge_connection
 /**
  * \class no_such_process pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
- * \brief Thrown when an \ref edge already has an input process set.
+ * \brief Thrown when a \ref process is requested that does not exist in a \ref pipeline.
  *
  * \ingroup exceptions
  */
