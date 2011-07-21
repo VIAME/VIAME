@@ -163,7 +163,9 @@ pipeline
     throw no_such_process(mapped_process);
   }
 
-  group_it->second.first[port].push_back(process::port_addr_t(mapped_process, mapped_port));
+  priv::input_port_mapping_t& mapping = group_it->second.first;
+
+  mapping[port].push_back(process::port_addr_t(mapped_process, mapped_port));
 }
 
 void
@@ -187,14 +189,16 @@ pipeline
     throw no_such_process(mapped_process);
   }
 
-  priv::output_port_mapping_t::const_iterator const port_it = group_it->second.second.find(port);
+  priv::output_port_mapping_t& mapping = group_it->second.second;
 
-  if (port_it != group_it->second.second.end())
+  priv::output_port_mapping_t::const_iterator const port_it = mapping.find(port);
+
+  if (port_it != mapping.end())
   {
     throw group_output_already_mapped(group, port, port_it->second.first, port_it->second.second, mapped_process, mapped_port);
   }
 
-  group_it->second.second[port] = process::port_addr_t(mapped_process, mapped_port);
+  mapping[port] = process::port_addr_t(mapped_process, mapped_port);
 }
 
 void
@@ -271,7 +275,9 @@ pipeline
   {
     if (connection.first.first == name)
     {
-      process_names.insert(connection.second.first);
+      process::name_t const& downstream_name = connection.second.first;
+
+      process_names.insert(downstream_name);
     }
   }
 
@@ -298,7 +304,9 @@ pipeline
     if ((connection.first.first == name) &&
         (connection.first.second == port))
     {
-      process_names.insert(connection.second.first);
+      process::name_t const& downstream_name = connection.second.first;
+
+      process_names.insert(downstream_name);
     }
   }
 
@@ -325,7 +333,9 @@ pipeline
     if ((connection.first.first == name) &&
         (connection.first.second == port))
     {
-      port_addrs.push_back(connection.second);
+      process::port_addr_t const& downstream_addr = connection.second;
+
+      port_addrs.push_back(downstream_addr);
     }
   }
 
@@ -392,7 +402,9 @@ pipeline
 
   BOOST_FOREACH (priv::group_t::value_type const& group, d->groups)
   {
-    names.push_back(group.first);
+    process::name_t const& name = group.first;
+
+    names.push_back(name);
   }
 
   return names;
@@ -411,9 +423,13 @@ pipeline
     throw no_such_group(name);
   }
 
-  BOOST_FOREACH (priv::input_port_mapping_t::value_type const& port_it, group_it->second.first)
+  priv::input_port_mapping_t const& mapping = group_it->second.first;
+
+  BOOST_FOREACH (priv::input_port_mapping_t::value_type const& port_it, mapping)
   {
-    ports.push_back(port_it.first);
+    process::port_t const& port = port_it.first;
+
+    ports.push_back(port);
   }
 
   return ports;
@@ -432,9 +448,13 @@ pipeline
     throw no_such_group(name);
   }
 
-  BOOST_FOREACH (priv::output_port_mapping_t::value_type const& port_it, group_it->second.second)
+  priv::output_port_mapping_t const& mapping = group_it->second.second;
+
+  BOOST_FOREACH (priv::output_port_mapping_t::value_type const& port_it, mapping)
   {
-    ports.push_back(port_it.first);
+    process::port_t const& port = port_it.first;
+
+    ports.push_back(port);
   }
 
   return ports;
@@ -451,9 +471,11 @@ pipeline
     throw no_such_group(name);
   }
 
-  priv::input_port_mapping_t::const_iterator const mapping_it = group_it->second.first.find(port);
+  priv::input_port_mapping_t const& mapping = group_it->second.first;
 
-  if (mapping_it == group_it->second.first.end())
+  priv::input_port_mapping_t::const_iterator const mapping_it = mapping.find(port);
+
+  if (mapping_it == mapping.end())
   {
     throw no_such_group_port(name, port);
   }
@@ -472,9 +494,11 @@ pipeline
     throw no_such_group(name);
   }
 
-  priv::output_port_mapping_t::const_iterator const mapping_it = group_it->second.second.find(port);
+  priv::output_port_mapping_t const& mapping = group_it->second.second;
 
-  if (mapping_it == group_it->second.second.end())
+  priv::output_port_mapping_t::const_iterator const mapping_it = mapping.find(port);
+
+  if (mapping_it == mapping.end())
   {
     throw no_such_group_port(name, port);
   }
