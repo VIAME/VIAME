@@ -38,6 +38,12 @@ class VISTK_PIPELINE_EXPORT pipeline
 {
   public:
     /**
+     * \brief Constructor.
+     *
+     * \param config Contains configuration for the pipeline.
+     */
+    pipeline(config_t const& config);
+    /**
      * \brief Destructor.
      */
     ~pipeline();
@@ -255,13 +261,6 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     process::port_addr_t mapped_group_output_ports(process::name_t const& name, process::port_t const& port) const;
   protected:
-    /**
-     * \brief Constructor.
-     *
-     * \param config Contains configuration for the pipeline.
-     */
-    pipeline(config_t const& config);
-
     /// Type for a map of processes.
     typedef std::map<process::name_t, process_t> process_map_t;
     /// Type for a connection between two ports.

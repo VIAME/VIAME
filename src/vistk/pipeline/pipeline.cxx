@@ -28,6 +28,12 @@ class pipeline::priv
 };
 
 pipeline
+::pipeline(config_t const& /*config*/)
+{
+  d = boost::shared_ptr<priv>(new priv);
+}
+
+pipeline
 ::~pipeline()
 {
 }
@@ -458,12 +464,6 @@ pipeline
   }
 
   return mapping_it->second;
-}
-
-pipeline
-::pipeline(config_t const& /*config*/)
-{
-  d = boost::shared_ptr<priv>(new priv);
 }
 
 pipeline::priv
