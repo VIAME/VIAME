@@ -71,18 +71,18 @@ void
 process
 ::step()
 {
-  /// \todo Pre-step
+  /// \todo Are there any pre-_step actions?
 
   if (d->is_complete)
   {
-    /// \todo Determine timestamp to use
+    /// \todo What exactly should be done here?
   }
   else
   {
     _step();
   }
 
-  /// \todo Post-step
+  /// \todo Are there any post-_step actions?
 
   d->run_heartbeat();
 }
