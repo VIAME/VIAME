@@ -23,9 +23,9 @@ namespace vistk
  *
  * \schedule Manages execution using a set number of threads.
  *
- * \section config Configuration
+ * \configs
  *
- * \li \c num_threads The number of threads to run. A setting of \c 0 means "auto".
+ * \config{num_threads} The number of threads to run. A setting of \c 0 means "auto".
  */
 class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_pool_schedule
   : public schedule
