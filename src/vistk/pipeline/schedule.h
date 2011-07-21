@@ -26,7 +26,7 @@ namespace vistk
 /**
  * \class schedule schedule.h <vistk/pipeline/schedule.h>
  *
- * \brief The base class for execution strategies on a pipeline.
+ * \brief The base class for execution strategies on a \ref pipeline.
  *
  * \ingroup base_classes
  */

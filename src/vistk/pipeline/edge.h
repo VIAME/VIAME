@@ -35,7 +35,7 @@ typedef std::vector<edge_t> edges_t;
 /**
  * \class edge edge.h <vistk/pipeline/edge.h>
  *
- * \brief A connection between two process ports which can carry data.
+ * \brief A connection between two \ref process ports which can carry data.
  *
  * \ingroup base_classes
  */

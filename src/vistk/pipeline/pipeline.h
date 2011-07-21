@@ -29,7 +29,7 @@ namespace vistk
 /**
  * \class pipeline pipeline.h <vistk/pipeline/pipeline.h>
  *
- * \brief A collection of interconnected processes.
+ * \brief A collection of interconnected \link process processes\endlink.
  *
  * \ingroup base_classes
  */
