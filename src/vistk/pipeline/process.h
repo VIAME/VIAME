@@ -146,7 +146,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns The names of all available configuration keys.
      */
-    virtual config::keys_t available_config() const = 0;
+    virtual config::keys_t available_config() const;
     /**
      * \brief Request the default value for a configuration.
      *

@@ -151,6 +151,13 @@ process
   _output_port_type(port);
 }
 
+config::keys_t
+process
+::available_config() const
+{
+  return config::keys_t();
+}
+
 config::value_t
 process
 ::config_default(config::key_t const& key) const
