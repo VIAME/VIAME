@@ -5,6 +5,7 @@ set(pipeline_util_srcs
 
 set(pipeline_util_headers
   load_pipe.h
+  pipe_declaration_types.h
   pipeline_util-config.h)
 
 add_library(vistk_pipeline_util
