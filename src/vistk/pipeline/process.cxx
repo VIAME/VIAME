@@ -26,13 +26,13 @@
 namespace vistk
 {
 
-process::port_t const process::port_heartbeat = process::port_t("heartbeat");
+process::port_t const process::port_heartbeat = port_t("heartbeat");
 config::key_t const process::config_name = config::key_t("_name");
-process::port_type_name_t const process::type_any = process::port_type_name_t("_any");
-process::port_type_name_t const process::type_none = process::port_type_name_t("_none");
-process::port_flag_t const process::flag_output_const = process::port_flag_t("_const");
-process::port_flag_t const process::flag_input_mutable = process::port_flag_t("_mutable");
-process::port_flag_t const process::flag_required = process::port_flag_t("_required");
+process::port_type_name_t const process::type_any = port_type_name_t("_any");
+process::port_type_name_t const process::type_none = port_type_name_t("_none");
+process::port_flag_t const process::flag_output_const = port_flag_t("_const");
+process::port_flag_t const process::flag_input_mutable = port_flag_t("_mutable");
+process::port_flag_t const process::flag_required = port_flag_t("_required");
 
 class process::priv
 {

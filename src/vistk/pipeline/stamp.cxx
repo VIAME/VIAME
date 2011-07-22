@@ -18,7 +18,7 @@
 namespace vistk
 {
 
-stamp::color_t stamp::m_new_color = 0;
+stamp::color_t stamp::m_new_color = color_t(0);
 
 stamp_t
 stamp
