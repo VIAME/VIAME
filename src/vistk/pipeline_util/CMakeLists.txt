@@ -8,12 +8,28 @@ set(pipeline_util_headers
   pipe_declaration_types.h
   pipeline_util-config.h)
 
+set(vistk_pipe_include_options)
+
+# TODO: Set system pipe include directories
+
+set(load_pipe_build_options
+  ${boost_filesystem_options}
+  ${vistk_pipe_include_options})
+
+set_source_files_properties(load_pipe.cxx
+  PROPERTIES
+    COMPILE_DEFINITIONS "${load_pipe_build_options}")
+
 add_library(vistk_pipeline_util
   ${pipeline_util_srcs})
 target_link_libraries(vistk_pipeline_util
-  vistk_pipeline)
+  vistk_pipeline
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
 target_link_libraries(vistk_pipeline_util LINK_INTERFACE_LIBRARIES
-  vistk_pipeline)
+  vistk_pipeline
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
 set_target_properties(vistk_pipeline_util
   PROPERTIES
     VERSION       ${vistk_version}
