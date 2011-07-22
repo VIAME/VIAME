@@ -172,8 +172,8 @@ class VISTK_PIPELINE_EXPORT config
      */
     bool has_value(key_t const& key) const;
 
-    /// The separator character between blocks.
-    static char const block_sep;
+    /// The separator between blocks.
+    static key_t const block_sep;
     /// The magic group for global parameters.
     static key_t const global_value;
   private:

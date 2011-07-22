@@ -23,7 +23,7 @@
 namespace vistk
 {
 
-char const config::block_sep = ':';
+config::key_t const config::block_sep = key_t(":");
 config::key_t const config::global_value = key_t("_global");
 
 static bool does_not_begin_with(config::key_t const& key, config::key_t const& name);
