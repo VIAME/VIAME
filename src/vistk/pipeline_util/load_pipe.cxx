@@ -8,6 +8,8 @@
 
 #include <vistk/pipeline/pipeline.h>
 
+#include <fstream>
+
 /**
  * \file load_pipe.cxx
  *
@@ -17,20 +19,51 @@
 namespace vistk
 {
 
-pipeline_t
-load_pipe_file(boost::filesystem::path const& fname)
+pipe_blocks
+load_pipe_blocks_from_file(boost::filesystem::path const& fname)
 {
-  /// \todo Load the pipeline from a file.
+  std::ifstream fin;
+
+  fin.open(fname.c_str());
+
+  if (fin.fail())
+  {
+    /// \todo Throw an exception.
+  }
+
+  pipe_blocks blocks = load_pipe_blocks(fin, fname.parent_path());
+
+  fin.close();
+
+  return blocks;
 }
 
-pipeline_t
-load_pipe(std::istream& istr)
+pipe_blocks
+load_pipe_blocks(std::istream& istr, boost::filesystem::path const& inc_root)
 {
-  pipeline_t pipe;
+  pipe_blocks blocks;
 
   /// \todo What parser do we want to use here?
 
-  return pipe;
+  return blocks;
+}
+
+pipeline_t
+bake_pipe_from_file(boost::filesystem::path const& fname)
+{
+  return bake_pipe_blocks(load_pipe_blocks_from_file(fname));
+}
+
+pipeline_t
+bake_pipe(std::istream& istr, boost::filesystem::path const& inc_root)
+{
+  return bake_pipe_blocks(load_pipe_blocks(istr, inc_root));
+}
+
+pipeline_t
+bake_pipe_blocks(pipe_blocks const& blocks)
+{
+  /// \todo Bake pipe blocks into a pipeline.
 }
 
 }
