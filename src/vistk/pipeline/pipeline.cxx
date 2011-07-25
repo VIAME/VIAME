@@ -172,8 +172,11 @@ pipeline
 
   /// \todo Port type checking here?
 
-  up_it->second->connect_output_port(upstream_port, e);
-  down_it->second->connect_input_port(downstream_port, e);
+  process_t const& up_proc = up_it->second;
+  process_t const& down_proc = down_it->second;
+
+  up_proc->connect_output_port(upstream_port, e);
+  down_proc->connect_input_port(downstream_port, e);
 
   d->edge_map[d->connections.size()] = e;
   d->connections.push_back(conn);
