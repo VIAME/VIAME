@@ -77,7 +77,11 @@ bake_pipe(std::istream& istr, boost::filesystem::path const& inc_root)
 pipeline_t
 bake_pipe_blocks(pipe_blocks const& blocks)
 {
+  pipeline_t pipe;
+
   /// \todo Bake pipe blocks into a pipeline.
+
+  return pipe;
 }
 
 void
