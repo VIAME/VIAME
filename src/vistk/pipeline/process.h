@@ -53,6 +53,14 @@ typedef std::vector<process_t> processes_t;
  * Exceptions for misconfiguration should be thrown from \ref process::_init()
  * reimplementations. This is to facilitate querying of processes.
  *
+ * \par Destruction Routine
+ *
+ * <ol>
+ *   <li>The destructor is called.</li>
+ * </ol>
+ *
+ * Processes should be ready for destruction at any time.
+ *
  * \ingroup base_classes
  */
 class VISTK_PIPELINE_EXPORT process
