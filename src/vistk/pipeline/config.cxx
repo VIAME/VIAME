@@ -27,6 +27,7 @@ config::key_t const config::block_sep = key_t(":");
 config::key_t const config::global_value = key_t("_global");
 
 static bool does_not_begin_with(config::key_t const& key, config::key_t const& name);
+static config::key_t strip_block_name(config::key_t const& key);
 
 config_t
 config
@@ -151,8 +152,7 @@ config
 
     keys.erase(i, keys.end());
 
-    /// \todo Remove the name prefix from the keys.
-    //std::for_each(keys.begin(), keys.end(), remove_block_name);
+    std::for_each(keys.begin(), keys.end(), strip_block_name);
   }
   else
   {
@@ -332,6 +332,19 @@ does_not_begin_with(config::key_t const& key, config::key_t const& name)
 {
   return (!boost::starts_with(key, name + config::block_sep) &&
           !boost::starts_with(key, config::global_value + config::block_sep));
+}
+
+config::key_t
+strip_block_name(config::key_t const& key)
+{
+  size_t const pos = key.find(config::block_sep);
+
+  if (pos == config::key_t::npos)
+  {
+    return key;
+  }
+
+  return key.substr(pos + 1);
 }
 
 } // end namespace vistk
