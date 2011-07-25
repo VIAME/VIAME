@@ -60,14 +60,14 @@ schedule_registry::types_t
 schedule_registry
 ::types() const
 {
-  types_t types;
+  types_t ts;
 
   BOOST_FOREACH (schedule_store_t::value_type const& entry, m_registry)
   {
-    types.push_back(entry.first);
+    ts.push_back(entry.first);
   }
 
-  return types;
+  return ts;
 }
 
 schedule_registry::description_t

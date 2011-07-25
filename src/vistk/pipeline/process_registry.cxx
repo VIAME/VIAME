@@ -59,14 +59,14 @@ process_registry::types_t
 process_registry
 ::types() const
 {
-  types_t types;
+  types_t ts;
 
   BOOST_FOREACH (process_store_t::value_type const& entry, m_registry)
   {
-    types.push_back(entry.first);
+    ts.push_back(entry.first);
   }
 
-  return types;
+  return ts;
 }
 
 process_registry::description_t

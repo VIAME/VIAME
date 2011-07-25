@@ -66,9 +66,9 @@ datum
 }
 
 datum
-::datum(boost::any const& datum)
+::datum(boost::any const& dat)
   : m_type(DATUM_DATA)
-  , m_datum(datum)
+  , m_datum(dat)
 {
 }
 

@@ -312,7 +312,7 @@ processes_t
 pipeline
 ::upstream_for_process(process::name_t const& name) const
 {
-  std::set<process::name_t> process_names;
+  std::set<process::name_t> names;
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
@@ -320,13 +320,13 @@ pipeline
     {
       process::name_t const& upstream_name = connection.first.first;
 
-      process_names.insert(upstream_name);
+      names.insert(upstream_name);
     }
   }
 
   processes_t processes;
 
-  BOOST_FOREACH (process::name_t const& process_name, process_names)
+  BOOST_FOREACH (process::name_t const& process_name, names)
   {
     priv::process_map_t::const_iterator i = d->process_map.find(process_name);
 
@@ -340,7 +340,7 @@ processes_t
 pipeline
 ::downstream_for_process(process::name_t const& name) const
 {
-  std::set<process::name_t> process_names;
+  std::set<process::name_t> names;
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
@@ -348,13 +348,13 @@ pipeline
     {
       process::name_t const& downstream_name = connection.second.first;
 
-      process_names.insert(downstream_name);
+      names.insert(downstream_name);
     }
   }
 
   processes_t processes;
 
-  BOOST_FOREACH (process::name_t const& process_name, process_names)
+  BOOST_FOREACH (process::name_t const& process_name, names)
   {
     priv::process_map_t::const_iterator i = d->process_map.find(process_name);
 
@@ -368,7 +368,7 @@ processes_t
 pipeline
 ::downstream_for_port(process::name_t const& name, process::port_t const& port) const
 {
-  std::set<process::name_t> process_names;
+  std::set<process::name_t> names;
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
@@ -377,13 +377,13 @@ pipeline
     {
       process::name_t const& downstream_name = connection.second.first;
 
-      process_names.insert(downstream_name);
+      names.insert(downstream_name);
     }
   }
 
   processes_t processes;
 
-  BOOST_FOREACH (process::name_t const& process_name, process_names)
+  BOOST_FOREACH (process::name_t const& process_name, names)
   {
     priv::process_map_t::const_iterator i = d->process_map.find(process_name);
 

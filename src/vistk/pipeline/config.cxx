@@ -45,7 +45,7 @@ config_t
 config
 ::subblock(key_t const& key) const
 {
-  config_t config = empty_config(key);
+  config_t conf = empty_config(key);
 
   BOOST_FOREACH (key_t const& key_name, available_values())
   {
@@ -56,10 +56,10 @@ config
 
     key_t const stripped_key_name = strip_block_name(key_name);
 
-    config->set_value(stripped_key_name, get_value(key_name));
+    conf->set_value(stripped_key_name, get_value(key_name));
   }
 
-  return config;
+  return conf;
 }
 
 config_t
@@ -125,9 +125,9 @@ config
 
 void
 config
-::merge_config(config_t config)
+::merge_config(config_t conf)
 {
-  BOOST_FOREACH (store_t::value_type const& value, config->m_store)
+  BOOST_FOREACH (store_t::value_type const& value, conf->m_store)
   {
     set_value(value.first, value.second);
   }
