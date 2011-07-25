@@ -330,8 +330,10 @@ unset_on_read_only_value
 bool
 does_not_begin_with(config::key_t const& key, config::key_t const& name)
 {
+  static config::key_t const global_start = config::global_value + config::block_sep;
+
   return (!boost::starts_with(key, name + config::block_sep) &&
-          !boost::starts_with(key, config::global_value + config::block_sep));
+          !boost::starts_with(key, global_start));
 }
 
 config::key_t
