@@ -30,7 +30,7 @@ schedule
 }
 
 schedule
-::schedule(config_t const& config, pipeline_t const& pipe)
+::schedule(config_t const& /*config*/, pipeline_t const& pipe)
 {
   d = boost::shared_ptr<priv>(new priv(pipe));
 }
