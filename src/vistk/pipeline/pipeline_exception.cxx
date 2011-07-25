@@ -93,6 +93,45 @@ no_such_process
   return m_what.c_str();
 }
 
+connection_type_mismatch
+::connection_type_mismatch(process::name_t const& upstream_name,
+                           process::port_t const& upstream_port,
+                           process::port_type_name_t const& upstream_type,
+                           process::name_t const& downstream_name,
+                           process::port_t const& downstream_port,
+                           process::port_type_name_t const& downstream_type) throw()
+  : pipeline_connection_exception()
+  , m_upstream_name(upstream_name)
+  , m_upstream_port(upstream_port)
+  , m_upstream_type(upstream_type)
+  , m_downstream_name(downstream_name)
+  , m_downstream_port(downstream_port)
+  , m_downstream_type(downstream_type)
+{
+  std::ostringstream sstr;
+
+  sstr << "The connection between the \'" <<m_upstream_port << "\' "
+       << "port on the \'" << m_upstream_name << "\' upstream "
+       << "and the \'" << m_downstream_port << "\' on the "
+       << "\'" << m_downstream_name << "\' connection mismatching "
+       << "types: up: \'" << m_upstream_type << "\' down: "
+       << "\'" << m_downstream_type << "\'.";
+
+  m_what = sstr.str();
+}
+
+connection_type_mismatch
+::~connection_type_mismatch() throw()
+{
+}
+
+char const*
+connection_type_mismatch
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 no_such_group
 ::no_such_group(process::name_t const& name) throw()
   : pipeline_exception()

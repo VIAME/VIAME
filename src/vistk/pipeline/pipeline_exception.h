@@ -148,6 +148,61 @@ class VISTK_PIPELINE_EXPORT no_such_process
 };
 
 /**
+ * \class connection_type_mismatch pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a connection is requested with type mismatched ports.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT connection_type_mismatch
+  : public pipeline_connection_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param upstream_name The name of the upstream process requested.
+     * \param upstream_port The port on the upstream process requested.
+     * \param upstream_type The type of the upstream process port.
+     * \param downstream_name The name of the upstream process requested.
+     * \param downstream_port The port on the upstream process requested.
+     * \param downstream_type The type of the upstream process port.
+     */
+    connection_type_mismatch(process::name_t const& upstream_name,
+                             process::port_t const& upstream_port,
+                             process::port_type_name_t const& upstream_type,
+                             process::name_t const& downstream_name,
+                             process::port_t const& downstream_port,
+                             process::port_type_name_t const& downstream_type) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~connection_type_mismatch() throw();
+
+    /// The name of the upstream process requested.
+    process::name_t const m_upstream_name;
+    /// The name of the upstream process requested.
+    process::port_t const m_upstream_port;
+    /// The name of the type available on the upstream port.
+    process::port_type_name_t const m_upstream_type;
+    /// The name of the downstream process requested.
+    process::name_t const m_downstream_name;
+    /// The name of the downstream process requested.
+    process::port_t const m_downstream_port;
+    /// The name of the type available on the downstream port.
+    process::port_type_name_t const m_downstream_type;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class no_such_group pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a group is requested that does not exist in a \ref pipeline.

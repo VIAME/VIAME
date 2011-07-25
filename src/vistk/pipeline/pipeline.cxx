@@ -183,7 +183,8 @@ pipeline
       (down_type_name != process::type_any) &&
       (up_type_name != down_type_name))
   {
-    /// \todo Throw an exception that the types don't match.
+    throw connection_type_mismatch(upstream_process, upstream_port, up_type_name,
+                                   downstream_process, downstream_port, down_type_name);
   }
 
   process::port_flags_t const up_flags = up_type.get<1>();
