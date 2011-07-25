@@ -132,6 +132,40 @@ connection_type_mismatch
   return m_what.c_str();
 }
 
+connection_flag_mismatch
+::connection_flag_mismatch(process::name_t const& upstream_name,
+                           process::port_t const& upstream_port,
+                           process::name_t const& downstream_name,
+                           process::port_t const& downstream_port) throw()
+  : pipeline_connection_exception()
+  , m_upstream_name(upstream_name)
+  , m_upstream_port(upstream_port)
+  , m_downstream_name(downstream_name)
+  , m_downstream_port(downstream_port)
+{
+  std::ostringstream sstr;
+
+  sstr << "The connection between the \'" <<m_upstream_port << "\' "
+       << "port on the \'" << m_upstream_name << "\' upstream "
+       << "and the \'" << m_downstream_port << "\' on the "
+       << "\'" << m_downstream_name << "\' connection mismatching "
+       << "flags.";
+
+  m_what = sstr.str();
+}
+
+connection_flag_mismatch
+::~connection_flag_mismatch() throw()
+{
+}
+
+char const*
+connection_flag_mismatch
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 no_such_group
 ::no_such_group(process::name_t const& name) throw()
   : pipeline_exception()

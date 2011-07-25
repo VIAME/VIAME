@@ -202,7 +202,8 @@ pipeline
 
   if (is_const && requires_mutable)
   {
-    /// \todo Throw an exception that the flags are incompatible.
+    throw connection_flag_mismatch(upstream_process, upstream_port,
+                                   downstream_process, downstream_port);
   }
 
   up_proc->connect_output_port(upstream_port, e);

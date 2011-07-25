@@ -203,6 +203,53 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch
 };
 
 /**
+ * \class connection_flag_mismatch pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a connection is requested with mismatched ports flags.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT connection_flag_mismatch
+  : public pipeline_connection_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param upstream_name The name of the upstream process requested.
+     * \param upstream_port The port on the upstream process requested.
+     * \param downstream_name The name of the upstream process requested.
+     * \param downstream_port The port on the upstream process requested.
+     */
+    connection_flag_mismatch(process::name_t const& upstream_name,
+                             process::port_t const& upstream_port,
+                             process::name_t const& downstream_name,
+                             process::port_t const& downstream_port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~connection_flag_mismatch() throw();
+
+    /// The name of the upstream process requested.
+    process::name_t const m_upstream_name;
+    /// The name of the upstream process requested.
+    process::port_t const m_upstream_port;
+    /// The name of the downstream process requested.
+    process::name_t const m_downstream_name;
+    /// The name of the downstream process requested.
+    process::port_t const m_downstream_port;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class no_such_group pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a group is requested that does not exist in a \ref pipeline.
