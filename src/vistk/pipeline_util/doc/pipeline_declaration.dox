@@ -1,11 +1,287 @@
 /**
  * \page pipline_declaration Pipeline declaration files
  *
- * \section introduction Introduction
+ * Pipeline declaration files allow a pipeline to be loaded from a plain text
+ * file. They provide all of the information necessary to run a pipeline and may
+ * be included from other pipeline files.
  *
- * \todo Write introduction.
+ * \section common_rules Common rules
  *
- * \section format Format
+ * Common rules for the other definitions.
  *
- * \todo Write up the format.
+ * <pre>
+ *   <upper>          ::= "A" .. "Z"
+ *   <lower>          ::= "a" .. "z"
+ *   <digit>          ::= "0" .. "9"
+ *   <graph>          ::= any printable character
+ *   <space>          ::= " "
+ *   <tab>            ::= "\t"
+ *   <alpha>          ::= <upper> | <lower>
+ *   <alnum>          ::= <upper> | <lower> | <digit>
+ *   <blank>          ::= <space> | <tab>
+ *   <opt-whitespace> ::= <blank> <opt-whitespace> | ""
+ *   <whitespace>     ::= <blank> <opt-whitespace>
+ *   <eol>            ::= "\r\n" | "\n"
+ *   <line-end>       ::= <eol> <opt-whitespace> <line-end> | <eol>
+ * </pre>
+ *
+ * \section include Includes
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <path>              ::= platform-specific
+ *   <include-directive> ::= "!include"
+ *   <include-spec>      ::= <opt-whitespace> <include-directive> <whitespace> <path>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Add some examples.
+ *
+ * <pre>
+ * </pre>
+ *
+ * \section configuration Configuration
+ *
+ * Configurations are statements which add an entry to the configuration block
+ * for the pipeline. Subblocks can be defined by using the <tt>:</tt> string to
+ * separate key components. The key name is the index to be set within the
+ * configuration. Key path components may be composed of alphanumeric characters
+ * as well as the <tt>-</tt> and <tt>_</tt> characters. Values may also have
+ * flags set as well as be filled in by providers.
+ *
+ * \subsection configuration_flags Configuration flags
+ *
+ * Configuration keys may have flags set on them. Currently the only understood
+ * flags are:
+ *
+ * \cflag{ro} Marks the configuration value as read-only.
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <flag-start>        ::= "["
+ *   <flag-separator>    ::= ","
+ *   <flag-end>          ::= "]"
+ *   <key-flag>          ::= <alpha> <key-flag> | <alpha>
+ *   <key-flags>         ::= <key-flag> <flag-separator> <key-flag> | <key-flag>
+ *   <key-flag-decl>     ::= <flag-start> <key-flags> <flag-close>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Add some examples.
+ *
+ * <pre>
+ * </pre>
+ *
+ * \subsection configuration_provider Configuration provider
+ *
+ * Configuration values may be fetched from another source by means of a
+ * provider. This allows for context-aware configuration files.
+ *
+ * \par Specification
+ *
+ * Configuration keys may also be fetched from providers. When using a provider,
+ * the value is passed as an argument to the provider which then replaces the
+ * value. The currently understood providers include:
+ *
+ * \cprov{CONF} Replaces the value with another value. The argument for this
+ *              provider is the full path of the key to look up.
+ * \cprov{SYS} Fetches information from the system. The arguments are not
+ *             defined yet.
+ * \cprov{ENV} Fetches values from the environment. The argument is the
+ *             environment variable to use.
+ *
+ * <pre>
+ *   <provider-start>    ::= "{"
+ *   <provider-end>      ::= "}"
+ *   <key-provider>      ::= <upper> <key-provider> | <upper>
+ *   <key-provider-spec> ::= <provider-start> <key-provider> <provider-end>
+ *   <key-options>       ::= <key-flag-decl> | <key-provider> | <key-flag-decl> <key-provider> | ""
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Add some examples.
+ *
+ * <pre>
+ * </pre>
+ *
+ * \subsection configuration_value Configuration value
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <separator>         ::= ":"
+ *   <symbol-char>       ::= <alnum> | "-" | "_"
+ *   <key-component>     ::= <symbol-char> <key-component>
+ *   <key-path>          ::= <key-component> <separator> <key-path> | <key-component>
+ *   <full-key-path>     ::= <key-path> | <key-path> <key-options>
+ *   <value-char>        ::= <graph> | <space> | <tab>
+ *   <key-value>         ::= <value-char> <key-value> | <value-char>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Add some examples.
+ *
+ * <pre>
+ * </pre>
+ *
+ * \subsection configuration_line Configuration line
+ *
+ * Configurations can appear in the file standalone. In this case, the full path
+ * to the configuration is necessary.
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <config-spec> ::= <opt-whitespace> <key-path> <whitespace> <key-value> <line-end>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Explain examples.
+ *
+ * <pre>
+ *   path:to:key value
+ * </pre>
+ * <pre>
+ *   just_a_key    value
+ * </pre>
+ * <pre>
+ *   key   a multiword value
+ * </pre>
+ *
+ * \subsection configuration_partial Partial configuration declarations
+ *
+ * Configuration lines can also be abbreviated. They are used within other
+ * blocks to help abbreviate configuration specifications.
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <partial-config-spec> ::= <opt-whitespace> <separator> <config-spec> <line-end>
+ *   <partial-configs>     ::= <partial-config-spec> <partial-config> | <partial-config-spec>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Add some examples.
+ *
+ * <pre>
+ * </pre>
+ *
+ * \subsection configuration_block Configuration block
+ *
+ * Configuration blocks make it easy to assign many configuration indices at
+ * without repeating a common path.
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <config-block-spec>   ::= <opt-whitespace> "config" <whitespace> <key-path> <line-end>
+ *                             <partial-configs>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Explain examples.
+ *
+ * <pre>
+ *   config common
+ *     :uncommon  value
+ *     :also:uncommon  value
+ * </pre>
+ * <pre>
+ *   config a:common:path
+ *     :uncommon:path:to:key value
+ *     :other:uncommon:path:to:key value
+ * </pre>
+ *
+ * \subsection process_block Process block
+ *
+ * A process block adds a process to the pipeline.
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <type-token>         ::= "::"
+ *   <type-decl>          ::= <type-token> <whitespace> <key-component>
+ *   <process-block-spec> ::= <opt-whitespace> "process" <whitespace> <key-component> <line-end>
+ *                            <opt-whitespace> <type-decl> <line-end>
+ *                            <partial-configs>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Explain examples.
+ *
+ * <pre>
+ *   process my_process
+ *     :: my_process_type
+ * </pre>
+ * <pre>
+ *   process another_process
+ *     :: awesome_process
+ *     :some_param some_value
+ * </pre>
+ *
+ * \subsection connect_block Connect block
+ *
+ * A connection block declares that two ports will be connected.
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <port-process>        ::= <key-component>
+ *   <port-addr-separator> ::= "."
+ *   <port-name>           ::= <key-component>
+ *   <port-addr>           ::= <port-process> <port-addr-separator> <port-name>
+ *   <connect-block-spec>  ::= <opt-whitespace> "connect" <whitespace> "from" <whitespace> <port-addr> <line-end>
+ *                             <opt-whitespace> "to" <port-addr> <line-end>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Add some examples.
+ *
+ * <pre>
+ * </pre>
+ *
+ * \subsection group_block Group block
+ *
+ * A group is a collection of processes which can be treated as a single
+ * process for connection and configuration purposes. A group is just a
+ * declaration of ports with internal connections, and a set of available
+ * configuration values. Mappings may also have flags associated with them. The
+ * currently understood flags are:
+ *
+ * \mflag{required} Marks the port as required for the group.
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <map-flag>            ::= <alpha> <map-flag> | <alpha>
+ *   <map-flags>           ::= <map-flag> <map-separator> <map-flag> | <map-flag>
+ *   <map-flag-decl>       ::= <flag-start> <map-flags> <flag-close>
+ *   <map-decl>            ::= "map" <map-flag-decl> | "map"
+ *   <input-mapping-spec>  ::= <opt-whitespace> <map-decl> <whitespace> "from" <whitespace> <port-name> <line-end>
+ *                             <opt-whitespace> "to" <port-addr> <line-end>
+ *   <output-mapping-spec> ::= <opt-whitespace> <map-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
+ *                             <opt-whitespace> "to" <port-name> <line-end>
+ *   <group-decl>          ::= <partial-config-spec> | <input-mapping-spec> | <output-mapping-spec>
+ *   <group-decls>         ::= <group-decl> <group-decls> | ""
+ *   <group-block-spec>    ::= <opt-whitespace> "group" <whitespace> <key-component> <line-end>
+ *                             <group-decls>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Add some examples.
+ *
+ * <pre>
+ * </pre>
  */
