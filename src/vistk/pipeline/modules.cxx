@@ -47,7 +47,11 @@ typedef char* envvar_value_t;
 #else
 typedef char const* envvar_value_t;
 #endif
+#if defined(_WIN32) || defined(_WIN64)
+typedef std::wstring module_path_t;
+#else
 typedef std::string module_path_t;
+#endif
 typedef std::vector<module_path_t> module_paths_t;
 typedef std::string lib_suffix_t;
 typedef std::string function_name_t;
@@ -85,13 +89,13 @@ void load_known_modules()
   envvar_value_t extra_module_dirs = NULL;
 
 #if defined(_WIN32) || defined(_WIN64)
-  DWORD sz = GetEnvironmentVariable(envvar_name_t, NULL, 0);
+  DWORD sz = GetEnvironmentVariable(vistk_module_envvar, NULL, 0);
 
   if (sz)
   {
     extra_module_dirs = new char[sz];
 
-    sz = GetEnvironmentVariable(envvar_name_t, extra_module_dirs, sz);
+    sz = GetEnvironmentVariable(vistk_module_envvar, extra_module_dirs, sz);
   }
 
   if (!sz)
@@ -161,11 +165,7 @@ void load_from_module(module_path_t const path)
   library_t library = NULL;
 
 #if defined(_WIN32) || defined(_WIN64)
-  {
-    wchar_t path_wide[MB_CUR_MAX];
-    mbstowcs(path_wide, path.c_str(), MB_CUR_MAX);
-    library = LoadLibrary(path_wide);
-  }
+  library = LoadLibraryW(path.c_str());
 #else
   library = dlopen(path.c_str(), RTLD_LAZY);
 #endif
@@ -179,15 +179,8 @@ void load_from_module(module_path_t const path)
   function_t schedule_function = NULL;
 
 #if defined(_WIN32) || defined(_WIN64)
-  {
-    wchar_t function_name[MB_CUR_MAX];
-
-    mbstowcs(function_name, process_function_name.c_str(), MB_CUR_MAX);
-    process_function = GetProcAddress(library, function_name);
-
-    mbstowcs(function_name, schedule_function_name.c_str(), MB_CUR_MAX);
-    schedule_function = GetProcAddress(library, function_name);
-  }
+  process_function = GetProcAddress(library, process_function_name.c_str());
+  schedule_function = GetProcAddress(library, schedule_function_name.c_str());
 #else
   process_function = dlsym(library, process_function_name.c_str());
   schedule_function = dlsym(library, schedule_function_name.c_str());
