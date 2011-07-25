@@ -23,6 +23,8 @@
 
 using namespace boost::spirit;
 
+#ifndef DOXYGEN_IGNORE
+
 BOOST_FUSION_ADAPT_STRUCT(
   vistk::config_key_t,
   (vistk::config::keys_t, key_path)
@@ -76,6 +78,8 @@ BOOST_FUSION_ADAPT_STRUCT(
   (vistk::input_maps_t, input_mappings)
   (vistk::output_maps_t, output_mappings)
 )
+
+#endif
 
 namespace vistk
 {
