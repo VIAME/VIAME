@@ -20,7 +20,7 @@
 /**
  * \file process.cxx
  *
- * \brief Implementation of the base class for \link process processes\endlink.
+ * \brief Implementation of the base class for \link vistk::process processes\endlink.
  */
 
 namespace vistk

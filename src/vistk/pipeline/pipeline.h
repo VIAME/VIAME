@@ -20,7 +20,7 @@
 /**
  * \file pipeline.h
  *
- * \brief Header for \link pipeline pipelines\endlink.
+ * \brief Header for \link vistk::pipeline pipelines\endlink.
  */
 
 namespace vistk

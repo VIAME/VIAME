@@ -24,7 +24,7 @@
 /**
  * \file config.h
  *
- * \brief Header for \link config configuration\endlink in the pipeline.
+ * \brief Header for \link vistk::config configuration\endlink in the pipeline.
  */
 
 namespace vistk

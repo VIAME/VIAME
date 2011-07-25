@@ -9,7 +9,7 @@
 /**
  * \file schedule.cxx
  *
- * \brief Implementation of the base class for \link schedule schedules\endlink.
+ * \brief Implementation of the base class for \link vistk::schedule schedules\endlink.
  */
 
 namespace vistk

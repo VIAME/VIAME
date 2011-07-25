@@ -12,7 +12,7 @@
 /**
  * \file stamp.cxx
  *
- * \brief Implementation of \link stamp stamps\endlink.
+ * \brief Implementation of \link vistk::stamp stamps\endlink.
  */
 
 namespace vistk

@@ -18,7 +18,7 @@
 /**
  * \file edge_exception.h
  *
- * \brief Header for exceptions used within \link edge edges\endlink.
+ * \brief Header for exceptions used within \link vistk::edge edges\endlink.
  */
 
 namespace vistk

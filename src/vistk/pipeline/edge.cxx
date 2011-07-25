@@ -16,7 +16,7 @@
 /**
  * \file edge.cxx
  *
- * \brief Implementation of the \ref edge class.
+ * \brief Implementation of the \link vistk::edge edge\endlink class.
  */
 
 namespace vistk

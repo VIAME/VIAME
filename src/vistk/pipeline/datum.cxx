@@ -11,7 +11,7 @@
 /**
  * \file datum.cxx
  *
- * \brief Implementation of a piece of \link datum data\endlink in the pipeline.
+ * \brief Implementation of a piece of \link vistk::datum data\endlink in the pipeline.
  */
 
 namespace vistk

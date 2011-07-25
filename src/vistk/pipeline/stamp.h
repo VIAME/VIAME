@@ -18,7 +18,7 @@
 /**
  * \file stamp.h
  *
- * \brief Header for \link stamp stamps\endlink.
+ * \brief Header for \link vistk::stamp stamps\endlink.
  */
 
 namespace vistk

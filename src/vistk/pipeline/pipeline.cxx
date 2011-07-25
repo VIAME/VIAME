@@ -16,7 +16,7 @@
 /**
  * \file pipeline.cxx
  *
- * \brief Implementation of the base class for \link pipeline pipelines\endlink.
+ * \brief Implementation of the base class for \link vistk::pipeline pipelines\endlink.
  */
 
 namespace vistk

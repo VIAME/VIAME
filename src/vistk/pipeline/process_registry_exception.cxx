@@ -11,7 +11,7 @@
 /**
  * \file process_registry_exception.cxx
  *
- * \brief Implementation of exceptions used within the \link process_registry process registry\endlink.
+ * \brief Implementation of exceptions used within the \link vistk::process_registry process registry\endlink.
  */
 
 namespace vistk

@@ -11,7 +11,7 @@
 /**
  * \file process_exception.cxx
  *
- * \brief Implementation of exceptions used within \link process processes\endlink.
+ * \brief Implementation of exceptions used within \link vistk::process processes\endlink.
  */
 
 namespace vistk

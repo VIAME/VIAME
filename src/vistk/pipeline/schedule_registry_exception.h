@@ -17,7 +17,7 @@
 /**
  * \file schedule_registry_exception.h
  *
- * \brief Header for exceptions used within the \link schedule_registry schedule registry\endlink.
+ * \brief Header for exceptions used within the \link vistk::schedule_registry schedule registry\endlink.
  */
 
 namespace vistk

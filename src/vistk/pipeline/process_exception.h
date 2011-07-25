@@ -17,7 +17,7 @@
 /**
  * \file process_exception.h
  *
- * \brief Header for exceptions used within \link process processes\endlink.
+ * \brief Header for exceptions used within \link vistk::process processes\endlink.
  */
 
 namespace vistk

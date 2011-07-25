@@ -21,7 +21,7 @@
 /**
  * \file process_registry.h
  *
- * \brief Header for the \link process_registry process registry\endlink.
+ * \brief Header for the \link vistk::process_registry process registry\endlink.
  */
 
 namespace vistk

@@ -17,7 +17,7 @@
 /**
  * \file schedule.h
  *
- * \brief Header for \link schedule schedules\endlink.
+ * \brief Header for \link vistk::schedule schedules\endlink.
  */
 
 namespace vistk

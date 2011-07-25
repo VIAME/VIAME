@@ -21,7 +21,7 @@
 /**
  * \file schedule_registry.h
  *
- * \brief Header for the \link schedule_registry schedule registry\endlink.
+ * \brief Header for the \link vistk::schedule_registry schedule registry\endlink.
  */
 
 namespace vistk

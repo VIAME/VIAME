@@ -16,7 +16,7 @@
 /**
  * \file schedule_registry.cxx
  *
- * \brief Implementation of the \link schedule_registry schedule registry\endlink.
+ * \brief Implementation of the \link vistk::schedule_registry schedule registry\endlink.
  */
 
 namespace vistk

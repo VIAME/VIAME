@@ -18,7 +18,7 @@
 /**
  * \file datum.h
  *
- * \brief Header for a piece of \link datum data\endlink in the pipeline.
+ * \brief Header for a piece of \link vistk::datum data\endlink in the pipeline.
  */
 
 namespace vistk

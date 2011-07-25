@@ -21,7 +21,7 @@
 /**
  * \file edge.h
  *
- * \brief Header for \link edge edges\endlink.
+ * \brief Header for \link vistk::edge edges\endlink.
  */
 
 namespace vistk

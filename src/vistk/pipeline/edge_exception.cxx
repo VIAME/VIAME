@@ -11,7 +11,7 @@
 /**
  * \file edge_exception.cxx
  *
- * \brief Implementation of exceptions used within \link edge edges\endlink.
+ * \brief Implementation of exceptions used within \link vistk::edge edges\endlink.
  */
 
 namespace vistk

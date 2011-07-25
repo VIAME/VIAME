@@ -16,7 +16,7 @@
 /**
  * \file process_registry.cxx
  *
- * \brief Implementation of the \link process_registry process registry\endlink.
+ * \brief Implementation of the \link vistk::process_registry process registry\endlink.
  */
 
 namespace vistk

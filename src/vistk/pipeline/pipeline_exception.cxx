@@ -11,7 +11,7 @@
 /**
  * \file pipeline_exception.cxx
  *
- * \brief Implementation of exceptions used within \link pipeline pipelines\endlink.
+ * \brief Implementation of exceptions used within \link vistk::pipeline pipelines\endlink.
  */
 
 namespace vistk

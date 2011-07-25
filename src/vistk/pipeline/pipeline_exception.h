@@ -17,7 +17,7 @@
 /**
  * \file pipeline_exception.h
  *
- * \brief Header for exceptions used within \link pipeline pipelines\endlink.
+ * \brief Header for exceptions used within \link vistk::pipeline pipelines\endlink.
  */
 
 namespace vistk

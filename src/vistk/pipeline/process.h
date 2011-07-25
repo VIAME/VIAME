@@ -24,7 +24,7 @@
 /**
  * \file process.h
  *
- * \brief Header for \link process processes\endlink.
+ * \brief Header for \link vistk::process processes\endlink.
  */
 
 namespace vistk

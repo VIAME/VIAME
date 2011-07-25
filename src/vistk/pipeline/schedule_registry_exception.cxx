@@ -11,7 +11,7 @@
 /**
  * \file schedule_registry_exception.cxx
  *
- * \brief Implementation of exceptions used within the \link schedule_registry schedule registry\endlink.
+ * \brief Implementation of exceptions used within the \link vistk::schedule_registry schedule registry\endlink.
  */
 
 namespace vistk

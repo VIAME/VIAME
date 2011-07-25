@@ -17,7 +17,7 @@
 /**
  * \file config.cxx
  *
- * \brief Implementation of \link config configuration\endlink in the pipeline.
+ * \brief Implementation of \link vistk::config configuration\endlink in the pipeline.
  */
 
 namespace vistk
