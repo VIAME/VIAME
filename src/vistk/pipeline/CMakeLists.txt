@@ -80,7 +80,8 @@ add_library(vistk_pipeline
   ${pipeline_srcs})
 target_link_libraries(vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_THREAD_LIBRARY})
 if (NOT WIN32)
   target_link_libraries(vistk_pipeline
     ${CMAKE_DL_LIBS})
