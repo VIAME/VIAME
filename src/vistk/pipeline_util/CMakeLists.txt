@@ -2,7 +2,8 @@ project(vistk_pipeline_util)
 
 set(pipeline_util_srcs
   load_pipe.cxx
-  load_pipe_exception.cxx)
+  load_pipe_exception.cxx
+  pipe_grammar.cxx)
 
 set(pipeline_util_headers
   load_pipe.h
