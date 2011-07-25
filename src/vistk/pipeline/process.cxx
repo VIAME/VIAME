@@ -146,7 +146,7 @@ process::port_type_t
 process
 ::input_port_type(port_t const& port) const
 {
-  _input_port_type(port);
+  return _input_port_type(port);
 }
 
 process::port_type_t
@@ -158,14 +158,14 @@ process
     return port_type_t(type_none, port_flags_t());
   }
 
-  _output_port_type(port);
+  return _output_port_type(port);
 }
 
 process::port_description_t
 process
 ::input_port_description(port_t const& port) const
 {
-  _input_port_description(port);
+  return _input_port_description(port);
 }
 
 process::port_description_t
@@ -177,7 +177,7 @@ process
     return port_description_t("Outputs the hearbeat stamp with an empty datum.");
   }
 
-  _output_port_description(port);
+  return _output_port_description(port);
 }
 
 config::keys_t
