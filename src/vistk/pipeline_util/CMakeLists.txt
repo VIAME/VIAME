@@ -8,6 +8,7 @@ set(pipeline_util_headers
   load_pipe.h
   load_pipe_exception.h
   pipe_declaration_types.h
+  pipe_grammar.h
   pipeline_util-config.h)
 
 set(vistk_pipe_include_options)

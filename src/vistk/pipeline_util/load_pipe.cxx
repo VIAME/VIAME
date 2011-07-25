@@ -8,6 +8,8 @@
 
 #include <vistk/pipeline/pipeline.h>
 
+#include "pipe_grammar.h"
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -53,14 +55,11 @@ load_pipe_blocks_from_file(boost::filesystem::path const& fname)
 pipe_blocks
 load_pipe_blocks(std::istream& istr, boost::filesystem::path const& inc_root)
 {
-  pipe_blocks blocks;
   std::stringstream sstr;
 
   flatten_pipe_declaration(sstr, istr, inc_root);
 
-  /// \todo What parser do we want to use here?
-
-  return blocks;
+  return parse_pipe_blocks_from_string(sstr.str());
 }
 
 pipeline_t
