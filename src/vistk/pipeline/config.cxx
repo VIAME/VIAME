@@ -46,22 +46,17 @@ config
 ::subblock(key_t const& key) const
 {
   config_t config = empty_config(key);
-  key_t const block_start = key + block_sep;
-  key_t const global_start = global_value + block_sep;
 
-  store_t::const_iterator i = m_store.begin();
-  store_t::const_iterator i_end = m_store.end();
-
-  for (; i != i_end; ++i)
+  BOOST_FOREACH (key_t const& key_name, available_values())
   {
-    if (boost::starts_with(i->first, block_start))
+    if (does_not_begin_with(key_name, key))
     {
-      config->set_value(i->first.substr(block_start.size()), i->second);
+      continue;
     }
-    else if (boost::starts_with(i->first, global_start))
-    {
-      config->set_value(i->first.substr(global_start.size()), i->second);
-    }
+
+    key_t const stripped_key_name = strip_block_name(key_name);
+
+    config->set_value(stripped_key_name, get_value(key_name));
   }
 
   return config;
