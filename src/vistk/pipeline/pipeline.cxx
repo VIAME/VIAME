@@ -170,10 +170,39 @@ pipeline
     throw no_such_process(downstream_process);
   }
 
-  /// \todo Port type checking here?
-
   process_t const& up_proc = up_it->second;
   process_t const& down_proc = down_it->second;
+
+  process::port_type_t const up_type = up_proc->output_port_type(upstream_port);
+  process::port_type_t const down_type = down_proc->input_port_type(downstream_port);
+
+  process::port_type_name_t const up_type_name = up_type.get<0>();
+  process::port_type_name_t const down_type_name = down_type.get<0>();
+
+  if ((up_type_name != process::type_any) &&
+      (down_type_name != process::type_any) &&
+      (up_type_name != down_type_name))
+  {
+    /// \todo Throw an exception that the types don't match.
+  }
+
+  process::port_flags_t const up_flags = up_type.get<1>();
+  process::port_flags_t const down_flags = down_type.get<1>();
+
+  process::port_flags_t::const_iterator i;
+
+  i = up_flags.find(process::flag_output_const);
+
+  bool const is_const = (i != up_flags.end());
+
+  i = down_flags.find(process::flag_input_mutable);
+
+  bool const requires_mutable = (i != down_flags.end());
+
+  if (is_const && requires_mutable)
+  {
+    /// \todo Throw an exception that the flags are incompatible.
+  }
 
   up_proc->connect_output_port(upstream_port, e);
   down_proc->connect_input_port(downstream_port, e);
@@ -246,7 +275,6 @@ pipeline
 ::setup_pipeline()
 {
   /// \todo Check for disconnected pipelines.
-  /// \todo Check for types of connections.
   /// \todo Check for required grouping input/output ports (requires flags for ports).
 }
 
