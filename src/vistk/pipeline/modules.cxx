@@ -172,6 +172,8 @@ void load_from_module(module_path_t const path)
 
   if (!library)
   {
+    /// \todo Log an error.
+
     return;
   }
 
