@@ -5,9 +5,7 @@
  * file. They provide all of the information necessary to run a pipeline and may
  * be included from other pipeline files.
  *
- * \section common_rules Common rules
- *
- * Common rules for the other definitions.
+ * \par Common rules
  *
  * <pre>
  *   <upper>          ::= "A" .. "Z"
