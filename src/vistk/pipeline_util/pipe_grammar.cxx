@@ -120,8 +120,8 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
 
     qi::rule<Iterator, token_t()> symbol;
 
-    qi::rule<Iterator, map_flag_t(), ascii::space_type> map_flag;
-    qi::rule<Iterator, map_flags_t(), ascii::space_type> map_flags;
+    qi::rule<Iterator, map_flag_t()> map_flag;
+    qi::rule<Iterator, map_flags_t()> map_flags;
 
     qi::rule<Iterator, config::key_t()> config_key_base;
     qi::rule<Iterator, config::keys_t(), qi::locals<config::keys_t>, ascii::space_type> config_key;
