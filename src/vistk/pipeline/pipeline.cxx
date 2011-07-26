@@ -236,6 +236,8 @@ pipeline
 
   priv::input_port_mapping_t& mapping = group_it->second.first;
 
+  /// \todo Check types and flags on other mapped ports.
+
   mapping[port].push_back(process::port_addr_t(mapped_process, mapped_port));
 }
 
@@ -277,7 +279,7 @@ pipeline
 ::setup_pipeline()
 {
   /// \todo Check for disconnected pipelines.
-  /// \todo Check for required grouping input/output ports (requires flags for ports).
+  /// \todo Check for required input/output port connections (requires flags for group ports).
 }
 
 process::names_t
