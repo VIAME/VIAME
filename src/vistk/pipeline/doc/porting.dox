@@ -151,17 +151,26 @@
  * are a few directives that are provided for convenience for documenting a
  * process:
  *
- * \li \doxdir{process <description>} Adds the process to the list of processes
- *     in the documentation.
- * \li \doxdir{configs} Creates a section for configuration values.
- * \li \doxdir{configs{key name} <description>} Documents a configuration value.
- * \li \doxdir{iports} Creates a section for input ports.
- * \li \doxdir{iport{port name} <description>} Documents an input port.
- * \li \doxdir{oports} Creates a section for output ports.
- * \li \doxdir{oport{port name} <description>} Documents an output port.
- * \li \doxdir{reqs} Creates a section for requirements.
- * \li \doxdir{req <requirement>} Lists a requirement for the process to be
- *     valid.
+ * <dl>
+ *   \term{\doxdir{process \<description\>}}
+ *     \termdef{Adds the process to the list of processes in the documentation.}
+ *   \term{\doxdir{configs}}
+ *     \termdef{Creates a section for configuration values.}
+ *   \term{\doxdir{configs{key name} \<description\>}}
+ *     \termdef{ocuments a configuration value.}
+ *   \term{\doxdir{iports}}
+ *     \termdef{reates a section for input ports.}
+ *   \term{\doxdir{iport{port name} \<description\>}}
+ *     \termdef{ocuments an input port.}
+ *   \term{\doxdir{oports}}
+ *     \termdef{reates a section for output ports.}
+ *   \term{\doxdir{oport{port name} \<description\>}}
+ *     \termdef{ocuments an output port.}
+ *   \term{\doxdir{reqs}}
+ *     \termdef{reates a section for requirements.}
+ *   \term{\doxdir{req \<requirement\>}}
+ *     \termdef{ists a requirement for the process to be valid.}
+ * </dl>
  *
  * These directives help to keep the documentation consistent and will help make
  * documentation easier so that it will not be as much of a chore.
