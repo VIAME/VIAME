@@ -34,10 +34,10 @@ MULTILINE_CPP_IS_BRIEF = NO
 INHERIT_DOCS           = YES
 SEPARATE_MEMBER_PAGES  = NO
 TAB_SIZE               = 8
-ALIASES                = port{1}="\c \1"
-ALIASES               += key{1}="\c \1"
-ALIASES               += flag{1}="\c \1"
-ALIASES               += provider{1}="\c \1"
+ALIASES                = port{1}="<tt>\1</tt>"
+ALIASES               += key{1}="<tt>\1</tt>"
+ALIASES               += flag{1}="<tt>\1</tt>"
+ALIASES               += provider{1}="<tt>\1</tt>"
 ALIASES               += oports="\par Output ports"
 ALIASES               += oport{1}="\li \port{\1} —"
 ALIASES               += iports="\par Input ports"
