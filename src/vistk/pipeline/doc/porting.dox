@@ -74,7 +74,7 @@
  * \ref vistk::process::push_to_edges() method should be used to push data to
  * multiple output edges.
  *
- * \par Types
+ * \subsubsection process_port_types Types
  *
  * Ports must declare a type for its ports. There are currently two special
  * types:
@@ -84,7 +84,7 @@
  * \ptype{\link vistk::process::type_none none\endlink} There is never any
  * information to extract from the port.
  *
- * \par Flags
+ * \subsubsection process_port_flags Flags
  *
  * There are multiple flags available for a port. The currently understood flags
  * include:

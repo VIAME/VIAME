@@ -42,7 +42,7 @@ typedef std::vector<process_t> processes_t;
  *
  * \oport{heartbeat} Carries the status of the process.
  *
- * \par Initialization Routine
+ * \section initialization Initialization Routine
  *
  * <ol>
  *   <li>Configuration is given to the process when constructed.</li>
@@ -53,7 +53,7 @@ typedef std::vector<process_t> processes_t;
  * Exceptions for misconfiguration should be thrown from \ref process::_init()
  * reimplementations. This is to facilitate querying of processes.
  *
- * \par Destruction Routine
+ * \section destruction Destruction Routine
  *
  * <ol>
  *   <li>The destructor is called.</li>
