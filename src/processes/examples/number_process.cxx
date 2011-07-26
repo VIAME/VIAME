@@ -10,8 +10,6 @@
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 
-#include <boost/foreach.hpp>
-
 namespace vistk
 {
 
@@ -142,10 +140,9 @@ number_process
     ++d->current;
   }
 
-  BOOST_FOREACH (edge_t& edge, d->output_edges)
-  {
-    edge->push_datum(edge_datum_t(dat, heartbeat_stamp()));
-  }
+  edge_datum_t const edat = edge_datum_t(dat, heartbeat_stamp());
+
+  push_to_edges(d->output_edges, edat);
 
   process::_step();
 }
