@@ -159,6 +159,34 @@ number_process
   process::_connect_output_port(port, edge);
 }
 
+process::port_type_t
+number_process
+::_output_port_type(port_t const& port) const
+{
+  if (port == priv::OUTPUT_PORT_NAME)
+  {
+    port_flags_t flags;
+
+    flags.insert(flag_required);
+
+    return port_type_t("unsigned", flags);
+  }
+
+  process::_output_port_type(port);
+}
+
+process::port_description_t
+number_process
+::_output_port_description(port_t const& port) const
+{
+  if (port == priv::OUTPUT_PORT_NAME)
+  {
+    return port_description_t();
+  }
+
+  process::_output_port_description(port);
+}
+
 process::ports_t
 number_process
 ::_output_ports() const

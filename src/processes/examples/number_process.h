@@ -88,6 +88,16 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     void _connect_output_port(port_t const& port, edge_t edge);
 
     /**
+     * \brief Subclass output port types.
+     */
+    port_type_t _output_port_type(port_t const& port) const;
+
+    /**
+     * \brief Subclass output port descriptions.
+     */
+    port_description_t _output_port_description(port_t const& port) const;
+
+    /**
      * \brief Lists the ports available on the process.
      */
     ports_t _output_ports() const;
