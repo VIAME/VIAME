@@ -158,6 +158,8 @@ if (VISTK_ENABLE_TESTING)
     "${CMAKE_SOURCE_DIR}/CTestCustom.cmake.in"
     "${CMAKE_BINARY_DIR}/CTestCustom.cmake"
     COPYONLY)
+
+  add_subdirectory(tests)
 endif (VISTK_ENABLE_TESTING)
 
 set(vistk_config_file "${CMAKE_BINARY_DIR}/vistk-config.cmake")
