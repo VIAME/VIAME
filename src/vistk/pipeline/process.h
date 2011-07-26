@@ -342,6 +342,7 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The stamp that the heartbeat uses.
      */
     stamp_t heartbeat_stamp() const;
+
     /**
      * \brief Check if a set of edges carry the same colored data.
      *
@@ -361,6 +362,13 @@ class VISTK_PIPELINE_EXPORT process
      * \returns True if the available data in each of \p edges have equivalent stamps, false otherwise.
      */
     static bool sync_edges(edges_t const& edges);
+    /**
+     * \brief Pushes data to all given edges.
+     *
+     * \param edges The edges to push to.
+     * \param dat The data to push.
+     */
+    static void push_to_edges(edges_t const& edges, edge_datum_t const& dat);
   private:
     class priv;
     boost::shared_ptr<priv> d;

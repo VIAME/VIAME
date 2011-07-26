@@ -14,6 +14,7 @@
 #include "types.h"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/foreach.hpp>
 
 #include <utility>
 
@@ -363,6 +364,16 @@ process
   }
 
   return true;
+}
+
+void
+process
+::push_to_edges(edges_t const& edges, edge_datum_t const& dat)
+{
+  BOOST_FOREACH (edge_t e, edges)
+  {
+    e->push_datum(dat);
+  }
 }
 
 process::priv
