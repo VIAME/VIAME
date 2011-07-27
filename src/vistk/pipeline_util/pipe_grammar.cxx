@@ -107,9 +107,6 @@ static token_t const from_name = token_t("from");
 static token_t const to_name = token_t("to");
 static token_t const type_token = token_t("::");
 
-static token_t const flag_mapping_required_name = token_t("required");
-static token_t const flag_config_readonly_name = token_t("ro");
-
 static token_t const config_separator = token_t(config::block_sep);
 static token_t const port_separator = token_t(".");
 static token_t const flag_separator = token_t(",");
