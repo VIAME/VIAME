@@ -59,12 +59,12 @@
  * \par Specification
  *
  * <pre>
- *   <flag-start>        ::= "["
- *   <flag-separator>    ::= ","
- *   <flag-end>          ::= "]"
- *   <key-flag>          ::= <alpha> <key-flag> | <alpha>
- *   <key-flags>         ::= <key-flag> <flag-separator> <key-flag> | <key-flag>
- *   <key-flag-decl>     ::= <flag-start> <key-flags> <flag-close>
+ *   <flag-start>     ::= "["
+ *   <flag-separator> ::= ","
+ *   <flag-end>       ::= "]"
+ *   <key-flag>       ::= <alpha> <key-flag> | <alpha>
+ *   <key-flags>      ::= <key-flag> <flag-separator> <key-flag> | <key-flag>
+ *   <key-flag-decl>  ::= <flag-start> <key-flags> <flag-close>
  * </pre>
  *
  * \par Examples
@@ -112,13 +112,13 @@
  * \par Specification
  *
  * <pre>
- *   <separator>         ::= ":"
- *   <symbol-char>       ::= <alnum> | "-" | "_"
- *   <key-component>     ::= <symbol-char> <key-component>
- *   <key-path>          ::= <key-component> <separator> <key-path> | <key-component>
- *   <full-key-path>     ::= <key-path> | <key-path> <key-options>
- *   <value-char>        ::= <graph> | <blank>
- *   <key-value>         ::= <value-char> <key-value> | <value-char>
+ *   <separator>     ::= ":"
+ *   <symbol-char>   ::= <alnum> | "-" | "_"
+ *   <key-component> ::= <symbol-char> <key-component>
+ *   <key-path>      ::= <key-component> <separator> <key-path> | <key-component>
+ *   <full-key-path> ::= <key-path> | <key-path> <key-options>
+ *   <value-char>    ::= <graph> | <blank>
+ *   <key-value>     ::= <value-char> <key-value> | <value-char>
  * </pre>
  *
  * \par Examples
@@ -180,8 +180,8 @@
  * \par Specification
  *
  * <pre>
- *   <config-block-spec>   ::= <opt-whitespace> "config" <whitespace> <key-path> <line-end>
- *                             <partial-configs>
+ *   <config-block-spec> ::= <opt-whitespace> "config" <whitespace> <key-path> <line-end>
+ *                           <partial-configs>
  * </pre>
  *
  * \par Examples
