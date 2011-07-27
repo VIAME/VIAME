@@ -134,7 +134,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
     qi::rule<Iterator> line_end;
 
     qi::rule<Iterator, config_flag_t()> config_flag;
-    qi::rule<Iterator, config_flags_t(), qi::locals<config_flags_t> > config_flags;
+    qi::rule<Iterator, config_flags_t()> config_flags;
     qi::rule<Iterator, config_flags_t()> config_flags_decl;
 
     qi::rule<Iterator, config_provider_t()> config_provider;
@@ -143,7 +143,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
     qi::rule<Iterator, config_key_options_t()> config_key_options;
 
     qi::rule<Iterator, config::key_t()> config_key;
-    qi::rule<Iterator, config::keys_t(), qi::locals<config::keys_t> > config_key_path;
+    qi::rule<Iterator, config::keys_t()> config_key_path;
     qi::rule<Iterator, config::value_t()> config_value;
 
     qi::rule<Iterator, config_key_t()> config_key_full;
@@ -165,7 +165,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
     qi::rule<Iterator, connect_pipe_block()> connect_block;
 
     qi::rule<Iterator, map_flag_t()> map_flag;
-    qi::rule<Iterator, map_flags_t(), qi::locals<map_flags_t> > map_flags;
+    qi::rule<Iterator, map_flags_t()> map_flags;
     qi::rule<Iterator, map_flags_t()> map_flags_decl;
 
     qi::rule<Iterator, map_options_t()> map_options;
@@ -236,10 +236,8 @@ pipe_grammar<Iterator>
      );
 
   config_flags %=
-     (   config_flag[boost::phoenix::push_back(_a, _1)]
-     >> *(   qi::lit(flag_separator)
-         >>  config_flag[boost::phoenix::push_back(_a, _1)]
-         )
+     (   config_flag
+     %   qi::lit(flag_separator)
      );
 
   config_flags_decl %=
@@ -270,10 +268,8 @@ pipe_grammar<Iterator>
      );
 
   config_key_path %=
-     (   config_key[boost::phoenix::push_back(_a, _1)]
-     >> *(   qi::lit(config_path_separator)
-         >>  config_key[boost::phoenix::push_back(_a, _1)]
-         )
+     (   config_key
+     %   qi::lit(config_path_separator)
      );
 
   config_value %=
@@ -361,10 +357,8 @@ pipe_grammar<Iterator>
      );
 
   map_flags %=
-     (   map_flag[boost::phoenix::push_back(_a, _1)]
-     >> *(   qi::lit(flag_separator)
-         >>  map_flag[boost::phoenix::push_back(_a, _1)]
-         )
+     (   map_flag
+     %   qi::lit(flag_separator)
      );
 
   map_flags_decl %=
