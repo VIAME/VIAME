@@ -216,163 +216,163 @@ pipe_grammar<Iterator>
 {
   opt_whitespace.name("opt-namespace");
   opt_whitespace %=
-    *(   qi::blank
+    *(  qi::blank
      );
 
   whitespace.name("whitespace");
   whitespace %=
-    +(   qi::blank
+    +(  qi::blank
      );
 
   eol.name("eol");
   eol %=
-     (   qi::lit("\r\n")
-     |   qi::lit("\n")
+     (  qi::lit("\r\n")
+     |  qi::lit("\n")
      );
 
   line_end.name("line-end");
   line_end %=
-    +(   eol
+    +(  eol
      );
 
   config_flag.name("key-flag");
   config_flag %=
-    +(   qi::alpha
+    +(  qi::alpha
      );
 
   config_flags.name("key-flags");
   config_flags %=
-     (   config_flag
-     %   qi::lit(flag_separator)
+     (  config_flag
+     %  qi::lit(flag_separator)
      );
 
   config_flags_decl.name("key-flags-decl");
   config_flags_decl %=
-     (   qi::lit(flag_decl_open)
-     >>  config_flags
-     >>  qi::lit(flag_decl_close)
+     (  qi::lit(flag_decl_open)
+     >  config_flags
+     >  qi::lit(flag_decl_close)
      );
 
   config_provider.name("key-provider");
   config_provider %=
-    +(   qi::upper
+    +(  qi::upper
      );
 
   config_provider_decl.name("key-provider-spec");
   config_provider_decl %=
-     (   qi::lit(provider_open)
-     >>  config_provider
-     >>  qi::lit(provider_close)
+     (  qi::lit(provider_open)
+     >  config_provider
+     >  qi::lit(provider_close)
      );
 
   config_key_options.name("key-options");
   config_key_options %=
-     (  -config_flags_decl
-     >> -config_provider_decl
+     ( -config_flags_decl
+     > -config_provider_decl
      );
 
   config_key.name("key-component");
   config_key %=
-    +(   qi::alnum
-     |   qi::lit('-')
-     |   qi::lit('_')
+    +(  qi::alnum
+     |  qi::lit('-')
+     |  qi::lit('_')
      );
 
   config_key_path.name("key-path");
   config_key_path %=
-     (   config_key
-     %   qi::lit(config_path_separator)
+     (  config_key
+     %  qi::lit(config_path_separator)
      );
 
   config_value.name("key-value");
   config_value %=
-    +(   qi::graph
-     |   qi::lit(' ')
-     |   qi::lit('\t')
+    +(  qi::graph
+     |  qi::lit(' ')
+     |  qi::lit('\t')
      );
 
   config_key_full.name("full-key-path");
   config_key_full %=
-     (   config_key_path
-     >>  config_key_options
+     (  config_key_path
+     >  config_key_options
      );
 
   partial_config_value_decl.name("partial-config-spec");
   partial_config_value_decl %=
-     (   opt_whitespace
-     >>  qi::lit(config_path_separator)
-     >>  config_key_full
-     >>  whitespace
-     >>  config_value
-     >>  line_end
+     (  opt_whitespace
+     >  qi::lit(config_path_separator)
+     >  config_key_full
+     >  whitespace
+     >  config_value
+     >  line_end
      );
 
   config_block.name("config-block-spec");
   config_block %=
-     (   opt_whitespace
-     >>  qi::lit(config_block_name)
-     >>  whitespace
-     >>  config_key_path
-     >>  line_end
-     >> *partial_config_value_decl
+     (  opt_whitespace
+     >  qi::lit(config_block_name)
+     >  whitespace
+     >  config_key_path
+     >  line_end
+     > *partial_config_value_decl
      );
 
   type_name.name("type-name");
   type_name %=
-     (   config_key
+     (  config_key
      );
 
   type_decl.name("type-decl");
   type_decl %=
-     (   qi::lit(type_token)
-     >>  whitespace
-     >>  type_name
+     (  qi::lit(type_token)
+     >  whitespace
+     >  type_name
      );
 
   process_name.name("port-process");
   process_name %=
-     (   config_key
+     (  config_key
      );
 
   process_block.name("process-block-spec");
   process_block %=
-     (   opt_whitespace
-     >>  qi::lit(process_block_name)
-     >>  whitespace
-     >>  process_name
-     >>  line_end
-     >>  opt_whitespace
-     >>  type_decl
-     >>  line_end
-     >> *partial_config_value_decl
+     (  opt_whitespace
+     >  qi::lit(process_block_name)
+     >  whitespace
+     >  process_name
+     >  line_end
+     >  opt_whitespace
+     >  type_decl
+     >  line_end
+     > *partial_config_value_decl
      );
 
   port_name.name("port-name");
   port_name %=
-     (   config_key
+     (  config_key
      );
 
   port_addr.name("port-addr");
   port_addr %=
-     (   process_name
-     >>  qi::lit(port_separator)
-     >>  port_name
+     (  process_name
+     >  qi::lit(port_separator)
+     >  port_name
      );
 
   connect_block.name("connect-block-spec");
   connect_block %=
-     (   opt_whitespace
-     >>  qi::lit(connect_block_name)
-     >>  whitespace
-     >>  qi::lit(from_name)
-     >>  whitespace
-     >>  port_addr
-     >>  line_end
-     >>  opt_whitespace
-     >>  qi::lit(to_name)
-     >>  whitespace
-     >>  port_addr
-     >>  line_end
+     (  opt_whitespace
+     >  qi::lit(connect_block_name)
+     >  whitespace
+     >  qi::lit(from_name)
+     >  whitespace
+     >  port_addr
+     >  line_end
+     >  opt_whitespace
+     >  qi::lit(to_name)
+     >  whitespace
+     >  port_addr
+     >  line_end
      );
 
   map_flag.name("map-flag");
@@ -382,75 +382,75 @@ pipe_grammar<Iterator>
 
   map_flags.name("map-flags");
   map_flags %=
-     (   map_flag
-     %   qi::lit(flag_separator)
+     (  map_flag
+     %  qi::lit(flag_separator)
      );
 
   map_flags_decl.name("map-flag-decl");
   map_flags_decl %=
-     (   qi::lit(flag_decl_open)
-     >>  map_flags
-     >>  qi::lit(flag_decl_close)
+     (  qi::lit(flag_decl_open)
+     >  map_flags
+     >  qi::lit(flag_decl_close)
      );
 
   map_options.name("map-options");
   map_options %=
-     (  -map_flags_decl
+     ( -map_flags_decl
      );
 
   input_map_block.name("input-mapping-spec");
   input_map_block %=
-     (   opt_whitespace
-     >>  qi::lit(map_block_name)
-     >>  map_options
-     >>  whitespace
-     >>  qi::lit(from_name)
-     >>  whitespace
-     >>  port_name
-     >>  line_end
-     >>  opt_whitespace
-     >>  qi::lit(to_name)
-     >>  whitespace
-     >>  port_addr
-     >>  line_end
+     (  opt_whitespace
+     >  qi::lit(map_block_name)
+     >  map_options
+     >  whitespace
+     >  qi::lit(from_name)
+     >  whitespace
+     >  port_name
+     >  line_end
+     >  opt_whitespace
+     >  qi::lit(to_name)
+     >  whitespace
+     >  port_addr
+     >  line_end
      );
 
   output_map_block.name("output-mapping-spec");
   output_map_block %=
-     (   opt_whitespace
-     >>  qi::lit(map_block_name)
-     >>  map_options
-     >>  whitespace
-     >>  qi::lit(from_name)
-     >>  whitespace
-     >>  port_addr
-     >>  line_end
-     >>  opt_whitespace
-     >>  qi::lit(to_name)
-     >>  whitespace
-     >>  port_name
-     >>  line_end
+     (  opt_whitespace
+     >  qi::lit(map_block_name)
+     >  map_options
+     >  whitespace
+     >  qi::lit(from_name)
+     >  whitespace
+     >  port_addr
+     >  line_end
+     >  opt_whitespace
+     >  qi::lit(to_name)
+     >  whitespace
+     >  port_name
+     >  line_end
      );
 
   group_block.name("group-block-spec");
   group_block %=
-     (   opt_whitespace
-     >>  qi::lit(group_block_name)
-     >>  whitespace
-     >>  process_name
-     >>  line_end
-     >> *(   partial_config_value_decl[boost::phoenix::push_back(_a, _1)]
-         |   input_map_block[boost::phoenix::push_back(_b, _1)]
-         |   output_map_block[boost::phoenix::push_back(_c, _1)]
-         )
+     (  opt_whitespace
+     >  qi::lit(group_block_name)
+     >  whitespace
+     >  process_name
+     >  line_end
+     > *(  partial_config_value_decl[boost::phoenix::push_back(_a, _1)]
+        |  input_map_block[boost::phoenix::push_back(_b, _1)]
+        |  output_map_block[boost::phoenix::push_back(_c, _1)]
+        )
      );
 
   block_set.name("block-spec");
   block_set %=
-    *(   config_block
-     |   process_block
-     |   connect_block
-     |   group_block
+    *(  config_block
+     |  process_block
+     |  connect_block
+     |  group_block
      );
 }
 
