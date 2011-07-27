@@ -145,7 +145,6 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
 
     qi::rule<Iterator, config_key_t()> config_key_full;
 
-    qi::rule<Iterator, config_value_t()> config_value_decl;
     qi::rule<Iterator, config_value_t()> partial_config_value_decl;
 
     qi::rule<Iterator, config_pipe_block()> config_block;
@@ -272,14 +271,6 @@ pipe_grammar<Iterator>
   config_key_full %=
      (   config_key_path
      >>  config_key_options
-     );
-
-  config_value_decl %=
-     (   opt_whitespace
-     >>  config_key_full
-     >>  whitespace
-     >>  config_value
-     >>  line_end
      );
 
   partial_config_value_decl %=
@@ -417,8 +408,7 @@ pipe_grammar<Iterator>
      );
 
   block_set %=
-    *(   config_value_decl
-     |   config_block
+    *(   config_block
      |   process_block
      |   connect_block
      |   group_block

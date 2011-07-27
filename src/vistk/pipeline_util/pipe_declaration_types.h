@@ -191,8 +191,7 @@ struct group_pipe_block
 
 /// A discriminating union over all available block types.
 typedef boost::variant
-  < config_value_t
-  , config_pipe_block
+  < config_pipe_block
   , process_pipe_block
   , connect_pipe_block
   , group_pipe_block
