@@ -117,7 +117,7 @@
  *   <key-component>     ::= <symbol-char> <key-component>
  *   <key-path>          ::= <key-component> <separator> <key-path> | <key-component>
  *   <full-key-path>     ::= <key-path> | <key-path> <key-options>
- *   <value-char>        ::= <graph> | <space> | <tab>
+ *   <value-char>        ::= <graph> | <blank>
  *   <key-value>         ::= <value-char> <key-value> | <value-char>
  * </pre>
  *
