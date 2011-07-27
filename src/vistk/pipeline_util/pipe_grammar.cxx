@@ -26,10 +26,15 @@ using namespace boost::spirit;
 #ifndef DOXYGEN_IGNORE
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::config_key_t,
-  (vistk::config::keys_t, key_path)
+  vistk::config_key_options_t,
   (boost::optional<vistk::config_flags_t>, flags)
   (boost::optional<vistk::config_provider_t>, provider)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+  vistk::config_key_t,
+  (vistk::config::keys_t, key_path)
+  (vistk::config_key_options_t, options)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -58,15 +63,20 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::input_map_t,
+  vistk::map_options_t,
   (boost::optional<vistk::map_flags_t>, flags)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+  vistk::input_map_t,
+  (vistk::map_options_t, options)
   (vistk::process::port_t, from)
   (vistk::process::port_addr_t, to)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
   vistk::output_map_t,
-  (boost::optional<vistk::map_flags_t>, flags)
+  (vistk::map_options_t, options)
   (vistk::process::port_addr_t, from)
   (vistk::process::port_t, to)
 )
