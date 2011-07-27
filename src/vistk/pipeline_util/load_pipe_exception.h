@@ -141,6 +141,44 @@ class VISTK_PIPELINE_UTIL_EXPORT stream_failure_exception
     std::string m_what;
 };
 
+/**
+ * \class failed_to_parse load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ *
+ * \brief The exception thrown when a parse error occurred.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT failed_to_parse
+  : public load_pipe_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param reason A reason for the failure
+     * \param where Where the error occurred.
+     */
+    failed_to_parse(std::string const& reason, std::string const& where) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~failed_to_parse() throw();
+
+    /// The reason for the failure to parse.
+    std::string const& m_reason;
+    /// Where the error occurred.
+    std::string const& m_where;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
 } // end namespace vistk
 
 #endif // VISTK_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H

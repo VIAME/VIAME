@@ -89,4 +89,30 @@ stream_failure_exception
   return m_what.c_str();
 }
 
+failed_to_parse
+::failed_to_parse(std::string const& reason, std::string const& where) throw()
+  : load_pipe_exception()
+  , m_reason(reason)
+  , m_where(where)
+{
+  std::stringstream sstr;
+
+  sstr << "Expected: \'" << m_reason << "\' "
+       << "when \'" << m_where << "\' was given";
+
+  m_what = sstr.str();
+}
+
+failed_to_parse
+::~failed_to_parse() throw()
+{
+}
+
+char const*
+failed_to_parse
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 } // end namespace vistk
