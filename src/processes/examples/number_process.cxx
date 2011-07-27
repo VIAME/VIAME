@@ -183,6 +183,7 @@ number_process
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
+    /// \todo Describe this port.
     return port_description_t();
   }
 
