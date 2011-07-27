@@ -64,7 +64,7 @@
  *   <flag-end>       ::= "]"
  *   <key-flag>       ::= <alpha> <key-flag> | <alpha>
  *   <key-flags>      ::= <key-flag> <flag-separator> <key-flag> | <key-flag>
- *   <key-flag-decl>  ::= <flag-start> <key-flags> <flag-close>
+ *   <key-flags-decl> ::= <flag-start> <key-flags> <flag-close>
  * </pre>
  *
  * \par Examples
@@ -116,7 +116,7 @@
  *   <symbol-char>   ::= <alnum> | "-" | "_"
  *   <key-component> ::= <symbol-char> <key-component>
  *   <key-path>      ::= <key-component> <separator> <key-path> | <key-component>
- *   <full-key-path> ::= <key-path> | <key-path> <key-options>
+ *   <full-key-path> ::= <key-path> <key-options>
  *   <value-char>    ::= <graph> | <blank>
  *   <key-value>     ::= <value-char> <key-value> | <value-char>
  * </pre>
@@ -265,7 +265,8 @@
  *   <map-flag>            ::= <alpha> <map-flag> | <alpha>
  *   <map-flags>           ::= <map-flag> <map-separator> <map-flag> | <map-flag>
  *   <map-flag-decl>       ::= <flag-start> <map-flags> <flag-close>
- *   <map-decl>            ::= "map" <map-flag-decl> | "map"
+ *   <map-options>         ::= <map-flag-decl> | ""
+ *   <map-decl>            ::= "map" <map-options>
  *   <input-mapping-spec>  ::= <opt-whitespace> <map-decl> <whitespace> "from" <whitespace> <port-name> <line-end>
  *                             <opt-whitespace> "to" <port-addr> <line-end>
  *   <output-mapping-spec> ::= <opt-whitespace> <map-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
