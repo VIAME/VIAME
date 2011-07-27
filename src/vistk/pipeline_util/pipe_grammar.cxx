@@ -6,6 +6,8 @@
 
 #include "pipe_grammar.h"
 
+#include "load_pipe_exception.h"
+
 #include "pipe_declaration_types.h"
 
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -14,6 +16,7 @@
 #include <boost/spirit/include/phoenix.hpp>
 
 #include <string>
+#include <sstream>
 
 /**
  * \file pipe_grammar.cxx
@@ -185,9 +188,20 @@ parse_pipe_blocks_from_string(std::string const& str)
 
   pipe_blocks blocks;
 
-  bool const res = qi::parse(i, i_end, grammar, blocks);
+  try
+  {
+    qi::parse(i, i_end, grammar, blocks);
+  }
+  catch (qi::expectation_failure<std::string::const_iterator>& e)
+  {
+    std::stringstream sstr;
 
-  if (!res || (i != i_end))
+    sstr << e.what_;
+
+    throw failed_to_parse(sstr.str(), std::string(e.first, e.last));
+  }
+
+  if (i != i_end)
   {
     /// \todo Throw an exception.
   }
