@@ -40,6 +40,15 @@ load_pipe_blocks_from_file(boost::filesystem::path const& fname)
 {
   std::ifstream fin;
 
+  boost::system::error_code ec;
+
+  if (!boost::filesystem::exists(fname, ec))
+  {
+    throw file_no_exist_exception(fname);
+  }
+
+  /// \todo Check ec.
+
   fin.open(fname.c_str());
 
   if (fin.fail())
