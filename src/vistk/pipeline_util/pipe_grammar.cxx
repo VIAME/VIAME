@@ -212,77 +212,92 @@ parse_pipe_blocks_from_string(std::string const& str)
 template<typename Iterator>
 pipe_grammar<Iterator>
 ::pipe_grammar()
-  : pipe_grammar::base_type(block_set, "pipe_grammar")
+  : pipe_grammar::base_type(block_set, "pipeline-declaration")
 {
+  opt_whitespace.name("opt-namespace");
   opt_whitespace %=
     *(   qi::blank
      );
 
+  whitespace.name("whitespace");
   whitespace %=
     +(   qi::blank
      );
 
+  eol.name("eol");
   eol %=
      (   qi::lit("\r\n")
      |   qi::lit("\n")
      );
 
+  line_end.name("line-end");
   line_end %=
     +(   eol
      );
 
+  config_flag.name("key-flag");
   config_flag %=
     +(   qi::alpha
      );
 
+  config_flags.name("key-flags");
   config_flags %=
      (   config_flag
      %   qi::lit(flag_separator)
      );
 
+  config_flags_decl.name("key-flags-decl");
   config_flags_decl %=
      (   qi::lit(flag_decl_open)
      >>  config_flags
      >>  qi::lit(flag_decl_close)
      );
 
+  config_provider.name("key-provider");
   config_provider %=
     +(   qi::upper
      );
 
+  config_provider_decl.name("key-provider-spec");
   config_provider_decl %=
      (   qi::lit(provider_open)
      >>  config_provider
      >>  qi::lit(provider_close)
      );
 
+  config_key_options.name("key-options");
   config_key_options %=
      (  -config_flags_decl
      >> -config_provider_decl
      );
 
+  config_key.name("key-component");
   config_key %=
     +(   qi::alnum
      |   qi::lit('-')
      |   qi::lit('_')
      );
 
+  config_key_path.name("key-path");
   config_key_path %=
      (   config_key
      %   qi::lit(config_path_separator)
      );
 
+  config_value.name("key-value");
   config_value %=
     +(   qi::graph
      |   qi::lit(' ')
      |   qi::lit('\t')
      );
 
+  config_key_full.name("full-key-path");
   config_key_full %=
      (   config_key_path
      >>  config_key_options
      );
 
+  partial_config_value_decl.name("partial-config-spec");
   partial_config_value_decl %=
      (   opt_whitespace
      >>  qi::lit(config_path_separator)
@@ -292,6 +307,7 @@ pipe_grammar<Iterator>
      >>  line_end
      );
 
+  config_block.name("config-block-spec");
   config_block %=
      (   opt_whitespace
      >>  qi::lit(config_block_name)
@@ -301,20 +317,24 @@ pipe_grammar<Iterator>
      >> *partial_config_value_decl
      );
 
+  type_name.name("type-name");
   type_name %=
      (   config_key
      );
 
+  type_decl.name("type-decl");
   type_decl %=
      (   qi::lit(type_token)
      >>  whitespace
      >>  type_name
      );
 
+  process_name.name("port-process");
   process_name %=
      (   config_key
      );
 
+  process_block.name("process-block-spec");
   process_block %=
      (   opt_whitespace
      >>  qi::lit(process_block_name)
@@ -327,16 +347,19 @@ pipe_grammar<Iterator>
      >> *partial_config_value_decl
      );
 
+  port_name.name("port-name");
   port_name %=
      (   config_key
      );
 
+  port_addr.name("port-addr");
   port_addr %=
      (   process_name
      >>  qi::lit(port_separator)
      >>  port_name
      );
 
+  connect_block.name("connect-block-spec");
   connect_block %=
      (   opt_whitespace
      >>  qi::lit(connect_block_name)
@@ -352,25 +375,30 @@ pipe_grammar<Iterator>
      >>  line_end
      );
 
+  map_flag.name("map-flag");
   map_flag %=
     +(  qi::alpha
      );
 
+  map_flags.name("map-flags");
   map_flags %=
      (   map_flag
      %   qi::lit(flag_separator)
      );
 
+  map_flags_decl.name("map-flag-decl");
   map_flags_decl %=
      (   qi::lit(flag_decl_open)
      >>  map_flags
      >>  qi::lit(flag_decl_close)
      );
 
+  map_options.name("map-options");
   map_options %=
      (  -map_flags_decl
      );
 
+  input_map_block.name("input-mapping-spec");
   input_map_block %=
      (   opt_whitespace
      >>  qi::lit(map_block_name)
@@ -387,6 +415,7 @@ pipe_grammar<Iterator>
      >>  line_end
      );
 
+  output_map_block.name("output-mapping-spec");
   output_map_block %=
      (   opt_whitespace
      >>  qi::lit(map_block_name)
@@ -403,6 +432,7 @@ pipe_grammar<Iterator>
      >>  line_end
      );
 
+  group_block.name("group-block-spec");
   group_block %=
      (   opt_whitespace
      >>  qi::lit(group_block_name)
@@ -415,6 +445,7 @@ pipe_grammar<Iterator>
          )
      );
 
+  block_set.name("block-spec");
   block_set %=
     *(   config_block
      |   process_block
