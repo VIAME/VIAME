@@ -43,17 +43,29 @@ typedef std::vector<config_flag_t> config_flags_t;
 typedef token_t config_provider_t;
 
 /**
+ * \struct config_key_options_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ *
+ * \brief Options for a configuration key.
+ */
+struct config_key_options_t
+{
+  /// Flags on the configuration (if requested).
+  boost::optional<config_flags_t> flags;
+  /// The configuration provider (if requested).
+  boost::optional<config_provider_t> provider;
+};
+
+/**
  * \struct config_key_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ *
  * \brief A structure for information on a configuration key.
  */
 struct config_key_t
 {
   /// The configuration path.
   config::keys_t key_path;
-  /// Flags on the configuration (if requested).
-  boost::optional<config_flags_t> flags;
-  /// The configuration provider (if requested).
-  boost::optional<config_provider_t> provider;
+  /// Options for the key.
+  config_key_options_t options;
 };
 
 /**
@@ -73,14 +85,25 @@ struct config_value_t
 typedef std::vector<config_value_t> config_values_t;
 
 /**
+ * \struct map_options_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ *
+ * \brief Options for a mapping connection.
+ */
+struct map_options_t
+{
+  /// Flags for the mapping.
+  boost::optional<map_flags_t> flags;
+};
+
+/**
  * \struct input_map_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for an input mapping.
  */
 struct input_map_t
 {
-  /// Flags for the mapping.
-  boost::optional<map_flags_t> flags;
+  /// Options for the mapping.
+  map_options_t options;
   /// The name of the group input port.
   process::port_t from;
   /// The address of the mapped downstream port.
@@ -97,8 +120,8 @@ typedef std::vector<input_map_t> input_maps_t;
  */
 struct output_map_t
 {
-  /// Flags for the mapping.
-  boost::optional<map_flags_t> flags;
+  /// Options for the mapping.
+  map_options_t options;
   /// The address of the mapped upstream port.
   process::port_addr_t from;
   /// The name of the group output port.
