@@ -440,8 +440,8 @@ pipe_grammar<Iterator>
      >>  process_name
      >>  line_end
      >> *(   partial_config_value_decl[boost::phoenix::push_back(_a, _1)]
-         >>  input_map_block[boost::phoenix::push_back(_b, _1)]
-         >>  output_map_block[boost::phoenix::push_back(_c, _1)]
+         |   input_map_block[boost::phoenix::push_back(_b, _1)]
+         |   output_map_block[boost::phoenix::push_back(_c, _1)]
          )
      );
 
