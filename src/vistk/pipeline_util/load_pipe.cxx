@@ -17,6 +17,7 @@
 #include <boost/filesystem/path.hpp>
 
 #include <fstream>
+#include <ios>
 #include <sstream>
 #include <string>
 
@@ -58,7 +59,16 @@ load_pipe_blocks(std::istream& istr, boost::filesystem::path const& inc_root)
 {
   std::stringstream sstr;
 
-  flatten_pipe_declaration(sstr, istr, inc_root);
+  sstr.exceptions(std::stringstream::failbit | std::stringstream::badbit);
+
+  try
+  {
+    flatten_pipe_declaration(sstr, istr, inc_root);
+  }
+  catch (std::ios_base::failure& e)
+  {
+    throw stream_failure_exception(e.what());
+  }
 
   return parse_pipe_blocks_from_string(sstr.str());
 }
@@ -88,6 +98,8 @@ bake_pipe_blocks(pipe_blocks const& /*blocks*/)
 void
 flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::filesystem::path const& inc_root)
 {
+  istr.exceptions(std::istream::failbit | std::istream::badbit);
+
   while (istr.good())
   {
     std::string line;
@@ -143,11 +155,6 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::fil
     {
       sstr << line << std::endl;
     }
-  }
-
-  if (istr.fail())
-  {
-    /// \todo Throw an exception.
   }
 }
 
