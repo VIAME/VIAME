@@ -5,6 +5,7 @@
  */
 
 #include "load_pipe.h"
+#include "load_pipe_exception.h"
 
 #include <vistk/pipeline/pipeline.h>
 
@@ -42,7 +43,7 @@ load_pipe_blocks_from_file(boost::filesystem::path const& fname)
 
   if (fin.fail())
   {
-    /// \todo Throw an exception.
+    throw file_open_exception(fname);
   }
 
   pipe_blocks blocks = load_pipe_blocks(fin, fname.parent_path());
@@ -115,7 +116,7 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::fil
 
       if (!boost::filesystem::exists(file_path, ec))
       {
-        /// \todo Throw an exception.
+        throw file_no_exist_exception(file_path);
       }
 
       /// \todo Check ec.
@@ -126,7 +127,7 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::fil
 
       if (fin.fail())
       {
-        /// \todo Throw an exception.
+        throw file_open_exception(file_path);
       }
 
       flatten_pipe_declaration(sstr, fin, inc_root);
