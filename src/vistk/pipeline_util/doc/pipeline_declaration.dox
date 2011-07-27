@@ -20,7 +20,7 @@
  *   <opt-whitespace> ::= <blank> <opt-whitespace> | ""
  *   <whitespace>     ::= <blank> <opt-whitespace>
  *   <eol>            ::= "\r\n" | "\n"
- *   <line-end>       ::= <eol> <opt-whitespace> <line-end> | <eol>
+ *   <line-end>       ::= <eol> <line-end> | <eol>
  * </pre>
  *
  * \section include Includes
