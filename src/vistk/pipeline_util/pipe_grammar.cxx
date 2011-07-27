@@ -107,7 +107,7 @@ static token_t const from_name = token_t("from");
 static token_t const to_name = token_t("to");
 static token_t const type_token = token_t("::");
 
-static token_t const config_separator = token_t(config::block_sep);
+static token_t const config_path_separator = token_t(config::block_sep);
 static token_t const port_separator = token_t(".");
 static token_t const flag_separator = token_t(",");
 static token_t const flag_decl_open = token_t("[");
@@ -119,41 +119,61 @@ static token_t const provider_close = token_t("}");
 
 template<typename Iterator>
 class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
-  : public qi::grammar<Iterator, pipe_blocks(), ascii::space_type>
+  : public qi::grammar<Iterator, pipe_blocks()>
 {
   public:
     pipe_grammar();
     ~pipe_grammar();
 
-    qi::rule<Iterator, token_t()> symbol;
+    qi::rule<Iterator> opt_whitespace;
+    qi::rule<Iterator> whitespace;
+    qi::rule<Iterator> eol;
+    qi::rule<Iterator> line_end;
+
+    qi::rule<Iterator, config_flag_t()> config_flag;
+    qi::rule<Iterator, config_flags_t(), qi::locals<config_flags_t> > config_flags;
+    qi::rule<Iterator, config_flags_t()> config_flags_decl;
+
+    qi::rule<Iterator, config_provider_t()> config_provider;
+    qi::rule<Iterator, config_provider_t()> config_provider_decl;
+
+    qi::rule<Iterator, config_key_options_t()> config_key_options;
+
+    qi::rule<Iterator, config::key_t()> config_key;
+    qi::rule<Iterator, config::keys_t(), qi::locals<config::keys_t> > config_key_path;
+    qi::rule<Iterator, config::value_t()> config_value;
+
+    qi::rule<Iterator, config_key_t()> config_key_full;
+
+    qi::rule<Iterator, config_value_t()> config_value_decl;
+    qi::rule<Iterator, config_value_t()> partial_config_value_decl;
+
+    qi::rule<Iterator, config_pipe_block()> config_block;
+
+    qi::rule<Iterator, process_registry::type_t()> type_name;
+    qi::rule<Iterator, process_registry::type_t()> type_decl;
+
+    qi::rule<Iterator, process::name_t()> process_name;
+
+    qi::rule<Iterator, process_pipe_block()> process_block;
+
+    qi::rule<Iterator, process::port_t()> port_name;
+    qi::rule<Iterator, process::port_addr_t()> port_addr;
+
+    qi::rule<Iterator, connect_pipe_block()> connect_block;
 
     qi::rule<Iterator, map_flag_t()> map_flag;
-    qi::rule<Iterator, map_flags_t()> map_flags;
+    qi::rule<Iterator, map_flags_t(), qi::locals<map_flags_t> > map_flags;
+    qi::rule<Iterator, map_flags_t()> map_flags_decl;
 
-    qi::rule<Iterator, config::key_t()> config_key_base;
-    qi::rule<Iterator, config::keys_t(), qi::locals<config::keys_t>, ascii::space_type> config_key;
-    qi::rule<Iterator, config_flag_t()> config_flag;
-    qi::rule<Iterator, config_flags_t()> config_flags;
-    qi::rule<Iterator, config_provider_t()> config_provider;
-    qi::rule<Iterator, config::value_t(), ascii::space_type> config_value;
-    qi::rule<Iterator, config_key_t(), ascii::space_type> config_key_full;
-    qi::rule<Iterator, config_value_t(), ascii::space_type> partial_config_decl;
-    qi::rule<Iterator, config_value_t(), ascii::space_type> config_decl;
+    qi::rule<Iterator, map_options_t()> map_options;
 
-    qi::rule<Iterator, process::name_t(), ascii::space_type> process_name;
-    qi::rule<Iterator, process::port_t(), ascii::space_type> port_name;
-    qi::rule<Iterator, process_registry::type_t(), ascii::space_type> type_name;
-    qi::rule<Iterator, process_registry::type_t(), ascii::space_type> type_decl;
-    qi::rule<Iterator, process::port_addr_t(), ascii::space_type> port_addr;
+    qi::rule<Iterator, input_map_t()> input_map_block;
+    qi::rule<Iterator, output_map_t()> output_map_block;
 
-    qi::rule<Iterator, input_map_t(), ascii::space_type> input_map_block;
-    qi::rule<Iterator, output_map_t(), ascii::space_type> output_map_block;
+    qi::rule<Iterator, group_pipe_block(), qi::locals<config_values_t, input_maps_t, output_maps_t> > group_block;
 
-    qi::rule<Iterator, config_pipe_block(), ascii::space_type> config_block;
-    qi::rule<Iterator, process_pipe_block(), ascii::space_type> process_block;
-    qi::rule<Iterator, connect_pipe_block(), ascii::space_type> connect_block;
-    qi::rule<Iterator, group_pipe_block(), qi::locals<config_values_t, input_maps_t, output_maps_t>, ascii::space_type> group_block;
-    qi::rule<Iterator, pipe_blocks(), ascii::space_type> block_set;
+    qi::rule<Iterator, pipe_blocks()> block_set;
 };
 
 pipe_blocks
@@ -166,7 +186,7 @@ parse_pipe_blocks_from_string(std::string const& str)
 
   pipe_blocks blocks;
 
-  bool const res = qi::phrase_parse(i, i_end, grammar, ascii::space, blocks);
+  bool const res = qi::parse(i, i_end, grammar, blocks);
 
   if (!res || (i != i_end))
   {
@@ -181,101 +201,133 @@ pipe_grammar<Iterator>
 ::pipe_grammar()
   : pipe_grammar::base_type(block_set, "pipe_grammar")
 {
-  symbol %=
-    *(   ascii::alnum
-     |   qi::lit('-')
-     |   qi::lit('_')
-     )
-     -   qi::lit(config_separator);
-
-  map_flag %=
-     (  qi::lit(flag_mapping_required_name)
+  opt_whitespace %=
+    *(   qi::blank
      );
 
-  map_flags %=
-     (   qi::lit(flag_decl_open)
-     >> -(   map_flag
-         >>  qi::lit(flag_separator)
-         >>  map_flag
-         )
-     >>  qi::lit(flag_decl_close)
+  whitespace %=
+    +(   qi::blank
+     );
+
+  eol %=
+     (   qi::lit("\r\n")
+     |   qi::lit("\n")
+     );
+
+  line_end %=
+    +(   eol
      );
 
   config_flag %=
-     (  qi::lit(flag_config_readonly_name)
+    +(   qi::alpha
      );
 
   config_flags %=
-     (   qi::lit(flag_decl_open)
-     >> -(   config_flag
-         >>  qi::lit(flag_separator)
-         >>  config_flag
+     (   config_flag[boost::phoenix::push_back(_a, _1)]
+     >> *(   qi::lit(flag_separator)
+         >>  config_flag[boost::phoenix::push_back(_a, _1)]
          )
+     );
+
+  config_flags_decl %=
+     (   qi::lit(flag_decl_open)
+     >>  config_flags
      >>  qi::lit(flag_decl_close)
      );
 
-  config_key_base %=
-     (   symbol
-     );
-
-  config_key %=
-     (   config_key_base[boost::phoenix::push_back(_a, _1)]
-     >> *(   qi::lit(config_separator)
-         >>  config_key_base[boost::phoenix::push_back(_a, _1)]
-         )
-     );
-
   config_provider %=
+    +(   qi::upper
+     );
+
+  config_provider_decl %=
      (   qi::lit(provider_open)
-     >>  symbol
+     >>  config_provider
      >>  qi::lit(provider_close)
      );
 
-  config_key_full %=
-     (   config_key
-     >> -config_flags
-     >> -config_provider
+  config_key_options %=
+     (  -config_flags_decl
+     >> -config_provider_decl
+     );
+
+  config_key %=
+    +(   qi::alnum
+     |   qi::lit('-')
+     |   qi::lit('_')
+     );
+
+  config_key_path %=
+     (   config_key[boost::phoenix::push_back(_a, _1)]
+     >> *(   qi::lit(config_path_separator)
+         >>  config_key[boost::phoenix::push_back(_a, _1)]
+         )
      );
 
   config_value %=
-    *(   ascii::graph
-     |   ascii::blank
+    +(   qi::graph
+     |   qi::lit(' ')
+     |   qi::lit('\t')
      );
 
-  config_decl %=
-     (   config_key_full
+  config_key_full %=
+     (   config_key_path
+     >>  config_key_options
+     );
+
+  config_value_decl %=
+     (   opt_whitespace
+     >>  config_key_full
+     >>  whitespace
      >>  config_value
+     >>  line_end
      );
 
-  partial_config_decl %=
-     (   qi::lit(config_separator)
-     >>  config_decl
+  partial_config_value_decl %=
+     (   opt_whitespace
+     >>  qi::lit(config_path_separator)
+     >>  config_key_full
+     >>  whitespace
+     >>  config_value
+     >>  line_end
      );
 
   config_block %=
-     (   qi::lit(config_block_name)
-     >>  config_key
-     >> *partial_config_decl
-     );
-
-  process_name %=
-     (   symbol
+     (   opt_whitespace
+     >>  qi::lit(config_block_name)
+     >>  whitespace
+     >>  config_key_path
+     >>  line_end
+     >> *partial_config_value_decl
      );
 
   type_name %=
-     (   symbol
+     (   config_key
      );
 
   type_decl %=
      (   qi::lit(type_token)
+     >>  whitespace
      >>  type_name
      );
 
+  process_name %=
+     (   config_key
+     );
+
   process_block %=
-     (   qi::lit(process_block_name)
+     (   opt_whitespace
+     >>  qi::lit(process_block_name)
+     >>  whitespace
      >>  process_name
+     >>  line_end
+     >>  opt_whitespace
      >>  type_decl
-     >> *partial_config_decl
+     >>  line_end
+     >> *partial_config_value_decl
+     );
+
+  port_name %=
+     (   config_key
      );
 
   port_addr %=
@@ -285,42 +337,87 @@ pipe_grammar<Iterator>
      );
 
   connect_block %=
-     (   qi::lit(connect_block_name)
+     (   opt_whitespace
+     >>  qi::lit(connect_block_name)
+     >>  whitespace
      >>  qi::lit(from_name)
+     >>  whitespace
      >>  port_addr
+     >>  line_end
+     >>  opt_whitespace
      >>  qi::lit(to_name)
+     >>  whitespace
      >>  port_addr
+     >>  line_end
+     );
+
+  map_flag %=
+    +(  qi::alpha
+     );
+
+  map_flags %=
+     (   map_flag[boost::phoenix::push_back(_a, _1)]
+     >> *(   qi::lit(flag_separator)
+         >>  map_flag[boost::phoenix::push_back(_a, _1)]
+         )
+     );
+
+  map_flags_decl %=
+     (   qi::lit(flag_decl_open)
+     >>  map_flags
+     >>  qi::lit(flag_decl_close)
+     );
+
+  map_options %=
+     (  -map_flags_decl
      );
 
   input_map_block %=
-     (   qi::lit(map_block_name)
-     >> -map_flags
+     (   opt_whitespace
+     >>  qi::lit(map_block_name)
+     >>  map_options
+     >>  whitespace
      >>  qi::lit(from_name)
+     >>  whitespace
      >>  port_name
+     >>  line_end
+     >>  opt_whitespace
      >>  qi::lit(to_name)
+     >>  whitespace
      >>  port_addr
+     >>  line_end
      );
 
   output_map_block %=
-     (   qi::lit(map_block_name)
-     >> -map_flags
+     (   opt_whitespace
+     >>  qi::lit(map_block_name)
+     >>  map_options
+     >>  whitespace
      >>  qi::lit(from_name)
+     >>  whitespace
      >>  port_addr
+     >>  line_end
+     >>  opt_whitespace
      >>  qi::lit(to_name)
+     >>  whitespace
      >>  port_name
+     >>  line_end
      );
 
   group_block %=
-     (   qi::lit(group_block_name)
+     (   opt_whitespace
+     >>  qi::lit(group_block_name)
+     >>  whitespace
      >>  process_name
-     >> *(   partial_config_decl[boost::phoenix::push_back(_a, _1)]
+     >>  line_end
+     >> *(   partial_config_value_decl[boost::phoenix::push_back(_a, _1)]
          >>  input_map_block[boost::phoenix::push_back(_b, _1)]
          >>  output_map_block[boost::phoenix::push_back(_c, _1)]
          )
      );
 
   block_set %=
-    *(   config_decl
+    *(   config_value_decl
      |   config_block
      |   process_block
      |   connect_block
