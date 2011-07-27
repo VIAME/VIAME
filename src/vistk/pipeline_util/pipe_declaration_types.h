@@ -28,8 +28,6 @@ namespace vistk
 
 /// The type for a token in the AST.
 typedef std::string token_t;
-/// The type for a collection of tokens in the AST.
-typedef std::vector<token_t> tokens_t;
 
 /// The type for a flag on a mapping.
 typedef token_t map_flag_t;
