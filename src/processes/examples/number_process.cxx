@@ -154,6 +154,8 @@ number_process
   if (port == priv::OUTPUT_PORT_NAME)
   {
     d->output_edges.push_back(edge);
+
+    return;
   }
 
   process::_connect_output_port(port, edge);
