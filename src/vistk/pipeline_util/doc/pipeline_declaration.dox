@@ -128,31 +128,6 @@
  * <pre>
  * </pre>
  *
- * \subsection configuration_line Configuration line
- *
- * Configurations can appear in the file standalone. In this case, the full path
- * to the configuration is necessary.
- *
- * \par Specification
- *
- * <pre>
- *   <config-spec> ::= <opt-whitespace> <key-path> <whitespace> <key-value> <line-end>
- * </pre>
- *
- * \par Examples
- *
- * \todo Explain examples.
- *
- * <pre>
- *   path:to:key value
- * </pre>
- * <pre>
- *   just_a_key    value
- * </pre>
- * <pre>
- *   key   a multiword value
- * </pre>
- *
  * \subsection configuration_partial Partial configuration declarations
  *
  * Configuration lines can also be abbreviated. They are used within other
