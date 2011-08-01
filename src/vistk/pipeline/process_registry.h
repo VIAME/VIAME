@@ -55,7 +55,7 @@ class VISTK_PIPELINE_EXPORT process_registry
     /**
      * \brief Adds a process type to the registry.
      *
-     * \throws process_type_already_exists Thrown if the type already exists.
+     * \throws process_type_already_exists_exception Thrown if the type already exists.
      *
      * \param type The name of the \ref process type.
      * \param desc A description of the type.
@@ -65,7 +65,7 @@ class VISTK_PIPELINE_EXPORT process_registry
     /**
      * \brief Creates process of a specific type.
      *
-     * \throws no_such_process_type Thrown if the type is not known.
+     * \throws no_such_process_type_exception Thrown if the type is not known.
      *
      * \param type The name of the type of \ref process to create.
      * \param config The configuration to pass the \ref process.

@@ -17,8 +17,8 @@
 namespace vistk
 {
 
-no_such_process_type
-::no_such_process_type(process_registry::type_t const& type) throw()
+no_such_process_type_exception
+::no_such_process_type_exception(process_registry::type_t const& type) throw()
   : process_registry_exception()
   , m_type(type)
 {
@@ -30,20 +30,20 @@ no_such_process_type
   m_what = sstr.str();
 }
 
-no_such_process_type
-::~no_such_process_type() throw()
+no_such_process_type_exception
+::~no_such_process_type_exception() throw()
 {
 }
 
 char const*
-no_such_process_type
+no_such_process_type_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-process_type_already_exists
-::process_type_already_exists(process_registry::type_t const& type) throw()
+process_type_already_exists_exception
+::process_type_already_exists_exception(process_registry::type_t const& type) throw()
   : process_registry_exception()
   , m_type(type)
 {
@@ -55,13 +55,13 @@ process_type_already_exists
   m_what = sstr.str();
 }
 
-process_type_already_exists
-::~process_type_already_exists() throw()
+process_type_already_exists_exception
+::~process_type_already_exists_exception() throw()
 {
 }
 
 char const*
-process_type_already_exists
+process_type_already_exists_exception
 ::what() const throw()
 {
   return m_what.c_str();

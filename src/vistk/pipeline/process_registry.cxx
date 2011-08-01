@@ -37,7 +37,7 @@ process_registry
 {
   if (m_registry.find(type) != m_registry.end())
   {
-    throw process_type_already_exists(type);
+    throw process_type_already_exists_exception(type);
   }
 
   m_registry[type] = process_typeinfo_t(desc, ctor);
@@ -51,7 +51,7 @@ process_registry
 
   if (i == m_registry.end())
   {
-    throw no_such_process_type(type);
+    throw no_such_process_type_exception(type);
   }
 
   return i->second.get<1>()(config);
@@ -79,7 +79,7 @@ process_registry
 
   if (i == m_registry.end())
   {
-    throw no_such_process_type(type);
+    throw no_such_process_type_exception(type);
   }
 
   return i->second.get<0>();

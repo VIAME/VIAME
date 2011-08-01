@@ -26,7 +26,7 @@ main()
   {
     vistk::load_known_modules();
   }
-  catch (vistk::process_type_already_exists& e)
+  catch (vistk::process_type_already_exists_exception& e)
   {
     std::cerr << "Error: Duplicate process names: " << e.what() << std::endl;
   }
@@ -56,7 +56,7 @@ main()
     {
       process = reg->create_process(type, config);
     }
-    catch (vistk::no_such_process_type& e)
+    catch (vistk::no_such_process_type_exception& e)
     {
       std::cerr << "Error: Failed to create process: " << e.what() << std::endl;
 
