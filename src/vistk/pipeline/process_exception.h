@@ -98,11 +98,11 @@ class VISTK_PIPELINE_EXPORT no_such_port_exception
 };
 
 /**
- * \class null_edge_port_connection process_exception.h <vistk/pipeline/process_exception.h>
+ * \class null_edge_port_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection to a port is given an \ref edge that is \c NULL.
  */
-class VISTK_PIPELINE_EXPORT null_edge_port_connection
+class VISTK_PIPELINE_EXPORT null_edge_port_connection_exception
   : public port_connection_exception
 {
   public:
@@ -112,11 +112,11 @@ class VISTK_PIPELINE_EXPORT null_edge_port_connection
      * \param process The name of the process.
      * \param port The name of the port.
      */
-    null_edge_port_connection(process::name_t const& process, process::port_t const& port) throw();
+    null_edge_port_connection_exception(process::name_t const& process, process::port_t const& port) throw();
     /**
      * \brief Destructor.
      */
-    ~null_edge_port_connection() throw();
+    ~null_edge_port_connection_exception() throw();
 
     /**
      * \brief A description of the exception.
@@ -160,11 +160,13 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
 };
 
 /**
- * \class missing_connection process_exception.h <vistk/pipeline/process_exception.h>
+ * \class missing_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection to a port that is necessary is missing.
+ *
+ * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT missing_connection
+class VISTK_PIPELINE_EXPORT missing_connection_exception
   : public port_connection_exception
 {
   public:
@@ -175,11 +177,11 @@ class VISTK_PIPELINE_EXPORT missing_connection
      * \param port The name of the port.
      * \param reason The reason why the connection is necessary.
      */
-    missing_connection(process::name_t const& process, process::port_t const& port, std::string const& reason) throw();
+    missing_connection_exception(process::name_t const& process, process::port_t const& port, std::string const& reason) throw();
     /**
      * \brief Destructor.
      */
-    ~missing_connection() throw();
+    ~missing_connection_exception() throw();
 
     /// A reason for the missing connection.
     std::string const m_reason;
@@ -207,13 +209,13 @@ class VISTK_PIPELINE_EXPORT process_configuration_exception
 };
 
 /**
- * \class unknown_configuration_value process_exception.h <vistk/pipeline/process_exception.h>
+ * \class unknown_configuration_value_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a requested configuration value does not exist.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT unknown_configuration_value
+class VISTK_PIPELINE_EXPORT unknown_configuration_value_exception
   : public process_configuration_exception
 {
   public:
@@ -223,11 +225,11 @@ class VISTK_PIPELINE_EXPORT unknown_configuration_value
      * \param process The name of the process.
      * \param key The key requested.
      */
-    unknown_configuration_value(process::name_t const& process, config::key_t const& key) throw();
+    unknown_configuration_value_exception(process::name_t const& process, config::key_t const& key) throw();
     /**
      * \brief Destructor.
      */
-    ~unknown_configuration_value() throw();
+    ~unknown_configuration_value_exception() throw();
 
     /// The name of the \ref process which was connected to.
     process::name_t const m_process;
@@ -245,13 +247,13 @@ class VISTK_PIPELINE_EXPORT unknown_configuration_value
 };
 
 /**
- * \class invalid_configuration_value process_exception.h <vistk/pipeline/process_exception.h>
+ * \class invalid_configuration_value_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a configuration value has an invalid value.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT invalid_configuration_value
+class VISTK_PIPELINE_EXPORT invalid_configuration_value_exception
   : public process_configuration_exception
 {
   public:
@@ -263,11 +265,11 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_value
      * \param value The value given.
      * \param desc A description of the configuration value.
      */
-    invalid_configuration_value(process::name_t const& process, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw();
+    invalid_configuration_value_exception(process::name_t const& process, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw();
     /**
      * \brief Destructor.
      */
-    ~invalid_configuration_value() throw();
+    ~invalid_configuration_value_exception() throw();
 
     /// The name of the \ref process which was connected to.
     process::name_t const m_process;
@@ -289,13 +291,13 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_value
 };
 
 /**
- * \class invalid_configuration process_exception.h <vistk/pipeline/process_exception.h>
+ * \class invalid_configuration_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a configuration for a \ref process is invalid.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT invalid_configuration
+class VISTK_PIPELINE_EXPORT invalid_configuration_exception
   : public process_configuration_exception
 {
   public:
@@ -305,11 +307,11 @@ class VISTK_PIPELINE_EXPORT invalid_configuration
      * \param process The name of the process.
      * \param reason The reason why the configuration is invalid.
      */
-    invalid_configuration(process::name_t const& process, std::string const& reason) throw();
+    invalid_configuration_exception(process::name_t const& process, std::string const& reason) throw();
     /**
      * \brief Destructor.
      */
-    ~invalid_configuration() throw();
+    ~invalid_configuration_exception() throw();
 
     /// The name of the \ref process which was connected to.
     process::name_t const m_process;

@@ -110,7 +110,7 @@ process
 {
   if (!edge)
   {
-    throw null_edge_port_connection(d->name, port);
+    throw null_edge_port_connection_exception(d->name, port);
   }
 
   if (port == port_heartbeat)
@@ -197,7 +197,7 @@ process
     return boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME);
   }
 
-  throw unknown_configuration_value(d->name, key);
+  throw unknown_configuration_value_exception(d->name, key);
 }
 
 config::description_t
@@ -209,7 +209,7 @@ process
     return config::description_t("The name of the process");
   }
 
-  throw unknown_configuration_value(d->name, key);
+  throw unknown_configuration_value_exception(d->name, key);
 }
 
 process::name_t

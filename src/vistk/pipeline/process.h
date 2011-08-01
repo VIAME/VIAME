@@ -119,8 +119,8 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Connects an edge to an input port on the process.
      *
-     * \throws null_edge_port_connection Thrown when \p edge is \c NULL.
-     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws null_edge_port_connection_exception Thrown when \p edge is \c NULL.
+     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
@@ -129,8 +129,8 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Connects an edge to an output port on the process.
      *
-     * \throws null_edge_port_connection Thrown when \p edge is \c NULL.
-     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws null_edge_port_connection_exception Thrown when \p edge is \c NULL.
+     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
@@ -153,7 +153,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief The type of data that is accepted on an input port.
      *
-     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to return the type of.
      *
@@ -163,7 +163,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief The type of data that is available on an output port.
      *
-     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to return the type of.
      *
@@ -174,7 +174,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Describe input ports on the process.
      *
-     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to describe.
      *
@@ -184,7 +184,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Describe output ports on the process.
      *
-     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to describe.
      *
@@ -201,7 +201,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Request the default value for a configuration.
      *
-     * \throws unknown_configuration_value Thrown when \p key is not a valid configuration key.
+     * \throws unknown_configuration_value_exception Thrown when \p key is not a valid configuration key.
      *
      * \param key The name of the configuration value.
      *
@@ -211,7 +211,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Request available configuration options for the process.
      *
-     * \throws unknown_configuration_value Thrown when \p key is not a valid configuration key.
+     * \throws unknown_configuration_value_exception Thrown when \p key is not a valid configuration key.
      *
      * \param key The name of the configuration value to describe.
      *

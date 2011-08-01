@@ -55,8 +55,8 @@ no_such_port_exception
   return m_what.c_str();
 }
 
-null_edge_port_connection
-::null_edge_port_connection(process::name_t const& process, process::port_t const& port) throw()
+null_edge_port_connection_exception
+::null_edge_port_connection_exception(process::name_t const& process, process::port_t const& port) throw()
   : port_connection_exception(process, port)
 {
   std::ostringstream sstr;
@@ -68,13 +68,13 @@ null_edge_port_connection
   m_what = sstr.str();
 }
 
-null_edge_port_connection
-::~null_edge_port_connection() throw()
+null_edge_port_connection_exception
+::~null_edge_port_connection_exception() throw()
 {
 }
 
 char const*
-null_edge_port_connection
+null_edge_port_connection_exception
 ::what() const throw()
 {
   return m_what.c_str();
@@ -105,8 +105,8 @@ port_reconnect_exception
   return m_what.c_str();
 }
 
-missing_connection
-::missing_connection(process::name_t const& process, process::port_t const& port, std::string const& reason) throw()
+missing_connection_exception
+::missing_connection_exception(process::name_t const& process, process::port_t const& port, std::string const& reason) throw()
   : port_connection_exception(process, port)
   , m_reason(reason)
 {
@@ -119,20 +119,20 @@ missing_connection
   m_what = sstr.str();
 }
 
-missing_connection
-::~missing_connection() throw()
+missing_connection_exception
+::~missing_connection_exception() throw()
 {
 }
 
 char const*
-missing_connection
+missing_connection_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-unknown_configuration_value
-::unknown_configuration_value(process::name_t const& process, config::key_t const& key) throw()
+unknown_configuration_value_exception
+::unknown_configuration_value_exception(process::name_t const& process, config::key_t const& key) throw()
   : process_configuration_exception()
   , m_process(process)
   , m_key(key)
@@ -146,20 +146,20 @@ unknown_configuration_value
   m_what = sstr.str();
 }
 
-unknown_configuration_value
-::~unknown_configuration_value() throw()
+unknown_configuration_value_exception
+::~unknown_configuration_value_exception() throw()
 {
 }
 
 char const*
-unknown_configuration_value
+unknown_configuration_value_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-invalid_configuration_value
-::invalid_configuration_value(process::name_t const& process, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw()
+invalid_configuration_value_exception
+::invalid_configuration_value_exception(process::name_t const& process, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw()
   : process_configuration_exception()
   , m_process(process)
   , m_key(key)
@@ -176,20 +176,20 @@ invalid_configuration_value
   m_what = sstr.str();
 }
 
-invalid_configuration_value
-::~invalid_configuration_value() throw()
+invalid_configuration_value_exception
+::~invalid_configuration_value_exception() throw()
 {
 }
 
 char const*
-invalid_configuration_value
+invalid_configuration_value_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-invalid_configuration
-::invalid_configuration(process::name_t const& process, std::string const& reason) throw()
+invalid_configuration_exception
+::invalid_configuration_exception(process::name_t const& process, std::string const& reason) throw()
   : process_configuration_exception()
   , m_process(process)
   , m_reason(reason)
@@ -202,13 +202,13 @@ invalid_configuration
   m_what = sstr.str();
 }
 
-invalid_configuration
-::~invalid_configuration() throw()
+invalid_configuration_exception
+::~invalid_configuration_exception() throw()
 {
 }
 
 char const*
-invalid_configuration
+invalid_configuration_exception
 ::what() const throw()
 {
   return m_what.c_str();

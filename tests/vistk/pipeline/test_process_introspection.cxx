@@ -88,7 +88,7 @@ main()
       {
         process->config_default(key);
       }
-      catch (vistk::unknown_configuration_value& e)
+      catch (vistk::unknown_configuration_value_exception& e)
       {
         std::cerr << "Error: Failed to get a default for "
                   << type << vistk::config::block_sep << key
@@ -105,7 +105,7 @@ main()
       {
         process->config_description(key);
       }
-      catch (vistk::unknown_configuration_value& e)
+      catch (vistk::unknown_configuration_value_exception& e)
       {
         std::cerr << "Error: Failed to get a description for "
                   << type << vistk::config::block_sep << key
