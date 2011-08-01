@@ -6,6 +6,8 @@
 
 #include "number_process.h"
 
+#include <vistk/pipeline_types/port_types.h>
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
@@ -165,9 +167,7 @@ number_process
 
     flags.insert(flag_required);
 
-    process::port_type_name_t const type_name = "integer";
-
-    return port_type_t(type_name, flags);
+    return port_type_t(port_types::t_integer, flags);
   }
 
   process::_output_port_type(port);
