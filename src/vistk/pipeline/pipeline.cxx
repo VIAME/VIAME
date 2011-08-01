@@ -578,7 +578,7 @@ pipeline
 
 process::port_addr_t
 pipeline
-::mapped_group_output_ports(process::name_t const& name, process::port_t const& port) const
+::mapped_group_output_port(process::name_t const& name, process::port_t const& port) const
 {
   priv::group_t::const_iterator const group_it = d->groups.find(name);
 

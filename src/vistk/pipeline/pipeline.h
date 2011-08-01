@@ -271,7 +271,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \returns The output port mapped for \p name on the \p port port.
      */
-    process::port_addr_t mapped_group_output_ports(process::name_t const& name, process::port_t const& port) const;
+    process::port_addr_t mapped_group_output_port(process::name_t const& name, process::port_t const& port) const;
   private:
     class priv;
     boost::shared_ptr<priv> d;
