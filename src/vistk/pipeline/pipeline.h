@@ -178,6 +178,15 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     processes_t downstream_for_port(process::name_t const& name, process::port_t const& port) const;
     /**
+     * \brief Find the port that is sending data directly to a port.
+     *
+     * \param name The name of the process to lookup.
+     * \param port The name of the port on the process.
+     *
+     * \returns The port address that sends data from \p name's \p port.
+     */
+    process::port_addr_t sender_for_port(process::name_t const& name, process::port_t const& port) const;
+    /**
      * \brief Find ports that are siphoning data directly from a port.
      *
      * \param name The name of the process to lookup.

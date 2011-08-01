@@ -395,6 +395,26 @@ pipeline
   return processes;
 }
 
+process::port_addr_t
+pipeline
+::sender_for_port(process::name_t const& name, process::port_t const& port) const
+{
+  process::port_addrs_t port_addrs;
+
+  BOOST_FOREACH (priv::connection_t const& connection, d->connections)
+  {
+    if ((connection.second.first == name) &&
+        (connection.second.second == port))
+    {
+      process::port_addr_t const& upstream_addr = connection.first;
+
+      return upstream_addr;
+    }
+  }
+
+  return process::port_addr_t();
+}
+
 process::port_addrs_t
 pipeline
 ::receivers_for_port(process::name_t const& name, process::port_t const& port) const
