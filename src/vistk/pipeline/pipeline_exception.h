@@ -36,24 +36,24 @@ class VISTK_PIPELINE_EXPORT pipeline_addition_exception
 };
 
 /**
- * \class null_process_addition pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class null_process_addition_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \c NULL is given as a \ref process to add to a \ref pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_process_addition
+class VISTK_PIPELINE_EXPORT null_process_addition_exception
   : public pipeline_addition_exception
 {
   public:
     /**
      * \brief Constructor.
      */
-    null_process_addition() throw();
+    null_process_addition_exception() throw();
     /**
      * \brief Destructor.
      */
-    ~null_process_addition() throw();
+    ~null_process_addition_exception() throw();
 
     /**
      * \brief A description of the exception.
@@ -66,13 +66,13 @@ class VISTK_PIPELINE_EXPORT null_process_addition
 };
 
 /**
- * \class duplicate_process_name pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class duplicate_process_name_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref process with a duplicate name is added to the \ref pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT duplicate_process_name
+class VISTK_PIPELINE_EXPORT duplicate_process_name_exception
   : public pipeline_addition_exception
 {
   public:
@@ -81,11 +81,11 @@ class VISTK_PIPELINE_EXPORT duplicate_process_name
      *
      * \param name The name requested.
      */
-    duplicate_process_name(process::name_t const& name) throw();
+    duplicate_process_name_exception(process::name_t const& name) throw();
     /**
      * \brief Destructor.
      */
-    ~duplicate_process_name() throw();
+    ~duplicate_process_name_exception() throw();
 
     /**
      * \brief A description of the exception.
@@ -113,13 +113,13 @@ class VISTK_PIPELINE_EXPORT pipeline_connection_exception
 };
 
 /**
- * \class no_such_process pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class no_such_process_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref process is requested that does not exist in a \ref pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_such_process
+class VISTK_PIPELINE_EXPORT no_such_process_exception
   : public pipeline_connection_exception
 {
   public:
@@ -128,11 +128,11 @@ class VISTK_PIPELINE_EXPORT no_such_process
      *
      * \param name The name requested.
      */
-    no_such_process(process::name_t const& name) throw();
+    no_such_process_exception(process::name_t const& name) throw();
     /**
      * \brief Destructor.
      */
-    ~no_such_process() throw();
+    ~no_such_process_exception() throw();
 
     /// The name of the process requested.
     process::name_t const m_name;
@@ -148,13 +148,13 @@ class VISTK_PIPELINE_EXPORT no_such_process
 };
 
 /**
- * \class connection_type_mismatch pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class connection_type_mismatch_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a connection is requested with type mismatched ports.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT connection_type_mismatch
+class VISTK_PIPELINE_EXPORT connection_type_mismatch_exception
   : public pipeline_connection_exception
 {
   public:
@@ -168,16 +168,16 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch
      * \param downstream_port The port on the upstream process requested.
      * \param downstream_type The type of the upstream process port.
      */
-    connection_type_mismatch(process::name_t const& upstream_name,
-                             process::port_t const& upstream_port,
-                             process::port_type_name_t const& upstream_type,
-                             process::name_t const& downstream_name,
-                             process::port_t const& downstream_port,
-                             process::port_type_name_t const& downstream_type) throw();
+    connection_type_mismatch_exception(process::name_t const& upstream_name,
+                                       process::port_t const& upstream_port,
+                                       process::port_type_name_t const& upstream_type,
+                                       process::name_t const& downstream_name,
+                                       process::port_t const& downstream_port,
+                                       process::port_type_name_t const& downstream_type) throw();
     /**
      * \brief Destructor.
      */
-    ~connection_type_mismatch() throw();
+    ~connection_type_mismatch_exception() throw();
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
@@ -203,13 +203,13 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch
 };
 
 /**
- * \class connection_flag_mismatch pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class connection_flag_mismatch_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a connection is requested with mismatched ports flags.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT connection_flag_mismatch
+class VISTK_PIPELINE_EXPORT connection_flag_mismatch_exception
   : public pipeline_connection_exception
 {
   public:
@@ -221,14 +221,14 @@ class VISTK_PIPELINE_EXPORT connection_flag_mismatch
      * \param downstream_name The name of the upstream process requested.
      * \param downstream_port The port on the upstream process requested.
      */
-    connection_flag_mismatch(process::name_t const& upstream_name,
-                             process::port_t const& upstream_port,
-                             process::name_t const& downstream_name,
-                             process::port_t const& downstream_port) throw();
+    connection_flag_mismatch_exception(process::name_t const& upstream_name,
+                                       process::port_t const& upstream_port,
+                                       process::name_t const& downstream_name,
+                                       process::port_t const& downstream_port) throw();
     /**
      * \brief Destructor.
      */
-    ~connection_flag_mismatch() throw();
+    ~connection_flag_mismatch_exception() throw();
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
@@ -250,13 +250,13 @@ class VISTK_PIPELINE_EXPORT connection_flag_mismatch
 };
 
 /**
- * \class no_such_group pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class no_such_group_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a group is requested that does not exist in a \ref pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_such_group
+class VISTK_PIPELINE_EXPORT no_such_group_exception
   : public pipeline_exception
 {
   public:
@@ -265,11 +265,11 @@ class VISTK_PIPELINE_EXPORT no_such_group
      *
      * \param name The name requested.
      */
-    no_such_group(process::name_t const& name) throw();
+    no_such_group_exception(process::name_t const& name) throw();
     /**
      * \brief Destructor.
      */
-    ~no_such_group() throw();
+    ~no_such_group_exception() throw();
 
     /// The name of the group requested.
     process::name_t const m_name;
@@ -285,13 +285,13 @@ class VISTK_PIPELINE_EXPORT no_such_group
 };
 
 /**
- * \class no_such_group_port pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class no_such_group_port_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a port on a group is requested that does not exist.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_such_group_port
+class VISTK_PIPELINE_EXPORT no_such_group_port_exception
   : public pipeline_exception
 {
   public:
@@ -301,11 +301,11 @@ class VISTK_PIPELINE_EXPORT no_such_group_port
      * \param name The name requested.
      * \param port The port requested.
      */
-    no_such_group_port(process::name_t const& name, process::port_t const& port) throw();
+    no_such_group_port_exception(process::name_t const& name, process::port_t const& port) throw();
     /**
      * \brief Destructor.
      */
-    ~no_such_group_port() throw();
+    ~no_such_group_port_exception() throw();
 
     /// The name of the group requested.
     process::name_t const m_name;
@@ -323,13 +323,13 @@ class VISTK_PIPELINE_EXPORT no_such_group_port
 };
 
 /**
- * \class group_output_already_mapped pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class group_output_already_mapped_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when an output port on a group is attempted to be remapped.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT group_output_already_mapped
+class VISTK_PIPELINE_EXPORT group_output_already_mapped_exception
   : public pipeline_exception
 {
   public:
@@ -343,16 +343,16 @@ class VISTK_PIPELINE_EXPORT group_output_already_mapped
      * \param new_process The process requested to be mapped.
      * \param new_port The port requested to be mapped.
      */
-    group_output_already_mapped(process::name_t const& name,
-                                process::port_t const& port,
-                                process::name_t const& current_process,
-                                process::port_t const& current_port,
-                                process::name_t const& new_process,
-                                process::port_t const& new_port) throw();
+    group_output_already_mapped_exception(process::name_t const& name,
+                                          process::port_t const& port,
+                                          process::name_t const& current_process,
+                                          process::port_t const& current_port,
+                                          process::name_t const& new_process,
+                                          process::port_t const& new_port) throw();
     /**
      * \brief Destructor.
      */
-    ~group_output_already_mapped() throw();
+    ~group_output_already_mapped_exception() throw();
 
     /// The name of the group requested.
     process::name_t const m_name;

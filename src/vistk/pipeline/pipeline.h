@@ -51,8 +51,8 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Add a process to the pipeline.
      *
-     * \throws null_process_addition Thrown when \p process is \c NULL.
-     * \throws duplicate_process_name Thrown when \p process has the same name as another process in the pipeline already.
+     * \throws null_process_addition_exception Thrown when \p process is \c NULL.
+     * \throws duplicate_process_name_exception Thrown when \p process has the same name as another process in the pipeline already.
      *
      * \param process The process to add to the pipeline.
      */
@@ -60,7 +60,7 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Declares a logical group of processes in the pipeline.
      *
-     * \throws duplicate_process_name Thrown when a process or group is already named \p name.
+     * \throws duplicate_process_name_exception Thrown when a process or group is already named \p name.
      *
      * \param name The name of the group.
      */
@@ -69,7 +69,7 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Connect two ports in the pipeline together with an edge.
      *
-     * \throws no_such_process Thrown when either \p upstream_process or \p downstream_process do not exist in the pipeline.
+     * \throws no_such_process_exception Thrown when either \p upstream_process or \p downstream_process do not exist in the pipeline.
      *
      * \param upstream_process The upstream process name.
      * \param upstream_port The upstream process port.
@@ -86,8 +86,8 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \todo How to declare types/desc for these ports?
      *
-     * \throws no_such_group Thrown when \p group does not exist in the pipeline.
-     * \throws no_such_process Thrown when \p mapped_process does not exist in the pipeline.
+     * \throws no_such_group_exception Thrown when \p group does not exist in the pipeline.
+     * \throws no_such_process_exception Thrown when \p mapped_process does not exist in the pipeline.
      *
      * \param group The group name.
      * \param port The group port.
@@ -105,9 +105,9 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \todo How to declare types/desc for these ports?
      *
-     * \throws no_such_group Thrown when \p group does not exist in the pipeline.
-     * \throws no_such_process Thrown when \p mapped_process does not exist in the pipeline.
-     * \throws group_output_already_mapped Thrown when \p port on \p group has already been mapped.
+     * \throws no_such_group_exception Thrown when \p group does not exist in the pipeline.
+     * \throws no_such_process_exception Thrown when \p mapped_process does not exist in the pipeline.
+     * \throws group_output_already_mapped_exception Thrown when \p port on \p group has already been mapped.
      *
      * \param group The group name.
      * \param port The group port.
@@ -148,7 +148,7 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Get a list process by name.
      *
-     * \throws no_such_process Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_process_exception Thrown when \p name does not exist in the pipeline.
      *
      * \param name The name of the process to retrieve.
      *
@@ -235,7 +235,7 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief The input port names for a group.
      *
-     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
      *
      * \param name The name of the group.
      *
@@ -245,7 +245,7 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief The output port names for a group.
      *
-     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
      *
      * \param name The name of the group.
      *
@@ -255,8 +255,8 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Flags on an input port on a group.
      *
-     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
-     * \throws no_such_group_port Thrown when \p port is not an input port on the group.
+     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_port_exception Thrown when \p port is not an input port on the group.
      *
      * \param name The name of the group.
      * \param port The name of the port.
@@ -267,8 +267,8 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Flags on an output port on a group.
      *
-     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
-     * \throws no_such_group_port Thrown when \p port is not an output port on the group.
+     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_port_exception Thrown when \p port is not an output port on the group.
      *
      * \param name The name of the group.
      * \param port The name of the port.
@@ -279,8 +279,8 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Ports that are mapped to the group input port.
      *
-     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
-     * \throws no_such_group_port Thrown when \p port is not an input port on the group.
+     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_port_exception Thrown when \p port is not an input port on the group.
      *
      * \param name The name of the group.
      * \param port The name of the port.
@@ -291,8 +291,8 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief The port that is mapped to the group output port.
      *
-     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
-     * \throws no_such_group_port Thrown when \p port is not an output port on the group.
+     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_port_exception Thrown when \p port is not an output port on the group.
      *
      * \param name The name of the group.
      * \param port The name of the port.

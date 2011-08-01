@@ -66,7 +66,7 @@ pipeline
 {
   if (!process)
   {
-    throw null_process_addition();
+    throw null_process_addition_exception();
   }
 
   process::name_t const name = process->name();
@@ -75,14 +75,14 @@ pipeline
 
   if (proc_it != d->process_map.end())
   {
-    throw duplicate_process_name(name);
+    throw duplicate_process_name_exception(name);
   }
 
   priv::group_t::const_iterator group_it = d->groups.find(name);
 
   if (group_it != d->groups.end())
   {
-    throw duplicate_process_name(name);
+    throw duplicate_process_name_exception(name);
   }
 
   d->process_map[name] = process;
@@ -96,14 +96,14 @@ pipeline
 
   if (proc_it != d->process_map.end())
   {
-    throw duplicate_process_name(name);
+    throw duplicate_process_name_exception(name);
   }
 
   priv::group_t::const_iterator group_it = d->groups.find(name);
 
   if (group_it != d->groups.end())
   {
-    throw duplicate_process_name(name);
+    throw duplicate_process_name_exception(name);
   }
 
   d->groups[name] = priv::port_mapping_t();
@@ -170,11 +170,11 @@ pipeline
 
   if (up_it == d->process_map.end())
   {
-    throw no_such_process(upstream_process);
+    throw no_such_process_exception(upstream_process);
   }
   if (down_it == d->process_map.end())
   {
-    throw no_such_process(downstream_process);
+    throw no_such_process_exception(downstream_process);
   }
 
   process_t const& up_proc = up_it->second;
@@ -190,8 +190,8 @@ pipeline
       (down_type_name != process::type_any) &&
       (up_type_name != down_type_name))
   {
-    throw connection_type_mismatch(upstream_process, upstream_port, up_type_name,
-                                   downstream_process, downstream_port, down_type_name);
+    throw connection_type_mismatch_exception(upstream_process, upstream_port, up_type_name,
+                                             downstream_process, downstream_port, down_type_name);
   }
 
   process::port_flags_t const up_flags = up_type.get<1>();
@@ -209,8 +209,8 @@ pipeline
 
   if (is_const && requires_mutable)
   {
-    throw connection_flag_mismatch(upstream_process, upstream_port,
-                                   downstream_process, downstream_port);
+    throw connection_flag_mismatch_exception(upstream_process, upstream_port,
+                                             downstream_process, downstream_port);
   }
 
   up_proc->connect_output_port(upstream_port, e);
@@ -232,14 +232,14 @@ pipeline
 
   if (group_it == d->groups.end())
   {
-    throw no_such_group(group);
+    throw no_such_group_exception(group);
   }
 
   priv::process_map_t::iterator const proc_it = d->process_map.find(mapped_process);
 
   if (proc_it == d->process_map.end())
   {
-    throw no_such_process(mapped_process);
+    throw no_such_process_exception(mapped_process);
   }
 
   priv::input_port_mapping_t& mapping = group_it->second.first;
@@ -264,14 +264,14 @@ pipeline
 
   if (group_it == d->groups.end())
   {
-    throw no_such_group(group);
+    throw no_such_group_exception(group);
   }
 
   priv::process_map_t::iterator const proc_it = d->process_map.find(mapped_process);
 
   if (proc_it == d->process_map.end())
   {
-    throw no_such_process(mapped_process);
+    throw no_such_process_exception(mapped_process);
   }
 
   priv::output_port_mapping_t& mapping = group_it->second.second;
@@ -282,7 +282,7 @@ pipeline
   {
     process::port_addr_t const prev_port_addr = port_it->second.get<1>();
 
-    throw group_output_already_mapped(group, port, prev_port_addr.first, prev_port_addr.second, mapped_process, mapped_port);
+    throw group_output_already_mapped_exception(group, port, prev_port_addr.first, prev_port_addr.second, mapped_process, mapped_port);
   }
 
   process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_process, mapped_port);
@@ -409,7 +409,7 @@ pipeline
 
   if (i == d->process_map.end())
   {
-    throw no_such_process(name);
+    throw no_such_process_exception(name);
   }
 
   return i->second;
@@ -618,7 +618,7 @@ pipeline
 
   if (group_it == d->groups.end())
   {
-    throw no_such_group(name);
+    throw no_such_group_exception(name);
   }
 
   priv::input_port_mapping_t const& mapping = group_it->second.first;
@@ -643,7 +643,7 @@ pipeline
 
   if (group_it == d->groups.end())
   {
-    throw no_such_group(name);
+    throw no_such_group_exception(name);
   }
 
   priv::output_port_mapping_t const& mapping = group_it->second.second;
@@ -666,7 +666,7 @@ pipeline
 
   if (group_it == d->groups.end())
   {
-    throw no_such_group(name);
+    throw no_such_group_exception(name);
   }
 
   priv::input_port_mapping_t const& mapping = group_it->second.first;
@@ -675,7 +675,7 @@ pipeline
 
   if (mapping_it == mapping.end())
   {
-    throw no_such_group_port(name, port);
+    throw no_such_group_port_exception(name, port);
   }
 
   return mapping_it->second.get<0>();
@@ -689,7 +689,7 @@ pipeline
 
   if (group_it == d->groups.end())
   {
-    throw no_such_group(name);
+    throw no_such_group_exception(name);
   }
 
   priv::output_port_mapping_t const& mapping = group_it->second.second;
@@ -698,7 +698,7 @@ pipeline
 
   if (mapping_it == mapping.end())
   {
-    throw no_such_group_port(name, port);
+    throw no_such_group_port_exception(name, port);
   }
 
   return mapping_it->second.get<0>();
@@ -712,7 +712,7 @@ pipeline
 
   if (group_it == d->groups.end())
   {
-    throw no_such_group(name);
+    throw no_such_group_exception(name);
   }
 
   priv::input_port_mapping_t const& mapping = group_it->second.first;
@@ -721,7 +721,7 @@ pipeline
 
   if (mapping_it == mapping.end())
   {
-    throw no_such_group_port(name, port);
+    throw no_such_group_port_exception(name, port);
   }
 
   return mapping_it->second.get<1>();
@@ -735,7 +735,7 @@ pipeline
 
   if (group_it == d->groups.end())
   {
-    throw no_such_group(name);
+    throw no_such_group_exception(name);
   }
 
   priv::output_port_mapping_t const& mapping = group_it->second.second;
@@ -744,7 +744,7 @@ pipeline
 
   if (mapping_it == mapping.end())
   {
-    throw no_such_group_port(name, port);
+    throw no_such_group_port_exception(name, port);
   }
 
   return mapping_it->second.get<1>();

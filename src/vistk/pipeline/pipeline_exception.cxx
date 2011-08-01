@@ -17,8 +17,8 @@
 namespace vistk
 {
 
-null_process_addition
-::null_process_addition() throw()
+null_process_addition_exception
+::null_process_addition_exception() throw()
   : pipeline_addition_exception()
 {
   std::ostringstream sstr;
@@ -29,20 +29,20 @@ null_process_addition
   m_what = sstr.str();
 }
 
-null_process_addition
-::~null_process_addition() throw()
+null_process_addition_exception
+::~null_process_addition_exception() throw()
 {
 }
 
 char const*
-null_process_addition
+null_process_addition_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-duplicate_process_name
-::duplicate_process_name(process::name_t const& name) throw()
+duplicate_process_name_exception
+::duplicate_process_name_exception(process::name_t const& name) throw()
   : pipeline_addition_exception()
   , m_name(name)
 {
@@ -55,20 +55,20 @@ duplicate_process_name
   m_what = sstr.str();
 }
 
-duplicate_process_name
-::~duplicate_process_name() throw()
+duplicate_process_name_exception
+::~duplicate_process_name_exception() throw()
 {
 }
 
 char const*
-duplicate_process_name
+duplicate_process_name_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-no_such_process
-::no_such_process(process::name_t const& name) throw()
+no_such_process_exception
+::no_such_process_exception(process::name_t const& name) throw()
   : pipeline_connection_exception()
   , m_name(name)
 {
@@ -81,25 +81,25 @@ no_such_process
   m_what = sstr.str();
 }
 
-no_such_process
-::~no_such_process() throw()
+no_such_process_exception
+::~no_such_process_exception() throw()
 {
 }
 
 char const*
-no_such_process
+no_such_process_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-connection_type_mismatch
-::connection_type_mismatch(process::name_t const& upstream_name,
-                           process::port_t const& upstream_port,
-                           process::port_type_name_t const& upstream_type,
-                           process::name_t const& downstream_name,
-                           process::port_t const& downstream_port,
-                           process::port_type_name_t const& downstream_type) throw()
+connection_type_mismatch_exception
+::connection_type_mismatch_exception(process::name_t const& upstream_name,
+                                     process::port_t const& upstream_port,
+                                     process::port_type_name_t const& upstream_type,
+                                     process::name_t const& downstream_name,
+                                     process::port_t const& downstream_port,
+                                     process::port_type_name_t const& downstream_type) throw()
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -120,23 +120,23 @@ connection_type_mismatch
   m_what = sstr.str();
 }
 
-connection_type_mismatch
-::~connection_type_mismatch() throw()
+connection_type_mismatch_exception
+::~connection_type_mismatch_exception() throw()
 {
 }
 
 char const*
-connection_type_mismatch
+connection_type_mismatch_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-connection_flag_mismatch
-::connection_flag_mismatch(process::name_t const& upstream_name,
-                           process::port_t const& upstream_port,
-                           process::name_t const& downstream_name,
-                           process::port_t const& downstream_port) throw()
+connection_flag_mismatch_exception
+::connection_flag_mismatch_exception(process::name_t const& upstream_name,
+                                     process::port_t const& upstream_port,
+                                     process::name_t const& downstream_name,
+                                     process::port_t const& downstream_port) throw()
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -154,20 +154,20 @@ connection_flag_mismatch
   m_what = sstr.str();
 }
 
-connection_flag_mismatch
-::~connection_flag_mismatch() throw()
+connection_flag_mismatch_exception
+::~connection_flag_mismatch_exception() throw()
 {
 }
 
 char const*
-connection_flag_mismatch
+connection_flag_mismatch_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-no_such_group
-::no_such_group(process::name_t const& name) throw()
+no_such_group_exception
+::no_such_group_exception(process::name_t const& name) throw()
   : pipeline_exception()
   , m_name(name)
 {
@@ -180,20 +180,20 @@ no_such_group
   m_what = sstr.str();
 }
 
-no_such_group
-::~no_such_group() throw()
+no_such_group_exception
+::~no_such_group_exception() throw()
 {
 }
 
 char const*
-no_such_group
+no_such_group_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-no_such_group_port
-::no_such_group_port(process::name_t const& name, process::port_t const& port) throw()
+no_such_group_port_exception
+::no_such_group_port_exception(process::name_t const& name, process::port_t const& port) throw()
   : pipeline_exception()
   , m_name(name)
   , m_port(port)
@@ -207,25 +207,25 @@ no_such_group_port
   m_what = sstr.str();
 }
 
-no_such_group_port
-::~no_such_group_port() throw()
+no_such_group_port_exception
+::~no_such_group_port_exception() throw()
 {
 }
 
 char const*
-no_such_group_port
+no_such_group_port_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-group_output_already_mapped
-::group_output_already_mapped(process::name_t const& name,
-                              process::port_t const& port,
-                              process::name_t const& current_process,
-                              process::port_t const& current_port,
-                              process::name_t const& new_process,
-                              process::port_t const& new_port) throw()
+group_output_already_mapped_exception
+::group_output_already_mapped_exception(process::name_t const& name,
+                                        process::port_t const& port,
+                                        process::name_t const& current_process,
+                                        process::port_t const& current_port,
+                                        process::name_t const& new_process,
+                                        process::port_t const& new_port) throw()
   : pipeline_exception()
   , m_name(name)
   , m_port(port)
@@ -247,13 +247,13 @@ group_output_already_mapped
   m_what = sstr.str();
 }
 
-group_output_already_mapped
-::~group_output_already_mapped() throw()
+group_output_already_mapped_exception
+::~group_output_already_mapped_exception() throw()
 {
 }
 
 char const*
-group_output_already_mapped
+group_output_already_mapped_exception
 ::what() const throw()
 {
   return m_what.c_str();
