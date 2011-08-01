@@ -10,6 +10,8 @@
 #include "types.h"
 
 #include <boost/foreach.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include <utility>
 
@@ -88,6 +90,14 @@ schedule_registry_t
 schedule_registry
 ::self()
 {
+  static boost::mutex mut;
+
+  if (m_self)
+  {
+    return m_self;
+  }
+
+  boost::unique_lock<boost::mutex> lock(mut);
   if (!m_self)
   {
     m_self = schedule_registry_t(new schedule_registry);

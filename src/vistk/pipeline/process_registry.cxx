@@ -10,6 +10,8 @@
 #include "types.h"
 
 #include <boost/foreach.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include <utility>
 
@@ -87,6 +89,14 @@ process_registry_t
 process_registry
 ::self()
 {
+  static boost::mutex mut;
+
+  if (m_self)
+  {
+    return m_self;
+  }
+
+  boost::unique_lock<boost::mutex> lock(mut);
   if (!m_self)
   {
     m_self = process_registry_t(new process_registry);
