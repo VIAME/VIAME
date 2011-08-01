@@ -11,6 +11,7 @@
 
 #include <boost/foreach.hpp>
 
+#include <queue>
 #include <set>
 
 /**
@@ -278,8 +279,96 @@ void
 pipeline
 ::setup_pipeline()
 {
-  /// \todo Check for disconnected pipelines.
-  /// \todo Check for required input/output port connections (requires flags for group ports).
+  typedef std::set<process::name_t> name_set_t;
+  typedef std::queue<process::name_t> name_queue_t;
+
+  if (!d->process_map.size())
+  {
+    /// \todo The pipeline has no processes in it.
+  }
+
+  name_set_t procs;
+
+  {
+    name_queue_t to_visit;
+
+    // Traverse the pipeline starting with a process.
+    to_visit.push(d->process_map.begin()->first);
+
+    // While we have processes to visit yet.
+    while (!to_visit.empty())
+    {
+      process::name_t const cur_proc = to_visit.front();
+
+      to_visit.pop();
+
+      // Ignore the process if we've already visited it.
+      name_set_t::const_iterator const i = procs.find(cur_proc);
+      if (i != procs.end())
+      {
+        continue;
+      }
+
+      processes_t connected_procs;
+
+      // Find all processes upstream of the current process.
+      processes_t const upstream_procs = upstream_for_process(cur_proc);
+      connected_procs.insert(connected_procs.end(), upstream_procs.begin(), upstream_procs.end());
+
+      // Find all processes downstream of the current process.
+      processes_t const downstream_procs = upstream_for_process(cur_proc);
+      connected_procs.insert(connected_procs.end(), downstream_procs.begin(), downstream_procs.end());
+
+      // Mark all connected processes for visitation.
+      BOOST_FOREACH (process_t const& proc, connected_procs)
+      {
+        to_visit.push(proc->name());
+      }
+    }
+  }
+
+  if (d->groups.size())
+  {
+    process::names_t const group_names = groups();
+
+    BOOST_FOREACH(process::name_t const& cur_group, group_names)
+    {
+      process::port_addrs_t connected_ports;
+
+      // Get all processes input ports on the group map to.
+      process::ports_t const input_ports = input_ports_for_group(cur_group);
+      BOOST_FOREACH (process::port_t const& port, input_ports)
+      {
+        // Mark mapped ports as connected.
+        process::port_addrs_t const mapped_ports = mapped_group_input_ports(cur_group, port);
+
+        connected_ports.insert(connected_ports.end(), mapped_ports.begin(), mapped_ports.end());
+      }
+
+      // Get all processes output ports on the group map to.
+      process::ports_t const output_ports = output_ports_for_group(cur_group);
+      BOOST_FOREACH (process::port_t const& port, output_ports)
+      {
+        // Mark mapped ports as connected.
+        process::port_addr_t const mapped_port = mapped_group_output_port(cur_group, port);
+
+        connected_ports.push_back(mapped_port);
+      }
+
+      // Mark these processes as connected.
+      BOOST_FOREACH (process::port_addr_t const& port_addr, connected_ports)
+      {
+        procs.insert(port_addr.first);
+      }
+    }
+  }
+
+  if (procs.size() != d->process_map.size())
+  {
+    /// \todo We have orphaned processes in the pipeline.
+  }
+
+  /// \todo Check for required grouping input/output ports (requires flags for ports).
 }
 
 process::names_t
