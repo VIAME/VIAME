@@ -157,10 +157,6 @@ pipeline
     }
   }
 
-  config_t edge_config = config::empty_config();
-
-  edge_t e = edge_t(new edge(edge_config));
-
   process::port_addr_t const up_port = process::port_addr_t(upstream_process, upstream_port);
   process::port_addr_t const down_port = process::port_addr_t(downstream_process, downstream_port);
   priv::connection_t const conn = priv::connection_t(up_port, down_port);
@@ -212,6 +208,10 @@ pipeline
     throw connection_flag_mismatch_exception(upstream_process, upstream_port,
                                              downstream_process, downstream_port);
   }
+
+  config_t edge_config = config::empty_config();
+
+  edge_t e = edge_t(new edge(edge_config));
 
   up_proc->connect_output_port(upstream_port, e);
   down_proc->connect_input_port(downstream_port, e);
