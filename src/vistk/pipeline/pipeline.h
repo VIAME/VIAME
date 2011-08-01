@@ -93,11 +93,13 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \param port The group port.
      * \param mapped_process The mapped process name.
      * \param mapped_port The mapped process port.
+     * \param flags A list of flags for the port.
      */
     void map_input_port(process::name_t const& group,
                         process::port_t const& port,
                         process::name_t const& mapped_process,
-                        process::port_t const& mapped_port);
+                        process::port_t const& mapped_port,
+                        process::port_flags_t const& flags);
     /**
      * \brief Map a group output port to a process output port.
      *
@@ -111,11 +113,13 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \param port The group port.
      * \param mapped_process The mapped process name.
      * \param mapped_port The mapped process port.
+     * \param flags A list of flags for the port.
      */
     void map_output_port(process::name_t const& group,
                          process::port_t const& port,
                          process::name_t const& mapped_process,
-                         process::port_t const& mapped_port);
+                         process::port_t const& mapped_port,
+                         process::port_flags_t const& flags);
 
     /**
      * \brief Sets the pipeline up for execution.

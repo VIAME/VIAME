@@ -34,8 +34,10 @@ class pipeline::priv
     typedef std::vector<connection_t> connections_t;
     typedef std::map<size_t, edge_t> edge_map_t;
 
-    typedef std::map<process::port_t, process::port_addrs_t> input_port_mapping_t;
-    typedef std::map<process::port_t, process::port_addr_t> output_port_mapping_t;
+    typedef boost::tuple<process::port_flags_t, process::port_addrs_t> input_mapping_info_t;
+    typedef boost::tuple<process::port_flags_t, process::port_addr_t> output_mapping_info_t;
+    typedef std::map<process::port_t, input_mapping_info_t> input_port_mapping_t;
+    typedef std::map<process::port_t, output_mapping_info_t> output_port_mapping_t;
     typedef std::pair<input_port_mapping_t, output_port_mapping_t> port_mapping_t;
     typedef std::map<process::name_t, port_mapping_t> group_t;
 
@@ -124,7 +126,9 @@ pipeline
 
     if (mapping_it != mapping.end())
     {
-      connect(mapping_it->second.first, mapping_it->second.second,
+      process::port_addr_t const& mapped_port_addr = mapping_it->second.get<1>();
+
+      connect(mapped_port_addr.first, mapped_port_addr.second,
               downstream_process, downstream_port);
 
       return;
@@ -141,7 +145,9 @@ pipeline
 
     if (mapping_it != mapping.end())
     {
-      BOOST_FOREACH (process::port_addr_t const& port_addr, mapping_it->second)
+      process::port_addrs_t const& mapped_port_addrs = mapping_it->second.get<1>();
+
+      BOOST_FOREACH (process::port_addr_t const& port_addr, mapped_port_addrs)
       {
         connect(upstream_process, upstream_port,
                 port_addr.first, port_addr.second);
@@ -219,7 +225,8 @@ pipeline
 ::map_input_port(process::name_t const& group,
                  process::port_t const& port,
                  process::name_t const& mapped_process,
-                 process::port_t const& mapped_port)
+                 process::port_t const& mapped_port,
+                 process::port_flags_t const& flags)
 {
   priv::group_t::iterator const group_it = d->groups.find(group);
 
@@ -237,9 +244,12 @@ pipeline
 
   priv::input_port_mapping_t& mapping = group_it->second.first;
 
-  /// \todo Check types and flags on other mapped ports.
+  priv::input_mapping_info_t& mapping_info = mapping[port];
 
-  mapping[port].push_back(process::port_addr_t(mapped_process, mapped_port));
+  process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_process, mapped_port);
+
+  mapping_info.get<0>().insert(flags.begin(), flags.end());
+  mapping_info.get<1>().push_back(mapped_port_addr);
 }
 
 void
@@ -247,7 +257,8 @@ pipeline
 ::map_output_port(process::name_t const& group,
                   process::port_t const& port,
                   process::name_t const& mapped_process,
-                  process::port_t const& mapped_port)
+                  process::port_t const& mapped_port,
+                  process::port_flags_t const& flags)
 {
   priv::group_t::iterator const group_it = d->groups.find(group);
 
@@ -269,10 +280,15 @@ pipeline
 
   if (port_it != mapping.end())
   {
-    throw group_output_already_mapped(group, port, port_it->second.first, port_it->second.second, mapped_process, mapped_port);
+    process::port_addr_t const prev_port_addr = port_it->second.get<1>();
+
+    throw group_output_already_mapped(group, port, prev_port_addr.first, prev_port_addr.second, mapped_process, mapped_port);
   }
 
-  mapping[port] = process::port_addr_t(mapped_process, mapped_port);
+  process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_process, mapped_port);
+  priv::output_mapping_info_t const mapping_info = priv::output_mapping_info_t(flags, mapped_port_addr);
+
+  mapping[port] = mapping_info;
 }
 
 void
@@ -662,7 +678,7 @@ pipeline
     throw no_such_group_port(name, port);
   }
 
-  return mapping_it->second;
+  return mapping_it->second.get<1>();
 }
 
 process::port_addr_t
@@ -685,7 +701,7 @@ pipeline
     throw no_such_group_port(name, port);
   }
 
-  return mapping_it->second;
+  return mapping_it->second.get<1>();
 }
 
 pipeline::priv
