@@ -113,13 +113,13 @@ number_process
   // Check the configuration.
   if (d->end <= d->start)
   {
-    throw invalid_configuration(name(), "The start value must be greater than the end value");
+    throw invalid_configuration_exception(name(), "The start value must be greater than the end value");
   }
 
   // Ensure the output port is connected.
   if (!d->output_edges.size())
   {
-    throw missing_connection(name(), priv::OUTPUT_PORT_NAME, "The " + type() + " process is not much use without something out output to");
+    throw missing_connection_exception(name(), priv::OUTPUT_PORT_NAME, "The " + type() + " process is not much use without something out output to");
   }
 }
 
