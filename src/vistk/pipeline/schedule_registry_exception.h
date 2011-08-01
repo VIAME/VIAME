@@ -36,13 +36,13 @@ class VISTK_PIPELINE_EXPORT schedule_registry_exception
 };
 
 /**
- * \class no_such_schedule_type schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
+ * \class no_such_schedule_type_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
  *
  * \brief Thrown when a type is requested, but does not exist in the registry.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_such_schedule_type
+class VISTK_PIPELINE_EXPORT no_such_schedule_type_exception
   : public schedule_registry_exception
 {
   public:
@@ -51,11 +51,11 @@ class VISTK_PIPELINE_EXPORT no_such_schedule_type
      *
      * \param type The type requested.
      */
-    no_such_schedule_type(schedule_registry::type_t const& type) throw();
+    no_such_schedule_type_exception(schedule_registry::type_t const& type) throw();
     /**
      * \brief Destructor.
      */
-    ~no_such_schedule_type() throw();
+    ~no_such_schedule_type_exception() throw();
 
     /// The type that was requested from the \link schedule_registry schedule registry\endlink.
     schedule_registry::type_t const m_type;
@@ -71,13 +71,13 @@ class VISTK_PIPELINE_EXPORT no_such_schedule_type
 };
 
 /**
- * \class schedule_type_already_exists schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
+ * \class schedule_type_already_exists_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
  *
  * \brief Thrown when a type is added, but does already exists in the registry.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT schedule_type_already_exists
+class VISTK_PIPELINE_EXPORT schedule_type_already_exists_exception
   : public schedule_registry_exception
 {
   public:
@@ -86,11 +86,11 @@ class VISTK_PIPELINE_EXPORT schedule_type_already_exists
      *
      * \param type The type requested.
      */
-    schedule_type_already_exists(schedule_registry::type_t const& type) throw();
+    schedule_type_already_exists_exception(schedule_registry::type_t const& type) throw();
     /**
      * \brief Destructor.
      */
-    ~schedule_type_already_exists() throw();
+    ~schedule_type_already_exists_exception() throw();
 
     /// The type that was requested from the \link schedule_registry schedule registry\endlink.
     schedule_registry::type_t const m_type;

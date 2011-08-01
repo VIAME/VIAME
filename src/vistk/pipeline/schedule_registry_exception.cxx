@@ -17,8 +17,8 @@
 namespace vistk
 {
 
-no_such_schedule_type
-::no_such_schedule_type(schedule_registry::type_t const& type) throw()
+no_such_schedule_type_exception
+::no_such_schedule_type_exception(schedule_registry::type_t const& type) throw()
   : schedule_registry_exception()
   , m_type(type)
 {
@@ -30,20 +30,20 @@ no_such_schedule_type
   m_what = sstr.str();
 }
 
-no_such_schedule_type
-::~no_such_schedule_type() throw()
+no_such_schedule_type_exception
+::~no_such_schedule_type_exception() throw()
 {
 }
 
 char const*
-no_such_schedule_type
+no_such_schedule_type_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-schedule_type_already_exists
-::schedule_type_already_exists(schedule_registry::type_t const& type) throw()
+schedule_type_already_exists_exception
+::schedule_type_already_exists_exception(schedule_registry::type_t const& type) throw()
   : schedule_registry_exception()
   , m_type(type)
 {
@@ -55,13 +55,13 @@ schedule_type_already_exists
   m_what = sstr.str();
 }
 
-schedule_type_already_exists
-::~schedule_type_already_exists() throw()
+schedule_type_already_exists_exception
+::~schedule_type_already_exists_exception() throw()
 {
 }
 
 char const*
-schedule_type_already_exists
+schedule_type_already_exists_exception
 ::what() const throw()
 {
   return m_what.c_str();

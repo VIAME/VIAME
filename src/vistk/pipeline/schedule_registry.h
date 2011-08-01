@@ -55,7 +55,7 @@ class VISTK_PIPELINE_EXPORT schedule_registry
     /**
      * \brief Adds a schedule type to the registry.
      *
-     * \throws schedule_type_already_exists Thrown if the type already exists.
+     * \throws schedule_type_already_exists_exception Thrown if the type already exists.
      *
      * \param type The name of the \ref schedule type.
      * \param desc A description of the type.
@@ -65,7 +65,7 @@ class VISTK_PIPELINE_EXPORT schedule_registry
     /**
      * \brief Creates schedule of a specific type.
      *
-     * \throws no_such_schedule_type Thrown if the type is not known.
+     * \throws no_such_schedule_type_exception Thrown if the type is not known.
      *
      * \param type The name of the type of \ref schedule to create.
      * \param config The configuration to pass the \ref schedule.

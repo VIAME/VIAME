@@ -38,7 +38,7 @@ schedule_registry
 {
   if (m_registry.find(type) != m_registry.end())
   {
-    throw schedule_type_already_exists(type);
+    throw schedule_type_already_exists_exception(type);
   }
 
   m_registry[type] = schedule_typeinfo_t(desc, ctor);
@@ -52,7 +52,7 @@ schedule_registry
 
   if (i == m_registry.end())
   {
-    throw no_such_schedule_type(type);
+    throw no_such_schedule_type_exception(type);
   }
 
   return i->second.get<1>()(config, pipe);
@@ -80,7 +80,7 @@ schedule_registry
 
   if (i == m_registry.end())
   {
-    throw no_such_schedule_type(type);
+    throw no_such_schedule_type_exception(type);
   }
 
   return i->second.get<0>();
