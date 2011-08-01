@@ -300,7 +300,7 @@ pipeline
 
   if (!d->process_map.size())
   {
-    /// \todo The pipeline has no processes in it.
+    throw no_processes_exception();
   }
 
   name_set_t procs;
@@ -381,7 +381,7 @@ pipeline
 
   if (procs.size() != d->process_map.size())
   {
-    /// \todo We have orphaned processes in the pipeline.
+    throw orphaned_processes_exception();
   }
 
   /// \todo Check for required grouping input/output ports.
