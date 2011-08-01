@@ -123,8 +123,8 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Set the process which is connected to the input side of the edge.
      *
-     * \throws null_process_connection Thrown if \p process is \c NULL.
-     * \throws input_already_connected Thrown if a process is already connected.
+     * \throws null_process_connection_exception Thrown if \p process is \c NULL.
+     * \throws input_already_connected_exception Thrown if a process is already connected.
      *
      * \param process The process which can push data into the edge.
      */

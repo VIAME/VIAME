@@ -153,12 +153,12 @@ edge
 {
   if (!process)
   {
-    throw null_process_connection();
+    throw null_process_connection_exception();
   }
 
   if (d->upstream)
   {
-    throw input_already_connected(d->upstream->name(), process->name());
+    throw input_already_connected_exception(d->upstream->name(), process->name());
   }
 
   d->upstream = process;
@@ -170,12 +170,12 @@ edge
 {
   if (!process)
   {
-    throw null_process_connection();
+    throw null_process_connection_exception();
   }
 
   if (d->downstream)
   {
-    throw output_already_connected(d->downstream->name(), process->name());
+    throw output_already_connected_exception(d->downstream->name(), process->name());
   }
 
   d->downstream = process;

@@ -17,8 +17,8 @@
 namespace vistk
 {
 
-null_process_connection
-::null_process_connection() throw()
+null_process_connection_exception
+::null_process_connection_exception() throw()
   : edge_connection_exception()
 {
   std::ostringstream sstr;
@@ -28,13 +28,13 @@ null_process_connection
   m_what = sstr.str();
 }
 
-null_process_connection
-::~null_process_connection() throw()
+null_process_connection_exception
+::~null_process_connection_exception() throw()
 {
 }
 
 char const*
-null_process_connection
+null_process_connection_exception
 ::what() const throw()
 {
   return m_what.c_str();
@@ -68,25 +68,25 @@ duplicate_edge_connection_exception
   return m_what.c_str();
 }
 
-input_already_connected
-::input_already_connected(process::name_t const& process, process::name_t const& new_process) throw()
+input_already_connected_exception
+::input_already_connected_exception(process::name_t const& process, process::name_t const& new_process) throw()
   : duplicate_edge_connection_exception(process, new_process, "input")
 {
 }
 
-input_already_connected
-::~input_already_connected() throw()
+input_already_connected_exception
+::~input_already_connected_exception() throw()
 {
 }
 
-output_already_connected
-::output_already_connected(process::name_t const& process, process::name_t const& new_process) throw()
+output_already_connected_exception
+::output_already_connected_exception(process::name_t const& process, process::name_t const& new_process) throw()
   : duplicate_edge_connection_exception(process, new_process, "output")
 {
 }
 
-output_already_connected
-::~output_already_connected() throw()
+output_already_connected_exception
+::~output_already_connected_exception() throw()
 {
 }
 

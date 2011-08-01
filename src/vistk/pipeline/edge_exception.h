@@ -49,24 +49,24 @@ class VISTK_PIPELINE_EXPORT edge_connection_exception
 };
 
 /**
- * \class null_process_connection edge_exception.h <vistk/pipeline/edge_exception.h>
+ * \class null_process_connection_exception edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief Thrown when a \c NULL is given to connect to an \ref edge.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_process_connection
+class VISTK_PIPELINE_EXPORT null_process_connection_exception
   : public edge_connection_exception
 {
   public:
     /**
      * \brief Constructor.
      */
-    null_process_connection() throw();
+    null_process_connection_exception() throw();
     /**
      * \brief Destructor.
      */
-    ~null_process_connection() throw();
+    ~null_process_connection_exception() throw();
 
     /**
      * \brief A description of the exception.
@@ -118,13 +118,13 @@ class VISTK_PIPELINE_EXPORT duplicate_edge_connection_exception
 };
 
 /**
- * \class input_already_connected edge_exception.h <vistk/pipeline/edge_exception.h>
+ * \class input_already_connected_exception edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief Thrown when an \ref edge already has an input process set.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT input_already_connected
+class VISTK_PIPELINE_EXPORT input_already_connected_exception
   : public duplicate_edge_connection_exception
 {
   public:
@@ -134,21 +134,21 @@ class VISTK_PIPELINE_EXPORT input_already_connected
      * \param process The name of the process that was already connected.
      * \param new_process The name of the process which was attemted to be connected.
      */
-    input_already_connected(process::name_t const& process, process::name_t const& new_process) throw();
+    input_already_connected_exception(process::name_t const& process, process::name_t const& new_process) throw();
     /**
      * \brief Destructor.
      */
-    ~input_already_connected() throw();
+    ~input_already_connected_exception() throw();
 };
 
 /**
- * \class output_already_connected edge_exception.h <vistk/pipeline/edge_exception.h>
+ * \class output_already_connected_exception edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief Thrown when an \ref edge already has an output process set.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT output_already_connected
+class VISTK_PIPELINE_EXPORT output_already_connected_exception
   : public duplicate_edge_connection_exception
 {
   public:
@@ -158,11 +158,11 @@ class VISTK_PIPELINE_EXPORT output_already_connected
      * \param process The name of the process that was already connected.
      * \param new_process The name of the process which was attemted to be connected.
      */
-    output_already_connected(process::name_t const& process, process::name_t const& new_process) throw();
+    output_already_connected_exception(process::name_t const& process, process::name_t const& new_process) throw();
     /**
      * \brief Destructor.
      */
-    ~output_already_connected() throw();
+    ~output_already_connected_exception() throw();
 };
 
 } // end namespace vistk
