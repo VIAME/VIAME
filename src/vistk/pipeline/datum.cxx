@@ -72,8 +72,8 @@ datum
 {
 }
 
-bad_datum_cast
-::bad_datum_cast(datum::datum_type_t const& type, char const* reason) throw()
+bad_datum_cast_exception
+::bad_datum_cast_exception(datum::datum_type_t const& type, char const* reason) throw()
   : datum_exception()
   , m_type(type)
   , m_reason(reason)
@@ -86,13 +86,13 @@ bad_datum_cast
   m_what = sstr.str();
 }
 
-bad_datum_cast
-::~bad_datum_cast() throw()
+bad_datum_cast_exception
+::~bad_datum_cast_exception() throw()
 {
 }
 
 char const*
-bad_datum_cast
+bad_datum_cast_exception
 ::what() const throw()
 {
   return m_what.c_str();

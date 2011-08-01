@@ -97,7 +97,7 @@ class VISTK_PIPELINE_EXPORT datum
     /**
      * \brief Extract a result from a datum.
      *
-     * \throws bad_datum_cast Thrown when the data cannot be cast as requested.
+     * \throws bad_datum_cast_exception Thrown when the data cannot be cast as requested.
      *
      * \returns The result contained within the datum.
      */
@@ -124,11 +124,11 @@ class VISTK_PIPELINE_EXPORT datum_exception
 };
 
 /**
- * \class bad_datum_cast datum.h <vistk/pipeline/datum.h>
+ * \class bad_datum_cast_exception datum.h <vistk/pipeline/datum.h>
  *
  * \brief Thrown when the \ref datum cannot be converted to the requested type.
  */
-class VISTK_PIPELINE_EXPORT bad_datum_cast
+class VISTK_PIPELINE_EXPORT bad_datum_cast_exception
   : public datum_exception
 {
   public:
@@ -138,11 +138,11 @@ class VISTK_PIPELINE_EXPORT bad_datum_cast
      * \param type The type that was requested.
      * \param reason The reason for the bad cast.
      */
-    bad_datum_cast(datum::datum_type_t const& type, char const* reason) throw();
+    bad_datum_cast_exception(datum::datum_type_t const& type, char const* reason) throw();
     /**
      * \brief Destructor.
      */
-    ~bad_datum_cast() throw();
+    ~bad_datum_cast_exception() throw();
 
     /// The datum type.
     datum::datum_type_t const m_type;
@@ -176,7 +176,7 @@ datum::get_datum() const
   }
   catch (boost::bad_any_cast& e)
   {
-    throw bad_datum_cast(m_type, e.what());
+    throw bad_datum_cast_exception(m_type, e.what());
   }
 }
 
