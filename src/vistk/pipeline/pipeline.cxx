@@ -8,6 +8,7 @@
 #include "pipeline_exception.h"
 
 #include "edge.h"
+#include "process_exception.h"
 
 #include <boost/foreach.hpp>
 
@@ -41,12 +42,17 @@ class pipeline::priv
     typedef std::pair<input_port_mapping_t, output_port_mapping_t> port_mapping_t;
     typedef std::map<process::name_t, port_mapping_t> group_t;
 
+    typedef std::map<process::name_t, process::ports_t> connected_mappings_t;
+
     connections_t connections;
 
     process_map_t process_map;
     edge_map_t edge_map;
 
     group_t groups;
+
+    connected_mappings_t used_input_mappings;
+    connected_mappings_t used_output_mappings;
 };
 
 pipeline
@@ -131,6 +137,8 @@ pipeline
       connect(mapped_port_addr.first, mapped_port_addr.second,
               downstream_process, downstream_port);
 
+      d->used_output_mappings[upstream_process].push_back(upstream_port);
+
       return;
     }
   }
@@ -152,6 +160,8 @@ pipeline
         connect(upstream_process, upstream_port,
                 port_addr.first, port_addr.second);
       }
+
+      d->used_input_mappings[downstream_process].push_back(downstream_port);
 
       return;
     }
@@ -355,6 +365,24 @@ pipeline
       process::ports_t const input_ports = input_ports_for_group(cur_group);
       BOOST_FOREACH (process::port_t const& port, input_ports)
       {
+        // Check for required flags.
+        process::port_flags_t const mapped_port_flags = mapped_group_input_port_flags(cur_group, port);
+
+        process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
+        if (i != mapped_port_flags.end())
+        {
+          priv::connected_mappings_t& connections = d->used_input_mappings;
+
+          priv::connected_mappings_t::const_iterator const c = connections.find(cur_group);
+
+          if (c == connections.end())
+          {
+            static std::string const reason = "The input mapping has the required flag.";
+
+            throw missing_connection_exception(cur_group, port, reason);
+          }
+        }
+
         // Mark mapped ports as connected.
         process::port_addrs_t const mapped_ports = mapped_group_input_ports(cur_group, port);
 
@@ -365,6 +393,24 @@ pipeline
       process::ports_t const output_ports = output_ports_for_group(cur_group);
       BOOST_FOREACH (process::port_t const& port, output_ports)
       {
+        // Check for required flags.
+        process::port_flags_t const mapped_port_flags = mapped_group_output_port_flags(cur_group, port);
+
+        process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
+        if (i != mapped_port_flags.end())
+        {
+          priv::connected_mappings_t& connections = d->used_input_mappings;
+
+          priv::connected_mappings_t::const_iterator const c = connections.find(cur_group);
+
+          if (c == connections.end())
+          {
+            static std::string const reason = "The output mapping has the required flag.";
+
+            throw missing_connection_exception(cur_group, port, reason);
+          }
+        }
+
         // Mark mapped ports as connected.
         process::port_addr_t const mapped_port = mapped_group_output_port(cur_group, port);
 
@@ -383,8 +429,6 @@ pipeline
   {
     throw orphaned_processes_exception();
   }
-
-  /// \todo Check for required grouping input/output ports.
 }
 
 process::names_t
