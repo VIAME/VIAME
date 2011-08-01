@@ -250,6 +250,78 @@ class VISTK_PIPELINE_EXPORT connection_flag_mismatch_exception
 };
 
 /**
+ * \class pipeline_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief The base class for all exceptions thrown from a \ref pipeline due to issues when setting up a pipeline.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT pipeline_setup_exception
+  : public pipeline_exception
+{
+};
+
+/**
+ * \class no_processes_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a \ref pipeline has no processes in it.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT no_processes_exception
+  : public pipeline_setup_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    no_processes_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~no_processes_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
+ * \class orphaned_processes_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a \ref pipeline has orphaned processes in it.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT orphaned_processes_exception
+  : public pipeline_setup_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    orphaned_processes_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~orphaned_processes_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class no_such_group_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a group is requested that does not exist in a \ref pipeline.

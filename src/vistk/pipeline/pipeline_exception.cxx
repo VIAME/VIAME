@@ -166,6 +166,52 @@ connection_flag_mismatch_exception
   return m_what.c_str();
 }
 
+no_processes_exception
+::no_processes_exception() throw()
+  : pipeline_setup_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "The pipeline was setup without any processes in it.";
+
+  m_what = sstr.str();
+}
+
+no_processes_exception
+::~no_processes_exception() throw()
+{
+}
+
+char const*
+no_processes_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
+orphaned_processes_exception
+::orphaned_processes_exception() throw()
+  : pipeline_setup_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "There are unconnected processes in the pipeline.";
+
+  m_what = sstr.str();
+}
+
+orphaned_processes_exception
+::~orphaned_processes_exception() throw()
+{
+}
+
+char const*
+orphaned_processes_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 no_such_group_exception
 ::no_such_group_exception(process::name_t const& name) throw()
   : pipeline_exception()
