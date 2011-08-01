@@ -253,6 +253,30 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     process::ports_t output_ports_for_group(process::name_t const& name) const;
     /**
+     * \brief Flags on an input port on a group.
+     *
+     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_port Thrown when \p port is not an input port on the group.
+     *
+     * \param name The name of the group.
+     * \param port The name of the port.
+     *
+     * \returns The flags on the input port \p port for \p name.
+     */
+    process::port_flags_t mapped_group_input_port_flags(process::name_t const& name, process::port_t const& port) const;
+    /**
+     * \brief Flags on an output port on a group.
+     *
+     * \throws no_such_group Thrown when \p name does not exist in the pipeline.
+     * \throws no_such_group_port Thrown when \p port is not an output port on the group.
+     *
+     * \param name The name of the group.
+     * \param port The name of the port.
+     *
+     * \returns The flags on the output port \p port for \p name.
+     */
+    process::port_flags_t mapped_group_output_port_flags(process::name_t const& name, process::port_t const& port) const;
+    /**
      * \brief Ports that are mapped to the group input port.
      *
      * \throws no_such_group Thrown when \p name does not exist in the pipeline.

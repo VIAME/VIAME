@@ -384,7 +384,7 @@ pipeline
     /// \todo We have orphaned processes in the pipeline.
   }
 
-  /// \todo Check for required grouping input/output ports (requires flags for ports).
+  /// \todo Check for required grouping input/output ports.
 }
 
 process::names_t
@@ -656,6 +656,52 @@ pipeline
   }
 
   return ports;
+}
+
+process::port_flags_t
+pipeline
+::mapped_group_input_port_flags(process::name_t const& name, process::port_t const& port) const
+{
+  priv::group_t::const_iterator const group_it = d->groups.find(name);
+
+  if (group_it == d->groups.end())
+  {
+    throw no_such_group(name);
+  }
+
+  priv::input_port_mapping_t const& mapping = group_it->second.first;
+
+  priv::input_port_mapping_t::const_iterator const mapping_it = mapping.find(port);
+
+  if (mapping_it == mapping.end())
+  {
+    throw no_such_group_port(name, port);
+  }
+
+  return mapping_it->second.get<0>();
+}
+
+process::port_flags_t
+pipeline
+::mapped_group_output_port_flags(process::name_t const& name, process::port_t const& port) const
+{
+  priv::group_t::const_iterator const group_it = d->groups.find(name);
+
+  if (group_it == d->groups.end())
+  {
+    throw no_such_group(name);
+  }
+
+  priv::output_port_mapping_t const& mapping = group_it->second.second;
+
+  priv::output_port_mapping_t::const_iterator const mapping_it = mapping.find(port);
+
+  if (mapping_it == mapping.end())
+  {
+    throw no_such_group_port(name, port);
+  }
+
+  return mapping_it->second.get<0>();
 }
 
 process::port_addrs_t
