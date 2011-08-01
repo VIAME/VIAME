@@ -117,6 +117,8 @@ class VISTK_PIPELINE_EXPORT datum
  * \class datum_exception datum.h <vistk/pipeline/datum.h>
  *
  * \brief The base class for all exceptions thrown from \ref datum.
+ *
+ * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT datum_exception
   : public pipeline_exception
@@ -127,6 +129,8 @@ class VISTK_PIPELINE_EXPORT datum_exception
  * \class bad_datum_cast_exception datum.h <vistk/pipeline/datum.h>
  *
  * \brief Thrown when the \ref datum cannot be converted to the requested type.
+ *
+ * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT bad_datum_cast_exception
   : public datum_exception

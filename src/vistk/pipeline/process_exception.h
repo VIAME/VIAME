@@ -101,6 +101,8 @@ class VISTK_PIPELINE_EXPORT no_such_port_exception
  * \class null_edge_port_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection to a port is given an \ref edge that is \c NULL.
+ *
+ * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT null_edge_port_connection_exception
   : public port_connection_exception
@@ -132,6 +134,8 @@ class VISTK_PIPELINE_EXPORT null_edge_port_connection_exception
  * \class port_reconnect_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a port that is already connected is connected to again.
+ *
+ * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT port_reconnect_exception
   : public port_connection_exception

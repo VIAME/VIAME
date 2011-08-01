@@ -195,6 +195,8 @@ class VISTK_PIPELINE_EXPORT config
  * \class configuration_exception config.h <vistk/pipeline/config.h>
  *
  * \brief The base class for all exceptions thrown from \ref config.
+ *
+ * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT configuration_exception
   : public pipeline_exception
@@ -205,6 +207,8 @@ class VISTK_PIPELINE_EXPORT configuration_exception
  * \class no_such_configuration_value_exception config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value is requested for a value which does not exist.
+ *
+ * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT no_such_configuration_value_exception
   : public configuration_exception
@@ -238,6 +242,8 @@ class VISTK_PIPELINE_EXPORT no_such_configuration_value_exception
  * \class bad_configuration_cast_exception config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value cannot be converted to the requested type.
+ *
+ * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT bad_configuration_cast_exception
   : public configuration_exception
@@ -280,6 +286,8 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast_exception
  * \class set_on_read_only_value_exception config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value is set but is marked as read-only.
+ *
+ * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT set_on_read_only_value_exception
   : public configuration_exception
@@ -319,6 +327,8 @@ class VISTK_PIPELINE_EXPORT set_on_read_only_value_exception
  * \class unset_on_read_only_value_exception config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value is unset but is marked as read-only.
+ *
+ * \ingroup exceptions
  */
 class VISTK_PIPELINE_EXPORT unset_on_read_only_value_exception
   : public configuration_exception
