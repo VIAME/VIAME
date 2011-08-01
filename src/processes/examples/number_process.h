@@ -83,17 +83,26 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     void _step();
 
     /**
-     * \brief Connects an edge to the output port.
+     * \brief Connects an edge to an output port on the process.
+     *
+     * \param port The port to connect to.
+     * \param edge The edge to connect to the port.
      */
     void _connect_output_port(port_t const& port, edge_t edge);
-
     /**
-     * \brief Subclass output port types.
+     * \brief The type of data that is available on an output port.
+     *
+     * \param port The port to return the type of.
+     *
+     * \returns The type of data available.
      */
     port_type_t _output_port_type(port_t const& port) const;
-
     /**
-     * \brief Subclass output port descriptions.
+     * \brief Describe output ports on the process.
+     *
+     * \param port The port to describe.
+     *
+     * \returns A description of the port.
      */
     port_description_t _output_port_description(port_t const& port) const;
 

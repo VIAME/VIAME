@@ -115,12 +115,6 @@ number_process
   {
     throw invalid_configuration_exception(name(), "The start value must be greater than the end value");
   }
-
-  // Ensure the output port is connected.
-  if (!d->output_edges.size())
-  {
-    throw missing_connection_exception(name(), priv::OUTPUT_PORT_NAME, "The " + type() + " process is not much use without something out output to");
-  }
 }
 
 void
@@ -171,7 +165,9 @@ number_process
 
     flags.insert(flag_required);
 
-    return port_type_t("unsigned", flags);
+    process::port_type_name_t const type_name = "integer";
+
+    return port_type_t(type_name, flags);
   }
 
   process::_output_port_type(port);
@@ -183,8 +179,7 @@ number_process
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
-    /// \todo Describe this port.
-    return port_description_t();
+    return port_description_t("Where the numbers will be available");
   }
 
   process::_output_port_description(port);
