@@ -81,7 +81,7 @@ config
   {
     if (is_read_only(key))
     {
-      throw set_on_read_only_value(key, get_value<value_t>(key, value_t()), value);
+      throw set_on_read_only_value_exception(key, get_value<value_t>(key, value_t()), value);
     }
 
     m_store[key] = value;
@@ -100,7 +100,7 @@ config
   {
     if (is_read_only(key))
     {
-      throw unset_on_read_only_value(key, get_value<value_t>(key, value_t()));
+      throw unset_on_read_only_value_exception(key, get_value<value_t>(key, value_t()));
     }
 
     m_store.erase(key);
@@ -211,8 +211,8 @@ config
   return i->second;
 }
 
-no_such_configuration_value
-::no_such_configuration_value(config::key_t const& key) throw()
+no_such_configuration_value_exception
+::no_such_configuration_value_exception(config::key_t const& key) throw()
   : configuration_exception()
   , m_key(key)
 {
@@ -224,20 +224,20 @@ no_such_configuration_value
   m_what = sstr.str();
 }
 
-no_such_configuration_value
-::~no_such_configuration_value() throw()
+no_such_configuration_value_exception
+::~no_such_configuration_value_exception() throw()
 {
 }
 
 char const*
-no_such_configuration_value
+no_such_configuration_value_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-bad_configuration_cast
-::bad_configuration_cast(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) throw()
+bad_configuration_cast_exception
+::bad_configuration_cast_exception(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) throw()
   : configuration_exception()
   , m_key(key)
   , m_value(value)
@@ -253,20 +253,20 @@ bad_configuration_cast
   m_what = sstr.str();
 }
 
-bad_configuration_cast
-::~bad_configuration_cast() throw()
+bad_configuration_cast_exception
+::~bad_configuration_cast_exception() throw()
 {
 }
 
 char const*
-bad_configuration_cast
+bad_configuration_cast_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-set_on_read_only_value
-::set_on_read_only_value(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) throw()
+set_on_read_only_value_exception
+::set_on_read_only_value_exception(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) throw()
   : configuration_exception()
   , m_key(key)
   , m_value(value)
@@ -282,20 +282,20 @@ set_on_read_only_value
   m_what = sstr.str();
 }
 
-set_on_read_only_value
-::~set_on_read_only_value() throw()
+set_on_read_only_value_exception
+::~set_on_read_only_value_exception() throw()
 {
 }
 
 char const*
-set_on_read_only_value
+set_on_read_only_value_exception
 ::what() const throw()
 {
   return m_what.c_str();
 }
 
-unset_on_read_only_value
-::unset_on_read_only_value(config::key_t const& key, config::value_t const& value) throw()
+unset_on_read_only_value_exception
+::unset_on_read_only_value_exception(config::key_t const& key, config::value_t const& value) throw()
   : configuration_exception()
   , m_key(key)
   , m_value(value)
@@ -310,13 +310,13 @@ unset_on_read_only_value
   m_what = sstr.str();
 }
 
-unset_on_read_only_value
-::~unset_on_read_only_value() throw()
+unset_on_read_only_value_exception
+::~unset_on_read_only_value_exception() throw()
 {
 }
 
 char const*
-unset_on_read_only_value
+unset_on_read_only_value_exception
 ::what() const throw()
 {
   return m_what.c_str();

@@ -91,8 +91,8 @@ class VISTK_PIPELINE_EXPORT config
     /**
      * \brief Internally casts the value.
      *
-     * \throw no_such_configuration_value Thrown if the requested index does not exist.
-     * \throw bad_configuration_cast Thrown if the cast fails.
+     * \throws no_such_configuration_value_exception Thrown if the requested index does not exist.
+     * \throws bad_configuration_cast_exception Thrown if the cast fails.
      *
      * \param key The index of the configuration value to retrieve.
      *
@@ -114,7 +114,7 @@ class VISTK_PIPELINE_EXPORT config
     /**
      * \brief Sets a value within the configuration.
      *
-     * \throws set_on_read_only_value Thrown if \p key is marked as read-only.
+     * \throws set_on_read_only_value_exception Thrown if \p key is marked as read-only.
      *
      * \param key The index of the configuration value to set.
      * \param value The value to set for the \p key.
@@ -124,7 +124,7 @@ class VISTK_PIPELINE_EXPORT config
     /**
      * \brief Removes a value from the configuration.
      *
-     * \throws unset_on_read_only_value Thrown if \p key is marked as read-only.
+     * \throws unset_on_read_only_value_exception Thrown if \p key is marked as read-only.
      *
      * \param key The index of the configuration value to unset.
      */
@@ -150,7 +150,7 @@ class VISTK_PIPELINE_EXPORT config
      *
      * \note Any values currently set within \c *this will be overwritten if conficts occur.
      *
-     * \throws set_on_read_only_value Thrown if \p key is marked as read-only.
+     * \throws set_on_read_only_value_exception Thrown if \p key is marked as read-only.
      *
      * \param config The other configuration.
      */
@@ -202,11 +202,11 @@ class VISTK_PIPELINE_EXPORT configuration_exception
 };
 
 /**
- * \class no_such_configuration_value config.h <vistk/pipeline/config.h>
+ * \class no_such_configuration_value_exception config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value is requested for a value which does not exist.
  */
-class VISTK_PIPELINE_EXPORT no_such_configuration_value
+class VISTK_PIPELINE_EXPORT no_such_configuration_value_exception
   : public configuration_exception
 {
   public:
@@ -215,11 +215,11 @@ class VISTK_PIPELINE_EXPORT no_such_configuration_value
      *
      * \param key The key that was requested from the configuration.
      */
-    no_such_configuration_value(config::key_t const& key) throw();
+    no_such_configuration_value_exception(config::key_t const& key) throw();
     /**
      * \brief Destructor.
      */
-    ~no_such_configuration_value() throw();
+    ~no_such_configuration_value_exception() throw();
 
     /// The requested key name.
     config::key_t const m_key;
@@ -235,11 +235,11 @@ class VISTK_PIPELINE_EXPORT no_such_configuration_value
 };
 
 /**
- * \class bad_configuration_cast config.h <vistk/pipeline/config.h>
+ * \class bad_configuration_cast_exception config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value cannot be converted to the requested type.
  */
-class VISTK_PIPELINE_EXPORT bad_configuration_cast
+class VISTK_PIPELINE_EXPORT bad_configuration_cast_exception
   : public configuration_exception
 {
   public:
@@ -251,11 +251,11 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast
      * \param type The type that was requested.
      * \param reason The reason for the bad cast.
      */
-    bad_configuration_cast(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) throw();
+    bad_configuration_cast_exception(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) throw();
     /**
      * \brief Destructor.
      */
-    ~bad_configuration_cast() throw();
+    ~bad_configuration_cast_exception() throw();
 
     /// The requested key name.
     config::key_t const m_key;
@@ -277,11 +277,11 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast
 };
 
 /**
- * \class set_on_read_only_value config.h <vistk/pipeline/config.h>
+ * \class set_on_read_only_value_exception config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value is set but is marked as read-only.
  */
-class VISTK_PIPELINE_EXPORT set_on_read_only_value
+class VISTK_PIPELINE_EXPORT set_on_read_only_value_exception
   : public configuration_exception
 {
   public:
@@ -292,11 +292,11 @@ class VISTK_PIPELINE_EXPORT set_on_read_only_value
      * \param value The current read-only value of \p key.
      * \param new_value The value that was attempted to be set.
      */
-    set_on_read_only_value(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) throw();
+    set_on_read_only_value_exception(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) throw();
     /**
      * \brief Destructor.
      */
-    ~set_on_read_only_value() throw();
+    ~set_on_read_only_value_exception() throw();
 
     /// The requested key name.
     config::key_t const m_key;
@@ -316,11 +316,11 @@ class VISTK_PIPELINE_EXPORT set_on_read_only_value
 };
 
 /**
- * \class unset_on_read_only_value config.h <vistk/pipeline/config.h>
+ * \class unset_on_read_only_value_exception config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value is unset but is marked as read-only.
  */
-class VISTK_PIPELINE_EXPORT unset_on_read_only_value
+class VISTK_PIPELINE_EXPORT unset_on_read_only_value_exception
   : public configuration_exception
 {
   public:
@@ -330,11 +330,11 @@ class VISTK_PIPELINE_EXPORT unset_on_read_only_value
      * \param key The key that was requested from the configuration.
      * \param value The current value for \p key.
      */
-    unset_on_read_only_value(config::key_t const& key, config::value_t const& value) throw();
+    unset_on_read_only_value_exception(config::key_t const& key, config::value_t const& value) throw();
     /**
      * \brief Destructor.
      */
-    ~unset_on_read_only_value() throw();
+    ~unset_on_read_only_value_exception() throw();
 
     /// The requested key name.
     config::key_t const m_key;
@@ -360,7 +360,7 @@ config
 
   if (!value)
   {
-    throw no_such_configuration_value(key);
+    throw no_such_configuration_value_exception(key);
   }
 
   try
@@ -369,7 +369,7 @@ config
   }
   catch (boost::bad_lexical_cast& e)
   {
-    throw bad_configuration_cast(key, *value, typeid(T).name(), e.what());
+    throw bad_configuration_cast_exception(key, *value, typeid(T).name(), e.what());
   }
 }
 
