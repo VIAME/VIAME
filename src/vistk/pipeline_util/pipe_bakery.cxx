@@ -7,6 +7,7 @@
 #include "load_pipe.h"
 
 #include "pipe_declaration_types.h"
+#include "providers.h"
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process.h>
@@ -33,6 +34,10 @@ namespace
 {
 
 static config_flag_t const flag_read_only = config_flag_t("ro");
+
+static config_provider_t const provider_config = config_provider_t("CONF");
+static config_provider_t const provider_environment = config_provider_t("ENV");
+static config_provider_t const provider_system = config_provider_t("SYS");
 
 }
 
@@ -79,6 +84,20 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
     process_decls_t m_processes;
     connections_t m_connections;
     group_decls_t m_groups;
+};
+
+class VISTK_PIPELINE_UTIL_NO_EXPORT provider_dereferencer
+  : public boost::static_visitor<pipe_bakery::config_reference_t>
+{
+  public:
+    provider_dereferencer();
+    ~provider_dereferencer();
+
+    pipe_bakery::config_reference_t operator () (config::value_t const& value) const;
+    pipe_bakery::config_reference_t operator () (pipe_bakery::provider_request_t const& request) const;
+  private:
+    typedef std::map<config_provider_t, provider_t> provider_map_t;
+    provider_map_t m_providers;
 };
 
 pipeline_t
@@ -250,6 +269,38 @@ pipe_bakery
 ::flatten_keys(config::keys_t const& keys)
 {
   return boost::join(keys, config::block_sep);
+}
+
+provider_dereferencer
+::provider_dereferencer()
+{
+  m_providers[provider_system] = provider_t(new system_provider);
+  m_providers[provider_environment] = provider_t(new environment_provider);
+}
+
+provider_dereferencer
+::~provider_dereferencer()
+{
+}
+
+pipe_bakery::config_reference_t
+provider_dereferencer
+::operator () (config::value_t const& value) const
+{
+  return value;
+}
+
+pipe_bakery::config_reference_t
+provider_dereferencer
+::operator () (pipe_bakery::provider_request_t const& request) const
+{
+  provider_map_t::const_iterator const i = m_providers.find(request.first);
+  if (i == m_providers.end())
+  {
+    return request;
+  }
+
+  return (*i->second)(request.second);
 }
 
 }
