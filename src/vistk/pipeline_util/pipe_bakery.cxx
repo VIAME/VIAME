@@ -109,6 +109,21 @@ bake_pipe_blocks(pipe_blocks const& blocks)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
 
+  // Build configuration.
+  {
+    // Dereference (non-configuration) providers.
+    {
+      BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+      {
+        pipe_bakery::config_reference_t& ref = decl.second.get<0>();
+
+        ref = boost::apply_visitor(provider_dereferencer(), ref);
+      }
+    }
+
+    /// \todo Dereference configuration providers.
+  }
+
   /// \todo Bake pipe blocks into a pipeline.
 
   return pipeline;
