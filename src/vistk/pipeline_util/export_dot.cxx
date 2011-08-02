@@ -11,6 +11,12 @@
 
 #include <boost/foreach.hpp>
 
+/**
+ * \file export_dot.cxx
+ *
+ * \brief Implementation of dot exporting.
+ */
+
 namespace vistk
 {
 
