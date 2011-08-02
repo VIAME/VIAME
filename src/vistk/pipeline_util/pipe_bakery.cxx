@@ -104,7 +104,14 @@ void
 pipe_bakery
 ::operator () (config_pipe_block const& config_block)
 {
-  /// \todo Implement.
+  config::key_t const root_key = flatten_keys(config_block.key);
+
+  config_values_t const& values = config_block.values;
+
+  BOOST_FOREACH (config_value_t const& value, values)
+  {
+    register_config_value(root_key, value);
+  }
 }
 
 void
