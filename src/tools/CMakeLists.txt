@@ -12,3 +12,11 @@ target_link_libraries(pipe_to_dot
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
+
+add_executable(processopedia
+  processopedia.cxx)
+target_link_libraries(processopedia
+  vistk_pipeline
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
