@@ -241,10 +241,11 @@
  *   <map-flags>           ::= <map-flag> <map-separator> <map-flag> | <map-flag>
  *   <map-flag-decl>       ::= <flag-start> <map-flags> <flag-close>
  *   <map-options>         ::= <map-flag-decl> | ""
- *   <map-decl>            ::= "map" <map-options>
- *   <input-mapping-spec>  ::= <opt-whitespace> <map-decl> <whitespace> "from" <whitespace> <port-name> <line-end>
+ *   <input-map-decl>      ::= "imap" <map-options>
+ *   <output-map-decl>     ::= "omap" <map-options>
+ *   <input-mapping-spec>  ::= <opt-whitespace> <input-map-decl> <whitespace> "from" <whitespace> <port-name> <line-end>
  *                             <opt-whitespace> "to" <port-addr> <line-end>
- *   <output-mapping-spec> ::= <opt-whitespace> <map-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
+ *   <output-mapping-spec> ::= <opt-whitespace> <output-map-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
  *                             <opt-whitespace> "to" <port-name> <line-end>
  *   <group-decl>          ::= <partial-config-spec> | <input-mapping-spec> | <output-mapping-spec>
  *   <group-decls>         ::= <group-decl> <group-decls> | ""
