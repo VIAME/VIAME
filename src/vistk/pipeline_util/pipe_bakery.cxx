@@ -148,7 +148,51 @@ void
 pipe_bakery
 ::operator () (group_pipe_block const& group_block)
 {
-  /// \todo Implement.
+  config_values_t const& values = group_block.config_values;
+
+  BOOST_FOREACH (config_value_t const& value, values)
+  {
+    register_config_value(group_block.name, value);
+  }
+
+  process::port_flags_t default_flags;
+
+  mappings_t input_mappings;
+
+  BOOST_FOREACH (input_map_t const& map, group_block.input_mappings)
+  {
+    process::port_flags_t flags = default_flags;
+
+    if (map.options.flags)
+    {
+      flags = *map.options.flags;
+    }
+
+    mapping_t const mapping = mapping_t(map.from, flags, map.to);
+
+    input_mappings.push_back(mapping);
+  }
+
+  mappings_t output_mappings;
+
+  BOOST_FOREACH (output_map_t const& map, group_block.output_mappings)
+  {
+    process::port_flags_t flags = default_flags;
+
+    if (map.options.flags)
+    {
+      flags = *map.options.flags;
+    }
+
+    mapping_t const mapping = mapping_t(map.to, flags, map.from);
+
+    output_mappings.push_back(mapping);
+  }
+
+  group_info_t const info = group_info_t(input_mappings, output_mappings);
+  group_decl_t const decl = group_decl_t(group_block.name, info);
+
+  m_groups.push_back(decl);
 }
 
 void
