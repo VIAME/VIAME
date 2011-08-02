@@ -129,6 +129,28 @@ bake_pipe_blocks(pipe_blocks const& blocks)
       }
     }
 
+    config_t conf = config::empty_config();
+
+    BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+    {
+      pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
+
+      config::key_t const key = decl.first;
+      config::value_t val;
+
+      // Only add provided configurations to the configuration.
+      try
+      {
+        val = boost::apply_visitor(ensure_provided(), ref);
+      }
+      catch (...)
+      {
+        continue;
+      }
+
+      conf->set_value(key, val);
+    }
+
     /// \todo Dereference configuration providers.
   }
 
