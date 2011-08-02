@@ -300,7 +300,16 @@ bake_pipe_blocks(pipe_blocks const& blocks)
     }
   }
 
-  /// \todo Bake pipe blocks into a pipeline.
+  // Make connections.
+  {
+    BOOST_FOREACH (pipe_bakery::connection_t const& conn, bakery.m_connections)
+    {
+      process::port_addr_t const& upstream = conn.first;
+      process::port_addr_t const& downstream = conn.second;
+
+      pipe->connect(upstream.first, upstream.second, downstream.first, downstream.second);
+    }
+  }
 
   return pipe;
 }
