@@ -10,6 +10,7 @@
 #include "providers.h"
 
 #include <vistk/pipeline/config.h>
+#include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
 
 #include <boost/algorithm/string/join.hpp>
@@ -35,6 +36,8 @@ namespace vistk
 
 namespace
 {
+
+static config::key_t const config_pipeline_key = config::key_t("_pipeline");
 
 static config_flag_t const flag_read_only = config_flag_t("ro");
 
@@ -241,6 +244,11 @@ bake_pipe_blocks(pipe_blocks const& blocks)
       }
     }
   }
+
+  // Create pipeline.
+  config_t const pipeline_conf = global_conf->subblock_view(config_pipeline_key);
+
+  pipe = pipeline_t(new pipeline(pipeline_conf));
 
   /// \todo Bake pipe blocks into a pipeline.
 
