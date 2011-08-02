@@ -103,7 +103,19 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::fil
   {
     std::string line;
 
-    std::getline(istr, line);
+    try
+    {
+      std::getline(istr, line);
+    }
+    catch (std::ios_base::failure&)
+    {
+      if (istr.eof())
+      {
+        break;
+      }
+
+      throw;
+    }
 
     boost::trim_left(line);
 
