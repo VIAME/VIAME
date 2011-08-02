@@ -192,4 +192,4 @@ edge::priv
 {
 }
 
-} // end namespace vistk
+}

@@ -79,6 +79,6 @@ class VISTK_PIPELINE_EXPORT pipeline_exception
 {
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_TYPES_H

@@ -73,6 +73,6 @@ class VISTK_PIPELINE_EXPORT schedule
     boost::shared_ptr<priv> d;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_SCHEDULE_H

@@ -305,4 +305,4 @@ group_output_already_mapped_exception
   return m_what.c_str();
 }
 
-} // end namespace vistk
+}

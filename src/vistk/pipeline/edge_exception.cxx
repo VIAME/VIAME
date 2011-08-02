@@ -90,4 +90,4 @@ output_already_connected_exception
 {
 }
 
-} // end namespace vistk
+}

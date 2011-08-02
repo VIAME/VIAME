@@ -121,6 +121,6 @@ class VISTK_PIPELINE_EXPORT stamp
     static color_t m_new_color;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_STAMP_H

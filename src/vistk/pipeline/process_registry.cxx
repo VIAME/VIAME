@@ -110,4 +110,4 @@ process_registry
 {
 }
 
-} // end namespace vistk
+}

@@ -416,4 +416,4 @@ process::priv
   }
 }
 
-} // end namespace vistk
+}

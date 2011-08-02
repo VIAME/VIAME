@@ -165,6 +165,6 @@ class VISTK_PIPELINE_EXPORT output_already_connected_exception
     ~output_already_connected_exception() throw();
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_EDGE_EXCEPTION_H

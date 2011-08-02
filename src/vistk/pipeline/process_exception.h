@@ -332,6 +332,6 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_exception
     std::string m_what;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_PROCESS_EXCEPTION_H

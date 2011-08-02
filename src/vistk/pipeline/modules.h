@@ -23,6 +23,6 @@ namespace vistk
  */
 void VISTK_PIPELINE_EXPORT load_known_modules();
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_MODULES_H

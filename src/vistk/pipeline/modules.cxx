@@ -242,4 +242,4 @@ bool is_separator(char ch)
   return (ch == separator);
 }
 
-} // end namespace vistk
+}

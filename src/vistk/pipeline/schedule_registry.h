@@ -109,6 +109,6 @@ class VISTK_PIPELINE_EXPORT schedule_registry
     schedule_store_t m_registry;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_SCHEDULE_REGISTRY_H

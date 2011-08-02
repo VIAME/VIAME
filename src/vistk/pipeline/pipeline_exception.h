@@ -449,6 +449,6 @@ class VISTK_PIPELINE_EXPORT group_output_already_mapped_exception
     std::string m_what;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_PIPELINE_EXCEPTION_H

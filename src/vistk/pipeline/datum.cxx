@@ -98,4 +98,4 @@ bad_datum_cast_exception
   return m_what.c_str();
 }
 
-} // end namespace vistk
+}

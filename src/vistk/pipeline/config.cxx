@@ -344,4 +344,4 @@ strip_block_name(config::key_t const& key)
   return key.substr(pos + 1);
 }
 
-} // end namespace vistk
+}

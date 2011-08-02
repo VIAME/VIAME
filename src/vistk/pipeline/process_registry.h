@@ -105,6 +105,6 @@ class VISTK_PIPELINE_EXPORT process_registry
     process_store_t m_registry;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_PROCESS_REGISTRY_H

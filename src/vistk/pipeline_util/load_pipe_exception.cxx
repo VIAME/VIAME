@@ -118,4 +118,4 @@ failed_to_parse
   return m_what.c_str();
 }
 
-} // end namespace vistk
+}

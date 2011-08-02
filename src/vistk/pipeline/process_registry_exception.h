@@ -105,6 +105,6 @@ class VISTK_PIPELINE_EXPORT process_type_already_exists_exception
     std::string m_what;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_PROCESS_REGISTRY_EXCEPTION_H

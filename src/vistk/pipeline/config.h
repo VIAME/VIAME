@@ -398,6 +398,6 @@ config
   }
 }
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_CONFIG_H

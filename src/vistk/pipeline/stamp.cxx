@@ -76,4 +76,4 @@ stamp
 {
 }
 
-} // end namespace vistk
+}

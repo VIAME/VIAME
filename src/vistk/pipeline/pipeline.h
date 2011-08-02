@@ -305,6 +305,6 @@ class VISTK_PIPELINE_EXPORT pipeline
     boost::shared_ptr<priv> d;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_PIPELINE_H

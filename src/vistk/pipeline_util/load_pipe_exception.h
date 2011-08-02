@@ -183,6 +183,6 @@ class VISTK_PIPELINE_UTIL_EXPORT failed_to_parse
     std::string m_what;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H

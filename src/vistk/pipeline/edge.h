@@ -143,6 +143,6 @@ class VISTK_PIPELINE_EXPORT edge
     boost::shared_ptr<priv> d;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_EDGE_H

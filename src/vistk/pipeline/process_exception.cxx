@@ -214,4 +214,4 @@ invalid_configuration_exception
   return m_what.c_str();
 }
 
-} // end namespace vistk
+}

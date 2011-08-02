@@ -53,4 +53,4 @@ schedule::priv
 {
 }
 
-} // end namespace vistk
+}

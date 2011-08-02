@@ -67,4 +67,4 @@ schedule_type_already_exists_exception
   return m_what.c_str();
 }
 
-} // end namespace vistk
+}

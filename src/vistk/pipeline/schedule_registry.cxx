@@ -111,4 +111,4 @@ schedule_registry
 {
 }
 
-} // end namespace vistk
+}

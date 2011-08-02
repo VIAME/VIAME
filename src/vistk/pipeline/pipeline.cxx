@@ -806,4 +806,4 @@ pipeline::priv
 {
 }
 
-} // end namespace vistk
+}

@@ -184,6 +184,6 @@ datum::get_datum() const
   }
 }
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PIPELINE_DATUM_H
