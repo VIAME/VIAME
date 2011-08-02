@@ -216,9 +216,9 @@ parse_pipe_blocks_from_string(std::string const& str)
   }
   catch (qi::expectation_failure<std::string::const_iterator>& e)
   {
-    std::stringstream sstr;
+    std::ostringstream sstr;
 
-    sstr << e.what_;
+    print_info(sstr, e.what_);
 
     throw failed_to_parse(sstr.str(), std::string(e.first, e.last));
   }
