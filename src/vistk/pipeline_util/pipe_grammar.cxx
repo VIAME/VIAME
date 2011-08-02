@@ -323,7 +323,7 @@ pipe_grammar<Iterator>
   partial_config_value_decl.name("partial-config-spec");
   partial_config_value_decl %=
      (  opt_whitespace
-     >  qi::lit(config_path_separator)
+     >> qi::lit(config_path_separator)
      >  config_key_full
      >  whitespace
      >  config_value
@@ -338,7 +338,7 @@ pipe_grammar<Iterator>
   config_block.name("config-block-spec");
   config_block %=
      (  opt_whitespace
-     >  qi::lit(config_block_name)
+     >> qi::lit(config_block_name)
      >  whitespace
      >  config_key_path
      >  line_end
@@ -365,7 +365,7 @@ pipe_grammar<Iterator>
   process_block.name("process-block-spec");
   process_block %=
      (  opt_whitespace
-     >  qi::lit(process_block_name)
+     >> qi::lit(process_block_name)
      >  whitespace
      >  process_name
      >  line_end
@@ -390,7 +390,7 @@ pipe_grammar<Iterator>
   connect_block.name("connect-block-spec");
   connect_block %=
      (  opt_whitespace
-     >  qi::lit(connect_block_name)
+     >> qi::lit(connect_block_name)
      >  whitespace
      >  qi::lit(from_name)
      >  whitespace
@@ -429,7 +429,7 @@ pipe_grammar<Iterator>
   input_map_block.name("input-mapping-spec");
   input_map_block %=
      (  opt_whitespace
-     >  qi::lit(input_map_block_name)
+     >> qi::lit(input_map_block_name)
      >  map_options
      >  whitespace
      >  qi::lit(from_name)
@@ -446,7 +446,7 @@ pipe_grammar<Iterator>
   output_map_block.name("output-mapping-spec");
   output_map_block %=
      (  opt_whitespace
-     >  qi::lit(output_map_block_name)
+     >> qi::lit(output_map_block_name)
      >  map_options
      >  whitespace
      >  qi::lit(from_name)
@@ -463,7 +463,7 @@ pipe_grammar<Iterator>
   group_block.name("group-block-spec");
   group_block %=
      (  opt_whitespace
-     >  qi::lit(group_block_name)
+     >> qi::lit(group_block_name)
      >  whitespace
      >  process_name
      >  line_end
