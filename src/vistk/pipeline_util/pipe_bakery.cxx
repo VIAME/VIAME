@@ -100,6 +100,14 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT provider_dereferencer
     provider_map_t m_providers;
 };
 
+class VISTK_PIPELINE_UTIL_NO_EXPORT ensure_provided
+  : public boost::static_visitor<config::value_t>
+{
+  public:
+    config::value_t operator () (config::value_t const& value) const;
+    config::value_t operator () (pipe_bakery::provider_request_t const& request) const;
+};
+
 pipeline_t
 bake_pipe_blocks(pipe_blocks const& blocks)
 {
@@ -316,6 +324,22 @@ provider_dereferencer
   }
 
   return (*i->second)(request.second);
+}
+
+config::value_t
+ensure_provided
+::operator () (config::value_t const& value) const
+{
+  return value;
+}
+
+config::value_t
+ensure_provided
+::operator () (pipe_bakery::provider_request_t const& /*request*/) const
+{
+  /// \todo Throw an exception.
+
+  return config::value_t();
 }
 
 }
