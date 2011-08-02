@@ -16,6 +16,7 @@
 #include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 
+#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -81,9 +82,13 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
 };
 
 pipeline_t
-bake_pipe_blocks(pipe_blocks const& /*blocks*/)
+bake_pipe_blocks(pipe_blocks const& blocks)
 {
   pipeline_t pipeline;
+
+  pipe_bakery bakery;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
 
   /// \todo Bake pipe blocks into a pipeline.
 
