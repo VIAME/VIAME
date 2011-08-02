@@ -59,7 +59,7 @@ class VISTK_PIPELINE_UTIL_EXPORT file_no_exist_exception
     ~file_no_exist_exception() throw();
 
     /// The path that does not exist.
-    boost::filesystem::path const& m_fname;
+    boost::filesystem::path const m_fname;
 
     /**
      * \brief A description of the exception.
@@ -94,7 +94,7 @@ class VISTK_PIPELINE_UTIL_EXPORT file_open_exception
     ~file_open_exception() throw();
 
     /// The path that was unable to be loaded.
-    boost::filesystem::path const& m_fname;
+    boost::filesystem::path const m_fname;
 
     /**
      * \brief A description of the exception.
@@ -129,7 +129,7 @@ class VISTK_PIPELINE_UTIL_EXPORT stream_failure_exception
     ~stream_failure_exception() throw();
 
     /// The message given for the stream failure.
-    std::string const& m_msg;
+    std::string const m_msg;
 
     /**
      * \brief A description of the exception.
@@ -165,9 +165,9 @@ class VISTK_PIPELINE_UTIL_EXPORT failed_to_parse
     ~failed_to_parse() throw();
 
     /// The reason for the failure to parse.
-    std::string const& m_reason;
+    std::string const m_reason;
     /// Where the error occurred.
-    std::string const& m_where;
+    std::string const m_where;
 
     /**
      * \brief A description of the exception.
