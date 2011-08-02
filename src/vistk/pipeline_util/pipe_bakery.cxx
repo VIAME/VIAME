@@ -13,6 +13,7 @@
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 
 #include <utility>
@@ -26,6 +27,13 @@
 
 namespace vistk
 {
+
+namespace
+{
+
+static config_flag_t const flag_read_only = config_flag_t("ro");
+
+}
 
 class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
   : public boost::static_visitor<>
@@ -124,7 +132,45 @@ void
 pipe_bakery
 ::register_config_value(config::key_t const& root_key, config_value_t const& value)
 {
-  /// \todo Implement.
+  config_key_t const key = value.key;
+
+  config::key_t const subkey = flatten_keys(key.key_path);
+
+  config_reference_t c_value;
+
+  if (key.options.provider)
+  {
+    c_value = provider_request_t(*key.options.provider, value.value);
+  }
+  else
+  {
+    c_value = value.value;
+  }
+
+  bool is_readonly = false;
+
+  if (key.options.flags)
+  {
+    BOOST_FOREACH (config_flag_t const& flag, *key.options.flags)
+    {
+      if (flag == flag_read_only)
+      {
+        is_readonly = true;
+      }
+      else
+      {
+        /// \todo Log warning about unrecognized flag.
+      }
+    }
+  }
+
+  config::key_t const full_key = root_key + config::block_sep + subkey;
+
+  config_info_t const info = config_info_t(c_value, is_readonly);
+
+  config_decl_t const decl = config_decl_t(full_key, info);
+
+  m_configs.push_back(decl);
 }
 
 config::key_t
