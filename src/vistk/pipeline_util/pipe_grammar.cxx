@@ -106,7 +106,8 @@ static token_t const config_block_name = token_t("config");
 static token_t const process_block_name = token_t("process");
 static token_t const connect_block_name = token_t("connect");
 static token_t const group_block_name = token_t("group");
-static token_t const map_block_name = token_t("map");
+static token_t const input_map_block_name = token_t("imap");
+static token_t const output_map_block_name = token_t("omap");
 
 static token_t const from_name = token_t("from");
 static token_t const to_name = token_t("to");
@@ -428,7 +429,7 @@ pipe_grammar<Iterator>
   input_map_block.name("input-mapping-spec");
   input_map_block %=
      (  opt_whitespace
-     >  qi::lit(map_block_name)
+     >  qi::lit(input_map_block_name)
      >  map_options
      >  whitespace
      >  qi::lit(from_name)
@@ -445,7 +446,7 @@ pipe_grammar<Iterator>
   output_map_block.name("output-mapping-spec");
   output_map_block %=
      (  opt_whitespace
-     >  qi::lit(map_block_name)
+     >  qi::lit(output_map_block_name)
      >  map_options
      >  whitespace
      >  qi::lit(from_name)
