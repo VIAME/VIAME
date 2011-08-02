@@ -8,6 +8,7 @@
 
 #include "multiplication_process.h"
 #include "number_process.h"
+#include "print_number_process.h"
 
 #include <vistk/pipeline/process_registry.h>
 
@@ -15,6 +16,7 @@ using namespace vistk;
 
 static process_t create_multiplication_process(config_t const& config);
 static process_t create_number_process(config_t const& config);
+static process_t create_print_number_process(config_t const& config);
 
 void
 register_processes()
@@ -23,6 +25,7 @@ register_processes()
 
   registry->register_process("multiplication", "Multiplies numbers", create_multiplication_process);
   registry->register_process("numbers", "Outputs numbers within a range", create_number_process);
+  registry->register_process("print_number", "Print numbers to a file", create_print_number_process);
 }
 
 process_t
@@ -35,4 +38,10 @@ process_t
 create_number_process(config_t const& config)
 {
   return process_t(new number_process(config));
+}
+
+process_t
+create_print_number_process(config_t const& config)
+{
+  return process_t(new print_number_process(config));
 }

@@ -3,11 +3,21 @@ project(vistk_processes_examples)
 set(examples_srcs
   multiplication_process.cxx
   number_process.cxx
+  print_number_process.cxx
   registration.cxx)
+
+set(print_number_process_build_options
+  ${boost_filesystem_options})
+
+set_source_files_properties(print_number_process.cxx
+  PROPERTIES
+    COMPILE_DEFINITIONS "${print_number_process_build_options}")
 
 add_vistk_plugin(processes_examples
   MAKE_VISTK_PROCESSES_EXAMPLES_LIB
   ${examples_srcs})
 target_link_libraries(processes_examples
   vistk_pipeline_types
-  vistk_pipeline)
+  vistk_pipeline
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
