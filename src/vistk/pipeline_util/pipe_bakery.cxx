@@ -11,6 +11,7 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process.h>
 
+#include <boost/algorithm/string/join.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/variant.hpp>
 
@@ -130,7 +131,7 @@ config::key_t
 pipe_bakery
 ::flatten_keys(config::keys_t const& keys)
 {
-  /// \todo Implement.
+  return boost::join(keys, config::block_sep);
 }
 
 }
