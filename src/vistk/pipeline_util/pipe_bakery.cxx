@@ -12,6 +12,7 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
+#include <vistk/pipeline/process_registry.h>
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/graph/directed_graph.hpp>
@@ -249,6 +250,22 @@ bake_pipe_blocks(pipe_blocks const& blocks)
   config_t const pipeline_conf = global_conf->subblock_view(config_pipeline_key);
 
   pipe = pipeline_t(new pipeline(pipeline_conf));
+
+  // Create processes.
+  {
+    process_registry_t reg = process_registry::self();
+
+    BOOST_FOREACH (pipe_bakery::process_decl_t const& decl, bakery.m_processes)
+    {
+      process::name_t const& proc_name = decl.first;
+      process_registry::type_t const& proc_type = decl.second;
+      config_t const proc_conf = global_conf->subblock_view(proc_name);
+
+      process_t proc = reg->create_process(proc_type, proc_conf);
+
+      pipe->add_process(proc);
+    }
+  }
 
   /// \todo Bake pipe blocks into a pipeline.
 
