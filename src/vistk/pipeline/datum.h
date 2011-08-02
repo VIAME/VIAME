@@ -40,16 +40,25 @@ class VISTK_PIPELINE_EXPORT datum
     /// The type of the datum being passed through the edge.
     typedef enum
     {
+      /// Data is included in the edge.
+      DATUM_DATA,
       /// No data was computed for the computation.
       DATUM_EMPTY,
       /// The process is complete and no more data will be available on this edge.
       DATUM_COMPLETE,
       /// An error occurred when computing the data.
-      DATUM_ERROR,
-      /// Data is included in the edge.
-      DATUM_DATA
+      DATUM_ERROR
     } datum_type_t;
 
+    /**
+     * \brief Create a datum with the #DATUM_DATA type.
+     *
+     * \param datum The data to pass through the edge.
+     *
+     * \returns A new datum containing a result.
+     */
+    template <typename T>
+    static datum_t new_datum(T const& datum);
     /**
      * \brief Create a datum with the #DATUM_EMPTY type.
      *
@@ -70,15 +79,6 @@ class VISTK_PIPELINE_EXPORT datum
      * \returns A new datum that indicates that an error occurred.
      */
     static datum_t error_datum(error_t const& error);
-    /**
-     * \brief Create a datum with the #DATUM_DATA type.
-     *
-     * \param datum The data to pass through the edge.
-     *
-     * \returns A new datum containing a result.
-     */
-    template <typename T>
-    static datum_t new_datum(T const& datum);
 
     /**
      * \brief Query a datum for the type.
