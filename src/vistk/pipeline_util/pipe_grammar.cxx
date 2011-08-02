@@ -226,7 +226,7 @@ parse_pipe_blocks_from_string(std::string const& str)
 
   if (i != i_end)
   {
-    /// \todo Throw an exception.
+    throw failed_to_parse("End of file", std::string(i, i_end));
   }
 
   return blocks;
