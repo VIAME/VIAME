@@ -76,7 +76,9 @@ int main(int argc, char* argv[])
 
       if (fin.bad())
       {
-        /// \todo Throw an exception.
+        std::cerr << "Error: Unable to open input file" << std::endl;
+
+        return 1;
       }
 
       pistr = &fin;
@@ -91,7 +93,7 @@ int main(int argc, char* argv[])
 
   if (!pipe)
   {
-    /// \todo Throw exception.
+    std::cerr << "Error: Unable to bake pipeline" << std::endl;
 
     return 1;
   }
@@ -111,7 +113,9 @@ int main(int argc, char* argv[])
 
     if (fout.bad())
     {
-      /// \todo Throw an exception.
+      std::cerr << "Error: Unable to open output file" << std::endl;
+
+      return 1;
     }
 
     postr = &fout;
