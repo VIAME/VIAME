@@ -152,7 +152,40 @@ bake_pipe_blocks(pipe_blocks const& blocks)
       conf->set_value(key, val);
     }
 
-    /// \todo Dereference configuration providers.
+    // Dereference configuration providers.
+    {
+      /// \todo Sort requests so circular requests don't occur.
+
+      /// \todo Find config provider requests.
+      config::keys_t keys;
+
+      provider_dereferencer deref(conf);
+
+      /// \todo This is algorithmically naive, but I'm not sure if there's a faster way.
+      BOOST_FOREACH (config::key_t const& key, keys)
+      {
+        BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+        {
+          config::key_t const& cur_key = decl.first;
+
+          if (key != cur_key)
+          {
+            continue;
+          }
+
+          pipe_bakery::config_reference_t& ref = decl.second.get<0>();
+
+          ref = boost::apply_visitor(deref, ref);
+
+          config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
+
+          // Set the value in the intermediate configuration.
+          conf->set_value(cur_key, val);
+        }
+      }
+    }
+
+    /// \todo Build final configuration.
   }
 
   /// \todo Bake pipe blocks into a pipeline.
