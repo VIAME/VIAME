@@ -14,6 +14,15 @@
 #include <cstdlib>
 #endif
 
+/**
+ * \file providers.cxx
+ *
+ * \brief Implementation of configuration providers.
+ */
+
+namespace vistk
+{
+
 namespace
 {
 
@@ -25,15 +34,6 @@ typedef char const* envvar_value_t;
 #endif
 
 }
-
-/**
- * \file providers.cxx
- *
- * \brief Implementation of configuration providers.
- */
-
-namespace vistk
-{
 
 provider
 ::provider()
