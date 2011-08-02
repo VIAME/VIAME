@@ -48,6 +48,16 @@ int main(int argc, char* argv[])
     types = reg->types();
   }
 
+  if (vm.count("list"))
+  {
+    BOOST_FOREACH (vistk::process_registry::type_t const& type, types)
+    {
+      std::cout << type << std::endl;
+    }
+
+    return 0;
+  }
+
   vistk::config_t const conf = vistk::config::empty_config();
 
   BOOST_FOREACH (vistk::process_registry::type_t const& type, types)
@@ -129,6 +139,7 @@ make_options()
   desc.add_options()
     ("help,h", "output help message and quit")
     ("type,t", po::value<vistk::process_registry::types_t>(), "type to describe")
+    ("list,l", "simply list types")
   ;
 
   return desc;
