@@ -167,7 +167,9 @@ class VISTK_PIPELINE_UTIL_EXPORT failed_to_parse
     /// The reason for the failure to parse.
     std::string const m_reason;
     /// Where the error occurred.
-    std::string const m_where;
+    std::string const m_where_full;
+    /// Where the error occurred, abbreviated to 64 bytes.
+    std::string const m_where_brief;
 
     /**
      * \brief A description of the exception.
@@ -176,6 +178,8 @@ class VISTK_PIPELINE_UTIL_EXPORT failed_to_parse
      */
     char const* what() const throw();
   private:
+    static size_t const max_size;
+
     std::string m_what;
 };
 

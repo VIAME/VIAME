@@ -89,16 +89,19 @@ stream_failure_exception
   return m_what.c_str();
 }
 
+size_t const failed_to_parse::max_size = 64;
+
 failed_to_parse
 ::failed_to_parse(std::string const& reason, std::string const& where) throw()
   : load_pipe_exception()
   , m_reason(reason)
-  , m_where(where)
+  , m_where_full(where)
+  , m_where_brief(where.substr(0, max_size))
 {
   std::stringstream sstr;
 
   sstr << "Expected: \'" << m_reason << "\' "
-       << "when \'" << m_where << "\' was given";
+       << "when \'" << m_where_brief << "\' was given";
 
   m_what = sstr.str();
 }
