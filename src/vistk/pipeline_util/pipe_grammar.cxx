@@ -14,9 +14,11 @@
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
+#include <boost/variant.hpp>
 
 #include <string>
 #include <sstream>
+#include <ostream>
 
 /**
  * \file pipe_grammar.cxx
@@ -178,6 +180,25 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
 
     qi::rule<Iterator, pipe_blocks()> block_set;
 };
+
+class VISTK_PIPELINE_UTIL_NO_EXPORT printer
+{
+  public:
+    typedef utf8_string string;
+
+    printer(std::ostream& ostr);
+    ~printer();
+
+    void element(string const& tag, string const& value, int depth) const;
+  private:
+    static int const indent_width;
+
+    std::ostream& m_ostr;
+};
+
+int const printer::indent_width = 4;
+
+static void print_info(std::ostream& ostr, boost::spirit::info const& what);
 
 pipe_blocks
 parse_pipe_blocks_from_string(std::string const& str)
@@ -464,6 +485,41 @@ template<typename Iterator>
 pipe_grammar<Iterator>
 ::~pipe_grammar()
 {
+}
+
+printer
+::printer(std::ostream& ostr)
+  : m_ostr(ostr)
+{
+}
+
+printer
+::~printer()
+{
+}
+
+void
+printer
+::element(string const& tag, string const& value, int depth) const
+{
+  for (int i = 0; i < (depth * indent_width); ++i)
+  {
+    m_ostr << ' ';
+  }
+
+  m_ostr << "tag: " << tag;
+  if (!value.empty())
+  {
+    m_ostr << ", value: " << value;
+  }
+}
+
+void
+print_info(std::ostream& ostr, boost::spirit::info const& what)
+{
+  printer pr(ostr);
+  basic_info_walker<printer> walker(pr, what.tag, 0);
+  boost::apply_visitor(walker, what.value);
 }
 
 }
