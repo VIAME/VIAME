@@ -13,6 +13,8 @@
 #include <vistk/pipeline/process.h>
 
 #include <boost/algorithm/string/join.hpp>
+#include <boost/graph/directed_graph.hpp>
+#include <boost/graph/topological_sort.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <boost/variant.hpp>
@@ -107,6 +109,29 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT ensure_provided
   public:
     config::value_t operator () (config::value_t const& value) const;
     config::value_t operator () (pipe_bakery::provider_request_t const& request) const;
+};
+
+class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider_sorter
+  : public boost::static_visitor<>
+{
+  public:
+    void operator () (config::key_t const& key, config::value_t const& value) const;
+    void operator () (config::key_t const& key, pipe_bakery::provider_request_t const& request);
+
+    config::keys_t sorted() const;
+  private:
+    struct vertex_name_t
+    {
+      typedef boost::vertex_property_tag kind;
+    };
+    typedef boost::property<vertex_name_t, config::key_t> name_property_t;
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, name_property_t> config_graph_t;
+    typedef boost::graph_traits<config_graph_t>::vertex_descriptor vertex_t;
+    typedef std::vector<vertex_t> vertices_t;
+    typedef std::map<config::key_t, vertex_t> vertex_map_t;
+
+    vertex_map_t m_vertex_map;
+    config_graph_t m_graph;
 };
 
 pipeline_t
@@ -402,6 +427,79 @@ ensure_provided
   /// \todo Throw an exception.
 
   return config::value_t();
+}
+
+config::keys_t
+config_provider_sorter
+::sorted() const
+{
+  vertices_t vertices;
+
+  try
+  {
+    boost::topological_sort(m_graph, std::back_inserter(vertices));
+  }
+  catch (boost::not_a_dag& e)
+  {
+    /// \todo Throw circular configuration provider exception.
+  }
+
+  config::keys_t keys;
+
+  boost::property_map<config_graph_t, vertex_name_t>::const_type const key_prop = boost::get(vertex_name_t(), m_graph);
+
+  BOOST_FOREACH (vertex_t const& vertex, vertices)
+  {
+    keys.push_back(boost::get(key_prop, vertex));
+  }
+
+  return keys;
+}
+
+void
+config_provider_sorter
+::operator () (config::key_t const& /*key*/, config::value_t const& /*value*/) const
+{
+}
+
+void
+config_provider_sorter
+::operator () (config::key_t const& key, pipe_bakery::provider_request_t const& request)
+{
+  if (request.first != provider_config)
+  {
+    return;
+  }
+
+  boost::property_map<config_graph_t, vertex_name_t>::type key_prop = boost::get(vertex_name_t(), m_graph);
+
+  typedef std::pair<vertex_map_t::iterator, bool> insertion_t;
+
+  insertion_t from_iter = m_vertex_map.insert(std::make_pair(key, vertex_t()));
+  insertion_t to_iter = m_vertex_map.insert(std::make_pair(request.second, vertex_t()));
+
+  vertex_t s;
+  vertex_t t;
+
+  if (from_iter.second)
+  {
+    s = boost::add_vertex(m_graph);
+    key_prop[s] = key;
+    from_iter.first->second = s;
+  }
+
+  s = from_iter.first->second;
+
+  if (to_iter.second)
+  {
+    t = boost::add_vertex(m_graph);
+    key_prop[s] = request.second;
+    to_iter.first->second = t;
+  }
+
+  t = to_iter.first->second;
+
+  boost::add_edge(s, t, m_graph);
 }
 
 }
