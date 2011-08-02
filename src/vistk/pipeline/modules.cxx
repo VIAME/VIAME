@@ -18,6 +18,8 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #else
+#include <cstdlib>
+
 #include <dlfcn.h>
 #endif
 
