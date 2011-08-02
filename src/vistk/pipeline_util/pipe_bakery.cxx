@@ -138,7 +138,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider_sorter
 pipeline_t
 bake_pipe_blocks(pipe_blocks const& blocks)
 {
-  pipeline_t pipeline;
+  pipeline_t pipe;
 
   pipe_bakery bakery;
 
@@ -244,7 +244,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
 
   /// \todo Bake pipe blocks into a pipeline.
 
-  return pipeline;
+  return pipe;
 }
 
 pipe_bakery
