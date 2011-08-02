@@ -141,7 +141,7 @@ void
 pipe_bakery
 ::operator () (connect_pipe_block const& connect_block)
 {
-  /// \todo Implement.
+  m_connections.push_back(connection_t(connect_block.from, connect_block.to));
 }
 
 void
