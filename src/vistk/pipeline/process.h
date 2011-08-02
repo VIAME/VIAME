@@ -361,7 +361,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns True if the available data in each of \p edges have equivalent stamps, false otherwise.
      */
-    static bool sync_edges(edges_t const& edges);
+    static bool syncd_edges(edges_t const& edges);
     /**
      * \brief Pushes data to all given edges.
      *

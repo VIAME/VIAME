@@ -341,7 +341,7 @@ process
 
 bool
 process
-::sync_edges(edges_t const& edges)
+::syncd_edges(edges_t const& edges)
 {
   edges_t::const_iterator it = edges.begin();
   edges_t::const_iterator it_end = edges.end();
