@@ -149,6 +149,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
     qi::rule<Iterator, config_key_t()> config_key_full;
 
     qi::rule<Iterator, config_value_t()> partial_config_value_decl;
+    qi::rule<Iterator, config_values_t()> partial_config_value_decls;
 
     qi::rule<Iterator, config_pipe_block()> config_block;
 
@@ -307,6 +308,11 @@ pipe_grammar<Iterator>
      >  line_end
      );
 
+  partial_config_value_decls.name("partial-configs-spec");
+  partial_config_value_decls %=
+    *(  partial_config_value_decl
+     );
+
   config_block.name("config-block-spec");
   config_block %=
      (  opt_whitespace
@@ -314,7 +320,7 @@ pipe_grammar<Iterator>
      >  whitespace
      >  config_key_path
      >  line_end
-     > *partial_config_value_decl
+     >  partial_config_value_decls
      );
 
   type_name.name("type-name");
@@ -344,7 +350,7 @@ pipe_grammar<Iterator>
      >  opt_whitespace
      >  type_decl
      >  line_end
-     > *partial_config_value_decl
+     >  partial_config_value_decls
      );
 
   port_name.name("port-name");
