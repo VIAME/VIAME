@@ -267,6 +267,39 @@ bake_pipe_blocks(pipe_blocks const& blocks)
     }
   }
 
+  // Create groups.
+  {
+    BOOST_FOREACH (pipe_bakery::group_decl_t const& decl, bakery.m_groups)
+    {
+      process::name_t const& group_name = decl.first;
+      pipe_bakery::group_info_t const& group_info = decl.second;
+
+      pipe->add_group(group_name);
+
+      pipe_bakery::mappings_t const& input_mappings = group_info.first;
+
+      BOOST_FOREACH (pipe_bakery::mapping_t const& mapping, input_mappings)
+      {
+        process::port_t const& port = mapping.get<0>();
+        process::port_flags_t const& flags = mapping.get<1>();
+        process::port_addr_t const& addr = mapping.get<2>();
+
+        pipe->map_input_port(group_name, port, addr.first, addr.second, flags);
+      }
+
+      pipe_bakery::mappings_t const& output_mappings = group_info.second;
+
+      BOOST_FOREACH (pipe_bakery::mapping_t const& mapping, output_mappings)
+      {
+        process::port_t const& port = mapping.get<0>();
+        process::port_flags_t const& flags = mapping.get<1>();
+        process::port_addr_t const& addr = mapping.get<2>();
+
+        pipe->map_output_port(group_name, port, addr.first, addr.second, flags);
+      }
+    }
+  }
+
   /// \todo Bake pipe blocks into a pipeline.
 
   return pipe;
