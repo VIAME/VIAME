@@ -144,6 +144,8 @@ bake_pipe_blocks(pipe_blocks const& blocks)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
 
+  config_t global_conf = config::empty_config();
+
   // Build configuration.
   {
     // Dereference (non-configuration) providers.
@@ -222,7 +224,22 @@ bake_pipe_blocks(pipe_blocks const& blocks)
       }
     }
 
-    /// \todo Build final configuration.
+    BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+    {
+      pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
+
+      config::key_t const& key = decl.first;
+      config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
+
+      global_conf->set_value(key, val);
+
+      bool const is_readonly = decl.second.get<1>();
+
+      if (is_readonly)
+      {
+        global_conf->mark_read_only(key);
+      }
+    }
   }
 
   /// \todo Bake pipe blocks into a pipeline.
