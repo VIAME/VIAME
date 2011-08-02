@@ -335,6 +335,8 @@ pipeline
         continue;
       }
 
+      procs.insert(cur_proc);
+
       processes_t connected_procs;
 
       // Find all processes upstream of the current process.
