@@ -3,6 +3,7 @@ project(vistk_pipeline_util)
 set(pipeline_util_srcs
   load_pipe.cxx
   load_pipe_exception.cxx
+  pipe_bakery.cxx
   pipe_grammar.cxx
   providers.cxx)
 

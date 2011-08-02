@@ -94,16 +94,6 @@ bake_pipe(std::istream& istr, boost::filesystem::path const& inc_root)
   return bake_pipe_blocks(load_pipe_blocks(istr, inc_root));
 }
 
-pipeline_t
-bake_pipe_blocks(pipe_blocks const& /*blocks*/)
-{
-  pipeline_t pipe;
-
-  /// \todo Bake pipe blocks into a pipeline.
-
-  return pipe;
-}
-
 void
 flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::filesystem::path const& inc_root)
 {
