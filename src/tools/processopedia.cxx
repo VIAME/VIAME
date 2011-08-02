@@ -62,6 +62,13 @@ int main(int argc, char* argv[])
 
   BOOST_FOREACH (vistk::process_registry::type_t const& type, types)
   {
+    if (!vm.count("detail"))
+    {
+      std::cout << type << ": " << reg->description(type) << std::endl;
+
+      continue;
+    }
+
     std::cout << "Process type: " << type << std::endl;
     std::cout << "  Description: " << reg->description(type) << std::endl;
 
@@ -140,6 +147,7 @@ make_options()
     ("help,h", "output help message and quit")
     ("type,t", po::value<vistk::process_registry::types_t>(), "type to describe")
     ("list,l", "simply list types")
+    ("detail,d", "output detailed information")
   ;
 
   return desc;
