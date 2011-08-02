@@ -118,7 +118,23 @@ void
 pipe_bakery
 ::operator () (process_pipe_block const& process_block)
 {
-  /// \todo Implement.
+  config_values_t const& values = process_block.config_values;
+
+  // Build the configuration value for the name of the process.
+  config_value_t name_value;
+  name_value.key.key_path.push_back(process::config_name);
+  name_value.key.options.flags = config_flags_t();
+  (*name_value.key.options.flags).push_back(flag_read_only);
+  name_value.value = process_block.name;
+
+  register_config_value(process_block.name, name_value);
+
+  BOOST_FOREACH (config_value_t const& value, values)
+  {
+    register_config_value(process_block.name, value);
+  }
+
+  m_processes.push_back(process_decl_t(process_block.name, process_block.type));
 }
 
 void
