@@ -179,7 +179,7 @@ number_process
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
-    return port_description_t("Where the numbers will be available");
+    return port_description_t("Where the numbers will be available.");
   }
 
   process::_output_port_description(port);
