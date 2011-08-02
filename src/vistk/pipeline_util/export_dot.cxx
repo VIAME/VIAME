@@ -83,7 +83,6 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
            << node_name << " ["
            << style_input_port_edge
            << "];" << std::endl;
-      ostr << std::endl;
     }
 
     ostr << std::endl;
@@ -104,15 +103,14 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
            << node_port_name << " ["
            << style_output_port_edge
            << "];" << std::endl;
-      ostr << std::endl;
     }
 
     ostr << std::endl;
 
     ostr << "}" << std::endl;
-  }
 
-  ostr << std::endl;
+    ostr << std::endl;
+  }
 
   // Output connections
   BOOST_FOREACH (vistk::process::name_t const& name, proc_names)
@@ -136,8 +134,6 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
              << "];" << std::endl;
       }
     }
-
-    ostr << std::endl;
   }
 
   ostr << std::endl;
