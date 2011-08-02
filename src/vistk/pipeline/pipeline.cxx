@@ -344,7 +344,7 @@ pipeline
       connected_procs.insert(connected_procs.end(), upstream_procs.begin(), upstream_procs.end());
 
       // Find all processes downstream of the current process.
-      processes_t const downstream_procs = upstream_for_process(cur_proc);
+      processes_t const downstream_procs = downstream_for_process(cur_proc);
       connected_procs.insert(connected_procs.end(), downstream_procs.begin(), downstream_procs.end());
 
       // Mark all connected processes for visitation.
