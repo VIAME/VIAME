@@ -104,7 +104,7 @@ environment_provider
 
   if (sz)
   {
-    extra_module_dirs = new char[sz];
+    envvar_value = new char[sz];
 
     sz = GetEnvironmentVariable(envvar_name, envvar_value, sz);
   }
@@ -123,6 +123,10 @@ environment_provider
   {
     value = config::value_t(envvar_value);
   }
+
+#if defined(_WIN32) || defined(_WIN64)
+  delete [] envvar_value;
+#endif
 
   return value;
 }
