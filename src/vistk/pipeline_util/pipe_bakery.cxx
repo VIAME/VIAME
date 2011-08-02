@@ -91,6 +91,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT provider_dereferencer
 {
   public:
     provider_dereferencer();
+    provider_dereferencer(config_t const conf);
     ~provider_dereferencer();
 
     pipe_bakery::config_reference_t operator () (config::value_t const& value) const;
@@ -321,6 +322,12 @@ provider_dereferencer
 {
   m_providers[provider_system] = provider_t(new system_provider);
   m_providers[provider_environment] = provider_t(new environment_provider);
+}
+
+provider_dereferencer
+::provider_dereferencer(config_t const conf)
+{
+  m_providers[provider_config] = provider_t(new config_provider(conf));
 }
 
 provider_dereferencer
