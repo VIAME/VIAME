@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 
     boost::filesystem::path const ipath = vm["input"].as<boost::filesystem::path>();
 
-    if (ipath.native() == "-")
+    if (ipath.native() == boost::filesystem::path("-"))
     {
       pistr = &std::cin;
     }
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 
   boost::filesystem::path const opath = vm["output"].as<boost::filesystem::path>();
 
-  if (opath.native() == "-")
+  if (opath.native() == boost::filesystem::path("-"))
   {
     postr = &std::cout;
   }
