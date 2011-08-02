@@ -20,6 +20,7 @@
 #include <boost/variant.hpp>
 
 #include <algorithm>
+#include <iterator>
 #include <utility>
 #include <vector>
 
@@ -179,10 +180,21 @@ bake_pipe_blocks(pipe_blocks const& blocks)
 
     // Dereference configuration providers.
     {
-      /// \todo Sort requests so circular requests don't occur.
+      config_provider_sorter sorter;
 
-      /// \todo Find config provider requests.
-      config::keys_t keys;
+      /// \bug Why must this be done?
+      typedef boost::variant<config::key_t> dummy_variant;
+
+      BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+      {
+        pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
+
+        dummy_variant var(decl.first);
+
+        boost::apply_visitor(sorter, var, ref);
+      }
+
+      config::keys_t keys = sorter.sorted();
 
       provider_dereferencer deref(conf);
 
