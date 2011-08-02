@@ -67,7 +67,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
   vistk::map_options_t,
-  (boost::optional<vistk::map_flags_t>, flags)
+  (boost::optional<vistk::process::port_flags_t>, flags)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -164,9 +164,9 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
 
     qi::rule<Iterator, connect_pipe_block()> connect_block;
 
-    qi::rule<Iterator, map_flag_t()> map_flag;
-    qi::rule<Iterator, map_flags_t()> map_flags;
-    qi::rule<Iterator, map_flags_t()> map_flags_decl;
+    qi::rule<Iterator, process::port_flag_t()> map_flag;
+    qi::rule<Iterator, process::port_flags_t(), qi::locals<process::port_flags_t> > map_flags;
+    qi::rule<Iterator, process::port_flags_t()> map_flags_decl;
 
     qi::rule<Iterator, map_options_t()> map_options;
 
@@ -382,7 +382,7 @@ pipe_grammar<Iterator>
 
   map_flags.name("map-flags");
   map_flags %=
-     (  map_flag
+     (  map_flag[boost::phoenix::insert(_a, _1)]
      %  qi::lit(flag_separator)
      );
 

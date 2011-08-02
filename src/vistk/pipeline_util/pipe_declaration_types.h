@@ -29,11 +29,6 @@ namespace vistk
 /// The type for a token in the AST.
 typedef std::string token_t;
 
-/// The type for a flag on a mapping.
-typedef token_t map_flag_t;
-/// The type for a collections of flags on a mapping.
-typedef std::vector<map_flag_t> map_flags_t;
-
 /// The type for a flag on a configuration key.
 typedef token_t config_flag_t;
 /// The type for a collection of flags on a configuration key.
@@ -92,7 +87,7 @@ typedef std::vector<config_value_t> config_values_t;
 struct map_options_t
 {
   /// Flags for the mapping.
-  boost::optional<map_flags_t> flags;
+  boost::optional<process::port_flags_t> flags;
 };
 
 /**
