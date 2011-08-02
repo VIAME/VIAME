@@ -1,6 +1,7 @@
 project(vistk_pipeline_util)
 
 set(pipeline_util_srcs
+  export_dot.cxx
   load_pipe.cxx
   load_pipe_exception.cxx
   pipe_bakery.cxx
@@ -8,6 +9,7 @@ set(pipeline_util_srcs
   providers.cxx)
 
 set(pipeline_util_headers
+  export_dot.h
   load_pipe.h
   load_pipe_exception.h
   pipe_declaration_types.h
