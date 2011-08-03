@@ -189,7 +189,7 @@ multiplication_process
     return port_type_t(port_types::t_integer, flags);
   }
 
-  process::_input_port_type(port);
+  return process::_input_port_type(port);
 }
 
 process::port_description_t
@@ -205,7 +205,7 @@ multiplication_process
     return port_description_t("The second factor to multiply.");
   }
 
-  process::_input_port_description(port);
+  return process::_input_port_description(port);
 }
 
 void
@@ -235,7 +235,7 @@ multiplication_process
     return port_type_t(port_types::t_integer, flags);
   }
 
-  process::_output_port_type(port);
+  return process::_output_port_type(port);
 }
 
 process::port_description_t
@@ -247,7 +247,7 @@ multiplication_process
     return port_description_t("Where the product will be available.");
   }
 
-  process::_output_port_description(port);
+  return process::_output_port_description(port);
 }
 
 process::ports_t

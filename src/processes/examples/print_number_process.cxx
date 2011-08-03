@@ -138,7 +138,7 @@ print_number_process
     return port_type_t(port_types::t_integer, flags);
   }
 
-  process::_input_port_type(port);
+  return process::_input_port_type(port);
 }
 
 process::port_description_t
@@ -150,7 +150,7 @@ print_number_process
     return port_description_t("Where numbers are read from.");
   }
 
-  process::_input_port_description(port);
+  return process::_input_port_description(port);
 }
 
 process::ports_t

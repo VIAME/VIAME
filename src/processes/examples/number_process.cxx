@@ -170,7 +170,7 @@ number_process
     return port_type_t(port_types::t_integer, flags);
   }
 
-  process::_output_port_type(port);
+  return process::_output_port_type(port);
 }
 
 process::port_description_t
@@ -182,7 +182,7 @@ number_process
     return port_description_t("Where the numbers will be available.");
   }
 
-  process::_output_port_description(port);
+  return process::_output_port_description(port);
 }
 
 process::ports_t
