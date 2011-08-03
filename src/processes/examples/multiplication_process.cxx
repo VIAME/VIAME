@@ -95,9 +95,14 @@ multiplication_process
     edge_datum_t const factor1_dat = d->input_edge_factor1->get_datum();
     edge_datum_t const factor2_dat = d->input_edge_factor2->get_datum();
 
+    edge_data_t input_dats;
+
+    input_dats.push_back(factor1_dat);
+    input_dats.push_back(factor2_dat);
+
     st = factor1_dat.get<1>();
 
-    datum::datum_type_t const max_type = std::max(factor1_dat.get<0>()->type(), factor2_dat.get<0>()->type());
+    datum::datum_type_t const max_type = max_status(input_dats);
 
     switch (max_type)
     {
