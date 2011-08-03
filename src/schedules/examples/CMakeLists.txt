@@ -10,4 +10,5 @@ add_vistk_plugin(schedules_examples
   ${examples_srcs})
 target_link_libraries(schedules_examples
   vistk_pipeline
+  ${Boost_DATE_TIME_LIBRARY}
   ${Boost_THREAD_LIBRARY})

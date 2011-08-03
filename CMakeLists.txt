@@ -138,6 +138,7 @@ set(vistk_boost_version 1.44)
 set(BOOST_ROOT "" CACHE PATH "The root path to Boost")
 find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
+    date_time
     filesystem
     system
     thread)

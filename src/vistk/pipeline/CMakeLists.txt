@@ -86,6 +86,7 @@ set_source_files_properties(utils.cxx
 add_library(vistk_pipeline
   ${pipeline_srcs})
 target_link_libraries(vistk_pipeline
+  ${Boost_DATE_TIME_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_THREAD_LIBRARY})
