@@ -6,6 +6,8 @@
 
 #include "providers.h"
 
+#include "pipe_bakery_exception.h"
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/utils.h>
 
@@ -106,7 +108,7 @@ system_provider
   }
   else
   {
-    /// \todo Throw exception about unrecognized index.
+    throw unrecognized_system_index_exception(index);
   }
 
   return value;
