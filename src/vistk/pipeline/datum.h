@@ -40,6 +40,8 @@ class VISTK_PIPELINE_EXPORT datum
     /// The type of the datum being passed through the edge.
     typedef enum
     {
+      /// An invalid type.
+      DATUM_INVALID,
       /// Data is included in the edge.
       DATUM_DATA,
       /// No data was computed for the computation.
