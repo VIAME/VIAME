@@ -85,6 +85,11 @@ main()
                 << "does not match expected name: " << expected_name << std::endl;
     }
 
+    if (process->type().empty())
+    {
+      std::cerr << "Error: The type is empty" << std::endl;
+    }
+
     vistk::config::keys_t const keys = process->available_config();
 
     BOOST_FOREACH (vistk::config::key_t const& key, keys)
