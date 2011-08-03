@@ -11,6 +11,7 @@
 
 #include "edge.h"
 #include "config.h"
+#include "datum.h"
 #include "process_registry.h"
 #include "types.h"
 
