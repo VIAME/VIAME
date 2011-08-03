@@ -9,45 +9,28 @@
 namespace vistk
 {
 
-namespace port_types
-{
+process::port_type_name_t const port_types::t_char = process::port_type_name_t("_char");
+process::port_type_name_t const port_types::t_string = process::port_type_name_t("_string");
 
-// Raw types
+process::port_type_name_t const port_types::t_integer = process::port_type_name_t("_integer");
+process::port_type_name_t const port_types::t_unsigned = process::port_type_name_t("_unsigned");
 
-// Readable data
-process::port_type_name_t const t_char = process::port_type_name_t("_char");
-process::port_type_name_t const t_string = process::port_type_name_t("_string");
+process::port_type_name_t const port_types::t_float = process::port_type_name_t("_float");
+process::port_type_name_t const port_types::t_double = process::port_type_name_t("_double");
 
-// Number data
-process::port_type_name_t const t_integer = process::port_type_name_t("_integer");
-process::port_type_name_t const t_unsigned = process::port_type_name_t("_unsigned");
-
-// Float data
-process::port_type_name_t const t_float = process::port_type_name_t("_float");
-process::port_type_name_t const t_double = process::port_type_name_t("_double");
-
-// Binary data
-process::port_type_name_t const t_byte = process::port_type_name_t("_byte");
-
-// Vector types
+process::port_type_name_t const port_types::t_byte = process::port_type_name_t("_byte");
 
 static process::port_type_name_t const vec_prefix = process::port_type_name_t("_vec");
 
-// Readable data
-process::port_type_name_t const t_vec_char = vec_prefix + t_char;
-process::port_type_name_t const t_vec_string = vec_prefix + t_string;
+process::port_type_name_t const port_types::t_vec_char = vec_prefix + t_char;
+process::port_type_name_t const port_types::t_vec_string = vec_prefix + t_string;
 
-// Number data
-process::port_type_name_t const t_vec_integer = vec_prefix + t_integer;
-process::port_type_name_t const t_vec_unsigned = vec_prefix + t_unsigned;
+process::port_type_name_t const port_types::t_vec_integer = vec_prefix + t_integer;
+process::port_type_name_t const port_types::t_vec_unsigned = vec_prefix + t_unsigned;
 
-// Float data
-process::port_type_name_t const t_vec_float = vec_prefix + t_float;
-process::port_type_name_t const t_vec_double = vec_prefix + t_double;
+process::port_type_name_t const port_types::t_vec_float = vec_prefix + t_float;
+process::port_type_name_t const port_types::t_vec_double = vec_prefix + t_double;
 
-// Binary data
-process::port_type_name_t const t_vec_byte = vec_prefix + t_byte;
-
-}
+process::port_type_name_t const port_types::t_vec_byte = vec_prefix + t_byte;
 
 }

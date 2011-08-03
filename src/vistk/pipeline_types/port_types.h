@@ -14,44 +14,43 @@
 namespace vistk
 {
 
-namespace port_types
+class VISTK_PIPELINE_TYPES_EXPORT port_types
 {
+  public:
+    // Raw types
 
-// Raw types
+    // Readable data
+    static process::port_type_name_t const t_char;
+    static process::port_type_name_t const t_string;
 
-// Readable data
-extern process::port_type_name_t const t_char;
-extern process::port_type_name_t const t_string;
+    // Number data
+    static process::port_type_name_t const t_integer;
+    static process::port_type_name_t const t_unsigned;
 
-// Number data
-extern process::port_type_name_t const t_integer;
-extern process::port_type_name_t const t_unsigned;
+    // Float data
+    static process::port_type_name_t const t_float;
+    static process::port_type_name_t const t_double;
 
-// Float data
-extern process::port_type_name_t const t_float;
-extern process::port_type_name_t const t_double;
+    // Binary data
+    static process::port_type_name_t const t_byte;
 
-// Binary data
-extern process::port_type_name_t const t_byte;
+    // Vector types
 
-// Vector types
+    // Readable data
+    static process::port_type_name_t const t_vec_char;
+    static process::port_type_name_t const t_vec_string;
 
-// Readable data
-extern process::port_type_name_t const t_vec_char;
-extern process::port_type_name_t const t_vec_string;
+    // Number data
+    static process::port_type_name_t const t_vec_integer;
+    static process::port_type_name_t const t_vec_unsigned;
 
-// Number data
-extern process::port_type_name_t const t_vec_integer;
-extern process::port_type_name_t const t_vec_unsigned;
+    // Float data
+    static process::port_type_name_t const t_vec_float;
+    static process::port_type_name_t const t_vec_double;
 
-// Float data
-extern process::port_type_name_t const t_vec_float;
-extern process::port_type_name_t const t_vec_double;
-
-// Binary data
-extern process::port_type_name_t const t_vec_byte;
-
-}
+    // Binary data
+    static process::port_type_name_t const t_vec_byte;
+};
 
 }
 
