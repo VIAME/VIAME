@@ -5,6 +5,7 @@
  */
 
 #include "pipe_bakery.h"
+#include "pipe_bakery_exception.h"
 
 #include "load_pipe.h"
 #include "pipe_declaration_types.h"
@@ -344,7 +345,16 @@ extract_configuration(pipe_bakery& bakery)
     pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
 
     config::key_t const& key = decl.first;
-    config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
+    config::value_t val;
+
+    try
+    {
+      val = boost::apply_visitor(ensure_provided(), ref);
+    }
+    catch (unrecognized_provider_exception& e)
+    {
+      throw unrecognized_provider_exception(key, e.m_provider, e.m_index);
+    }
 
     conf->set_value(key, val);
 
@@ -563,11 +573,9 @@ ensure_provided
 
 config::value_t
 ensure_provided
-::operator () (pipe_bakery::provider_request_t const& /*request*/) const
+::operator () (pipe_bakery::provider_request_t const& request) const
 {
-  /// \todo Throw an exception.
-
-  return config::value_t();
+  throw unrecognized_provider_exception("(unknown)", request.first, request.second);
 }
 
 config::keys_t
