@@ -21,7 +21,9 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-static void SetThreadName(DWORD dwThreadID, char* threadName);
+static DWORD const current_thread = -1;
+
+static void SetThreadName(DWORD dwThreadID, LPCSTR threadName);
 #endif
 
 /**
@@ -33,7 +35,8 @@ static void SetThreadName(DWORD dwThreadID, char* threadName);
 namespace vistk
 {
 
-bool name_thread(thread_name_t const& name)
+bool
+name_thread(thread_name_t const& name)
 {
 #ifdef HAVE_SETPROCTITLE
   setproctitle("%s", name.c_str());
@@ -43,7 +46,7 @@ bool name_thread(thread_name_t const& name)
   return (ret < 0);
 #elif defined(_WIN32) || defined(_WIN64)
 #ifndef NDEBUG
-  SetThreadName(-1, const_cast<char*>(name.c_str()));
+  SetThreadName(current_thread, name.c_str());
 #else
   return false;
 #endif
@@ -107,7 +110,7 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void SetThreadName(DWORD dwThreadID, char* threadName)
+void SetThreadName(DWORD dwThreadID, LPCSTR threadName)
 {
    THREADNAME_INFO info;
    info.dwType = 0x1000;
