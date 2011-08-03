@@ -6,6 +6,7 @@
 
 #include <vistk/pipeline_util/pipe_declaration_types.h>
 #include <vistk/pipeline_util/load_pipe.h>
+#include <vistk/pipeline_util/load_pipe_exception.h>
 
 #include <vistk/pipeline/modules.h>
 
@@ -56,6 +57,7 @@ main(int argc, char* argv[])
 static void test_empty(boost::filesystem::path const& pipe_file);
 static void test_comments(boost::filesystem::path const& pipe_file);
 static void test_empty_config(boost::filesystem::path const& pipe_file);
+static void test_no_exist(boost::filesystem::path const& pipe_file);
 
 void
 run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
@@ -71,6 +73,10 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   else if (test_name == "empty_config")
   {
     test_empty_config(pipe_file);
+  }
+  else if (test_name == "no_exist")
+  {
+    test_no_exist(pipe_file);
   }
   else
   {
@@ -152,6 +158,34 @@ test_empty_config(boost::filesystem::path const& pipe_file)
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
   v.expect(1, 0, 0, 0);
+}
+
+void
+test_no_exist(boost::filesystem::path const& pipe_file)
+{
+  bool got_exception = false;
+
+  try
+  {
+    vistk::load_pipe_blocks_from_file(pipe_file);
+  }
+  catch (vistk::file_no_exist_exception&)
+  {
+    got_exception = true;
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when loading a non-existent file" << std::endl;
+  }
 }
 
 test_visitor
