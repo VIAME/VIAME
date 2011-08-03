@@ -67,7 +67,7 @@ void
 print_number_process
 ::_init()
 {
-  if (!boost::filesystem::exists(d->path));
+  if (!boost::filesystem::exists(d->path))
   {
     /// \todo Throw exception.
   }
