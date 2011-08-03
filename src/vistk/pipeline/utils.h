@@ -53,7 +53,7 @@ bool VISTK_PIPELINE_EXPORT name_thread(thread_name_t const& name);
  *
  * \param name The variable to retrieve from the environement.
  *
- * \returns The value of the environment variable, NULL if it was not set.
+ * \returns The value of the environment variable, \c NULL if it was not set.
  */
 envvar_value_t VISTK_PIPELINE_EXPORT get_envvar(envvar_name_t const& name);
 /**
