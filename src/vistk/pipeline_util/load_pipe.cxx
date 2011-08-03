@@ -86,25 +86,11 @@ load_pipe_blocks(std::istream& istr, boost::filesystem::path const& inc_root)
 void
 flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::filesystem::path const& inc_root)
 {
-  istr.exceptions(std::istream::failbit | std::istream::badbit);
-
   while (istr.good())
   {
     std::string line;
 
-    try
-    {
-      std::getline(istr, line);
-    }
-    catch (std::ios_base::failure&)
-    {
-      if (istr.eof())
-      {
-        break;
-      }
-
-      throw;
-    }
+    std::getline(istr, line);
 
     boost::trim_left(line);
 
