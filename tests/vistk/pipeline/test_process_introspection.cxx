@@ -74,6 +74,11 @@ main()
       continue;
     }
 
+    if (reg->description(type).empty())
+    {
+      std::cerr << "Error: The description is empty" << std::endl;
+    }
+
     if (process->name() != expected_name)
     {
       std::cerr << "Error: Name (" << process->name() << ") "
