@@ -4,8 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "load_pipe.h"
+#include "pipe_bakery.h"
 
+#include "load_pipe.h"
 #include "pipe_declaration_types.h"
 #include "providers.h"
 
@@ -138,6 +139,18 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider_sorter
     vertex_map_t m_vertex_map;
     config_graph_t m_graph;
 };
+
+pipeline_t
+bake_pipe_from_file(boost::filesystem::path const& fname)
+{
+  return bake_pipe_blocks(load_pipe_blocks_from_file(fname));
+}
+
+pipeline_t
+bake_pipe(std::istream& istr, boost::filesystem::path const& inc_root)
+{
+  return bake_pipe_blocks(load_pipe_blocks(istr, inc_root));
+}
 
 pipeline_t
 bake_pipe_blocks(pipe_blocks const& blocks)

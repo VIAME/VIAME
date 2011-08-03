@@ -12,6 +12,7 @@ set(pipeline_util_headers
   export_dot.h
   load_pipe.h
   load_pipe_exception.h
+  pipe_bakery.h
   pipe_declaration_types.h
   pipe_grammar.h
   pipeline_util-config.h)

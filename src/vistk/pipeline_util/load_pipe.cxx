@@ -7,6 +7,7 @@
 #include "load_pipe.h"
 #include "load_pipe_exception.h"
 
+#include "pipe_bakery.h"
 #include "pipe_grammar.h"
 
 #include <vistk/pipeline/pipeline.h>
@@ -80,18 +81,6 @@ load_pipe_blocks(std::istream& istr, boost::filesystem::path const& inc_root)
   }
 
   return parse_pipe_blocks_from_string(sstr.str());
-}
-
-pipeline_t
-bake_pipe_from_file(boost::filesystem::path const& fname)
-{
-  return bake_pipe_blocks(load_pipe_blocks_from_file(fname));
-}
-
-pipeline_t
-bake_pipe(std::istream& istr, boost::filesystem::path const& inc_root)
-{
-  return bake_pipe_blocks(load_pipe_blocks(istr, inc_root));
 }
 
 void
