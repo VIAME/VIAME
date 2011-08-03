@@ -307,7 +307,7 @@ extract_configuration(pipe_bakery& bakery)
 
     provider_dereferencer deref(tmp_conf);
 
-    /// \todo This is algorithmically naive, but I'm not sure if there's a faster way.
+    /// \todo This is algorithmically naive, but I'm not sure if there's a better way.
     BOOST_FOREACH (config::key_t const& key, keys)
     {
       BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
