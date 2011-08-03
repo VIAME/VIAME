@@ -9,6 +9,8 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/utils.h>
 
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/thread/thread.hpp>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -90,6 +92,15 @@ system_provider
     }
 
     free_envvar(home);
+  }
+  else if (index == "curdir")
+  {
+    boost::system::error_code ec;
+    boost::filesystem::path const curdir = boost::filesystem::current_path(ec);
+
+    /// \todo Check ec.
+
+    value = config::value_t(curdir.native());
   }
   else
   {

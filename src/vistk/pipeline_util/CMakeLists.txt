@@ -28,6 +28,13 @@ set_source_files_properties(load_pipe.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${load_pipe_build_options}")
 
+set(providers_build_options
+  ${boost_filesystem_options})
+
+set_source_files_properties(providers.cxx
+  PROPERTIES
+    COMPILE_DEFINITIONS "${providers_build_options}")
+
 add_library(vistk_pipeline_util
   ${pipeline_util_srcs})
 target_link_libraries(vistk_pipeline_util
