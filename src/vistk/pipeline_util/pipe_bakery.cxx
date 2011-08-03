@@ -277,6 +277,13 @@ extract_configuration(pipe_bakery& bakery)
     }
 
     tmp_conf->set_value(key, val);
+
+    bool const is_readonly = decl.second.get<1>();
+
+    if (is_readonly)
+    {
+      tmp_conf->mark_read_only(key);
+    }
   }
 
   // Dereference configuration providers.
@@ -319,6 +326,13 @@ extract_configuration(pipe_bakery& bakery)
 
         // Set the value in the intermediate configuration.
         tmp_conf->set_value(cur_key, val);
+
+        bool const is_readonly = decl.second.get<1>();
+
+        if (is_readonly)
+        {
+          tmp_conf->mark_read_only(key);
+        }
       }
     }
   }
