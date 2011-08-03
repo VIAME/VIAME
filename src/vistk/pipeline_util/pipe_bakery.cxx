@@ -590,7 +590,7 @@ config_provider_sorter
   }
   catch (boost::not_a_dag& e)
   {
-    /// \todo Throw circular configuration provider exception.
+    throw circular_config_provide_exception();
   }
 
   config::keys_t keys;
