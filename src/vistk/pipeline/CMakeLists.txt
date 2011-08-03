@@ -42,9 +42,16 @@ set(vistk_library_options)
 
 option(VISTK_MODULE_USE_BUILD_PATH "Turn on to search the build path for modules" OFF)
 if (VISTK_MODULE_USE_BUILD_PATH)
-  set(vistk_library_options
-    ${vistk_library_options}
-    "VISTK_LIBRARY_OUTPUT_PATH=\"${MODULE_OUTPUT_PATH}\"")
+  if (WIN32)
+    set(vistk_library_options
+      ${vistk_library_options}
+      "VISTK_LIBRARY_OUTPUT_PATH=VISTK_LIBRARY_OUTPUT_PATH_BASE\ L\"/\"\ VISTK_CONFIGURATION_L"
+      "VISTK_LIBRARY_OUTPUT_PATH_BASE=L\"${MODULE_OUTPUT_PATH}\"")
+  else (WIN32)
+    set(vistk_library_options
+      ${vistk_library_options}
+      "VISTK_LIBRARY_OUTPUT_PATH=\"${MODULE_OUTPUT_PATH}\"")
+  endif (WIN32)
 endif (VISTK_MODULE_USE_BUILD_PATH)
 
 option(VISTK_MODULE_USE_INSTALL_PATH "Turn on to search the install path for modules" OFF)
