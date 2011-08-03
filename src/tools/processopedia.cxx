@@ -60,19 +60,19 @@ int main(int argc, char* argv[])
 
   vistk::config_t const conf = vistk::config::empty_config();
 
-  BOOST_FOREACH (vistk::process_registry::type_t const& type, types)
+  BOOST_FOREACH (vistk::process_registry::type_t const& proc_type, types)
   {
     if (!vm.count("detail"))
     {
-      std::cout << type << ": " << reg->description(type) << std::endl;
+      std::cout << proc_type << ": " << reg->description(proc_type) << std::endl;
 
       continue;
     }
 
-    std::cout << "Process type: " << type << std::endl;
-    std::cout << "  Description: " << reg->description(type) << std::endl;
+    std::cout << "Process type: " << proc_type << std::endl;
+    std::cout << "  Description: " << reg->description(proc_type) << std::endl;
 
-    vistk::process_t const proc = reg->create_process(type, conf);
+    vistk::process_t const proc = reg->create_process(proc_type, conf);
 
     std::cout << "  Configuration:" << std::endl;
 
@@ -81,11 +81,11 @@ int main(int argc, char* argv[])
     BOOST_FOREACH (vistk::config::key_t const key, keys)
     {
       vistk::config::value_t const def = proc->config_default(key);
-      vistk::config::description_t const desc = proc->config_description(key);
+      vistk::config::description_t const conf_desc = proc->config_description(key);
 
       std::cout << "    Name       : " << key << std::endl;
       std::cout << "    Default    : " << def << std::endl;
-      std::cout << "    Description: " << desc << std::endl;
+      std::cout << "    Description: " << conf_desc << std::endl;
       std::cout << std::endl;
     }
 
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
     BOOST_FOREACH (vistk::process::port_t const port, iports)
     {
       vistk::process::port_type_t const type = proc->input_port_type(port);
-      vistk::process::port_description_t const desc = proc->input_port_description(port);
+      vistk::process::port_description_t const port_desc = proc->input_port_description(port);
 
       vistk::process::port_type_name_t const type_name = type.get<0>();
       vistk::process::port_flags_t const flags = type.get<1>();
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
       std::cout << "    Name       : " << port << std::endl;
       std::cout << "    Type       : " << type_name << std::endl;
       std::cout << "    Flags      : " << flags_str << std::endl;
-      std::cout << "    Description: " << desc << std::endl;
+      std::cout << "    Description: " << port_desc << std::endl;
       std::cout << std::endl;
     }
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
     BOOST_FOREACH (vistk::process::port_t const port, oports)
     {
       vistk::process::port_type_t const type = proc->output_port_type(port);
-      vistk::process::port_description_t const desc = proc->output_port_description(port);
+      vistk::process::port_description_t const port_desc = proc->output_port_description(port);
 
       vistk::process::port_type_name_t const type_name = type.get<0>();
       vistk::process::port_flags_t const flags = type.get<1>();
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
       std::cout << "    Name       : " << port << std::endl;
       std::cout << "    Type       : " << type_name << std::endl;
       std::cout << "    Flags      : " << flags_str << std::endl;
-      std::cout << "    Description: " << desc << std::endl;
+      std::cout << "    Description: " << port_desc << std::endl;
       std::cout << std::endl;
     }
 
