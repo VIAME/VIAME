@@ -52,7 +52,7 @@ load_pipe_blocks_from_file(boost::filesystem::path const& fname)
 
   fin.open(fname.c_str());
 
-  if (fin.fail())
+  if (!fin.good())
   {
     throw file_open_exception(fname);
   }
@@ -123,7 +123,7 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::fil
 
       fin.open(file_path.native().c_str());
 
-      if (fin.fail())
+      if (!fin.good())
       {
         throw file_open_exception(file_path);
       }
