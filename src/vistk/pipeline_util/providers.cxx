@@ -9,6 +9,8 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/utils.h>
 
+#include <boost/thread/thread.hpp>
+
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #else
@@ -66,9 +68,18 @@ config::value_t
 system_provider
 ::operator () (config::value_t const& index) const
 {
-  /// \todo What keys do we want to provide here?
+  config::value_t value;
 
-  return config::value_t();
+  if (index == "processors")
+  {
+    value = boost::lexical_cast<config::value_t>(boost::thread::hardware_concurrency());
+  }
+  else
+  {
+    /// \todo Throw exception about unrecognized index.
+  }
+
+  return value;
 }
 
 environment_provider

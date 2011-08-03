@@ -33,7 +33,8 @@ add_library(vistk_pipeline_util
 target_link_libraries(vistk_pipeline_util
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_THREAD_LIBRARY})
 target_link_libraries(vistk_pipeline_util LINK_INTERFACE_LIBRARIES
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
