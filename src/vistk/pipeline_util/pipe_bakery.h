@@ -46,13 +46,22 @@ pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe_from_file(boost::filesystem::pat
 pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe(std::istream& istr, boost::filesystem::path const& inc_root = "");
 
 /**
- * \brief Bakes a pipeline from a collection of blocks.
+ * \brief Extracts a configuration from a collection of blocks.
  *
  * \param blocks The blocks to use for baking the pipeline.
  *
  * \returns A pipeline baked from \p blocks.
  */
 pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe_blocks(pipe_blocks const& blocks);
+
+/**
+ * \brief Extracts a configuration from a collection of blocks.
+ *
+ * \param blocks The blocks to use for baking the pipeline.
+ *
+ * \returns A configuration extracted from \p blocks.
+ */
+config_t VISTK_PIPELINE_UTIL_EXPORT extract_configuration(pipe_blocks const& blocks);
 
 }
 

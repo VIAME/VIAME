@@ -49,6 +49,9 @@ static config_provider_t const provider_system = config_provider_t("SYS");
 
 }
 
+class pipe_bakery;
+static config_t extract_configuration(pipe_bakery& bakery);
+
 class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
   : public boost::static_visitor<>
 {
@@ -161,103 +164,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
 
-  config_t global_conf = config::empty_config();
-
-  // Build configuration.
-  {
-    // Dereference (non-configuration) providers.
-    {
-      BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
-      {
-        pipe_bakery::config_reference_t& ref = decl.second.get<0>();
-
-        ref = boost::apply_visitor(provider_dereferencer(), ref);
-      }
-    }
-
-    config_t conf = config::empty_config();
-
-    BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
-    {
-      pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
-
-      config::key_t const key = decl.first;
-      config::value_t val;
-
-      // Only add provided configurations to the configuration.
-      try
-      {
-        val = boost::apply_visitor(ensure_provided(), ref);
-      }
-      catch (...)
-      {
-        continue;
-      }
-
-      conf->set_value(key, val);
-    }
-
-    // Dereference configuration providers.
-    {
-      config_provider_sorter sorter;
-
-      /// \bug Why must this be done?
-      typedef boost::variant<config::key_t> dummy_variant;
-
-      BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
-      {
-        pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
-
-        dummy_variant var(decl.first);
-
-        boost::apply_visitor(sorter, var, ref);
-      }
-
-      config::keys_t keys = sorter.sorted();
-
-      provider_dereferencer deref(conf);
-
-      /// \todo This is algorithmically naive, but I'm not sure if there's a faster way.
-      BOOST_FOREACH (config::key_t const& key, keys)
-      {
-        BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
-        {
-          config::key_t const& cur_key = decl.first;
-
-          if (key != cur_key)
-          {
-            continue;
-          }
-
-          pipe_bakery::config_reference_t& ref = decl.second.get<0>();
-
-          ref = boost::apply_visitor(deref, ref);
-
-          config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
-
-          // Set the value in the intermediate configuration.
-          conf->set_value(cur_key, val);
-        }
-      }
-    }
-
-    BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
-    {
-      pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
-
-      config::key_t const& key = decl.first;
-      config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
-
-      global_conf->set_value(key, val);
-
-      bool const is_readonly = decl.second.get<1>();
-
-      if (is_readonly)
-      {
-        global_conf->mark_read_only(key);
-      }
-    }
-  }
+  config_t global_conf = extract_configuration(bakery);
 
   // Create pipeline.
   config_t const pipeline_conf = global_conf->subblock_view(config_pipeline_key);
@@ -325,6 +232,117 @@ bake_pipe_blocks(pipe_blocks const& blocks)
   }
 
   return pipe;
+}
+
+config_t
+extract_configuration(pipe_blocks const& blocks)
+{
+  pipe_bakery bakery;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
+
+  return extract_configuration(bakery);
+}
+
+config_t
+extract_configuration(pipe_bakery& bakery)
+{
+  // Dereference (non-configuration) providers.
+  {
+    BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+    {
+      pipe_bakery::config_reference_t& ref = decl.second.get<0>();
+
+      ref = boost::apply_visitor(provider_dereferencer(), ref);
+    }
+  }
+
+  config_t tmp_conf = config::empty_config();
+
+  BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+  {
+    pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
+
+    config::key_t const key = decl.first;
+    config::value_t val;
+
+    // Only add provided configurations to the configuration.
+    try
+    {
+      val = boost::apply_visitor(ensure_provided(), ref);
+    }
+    catch (...)
+    {
+      continue;
+    }
+
+    tmp_conf->set_value(key, val);
+  }
+
+  // Dereference configuration providers.
+  {
+    config_provider_sorter sorter;
+
+    /// \bug Why must this be done?
+    typedef boost::variant<config::key_t> dummy_variant;
+
+    BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+    {
+      pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
+
+      dummy_variant var(decl.first);
+
+      boost::apply_visitor(sorter, var, ref);
+    }
+
+    config::keys_t keys = sorter.sorted();
+
+    provider_dereferencer deref(tmp_conf);
+
+    /// \todo This is algorithmically naive, but I'm not sure if there's a faster way.
+    BOOST_FOREACH (config::key_t const& key, keys)
+    {
+      BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+      {
+        config::key_t const& cur_key = decl.first;
+
+        if (key != cur_key)
+        {
+          continue;
+        }
+
+        pipe_bakery::config_reference_t& ref = decl.second.get<0>();
+
+        ref = boost::apply_visitor(deref, ref);
+
+        config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
+
+        // Set the value in the intermediate configuration.
+        tmp_conf->set_value(cur_key, val);
+      }
+    }
+  }
+
+  config_t conf = config::empty_config();
+
+  BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+  {
+    pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
+
+    config::key_t const& key = decl.first;
+    config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
+
+    conf->set_value(key, val);
+
+    bool const is_readonly = decl.second.get<1>();
+
+    if (is_readonly)
+    {
+      conf->mark_read_only(key);
+    }
+  }
+
+  return conf;
 }
 
 pipe_bakery
