@@ -60,6 +60,7 @@ static void test_empty(boost::filesystem::path const& pipe_file);
 static void test_comments(boost::filesystem::path const& pipe_file);
 static void test_empty_config(boost::filesystem::path const& pipe_file);
 static void test_config_block(boost::filesystem::path const& pipe_file);
+static void test_include(boost::filesystem::path const& pipe_file);
 static void test_no_exist(boost::filesystem::path const& pipe_file);
 
 void
@@ -80,6 +81,10 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   else if (test_name == "config_block")
   {
     test_config_block(pipe_file);
+  }
+  else if (test_name == "include")
+  {
+    test_include(pipe_file);
   }
   else if (test_name == "no_exist")
   {
@@ -189,6 +194,18 @@ test_config_block(boost::filesystem::path const& pipe_file)
               << "Expected: " << expected << " "
               << "Received: " << mykey << std::endl;
   }
+}
+
+void
+test_include(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
 }
 
 void
