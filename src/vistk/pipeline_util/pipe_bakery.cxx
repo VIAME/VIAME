@@ -493,6 +493,8 @@ pipe_bakery
     c_value = value.value;
   }
 
+  config::key_t const full_key = root_key + config::block_sep + subkey;
+
   bool is_readonly = false;
 
   if (key.options.flags)
@@ -505,12 +507,10 @@ pipe_bakery
       }
       else
       {
-        /// \todo Log warning about unrecognized flag.
+        throw unrecognized_config_flag_exception(flag, full_key);
       }
     }
   }
-
-  config::key_t const full_key = root_key + config::block_sep + subkey;
 
   config_info_t const info = config_info_t(c_value, is_readonly);
 
