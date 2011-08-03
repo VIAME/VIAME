@@ -5,6 +5,7 @@ set(pipeline_util_srcs
   load_pipe.cxx
   load_pipe_exception.cxx
   pipe_bakery.cxx
+  pipe_bakery_exception.cxx
   pipe_grammar.cxx
   providers.cxx)
 
@@ -13,6 +14,7 @@ set(pipeline_util_headers
   load_pipe.h
   load_pipe_exception.h
   pipe_bakery.h
+  pipe_bakery_exception.h
   pipe_declaration_types.h
   pipe_grammar.h
   pipeline_util-config.h)
