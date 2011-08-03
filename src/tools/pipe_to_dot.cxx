@@ -5,7 +5,7 @@
  */
 
 #include <vistk/pipeline_util/export_dot.h>
-#include <vistk/pipeline_util/load_pipe.h>
+#include <vistk/pipeline_util/pipe_bakery.h>
 
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/types.h>
