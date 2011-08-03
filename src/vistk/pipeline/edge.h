@@ -29,6 +29,8 @@ namespace vistk
 
 /// A typedef for a single packet which goes through an \ref edge.
 typedef boost::tuple<datum_t, stamp_t> edge_datum_t;
+/// A typedef for a multiple packets which go through an \ref edge.
+typedef std::vector<edge_datum_t> edge_data_t;
 /// A group of \link edge edges\endlink.
 typedef std::vector<edge_t> edges_t;
 
