@@ -4,13 +4,17 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <vistk/pipeline_util/pipe_declaration_types.h>
+
 #include <vistk/pipeline/modules.h>
 
 #include <boost/filesystem/path.hpp>
+#include <boost/variant.hpp>
 
 #include <exception>
 #include <iostream>
 #include <string>
+#include <vector>
 
 static std::string const pipe_ext = ".pipe";
 
@@ -54,4 +58,188 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
   }
+}
+
+class test_visitor
+  : public boost::static_visitor<>
+{
+  public:
+    typedef enum
+    {
+      CONFIG_BLOCK,
+      PROCESS_BLOCK,
+      CONNECT_BLOCK,
+      GROUP_BLOCK
+    } block_type_t;
+
+    typedef std::vector<block_type_t> block_types_t;
+
+    test_visitor();
+    ~test_visitor();
+
+    void operator () (vistk::config_pipe_block const& config_block);
+    void operator () (vistk::process_pipe_block const& process_block);
+    void operator () (vistk::connect_pipe_block const& connect_block);
+    void operator () (vistk::group_pipe_block const& group_block);
+
+    void expect(size_t config_expect,
+                size_t process_expect,
+                size_t connect_expect,
+                size_t group_expect) const;
+    void output_report() const;
+
+    static void print_char(block_type_t type);
+
+    size_t config_count;
+    size_t process_count;
+    size_t connect_count;
+    size_t group_count;
+
+    size_t total_count;
+
+    block_types_t types;
+};
+
+test_visitor
+::test_visitor()
+  : config_count(0)
+  , process_count(0)
+  , connect_count(0)
+  , group_count(0)
+  , total_count(0)
+{
+}
+
+test_visitor
+::~test_visitor()
+{
+}
+
+void
+test_visitor
+::operator () (vistk::config_pipe_block const& /*config_block*/)
+{
+  ++config_count;
+  ++total_count;
+
+  types.push_back(CONFIG_BLOCK);
+}
+
+void
+test_visitor
+::operator () (vistk::process_pipe_block const& /*process_block*/)
+{
+  ++process_count;
+  ++total_count;
+
+  types.push_back(PROCESS_BLOCK);
+}
+
+void
+test_visitor
+::operator () (vistk::connect_pipe_block const& /*connect_block*/)
+{
+  ++connect_count;
+  ++total_count;
+
+  types.push_back(CONNECT_BLOCK);
+}
+
+void
+test_visitor
+::operator () (vistk::group_pipe_block const& /*group_block*/)
+{
+  ++group_count;
+  ++total_count;
+
+  types.push_back(GROUP_BLOCK);
+}
+
+void
+test_visitor
+::expect(size_t config_expect,
+         size_t process_expect,
+         size_t connect_expect,
+         size_t group_expect) const
+{
+  bool is_good = true;
+
+  if (config_expect != config_count)
+  {
+    std::cerr << "Error: config count: "
+              << "Expected: " << config_expect << " "
+              << "Received: " << config_count << std::endl;
+    is_good = false;
+  }
+  if (process_expect != process_count)
+  {
+    std::cerr << "Error: process count: "
+              << "Expected: " << process_expect << " "
+              << "Received: " << process_count << std::endl;
+    is_good = false;
+  }
+  if (connect_expect != connect_count)
+  {
+    std::cerr << "Error: connect count: "
+              << "Expected: " << connect_expect << " "
+              << "Received: " << connect_count << std::endl;
+    is_good = false;
+  }
+  if (group_expect != group_count)
+  {
+    std::cerr << "Error: group count: "
+              << "Expected: " << group_expect << " "
+              << "Received: " << group_count << std::endl;
+    is_good = false;
+  }
+
+  if (!is_good)
+  {
+    output_report();
+  }
+}
+
+void
+test_visitor
+::output_report() const
+{
+  std::cerr << "Total blocks  : " << total_count << std::endl;
+  std::cerr << "config blocks : " << config_count << std::endl;
+  std::cerr << "process blocks: " << process_count << std::endl;
+  std::cerr << "connect blocks: " << connect_count << std::endl;
+  std::cerr << "group blocks  : " << group_count << std::endl;
+
+  std::cerr << "Order: ";
+
+  std::for_each(types.begin(), types.end(), print_char);
+
+  std::cerr << std::endl;
+}
+
+void
+test_visitor
+::print_char(block_type_t type)
+{
+  char c;
+
+  switch (type)
+  {
+    case CONFIG_BLOCK:
+      c = 'C';
+      break;
+    case PROCESS_BLOCK:
+      c = 'p';
+      break;
+    case CONNECT_BLOCK:
+      c = 'c';
+      break;
+    case GROUP_BLOCK:
+      c = 'g';
+      break;
+    default:
+      c = 'U';
+      break;
+  }
+
+  std::cerr << c;
 }
