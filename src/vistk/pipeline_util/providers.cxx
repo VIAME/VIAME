@@ -55,7 +55,7 @@ config::value_t
 config_provider
 ::operator () (config::value_t const& index) const
 {
-  return m_config->get_value<config::value_t>(index, config::value_t());
+  return m_config->get_value<config::value_t>(index);
 }
 
 system_provider
