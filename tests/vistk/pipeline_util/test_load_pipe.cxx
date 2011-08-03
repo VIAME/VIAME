@@ -62,6 +62,7 @@ static void test_empty_config(boost::filesystem::path const& pipe_file);
 static void test_config_block(boost::filesystem::path const& pipe_file);
 static void test_one_process(boost::filesystem::path const& pipe_file);
 static void test_connected_processes(boost::filesystem::path const& pipe_file);
+static void test_config_overrides(boost::filesystem::path const& pipe_file);
 static void test_include(boost::filesystem::path const& pipe_file);
 static void test_no_exist(boost::filesystem::path const& pipe_file);
 static void test_include_no_exist(boost::filesystem::path const& pipe_file);
@@ -92,6 +93,10 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   else if (test_name == "connected_processes")
   {
     test_connected_processes(pipe_file);
+  }
+  else if (test_name == "config_overrides")
+  {
+    test_config_overrides(pipe_file);
   }
   else if (test_name == "include")
   {
@@ -233,6 +238,30 @@ test_connected_processes(boost::filesystem::path const& pipe_file)
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
   v.expect(0, 2, 1, 0);
+}
+
+void
+test_config_overrides(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(2, 0, 0, 0);
+
+  vistk::config_t conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = conf->get_value<vistk::config::key_t>("myblock:mykey");
+  vistk::config::key_t const expected = vistk::config::key_t("myothervalue");
+
+  if (mykey != expected)
+  {
+    std::cerr << "Error: Configuration was not overriden: "
+              << "Expected: " << expected << " "
+              << "Received: " << mykey << std::endl;
+  }
 }
 
 void
