@@ -15,6 +15,12 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
+#include <cstdlib>
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
 static void SetThreadName(DWORD dwThreadID, char* threadName);
 #endif
 
@@ -46,6 +52,42 @@ bool name_thread(thread_name_t const& name)
 #endif
 
   return true;
+}
+
+envvar_value_t
+get_envvar(envvar_name_t const& name)
+{
+  envvar_value_t value = NULL;
+
+#if defined(_WIN32) || defined(_WIN64)
+  DWORD sz = GetEnvironmentVariable(name, NULL, 0);
+
+  if (sz)
+  {
+    value = new char[sz];
+
+    sz = GetEnvironmentVariable(name, value, sz);
+  }
+
+  if (!sz)
+  {
+    /// \todo Log error that the environment reading failed.
+  }
+#else
+  value = getenv(name);
+#endif
+
+  return value;
+}
+
+void
+free_envvar(envvar_value_t value)
+{
+#if defined(_WIN32) || defined(_WIN64)
+  delete [] value;
+#else
+  (void)value;
+#endif
 }
 
 }

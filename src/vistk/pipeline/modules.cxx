@@ -6,6 +6,8 @@
 
 #include "modules.h"
 
+#include "utils.h"
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -18,8 +20,6 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 #else
-#include <cstdlib>
-
 #include <dlfcn.h>
 #endif
 
@@ -43,12 +43,6 @@ typedef void* library_t;
 typedef void* function_t;
 #endif
 typedef void (*load_module_t)();
-typedef char const* envvar_name_t;
-#if defined(_WIN32) || defined(_WIN64)
-typedef char* envvar_value_t;
-#else
-typedef char const* envvar_value_t;
-#endif
 #if defined(_WIN32) || defined(_WIN64)
 typedef std::wstring module_path_t;
 #else
@@ -88,35 +82,15 @@ void load_known_modules()
   module_dirs.push_back(VISTK_MODULE_INSTALL_PATH);
 #endif
 
-  envvar_value_t extra_module_dirs = NULL;
-
-#if defined(_WIN32) || defined(_WIN64)
-  DWORD sz = GetEnvironmentVariable(vistk_module_envvar, NULL, 0);
-
-  if (sz)
-  {
-    extra_module_dirs = new char[sz];
-
-    sz = GetEnvironmentVariable(vistk_module_envvar, extra_module_dirs, sz);
-  }
-
-  if (!sz)
-  {
-    /// \todo Log error that the environment reading failed.
-  }
-#else
-  extra_module_dirs = getenv(vistk_module_envvar);
-#endif
+  envvar_value_t extra_module_dirs = get_envvar(vistk_module_envvar);
 
   if (extra_module_dirs)
   {
     boost::split(module_dirs, extra_module_dirs, is_separator, boost::token_compress_on);
   }
 
-#if defined(_WIN32) || defined(_WIN64)
-  delete[] extra_module_dirs;
+  free_envvar(extra_module_dirs);
   extra_module_dirs = NULL;
-#endif
 
   BOOST_FOREACH (module_path_t const& module_dir, module_dirs)
   {

@@ -23,6 +23,15 @@ namespace vistk
 /// The type for the name of a thread.
 typedef std::string thread_name_t;
 
+/// The type for an environment variable name.
+typedef char const* envvar_name_t;
+/// The type of an environment variable value.
+#if defined(_WIN32) || defined(_WIN64)
+typedef char* envvar_value_t;
+#else
+typedef char const* envvar_value_t;
+#endif
+
 /**
  * \brief Names the thread that the function was called from.
  *
@@ -38,6 +47,21 @@ typedef std::string thread_name_t;
  * \returns True if the name was successfully set, false otherwise.
  */
 bool VISTK_PIPELINE_EXPORT name_thread(thread_name_t const& name);
+
+/**
+ * \brief Retrieves the value of an environment variable.
+ *
+ * \param name The variable to retrieve from the environement.
+ *
+ * \returns The value of the environment variable, NULL if it was not set.
+ */
+envvar_value_t VISTK_PIPELINE_EXPORT get_envvar(envvar_name_t const& name);
+/**
+ * \brief Releases memory used by an environment variable.
+ *
+ * \param value The value to free.
+ */
+void VISTK_PIPELINE_EXPORT free_envvar(envvar_value_t value);
 
 }
 
