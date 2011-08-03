@@ -7,6 +7,7 @@
 #include "providers.h"
 
 #include <vistk/pipeline/config.h>
+#include <vistk/pipeline/utils.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -22,18 +23,6 @@
 
 namespace vistk
 {
-
-namespace
-{
-
-typedef char const* envvar_name_t;
-#if defined(_WIN32) || defined(_WIN64)
-typedef char* envvar_value_t;
-#else
-typedef char const* envvar_value_t;
-#endif
-
-}
 
 provider
 ::provider()
@@ -96,26 +85,8 @@ config::value_t
 environment_provider
 ::operator () (config::value_t const& index) const
 {
-  envvar_value_t envvar_value = NULL;
   envvar_name_t const envvar_name = index.c_str();
-
-#if defined(_WIN32) || defined(_WIN64)
-  DWORD sz = GetEnvironmentVariable(envvar_name, NULL, 0);
-
-  if (sz)
-  {
-    envvar_value = new char[sz];
-
-    sz = GetEnvironmentVariable(envvar_name, envvar_value, sz);
-  }
-
-  if (!sz)
-  {
-    /// \todo Log error that the environment reading failed.
-  }
-#else
-  envvar_value = getenv(envvar_name);
-#endif
+  envvar_value_t envvar_value = get_envvar(envvar_name);
 
   config::value_t value;
 
@@ -124,9 +95,7 @@ environment_provider
     value = config::value_t(envvar_value);
   }
 
-#if defined(_WIN32) || defined(_WIN64)
-  delete [] envvar_value;
-#endif
+  free_envvar(envvar_value);
 
   return value;
 }
