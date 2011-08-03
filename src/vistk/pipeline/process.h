@@ -363,6 +363,14 @@ class VISTK_PIPELINE_EXPORT process
      */
     static bool syncd_edges(edges_t const& edges);
     /**
+     * \brief Examine datum packets to determine the highest priority status.
+     *
+     * \param data The data to look at.
+     *
+     * \returns The highest priority type present in the data.
+     */
+    static datum::datum_type_t max_status(edge_data_t const& data);
+    /**
      * \brief Pushes data to all given edges.
      *
      * \param edges The edges to push to.

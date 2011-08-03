@@ -366,6 +366,25 @@ process
   return true;
 }
 
+datum::datum_type_t
+process
+::max_status(edge_data_t const& data)
+{
+  datum::datum_type_t max_type = datum::DATUM_INVALID;
+
+  BOOST_FOREACH (edge_datum_t const& dat, data)
+  {
+    datum::datum_type_t const type = dat.get<0>()->type();
+
+    if (max_type < type)
+    {
+      max_type = type;
+    }
+  }
+
+  return max_type;
+}
+
 void
 process
 ::push_to_edges(edges_t const& edges, edge_datum_t const& dat)
