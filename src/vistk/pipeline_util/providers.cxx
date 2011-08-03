@@ -74,6 +74,23 @@ system_provider
   {
     value = boost::lexical_cast<config::value_t>(boost::thread::hardware_concurrency());
   }
+  else if (index == "homedir")
+  {
+    envvar_value_t home = get_envvar(
+#if defined(_WIN32) || defined(_WIN64)
+      "UserProfile"
+#else
+      "HOME"
+#endif
+    );
+
+    if (home)
+    {
+      value = config::value_t(home);
+    }
+
+    free_envvar(home);
+  }
   else
   {
     /// \todo Throw exception about unrecognized index.
