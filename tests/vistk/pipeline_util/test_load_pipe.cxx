@@ -54,6 +54,7 @@ main(int argc, char* argv[])
 }
 
 static void test_empty(boost::filesystem::path const& pipe_file);
+static void test_comments(boost::filesystem::path const& pipe_file);
 
 void
 run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
@@ -61,6 +62,10 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   if (test_name == "empty")
   {
     test_empty(pipe_file);
+  }
+  else if (test_name == "comments")
+  {
+    test_comments(pipe_file);
   }
   else
   {
@@ -110,6 +115,18 @@ class test_visitor
 
 void
 test_empty(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 0);
+}
+
+void
+test_comments(boost::filesystem::path const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 

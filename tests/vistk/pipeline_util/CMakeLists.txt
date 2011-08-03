@@ -22,3 +22,4 @@ set(load_pipe_libraries
 vistk_build_test(load_pipe load_pipe_libraries test_load_pipe.cxx)
 
 vistk_make_load_test(load_pipe empty)
+vistk_make_load_test(load_pipe comments)
