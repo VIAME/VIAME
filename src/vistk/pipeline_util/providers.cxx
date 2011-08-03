@@ -100,7 +100,9 @@ system_provider
 
     /// \todo Check ec.
 
-    value = config::value_t(curdir.native());
+    boost::filesystem::path::string_type const& raw_path = curdir.native();
+
+    value = config::value_t(raw_path.begin(), raw_path.end());
   }
   else
   {
