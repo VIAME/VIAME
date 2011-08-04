@@ -4,6 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <vistk/pipeline/config.h>
+#include <vistk/pipeline/edge.h>
+
 #include <exception>
 #include <iostream>
 #include <string>
@@ -36,11 +39,27 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_makes_dependency();
+
 void
 run_test(std::string const& test_name)
 {
-  //else
+  if (test_name == "makes_dependency")
+  {
+    test_makes_dependency();
+  }
+  else
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
   }
+}
+
+void
+test_makes_dependency()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+
+  edge->makes_dependency();
 }
