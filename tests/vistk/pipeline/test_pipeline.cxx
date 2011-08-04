@@ -53,6 +53,7 @@ static void test_map_input_no_group();
 static void test_map_output_no_group();
 static void test_map_input_no_process();
 static void test_map_output_no_process();
+static void test_map_input();
 
 void
 run_test(std::string const& test_name)
@@ -100,6 +101,10 @@ run_test(std::string const& test_name)
   else if (test_name == "map_output_no_process")
   {
     test_map_output_no_process();
+  }
+  else if (test_name == "map_input")
+  {
+    test_map_input();
   }
   else
   {
@@ -512,4 +517,33 @@ test_map_output_no_process()
     std::cerr << "Error: Did not get expected exception "
               << "when mapping an output on an non-existent group" << std::endl;
   }
+}
+
+void
+test_map_input()
+{
+  vistk::load_known_modules();
+
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+
+  vistk::config::value_t const group_name = vistk::process::name_t("group");
+  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t proc_config = vistk::config::empty_config();
+
+  proc_config->set_value(vistk::process::config_name, proc_name);
+
+  vistk::process_t const process = reg->create_process(proc_type, proc_config);
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+
+  pipeline->add_group(group_name);
+  pipeline->add_process(process);
+
+  pipeline->map_input_port(group_name, vistk::process::port_t(),
+                           proc_name, vistk::process::port_t(),
+                           vistk::process::port_flags_t());
 }
