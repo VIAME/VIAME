@@ -354,9 +354,11 @@ test_config_not_a_flag(boost::filesystem::path const& pipe_file)
   {
     vistk::extract_configuration(blocks);
   }
-  catch (vistk::unrecognized_config_flag_exception&)
+  catch (vistk::unrecognized_config_flag_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -390,9 +392,11 @@ test_config_read_only_override(boost::filesystem::path const& pipe_file)
   {
     vistk::extract_configuration(blocks);
   }
-  catch (vistk::set_on_read_only_value_exception&)
+  catch (vistk::set_on_read_only_value_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -483,9 +487,11 @@ test_config_provider_conf_circular_dep(boost::filesystem::path const& pipe_file)
   {
     vistk::extract_configuration(blocks);
   }
-  catch (vistk::circular_config_provide_exception&)
+  catch (vistk::circular_config_provide_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -547,9 +553,11 @@ test_config_provider_read_only_override(boost::filesystem::path const& pipe_file
   {
     vistk::extract_configuration(blocks);
   }
-  catch (vistk::set_on_read_only_value_exception&)
+  catch (vistk::set_on_read_only_value_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -583,9 +591,11 @@ test_config_provider_unprovided(boost::filesystem::path const& pipe_file)
   {
     vistk::extract_configuration(blocks);
   }
-  catch (vistk::unrecognized_provider_exception&)
+  catch (vistk::unrecognized_provider_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -635,9 +645,11 @@ test_no_exist(boost::filesystem::path const& pipe_file)
   {
     vistk::load_pipe_blocks_from_file(pipe_file);
   }
-  catch (vistk::file_no_exist_exception&)
+  catch (vistk::file_no_exist_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -663,9 +675,11 @@ test_not_a_file(boost::filesystem::path const& pipe_file)
   {
     vistk::load_pipe_blocks_from_file(pipe_file);
   }
-  catch (vistk::file_open_exception&)
+  catch (vistk::file_open_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -691,9 +705,11 @@ test_include_no_exist(boost::filesystem::path const& pipe_file)
   {
     vistk::load_pipe_blocks_from_file(pipe_file);
   }
-  catch (vistk::file_no_exist_exception&)
+  catch (vistk::file_no_exist_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -719,9 +735,11 @@ test_include_not_a_file(boost::filesystem::path const& pipe_file)
   {
     vistk::load_pipe_blocks_from_file(pipe_file);
   }
-  catch (vistk::file_open_exception&)
+  catch (vistk::file_open_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {

@@ -156,9 +156,11 @@ test_get_value_no_exist()
   {
     config->get_value<vistk::config::value_t>(keya);
   }
-  catch (vistk::no_such_configuration_value_exception&)
+  catch (vistk::no_such_configuration_value_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -200,9 +202,11 @@ test_get_value_type_mismatch()
   {
     config->get_value<int>(keya);
   }
-  catch (vistk::bad_configuration_cast_exception&)
+  catch (vistk::bad_configuration_cast_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -248,9 +252,11 @@ test_unset_value()
   {
     config->get_value<vistk::config::value_t>(keya);
   }
-  catch (vistk::no_such_configuration_value_exception&)
+  catch (vistk::no_such_configuration_value_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -321,9 +327,11 @@ test_read_only()
   {
     config->set_value(keya, valueb);
   }
-  catch (vistk::set_on_read_only_value_exception&)
+  catch (vistk::set_on_read_only_value_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
@@ -366,9 +374,11 @@ test_read_only_unset()
   {
     config->unset_value(keya);
   }
-  catch (vistk::unset_on_read_only_value_exception&)
+  catch (vistk::unset_on_read_only_value_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {

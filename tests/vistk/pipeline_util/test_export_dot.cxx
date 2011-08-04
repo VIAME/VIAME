@@ -82,9 +82,11 @@ void test_pipeline_null(boost::filesystem::path const& /*pipe_file*/)
   {
     vistk::export_dot(sstr, pipeline, "(unnamed)");
   }
-  catch (vistk::null_pipeline_export_dot_exception&)
+  catch (vistk::null_pipeline_export_dot_exception& e)
   {
     got_exception = true;
+
+    (void)e.what();
   }
   catch (std::exception& e)
   {
