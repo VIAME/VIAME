@@ -39,6 +39,7 @@ main(int argc, char* argv[])
 }
 
 static void test_coloring();
+static void test_equality();
 
 void
 run_test(std::string const& test_name)
@@ -46,6 +47,10 @@ run_test(std::string const& test_name)
   if (test_name == "coloring")
   {
     return test_coloring();
+  }
+  else if (test_name == "equality")
+  {
+    return test_equality();
   }
   else
   {
@@ -68,5 +73,38 @@ test_coloring()
   if (!stampa->is_same_color(stampc))
   {
     std::cerr << "Error: An incremented stamp changed color" << std::endl;
+  }
+}
+
+void
+test_equality()
+{
+  vistk::stamp_t const stampa = vistk::stamp::new_stamp();
+  vistk::stamp_t const stampb = vistk::stamp::new_stamp();
+
+  if (*stampa == *stampb)
+  {
+    std::cerr << "Error: New stamps are equal" << std::endl;
+  }
+
+  vistk::stamp_t const stampc = vistk::stamp::copied_stamp(stampa);
+
+  if (*stampa != *stampc)
+  {
+    std::cerr << "Error: A copied stamp is not the same" << std::endl;
+  }
+
+  vistk::stamp_t const stampd = vistk::stamp::recolored_stamp(stampb, stampa);
+
+  if (*stampa != *stampd)
+  {
+    std::cerr << "Error: A recolored new stamp does not equal a new stamp" << std::endl;
+  }
+
+  vistk::stamp_t const stampe = vistk::stamp::incremented_stamp(stampa);
+
+  if (*stampa == *stampe)
+  {
+    std::cerr << "Error: An incremented stamp equals the original stamp" << std::endl;
   }
 }
