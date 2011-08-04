@@ -675,7 +675,7 @@ test_not_a_file(boost::filesystem::path const& pipe_file)
   {
     vistk::load_pipe_blocks_from_file(pipe_file);
   }
-  catch (vistk::file_open_exception& e)
+  catch (vistk::not_a_file_exception& e)
   {
     got_exception = true;
 
@@ -735,7 +735,7 @@ test_include_not_a_file(boost::filesystem::path const& pipe_file)
   {
     vistk::load_pipe_blocks_from_file(pipe_file);
   }
-  catch (vistk::file_open_exception& e)
+  catch (vistk::not_a_file_exception& e)
   {
     got_exception = true;
 
