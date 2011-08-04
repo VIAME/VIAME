@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <vistk/pipeline/stamp.h>
+
 #include <exception>
 #include <iostream>
 #include <string>
@@ -36,11 +38,35 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_coloring();
+
 void
 run_test(std::string const& test_name)
 {
-  //else
+  if (test_name == "coloring")
+  {
+    return test_coloring();
+  }
+  else
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
+  }
+}
+
+void
+test_coloring()
+{
+  vistk::stamp_t const stampa = vistk::stamp::new_stamp();
+  vistk::stamp_t const stampb = vistk::stamp::new_stamp();
+  vistk::stamp_t const stampc = vistk::stamp::incremented_stamp(stampa);
+
+  if (stampa->is_same_color(stampb))
+  {
+    std::cerr << "Error: New stamps have the same color" << std::endl;
+  }
+
+  if (!stampa->is_same_color(stampc))
+  {
+    std::cerr << "Error: An incremented stamp changed color" << std::endl;
   }
 }

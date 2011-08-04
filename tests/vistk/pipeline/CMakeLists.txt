@@ -46,6 +46,8 @@ vistk_make_test(datum new)
 ##############################
 vistk_build_test(stamp libraries test_stamp.cxx)
 
+vistk_make_test(stamp coloring)
+
 ##############################
 # Edge tests
 ##############################
