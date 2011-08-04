@@ -37,11 +37,40 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_has_value();
+
 void
 run_test(std::string const& test_name)
 {
-  //else
+  if (test_name == "has_value")
+  {
+    test_has_value();
+  }
+  else
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
+  }
+}
+
+void
+test_has_value()
+{
+  vistk::config_t config = vistk::config::empty_config();
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+
+  config->set_value(keya, valuea);
+
+  if (!config->has_value(keya))
+  {
+    std::cerr << "Error: Block does not have value which set" << std::endl;
+  }
+
+  if (config->has_value(keyb))
+  {
+    std::cerr << "Error: Block has value which was not set" << std::endl;
   }
 }

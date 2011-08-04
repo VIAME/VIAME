@@ -18,3 +18,5 @@ vistk_make_test(schedule_introspection all)
 # Config tests
 ##############################
 vistk_build_test(config libraries test_config.cxx)
+
+vistk_make_test(config has_value)
