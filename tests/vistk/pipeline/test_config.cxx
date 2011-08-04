@@ -48,6 +48,7 @@ static void test_read_only();
 static void test_read_only_unset();
 static void test_subblock();
 static void test_subblock_view();
+static void test_merge_config();
 
 void
 run_test(std::string const& test_name)
@@ -91,6 +92,10 @@ run_test(std::string const& test_name)
   else if (test_name == "subblock_view")
   {
     test_subblock_view();
+  }
+  else if (test_name == "merge_config")
+  {
+    test_merge_config();
   }
   else
   {
@@ -514,5 +519,48 @@ test_subblock_view()
   if (keys.size() != get_keys.size())
   {
     std::cerr << "Error: Did not retrieve correct number of keys from the subblock" << std::endl;
+  }
+}
+
+void test_merge_config()
+{
+  vistk::config_t configa = vistk::config::empty_config();
+  vistk::config_t configb = vistk::config::empty_config();
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  vistk::config::key_t const keyc = vistk::config::key_t("keyc");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
+  vistk::config::value_t const valuec = vistk::config::value_t("value_c");
+
+  configa->set_value(keya, valuea);
+  configa->set_value(keyb, valuea);
+
+  configb->set_value(keyb, valueb);
+  configb->set_value(keyc, valuec);
+
+  configa->merge_config(configb);
+
+  vistk::config::value_t const get_valuea = configa->get_value<vistk::config::value_t>(keya);
+
+  if (valuea != get_valuea)
+  {
+    std::cerr << "Error: Unmerged key changed" << std::endl;
+  }
+
+  vistk::config::value_t const get_valueb = configa->get_value<vistk::config::value_t>(keyb);
+
+  if (valueb != get_valueb)
+  {
+    std::cerr << "Error: Conflicting key was not overwritten" << std::endl;
+  }
+
+  vistk::config::value_t const get_valuec = configa->get_value<vistk::config::value_t>(keyc);
+
+  if (valuec != get_valuec)
+  {
+    std::cerr << "Error: New key did not appear" << std::endl;
   }
 }

@@ -29,6 +29,7 @@ vistk_make_test(config read_only)
 vistk_make_test(config read_only_unset)
 vistk_make_test(config subblock)
 vistk_make_test(config subblock_view)
+vistk_make_test(config merge_config)
 
 ##############################
 # Datum tests
