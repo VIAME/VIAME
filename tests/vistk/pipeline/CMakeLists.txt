@@ -46,3 +46,4 @@ vistk_make_test(datum new)
 vistk_build_test(pipeline libraries test_pipeline.cxx)
 
 vistk_make_test(pipeline null_process)
+vistk_make_test(pipeline duplicate_process_process)
