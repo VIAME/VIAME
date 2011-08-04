@@ -44,6 +44,7 @@ main(int argc, char* argv[])
 
 static void test_null_process();
 static void test_add_process();
+static void test_add_group();
 static void test_duplicate_process_process();
 static void test_duplicate_process_group();
 
@@ -57,6 +58,10 @@ run_test(std::string const& test_name)
   else if (test_name == "add_process")
   {
     test_add_process();
+  }
+  else if (test_name == "add_group")
+  {
+    test_add_group();
   }
   else if (test_name == "duplicate_process_process")
   {
@@ -123,6 +128,18 @@ test_add_process()
   vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
 
   pipeline->add_process(process);
+}
+
+void
+test_add_group()
+{
+  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+
+  pipeline->add_group(proc_name);
 }
 
 void
