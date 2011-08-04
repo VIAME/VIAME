@@ -5,6 +5,7 @@
  */
 
 #include "export_dot.h"
+#include "export_dot_exception.h"
 
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
@@ -44,7 +45,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 {
   if (!pipe)
   {
-    /// \todo Throw an exception.
+    throw null_pipeline_export_dot_exception();
   }
 
   ostr << "strict digraph " << graph_name << " {" << std::endl;
