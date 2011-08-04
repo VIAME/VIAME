@@ -48,6 +48,7 @@ static void test_add_group();
 static void test_duplicate_process_process();
 static void test_duplicate_process_group();
 static void test_duplicate_group_process();
+static void test_duplicate_group_group();
 
 void
 run_test(std::string const& test_name)
@@ -75,6 +76,10 @@ run_test(std::string const& test_name)
   else if (test_name == "duplicate_group_process")
   {
     test_duplicate_group_process();
+  }
+  else if (test_name == "duplicate_group_group")
+  {
+    test_duplicate_group_group();
   }
   else
   {
@@ -267,6 +272,44 @@ test_duplicate_group_process()
   vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
 
   pipeline->add_process(process);
+
+  bool got_exception = false;
+
+  try
+  {
+    pipeline->add_group(proc_name);
+  }
+  catch (vistk::duplicate_process_name_exception& e)
+  {
+    got_exception = true;
+
+    (void)e.what();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when adding a duplicate group to the pipeline" << std::endl;
+  }
+}
+
+void
+test_duplicate_group_group()
+{
+  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+
+  pipeline->add_group(proc_name);
 
   bool got_exception = false;
 
