@@ -68,7 +68,7 @@ print_number_process
 {
   d->fout.open(d->path.native().c_str());
 
-  if (d->fout.bad())
+  if (!d->fout.good())
   {
     /// \todo Throw exception.
   }
