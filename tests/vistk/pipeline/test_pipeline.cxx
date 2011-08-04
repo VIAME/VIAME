@@ -51,6 +51,7 @@ static void test_duplicate_group_process();
 static void test_duplicate_group_group();
 static void test_map_input_no_group();
 static void test_map_output_no_group();
+static void test_map_input_no_process();
 
 void
 run_test(std::string const& test_name)
@@ -90,6 +91,10 @@ run_test(std::string const& test_name)
   else if (test_name == "map_output_no_group")
   {
     test_map_output_no_group();
+  }
+  else if (test_name == "map_input_no_process")
+  {
+    test_map_input_no_process();
   }
   else
   {
@@ -421,5 +426,45 @@ test_map_output_no_group()
   {
     std::cerr << "Error: Did not get expected exception "
               << "when mapping an output on an non-existent group" << std::endl;
+  }
+}
+
+void
+test_map_input_no_process()
+{
+  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+
+  pipeline->add_group(proc_name);
+
+  bool got_exception = false;
+
+  try
+  {
+    pipeline->map_input_port(proc_name, vistk::process::port_t(),
+                             vistk::process::name_t(), vistk::process::port_t(),
+                             vistk::process::port_flags_t());
+  }
+  catch (vistk::no_such_process_exception& e)
+  {
+    got_exception = true;
+
+    (void)e.what();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when mapping an input on an non-existent group" << std::endl;
   }
 }
