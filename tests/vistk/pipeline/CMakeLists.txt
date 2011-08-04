@@ -47,6 +47,7 @@ vistk_make_test(datum new)
 vistk_build_test(edge libraries test_edge.cxx)
 
 vistk_make_test(edge makes_dependency)
+vistk_make_test(edge new_has_no_data)
 
 ##############################
 # Pipeline tests

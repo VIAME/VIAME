@@ -40,6 +40,7 @@ main(int argc, char* argv[])
 }
 
 static void test_makes_dependency();
+static void test_new_has_no_data();
 
 void
 run_test(std::string const& test_name)
@@ -47,6 +48,10 @@ run_test(std::string const& test_name)
   if (test_name == "makes_dependency")
   {
     test_makes_dependency();
+  }
+  else if (test_name == "new_has_no_data")
+  {
+    test_new_has_no_data();
   }
   else
   {
@@ -62,4 +67,17 @@ test_makes_dependency()
   vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
 
   edge->makes_dependency();
+}
+
+void
+test_new_has_no_data()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+
+  if (edge->has_data())
+  {
+    std::cerr << "Error: A new edge has data in it" << std::endl;
+  }
 }
