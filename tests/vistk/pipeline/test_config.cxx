@@ -45,6 +45,7 @@ static void test_unset_value();
 static void test_available_values();
 static void test_read_only();
 static void test_read_only_unset();
+static void test_subblock();
 
 void
 run_test(std::string const& test_name)
@@ -80,6 +81,10 @@ run_test(std::string const& test_name)
   else if (test_name == "read_only_unset")
   {
     test_read_only_unset();
+  }
+  else if (test_name == "subblock")
+  {
+    test_subblock();
   }
   else
   {
@@ -379,5 +384,47 @@ test_read_only_unset()
   if (valuea != get_valuea)
   {
     std::cerr << "Error: Read only value was unset" << std::endl;
+  }
+}
+
+void
+test_subblock()
+{
+  vistk::config_t config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+  vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  vistk::config::key_t const keyc = vistk::config::key_t("keyc");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
+  vistk::config::value_t const valuec = vistk::config::value_t("value_c");
+
+  config->set_value(block_name + vistk::config::block_sep + keya, valuea);
+  config->set_value(block_name + vistk::config::block_sep + keyb, valueb);
+  config->set_value(other_block_name + vistk::config::block_sep + keyc, valuec);
+
+  vistk::config_t const subblock = config->subblock(block_name);
+
+  vistk::config::value_t const get_valuea = subblock->get_value<vistk::config::value_t>(keya);
+
+  if (valuea != get_valuea)
+  {
+    std::cerr << "Error: Subblock did not inherit expected keys" << std::endl;
+  }
+
+  vistk::config::value_t const get_valueb = subblock->get_value<vistk::config::value_t>(keyb);
+
+  if (valueb != get_valueb)
+  {
+    std::cerr << "Error: Subblock did not inherit expected keys" << std::endl;
+  }
+
+  if (subblock->has_value(keyc))
+  {
+    std::cerr << "Error: Subblock inherited unrelated key" << std::endl;
   }
 }
