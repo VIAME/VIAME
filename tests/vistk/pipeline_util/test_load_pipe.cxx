@@ -254,7 +254,7 @@ test_config_block(boost::filesystem::path const& pipe_file)
 
   v.expect(1, 0, 0, 0);
 
-  vistk::config_t conf = vistk::extract_configuration(blocks);
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
 
   vistk::config::key_t const mykey = conf->get_value<vistk::config::key_t>("myblock:mykey");
   vistk::config::key_t const expected = vistk::config::key_t("myvalue");
@@ -302,7 +302,7 @@ test_config_overrides(boost::filesystem::path const& pipe_file)
 
   v.expect(2, 0, 0, 0);
 
-  vistk::config_t conf = vistk::extract_configuration(blocks);
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
 
   vistk::config::key_t const mykey = conf->get_value<vistk::config::key_t>("myblock:mykey");
   vistk::config::key_t const expected = vistk::config::key_t("myothervalue");
