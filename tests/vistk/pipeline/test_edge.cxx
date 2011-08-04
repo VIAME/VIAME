@@ -188,7 +188,7 @@ test_peek_datum()
     std::cerr << "Error: An edge removed a datum on an peek" << std::endl;
   }
 
-  if (get_edat.get<1>() != stamp)
+  if (*get_edat.get<1>() != *stamp)
   {
     std::cerr << "Error: The edge modified a stamp on a peek" << std::endl;
   }
