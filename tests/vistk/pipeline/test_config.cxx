@@ -46,6 +46,7 @@ static void test_available_values();
 static void test_read_only();
 static void test_read_only_unset();
 static void test_subblock();
+static void test_subblock_view();
 
 void
 run_test(std::string const& test_name)
@@ -85,6 +86,10 @@ run_test(std::string const& test_name)
   else if (test_name == "subblock")
   {
     test_subblock();
+  }
+  else if (test_name == "subblock_view")
+  {
+    test_subblock_view();
   }
   else
   {
@@ -426,5 +431,77 @@ test_subblock()
   if (subblock->has_value(keyc))
   {
     std::cerr << "Error: Subblock inherited unrelated key" << std::endl;
+  }
+}
+
+void
+test_subblock_view()
+{
+  vistk::config_t config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+  vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  vistk::config::key_t const keyc = vistk::config::key_t("keyc");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
+  vistk::config::value_t const valuec = vistk::config::value_t("value_c");
+
+  config->set_value(block_name + vistk::config::block_sep + keya, valuea);
+  config->set_value(block_name + vistk::config::block_sep + keyb, valueb);
+  config->set_value(other_block_name + vistk::config::block_sep + keyc, valuec);
+
+  vistk::config_t subblock = config->subblock_view(block_name);
+
+  if (!subblock->has_value(keya))
+  {
+    std::cerr << "Error: Subblock view did not inherit key" << std::endl;
+  }
+
+  if (subblock->has_value(keyc))
+  {
+    std::cerr << "Error: Subblock view inherited unrelated key" << std::endl;
+  }
+
+  config->set_value(block_name + vistk::config::block_sep + keya, valueb);
+
+  vistk::config::value_t const get_valuea1 = subblock->get_value<vistk::config::value_t>(keya);
+
+  if (valueb != get_valuea1)
+  {
+    std::cerr << "Error: Subblock view persisted a changed value" << std::endl;
+  }
+
+  subblock->set_value(keya, valuea);
+
+  vistk::config::value_t const get_valuea2 = config->get_value<vistk::config::value_t>(block_name + vistk::config::block_sep + keya);
+
+  if (valuea != get_valuea2)
+  {
+    std::cerr << "Error: Subblock view set value was not changed in parent" << std::endl;
+  }
+
+  subblock->unset_value(keyb);
+
+  if (config->has_value(block_name + vistk::config::block_sep + keyb))
+  {
+    std::cerr << "Error: Unsetting from a subblock view did not unset in parent view" << std::endl;
+  }
+
+  config->set_value(block_name + vistk::config::block_sep + keyc, valuec);
+
+  vistk::config::keys_t keys;
+
+  keys.push_back(keya);
+  keys.push_back(keyc);
+
+  vistk::config::keys_t const get_keys = subblock->available_values();
+
+  if (keys.size() != get_keys.size())
+  {
+    std::cerr << "Error: Did not retrieve correct number of keys from the subblock" << std::endl;
   }
 }
