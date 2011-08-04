@@ -43,6 +43,7 @@ main(int argc, char* argv[])
 }
 
 static void test_null_process();
+static void test_add_process();
 static void test_duplicate_process_process();
 static void test_duplicate_process_group();
 
@@ -52,6 +53,10 @@ run_test(std::string const& test_name)
   if (test_name == "null_process")
   {
     test_null_process();
+  }
+  else if (test_name == "add_process")
+  {
+    test_add_process();
   }
   else if (test_name == "duplicate_process_process")
   {
@@ -101,6 +106,23 @@ test_null_process()
     std::cerr << "Error: Did not get expected exception "
               << "when adding a NULL process to the pipeline" << std::endl;
   }
+}
+
+void
+test_add_process()
+{
+  vistk::load_known_modules();
+
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::process_t const process = reg->create_process(proc_type, config);
+
+  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+
+  pipeline->add_process(process);
 }
 
 void
