@@ -53,6 +53,7 @@ static void test_pop_datum();
 static void test_get_datum();
 static void test_required_by_downstream();
 static void test_null_upstream_process();
+static void test_null_downstream_process();
 
 void
 run_test(std::string const& test_name)
@@ -96,6 +97,10 @@ run_test(std::string const& test_name)
   else if (test_name == "null_upstream_process")
   {
     test_null_upstream_process();
+  }
+  else if (test_name == "null_downstream_process")
+  {
+    test_null_downstream_process();
   }
   else
   {
@@ -296,6 +301,42 @@ test_null_upstream_process()
   try
   {
     edge->set_upstream_process(process);
+  }
+  catch (vistk::null_process_connection_exception& e)
+  {
+    got_exception = true;
+
+    (void)e.what();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when setting a NULL process as upstream" << std::endl;
+  }
+}
+
+void
+test_null_downstream_process()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+
+  vistk::process_t const process;
+
+  bool got_exception = false;
+
+  try
+  {
+    edge->set_downstream_process(process);
   }
   catch (vistk::null_process_connection_exception& e)
   {
