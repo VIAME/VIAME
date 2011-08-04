@@ -71,6 +71,7 @@ static void test_config_provider_conf(boost::filesystem::path const& pipe_file);
 static void test_config_provider_conf_dep(boost::filesystem::path const& pipe_file);
 static void test_config_provider_conf_circular_dep(boost::filesystem::path const& pipe_file);
 static void test_config_provider_env(boost::filesystem::path const& pipe_file);
+static void test_config_provider_read_only(boost::filesystem::path const& pipe_file);
 static void test_include(boost::filesystem::path const& pipe_file);
 static void test_no_exist(boost::filesystem::path const& pipe_file);
 static void test_include_no_exist(boost::filesystem::path const& pipe_file);
@@ -133,6 +134,10 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   else if (test_name == "config_provider_env")
   {
     test_config_provider_env(pipe_file);
+  }
+  else if (test_name == "config_provider_read_only")
+  {
+    test_config_provider_read_only(pipe_file);
   }
   else if (test_name == "include")
   {
@@ -446,6 +451,18 @@ test_config_provider_conf_circular_dep(boost::filesystem::path const& pipe_file)
 
 void
 test_config_provider_env(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+}
+
+void
+test_config_provider_read_only(boost::filesystem::path const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
