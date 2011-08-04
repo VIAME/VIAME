@@ -52,3 +52,5 @@ set(export_dot_libraries
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 vistk_build_test(export_dot export_dot_libraries test_export_dot.cxx)
+
+vistk_make_load_test(export_dot pipeline_null)

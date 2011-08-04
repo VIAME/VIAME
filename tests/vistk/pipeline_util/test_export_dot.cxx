@@ -4,10 +4,14 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <vistk/pipeline_util/export_dot.h>
+#include <vistk/pipeline_util/export_dot_exception.h>
+
 #include <boost/filesystem/path.hpp>
 
 #include <exception>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 static std::string const pipe_ext = ".pipe";
@@ -43,11 +47,48 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_pipeline_null(boost::filesystem::path const& pipe_file);
+
 void
 run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
 {
-  //else
+  if (test_name == "pipeline_null")
+  {
+    test_pipeline_null(pipe_file);
+  }
+  else
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
+  }
+}
+
+void test_pipeline_null(boost::filesystem::path const& /*pipe_file*/)
+{
+  vistk::pipeline_t pipeline;
+
+  std::ostringstream sstr;
+
+  bool got_exception = false;
+
+  try
+  {
+    vistk::export_dot(sstr, pipeline, "(unnamed)");
+  }
+  catch (vistk::null_pipeline_export_dot_exception&)
+  {
+    got_exception = true;
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when exporting a NULL pipeline" << std::endl;
   }
 }
