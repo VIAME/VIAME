@@ -72,6 +72,41 @@ class VISTK_PIPELINE_UTIL_EXPORT file_no_exist_exception
 };
 
 /**
+ * \class not_a_file_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ *
+ * \brief The exception thrown when a path is not a file.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT not_a_file_exception
+  : public load_pipe_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param fname The path that is not a file.
+     */
+    not_a_file_exception(boost::filesystem::path const& path) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~not_a_file_exception() throw();
+
+    /// The path is not a file.
+    boost::filesystem::path const m_path;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class file_open_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
  *
  * \brief The exception thrown when a file could not be opened.

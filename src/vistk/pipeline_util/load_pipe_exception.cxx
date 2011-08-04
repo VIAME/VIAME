@@ -41,6 +41,30 @@ file_no_exist_exception
   return m_what.c_str();
 }
 
+not_a_file_exception
+::not_a_file_exception(boost::filesystem::path const& path) throw()
+  : load_pipe_exception()
+  , m_path(path)
+{
+  std::stringstream sstr;
+
+  sstr << "The path is not a file: " << m_path;
+
+  m_what = sstr.str();
+}
+
+not_a_file_exception
+::~not_a_file_exception() throw()
+{
+}
+
+char const*
+not_a_file_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 file_open_exception
 ::file_open_exception(boost::filesystem::path const& fname) throw()
   : load_pipe_exception()
