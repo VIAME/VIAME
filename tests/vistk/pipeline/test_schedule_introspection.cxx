@@ -79,5 +79,38 @@ main()
     }
   }
 
+  // Check exceptions for unknown types.
+  {
+    vistk::schedule_registry::type_t const non_existent_schedule = vistk::schedule_registry::type_t("no_such_schedule");
+
+    try
+    {
+      reg->create_schedule(non_existent_schedule, config, pipe);
+    }
+    catch (vistk::no_such_schedule_type_exception& e)
+    {
+    }
+    catch (std::exception& e)
+    {
+      std::cerr << "Error: Unexpected exception when "
+                << "requesting a non-existent schedule type: "
+                << e.what() << std::endl;
+    }
+
+    try
+    {
+      reg->description(non_existent_schedule);
+    }
+    catch (vistk::no_such_schedule_type_exception& e)
+    {
+    }
+    catch (std::exception& e)
+    {
+      std::cerr << "Error: Unexpected exception when "
+                << "requesting a description of a non-existent schedule type: "
+                << e.what() << std::endl;
+    }
+  }
+
   return 0;
 }
