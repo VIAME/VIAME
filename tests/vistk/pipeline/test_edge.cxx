@@ -49,6 +49,7 @@ static void test_push_datum();
 static void test_peek_datum();
 static void test_pop_datum();
 static void test_get_datum();
+static void test_required_by_downstream();
 
 void
 run_test(std::string const& test_name)
@@ -84,6 +85,10 @@ run_test(std::string const& test_name)
   else if (test_name == "get_datum")
   {
     test_get_datum();
+  }
+  else if (test_name == "required_by_downstream")
+  {
+    test_required_by_downstream();
   }
   else
   {
@@ -240,5 +245,32 @@ test_get_datum()
   if (*get_edat.get<1>() != *stamp)
   {
     std::cerr << "Error: The edge modified a stamp on a get" << std::endl;
+  }
+}
+
+void
+test_required_by_downstream()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+
+  if (!edge->required_by_downstream())
+  {
+    std::cerr << "Error: A new edge is not marked as required by downstream" << std::endl;
+  }
+
+  edge->set_required_by_downstream(false);
+
+  if (edge->required_by_downstream())
+  {
+    std::cerr << "Error: Setting the requirement by downstream failed" << std::endl;
+  }
+
+  edge->set_required_by_downstream(true);
+
+  if (!edge->required_by_downstream())
+  {
+    std::cerr << "Error: Setting the requirement by downstream failed" << std::endl;
   }
 }
