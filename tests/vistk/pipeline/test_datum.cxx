@@ -72,6 +72,11 @@ test_empty()
 {
   vistk::datum_t dat = vistk::datum::empty_datum();
 
+  if (dat->type() != vistk::datum::DATUM_EMPTY)
+  {
+    std::cerr << "Error: Datum type mismatch" << std::endl;
+  }
+
   if (!dat->get_error().empty())
   {
     std::cerr << "Error: An empty datum has an error string" << std::endl;
@@ -108,6 +113,11 @@ void
 test_complete()
 {
   vistk::datum_t dat = vistk::datum::complete_datum();
+
+  if (dat->type() != vistk::datum::DATUM_COMPLETE)
+  {
+    std::cerr << "Error: Datum type mismatch" << std::endl;
+  }
 
   if (!dat->get_error().empty())
   {
@@ -147,6 +157,11 @@ test_error()
   vistk::datum::error_t const error = vistk::datum::error_t("An error");
   vistk::datum_t dat = vistk::datum::error_datum(error);
 
+  if (dat->type() != vistk::datum::DATUM_ERROR)
+  {
+    std::cerr << "Error: Datum type mismatch" << std::endl;
+  }
+
   if (dat->get_error() != error)
   {
     std::cerr << "Error: An error datum did not keep the message" << std::endl;
@@ -184,6 +199,11 @@ test_new()
 {
   int const datum = 100;
   vistk::datum_t dat = vistk::datum::new_datum(100);
+
+  if (dat->type() != vistk::datum::DATUM_DATA)
+  {
+    std::cerr << "Error: Datum type mismatch" << std::endl;
+  }
 
   if (!dat->get_error().empty())
   {
