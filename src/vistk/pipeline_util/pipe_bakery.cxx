@@ -303,7 +303,7 @@ extract_configuration(pipe_bakery& bakery)
       boost::apply_visitor(sorter, var, ref);
     }
 
-    config::keys_t keys = sorter.sorted();
+    config::keys_t const keys = sorter.sorted();
 
     provider_dereferencer deref(tmp_conf);
 
