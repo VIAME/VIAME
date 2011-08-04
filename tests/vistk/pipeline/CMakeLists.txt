@@ -42,6 +42,11 @@ vistk_make_test(datum error)
 vistk_make_test(datum new)
 
 ##############################
+# Stamp tests
+##############################
+vistk_build_test(stamp libraries test_stamp.cxx)
+
+##############################
 # Edge tests
 ##############################
 vistk_build_test(edge libraries test_edge.cxx)
