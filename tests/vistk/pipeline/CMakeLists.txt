@@ -53,6 +53,7 @@ vistk_make_test(edge new_has_count_zero)
 vistk_make_test(edge push_datum)
 vistk_make_test(edge peek_datum)
 vistk_make_test(edge pop_datum)
+vistk_make_test(edge get_datum)
 
 ##############################
 # Pipeline tests
