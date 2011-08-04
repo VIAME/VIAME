@@ -39,3 +39,8 @@ vistk_make_test(datum empty)
 vistk_make_test(datum complete)
 vistk_make_test(datum error)
 vistk_make_test(datum new)
+
+##############################
+# Pipeline tests
+##############################
+vistk_build_test(pipeline libraries test_pipeline.cxx)
