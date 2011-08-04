@@ -125,6 +125,7 @@ multiplication_process
       case datum::DATUM_ERROR:
         dat = datum::error_datum("Error on the input edges.");
         break;
+      case datum::DATUM_INVALID:
       default:
         dat = datum::error_datum("Unrecognized datum type.");
         break;

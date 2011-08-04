@@ -99,6 +99,7 @@ print_number_process
     case datum::DATUM_COMPLETE:
     case datum::DATUM_ERROR:
       break;
+    case datum::DATUM_INVALID:
     default:
       break;
   }
