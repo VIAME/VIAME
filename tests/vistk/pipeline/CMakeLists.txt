@@ -44,3 +44,5 @@ vistk_make_test(datum new)
 # Pipeline tests
 ##############################
 vistk_build_test(pipeline libraries test_pipeline.cxx)
+
+vistk_make_test(pipeline null_process)

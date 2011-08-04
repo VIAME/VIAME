@@ -4,6 +4,11 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <vistk/pipeline/config.h>
+#include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/pipeline_exception.h>
+#include <vistk/pipeline/process.h>
+
 #include <exception>
 #include <iostream>
 #include <string>
@@ -36,11 +41,53 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_null_process();
+
 void
 run_test(std::string const& test_name)
 {
-  //else
+  if (test_name == "null_process")
+  {
+    test_null_process();
+  }
+  else
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
+  }
+}
+
+void
+test_null_process()
+{
+  vistk::process_t const process;
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+
+  bool got_exception = false;
+
+  try
+  {
+    pipeline->add_process(process);
+  }
+  catch (vistk::null_process_addition_exception& e)
+  {
+    got_exception = true;
+
+    (void)e.what();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when adding a NULL process to the pipeline" << std::endl;
   }
 }
