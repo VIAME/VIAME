@@ -8,6 +8,7 @@
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/load_pipe_exception.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
+#include <vistk/pipeline_util/pipe_bakery_exception.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
@@ -64,6 +65,7 @@ static void test_one_process(boost::filesystem::path const& pipe_file);
 static void test_connected_processes(boost::filesystem::path const& pipe_file);
 static void test_config_overrides(boost::filesystem::path const& pipe_file);
 static void test_config_read_only(boost::filesystem::path const& pipe_file);
+static void test_config_not_a_flag(boost::filesystem::path const& pipe_file);
 static void test_include(boost::filesystem::path const& pipe_file);
 static void test_no_exist(boost::filesystem::path const& pipe_file);
 static void test_include_no_exist(boost::filesystem::path const& pipe_file);
@@ -102,6 +104,10 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   else if (test_name == "config_read_only")
   {
     test_config_read_only(pipe_file);
+  }
+  else if (test_name == "config_not_a_flag")
+  {
+    test_config_not_a_flag(pipe_file);
   }
   else if (test_name == "include")
   {
@@ -279,6 +285,42 @@ test_config_read_only(boost::filesystem::path const& pipe_file)
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
   v.expect(1, 0, 0, 0);
+}
+
+void
+test_config_not_a_flag(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+
+  bool got_exception = false;
+
+  try
+  {
+    vistk::extract_configuration(blocks);
+  }
+  catch (vistk::unrecognized_config_flag_exception&)
+  {
+    got_exception = true;
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when using an unknown flag" << std::endl;
+  }
 }
 
 void
