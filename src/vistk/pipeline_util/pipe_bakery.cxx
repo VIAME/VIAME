@@ -642,7 +642,7 @@ config_provider_sorter
   if (to_iter.second)
   {
     t = boost::add_vertex(m_graph);
-    key_prop[s] = request.second;
+    key_prop[t] = request.second;
     to_iter.first->second = t;
   }
 
