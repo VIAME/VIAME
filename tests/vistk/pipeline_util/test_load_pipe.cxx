@@ -63,6 +63,7 @@ static void test_config_block(boost::filesystem::path const& pipe_file);
 static void test_one_process(boost::filesystem::path const& pipe_file);
 static void test_connected_processes(boost::filesystem::path const& pipe_file);
 static void test_config_overrides(boost::filesystem::path const& pipe_file);
+static void test_config_read_only(boost::filesystem::path const& pipe_file);
 static void test_include(boost::filesystem::path const& pipe_file);
 static void test_no_exist(boost::filesystem::path const& pipe_file);
 static void test_include_no_exist(boost::filesystem::path const& pipe_file);
@@ -97,6 +98,10 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   else if (test_name == "config_overrides")
   {
     test_config_overrides(pipe_file);
+  }
+  else if (test_name == "config_read_only")
+  {
+    test_config_read_only(pipe_file);
   }
   else if (test_name == "include")
   {
@@ -262,6 +267,18 @@ test_config_overrides(boost::filesystem::path const& pipe_file)
               << "Expected: " << expected << " "
               << "Received: " << mykey << std::endl;
   }
+}
+
+void
+test_config_read_only(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
 }
 
 void
