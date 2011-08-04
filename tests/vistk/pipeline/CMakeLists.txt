@@ -48,6 +48,7 @@ vistk_build_test(stamp libraries test_stamp.cxx)
 
 vistk_make_test(stamp coloring)
 vistk_make_test(stamp equality)
+vistk_make_test(stamp ordering)
 
 ##############################
 # Edge tests

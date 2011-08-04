@@ -40,6 +40,7 @@ main(int argc, char* argv[])
 
 static void test_coloring();
 static void test_equality();
+static void test_ordering();
 
 void
 run_test(std::string const& test_name)
@@ -51,6 +52,10 @@ run_test(std::string const& test_name)
   else if (test_name == "equality")
   {
     return test_equality();
+  }
+  else if (test_name == "ordering")
+  {
+    return test_ordering();
   }
   else
   {
@@ -106,5 +111,40 @@ test_equality()
   if (*stampa == *stampe)
   {
     std::cerr << "Error: An incremented stamp equals the original stamp" << std::endl;
+  }
+}
+
+void
+test_ordering()
+{
+  vistk::stamp_t const stampa = vistk::stamp::new_stamp();
+  vistk::stamp_t const stampb = vistk::stamp::new_stamp();
+
+  if ((*stampa < *stampb) ||
+      (*stampb < *stampa))
+  {
+    std::cerr << "Error: New stamps compare" << std::endl;
+  }
+
+  if (*stampa < *stampa)
+  {
+    std::cerr << "Error: A stamp is less than itself" << std::endl;
+  }
+
+  if (*stampa > *stampa)
+  {
+    std::cerr << "Error: A stamp is greater than itself" << std::endl;
+  }
+
+  vistk::stamp_t const stampe = vistk::stamp::incremented_stamp(stampa);
+
+  if (*stampe < *stampa)
+  {
+    std::cerr << "Error: An incremented stamp is greater than the original stamp" << std::endl;
+  }
+
+  if (!(*stampe > *stampa))
+  {
+    std::cerr << "Error: An incremented stamp is greater than the original stamp" << std::endl;
   }
 }
