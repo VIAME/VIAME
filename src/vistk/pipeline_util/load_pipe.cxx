@@ -39,27 +39,11 @@ static void flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr
 pipe_blocks
 load_pipe_blocks_from_file(boost::filesystem::path const& fname)
 {
-  std::ifstream fin;
+  std::stringstream sstr;
 
-  boost::system::error_code ec;
+  sstr << include_directive << fname.native();
 
-  if (!boost::filesystem::exists(fname, ec))
-  {
-    throw file_no_exist_exception(fname);
-  }
-
-  /// \todo Check ec.
-
-  fin.open(fname.c_str());
-
-  if (!fin.good())
-  {
-    throw file_open_exception(fname);
-  }
-
-  pipe_blocks blocks = load_pipe_blocks(fin, fname.parent_path());
-
-  fin.close();
+  pipe_blocks blocks = load_pipe_blocks(sstr, fname.parent_path());
 
   return blocks;
 }
