@@ -39,6 +39,7 @@ main(int argc, char* argv[])
 
 static void test_empty();
 static void test_complete();
+static void test_error();
 
 void
 run_test(std::string const& test_name)
@@ -50,6 +51,10 @@ run_test(std::string const& test_name)
   else if (test_name == "complete")
   {
     test_complete();
+  }
+  else if (test_name == "error")
+  {
+    test_error();
   }
   else
   {
@@ -128,5 +133,43 @@ test_complete()
   {
     std::cerr << "Error: Did not get expected exception "
               << "when retrieving a value from a complete datum" << std::endl;
+  }
+}
+
+void
+test_error()
+{
+  vistk::datum::error_t const error = vistk::datum::error_t("An error");
+  vistk::datum_t dat = vistk::datum::error_datum(error);
+
+  if (dat->get_error() != error)
+  {
+    std::cerr << "Error: An error datum did not keep the message" << std::endl;
+  }
+
+  bool got_exception = false;
+
+  try
+  {
+    dat->get_datum<int>();
+  }
+  catch (vistk::bad_datum_cast_exception& e)
+  {
+    got_exception = true;
+
+    (void)e.what();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when retrieving a value from an error datum" << std::endl;
   }
 }
