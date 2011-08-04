@@ -103,6 +103,13 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::fil
 
       /// \todo Check ec.
 
+      if (!boost::filesystem::is_regular_file(file_path, ec))
+      {
+        throw not_a_file_exception(file_path);
+      }
+
+      /// \todo Check ec.
+
       std::ifstream fin;
 
       fin.open(file_path.native().c_str());
