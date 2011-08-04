@@ -8,6 +8,7 @@
 
 #include <exception>
 #include <iostream>
+#include <string>
 
 static void run_test(std::string const& test_name);
 
