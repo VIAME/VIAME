@@ -109,12 +109,14 @@ edge_datum_t
 edge
 ::peek_datum()
 {
-  boost::unique_lock<boost::mutex> lock(d->mutex);
+  boost::unique_lock<boost::mutex> lock(d->mutex, boost::defer_lock);
 
   while (!has_data())
   {
     d->cond_have_data.wait(lock);
   }
+
+  lock.lock();
 
   return d->q.front();
 }
@@ -123,12 +125,14 @@ void
 edge
 ::pop_datum()
 {
-  boost::unique_lock<boost::mutex> lock(d->mutex);
+  boost::unique_lock<boost::mutex> lock(d->mutex, boost::defer_lock);
 
   while (!has_data())
   {
     d->cond_have_data.wait(lock);
   }
+
+  lock.lock();
 
   d->q.pop();
 }
