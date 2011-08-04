@@ -40,6 +40,7 @@ main(int argc, char* argv[])
 static void test_empty();
 static void test_complete();
 static void test_error();
+static void test_new();
 
 void
 run_test(std::string const& test_name)
@@ -55,6 +56,10 @@ run_test(std::string const& test_name)
   else if (test_name == "error")
   {
     test_error();
+  }
+  else if (test_name == "new")
+  {
+    test_new();
   }
   else
   {
@@ -171,5 +176,50 @@ test_error()
   {
     std::cerr << "Error: Did not get expected exception "
               << "when retrieving a value from an error datum" << std::endl;
+  }
+}
+
+void
+test_new()
+{
+  int const datum = 100;
+  vistk::datum_t dat = vistk::datum::new_datum(100);
+
+  if (!dat->get_error().empty())
+  {
+    std::cerr << "Error: A new datum has an error string" << std::endl;
+  }
+
+  int const get_datum = dat->get_datum<int>();
+
+  if (datum != get_datum)
+  {
+    std::cerr << "Error: Did not get same value out as put into datum" << std::endl;
+  }
+
+  bool got_exception = false;
+
+  try
+  {
+    dat->get_datum<std::string>();
+  }
+  catch (vistk::bad_datum_cast_exception& e)
+  {
+    got_exception = true;
+
+    (void)e.what();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when getting an int as a string" << std::endl;
   }
 }
