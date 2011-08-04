@@ -41,6 +41,7 @@ main(int argc, char* argv[])
 
 static void test_makes_dependency();
 static void test_new_has_no_data();
+static void test_new_is_not_full();
 
 void
 run_test(std::string const& test_name)
@@ -52,6 +53,10 @@ run_test(std::string const& test_name)
   else if (test_name == "new_has_no_data")
   {
     test_new_has_no_data();
+  }
+  else if (test_name == "new_is_not_full")
+  {
+    test_new_is_not_full();
   }
   else
   {
@@ -79,5 +84,18 @@ test_new_has_no_data()
   if (edge->has_data())
   {
     std::cerr << "Error: A new edge has data in it" << std::endl;
+  }
+}
+
+void
+test_new_is_not_full()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+
+  if (edge->full_of_data())
+  {
+    std::cerr << "Error: A new edge is full of data" << std::endl;
   }
 }
