@@ -40,6 +40,7 @@ main(int argc, char* argv[])
 static void test_has_value();
 static void test_get_value();
 static void test_get_value_no_exist();
+static void test_get_value_type_mismatch();
 
 void
 run_test(std::string const& test_name)
@@ -55,6 +56,10 @@ run_test(std::string const& test_name)
   else if (test_name == "get_value_no_exist")
   {
     test_get_value_no_exist();
+  }
+  else if (test_name == "get_value_type_mismatch")
+  {
+    test_get_value_type_mismatch();
   }
   else
   {
@@ -144,5 +149,49 @@ test_get_value_no_exist()
   if (valueb != get_valueb)
   {
     std::cerr << "Error: Did not retrieve default when requesting unset value" << std::endl;
+  }
+}
+
+void
+test_get_value_type_mismatch()
+{
+  vistk::config_t config = vistk::config::empty_config();
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  int const valueb = 100;
+
+  config->set_value(keya, valuea);
+
+  bool got_exception = false;
+
+  try
+  {
+    config->get_value<int>(keya);
+  }
+  catch (vistk::bad_configuration_cast_exception&)
+  {
+    got_exception = true;
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when doing an invalid cast" << std::endl;
+  }
+
+  int const get_valueb = config->get_value<int>(keya, valueb);
+
+  if (valueb != get_valueb)
+  {
+    std::cerr << "Error: Did not retrieve default when requesting a bad cast" << std::endl;
   }
 }
