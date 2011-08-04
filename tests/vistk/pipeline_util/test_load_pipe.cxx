@@ -502,6 +502,8 @@ test_config_provider_env(boost::filesystem::path const& pipe_file)
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
   v.expect(1, 0, 0, 0);
+
+  vistk::extract_configuration(blocks);
 }
 
 void
@@ -515,15 +517,7 @@ test_config_provider_read_only(boost::filesystem::path const& pipe_file)
 
   v.expect(1, 0, 0, 0);
 
-  try
-  {
-    vistk::extract_configuration(blocks);
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-  }
+  vistk::extract_configuration(blocks);
 }
 
 void
