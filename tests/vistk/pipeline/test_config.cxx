@@ -38,6 +38,7 @@ main(int argc, char* argv[])
 }
 
 static void test_has_value();
+static void test_get_value();
 
 void
 run_test(std::string const& test_name)
@@ -45,6 +46,10 @@ run_test(std::string const& test_name)
   if (test_name == "has_value")
   {
     test_has_value();
+  }
+  else if (test_name == "get_value")
+  {
+    test_get_value();
   }
   else
   {
@@ -72,5 +77,24 @@ test_has_value()
   if (config->has_value(keyb))
   {
     std::cerr << "Error: Block has value which was not set" << std::endl;
+  }
+}
+
+void
+test_get_value()
+{
+  vistk::config_t config = vistk::config::empty_config();
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+
+  config->set_value(keya, valuea);
+
+  vistk::config::value_t const get_valuea = config->get_value<vistk::config::value_t>(keya);
+
+  if (valuea != get_valuea)
+  {
+    std::cerr << "Error: Did not retrieve value that was set" << std::endl;
   }
 }
