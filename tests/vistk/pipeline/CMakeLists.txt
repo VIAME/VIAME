@@ -50,6 +50,7 @@ vistk_make_test(edge makes_dependency)
 vistk_make_test(edge new_has_no_data)
 vistk_make_test(edge new_is_not_full)
 vistk_make_test(edge new_has_count_zero)
+vistk_make_test(edge push_datum)
 
 ##############################
 # Pipeline tests
