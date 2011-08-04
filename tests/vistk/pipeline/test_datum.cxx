@@ -38,6 +38,7 @@ main(int argc, char* argv[])
 }
 
 static void test_empty();
+static void test_complete();
 
 void
 run_test(std::string const& test_name)
@@ -45,6 +46,10 @@ run_test(std::string const& test_name)
   if (test_name == "empty")
   {
     test_empty();
+  }
+  else if (test_name == "complete")
+  {
+    test_complete();
   }
   else
   {
@@ -86,5 +91,42 @@ test_empty()
   {
     std::cerr << "Error: Did not get expected exception "
               << "when retrieving a value from an empty datum" << std::endl;
+  }
+}
+
+void
+test_complete()
+{
+  vistk::datum_t dat = vistk::datum::complete_datum();
+
+  if (!dat->get_error().empty())
+  {
+    std::cerr << "Error: A complete datum has an error string" << std::endl;
+  }
+
+  bool got_exception = false;
+
+  try
+  {
+    dat->get_datum<int>();
+  }
+  catch (vistk::bad_datum_cast_exception& e)
+  {
+    got_exception = true;
+
+    (void)e.what();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when retrieving a value from a complete datum" << std::endl;
   }
 }

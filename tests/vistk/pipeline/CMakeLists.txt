@@ -36,3 +36,4 @@ vistk_make_test(config subblock_view)
 vistk_build_test(datum libraries test_datum.cxx)
 
 vistk_make_test(datum empty)
+vistk_make_test(datum complete)
