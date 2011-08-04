@@ -11,7 +11,6 @@
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 
-#include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
 #include <iostream>
@@ -67,11 +66,6 @@ void
 print_number_process
 ::_init()
 {
-  if (!boost::filesystem::exists(d->path))
-  {
-    /// \todo Throw exception.
-  }
-
   d->fout.open(d->path.native().c_str());
 
   if (d->fout.bad())
