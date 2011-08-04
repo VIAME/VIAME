@@ -69,6 +69,7 @@ static void test_config_not_a_flag(boost::filesystem::path const& pipe_file);
 static void test_config_read_only_override(boost::filesystem::path const& pipe_file);
 static void test_config_provider_conf(boost::filesystem::path const& pipe_file);
 static void test_config_provider_conf_dep(boost::filesystem::path const& pipe_file);
+static void test_config_provider_conf_circular_dep(boost::filesystem::path const& pipe_file);
 static void test_include(boost::filesystem::path const& pipe_file);
 static void test_no_exist(boost::filesystem::path const& pipe_file);
 static void test_include_no_exist(boost::filesystem::path const& pipe_file);
@@ -123,6 +124,10 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   else if (test_name == "config_provider_conf_dep")
   {
     test_config_provider_conf_dep(pipe_file);
+  }
+  else if (test_name == "config_provider_conf_circular_dep")
+  {
+    test_config_provider_conf_circular_dep(pipe_file);
   }
   else if (test_name == "include")
   {
@@ -396,6 +401,42 @@ test_config_provider_conf_dep(boost::filesystem::path const& pipe_file)
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
   v.expect(3, 0, 0, 0);
+}
+
+void
+test_config_provider_conf_circular_dep(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(2, 0, 0, 0);
+
+  bool got_exception = false;
+
+  try
+  {
+    vistk::extract_configuration(blocks);
+  }
+  catch (vistk::circular_config_provide_exception&)
+  {
+    got_exception = true;
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when circular provides exist" << std::endl;
+  }
 }
 
 void
