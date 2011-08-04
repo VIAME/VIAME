@@ -76,7 +76,9 @@ static void test_config_provider_read_only_override(boost::filesystem::path cons
 static void test_config_provider_unprovided(boost::filesystem::path const& pipe_file);
 static void test_include(boost::filesystem::path const& pipe_file);
 static void test_no_exist(boost::filesystem::path const& pipe_file);
+static void test_not_a_file(boost::filesystem::path const& pipe_file);
 static void test_include_no_exist(boost::filesystem::path const& pipe_file);
+static void test_include_not_a_file(boost::filesystem::path const& pipe_file);
 
 void
 run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
@@ -157,9 +159,17 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   {
     test_no_exist(pipe_file);
   }
+  else if (test_name == "not_a_file")
+  {
+    test_not_a_file(pipe_file);
+  }
   else if (test_name == "include_no_exist")
   {
     test_include_no_exist(pipe_file);
+  }
+  else if (test_name == "include_not_a_file")
+  {
+    test_include_not_a_file(pipe_file);
   }
   else
   {
@@ -645,6 +655,34 @@ test_no_exist(boost::filesystem::path const& pipe_file)
 }
 
 void
+test_not_a_file(boost::filesystem::path const& pipe_file)
+{
+  bool got_exception = false;
+
+  try
+  {
+    vistk::load_pipe_blocks_from_file(pipe_file);
+  }
+  catch (vistk::file_open_exception&)
+  {
+    got_exception = true;
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when loading a non-file" << std::endl;
+  }
+}
+
+void
 test_include_no_exist(boost::filesystem::path const& pipe_file)
 {
   bool got_exception = false;
@@ -669,6 +707,34 @@ test_include_no_exist(boost::filesystem::path const& pipe_file)
   {
     std::cerr << "Error: Did not get expected exception "
               << "when including a non-existent file" << std::endl;
+  }
+}
+
+void
+test_include_not_a_file(boost::filesystem::path const& pipe_file)
+{
+  bool got_exception = false;
+
+  try
+  {
+    vistk::load_pipe_blocks_from_file(pipe_file);
+  }
+  catch (vistk::file_open_exception&)
+  {
+    got_exception = true;
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when including a non-file" << std::endl;
   }
 }
 
