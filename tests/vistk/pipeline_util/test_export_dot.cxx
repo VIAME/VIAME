@@ -6,6 +6,9 @@
 
 #include <vistk/pipeline_util/export_dot.h>
 #include <vistk/pipeline_util/export_dot_exception.h>
+#include <vistk/pipeline_util/pipe_bakery.h>
+
+#include <vistk/pipeline/modules.h>
 
 #include <boost/filesystem/path.hpp>
 
@@ -48,6 +51,7 @@ main(int argc, char* argv[])
 }
 
 static void test_pipeline_null(boost::filesystem::path const& pipe_file);
+static void test_simple_pipeline(boost::filesystem::path const& pipe_file);
 
 void
 run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
@@ -55,6 +59,10 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   if (test_name == "pipeline_null")
   {
     test_pipeline_null(pipe_file);
+  }
+  else if (test_name == "simple_pipeline")
+  {
+    test_simple_pipeline(pipe_file);
   }
   else
   {
@@ -91,4 +99,16 @@ void test_pipeline_null(boost::filesystem::path const& /*pipe_file*/)
     std::cerr << "Error: Did not get expected exception "
               << "when exporting a NULL pipeline" << std::endl;
   }
+}
+
+void
+test_simple_pipeline(boost::filesystem::path const& pipe_file)
+{
+  vistk::load_known_modules();
+
+  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
+
+  std::ostringstream sstr;
+
+  vistk::export_dot(sstr, pipeline, "(unnamed)");
 }
