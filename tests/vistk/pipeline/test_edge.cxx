@@ -47,6 +47,7 @@ static void test_new_is_not_full();
 static void test_new_has_count_zero();
 static void test_push_datum();
 static void test_peek_datum();
+static void test_pop_datum();
 
 void
 run_test(std::string const& test_name)
@@ -74,6 +75,10 @@ run_test(std::string const& test_name)
   else if (test_name == "peek_datum")
   {
     test_peek_datum();
+  }
+  else if (test_name == "pop_datum")
+  {
+    test_pop_datum();
   }
   else
   {
@@ -181,5 +186,27 @@ test_peek_datum()
   if (get_edat.get<1>() != stamp)
   {
     std::cerr << "Error: The edge modified a stamp on a peek" << std::endl;
+  }
+}
+
+void
+test_pop_datum()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+
+  vistk::datum_t const dat = vistk::datum::complete_datum();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+
+  vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
+
+  edge->push_datum(edat);
+
+  edge->pop_datum();
+
+  if (edge->datum_count())
+  {
+    std::cerr << "Error: An edge did not remove a datum on a pop" << std::endl;
   }
 }
