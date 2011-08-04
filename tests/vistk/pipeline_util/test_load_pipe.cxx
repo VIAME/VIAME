@@ -460,7 +460,7 @@ test_config_provider_conf_dep(boost::filesystem::path const& pipe_file)
               << "Received: " << mykey << std::endl;
   }
 
-  vistk::config::key_t const mymidkey = conf->get_value<vistk::config::key_t>("mymidkey:mykey");
+  vistk::config::key_t const mymidkey = conf->get_value<vistk::config::key_t>("mymidblock:mykey");
 
   if (mykey != expected)
   {
