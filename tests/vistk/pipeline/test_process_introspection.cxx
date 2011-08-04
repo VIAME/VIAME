@@ -332,5 +332,38 @@ main()
     }
   }
 
+  // Check exceptions for unknown types.
+  {
+    vistk::process_registry::type_t const non_existent_process = vistk::process_registry::type_t("no_such_process");
+
+    try
+    {
+      reg->create_process(non_existent_process, config);
+    }
+    catch (vistk::no_such_process_type_exception& e)
+    {
+    }
+    catch (std::exception& e)
+    {
+      std::cerr << "Error: Unexpected exception when "
+                << "requesting a non-existent process type: "
+                << e.what() << std::endl;
+    }
+
+    try
+    {
+      reg->description(non_existent_process);
+    }
+    catch (vistk::no_such_process_type_exception& e)
+    {
+    }
+    catch (std::exception& e)
+    {
+      std::cerr << "Error: Unexpected exception when "
+                << "requesting a description of a non-existent process type: "
+                << e.what() << std::endl;
+    }
+  }
+
   return 0;
 }
