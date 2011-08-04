@@ -209,4 +209,4 @@ number_process::priv
 {
 }
 
-} // end namespace vistk
+}

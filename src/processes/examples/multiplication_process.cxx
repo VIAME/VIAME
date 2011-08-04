@@ -283,4 +283,4 @@ multiplication_process::priv
 {
 }
 
-} // end namespace vistk
+}

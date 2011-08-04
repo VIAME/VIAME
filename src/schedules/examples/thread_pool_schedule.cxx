@@ -61,4 +61,4 @@ thread_pool_schedule::priv
 {
 }
 
-} // end namespace vistk
+}

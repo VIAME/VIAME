@@ -74,4 +74,4 @@ run_process(process_t process)
   /// \todo Run the process until it is complete.
 }
 
-} // end namespace vistk
+}

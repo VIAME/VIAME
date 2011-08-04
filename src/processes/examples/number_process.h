@@ -115,6 +115,6 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     boost::shared_ptr<priv> d;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_PROCESSES_EXAMPLES_NUMBER_PROCESS_H

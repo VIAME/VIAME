@@ -51,6 +51,6 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_per_process_schedule
     boost::shared_ptr<priv> d;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_SCHEDULES_EXAMPLES_SCHEDULES_THREAD_PER_PROCESS_SCHEDULE_H

@@ -59,6 +59,6 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_pool_schedule
     boost::shared_ptr<priv> d;
 };
 
-} // end namespace vistk
+}
 
 #endif // VISTK_SCHEDULES_EXAMPLES_SCHEDULES_THREAD_POOL_SCHEDULE_H
