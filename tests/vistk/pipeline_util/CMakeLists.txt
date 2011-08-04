@@ -43,3 +43,12 @@ vistk_make_load_test(load_pipe no_exist)
 vistk_make_load_test(load_pipe not_a_file)
 vistk_make_load_test(load_pipe include_no_exist)
 vistk_make_load_test(load_pipe include_not_a_file)
+
+##############################
+# Export tests
+##############################
+set(export_dot_libraries
+  ${libraries}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
+vistk_build_test(export_dot export_dot_libraries test_export_dot.cxx)
