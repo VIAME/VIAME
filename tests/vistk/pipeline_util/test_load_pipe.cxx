@@ -602,6 +602,18 @@ test_include(boost::filesystem::path const& pipe_file)
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
   v.expect(1, 0, 0, 0);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = conf->get_value<vistk::config::key_t>("myblock:mykey");
+  vistk::config::key_t const expected = vistk::config::key_t("myvalue");
+
+  if (mykey != expected)
+  {
+    std::cerr << "Error: Configuration was not overriden: "
+              << "Expected: " << expected << " "
+              << "Received: " << mykey << std::endl;
+  }
 }
 
 void
