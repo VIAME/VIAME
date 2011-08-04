@@ -54,7 +54,7 @@ datum
 
 datum
 ::datum(bool is_complete)
-  : m_type(is_complete ? DATUM_EMPTY : DATUM_COMPLETE)
+  : m_type(is_complete ? DATUM_COMPLETE : DATUM_EMPTY)
 {
 }
 
