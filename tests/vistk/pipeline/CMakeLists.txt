@@ -42,6 +42,11 @@ vistk_make_test(datum error)
 vistk_make_test(datum new)
 
 ##############################
+# Edge tests
+##############################
+vistk_build_test(edge libraries test_edge.cxx)
+
+##############################
 # Pipeline tests
 ##############################
 vistk_build_test(pipeline libraries test_pipeline.cxx)
