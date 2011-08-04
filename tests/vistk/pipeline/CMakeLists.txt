@@ -57,6 +57,7 @@ vistk_make_test(edge get_datum)
 vistk_make_test(edge required_by_downstream)
 vistk_make_test(edge null_upstream_process)
 vistk_make_test(edge null_downstream_process)
+vistk_make_test(edge set_upstream_process)
 
 ##############################
 # Pipeline tests
