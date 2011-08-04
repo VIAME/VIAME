@@ -34,3 +34,5 @@ vistk_make_test(config subblock_view)
 # Datum tests
 ##############################
 vistk_build_test(datum libraries test_datum.cxx)
+
+vistk_make_test(datum empty)

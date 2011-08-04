@@ -37,11 +37,54 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_empty();
+
 void
 run_test(std::string const& test_name)
 {
-  //else
+  if (test_name == "empty")
+  {
+    test_empty();
+  }
+  else
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
+  }
+}
+
+void
+test_empty()
+{
+  vistk::datum_t dat = vistk::datum::empty_datum();
+
+  if (!dat->get_error().empty())
+  {
+    std::cerr << "Error: An empty datum has an error string" << std::endl;
+  }
+
+  bool got_exception = false;
+
+  try
+  {
+    dat->get_datum<int>();
+  }
+  catch (vistk::bad_datum_cast_exception& e)
+  {
+    got_exception = true;
+
+    (void)e.what();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when retrieving a value from an empty datum" << std::endl;
   }
 }
