@@ -55,6 +55,13 @@ static void test_map_input_no_process();
 static void test_map_output_no_process();
 static void test_map_input();
 static void test_map_output();
+static void test_connect_no_upstream();
+static void test_connect_no_downstream();
+static void test_connect_type_mismatch();
+static void test_connect_flag_mismatch();
+static void test_connect();
+static void test_connect_input_map();
+static void test_connect_output_map();
 
 void
 run_test(std::string const& test_name)
@@ -110,6 +117,34 @@ run_test(std::string const& test_name)
   else if (test_name == "map_output")
   {
     test_map_output();
+  }
+  else if (test_name == "connect_no_upstream")
+  {
+    test_connect_no_upstream();
+  }
+  else if (test_name == "connect_no_downstream")
+  {
+    test_connect_no_downstream();
+  }
+  else if (test_name == "connect_type_mismatch")
+  {
+    test_connect_type_mismatch();
+  }
+  else if (test_name == "connect_flag_mismatch")
+  {
+    test_connect_flag_mismatch();
+  }
+  else if (test_name == "connect")
+  {
+    test_connect();
+  }
+  else if (test_name == "connect_input_map")
+  {
+    test_connect_input_map();
+  }
+  else if (test_name == "connect_output_map")
+  {
+    test_connect_output_map();
   }
   else
   {
@@ -610,4 +645,48 @@ test_map_output()
     std::cerr << "Error: Did not get expected exception "
               << "when mapping an output on an non-existent group" << std::endl;
   }
+}
+
+void
+test_connect_no_upstream()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_connect_no_downstream()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_connect_type_mismatch()
+{
+  /// \todo Need processes with type mismatches first.
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_connect_flag_mismatch()
+{
+  /// \todo Need processes with flag mismatches first.
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_connect()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_connect_input_map()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_connect_output_map()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
 }
