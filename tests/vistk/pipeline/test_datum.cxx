@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <test_common.h>
+
 #include <vistk/pipeline/datum.h>
 
 #include <exception>
@@ -83,31 +85,9 @@ test_empty()
     std::cerr << "Error: An empty datum has an error string" << std::endl;
   }
 
-  bool got_exception = false;
-
-  try
-  {
-    dat->get_datum<int>();
-  }
-  catch (vistk::bad_datum_cast_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when retrieving a value from an empty datum" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+                   dat->get_datum<int>(),
+                   "retrieving a value from an empty datum");
 }
 
 void
@@ -125,31 +105,9 @@ test_complete()
     std::cerr << "Error: A complete datum has an error string" << std::endl;
   }
 
-  bool got_exception = false;
-
-  try
-  {
-    dat->get_datum<int>();
-  }
-  catch (vistk::bad_datum_cast_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when retrieving a value from a complete datum" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+                   dat->get_datum<int>(),
+                   "retrieving a value from a complete datum");
 }
 
 void
@@ -168,31 +126,9 @@ test_error()
     std::cerr << "Error: An error datum did not keep the message" << std::endl;
   }
 
-  bool got_exception = false;
-
-  try
-  {
-    dat->get_datum<int>();
-  }
-  catch (vistk::bad_datum_cast_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when retrieving a value from an error datum" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+                   dat->get_datum<int>(),
+                   "retrieving a value from an error datum");
 }
 
 void
@@ -218,29 +154,7 @@ test_new()
     std::cerr << "Error: Did not get same value out as put into datum" << std::endl;
   }
 
-  bool got_exception = false;
-
-  try
-  {
-    dat->get_datum<std::string>();
-  }
-  catch (vistk::bad_datum_cast_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when getting an int as a string" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+                   dat->get_datum<std::string>(),
+                   "retrieving an int as a string");
 }
