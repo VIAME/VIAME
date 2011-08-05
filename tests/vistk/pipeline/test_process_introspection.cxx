@@ -144,6 +144,8 @@ test_process_configuration(vistk::process_t const process)
 void
 test_process_input_ports(vistk::process_t const process)
 {
+  static vistk::config_t const config = vistk::config::empty_config();
+
   vistk::process::ports_t const ports = process->input_ports();
 
   BOOST_FOREACH (vistk::process::port_t const& port, ports)
@@ -182,6 +184,14 @@ test_process_input_ports(vistk::process_t const process)
       std::cerr << "Error: Description empty on input port "
                 << "(" << process->type() << "." << port << ")" << std::endl;
     }
+
+    vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+
+    process->connect_input_port(port, edge);
+
+    EXPECT_EXCEPTION(vistk::port_reconnect_exception,
+                     process->connect_input_port(port, edge),
+                     "connecting to an input port a second time");
   }
 }
 
