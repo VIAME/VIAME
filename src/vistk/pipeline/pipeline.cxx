@@ -194,6 +194,9 @@ pipeline
 
   d->edge_map[d->connections.size()] = e;
   d->connections.push_back(conn);
+
+  e->set_upstream_process(up_proc);
+  e->set_downstream_process(down_proc);
 }
 
 void
