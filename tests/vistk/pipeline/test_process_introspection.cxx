@@ -87,9 +87,9 @@ main()
                 << "does not match expected name: " << expected_name << std::endl;
     }
 
-    if (process->type().empty())
+    if (process->type() != type)
     {
-      std::cerr << "Error: The type is empty" << std::endl;
+      std::cerr << "Error: The type does not match the registry type" << std::endl;
     }
 
     vistk::config::keys_t const keys = process->available_config();
@@ -98,7 +98,7 @@ main()
     {
       try
       {
-        process->config_default(key);
+        process->config_info(key);
       }
       catch (vistk::unknown_configuration_value_exception& e)
       {
@@ -112,23 +112,6 @@ main()
                   << "(" << type << vistk::config::block_sep
                   << key << "): " << e.what() << std::endl;
       }
-
-      try
-      {
-        process->config_description(key);
-      }
-      catch (vistk::unknown_configuration_value_exception& e)
-      {
-        std::cerr << "Error: Failed to get a description for "
-                  << type << vistk::config::block_sep << key
-                  << ": " << e.what() << std::endl;
-      }
-      catch (std::exception& e)
-      {
-        std::cerr << "Error: Unexpected exception when querying for description "
-                  << "(" << type << vistk::config::block_sep
-                  << key << "): " << e.what() << std::endl;
-      }
     }
 
     vistk::process::ports_t const iports = process->input_ports();
@@ -137,7 +120,7 @@ main()
     {
       try
       {
-        process->input_port_type(port);
+        process->input_port_info(port);
       }
       catch (vistk::no_such_port_exception& e)
       {
@@ -149,21 +132,6 @@ main()
         std::cerr << "Error: Unexpected exception when querying for input port type "
                   << "(" << type << "." << port << "): " << e.what() << std::endl;
       }
-
-      try
-      {
-        process->input_port_description(port);
-      }
-      catch (vistk::no_such_port_exception& e)
-      {
-        std::cerr << "Error: Failed to get a description for input port "
-                  << type << "." << port << ": " << e.what() << std::endl;
-      }
-      catch (std::exception& e)
-      {
-        std::cerr << "Error: Unexpected exception when querying for input port description "
-                  << "(" << type << "." << port << "): " << e.what() << std::endl;
-      }
     }
 
     vistk::process::ports_t const oports = process->output_ports();
@@ -172,7 +140,7 @@ main()
     {
       try
       {
-        process->output_port_type(port);
+        process->output_port_info(port);
       }
       catch (vistk::no_such_port_exception& e)
       {
@@ -184,21 +152,6 @@ main()
         std::cerr << "Error: Unexpected exception when querying for output port type "
                   << "(" << type << "." << port << "): " << e.what() << std::endl;
       }
-
-      try
-      {
-        process->output_port_description(port);
-      }
-      catch (vistk::no_such_port_exception& e)
-      {
-        std::cerr << "Error: Failed to get a description for output port "
-                  << type << "." << port << ": " << e.what() << std::endl;
-      }
-      catch (std::exception& e)
-      {
-        std::cerr << "Error: Unexpected exception when querying for output port description "
-                  << "(" << type << "." << port << "): " << e.what() << std::endl;
-      }
     }
 
     // Test for proper exceptions on invalid config requests.
@@ -206,12 +159,8 @@ main()
       vistk::config::key_t const non_existent_config = vistk::config::key_t("does_not_exist");
 
       EXPECT_EXCEPTION(vistk::unknown_configuration_value_exception,
-                       process->config_default(non_existent_config),
-                       "requesting the default for a non-existent config");
-
-      EXPECT_EXCEPTION(vistk::unknown_configuration_value_exception,
-                       process->config_description(non_existent_config),
-                       "requesting a description for a non-existent config");
+                       process->config_info(non_existent_config),
+                       "requesting the information for a non-existent config");
     }
 
     // Test for proper exceptions on invalid port requests.
@@ -221,12 +170,8 @@ main()
       // Input ports.
       {
         EXPECT_EXCEPTION(vistk::no_such_port_exception,
-                         process->input_port_type(non_existent_port),
-                         "requesting the type of a non-existent input port");
-
-        EXPECT_EXCEPTION(vistk::no_such_port_exception,
-                         process->input_port_description(non_existent_port),
-                         "requesting a description for a non-existent input port");
+                         process->input_port_info(non_existent_port),
+                         "requesting the info for a non-existent input port");
 
         vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
 
@@ -238,12 +183,8 @@ main()
       // Output ports.
       {
         EXPECT_EXCEPTION(vistk::no_such_port_exception,
-                         process->output_port_type(non_existent_port),
-                         "requesting the type of a non-existent output port");
-
-        EXPECT_EXCEPTION(vistk::no_such_port_exception,
-                         process->output_port_description(non_existent_port),
-                         "requesting a description for a non-existent output port");
+                         process->output_port_info(non_existent_port),
+                         "requesting the info for a non-existent output port");
 
         vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
 
