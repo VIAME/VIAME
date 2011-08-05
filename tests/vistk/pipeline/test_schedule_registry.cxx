@@ -172,10 +172,20 @@ test_null_ctor()
                    "requesting an non-existent schedule type");
 }
 
+static vistk::schedule_t null_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipeline);
+
 void
 test_duplicate_types()
 {
-  std::cerr << "Error: Not implemented" << std::endl;
+  vistk::schedule_registry_t reg = vistk::schedule_registry::self();
+
+  vistk::schedule_registry::type_t const non_existent_schedule = vistk::schedule_registry::type_t("no_such_schedule");
+
+  reg->register_schedule(non_existent_schedule, vistk::schedule_registry::description_t(), null_schedule);
+
+  EXPECT_EXCEPTION(vistk::schedule_type_already_exists_exception,
+                   reg->register_schedule(non_existent_schedule, vistk::schedule_registry::description_t(), null_schedule),
+                   "requesting an non-existent schedule type");
 }
 
 void
@@ -195,4 +205,10 @@ test_unknown_types()
   EXPECT_EXCEPTION(vistk::no_such_schedule_type_exception,
                    reg->description(non_existent_schedule),
                    "requesting an non-existent schedule type");
+}
+
+vistk::schedule_t
+null_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipeline)
+{
+  return vistk::schedule_t();
 }
