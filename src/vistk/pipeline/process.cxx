@@ -101,7 +101,7 @@ void
 process
 ::init()
 {
-  process::_init();
+  _init();
 }
 
 void
