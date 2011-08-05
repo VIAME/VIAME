@@ -653,7 +653,40 @@ test_setup_pipeline_missing_required_group_input_connection()
 void
 test_setup_pipeline_missing_required_group_output_connection()
 {
-  std::cerr << "Error: Not implemented" << std::endl;
+  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+  vistk::process::name_t const group_name = vistk::process::name_t("group");
+
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processt = create_process(proc_typet, proc_namet);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processt);
+  pipeline->add_group(group_name);
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
+  vistk::process::port_t const port_namet = vistk::process::port_t("number");
+  vistk::process::port_t const group_port = vistk::process::port_t("group_port");
+
+  vistk::process::port_flags_t flags;
+
+  flags.insert(vistk::process::flag_required);
+
+  pipeline->map_output_port(group_name, group_port,
+                            proc_nameu, port_nameu,
+                            flags);
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namet, port_namet);
+
+  EXPECT_EXCEPTION(vistk::missing_connection_exception,
+                   pipeline->setup_pipeline(),
+                   "missing required output port connection");
 }
 
 void
