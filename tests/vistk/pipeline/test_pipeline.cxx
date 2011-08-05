@@ -483,7 +483,33 @@ test_connect_input_map()
 void
 test_connect_output_map()
 {
-  std::cerr << "Error: Not implemented" << std::endl;
+  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processd = create_process(proc_typed, proc_named);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processd);
+
+  vistk::process::name_t const group_name = vistk::process::name_t("group");
+  vistk::process::port_t const group_port = vistk::process::name_t("mapped_port");
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
+  vistk::process::port_t const port_named = vistk::process::port_t("factor1");
+
+  pipeline->add_group(group_name);
+  pipeline->map_output_port(group_name, group_port,
+                            proc_nameu, port_nameu,
+                            vistk::process::port_flags_t());
+
+  pipeline->connect(group_name, group_port,
+                    proc_named, port_named);
 }
 
 vistk::process_t
