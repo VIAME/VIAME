@@ -30,22 +30,26 @@ class print_number_process::priv
 
     path_t const path;
 
+    conf_info_t path_conf_info;
+
     edge_t input_edge;
+
+    port_info_t input_port_info;
 
     std::ofstream fout;
 
-    static config::key_t const CONFIG_OUTPUT_NAME;
+    static config::key_t const CONFIG_PATH_NAME;
     static port_t const INPUT_PORT_NAME;
 };
 
-config::key_t const print_number_process::priv::CONFIG_OUTPUT_NAME = config::key_t("output");
+config::key_t const print_number_process::priv::CONFIG_PATH_NAME = config::key_t("output");
 process::port_t const print_number_process::priv::INPUT_PORT_NAME = process::port_t("number");
 
 print_number_process
 ::print_number_process(config_t const& config)
   : process(config)
 {
-  priv::path_t path = config->get_value<priv::path_t>(priv::CONFIG_OUTPUT_NAME, priv::path_t());
+  priv::path_t path = config->get_value<priv::path_t>(priv::CONFIG_PATH_NAME, priv::path_t());
 
   d = boost::shared_ptr<priv>(new priv(path));
 }
@@ -53,13 +57,6 @@ print_number_process
 print_number_process
 ::~print_number_process()
 {
-}
-
-process_registry::type_t
-print_number_process
-::type() const
-{
-  return process_registry::type_t("print_number_process");
 }
 
 void
@@ -72,7 +69,7 @@ print_number_process
   {
     config::value_t const value = config::value_t(path.begin(), path.end());
 
-    throw invalid_configuration_value_exception(name(), priv::CONFIG_OUTPUT_NAME, value, "The path given was empty");
+    throw invalid_configuration_value_exception(name(), priv::CONFIG_PATH_NAME, value, "The path given was empty");
   }
 
   d->fout.open(path.c_str());
@@ -132,32 +129,16 @@ print_number_process
   process::_connect_input_port(port, edge);
 }
 
-process::port_type_t
+process::port_info_t
 print_number_process
-::_input_port_type(port_t const& port) const
+::_input_port_info(port_t const& port) const
 {
   if (port == priv::INPUT_PORT_NAME)
   {
-    port_flags_t flags;
-
-    flags.insert(flag_required);
-
-    return port_type_t(port_types::t_integer, flags);
+    return d->input_port_info;
   }
 
-  return process::_input_port_type(port);
-}
-
-process::port_description_t
-print_number_process
-::_input_port_description(port_t const& port) const
-{
-  if (port == priv::INPUT_PORT_NAME)
-  {
-    return port_description_t("Where numbers are read from.");
-  }
-
-  return process::_input_port_description(port);
+  return process::_input_port_info(port);
 }
 
 process::ports_t
@@ -177,39 +158,39 @@ print_number_process
 {
   config::keys_t keys = process::_available_config();
 
-  keys.push_back(priv::CONFIG_OUTPUT_NAME);
+  keys.push_back(priv::CONFIG_PATH_NAME);
 
   return keys;
 }
 
-config::value_t
+process::conf_info_t
 print_number_process
-::_config_default(config::key_t const& key) const
+::_config_info(config::key_t const& key) const
 {
-  if (key == priv::CONFIG_OUTPUT_NAME)
+  if (key == priv::CONFIG_PATH_NAME)
   {
-    return config::value_t();
+    return d->path_conf_info;
   }
 
-  return process::_config_default(key);
-}
-
-config::description_t
-print_number_process
-::_config_description(config::key_t const& key) const
-{
-  if (key == priv::CONFIG_OUTPUT_NAME)
-  {
-    return config::description_t("The path the file to output to");
-  }
-
-  return process::_config_description(key);
+  return process::_config_info(key);
 }
 
 print_number_process::priv
 ::priv(path_t const& output_path)
   : path(output_path)
 {
+  port_flags_t required;
+
+  required.insert(flag_required);
+
+  input_port_info = port_info_t(new port_info(
+    port_types::t_integer,
+    required,
+    port_description_t("Where numbers are read from.")));
+
+  path_conf_info = conf_info_t(new conf_info(
+    config::value_t(),
+    config::description_t("The path of the file to output to.")));
 }
 
 print_number_process::priv
