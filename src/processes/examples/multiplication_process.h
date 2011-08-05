@@ -48,17 +48,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT multiplication_process
      * \brief Destructor.
      */
     ~multiplication_process();
-
-    /**
-     * \brief Returns the type of the process.
-     */
-    process_registry::type_t type() const;
   protected:
-    /**
-     * \brief Checks the output port connections and the configuration.
-     */
-    void _init();
-
     /**
      * \brief Multiplies numbers and outputs the result.
      */
@@ -71,22 +61,15 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT multiplication_process
      * \param edge The edge to connect to the port.
      */
     void _connect_input_port(port_t const& port, edge_t edge);
+
     /**
-     * \brief The type of data that is available on an input port.
+     * \brief Information about an input port on the process.
      *
-     * \param port The port to return the type of.
+     * \param port The port to return information about.
      *
-     * \returns The type of data expected.
+     * \returns Information about the input port.
      */
-    port_type_t _input_port_type(port_t const& port) const;
-    /**
-     * \brief Describe input ports on the process.
-     *
-     * \param port The port to describe.
-     *
-     * \returns A description of the port.
-     */
-    port_description_t _input_port_description(port_t const& port) const;
+    port_info_t _input_port_info(port_t const& port) const;
 
     /**
      * \brief Connects an edge to an output port on the process.
@@ -95,22 +78,15 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT multiplication_process
      * \param edge The edge to connect to the port.
      */
     void _connect_output_port(port_t const& port, edge_t edge);
+
     /**
-     * \brief The type of data that is available on an output port.
+     * \brief Information about an output port on the process.
      *
-     * \param port The port to return the type of.
+     * \param port The port to return information about.
      *
-     * \returns The type of data available.
+     * \returns Information about the output port.
      */
-    port_type_t _output_port_type(port_t const& port) const;
-    /**
-     * \brief Describe output ports on the process.
-     *
-     * \param port The port to describe.
-     *
-     * \returns A description of the port.
-     */
-    port_description_t _output_port_description(port_t const& port) const;
+    port_info_t _output_port_info(port_t const& port) const;
 
     /**
      * \brief Lists the ports available on the process.

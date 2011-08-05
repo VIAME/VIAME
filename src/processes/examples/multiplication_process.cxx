@@ -29,6 +29,10 @@ class multiplication_process::priv
     edge_t input_edge_factor2;
     edges_t output_edges;
 
+    port_info_t factor1_port_info;
+    port_info_t factor2_port_info;
+    port_info_t output_port_info;
+
     static port_t const INPUT_FACTOR1_PORT_NAME;
     static port_t const INPUT_FACTOR2_PORT_NAME;
     static port_t const OUTPUT_PORT_NAME;
@@ -47,19 +51,6 @@ multiplication_process
 
 multiplication_process
 ::~multiplication_process()
-{
-}
-
-process_registry::type_t
-multiplication_process
-::type() const
-{
-  return process_registry::type_t("multiplication_process");
-}
-
-void
-multiplication_process
-::_init()
 {
 }
 
@@ -170,44 +161,20 @@ multiplication_process
   process::_connect_input_port(port, edge);
 }
 
-process::port_type_t
+process::port_info_t
 multiplication_process
-::_input_port_type(port_t const& port) const
+::_input_port_info(port_t const& port) const
 {
   if (port == priv::INPUT_FACTOR1_PORT_NAME)
   {
-    port_flags_t flags;
-
-    flags.insert(flag_required);
-
-    return port_type_t(port_types::t_integer, flags);
+    return d->factor1_port_info;
   }
   if (port == priv::INPUT_FACTOR2_PORT_NAME)
   {
-    port_flags_t flags;
-
-    flags.insert(flag_required);
-
-    return port_type_t(port_types::t_integer, flags);
+    return d->factor2_port_info;
   }
 
-  return process::_input_port_type(port);
-}
-
-process::port_description_t
-multiplication_process
-::_input_port_description(port_t const& port) const
-{
-  if (port == priv::INPUT_FACTOR1_PORT_NAME)
-  {
-    return port_description_t("The first factor to multiply.");
-  }
-  if (port == priv::INPUT_FACTOR2_PORT_NAME)
-  {
-    return port_description_t("The second factor to multiply.");
-  }
-
-  return process::_input_port_description(port);
+  return process::_input_port_info(port);
 }
 
 void
@@ -224,32 +191,16 @@ multiplication_process
   process::_connect_output_port(port, edge);
 }
 
-process::port_type_t
+process::port_info_t
 multiplication_process
-::_output_port_type(port_t const& port) const
+::_output_port_info(port_t const& port) const
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
-    port_flags_t flags;
-
-    flags.insert(flag_required);
-
-    return port_type_t(port_types::t_integer, flags);
+    return d->output_port_info;
   }
 
-  return process::_output_port_type(port);
-}
-
-process::port_description_t
-multiplication_process
-::_output_port_description(port_t const& port) const
-{
-  if (port == priv::OUTPUT_PORT_NAME)
-  {
-    return port_description_t("Where the product will be available.");
-  }
-
-  return process::_output_port_description(port);
+  return process::_output_port_info(port);
 }
 
 process::ports_t
@@ -278,6 +229,22 @@ multiplication_process
 multiplication_process::priv
 ::priv()
 {
+  port_flags_t required;
+
+  required.insert(flag_required);
+
+  factor1_port_info = port_info_t(new port_info(
+    port_types::t_integer,
+    required,
+    port_description_t("The first factor to multiply.")));
+  factor2_port_info = port_info_t(new port_info(
+    port_types::t_integer,
+    required,
+    port_description_t("The second factor to multiply.")));
+  output_port_info = port_info_t(new port_info(
+    port_types::t_integer,
+    required,
+    port_description_t("Where the product will be available.")));
 }
 
 multiplication_process::priv
