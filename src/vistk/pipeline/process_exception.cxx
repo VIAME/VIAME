@@ -17,6 +17,29 @@
 namespace vistk
 {
 
+null_process_config_exception
+::null_process_config_exception() throw()
+  : process_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A NULL configuration was passed to a process.";
+
+  m_what = sstr.str();
+}
+
+null_process_config_exception
+::~null_process_config_exception() throw()
+{
+}
+
+char const*
+null_process_config_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 port_connection_exception
 ::port_connection_exception(process::name_t const& process, process::port_t const& port) throw()
   : process_exception()

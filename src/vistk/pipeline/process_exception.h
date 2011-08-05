@@ -36,6 +36,36 @@ class VISTK_PIPELINE_EXPORT process_exception
 };
 
 /**
+ * \class null_process_config_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when \c NULL \ref config is passed to a process.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_process_config_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    null_process_config_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_process_config_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class port_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief The base class used when an error occurs when connecting to a port.

@@ -248,6 +248,11 @@ process
 process
 ::process(config_t const& config) throw()
 {
+  if (!config)
+  {
+    throw null_process_config_exception();
+  }
+
   d = boost::shared_ptr<priv>(new priv);
 
   d->name = config->get_value<name_t>(config_name, priv::DEFAULT_PROCESS_NAME);
