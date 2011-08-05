@@ -5,6 +5,7 @@
  */
 
 #include "schedule.h"
+#include "schedule_exception.h"
 
 /**
  * \file schedule.cxx
@@ -30,8 +31,13 @@ schedule
 }
 
 schedule
-::schedule(config_t const& /*config*/, pipeline_t const& pipe)
+::schedule(config_t const& config, pipeline_t const& pipe)
 {
+  if (!config)
+  {
+    throw null_schedule_config_exception();
+  }
+
   d = boost::shared_ptr<priv>(new priv(pipe));
 }
 

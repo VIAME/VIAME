@@ -13,6 +13,7 @@ set(pipeline_srcs
   process_registry.cxx
   process_registry_exception.cxx
   schedule.cxx
+  schedule_exception.cxx
   schedule_registry.cxx
   schedule_registry_exception.cxx
   stamp.cxx
@@ -32,6 +33,7 @@ set(pipeline_headers
   process_registry.h
   process_registry_exception.h
   schedule.h
+  schedule_exception.h
   schedule_registry.h
   schedule_registry_exception.h
   stamp.h
