@@ -25,9 +25,15 @@ class number_process::priv
 
     number_t const start;
     number_t const end;
-    number_t current;
+
+    conf_info_t start_conf_info;
+    conf_info_t end_conf_info;
 
     edges_t output_edges;
+
+    port_info_t output_port_info;
+
+    number_t current;
 
     static number_t const DEFAULT_START_VALUE;
     static number_t const DEFAULT_END_VALUE;
@@ -55,13 +61,6 @@ number_process
 number_process
 ::~number_process()
 {
-}
-
-process_registry::type_t
-number_process
-::type() const
-{
-  return process_registry::type_t("number_process");
 }
 
 void
@@ -113,32 +112,16 @@ number_process
   process::_connect_output_port(port, edge);
 }
 
-process::port_type_t
+process::port_info_t
 number_process
-::_output_port_type(port_t const& port) const
+::_output_port_info(port_t const& port) const
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
-    port_flags_t flags;
-
-    flags.insert(flag_required);
-
-    return port_type_t(port_types::t_integer, flags);
+    return d->output_port_info;
   }
 
-  return process::_output_port_type(port);
-}
-
-process::port_description_t
-number_process
-::_output_port_description(port_t const& port) const
-{
-  if (port == priv::OUTPUT_PORT_NAME)
-  {
-    return port_description_t("Where the numbers will be available.");
-  }
-
-  return process::_output_port_description(port);
+  return process::_output_port_info(port);
 }
 
 process::ports_t
@@ -164,36 +147,20 @@ number_process
   return keys;
 }
 
-config::value_t
+process::conf_info_t
 number_process
-::_config_default(config::key_t const& key) const
+::_config_info(config::key_t const& key) const
 {
   if (key == priv::START_CONFIG_NAME)
   {
-    return boost::lexical_cast<config::value_t>(priv::DEFAULT_START_VALUE);
+    return d->start_conf_info;
   }
   if (key == priv::END_CONFIG_NAME)
   {
-    return boost::lexical_cast<config::value_t>(priv::DEFAULT_END_VALUE);
+    return d->end_conf_info;
   }
 
-  return process::_config_default(key);
-}
-
-config::description_t
-number_process
-::_config_description(config::key_t const& key) const
-{
-  if (key == priv::START_CONFIG_NAME)
-  {
-    return config::description_t("The value to start counting at");
-  }
-  if (key == priv::END_CONFIG_NAME)
-  {
-    return config::description_t("The value to stop counting at");
-  }
-
-  return process::_config_description(key);
+  return process::_config_info(key);
 }
 
 number_process::priv
@@ -202,6 +169,21 @@ number_process::priv
   , end(e)
   , current(s)
 {
+  port_flags_t required;
+
+  required.insert(flag_required);
+
+  output_port_info = port_info_t(new port_info(
+    port_types::t_integer,
+    required,
+    port_description_t("Where the numbers will be available.")));
+
+  start_conf_info = conf_info_t(new conf_info(
+    boost::lexical_cast<config::value_t>(priv::DEFAULT_START_VALUE),
+    config::description_t("The value to start counting at.")));
+  end_conf_info = conf_info_t(new conf_info(
+    boost::lexical_cast<config::value_t>(priv::DEFAULT_END_VALUE),
+    config::description_t("The value to stop counting at.")));
 }
 
 number_process::priv

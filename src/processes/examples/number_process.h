@@ -49,11 +49,6 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
      * \brief Destructor.
      */
     ~number_process();
-
-    /**
-     * \brief Returns the type of the process.
-     */
-    process_registry::type_t type() const;
   protected:
     /**
      * \brief Checks the output port connections and the configuration.
@@ -72,39 +67,31 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
      * \param edge The edge to connect to the port.
      */
     void _connect_output_port(port_t const& port, edge_t edge);
+
     /**
-     * \brief The type of data that is available on an output port.
+     * \brief Information about an output port on the process.
      *
-     * \param port The port to return the type of.
+     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
-     * \returns The type of data available.
+     * \param port The port to return information about.
+     *
+     * \returns Information about the output port.
      */
-    port_type_t _output_port_type(port_t const& port) const;
-    /**
-     * \brief Describe output ports on the process.
-     *
-     * \param port The port to describe.
-     *
-     * \returns A description of the port.
-     */
-    port_description_t _output_port_description(port_t const& port) const;
+    port_info_t _output_port_info(port_t const& port) const;
 
     /**
      * \brief The available configuration options for the process.
      */
     config::keys_t _available_config() const;
+
     /**
-     * \brief Request the default value for a configuration.
+     * \brief Retrieve information about a configuration parameter.
      *
      * \param key The name of the configuration value.
-     */
-    config::value_t _config_default(config::key_t const& key) const;
-    /**
-     * \brief Request available configuration options for the process.
      *
-     * \param key The name of the configuration value to describe.
+     * \returns Information about the parameter.
      */
-    config::description_t _config_description(config::key_t const& key) const;
+    conf_info_t _config_info(config::key_t const& key) const;
 
     /**
      * \brief Lists the ports available on the process.
