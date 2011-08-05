@@ -190,7 +190,7 @@ run_test(std::string const& test_name)
   }
 }
 
-static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name);
+static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
 static vistk::pipeline_t create_pipeline();
 
 void
@@ -730,14 +730,12 @@ test_setup_pipeline()
 }
 
 vistk::process_t
-create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name)
+create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
 {
   static bool modules_loaded = (vistk::load_known_modules(), true);
   static vistk::process_registry_t const reg = vistk::process_registry::self();
 
   (void)modules_loaded;
-
-  vistk::config_t config = vistk::config::empty_config();
 
   config->set_value(vistk::process::config_name, vistk::config::value_t(name));
 
