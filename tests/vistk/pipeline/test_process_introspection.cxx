@@ -165,7 +165,23 @@ test_process_input_ports(vistk::process_t const process)
                 << "(" << process->type() << "." << port << "): " << e.what() << std::endl;
     }
 
-    /// \todo Test port information.
+    vistk::process::port_flags_t const& flags = info->flags;
+
+    bool const is_const = (flags.find(vistk::process::flag_output_const) != flags.end());
+
+    if (is_const)
+    {
+      std::cerr << "Error: Const flag on input port "
+                << "(" << process->type() << "." << port << ")" << std::endl;
+    }
+
+    vistk::process::port_description_t const& description = info->description;
+
+    if (description.empty())
+    {
+      std::cerr << "Error: Description empty on input port "
+                << "(" << process->type() << "." << port << ")" << std::endl;
+    }
   }
 }
 
@@ -193,7 +209,23 @@ test_process_output_ports(vistk::process_t const process)
                 << "(" << process->type() << "." << port << "): " << e.what() << std::endl;
     }
 
-    /// \todo Test port information.
+    vistk::process::port_flags_t const& flags = info->flags;
+
+    bool const is_mutable = (flags.find(vistk::process::flag_input_mutable) != flags.end());
+
+    if (is_mutable)
+    {
+      std::cerr << "Error: Mutable flag on output port "
+                << "(" << process->type() << "." << port << ")" << std::endl;
+    }
+
+    vistk::process::port_description_t const& description = info->description;
+
+    if (description.empty())
+    {
+      std::cerr << "Error: Description empty on output port "
+                << "(" << process->type() << "." << port << ")" << std::endl;
+    }
   }
 }
 
