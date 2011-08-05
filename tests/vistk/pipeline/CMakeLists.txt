@@ -109,6 +109,17 @@ vistk_make_test(pipeline setup_pipeline_missing_required_group_output_connection
 vistk_make_test(pipeline setup_pipeline)
 
 ##############################
+# Process registry tests
+##############################
+vistk_build_test(process_registry libraries test_process_registry.cxx)
+
+vistk_make_test(process_registry null_config)
+vistk_make_test(process_registry load_processes)
+vistk_make_test(process_registry null_ctor)
+vistk_make_test(process_registry duplicate_types)
+vistk_make_test(process_registry unknown_types)
+
+##############################
 # Schedule registry tests
 ##############################
 vistk_build_test(schedule_registry libraries test_schedule_registry.cxx)
