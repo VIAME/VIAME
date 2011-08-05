@@ -30,6 +30,8 @@ class pipeline::priv
     priv();
     ~priv();
 
+    void check_duplicate_name(process::name_t const& name);
+
     typedef std::map<process::name_t, process_t> process_map_t;
     typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
     typedef std::vector<connection_t> connections_t;
@@ -77,19 +79,7 @@ pipeline
 
   process::name_t const name = process->name();
 
-  priv::process_map_t::const_iterator proc_it = d->process_map.find(name);
-
-  if (proc_it != d->process_map.end())
-  {
-    throw duplicate_process_name_exception(name);
-  }
-
-  priv::group_t::const_iterator group_it = d->groups.find(name);
-
-  if (group_it != d->groups.end())
-  {
-    throw duplicate_process_name_exception(name);
-  }
+  d->check_duplicate_name(name);
 
   d->process_map[name] = process;
 }
@@ -98,19 +88,7 @@ void
 pipeline
 ::add_group(process::name_t const& name)
 {
-  priv::process_map_t::const_iterator proc_it = d->process_map.find(name);
-
-  if (proc_it != d->process_map.end())
-  {
-    throw duplicate_process_name_exception(name);
-  }
-
-  priv::group_t::const_iterator group_it = d->groups.find(name);
-
-  if (group_it != d->groups.end())
-  {
-    throw duplicate_process_name_exception(name);
-  }
+  d->check_duplicate_name(name);
 
   d->groups[name] = priv::port_mapping_t();
 }
@@ -804,6 +782,20 @@ pipeline::priv
 pipeline::priv
 ::~priv()
 {
+}
+
+void
+pipeline::priv
+::check_duplicate_name(process::name_t const& name)
+{
+  process_map_t::const_iterator proc_it = process_map.find(name);
+  group_t::const_iterator group_it = groups.find(name);
+
+  if ((proc_it != process_map.end()) ||
+      (group_it != groups.end()))
+  {
+    throw duplicate_process_name_exception(name);
+  }
 }
 
 }
