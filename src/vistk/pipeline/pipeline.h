@@ -127,19 +127,6 @@ class VISTK_PIPELINE_EXPORT pipeline
     void setup_pipeline();
 
     /**
-     * \brief Runs the pipeline.
-     */
-    void run();
-    /**
-     * \brief Resets the pipeline.
-     */
-    void reset();
-    /**
-     * \brief Shuts the pipeline down.
-     */
-    void shutdown();
-
-    /**
      * \brief Get a list of processes in the pipeline.
      *
      * \returns The names of all processes in the pipeline.
