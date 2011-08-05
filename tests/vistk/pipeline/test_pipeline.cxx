@@ -701,10 +701,17 @@ test_setup_pipeline()
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
 
+  vistk::config_t configt = vistk::config::empty_config();
+
+  vistk::config::key_t const output_key = vistk::config::key_t("output");
+  vistk::config::value_t const output_path = vistk::config::value_t("tests-pipeline-setup_pipeline-print_number.txt");
+
+  configt->set_value(output_key, output_path);
+
   vistk::process_t const processu1 = create_process(proc_typeu, proc_nameu1);
   vistk::process_t const processu2 = create_process(proc_typeu, proc_nameu2);
   vistk::process_t const processd = create_process(proc_typed, proc_named);
-  vistk::process_t const processt = create_process(proc_typet, proc_namet);
+  vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
   vistk::pipeline_t pipeline = create_pipeline();
 
