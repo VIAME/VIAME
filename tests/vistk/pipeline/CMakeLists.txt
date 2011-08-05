@@ -70,6 +70,11 @@ vistk_make_test(edge set_upstream_process)
 vistk_make_test(edge set_downstream_process)
 
 ##############################
+# Process tests
+##############################
+vistk_build_test(process libraries test_process.cxx)
+
+##############################
 # Pipeline tests
 ##############################
 vistk_build_test(pipeline libraries test_pipeline.cxx)
