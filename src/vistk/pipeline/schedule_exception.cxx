@@ -40,4 +40,27 @@ null_schedule_config_exception
   return m_what.c_str();
 }
 
+null_schedule_pipeline_exception
+::null_schedule_pipeline_exception() throw()
+  : schedule_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A NULL pipeline was passed to a schedule.";
+
+  m_what = sstr.str();
+}
+
+null_schedule_pipeline_exception
+::~null_schedule_pipeline_exception() throw()
+{
+}
+
+char const*
+null_schedule_pipeline_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 }

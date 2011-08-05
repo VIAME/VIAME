@@ -64,6 +64,36 @@ class VISTK_PIPELINE_EXPORT null_schedule_config_exception
     std::string m_what;
 };
 
+/**
+ * \class null_schedule_pipeline_exception schedule_exception.h <vistk/pipeline/schedule_exception.h>
+ *
+ * \brief Thrown when \c NULL \ref pipeline is passed to a schedule.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_schedule_pipeline_exception
+  : public schedule_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    null_schedule_pipeline_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_schedule_pipeline_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
 }
 
 #endif // VISTK_PIPELINE_SCHEDULE_EXCEPTION_H

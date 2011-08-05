@@ -38,6 +38,11 @@ schedule
     throw null_schedule_config_exception();
   }
 
+  if (!pipe)
+  {
+    throw null_schedule_pipeline_exception();
+  }
+
   d = boost::shared_ptr<priv>(new priv(pipe));
 }
 
