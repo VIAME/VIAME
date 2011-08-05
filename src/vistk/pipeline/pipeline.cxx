@@ -296,6 +296,49 @@ pipeline
 
       procs.insert(cur_proc);
 
+      // Check for required ports.
+      {
+        process_t const process = process_by_name(cur_proc);
+
+        // Check for required input ports.
+        process::ports_t const input_ports = process->input_ports();
+        BOOST_FOREACH (process::port_t const& port, input_ports)
+        {
+          // Check for required flags.
+          process::port_flags_t const port_flags = process->input_port_type(port).get<1>();
+
+          process::port_flags_t::const_iterator const i = port_flags.find(process::flag_required);
+          if (i != port_flags.end())
+          {
+            if (!input_edge_for_port(cur_proc, port))
+            {
+              static std::string const reason = "The input port has the required flag.";
+
+              throw missing_connection_exception(cur_proc, port, reason);
+            }
+          }
+        }
+
+        // Check for required output ports.
+        process::ports_t const output_ports = process->output_ports();
+        BOOST_FOREACH (process::port_t const& port, output_ports)
+        {
+          // Check for required flags.
+          process::port_flags_t const port_flags = process->output_port_type(port).get<1>();
+
+          process::port_flags_t::const_iterator const i = port_flags.find(process::flag_required);
+          if (i != port_flags.end())
+          {
+            if (output_edges_for_port(cur_proc, port).empty())
+            {
+              static std::string const reason = "The output port has the required flag.";
+
+              throw missing_connection_exception(cur_proc, port, reason);
+            }
+          }
+        }
+      }
+
       processes_t connected_procs;
 
       // Find all processes upstream of the current process.
