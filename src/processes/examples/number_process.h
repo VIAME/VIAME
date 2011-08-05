@@ -51,23 +51,6 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     ~number_process();
 
     /**
-     * \brief The available configuration options for the process.
-     */
-    virtual config::keys_t available_config() const;
-    /**
-     * \brief Request the default value for a configuration.
-     *
-     * \param key The name of the configuration value.
-     */
-    virtual config::value_t config_default(config::key_t const& key) const;
-    /**
-     * \brief Request available configuration options for the process.
-     *
-     * \param key The name of the configuration value to describe.
-     */
-    virtual config::description_t config_description(config::key_t const& key) const;
-
-    /**
      * \brief Returns the type of the process.
      */
     process_registry::type_t type() const;
@@ -105,6 +88,23 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
      * \returns A description of the port.
      */
     port_description_t _output_port_description(port_t const& port) const;
+
+    /**
+     * \brief The available configuration options for the process.
+     */
+    config::keys_t _available_config() const;
+    /**
+     * \brief Request the default value for a configuration.
+     *
+     * \param key The name of the configuration value.
+     */
+    config::value_t _config_default(config::key_t const& key) const;
+    /**
+     * \brief Request available configuration options for the process.
+     *
+     * \param key The name of the configuration value to describe.
+     */
+    config::description_t _config_description(config::key_t const& key) const;
 
     /**
      * \brief Lists the ports available on the process.

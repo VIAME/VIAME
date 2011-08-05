@@ -57,50 +57,6 @@ number_process
 {
 }
 
-config::keys_t
-number_process
-::available_config() const
-{
-  config::keys_t keys;
-
-  keys.push_back(priv::START_CONFIG_NAME);
-  keys.push_back(priv::END_CONFIG_NAME);
-
-  return keys;
-}
-
-config::value_t
-number_process
-::config_default(config::key_t const& key) const
-{
-  if (key == priv::START_CONFIG_NAME)
-  {
-    return boost::lexical_cast<config::value_t>(priv::DEFAULT_START_VALUE);
-  }
-  if (key == priv::END_CONFIG_NAME)
-  {
-    return boost::lexical_cast<config::value_t>(priv::DEFAULT_END_VALUE);
-  }
-
-  return process::config_default(key);
-}
-
-config::description_t
-number_process
-::config_description(config::key_t const& key) const
-{
-  if (key == priv::START_CONFIG_NAME)
-  {
-    return config::description_t("The value to start counting at");
-  }
-  if (key == priv::END_CONFIG_NAME)
-  {
-    return config::description_t("The value to stop counting at");
-  }
-
-  return process::config_description(key);
-}
-
 process_registry::type_t
 number_process
 ::type() const
@@ -194,6 +150,50 @@ number_process
   ports.push_back(priv::OUTPUT_PORT_NAME);
 
   return ports;
+}
+
+config::keys_t
+number_process
+::_available_config() const
+{
+  config::keys_t keys = process::_available_config();
+
+  keys.push_back(priv::START_CONFIG_NAME);
+  keys.push_back(priv::END_CONFIG_NAME);
+
+  return keys;
+}
+
+config::value_t
+number_process
+::_config_default(config::key_t const& key) const
+{
+  if (key == priv::START_CONFIG_NAME)
+  {
+    return boost::lexical_cast<config::value_t>(priv::DEFAULT_START_VALUE);
+  }
+  if (key == priv::END_CONFIG_NAME)
+  {
+    return boost::lexical_cast<config::value_t>(priv::DEFAULT_END_VALUE);
+  }
+
+  return process::_config_default(key);
+}
+
+config::description_t
+number_process
+::_config_description(config::key_t const& key) const
+{
+  if (key == priv::START_CONFIG_NAME)
+  {
+    return config::description_t("The value to start counting at");
+  }
+  if (key == priv::END_CONFIG_NAME)
+  {
+    return config::description_t("The value to stop counting at");
+  }
+
+  return process::_config_description(key);
 }
 
 number_process::priv
