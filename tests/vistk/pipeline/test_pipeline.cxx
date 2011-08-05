@@ -562,7 +562,7 @@ void
 test_setup_pipeline_orphaned_process()
 {
   vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("print_number");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
