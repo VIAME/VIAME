@@ -121,7 +121,7 @@ pipeline
     }
   }
 
-  priv::group_t::const_iterator const down_group_it = d->groups.find(upstream_process);
+  priv::group_t::const_iterator const down_group_it = d->groups.find(downstream_process);
 
   if (down_group_it != d->groups.end())
   {
