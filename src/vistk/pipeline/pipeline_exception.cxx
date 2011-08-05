@@ -17,6 +17,29 @@
 namespace vistk
 {
 
+null_pipeline_config_exception
+::null_pipeline_config_exception() throw()
+  : pipeline_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A NULL configuration was passed to a pipeline.";
+
+  m_what = sstr.str();
+}
+
+null_pipeline_config_exception
+::~null_pipeline_config_exception() throw()
+{
+}
+
+char const*
+null_pipeline_config_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 null_process_addition_exception
 ::null_process_addition_exception() throw()
   : pipeline_addition_exception()

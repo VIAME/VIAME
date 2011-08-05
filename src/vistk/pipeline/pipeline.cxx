@@ -58,8 +58,13 @@ class pipeline::priv
 };
 
 pipeline
-::pipeline(config_t const& /*config*/)
+::pipeline(config_t const& config)
 {
+  if (!config)
+  {
+    throw null_pipeline_config_exception();
+  }
+
   d = boost::shared_ptr<priv>(new priv);
 }
 

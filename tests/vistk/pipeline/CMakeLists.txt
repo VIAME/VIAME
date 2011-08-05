@@ -78,6 +78,7 @@ vistk_make_test(process null_output_edge)
 ##############################
 vistk_build_test(pipeline libraries test_pipeline.cxx)
 
+vistk_make_test(pipeline null_config)
 vistk_make_test(pipeline null_process)
 vistk_make_test(pipeline add_process)
 vistk_make_test(pipeline add_group)

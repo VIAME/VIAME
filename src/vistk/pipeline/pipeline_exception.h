@@ -36,6 +36,36 @@ class VISTK_PIPELINE_EXPORT pipeline_addition_exception
 };
 
 /**
+ * \class null_pipeline_config_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when \c NULL \ref config is passed to a pipeline.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_pipeline_config_exception
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    null_pipeline_config_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_pipeline_config_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class null_process_addition_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \c NULL is given as a \ref process to add to a \ref pipeline.
