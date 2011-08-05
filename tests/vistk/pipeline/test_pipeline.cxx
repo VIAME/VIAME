@@ -550,7 +550,23 @@ test_setup_pipeline_no_processes()
 void
 test_setup_pipeline_orphaned_process()
 {
-  std::cerr << "Error: Not implemented" << std::endl;
+  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processd = create_process(proc_typed, proc_named);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processd);
+
+  EXPECT_EXCEPTION(vistk::orphaned_processes_exception,
+                   pipeline->setup_pipeline(),
+                   "setting up a pipeline with orphaned processes");
 }
 
 void
