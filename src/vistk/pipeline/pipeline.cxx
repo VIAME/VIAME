@@ -149,20 +149,8 @@ pipeline
   process::port_addr_t const down_port = process::port_addr_t(downstream_process, downstream_port);
   priv::connection_t const conn = priv::connection_t(up_port, down_port);
 
-  priv::process_map_t::iterator const up_it = d->process_map.find(upstream_process);
-  priv::process_map_t::iterator const down_it = d->process_map.find(downstream_process);
-
-  if (up_it == d->process_map.end())
-  {
-    throw no_such_process_exception(upstream_process);
-  }
-  if (down_it == d->process_map.end())
-  {
-    throw no_such_process_exception(downstream_process);
-  }
-
-  process_t const& up_proc = up_it->second;
-  process_t const& down_proc = down_it->second;
+  process_t const up_proc = process_by_name(upstream_process);
+  process_t const down_proc = process_by_name(downstream_process);
 
   process::port_type_t const up_type = up_proc->output_port_type(upstream_port);
   process::port_type_t const down_type = down_proc->input_port_type(downstream_port);
@@ -223,12 +211,7 @@ pipeline
     throw no_such_group_exception(group);
   }
 
-  priv::process_map_t::iterator const proc_it = d->process_map.find(mapped_process);
-
-  if (proc_it == d->process_map.end())
-  {
-    throw no_such_process_exception(mapped_process);
-  }
+  (void)process_by_name(mapped_process);
 
   priv::input_port_mapping_t& mapping = group_it->second.first;
 
@@ -255,12 +238,7 @@ pipeline
     throw no_such_group_exception(group);
   }
 
-  priv::process_map_t::iterator const proc_it = d->process_map.find(mapped_process);
-
-  if (proc_it == d->process_map.end())
-  {
-    throw no_such_process_exception(mapped_process);
-  }
+  (void)process_by_name(mapped_process);
 
   priv::output_port_mapping_t& mapping = group_it->second.second;
 
