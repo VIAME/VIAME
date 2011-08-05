@@ -650,7 +650,53 @@ test_map_output()
 void
 test_connect_no_upstream()
 {
-  std::cerr << "Error: Not implemented" << std::endl;
+  vistk::load_known_modules();
+
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+
+  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t proc_config = vistk::config::empty_config();
+
+  proc_config->set_value(vistk::process::config_name, proc_name);
+
+  vistk::process_t const process = reg->create_process(proc_type, proc_config);
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("othername");
+
+  pipeline->add_process(process);
+
+  bool got_exception = false;
+
+  try
+  {
+    pipeline->connect(proc_name2, vistk::process::port_t(),
+                      proc_name, vistk::process::port_t());
+  }
+  catch (vistk::no_such_process_exception& e)
+  {
+    got_exception = true;
+
+    (void)e.what();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when connecting with a non-existent upstream" << std::endl;
+  }
 }
 
 void
