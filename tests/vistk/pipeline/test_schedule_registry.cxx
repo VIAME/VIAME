@@ -99,7 +99,14 @@ test_null_config()
 void
 test_null_pipeline()
 {
-  std::cerr << "Error: Not implemented" << std::endl;
+  vistk::schedule_registry_t reg = vistk::schedule_registry::self();
+
+  vistk::config_t config = vistk::config::empty_config();
+  vistk::pipeline_t pipe;
+
+  EXPECT_EXCEPTION(vistk::null_schedule_registry_pipeline_exception,
+                   reg->create_schedule(vistk::schedule_registry::type_t(), config, pipe),
+                   "requesting a NULL pipeline to a schedule");
 }
 
 void
