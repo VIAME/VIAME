@@ -25,7 +25,7 @@ null_schedule_ctor_exception
   std::ostringstream sstr;
 
   sstr << "A NULL constructor was passed for the "
-       << "schedule type \'" << m_type << "\'";
+       << "schedule type \'" << m_type << "\'.";
 
   m_what = sstr.str();
 }

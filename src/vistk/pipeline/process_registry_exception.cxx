@@ -25,7 +25,7 @@ null_process_ctor_exception
   std::ostringstream sstr;
 
   sstr << "A NULL constructor was passed for the "
-       << "process type \'" << m_type << "\'";
+       << "process type \'" << m_type << "\'.";
 
   m_what = sstr.str();
 }
