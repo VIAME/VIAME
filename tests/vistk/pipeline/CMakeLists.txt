@@ -10,10 +10,6 @@ vistk_build_test(process_introspection libraries test_process_introspection.cxx)
 
 vistk_make_test(process_introspection all)
 
-vistk_build_test(schedule_introspection libraries test_schedule_introspection.cxx)
-
-vistk_make_test(schedule_introspection all)
-
 ##############################
 # Config tests
 ##############################
@@ -109,3 +105,13 @@ vistk_make_test(pipeline setup_pipeline_missing_required_output_connection)
 vistk_make_test(pipeline setup_pipeline_missing_required_group_input_connection)
 vistk_make_test(pipeline setup_pipeline_missing_required_group_output_connection)
 vistk_make_test(pipeline setup_pipeline)
+
+##############################
+# Schedule registry tests
+##############################
+vistk_build_test(schedule_registry libraries test_schedule_registry.cxx)
+
+vistk_make_test(schedule_registry null_pipeline)
+vistk_make_test(schedule_registry load_schedules)
+vistk_make_test(schedule_registry duplicate_types)
+vistk_make_test(schedule_registry unknown_types)
