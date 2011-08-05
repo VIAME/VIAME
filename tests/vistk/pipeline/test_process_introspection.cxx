@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <test_common.h>
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/process.h>
@@ -203,33 +205,13 @@ main()
     {
       vistk::config::key_t const non_existent_config = vistk::config::key_t("does_not_exist");
 
-      try
-      {
-        process->config_default(non_existent_config);
-      }
-      catch (vistk::unknown_configuration_value_exception& e)
-      {
-      }
-      catch (std::exception& e)
-      {
-        std::cerr << "Error: Unexpected exception when "
-                  << "requesting default for non-existent config: "
-                  << e.what() << std::endl;
-      }
+      EXPECT_EXCEPTION(vistk::unknown_configuration_value_exception,
+                       process->config_default(non_existent_config),
+                       "requesting the default for a non-existent config");
 
-      try
-      {
-        process->config_description(non_existent_config);
-      }
-      catch (vistk::unknown_configuration_value_exception& e)
-      {
-      }
-      catch (std::exception& e)
-      {
-        std::cerr << "Error: Unexpected exception when "
-                  << "requesting description for non-existent config: "
-                  << e.what() << std::endl;
-      }
+      EXPECT_EXCEPTION(vistk::unknown_configuration_value_exception,
+                       process->config_description(non_existent_config),
+                       "requesting a description for a non-existent config");
     }
 
     // Test for proper exceptions on invalid port requests.
@@ -238,96 +220,36 @@ main()
 
       // Input ports.
       {
-        try
-        {
-          process->input_port_type(non_existent_port);
-        }
-        catch (vistk::no_such_port_exception& e)
-        {
-        }
-        catch (std::exception& e)
-        {
-          std::cerr << "Error: Unexpected exception when "
-                    << "requesting type on non-existent input port: "
-                    << e.what() << std::endl;
-        }
+        EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                         process->input_port_type(non_existent_port),
+                         "requesting the type of a non-existent input port");
 
-        try
-        {
-          process->input_port_description(non_existent_port);
-        }
-        catch (vistk::no_such_port_exception& e)
-        {
-        }
-        catch (std::exception& e)
-        {
-          std::cerr << "Error: Unexpected exception when "
-                    << "requesting description for non-existent input port: "
-                    << e.what() << std::endl;
-        }
+        EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                         process->input_port_description(non_existent_port),
+                         "requesting a description for a non-existent input port");
 
         vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
 
-        try
-        {
-          process->connect_input_port(non_existent_port, edge);
-        }
-        catch (vistk::no_such_port_exception& e)
-        {
-        }
-        catch (std::exception& e)
-        {
-          std::cerr << "Error: Unexpected exception when "
-                    << "requesting connection to non-existent input port: "
-                    << e.what() << std::endl;
-        }
+        EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                         process->connect_input_port(non_existent_port, edge),
+                         "requesting a connection to a non-existent input port");
       }
 
       // Output ports.
       {
-        try
-        {
-          process->output_port_type(non_existent_port);
-        }
-        catch (vistk::no_such_port_exception& e)
-        {
-        }
-        catch (std::exception& e)
-        {
-          std::cerr << "Error: Unexpected exception when "
-                    << "requesting type on non-existent output port: "
-                    << e.what() << std::endl;
-        }
+        EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                         process->output_port_type(non_existent_port),
+                         "requesting the type of a non-existent output port");
 
-        try
-        {
-          process->output_port_description(non_existent_port);
-        }
-        catch (vistk::no_such_port_exception& e)
-        {
-        }
-        catch (std::exception& e)
-        {
-          std::cerr << "Error: Unexpected exception when "
-                    << "requesting description for non-existent output port: "
-                    << e.what() << std::endl;
-        }
+        EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                         process->output_port_description(non_existent_port),
+                         "requesting a description for a non-existent output port");
 
         vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
 
-        try
-        {
-          process->connect_output_port(non_existent_port, edge);
-        }
-        catch (vistk::no_such_port_exception& e)
-        {
-        }
-        catch (std::exception& e)
-        {
-          std::cerr << "Error: Unexpected exception when "
-                    << "requesting connection to non-existent output port: "
-                    << e.what() << std::endl;
-        }
+        EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                         process->connect_output_port(non_existent_port, edge),
+                         "requesting a connection to a non-existent output port");
       }
     }
   }
@@ -336,33 +258,13 @@ main()
   {
     vistk::process_registry::type_t const non_existent_process = vistk::process_registry::type_t("no_such_process");
 
-    try
-    {
-      reg->create_process(non_existent_process, config);
-    }
-    catch (vistk::no_such_process_type_exception& e)
-    {
-    }
-    catch (std::exception& e)
-    {
-      std::cerr << "Error: Unexpected exception when "
-                << "requesting a non-existent process type: "
-                << e.what() << std::endl;
-    }
+    EXPECT_EXCEPTION(vistk::no_such_process_type_exception,
+                     reg->create_process(non_existent_process, config),
+                     "requesting an non-existent process type");
 
-    try
-    {
-      reg->description(non_existent_process);
-    }
-    catch (vistk::no_such_process_type_exception& e)
-    {
-    }
-    catch (std::exception& e)
-    {
-      std::cerr << "Error: Unexpected exception when "
-                << "requesting a description of a non-existent process type: "
-                << e.what() << std::endl;
-    }
+    EXPECT_EXCEPTION(vistk::no_such_process_type_exception,
+                     reg->description(non_existent_process),
+                     "requesting an non-existent process type");
   }
 
   return 0;
