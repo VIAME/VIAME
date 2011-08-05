@@ -67,8 +67,10 @@ static void test_connect_input_map();
 static void test_connect_output_map();
 static void test_setup_pipeline_no_processes();
 static void test_setup_pipeline_orphaned_process();
-static void test_setup_pipeline_missing_required_connection();
-static void test_setup_pipeline_missing_required_group_connection();
+static void test_setup_pipeline_missing_required_input_connection();
+static void test_setup_pipeline_missing_required_output_connection();
+static void test_setup_pipeline_missing_required_group_input_connection();
+static void test_setup_pipeline_missing_required_group_output_connection();
 static void test_setup_pipeline();
 
 void
@@ -162,13 +164,21 @@ run_test(std::string const& test_name)
   {
     test_setup_pipeline_orphaned_process();
   }
-  else if (test_name == "setup_pipeline_missing_required_connection")
+  else if (test_name == "setup_pipeline_missing_required_input_connection")
   {
-    test_setup_pipeline_missing_required_connection();
+    test_setup_pipeline_missing_required_input_connection();
   }
-  else if (test_name == "setup_pipeline_missing_required_group_connection")
+  else if (test_name == "setup_pipeline_missing_required_output_connection")
   {
-    test_setup_pipeline_missing_required_group_connection();
+    test_setup_pipeline_missing_required_output_connection();
+  }
+  else if (test_name == "setup_pipeline_missing_required_group_input_connection")
+  {
+    test_setup_pipeline_missing_required_group_input_connection();
+  }
+  else if (test_name == "setup_pipeline_missing_required_group_output_connection")
+  {
+    test_setup_pipeline_missing_required_group_output_connection();
   }
   else if (test_name == "setup_pipeline")
   {
@@ -571,35 +581,45 @@ test_setup_pipeline_orphaned_process()
 }
 
 void
-test_setup_pipeline_missing_required_connection()
+test_setup_pipeline_missing_required_input_connection()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("print_number");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
-
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
+  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
   vistk::pipeline_t pipeline = create_pipeline();
 
-  pipeline->add_process(processu);
-  pipeline->add_process(processd);
-
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_named = vistk::process::port_t("factor1");
-
-  pipeline->connect(proc_nameu, port_nameu,
-                    proc_named, port_named);
+  pipeline->add_process(process);
 
   EXPECT_EXCEPTION(vistk::missing_connection_exception,
                    pipeline->setup_pipeline(),
-                   "setting up a pipeline with missing required connections");
+                   "setting up a pipeline with missing required input connections");
 }
 
 void
-test_setup_pipeline_missing_required_group_connection()
+test_setup_pipeline_missing_required_output_connection()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+
+  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  EXPECT_EXCEPTION(vistk::missing_connection_exception,
+                   pipeline->setup_pipeline(),
+                   "setting up a pipeline with missing required output connections");
+}
+
+void
+test_setup_pipeline_missing_required_group_input_connection()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_setup_pipeline_missing_required_group_output_connection()
 {
   std::cerr << "Error: Not implemented" << std::endl;
 }
