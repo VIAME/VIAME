@@ -75,10 +75,15 @@ class process::priv
     name_t name;
     process_registry::type_t type;
 
+    conf_info_t name_conf_info;
+    conf_info_t type_conf_info;
+
     typedef std::pair<edge_t, edge_t> edge_pair_t;
     typedef std::map<port_t, edge_pair_t> edge_map_t;
 
     edges_t heartbeats;
+
+    port_info_t heartbeat_port_info;
 
     edges_t input_edges;
     edges_t output_edges;
@@ -192,10 +197,7 @@ process
 {
   if (port == port_heartbeat)
   {
-    return port_info_t(new port_info(
-      type_none,
-      port_flags_t(),
-      port_description_t("Outputs the heartbeat stamp with an empty datum")));
+    return d->heartbeat_port_info;
   }
 
   return _output_port_info(port);
@@ -219,15 +221,11 @@ process
 {
   if (key == config_name)
   {
-    return conf_info_t(new conf_info(
-      boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME),
-      config::description_t("The name of the process")));
+    return d->name_conf_info;
   }
   if (key == config_type)
   {
-    return conf_info_t(new conf_info(
-      config::value_t(),
-      config::description_t("The type of the process")));
+    return d->type_conf_info;
   }
 
   return _config_info(key);
@@ -429,6 +427,17 @@ process::priv
   : is_complete(false)
   , hb_stamp(stamp::new_stamp())
 {
+  heartbeat_port_info = port_info_t(new port_info(
+    type_none,
+    port_flags_t(),
+    port_description_t("Outputs the heartbeat stamp with an empty datum")));
+
+  name_conf_info = conf_info_t(new conf_info(
+    boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME),
+    config::description_t("The name of the process")));
+  type_conf_info = conf_info_t(new conf_info(
+    config::value_t(),
+    config::description_t("The type of the process")));
 }
 
 process::priv
