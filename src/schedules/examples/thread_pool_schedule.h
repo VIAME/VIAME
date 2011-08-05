@@ -35,6 +35,7 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_pool_schedule
      * \brief Constructor.
      *
      * \param config Contains config for the edge.
+     * \param pipe The pipeline to schedule.
      * \param num_threads The number of threads to use. 0 means the number of processors available.
      */
     thread_pool_schedule(config_t const& config, pipeline_t const& pipe, size_t num_threads);

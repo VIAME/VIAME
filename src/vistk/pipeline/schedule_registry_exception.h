@@ -101,9 +101,9 @@ class VISTK_PIPELINE_EXPORT null_schedule_registry_config_exception
 };
 
 /**
- * \class null_pipeline_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
+ * \class null_schedule_registry_pipeline_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
  *
- * \brief Thrown when \c NULL \ref pipeline is passed to a schedule.
+ * \brief Thrown when \c NULL \link vistk::pipeline\endlink is passed to a schedule.
  *
  * \ingroup exceptions
  */

@@ -85,7 +85,7 @@ class VISTK_PIPELINE_UTIL_EXPORT not_a_file_exception
     /**
      * \brief Constructor.
      *
-     * \param fname The path that is not a file.
+     * \param path The path that is not a file.
      */
     not_a_file_exception(boost::filesystem::path const& path) throw();
     /**
