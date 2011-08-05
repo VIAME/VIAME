@@ -36,6 +36,36 @@ class VISTK_PIPELINE_EXPORT process_registry_exception
 };
 
 /**
+ * \class null_process_registry_config_exception process_registry_exception.h <vistk/pipeline/process_registry_exception.h>
+ *
+ * \brief Thrown when \c NULL \ref config is passed to a process.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_process_registry_config_exception
+  : public process_registry_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    null_process_registry_config_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_process_registry_config_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class no_such_process_type_exception process_registry_exception.h <vistk/pipeline/process_registry_exception.h>
  *
  * \brief Thrown when a type is requested, but does not exist in the registry.

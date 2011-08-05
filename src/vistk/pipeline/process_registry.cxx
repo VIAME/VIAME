@@ -49,6 +49,11 @@ process_t
 process_registry
 ::create_process(type_t const& type, config_t const& config) const
 {
+  if (!config)
+  {
+    throw null_process_registry_config_exception();
+  }
+
   process_store_t::const_iterator const i = m_registry.find(type);
 
   if (i == m_registry.end())
