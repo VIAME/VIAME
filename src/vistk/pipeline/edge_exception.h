@@ -37,6 +37,36 @@ class VISTK_PIPELINE_EXPORT edge_exception
 };
 
 /**
+ * \class null_edge_config_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when \c NULL \ref config is passed to a edge.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_edge_config_exception
+  : public edge_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    null_edge_config_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_edge_config_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class edge_connection_exception edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief The base class for all exceptions thrown from an \ref edge due to connections.

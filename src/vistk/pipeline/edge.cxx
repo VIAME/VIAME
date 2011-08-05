@@ -41,8 +41,13 @@ class edge::priv
 };
 
 edge
-::edge(config_t const& /*config*/)
+::edge(config_t const& config)
 {
+  if (!config)
+  {
+    throw null_edge_config_exception();
+  }
+
   d = boost::shared_ptr<priv>(new priv);
 }
 
