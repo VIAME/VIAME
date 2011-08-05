@@ -198,6 +198,8 @@ test_process_input_ports(vistk::process_t const process)
 void
 test_process_output_ports(vistk::process_t const process)
 {
+  static vistk::config_t const config = vistk::config::empty_config();
+
   vistk::process::ports_t const ports = process->output_ports();
 
   BOOST_FOREACH (vistk::process::port_t const& port, ports)
@@ -236,6 +238,12 @@ test_process_output_ports(vistk::process_t const process)
       std::cerr << "Error: Description empty on output port "
                 << "(" << process->type() << "." << port << ")" << std::endl;
     }
+
+    vistk::edge_t edge1 = vistk::edge_t(new vistk::edge(config));
+    vistk::edge_t edge2 = vistk::edge_t(new vistk::edge(config));
+
+    process->connect_output_port(port, edge1);
+    process->connect_output_port(port, edge2);
   }
 }
 
