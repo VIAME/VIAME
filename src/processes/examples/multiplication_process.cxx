@@ -120,6 +120,7 @@ multiplication_process
         dat = datum::empty_datum();
         break;
       case datum::DATUM_COMPLETE:
+        mark_as_complete();
         dat = datum::complete_datum();
         break;
       case datum::DATUM_ERROR:

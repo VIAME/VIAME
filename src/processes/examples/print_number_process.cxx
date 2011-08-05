@@ -90,7 +90,10 @@ print_number_process
       break;
     }
     case datum::DATUM_EMPTY:
+      break;
     case datum::DATUM_COMPLETE:
+      mark_as_complete();
+      break;
     case datum::DATUM_ERROR:
       break;
     case datum::DATUM_INVALID:
