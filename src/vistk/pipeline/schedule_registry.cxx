@@ -36,6 +36,11 @@ void
 schedule_registry
 ::register_schedule(type_t const& type, description_t const& desc, schedule_ctor_t ctor)
 {
+  if (!ctor)
+  {
+    throw null_schedule_ctor_exception(type);
+  }
+
   if (m_registry.find(type) != m_registry.end())
   {
     throw schedule_type_already_exists_exception(type);

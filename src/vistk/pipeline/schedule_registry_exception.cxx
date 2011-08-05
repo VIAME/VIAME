@@ -17,6 +17,31 @@
 namespace vistk
 {
 
+null_schedule_ctor_exception
+::null_schedule_ctor_exception(schedule_registry::type_t const& type) throw()
+  : schedule_registry_exception()
+  , m_type(type)
+{
+  std::ostringstream sstr;
+
+  sstr << "A NULL constructor was passed for the "
+       << "schedule type \'" << m_type << "\'";
+
+  m_what = sstr.str();
+}
+
+null_schedule_ctor_exception
+::~null_schedule_ctor_exception() throw()
+{
+}
+
+char const*
+null_schedule_ctor_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 null_schedule_registry_config_exception
 ::null_schedule_registry_config_exception() throw()
   : schedule_registry_exception()

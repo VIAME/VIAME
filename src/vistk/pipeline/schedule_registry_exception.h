@@ -36,6 +36,41 @@ class VISTK_PIPELINE_EXPORT schedule_registry_exception
 };
 
 /**
+ * \class null_schedule_ctor_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
+ *
+ * \brief Thrown when \c NULL constructor function to the registry.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_schedule_ctor_exception
+  : public schedule_registry_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param type The type the ctor is for.
+     */
+    null_schedule_ctor_exception(schedule_registry::type_t const& type) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_schedule_ctor_exception() throw();
+
+    /// The type that was passed a \c NULL constructor.
+    schedule_registry::type_t const m_type;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class null_schedule_registry_config_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
  *
  * \brief Thrown when \c NULL \ref config is passed to a schedule.
