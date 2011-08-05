@@ -209,6 +209,15 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     edges_t input_edges_for_process(process::name_t const& name) const;
     /**
+     * \brief Find the edge that is sending data directly to a port.
+     *
+     * \param name The name of the process to lookup.
+     * \param port The name of the port on the process.
+     *
+     * \returns The edge that sends data to \p name's \p port, or \c NULL.
+     */
+    edge_t input_edge_for_port(process::name_t const& name, process::port_t const& port) const;
+    /**
      * \brief Find edges that are siphoning data directly from a process.
      *
      * \param name The name of the process to lookup.

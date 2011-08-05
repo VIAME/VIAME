@@ -562,6 +562,22 @@ pipeline
   return edges;
 }
 
+edge_t
+pipeline
+::input_edge_for_port(process::name_t const& name, process::port_t const& port) const
+{
+  BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
+  {
+    if ((d->connections[edge_index.first].second.first == name) &&
+        (d->connections[edge_index.first].second.second == port))
+    {
+      return edge_index.second;
+    }
+  }
+
+  return edge_t();
+}
+
 edges_t
 pipeline
 ::output_edges_for_process(process::name_t const& name) const
