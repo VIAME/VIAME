@@ -159,6 +159,41 @@ print_number_process
   return ports;
 }
 
+config::keys_t
+print_number_process
+::_available_config() const
+{
+  config::keys_t keys = process::_available_config();
+
+  keys.push_back(priv::CONFIG_OUTPUT_NAME);
+
+  return keys;
+}
+
+config::value_t
+print_number_process
+::_config_default(config::key_t const& key) const
+{
+  if (key == priv::CONFIG_OUTPUT_NAME)
+  {
+    return config::value_t();
+  }
+
+  return process::_config_default(key);
+}
+
+config::description_t
+print_number_process
+::_config_description(config::key_t const& key) const
+{
+  if (key == priv::CONFIG_OUTPUT_NAME)
+  {
+    return config::description_t("The path the file to output to");
+  }
+
+  return process::_config_description(key);
+}
+
 print_number_process::priv
 ::priv(path_t const& output_path)
   : path(output_path)
