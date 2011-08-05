@@ -414,7 +414,8 @@ test_subblock_view()
   }
 }
 
-void test_merge_config()
+void
+test_merge_config()
 {
   vistk::config_t configa = vistk::config::empty_config();
   vistk::config_t configb = vistk::config::empty_config();
