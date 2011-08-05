@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <test_common.h>
+
 #include <vistk/pipeline_util/pipe_declaration_types.h>
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/load_pipe_exception.h>
@@ -348,31 +350,9 @@ test_config_not_a_flag(boost::filesystem::path const& pipe_file)
 
   v.expect(1, 0, 0, 0);
 
-  bool got_exception = false;
-
-  try
-  {
-    vistk::extract_configuration(blocks);
-  }
-  catch (vistk::unrecognized_config_flag_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when using an unknown flag" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::unrecognized_config_flag_exception,
+                   vistk::extract_configuration(blocks),
+                   "using an unknown flag");
 }
 
 void
@@ -386,31 +366,9 @@ test_config_read_only_override(boost::filesystem::path const& pipe_file)
 
   v.expect(2, 0, 0, 0);
 
-  bool got_exception = false;
-
-  try
-  {
-    vistk::extract_configuration(blocks);
-  }
-  catch (vistk::set_on_read_only_value_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when setting a read-only value" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
+                   vistk::extract_configuration(blocks),
+                   "setting a read-only value");
 }
 
 void
@@ -481,31 +439,9 @@ test_config_provider_conf_circular_dep(boost::filesystem::path const& pipe_file)
 
   v.expect(2, 0, 0, 0);
 
-  bool got_exception = false;
-
-  try
-  {
-    vistk::extract_configuration(blocks);
-  }
-  catch (vistk::circular_config_provide_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when circular provides exist" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::circular_config_provide_exception,
+                   vistk::extract_configuration(blocks),
+                   "circular configuration provides exist");
 }
 
 void
@@ -547,31 +483,9 @@ test_config_provider_read_only_override(boost::filesystem::path const& pipe_file
 
   v.expect(2, 0, 0, 0);
 
-  bool got_exception = false;
-
-  try
-  {
-    vistk::extract_configuration(blocks);
-  }
-  catch (vistk::set_on_read_only_value_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when setting a read-only provided value" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
+                   vistk::extract_configuration(blocks),
+                   "setting a read-only provided value");
 }
 
 void
@@ -585,31 +499,9 @@ test_config_provider_unprovided(boost::filesystem::path const& pipe_file)
 
   v.expect(1, 0, 0, 0);
 
-  bool got_exception = false;
-
-  try
-  {
-    vistk::extract_configuration(blocks);
-  }
-  catch (vistk::unrecognized_provider_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when using an unknown provider" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::unrecognized_provider_exception,
+                   vistk::extract_configuration(blocks),
+                   "using an unknown provider");
 }
 
 void
@@ -639,121 +531,33 @@ test_include(boost::filesystem::path const& pipe_file)
 void
 test_no_exist(boost::filesystem::path const& pipe_file)
 {
-  bool got_exception = false;
-
-  try
-  {
-    vistk::load_pipe_blocks_from_file(pipe_file);
-  }
-  catch (vistk::file_no_exist_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when loading a non-existent file" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::file_no_exist_exception,
+                   vistk::load_pipe_blocks_from_file(pipe_file),
+                   "loading a non-existent file");
 }
 
 void
 test_not_a_file(boost::filesystem::path const& pipe_file)
 {
-  bool got_exception = false;
-
-  try
-  {
-    vistk::load_pipe_blocks_from_file(pipe_file);
-  }
-  catch (vistk::not_a_file_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when loading a non-file" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::not_a_file_exception,
+                   vistk::load_pipe_blocks_from_file(pipe_file),
+                   "loading a non-file");
 }
 
 void
 test_include_no_exist(boost::filesystem::path const& pipe_file)
 {
-  bool got_exception = false;
-
-  try
-  {
-    vistk::load_pipe_blocks_from_file(pipe_file);
-  }
-  catch (vistk::file_no_exist_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when including a non-existent file" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::file_no_exist_exception,
+                   vistk::load_pipe_blocks_from_file(pipe_file),
+                   "including a non-existent file");
 }
 
 void
 test_include_not_a_file(boost::filesystem::path const& pipe_file)
 {
-  bool got_exception = false;
-
-  try
-  {
-    vistk::load_pipe_blocks_from_file(pipe_file);
-  }
-  catch (vistk::not_a_file_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when including a non-file" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::not_a_file_exception,
+                   vistk::load_pipe_blocks_from_file(pipe_file),
+                   "including a non-file");
 }
 
 test_visitor
