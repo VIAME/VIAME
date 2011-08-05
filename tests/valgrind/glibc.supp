@@ -81,3 +81,71 @@
   fun:_dlerror_run
   fun:dlopen@@GLIBC_2.2.5
 }
+
+{
+  glibc -- dlerror leak
+  Memcheck:Leak
+  fun:malloc
+  fun:decompose_rpath
+  fun:_dl_map_object
+  fun:openaux
+  fun:_dl_catch_error
+  fun:_dl_map_object_deps
+  fun:dl_open_worker
+  fun:_dl_catch_error
+  fun:_dl_open
+  fun:dlopen_doit
+  fun:_dl_catch_error
+  fun:_dlerror_run
+}
+
+{
+  glibc -- dlerror leak
+  Memcheck:Leak
+  fun:malloc
+  fun:open_path
+  fun:_dl_map_object
+  fun:openaux
+  fun:_dl_catch_error
+  fun:_dl_map_object_deps
+  fun:dl_open_worker
+  fun:_dl_catch_error
+  fun:_dl_open
+  fun:dlopen_doit
+  fun:_dl_catch_error
+  fun:_dlerror_run
+}
+
+{
+  glibc -- dlerror leak
+  Memcheck:Leak
+  fun:malloc
+  fun:_dl_new_object
+  fun:_dl_map_object_from_fd
+  fun:_dl_map_object
+  fun:openaux
+  fun:_dl_catch_error
+  fun:_dl_map_object_deps
+  fun:dl_open_worker
+  fun:_dl_catch_error
+  fun:_dl_open
+  fun:dlopen_doit
+  fun:_dl_catch_error
+}
+
+{
+  glibc -- dlerror leak
+  Memcheck:Leak
+  fun:calloc
+  fun:_dl_new_object
+  fun:_dl_map_object_from_fd
+  fun:_dl_map_object
+  fun:openaux
+  fun:_dl_catch_error
+  fun:_dl_map_object_deps
+  fun:dl_open_worker
+  fun:_dl_catch_error
+  fun:_dl_open
+  fun:dlopen_doit
+  fun:_dl_catch_error
+}
