@@ -30,8 +30,6 @@ namespace vistk
  *
  * \oport{product} The number generated for the step.
  *
- * \configs
- *
  * \reqs
  *
  * \req The \port{factor1}, \port{factor2}, and \port{product} ports must be connected.
