@@ -48,6 +48,7 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_null_config();
 static void test_null_pipeline();
 static void test_load_schedules();
 static void test_duplicate_types();
@@ -56,7 +57,11 @@ static void test_unknown_types();
 void
 run_test(std::string const& test_name)
 {
-  if (test_name == "null_pipeline")
+  if (test_name == "null_config")
+  {
+    test_null_config();
+  }
+  else if (test_name == "null_pipeline")
   {
     test_null_pipeline();
   }
@@ -76,6 +81,19 @@ run_test(std::string const& test_name)
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
   }
+}
+
+void
+test_null_config()
+{
+  vistk::schedule_registry_t reg = vistk::schedule_registry::self();
+
+  vistk::config_t config;
+  vistk::pipeline_t pipe;
+
+  EXPECT_EXCEPTION(vistk::null_schedule_registry_config_exception,
+                   reg->create_schedule(vistk::schedule_registry::type_t(), config, pipe),
+                   "requesting a NULL config to a schedule");
 }
 
 void
