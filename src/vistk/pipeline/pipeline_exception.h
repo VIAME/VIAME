@@ -170,10 +170,10 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch_exception
      */
     connection_type_mismatch_exception(process::name_t const& upstream_name,
                                        process::port_t const& upstream_port,
-                                       process::port_type_name_t const& upstream_type,
+                                       process::port_type_t const& upstream_type,
                                        process::name_t const& downstream_name,
                                        process::port_t const& downstream_port,
-                                       process::port_type_name_t const& downstream_type) throw();
+                                       process::port_type_t const& downstream_type) throw();
     /**
      * \brief Destructor.
      */
@@ -184,13 +184,13 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch_exception
     /// The name of the upstream process requested.
     process::port_t const m_upstream_port;
     /// The name of the type available on the upstream port.
-    process::port_type_name_t const m_upstream_type;
+    process::port_type_t const m_upstream_type;
     /// The name of the downstream process requested.
     process::name_t const m_downstream_name;
     /// The name of the downstream process requested.
     process::port_t const m_downstream_port;
     /// The name of the type available on the downstream port.
-    process::port_type_name_t const m_downstream_type;
+    process::port_type_t const m_downstream_type;
 
     /**
      * \brief A description of the exception.

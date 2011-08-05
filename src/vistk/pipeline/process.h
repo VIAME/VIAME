@@ -70,26 +70,54 @@ class VISTK_PIPELINE_EXPORT process
   public:
     /// The type for the name of a process.
     typedef std::string name_t;
-    /// The type for the name of a port on a process.
-    typedef std::string port_t;
-    /// The type for the type of data on a port.
-    typedef std::string port_type_name_t;
-    /// The type for a flag on a port.
-    typedef std::string port_flag_t;
     /// A group of process names.
     typedef std::vector<name_t> names_t;
-    /// A group of ports.
-    typedef std::vector<port_t> ports_t;
-    /// A group of port flags.
-    typedef std::set<port_flag_t> port_flags_t;
-    /// A type the describes the type of data for a port.
-    typedef boost::tuple<port_type_name_t, port_flags_t> port_type_t;
     /// A type for a description of a port.
     typedef std::string port_description_t;
+    /// The type for the name of a port on a process.
+    typedef std::string port_t;
+    /// A group of ports.
+    typedef std::vector<port_t> ports_t;
+    /// The type for the type of data on a port.
+    typedef std::string port_type_t;
+    /// The type for a flag on a port.
+    typedef std::string port_flag_t;
+    /// A group of port flags.
+    typedef std::set<port_flag_t> port_flags_t;
     /// Type for the address of a port within the pipeline.
     typedef std::pair<name_t, port_t> port_addr_t;
     /// A group of port addresses.
     typedef std::vector<port_addr_t> port_addrs_t;
+
+    /**
+     * \class port_info process.h <vistk/pipeline/process.h>
+     *
+     * \brief Information about a port.
+     */
+    class port_info
+    {
+      public:
+        /**
+         * \brief Constructor.
+         *
+         * \param type The type of the port.
+         * \param flags Flags for the port.
+         * \param description A description of the port.
+         */
+        port_info(port_type_t const& type,
+                  port_flags_t const& flags,
+                  port_description_t const& description);
+        /**
+         * \brief Destructor.
+         */
+        ~port_info();
+
+        port_type_t const type;
+        port_flags_t const flags;
+        port_description_t const description;
+    };
+    /// Type for information about a port.
+    typedef boost::shared_ptr<port_info const> port_info_t;
 
     /**
      * \brief Post-connection initialization.
@@ -152,46 +180,25 @@ class VISTK_PIPELINE_EXPORT process
     ports_t output_ports() const;
 
     /**
-     * \brief The type of data that is accepted on an input port.
+     * \brief Information about an input port on the process.
      *
      * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
-     * \param port The port to return the type of.
+     * \param port The port to return information about.
      *
-     * \returns The type of data expected.
+     * \returns Information about the input port.
      */
-    port_type_t input_port_type(port_t const& port) const;
+    port_info_t input_port_info(port_t const& port) const;
     /**
-     * \brief The type of data that is available on an output port.
+     * \brief Information about an output port on the process.
      *
      * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
-     * \param port The port to return the type of.
+     * \param port The port to return information about.
      *
-     * \returns The type of data available.
+     * \returns Information about the output port.
      */
-    port_type_t output_port_type(port_t const& port) const;
-
-    /**
-     * \brief Describe input ports on the process.
-     *
-     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
-     *
-     * \param port The port to describe.
-     *
-     * \returns A description of the port.
-     */
-    port_description_t input_port_description(port_t const& port) const;
-    /**
-     * \brief Describe output ports on the process.
-     *
-     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
-     *
-     * \param port The port to describe.
-     *
-     * \returns A description of the port.
-     */
-    port_description_t output_port_description(port_t const& port) const;
+    port_info_t output_port_info(port_t const& port) const;
 
     /**
      * \brief Request available configuration options for the process.
@@ -238,9 +245,9 @@ class VISTK_PIPELINE_EXPORT process
     /// The name of the configuration value for the name.
     static config::key_t const config_name;
     /// A type which means that the type of the data is irrelevant.
-    static port_type_name_t const type_any;
+    static port_type_t const type_any;
     /// A type which indicates that no actual data is ever created.
-    static port_type_name_t const type_none;
+    static port_type_t const type_none;
     /// A flag which indicates that the output cannot be modified.
     static port_flag_t const flag_output_const;
     /// A flag which indicates that the input may be modified.
@@ -300,38 +307,21 @@ class VISTK_PIPELINE_EXPORT process
     virtual ports_t _output_ports() const;
 
     /**
-     * \brief Subclass input port types.
+     * \brief Subclass input port information.
      *
-     * \param port The port to return the type of.
+     * \param port The port to get information about.
      *
-     * \returns The type of data expected.
+     * \returns Information about an output port.
      */
-    virtual port_type_t _input_port_type(port_t const& port) const;
+    virtual port_info_t _input_port_info(port_t const& port) const;
     /**
-     * \brief Subclass output port types.
+     * \brief Subclass output port information.
      *
-     * \param port The port to return the type of.
+     * \param port The port to get information about.
      *
-     * \returns The type of data available.
+     * \returns Information about an output port.
      */
-    virtual port_type_t _output_port_type(port_t const& port) const;
-
-    /**
-     * \brief Subclass input port descriptions.
-     *
-     * \param port The port to describe.
-     *
-     * \returns A description of the port.
-     */
-    virtual port_description_t _input_port_description(port_t const& port) const;
-    /**
-     * \brief Subclass output port descriptions.
-     *
-     * \param port The port to describe.
-     *
-     * \returns A description of the port.
-     */
-    virtual port_description_t _output_port_description(port_t const& port) const;
+    virtual port_info_t _output_port_info(port_t const& port) const;
 
     /**
      * \brief Subclass available configuration keys.

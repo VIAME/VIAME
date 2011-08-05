@@ -152,22 +152,22 @@ pipeline
   process_t const up_proc = process_by_name(upstream_process);
   process_t const down_proc = process_by_name(downstream_process);
 
-  process::port_type_t const up_type = up_proc->output_port_type(upstream_port);
-  process::port_type_t const down_type = down_proc->input_port_type(downstream_port);
+  process::port_info_t const up_info = up_proc->output_port_info(upstream_port);
+  process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
 
-  process::port_type_name_t const up_type_name = up_type.get<0>();
-  process::port_type_name_t const down_type_name = down_type.get<0>();
+  process::port_type_t const up_type = up_info->type;
+  process::port_type_t const down_type = down_info->type;
 
-  if ((up_type_name != process::type_any) &&
-      (down_type_name != process::type_any) &&
-      (up_type_name != down_type_name))
+  if ((up_type != process::type_any) &&
+      (down_type != process::type_any) &&
+      (up_type != down_type))
   {
-    throw connection_type_mismatch_exception(upstream_process, upstream_port, up_type_name,
-                                             downstream_process, downstream_port, down_type_name);
+    throw connection_type_mismatch_exception(upstream_process, upstream_port, up_type,
+                                             downstream_process, downstream_port, down_type);
   }
 
-  process::port_flags_t const up_flags = up_type.get<1>();
-  process::port_flags_t const down_flags = down_type.get<1>();
+  process::port_flags_t const up_flags = up_info->flags;
+  process::port_flags_t const down_flags = down_info->flags;
 
   process::port_flags_t::const_iterator i;
 
@@ -305,7 +305,7 @@ pipeline
         BOOST_FOREACH (process::port_t const& port, input_ports)
         {
           // Check for required flags.
-          process::port_flags_t const port_flags = process->input_port_type(port).get<1>();
+          process::port_flags_t const port_flags = process->input_port_info(port)->flags;
 
           process::port_flags_t::const_iterator const i = port_flags.find(process::flag_required);
           if (i != port_flags.end())
@@ -324,7 +324,7 @@ pipeline
         BOOST_FOREACH (process::port_t const& port, output_ports)
         {
           // Check for required flags.
-          process::port_flags_t const port_flags = process->output_port_type(port).get<1>();
+          process::port_flags_t const port_flags = process->output_port_info(port)->flags;
 
           process::port_flags_t::const_iterator const i = port_flags.find(process::flag_required);
           if (i != port_flags.end())

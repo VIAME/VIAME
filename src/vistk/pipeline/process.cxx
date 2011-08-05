@@ -29,11 +29,26 @@ namespace vistk
 
 process::port_t const process::port_heartbeat = port_t("heartbeat");
 config::key_t const process::config_name = config::key_t("_name");
-process::port_type_name_t const process::type_any = port_type_name_t("_any");
-process::port_type_name_t const process::type_none = port_type_name_t("_none");
+process::port_type_t const process::type_any = port_type_t("_any");
+process::port_type_t const process::type_none = port_type_t("_none");
 process::port_flag_t const process::flag_output_const = port_flag_t("_const");
 process::port_flag_t const process::flag_input_mutable = port_flag_t("_mutable");
 process::port_flag_t const process::flag_required = port_flag_t("_required");
+
+process::port_info
+::port_info(port_type_t const& type,
+            port_flags_t const& flags,
+            port_description_t const& description)
+  : type(type)
+  , flags(flags)
+  , description(description)
+{
+}
+
+process::port_info
+::~port_info()
+{
+}
 
 class process::priv
 {
@@ -44,6 +59,7 @@ class process::priv
     void run_heartbeat();
 
     name_t name;
+    process_registry::type_t type;
 
     typedef std::pair<edge_t, edge_t> edge_pair_t;
     typedef std::map<port_t, edge_pair_t> edge_map_t;
@@ -149,42 +165,26 @@ process
   return ports;
 }
 
-process::port_type_t
+process::port_info_t
 process
-::input_port_type(port_t const& port) const
+::input_port_info(port_t const& port) const
 {
-  return _input_port_type(port);
+  return _input_port_info(port);
 }
 
-process::port_type_t
+process::port_info_t
 process
-::output_port_type(port_t const& port) const
+::output_port_info(port_t const& port) const
 {
   if (port == port_heartbeat)
   {
-    return port_type_t(type_none, port_flags_t());
+    return port_info_t(new port_info(
+      type_none,
+      port_flags_t(),
+      port_description_t("Outputs the heartbeat stamp with an empty datum")));
   }
 
-  return _output_port_type(port);
-}
-
-process::port_description_t
-process
-::input_port_description(port_t const& port) const
-{
-  return _input_port_description(port);
-}
-
-process::port_description_t
-process
-::output_port_description(port_t const& port) const
-{
-  if (port == port_heartbeat)
-  {
-    return port_description_t("Outputs the hearbeat stamp with an empty datum.");
-  }
-
-  return _output_port_description(port);
+  return _output_port_info(port);
 }
 
 config::keys_t
@@ -282,30 +282,16 @@ process
   return ports_t();
 }
 
-process::port_type_t
+process::port_info_t
 process
-::_input_port_type(port_t const& port) const
+::_input_port_info(port_t const& port) const
 {
   throw no_such_port_exception(d->name, port);
 }
 
-process::port_type_t
+process::port_info_t
 process
-::_output_port_type(port_t const& port) const
-{
-  throw no_such_port_exception(d->name, port);
-}
-
-process::port_description_t
-process
-::_input_port_description(port_t const& port) const
-{
-  throw no_such_port_exception(d->name, port);
-}
-
-process::port_description_t
-process
-::_output_port_description(port_t const& port) const
+::_output_port_info(port_t const& port) const
 {
   throw no_such_port_exception(d->name, port);
 }

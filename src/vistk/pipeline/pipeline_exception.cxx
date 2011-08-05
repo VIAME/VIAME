@@ -96,10 +96,10 @@ no_such_process_exception
 connection_type_mismatch_exception
 ::connection_type_mismatch_exception(process::name_t const& upstream_name,
                                      process::port_t const& upstream_port,
-                                     process::port_type_name_t const& upstream_type,
+                                     process::port_type_t const& upstream_type,
                                      process::name_t const& downstream_name,
                                      process::port_t const& downstream_port,
-                                     process::port_type_name_t const& downstream_type) throw()
+                                     process::port_type_t const& downstream_type) throw()
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
