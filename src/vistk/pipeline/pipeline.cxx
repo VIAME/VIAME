@@ -433,6 +433,12 @@ pipeline
   {
     throw orphaned_processes_exception();
   }
+
+  // Initialize processes.
+  BOOST_FOREACH (priv::process_map_t::value_type& value, d->process_map)
+  {
+    value.second->init();
+  }
 }
 
 process::names_t
