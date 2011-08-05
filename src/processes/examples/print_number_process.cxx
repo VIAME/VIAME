@@ -66,11 +66,20 @@ void
 print_number_process
 ::_init()
 {
-  d->fout.open(d->path.native().c_str());
+  boost::filesystem::path::string_type const path = d->path.native();
+
+  if (path.empty())
+  {
+    config::value_t const value = config::value_t(path.begin(), path.end());
+
+    throw invalid_configuration_value_exception(name(), priv::CONFIG_OUTPUT_NAME, value, "The path given was empty");
+  }
+
+  d->fout.open(path.c_str());
 
   if (!d->fout.good())
   {
-    /// \todo Throw exception.
+    throw invalid_configuration_exception(name(), "Failed to open the path: " + path);
   }
 }
 
