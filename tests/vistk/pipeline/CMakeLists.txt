@@ -75,6 +75,7 @@ vistk_make_test(edge set_downstream_process)
 vistk_build_test(process libraries test_process.cxx)
 
 vistk_make_test(process null_input_edge)
+vistk_make_test(process null_output_edge)
 
 ##############################
 # Pipeline tests

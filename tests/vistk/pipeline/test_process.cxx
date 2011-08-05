@@ -43,6 +43,7 @@ main(int argc, char* argv[])
 }
 
 static void test_null_input_edge();
+static void test_null_output_edge();
 
 void
 run_test(std::string const& test_name)
@@ -50,6 +51,10 @@ run_test(std::string const& test_name)
   if (test_name == "null_input_edge")
   {
     test_null_input_edge();
+  }
+  else if (test_name == "null_output_edge")
+  {
+    test_null_output_edge();
   }
   else
   {
@@ -71,6 +76,20 @@ test_null_input_edge()
   EXPECT_EXCEPTION(vistk::null_edge_port_connection_exception,
                    process->connect_input_port(vistk::process::port_t(), edge),
                    "connecting a NULL edge to an input port");
+}
+
+void
+test_null_output_edge()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+
+  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+
+  vistk::edge_t const edge;
+
+  EXPECT_EXCEPTION(vistk::null_edge_port_connection_exception,
+                   process->connect_output_port(vistk::process::port_t(), edge),
+                   "connecting a NULL edge to an output port");
 }
 
 vistk::process_t
