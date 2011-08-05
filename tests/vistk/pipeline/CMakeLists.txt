@@ -4,13 +4,6 @@ set(libraries
   vistk_pipeline)
 
 ##############################
-# Introspection tests
-##############################
-vistk_build_test(process_introspection libraries test_process_introspection.cxx)
-
-vistk_make_test(process_introspection all)
-
-##############################
 # Config tests
 ##############################
 vistk_build_test(config libraries test_config.cxx)
@@ -107,6 +100,13 @@ vistk_make_test(pipeline setup_pipeline_missing_required_output_connection)
 vistk_make_test(pipeline setup_pipeline_missing_required_group_input_connection)
 vistk_make_test(pipeline setup_pipeline_missing_required_group_output_connection)
 vistk_make_test(pipeline setup_pipeline)
+
+##############################
+# Introspection tests
+##############################
+vistk_build_test(process_introspection libraries test_process_introspection.cxx)
+
+vistk_make_test(process_introspection all)
 
 ##############################
 # Process registry tests
