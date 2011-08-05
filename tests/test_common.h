@@ -19,6 +19,8 @@
     catch (exc& e)                                 \
     {                                              \
       got_exception = true;                        \
+                                                   \
+      (void)e.what();                              \
     }                                              \
     catch (std::exception& e)                      \
     {                                              \
