@@ -155,8 +155,8 @@ pipeline
   process::port_info_t const up_info = up_proc->output_port_info(upstream_port);
   process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
 
-  process::port_type_t const up_type = up_info->type;
-  process::port_type_t const down_type = down_info->type;
+  process::port_type_t const& up_type = up_info->type;
+  process::port_type_t const& down_type = down_info->type;
 
   if ((up_type != process::type_any) &&
       (down_type != process::type_any) &&
@@ -166,8 +166,8 @@ pipeline
                                              downstream_process, downstream_port, down_type);
   }
 
-  process::port_flags_t const up_flags = up_info->flags;
-  process::port_flags_t const down_flags = down_info->flags;
+  process::port_flags_t const& up_flags = up_info->flags;
+  process::port_flags_t const& down_flags = down_info->flags;
 
   process::port_flags_t::const_iterator i;
 

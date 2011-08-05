@@ -7,6 +7,8 @@
 #include "process_registry.h"
 #include "process_registry_exception.h"
 
+#include "config.h"
+#include "process.h"
 #include "types.h"
 
 #include <boost/foreach.hpp>
@@ -53,6 +55,8 @@ process_registry
   {
     throw no_such_process_type_exception(type);
   }
+
+  config->set_value(process::config_type, config::value_t(type));
 
   return i->second.get<1>()(config);
 }

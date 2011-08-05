@@ -29,6 +29,7 @@ namespace vistk
 
 process::port_t const process::port_heartbeat = port_t("heartbeat");
 config::key_t const process::config_name = config::key_t("_name");
+config::key_t const process::config_type = config::key_t("_type");
 process::port_type_t const process::type_any = port_type_t("_any");
 process::port_type_t const process::type_none = port_type_t("_none");
 process::port_flag_t const process::flag_output_const = port_flag_t("_const");
@@ -207,6 +208,7 @@ process
   config::keys_t keys = _available_config();
 
   keys.push_back(config_name);
+  keys.push_back(config_type);
 
   return keys;
 }
@@ -221,6 +223,12 @@ process
       boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME),
       config::description_t("The name of the process")));
   }
+  if (key == config_type)
+  {
+    return conf_info_t(new conf_info(
+      config::value_t(),
+      config::description_t("The type of the process")));
+  }
 
   return _config_info(key);
 }
@@ -232,12 +240,20 @@ process
   return d->name;
 }
 
+process_registry::type_t
+process
+::type() const
+{
+  return d->type;
+}
+
 process
 ::process(config_t const& config) throw()
 {
   d = boost::shared_ptr<priv>(new priv);
 
   d->name = config->get_value<name_t>(config_name, priv::DEFAULT_PROCESS_NAME);
+  d->type = config->get_value<name_t>(config_type);
 }
 
 process
