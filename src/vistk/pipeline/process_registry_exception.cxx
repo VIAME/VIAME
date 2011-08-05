@@ -17,6 +17,31 @@
 namespace vistk
 {
 
+null_process_ctor_exception
+::null_process_ctor_exception(process_registry::type_t const& type) throw()
+  : process_registry_exception()
+  , m_type(type)
+{
+  std::ostringstream sstr;
+
+  sstr << "A NULL constructor was passed for the "
+       << "process type \'" << m_type << "\'";
+
+  m_what = sstr.str();
+}
+
+null_process_ctor_exception
+::~null_process_ctor_exception() throw()
+{
+}
+
+char const*
+null_process_ctor_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 null_process_registry_config_exception
 ::null_process_registry_config_exception() throw()
   : process_registry_exception()

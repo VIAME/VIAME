@@ -36,6 +36,41 @@ class VISTK_PIPELINE_EXPORT process_registry_exception
 };
 
 /**
+ * \class null_process_ctor_exception process_registry_exception.h <vistk/pipeline/process_registry_exception.h>
+ *
+ * \brief Thrown when \c NULL constructor function to the registry.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_process_ctor_exception
+  : public process_registry_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param type The type the ctor is for.
+     */
+    null_process_ctor_exception(process_registry::type_t const& type) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_process_ctor_exception() throw();
+
+    /// The type that was passed a \c NULL constructor.
+    process_registry::type_t const m_type;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class null_process_registry_config_exception process_registry_exception.h <vistk/pipeline/process_registry_exception.h>
  *
  * \brief Thrown when \c NULL \ref config is passed to a process.

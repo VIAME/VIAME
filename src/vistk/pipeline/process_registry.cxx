@@ -37,6 +37,11 @@ void
 process_registry
 ::register_process(type_t const& type, description_t const& desc, process_ctor_t ctor)
 {
+  if (!ctor)
+  {
+    throw null_process_ctor_exception(type);
+  }
+
   if (m_registry.find(type) != m_registry.end())
   {
     throw process_type_already_exists_exception(type);
