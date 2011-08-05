@@ -35,11 +35,6 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT orphan_process
      * \brief Destructor.
      */
     ~orphan_process();
-
-    /**
-     * \brief Returns the type of the process.
-     */
-    process_registry::type_t type() const;
 };
 
 }

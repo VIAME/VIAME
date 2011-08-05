@@ -20,11 +20,4 @@ orphan_process
 {
 }
 
-process_registry::type_t
-orphan_process
-::type() const
-{
-  return process_registry::type_t("orphan_process");
-}
-
 }
