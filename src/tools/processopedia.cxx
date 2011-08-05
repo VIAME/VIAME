@@ -80,8 +80,10 @@ int main(int argc, char* argv[])
 
     BOOST_FOREACH (vistk::config::key_t const key, keys)
     {
-      vistk::config::value_t const def = proc->config_default(key);
-      vistk::config::description_t const conf_desc = proc->config_description(key);
+      vistk::process::conf_info_t const info = proc->config_info(key);
+
+      vistk::config::value_t const& def = info->def;
+      vistk::config::description_t const& conf_desc = info->description;
 
       std::cout << "    Name       : " << key << std::endl;
       std::cout << "    Default    : " << def << std::endl;
@@ -95,16 +97,16 @@ int main(int argc, char* argv[])
 
     BOOST_FOREACH (vistk::process::port_t const port, iports)
     {
-      vistk::process::port_type_t const type = proc->input_port_type(port);
-      vistk::process::port_description_t const port_desc = proc->input_port_description(port);
+      vistk::process::port_info_t const info = proc->input_port_info(port);
 
-      vistk::process::port_type_name_t const type_name = type.get<0>();
-      vistk::process::port_flags_t const flags = type.get<1>();
+      vistk::process::port_type_t const& type = info->type;
+      vistk::process::port_flags_t const& flags = info->flags;
+      vistk::process::port_description_t const& port_desc = info->description;
 
       std::string const flags_str = boost::join(flags, ", ");
 
       std::cout << "    Name       : " << port << std::endl;
-      std::cout << "    Type       : " << type_name << std::endl;
+      std::cout << "    Type       : " << type << std::endl;
       std::cout << "    Flags      : " << flags_str << std::endl;
       std::cout << "    Description: " << port_desc << std::endl;
       std::cout << std::endl;
@@ -116,16 +118,16 @@ int main(int argc, char* argv[])
 
     BOOST_FOREACH (vistk::process::port_t const port, oports)
     {
-      vistk::process::port_type_t const type = proc->output_port_type(port);
-      vistk::process::port_description_t const port_desc = proc->output_port_description(port);
+      vistk::process::port_info_t const info = proc->output_port_info(port);
 
-      vistk::process::port_type_name_t const type_name = type.get<0>();
-      vistk::process::port_flags_t const flags = type.get<1>();
+      vistk::process::port_type_t const& type = info->type;
+      vistk::process::port_flags_t const& flags = info->flags;
+      vistk::process::port_description_t const& port_desc = info->description;
 
       std::string const flags_str = boost::join(flags, ", ");
 
       std::cout << "    Name       : " << port << std::endl;
-      std::cout << "    Type       : " << type_name << std::endl;
+      std::cout << "    Type       : " << type << std::endl;
       std::cout << "    Flags      : " << flags_str << std::endl;
       std::cout << "    Description: " << port_desc << std::endl;
       std::cout << std::endl;
