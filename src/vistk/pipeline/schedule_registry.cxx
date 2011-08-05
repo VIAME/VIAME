@@ -48,6 +48,11 @@ schedule_t
 schedule_registry
 ::create_schedule(type_t const& type, config_t const& config, pipeline_t const& pipe) const
 {
+  if (!config)
+  {
+    throw null_schedule_registry_config_exception();
+  }
+
   schedule_store_t::const_iterator const i = m_registry.find(type);
 
   if (i == m_registry.end())
