@@ -46,6 +46,7 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_null_config();
 static void test_makes_dependency();
 static void test_new_has_no_data();
 static void test_new_is_not_full();
@@ -63,7 +64,11 @@ static void test_set_downstream_process();
 void
 run_test(std::string const& test_name)
 {
-  if (test_name == "makes_dependency")
+  if (test_name == "null_config")
+  {
+    test_null_config();
+  }
+  else if (test_name == "makes_dependency")
   {
     test_makes_dependency();
   }
@@ -119,6 +124,16 @@ run_test(std::string const& test_name)
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
   }
+}
+
+void
+test_null_config()
+{
+  vistk::config_t const config;
+
+  EXPECT_EXCEPTION(vistk::null_edge_config_exception,
+                   vistk::edge_t(new vistk::edge(config)),
+                   "when passing a NULL config to an edge");
 }
 
 void

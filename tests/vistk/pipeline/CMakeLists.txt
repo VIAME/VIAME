@@ -51,6 +51,7 @@ vistk_make_test(stamp ordering)
 ##############################
 vistk_build_test(edge libraries test_edge.cxx)
 
+vistk_make_test(edge null_config)
 vistk_make_test(edge makes_dependency)
 vistk_make_test(edge new_has_no_data)
 vistk_make_test(edge new_is_not_full)
