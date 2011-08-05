@@ -152,6 +152,8 @@ run_test(std::string const& test_name)
   }
 }
 
+static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name);
+
 void
 test_null_process()
 {
@@ -191,14 +193,11 @@ test_null_process()
 void
 test_add_process()
 {
-  vistk::load_known_modules();
-
-  vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
 
-  vistk::config_t const config = vistk::config::empty_config();
+  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
-  vistk::process_t const process = reg->create_process(proc_type, config);
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
 
@@ -220,19 +219,12 @@ test_add_group()
 void
 test_duplicate_process_process()
 {
-  vistk::load_known_modules();
-
-  vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
 
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t proc_config = vistk::config::empty_config();
-
-  proc_config->set_value(vistk::process::config_name, proc_name);
-
-  vistk::process_t const process = reg->create_process(proc_type, proc_config);
-  vistk::process_t const dup_process = reg->create_process(proc_type, proc_config);
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const dup_process = create_process(proc_type, proc_name);
 
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -270,18 +262,11 @@ test_duplicate_process_process()
 void
 test_duplicate_process_group()
 {
-  vistk::load_known_modules();
-
-  vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
 
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t proc_config = vistk::config::empty_config();
-
-  proc_config->set_value(vistk::process::config_name, proc_name);
-
-  vistk::process_t const dup_process = reg->create_process(proc_type, proc_config);
+  vistk::process_t const dup_process = create_process(proc_type, proc_name);
 
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -319,18 +304,11 @@ test_duplicate_process_group()
 void
 test_duplicate_group_process()
 {
-  vistk::load_known_modules();
-
-  vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
 
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t proc_config = vistk::config::empty_config();
-
-  proc_config->set_value(vistk::process::config_name, proc_name);
-
-  vistk::process_t const process = reg->create_process(proc_type, proc_config);
+  vistk::process_t const process = create_process(proc_type, proc_name);
 
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -562,19 +540,12 @@ test_map_output_no_process()
 void
 test_map_input()
 {
-  vistk::load_known_modules();
-
-  vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
 
-  vistk::config::value_t const group_name = vistk::process::name_t("group");
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+  vistk::process::name_t const group_name = vistk::process::name_t("group");
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t proc_config = vistk::config::empty_config();
-
-  proc_config->set_value(vistk::process::config_name, proc_name);
-
-  vistk::process_t const process = reg->create_process(proc_type, proc_config);
+  vistk::process_t const process = create_process(proc_type, proc_name);
 
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -591,19 +562,12 @@ test_map_input()
 void
 test_map_output()
 {
-  vistk::load_known_modules();
-
-  vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
 
-  vistk::config::value_t const group_name = vistk::process::name_t("group");
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+  vistk::process::name_t const group_name = vistk::process::name_t("group");
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t proc_config = vistk::config::empty_config();
-
-  proc_config->set_value(vistk::process::config_name, proc_name);
-
-  vistk::process_t const process = reg->create_process(proc_type, proc_config);
+  vistk::process_t const process = create_process(proc_type, proc_name);
 
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -650,18 +614,11 @@ test_map_output()
 void
 test_connect_no_upstream()
 {
-  vistk::load_known_modules();
-
-  vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
 
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t proc_config = vistk::config::empty_config();
-
-  proc_config->set_value(vistk::process::config_name, proc_name);
-
-  vistk::process_t const process = reg->create_process(proc_type, proc_config);
+  vistk::process_t const process = create_process(proc_type, proc_name);
 
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -702,18 +659,11 @@ test_connect_no_upstream()
 void
 test_connect_no_downstream()
 {
-  vistk::load_known_modules();
-
-  vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
 
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t proc_config = vistk::config::empty_config();
-
-  proc_config->set_value(vistk::process::config_name, proc_name);
-
-  vistk::process_t const process = reg->create_process(proc_type, proc_config);
+  vistk::process_t const process = create_process(proc_type, proc_name);
 
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -768,27 +718,14 @@ test_connect_flag_mismatch()
 void
 test_connect()
 {
-  vistk::load_known_modules();
-
-  vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
   vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
 
-  vistk::config::value_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
 
-  vistk::config_t proc_configu = vistk::config::empty_config();
-
-  proc_configu->set_value(vistk::process::config_name, proc_nameu);
-
-  vistk::process_t const processu = reg->create_process(proc_typeu, proc_configu);
-
-  vistk::config::value_t const proc_named = vistk::process::name_t("downstream");
-
-  vistk::config_t proc_configd = vistk::config::empty_config();
-
-  proc_configd->set_value(vistk::process::config_name, proc_named);
-
-  vistk::process_t const processd = reg->create_process(proc_typed, proc_configd);
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processd = create_process(proc_typed, proc_named);
 
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -814,4 +751,19 @@ void
 test_connect_output_map()
 {
   std::cerr << "Error: Not implemented" << std::endl;
+}
+
+vistk::process_t
+create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name)
+{
+  static bool modules_loaded = (vistk::load_known_modules(), true);
+  static vistk::process_registry_t const reg = vistk::process_registry::self();
+
+  (void)modules_loaded;
+
+  vistk::config_t config = vistk::config::empty_config();
+
+  config->set_value(vistk::process::config_name, vistk::config::value_t(name));
+
+  return reg->create_process(type, config);
 }
