@@ -540,7 +540,11 @@ test_connect_output_map()
 void
 test_setup_pipeline_no_processes()
 {
-  std::cerr << "Error: Not implemented" << std::endl;
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  EXPECT_EXCEPTION(vistk::no_processes_exception,
+                   pipeline->setup_pipeline(),
+                   "setting up an empty pipeline");
 }
 
 void
