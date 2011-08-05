@@ -53,6 +53,11 @@ schedule_registry
     throw null_schedule_registry_config_exception();
   }
 
+  if (!pipe)
+  {
+    throw null_schedule_registry_pipeline_exception();
+  }
+
   schedule_store_t::const_iterator const i = m_registry.find(type);
 
   if (i == m_registry.end())

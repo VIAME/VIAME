@@ -40,6 +40,29 @@ null_schedule_registry_config_exception
   return m_what.c_str();
 }
 
+null_schedule_registry_pipeline_exception
+::null_schedule_registry_pipeline_exception() throw()
+  : schedule_registry_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A NULL pipeline was passed to a schedule.";
+
+  m_what = sstr.str();
+}
+
+null_schedule_registry_pipeline_exception
+::~null_schedule_registry_pipeline_exception() throw()
+{
+}
+
+char const*
+null_schedule_registry_pipeline_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 no_such_schedule_type_exception
 ::no_such_schedule_type_exception(schedule_registry::type_t const& type) throw()
   : schedule_registry_exception()

@@ -66,6 +66,36 @@ class VISTK_PIPELINE_EXPORT null_schedule_registry_config_exception
 };
 
 /**
+ * \class null_pipeline_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
+ *
+ * \brief Thrown when \c NULL \ref pipeline is passed to a schedule.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_schedule_registry_pipeline_exception
+  : public schedule_registry_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    null_schedule_registry_pipeline_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_schedule_registry_pipeline_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class no_such_schedule_type_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
  *
  * \brief Thrown when a type is requested, but does not exist in the registry.
