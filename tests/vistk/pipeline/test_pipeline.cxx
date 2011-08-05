@@ -45,6 +45,7 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_null_config();
 static void test_null_process();
 static void test_add_process();
 static void test_add_group();
@@ -76,7 +77,11 @@ static void test_setup_pipeline();
 void
 run_test(std::string const& test_name)
 {
-  if (test_name == "null_process")
+  if (test_name == "null_config")
+  {
+    test_null_config();
+  }
+  else if (test_name == "null_process")
   {
     test_null_process();
   }
@@ -193,6 +198,15 @@ run_test(std::string const& test_name)
 static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
 static vistk::pipeline_t create_pipeline();
 
+void
+test_null_config()
+{
+  vistk::config_t const config;
+
+  EXPECT_EXCEPTION(vistk::null_pipeline_config_exception,
+                   vistk::pipeline_t(new vistk::pipeline(config)),
+                   "passing a NULL config to the pipeline");
+}
 void
 test_null_process()
 {
