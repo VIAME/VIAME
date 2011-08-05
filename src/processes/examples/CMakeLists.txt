@@ -1,6 +1,7 @@
 project(vistk_processes_examples)
 
 set(examples_srcs
+  const_process.cxx
   multiplication_process.cxx
   mutate_process.cxx
   number_process.cxx
