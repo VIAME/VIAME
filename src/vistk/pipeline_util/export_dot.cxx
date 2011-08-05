@@ -78,7 +78,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
     vistk::process::ports_t const iports = proc->input_ports();
     BOOST_FOREACH (vistk::process::port_t const& port, iports)
     {
-      vistk::process::port_type_t const& ptype = proc->input_port_info(port)->type;
+      vistk::process::port_type_t const ptype = proc->input_port_info(port)->type;
 
       std::string const node_port_name = name + node_prefix_input + port;
 
@@ -98,7 +98,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
     vistk::process::ports_t const oports = proc->output_ports();
     BOOST_FOREACH (vistk::process::port_t const& port, oports)
     {
-      vistk::process::port_type_t const& ptype = proc->output_port_info(port)->type;
+      vistk::process::port_type_t const ptype = proc->output_port_info(port)->type;
 
       std::string const node_port_name = name + node_prefix_output + port;
 
