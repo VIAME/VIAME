@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <test_common.h>
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/pipeline.h>
@@ -151,36 +153,6 @@ run_test(std::string const& test_name)
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
   }
 }
-
-#define EXPECT_EXCEPTION(exc, code, action)        \
-  do                                               \
-  {                                                \
-    bool got_exception = false;                    \
-                                                   \
-    try                                            \
-    {                                              \
-      code;                                        \
-    }                                              \
-    catch (exc& e)                                 \
-    {                                              \
-      got_exception = true;                        \
-    }                                              \
-    catch (std::exception& e)                      \
-    {                                              \
-      std::cerr << "Error: Unexpected exception: " \
-                << e.what() << std::endl;          \
-                                                   \
-      got_exception = true;                        \
-    }                                              \
-                                                   \
-    if (!got_exception)                            \
-    {                                              \
-      std::cerr << "Error: Did not get "           \
-                << "expected exception when "      \
-                << action << std::endl;            \
-    }                                              \
-  } while (false)
-
 
 static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name);
 static vistk::pipeline_t create_pipeline();
