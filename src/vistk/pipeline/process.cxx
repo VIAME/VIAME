@@ -102,6 +102,11 @@ void
 process
 ::connect_input_port(port_t const& port, edge_t edge)
 {
+  if (!edge)
+  {
+    throw null_edge_port_connection_exception(d->name, port);
+  }
+
   _connect_input_port(port, edge);
 }
 
