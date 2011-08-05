@@ -64,6 +64,11 @@ static void test_connect_flag_mismatch();
 static void test_connect();
 static void test_connect_input_map();
 static void test_connect_output_map();
+static void test_setup_pipeline_no_processes();
+static void test_setup_pipeline_orphaned_process();
+static void test_setup_pipeline_missing_required_connection();
+static void test_setup_pipeline_missing_required_group_connection();
+static void test_setup_pipeline();
 
 void
 run_test(std::string const& test_name)
@@ -147,6 +152,26 @@ run_test(std::string const& test_name)
   else if (test_name == "connect_output_map")
   {
     test_connect_output_map();
+  }
+  else if (test_name == "setup_pipeline_no_processes")
+  {
+    test_setup_pipeline_no_processes();
+  }
+  else if (test_name == "setup_pipeline_orphaned_process")
+  {
+    test_setup_pipeline_orphaned_process();
+  }
+  else if (test_name == "setup_pipeline_missing_required_connection")
+  {
+    test_setup_pipeline_missing_required_connection();
+  }
+  else if (test_name == "setup_pipeline_missing_required_group_connection")
+  {
+    test_setup_pipeline_missing_required_group_connection();
+  }
+  else if (test_name == "setup_pipeline")
+  {
+    test_setup_pipeline();
   }
   else
   {
@@ -510,6 +535,36 @@ test_connect_output_map()
 
   pipeline->connect(group_name, group_port,
                     proc_named, port_named);
+}
+
+void
+test_setup_pipeline_no_processes()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_setup_pipeline_orphaned_process()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_setup_pipeline_missing_required_connection()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_setup_pipeline_missing_required_group_connection()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
+}
+
+void
+test_setup_pipeline()
+{
+  std::cerr << "Error: Not implemented" << std::endl;
 }
 
 vistk::process_t
