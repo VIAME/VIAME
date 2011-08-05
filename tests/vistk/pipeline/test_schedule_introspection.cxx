@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <test_common.h>
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/pipeline.h>
@@ -83,33 +85,13 @@ main()
   {
     vistk::schedule_registry::type_t const non_existent_schedule = vistk::schedule_registry::type_t("no_such_schedule");
 
-    try
-    {
-      reg->create_schedule(non_existent_schedule, config, pipe);
-    }
-    catch (vistk::no_such_schedule_type_exception& e)
-    {
-    }
-    catch (std::exception& e)
-    {
-      std::cerr << "Error: Unexpected exception when "
-                << "requesting a non-existent schedule type: "
-                << e.what() << std::endl;
-    }
+    EXPECT_EXCEPTION(vistk::no_such_schedule_type_exception,
+                     reg->create_schedule(non_existent_schedule, config, pipe),
+                     "requesting an non-existent schedule type");
 
-    try
-    {
-      reg->description(non_existent_schedule);
-    }
-    catch (vistk::no_such_schedule_type_exception& e)
-    {
-    }
-    catch (std::exception& e)
-    {
-      std::cerr << "Error: Unexpected exception when "
-                << "requesting a description of a non-existent schedule type: "
-                << e.what() << std::endl;
-    }
+    EXPECT_EXCEPTION(vistk::no_such_schedule_type_exception,
+                     reg->description(non_existent_schedule),
+                     "requesting an non-existent schedule type");
   }
 
   return 0;
