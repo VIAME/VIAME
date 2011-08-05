@@ -112,8 +112,11 @@ class VISTK_PIPELINE_EXPORT process
          */
         ~port_info();
 
+        /// The type of the port.
         port_type_t const type;
+        /// Flags for the port.
         port_flags_t const flags;
+        /// A description of the port.
         port_description_t const description;
     };
     /// Type for information about a port.
@@ -140,7 +143,9 @@ class VISTK_PIPELINE_EXPORT process
          */
         ~conf_info();
 
+        /// The default value for the parameter.
         config::value_t const def;
+        /// A description of the value.
         config::description_t const description;
     };
     /// Type for information about a configuration parameter.

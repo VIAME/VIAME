@@ -14,41 +14,52 @@
 namespace vistk
 {
 
+/**
+ * \class port_types port_types.h <vistk/pipeline_types/port_types.h>
+ *
+ * \brief Basic port types.
+ */
 class VISTK_PIPELINE_TYPES_EXPORT port_types
 {
   public:
     // Raw types
 
-    // Readable data
+    /// The type for character data on a port.
     static process::port_type_t const t_char;
+    /// The type for string data on a port.
     static process::port_type_t const t_string;
 
-    // Number data
+    /// The type for integer data on a port.
     static process::port_type_t const t_integer;
+    /// The type for unsigned integer data on a port.
     static process::port_type_t const t_unsigned;
 
-    // Float data
+    /// The type for floating point data on a port.
     static process::port_type_t const t_float;
+    /// The type for floating point double precision data on a port.
     static process::port_type_t const t_double;
 
-    // Binary data
+    /// The type for a raw byte on a port.
     static process::port_type_t const t_byte;
 
     // Vector types
 
-    // Readable data
+    /// The type for a sequence of character data on a port.
     static process::port_type_t const t_vec_char;
+    /// The type for a sequence of string data on a port.
     static process::port_type_t const t_vec_string;
 
-    // Number data
+    /// The type for a sequence of integer data on a port.
     static process::port_type_t const t_vec_integer;
+    /// The type for a sequence of unsigned integer data on a port.
     static process::port_type_t const t_vec_unsigned;
 
-    // Float data
+    /// The type for a sequence of floating point data on a port.
     static process::port_type_t const t_vec_float;
+    /// The type for a sequence of floating point double precision data on a port.
     static process::port_type_t const t_vec_double;
 
-    // Binary data
+    /// The type for a sequence of raw bytes on a port.
     static process::port_type_t const t_vec_byte;
 };
 
