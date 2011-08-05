@@ -449,8 +449,27 @@ test_connect_no_downstream()
 void
 test_connect_type_mismatch()
 {
-  /// \todo Need processes with type mismatches first.
-  std::cerr << "Error: Not implemented" << std::endl;
+  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("print_string");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processd = create_process(proc_typed, proc_named);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processd);
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
+  vistk::process::port_t const port_named = vistk::process::port_t("string");
+
+  EXPECT_EXCEPTION(vistk::connection_type_mismatch_exception,
+                   pipeline->connect(proc_nameu, port_nameu,
+                                     proc_named, port_named),
+                   "connecting type-mismatched ports");
 }
 
 void
