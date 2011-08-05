@@ -153,15 +153,14 @@ run_test(std::string const& test_name)
 }
 
 static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name);
+static vistk::pipeline_t create_pipeline();
 
 void
 test_null_process()
 {
   vistk::process_t const process;
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   bool got_exception = false;
 
@@ -197,9 +196,7 @@ test_add_process()
 
   vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_process(process);
 }
@@ -209,9 +206,7 @@ test_add_group()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 }
@@ -226,9 +221,7 @@ test_duplicate_process_process()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const dup_process = create_process(proc_type, proc_name);
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -268,9 +261,7 @@ test_duplicate_process_group()
 
   vistk::process_t const dup_process = create_process(proc_type, proc_name);
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 
@@ -310,9 +301,7 @@ test_duplicate_group_process()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -348,9 +337,7 @@ test_duplicate_group_group()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 
@@ -386,9 +373,7 @@ test_map_input_no_group()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   bool got_exception = false;
 
@@ -424,9 +409,7 @@ test_map_output_no_group()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   bool got_exception = false;
 
@@ -462,9 +445,7 @@ test_map_input_no_process()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 
@@ -502,9 +483,7 @@ test_map_output_no_process()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 
@@ -547,9 +526,7 @@ test_map_input()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_group(group_name);
   pipeline->add_process(process);
@@ -569,9 +546,7 @@ test_map_output()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   vistk::process::port_t const port_name = vistk::process::port_t("port");
 
@@ -620,9 +595,7 @@ test_connect_no_upstream()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   vistk::process::name_t const proc_name2 = vistk::process::name_t("othername");
 
@@ -665,9 +638,7 @@ test_connect_no_downstream()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   vistk::process::name_t const proc_name2 = vistk::process::name_t("othername");
 
@@ -727,9 +698,7 @@ test_connect()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
@@ -766,4 +735,12 @@ create_process(vistk::process_registry::type_t const& type, vistk::process::name
   config->set_value(vistk::process::config_name, vistk::config::value_t(name));
 
   return reg->create_process(type, config);
+}
+
+vistk::pipeline_t
+create_pipeline()
+{
+  static vistk::config_t const config = vistk::config::empty_config();
+
+  return vistk::pipeline_t(new vistk::pipeline(config));
 }
