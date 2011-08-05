@@ -192,31 +192,9 @@ test_null_process()
 
   vistk::pipeline_t pipeline = create_pipeline();
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->add_process(process);
-  }
-  catch (vistk::null_process_addition_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when adding a NULL process to the pipeline" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::null_process_addition_exception,
+                   pipeline->add_process(process),
+                   "adding a NULL process to the pipeline");
 }
 
 void
@@ -255,31 +233,9 @@ test_duplicate_process_process()
 
   pipeline->add_process(process);
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->add_process(dup_process);
-  }
-  catch (vistk::duplicate_process_name_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when adding a duplicate process to the pipeline" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::duplicate_process_name_exception,
+                   pipeline->add_process(dup_process),
+                   "adding a duplicate process to the pipeline");
 }
 
 void
@@ -295,31 +251,9 @@ test_duplicate_process_group()
 
   pipeline->add_group(proc_name);
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->add_process(dup_process);
-  }
-  catch (vistk::duplicate_process_name_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when adding a duplicate process to the pipeline" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::duplicate_process_name_exception,
+                   pipeline->add_process(dup_process),
+                   "adding a duplicate process to the pipeline");
 }
 
 void
@@ -335,31 +269,9 @@ test_duplicate_group_process()
 
   pipeline->add_process(process);
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->add_group(proc_name);
-  }
-  catch (vistk::duplicate_process_name_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when adding a duplicate group to the pipeline" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::duplicate_process_name_exception,
+                   pipeline->add_group(proc_name),
+                   "adding a duplicate group to the pipeline");
 }
 
 void
@@ -371,31 +283,9 @@ test_duplicate_group_group()
 
   pipeline->add_group(proc_name);
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->add_group(proc_name);
-  }
-  catch (vistk::duplicate_process_name_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when adding a duplicate group to the pipeline" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::duplicate_process_name_exception,
+                   pipeline->add_group(proc_name),
+                   "adding a duplicate group to the pipeline");
 }
 
 void
@@ -405,33 +295,11 @@ test_map_input_no_group()
 
   vistk::pipeline_t pipeline = create_pipeline();
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->map_input_port(proc_name, vistk::process::port_t(),
-                             vistk::process::name_t(), vistk::process::port_t(),
-                             vistk::process::port_flags_t());
-  }
-  catch (vistk::no_such_group_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when mapping an input on an non-existent group" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::no_such_group_exception,
+                   pipeline->map_input_port(proc_name, vistk::process::port_t(),
+                                            vistk::process::name_t(), vistk::process::port_t(),
+                                            vistk::process::port_flags_t()),
+                   "mapping an input on a non-existent group");
 }
 
 void
@@ -441,33 +309,11 @@ test_map_output_no_group()
 
   vistk::pipeline_t pipeline = create_pipeline();
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->map_output_port(proc_name, vistk::process::port_t(),
-                              vistk::process::name_t(), vistk::process::port_t(),
-                              vistk::process::port_flags_t());
-  }
-  catch (vistk::no_such_group_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when mapping an output on an non-existent group" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::no_such_group_exception,
+                   pipeline->map_output_port(proc_name, vistk::process::port_t(),
+                                             vistk::process::name_t(), vistk::process::port_t(),
+                                             vistk::process::port_flags_t()),
+                   "mapping an output to a non-existent group");
 }
 
 void
@@ -479,33 +325,11 @@ test_map_input_no_process()
 
   pipeline->add_group(proc_name);
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->map_input_port(proc_name, vistk::process::port_t(),
-                             vistk::process::name_t(), vistk::process::port_t(),
-                             vistk::process::port_flags_t());
-  }
-  catch (vistk::no_such_process_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when mapping an input on an non-existent group" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::no_such_process_exception,
+                   pipeline->map_input_port(proc_name, vistk::process::port_t(),
+                                            vistk::process::name_t(), vistk::process::port_t(),
+                                            vistk::process::port_flags_t()),
+                   "mapping an input on an non-existent group");
 }
 
 void
@@ -517,33 +341,11 @@ test_map_output_no_process()
 
   pipeline->add_group(proc_name);
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->map_output_port(proc_name, vistk::process::port_t(),
-                              vistk::process::name_t(), vistk::process::port_t(),
-                              vistk::process::port_flags_t());
-  }
-  catch (vistk::no_such_process_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when mapping an output on an non-existent group" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::no_such_process_exception,
+                   pipeline->map_output_port(proc_name, vistk::process::port_t(),
+                                             vistk::process::name_t(), vistk::process::port_t(),
+                                             vistk::process::port_flags_t()),
+                   "mapping an output on a non-existent group");
 }
 
 void
@@ -587,33 +389,11 @@ test_map_output()
                             proc_name, vistk::process::port_t(),
                             vistk::process::port_flags_t());
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->map_output_port(group_name, port_name,
-                              proc_name, vistk::process::port_t(),
-                              vistk::process::port_flags_t());
-  }
-  catch (vistk::group_output_already_mapped_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when mapping an output on an non-existent group" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::group_output_already_mapped_exception,
+                   pipeline->map_output_port(group_name, port_name,
+                                             proc_name, vistk::process::port_t(),
+                                             vistk::process::port_flags_t()),
+                   "mapping an output on an non-existent group");
 }
 
 void
@@ -631,32 +411,10 @@ test_connect_no_upstream()
 
   pipeline->add_process(process);
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->connect(proc_name2, vistk::process::port_t(),
-                      proc_name, vistk::process::port_t());
-  }
-  catch (vistk::no_such_process_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when connecting with a non-existent upstream" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::no_such_process_exception,
+                   pipeline->connect(proc_name2, vistk::process::port_t(),
+                                     proc_name, vistk::process::port_t()),
+                   "connecting with a non-existent upstream");
 }
 
 void
@@ -674,32 +432,10 @@ test_connect_no_downstream()
 
   pipeline->add_process(process);
 
-  bool got_exception = false;
-
-  try
-  {
-    pipeline->connect(proc_name, vistk::process::port_t(),
-                      proc_name2, vistk::process::port_t());
-  }
-  catch (vistk::no_such_process_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when connecting with a non-existent downstream" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::no_such_process_exception,
+                   pipeline->connect(proc_name, vistk::process::port_t(),
+                                     proc_name2, vistk::process::port_t()),
+                   "connecting with a non-existent downstream");
 }
 
 void
