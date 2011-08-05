@@ -561,19 +561,18 @@ test_setup_pipeline_no_processes()
 void
 test_setup_pipeline_orphaned_process()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("print_number");
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+  vistk::process::name_t const proc_name1 = vistk::process::name_t("orphan1");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("orphan2");
 
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
+  vistk::process_t const process1 = create_process(proc_type, proc_name1);
+  vistk::process_t const process2 = create_process(proc_type, proc_name2);
 
   vistk::pipeline_t pipeline = create_pipeline();
 
-  pipeline->add_process(processu);
-  pipeline->add_process(processd);
+  pipeline->add_process(process1);
+  pipeline->add_process(process2);
 
   EXPECT_EXCEPTION(vistk::orphaned_processes_exception,
                    pipeline->setup_pipeline(),
