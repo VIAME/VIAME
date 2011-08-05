@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <test_common.h>
+
 #include <vistk/pipeline_util/export_dot.h>
 #include <vistk/pipeline_util/export_dot_exception.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
@@ -76,31 +78,9 @@ void test_pipeline_null(boost::filesystem::path const& /*pipe_file*/)
 
   std::ostringstream sstr;
 
-  bool got_exception = false;
-
-  try
-  {
-    vistk::export_dot(sstr, pipeline, "(unnamed)");
-  }
-  catch (vistk::null_pipeline_export_dot_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when exporting a NULL pipeline" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::null_pipeline_export_dot_exception,
+                   vistk::export_dot(sstr, pipeline, "(unnamed)"),
+                   "exporting a NULL pipeline to dot");
 }
 
 void
