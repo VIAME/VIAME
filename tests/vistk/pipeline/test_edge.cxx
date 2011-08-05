@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <test_common.h>
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/edge.h>
@@ -307,31 +309,9 @@ test_null_upstream_process()
 
   vistk::process_t const process;
 
-  bool got_exception = false;
-
-  try
-  {
-    edge->set_upstream_process(process);
-  }
-  catch (vistk::null_process_connection_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when setting a NULL process as upstream" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::null_process_connection_exception,
+                   edge->set_upstream_process(process),
+                   "setting a NULL process as upstream");
 }
 
 void
@@ -343,31 +323,9 @@ test_null_downstream_process()
 
   vistk::process_t const process;
 
-  bool got_exception = false;
-
-  try
-  {
-    edge->set_downstream_process(process);
-  }
-  catch (vistk::null_process_connection_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when setting a NULL process as upstream" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::null_process_connection_exception,
+                   edge->set_downstream_process(process),
+                   "setting a NULL process as downstream");
 }
 
 void
@@ -388,31 +346,9 @@ test_set_upstream_process()
 
   edge->set_upstream_process(process);
 
-  bool got_exception = false;
-
-  try
-  {
-    edge->set_upstream_process(process);
-  }
-  catch (vistk::input_already_connected_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when setting a second process as upstream on an edge" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::input_already_connected_exception,
+                   edge->set_upstream_process(process),
+                   "setting a second process as upstream");
 }
 
 void
@@ -433,29 +369,7 @@ test_set_downstream_process()
 
   edge->set_downstream_process(process);
 
-  bool got_exception = false;
-
-  try
-  {
-    edge->set_downstream_process(process);
-  }
-  catch (vistk::output_already_connected_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when setting a second process as downstream on an edge" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::output_already_connected_exception,
+                   edge->set_downstream_process(process),
+                   "setting a second process as downstream");
 }
