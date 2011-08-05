@@ -768,7 +768,40 @@ test_connect_flag_mismatch()
 void
 test_connect()
 {
-  std::cerr << "Error: Not implemented" << std::endl;
+  vistk::load_known_modules();
+
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+
+  vistk::config::value_t const proc_nameu = vistk::process::name_t("upstream");
+
+  vistk::config_t proc_configu = vistk::config::empty_config();
+
+  proc_configu->set_value(vistk::process::config_name, proc_nameu);
+
+  vistk::process_t const processu = reg->create_process(proc_typeu, proc_configu);
+
+  vistk::config::value_t const proc_named = vistk::process::name_t("downstream");
+
+  vistk::config_t proc_configd = vistk::config::empty_config();
+
+  proc_configd->set_value(vistk::process::config_name, proc_named);
+
+  vistk::process_t const processd = reg->create_process(proc_typed, proc_configd);
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::pipeline_t pipeline = vistk::pipeline_t(new vistk::pipeline(config));
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processd);
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
+  vistk::process::port_t const port_named = vistk::process::port_t("factor1");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_named, port_named);
 }
 
 void
