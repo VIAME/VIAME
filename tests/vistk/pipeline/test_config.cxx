@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <test_common.h>
+
 #include <vistk/pipeline/config.h>
 
 #include <exception>
@@ -156,31 +158,9 @@ test_get_value_no_exist()
   vistk::config::value_t const valuea = vistk::config::value_t("value_a");
   vistk::config::value_t const valueb = vistk::config::value_t("value_b");
 
-  bool got_exception = false;
-
-  try
-  {
-    config->get_value<vistk::config::value_t>(keya);
-  }
-  catch (vistk::no_such_configuration_value_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when retrieving an unset value" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::no_such_configuration_value_exception,
+                   config->get_value<vistk::config::value_t>(keya),
+                   "retrieving an unset value");
 
   vistk::config::value_t const get_valueb = config->get_value<vistk::config::value_t>(keyb, valueb);
 
@@ -202,31 +182,9 @@ test_get_value_type_mismatch()
 
   config->set_value(keya, valuea);
 
-  bool got_exception = false;
-
-  try
-  {
-    config->get_value<int>(keya);
-  }
-  catch (vistk::bad_configuration_cast_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when doing an invalid cast" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::bad_configuration_cast_exception,
+                   config->get_value<int>(keya),
+                   "doing an invalid cast");
 
   int const get_valueb = config->get_value<int>(keya, valueb);
 
@@ -252,31 +210,9 @@ test_unset_value()
 
   config->unset_value(keya);
 
-  bool got_exception = false;
-
-  try
-  {
-    config->get_value<vistk::config::value_t>(keya);
-  }
-  catch (vistk::no_such_configuration_value_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when retrieving an unset value" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::no_such_configuration_value_exception,
+                   config->get_value<vistk::config::value_t>(keya),
+                   "retrieving an unset value");
 
   vistk::config::value_t const get_valueb = config->get_value<vistk::config::value_t>(keyb);
 
@@ -327,31 +263,9 @@ test_read_only()
 
   config->mark_read_only(keya);
 
-  bool got_exception = false;
-
-  try
-  {
-    config->set_value(keya, valueb);
-  }
-  catch (vistk::set_on_read_only_value_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when setting a read only value" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
+                   config->set_value(keya, valueb),
+                   "setting a read only value");
 
   vistk::config::value_t const get_valuea = config->get_value<vistk::config::value_t>(keya);
 
@@ -374,31 +288,9 @@ test_read_only_unset()
 
   config->mark_read_only(keya);
 
-  bool got_exception = false;
-
-  try
-  {
-    config->unset_value(keya);
-  }
-  catch (vistk::unset_on_read_only_value_exception& e)
-  {
-    got_exception = true;
-
-    (void)e.what();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Error: Unexpected exception: "
-              << e.what() << std::endl;
-
-    got_exception = true;
-  }
-
-  if (!got_exception)
-  {
-    std::cerr << "Error: Did not get expected exception "
-              << "when unsetting a read only value" << std::endl;
-  }
+  EXPECT_EXCEPTION(vistk::unset_on_read_only_value_exception,
+                   config->unset_value(keya),
+                   "unsetting a read only value");
 
   vistk::config::value_t const get_valuea = config->get_value<vistk::config::value_t>(keya);
 
