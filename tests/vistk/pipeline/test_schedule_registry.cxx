@@ -51,6 +51,7 @@ main(int argc, char* argv[])
 static void test_null_config();
 static void test_null_pipeline();
 static void test_load_schedules();
+static void test_null_ctor();
 static void test_duplicate_types();
 static void test_unknown_types();
 
@@ -68,6 +69,10 @@ run_test(std::string const& test_name)
   else if (test_name == "load_schedules")
   {
     test_load_schedules();
+  }
+  else if (test_name == "null_ctor")
+  {
+    test_null_ctor();
   }
   else if (test_name == "duplicate_types")
   {
@@ -155,6 +160,16 @@ test_load_schedules()
                 << type << " is empty" << std::endl;
     }
   }
+}
+
+void
+test_null_ctor()
+{
+  vistk::schedule_registry_t reg = vistk::schedule_registry::self();
+
+  EXPECT_EXCEPTION(vistk::null_schedule_ctor_exception,
+                   reg->register_schedule(vistk::schedule_registry::type_t(), vistk::schedule_registry::description_t(), vistk::schedule_ctor_t()),
+                   "requesting an non-existent schedule type");
 }
 
 void
