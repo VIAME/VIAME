@@ -50,6 +50,19 @@ process::port_info
 {
 }
 
+process::conf_info
+::conf_info(config::value_t const& def,
+              config::description_t const& description)
+  : def(def)
+  , description(description)
+{
+}
+
+process::conf_info
+::~conf_info()
+{
+}
+
 class process::priv
 {
   public:
@@ -198,28 +211,18 @@ process
   return keys;
 }
 
-config::value_t
+process::conf_info_t
 process
-::config_default(config::key_t const& key) const
+::config_info(config::key_t const& key) const
 {
   if (key == config_name)
   {
-    return boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME);
+    return conf_info_t(new conf_info(
+      boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME),
+      config::description_t("The name of the process")));
   }
 
-  return _config_default(key);
-}
-
-config::description_t
-process
-::config_description(config::key_t const& key) const
-{
-  if (key == config_name)
-  {
-    return config::description_t("The name of the process");
-  }
-
-  return _config_description(key);
+  return _config_info(key);
 }
 
 process::name_t
@@ -303,16 +306,9 @@ process
   return config::keys_t();
 }
 
-config::value_t
+process::conf_info_t
 process
-::_config_default(config::key_t const& key) const
-{
-  throw unknown_configuration_value_exception(d->name, key);
-}
-
-config::description_t
-process
-::_config_description(config::key_t const& key) const
+::_config_info(config::key_t const& key) const
 {
   throw unknown_configuration_value_exception(d->name, key);
 }

@@ -120,6 +120,33 @@ class VISTK_PIPELINE_EXPORT process
     typedef boost::shared_ptr<port_info const> port_info_t;
 
     /**
+     * \class conf_info process.h <vistk/pipeline/process.h>
+     *
+     * \brief Information about a configuration parameter.
+     */
+    class conf_info
+    {
+      public:
+        /**
+         * \brief Constructor.
+         *
+         * \param def The default value for the parameter.
+         * \param description A description of the value.
+         */
+        conf_info(config::value_t const& def,
+                  config::description_t const& description);
+        /**
+         * \brief Destructor.
+         */
+        ~conf_info();
+
+        config::value_t const def;
+        config::description_t const description;
+    };
+    /// Type for information about a configuration parameter.
+    typedef boost::shared_ptr<conf_info const> conf_info_t;
+
+    /**
      * \brief Post-connection initialization.
      */
     void init();
@@ -206,26 +233,17 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The names of all available configuration keys.
      */
     config::keys_t available_config() const;
+
     /**
-     * \brief Request the default value for a configuration.
+     * \brief Retrieve information about a configuration parameter.
      *
      * \throws unknown_configuration_value_exception Thrown when \p key is not a valid configuration key.
      *
      * \param key The name of the configuration value.
      *
-     * \returns The default value for \p key.
+     * \returns Information about the parameter.
      */
-    config::value_t config_default(config::key_t const& key) const;
-    /**
-     * \brief Request available configuration options for the process.
-     *
-     * \throws unknown_configuration_value_exception Thrown when \p key is not a valid configuration key.
-     *
-     * \param key The name of the configuration value to describe.
-     *
-     * \returns A description of the value expected for \p key.
-     */
-    config::description_t config_description(config::key_t const& key) const;
+    conf_info_t config_info(config::key_t const& key) const;
 
     /**
      * \brief The name of the process.
@@ -329,22 +347,15 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The names of all available configuration keys.
      */
     virtual config::keys_t _available_config() const;
+
     /**
-     * \brief Subclass configuration default.
+     * \brief Subclass configuration information.
      *
      * \param key The name of the configuration value.
      *
-     * \returns The default value for \p key.
+     * \returns Information about the parameter.
      */
-    virtual config::value_t _config_default(config::key_t const& key) const;
-    /**
-     * \brief Subclass configuration description.
-     *
-     * \param key The name of the configuration value to describe.
-     *
-     * \returns A description of the value expected for \p key.
-     */
-    virtual config::description_t _config_description(config::key_t const& key) const;
+    virtual conf_info_t _config_info(config::key_t const& key) const;
 
     /**
      * \brief Marks the process as complete.
