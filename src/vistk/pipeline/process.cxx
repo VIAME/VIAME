@@ -191,7 +191,11 @@ config::keys_t
 process
 ::available_config() const
 {
-  return config::keys_t();
+  config::keys_t keys = _available_config();
+
+  keys.push_back(config_name);
+
+  return keys;
 }
 
 config::value_t
@@ -203,7 +207,7 @@ process
     return boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME);
   }
 
-  throw unknown_configuration_value_exception(d->name, key);
+  return _config_default(key);
 }
 
 config::description_t
@@ -215,7 +219,7 @@ process
     return config::description_t("The name of the process");
   }
 
-  throw unknown_configuration_value_exception(d->name, key);
+  return _config_description(key);
 }
 
 process::name_t
@@ -304,6 +308,27 @@ process
 ::_output_port_description(port_t const& port) const
 {
   throw no_such_port_exception(d->name, port);
+}
+
+config::keys_t
+process
+::_available_config() const
+{
+  return config::keys_t();
+}
+
+config::value_t
+process
+::_config_default(config::key_t const& key) const
+{
+  throw unknown_configuration_value_exception(d->name, key);
+}
+
+config::description_t
+process
+::_config_description(config::key_t const& key) const
+{
+  throw unknown_configuration_value_exception(d->name, key);
 }
 
 void

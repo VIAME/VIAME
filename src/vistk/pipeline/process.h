@@ -198,7 +198,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns The names of all available configuration keys.
      */
-    virtual config::keys_t available_config() const;
+    config::keys_t available_config() const;
     /**
      * \brief Request the default value for a configuration.
      *
@@ -208,7 +208,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns The default value for \p key.
      */
-    virtual config::value_t config_default(config::key_t const& key) const;
+    config::value_t config_default(config::key_t const& key) const;
     /**
      * \brief Request available configuration options for the process.
      *
@@ -218,7 +218,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns A description of the value expected for \p key.
      */
-    virtual config::description_t config_description(config::key_t const& key) const;
+    config::description_t config_description(config::key_t const& key) const;
 
     /**
      * \brief The name of the process.
@@ -332,6 +332,29 @@ class VISTK_PIPELINE_EXPORT process
      * \returns A description of the port.
      */
     virtual port_description_t _output_port_description(port_t const& port) const;
+
+    /**
+     * \brief Subclass available configuration keys.
+     *
+     * \returns The names of all available configuration keys.
+     */
+    virtual config::keys_t _available_config() const;
+    /**
+     * \brief Subclass configuration default.
+     *
+     * \param key The name of the configuration value.
+     *
+     * \returns The default value for \p key.
+     */
+    virtual config::value_t _config_default(config::key_t const& key) const;
+    /**
+     * \brief Subclass configuration description.
+     *
+     * \param key The name of the configuration value to describe.
+     *
+     * \returns A description of the value expected for \p key.
+     */
+    virtual config::description_t _config_description(config::key_t const& key) const;
 
     /**
      * \brief Marks the process as complete.
