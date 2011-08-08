@@ -32,6 +32,14 @@ target_link_libraries(python-pipeline
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
+add_vistk_python_library(process
+  vistk/pipeline
+  process.cxx)
+target_link_libraries(python-process
+  vistk_pipeline
+  ${Boost_PYTHON_LIBRARY}
+  ${PYTHON_LIBRARIES})
+
 add_vistk_python_library(process_registry
   vistk/pipeline
   process_registry.cxx)
@@ -61,6 +69,7 @@ make_python_init_file(vistk/pipeline
   edge
   modules
   pipeline
+  process
   process_registry
   schedule
   schedule_registry)
