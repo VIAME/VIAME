@@ -7,6 +7,7 @@
 #include <vistk/pipeline/config.h>
 
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 /**
  * \file config.cxx
@@ -31,6 +32,12 @@ BOOST_PYTHON_MODULE(config)
 
   def("empty_config", &vistk::config::empty_config
     , empty_config_overloads());
+
+  class_<vistk::config::key_t>("ConfigKey");
+  class_<vistk::config::keys_t>("ConfigKeys")
+    .def(vector_indexing_suite<vistk::config::keys_t>())
+  ;
+  class_<vistk::config::value_t>("ConfigValue");
 
   class_<vistk::config, vistk::config_t, boost::noncopyable>("Config", no_init)
     .def("subblock", &vistk::config::subblock)
