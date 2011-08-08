@@ -2,10 +2,13 @@ project(vistk_python)
 
 find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
+    iostreams
     python)
 
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_PATH})
+
+add_subdirectory(helpers)
 
 add_custom_target(python)
 
