@@ -541,7 +541,7 @@ pipeline
 
   BOOST_FOREACH (process::name_t const& process_name, names)
   {
-    priv::process_map_t::const_iterator i = d->process_map.find(process_name);
+    priv::process_map_t::const_iterator const i = d->process_map.find(process_name);
 
     processes.push_back(i->second);
   }
@@ -570,7 +570,7 @@ pipeline
 
   BOOST_FOREACH (process::name_t const& process_name, names)
   {
-    priv::process_map_t::const_iterator i = d->process_map.find(process_name);
+    priv::process_map_t::const_iterator const i = d->process_map.find(process_name);
 
     processes.push_back(i->second);
   }
@@ -858,8 +858,8 @@ void
 pipeline::priv
 ::check_duplicate_name(process::name_t const& name)
 {
-  process_map_t::const_iterator proc_it = process_map.find(name);
-  group_t::const_iterator group_it = groups.find(name);
+  process_map_t::const_iterator const proc_it = process_map.find(name);
+  group_t::const_iterator const group_it = groups.find(name);
 
   if ((proc_it != process_map.end()) ||
       (group_it != groups.end()))
