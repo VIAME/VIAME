@@ -72,6 +72,14 @@ target_link_libraries(python-schedule_registry
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
+add_vistk_python_library(stamp
+  vistk/pipeline
+  stamp.cxx)
+target_link_libraries(python-stamp
+  vistk_pipeline
+  ${Boost_PYTHON_LIBRARY}
+  ${PYTHON_LIBRARIES})
+
 make_python_init_file(vistk/pipeline
   config
   datum
@@ -81,4 +89,5 @@ make_python_init_file(vistk/pipeline
   process
   process_registry
   schedule
-  schedule_registry)
+  schedule_registry
+  stamp)
