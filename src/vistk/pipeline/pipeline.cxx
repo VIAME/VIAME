@@ -502,6 +502,25 @@ pipeline
   return processes;
 }
 
+process_t
+pipeline
+::upstream_for_port(process::name_t const& name, process::port_t const& port) const
+{
+  BOOST_FOREACH (priv::connection_t const& connection, d->connections)
+  {
+    if ((connection.second.first == name) &&
+        (connection.second.second == port))
+    {
+      process::name_t const& upstream_name = connection.first.first;
+      priv::process_map_t::const_iterator const i = d->process_map.find(upstream_name);
+
+      return i->second;
+    }
+  }
+
+  return process_t();
+}
+
 processes_t
 pipeline
 ::downstream_for_process(process::name_t const& name) const
