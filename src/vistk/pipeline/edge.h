@@ -12,6 +12,7 @@
 #include "types.h"
 
 #include <boost/tuple/tuple.hpp>
+#include <boost/operators.hpp>
 #include <boost/utility.hpp>
 
 #include <string>
@@ -145,6 +146,10 @@ class VISTK_PIPELINE_EXPORT edge
     boost::shared_ptr<priv> d;
 };
 
+bool VISTK_PIPELINE_EXPORT operator == (edge_datum_t const& a, edge_datum_t const& b);
+
 }
+
+template struct boost::equality_comparable<vistk::edge_datum_t>;
 
 #endif // VISTK_PIPELINE_EDGE_H

@@ -7,6 +7,8 @@
 #include "edge.h"
 #include "edge_exception.h"
 
+#include "stamp.h"
+
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
@@ -188,6 +190,13 @@ edge
   }
 
   d->downstream = process;
+}
+
+bool
+operator == (edge_datum_t const& a, edge_datum_t const& b)
+{
+  return (( a.get<0>() ==  b.get<0>()) &&
+          (*a.get<1>() == *b.get<1>()));
 }
 
 edge::priv
