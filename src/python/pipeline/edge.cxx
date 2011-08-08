@@ -6,8 +6,10 @@
 
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/edge_exception.h>
+#include <vistk/pipeline/stamp.h>
 
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 /**
  * \file edge.cxx
@@ -17,12 +19,25 @@
 
 using namespace boost::python;
 
+static vistk::datum_t datum_from_edge(vistk::edge_datum_t const& edatum);
+static vistk::stamp_t stamp_from_edge(vistk::edge_datum_t const& edatum);
 static void translator(vistk::edge_exception const& e);
 
 BOOST_PYTHON_MODULE(edge)
 {
   register_exception_translator<
     vistk::edge_exception>(translator);
+
+  class_<vistk::edge_datum_t>("EdgeDatum")
+    .def("datum", &datum_from_edge)
+    .def("stamp", &stamp_from_edge)
+  ;
+  class_<vistk::edge_data_t>("EdgeData")
+    .def(vector_indexing_suite<vistk::edge_data_t>())
+  ;
+  class_<vistk::edges_t>("Edges")
+    .def(vector_indexing_suite<vistk::edges_t>())
+  ;
 
   class_<vistk::edge, vistk::edge_t, boost::noncopyable>("Edge", no_init)
     .def(init<vistk::config_t>())
@@ -39,6 +54,18 @@ BOOST_PYTHON_MODULE(edge)
     .def("set_upstream_process", &vistk::edge::set_upstream_process)
     .def("set_downstream_process", &vistk::edge::set_downstream_process)
   ;
+}
+
+vistk::datum_t
+datum_from_edge(vistk::edge_datum_t const& edatum)
+{
+  return edatum.get<0>();
+}
+
+vistk::stamp_t
+stamp_from_edge(vistk::edge_datum_t const& edatum)
+{
+  return edatum.get<1>();
 }
 
 void
