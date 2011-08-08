@@ -97,4 +97,7 @@ ${import_lines}
     python-init-${name})
 endfunction (make_python_init_file modpath)
 
-make_python_init_file(vistk)
+add_subdirectory(pipeline)
+
+make_python_init_file(vistk
+  pipeline)
