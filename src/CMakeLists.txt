@@ -7,6 +7,10 @@ if (VISTK_ENABLE_TOOLS)
   add_subdirectory(tools)
 endif (VISTK_ENABLE_TOOLS)
 
+if (VISTK_ENABLE_PYTHON)
+  add_subdirectory(python)
+endif (VISTK_ENABLE_PYTHON)
+
 function (add_vistk_plugin name define)
   add_library(${name} SHARED
     ${ARGN})
