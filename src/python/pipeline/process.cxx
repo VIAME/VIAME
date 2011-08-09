@@ -49,10 +49,11 @@ class wrap_process
     void _mark_as_complete();
     vistk::stamp_t _heartbeat_stamp() const;
 
-    bool _same_colored_edges(vistk::edges_t const& edges);
-    bool _syncd_edges(vistk::edges_t const& edges);
+    bool _same_colored_edges(vistk::edge_group_t const& edges);
+    bool _syncd_edges(vistk::edge_group_t const& edges);
     vistk::datum::datum_type_t _max_status(vistk::edge_data_t const& data);
-    void _push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat);
+    void _push_to_edges(vistk::edge_group_t const& edges, vistk::edge_datum_t const& dat);
+    vistk::edge_datum_t _grab_from_edge_ref(vistk::edge_ref_t const& edge);
 };
 
 BOOST_PYTHON_MODULE(process)
@@ -152,6 +153,7 @@ BOOST_PYTHON_MODULE(process)
     .def("syncd_edges", &wrap_process::_syncd_edges)
     .def("max_status", &wrap_process::_max_status)
     .def("push_to_edges", &wrap_process::_push_to_edges)
+    .def("grab_from_edge", &wrap_process::_grab_from_edge_ref)
   ;
 }
 
@@ -350,14 +352,14 @@ wrap_process
 
 bool
 wrap_process
-::_same_colored_edges(vistk::edges_t const& edges)
+::_same_colored_edges(vistk::edge_group_t const& edges)
 {
   return same_colored_edges(edges);
 }
 
 bool
 wrap_process
-::_syncd_edges(vistk::edges_t const& edges)
+::_syncd_edges(vistk::edge_group_t const& edges)
 {
   return syncd_edges(edges);
 }
@@ -371,7 +373,14 @@ wrap_process
 
 void
 wrap_process
-::_push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat)
+::_push_to_edges(vistk::edge_group_t const& edges, vistk::edge_datum_t const& dat)
 {
   push_to_edges(edges, dat);
+}
+
+vistk::edge_datum_t
+wrap_process
+::_grab_from_edge_ref(vistk::edge_ref_t const& edge)
+{
+  return grab_from_edge_ref(edge);
 }
