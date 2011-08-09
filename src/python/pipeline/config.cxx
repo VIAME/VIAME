@@ -23,15 +23,13 @@ static vistk::config::value_t get_value(vistk::config_t self, vistk::config::key
 static vistk::config::value_t get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def);
 static void translator(vistk::configuration_exception const& e);
 
-BOOST_PYTHON_FUNCTION_OVERLOADS(empty_config_overloads, vistk::config::empty_config, 0, 1);
-
 BOOST_PYTHON_MODULE(config)
 {
   register_exception_translator<
     vistk::configuration_exception>(translator);
 
   def("empty_config", &vistk::config::empty_config
-    , empty_config_overloads());
+    , (arg("name") = vistk::config::key_t()));
 
   class_<vistk::config::key_t>("ConfigKey");
   class_<vistk::config::keys_t>("ConfigKeys")
