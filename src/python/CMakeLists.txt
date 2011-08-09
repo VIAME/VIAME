@@ -103,6 +103,6 @@ endfunction (make_python_init_file modpath)
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)
 
-make_python_init_file(vistk
-  pipeline
-  pipeline_util)
+make_python_init_file(vistk)
+#  pipeline
+#  pipeline_util)

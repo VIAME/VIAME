@@ -80,14 +80,14 @@ target_link_libraries(python-stamp
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
-make_python_init_file(vistk/pipeline
-  config
-  datum
-  edge
-  modules
-  pipeline
-  process
-  process_registry
-  schedule
-  schedule_registry
-  stamp)
+make_python_init_file(vistk/pipeline)
+#  config
+#  datum
+#  edge
+#  modules
+#  pipeline
+#  process
+#  process_registry
+#  schedule
+#  schedule_registry
+#  stamp)

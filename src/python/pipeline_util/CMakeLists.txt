@@ -33,7 +33,7 @@ target_link_libraries(python-load
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
-make_python_init_file(vistk/pipeline_util
-  bake
-  export_
-  load)
+make_python_init_file(vistk/pipeline_util)
+#  bake
+#  export_
+#  load)
