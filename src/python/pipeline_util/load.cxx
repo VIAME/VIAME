@@ -186,6 +186,8 @@ object
 pipe_block_config(vistk::pipe_block const& block)
 {
   /// \todo Get a config block from the block.
+
+  return object();
 }
 
 void
@@ -198,6 +200,8 @@ object
 pipe_block_process(vistk::pipe_block const& block)
 {
   /// \todo Get a process block from the block.
+
+  return object();
 }
 
 void
@@ -210,6 +214,8 @@ object
 pipe_block_connect(vistk::pipe_block const& block)
 {
   /// \todo Get a connect block from the block.
+
+  return object();
 }
 
 void
@@ -222,6 +228,8 @@ object
 pipe_block_group(vistk::pipe_block const& block)
 {
   /// \todo Get a group block from the block.
+
+  return object();
 }
 
 void
