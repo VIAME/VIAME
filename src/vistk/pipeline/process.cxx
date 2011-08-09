@@ -253,7 +253,7 @@ process
   d = boost::shared_ptr<priv>(new priv);
 
   d->name = config->get_value<name_t>(config_name, priv::DEFAULT_PROCESS_NAME);
-  d->type = config->get_value<name_t>(config_type);
+  d->type = config->get_value<process_registry::type_t>(config_type);
 }
 
 process
