@@ -462,17 +462,11 @@ process::priv
     dat = datum::empty_datum();
   }
 
-  edge_datum_t edge_dat(dat, hb_stamp);
+  edge_datum_t const edge_dat(dat, hb_stamp);
+
+  process::push_to_edges(heartbeats, edge_dat);
 
   hb_stamp = stamp::incremented_stamp(hb_stamp);
-
-  edges_t::iterator hb = heartbeats.begin();
-  edges_t::iterator hb_end = heartbeats.end();
-
-  for ( ; hb != hb_end; ++hb)
-  {
-    (*hb)->push_datum(edge_dat);
-  }
 }
 
 }
