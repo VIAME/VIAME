@@ -26,7 +26,8 @@ BOOST_PYTHON_MODULE(datum)
   register_exception_translator<
     vistk::datum_exception>(translator);
 
-  enum_<vistk::datum::datum_type_t>("DatumType")
+  enum_<vistk::datum::datum_type_t>("DatumType"
+    , "A type for a datum packet.")
     .value("INVALID", vistk::datum::DATUM_INVALID)
     .value("DATA", vistk::datum::DATUM_DATA)
     .value("EMPTY", vistk::datum::DATUM_EMPTY)
@@ -34,19 +35,31 @@ BOOST_PYTHON_MODULE(datum)
     .value("ERROR", vistk::datum::DATUM_ERROR)
   ;
 
-  class_<vistk::datum::error_t>("DatumError");
+  class_<vistk::datum::error_t>("DatumError"
+    , "The type of an error message.");
 
   /// \todo How to do this?
-  //def("new", &vistk::datum::new_datum);
-  def("empty", &vistk::datum::empty_datum);
-  def("complete", &vistk::datum::complete_datum);
-  def("error", &vistk::datum::error_datum);
+  //def("new", &vistk::datum::new_datum
+  //  , (arg("dat"))
+  //  , "Creates a new datum packet.");
+  def("empty", &vistk::datum::empty_datum
+    , "Creates an empty datum packet.");
+  def("complete", &vistk::datum::complete_datum
+    , "Creates a complete marker datum packet.");
+  def("error", &vistk::datum::error_datum
+    , (arg("err"))
+    , "Creates an error datum packet.");
 
-  class_<vistk::datum, vistk::datum_t, boost::noncopyable>("Datum", no_init)
-    .def("type", &vistk::datum::type)
-    .def("get_error", &vistk::datum::get_error)
+  class_<vistk::datum, vistk::datum_t, boost::noncopyable>("Datum"
+    , "A packet of data within the pipeline."
+    , no_init)
+    .def("type", &vistk::datum::type
+      , "The type of the datum packet.")
+    .def("get_error", &vistk::datum::get_error
+      , "The error contained within the datum packet.")
     /// \todo How to do this?
-    //.def("get_datum", &vistk::datum::get_value)
+    //.def("get_datum", &vistk::datum::get_value
+    //  , "Get the data contained within the packet.")
   ;
 }
 
