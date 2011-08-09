@@ -10,6 +10,7 @@
 #include "pipeline-config.h"
 
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 
 #include <exception>
 
@@ -42,6 +43,8 @@ typedef boost::shared_ptr<datum const> datum_t;
 class edge;
 /// A typedef used to handle \link edge edges\endlink.
 typedef boost::shared_ptr<edge> edge_t;
+/// A typedef used to handle \ref edge references.
+typedef boost::weak_ptr<edge> edge_ref_t;
 
 class pipeline;
 /// A typedef used to handle \link pipeline pipelines\endlink.

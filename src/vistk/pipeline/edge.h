@@ -34,6 +34,8 @@ typedef boost::tuple<datum_t, stamp_t> edge_datum_t;
 typedef std::vector<edge_datum_t> edge_data_t;
 /// A group of \link edge edges\endlink.
 typedef std::vector<edge_t> edges_t;
+/// A group of \link edge edges\endlink.
+typedef std::vector<edge_ref_t> edge_group_t;
 
 /**
  * \class edge edge.h <vistk/pipeline/edge.h>
