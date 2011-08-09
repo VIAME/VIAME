@@ -81,7 +81,7 @@ class process::priv
     typedef std::pair<edge_t, edge_t> edge_pair_t;
     typedef std::map<port_t, edge_pair_t> edge_map_t;
 
-    edges_t heartbeats;
+    edge_group_t heartbeats;
 
     port_info_t heartbeat_port_info;
 
@@ -153,7 +153,7 @@ process
 
   if (port == port_heartbeat)
   {
-    d->heartbeats.push_back(edge);
+    d->heartbeats.push_back(edge_ref_t(edge));
 
     return;
   }
