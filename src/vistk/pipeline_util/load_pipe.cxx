@@ -40,8 +40,10 @@ pipe_blocks
 load_pipe_blocks_from_file(boost::filesystem::path const& fname)
 {
   std::stringstream sstr;
+  boost::filesystem::path::string_type const fstr = fname.native();
+  std::string const str(fstr.begin(), fstr.end());
 
-  sstr << include_directive << fname.native().c_str();
+  sstr << include_directive << str;
 
   pipe_blocks blocks = load_pipe_blocks(sstr, fname.parent_path());
 
