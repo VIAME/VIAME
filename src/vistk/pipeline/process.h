@@ -409,6 +409,14 @@ class VISTK_PIPELINE_EXPORT process
      * \param dat The data to push.
      */
     static void push_to_edges(edge_group_t const& edges, edge_datum_t const& dat);
+    /**
+     * \brief Grabs a data from an edge.
+     *
+     * \param edge The edge to grab data from.
+     *
+     * \returns The next datum from the edge.
+     */
+    static edge_datum_t grab_from_edge_ref(edge_ref_t const& edge);
   private:
     class priv;
     boost::shared_ptr<priv> d;

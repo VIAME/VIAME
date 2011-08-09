@@ -431,6 +431,15 @@ process
   }
 }
 
+edge_datum_t
+process
+::grab_from_edge_ref(edge_ref_t const& edge)
+{
+  edge_t const cur_edge = edge.lock();
+
+  return cur_edge->get_datum();
+}
+
 process::priv
 ::priv()
   : is_complete(false)
