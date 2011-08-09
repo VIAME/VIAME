@@ -345,20 +345,23 @@ process
 
 bool
 process
-::same_colored_edges(edges_t const& edges)
+::same_colored_edges(edge_group_t const& edges)
 {
-  edges_t::const_iterator it = edges.begin();
-  edges_t::const_iterator it_end = edges.end();
+  edge_group_t::const_iterator it = edges.begin();
+  edge_group_t::const_iterator it_end = edges.end();
 
   for ( ; it != it_end; ++it)
   {
-    edges_t::const_iterator it2 = it;
+    edge_t const cur_edge = it->lock();
+    edge_group_t::const_iterator it2 = it;
 
-    stamp_t const st = (*it)->peek_datum().get<1>();
+    stamp_t const st = cur_edge->peek_datum().get<1>();
 
     for (++it2; it2 != it_end; ++it2)
     {
-      if (!st->is_same_color((*it2)->peek_datum().get<1>()))
+      edge_t const other_edge = it2->lock();
+
+      if (!st->is_same_color(other_edge->peek_datum().get<1>()))
       {
         return false;
       }
@@ -370,20 +373,22 @@ process
 
 bool
 process
-::syncd_edges(edges_t const& edges)
+::syncd_edges(edge_group_t const& edges)
 {
-  edges_t::const_iterator it = edges.begin();
-  edges_t::const_iterator it_end = edges.end();
+  edge_group_t::const_iterator it = edges.begin();
+  edge_group_t::const_iterator it_end = edges.end();
 
   for ( ; it != it_end; ++it)
   {
-    edges_t::const_iterator it2 = it;
+    edge_t const cur_edge = it->lock();
+    edge_group_t::const_iterator it2 = it;
 
-    stamp_t const st = (*it)->peek_datum().get<1>();
+    stamp_t const st = cur_edge->peek_datum().get<1>();
 
     for (++it2; it2 != it_end; ++it2)
     {
-      stamp_t const st2 = (*it2)->peek_datum().get<1>();
+      edge_t const other_edge = it2->lock();
+      stamp_t const st2 = other_edge->peek_datum().get<1>();
 
       if (*st != *st2)
       {
@@ -416,11 +421,13 @@ process
 
 void
 process
-::push_to_edges(edges_t const& edges, edge_datum_t const& dat)
+::push_to_edges(edge_group_t const& edges, edge_datum_t const& dat)
 {
-  BOOST_FOREACH (edge_t e, edges)
+  BOOST_FOREACH (edge_ref_t const& e, edges)
   {
-    e->push_datum(dat);
+    edge_t const cur_edge = e.lock();
+
+    cur_edge->push_datum(dat);
   }
 }
 

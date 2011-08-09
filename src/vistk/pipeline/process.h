@@ -382,7 +382,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns True if the available data in each of \p edges have the same coloring, false otherwise.
      */
-    static bool same_colored_edges(edges_t const& edges);
+    static bool same_colored_edges(edge_group_t const& edges);
     /**
      * \brief Check if a set of edges are syncronized.
      *
@@ -393,7 +393,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns True if the available data in each of \p edges have equivalent stamps, false otherwise.
      */
-    static bool syncd_edges(edges_t const& edges);
+    static bool syncd_edges(edge_group_t const& edges);
     /**
      * \brief Examine datum packets to determine the highest priority status.
      *
@@ -408,7 +408,7 @@ class VISTK_PIPELINE_EXPORT process
      * \param edges The edges to push to.
      * \param dat The data to push.
      */
-    static void push_to_edges(edges_t const& edges, edge_datum_t const& dat);
+    static void push_to_edges(edge_group_t const& edges, edge_datum_t const& dat);
   private:
     class priv;
     boost::shared_ptr<priv> d;
