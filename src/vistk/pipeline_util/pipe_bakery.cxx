@@ -588,7 +588,7 @@ config_provider_sorter
   {
     boost::topological_sort(m_graph, std::back_inserter(vertices));
   }
-  catch (boost::not_a_dag& e)
+  catch (boost::not_a_dag&)
   {
     throw circular_config_provide_exception();
   }
