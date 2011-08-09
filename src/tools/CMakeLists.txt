@@ -4,6 +4,10 @@ find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
     program_options)
 
+if (WIN32)
+  add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
+endif (WIN32)
+
 add_executable(pipe_to_dot
   pipe_to_dot.cxx)
 target_link_libraries(pipe_to_dot
