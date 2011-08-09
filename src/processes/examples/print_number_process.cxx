@@ -76,7 +76,9 @@ print_number_process
 
   if (!d->fout.good())
   {
-    throw invalid_configuration_exception(name(), "Failed to open the path: " + path);
+    std::string const file_path(path.begin(), path.end());
+
+    throw invalid_configuration_exception(name(), "Failed to open the path: " + file_path);
   }
 }
 
