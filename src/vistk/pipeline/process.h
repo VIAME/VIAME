@@ -94,7 +94,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \brief Information about a port.
      */
-    class port_info
+    class VISTK_PIPELINE_EXPORT port_info
     {
       public:
         /**
@@ -127,7 +127,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \brief Information about a configuration parameter.
      */
-    class conf_info
+    class VISTK_PIPELINE_EXPORT conf_info
     {
       public:
         /**
