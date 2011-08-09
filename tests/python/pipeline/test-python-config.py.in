@@ -10,9 +10,18 @@ import sys
 stderr = sys.stderr
 
 
+def test_import():
+    try:
+        import vistk.pipeline.config
+    except:
+        stderr.write("Error: Failed to import the config module")
+
+
 def main(testname):
-    #else:
-    stderr.write("Error: No such test '%s'" % testname)
+    if testname == 'import':
+        test_import()
+    else:
+        stderr.write("Error: No such test '%s'" % testname)
 
 
 if __name__ == '__main__':

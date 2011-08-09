@@ -9,3 +9,5 @@ configure_file(
   @ONLY)
 
 vistk_declare_test(python-config)
+
+vistk_make_python_test(python-config import)
