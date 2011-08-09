@@ -17,3 +17,5 @@ function (vistk_make_python_test group instance)
   vistk_make_test(${group} ${instance}
     ${python_module_path} ${ARGN})
 endfunction (vistk_make_python_test)
+
+add_subdirectory(pipeline)
