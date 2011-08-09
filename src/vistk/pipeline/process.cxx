@@ -85,9 +85,6 @@ class process::priv
 
     port_info_t heartbeat_port_info;
 
-    edges_t input_edges;
-    edges_t output_edges;
-
     bool is_complete;
 
     stamp_t hb_stamp;
