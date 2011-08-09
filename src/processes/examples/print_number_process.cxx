@@ -32,7 +32,7 @@ class print_number_process::priv
 
     conf_info_t path_conf_info;
 
-    edge_t input_edge;
+    edge_ref_t input_edge;
 
     port_info_t input_port_info;
 
@@ -84,7 +84,7 @@ void
 print_number_process
 ::_step()
 {
-  edge_datum_t const input_dat = d->input_edge->get_datum();
+  edge_datum_t const input_dat = grab_from_edge_ref(d->input_edge);
 
   switch (input_dat.get<0>()->type())
   {
@@ -116,12 +116,12 @@ print_number_process
 {
   if (port == priv::INPUT_PORT_NAME)
   {
-    if (d->input_edge)
+    if (d->input_edge.use_count())
     {
       throw port_reconnect_exception(name(), port);
     }
 
-    d->input_edge = edge;
+    d->input_edge = edge_ref_t(edge);
 
     return;
   }

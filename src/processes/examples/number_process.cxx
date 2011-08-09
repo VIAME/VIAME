@@ -29,7 +29,7 @@ class number_process::priv
     conf_info_t start_conf_info;
     conf_info_t end_conf_info;
 
-    edges_t output_edges;
+    edge_group_t output_edges;
 
     port_info_t output_port_info;
 
@@ -104,7 +104,7 @@ number_process
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
-    d->output_edges.push_back(edge);
+    d->output_edges.push_back(edge_ref_t(edge));
 
     return;
   }

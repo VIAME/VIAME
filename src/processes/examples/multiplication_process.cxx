@@ -25,9 +25,9 @@ class multiplication_process::priv
     priv();
     ~priv();
 
-    edge_t input_edge_factor1;
-    edge_t input_edge_factor2;
-    edges_t output_edges;
+    edge_ref_t input_edge_factor1;
+    edge_ref_t input_edge_factor2;
+    edge_group_t output_edges;
 
     port_info_t factor1_port_info;
     port_info_t factor2_port_info;
@@ -61,7 +61,7 @@ multiplication_process
   datum_t dat;
   stamp_t st;
 
-  edges_t input_edges;
+  edge_group_t input_edges;
 
   input_edges.push_back(d->input_edge_factor1);
   input_edges.push_back(d->input_edge_factor2);
@@ -83,8 +83,8 @@ multiplication_process
   }
   else
   {
-    edge_datum_t const factor1_dat = d->input_edge_factor1->get_datum();
-    edge_datum_t const factor2_dat = d->input_edge_factor2->get_datum();
+    edge_datum_t const factor1_dat = grab_from_edge_ref(d->input_edge_factor1);
+    edge_datum_t const factor2_dat = grab_from_edge_ref(d->input_edge_factor2);
 
     edge_data_t input_dats;
 
@@ -137,23 +137,23 @@ multiplication_process
 {
   if (port == priv::INPUT_FACTOR1_PORT_NAME)
   {
-    if (d->input_edge_factor1)
+    if (d->input_edge_factor1.use_count())
     {
       throw port_reconnect_exception(name(), port);
     }
 
-    d->input_edge_factor1 = edge;
+    d->input_edge_factor1 = edge_ref_t(edge);
 
     return;
   }
   if (port == priv::INPUT_FACTOR2_PORT_NAME)
   {
-    if (d->input_edge_factor2)
+    if (d->input_edge_factor2.use_count())
     {
       throw port_reconnect_exception(name(), port);
     }
 
-    d->input_edge_factor2 = edge;
+    d->input_edge_factor2 = edge_ref_t(edge);
 
     return;
   }
@@ -183,7 +183,7 @@ multiplication_process
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
-    d->output_edges.push_back(edge);
+    d->output_edges.push_back(edge_ref_t(edge));
 
     return;
   }

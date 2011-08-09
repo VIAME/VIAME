@@ -18,7 +18,7 @@ class const_process::priv
     priv();
     ~priv();
 
-    edges_t output_edges;
+    edge_group_t output_edges;
 
     port_info_t output_port_info;
 
@@ -56,7 +56,7 @@ const_process
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
-    d->output_edges.push_back(edge);
+    d->output_edges.push_back(edge_ref_t(edge));
 
     return;
   }
