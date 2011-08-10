@@ -309,14 +309,14 @@ class VISTK_PIPELINE_EXPORT process
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
      */
-    virtual void _connect_input_port(port_t const& port, edge_t edge);
+    virtual void _connect_input_port(port_t const& port, edge_ref_t edge);
     /**
      * \brief Subclass output connection method.
      *
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
      */
-    virtual void _connect_output_port(port_t const& port, edge_t edge);
+    virtual void _connect_output_port(port_t const& port, edge_ref_t edge);
 
     /**
      * \brief Subclass input ports.

@@ -139,7 +139,7 @@ process
     throw null_edge_port_connection_exception(d->name, port);
   }
 
-  _connect_input_port(port, edge);
+  _connect_input_port(port, edge_ref_t(edge));
 }
 
 void
@@ -158,7 +158,7 @@ process
     return;
   }
 
-  _connect_output_port(port, edge);
+  _connect_output_port(port, edge_ref_t(edge));
 }
 
 process::ports_t
@@ -275,14 +275,14 @@ process
 
 void
 process
-::_connect_input_port(port_t const& port, edge_t /*edge*/)
+::_connect_input_port(port_t const& port, edge_ref_t /*edge*/)
 {
   throw no_such_port_exception(d->name, port);
 }
 
 void
 process
-::_connect_output_port(port_t const& port, edge_t /*edge*/)
+::_connect_output_port(port_t const& port, edge_ref_t /*edge*/)
 {
   throw no_such_port_exception(d->name, port);
 }
