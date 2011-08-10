@@ -100,11 +100,11 @@ number_process
 
 void
 number_process
-::_connect_output_port(port_t const& port, edge_t edge)
+::_connect_output_port(port_t const& port, edge_ref_t edge)
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
-    d->output_edges.push_back(edge_ref_t(edge));
+    d->output_edges.push_back(edge);
 
     return;
   }

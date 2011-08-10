@@ -130,7 +130,7 @@ multiplication_process
 
 void
 multiplication_process
-::_connect_input_port(port_t const& port, edge_t edge)
+::_connect_input_port(port_t const& port, edge_ref_t edge)
 {
   if (port == priv::INPUT_FACTOR1_PORT_NAME)
   {
@@ -139,7 +139,7 @@ multiplication_process
       throw port_reconnect_exception(name(), port);
     }
 
-    d->input_edge_factor1 = edge_ref_t(edge);
+    d->input_edge_factor1 = edge;
     d->input_edges.push_back(d->input_edge_factor1);
 
     return;
@@ -151,7 +151,7 @@ multiplication_process
       throw port_reconnect_exception(name(), port);
     }
 
-    d->input_edge_factor2 = edge_ref_t(edge);
+    d->input_edge_factor2 = edge;
     d->input_edges.push_back(d->input_edge_factor2);
 
     return;
@@ -178,11 +178,11 @@ multiplication_process
 
 void
 multiplication_process
-::_connect_output_port(port_t const& port, edge_t edge)
+::_connect_output_port(port_t const& port, edge_ref_t edge)
 {
   if (port == priv::OUTPUT_PORT_NAME)
   {
-    d->output_edges.push_back(edge_ref_t(edge));
+    d->output_edges.push_back(edge);
 
     return;
   }

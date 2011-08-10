@@ -66,7 +66,7 @@ mutate_process
 
 void
 mutate_process
-::_connect_input_port(port_t const& port, edge_t edge)
+::_connect_input_port(port_t const& port, edge_ref_t edge)
 {
   if (port == priv::INPUT_PORT_NAME)
   {
@@ -75,7 +75,7 @@ mutate_process
       throw port_reconnect_exception(name(), port);
     }
 
-    d->input_edge = edge_ref_t(edge);
+    d->input_edge = edge;
 
     return;
   }

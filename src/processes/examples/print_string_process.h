@@ -64,7 +64,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT print_string_process
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
      */
-    void _connect_input_port(port_t const& port, edge_t edge);
+    void _connect_input_port(port_t const& port, edge_ref_t edge);
 
     /**
      * \brief Information about an input port on the process.
