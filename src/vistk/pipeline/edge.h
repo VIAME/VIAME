@@ -148,6 +148,14 @@ class VISTK_PIPELINE_EXPORT edge
     boost::shared_ptr<priv> d;
 };
 
+/**
+ * \brief Compare two \ref edge_datum_t packets.
+ *
+ * \param a The first packet.
+ * \param b The second packet.
+ *
+ * \returns True if \p a and \p b are the same, false otherwise.
+ */
 bool VISTK_PIPELINE_EXPORT operator == (edge_datum_t const& a, edge_datum_t const& b);
 
 }
