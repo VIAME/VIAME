@@ -28,7 +28,7 @@ main(int argc, char* argv[])
 {
   if (argc != 3)
   {
-    std::cerr << "Error: Expected one argument" << std::endl;
+    std::cerr << "Error: Expected two arguments" << std::endl;
 
     return 1;
   }
