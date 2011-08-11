@@ -25,12 +25,17 @@ def main(testname):
 
 
 if __name__ == '__main__':
-    if not len(sys.argv) == 3:
+    import os
+    import sys
+
+    if not len(sys.argv) == 4:
         log("Error: Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
 
-    sys.path.append(sys.argv[2])
+    os.chdir(sys.argv[2])
+
+    sys.path.append(sys.argv[3])
 
     main(testname)

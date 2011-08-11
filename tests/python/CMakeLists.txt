@@ -8,14 +8,18 @@ set(TEST_RUNNER
 function (vistk_make_python_test group instance)
   set(python_module_path
     ${PYTHON_OUTPUT_PATH})
+  set(python_chdir
+    ".")
 
   if (WIN32)
     set(python_module_path
       "${python_module_path}/$<CONFIGURATION>")
+    set(python_chdir
+      "$<CONFIGURATION>")
   endif (WIN32)
 
-  vistk_make_test(${group} ${instance}
-    ${python_module_path} ${ARGN})
+  vistk_make_test(python-${group} ${instance}
+    ${python_chdir} ${python_module_path} ${ARGN})
 endfunction (vistk_make_python_test)
 
 add_subdirectory(pipeline)
