@@ -7,6 +7,16 @@ vistk_build_python_test(config test-config.py)
 
 vistk_make_python_test(config import)
 vistk_make_python_test(config create)
+vistk_make_python_test(config has_value)
+vistk_make_python_test(config get_value)
+vistk_make_python_test(config get_value_no_exist)
+vistk_make_python_test(config unset_value)
+vistk_make_python_test(config available_values)
+vistk_make_python_test(config read_only)
+vistk_make_python_test(config read_only_unset)
+vistk_make_python_test(config subblock)
+vistk_make_python_test(config subblock_view)
+vistk_make_python_test(config merge_config)
 
 ##############################
 # Datum tests
