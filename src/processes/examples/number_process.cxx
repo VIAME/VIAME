@@ -82,6 +82,7 @@ number_process
 
   if (d->current == d->end)
   {
+    mark_as_complete();
     dat = datum::complete_datum();
   }
   else
