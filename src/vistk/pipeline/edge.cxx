@@ -83,7 +83,7 @@ size_t
 edge
 ::datum_count() const
 {
-  boost::unique_lock<boost::mutex> lock(d->mutex);
+  boost::mutex::scoped_lock lock(d->mutex);
 
   (void)lock;
 
@@ -94,7 +94,7 @@ void
 edge
 ::push_datum(edge_datum_t const& datum)
 {
-  boost::unique_lock<boost::mutex> lock(d->mutex);
+  boost::mutex::scoped_lock lock(d->mutex);
 
   (void)lock;
 
@@ -116,7 +116,7 @@ edge_datum_t
 edge
 ::peek_datum()
 {
-  boost::unique_lock<boost::mutex> lock(d->mutex, boost::defer_lock);
+  boost::mutex::scoped_lock lock(d->mutex, boost::defer_lock);
 
   while (!has_data())
   {
@@ -132,7 +132,7 @@ void
 edge
 ::pop_datum()
 {
-  boost::unique_lock<boost::mutex> lock(d->mutex, boost::defer_lock);
+  boost::mutex::scoped_lock lock(d->mutex, boost::defer_lock);
 
   while (!has_data())
   {
