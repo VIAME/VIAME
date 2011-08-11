@@ -47,6 +47,10 @@ class VISTK_PIPELINE_EXPORT schedule
      */
     virtual void start() = 0;
     /**
+     * \brief Waits until execution is finished.
+     */
+    virtual void wait() = 0;
+    /**
      * \brief Stop execution of the pipeline.
      *
      * \warning Implementations should *not* return if they fail to stop the
