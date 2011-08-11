@@ -21,6 +21,10 @@ namespace vistk
  *
  * \process A process for generating numbers.
  *
+ * \iports
+ *
+ * \iport{color} The color to use for the output stamps.
+ *
  * \oports
  *
  * \oport{number} The number generated for the step.
@@ -61,6 +65,14 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     void _step();
 
     /**
+     * \brief Connects an edge to an input port on the process.
+     *
+     * \param port The port to connect to.
+     * \param edge The edge to connect to the port.
+     */
+    void _connect_input_port(port_t const& port, edge_ref_t edge);
+
+    /**
      * \brief Connects an edge to an output port on the process.
      *
      * \param port The port to connect to.
@@ -69,9 +81,16 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     void _connect_output_port(port_t const& port, edge_ref_t edge);
 
     /**
-     * \brief Information about an output port on the process.
+     * \brief Information about an input port on the process.
      *
-     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     * \param port The port to return information about.
+     *
+     * \returns Information about the input port.
+     */
+    port_info_t _input_port_info(port_t const& port) const;
+
+    /**
+     * \brief Information about an output port on the process.
      *
      * \param port The port to return information about.
      *
@@ -94,7 +113,12 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     conf_info_t _config_info(config::key_t const& key) const;
 
     /**
-     * \brief Lists the ports available on the process.
+     * \brief Lists the input ports available on the process.
+     */
+    ports_t _input_ports() const;
+
+    /**
+     * \brief Lists the output ports available on the process.
      */
     ports_t _output_ports() const;
   private:
