@@ -119,7 +119,7 @@ test_has_value()
 
   if (!config->has_value(keya))
   {
-    std::cerr << "Error: Block does not have value which set" << std::endl;
+    std::cerr << "Error: Block does not have value which was set" << std::endl;
   }
 
   if (config->has_value(keyb))
@@ -155,7 +155,6 @@ test_get_value_no_exist()
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
   vistk::config::value_t const valueb = vistk::config::value_t("value_b");
 
   EXPECT_EXCEPTION(vistk::no_such_configuration_value_exception,
@@ -218,7 +217,7 @@ test_unset_value()
 
   if (valueb != get_valueb)
   {
-    std::cerr << "Error: Did not retrieve default when requesting value after an unrelated unset" << std::endl;
+    std::cerr << "Error: Did not retrieve value when requesting after an unrelated unset" << std::endl;
   }
 }
 
