@@ -54,14 +54,14 @@ void
 thread_per_process_schedule
 ::wait()
 {
-  /// \todo Wait for completion.
+  d->process_threads.join_all();
 }
 
 void
 thread_per_process_schedule
 ::stop()
 {
-  /// \todo Shut the schedule down.
+  d->process_threads.interrupt_all();
 }
 
 thread_per_process_schedule::priv
