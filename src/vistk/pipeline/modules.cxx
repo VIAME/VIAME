@@ -164,8 +164,8 @@ void load_from_module(module_path_t const path)
   schedule_function = dlsym(library, schedule_function_name.c_str());
 #endif
 
-  load_module_t process_registrar = reinterpret_cast<load_module_t>(process_function);
-  load_module_t schedule_registrar = reinterpret_cast<load_module_t>(schedule_function);
+  load_module_t const process_registrar = reinterpret_cast<load_module_t>(process_function);
+  load_module_t const schedule_registrar = reinterpret_cast<load_module_t>(schedule_function);
 
   bool functions_found = false;
 
