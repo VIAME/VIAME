@@ -29,6 +29,7 @@ class wrap_schedule
     ~wrap_schedule();
 
     void start();
+    void wait();
     void stop();
 };
 
@@ -40,6 +41,7 @@ BOOST_PYTHON_MODULE(schedule)
   class_<wrap_schedule, boost::noncopyable>("Schedule", no_init)
     .def(init<vistk::config_t, vistk::pipeline_t>())
     .def("start", pure_virtual(&vistk::schedule::start))
+    .def("wait", pure_virtual(&vistk::schedule::wait))
     .def("stop", pure_virtual(&vistk::schedule::stop))
   ;
 }
@@ -66,6 +68,13 @@ wrap_schedule
 ::start()
 {
   this->get_override("start")();
+}
+
+void
+wrap_schedule
+::wait()
+{
+  this->get_override("wait")();
 }
 
 void
