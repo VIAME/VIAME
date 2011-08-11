@@ -48,6 +48,7 @@ main(int argc, char* argv[])
 }
 
 static void test_simple_pipeline();
+static void test_multiplier_pipeline();
 
 void
 run_test(std::string const& test_name)
@@ -55,6 +56,10 @@ run_test(std::string const& test_name)
   if (test_name == "simple_pipeline")
   {
     test_simple_pipeline();
+  }
+  else if (test_name == "multiplier_pipeline")
+  {
+    test_multiplier_pipeline();
   }
   else
   {
@@ -141,6 +146,129 @@ test_simple_pipeline()
     {
       std::cerr << "Error: Did not get expected value: "
                 << "Expected: " << i << " "
+                << "Received: " << line << std::endl;
+    }
+  }
+
+  std::getline(fin, line);
+
+  if (!line.empty())
+  {
+    std::cerr << "Error: Empty line missing" << std::endl;
+  }
+
+  if (!fin.eof())
+  {
+    std::cerr << "Error: Not at end of file" << std::endl;
+  }
+}
+
+void
+test_multiplier_pipeline()
+{
+  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+
+  vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
+  vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
+  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+
+  std::string const output_path = "test-run-simple_pipeline-print_number.txt";
+
+  uint32_t const start_value1 = 10;
+  uint32_t const end_value1 = 20;
+
+  uint32_t const start_value2 = 10;
+  uint32_t const end_value2= 30;
+
+  {
+    vistk::config_t configu1 = vistk::config::empty_config();
+
+    vistk::config::key_t const start_key = vistk::config::key_t("start");
+    vistk::config::key_t const end_key = vistk::config::key_t("end");
+
+    vistk::config::value_t const start_num1 = boost::lexical_cast<vistk::config::value_t>(start_value1);
+    vistk::config::value_t const end_num1 = boost::lexical_cast<vistk::config::value_t>(end_value1);
+
+    configu1->set_value(start_key, start_num1);
+    configu1->set_value(end_key, end_num1);
+
+    vistk::config_t configu2 = vistk::config::empty_config();
+
+    vistk::config::value_t const start_num2 = boost::lexical_cast<vistk::config::value_t>(start_value2);
+    vistk::config::value_t const end_num2 = boost::lexical_cast<vistk::config::value_t>(end_value2);
+
+    configu2->set_value(start_key, start_num2);
+    configu2->set_value(end_key, end_num2);
+
+    vistk::config_t configt = vistk::config::empty_config();
+
+    vistk::config::key_t const output_key = vistk::config::key_t("output");
+    vistk::config::value_t const output_value = vistk::config::value_t("test-run-simple_pipeline-print_number.txt");
+
+    configt->set_value(output_key, output_value);
+
+    vistk::process_t const processu1 = create_process(proc_typeu, proc_nameu1, configu1);
+    vistk::process_t const processu2 = create_process(proc_typeu, proc_nameu2, configu2);
+    vistk::process_t const processd = create_process(proc_typed, proc_named);
+    vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+
+    vistk::pipeline_t pipeline = create_pipeline();
+
+    pipeline->add_process(processu1);
+    pipeline->add_process(processu2);
+    pipeline->add_process(processd);
+    pipeline->add_process(processt);
+
+    vistk::process::port_t const port_nameu = vistk::process::port_t("number");
+    vistk::process::port_t const port_name_color = vistk::process::port_t("color");
+    vistk::process::port_t const port_named1 = vistk::process::port_t("factor1");
+    vistk::process::port_t const port_named2 = vistk::process::port_t("factor2");
+    vistk::process::port_t const port_namedo = vistk::process::port_t("product");
+    vistk::process::port_t const port_namet = vistk::process::port_t("number");
+
+    pipeline->connect(proc_nameu1, vistk::process::port_heartbeat,
+                      proc_nameu2, port_name_color);
+    pipeline->connect(proc_nameu1, port_nameu,
+                      proc_named, port_named1);
+    pipeline->connect(proc_nameu2, port_nameu,
+                      proc_named, port_named2);
+    pipeline->connect(proc_named, port_namedo,
+                      proc_namet, port_namet);
+
+    pipeline->setup_pipeline();
+
+    vistk::schedule_registry_t const reg = vistk::schedule_registry::self();
+
+    vistk::schedule_registry::type_t const schedule_type = vistk::schedule_registry::type_t("thread_per_process");
+    vistk::config_t const schedule_config = vistk::config::empty_config();
+
+    vistk::schedule_t schedule = reg->create_schedule(schedule_type, schedule_config, pipeline);
+
+    schedule->start();
+    schedule->wait();
+  }
+
+  std::ifstream fin(output_path.c_str());
+
+  if (!fin.good())
+  {
+    std::cerr << "Error: Could not open the output file" << std::endl;
+  }
+
+  std::string line;
+
+  for (uint32_t i = start_value1, j = start_value2;
+       (i < end_value1) && (j < end_value2); ++i, ++j)
+  {
+    std::getline(fin, line);
+
+    if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i * j))
+    {
+      std::cerr << "Error: Did not get expected value: "
+                << "Expected: " << i * j << " "
                 << "Received: " << line << std::endl;
     }
   }

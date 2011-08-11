@@ -137,3 +137,4 @@ vistk_make_test(schedule_registry unknown_types)
 vistk_build_test(run libraries test_run.cxx)
 
 vistk_make_test(run simple_pipeline)
+vistk_make_test(run multiplier_pipeline)
