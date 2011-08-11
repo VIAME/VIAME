@@ -74,12 +74,45 @@ thread_per_process_schedule::priv
 {
 }
 
+static config_t monitor_edge_config();
+
 void
 run_process(process_t process)
 {
-  name_thread(process->name());
+  static config_t edge_conf = monitor_edge_config();
 
-  /// \todo Run the process until it is complete.
+  name_thread(process->name());
+  edge_t monitor_edge = edge_t(new edge(edge_conf));
+
+  process->connect_output_port(process::port_heartbeat, monitor_edge);
+
+  bool complete = false;
+
+  while (!complete)
+  {
+    process->step();
+
+    while (monitor_edge->has_data())
+    {
+      edge_datum_t const edat = monitor_edge->get_datum();
+      datum_t const dat = edat.get<0>();
+
+      if (dat->type() == datum::DATUM_COMPLETE)
+      {
+        complete = true;
+      }
+    }
+
+    boost::this_thread::interruption_point();
+  }
+}
+
+config_t
+monitor_edge_config()
+{
+  config_t conf = config::empty_config();
+
+  return conf;
 }
 
 }
