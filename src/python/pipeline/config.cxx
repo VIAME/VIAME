@@ -17,8 +17,6 @@
 
 using namespace boost::python;
 
-static vistk::config_t empty_config();
-static vistk::config_t named_empty_config(vistk::config::key_t const& name);
 static vistk::config::value_t get_value(vistk::config_t self, vistk::config::key_t const& key);
 static vistk::config::value_t get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def);
 static void translator(vistk::configuration_exception const& e);
@@ -79,18 +77,6 @@ BOOST_PYTHON_MODULE(config)
     .def_readonly("global_value", &vistk::config::global_value
       , "A special key which is automatically inherited on subblock requests.")
   ;
-}
-
-vistk::config_t
-empty_config()
-{
-  return vistk::config::empty_config();
-}
-
-vistk::config_t
-named_empty_config(vistk::config::key_t const& name)
-{
-  return vistk::config::empty_config(name);
 }
 
 vistk::config::value_t
