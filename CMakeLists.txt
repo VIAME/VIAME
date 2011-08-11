@@ -88,6 +88,16 @@ else (WIN32)
     set(vistk_warnings "-Werror ${vistk_warnings}")
   endif (VISTK_ENABLE_WERROR)
 
+  option(VISTK_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
+  if (VISTK_ENABLE_NITPICK)
+    set(vistk_warnings "-Wunsafe-loop-optimizations -Wsign-promo -Winline -Weffc++ ${vistk_warnings}")
+  endif (VISTK_ENABLE_NITPICK)
+
+  option(VISTK_ENABLE_WERROR "Treat all warnings as errors" OFF)
+  if (VISTK_ENABLE_WERROR)
+    set(vistk_warnings "-Werror ${vistk_warnings}")
+  endif (VISTK_ENABLE_WERROR)
+
   if (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
     option(VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR "Use clang to flag undefined behavior")
     if (VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
