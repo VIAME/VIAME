@@ -130,3 +130,10 @@ vistk_make_test(schedule_registry load_schedules)
 vistk_make_test(schedule_registry null_ctor)
 vistk_make_test(schedule_registry duplicate_types)
 vistk_make_test(schedule_registry unknown_types)
+
+##############################
+# Running tests
+##############################
+vistk_build_test(run libraries test_run.cxx)
+
+vistk_make_test(run simple_pipeline)
