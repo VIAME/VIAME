@@ -30,6 +30,8 @@ class edge::priv
     priv();
     ~priv();
 
+    bool has_data() const;
+
     bool required;
 
     process_t upstream;
@@ -208,6 +210,13 @@ edge::priv
 edge::priv
 ::~priv()
 {
+}
+
+bool
+edge::priv
+::has_data() const
+{
+  return (q.size() != 0);
 }
 
 }
