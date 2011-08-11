@@ -30,6 +30,7 @@ thread_per_process_schedule
 ::thread_per_process_schedule(config_t const& config, pipeline_t const& pipe)
   : schedule(config, pipe)
 {
+  d = boost::shared_ptr<priv>(new priv);
 }
 
 thread_per_process_schedule
