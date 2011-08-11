@@ -71,7 +71,9 @@ bool
 edge
 ::has_data() const
 {
-  return (datum_count() != 0);
+  boost::mutex::scoped_lock lock(d->mutex);
+
+  return d->has_data();
 }
 
 bool
@@ -96,11 +98,15 @@ void
 edge
 ::push_datum(edge_datum_t const& datum)
 {
-  boost::mutex::scoped_lock lock(d->mutex);
+  {
+    boost::mutex::scoped_lock lock(d->mutex);
 
-  (void)lock;
+    (void)lock;
 
-  d->q.push(datum);
+    d->q.push(datum);
+  }
+
+  d->cond_have_data.notify_one();
 }
 
 edge_datum_t
@@ -118,14 +124,12 @@ edge_datum_t
 edge
 ::peek_datum()
 {
-  boost::mutex::scoped_lock lock(d->mutex, boost::defer_lock);
+  boost::mutex::scoped_lock lock(d->mutex);
 
-  while (!has_data())
+  while (!d->has_data())
   {
     d->cond_have_data.wait(lock);
   }
-
-  lock.lock();
 
   return d->q.front();
 }
@@ -134,14 +138,12 @@ void
 edge
 ::pop_datum()
 {
-  boost::mutex::scoped_lock lock(d->mutex, boost::defer_lock);
+  boost::mutex::scoped_lock lock(d->mutex);
 
-  while (!has_data())
+  while (!d->has_data())
   {
     d->cond_have_data.wait(lock);
   }
-
-  lock.lock();
 
   d->q.pop();
 }
