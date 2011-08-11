@@ -41,6 +41,7 @@ vistk_make_python_test(edge import)
 vistk_build_python_test(modules test-modules.py)
 
 vistk_make_python_test(modules import)
+vistk_make_python_test(modules load)
 
 ##############################
 # Pipeline tests

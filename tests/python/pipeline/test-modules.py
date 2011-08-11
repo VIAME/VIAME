@@ -17,9 +17,17 @@ def test_import():
         log("Error: Failed to import the modules module")
 
 
+def test_load():
+    from vistk.pipeline import modules
+
+    modules.load_known_modules()
+
+
 def main(testname):
     if testname == 'import':
         test_import()
+    elif testname == 'load':
+        test_load()
     else:
         log("Error: No such test '%s'\n" % testname)
 
