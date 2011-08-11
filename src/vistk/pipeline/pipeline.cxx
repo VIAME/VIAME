@@ -312,8 +312,8 @@ pipeline
           // Check for required flags.
           process::port_flags_t const port_flags = process->input_port_info(port)->flags;
 
-          process::port_flags_t::const_iterator const i = port_flags.find(process::flag_required);
-          if (i != port_flags.end())
+          process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
+          if (f != port_flags.end())
           {
             if (!input_edge_for_port(cur_proc, port))
             {
@@ -331,8 +331,8 @@ pipeline
           // Check for required flags.
           process::port_flags_t const port_flags = process->output_port_info(port)->flags;
 
-          process::port_flags_t::const_iterator const i = port_flags.find(process::flag_required);
-          if (i != port_flags.end())
+          process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
+          if (f != port_flags.end())
           {
             if (output_edges_for_port(cur_proc, port).empty())
             {

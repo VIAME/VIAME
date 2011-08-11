@@ -100,13 +100,13 @@ class VISTK_PIPELINE_EXPORT process
         /**
          * \brief Constructor.
          *
-         * \param type The type of the port.
-         * \param flags Flags for the port.
-         * \param description A description of the port.
+         * \param type_ The type of the port.
+         * \param flags_ Flags for the port.
+         * \param description_ A description of the port.
          */
-        port_info(port_type_t const& type,
-                  port_flags_t const& flags,
-                  port_description_t const& description);
+        port_info(port_type_t const& type_,
+                  port_flags_t const& flags_,
+                  port_description_t const& description_);
         /**
          * \brief Destructor.
          */
@@ -133,11 +133,11 @@ class VISTK_PIPELINE_EXPORT process
         /**
          * \brief Constructor.
          *
-         * \param def The default value for the parameter.
-         * \param description A description of the value.
+         * \param def_ The default value for the parameter.
+         * \param description_ A description of the value.
          */
-        conf_info(config::value_t const& def,
-                  config::description_t const& description);
+        conf_info(config::value_t const& def_,
+                  config::description_t const& description_);
         /**
          * \brief Destructor.
          */

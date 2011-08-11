@@ -25,7 +25,7 @@ class wrap_schedule
   , public wrapper<vistk::schedule>
 {
   public:
-    wrap_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipeline);
+    wrap_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipe);
     ~wrap_schedule();
 
     void start();
@@ -51,8 +51,8 @@ translator(vistk::schedule_exception const& e)
 }
 
 wrap_schedule
-::wrap_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipeline)
-  : vistk::schedule(config, pipeline)
+::wrap_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipe)
+  : vistk::schedule(config, pipe)
 {
 }
 

@@ -37,12 +37,12 @@ process::port_flag_t const process::flag_input_mutable = port_flag_t("_mutable")
 process::port_flag_t const process::flag_required = port_flag_t("_required");
 
 process::port_info
-::port_info(port_type_t const& type,
-            port_flags_t const& flags,
-            port_description_t const& description)
-  : type(type)
-  , flags(flags)
-  , description(description)
+::port_info(port_type_t const& type_,
+            port_flags_t const& flags_,
+            port_description_t const& description_)
+  : type(type_)
+  , flags(flags_)
+  , description(description_)
 {
 }
 
@@ -52,10 +52,10 @@ process::port_info
 }
 
 process::conf_info
-::conf_info(config::value_t const& def,
-              config::description_t const& description)
-  : def(def)
-  , description(description)
+::conf_info(config::value_t const& def_,
+            config::description_t const& description_)
+  : def(def_)
+  , description(description_)
 {
 }
 
