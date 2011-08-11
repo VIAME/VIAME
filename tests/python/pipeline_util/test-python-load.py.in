@@ -4,29 +4,29 @@
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
-import sys
 
-
-stderr = sys.stderr
+def log(msg):
+    import sys
+    sys.stderr.write("%s\n" % msg)
 
 
 def test_import():
     try:
         import vistk.pipeline_util.load
     except:
-        stderr.write("Error: Failed to import the load module")
+        log("Error: Failed to import the load module")
 
 
 def main(testname):
     if testname == 'import':
         test_import()
     else:
-        stderr.write("Error: No such test '%s'" % testname)
+        log("Error: No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
     if not len(sys.argv) == 3:
-        stderr.write("Error: Expected two arguments")
+        log("Error: Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
