@@ -66,35 +66,34 @@ multiplication_process
   bool const colored = same_colored_edges(d->input_edges);
   bool const syncd = syncd_edges(d->input_edges);
 
-  if (!colored)
+  edge_datum_t const factor1_dat = grab_from_edge_ref(d->input_edge_factor1);
+  edge_datum_t const factor2_dat = grab_from_edge_ref(d->input_edge_factor2);
+
+  edge_data_t input_dats;
+
+  input_dats.push_back(factor1_dat);
+  input_dats.push_back(factor2_dat);
+
+  st = factor1_dat.get<1>();
+
+  datum::datum_type_t const max_type = max_status(input_dats);
+
+  switch (max_type)
   {
-    st = heartbeat_stamp();
+    case datum::DATUM_DATA:
+      if (!colored)
+      {
+        st = heartbeat_stamp();
 
-    dat = datum::error_datum("The input edges are not colored the same.");
-  }
-  else if (!syncd)
-  {
-    st = heartbeat_stamp();
+        dat = datum::error_datum("The input edges are not colored the same.");
+      }
+      else if (!syncd)
+      {
+        st = heartbeat_stamp();
 
-    dat = datum::error_datum("The input edges are not synchronized.");
-  }
-  else
-  {
-    edge_datum_t const factor1_dat = grab_from_edge_ref(d->input_edge_factor1);
-    edge_datum_t const factor2_dat = grab_from_edge_ref(d->input_edge_factor2);
-
-    edge_data_t input_dats;
-
-    input_dats.push_back(factor1_dat);
-    input_dats.push_back(factor2_dat);
-
-    st = factor1_dat.get<1>();
-
-    datum::datum_type_t const max_type = max_status(input_dats);
-
-    switch (max_type)
-    {
-      case datum::DATUM_DATA:
+        dat = datum::error_datum("The input edges are not synchronized.");
+      }
+      else
       {
         priv::number_t const factor1 = factor1_dat.get<0>()->get_datum<priv::number_t>();
         priv::number_t const factor2 = factor2_dat.get<0>()->get_datum<priv::number_t>();
@@ -102,23 +101,22 @@ multiplication_process
         priv::number_t const product = factor1 * factor2;
 
         dat = datum::new_datum(product);
-        break;
       }
-      case datum::DATUM_EMPTY:
-        dat = datum::empty_datum();
-        break;
-      case datum::DATUM_COMPLETE:
-        mark_as_complete();
-        dat = datum::complete_datum();
-        break;
-      case datum::DATUM_ERROR:
-        dat = datum::error_datum("Error on the input edges.");
-        break;
-      case datum::DATUM_INVALID:
-      default:
-        dat = datum::error_datum("Unrecognized datum type.");
-        break;
-    }
+      break;
+    case datum::DATUM_EMPTY:
+      dat = datum::empty_datum();
+      break;
+    case datum::DATUM_COMPLETE:
+      mark_as_complete();
+      dat = datum::complete_datum();
+      break;
+    case datum::DATUM_ERROR:
+      dat = datum::error_datum("Error on the input edges.");
+      break;
+    case datum::DATUM_INVALID:
+    default:
+      dat = datum::error_datum("Unrecognized datum type.");
+      break;
   }
 
   edge_datum_t const edat = edge_datum_t(dat, st);
