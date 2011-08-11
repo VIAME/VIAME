@@ -38,10 +38,8 @@ static void pipe_block_connect_set(vistk::pipe_block& block, vistk::connect_pipe
 static object pipe_block_group(vistk::pipe_block const& block);
 static void pipe_block_group_set(vistk::pipe_block& block, vistk::group_pipe_block const& group);
 static vistk::pipe_blocks load_pipe_file(std::string const& path);
-static vistk::pipe_blocks load_pipe(object const& stream, std::string const& inc_root = "");
+static vistk::pipe_blocks load_pipe(object const& stream, std::string const& inc_root);
 static void translator(vistk::load_pipe_exception const& e);
-
-BOOST_PYTHON_FUNCTION_OVERLOADS(load_pipe_overloads, load_pipe, 1, 2);
 
 BOOST_PYTHON_MODULE(load)
 {
@@ -121,8 +119,12 @@ BOOST_PYTHON_MODULE(load)
     //.def(vector_indexing_suite<vistk::pipe_blocks>())
   ;
 
-  def("load_pipe_file", &load_pipe_file);
-  def("load_pipe", &load_pipe, load_pipe_overloads());
+  def("load_pipe_file", &load_pipe_file
+    , (arg("path"))
+    , "Load pipe blocks from a file.");
+  def("load_pipe", &load_pipe
+    , (arg("stream"), arg("inc_root") = std::string())
+    , "Load pipe blocks from a stream.");
 }
 
 void

@@ -24,20 +24,26 @@
 using namespace boost::python;
 
 static vistk::pipeline_t bake_pipe_file(std::string const& path);
-static vistk::pipeline_t bake_pipe(object stream, std::string const& inc_root = "");
+static vistk::pipeline_t bake_pipe(object stream, std::string const& inc_root);
 static void translator(vistk::pipe_bakery_exception const& e);
-
-BOOST_PYTHON_FUNCTION_OVERLOADS(bake_pipe_overloads, bake_pipe, 1, 2);
 
 BOOST_PYTHON_MODULE(bake)
 {
   register_exception_translator<
     vistk::pipe_bakery_exception>(translator);
 
-  def("bake_pipe_file", &bake_pipe_file);
-  def("bake_pipe", &bake_pipe);
-  def("bake_pipe_blocks", &vistk::bake_pipe_blocks);
-  def("extract_configuration", &vistk::extract_configuration);
+  def("bake_pipe_file", &bake_pipe_file
+    , (arg("path"))
+    , "Build a pipeline from a file.");
+  def("bake_pipe", &bake_pipe
+    , (arg("stream"), arg("inc_root") = std::string())
+    , "Build a pipeline from a stream.");
+  def("bake_pipe_blocks", &vistk::bake_pipe_blocks
+    , (arg("blocks"))
+    , "Build a pipeline from pipe blocks.");
+  def("extract_configuration", &vistk::extract_configuration
+    , (arg("blocks"))
+    , "Extract the configuration from pipe blocks.");
 }
 
 vistk::pipeline_t
