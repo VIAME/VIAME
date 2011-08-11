@@ -44,6 +44,10 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_per_process_schedule
      */
     virtual void start();
     /**
+     * \brief Waits until execution is finished.
+     */
+    virtual void wait();
+    /**
      * \brief Stop execution of the pipeline.
      */
     virtual void stop();

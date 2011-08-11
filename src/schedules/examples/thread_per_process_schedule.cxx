@@ -52,6 +52,13 @@ thread_per_process_schedule
 
 void
 thread_per_process_schedule
+::wait()
+{
+  /// \todo Wait for completion.
+}
+
+void
+thread_per_process_schedule
 ::stop()
 {
   /// \todo Shut the schedule down.

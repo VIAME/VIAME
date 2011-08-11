@@ -46,6 +46,13 @@ thread_pool_schedule
 
 void
 thread_pool_schedule
+::wait()
+{
+  /// \todo Wait until execution is finished.
+}
+
+void
+thread_pool_schedule
 ::stop()
 {
   /// \todo Shut the schedule down.
