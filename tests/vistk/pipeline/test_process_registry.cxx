@@ -186,7 +186,7 @@ test_unknown_types()
 }
 
 vistk::process_t
-null_process(vistk::config_t const& config)
+null_process(vistk::config_t const& /*config*/)
 {
   return vistk::process_t();
 }

@@ -208,7 +208,7 @@ test_unknown_types()
 }
 
 vistk::schedule_t
-null_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipeline)
+null_schedule(vistk::config_t const& /*config*/, vistk::pipeline_t const& /*pipeline*/)
 {
   return vistk::schedule_t();
 }
