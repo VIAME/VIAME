@@ -33,8 +33,8 @@ class wrap_process
 
     void _step();
 
-    void _connect_input_port(port_t const& port, vistk::edge_t edge);
-    void _connect_output_port(port_t const& port, vistk::edge_t edge);
+    void _connect_input_port(port_t const& port, vistk::edge_ref_t edge);
+    void _connect_output_port(port_t const& port, vistk::edge_ref_t edge);
 
     ports_t _input_ports() const;
     ports_t _output_ports() const;
@@ -204,7 +204,7 @@ wrap_process
 
 void
 wrap_process
-::_connect_input_port(port_t const& port, vistk::edge_t edge)
+::_connect_input_port(port_t const& port, vistk::edge_ref_t edge)
 {
   override f = get_override("_connect_input_port");
 
@@ -223,7 +223,7 @@ wrap_process
 
 void
 wrap_process
-::_connect_output_port(port_t const& port, vistk::edge_t edge)
+::_connect_output_port(port_t const& port, vistk::edge_ref_t edge)
 {
   override f = get_override("_connect_output_port");
 
