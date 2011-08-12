@@ -29,4 +29,7 @@ vistk_make_python_load_test(export_ simple_pipeline)
 ##############################
 vistk_build_python_test(load test-load.py)
 
-vistk_make_python_test(load import)
+vistk_make_python_load_test(load import)
+vistk_make_python_load_test(load create)
+vistk_make_python_load_test(load api_calls)
+vistk_make_python_load_test(load simple_pipeline)
