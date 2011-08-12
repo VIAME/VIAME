@@ -28,7 +28,9 @@ BOOST_PYTHON_MODULE(edge)
   register_exception_translator<
     vistk::edge_exception>(translator);
 
-  class_<vistk::edge_datum_t>("EdgeDatum")
+  class_<vistk::edge_datum_t>("EdgeDatum"
+    , no_init)
+    .def(init<vistk::datum_t, vistk::stamp_t>())
     .def("datum", &datum_from_edge)
     .def("stamp", &stamp_from_edge)
   ;
