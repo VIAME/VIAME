@@ -25,6 +25,7 @@ using namespace boost::python;
 
 static vistk::pipeline_t bake_pipe_file(std::string const& path);
 static vistk::pipeline_t bake_pipe(object stream, std::string const& inc_root);
+
 static void translator(vistk::pipe_bakery_exception const& e);
 
 BOOST_PYTHON_MODULE(bake)

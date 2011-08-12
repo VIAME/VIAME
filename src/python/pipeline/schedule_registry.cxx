@@ -23,6 +23,7 @@ static void register_schedule(vistk::schedule_registry_t self,
                               vistk::schedule_registry::type_t const& type,
                               vistk::schedule_registry::description_t const& desc,
                               object obj);
+
 static void translator(vistk::schedule_registry_exception const& e);
 
 BOOST_PYTHON_MODULE(schedule_registry)

@@ -21,6 +21,7 @@ using namespace boost::python;
 
 static vistk::datum_t datum_from_edge(vistk::edge_datum_t const& edatum);
 static vistk::stamp_t stamp_from_edge(vistk::edge_datum_t const& edatum);
+
 static void translator(vistk::edge_exception const& e);
 
 BOOST_PYTHON_MODULE(edge)

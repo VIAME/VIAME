@@ -23,6 +23,7 @@ static void register_process(vistk::process_registry_t self,
                              vistk::process_registry::type_t const& type,
                              vistk::process_registry::description_t const& desc,
                              object obj);
+
 static void translator(vistk::process_registry_exception const& e);
 
 BOOST_PYTHON_MODULE(process_registry)

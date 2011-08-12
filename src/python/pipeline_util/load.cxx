@@ -39,6 +39,7 @@ static object pipe_block_group(vistk::pipe_block const& block);
 static void pipe_block_group_set(vistk::pipe_block& block, vistk::group_pipe_block const& group);
 static vistk::pipe_blocks load_pipe_file(std::string const& path);
 static vistk::pipe_blocks load_pipe(object const& stream, std::string const& inc_root);
+
 static void translator(vistk::load_pipe_exception const& e);
 
 BOOST_PYTHON_MODULE(load)
