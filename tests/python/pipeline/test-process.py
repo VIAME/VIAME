@@ -21,7 +21,7 @@ def main(testname):
     if testname == 'import':
         test_import()
     else:
-        log("Error: No such test '%s'\n" % testname)
+        log("Error: No such test '%s'" % testname)
 
 
 if __name__ == '__main__':

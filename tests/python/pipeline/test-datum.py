@@ -95,7 +95,7 @@ def main(testname):
     elif testname == 'error':
         test_error()
     else:
-        log("Error: No such test '%s'\n" % testname)
+        log("Error: No such test '%s'" % testname)
 
 
 if __name__ == '__main__':

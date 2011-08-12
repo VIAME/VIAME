@@ -29,7 +29,7 @@ def main(testname):
     elif testname == 'load':
         test_load()
     else:
-        log("Error: No such test '%s'\n" % testname)
+        log("Error: No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
