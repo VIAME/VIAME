@@ -19,8 +19,10 @@
 
 using namespace boost::python;
 
-static vistk::datum_t datum_from_edge(vistk::edge_datum_t const& edatum);
-static vistk::stamp_t stamp_from_edge(vistk::edge_datum_t const& edatum);
+static vistk::datum_t edge_datum_datum(vistk::edge_datum_t const& edatum);
+static void edge_datum_datum_set(vistk::edge_datum_t& edatum, vistk::datum_t const& dat);
+static vistk::stamp_t edge_datum_stamp(vistk::edge_datum_t const& edatum);
+static void edge_datum_stamp_set(vistk::edge_datum_t& edatum, vistk::stamp_t const& st);
 
 static void translator(vistk::edge_exception const& e);
 
@@ -32,8 +34,8 @@ BOOST_PYTHON_MODULE(edge)
   class_<vistk::edge_datum_t>("EdgeDatum"
     , no_init)
     .def(init<vistk::datum_t, vistk::stamp_t>())
-    .def("datum", &datum_from_edge)
-    .def("stamp", &stamp_from_edge)
+    .add_property("datum", &edge_datum_datum, &edge_datum_datum_set)
+    .add_property("stamp", &edge_datum_stamp, &edge_datum_stamp_set)
   ;
   class_<vistk::edge_data_t>("EdgeData")
     .def(vector_indexing_suite<vistk::edge_data_t>())
@@ -61,15 +63,27 @@ BOOST_PYTHON_MODULE(edge)
 }
 
 vistk::datum_t
-datum_from_edge(vistk::edge_datum_t const& edatum)
+edge_datum_datum(vistk::edge_datum_t const& edatum)
 {
   return edatum.get<0>();
 }
 
+void
+edge_datum_datum_set(vistk::edge_datum_t& edatum, vistk::datum_t const& dat)
+{
+  boost::get<0>(edatum) = dat;
+}
+
 vistk::stamp_t
-stamp_from_edge(vistk::edge_datum_t const& edatum)
+edge_datum_stamp(vistk::edge_datum_t const& edatum)
 {
   return edatum.get<1>();
+}
+
+void
+edge_datum_stamp_set(vistk::edge_datum_t& edatum, vistk::stamp_t const& st)
+{
+  boost::get<1>(edatum) = st;
 }
 
 void
