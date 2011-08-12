@@ -28,7 +28,6 @@ class multiplication_process::priv
     edge_ref_t input_edge_factor1;
     edge_ref_t input_edge_factor2;
 
-    edge_group_t input_edges;
     edge_group_t output_edges;
 
     port_info_t factor1_port_info;
@@ -63,9 +62,6 @@ multiplication_process
   datum_t dat;
   stamp_t st;
 
-  bool const colored = same_colored_edges(d->input_edges);
-  bool const syncd = syncd_edges(d->input_edges);
-
   edge_datum_t const factor1_dat = grab_from_edge_ref(d->input_edge_factor1);
   edge_datum_t const factor2_dat = grab_from_edge_ref(d->input_edge_factor2);
 
@@ -81,13 +77,13 @@ multiplication_process
   switch (max_type)
   {
     case datum::DATUM_DATA:
-      if (!colored)
+      if (!same_colored_data(input_dats))
       {
         st = heartbeat_stamp();
 
         dat = datum::error_datum("The input edges are not colored the same.");
       }
-      else if (!syncd)
+      else if (!syncd_data(input_dats))
       {
         st = heartbeat_stamp();
 
@@ -138,7 +134,6 @@ multiplication_process
     }
 
     d->input_edge_factor1 = edge;
-    d->input_edges.push_back(d->input_edge_factor1);
 
     return;
   }
@@ -150,7 +145,6 @@ multiplication_process
     }
 
     d->input_edge_factor2 = edge;
-    d->input_edges.push_back(d->input_edge_factor2);
 
     return;
   }
