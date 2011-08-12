@@ -96,3 +96,5 @@ vistk_make_python_test(schedule_registry register)
 vistk_build_python_test(stamp test-stamp.py)
 
 vistk_make_python_test(stamp import)
+vistk_make_python_test(stamp create)
+vistk_make_python_test(stamp api_calls)
