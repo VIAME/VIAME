@@ -13,7 +13,8 @@ endfunction (vistk_make_python_load_test name instance)
 ##############################
 vistk_build_python_test(bake test-bake.py)
 
-vistk_make_python_test(bake import)
+vistk_make_python_load_test(bake import)
+vistk_make_python_load_test(bake simple_pipeline)
 
 ##############################
 # Export tests
