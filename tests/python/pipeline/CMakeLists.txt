@@ -62,6 +62,8 @@ vistk_make_python_test(pipeline api_calls)
 vistk_build_python_test(process test-process.py)
 
 vistk_make_python_test(process import)
+vistk_make_python_test(process create)
+vistk_make_python_test(process api_calls)
 
 ##############################
 # Process registry tests

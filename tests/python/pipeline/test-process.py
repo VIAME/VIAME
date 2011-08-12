@@ -17,9 +17,38 @@ def test_import():
         log("Error: Failed to import the process module")
 
 
+def test_create():
+    from vistk.pipeline import process
+
+    process.ProcessName()
+    process.ProcessNames()
+    process.PortDescription()
+    process.Port()
+    process.Ports()
+    process.PortType()
+    process.PortFlag()
+    process.PortFlags()
+    process.PortAddr()
+    process.PortAddrs()
+
+
+def test_api_calls():
+    from vistk.pipeline import process
+
+    a = process.PortAddr()
+    a.process
+    a.port
+    a.process = ''
+    a.port = ''
+
+
 def main(testname):
     if testname == 'import':
         test_import()
+    elif testname == 'create':
+        test_create()
+    elif testname == 'api_calls':
+        test_api_calls()
     else:
         log("Error: No such test '%s'" % testname)
 
