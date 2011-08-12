@@ -37,6 +37,31 @@ BOOST_PYTHON_MODULE(process_registry)
     .def(vector_indexing_suite<vistk::process_registry::types_t>())
   ;
 
+  class_<vistk::process, vistk::process_t, boost::noncopyable>("Process"
+    , no_init)
+    .def("init", &vistk::process::init)
+    .def("step", &vistk::process::step)
+    .def("is_reentrant", &vistk::process::is_reentrant)
+    .def("connect_input_port", &vistk::process::connect_input_port)
+    .def("connect_output_port", &vistk::process::connect_output_port)
+    .def("input_ports", &vistk::process::input_ports)
+    .def("output_ports", &vistk::process::output_ports)
+    .def("input_port_info", &vistk::process::input_port_info)
+    .def("output_port_info", &vistk::process::output_port_info)
+    .def("available_config", &vistk::process::available_config)
+    .def("config_info", &vistk::process::config_info)
+    .def("name", &vistk::process::name)
+    .def("type", &vistk::process::type)
+    .def_readonly("port_heartbeat", &vistk::process::port_heartbeat)
+    .def_readonly("config_name", &vistk::process::config_name)
+    .def_readonly("config_type", &vistk::process::config_type)
+    .def_readonly("type_any", &vistk::process::type_any)
+    .def_readonly("type_none", &vistk::process::type_none)
+    .def_readonly("flag_output_const", &vistk::process::flag_output_const)
+    .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
+    .def_readonly("flag_required", &vistk::process::flag_required)
+  ;
+
   class_<vistk::process_registry, vistk::process_registry_t, boost::noncopyable>("ProcessRegistry"
     , no_init)
     .def("self", &vistk::process_registry::self)
