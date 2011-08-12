@@ -18,8 +18,6 @@ def test_import():
 
 
 def test_simple_pipeline(path):
-    import os
-
     from vistk.pipeline import config
     from vistk.pipeline import pipeline
     from vistk.pipeline import modules
