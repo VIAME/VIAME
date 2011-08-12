@@ -185,8 +185,10 @@ wrap_process
   {
     f();
   }
-
-  process::_init();
+  else
+  {
+    process::_init();
+  }
 }
 
 void
@@ -199,8 +201,10 @@ wrap_process
   {
     f();
   }
-
-  process::_step();
+  else
+  {
+    process::_step();
+  }
 }
 
 void
@@ -209,14 +213,11 @@ wrap_process
 {
   override f = get_override("_connect_input_port");
 
-  bool ret = false;
-
   if (f)
   {
-    ret = f(port, edge);
+    f(port, edge);
   }
-
-  if (!ret)
+  else
   {
     process::_connect_input_port(port, edge);
   }
@@ -228,14 +229,11 @@ wrap_process
 {
   override f = get_override("_connect_output_port");
 
-  bool ret = false;
-
   if (f)
   {
-    ret = f(port, edge);
+    f(port, edge);
   }
-
-  if (!ret)
+  else
   {
     process::_connect_output_port(port, edge);
   }
