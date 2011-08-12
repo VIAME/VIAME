@@ -23,7 +23,8 @@ def test_create():
 
     c = config.empty_config()
 
-    e = edge.Edge(c)
+    edge.Edge(c)
+    edge.Edges()
 
 
 def test_datum_create():
@@ -35,6 +36,7 @@ def test_datum_create():
     s = stamp.new_stamp()
 
     edge.EdgeDatum(d, s)
+    edge.EdgeData()
 
 
 def test_api_calls():

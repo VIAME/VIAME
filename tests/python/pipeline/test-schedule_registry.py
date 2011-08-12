@@ -21,6 +21,9 @@ def test_create():
     from vistk.pipeline import schedule_registry
 
     schedule_registry.ScheduleRegistry.self()
+    schedule_registry.ScheduleType()
+    schedule_registry.ScheduleTypes()
+    schedule_registry.ScheduleDescription()
 
 
 def test_api_calls():

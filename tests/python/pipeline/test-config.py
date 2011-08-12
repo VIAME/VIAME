@@ -25,6 +25,10 @@ def test_create():
     except:
         log("Error: Failed to create an empty configuration")
 
+    config.ConfigKey()
+    config.ConfigKeys()
+    config.ConfigValue()
+
 
 def test_has_value():
     from vistk.pipeline import config
