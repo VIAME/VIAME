@@ -74,7 +74,7 @@ BOOST_PYTHON_MODULE(load)
   ;
   class_<vistk::input_map_t>("InputMap")
     .def_readwrite("options", &vistk::input_map_t::options)
-    .def_readwrite("from", &vistk::input_map_t::from)
+    .def_readwrite("from_", &vistk::input_map_t::from)
     .def_readwrite("to", &vistk::input_map_t::to)
   ;
   class_<vistk::input_maps_t>("InputMaps")
@@ -83,7 +83,7 @@ BOOST_PYTHON_MODULE(load)
   ;
   class_<vistk::output_map_t>("OutputMap")
     .def_readwrite("options", &vistk::output_map_t::options)
-    .def_readwrite("from", &vistk::output_map_t::from)
+    .def_readwrite("from_", &vistk::output_map_t::from)
     .def_readwrite("to", &vistk::output_map_t::to)
   ;
   class_<vistk::output_maps_t>("OutputMaps")
@@ -100,7 +100,7 @@ BOOST_PYTHON_MODULE(load)
     .def_readwrite("config_values", &vistk::process_pipe_block::config_values)
   ;
   class_<vistk::connect_pipe_block>("ConnectBlock")
-    .def_readwrite("from", &vistk::connect_pipe_block::from)
+    .def_readwrite("from_", &vistk::connect_pipe_block::from)
     .def_readwrite("to", &vistk::connect_pipe_block::to)
   ;
   class_<vistk::group_pipe_block>("GroupBlock")
