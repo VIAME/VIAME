@@ -17,8 +17,9 @@
 
 using namespace boost::python;
 
-static vistk::config::value_t get_value(vistk::config_t self, vistk::config::key_t const& key);
-static vistk::config::value_t get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def);
+static vistk::config::value_t config_get_value(vistk::config_t self, vistk::config::key_t const& key);
+static vistk::config::value_t config_get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def);
+
 static void translator(vistk::configuration_exception const& e);
 
 BOOST_PYTHON_MODULE(config)
@@ -39,17 +40,18 @@ BOOST_PYTHON_MODULE(config)
   class_<vistk::config::value_t>("ConfigValue"
     , "A value in the configuration.");
 
-  class_<vistk::config, vistk::config_t, boost::noncopyable>("Config", no_init)
+  class_<vistk::config, vistk::config_t, boost::noncopyable>("Config"
+    , no_init)
     .def("subblock", &vistk::config::subblock
       , (arg("name"))
       , "Returns a subblock from the configuration.")
     .def("subblock_view", &vistk::config::subblock_view
       , (arg("name"))
       , "Returns a linked subblock from the configuration.")
-    .def("get_value", &get_value
+    .def("get_value", &config_get_value
       , (arg("key"))
       , "Retrieve a value from the configuration.")
-    .def("get_value", &get_value_with_default
+    .def("get_value", &config_get_value_with_default
       , (arg("key"), arg("default"))
       , "Retrieve a value from the configuration, using a default in case of failure.")
     .def("set_value", &vistk::config::set_value
@@ -80,13 +82,13 @@ BOOST_PYTHON_MODULE(config)
 }
 
 vistk::config::value_t
-get_value(vistk::config_t self, vistk::config::key_t const& key)
+config_get_value(vistk::config_t self, vistk::config::key_t const& key)
 {
   return self->get_value<vistk::config::value_t>(key);
 }
 
 vistk::config::value_t
-get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def)
+config_get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def)
 {
   return self->get_value<vistk::config::value_t>(key, def);
 }
