@@ -38,7 +38,8 @@ BOOST_PYTHON_MODULE(schedule)
   register_exception_translator<
     vistk::schedule_exception>(translator);
 
-  class_<wrap_schedule, boost::noncopyable>("Schedule", no_init)
+  class_<wrap_schedule, boost::noncopyable>("Schedule"
+    , no_init)
     .def(init<vistk::config_t, vistk::pipeline_t>())
     .def("start", pure_virtual(&vistk::schedule::start))
     .def("wait", pure_virtual(&vistk::schedule::wait))

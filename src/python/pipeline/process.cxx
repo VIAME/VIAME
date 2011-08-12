@@ -114,7 +114,8 @@ BOOST_PYTHON_MODULE(process)
    *;
    */
 
-  class_<wrap_process, boost::noncopyable>("Process", no_init)
+  class_<wrap_process, boost::noncopyable>("Process"
+    , no_init)
     .def(init<vistk::config_t>())
     .def("init", &vistk::process::init)
     .def("step", &vistk::process::step)

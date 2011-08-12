@@ -37,7 +37,8 @@ BOOST_PYTHON_MODULE(process_registry)
     .def(vector_indexing_suite<vistk::process_registry::types_t>())
   ;
 
-  class_<vistk::process_registry, vistk::process_registry_t, boost::noncopyable>("ProcessRegistry", no_init)
+  class_<vistk::process_registry, vistk::process_registry_t, boost::noncopyable>("ProcessRegistry"
+    , no_init)
     .def("self", &vistk::process_registry::self)
     .staticmethod("self")
     .def("register_process", &register_process)

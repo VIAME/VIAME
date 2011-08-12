@@ -42,7 +42,8 @@ BOOST_PYTHON_MODULE(edge)
     .def(vector_indexing_suite<vistk::edges_t>())
   ;
 
-  class_<vistk::edge, vistk::edge_t, boost::noncopyable>("Edge", no_init)
+  class_<vistk::edge, vistk::edge_t, boost::noncopyable>("Edge"
+    , no_init)
     .def(init<vistk::config_t>())
     .def("makes_dependency", &vistk::edge::makes_dependency)
     .def("has_data", &vistk::edge::has_data)

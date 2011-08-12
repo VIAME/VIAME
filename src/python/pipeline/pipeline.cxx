@@ -24,7 +24,8 @@ BOOST_PYTHON_MODULE(pipeline)
   register_exception_translator<
     vistk::pipeline_exception>(translator);
 
-  class_<vistk::pipeline, vistk::pipeline_t, boost::noncopyable>("Pipeline", no_init)
+  class_<vistk::pipeline, vistk::pipeline_t, boost::noncopyable>("Pipeline"
+    , no_init)
     .def(init<vistk::config_t>())
     .def("add_process", &vistk::pipeline::add_process)
     .def("add_group", &vistk::pipeline::add_group)

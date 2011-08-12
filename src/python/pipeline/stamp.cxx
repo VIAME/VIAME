@@ -25,7 +25,8 @@ BOOST_PYTHON_MODULE(stamp)
   def("incremented_stamp", &vistk::stamp::incremented_stamp);
   def("recolored_stamp", &vistk::stamp::recolored_stamp);
 
-  class_<vistk::stamp, vistk::stamp_t, boost::noncopyable>("Stamp", no_init)
+  class_<vistk::stamp, vistk::stamp_t, boost::noncopyable>("Stamp"
+    , no_init)
     .def("is_same_color", &vistk::stamp::is_same_color)
     .def(self == self)
     .def(self < self)
