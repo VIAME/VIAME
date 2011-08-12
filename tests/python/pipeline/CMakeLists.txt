@@ -53,6 +53,8 @@ vistk_make_python_test(modules load)
 vistk_build_python_test(pipeline test-pipeline.py)
 
 vistk_make_python_test(pipeline import)
+vistk_make_python_test(pipeline create)
+vistk_make_python_test(pipeline api_calls)
 
 ##############################
 # Process tests
