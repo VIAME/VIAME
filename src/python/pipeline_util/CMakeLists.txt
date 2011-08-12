@@ -18,6 +18,7 @@ add_vistk_python_library(export_
 target_link_libraries(python-export_
   vistk_pipeline
   vistk_pipeline_util
+  pystream
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
