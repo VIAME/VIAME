@@ -1,5 +1,13 @@
 project(vistk_test_python_pipeline_util)
 
+set(vistk_test_pipelines_directory
+  ${vistk_test_data_directory}/pipelines)
+
+function (vistk_make_python_load_test name instance)
+  vistk_make_python_test(${name} ${instance}
+    "${vistk_test_pipelines_directory}")
+endfunction (vistk_make_python_load_test name instance)
+
 ##############################
 # Bake tests
 ##############################
@@ -12,7 +20,8 @@ vistk_make_python_test(bake import)
 ##############################
 vistk_build_python_test(export_ test-export_.py)
 
-vistk_make_python_test(export_ import)
+vistk_make_python_load_test(export_ import)
+vistk_make_python_load_test(export_ simple_pipeline)
 
 ##############################
 # Load tests
