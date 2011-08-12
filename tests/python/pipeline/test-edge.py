@@ -37,6 +37,62 @@ def test_datum_create():
     edge.EdgeDatum(d, s)
 
 
+def test_api_calls():
+    from vistk.pipeline import config
+    from vistk.pipeline import datum
+    from vistk.pipeline import edge
+    from vistk.pipeline import modules
+    from vistk.pipeline import process_registry
+    from vistk.pipeline import stamp
+
+    c = config.empty_config()
+
+    e = edge.Edge(c)
+
+    e.makes_dependency()
+    e.has_data()
+    e.full_of_data()
+    e.datum_count()
+
+    d = datum.complete()
+    s = stamp.new_stamp()
+
+    ed = edge.EdgeDatum(d, s)
+
+    e.push_datum(ed)
+    e.get_datum()
+
+    e.push_datum(ed)
+    e.peek_datum()
+    e.pop_datum()
+
+    e.set_required_by_downstream(True)
+    e.required_by_downstream()
+
+    modules.load_known_modules()
+
+    reg = process_registry.self()
+
+    p = reg.create_process('orphan', c)
+
+    e.set_upstream_process(p)
+    e.set_downstream_process(p)
+
+
+def test_datum_api_calls():
+    from vistk.pipeline import datum
+    from vistk.pipeline import edge
+    from vistk.pipeline import stamp
+
+    d = datum.complete()
+    s = stamp.new_stamp()
+
+    ed = edge.EdgeDatum(d, s)
+
+    ed.datum()
+    ed.stamp()
+
+
 def main(testname):
     if testname == 'import':
         test_import()
@@ -44,6 +100,10 @@ def main(testname):
         test_create()
     elif testname == 'datum_create':
         test_datum_create()
+    elif testname == 'api_calls':
+        test_api_calls()
+    elif testname == 'datum_api_calls':
+        test_api_calls()
     else:
         log("Error: No such test '%s'" % testname)
 

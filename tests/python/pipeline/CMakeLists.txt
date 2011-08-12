@@ -36,6 +36,8 @@ vistk_build_python_test(edge test-edge.py)
 vistk_make_python_test(edge import)
 vistk_make_python_test(edge create)
 vistk_make_python_test(edge datum_create)
+vistk_make_python_test(edge api_calls)
+vistk_make_python_test(edge datum_api_calls)
 
 ##############################
 # Modules tests
