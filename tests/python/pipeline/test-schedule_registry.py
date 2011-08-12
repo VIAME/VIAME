@@ -17,9 +17,73 @@ def test_import():
         log("Error: Failed to import the schedule_registry module")
 
 
+def test_create():
+    from vistk.pipeline import schedule_registry
+
+    schedule_registry.ScheduleRegistry.self()
+
+
+def test_api_calls():
+    from vistk.pipeline import config
+    from vistk.pipeline import modules
+    from vistk.pipeline import pipeline
+    from vistk.pipeline import schedule_registry
+
+    modules.load_known_modules()
+
+    reg = schedule_registry.ScheduleRegistry.self()
+
+    sched_type = 'thread_per_process'
+    c = config.empty_config()
+    p = pipeline.Pipeline(c)
+
+    reg.create_schedule(sched_type, c, p)
+    reg.types()
+    reg.description(sched_type)
+
+
+def test_register():
+    from vistk.pipeline import config
+    from vistk.pipeline import modules
+    from vistk.pipeline import pipeline
+    from vistk.pipeline import schedule
+    from vistk.pipeline import schedule_registry
+
+    modules.load_known_modules()
+
+    reg = schedule_registry.ScheduleRegistry.self()
+
+    sched_type = 'python_example'
+    sched_desc = 'simple description'
+    c = config.empty_config()
+    p = pipeline.Pipeline(c)
+
+    class PythonExample(schedule.PythonSchedule):
+        def __init__(self, conf, pipe):
+            schedule.PythonSchedule.__init__(self, conf, pipe)
+
+    reg.register_schedule(sched_type, sched_desc, PythonExample)
+
+    if not sched_desc == reg.description(sched_type):
+        log("Error: Description was not preserved when registering")
+
+    reg.create_schedule(sched_type, c, p)
+
+    try:
+        reg.create_schedule(sched_type, c, p)
+    except:
+        log("Error: Could not create newly registered schedule type")
+
+
 def main(testname):
     if testname == 'import':
         test_import()
+    elif testname == 'create':
+        test_create()
+    elif testname == 'api_calls':
+        test_api_calls()
+    elif testname == 'register':
+        test_register()
     else:
         log("Error: No such test '%s'" % testname)
 

@@ -86,6 +86,9 @@ vistk_make_python_test(schedule import)
 vistk_build_python_test(schedule_registry test-schedule_registry.py)
 
 vistk_make_python_test(schedule_registry import)
+vistk_make_python_test(schedule_registry create)
+vistk_make_python_test(schedule_registry api_calls)
+vistk_make_python_test(schedule_registry register)
 
 ##############################
 # Stamp tests
