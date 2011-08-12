@@ -61,6 +61,9 @@ BOOST_PYTHON_MODULE(process_registry)
     .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
     .def_readonly("flag_required", &vistk::process::flag_required)
   ;
+  class_<vistk::processes_t>("Processes")
+    .def(vector_indexing_suite<vistk::processes_t>())
+  ;
 
   class_<vistk::process_registry, vistk::process_registry_t, boost::noncopyable>("ProcessRegistry"
     , no_init)
