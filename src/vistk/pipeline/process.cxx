@@ -347,21 +347,21 @@ bool
 process
 ::same_colored_data(edge_data_t const& data)
 {
-  edge_data_t::const_iterator it = data.begin();
-  edge_data_t::const_iterator it_end = data.end();
-
-  for ( ; it != it_end; ++it)
+  if (data.empty())
   {
-    edge_data_t::const_iterator it2 = it;
+    return true;
+  }
 
-    stamp_t const st = it->get<1>();
+  edge_datum_t const& fst = data[0];
+  stamp_t const& st = fst.get<1>();
 
-    for (++it2; it2 != it_end; ++it2)
+  BOOST_FOREACH (edge_datum_t const& dat, data)
+  {
+    stamp_t const& st2 = dat.get<1>();
+
+    if (!st->is_same_color(st2))
     {
-      if (!st->is_same_color(it2->get<1>()))
-      {
-        return false;
-      }
+      return false;
     }
   }
 
@@ -372,23 +372,21 @@ bool
 process
 ::syncd_data(edge_data_t const& data)
 {
-  edge_data_t::const_iterator it = data.begin();
-  edge_data_t::const_iterator it_end = data.end();
-
-  for ( ; it != it_end; ++it)
+  if (data.empty())
   {
-    edge_data_t::const_iterator it2 = it;
+    return true;
+  }
 
-    stamp_t const st = it->get<1>();
+  edge_datum_t const& fst = data[0];
+  stamp_t const& st = fst.get<1>();
 
-    for (++it2; it2 != it_end; ++it2)
+  BOOST_FOREACH (edge_datum_t const& dat, data)
+  {
+    stamp_t const& st2 = dat.get<1>();
+
+    if (*st != *st2)
     {
-      stamp_t const st2 = it2->get<1>();
-
-      if (*st != *st2)
-      {
-        return false;
-      }
+      return false;
     }
   }
 
