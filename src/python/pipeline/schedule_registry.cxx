@@ -37,6 +37,13 @@ BOOST_PYTHON_MODULE(schedule_registry)
     .def(vector_indexing_suite<vistk::schedule_registry::types_t>())
   ;
 
+  class_<vistk::schedule, vistk::schedule_t, boost::noncopyable>("Schedule"
+    , no_init)
+    .def("start", &vistk::schedule::start)
+    .def("wait", &vistk::schedule::wait)
+    .def("stop", &vistk::schedule::stop)
+  ;
+
   class_<vistk::schedule_registry, vistk::schedule_registry_t, boost::noncopyable>("ScheduleRegistry"
     , no_init)
     .def("self", &vistk::schedule_registry::self)
