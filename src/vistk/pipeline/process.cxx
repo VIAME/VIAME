@@ -345,23 +345,20 @@ process
 
 bool
 process
-::same_colored_edges(edge_group_t const& edges)
+::same_colored_data(edge_data_t const& data)
 {
-  edge_group_t::const_iterator it = edges.begin();
-  edge_group_t::const_iterator it_end = edges.end();
+  edge_data_t::const_iterator it = data.begin();
+  edge_data_t::const_iterator it_end = data.end();
 
   for ( ; it != it_end; ++it)
   {
-    edge_t const cur_edge = it->lock();
-    edge_group_t::const_iterator it2 = it;
+    edge_data_t::const_iterator it2 = it;
 
-    stamp_t const st = cur_edge->peek_datum().get<1>();
+    stamp_t const st = it->get<1>();
 
     for (++it2; it2 != it_end; ++it2)
     {
-      edge_t const other_edge = it2->lock();
-
-      if (!st->is_same_color(other_edge->peek_datum().get<1>()))
+      if (!st->is_same_color(it2->get<1>()))
       {
         return false;
       }
@@ -373,22 +370,20 @@ process
 
 bool
 process
-::syncd_edges(edge_group_t const& edges)
+::syncd_data(edge_data_t const& data)
 {
-  edge_group_t::const_iterator it = edges.begin();
-  edge_group_t::const_iterator it_end = edges.end();
+  edge_data_t::const_iterator it = data.begin();
+  edge_data_t::const_iterator it_end = data.end();
 
   for ( ; it != it_end; ++it)
   {
-    edge_t const cur_edge = it->lock();
-    edge_group_t::const_iterator it2 = it;
+    edge_data_t::const_iterator it2 = it;
 
-    stamp_t const st = cur_edge->peek_datum().get<1>();
+    stamp_t const st = it->get<1>();
 
     for (++it2; it2 != it_end; ++it2)
     {
-      edge_t const other_edge = it2->lock();
-      stamp_t const st2 = other_edge->peek_datum().get<1>();
+      stamp_t const st2 = it2->get<1>();
 
       if (*st != *st2)
       {
