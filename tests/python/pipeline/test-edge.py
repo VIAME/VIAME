@@ -17,9 +17,33 @@ def test_import():
         log("Error: Failed to import the edge module")
 
 
+def test_create():
+    from vistk.pipeline import config
+    from vistk.pipeline import edge
+
+    c = config.empty_config()
+
+    e = edge.Edge(c)
+
+
+def test_datum_create():
+    from vistk.pipeline import datum
+    from vistk.pipeline import edge
+    from vistk.pipeline import stamp
+
+    d = datum.complete()
+    s = stamp.new_stamp()
+
+    edge.EdgeDatum(d, s)
+
+
 def main(testname):
     if testname == 'import':
         test_import()
+    elif testname == 'create':
+        test_create()
+    elif testname == 'datum_create':
+        test_datum_create()
     else:
         log("Error: No such test '%s'" % testname)
 

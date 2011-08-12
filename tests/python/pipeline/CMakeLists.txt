@@ -34,6 +34,8 @@ vistk_make_python_test(datum error)
 vistk_build_python_test(edge test-edge.py)
 
 vistk_make_python_test(edge import)
+vistk_make_python_test(edge create)
+vistk_make_python_test(edge datum_create)
 
 ##############################
 # Modules tests
