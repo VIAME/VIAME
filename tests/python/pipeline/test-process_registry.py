@@ -17,9 +17,67 @@ def test_import():
         log("Error: Failed to import the process_registry module")
 
 
+def test_create():
+    from vistk.pipeline import process_registry
+
+    process_registry.ProcessRegistry.self()
+
+
+def test_api_calls():
+    from vistk.pipeline import config
+    from vistk.pipeline import modules
+    from vistk.pipeline import process_registry
+
+    modules.load_known_modules()
+
+    reg = process_registry.ProcessRegistry.self()
+
+    proc_type = 'orphan'
+    c = config.empty_config()
+
+    reg.create_process(proc_type, c)
+    reg.types()
+    reg.description(proc_type)
+
+
+def test_register():
+    from vistk.pipeline import config
+    from vistk.pipeline import modules
+    from vistk.pipeline import process
+    from vistk.pipeline import process_registry
+
+    modules.load_known_modules()
+
+    reg = process_registry.ProcessRegistry.self()
+
+    proc_type = 'python_example'
+    proc_desc = 'simple description'
+    c = config.empty_config()
+
+    class PythonExample(process.PythonProcess):
+        def __init__(self, conf):
+            process.PythonProcess.__init__(self, conf)
+
+    reg.register_process(proc_type, proc_desc, PythonExample)
+
+    if not proc_desc == reg.description(proc_type):
+        log("Error: Description was not preserved when registering")
+
+    try:
+        reg.create_process(proc_type, c)
+    except:
+        log("Error: Could not create newly registered process type")
+
+
 def main(testname):
     if testname == 'import':
         test_import()
+    elif testname == 'create':
+        test_create()
+    elif testname == 'api_calls':
+        test_api_calls()
+    elif testname == 'register':
+        test_register()
     else:
         log("Error: No such test '%s'" % testname)
 
