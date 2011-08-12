@@ -72,7 +72,8 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   }
 }
 
-void test_pipeline_null(boost::filesystem::path const& /*pipe_file*/)
+void
+test_pipeline_null(boost::filesystem::path const& /*pipe_file*/)
 {
   vistk::pipeline_t pipeline;
 
