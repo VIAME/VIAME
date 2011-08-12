@@ -93,7 +93,10 @@ BOOST_PYTHON_MODULE(process)
     //.def("pop", &port_flags_discard)
     .def("clear", &vistk::process::port_flags_t::clear)
   ;
-  class_<vistk::process::port_addr_t>("PortAddr");
+  class_<vistk::process::port_addr_t>("PortAddr")
+    .def_readwrite("process", &vistk::process::port_addr_t::first)
+    .def_readwrite("port", &vistk::process::port_addr_t::second)
+  ;
   class_<vistk::process::port_addrs_t>("PortAddrs")
     .def(vector_indexing_suite<vistk::process::port_addrs_t>())
   ;
