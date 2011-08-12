@@ -25,7 +25,7 @@ namespace vistk
 {
 
 schedule_registry_t schedule_registry::m_self = schedule_registry_t();
-schedule_registry::type_t const schedule_registry::default_type = type_t("thread_pool");
+schedule_registry::type_t const schedule_registry::default_type = type_t("thread_per_process");
 
 schedule_registry
 ::~schedule_registry()
