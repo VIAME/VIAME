@@ -375,6 +375,19 @@ class VISTK_PIPELINE_EXPORT process
      */
     stamp_t heartbeat_stamp() const;
 
+    class VISTK_PIPELINE_EXPORT data_info_t
+    {
+      public:
+        data_info_t(bool same_color_,
+                    bool in_sync_,
+                    datum::datum_type_t max_status_);
+        ~data_info_t();
+
+        bool const same_color;
+        bool const in_sync;
+        datum::datum_type_t const max_status;
+    };
+
     /**
      * \brief Check if a set of data are colored the same.
      *

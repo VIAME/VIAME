@@ -64,6 +64,21 @@ process::conf_info
 {
 }
 
+process::data_info_t
+::data_info_t(bool same_color_,
+              bool in_sync_,
+              datum::datum_type_t max_status_)
+  : same_color(same_color_)
+  , in_sync(in_sync_)
+  , max_status(max_status_)
+{
+}
+
+process::data_info_t
+::~data_info_t()
+{
+}
+
 class process::priv
 {
   public:
