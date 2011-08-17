@@ -28,11 +28,14 @@ def test_simple_pipeline(path):
     modules.load_known_modules()
 
     p = bake.bake_pipe_file(path)
-    _, w = os.pipe()
+    r, w = os.pipe()
 
     name = 'graph'
 
     export_.export_dot(w, p, name)
+
+    os.close(r)
+    os.close(w)
 
 
 def main(testname, path):
