@@ -375,16 +375,34 @@ class VISTK_PIPELINE_EXPORT process
      */
     stamp_t heartbeat_stamp() const;
 
+    /**
+     * \class data_info_t process.h <vistk/pipeline/process.h>
+     *
+     * \brief Information about a set of data.
+     */
     class VISTK_PIPELINE_EXPORT data_info_t
     {
       public:
+        /**
+         * \brief Constructor.
+         *
+         * \param same_color_ Whether the data is the same color.
+         * \param in_sync_ Whether the data is synchonized.
+         * \param max_status_ The highest priority status of the data.
+         */
         data_info_t(bool same_color_,
                     bool in_sync_,
                     datum::datum_type_t max_status_);
+        /**
+         * \brief Destructor.
+         */
         ~data_info_t();
 
+        /// True if the data is all the same color.
         bool const same_color;
+        /// True if the data is synchonized.
         bool const in_sync;
+        /// The highest priority status in the set.
         datum::datum_type_t const max_status;
     };
 
