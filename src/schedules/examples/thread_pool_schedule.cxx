@@ -18,6 +18,8 @@ class thread_pool_schedule::priv
     priv();
     ~priv();
 
+    bool complete;
+
     boost::thread_group thread_pool;
 };
 
@@ -41,25 +43,31 @@ thread_pool_schedule
   /// \todo Map processes to upstream edges.
   /// \todo Map processes to downstream edges.
   /// \todo Initialize all process statuses to 'ready'.
-  /// \todo Queue processes while upstreams have data and downstreams aren't full.
+
+  while (!d->complete)
+  {
+    /// \todo Queue processes while upstreams have data and downstreams aren't full.
+  }
 }
 
 void
 thread_pool_schedule
 ::wait()
 {
-  /// \todo Wait until execution is finished.
+  d->thread_pool.join_all();
 }
 
 void
 thread_pool_schedule
 ::stop()
 {
-  /// \todo Shut the schedule down.
+  d->complete = true;
+  d->thread_pool.interrupt_all();
 }
 
 thread_pool_schedule::priv
 ::priv()
+  : complete(false)
 {
 }
 
