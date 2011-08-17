@@ -65,3 +65,4 @@ vistk_build_test(export_dot export_dot_libraries test_export_dot.cxx)
 
 vistk_make_load_test(export_dot pipeline_null)
 vistk_make_load_test(export_dot simple_pipeline)
+vistk_make_load_test(export_dot simple_group_pipeline)
