@@ -362,57 +362,33 @@ bool
 process
 ::same_colored_data(edge_data_t const& data)
 {
-  if (data.empty())
-  {
-    return true;
-  }
-
-  edge_datum_t const& fst = data[0];
-  stamp_t const& st = fst.get<1>();
-
-  BOOST_FOREACH (edge_datum_t const& dat, data)
-  {
-    stamp_t const& st2 = dat.get<1>();
-
-    if (!st->is_same_color(st2))
-    {
-      return false;
-    }
-  }
-
-  return true;
+  return data_info(data).same_color;
 }
 
 bool
 process
 ::syncd_data(edge_data_t const& data)
 {
-  if (data.empty())
-  {
-    return true;
-  }
-
-  edge_datum_t const& fst = data[0];
-  stamp_t const& st = fst.get<1>();
-
-  BOOST_FOREACH (edge_datum_t const& dat, data)
-  {
-    stamp_t const& st2 = dat.get<1>();
-
-    if (*st != *st2)
-    {
-      return false;
-    }
-  }
-
-  return true;
+  return data_info(data).in_sync;
 }
 
 datum::datum_type_t
 process
 ::max_status(edge_data_t const& data)
 {
+  return data_info(data).max_status;
+}
+
+process::data_info_t
+process
+::data_info(edge_data_t const& data)
+{
+  bool same_color = true;
+  bool in_sync = true;
   datum::datum_type_t max_type = datum::DATUM_INVALID;
+
+  edge_datum_t const& fst = data[0];
+  stamp_t const& st = fst.get<1>();
 
   BOOST_FOREACH (edge_datum_t const& dat, data)
   {
@@ -422,9 +398,20 @@ process
     {
       max_type = type;
     }
+
+    stamp_t const& st2 = dat.get<1>();
+
+    if (!st->is_same_color(st2))
+    {
+      same_color = false;
+    }
+    if (*st != *st2)
+    {
+      in_sync = false;
+    }
   }
 
-  return max_type;
+  return data_info_t(same_color, in_sync, max_type);
 }
 
 void

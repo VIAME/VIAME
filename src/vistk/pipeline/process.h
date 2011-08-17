@@ -415,6 +415,14 @@ class VISTK_PIPELINE_EXPORT process
      */
     static datum::datum_type_t max_status(edge_data_t const& data);
     /**
+     * \brief Check a set of edge data for certain properites.
+     *
+     * \param data The data to inspect.
+     *
+     * \returns Information about the data given.
+     */
+    static data_info_t data_info(edge_data_t const& data);
+    /**
      * \brief Pushes data to all given edges.
      *
      * \param edges The edges to push to.
