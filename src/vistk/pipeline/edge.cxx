@@ -113,9 +113,16 @@ edge_datum_t
 edge
 ::get_datum()
 {
-  edge_datum_t const dat = peek_datum();
+  boost::mutex::scoped_lock lock(d->mutex);
 
-  pop_datum();
+  while (!d->has_data())
+  {
+    d->cond_have_data.wait(lock);
+  }
+
+  edge_datum_t const dat = d->q.front();
+
+  d->q.pop();
 
   return dat;
 }
