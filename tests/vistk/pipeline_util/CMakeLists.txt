@@ -43,6 +43,8 @@ vistk_make_load_test(load_pipe no_exist)
 vistk_make_load_test(load_pipe not_a_file)
 vistk_make_load_test(load_pipe include_no_exist)
 vistk_make_load_test(load_pipe include_not_a_file)
+vistk_make_load_test(load_pipe no_parse)
+vistk_make_load_test(load_pipe parse_error)
 
 ##############################
 # Export tests

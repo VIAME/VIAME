@@ -81,6 +81,8 @@ static void test_no_exist(boost::filesystem::path const& pipe_file);
 static void test_not_a_file(boost::filesystem::path const& pipe_file);
 static void test_include_no_exist(boost::filesystem::path const& pipe_file);
 static void test_include_not_a_file(boost::filesystem::path const& pipe_file);
+static void test_no_parse(boost::filesystem::path const& pipe_file);
+static void test_parse_error(boost::filesystem::path const& pipe_file);
 
 void
 run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
@@ -172,6 +174,14 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   else if (test_name == "include_not_a_file")
   {
     test_include_not_a_file(pipe_file);
+  }
+  else if (test_name == "no_parse")
+  {
+    test_no_parse(pipe_file);
+  }
+  else if (test_name == "parse_error")
+  {
+    test_parse_error(pipe_file);
   }
   else
   {
@@ -558,6 +568,22 @@ test_include_not_a_file(boost::filesystem::path const& pipe_file)
   EXPECT_EXCEPTION(vistk::not_a_file_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
                    "including a non-file");
+}
+
+void
+test_no_parse(boost::filesystem::path const& pipe_file)
+{
+  EXPECT_EXCEPTION(vistk::failed_to_parse,
+                   vistk::load_pipe_blocks_from_file(pipe_file),
+                   "loading an invalid file");
+}
+
+void
+test_parse_error(boost::filesystem::path const& pipe_file)
+{
+  EXPECT_EXCEPTION(vistk::failed_to_parse,
+                   vistk::load_pipe_blocks_from_file(pipe_file),
+                   "with an expect error");
 }
 
 test_visitor
