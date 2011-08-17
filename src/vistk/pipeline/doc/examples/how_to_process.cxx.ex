@@ -230,18 +230,18 @@ compare_string_process
   input_dats.push_back(str1_dat);
   input_dats.push_back(str2_dat);
 
-  datum::datum_type_t const max_type = max_status(input_dats);
+  data_info_t const info = data_info(input_dats);
 
-  switch (max_type)
+  switch (info.max_status)
   {
     case datum::DATUM_DATA:
-      if (!same_colored_data(input_dats))
+      if (!info.same_color)
       {
         st = heartbeat_stamp();
 
         dat = datum::error_datum("The input edges are not colored the same.");
       }
-      else if (!syncd_data(input_dats))
+      else if (!info.in_sync)
       {
         st = heartbeat_stamp();
 
