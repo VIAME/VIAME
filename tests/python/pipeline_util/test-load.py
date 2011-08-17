@@ -116,14 +116,14 @@ def test_api_calls():
     o.output_mappings = load.OutputMaps()
 
     o = load.PipeBlock()
-    o.config
-    o.process
-    o.connect
-    o.group
     o.config = load.ConfigBlock()
+    o.config
     o.process = load.ProcessBlock()
+    o.process
     o.connect = load.ConnectBlock()
+    o.connect
     o.group = load.GroupBlock()
+    o.group
 
 
 def test_simple_pipeline(path):
