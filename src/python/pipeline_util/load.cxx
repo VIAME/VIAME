@@ -42,6 +42,29 @@ static vistk::pipe_blocks load_pipe(object const& stream, std::string const& inc
 
 static void translator(vistk::load_pipe_exception const& e);
 
+class block_visitor
+  : public boost::static_visitor<object>
+{
+  public:
+    typedef enum
+    {
+      BLOCK_CONFIG,
+      BLOCK_PROCESS,
+      BLOCK_CONNECT,
+      BLOCK_GROUP
+    } block_t;
+
+    block_visitor(block_t type);
+    ~block_visitor();
+
+    block_t const block_type;
+
+    object operator () (vistk::config_pipe_block const& config_block) const;
+    object operator () (vistk::process_pipe_block const& process_block) const;
+    object operator () (vistk::connect_pipe_block const& connect_block) const;
+    object operator () (vistk::group_pipe_block const& group_block) const;
+};
+
 BOOST_PYTHON_MODULE(load)
 {
   register_exception_translator<
@@ -188,9 +211,7 @@ map_options_flags_set(vistk::map_options_t& options, vistk::process::port_flags_
 object
 pipe_block_config(vistk::pipe_block const& block)
 {
-  /// \todo Get a config block from the block.
-
-  return object();
+  return boost::apply_visitor(block_visitor(block_visitor::BLOCK_CONFIG), block);
 }
 
 void
@@ -202,9 +223,7 @@ pipe_block_config_set(vistk::pipe_block& block, vistk::config_pipe_block const& 
 object
 pipe_block_process(vistk::pipe_block const& block)
 {
-  /// \todo Get a process block from the block.
-
-  return object();
+  return boost::apply_visitor(block_visitor(block_visitor::BLOCK_PROCESS), block);
 }
 
 void
@@ -216,9 +235,7 @@ pipe_block_process_set(vistk::pipe_block& block, vistk::process_pipe_block const
 object
 pipe_block_connect(vistk::pipe_block const& block)
 {
-  /// \todo Get a connect block from the block.
-
-  return object();
+  return boost::apply_visitor(block_visitor(block_visitor::BLOCK_CONNECT), block);
 }
 
 void
@@ -230,9 +247,7 @@ pipe_block_connect_set(vistk::pipe_block& block, vistk::connect_pipe_block const
 object
 pipe_block_group(vistk::pipe_block const& block)
 {
-  /// \todo Get a group block from the block.
-
-  return object();
+  return boost::apply_visitor(block_visitor(block_visitor::BLOCK_GROUP), block);
 }
 
 void
@@ -253,4 +268,63 @@ load_pipe(object const& stream, std::string const& inc_root)
   pyistream istr(stream);
 
   return vistk::load_pipe_blocks(istr, boost::filesystem::path(inc_root));
+}
+
+block_visitor
+::block_visitor(block_t type)
+  : block_type(type)
+{
+}
+
+block_visitor
+::~block_visitor()
+{
+}
+
+object
+block_visitor
+::operator () (vistk::config_pipe_block const& config_block) const
+{
+  if (block_type == BLOCK_CONFIG)
+  {
+    return object(config_block);
+  }
+
+  return object();
+}
+
+object
+block_visitor
+::operator () (vistk::process_pipe_block const& process_block) const
+{
+  if (block_type == BLOCK_PROCESS)
+  {
+    return object(process_block);
+  }
+
+  return object();
+}
+
+object
+block_visitor
+::operator () (vistk::connect_pipe_block const& connect_block) const
+{
+  if (block_type == BLOCK_CONNECT)
+  {
+    return object(connect_block);
+  }
+
+  return object();
+}
+
+object
+block_visitor
+::operator () (vistk::group_pipe_block const& group_block) const
+{
+  if (block_type == BLOCK_GROUP)
+  {
+    return object(group_block);
+  }
+
+  return object();
 }
