@@ -1,0 +1,16 @@
+group mygroup
+  :mykey myvalue
+  imap from iport
+       to   myproc.iport
+  omap from myproc.oport
+       to   oport
+  imap from iport
+       to   myproc.iport
+  :mykey myvalue
+  omap from myproc.oport
+       to   oport
+  omap from myproc.oport
+       to   oport
+  :mykey myvalue
+  imap from iport
+       to   myproc.iport

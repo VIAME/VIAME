@@ -1,0 +1,3 @@
+group mygroup
+  imap[myflag] from iport
+               to   myproc.iport

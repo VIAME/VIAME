@@ -81,6 +81,14 @@ static void test_no_exist(boost::filesystem::path const& pipe_file);
 static void test_not_a_file(boost::filesystem::path const& pipe_file);
 static void test_include_no_exist(boost::filesystem::path const& pipe_file);
 static void test_include_not_a_file(boost::filesystem::path const& pipe_file);
+static void test_group_declare(boost::filesystem::path const& pipe_file);
+static void test_group_config(boost::filesystem::path const& pipe_file);
+static void test_group_input_map(boost::filesystem::path const& pipe_file);
+static void test_group_output_map(boost::filesystem::path const& pipe_file);
+static void test_group_input_map_flags(boost::filesystem::path const& pipe_file);
+static void test_group_output_map_flags(boost::filesystem::path const& pipe_file);
+static void test_group_mappings(boost::filesystem::path const& pipe_file);
+static void test_group_all(boost::filesystem::path const& pipe_file);
 static void test_no_parse(boost::filesystem::path const& pipe_file);
 static void test_parse_error(boost::filesystem::path const& pipe_file);
 
@@ -174,6 +182,38 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   else if (test_name == "include_not_a_file")
   {
     test_include_not_a_file(pipe_file);
+  }
+  else if (test_name == "group_declare")
+  {
+    test_group_declare(pipe_file);
+  }
+  else if (test_name == "group_config")
+  {
+    test_group_config(pipe_file);
+  }
+  else if (test_name == "group_input_map")
+  {
+    test_group_input_map(pipe_file);
+  }
+  else if (test_name == "group_output_map")
+  {
+    test_group_output_map(pipe_file);
+  }
+  else if (test_name == "group_input_map_flags")
+  {
+    test_group_input_map_flags(pipe_file);
+  }
+  else if (test_name == "group_output_map_flags")
+  {
+    test_group_output_map_flags(pipe_file);
+  }
+  else if (test_name == "group_mappings")
+  {
+    test_group_mappings(pipe_file);
+  }
+  else if (test_name == "group_all")
+  {
+    test_group_all(pipe_file);
   }
   else if (test_name == "no_parse")
   {
@@ -568,6 +608,102 @@ test_include_not_a_file(boost::filesystem::path const& pipe_file)
   EXPECT_EXCEPTION(vistk::not_a_file_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
                    "including a non-file");
+}
+
+void
+test_group_declare(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+void
+test_group_config(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+void
+test_group_input_map(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+void
+test_group_output_map(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+void
+test_group_input_map_flags(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+void
+test_group_output_map_flags(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+void
+test_group_mappings(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+void
+test_group_all(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
 }
 
 void

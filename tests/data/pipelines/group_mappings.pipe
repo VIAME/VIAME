@@ -1,0 +1,5 @@
+group mygroup
+  imap from iport
+       to   myproc.iport
+  omap from myproc.oport
+       to   oport
