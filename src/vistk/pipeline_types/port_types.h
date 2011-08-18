@@ -11,6 +11,12 @@
 
 #include <vistk/pipeline/process.h>
 
+/**
+ * \file port_types.h
+ *
+ * \brief Basic port types within the pipeline.
+ */
+
 namespace vistk
 {
 

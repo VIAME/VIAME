@@ -6,6 +6,12 @@
 
 #include "port_types.h"
 
+/**
+ * \file port_types.cxx
+ *
+ * \brief Basic port types within the pipeline.
+ */
+
 namespace vistk
 {
 
