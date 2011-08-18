@@ -81,7 +81,7 @@ bad_datum_cast_exception
   std::ostringstream sstr;
 
   sstr << "Failed to cast key datum of type "
-       << "\'" << m_type << "\': " << m_reason << ".";
+          "\'" << m_type << "\': " << m_reason << ".";
 
   m_what = sstr.str();
 }

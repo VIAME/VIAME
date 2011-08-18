@@ -125,7 +125,7 @@ failed_to_parse
   std::stringstream sstr;
 
   sstr << "Expected: \'" << m_reason << "\' "
-       << "when \'" << m_where_brief << "\' was given";
+          "when \'" << m_where_brief << "\' was given";
 
   m_what = sstr.str();
 }

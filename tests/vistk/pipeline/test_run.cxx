@@ -145,8 +145,8 @@ test_simple_pipeline()
     if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i))
     {
       std::cerr << "Error: Did not get expected value: "
-                << "Expected: " << i << " "
-                << "Received: " << line << std::endl;
+                   "Expected: " << i << " "
+                   "Received: " << line << std::endl;
     }
   }
 
@@ -268,8 +268,8 @@ test_multiplier_pipeline()
     if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i * j))
     {
       std::cerr << "Error: Did not get expected value: "
-                << "Expected: " << i * j << " "
-                << "Received: " << line << std::endl;
+                   "Expected: " << i * j << " "
+                   "Received: " << line << std::endl;
     }
   }
 

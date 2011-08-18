@@ -33,7 +33,7 @@
     if (!got_exception)                            \
     {                                              \
       std::cerr << "Error: Did not get "           \
-                << "expected exception when "      \
+                   "expected exception when "      \
                 << action << std::endl;            \
     }                                              \
   } while (false)

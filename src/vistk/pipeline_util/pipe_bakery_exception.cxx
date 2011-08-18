@@ -26,8 +26,8 @@ unrecognized_config_flag_exception
   std::stringstream sstr;
 
   sstr << "The \'" << m_key << "\' key "
-       << "has the \'" << m_flag << "\' on it "
-       << "which is unrecognized";
+          "has the \'" << m_flag << "\' on it "
+          "which is unrecognized";
 
   m_what = sstr.str();
 }
@@ -54,8 +54,8 @@ unrecognized_provider_exception
   std::stringstream sstr;
 
   sstr << "The \'" << m_key << "\' key "
-       << "is requesting the index \'" << m_index << "\' "
-       << "from the unrecognized \'" << m_provider << "\'";
+          "is requesting the index \'" << m_index << "\' "
+          "from the unrecognized \'" << m_provider << "\'";
 
   m_what = sstr.str();
 }
@@ -103,7 +103,7 @@ unrecognized_system_index_exception
   std::stringstream sstr;
 
   sstr << "The \'" << m_index << "\' index "
-       << "does not exist for the system provider";
+          "does not exist for the system provider";
 
   m_what = sstr.str();
 }

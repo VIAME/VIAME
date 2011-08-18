@@ -25,7 +25,7 @@ null_process_ctor_exception
   std::ostringstream sstr;
 
   sstr << "A NULL constructor was passed for the "
-       << "process type \'" << m_type << "\'.";
+          "process type \'" << m_type << "\'.";
 
   m_what = sstr.str();
 }
@@ -73,7 +73,7 @@ no_such_process_type_exception
   std::ostringstream sstr;
 
   sstr << "There is no such process of type \'" << type << "\' "
-       << "in the registry.";
+          "in the registry.";
 
   m_what = sstr.str();
 }
@@ -98,7 +98,7 @@ process_type_already_exists_exception
   std::ostringstream sstr;
 
   sstr << "There is already a process of type \'" << type << "\' "
-       << "in the registry.";
+          "in the registry.";
 
   m_what = sstr.str();
 }

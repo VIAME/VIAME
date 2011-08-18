@@ -324,8 +324,8 @@ test_config_block(boost::filesystem::path const& pipe_file)
   if (mykey != expected)
   {
     std::cerr << "Error: Configuration was not overriden: "
-              << "Expected: " << expected << " "
-              << "Received: " << mykey << std::endl;
+                 "Expected: " << expected << " "
+                 "Received: " << mykey << std::endl;
   }
 }
 
@@ -372,8 +372,8 @@ test_config_overrides(boost::filesystem::path const& pipe_file)
   if (mykey != expected)
   {
     std::cerr << "Error: Configuration was not overriden: "
-              << "Expected: " << expected << " "
-              << "Received: " << mykey << std::endl;
+                 "Expected: " << expected << " "
+                 "Received: " << mykey << std::endl;
   }
 }
 
@@ -440,8 +440,8 @@ test_config_provider_conf(boost::filesystem::path const& pipe_file)
   if (mykey != expected)
   {
     std::cerr << "Error: Configuration was not overriden: "
-              << "Expected: " << expected << " "
-              << "Received: " << mykey << std::endl;
+                 "Expected: " << expected << " "
+                 "Received: " << mykey << std::endl;
   }
 }
 
@@ -464,8 +464,8 @@ test_config_provider_conf_dep(boost::filesystem::path const& pipe_file)
   if (mykey != expected)
   {
     std::cerr << "Error: Configuration was not overriden: "
-              << "Expected: " << expected << " "
-              << "Received: " << mykey << std::endl;
+                 "Expected: " << expected << " "
+                 "Received: " << mykey << std::endl;
   }
 
   vistk::config::key_t const mymidkey = conf->get_value<vistk::config::key_t>("mymidblock:mykey");
@@ -473,8 +473,8 @@ test_config_provider_conf_dep(boost::filesystem::path const& pipe_file)
   if (mykey != expected)
   {
     std::cerr << "Error: Configuration was not overriden: "
-              << "Expected: " << expected << " "
-              << "Received: " << mykey << std::endl;
+                 "Expected: " << expected << " "
+                 "Received: " << mykey << std::endl;
   }
 }
 
@@ -573,8 +573,8 @@ test_include(boost::filesystem::path const& pipe_file)
   if (mykey != expected)
   {
     std::cerr << "Error: Configuration was not overriden: "
-              << "Expected: " << expected << " "
-              << "Received: " << mykey << std::endl;
+                 "Expected: " << expected << " "
+                 "Received: " << mykey << std::endl;
   }
 }
 
@@ -789,29 +789,29 @@ test_visitor
   if (config_expect != config_count)
   {
     std::cerr << "Error: config count: "
-              << "Expected: " << config_expect << " "
-              << "Received: " << config_count << std::endl;
+                 "Expected: " << config_expect << " "
+                 "Received: " << config_count << std::endl;
     is_good = false;
   }
   if (process_expect != process_count)
   {
     std::cerr << "Error: process count: "
-              << "Expected: " << process_expect << " "
-              << "Received: " << process_count << std::endl;
+                 "Expected: " << process_expect << " "
+                 "Received: " << process_count << std::endl;
     is_good = false;
   }
   if (connect_expect != connect_count)
   {
     std::cerr << "Error: connect count: "
-              << "Expected: " << connect_expect << " "
-              << "Received: " << connect_count << std::endl;
+                 "Expected: " << connect_expect << " "
+                 "Received: " << connect_count << std::endl;
     is_good = false;
   }
   if (group_expect != group_count)
   {
     std::cerr << "Error: group count: "
-              << "Expected: " << group_expect << " "
-              << "Received: " << group_count << std::endl;
+                 "Expected: " << group_expect << " "
+                 "Received: " << group_count << std::endl;
     is_good = false;
   }
 

@@ -219,7 +219,7 @@ no_such_configuration_value_exception
   std::ostringstream sstr;
 
   sstr << "There is no configuration value with the key "
-       << "\'" << m_key << "\'.";
+          "\'" << m_key << "\'.";
 
   m_what = sstr.str();
 }
@@ -247,8 +247,8 @@ bad_configuration_cast_exception
   std::ostringstream sstr;
 
   sstr << "Failed to cast key \'" << m_key << "\' "
-       << "with value \'" << m_value << "\' as "
-       << "a \'" << m_type << "\': " << m_reason << ".";
+          "with value \'" << m_value << "\' as "
+          "a \'" << m_type << "\': " << m_reason << ".";
 
   m_what = sstr.str();
 }
@@ -275,9 +275,9 @@ set_on_read_only_value_exception
   std::ostringstream sstr;
 
   sstr << "The key \'" << m_key << "\' "
-       << "was marked as read-only with the value "
-       << "\'" << m_value << "\' was attempted to be "
-       << "set to \'" << m_key << "\'.";
+          "was marked as read-only with the value "
+          "\'" << m_value << "\' was attempted to be "
+          "set to \'" << m_key << "\'.";
 
   m_what = sstr.str();
 }
@@ -303,9 +303,9 @@ unset_on_read_only_value_exception
   std::ostringstream sstr;
 
   sstr << "The key \'" << m_key << "\' "
-       << "was marked as read-only with the value "
-       << "\'" << m_value << "\' was attempted to be "
-       << "unset.";
+          "was marked as read-only with the value "
+          "\'" << m_value << "\' was attempted to be "
+          "unset.";
 
   m_what = sstr.str();
 }

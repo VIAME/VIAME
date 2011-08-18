@@ -47,7 +47,7 @@ null_process_addition_exception
   std::ostringstream sstr;
 
   sstr << "A pipeline was given NULL as a process "
-       << "to add to the pipeline.";
+          "to add to the pipeline.";
 
   m_what = sstr.str();
 }
@@ -72,8 +72,8 @@ duplicate_process_name_exception
   std::ostringstream sstr;
 
   sstr << "A pipeline was given a process named "
-       << "\'" << m_name << "\' when one already "
-       << "exists by that name.";
+          "\'" << m_name << "\' when one already "
+          "exists by that name.";
 
   m_what = sstr.str();
 }
@@ -98,8 +98,8 @@ no_such_process_exception
   std::ostringstream sstr;
 
   sstr << "A process named \'" << m_name << "\' "
-       << "was requested for a connection but "
-       << "it does not exist in the pipeline.";
+          "was requested for a connection but "
+          "it does not exist in the pipeline.";
 
   m_what = sstr.str();
 }
@@ -134,11 +134,11 @@ connection_type_mismatch_exception
   std::ostringstream sstr;
 
   sstr << "The connection between the \'" <<m_upstream_port << "\' "
-       << "port on the \'" << m_upstream_name << "\' upstream "
-       << "and the \'" << m_downstream_port << "\' on the "
-       << "\'" << m_downstream_name << "\' connection mismatching "
-       << "types: up: \'" << m_upstream_type << "\' down: "
-       << "\'" << m_downstream_type << "\'.";
+          "port on the \'" << m_upstream_name << "\' upstream "
+          "and the \'" << m_downstream_port << "\' on the "
+          "\'" << m_downstream_name << "\' connection mismatching "
+          "types: up: \'" << m_upstream_type << "\' down: "
+          "\'" << m_downstream_type << "\'.";
 
   m_what = sstr.str();
 }
@@ -169,10 +169,10 @@ connection_flag_mismatch_exception
   std::ostringstream sstr;
 
   sstr << "The connection between the \'" <<m_upstream_port << "\' "
-       << "port on the \'" << m_upstream_name << "\' upstream "
-       << "and the \'" << m_downstream_port << "\' on the "
-       << "\'" << m_downstream_name << "\' connection mismatching "
-       << "flags.";
+          "port on the \'" << m_upstream_name << "\' upstream "
+          "and the \'" << m_downstream_port << "\' on the "
+          "\'" << m_downstream_name << "\' connection mismatching "
+          "flags.";
 
   m_what = sstr.str();
 }
@@ -243,8 +243,8 @@ no_such_group_exception
   std::ostringstream sstr;
 
   sstr << "A group named \'" << m_name << "\' "
-       << "was requested it does not exist in "
-       << "the pipeline.";
+          "was requested it does not exist in "
+          "the pipeline.";
 
   m_what = sstr.str();
 }
@@ -270,8 +270,8 @@ no_such_group_port_exception
   std::ostringstream sstr;
 
   sstr << "The \'" << m_port << "\' on the group "
-       << "named \'" << m_name << "\' was "
-       << "requested it does not exist.";
+          "named \'" << m_name << "\' was "
+          "requested it does not exist.";
 
   m_what = sstr.str();
 }
@@ -306,12 +306,12 @@ group_output_already_mapped_exception
   std::ostringstream sstr;
 
   sstr << "The \'" << m_name << "\' group output port "
-       << "\'" << m_port << "\' is already connected to "
-       << "the \'" << m_current_port << "\' port of the "
-       << "\'" << m_current_process << "\' process, but "
-       << "was attempted to be connected to the "
-       << "\'" << m_new_port << "\' port of the "
-       << "\'" << m_new_process << "\' process.";
+          "\'" << m_port << "\' is already connected to "
+          "the \'" << m_current_port << "\' port of the "
+          "\'" << m_current_process << "\' process, but "
+          "was attempted to be connected to the "
+          "\'" << m_new_port << "\' port of the "
+          "\'" << m_new_process << "\' process.";
 
   m_what = sstr.str();
 }

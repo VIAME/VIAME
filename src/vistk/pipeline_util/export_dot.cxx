@@ -68,7 +68,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 
     // Central node
     ostr << node_name << " ["
-         << "label=\"" << name << "\\n:: " << proc->type() << "\","
+            "label=\"" << name << "\\n:: " << proc->type() << "\","
          << style_process
          << "];" << std::endl;
 
@@ -83,7 +83,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
       std::string const node_port_name = name + node_prefix_input + port;
 
       ostr << node_port_name << " ["
-           << "label=\"" << port << "\\n:: " << ptype << "\","
+              "label=\"" << port << "\\n:: " << ptype << "\","
            << style_input_port
            << "];" << std::endl;
       ostr << node_port_name << " -> "
@@ -103,7 +103,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
       std::string const node_port_name = name + node_prefix_output + port;
 
       ostr << node_port_name << " ["
-           << "label=\"" << port << "\\n:: " << ptype << "\","
+              "label=\"" << port << "\\n:: " << ptype << "\","
            << style_output_port
            << "];" << std::endl;
       ostr << node_name << " -> "

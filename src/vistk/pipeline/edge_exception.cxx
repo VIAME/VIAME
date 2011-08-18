@@ -73,8 +73,8 @@ duplicate_edge_connection_exception
 
   sstr << "An edge was given a process for the "
        << type << " input "
-       << "(\'" << m_new_process << "\') when one already "
-       << "exists (\'" << m_process << "\').";
+          "(\'" << m_new_process << "\') when one already "
+          "exists (\'" << m_process << "\').";
 
   m_what = sstr.str();
 }

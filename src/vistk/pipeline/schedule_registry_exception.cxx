@@ -25,7 +25,7 @@ null_schedule_ctor_exception
   std::ostringstream sstr;
 
   sstr << "A NULL constructor was passed for the "
-       << "schedule type \'" << m_type << "\'.";
+          "schedule type \'" << m_type << "\'.";
 
   m_what = sstr.str();
 }
@@ -96,7 +96,7 @@ no_such_schedule_type_exception
   std::ostringstream sstr;
 
   sstr << "There is no such schedule of type \'" << type << "\' "
-       << "in the registry.";
+          "in the registry.";
 
   m_what = sstr.str();
 }
@@ -121,7 +121,7 @@ schedule_type_already_exists_exception
   std::ostringstream sstr;
 
   sstr << "There is already a schedule of type \'" << type << "\' "
-       << "in the registry.";
+          "in the registry.";
 
   m_what = sstr.str();
 }

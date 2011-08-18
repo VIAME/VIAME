@@ -60,8 +60,8 @@ no_such_port_exception
   std::ostringstream sstr;
 
   sstr << "The port \'" << m_port << "\' "
-       << "on process \'" << m_process << "\' "
-       << "does not exist.";
+          "on process \'" << m_process << "\' "
+          "does not exist.";
 
   m_what = sstr.str();
 }
@@ -85,8 +85,8 @@ null_edge_port_connection_exception
   std::ostringstream sstr;
 
   sstr << "The connection to \'" << m_port << "\' "
-       << "on process \'" << m_process << "\' "
-       << "was given a NULL edge.";
+          "on process \'" << m_process << "\' "
+          "was given a NULL edge.";
 
   m_what = sstr.str();
 }
@@ -110,8 +110,8 @@ port_reconnect_exception
   std::ostringstream sstr;
 
   sstr << "The port \'" << m_port << "\' "
-       << "on process \'" << m_process << "\' "
-       << "has already been connected to.";
+          "on process \'" << m_process << "\' "
+          "has already been connected to.";
 
   m_what = sstr.str();
 }
@@ -136,8 +136,8 @@ missing_connection_exception
   std::ostringstream sstr;
 
   sstr << "The port \'" << m_port << "\' "
-       << "on process \'" << m_process << "\' "
-       << "is not connected: " << m_reason << ".";
+          "on process \'" << m_process << "\' "
+          "is not connected: " << m_reason << ".";
 
   m_what = sstr.str();
 }
@@ -163,8 +163,8 @@ unknown_configuration_value_exception
   std::ostringstream sstr;
 
   sstr << "The configuration value \'" << m_key << "\' "
-       << "on process \'" << m_process << "\' "
-       << "does not exist.";
+          "on process \'" << m_process << "\' "
+          "does not exist.";
 
   m_what = sstr.str();
 }
@@ -192,9 +192,9 @@ invalid_configuration_value_exception
   std::ostringstream sstr;
 
   sstr << "The configuration value \'" << m_key << "\' "
-       << "on process \'" << m_process << "\' "
-       << "was set to an invalid value \'" << m_value << "\'. "
-       << "A description of the value is: " << m_desc << ".";
+          "on process \'" << m_process << "\' "
+          "was set to an invalid value \'" << m_value << "\'. "
+          "A description of the value is: " << m_desc << ".";
 
   m_what = sstr.str();
 }
@@ -220,7 +220,7 @@ invalid_configuration_exception
   std::ostringstream sstr;
 
   sstr << "The process \'" << m_process << "\' "
-       << "has a configuration issue: " << m_reason << ".";
+          "has a configuration issue: " << m_reason << ".";
 
   m_what = sstr.str();
 }
