@@ -16,6 +16,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
 
+#include <map>
 #include <utility>
 
 /**
