@@ -14,9 +14,6 @@
 
 #include <boost/utility.hpp>
 
-#include <map>
-#include <utility>
-
 /**
  * \file pipeline.h
  *

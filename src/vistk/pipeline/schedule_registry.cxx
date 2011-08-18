@@ -13,8 +13,6 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include <utility>
-
 /**
  * \file schedule_registry.cxx
  *
