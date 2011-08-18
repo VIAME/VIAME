@@ -28,7 +28,7 @@ main(int argc, char* argv[])
 {
   if (argc != 3)
   {
-    std::cerr << "Error: Expected two arguments" << std::endl;
+    TEST_ERROR("Expected two arguments");
 
     return 1;
   }
@@ -44,7 +44,7 @@ main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception: " << e.what());
 
     return 1;
   }
@@ -73,7 +73,7 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   }
   else
   {
-    std::cerr << "Error: Unknown test: " << test_name << std::endl;
+    TEST_ERROR("Unknown test: " << test_name);
   }
 }
 

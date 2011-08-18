@@ -27,7 +27,7 @@ main(int argc, char* argv[])
 {
   if (argc != 2)
   {
-    std::cerr << "Error: Expected one argument" << std::endl;
+    TEST_ERROR("Expected one argument");
 
     return 1;
   }
@@ -40,7 +40,7 @@ main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception: " << e.what());
 
     return 1;
   }
@@ -84,7 +84,7 @@ run_test(std::string const& test_name)
   }
   else
   {
-    std::cerr << "Error: Unknown test: " << test_name << std::endl;
+    TEST_ERROR("Unknown test: " << test_name);
   }
 }
 
@@ -136,28 +136,28 @@ test_load_schedules()
     }
     catch (vistk::no_such_schedule_type_exception& e)
     {
-      std::cerr << "Error: Failed to create schedule: " << e.what() << std::endl;
+      TEST_ERROR("Failed to create schedule: " << e.what());
 
       continue;
     }
     catch (std::exception& e)
     {
-      std::cerr << "Error: Unexpected exception when creating schedule: " << e.what() << std::endl;
+      TEST_ERROR("Unexpected exception when creating schedule: " << e.what());
 
       continue;
     }
 
     if (!schedule)
     {
-      std::cerr << "Error: Received NULL schedule (" << type << ")" << std::endl;
+      TEST_ERROR("Received NULL schedule (" << type << ")");
 
       continue;
     }
 
     if (reg->description(type).empty())
     {
-      std::cerr << "Error: The description for "
-                << type << " is empty" << std::endl;
+      TEST_ERROR("The description for "
+                 << type << " is empty");
     }
   }
 }

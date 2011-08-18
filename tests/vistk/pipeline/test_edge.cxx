@@ -25,7 +25,7 @@ main(int argc, char* argv[])
 {
   if (argc != 2)
   {
-    std::cerr << "Error: Expected one argument" << std::endl;
+    TEST_ERROR("Expected one argument");
 
     return 1;
   }
@@ -38,7 +38,7 @@ main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception: " << e.what());
 
     return 1;
   }
@@ -122,7 +122,7 @@ run_test(std::string const& test_name)
   }
   else
   {
-    std::cerr << "Error: Unknown test: " << test_name << std::endl;
+    TEST_ERROR("Unknown test: " << test_name);
   }
 }
 
@@ -155,7 +155,7 @@ test_new_has_no_data()
 
   if (edge->has_data())
   {
-    std::cerr << "Error: A new edge has data in it" << std::endl;
+    TEST_ERROR("A new edge has data in it");
   }
 }
 
@@ -168,7 +168,7 @@ test_new_is_not_full()
 
   if (edge->full_of_data())
   {
-    std::cerr << "Error: A new edge is full of data" << std::endl;
+    TEST_ERROR("A new edge is full of data");
   }
 }
 
@@ -181,7 +181,7 @@ test_new_has_count_zero()
 
   if (edge->datum_count())
   {
-    std::cerr << "Error: A new edge has a count" << std::endl;
+    TEST_ERROR("A new edge has a count");
   }
 }
 
@@ -201,14 +201,14 @@ test_push_datum()
 
   if (edge->datum_count() != 1)
   {
-    std::cerr << "Error: An edge with a pushed datum does not have a count of one" << std::endl;
+    TEST_ERROR("An edge with a pushed datum does not have a count of one");
   }
 
   edge->push_datum(edat);
 
   if (edge->datum_count() != 2)
   {
-    std::cerr << "Error: An edge with two pushed data does not have a count of two" << std::endl;
+    TEST_ERROR("An edge with two pushed data does not have a count of two");
   }
 }
 
@@ -230,12 +230,12 @@ test_peek_datum()
 
   if (edge->datum_count() != 1)
   {
-    std::cerr << "Error: An edge removed a datum on an peek" << std::endl;
+    TEST_ERROR("An edge removed a datum on an peek");
   }
 
   if (*get_edat.get<1>() != *stamp)
   {
-    std::cerr << "Error: The edge modified a stamp on a peek" << std::endl;
+    TEST_ERROR("The edge modified a stamp on a peek");
   }
 }
 
@@ -257,7 +257,7 @@ test_pop_datum()
 
   if (edge->datum_count())
   {
-    std::cerr << "Error: An edge did not remove a datum on a pop" << std::endl;
+    TEST_ERROR("An edge did not remove a datum on a pop");
   }
 }
 
@@ -279,12 +279,12 @@ test_get_datum()
 
   if (edge->datum_count() != 0)
   {
-    std::cerr << "Error: An edge did not remove a datum on a get" << std::endl;
+    TEST_ERROR("An edge did not remove a datum on a get");
   }
 
   if (*get_edat.get<1>() != *stamp)
   {
-    std::cerr << "Error: The edge modified a stamp on a get" << std::endl;
+    TEST_ERROR("The edge modified a stamp on a get");
   }
 }
 
@@ -297,21 +297,21 @@ test_required_by_downstream()
 
   if (!edge->required_by_downstream())
   {
-    std::cerr << "Error: A new edge is not marked as required by downstream" << std::endl;
+    TEST_ERROR("A new edge is not marked as required by downstream");
   }
 
   edge->set_required_by_downstream(false);
 
   if (edge->required_by_downstream())
   {
-    std::cerr << "Error: Setting the requirement by downstream failed" << std::endl;
+    TEST_ERROR("Setting the requirement by downstream failed");
   }
 
   edge->set_required_by_downstream(true);
 
   if (!edge->required_by_downstream())
   {
-    std::cerr << "Error: Setting the requirement by downstream failed" << std::endl;
+    TEST_ERROR("Setting the requirement by downstream failed");
   }
 }
 

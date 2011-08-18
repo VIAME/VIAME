@@ -30,15 +30,15 @@ main()
   }
   catch (vistk::schedule_type_already_exists_exception& e)
   {
-    std::cerr << "Error: Duplicate schedule names: " << e.what() << std::endl;
+    TEST_ERROR("Duplicate schedule names: " << e.what());
   }
   catch (vistk::pipeline_exception& e)
   {
-    std::cerr << "Error: Failed to load modules: " << e.what() << std::endl;
+    TEST_ERROR("Failed to load modules: " << e.what());
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception when loading modules: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception when loading modules: " << e.what());
 
     return 1;
   }
@@ -59,25 +59,25 @@ main()
     }
     catch (vistk::no_such_schedule_type_exception& e)
     {
-      std::cerr << "Error: Failed to create schedule: " << e.what() << std::endl;
+      TEST_ERROR("Failed to create schedule: " << e.what());
 
       continue;
     }
     catch (std::exception& e)
     {
-      std::cerr << "Error: Unexpected exception when creating schedule: " << e.what() << std::endl;
+      TEST_ERROR("Unexpected exception when creating schedule: " << e.what());
     }
 
     if (!schedule)
     {
-      std::cerr << "Error: Received NULL schedule (" << type << ")" << std::endl;
+      TEST_ERROR("Received NULL schedule (" << type << ")");
 
       continue;
     }
 
     if (reg->description(type).empty())
     {
-      std::cerr << "Error: The description is empty" << std::endl;
+      TEST_ERROR("The description is empty");
     }
   }
 

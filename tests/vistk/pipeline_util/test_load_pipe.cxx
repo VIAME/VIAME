@@ -33,7 +33,7 @@ main(int argc, char* argv[])
 {
   if (argc != 3)
   {
-    std::cerr << "Error: Expected two arguments" << std::endl;
+    TEST_ERROR("Expected two arguments");
 
     return 1;
   }
@@ -51,7 +51,7 @@ main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception: " << e.what());
 
     return 1;
   }
@@ -225,7 +225,7 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
   }
   else
   {
-    std::cerr << "Error: Unknown test: " << test_name << std::endl;
+    TEST_ERROR("Unknown test: " << test_name);
   }
 }
 
@@ -323,9 +323,9 @@ test_config_block(boost::filesystem::path const& pipe_file)
 
   if (mykey != expected)
   {
-    std::cerr << "Error: Configuration was not overriden: "
-                 "Expected: " << expected << " "
-                 "Received: " << mykey << std::endl;
+    TEST_ERROR("Configuration was not overriden: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
   }
 }
 
@@ -371,9 +371,9 @@ test_config_overrides(boost::filesystem::path const& pipe_file)
 
   if (mykey != expected)
   {
-    std::cerr << "Error: Configuration was not overriden: "
-                 "Expected: " << expected << " "
-                 "Received: " << mykey << std::endl;
+    TEST_ERROR("Configuration was not overriden: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
   }
 }
 
@@ -439,9 +439,9 @@ test_config_provider_conf(boost::filesystem::path const& pipe_file)
 
   if (mykey != expected)
   {
-    std::cerr << "Error: Configuration was not overriden: "
-                 "Expected: " << expected << " "
-                 "Received: " << mykey << std::endl;
+    TEST_ERROR("Configuration was not overriden: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
   }
 }
 
@@ -463,18 +463,18 @@ test_config_provider_conf_dep(boost::filesystem::path const& pipe_file)
 
   if (mykey != expected)
   {
-    std::cerr << "Error: Configuration was not overriden: "
-                 "Expected: " << expected << " "
-                 "Received: " << mykey << std::endl;
+    TEST_ERROR("Configuration was not overriden: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
   }
 
   vistk::config::key_t const mymidkey = conf->get_value<vistk::config::key_t>("mymidblock:mykey");
 
   if (mykey != expected)
   {
-    std::cerr << "Error: Configuration was not overriden: "
-                 "Expected: " << expected << " "
-                 "Received: " << mykey << std::endl;
+    TEST_ERROR("Configuration was not overriden: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
   }
 }
 
@@ -572,9 +572,9 @@ test_include(boost::filesystem::path const& pipe_file)
 
   if (mykey != expected)
   {
-    std::cerr << "Error: Configuration was not overriden: "
-                 "Expected: " << expected << " "
-                 "Received: " << mykey << std::endl;
+    TEST_ERROR("Configuration was not overriden: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
   }
 }
 
@@ -788,30 +788,30 @@ test_visitor
 
   if (config_expect != config_count)
   {
-    std::cerr << "Error: config count: "
-                 "Expected: " << config_expect << " "
-                 "Received: " << config_count << std::endl;
+    TEST_ERROR("config count: "
+               "Expected: " << config_expect << " "
+               "Received: " << config_count);
     is_good = false;
   }
   if (process_expect != process_count)
   {
-    std::cerr << "Error: process count: "
-                 "Expected: " << process_expect << " "
-                 "Received: " << process_count << std::endl;
+    TEST_ERROR("process count: "
+               "Expected: " << process_expect << " "
+               "Received: " << process_count);
     is_good = false;
   }
   if (connect_expect != connect_count)
   {
-    std::cerr << "Error: connect count: "
-                 "Expected: " << connect_expect << " "
-                 "Received: " << connect_count << std::endl;
+    TEST_ERROR("connect count: "
+               "Expected: " << connect_expect << " "
+               "Received: " << connect_count);
     is_good = false;
   }
   if (group_expect != group_count)
   {
-    std::cerr << "Error: group count: "
-                 "Expected: " << group_expect << " "
-                 "Received: " << group_count << std::endl;
+    TEST_ERROR("group count: "
+               "Expected: " << group_expect << " "
+               "Received: " << group_count);
     is_good = false;
   }
 

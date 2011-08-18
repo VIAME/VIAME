@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <test_common.h>
+
 #include <vistk/pipeline/stamp.h>
 
 #include <exception>
@@ -17,7 +19,7 @@ main(int argc, char* argv[])
 {
   if (argc != 2)
   {
-    std::cerr << "Error: Expected one argument" << std::endl;
+    TEST_ERROR("Expected one argument");
 
     return 1;
   }
@@ -30,7 +32,7 @@ main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception: " << e.what());
 
     return 1;
   }
@@ -59,7 +61,7 @@ run_test(std::string const& test_name)
   }
   else
   {
-    std::cerr << "Error: Unknown test: " << test_name << std::endl;
+    TEST_ERROR("Unknown test: " << test_name);
   }
 }
 
@@ -72,12 +74,12 @@ test_coloring()
 
   if (stampa->is_same_color(stampb))
   {
-    std::cerr << "Error: New stamps have the same color" << std::endl;
+    TEST_ERROR("New stamps have the same color");
   }
 
   if (!stampa->is_same_color(stampc))
   {
-    std::cerr << "Error: An incremented stamp changed color" << std::endl;
+    TEST_ERROR("An incremented stamp changed color");
   }
 }
 
@@ -89,28 +91,28 @@ test_equality()
 
   if (*stampa == *stampb)
   {
-    std::cerr << "Error: New stamps are equal" << std::endl;
+    TEST_ERROR("New stamps are equal");
   }
 
   vistk::stamp_t const stampc = vistk::stamp::copied_stamp(stampa);
 
   if (*stampa != *stampc)
   {
-    std::cerr << "Error: A copied stamp is not the same" << std::endl;
+    TEST_ERROR("A copied stamp is not the same");
   }
 
   vistk::stamp_t const stampd = vistk::stamp::recolored_stamp(stampb, stampa);
 
   if (*stampa != *stampd)
   {
-    std::cerr << "Error: A recolored new stamp does not equal a new stamp" << std::endl;
+    TEST_ERROR("A recolored new stamp does not equal a new stamp");
   }
 
   vistk::stamp_t const stampe = vistk::stamp::incremented_stamp(stampa);
 
   if (*stampa == *stampe)
   {
-    std::cerr << "Error: An incremented stamp equals the original stamp" << std::endl;
+    TEST_ERROR("An incremented stamp equals the original stamp");
   }
 }
 
@@ -123,28 +125,28 @@ test_ordering()
   if ((*stampa < *stampb) ||
       (*stampb < *stampa))
   {
-    std::cerr << "Error: New stamps compare" << std::endl;
+    TEST_ERROR("New stamps compare");
   }
 
   if (*stampa < *stampa)
   {
-    std::cerr << "Error: A stamp is less than itself" << std::endl;
+    TEST_ERROR("A stamp is less than itself");
   }
 
   if (*stampa > *stampa)
   {
-    std::cerr << "Error: A stamp is greater than itself" << std::endl;
+    TEST_ERROR("A stamp is greater than itself");
   }
 
   vistk::stamp_t const stampe = vistk::stamp::incremented_stamp(stampa);
 
   if (*stampe < *stampa)
   {
-    std::cerr << "Error: An incremented stamp is greater than the original stamp" << std::endl;
+    TEST_ERROR("An incremented stamp is greater than the original stamp");
   }
 
   if (!(*stampe > *stampa))
   {
-    std::cerr << "Error: An incremented stamp is greater than the original stamp" << std::endl;
+    TEST_ERROR("An incremented stamp is greater than the original stamp");
   }
 }

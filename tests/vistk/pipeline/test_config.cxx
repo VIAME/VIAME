@@ -19,7 +19,7 @@ main(int argc, char* argv[])
 {
   if (argc != 2)
   {
-    std::cerr << "Error: Expected one argument" << std::endl;
+    TEST_ERROR("Expected one argument");
 
     return 1;
   }
@@ -32,7 +32,7 @@ main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception: " << e.what());
 
     return 1;
   }
@@ -101,7 +101,7 @@ run_test(std::string const& test_name)
   }
   else
   {
-    std::cerr << "Error: Unknown test: " << test_name << std::endl;
+    TEST_ERROR("Unknown test: " << test_name);
   }
 }
 
@@ -119,12 +119,12 @@ test_has_value()
 
   if (!config->has_value(keya))
   {
-    std::cerr << "Error: Block does not have value which was set" << std::endl;
+    TEST_ERROR("Block does not have value which was set");
   }
 
   if (config->has_value(keyb))
   {
-    std::cerr << "Error: Block has value which was not set" << std::endl;
+    TEST_ERROR("Block has value which was not set");
   }
 }
 
@@ -143,7 +143,7 @@ test_get_value()
 
   if (valuea != get_valuea)
   {
-    std::cerr << "Error: Did not retrieve value that was set" << std::endl;
+    TEST_ERROR("Did not retrieve value that was set");
   }
 }
 
@@ -165,7 +165,7 @@ test_get_value_no_exist()
 
   if (valueb != get_valueb)
   {
-    std::cerr << "Error: Did not retrieve default when requesting unset value" << std::endl;
+    TEST_ERROR("Did not retrieve default when requesting unset value");
   }
 }
 
@@ -189,7 +189,7 @@ test_get_value_type_mismatch()
 
   if (valueb != get_valueb)
   {
-    std::cerr << "Error: Did not retrieve default when requesting a bad cast" << std::endl;
+    TEST_ERROR("Did not retrieve default when requesting a bad cast");
   }
 }
 
@@ -217,7 +217,7 @@ test_unset_value()
 
   if (valueb != get_valueb)
   {
-    std::cerr << "Error: Did not retrieve value when requesting after an unrelated unset" << std::endl;
+    TEST_ERROR("Did not retrieve value when requesting after an unrelated unset");
   }
 }
 
@@ -244,7 +244,7 @@ test_available_values()
 
   if (keys.size() != get_keys.size())
   {
-    std::cerr << "Error: Did not retrieve correct number of keys" << std::endl;
+    TEST_ERROR("Did not retrieve correct number of keys");
   }
 }
 
@@ -270,7 +270,7 @@ test_read_only()
 
   if (valuea != get_valuea)
   {
-    std::cerr << "Error: Read only value changed" << std::endl;
+    TEST_ERROR("Read only value changed");
   }
 }
 
@@ -295,7 +295,7 @@ test_read_only_unset()
 
   if (valuea != get_valuea)
   {
-    std::cerr << "Error: Read only value was unset" << std::endl;
+    TEST_ERROR("Read only value was unset");
   }
 }
 
@@ -325,19 +325,19 @@ test_subblock()
 
   if (valuea != get_valuea)
   {
-    std::cerr << "Error: Subblock did not inherit expected keys" << std::endl;
+    TEST_ERROR("Subblock did not inherit expected keys");
   }
 
   vistk::config::value_t const get_valueb = subblock->get_value<vistk::config::value_t>(keyb);
 
   if (valueb != get_valueb)
   {
-    std::cerr << "Error: Subblock did not inherit expected keys" << std::endl;
+    TEST_ERROR("Subblock did not inherit expected keys");
   }
 
   if (subblock->has_value(keyc))
   {
-    std::cerr << "Error: Subblock inherited unrelated key" << std::endl;
+    TEST_ERROR("Subblock inherited unrelated key");
   }
 }
 
@@ -365,12 +365,12 @@ test_subblock_view()
 
   if (!subblock->has_value(keya))
   {
-    std::cerr << "Error: Subblock view did not inherit key" << std::endl;
+    TEST_ERROR("Subblock view did not inherit key");
   }
 
   if (subblock->has_value(keyc))
   {
-    std::cerr << "Error: Subblock view inherited unrelated key" << std::endl;
+    TEST_ERROR("Subblock view inherited unrelated key");
   }
 
   config->set_value(block_name + vistk::config::block_sep + keya, valueb);
@@ -379,7 +379,7 @@ test_subblock_view()
 
   if (valueb != get_valuea1)
   {
-    std::cerr << "Error: Subblock view persisted a changed value" << std::endl;
+    TEST_ERROR("Subblock view persisted a changed value");
   }
 
   subblock->set_value(keya, valuea);
@@ -388,14 +388,14 @@ test_subblock_view()
 
   if (valuea != get_valuea2)
   {
-    std::cerr << "Error: Subblock view set value was not changed in parent" << std::endl;
+    TEST_ERROR("Subblock view set value was not changed in parent");
   }
 
   subblock->unset_value(keyb);
 
   if (config->has_value(block_name + vistk::config::block_sep + keyb))
   {
-    std::cerr << "Error: Unsetting from a subblock view did not unset in parent view" << std::endl;
+    TEST_ERROR("Unsetting from a subblock view did not unset in parent view");
   }
 
   config->set_value(block_name + vistk::config::block_sep + keyc, valuec);
@@ -409,7 +409,7 @@ test_subblock_view()
 
   if (keys.size() != get_keys.size())
   {
-    std::cerr << "Error: Did not retrieve correct number of keys from the subblock" << std::endl;
+    TEST_ERROR("Did not retrieve correct number of keys from the subblock");
   }
 }
 
@@ -439,20 +439,20 @@ test_merge_config()
 
   if (valuea != get_valuea)
   {
-    std::cerr << "Error: Unmerged key changed" << std::endl;
+    TEST_ERROR("Unmerged key changed");
   }
 
   vistk::config::value_t const get_valueb = configa->get_value<vistk::config::value_t>(keyb);
 
   if (valueb != get_valueb)
   {
-    std::cerr << "Error: Conflicting key was not overwritten" << std::endl;
+    TEST_ERROR("Conflicting key was not overwritten");
   }
 
   vistk::config::value_t const get_valuec = configa->get_value<vistk::config::value_t>(keyc);
 
   if (valuec != get_valuec)
   {
-    std::cerr << "Error: New key did not appear" << std::endl;
+    TEST_ERROR("New key did not appear");
   }
 }

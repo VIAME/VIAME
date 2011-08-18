@@ -30,15 +30,15 @@ main()
   }
   catch (vistk::process_type_already_exists_exception& e)
   {
-    std::cerr << "Error: Duplicate process names: " << e.what() << std::endl;
+    TEST_ERROR("Duplicate process names: " << e.what());
   }
   catch (vistk::pipeline_exception& e)
   {
-    std::cerr << "Error: Failed to load modules: " << e.what() << std::endl;
+    TEST_ERROR("Failed to load modules: " << e.what());
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception when loading modules: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception when loading modules: " << e.what());
 
     return 1;
   }
@@ -55,8 +55,8 @@ main()
     }
     catch (std::exception& e)
     {
-      std::cerr << "Error: Unexpected exception when testing "
-                   "type \'" << type << "\': " << e.what() << std::endl;
+      TEST_ERROR("Unexpected exception when testing "
+                 "type \'" << type << "\': " << e.what());
     }
   }
 
@@ -83,27 +83,27 @@ test_process(vistk::process_registry::type_t const& type)
 
   if (reg->description(type).empty())
   {
-    std::cerr << "Error: The description is empty" << std::endl;
+    TEST_ERROR("The description is empty");
   }
 
   vistk::process_t const process = reg->create_process(type, config);
 
   if (!process)
   {
-    std::cerr << "Error: Received NULL process (" << type << ")" << std::endl;
+    TEST_ERROR("Received NULL process (" << type << ")");
 
     return;
   }
 
   if (process->name() != expected_name)
   {
-    std::cerr << "Error: Name (" << process->name() << ") "
-              << "does not match expected name: " << expected_name << std::endl;
+    TEST_ERROR("Name (" << process->name() << ") "
+               "does not match expected name: " << expected_name);
   }
 
   if (process->type() != type)
   {
-    std::cerr << "Error: The type does not match the registry type" << std::endl;
+    TEST_ERROR("The type does not match the registry type");
   }
 
   test_process_configuration(process);
@@ -128,15 +128,15 @@ test_process_configuration(vistk::process_t const process)
     }
     catch (vistk::unknown_configuration_value_exception& e)
     {
-      std::cerr << "Error: Failed to get a default for "
-                << process->type() << vistk::config::block_sep << key
-                << ": " << e.what() << std::endl;
+      TEST_ERROR("Failed to get a default for "
+                 << process->type() << vistk::config::block_sep << key
+                 << ": " << e.what());
     }
     catch (std::exception& e)
     {
-      std::cerr << "Error: Unexpected exception when querying for default "
-                   "(" << process->type() << vistk::config::block_sep
-                << key << "): " << e.what() << std::endl;
+      TEST_ERROR("Unexpected exception when querying for default "
+                 "(" << process->type() << vistk::config::block_sep
+                 << key << "): " << e.what());
     }
   }
 }
@@ -158,13 +158,13 @@ test_process_input_ports(vistk::process_t const process)
     }
     catch (vistk::no_such_port_exception& e)
     {
-      std::cerr << "Error: Failed to get a info for input port "
-                << process->type() << "." << port << ": " << e.what() << std::endl;
+      TEST_ERROR("Failed to get a info for input port "
+                 << process->type() << "." << port << ": " << e.what());
     }
     catch (std::exception& e)
     {
-      std::cerr << "Error: Unexpected exception when querying for input port info "
-                << "(" << process->type() << "." << port << "): " << e.what() << std::endl;
+      TEST_ERROR("Unexpected exception when querying for input port info "
+                 "(" << process->type() << "." << port << "): " << e.what());
     }
 
     vistk::process::port_flags_t const& flags = info->flags;
@@ -173,16 +173,16 @@ test_process_input_ports(vistk::process_t const process)
 
     if (is_const)
     {
-      std::cerr << "Error: Const flag on input port "
-                   "(" << process->type() << "." << port << ")" << std::endl;
+      TEST_ERROR("Const flag on input port "
+                 "(" << process->type() << "." << port << ")");
     }
 
     vistk::process::port_description_t const& description = info->description;
 
     if (description.empty())
     {
-      std::cerr << "Error: Description empty on input port "
-                   "(" << process->type() << "." << port << ")" << std::endl;
+      TEST_ERROR("Description empty on input port "
+                 "(" << process->type() << "." << port << ")");
     }
 
     vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
@@ -212,13 +212,13 @@ test_process_output_ports(vistk::process_t const process)
     }
     catch (vistk::no_such_port_exception& e)
     {
-      std::cerr << "Error: Failed to get a info for output port "
-                << process->type() << "." << port << ": " << e.what() << std::endl;
+      TEST_ERROR("Failed to get a info for output port "
+                 << process->type() << "." << port << ": " << e.what());
     }
     catch (std::exception& e)
     {
-      std::cerr << "Error: Unexpected exception when querying for output port info "
-                   "(" << process->type() << "." << port << "): " << e.what() << std::endl;
+      TEST_ERROR("Unexpected exception when querying for output port info "
+                 "(" << process->type() << "." << port << "): " << e.what());
     }
 
     vistk::process::port_flags_t const& flags = info->flags;
@@ -227,16 +227,16 @@ test_process_output_ports(vistk::process_t const process)
 
     if (is_mutable)
     {
-      std::cerr << "Error: Mutable flag on output port "
-                   "(" << process->type() << "." << port << ")" << std::endl;
+      TEST_ERROR("Mutable flag on output port "
+                 "(" << process->type() << "." << port << ")");
     }
 
     vistk::process::port_description_t const& description = info->description;
 
     if (description.empty())
     {
-      std::cerr << "Error: Description empty on output port "
-                   "(" << process->type() << "." << port << ")" << std::endl;
+      TEST_ERROR("Description empty on output port "
+                 "(" << process->type() << "." << port << ")");
     }
 
     vistk::edge_t edge1 = vistk::edge_t(new vistk::edge(config));

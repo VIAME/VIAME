@@ -26,7 +26,7 @@ main(int argc, char* argv[])
 {
   if (argc != 2)
   {
-    std::cerr << "Error: Expected one argument" << std::endl;
+    TEST_ERROR("Expected one argument");
 
     return 1;
   }
@@ -39,7 +39,7 @@ main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception: " << e.what());
 
     return 1;
   }
@@ -63,7 +63,7 @@ run_test(std::string const& test_name)
   }
   else
   {
-    std::cerr << "Error: Unknown test: " << test_name << std::endl;
+    TEST_ERROR("Unknown test: " << test_name);
   }
 }
 
@@ -133,7 +133,7 @@ test_simple_pipeline()
 
   if (!fin.good())
   {
-    std::cerr << "Error: Could not open the output file" << std::endl;
+    TEST_ERROR("Could not open the output file");
   }
 
   std::string line;
@@ -144,9 +144,9 @@ test_simple_pipeline()
 
     if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i))
     {
-      std::cerr << "Error: Did not get expected value: "
-                   "Expected: " << i << " "
-                   "Received: " << line << std::endl;
+      TEST_ERROR("Did not get expected value: "
+                 "Expected: " << i << " "
+                 "Received: " << line);
     }
   }
 
@@ -154,12 +154,12 @@ test_simple_pipeline()
 
   if (!line.empty())
   {
-    std::cerr << "Error: Empty line missing" << std::endl;
+    TEST_ERROR("Empty line missing");
   }
 
   if (!fin.eof())
   {
-    std::cerr << "Error: Not at end of file" << std::endl;
+    TEST_ERROR("Not at end of file");
   }
 }
 
@@ -255,7 +255,7 @@ test_multiplier_pipeline()
 
   if (!fin.good())
   {
-    std::cerr << "Error: Could not open the output file" << std::endl;
+    TEST_ERROR("Could not open the output file");
   }
 
   std::string line;
@@ -267,9 +267,9 @@ test_multiplier_pipeline()
 
     if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i * j))
     {
-      std::cerr << "Error: Did not get expected value: "
-                   "Expected: " << i * j << " "
-                   "Received: " << line << std::endl;
+      TEST_ERROR("Did not get expected value: "
+                 "Expected: " << i * j << " "
+                 "Received: " << line);
     }
   }
 
@@ -277,12 +277,12 @@ test_multiplier_pipeline()
 
   if (!line.empty())
   {
-    std::cerr << "Error: Empty line missing" << std::endl;
+    TEST_ERROR("Empty line missing");
   }
 
   if (!fin.eof())
   {
-    std::cerr << "Error: Not at end of file" << std::endl;
+    TEST_ERROR("Not at end of file");
   }
 }
 

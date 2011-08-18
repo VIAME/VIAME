@@ -19,7 +19,7 @@ main(int argc, char* argv[])
 {
   if (argc != 2)
   {
-    std::cerr << "Error: Expected one argument" << std::endl;
+    TEST_ERROR("Expected one argument");
 
     return 1;
   }
@@ -32,7 +32,7 @@ main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cerr << "Error: Unexpected exception: " << e.what() << std::endl;
+    TEST_ERROR("Unexpected exception: " << e.what());
 
     return 1;
   }
@@ -66,7 +66,7 @@ run_test(std::string const& test_name)
   }
   else
   {
-    std::cerr << "Error: Unknown test: " << test_name << std::endl;
+    TEST_ERROR("Unknown test: " << test_name);
   }
 }
 
@@ -77,12 +77,12 @@ test_empty()
 
   if (dat->type() != vistk::datum::DATUM_EMPTY)
   {
-    std::cerr << "Error: Datum type mismatch" << std::endl;
+    TEST_ERROR("Datum type mismatch");
   }
 
   if (!dat->get_error().empty())
   {
-    std::cerr << "Error: An empty datum has an error string" << std::endl;
+    TEST_ERROR("An empty datum has an error string");
   }
 
   EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
@@ -97,12 +97,12 @@ test_complete()
 
   if (dat->type() != vistk::datum::DATUM_COMPLETE)
   {
-    std::cerr << "Error: Datum type mismatch" << std::endl;
+    TEST_ERROR("Datum type mismatch");
   }
 
   if (!dat->get_error().empty())
   {
-    std::cerr << "Error: A complete datum has an error string" << std::endl;
+    TEST_ERROR("A complete datum has an error string");
   }
 
   EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
@@ -118,12 +118,12 @@ test_error()
 
   if (dat->type() != vistk::datum::DATUM_ERROR)
   {
-    std::cerr << "Error: Datum type mismatch" << std::endl;
+    TEST_ERROR("Datum type mismatch");
   }
 
   if (dat->get_error() != error)
   {
-    std::cerr << "Error: An error datum did not keep the message" << std::endl;
+    TEST_ERROR("An error datum did not keep the message");
   }
 
   EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
@@ -139,19 +139,19 @@ test_new()
 
   if (dat->type() != vistk::datum::DATUM_DATA)
   {
-    std::cerr << "Error: Datum type mismatch" << std::endl;
+    TEST_ERROR("Datum type mismatch");
   }
 
   if (!dat->get_error().empty())
   {
-    std::cerr << "Error: A new datum has an error string" << std::endl;
+    TEST_ERROR("A new datum has an error string");
   }
 
   int const get_datum = dat->get_datum<int>();
 
   if (datum != get_datum)
   {
-    std::cerr << "Error: Did not get same value out as put into datum" << std::endl;
+    TEST_ERROR("Did not get same value out as put into datum");
   }
 
   EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
