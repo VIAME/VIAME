@@ -6,6 +6,7 @@
 
 #include "registration.h"
 
+#include "sync_schedule.h"
 #include "thread_per_process_schedule.h"
 #include "thread_pool_schedule.h"
 
@@ -14,6 +15,7 @@
 
 using namespace vistk;
 
+static schedule_t create_sync_schedule(config_t const& config, pipeline_t const& pipe);
 static schedule_t create_thread_per_process_schedule(config_t const& config, pipeline_t const& pipe);
 static schedule_t create_thread_pool_schedule(config_t const& config, pipeline_t const& pipe);
 
@@ -22,8 +24,15 @@ register_schedules()
 {
   schedule_registry_t const registry = schedule_registry::self();
 
+  registry->register_schedule("sync", "Runs the pipeline synchronously", create_sync_schedule);
   registry->register_schedule("thread_per_process", "Runs each process in its own thread", create_thread_per_process_schedule);
   registry->register_schedule("thread_pool", "Uses a pool of threads to step processes", create_thread_pool_schedule);
+}
+
+schedule_t
+create_sync_schedule(config_t const& config, pipeline_t const& pipe)
+{
+  return schedule_t(new sync_schedule(config, pipe));
 }
 
 schedule_t

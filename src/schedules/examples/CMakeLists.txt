@@ -2,6 +2,7 @@ project(vistk_schedules_examples)
 
 set(examples_srcs
   registration.cxx
+  sync_schedule.cxx
   thread_per_process_schedule.cxx
   thread_pool_schedule.cxx)
 
