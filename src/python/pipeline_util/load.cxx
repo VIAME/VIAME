@@ -70,75 +70,94 @@ BOOST_PYTHON_MODULE(load)
   register_exception_translator<
     vistk::load_pipe_exception>(translator);
 
-  class_<vistk::token_t>("Token");
-  class_<vistk::config_flag_t>("ConfigFlag");
-  class_<vistk::config_flags_t>("ConfigFlags")
+  class_<vistk::token_t>("Token"
+    , "A token in the pipeline description.");
+  class_<vistk::config_flag_t>("ConfigFlag"
+    , "A flag on a configuration setting.");
+  class_<vistk::config_flags_t>("ConfigFlags"
+    , "A collection of flags on a configuration setting.")
     .def(vector_indexing_suite<vistk::config_flags_t>())
   ;
-  class_<vistk::config_provider_t>("ConfigProvider");
-  class_<vistk::config_key_options_t>("ConfigKeyOptions")
+  class_<vistk::config_provider_t>("ConfigProvider"
+    , "A provider key for a configuration setting.");
+  class_<vistk::config_key_options_t>("ConfigKeyOptions"
+    , "A collection of options on a configuration setting.")
     .add_property("flags", &config_key_options_flags, &config_key_options_flags_set)
     .add_property("provider", &config_key_options_provider, &config_key_options_provider_set)
   ;
-  class_<vistk::config_key_t>("ConfigKey")
+  class_<vistk::config_key_t>("ConfigKey"
+    , "A configuration key with its settings.")
     .def_readwrite("key_path", &vistk::config_key_t::key_path)
     .def_readwrite("options", &vistk::config_key_t::options)
   ;
-  class_<vistk::config_value_t>("ConfigValue")
+  class_<vistk::config_value_t>("ConfigValue"
+    , "A complete configuration setting.")
     .def_readwrite("key", &vistk::config_value_t::key)
     .def_readwrite("value", &vistk::config_value_t::value)
   ;
-  class_<vistk::config_values_t>("ConfigValues")
+  class_<vistk::config_values_t>("ConfigValues"
+    , "A collection of configuration settings.")
     /// \todo Need operator == on config_value_t
     //.def(vector_indexing_suite<vistk::config_values_t>())
   ;
-  class_<vistk::map_options_t>("MapOptions")
+  class_<vistk::map_options_t>("MapOptions"
+    , "A collection of options for a mapping.")
     .add_property("flags", &map_options_flags, &map_options_flags_set)
   ;
-  class_<vistk::input_map_t>("InputMap")
+  class_<vistk::input_map_t>("InputMap"
+    , "An input mapping for a group.")
     .def_readwrite("options", &vistk::input_map_t::options)
     .def_readwrite("from_", &vistk::input_map_t::from)
     .def_readwrite("to", &vistk::input_map_t::to)
   ;
-  class_<vistk::input_maps_t>("InputMaps")
+  class_<vistk::input_maps_t>("InputMaps"
+    , "A collection of input mappings.")
     /// \todo Need operator == on input_map_t.
     //.def(vector_indexing_suite<vistk::input_maps_t>())
   ;
-  class_<vistk::output_map_t>("OutputMap")
+  class_<vistk::output_map_t>("OutputMap"
+    , "An output mapping for a group.")
     .def_readwrite("options", &vistk::output_map_t::options)
     .def_readwrite("from_", &vistk::output_map_t::from)
     .def_readwrite("to", &vistk::output_map_t::to)
   ;
-  class_<vistk::output_maps_t>("OutputMaps")
+  class_<vistk::output_maps_t>("OutputMaps"
+    , "A collection of output mappings.")
     /// \todo Need operator == on output_map_t.
     //.def(vector_indexing_suite<vistk::output_maps_t>())
   ;
-  class_<vistk::config_pipe_block>("ConfigBlock")
+  class_<vistk::config_pipe_block>("ConfigBlock"
+    , "A block of configuration settings.")
     .def_readwrite("key", &vistk::config_pipe_block::key)
     .def_readwrite("values", &vistk::config_pipe_block::values)
   ;
-  class_<vistk::process_pipe_block>("ProcessBlock")
+  class_<vistk::process_pipe_block>("ProcessBlock"
+    , "A block which declares a process.")
     .def_readwrite("name", &vistk::process_pipe_block::name)
     .def_readwrite("type", &vistk::process_pipe_block::type)
     .def_readwrite("config_values", &vistk::process_pipe_block::config_values)
   ;
-  class_<vistk::connect_pipe_block>("ConnectBlock")
+  class_<vistk::connect_pipe_block>("ConnectBlock"
+    , "A block which connects two ports together.")
     .def_readwrite("from_", &vistk::connect_pipe_block::from)
     .def_readwrite("to", &vistk::connect_pipe_block::to)
   ;
-  class_<vistk::group_pipe_block>("GroupBlock")
+  class_<vistk::group_pipe_block>("GroupBlock"
+    , "A block which declares a group within the pipeline.")
     .def_readwrite("name", &vistk::group_pipe_block::name)
     .def_readwrite("config_values", &vistk::group_pipe_block::config_values)
     .def_readwrite("input_mappings", &vistk::group_pipe_block::input_mappings)
     .def_readwrite("output_mappings", &vistk::group_pipe_block::output_mappings)
   ;
-  class_<vistk::pipe_block>("PipeBlock")
+  class_<vistk::pipe_block>("PipeBlock"
+    , "A block in a pipeline declaration file.")
     .add_property("config", &pipe_block_config, &pipe_block_config_set)
     .add_property("process", &pipe_block_process, &pipe_block_process_set)
     .add_property("connect", &pipe_block_connect, &pipe_block_connect_set)
     .add_property("group", &pipe_block_group, &pipe_block_group_set)
   ;
-  class_<vistk::pipe_blocks>("PipeBlocks")
+  class_<vistk::pipe_blocks>("PipeBlocks"
+    , "A collection of pipeline blocks.")
     /// \todo Need operator == on pipe_block.
     //.def(vector_indexing_suite<vistk::pipe_blocks>())
   ;
