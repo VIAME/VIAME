@@ -194,6 +194,21 @@ class VISTK_PIPELINE_EXPORT pipeline
     process::port_addrs_t receivers_for_port(process::name_t const& name, process::port_t const& port) const;
 
     /**
+     * \brief Find the edge that represents a connection.
+     *
+     * \param upstream_process The upstream process name.
+     * \param upstream_port The upstream process port.
+     * \param downstream_process The downstream process name.
+     * \param downstream_port The downstream process port.
+     *
+     * \returns The edge for the connection, or \c NULL if there is no such connection.
+     */
+    edge_t edge_for_connection(process::name_t const& upstream_name,
+                               process::port_t const& upstream_port,
+                               process::name_t const& downstream_name,
+                               process::port_t const& downstream_port) const;
+
+    /**
      * \brief Find edges that are feeding data directly into a process.
      *
      * \param name The name of the process to lookup.

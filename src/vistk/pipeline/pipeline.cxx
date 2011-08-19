@@ -616,6 +616,29 @@ pipeline
   return port_addrs;
 }
 
+edge_t
+pipeline
+::edge_for_connection(process::name_t const& upstream_name,
+                      process::port_t const& upstream_port,
+                      process::name_t const& downstream_name,
+                      process::port_t const& downstream_port) const
+{
+  for (size_t i = 0; i < d->connections.size(); ++i)
+  {
+    priv::connection_t const& connection = d->connections[i];
+
+    if ((connection.first.first == upstream_name) &&
+        (connection.first.second == upstream_port) &&
+        (connection.second.first == downstream_name) &&
+        (connection.second.second == downstream_port))
+    {
+      return d->edge_map[i];
+    }
+  }
+
+  return edge_t();
+}
+
 edges_t
 pipeline
 ::input_edges_for_process(process::name_t const& name) const
