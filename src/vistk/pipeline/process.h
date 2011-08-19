@@ -409,32 +409,6 @@ class VISTK_PIPELINE_EXPORT process
     stamp_t heartbeat_stamp() const;
 
     /**
-     * \brief Check if a set of data are colored the same.
-     *
-     * \param data The data to check.
-     *
-     * \returns True if each datum has the same coloring, false otherwise.
-     */
-    static bool same_colored_data(edge_data_t const& data);
-    /**
-     * \brief Check if a set of data is syncronized.
-     *
-     * Makes sure that the given data all have equivalent stamps.
-     *
-     * \param data The data to check.
-     *
-     * \returns True if the available data have equivalent stamps, false otherwise.
-     */
-    static bool syncd_data(edge_data_t const& data);
-    /**
-     * \brief Examine datum packets to determine the highest priority status.
-     *
-     * \param data The data to look at.
-     *
-     * \returns The highest priority type present in the data.
-     */
-    static datum::datum_type_t max_status(edge_data_t const& data);
-    /**
      * \brief Check a set of edge data for certain properites.
      *
      * \param data The data to inspect.

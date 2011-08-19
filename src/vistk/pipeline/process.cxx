@@ -359,27 +359,6 @@ process
   return d->hb_stamp;
 }
 
-bool
-process
-::same_colored_data(edge_data_t const& data)
-{
-  return edge_data_info(data)->same_color;
-}
-
-bool
-process
-::syncd_data(edge_data_t const& data)
-{
-  return edge_data_info(data)->in_sync;
-}
-
-datum::datum_type_t
-process
-::max_status(edge_data_t const& data)
-{
-  return edge_data_info(data)->max_status;
-}
-
 process::data_info_t
 process
 ::edge_data_info(edge_data_t const& data)
