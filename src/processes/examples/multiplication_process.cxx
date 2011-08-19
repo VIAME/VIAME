@@ -72,18 +72,18 @@ multiplication_process
 
   st = factor1_dat.get<1>();
 
-  data_info_t const info = data_info(input_dats);
+  data_info_t const info = edge_data_info(input_dats);
 
-  switch (info.max_status)
+  switch (info->max_status)
   {
     case datum::DATUM_DATA:
-      if (!info.same_color)
+      if (!info->same_color)
       {
         st = heartbeat_stamp();
 
         dat = datum::error_datum("The input edges are not colored the same.");
       }
-      else if (!info.in_sync)
+      else if (!info->in_sync)
       {
         st = heartbeat_stamp();
 
