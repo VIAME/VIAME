@@ -68,6 +68,9 @@ BOOST_PYTHON_MODULE(pipeline)
     .def("receivers_for_port", &vistk::pipeline::receivers_for_port
       , (arg("name"), arg("port"))
       , "Return the port that is receiving from the given port.")
+    .def("edge_for_connection", &vistk::pipeline::edge_for_connection
+      , (arg("upstream_name"), arg("upstream_port"), arg("downstream_name"), arg("downstream_port"))
+      , "Returns the edge for the connection.")
     .def("input_edges_for_process", &vistk::pipeline::input_edges_for_process
       , (arg("name"))
       , "Return the edges that are sending to the given process.")
