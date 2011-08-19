@@ -27,17 +27,9 @@ class number_process::priv
     number_t const start;
     number_t const end;
 
-    conf_info_t start_conf_info;
-    conf_info_t end_conf_info;
-
-    edge_ref_t input_edge_color;
-
-    edge_group_t output_edges;
-
-    port_info_t color_port_info;
-    port_info_t output_port_info;
-
     number_t current;
+
+    bool has_color;
 
     stamp_t output_stamp;
 
@@ -64,6 +56,26 @@ number_process
   priv::number_t end = config->get_value<priv::number_t>(priv::END_CONFIG_NAME, priv::DEFAULT_END_VALUE);
 
   d = boost::shared_ptr<priv>(new priv(start, end));
+
+  port_flags_t required;
+
+  required.insert(flag_required);
+
+  declare_input_port(priv::COLOR_PORT_NAME, port_info_t(new port_info(
+    type_none,
+    port_flags_t(),
+    port_description_t("If connected, uses the stamp's color for the output."))));
+  declare_output_port(priv::OUTPUT_PORT_NAME, port_info_t(new port_info(
+    port_types::t_integer,
+    required,
+    port_description_t("Where the numbers will be available."))));
+
+  declare_configuration_key(priv::START_CONFIG_NAME, conf_info_t(new conf_info(
+    boost::lexical_cast<config::value_t>(priv::DEFAULT_START_VALUE),
+    config::description_t("The value to start counting at."))));
+  declare_configuration_key(priv::END_CONFIG_NAME, conf_info_t(new conf_info(
+    boost::lexical_cast<config::value_t>(priv::DEFAULT_END_VALUE),
+    config::description_t("The value to stop counting at."))));
 }
 
 number_process
@@ -79,6 +91,11 @@ number_process
   if (d->end <= d->start)
   {
     throw invalid_configuration_exception(name(), "The start value must be greater than the end value");
+  }
+
+  if (!input_port_edge(priv::COLOR_PORT_NAME).expired())
+  {
+    d->has_color = true;
   }
 
   d->output_stamp = heartbeat_stamp();
@@ -104,9 +121,9 @@ number_process
 
   d->output_stamp = stamp::incremented_stamp(d->output_stamp);
 
-  if (d->input_edge_color.use_count())
+  if (d->has_color)
   {
-    edge_datum_t const color_dat = grab_from_edge_ref(d->input_edge_color);
+    edge_datum_t const color_dat = grab_from_port(priv::COLOR_PORT_NAME);
 
     switch (color_dat.get<0>()->type())
     {
@@ -130,116 +147,9 @@ number_process
 
   edge_datum_t const edat = edge_datum_t(dat, d->output_stamp);
 
-  push_to_edges(d->output_edges, edat);
+  push_to_port(priv::OUTPUT_PORT_NAME, edat);
 
   process::_step();
-}
-
-void
-number_process
-::_connect_input_port(port_t const& port, edge_ref_t edge)
-{
-  if (port == priv::COLOR_PORT_NAME)
-  {
-    if (d->input_edge_color.use_count())
-    {
-      throw port_reconnect_exception(name(), port);
-    }
-
-    d->input_edge_color = edge;
-
-    return;
-  }
-
-  process::_connect_input_port(port, edge);
-}
-
-void
-number_process
-::_connect_output_port(port_t const& port, edge_ref_t edge)
-{
-  if (port == priv::OUTPUT_PORT_NAME)
-  {
-    d->output_edges.push_back(edge);
-
-    return;
-  }
-
-  process::_connect_output_port(port, edge);
-}
-
-process::port_info_t
-number_process
-::_input_port_info(port_t const& port) const
-{
-  if (port == priv::COLOR_PORT_NAME)
-  {
-    return d->color_port_info;
-  }
-
-  return process::_output_port_info(port);
-}
-
-process::port_info_t
-number_process
-::_output_port_info(port_t const& port) const
-{
-  if (port == priv::OUTPUT_PORT_NAME)
-  {
-    return d->output_port_info;
-  }
-
-  return process::_output_port_info(port);
-}
-
-process::ports_t
-number_process
-::_input_ports() const
-{
-  ports_t ports;
-
-  ports.push_back(priv::COLOR_PORT_NAME);
-
-  return ports;
-}
-
-process::ports_t
-number_process
-::_output_ports() const
-{
-  ports_t ports;
-
-  ports.push_back(priv::OUTPUT_PORT_NAME);
-
-  return ports;
-}
-
-config::keys_t
-number_process
-::_available_config() const
-{
-  config::keys_t keys = process::_available_config();
-
-  keys.push_back(priv::START_CONFIG_NAME);
-  keys.push_back(priv::END_CONFIG_NAME);
-
-  return keys;
-}
-
-process::conf_info_t
-number_process
-::_config_info(config::key_t const& key) const
-{
-  if (key == priv::START_CONFIG_NAME)
-  {
-    return d->start_conf_info;
-  }
-  if (key == priv::END_CONFIG_NAME)
-  {
-    return d->end_conf_info;
-  }
-
-  return process::_config_info(key);
 }
 
 number_process::priv
@@ -247,26 +157,8 @@ number_process::priv
   : start(s)
   , end(e)
   , current(s)
+  , has_color(false)
 {
-  port_flags_t required;
-
-  required.insert(flag_required);
-
-  color_port_info = port_info_t(new port_info(
-    type_none,
-    port_flags_t(),
-    port_description_t("If connected, uses the stamp's color for the output.")));
-  output_port_info = port_info_t(new port_info(
-    port_types::t_integer,
-    required,
-    port_description_t("Where the numbers will be available.")));
-
-  start_conf_info = conf_info_t(new conf_info(
-    boost::lexical_cast<config::value_t>(priv::DEFAULT_START_VALUE),
-    config::description_t("The value to start counting at.")));
-  end_conf_info = conf_info_t(new conf_info(
-    boost::lexical_cast<config::value_t>(priv::DEFAULT_END_VALUE),
-    config::description_t("The value to stop counting at.")));
 }
 
 number_process::priv

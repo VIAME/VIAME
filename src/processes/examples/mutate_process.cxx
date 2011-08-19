@@ -32,6 +32,16 @@ mutate_process
   : process(config)
 {
   d = boost::shared_ptr<priv>(new priv);
+
+  port_flags_t mutate_required;
+
+  mutate_required.insert(flag_required);
+  mutate_required.insert(flag_input_mutable);
+
+  declare_input_port(priv::INPUT_PORT_NAME, port_info_t(new port_info(
+    type_any,
+    mutate_required,
+    port_description_t("The port with the mutate flag set."))));
 }
 
 mutate_process
@@ -43,7 +53,7 @@ void
 mutate_process
 ::_step()
 {
-  edge_datum_t const input_dat = grab_from_edge_ref(d->input_edge);
+  edge_datum_t const input_dat = grab_from_port(priv::INPUT_PORT_NAME);
 
   switch (input_dat.get<0>()->type())
   {
@@ -64,60 +74,9 @@ mutate_process
   process::_step();
 }
 
-void
-mutate_process
-::_connect_input_port(port_t const& port, edge_ref_t edge)
-{
-  if (port == priv::INPUT_PORT_NAME)
-  {
-    if (d->input_edge.use_count())
-    {
-      throw port_reconnect_exception(name(), port);
-    }
-
-    d->input_edge = edge;
-
-    return;
-  }
-
-  process::_connect_input_port(port, edge);
-}
-
-process::port_info_t
-mutate_process
-::_input_port_info(port_t const& port) const
-{
-  if (port == priv::INPUT_PORT_NAME)
-  {
-    return d->input_port_info;
-  }
-
-  return process::_input_port_info(port);
-}
-
-process::ports_t
-mutate_process
-::_input_ports() const
-{
-  ports_t ports;
-
-  ports.push_back(priv::INPUT_PORT_NAME);
-
-  return ports;
-}
-
 mutate_process::priv
 ::priv()
 {
-  port_flags_t mutate_required;
-
-  mutate_required.insert(flag_required);
-  mutate_required.insert(flag_input_mutable);
-
-  input_port_info = port_info_t(new port_info(
-    type_any,
-    mutate_required,
-    port_description_t("The port with the mutate flag set.")));
 }
 
 mutate_process::priv

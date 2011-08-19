@@ -25,15 +25,6 @@ class multiplication_process::priv
     priv();
     ~priv();
 
-    edge_ref_t input_edge_factor1;
-    edge_ref_t input_edge_factor2;
-
-    edge_group_t output_edges;
-
-    port_info_t factor1_port_info;
-    port_info_t factor2_port_info;
-    port_info_t output_port_info;
-
     static port_t const INPUT_FACTOR1_PORT_NAME;
     static port_t const INPUT_FACTOR2_PORT_NAME;
     static port_t const OUTPUT_PORT_NAME;
@@ -48,6 +39,23 @@ multiplication_process
   : process(config)
 {
   d = boost::shared_ptr<priv>(new priv);
+
+  port_flags_t required;
+
+  required.insert(flag_required);
+
+  declare_input_port(priv::INPUT_FACTOR1_PORT_NAME, port_info_t(new port_info(
+    port_types::t_integer,
+    required,
+    port_description_t("The first factor to multiply."))));
+  declare_input_port(priv::INPUT_FACTOR2_PORT_NAME, port_info_t(new port_info(
+    port_types::t_integer,
+    required,
+    port_description_t("The second factor to multiply."))));
+  declare_output_port(priv::OUTPUT_PORT_NAME, port_info_t(new port_info(
+    port_types::t_integer,
+    required,
+    port_description_t("Where the product will be available."))));
 }
 
 multiplication_process
@@ -62,8 +70,8 @@ multiplication_process
   datum_t dat;
   stamp_t st;
 
-  edge_datum_t const factor1_dat = grab_from_edge_ref(d->input_edge_factor1);
-  edge_datum_t const factor2_dat = grab_from_edge_ref(d->input_edge_factor2);
+  edge_datum_t const factor1_dat = grab_from_port(priv::INPUT_FACTOR1_PORT_NAME);
+  edge_datum_t const factor2_dat = grab_from_port(priv::INPUT_FACTOR2_PORT_NAME);
 
   edge_data_t input_dats;
 
@@ -117,125 +125,14 @@ multiplication_process
 
   edge_datum_t const edat = edge_datum_t(dat, st);
 
-  push_to_edges(d->output_edges, edat);
+  push_to_port(priv::OUTPUT_PORT_NAME, edat);
 
   process::_step();
-}
-
-void
-multiplication_process
-::_connect_input_port(port_t const& port, edge_ref_t edge)
-{
-  if (port == priv::INPUT_FACTOR1_PORT_NAME)
-  {
-    if (d->input_edge_factor1.use_count())
-    {
-      throw port_reconnect_exception(name(), port);
-    }
-
-    d->input_edge_factor1 = edge;
-
-    return;
-  }
-  if (port == priv::INPUT_FACTOR2_PORT_NAME)
-  {
-    if (d->input_edge_factor2.use_count())
-    {
-      throw port_reconnect_exception(name(), port);
-    }
-
-    d->input_edge_factor2 = edge;
-
-    return;
-  }
-
-  process::_connect_input_port(port, edge);
-}
-
-process::port_info_t
-multiplication_process
-::_input_port_info(port_t const& port) const
-{
-  if (port == priv::INPUT_FACTOR1_PORT_NAME)
-  {
-    return d->factor1_port_info;
-  }
-  if (port == priv::INPUT_FACTOR2_PORT_NAME)
-  {
-    return d->factor2_port_info;
-  }
-
-  return process::_input_port_info(port);
-}
-
-void
-multiplication_process
-::_connect_output_port(port_t const& port, edge_ref_t edge)
-{
-  if (port == priv::OUTPUT_PORT_NAME)
-  {
-    d->output_edges.push_back(edge);
-
-    return;
-  }
-
-  process::_connect_output_port(port, edge);
-}
-
-process::port_info_t
-multiplication_process
-::_output_port_info(port_t const& port) const
-{
-  if (port == priv::OUTPUT_PORT_NAME)
-  {
-    return d->output_port_info;
-  }
-
-  return process::_output_port_info(port);
-}
-
-process::ports_t
-multiplication_process
-::_input_ports() const
-{
-  ports_t ports;
-
-  ports.push_back(priv::INPUT_FACTOR1_PORT_NAME);
-  ports.push_back(priv::INPUT_FACTOR2_PORT_NAME);
-
-  return ports;
-}
-
-process::ports_t
-multiplication_process
-::_output_ports() const
-{
-  ports_t ports;
-
-  ports.push_back(priv::OUTPUT_PORT_NAME);
-
-  return ports;
 }
 
 multiplication_process::priv
 ::priv()
 {
-  port_flags_t required;
-
-  required.insert(flag_required);
-
-  factor1_port_info = port_info_t(new port_info(
-    port_types::t_integer,
-    required,
-    port_description_t("The first factor to multiply.")));
-  factor2_port_info = port_info_t(new port_info(
-    port_types::t_integer,
-    required,
-    port_description_t("The second factor to multiply.")));
-  output_port_info = port_info_t(new port_info(
-    port_types::t_integer,
-    required,
-    port_description_t("Where the product will be available.")));
 }
 
 multiplication_process::priv

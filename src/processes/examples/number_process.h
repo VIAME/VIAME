@@ -63,64 +63,6 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
      * \brief Pushes a new number through the output edge.
      */
     void _step();
-
-    /**
-     * \brief Connects an edge to an input port on the process.
-     *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
-     */
-    void _connect_input_port(port_t const& port, edge_ref_t edge);
-
-    /**
-     * \brief Connects an edge to an output port on the process.
-     *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
-     */
-    void _connect_output_port(port_t const& port, edge_ref_t edge);
-
-    /**
-     * \brief Information about an input port on the process.
-     *
-     * \param port The port to return information about.
-     *
-     * \returns Information about the input port.
-     */
-    port_info_t _input_port_info(port_t const& port) const;
-
-    /**
-     * \brief Information about an output port on the process.
-     *
-     * \param port The port to return information about.
-     *
-     * \returns Information about the output port.
-     */
-    port_info_t _output_port_info(port_t const& port) const;
-
-    /**
-     * \brief The available configuration options for the process.
-     */
-    config::keys_t _available_config() const;
-
-    /**
-     * \brief Retrieve information about a configuration parameter.
-     *
-     * \param key The name of the configuration value.
-     *
-     * \returns Information about the parameter.
-     */
-    conf_info_t _config_info(config::key_t const& key) const;
-
-    /**
-     * \brief Lists the input ports available on the process.
-     */
-    ports_t _input_ports() const;
-
-    /**
-     * \brief Lists the output ports available on the process.
-     */
-    ports_t _output_ports() const;
   private:
     class priv;
     boost::shared_ptr<priv> d;

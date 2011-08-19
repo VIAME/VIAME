@@ -53,49 +53,6 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT multiplication_process
      * \brief Multiplies numbers and outputs the result.
      */
     void _step();
-
-    /**
-     * \brief Connects an edge to an input port on the process.
-     *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
-     */
-    void _connect_input_port(port_t const& port, edge_ref_t edge);
-
-    /**
-     * \brief Information about an input port on the process.
-     *
-     * \param port The port to return information about.
-     *
-     * \returns Information about the input port.
-     */
-    port_info_t _input_port_info(port_t const& port) const;
-
-    /**
-     * \brief Connects an edge to an output port on the process.
-     *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
-     */
-    void _connect_output_port(port_t const& port, edge_ref_t edge);
-
-    /**
-     * \brief Information about an output port on the process.
-     *
-     * \param port The port to return information about.
-     *
-     * \returns Information about the output port.
-     */
-    port_info_t _output_port_info(port_t const& port) const;
-
-    /**
-     * \brief Lists the ports available on the process.
-     */
-    ports_t _input_ports() const;
-    /**
-     * \brief Lists the ports available on the process.
-     */
-    ports_t _output_ports() const;
   private:
     class priv;
     boost::shared_ptr<priv> d;
