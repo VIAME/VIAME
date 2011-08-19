@@ -152,6 +152,39 @@ class VISTK_PIPELINE_EXPORT process
     typedef boost::shared_ptr<conf_info const> conf_info_t;
 
     /**
+     * \class data_info process.h <vistk/pipeline/process.h>
+     *
+     * \brief Information about a set of data.
+     */
+    class VISTK_PIPELINE_EXPORT data_info
+    {
+      public:
+        /**
+         * \brief Constructor.
+         *
+         * \param same_color_ Whether the data is the same color.
+         * \param in_sync_ Whether the data is synchonized.
+         * \param max_status_ The highest priority status of the data.
+         */
+        data_info(bool same_color_,
+                  bool in_sync_,
+                  datum::datum_type_t max_status_);
+        /**
+         * \brief Destructor.
+         */
+        ~data_info();
+
+        /// True if the data is all the same color.
+        bool const same_color;
+        /// True if the data is synchonized.
+        bool const in_sync;
+        /// The highest priority status in the set.
+        datum::datum_type_t const max_status;
+    };
+    /// Type for information about a set of data.
+    typedef boost::shared_ptr<data_info const> data_info_t;
+
+    /**
      * \brief Post-connection initialization.
      */
     void init();
@@ -376,37 +409,6 @@ class VISTK_PIPELINE_EXPORT process
     stamp_t heartbeat_stamp() const;
 
     /**
-     * \class data_info_t process.h <vistk/pipeline/process.h>
-     *
-     * \brief Information about a set of data.
-     */
-    class VISTK_PIPELINE_EXPORT data_info_t
-    {
-      public:
-        /**
-         * \brief Constructor.
-         *
-         * \param same_color_ Whether the data is the same color.
-         * \param in_sync_ Whether the data is synchonized.
-         * \param max_status_ The highest priority status of the data.
-         */
-        data_info_t(bool same_color_,
-                    bool in_sync_,
-                    datum::datum_type_t max_status_);
-        /**
-         * \brief Destructor.
-         */
-        ~data_info_t();
-
-        /// True if the data is all the same color.
-        bool const same_color;
-        /// True if the data is synchonized.
-        bool const in_sync;
-        /// The highest priority status in the set.
-        datum::datum_type_t const max_status;
-    };
-
-    /**
      * \brief Check if a set of data are colored the same.
      *
      * \param data The data to check.
@@ -439,7 +441,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns Information about the data given.
      */
-    static data_info_t data_info(edge_data_t const& data);
+    static data_info_t edge_data_info(edge_data_t const& data);
     /**
      * \brief Pushes data to all given edges.
      *
