@@ -91,15 +91,24 @@ class process::priv
     name_t name;
     process_registry::type_t type;
 
-    conf_info_t name_conf_info;
-    conf_info_t type_conf_info;
-
     typedef std::pair<edge_t, edge_t> edge_pair_t;
     typedef std::map<port_t, edge_pair_t> edge_map_t;
 
-    edge_group_t heartbeats;
+    typedef std::map<port_t, port_info_t> port_map_t;
+    typedef std::map<config::key_t, conf_info_t> conf_map_t;
 
-    port_info_t heartbeat_port_info;
+    typedef std::map<port_t, edge_ref_t> input_edge_map_t;
+    typedef std::map<port_t, edge_group_t> output_edge_map_t;
+
+    port_map_t input_ports;
+    port_map_t output_ports;
+
+    conf_map_t config_keys;
+
+    input_edge_map_t input_edges;
+    output_edge_map_t output_edges;
+
+    config_t const conf;
 
     bool is_complete;
 
@@ -155,7 +164,23 @@ process
     throw null_edge_port_connection_exception(d->name, port);
   }
 
-  _connect_input_port(port, edge_ref_t(edge));
+  edge_ref_t const ref = edge_ref_t(edge);
+
+  priv::port_map_t::iterator i = d->input_ports.find(port);
+
+  if (i != d->input_ports.end())
+  {
+    if (!d->input_edges[port].expired())
+    {
+      throw port_reconnect_exception(d->name, port);
+    }
+
+    d->input_edges[port] = ref;
+
+    return;
+  }
+
+  _connect_input_port(port, ref);
 }
 
 void
@@ -167,9 +192,13 @@ process
     throw null_edge_port_connection_exception(d->name, port);
   }
 
-  if (port == port_heartbeat)
+  edge_ref_t const ref = edge_ref_t(edge);
+
+  priv::port_map_t::iterator i = d->output_ports.find(port);
+
+  if (i != d->output_ports.end())
   {
-    d->heartbeats.push_back(edge_ref_t(edge));
+    d->output_edges[port].push_back(ref);
 
     return;
   }
@@ -183,6 +212,11 @@ process
 {
   ports_t ports = _input_ports();
 
+  BOOST_FOREACH (priv::port_map_t::value_type const& port, d->input_ports)
+  {
+    ports.push_back(port.first);
+  }
+
   return ports;
 }
 
@@ -192,7 +226,10 @@ process
 {
   ports_t ports = _output_ports();
 
-  ports.push_back(port_heartbeat);
+  BOOST_FOREACH (priv::port_map_t::value_type const& port, d->output_ports)
+  {
+    ports.push_back(port.first);
+  }
 
   return ports;
 }
@@ -201,6 +238,13 @@ process::port_info_t
 process
 ::input_port_info(port_t const& port) const
 {
+  priv::port_map_t::iterator i = d->input_ports.find(port);
+
+  if (i != d->input_ports.end())
+  {
+    return i->second;
+  }
+
   return _input_port_info(port);
 }
 
@@ -208,9 +252,11 @@ process::port_info_t
 process
 ::output_port_info(port_t const& port) const
 {
-  if (port == port_heartbeat)
+  priv::port_map_t::iterator i = d->output_ports.find(port);
+
+  if (i != d->output_ports.end())
   {
-    return d->heartbeat_port_info;
+    return i->second;
   }
 
   return _output_port_info(port);
@@ -222,8 +268,10 @@ process
 {
   config::keys_t keys = _available_config();
 
-  keys.push_back(config_name);
-  keys.push_back(config_type);
+  BOOST_FOREACH (priv::conf_map_t::value_type const& conf, d->config_keys)
+  {
+    keys.push_back(conf.first);
+  }
 
   return keys;
 }
@@ -232,13 +280,11 @@ process::conf_info_t
 process
 ::config_info(config::key_t const& key) const
 {
-  if (key == config_name)
+  priv::conf_map_t::iterator i = d->config_keys.find(key);
+
+  if (i != d->config_keys.end())
   {
-    return d->name_conf_info;
-  }
-  if (key == config_type)
-  {
-    return d->type_conf_info;
+    return i->second;
   }
 
   return _config_info(key);
@@ -270,6 +316,18 @@ process
 
   d->name = config->get_value<name_t>(config_name, priv::DEFAULT_PROCESS_NAME);
   d->type = config->get_value<process_registry::type_t>(config_type);
+
+  declare_output_port(port_heartbeat, port_info_t(new port_info(
+    type_none,
+    port_flags_t(),
+    port_description_t("Outputs the heartbeat stamp with an empty datum"))));
+
+  declare_configuration_key(config_name, conf_info_t(new conf_info(
+    boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME),
+    config::description_t("The name of the process"))));
+  declare_configuration_key(config_type, conf_info_t(new conf_info(
+    config::value_t(),
+    config::description_t("The type of the process"))));
 }
 
 process
@@ -347,6 +405,27 @@ process
 
 void
 process
+::declare_input_port(port_t const& port, port_info_t const& info)
+{
+  d->input_ports[port] = info;
+}
+
+void
+process
+::declare_output_port(port_t const& port, port_info_t const& info)
+{
+  d->output_ports[port] = info;
+}
+
+void
+process
+::declare_configuration_key(config::key_t const& key,conf_info_t const& info)
+{
+  d->config_keys[key] = info;
+}
+
+void
+process
 ::mark_as_complete()
 {
   d->is_complete = true;
@@ -357,6 +436,90 @@ process
 ::heartbeat_stamp() const
 {
   return d->hb_stamp;
+}
+
+edge_ref_t
+process
+::input_port_edge(port_t const& port) const
+{
+  priv::port_map_t::iterator i = d->input_ports.find(port);
+
+  if (i == d->input_ports.end())
+  {
+    throw no_such_port_exception(d->name, port);
+  }
+
+  priv::input_edge_map_t::iterator e = d->input_edges.find(port);
+
+  if (e == d->input_edges.end())
+  {
+    return edge_ref_t();
+  }
+
+  return e->second;
+}
+
+edge_group_t
+process
+::output_port_edge(port_t const& port) const
+{
+  priv::port_map_t::iterator i = d->output_ports.find(port);
+
+  if (i == d->output_ports.end())
+  {
+    throw no_such_port_exception(d->name, port);
+  }
+
+  priv::output_edge_map_t::iterator e = d->output_edges.find(port);
+
+  if (e == d->output_edges.end())
+  {
+    return edge_group_t();
+  }
+
+  return e->second;
+}
+
+edge_datum_t
+process
+::grab_from_port(port_t const& port) const
+{
+  priv::port_map_t::iterator i = d->input_ports.find(port);
+
+  if (i == d->input_ports.end())
+  {
+    throw no_such_port_exception(d->name, port);
+  }
+
+  priv::input_edge_map_t::iterator e = d->input_edges.find(port);
+
+  if (e == d->input_edges.end())
+  {
+    static std::string const reason = "Data was requested from the port";
+
+    throw missing_connection_exception(d->name, port, reason);
+  }
+
+  return grab_from_edge_ref(e->second);
+}
+
+void
+process
+::push_to_port(port_t const& port, edge_datum_t const& dat) const
+{
+  priv::port_map_t::iterator i = d->output_ports.find(port);
+
+  if (i == d->output_ports.end())
+  {
+    throw no_such_port_exception(d->name, port);
+  }
+
+  priv::output_edge_map_t::iterator e = d->output_edges.find(port);
+
+  if (e != d->output_edges.end())
+  {
+    push_to_edges(e->second, dat);
+  }
 }
 
 process::data_info_t
@@ -420,17 +583,6 @@ process::priv
   : is_complete(false)
   , hb_stamp(stamp::new_stamp())
 {
-  heartbeat_port_info = port_info_t(new port_info(
-    type_none,
-    port_flags_t(),
-    port_description_t("Outputs the heartbeat stamp with an empty datum")));
-
-  name_conf_info = conf_info_t(new conf_info(
-    boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME),
-    config::description_t("The name of the process")));
-  type_conf_info = conf_info_t(new conf_info(
-    config::value_t(),
-    config::description_t("The type of the process")));
 }
 
 process::priv
@@ -455,7 +607,7 @@ process::priv
 
   edge_datum_t const edge_dat(dat, hb_stamp);
 
-  process::push_to_edges(heartbeats, edge_dat);
+  push_to_edges(output_edges[port_heartbeat], edge_dat);
 
   hb_stamp = stamp::incremented_stamp(hb_stamp);
 }

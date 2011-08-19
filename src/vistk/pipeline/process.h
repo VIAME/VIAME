@@ -398,6 +398,29 @@ class VISTK_PIPELINE_EXPORT process
     virtual conf_info_t _config_info(config::key_t const& key) const;
 
     /**
+     * \brief Declares an input port for the process.
+     *
+     * \param port The port name.
+     * \param info Information about the port.
+     */
+    void declare_input_port(port_t const& port, port_info_t const& info);
+    /**
+     * \brief Declares an output port for the process.
+     *
+     * \param port The port name.
+     * \param info Information about the port.
+     */
+    void declare_output_port(port_t const& port, port_info_t const& info);
+
+    /**
+     * \brief Declares a configuration value for the process.
+     *
+     * \param key The configuration key.
+     * \param info Information about the port.
+     */
+    void declare_configuration_key(port_t const& port, conf_info_t const& info);
+
+    /**
      * \brief Marks the process as complete.
      */
     void mark_as_complete();
@@ -407,6 +430,37 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The stamp that the heartbeat uses.
      */
     stamp_t heartbeat_stamp() const;
+
+    /**
+     * \brief Get the edge for an input port.
+     *
+     * \param port The port to get the edge for.
+     *
+     * \return The edge connected to an input port, or \c NULL if there is none.
+     */
+    edge_ref_t input_port_edge(port_t const& port) const;
+    /**
+     * \brief Get the edges for an output port.
+     *
+     * \param port The port to get the edges for.
+     *
+     * \returns The edges connected to an output port.
+     */
+    edge_group_t output_port_edge(port_t const& port) const;
+
+    /**
+     * \brief Grabs a datum from a port.
+     *
+     * \param port The port to get data from.
+     */
+    edge_datum_t grab_from_port(port_t const& port) const;
+    /**
+     * \brief Outputs a datum on a port.
+     *
+     * \param port The port to push to.
+     * \param dat The datum to push.
+     */
+    void push_to_port(port_t const& port, edge_datum_t const& dat) const;
 
     /**
      * \brief Check a set of edge data for certain properites.
