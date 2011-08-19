@@ -29,9 +29,8 @@
  * able to pass the configuration to it. A destructor is declared for
  * completion's sake.
  *
- * The \tt{compare_string} process will have both input and output ports as well
- * as configuration values. The process also needs to reimplement the \ref
- * vistk::process::_step method to be able to do useful transformations.
+ * The process needs to reimplement the \ref vistk::process::_step method to be
+ * able to do useful transformations.
  *
  * \note Source processes will usually also have at least one input port. This
  * is used to "color" the output data stamps the same as some other source. An
@@ -49,16 +48,7 @@
  * Here, the \tt{compare_string_process::priv} class is declared with the
  * variables that will be needed later. There is a variable to store the
  * configuration value in, a declaration of the name of the configuration
- * variable name, and a default for it. There are also variables for port
- * information. These are all declared \tt{const} for two reasons:
- *
- * \li <b>Code safety</b> — Configuration values are not supposed to change once
- *     given, so declaring them as \tt{const} can help avoid mistakes.
- * \li <b>Optimization</b> — The compiler can optimize better if there are
- *     guarantees that values will not change over their lifetimes.
- *
- * Similarly, configuration keys and defaults should not change, so they are
- * declared \tt{const}.
+ * variable name, and a default for it.
  *
  * \until PORT_OUTPUT
  *
@@ -85,7 +75,7 @@
  * Here, the configuration name and defaults are defined. The key is wrapped in
  * the \ref vistk::config::key_t constructor to future-proof the code.
  *
- * \until }
+ * \until ))));
  *
  * In the constructor of the \tt{compare_string_process}, the configuration
  * value is retrieved from the \tt{config} variable and the private class in
@@ -95,20 +85,8 @@
  * order to do this, the \ref vistk::process::_available_config and \ref
  * vistk::process::_config_info methods need to be reimplemented.
  *
- * To support this, the \tt{priv} class will initialize a \ref
- * vistk::process::conf_info_t structure which will be used for the
- * introspection calls.
- *
- * \until }
- *
- * This method returns a list of all recognized configuration keys.
- *
- * \until }
- * \until }
- *
- * Here, the key for which information was requested is checked. If the key is
- * recognized, the relevant information is returned. If not, the base class is
- * called.
+ * Subclasses may declare configuration keys for management by the base class.
+ * This is done with the \ref vistk::process::declare_configuration_key method.
  *
  * \subsection how_to_process_ports Ports
  *
@@ -150,59 +128,6 @@
  * The \ref vistk::process::max_status method can be used to determine the
  * highest priority status within a group of packets.
  *
- * \until }
- * \until }
- * \until }
- * \until }
- *
- * The input edges should only be set if they are not already set. Since it does
- * not make much sense to receive from multiple edges on each port, a \ref
- * vistk::port_reconnect_exception exception is thrown when the port is already
- * connected to an edge.
- *
- * \until }
- * \until }
- *
- * If the port is unrecognized, call the base class which will throw a \ref
- * vistk::no_such_port_exception.
- *
- * \until }
- *
- * Add the edge to the edges that are requesting the output.
- *
- * \until }
- * \until }
- *
- * If the port is unrecognized, call the base class which will throw a \ref
- * vistk::no_such_port_exception.
- *
- * \until }
- * \until }
- *
- * Return port information for the input ports.
- *
- * \until }
- *
- * If the port is unrecognized, call the base class which will throw a \ref
- * vistk::no_such_port_exception.
- *
- * \until }
- *
- * Return port information for the output port.
- *
- * \until }
- *
- * If the port is unrecognized, call the base class which will throw a \ref
- * vistk::no_such_port_exception.
- *
- * \until }
- *
- * Return the available input port names.
- *
- * \until }
- *
- * Return the available output port names.
- *
  * \until insert
  *
  * The \ref vistk::process::flag_required flag indicates that the port \em must
@@ -210,16 +135,31 @@
  * port can be disconnected and the process still successfully run, it should be
  * checked during initialization.
  *
- * The other flags which are currently understood are 
+ * The other flags which are currently understood are:
+ *
+ * \li \tt{flag_input_mutable} — Indicates that the input received on the port
+ *     will be modified.
+ * \li \tt{flag_output_const} — Indicates that the data sent on the output port
+ *     may not be modified. This is usually used for data that is sent, but a
+ *     reference is kept internally to help reduce memory usage.
  *
  * \until }
  *
- * When the \tt{compare_string_process::priv} class is initialized, it fills in
- * the information for ports and configuration values. The types on the ports
- * should be chosen carefully. If the strings do not compare exactly, the \ref
- * vistk::pipeline::connect method will fail when connecting two ports. There
- * are also the \ref vistk::process::type_any and \ref vistk::process::type_none
- * types which have special semantics.
+ * When the class is initialized, it declares its ports for the base class to
+ * manage. The types on the ports should be chosen carefully. If the strings do
+ * not compare exactly, the \ref vistk::pipeline::connect method will fail when
+ * connecting two ports. There are also some types which have special meaning:
+ *
+ * \li \ref vistk::process::type_any — Indicates that the data on the port is
+ *     not inspected. Processes which do tasks such as load balancing and
+ *     joining should use this type on its ports.
+ * \li \ref vistk::process::type_none — Indicates that the data on the port is
+ *     never created with \ref vistk::datum::new_datum and is only useful for
+ *     triggers, colorings, and status messages.
+ *
+ * \until }
+ *
+ * The private class constructor is straightforward.
  *
  * \subsection how_to_process_init Initialization
  *
@@ -243,7 +183,7 @@
  *
  * \until str2_dat
  *
- * First, data is grabbed from the edges.
+ * First, data is grabbed from the input ports.
  *
  * \until st
  *
@@ -302,9 +242,9 @@
  *
  * If some input data has an unknown type, an error is generated.
  *
- * \until push_to_edges
+ * \until push_to_port
  *
- * The result is pushed into the output edges.
+ * The result is pushed into the output port.
  *
  * \until }
  *
