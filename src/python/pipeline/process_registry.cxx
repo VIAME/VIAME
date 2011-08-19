@@ -31,27 +31,49 @@ BOOST_PYTHON_MODULE(process_registry)
   register_exception_translator<
     vistk::process_registry_exception>(translator);
 
-  class_<vistk::process_registry::type_t>("ProcessType");
-  class_<vistk::process_registry::description_t>("ProcessDescription");
-  class_<vistk::process_registry::types_t>("ProcessTypes")
+  class_<vistk::process_registry::type_t>("ProcessType"
+    , "The type for a type of process.");
+  class_<vistk::process_registry::description_t>("ProcessDescription"
+    , "The type for a description of a process type.");
+  class_<vistk::process_registry::types_t>("ProcessTypes"
+    , "A collection of process types.")
     .def(vector_indexing_suite<vistk::process_registry::types_t>())
   ;
 
   class_<vistk::process, vistk::process_t, boost::noncopyable>("Process"
+    , "The base class of processes."
     , no_init)
-    .def("init", &vistk::process::init)
-    .def("step", &vistk::process::step)
-    .def("is_reentrant", &vistk::process::is_reentrant)
-    .def("connect_input_port", &vistk::process::connect_input_port)
-    .def("connect_output_port", &vistk::process::connect_output_port)
-    .def("input_ports", &vistk::process::input_ports)
-    .def("output_ports", &vistk::process::output_ports)
-    .def("input_port_info", &vistk::process::input_port_info)
-    .def("output_port_info", &vistk::process::output_port_info)
-    .def("available_config", &vistk::process::available_config)
-    .def("config_info", &vistk::process::config_info)
-    .def("name", &vistk::process::name)
-    .def("type", &vistk::process::type)
+    .def("init", &vistk::process::init
+      , "Initializes the process.")
+    .def("step", &vistk::process::step
+      , "Steps the process for one iteration.")
+    .def("is_reentrant", &vistk::process::is_reentrant
+      , "Returns True if the process is reentrant, False otherwise.")
+    .def("connect_input_port", &vistk::process::connect_input_port
+      , (arg("port"), arg("edge"))
+      , "Connects the given edge to the input port.")
+    .def("connect_output_port", &vistk::process::connect_output_port
+      , (arg("port"), arg("edge"))
+      , "Connects the given edge to the output port.")
+    .def("input_ports", &vistk::process::input_ports
+      , "Returns a list of input ports on the process.")
+    .def("output_ports", &vistk::process::output_ports
+      , "Returns a list of output ports on the process.")
+    .def("input_port_info", &vistk::process::input_port_info
+      , (arg("port"))
+      , "Returns information about the given input port.")
+    .def("output_port_info", &vistk::process::output_port_info
+      , (arg("port"))
+      , "Returns information about the given output port.")
+    .def("available_config", &vistk::process::available_config
+      , "Returns a list of available configuration keys for the process.")
+    .def("config_info", &vistk::process::config_info
+      , (arg("config"))
+      , "Returns information about the given configuration key.")
+    .def("name", &vistk::process::name
+      , "Returns the name of the process.")
+    .def("type", &vistk::process::type
+      , "Returns the type of the process.")
     .def_readonly("port_heartbeat", &vistk::process::port_heartbeat)
     .def_readonly("config_name", &vistk::process::config_name)
     .def_readonly("config_type", &vistk::process::config_type)
@@ -61,18 +83,28 @@ BOOST_PYTHON_MODULE(process_registry)
     .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
     .def_readonly("flag_required", &vistk::process::flag_required)
   ;
-  class_<vistk::processes_t>("Processes")
+  class_<vistk::processes_t>("Processes"
+    , "A collection of processes.")
     .def(vector_indexing_suite<vistk::processes_t>())
   ;
 
   class_<vistk::process_registry, vistk::process_registry_t, boost::noncopyable>("ProcessRegistry"
+    , "A registry of all known process types."
     , no_init)
-    .def("self", &vistk::process_registry::self)
+    .def("self", &vistk::process_registry::self
+      , "Returns an instance of the process registry.")
     .staticmethod("self")
-    .def("register_process", &register_process)
-    .def("create_process", &vistk::process_registry::create_process)
-    .def("types", &vistk::process_registry::types)
-    .def("description", &vistk::process_registry::description)
+    .def("register_process", &register_process
+      , (arg("type"), arg("description"), arg("ctor"))
+      , "Registers a function which creates a process of the given type.")
+    .def("create_process", &vistk::process_registry::create_process
+      , (arg("type"), arg("config"))
+      , "Creates a new process of the given type.")
+    .def("types", &vistk::process_registry::types
+      , "A list of known process types.")
+    .def("description", &vistk::process_registry::description
+      , (arg("type"))
+      , "The description for the given type.")
   ;
 }
 
