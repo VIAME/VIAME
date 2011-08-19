@@ -34,31 +34,52 @@ BOOST_PYTHON_MODULE(edge)
   class_<vistk::edge_datum_t>("EdgeDatum"
     , no_init)
     .def(init<vistk::datum_t, vistk::stamp_t>())
-    .add_property("datum", &edge_datum_datum, &edge_datum_datum_set)
-    .add_property("stamp", &edge_datum_stamp, &edge_datum_stamp_set)
+    .add_property("datum", &edge_datum_datum, &edge_datum_datum_set
+      , "The datum in the packet.")
+    .add_property("stamp", &edge_datum_stamp, &edge_datum_stamp_set
+      , "The stamp of the packet.")
   ;
-  class_<vistk::edge_data_t>("EdgeData")
+  class_<vistk::edge_data_t>("EdgeData"
+    , "A collection of data packets that may be passed through an edge.")
     .def(vector_indexing_suite<vistk::edge_data_t>())
   ;
-  class_<vistk::edges_t>("Edges")
+  class_<vistk::edges_t>("Edges"
+    , "A collection of edges.")
     .def(vector_indexing_suite<vistk::edges_t>())
   ;
 
   class_<vistk::edge, vistk::edge_t, boost::noncopyable>("Edge"
+    , "A communication channel between processes."
     , no_init)
     .def(init<vistk::config_t>())
-    .def("makes_dependency", &vistk::edge::makes_dependency)
-    .def("has_data", &vistk::edge::has_data)
-    .def("full_of_data", &vistk::edge::full_of_data)
-    .def("datum_count", &vistk::edge::datum_count)
-    .def("push_datum", &vistk::edge::push_datum)
-    .def("get_datum", &vistk::edge::get_datum)
-    .def("peek_datum", &vistk::edge::peek_datum)
-    .def("pop_datum", &vistk::edge::pop_datum)
-    .def("set_required_by_downstream", &vistk::edge::set_required_by_downstream)
-    .def("required_by_downstream", &vistk::edge::required_by_downstream)
-    .def("set_upstream_process", &vistk::edge::set_upstream_process)
-    .def("set_downstream_process", &vistk::edge::set_downstream_process)
+    .def("makes_dependency", &vistk::edge::makes_dependency
+      , "Returns True if the edge implies a dependency from downstream on upstream.")
+    .def("has_data", &vistk::edge::has_data
+      , "Returns True if the edge contains data, False otherwise.")
+    .def("full_of_data", &vistk::edge::full_of_data
+      , "Returns True if the edge cannot hold anymore data, False otherwise.")
+    .def("datum_count", &vistk::edge::datum_count
+      , "Returns the number of data packets within the edge.")
+    .def("push_datum", &vistk::edge::push_datum
+      , (arg("datum"))
+      , "Pushes a datum packet into the edge.")
+    .def("get_datum", &vistk::edge::get_datum
+      , "Returns the next datum packet from the edge, removing it in the process.")
+    .def("peek_datum", &vistk::edge::peek_datum
+      , "Returns the next datum packet from the edge.")
+    .def("pop_datum", &vistk::edge::pop_datum
+      , "Remove the next datum packet from the edge.")
+    .def("set_required_by_downstream", &vistk::edge::set_required_by_downstream
+      , (arg("required"))
+      , "Set whether the data within the edge is required by downstream to work.")
+    .def("required_by_downstream", &vistk::edge::required_by_downstream
+      , "Returns True if the downstream process needs the data in the edge.")
+    .def("set_upstream_process", &vistk::edge::set_upstream_process
+      , (arg("process"))
+      , "Set the process which is feeding data into the edge.")
+    .def("set_downstream_process", &vistk::edge::set_downstream_process
+      , (arg("process"))
+      , "Set the process which is reading data from the edge.")
   ;
 }
 
