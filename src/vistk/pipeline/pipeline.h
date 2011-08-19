@@ -130,7 +130,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     process::names_t process_names() const;
     /**
-     * \brief Get a list process by name.
+     * \brief Get a process by name.
      *
      * \throws no_such_process_exception Thrown when \p name does not exist in the pipeline.
      *
