@@ -39,11 +39,15 @@ BOOST_PYTHON_MODULE(schedule)
     vistk::schedule_exception>(translator);
 
   class_<wrap_schedule, boost::noncopyable>("PythonSchedule"
+    , "The base class for Python schedules."
     , no_init)
     .def(init<vistk::config_t, vistk::pipeline_t>())
-    .def("start", pure_virtual(&vistk::schedule::start))
-    .def("wait", pure_virtual(&vistk::schedule::wait))
-    .def("stop", pure_virtual(&vistk::schedule::stop))
+    .def("start", pure_virtual(&vistk::schedule::start)
+      , "Start the execution of the pipeline.")
+    .def("wait", pure_virtual(&vistk::schedule::wait)
+      , "Wait until the pipeline execution is complete.")
+    .def("stop", pure_virtual(&vistk::schedule::stop)
+      , "Stop the execution of the pipeline.")
   ;
 }
 
