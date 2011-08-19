@@ -31,27 +31,43 @@ BOOST_PYTHON_MODULE(schedule_registry)
   register_exception_translator<
     vistk::schedule_registry_exception>(translator);
 
-  class_<vistk::schedule_registry::type_t>("ScheduleType");
-  class_<vistk::schedule_registry::description_t>("ScheduleDescription");
-  class_<vistk::schedule_registry::types_t>("ScheduleTypes")
+  class_<vistk::schedule_registry::type_t>("ScheduleType"
+    , "The type for a type of schedule.");
+  class_<vistk::schedule_registry::description_t>("ScheduleDescription"
+    , "The type for a description of a schedule type.");
+  class_<vistk::schedule_registry::types_t>("ScheduleTypes"
+    , "A collection of schedule types.")
     .def(vector_indexing_suite<vistk::schedule_registry::types_t>())
   ;
 
   class_<vistk::schedule, vistk::schedule_t, boost::noncopyable>("Schedule"
+    , "An abstract class which offers an interface for pipeline execution strategies."
     , no_init)
-    .def("start", &vistk::schedule::start)
-    .def("wait", &vistk::schedule::wait)
-    .def("stop", &vistk::schedule::stop)
+    .def("start", &vistk::schedule::start
+      , "Start the execution of the pipeline.")
+    .def("wait", &vistk::schedule::wait
+      , "Wait until the pipeline execution is complete.")
+    .def("stop", &vistk::schedule::stop
+      , "Stop the execution of the pipeline.")
   ;
 
   class_<vistk::schedule_registry, vistk::schedule_registry_t, boost::noncopyable>("ScheduleRegistry"
+    , "A registry of all known schedule types."
     , no_init)
-    .def("self", &vistk::schedule_registry::self)
+    .def("self", &vistk::schedule_registry::self
+      , "Returns an instance of the schedule registry.")
     .staticmethod("self")
-    .def("register_schedule", &register_schedule)
-    .def("create_schedule", &vistk::schedule_registry::create_schedule)
-    .def("types", &vistk::schedule_registry::types)
-    .def("description", &vistk::schedule_registry::description)
+    .def("register_schedule", &register_schedule
+      , (arg("type"), arg("description"), arg("ctor"))
+      , "Registers a function which creates a schedule of the given type.")
+    .def("create_schedule", &vistk::schedule_registry::create_schedule
+      , (arg("type"), arg("config"), arg("pipeline"))
+      , "Creates a new schedule of the given type.")
+    .def("types", &vistk::schedule_registry::types
+      , "A list of known schedule types.")
+    .def("description", &vistk::schedule_registry::description
+      , (arg("type"))
+      , "The description for the given schedule type.")
   ;
 }
 
