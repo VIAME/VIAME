@@ -72,19 +72,19 @@ void
 wrap_schedule
 ::start()
 {
-  this->get_override("start")();
+  get_override("start")();
 }
 
 void
 wrap_schedule
 ::wait()
 {
-  this->get_override("wait")();
+  get_override("wait")();
 }
 
 void
 wrap_schedule
 ::stop()
 {
-  this->get_override("stop")();
+  get_override("stop")();
 }
