@@ -80,6 +80,14 @@ target_link_libraries(python-stamp
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
+add_vistk_python_library(utils
+  vistk/pipeline
+  utils.cxx)
+target_link_libraries(python-utils
+  vistk_pipeline
+  ${Boost_PYTHON_LIBRARY}
+  ${PYTHON_LIBRARIES})
+
 make_python_init_file(vistk/pipeline)
 #  config
 #  datum
