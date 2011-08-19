@@ -83,6 +83,8 @@ def test_api_calls():
     p.downstream_for_port(proc_name1, port_name1)
     p.sender_for_port(proc_name2, port_name2)
     p.receivers_for_port(proc_name1, port_name1)
+    p.edge_for_connection(proc_name1, port_name1,
+                          proc_name2, port_name2)
     p.input_edges_for_process(proc_name2)
     p.input_edge_for_port(proc_name2, port_name2)
     p.output_edges_for_process(proc_name1)
