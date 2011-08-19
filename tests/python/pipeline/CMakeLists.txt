@@ -100,3 +100,12 @@ vistk_build_python_test(stamp test-stamp.py)
 vistk_make_python_test(stamp import)
 vistk_make_python_test(stamp create)
 vistk_make_python_test(stamp api_calls)
+
+##############################
+# Utils tests
+##############################
+vistk_build_python_test(utils test-utils.py)
+
+vistk_make_python_test(utils import)
+vistk_make_python_test(utils create)
+vistk_make_python_test(utils name_thread)
