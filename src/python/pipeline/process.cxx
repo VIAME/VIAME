@@ -51,9 +51,7 @@ class wrap_process
     void _mark_as_complete();
     vistk::stamp_t _heartbeat_stamp() const;
 
-    bool _same_colored_data(vistk::edge_data_t const& data);
-    bool _syncd_data(vistk::edge_data_t const& data);
-    vistk::datum::datum_type_t _max_status(vistk::edge_data_t const& data);
+    vistk::process::data_info_t _edge_data_info(vistk::edge_data_t const& data);
     void _push_to_edges(vistk::edge_group_t const& edges, vistk::edge_datum_t const& dat);
     vistk::edge_datum_t _grab_from_edge_ref(vistk::edge_ref_t const& edge);
 };
@@ -155,9 +153,7 @@ BOOST_PYTHON_MODULE(process)
     .def("_config_info", &wrap_process::_config_info)
     .def("mark_as_complete", &wrap_process::_mark_as_complete)
     .def("heartbeat_stamp", &wrap_process::_heartbeat_stamp)
-    .def("same_colored_data", &wrap_process::_same_colored_data)
-    .def("syncd_data", &wrap_process::_syncd_data)
-    .def("max_status", &wrap_process::_max_status)
+    .def("edge_data_info", &wrap_process::_edge_data_info)
     .def("push_to_edges", &wrap_process::_push_to_edges)
     .def("grab_from_edge", &wrap_process::_grab_from_edge_ref)
   ;
@@ -354,25 +350,11 @@ wrap_process
   return heartbeat_stamp();
 }
 
-bool
+vistk::process::data_info_t
 wrap_process
-::_same_colored_data(vistk::edge_data_t const& data)
+::_edge_data_info(vistk::edge_data_t const& data)
 {
-  return same_colored_data(data);
-}
-
-bool
-wrap_process
-::_syncd_data(vistk::edge_data_t const& data)
-{
-  return syncd_data(data);
-}
-
-vistk::datum::datum_type_t
-wrap_process
-::_max_status(vistk::edge_data_t const& data)
-{
-  return max_status(data);
+  return edge_data_info(data);
 }
 
 void
