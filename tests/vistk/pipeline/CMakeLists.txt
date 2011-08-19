@@ -136,5 +136,15 @@ vistk_make_test(schedule_registry unknown_types)
 ##############################
 vistk_build_test(run libraries test_run.cxx)
 
-vistk_make_test(run simple_pipeline)
-vistk_make_test(run multiplier_pipeline)
+set(schedules
+  thread_per_process
+  sync)
+
+function (vistk_make_run_test group instance)
+  foreach (schedule ${schedules})
+    vistk_make_test(${group} ${instance}-${schedule})
+  endforeach (schedule ${schedules})
+endfunction (vistk_make_run_test group instance)
+
+vistk_make_run_test(run simple_pipeline)
+vistk_make_run_test(run multiplier_pipeline)

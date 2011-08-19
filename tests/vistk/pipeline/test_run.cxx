@@ -19,7 +19,9 @@
 #include <iostream>
 #include <string>
 
-static void run_test(std::string const& test_name);
+static std::string const test_sep = "-";
+
+static void run_test(std::string const& test_name, vistk::schedule_registry::type_t const& schedule_type);
 
 int
 main(int argc, char* argv[])
@@ -31,11 +33,23 @@ main(int argc, char* argv[])
     return 1;
   }
 
-  std::string const test_name = argv[1];
+  std::string const full_test_name = argv[1];
+
+  size_t sep_pos = full_test_name.find(test_sep);
+
+  if (sep_pos == std::string::npos)
+  {
+    TEST_ERROR("Unexpected test name format: " << full_test_name);
+
+    return 1;
+  }
+
+  std::string const test_name = full_test_name.substr(0, sep_pos);
+  std::string const schedule_type = full_test_name.substr(sep_pos + test_sep.length());
 
   try
   {
-    run_test(test_name);
+    run_test(test_name, schedule_type);
   }
   catch (std::exception& e)
   {
@@ -47,19 +61,19 @@ main(int argc, char* argv[])
   return 0;
 }
 
-static void test_simple_pipeline();
-static void test_multiplier_pipeline();
+static void test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type);
+static void test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type);
 
 void
-run_test(std::string const& test_name)
+run_test(std::string const& test_name, vistk::schedule_registry::type_t const& schedule_type)
 {
   if (test_name == "simple_pipeline")
   {
-    test_simple_pipeline();
+    test_simple_pipeline(schedule_type);
   }
   else if (test_name == "multiplier_pipeline")
   {
-    test_multiplier_pipeline();
+    test_multiplier_pipeline(schedule_type);
   }
   else
   {
@@ -71,7 +85,7 @@ static vistk::process_t create_process(vistk::process_registry::type_t const& ty
 static vistk::pipeline_t create_pipeline();
 
 void
-test_simple_pipeline()
+test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 {
   vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
   vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
@@ -120,7 +134,6 @@ test_simple_pipeline()
 
     vistk::schedule_registry_t const reg = vistk::schedule_registry::self();
 
-    vistk::schedule_registry::type_t const schedule_type = vistk::schedule_registry::type_t("thread_per_process");
     vistk::config_t const schedule_config = vistk::config::empty_config();
 
     vistk::schedule_t schedule = reg->create_schedule(schedule_type, schedule_config, pipeline);
@@ -164,7 +177,7 @@ test_simple_pipeline()
 }
 
 void
-test_multiplier_pipeline()
+test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 {
   vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
   vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
@@ -242,7 +255,6 @@ test_multiplier_pipeline()
 
     vistk::schedule_registry_t const reg = vistk::schedule_registry::self();
 
-    vistk::schedule_registry::type_t const schedule_type = vistk::schedule_registry::type_t("thread_per_process");
     vistk::config_t const schedule_config = vistk::config::empty_config();
 
     vistk::schedule_t schedule = reg->create_schedule(schedule_type, schedule_config, pipeline);
