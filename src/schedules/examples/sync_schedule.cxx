@@ -7,9 +7,12 @@
 #include "sync_schedule.h"
 
 #include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/process.h>
+#include <vistk/pipeline/utils.h>
 
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
+#include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 
@@ -22,13 +25,15 @@
 namespace vistk
 {
 
+static thread_name_t const thread_name = thread_name_t("sync_schedule");
+
 class sync_schedule::priv
 {
   public:
     priv();
     ~priv();
 
-    bool complete;
+    boost::thread thread;
 };
 
 sync_schedule
@@ -43,14 +48,47 @@ sync_schedule
 {
 }
 
-static process::names_t sorted_names(pipeline_t const& pipe);
-static config_t monitor_edge_config();
+static void run_sync(pipeline_t const& pipe);
 
 void
 sync_schedule
 ::start()
 {
-  pipeline_t const pipe = pipeline();
+  d->thread = boost::thread(boost::bind(run_sync, pipeline()));
+}
+
+void
+sync_schedule
+::wait()
+{
+  d->thread.join();
+}
+
+void
+sync_schedule
+::stop()
+{
+  d->thread.interrupt();
+}
+
+sync_schedule::priv
+::priv()
+{
+}
+
+sync_schedule::priv
+::~priv()
+{
+}
+
+static process::names_t sorted_names(pipeline_t const& pipe);
+static config_t monitor_edge_config();
+
+void
+run_sync(pipeline_t const& pipe)
+{
+  name_thread(thread_name);
+
   process::names_t const names = sorted_names(pipe);
   std::queue<process_t> processes;
   std::map<process::name_t, edge_t> monitor_edges;
@@ -68,7 +106,7 @@ sync_schedule
     processes.push(proc);
   }
 
-  while (!d->complete)
+  while (!processes.empty())
   {
     process_t proc = processes.front();
     processes.pop();
@@ -99,39 +137,8 @@ sync_schedule
       processes.push(proc);
     }
 
-    if (processes.empty())
-    {
-      d->complete = true;
-    }
+    boost::this_thread::interruption_point();
   }
-}
-
-void
-sync_schedule
-::wait()
-{
-  while (!d->complete)
-  {
-    /// \todo Sigh...a busy loop. How to deal with this?
-  }
-}
-
-void
-sync_schedule
-::stop()
-{
-  d->complete = true;
-}
-
-sync_schedule::priv
-::priv()
-  : complete(false)
-{
-}
-
-sync_schedule::priv
-::~priv()
-{
 }
 
 namespace
