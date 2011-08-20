@@ -418,7 +418,7 @@ class VISTK_PIPELINE_EXPORT process
      * \param key The configuration key.
      * \param info Information about the port.
      */
-    void declare_configuration_key(port_t const& port, conf_info_t const& info);
+    void declare_configuration_key(config::key_t const& key, conf_info_t const& info);
 
     /**
      * \brief Marks the process as complete.
