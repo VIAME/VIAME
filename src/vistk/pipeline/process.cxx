@@ -461,7 +461,7 @@ process
 
 edge_group_t
 process
-::output_port_edge(port_t const& port) const
+::output_port_edges(port_t const& port) const
 {
   priv::port_map_t::iterator i = d->output_ports.find(port);
 

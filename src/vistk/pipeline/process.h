@@ -446,7 +446,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns The edges connected to an output port.
      */
-    edge_group_t output_port_edge(port_t const& port) const;
+    edge_group_t output_port_edges(port_t const& port) const;
 
     /**
      * \brief Grabs a datum from a port.
