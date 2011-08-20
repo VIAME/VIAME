@@ -18,6 +18,7 @@ def test_import():
 
 
 def test_create():
+    from vistk.pipeline import datum
     from vistk.pipeline import process
 
     process.ProcessName()
@@ -30,9 +31,13 @@ def test_create():
     process.PortFlags()
     process.PortAddr()
     process.PortAddrs()
+    process.PortInfo('type', process.PortFlags(), 'desc')
+    process.ConfInfo('default', 'desc')
+    process.DataInfo(True, True, datum.DatumType.INVALID)
 
 
 def test_api_calls():
+    from vistk.pipeline import datum
     from vistk.pipeline import process
 
     a = process.PortAddr()
@@ -40,6 +45,20 @@ def test_api_calls():
     a.port
     a.process = ''
     a.port = ''
+
+    a = process.PortInfo('type', process.PortFlags(), 'desc')
+    a.type
+    a.flags
+    a.description
+
+    a = process.ConfInfo('default', 'desc')
+    a.default
+    a.description
+
+    a = process.DataInfo(True, True, datum.DatumType.INVALID)
+    a.same_color
+    a.in_sync
+    a.max_status
 
 
 def main(testname):
