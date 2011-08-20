@@ -73,7 +73,7 @@ def test_api_calls():
 
     modules.load_known_modules()
 
-    reg = process_registry.self()
+    reg = process_registry.ProcessRegistry.self()
 
     p = reg.create_process('orphan', c)
 
