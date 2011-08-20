@@ -91,8 +91,10 @@ def test_datum_api_calls():
 
     ed = edge.EdgeDatum(d, s)
 
-    ed.datum()
-    ed.stamp()
+    ed.datum
+    ed.datum = d
+    ed.stamp
+    ed.stamp = s
 
 
 def main(testname):
