@@ -40,4 +40,6 @@ BOOST_PYTHON_MODULE(stamp)
     .def(self == self)
     .def(self < self)
   ;
+
+  implicitly_convertible<boost::shared_ptr<vistk::stamp>, vistk::stamp_t>();
 }

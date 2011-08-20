@@ -61,6 +61,8 @@ BOOST_PYTHON_MODULE(datum)
     //.def("get_datum", &vistk::datum::get_value
     //  , "Get the data contained within the packet.")
   ;
+
+  implicitly_convertible<boost::shared_ptr<vistk::datum>, vistk::datum_t>();
 }
 
 void
