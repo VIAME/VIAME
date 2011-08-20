@@ -48,8 +48,19 @@ class wrap_process
 
     conf_info_t _config_info(vistk::config::key_t const& key) const;
 
+    void _declare_input_port(port_t const& port, port_info_t const& info);
+    void _declare_output_port(port_t const& port, port_info_t const& info);
+
+    void _declare_configuration_key(vistk::config::key_t const& key, conf_info_t const& info);
+
     void _mark_as_complete();
     vistk::stamp_t _heartbeat_stamp() const;
+
+    vistk::edge_ref_t _input_port_edge(port_t const& port) const;
+    vistk::edge_group_t _output_port_edge(port_t const& port) const;
+
+    vistk::edge_datum_t _grab_from_port(port_t const& port) const;
+    void _push_to_port(port_t const& port, vistk::edge_datum_t const& dat) const;
 
     vistk::process::data_info_t _edge_data_info(vistk::edge_data_t const& data);
     void _push_to_edges(vistk::edge_group_t const& edges, vistk::edge_datum_t const& dat);
@@ -203,10 +214,25 @@ BOOST_PYTHON_MODULE(process)
     .def("_config_info", &wrap_process::_config_info
       , (arg("config"))
       , "Returns information about the given configuration key.")
+    .def("declare_input_port", &wrap_process::_declare_input_port
+      , (arg("port"), arg("info"))
+      , "Declare an input port on the process.")
+    .def("declare_output_port", &wrap_process::_declare_output_port
+      , (arg("port"), arg("info"))
+      , "Declare an output port on the process.")
+    .def("declare_configuration_key", &wrap_process::_declare_configuration_key
+      , (arg("key"), arg("info"))
+      , "Declare a configuration key for the process.")
     .def("mark_as_complete", &wrap_process::_mark_as_complete
       , "Tags the process as complete.")
     .def("heartbeat_stamp", &wrap_process::_heartbeat_stamp
       , "The heartbeat stamp for the process.")
+    .def("grab_from_port", &wrap_process::_grab_from_port
+      , (arg("port"))
+      , "Grab a datum packet from a port.")
+    .def("push_to_port", &wrap_process::_push_to_port
+      , (arg("port"), arg("datum"))
+      , "Push a datum packet to a port.")
     .def("edge_data_info", &wrap_process::_edge_data_info
       , (arg("data"))
       , "Returns information about the given data.")
@@ -398,6 +424,27 @@ wrap_process
 
 void
 wrap_process
+::_declare_input_port(port_t const& port, port_info_t const& info)
+{
+  declare_input_port(port, info);
+}
+
+void
+wrap_process
+::_declare_output_port(port_t const& port, port_info_t const& info)
+{
+  declare_output_port(port, info);
+}
+
+void
+wrap_process
+::_declare_configuration_key(vistk::config::key_t const& key, conf_info_t const& info)
+{
+  declare_configuration_key(key, info);
+}
+
+void
+wrap_process
 ::_mark_as_complete()
 {
   mark_as_complete();
@@ -408,6 +455,34 @@ wrap_process
 ::_heartbeat_stamp() const
 {
   return heartbeat_stamp();
+}
+
+vistk::edge_ref_t
+wrap_process
+::_input_port_edge(port_t const& port) const
+{
+  return input_port_edge(port);
+}
+
+vistk::edge_group_t
+wrap_process
+::_output_port_edge(port_t const& port) const
+{
+  return output_port_edges(port);
+}
+
+vistk::edge_datum_t
+wrap_process
+::_grab_from_port(port_t const& port) const
+{
+  return grab_from_port(port);
+}
+
+void
+wrap_process
+::_push_to_port(port_t const& port, vistk::edge_datum_t const& dat) const
+{
+  return push_to_port(port, dat);
 }
 
 vistk::process::data_info_t
