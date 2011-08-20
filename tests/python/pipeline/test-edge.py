@@ -105,7 +105,7 @@ def main(testname):
     elif testname == 'api_calls':
         test_api_calls()
     elif testname == 'datum_api_calls':
-        test_api_calls()
+        test_datum_api_calls()
     else:
         log("Error: No such test '%s'" % testname)
 
