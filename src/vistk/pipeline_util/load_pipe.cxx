@@ -15,7 +15,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
 
 #include <fstream>
 #include <ios>
@@ -34,13 +33,13 @@ namespace vistk
 static std::string const include_directive = "!include ";
 static char const comment_marker = '#';
 
-static void flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::filesystem::path const& inc_root);
+static void flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t const& inc_root);
 
 pipe_blocks
-load_pipe_blocks_from_file(boost::filesystem::path const& fname)
+load_pipe_blocks_from_file(path_t const& fname)
 {
   std::stringstream sstr;
-  boost::filesystem::path::string_type const fstr = fname.native();
+  path_t::string_type const fstr = fname.native();
   std::string const str(fstr.begin(), fstr.end());
 
   sstr << include_directive << str;
@@ -51,7 +50,7 @@ load_pipe_blocks_from_file(boost::filesystem::path const& fname)
 }
 
 pipe_blocks
-load_pipe_blocks(std::istream& istr, boost::filesystem::path const& inc_root)
+load_pipe_blocks(std::istream& istr, path_t const& inc_root)
 {
   std::stringstream sstr;
 
@@ -70,7 +69,7 @@ load_pipe_blocks(std::istream& istr, boost::filesystem::path const& inc_root)
 }
 
 void
-flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::filesystem::path const& inc_root)
+flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t const& inc_root)
 {
   while (istr.good())
   {
@@ -87,7 +86,7 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, boost::fil
 
     if (boost::starts_with(line, include_directive))
     {
-      boost::filesystem::path file_path(line.substr(include_directive.size()));
+      path_t file_path(line.substr(include_directive.size()));
 
       if (file_path.is_relative())
       {

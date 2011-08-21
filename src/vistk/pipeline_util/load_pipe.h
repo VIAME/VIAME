@@ -10,10 +10,9 @@
 #include "pipeline_util-config.h"
 
 #include "pipe_declaration_types.h"
+#include "types.h"
 
 #include <vistk/pipeline/types.h>
-
-#include <boost/filesystem/path.hpp>
 
 #include <istream>
 
@@ -33,7 +32,7 @@ namespace vistk
  *
  * \returns A new set of pipeline blocks.
  */
-pipe_blocks VISTK_PIPELINE_UTIL_EXPORT load_pipe_blocks_from_file(boost::filesystem::path const& fname);
+pipe_blocks VISTK_PIPELINE_UTIL_EXPORT load_pipe_blocks_from_file(path_t const& fname);
 
 /**
  * \brief Convert a pipeline description into a pipeline.
@@ -43,7 +42,7 @@ pipe_blocks VISTK_PIPELINE_UTIL_EXPORT load_pipe_blocks_from_file(boost::filesys
  *
  * \returns A new set of pipeline blocks.
  */
-pipe_blocks VISTK_PIPELINE_UTIL_EXPORT load_pipe_blocks(std::istream& istr, boost::filesystem::path const& inc_root = "");
+pipe_blocks VISTK_PIPELINE_UTIL_EXPORT load_pipe_blocks(std::istream& istr, path_t const& inc_root = "");
 
 }
 

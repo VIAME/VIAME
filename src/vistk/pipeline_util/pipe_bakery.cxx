@@ -145,13 +145,13 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider_sorter
 };
 
 pipeline_t
-bake_pipe_from_file(boost::filesystem::path const& fname)
+bake_pipe_from_file(path_t const& fname)
 {
   return bake_pipe_blocks(load_pipe_blocks_from_file(fname));
 }
 
 pipeline_t
-bake_pipe(std::istream& istr, boost::filesystem::path const& inc_root)
+bake_pipe(std::istream& istr, path_t const& inc_root)
 {
   return bake_pipe_blocks(load_pipe_blocks(istr, inc_root));
 }
