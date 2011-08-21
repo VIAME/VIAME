@@ -317,7 +317,7 @@ pipeline
           {
             if (!input_edge_for_port(cur_proc, port))
             {
-              static std::string const reason = "The input port has the required flag.";
+              static std::string const reason = "The input port has the required flag";
 
               throw missing_connection_exception(cur_proc, port, reason);
             }
@@ -336,7 +336,7 @@ pipeline
           {
             if (output_edges_for_port(cur_proc, port).empty())
             {
-              static std::string const reason = "The output port has the required flag.";
+              static std::string const reason = "The output port has the required flag";
 
               throw missing_connection_exception(cur_proc, port, reason);
             }
@@ -386,7 +386,7 @@ pipeline
 
           if (c == connections.end())
           {
-            static std::string const reason = "The input mapping has the required flag.";
+            static std::string const reason = "The input mapping has the required flag";
 
             throw missing_connection_exception(cur_group, port, reason);
           }
@@ -414,7 +414,7 @@ pipeline
 
           if (c == connections.end())
           {
-            static std::string const reason = "The output mapping has the required flag.";
+            static std::string const reason = "The output mapping has the required flag";
 
             throw missing_connection_exception(cur_group, port, reason);
           }
