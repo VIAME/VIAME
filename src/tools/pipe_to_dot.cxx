@@ -11,7 +11,6 @@
 #include <vistk/pipeline/types.h>
 
 #include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
 
 #include <fstream>
@@ -49,9 +48,9 @@ int main(int argc, char* argv[])
     std::istream* pistr;
     std::ifstream fin;
 
-    boost::filesystem::path const ipath = vm["input"].as<boost::filesystem::path>();
+    vistk::path_t const ipath = vm["input"].as<vistk::path_t>();
 
-    if (ipath.native() == boost::filesystem::path("-"))
+    if (ipath.native() == vistk::path_t("-"))
     {
       pistr = &std::cin;
     }
@@ -59,7 +58,7 @@ int main(int argc, char* argv[])
     {
       fin.open(ipath.native().c_str());
 
-      if (fin.bad())
+      if (!fin.good())
       {
         std::cerr << "Error: Unable to open input file" << std::endl;
 
@@ -86,9 +85,9 @@ int main(int argc, char* argv[])
   std::ostream* postr;
   std::ofstream fout;
 
-  boost::filesystem::path const opath = vm["output"].as<boost::filesystem::path>();
+  vistk::path_t const opath = vm["output"].as<vistk::path_t>();
 
-  if (opath.native() == boost::filesystem::path("-"))
+  if (opath.native() == vistk::path_t("-"))
   {
     postr = &std::cout;
   }
@@ -122,9 +121,9 @@ make_options()
 
   desc.add_options()
     ("help,h", "output help message and quit")
-    ("input,i", po::value<boost::filesystem::path>(), "input path")
-    ("output,o", po::value<boost::filesystem::path>()->default_value("-"), "output path")
-    ("include,I", po::value<std::vector<boost::filesystem::path> >(), "configuration include path")
+    ("input,i", po::value<vistk::path_t>(), "input path")
+    ("output,o", po::value<vistk::path_t>()->default_value("-"), "output path")
+    ("include,I", po::value<vistk::paths_t>(), "configuration include path")
     ("name,n", po::value<std::string>()->default_value("(unnamed)"), "name of the graph")
   ;
 
