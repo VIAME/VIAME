@@ -150,6 +150,16 @@ def example_process():
     return PythonExample
 
 
+def base_example_process():
+    from vistk.pipeline import process
+
+    class PythonBaseExample(process.PythonProcess):
+        def __init__(self, conf):
+            process.PythonProcess.__init__(self, conf)
+
+    return PythonBaseExample
+
+
 def test_register():
     from vistk.pipeline import config
     from vistk.pipeline import process
@@ -184,11 +194,15 @@ def test_wrapper_api():
     proc_type = 'python_example'
     proc_desc = 'simple description'
 
+    proc_base_type = 'python_base_example'
+    proc_base_desc = 'simple base description'
+
     iport = 'no_such_iport'
     oport = 'no_such_oport'
     key = 'no_such_key'
 
     reg.register_process(proc_type, proc_desc, example_process())
+    reg.register_process(proc_base_type, proc_base_desc, base_example_process())
 
     c = config.empty_config()
 
@@ -215,6 +229,9 @@ def test_wrapper_api():
         p.step()
 
     p = reg.create_process(proc_type, c)
+    check_process(p)
+
+    p = reg.create_process(proc_base_type, c)
     check_process(p)
 
 
