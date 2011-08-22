@@ -43,6 +43,16 @@ def test_api_calls():
     reg.description(proc_type)
 
 
+def example_process():
+    from vistk.pipeline import process
+
+    class PythonExample(process.PythonProcess):
+        def __init__(self, conf):
+            process.PythonProcess.__init__(self, conf)
+
+    return PythonExample
+
+
 def test_register():
     from vistk.pipeline import config
     from vistk.pipeline import modules
@@ -55,16 +65,13 @@ def test_register():
 
     proc_type = 'python_example'
     proc_desc = 'simple description'
-    c = config.empty_config()
 
-    class PythonExample(process.PythonProcess):
-        def __init__(self, conf):
-            process.PythonProcess.__init__(self, conf)
-
-    reg.register_process(proc_type, proc_desc, PythonExample)
+    reg.register_process(proc_type, proc_desc, example_process())
 
     if not proc_desc == reg.description(proc_type):
         log("Error: Description was not preserved when registering")
+
+    c = config.empty_config()
 
     try:
         reg.create_process(proc_type, c)
