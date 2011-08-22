@@ -254,7 +254,7 @@ BOOST_PYTHON_MODULE(process)
     .def("_available_config", &wrap_process::_available_config
       , "Returns a list of available configuration keys for the subclass process.")
     .def("_config_info", &wrap_process::_config_info
-      , (arg("config"))
+      , (arg("key"))
       , "Returns information about the given configuration key.")
     .def("declare_input_port", &wrap_process::_declare_input_port
       , (arg("port"), arg("info"))
