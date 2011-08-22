@@ -55,11 +55,8 @@ def example_process():
 
 def test_register():
     from vistk.pipeline import config
-    from vistk.pipeline import modules
     from vistk.pipeline import process
     from vistk.pipeline import process_registry
-
-    modules.load_known_modules()
 
     reg = process_registry.ProcessRegistry.self()
 
