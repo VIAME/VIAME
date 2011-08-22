@@ -74,6 +74,7 @@ vistk_make_python_test(process_registry import)
 vistk_make_python_test(process_registry create)
 vistk_make_python_test(process_registry api_calls)
 vistk_make_python_test(process_registry register)
+vistk_make_python_test(process_registry wrapper_api)
 
 ##############################
 # Schedule tests
