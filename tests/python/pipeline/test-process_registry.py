@@ -62,6 +62,91 @@ def example_process():
         def __init__(self, conf):
             process.PythonProcess.__init__(self, conf)
 
+            self.ran_init = False
+            self.ran_step = False
+            self.ran_connect_input_port = False
+            self.ran_connect_output_port = False
+            self.ran_input_ports = False
+            self.ran_output_ports = False
+            self.ran_input_port_info = False
+            self.ran_output_port_info = False
+            self.ran_available_config = False
+            self.ran_conf_info = False
+
+        def _init(self):
+            self.ran_init = True
+
+            process.PythonProcess._base_init(self)
+
+        def _step(self):
+            self.ran_step = True
+
+            self.check()
+
+            process.PythonProcess._base_step(self)
+
+        def _connect_input_port(self, port, edge):
+            self.ran_connect_input_port = True
+
+            process.PythonProcess._base_connect_input_port(self, port, edge)
+
+        def _connect_output_port(self, port, edge):
+            self.ran_connect_output_port = True
+
+            process.PythonProcess._base_connect_output_port(self, port, edge)
+
+        def _input_ports(self):
+            self.ran_input_ports = True
+
+            return process.PythonProcess._base_input_ports(self)
+
+        def _output_ports(self):
+            self.ran_output_ports = True
+
+            return process.PythonProcess._base_output_ports(self)
+
+        def _input_port_info(self, port):
+            self.ran_input_port_info = True
+
+            return process.PythonProcess._base_input_port_info(self, port)
+
+        def _output_port_info(self, port):
+            self.ran_output_port_info = True
+
+            return process.PythonProcess._base_output_port_info(self, port)
+
+        def _available_config(self):
+            self.ran_available_config = True
+
+            return process.PythonProcess._base_available_config(self)
+
+        def _config_info(self, key):
+            self.ran_conf_info = True
+
+            return process.PythonProcess._base_conf_info(self, key)
+
+        def check(self):
+            if not self.ran_init:
+                log("Error: _init override was not called")
+            if not self.ran_step:
+                log("Error: _step override was not called")
+            if not self.ran_connect_input_port:
+                log("Error: _connect_input_port override was not called")
+            if not self.ran_connect_output_port:
+                log("Error: _connect_output_port override was not called")
+            if not self.ran_input_ports:
+                log("Error: _input_ports override was not called")
+            if not self.ran_output_ports:
+                log("Error: _output_ports override was not called")
+            if not self.ran_input_port_info:
+                log("Error: _input_port_info override was not called")
+            if not self.ran_output_port_info:
+                log("Error: _output_port_info override was not called")
+            if not self.ran_available_config:
+                log("Error: _available_config override was not called")
+            if not self.ran_conf_info:
+                log("Error: _conf_info override was not called")
+
     return PythonExample
 
 
