@@ -165,10 +165,10 @@ def test_register():
     from vistk.pipeline import process
     from vistk.pipeline import process_registry
 
-    reg = process_registry.ProcessRegistry.self()
-
     proc_type = 'python_example'
     proc_desc = 'simple description'
+
+    reg = process_registry.ProcessRegistry.self()
 
     reg.register_process(proc_type, proc_desc, example_process())
 
@@ -189,8 +189,6 @@ def test_wrapper_api():
     from vistk.pipeline import process
     from vistk.pipeline import process_registry
 
-    reg = process_registry.ProcessRegistry.self()
-
     proc_type = 'python_example'
     proc_desc = 'simple description'
 
@@ -200,6 +198,8 @@ def test_wrapper_api():
     iport = 'no_such_iport'
     oport = 'no_such_oport'
     key = 'no_such_key'
+
+    reg = process_registry.ProcessRegistry.self()
 
     reg.register_process(proc_type, proc_desc, example_process())
     reg.register_process(proc_base_type, proc_base_desc, base_example_process())
