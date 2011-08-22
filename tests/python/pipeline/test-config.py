@@ -10,6 +10,18 @@ def log(msg):
     sys.stderr.write("%s\n" % msg)
 
 
+def ensure_exception(action, func, *args):
+    got_exception = False
+
+    try:
+        func(*args)
+    except:
+        got_exception = True
+
+    if not got_exception:
+        log("Error: Did not get exception when %s" % action)
+
+
 def test_import():
     try:
         import vistk.pipeline.config
@@ -76,15 +88,8 @@ def test_get_value_no_exist():
 
     valueb = 'value_b'
 
-    got_exception = False
-
-    try:
-        c.get_value(keya)
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get an exception when retrieving an unset value")
+    ensure_exception("retrieving an unset value",
+                     c.get_value, keya)
 
     get_valueb = c.get_value(keyb, valueb)
 
@@ -108,15 +113,8 @@ def test_unset_value():
 
     c.unset_value(keya)
 
-    got_exception = False
-
-    try:
-        c.get_value(keya)
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get an exception when retrieving an unset value")
+    ensure_exception("retrieving an unset value",
+                     c.get_value, keya)
 
     get_valueb = c.get_value(keyb)
 
@@ -164,15 +162,8 @@ def test_read_only():
 
     c.mark_read_only(keya)
 
-    got_exception = False
-
-    try:
-        c.set_value(keya, valueb)
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get an exception when setting a read only value")
+    ensure_exception("setting a read only value",
+                     c.set_value, keya, valueb)
 
     get_valuea = c.get_value(keya)
 
@@ -193,15 +184,8 @@ def test_read_only_unset():
 
     c.mark_read_only(keya)
 
-    got_exception = False
-
-    try:
-        c.unset_value(keya)
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get an exception when unsetting a read only value")
+    ensure_exception("unsetting a read only value",
+                     c.unset_value, keya)
 
     get_valuea = c.get_value(keya)
 
