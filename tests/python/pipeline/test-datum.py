@@ -10,6 +10,18 @@ def log(msg):
     sys.stderr.write("%s\n" % msg)
 
 
+def ensure_exception(action, func, *args):
+    got_exception = False
+
+    try:
+        func(*args)
+    except:
+        got_exception = True
+
+    if not got_exception:
+        log("Error: Did not get exception when %s" % action)
+
+
 def test_import():
     try:
         import vistk.pipeline.datum
@@ -28,15 +40,8 @@ def test_empty():
     if len(d.get_error()):
         log("Error: A empty datum has an error string")
 
-    got_exception = False
-
-    try:
-        d.get_datum()
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get exception when retrieving data from a empty datum")
+#    ensure_exception("retrieving data from an empty datum",
+#                     d.get_datum)
 
 
 def test_complete():
@@ -50,15 +55,8 @@ def test_complete():
     if len(d.get_error()):
         log("Error: A complete datum has an error string")
 
-    got_exception = False
-
-    try:
-        d.get_datum()
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get exception when retrieving data from a complete datum")
+#    ensure_exception("retrieving data from a complete datum",
+#                     d.get_datum)
 
 
 def test_error():
@@ -74,15 +72,8 @@ def test_error():
     if not d.get_error() == err:
         log("Error: An error datum did not keep the message")
 
-    got_exception = False
-
-    try:
-        d.get_datum()
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get exception when retrieving data from a error datum")
+#    ensure_exception("retrieving data from an error datum",
+#                     d.get_datum)
 
 
 def main(testname):
