@@ -31,6 +31,23 @@ class wrap_process
     wrap_process(vistk::config_t const& config);
     ~wrap_process();
 
+    void _base_init();
+
+    void _base_step();
+
+    void _base_connect_input_port(port_t const& port, vistk::edge_ref_t edge);
+    void _base_connect_output_port(port_t const& port, vistk::edge_ref_t edge);
+
+    ports_t _base_input_ports() const;
+    ports_t _base_output_ports() const;
+
+    port_info_t _base_input_port_info(port_t const& port) const;
+    port_info_t _base_output_port_info(port_t const& port) const;
+
+    vistk::config::keys_t _base_available_config() const;
+
+    conf_info_t _base_config_info(vistk::config::key_t const& key) const;
+
     void _init();
 
     void _step();
@@ -189,6 +206,31 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("flag_output_const", &vistk::process::flag_output_const)
     .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
     .def_readonly("flag_required", &vistk::process::flag_required)
+    .def("_base_init", &wrap_process::_base_init
+      , "Base class initialization.")
+    .def("_base_step", &wrap_process::_base_step
+      , "Base class step.")
+    .def("_base_connect_input_port", &wrap_process::_base_connect_input_port
+      , (arg("port"), arg("edge"))
+      , "Base class input port connection.")
+    .def("_base_connect_output_port", &wrap_process::_base_connect_output_port
+      , (arg("port"), arg("edge"))
+      , "Base class output port connection.")
+    .def("_base_input_ports", &wrap_process::_base_input_ports
+      , "Base class input ports.")
+    .def("_base_output_ports", &wrap_process::_base_output_ports
+      , "Base class output ports.")
+    .def("_base_input_port_info", &wrap_process::_base_input_port_info
+      , (arg("port"))
+      , "Base class input port info.")
+    .def("_base_output_port_info", &wrap_process::_base_output_port_info
+      , (arg("port"))
+      , "Base class output port info.")
+    .def("_base_available_config", &wrap_process::_base_available_config
+      , "Base class available configuration information.")
+    .def("_base_config_info", &wrap_process::_base_config_info
+      , (arg("config"))
+      , "Base class configuration information.")
     .def("_init", &wrap_process::_init
       , "Initializes the process subclass.")
     .def("_step", &wrap_process::_step
@@ -260,6 +302,76 @@ wrap_process
 wrap_process
 ::~wrap_process()
 {
+}
+
+void
+wrap_process
+::_base_init()
+{
+  process::_init();
+}
+
+void
+wrap_process
+::_base_step()
+{
+  process::_step();
+}
+
+void
+wrap_process
+::_base_connect_input_port(port_t const& port, vistk::edge_ref_t edge)
+{
+  process::_connect_input_port(port, edge);
+}
+
+void
+wrap_process
+::_base_connect_output_port(port_t const& port, vistk::edge_ref_t edge)
+{
+  process::_connect_output_port(port, edge);
+}
+
+vistk::process::ports_t
+wrap_process
+::_base_input_ports() const
+{
+  return process::_input_ports();
+}
+
+vistk::process::ports_t
+wrap_process
+::_base_output_ports() const
+{
+  return process::_output_ports();
+}
+
+vistk::process::port_info_t
+wrap_process
+::_base_input_port_info(port_t const& port) const
+{
+  return process::_input_port_info(port);
+}
+
+vistk::process::port_info_t
+wrap_process
+::_base_output_port_info(port_t const& port) const
+{
+  return process::_output_port_info(port);
+}
+
+vistk::config::keys_t
+wrap_process
+::_base_available_config() const
+{
+  return process::_available_config();
+}
+
+vistk::process::conf_info_t
+wrap_process
+::_base_config_info(vistk::config::key_t const& key) const
+{
+  return process::_config_info(key);
 }
 
 void
