@@ -378,7 +378,7 @@ void
 wrap_process
 ::_init()
 {
-  override f = get_override("_init");
+  override const f = get_override("_init");
 
   if (f)
   {
@@ -394,7 +394,7 @@ void
 wrap_process
 ::_step()
 {
-  override f = get_override("_step");
+  override const f = get_override("_step");
 
   if (f)
   {
@@ -410,7 +410,7 @@ void
 wrap_process
 ::_connect_input_port(port_t const& port, vistk::edge_ref_t edge)
 {
-  override f = get_override("_connect_input_port");
+  override const f = get_override("_connect_input_port");
 
   if (f)
   {
@@ -426,7 +426,7 @@ void
 wrap_process
 ::_connect_output_port(port_t const& port, vistk::edge_ref_t edge)
 {
-  override f = get_override("_connect_output_port");
+  override const f = get_override("_connect_output_port");
 
   if (f)
   {
@@ -442,7 +442,7 @@ vistk::process::ports_t
 wrap_process
 ::_input_ports() const
 {
-  override f = get_override("_input_ports");
+  override const f = get_override("_input_ports");
 
   if (f)
   {
@@ -458,7 +458,7 @@ vistk::process::ports_t
 wrap_process
 ::_output_ports() const
 {
-  override f = get_override("_output_ports");
+  override const f = get_override("_output_ports");
 
   if (f)
   {
@@ -474,7 +474,7 @@ vistk::process::port_info_t
 wrap_process
 ::_input_port_info(port_t const& port) const
 {
-  override f = get_override("_input_port_info");
+  override const f = get_override("_input_port_info");
 
   if (f)
   {
@@ -490,7 +490,7 @@ vistk::process::port_info_t
 wrap_process
 ::_output_port_info(port_t const& port) const
 {
-  override f = get_override("_output_port_info");
+  override const f = get_override("_output_port_info");
 
   if (f)
   {
@@ -506,7 +506,7 @@ vistk::config::keys_t
 wrap_process
 ::_available_config() const
 {
-  override f = get_override("_available_config");
+  override const f = get_override("_available_config");
 
   if (f)
   {
@@ -522,7 +522,7 @@ vistk::process::conf_info_t
 wrap_process
 ::_config_info(vistk::config::key_t const& key) const
 {
-  override f = get_override("_config_info");
+  override const f = get_override("_config_info");
 
   if (f)
   {
