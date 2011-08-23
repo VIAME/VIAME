@@ -175,7 +175,13 @@ int main(int argc, char* argv[])
 
   pipe->setup_pipeline();
 
-  vistk::schedule_registry::type_t const schedule_type = vm["schedule"].as<vistk::schedule_registry::type_t>();
+  vistk::schedule_registry::type_t schedule_type = vistk::schedule_registry::default_type;
+
+  if (vm.count("schedule"))
+  {
+    schedule_type = vm["schedule"].as<vistk::schedule_registry::type_t>();
+  }
+
   vistk::config_t const schedule_config = conf->subblock(schedule_block + vistk::config::block_sep + schedule_type);
 
   vistk::schedule_registry_t reg = vistk::schedule_registry::self();
