@@ -394,7 +394,7 @@ wrap_process
   }
   else
   {
-    process::_init();
+    _base_init();
   }
 }
 
@@ -410,7 +410,7 @@ wrap_process
   }
   else
   {
-    process::_step();
+    _base_step();
   }
 }
 
@@ -426,7 +426,7 @@ wrap_process
   }
   else
   {
-    process::_connect_input_port(port, edge);
+    _base_connect_input_port(port, edge);
   }
 }
 
@@ -442,7 +442,7 @@ wrap_process
   }
   else
   {
-    process::_connect_output_port(port, edge);
+    _base_connect_output_port(port, edge);
   }
 }
 
@@ -458,7 +458,7 @@ wrap_process
   }
   else
   {
-    return process::_input_ports();
+    return _base_input_ports();
   }
 }
 
@@ -474,7 +474,7 @@ wrap_process
   }
   else
   {
-    return process::_output_ports();
+    return _base_output_ports();
   }
 }
 
@@ -490,7 +490,7 @@ wrap_process
   }
   else
   {
-    return process::_input_port_info(port);
+    return _base_input_port_info(port);
   }
 }
 
@@ -506,7 +506,7 @@ wrap_process
   }
   else
   {
-    return process::_output_port_info(port);
+    return _base_output_port_info(port);
   }
 }
 
@@ -522,7 +522,7 @@ wrap_process
   }
   else
   {
-    return process::_available_config();
+    return _base_available_config();
   }
 }
 
@@ -538,7 +538,7 @@ wrap_process
   }
   else
   {
-    return process::_config_info(key);
+    return _base_config_info(key);
   }
 }
 
