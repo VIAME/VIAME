@@ -21,6 +21,8 @@ def test_create():
     from vistk.pipeline import datum
     from vistk.pipeline import process
 
+    process.EdgeRef()
+    process.EdgeGroup()
     process.ProcessName()
     process.ProcessNames()
     process.PortDescription()
