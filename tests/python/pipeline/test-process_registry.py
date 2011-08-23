@@ -76,54 +76,54 @@ def example_process():
         def _init(self):
             self.ran_init = True
 
-            process.PythonProcess._base_init(self)
+            self._base_init()
 
         def _step(self):
             self.ran_step = True
 
             self.check()
 
-            process.PythonProcess._base_step(self)
+            self._base_step()
 
         def _connect_input_port(self, port, edge):
             self.ran_connect_input_port = True
 
-            process.PythonProcess._base_connect_input_port(self, port, edge)
+            self._base_connect_input_port(port, edge)
 
         def _connect_output_port(self, port, edge):
             self.ran_connect_output_port = True
 
-            process.PythonProcess._base_connect_output_port(self, port, edge)
+            self._base_connect_output_port(port, edge)
 
         def _input_ports(self):
             self.ran_input_ports = True
 
-            return process.PythonProcess._base_input_ports(self)
+            return self._base_input_ports()
 
         def _output_ports(self):
             self.ran_output_ports = True
 
-            return process.PythonProcess._base_output_ports(self)
+            return self._base_output_ports()
 
         def _input_port_info(self, port):
             self.ran_input_port_info = True
 
-            return process.PythonProcess._base_input_port_info(self, port)
+            return self._base_input_port_info(port)
 
         def _output_port_info(self, port):
             self.ran_output_port_info = True
 
-            return process.PythonProcess._base_output_port_info(self, port)
+            return self._base_output_port_info(port)
 
         def _available_config(self):
             self.ran_available_config = True
 
-            return process.PythonProcess._base_available_config(self)
+            return self._base_available_config()
 
         def _config_info(self, key):
             self.ran_conf_info = True
 
-            return process.PythonProcess._base_conf_info(self, key)
+            return self._base_conf_info(key)
 
         def check(self):
             if not self.ran_init:
