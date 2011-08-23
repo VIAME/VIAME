@@ -15,6 +15,7 @@
 #include <boost/tuple/tuple.hpp>
 
 #include <map>
+#include <set>
 
 /**
  * \file schedule_registry.cxx
@@ -117,6 +118,22 @@ schedule_registry
   }
 
   return i->second.get<0>();
+}
+
+void
+schedule_registry
+::mark_module_as_loaded(module_t const& module)
+{
+  d->loaded_modules.insert(module);
+}
+
+bool
+schedule_registry
+::is_module_loaded(module_t const& module) const
+{
+  priv::loaded_modules_t::const_iterator const i = d->loaded_modules.find(module);
+
+  return (i != d->loaded_modules.end());
 }
 
 schedule_registry_t

@@ -17,6 +17,7 @@
 #include <boost/tuple/tuple.hpp>
 
 #include <map>
+#include <set>
 
 /**
  * \file process_registry.cxx
@@ -38,6 +39,9 @@ class process_registry::priv
     typedef boost::tuple<description_t, process_ctor_t> process_typeinfo_t;
     typedef std::map<type_t, process_typeinfo_t> process_store_t;
     process_store_t registry;
+
+    typedef std::set<module_t> loaded_modules_t;
+    loaded_modules_t loaded_modules;
 };
 
 process_registry_t process_registry::priv::self = process_registry_t();
@@ -111,6 +115,22 @@ process_registry
   }
 
   return i->second.get<0>();
+}
+
+void
+process_registry
+::mark_module_as_loaded(module_t const& module)
+{
+  d->loaded_modules.insert(module);
+}
+
+bool
+process_registry
+::is_module_loaded(module_t const& module) const
+{
+  priv::loaded_modules_t::const_iterator const i = d->loaded_modules.find(module);
+
+  return (i != d->loaded_modules.end());
 }
 
 process_registry_t

@@ -44,6 +44,8 @@ class VISTK_PIPELINE_EXPORT process_registry
     typedef std::string description_t;
     /// A group of types.
     typedef std::vector<type_t> types_t;
+    /// The type of a module name.
+    typedef std::string module_t;
 
     /**
      * \brief Destructor.
@@ -86,6 +88,21 @@ class VISTK_PIPELINE_EXPORT process_registry
      * \returns The description for the type \p type.
      */
     description_t description(type_t const& type) const;
+
+    /**
+     * \brief Marks a module as loaded.
+     *
+     * \param module The module to mark as loaded.
+     */
+    void mark_module_as_loaded(module_t const& module);
+    /**
+     * \brief Queries if a module has already been loaded.
+     *
+     * \param module The module to query.
+     *
+     * \returns True if the module has already been loaded, false otherwise.
+     */
+    bool is_module_loaded(module_t const& module) const;
 
     /**
      * \brief Accessor to the registry.
