@@ -12,6 +12,9 @@
 #include <boost/foreach.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/tuple/tuple.hpp>
+
+#include <map>
 
 /**
  * \file schedule_registry.cxx
@@ -22,8 +25,25 @@
 namespace vistk
 {
 
-schedule_registry_t schedule_registry::m_self = schedule_registry_t();
 schedule_registry::type_t const schedule_registry::default_type = type_t("thread_per_process");
+
+class schedule_registry::priv
+{
+  public:
+    priv();
+    ~priv();
+
+    static schedule_registry_t self;
+
+    typedef boost::tuple<description_t, schedule_ctor_t> schedule_typeinfo_t;
+    typedef std::map<type_t, schedule_typeinfo_t> schedule_store_t;
+    schedule_store_t registry;
+
+    typedef std::set<module_t> loaded_modules_t;
+    loaded_modules_t loaded_modules;
+};
+
+schedule_registry_t schedule_registry::priv::self = schedule_registry_t();
 
 schedule_registry
 ::~schedule_registry()
@@ -39,12 +59,12 @@ schedule_registry
     throw null_schedule_ctor_exception(type);
   }
 
-  if (m_registry.find(type) != m_registry.end())
+  if (d->registry.find(type) != d->registry.end())
   {
     throw schedule_type_already_exists_exception(type);
   }
 
-  m_registry[type] = schedule_typeinfo_t(desc, ctor);
+  d->registry[type] = priv::schedule_typeinfo_t(desc, ctor);
 }
 
 schedule_t
@@ -61,9 +81,9 @@ schedule_registry
     throw null_schedule_registry_pipeline_exception();
   }
 
-  schedule_store_t::const_iterator const i = m_registry.find(type);
+  priv::schedule_store_t::const_iterator const i = d->registry.find(type);
 
-  if (i == m_registry.end())
+  if (i == d->registry.end())
   {
     throw no_such_schedule_type_exception(type);
   }
@@ -77,7 +97,7 @@ schedule_registry
 {
   types_t ts;
 
-  BOOST_FOREACH (schedule_store_t::value_type const& entry, m_registry)
+  BOOST_FOREACH (priv::schedule_store_t::value_type const& entry, d->registry)
   {
     ts.push_back(entry.first);
   }
@@ -89,9 +109,9 @@ schedule_registry::description_t
 schedule_registry
 ::description(type_t const& type) const
 {
-  schedule_store_t::const_iterator const i = m_registry.find(type);
+  priv::schedule_store_t::const_iterator const i = d->registry.find(type);
 
-  if (i == m_registry.end())
+  if (i == d->registry.end())
   {
     throw no_such_schedule_type_exception(type);
   }
@@ -105,22 +125,33 @@ schedule_registry
 {
   static boost::mutex mut;
 
-  if (m_self)
+  if (priv::self)
   {
-    return m_self;
+    return priv::self;
   }
 
   boost::unique_lock<boost::mutex> lock(mut);
-  if (!m_self)
+  if (!priv::self)
   {
-    m_self = schedule_registry_t(new schedule_registry);
+    priv::self = schedule_registry_t(new schedule_registry);
   }
 
-  return m_self;
+  return priv::self;
 }
 
 schedule_registry
 ::schedule_registry()
+{
+  d = boost::shared_ptr<priv>(new priv);
+}
+
+schedule_registry::priv
+::priv()
+{
+}
+
+schedule_registry::priv
+::~priv()
 {
 }
 

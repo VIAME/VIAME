@@ -12,9 +12,7 @@
 #include "types.h"
 
 #include <boost/function.hpp>
-#include <boost/tuple/tuple.hpp>
 
-#include <map>
 #include <string>
 #include <vector>
 
@@ -98,11 +96,8 @@ class VISTK_PIPELINE_EXPORT process_registry
   private:
     process_registry();
 
-    static process_registry_t m_self;
-
-    typedef boost::tuple<description_t, process_ctor_t> process_typeinfo_t;
-    typedef std::map<type_t, process_typeinfo_t> process_store_t;
-    process_store_t m_registry;
+    class priv;
+    boost::shared_ptr<priv> d;
 };
 
 }

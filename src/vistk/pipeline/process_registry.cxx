@@ -14,6 +14,9 @@
 #include <boost/foreach.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/tuple/tuple.hpp>
+
+#include <map>
 
 /**
  * \file process_registry.cxx
@@ -24,7 +27,20 @@
 namespace vistk
 {
 
-process_registry_t process_registry::m_self = process_registry_t();
+class process_registry::priv
+{
+  public:
+    priv();
+    ~priv();
+
+    static process_registry_t self;
+
+    typedef boost::tuple<description_t, process_ctor_t> process_typeinfo_t;
+    typedef std::map<type_t, process_typeinfo_t> process_store_t;
+    process_store_t registry;
+};
+
+process_registry_t process_registry::priv::self = process_registry_t();
 
 process_registry
 ::~process_registry()
@@ -40,12 +56,12 @@ process_registry
     throw null_process_ctor_exception(type);
   }
 
-  if (m_registry.find(type) != m_registry.end())
+  if (d->registry.find(type) != d->registry.end())
   {
     throw process_type_already_exists_exception(type);
   }
 
-  m_registry[type] = process_typeinfo_t(desc, ctor);
+  d->registry[type] = priv::process_typeinfo_t(desc, ctor);
 }
 
 process_t
@@ -57,9 +73,9 @@ process_registry
     throw null_process_registry_config_exception();
   }
 
-  process_store_t::const_iterator const i = m_registry.find(type);
+  priv::process_store_t::const_iterator const i = d->registry.find(type);
 
-  if (i == m_registry.end())
+  if (i == d->registry.end())
   {
     throw no_such_process_type_exception(type);
   }
@@ -75,7 +91,7 @@ process_registry
 {
   types_t ts;
 
-  BOOST_FOREACH (process_store_t::value_type const& entry, m_registry)
+  BOOST_FOREACH (priv::process_store_t::value_type const& entry, d->registry)
   {
     ts.push_back(entry.first);
   }
@@ -87,9 +103,9 @@ process_registry::description_t
 process_registry
 ::description(type_t const& type) const
 {
-  process_store_t::const_iterator const i = m_registry.find(type);
+  priv::process_store_t::const_iterator const i = d->registry.find(type);
 
-  if (i == m_registry.end())
+  if (i == d->registry.end())
   {
     throw no_such_process_type_exception(type);
   }
@@ -103,22 +119,33 @@ process_registry
 {
   static boost::mutex mut;
 
-  if (m_self)
+  if (priv::self)
   {
-    return m_self;
+    return priv::self;
   }
 
   boost::unique_lock<boost::mutex> lock(mut);
-  if (!m_self)
+  if (!priv::self)
   {
-    m_self = process_registry_t(new process_registry);
+    priv::self = process_registry_t(new process_registry);
   }
 
-  return m_self;
+  return priv::self;
 }
 
 process_registry
 ::process_registry()
+{
+  d = boost::shared_ptr<priv>(new priv);
+}
+
+process_registry::priv
+::priv()
+{
+}
+
+process_registry::priv
+::~priv()
 {
 }
 

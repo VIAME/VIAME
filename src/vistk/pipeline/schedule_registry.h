@@ -12,9 +12,7 @@
 #include "types.h"
 
 #include <boost/function.hpp>
-#include <boost/tuple/tuple.hpp>
 
-#include <map>
 #include <string>
 #include <vector>
 
@@ -102,11 +100,8 @@ class VISTK_PIPELINE_EXPORT schedule_registry
   private:
     schedule_registry();
 
-    static schedule_registry_t m_self;
-
-    typedef boost::tuple<description_t, schedule_ctor_t> schedule_typeinfo_t;
-    typedef std::map<type_t, schedule_typeinfo_t> schedule_store_t;
-    schedule_store_t m_registry;
+    class priv;
+    boost::shared_ptr<priv> d;
 };
 
 }
