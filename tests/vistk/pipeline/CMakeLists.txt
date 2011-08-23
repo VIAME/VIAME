@@ -60,6 +60,14 @@ vistk_make_test(edge set_upstream_process)
 vistk_make_test(edge set_downstream_process)
 
 ##############################
+# Modules tests
+##############################
+vistk_build_test(modules libraries test_modules.cxx)
+
+vistk_make_test(modules load)
+vistk_make_test(modules multiple_load)
+
+##############################
 # Process tests
 ##############################
 vistk_build_test(process libraries test_process.cxx)
