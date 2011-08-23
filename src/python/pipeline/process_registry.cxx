@@ -39,6 +39,8 @@ BOOST_PYTHON_MODULE(process_registry)
     , "A collection of process types.")
     .def(vector_indexing_suite<vistk::process_registry::types_t>())
   ;
+  class_<vistk::process_registry::module_t>("ProcessModule"
+    , "The type for a process module name.");
 
   class_<vistk::process, vistk::process_t, boost::noncopyable>("Process"
     , "The base class of processes."
@@ -105,6 +107,12 @@ BOOST_PYTHON_MODULE(process_registry)
     .def("description", &vistk::process_registry::description
       , (arg("type"))
       , "The description for the given type.")
+    .def("is_module_loaded", &vistk::process_registry::is_module_loaded
+      , (arg("module"))
+      , "Returns True if the module has already been loaded, False otherwise.")
+    .def("mark_module_as_loaded", &vistk::process_registry::mark_module_as_loaded
+      , (arg("module"))
+      , "Marks a module as loaded.")
   ;
 }
 

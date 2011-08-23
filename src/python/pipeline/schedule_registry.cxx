@@ -39,6 +39,8 @@ BOOST_PYTHON_MODULE(schedule_registry)
     , "A collection of schedule types.")
     .def(vector_indexing_suite<vistk::schedule_registry::types_t>())
   ;
+  class_<vistk::schedule_registry::module_t>("ScheduleModule"
+    , "The type for a schedule module name.");
 
   class_<vistk::schedule, vistk::schedule_t, boost::noncopyable>("Schedule"
     , "An abstract class which offers an interface for pipeline execution strategies."
@@ -68,6 +70,12 @@ BOOST_PYTHON_MODULE(schedule_registry)
     .def("description", &vistk::schedule_registry::description
       , (arg("type"))
       , "The description for the given schedule type.")
+    .def("is_module_loaded", &vistk::schedule_registry::is_module_loaded
+      , (arg("module"))
+      , "Returns True if the module has already been loaded, False otherwise.")
+    .def("mark_module_as_loaded", &vistk::schedule_registry::mark_module_as_loaded
+      , (arg("module"))
+      , "Marks a module as loaded.")
   ;
 }
 
