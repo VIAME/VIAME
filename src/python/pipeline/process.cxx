@@ -6,6 +6,7 @@
 
 #include <python/helpers/python_wrap_const_shared_ptr.h>
 
+#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/stamp.h>
@@ -88,6 +89,13 @@ BOOST_PYTHON_MODULE(process)
 {
   register_exception_translator<
     vistk::process_exception>(translator);
+
+  class_<vistk::edge_ref_t>("EdgeRef"
+    , "A reference of an edge.")
+  ;
+  class_<vistk::edge_ref_t>("EdgeGroup"
+    , "A collection of references of edges.")
+  ;
 
   class_<vistk::process::name_t>("ProcessName"
     , "A type for the name of a process.");
