@@ -22,11 +22,20 @@ static schedule_t create_thread_pool_schedule(config_t const& config, pipeline_t
 void
 register_schedules()
 {
+  static schedule_registry::module_t const module_name = schedule_registry::module_t("example_schedules");
+
   schedule_registry_t const registry = schedule_registry::self();
+
+  if (registry->is_module_loaded(module_name))
+  {
+    return;
+  }
 
   registry->register_schedule("sync", "Runs the pipeline synchronously", create_sync_schedule);
   registry->register_schedule("thread_per_process", "Runs each process in its own thread", create_thread_per_process_schedule);
   registry->register_schedule("thread_pool", "Uses a pool of threads to step processes", create_thread_pool_schedule);
+
+  registry->mark_module_as_loaded(module_name);
 }
 
 schedule_t

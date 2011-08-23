@@ -29,7 +29,14 @@ static process_t create_print_string_process(config_t const& config);
 void
 register_processes()
 {
+  static process_registry::module_t const module_name = process_registry::module_t("example_processes");
+
   process_registry_t const registry = process_registry::self();
+
+  if (registry->is_module_loaded(module_name))
+  {
+    return;
+  }
 
   registry->register_process("const", "A process with the const flag", create_const_process);
   registry->register_process("multiplication", "Multiplies numbers", create_multiplication_process);
@@ -38,6 +45,8 @@ register_processes()
   registry->register_process("orphan", "A dummy process", create_orphan_process);
   registry->register_process("print_number", "Print numbers to a file", create_print_number_process);
   registry->register_process("print_string", "Print strings to a file", create_print_string_process);
+
+  registry->mark_module_as_loaded(module_name);
 }
 
 process_t
