@@ -165,4 +165,7 @@ if __name__ == '__main__':
 
     path = os.path.join(pipeline_dir, '%s.pipe' % testname)
 
-    main(testname, path)
+    try:
+        main(testname, path)
+    except BaseException as e:
+        log("Error: Unexpected exception: %s" % str(e))

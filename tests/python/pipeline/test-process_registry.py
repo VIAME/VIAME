@@ -264,4 +264,7 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
-    main(testname)
+    try:
+        main(testname)
+    except BaseException as e:
+        log("Error: Unexpected exception: %s" % str(e))
