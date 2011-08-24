@@ -67,9 +67,6 @@ void
 multiplication_process
 ::_step()
 {
-  datum_t dat;
-  stamp_t st;
-
   edge_datum_t const factor1_dat = grab_from_port(priv::port_factor1);
   edge_datum_t const factor2_dat = grab_from_port(priv::port_factor2);
 
@@ -78,9 +75,12 @@ multiplication_process
   input_dats.push_back(factor1_dat);
   input_dats.push_back(factor2_dat);
 
-  st = factor1_dat.get<1>();
-
   data_info_t const info = edge_data_info(input_dats);
+
+  datum_t dat;
+  stamp_t st;
+
+  st = factor1_dat.get<1>();
 
   switch (info->max_status)
   {
