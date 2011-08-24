@@ -30,6 +30,9 @@ class VISTK_PIPELINE_TYPES_EXPORT basic_types
   public:
     // Raw types
 
+    /// The type for boolean data on a port.
+    static process::port_type_t const t_bool;
+
     /// The type for character data on a port.
     static process::port_type_t const t_char;
     /// The type for string data on a port.

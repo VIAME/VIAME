@@ -15,6 +15,8 @@
 namespace vistk
 {
 
+process::port_type_t const basic_types::t_bool = process::port_type_t("_bool");
+
 process::port_type_t const basic_types::t_char = process::port_type_t("_char");
 process::port_type_t const basic_types::t_string = process::port_type_t("_string");
 
