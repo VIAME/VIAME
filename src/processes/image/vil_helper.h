@@ -34,8 +34,8 @@ typedef boost::function<datum_t (datum_t const&)> gray_func_t;
 class pixtypes
 {
   public:
-    static pixtype_t const pixtype_byte;
-    static pixtype_t const pixtype_float;
+    static pixtype_t const& pixtype_byte();
+    static pixtype_t const& pixtype_float();
 };
 
 /**

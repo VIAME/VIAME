@@ -15,8 +15,21 @@
 namespace vistk
 {
 
-pixtype_t const pixtypes::pixtype_byte = pixtype_t("byte");
-pixtype_t const pixtypes::pixtype_float = pixtype_t("float");
+pixtype_t const&
+pixtypes
+::pixtype_byte()
+{
+  static pixtype_t const type = pixtype_t("byte");
+  return type;
+}
+
+pixtype_t const&
+pixtypes
+::pixtype_float()
+{
+  static pixtype_t const type = pixtype_t("float");
+  return type;
+}
 
 template <> template <>
 process::port_type_t const vil_helper<uint8_t>::port_types<true, true>::type = image_types::t_byte_rgb;
