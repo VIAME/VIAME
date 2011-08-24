@@ -6,7 +6,7 @@
 
 #include "print_number_process.h"
 
-#include <vistk/pipeline_types/port_types.h>
+#include <vistk/pipeline_types/basic_types.h>
 
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
@@ -52,7 +52,7 @@ print_number_process
   required.insert(flag_required);
 
   declare_input_port(priv::port_input, port_info_t(new port_info(
-    port_types::t_integer,
+    basic_types::t_integer,
     required,
     port_description_t("Where numbers are read from."))));
 

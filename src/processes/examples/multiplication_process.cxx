@@ -6,7 +6,7 @@
 
 #include "multiplication_process.h"
 
-#include <vistk/pipeline_types/port_types.h>
+#include <vistk/pipeline_types/basic_types.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
@@ -45,15 +45,15 @@ multiplication_process
   required.insert(flag_required);
 
   declare_input_port(priv::port_factor1, port_info_t(new port_info(
-    port_types::t_integer,
+    basic_types::t_integer,
     required,
     port_description_t("The first factor to multiply."))));
   declare_input_port(priv::port_factor2, port_info_t(new port_info(
-    port_types::t_integer,
+    basic_types::t_integer,
     required,
     port_description_t("The second factor to multiply."))));
   declare_output_port(priv::port_output, port_info_t(new port_info(
-    port_types::t_integer,
+    basic_types::t_integer,
     required,
     port_description_t("Where the product will be available."))));
 }
