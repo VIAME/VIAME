@@ -12,6 +12,8 @@
 
 using namespace vistk;
 
+static process_t create_grayscale_process(config_t const& config);
+
 void
 register_processes()
 {
@@ -24,8 +26,13 @@ register_processes()
     return;
   }
 
-  registry->register_process("grayscale_byte", "Convert a byte RGB image into grayscale.", create_grayscale_byte_process);
-  registry->register_process("grayscale_float", "Convert a floating point RGB image into grayscale.", create_grayscale_float_process);
+  registry->register_process("grayscale", "Convert an RGB image into grayscale.", create_grayscale_process);
 
   registry->mark_module_as_loaded(module_name);
+}
+
+process_t
+create_grayscale_process(config_t const& config)
+{
+  return process_t(new grayscale_process(config));
 }

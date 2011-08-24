@@ -8,72 +8,122 @@
 
 #include <vistk/pipeline_types/image_types.h>
 
+#include <vistk/pipeline/process_exception.h>
+
+#include <boost/function.hpp>
+
 #include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
 
 namespace vistk
 {
 
-template<class T>
-class grayscale_process<T>::priv
+class grayscale_process::priv
 {
   public:
-    priv();
+    typedef boost::function<datum_t (datum_t const&)> convert_func_t;
+
+    priv(config::value_t const& pix, convert_func_t func);
     ~priv();
 
-    typedef vil_image_view<T> rgb_image_t;
-    typedef vil_image_view<T> grayscale_image_t;
+    config::value_t const pixtype;
+    convert_func_t const convert;
 
-    static port_type_t const port_type_input;
-    static port_type_t const port_type_output;
+    static config::key_t const config_pixtype;
+    static config::value_t const default_pixtype;
     static port_t const port_input;
     static port_t const port_output;
 };
 
-template<>
-process::port_type_t const grayscale_process<uint8_t>::priv::port_type_input = image_types::t_byte_rgb;
-template<>
-process::port_type_t const grayscale_process<uint8_t>::priv::port_type_output = image_types::t_byte_grayscale;
-template<>
-process::port_type_t const grayscale_process<float>::priv::port_type_input = image_types::t_float_rgb;
-template<>
-process::port_type_t const grayscale_process<float>::priv::port_type_output = image_types::t_float_grayscale;
+config::key_t const grayscale_process::priv::config_pixtype = config::key_t("pixtype");
+config::value_t const grayscale_process::priv::default_pixtype = config::value_t("byte");
+process::port_t const grayscale_process::priv::port_input = port_t("rgbimage");
+process::port_t const grayscale_process::priv::port_output = port_t("grayimage");
 
 template<class T>
-process::port_t const grayscale_process<T>::priv::port_input = port_t("rgbimage");
-template<class T>
-process::port_t const grayscale_process<T>::priv::port_output = port_t("grayimage");
+struct convert
+{
+  typedef vil_image_view<T> rgb_image_t;
+  typedef vil_image_view<T> grayscale_image_t;
 
-template<class T>
-grayscale_process<T>
+  static process::port_type_t const port_type_input;
+  static process::port_type_t const port_type_output;
+
+  static datum_t convert_to_gray(datum_t const& dat);
+};
+
+template<>
+process::port_type_t const convert<uint8_t>::port_type_input = image_types::t_byte_rgb;
+template<>
+process::port_type_t const convert<uint8_t>::port_type_output = image_types::t_byte_grayscale;
+
+template<>
+process::port_type_t const convert<float>::port_type_input = image_types::t_float_rgb;
+template<>
+process::port_type_t const convert<float>::port_type_output = image_types::t_float_grayscale;
+
+grayscale_process
 ::grayscale_process(config_t const& config)
   : process(config)
 {
-  d = boost::shared_ptr<priv>(new priv);
+  config::value_t pixtype = config->get_value<config::value_t>(priv::config_pixtype, priv::default_pixtype);
+
+  port_type_t port_type_input = type_none;
+  port_type_t port_type_output = type_none;
+
+  priv::convert_func_t func = NULL;
+
+  if (pixtype == "byte")
+  {
+    port_type_input = convert<uint8_t>::port_type_input;
+    port_type_output = convert<uint8_t>::port_type_output;
+
+    func = convert<uint8_t>::convert_to_gray;
+  }
+  else if (pixtype == "float")
+  {
+    port_type_input = convert<float>::port_type_input;
+    port_type_output = convert<float>::port_type_output;
+
+    func = convert<float>::convert_to_gray;
+  }
+
+  d = boost::shared_ptr<priv>(new priv(pixtype, func));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
   declare_input_port(priv::port_input, port_info_t(new port_info(
-    priv::port_type_input,
+    port_type_input,
     required,
     port_description_t("The image to turn into grayscale."))));
   declare_output_port(priv::port_output, port_info_t(new port_info(
-    priv::port_type_output,
+    port_type_output,
     required,
     port_description_t("The resulting grayscale image."))));
 }
 
-template<class T>
-grayscale_process<T>
+grayscale_process
 ::~grayscale_process()
 {
 }
 
-template<class T>
 void
-grayscale_process<T>
+grayscale_process
+::_init()
+{
+  if (!d->convert)
+  {
+    static std::string const reason = "A conversion function for the "
+                                      "given pixtype could not be found";
+
+    throw invalid_configuration_exception(name(), reason);
+  }
+}
+
+void
+grayscale_process
 ::_step()
 {
   edge_datum_t const input_dat = grab_from_port(priv::port_input);
@@ -85,24 +135,8 @@ grayscale_process<T>
   switch (input_datum->type())
   {
     case datum::DATUM_DATA:
-    {
-      typename priv::rgb_image_t rgb_image = input_datum->get_datum<typename priv::rgb_image_t>();
-
-      if (rgb_image.nplanes() != 3)
-      {
-        dat = datum::error_datum("Input image does not have three planes.");
-
-        break;
-      }
-
-      typename priv::grayscale_image_t gray_image;
-
-      vil_convert_planes_to_grey(rgb_image, gray_image);
-
-      dat = datum::new_datum(gray_image);
-
+      dat = d->convert(input_datum);
       break;
-    }
     case datum::DATUM_EMPTY:
       dat = datum::empty_datum();
       break;
@@ -126,28 +160,35 @@ grayscale_process<T>
   process::_step();
 }
 
-template<class T>
-grayscale_process<T>::priv
-::priv()
+grayscale_process::priv
+::priv(config::value_t const& pix, convert_func_t func)
+  : pixtype(pix)
+  , convert(func)
 {
 }
 
-template<class T>
-grayscale_process<T>::priv
+grayscale_process::priv
 ::~priv()
 {
 }
 
-process_t
-create_grayscale_byte_process(config_t const& config)
+template<class T>
+datum_t
+convert<T>
+::convert_to_gray(datum_t const& dat)
 {
-  return process_t(new grayscale_process<uint8_t>(config));
-}
+  rgb_image_t rgb_image = dat->get_datum<rgb_image_t>();
 
-process_t
-create_grayscale_float_process(config_t const& config)
-{
-  return process_t(new grayscale_process<float>(config));
+  if (rgb_image.nplanes() != 3)
+  {
+    return datum::error_datum("Input image does not have three planes.");
+  }
+
+  grayscale_image_t gray_image;
+
+  vil_convert_planes_to_grey(rgb_image, gray_image);
+
+  return datum::new_datum(gray_image);
 }
 
 }

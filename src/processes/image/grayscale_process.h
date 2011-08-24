@@ -29,11 +29,14 @@ namespace vistk
  *
  * \oport{grayimage} The number generated for the step.
  *
+ * \configs
+ *
+ * \config{pixtype} The type of image to convert.
+ *
  * \reqs
  *
  * \req The \port{rgbimage} and \port{grayimage} ports must be connected.
  */
-template<class T>
 class VISTK_PROCESSES_IMAGE_NO_EXPORT grayscale_process
   : public process
 {
@@ -50,6 +53,11 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT grayscale_process
     ~grayscale_process();
   protected:
     /**
+     * \brief Initialize the process.
+     */
+    void _init();
+
+    /**
      * \brief Turns an image into grayscale.
      */
     void _step();
@@ -57,9 +65,6 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT grayscale_process
     class priv;
     boost::shared_ptr<priv> d;
 };
-
-process_t VISTK_PROCESSES_IMAGE_NO_EXPORT create_grayscale_byte_process(config_t const& config);
-process_t VISTK_PROCESSES_IMAGE_NO_EXPORT create_grayscale_float_process(config_t const& config);
 
 }
 
