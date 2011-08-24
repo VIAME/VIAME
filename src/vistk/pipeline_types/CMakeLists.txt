@@ -1,10 +1,12 @@
 project(vistk_pipeline_types)
 
 set(pipeline_types_srcs
-  basic_types.cxx)
+  basic_types.cxx
+  image_types.cxx)
 
 set(pipeline_types_headers
   basic_types.h
+  image_types.h
   pipeline_types-config.h)
 
 add_library(vistk_pipeline_types
