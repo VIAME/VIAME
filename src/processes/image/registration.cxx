@@ -8,6 +8,7 @@
 
 #include "grayscale_process.h"
 #include "image_reader_process.h"
+#include "image_writer_process.h"
 
 #include <vistk/pipeline/process_registry.h>
 
@@ -15,6 +16,7 @@ using namespace vistk;
 
 static process_t create_grayscale_process(config_t const& config);
 static process_t create_image_reader_process(config_t const& config);
+static process_t create_image_writer_process(config_t const& config);
 
 void
 register_processes()
@@ -30,6 +32,7 @@ register_processes()
 
   registry->register_process("grayscale", "Convert an RGB image into grayscale.", create_grayscale_process);
   registry->register_process("image_reader", "Read images from files given a list of images.", create_image_reader_process);
+  registry->register_process("image_writer", "Write images to files.", create_image_writer_process);
 
   registry->mark_module_as_loaded(module_name);
 }
@@ -44,4 +47,10 @@ process_t
 create_image_reader_process(config_t const& config)
 {
   return process_t(new image_reader_process(config));
+}
+
+process_t
+create_image_writer_process(config_t const& config)
+{
+  return process_t(new image_writer_process(config));
 }
