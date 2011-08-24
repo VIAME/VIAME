@@ -24,44 +24,44 @@ class compare_string_process::priv
 
     bool const ignore_case;
 
-    static config::key_t const CONFIG_ICASE;
-    static bool const DEFAULT_ICASE;
-    static port_t const PORT_STRING1;
-    static port_t const PORT_STRING2;
-    static port_t const PORT_OUTPUT;
+    static config::key_t const config_icase;
+    static bool const default_icase;
+    static port_t const port_string1;
+    static port_t const port_string2;
+    static port_t const port_output;
 };
 
-config::key_t const compare_string_process::priv::CONFIG_ICASE = config::key_t("ignore_case");
-bool const compare_string_process::priv::DEFAULT_ICASE = false;
-process::port_t const compare_string_process::priv::PORT_STRING1 = process::port_t("string1");
-process::port_t const compare_string_process::priv::PORT_STRING2 = process::port_t("string2");
-process::port_t const compare_string_process::priv::PORT_OUTPUT = process::port_t("are_same");
+config::key_t const compare_string_process::priv::config_icase = config::key_t("ignore_case");
+bool const compare_string_process::priv::default_icase = false;
+process::port_t const compare_string_process::priv::port_string1 = process::port_t("string1");
+process::port_t const compare_string_process::priv::port_string2 = process::port_t("string2");
+process::port_t const compare_string_process::priv::port_output = process::port_t("are_same");
 
 compare_string_process
 ::compare_string_process(config_t const& config)
   : process(config)
 {
-  bool const icase = config->get_value<bool>(priv::CONFIG_ICASE, priv::DEFAULT_ICASE);
+  bool const icase = config->get_value<bool>(priv::config_icase, priv::default_icase);
 
   d = boost::shared_ptr<priv>(new priv(icase));
 
-  declare_configuration_key(priv::CONFIG_ICASE, conf_info_t(new conf_info(
-    boost::lexical_cast<config::value_t>(priv::DEFAULT_ICASE),
+  declare_configuration_key(priv::config_icase, conf_info_t(new conf_info(
+    boost::lexical_cast<config::value_t>(priv::default_icase),
     config::description_t("If set to \'true\', compares strings case insensitively."))));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_input_port(priv::PORT_STRING1, port_info_t(new port_info(
+  declare_input_port(priv::port_string1, port_info_t(new port_info(
     "string",
     required,
     port_description_t("The first string to compare."))));
-  declare_input_port(priv::PORT_STRING2, port_info_t(new port_info(
+  declare_input_port(priv::port_string2, port_info_t(new port_info(
     "string",
     required,
     port_description_t("The second string to compare."))));
-  declare_output_port(priv::PORT_OUTPUT, port_info_t(new port_info(
+  declare_output_port(priv::port_output, port_info_t(new port_info(
     "bool",
     required,
     port_description_t("Sends \'true\' if the strings were the same."))));
@@ -82,8 +82,8 @@ compare_string_process
   datum_t dat;
   stamp_t st;
 
-  edge_datum_t const str1_dat = grab_from_port(priv::PORT_STRING1);
-  edge_datum_t const str2_dat = grab_from_port(priv::PORT_STRING2);
+  edge_datum_t const str1_dat = grab_from_port(priv::port_string1);
+  edge_datum_t const str2_dat = grab_from_port(priv::port_string2);
 
   st = str1_dat.get<1>();
 
@@ -142,7 +142,7 @@ compare_string_process
 
   edge_datum_t const edat = edge_datum_t(dat, st);
 
-  push_to_port(priv::PORT_OUTPUT, edat);
+  push_to_port(priv::port_output, edat);
 
   process::_step();
 }
