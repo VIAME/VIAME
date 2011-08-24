@@ -1,11 +1,11 @@
 project(vistk_pipeline_types)
 
 set(pipeline_types_srcs
-  port_types.cxx)
+  basic_types.cxx)
 
 set(pipeline_types_headers
-  pipeline_types-config.h
-  port_types.h)
+  basic_types.h
+  pipeline_types-config.h)
 
 add_library(vistk_pipeline_types
   ${pipeline_types_srcs})

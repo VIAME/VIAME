@@ -4,15 +4,15 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_TYPES_PORT_TYPES_H
-#define VISTK_PIPELINE_TYPES_PORT_TYPES_H
+#ifndef VISTK_PIPELINE_TYPES_BASIC_TYPES_H
+#define VISTK_PIPELINE_TYPES_BASIC_TYPES_H
 
 #include "pipeline_types-config.h"
 
 #include <vistk/pipeline/process.h>
 
 /**
- * \file port_types.h
+ * \file basic_types.h
  *
  * \brief Basic port types within the pipeline.
  */
@@ -21,11 +21,11 @@ namespace vistk
 {
 
 /**
- * \class port_types port_types.h <vistk/pipeline_types/port_types.h>
+ * \class basic_types basic_types.h <vistk/pipeline_types/basic_types.h>
  *
  * \brief Basic port types.
  */
-class VISTK_PIPELINE_TYPES_EXPORT port_types
+class VISTK_PIPELINE_TYPES_EXPORT basic_types
 {
   public:
     // Raw types
@@ -71,4 +71,4 @@ class VISTK_PIPELINE_TYPES_EXPORT port_types
 
 }
 
-#endif // VISTK_PIPELINE_TYPES_PORT_TYPES_H
+#endif // VISTK_PIPELINE_TYPES_BASIC_TYPES_H
