@@ -17,23 +17,31 @@ namespace vistk
 /**
  * \class distribute_process
  *
- * \brief A process which generates increasing numbers within a range.
+ * \brief A process which distributes input data along multiple output edges.
+ *
+ * \note Edges for a \portvar{src} may \em only be connected after the
+ * \port{color_\portvar{src}} is connected to. Before this connection happens,
+ * the other ports to not exist and will cause errors. In short: The first
+ * connection for any \portvar{src} must be \port{color_\portvar{src}}.
  *
  * \process A process for generating numbers.
  *
  * \iports
  *
- * \iport{src_\em src} The source input \em src.
+ * \iport{src_\portvar{src}} The source input \portvar{src}.
  *
  * \oports
  *
- * \oport{color_\em src} The color of the input \em src.
- * \oport{dist_\em src _\em any} A port to distribute the input \em src to. Data
- *                               is distributed in ASCII-betical order.
+ * \oport{color_\portvar{src}} The color of the input \portvar{src}.
+ * \oport{dist_\portvar{src}_\portvar{any}} A port to distribute the input
+ *                                          \portvar{src} to. Data is
+ *                                          distributed in ASCII-betical order.
  *
  * \reqs
  *
- * \req The \port{src} input must be connected.
+ * \req Each input port \port{src_\portvar{src}} must be connected.
+ * \req Each output port \port{color_\portvar{res}} must be connected.
+ * \req Each \portvar{res} must have at least two outputs to distribute to.
  *
  * \todo Add configuration to allow forcing a number of outputs for a source.
  * \todo Add configuration to allow same number of outputs for all sources.

@@ -17,23 +17,31 @@ namespace vistk
 /**
  * \class collate_process
  *
- * \brief A process which generates increasing numbers within a range.
+ * \brief A process which collating input data from multiple input edges.
  *
- * \process A process for generating numbers.
+ * \note Edges for a \portvar{res} may \em only be connected after the
+ * \port{color_\portvar{res}} is connected to. Before this connection happens,
+ * the other ports to not exist and will cause errors. In short: The first
+ * connection for any \portvar{res} must be \port{color_\portvar{res}}.
+ *
+ * \process A process for collating data from multiple sources.
  *
  * \iports
  *
- * \iport{color_\em res} The color of the result \em res.
- * \iport{coll_\em res _\em any} A port to collate data for \em res from. Data
- *                               is collated from ports in ASCII-betical order.
+ * \iport{color_\portvar{res}} The color of the result \portvar{res}.
+ * \iport{coll_\portvar{res}_\portvar{any}} A port to collate data for
+ *                                          \portvar{res} from. Data is collated
+ *                                          from ports in ASCII-betical order.
  *
  * \oports
  *
- * \oport{out_\em res} The collated result \em res.
+ * \oport{out_\portvar{res}} The collated result \portvar{res}.
  *
  * \reqs
  *
- * \req The \port{res} input must be connected.
+ * \req Each input port \port{color_\portvar{res}} must be connected.
+ * \req Each \portvar{res} must have at least two inputs to collate.
+ * \req Each output port \port{out_\portvar{res}} must be connected.
  *
  * \todo Add configuration to allow forcing a number of inputs for a result.
  * \todo Add configuration to allow same number of sources for all results.
