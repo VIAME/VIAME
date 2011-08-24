@@ -132,7 +132,6 @@ number_process
         dat = datum::complete_datum();
       case datum::DATUM_DATA:
       case datum::DATUM_EMPTY:
-        d->output_stamp = stamp::recolored_stamp(d->output_stamp, color_dat.get<1>());
         break;
       case datum::DATUM_ERROR:
         dat = datum::error_datum("Error on the color input edge.");
@@ -143,6 +142,7 @@ number_process
         break;
     }
 
+    d->output_stamp = stamp::recolored_stamp(d->output_stamp, color_dat.get<1>());
   }
 
   edge_datum_t const edat = edge_datum_t(dat, d->output_stamp);
