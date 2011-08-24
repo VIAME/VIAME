@@ -43,7 +43,7 @@ print_number_process
 ::print_number_process(config_t const& config)
   : process(config)
 {
-  priv::path_t path = config->get_value<priv::path_t>(priv::config_path, priv::path_t());
+  priv::path_t const path = config->get_value<priv::path_t>(priv::config_path, priv::path_t());
 
   d = boost::shared_ptr<priv>(new priv(path));
 
