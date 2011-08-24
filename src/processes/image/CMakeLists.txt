@@ -9,4 +9,5 @@ add_vistk_plugin(processes_image
   ${image_srcs})
 target_link_libraries(processes_image
   vistk_pipeline_types
-  vistk_pipeline)
+  vistk_pipeline
+  vil)
