@@ -25,14 +25,14 @@ class multiplication_process::priv
     priv();
     ~priv();
 
-    static port_t const INPUT_FACTOR1_PORT_NAME;
-    static port_t const INPUT_FACTOR2_PORT_NAME;
-    static port_t const OUTPUT_PORT_NAME;
+    static port_t const port_factor1;
+    static port_t const port_factor2;
+    static port_t const port_output;
 };
 
-process::port_t const multiplication_process::priv::INPUT_FACTOR1_PORT_NAME = process::port_t("factor1");
-process::port_t const multiplication_process::priv::INPUT_FACTOR2_PORT_NAME = process::port_t("factor2");
-process::port_t const multiplication_process::priv::OUTPUT_PORT_NAME = process::port_t("product");
+process::port_t const multiplication_process::priv::port_factor1 = process::port_t("factor1");
+process::port_t const multiplication_process::priv::port_factor2 = process::port_t("factor2");
+process::port_t const multiplication_process::priv::port_output = process::port_t("product");
 
 multiplication_process
 ::multiplication_process(config_t const& config)
@@ -44,15 +44,15 @@ multiplication_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::INPUT_FACTOR1_PORT_NAME, port_info_t(new port_info(
+  declare_input_port(priv::port_factor1, port_info_t(new port_info(
     port_types::t_integer,
     required,
     port_description_t("The first factor to multiply."))));
-  declare_input_port(priv::INPUT_FACTOR2_PORT_NAME, port_info_t(new port_info(
+  declare_input_port(priv::port_factor2, port_info_t(new port_info(
     port_types::t_integer,
     required,
     port_description_t("The second factor to multiply."))));
-  declare_output_port(priv::OUTPUT_PORT_NAME, port_info_t(new port_info(
+  declare_output_port(priv::port_output, port_info_t(new port_info(
     port_types::t_integer,
     required,
     port_description_t("Where the product will be available."))));
@@ -70,8 +70,8 @@ multiplication_process
   datum_t dat;
   stamp_t st;
 
-  edge_datum_t const factor1_dat = grab_from_port(priv::INPUT_FACTOR1_PORT_NAME);
-  edge_datum_t const factor2_dat = grab_from_port(priv::INPUT_FACTOR2_PORT_NAME);
+  edge_datum_t const factor1_dat = grab_from_port(priv::port_factor1);
+  edge_datum_t const factor2_dat = grab_from_port(priv::port_factor2);
 
   edge_data_t input_dats;
 
@@ -125,7 +125,7 @@ multiplication_process
 
   edge_datum_t const edat = edge_datum_t(dat, st);
 
-  push_to_port(priv::OUTPUT_PORT_NAME, edat);
+  push_to_port(priv::port_output, edat);
 
   process::_step();
 }

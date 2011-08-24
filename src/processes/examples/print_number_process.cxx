@@ -32,18 +32,18 @@ class print_number_process::priv
 
     std::ofstream fout;
 
-    static config::key_t const CONFIG_PATH_NAME;
-    static port_t const INPUT_PORT_NAME;
+    static config::key_t const config_path;
+    static port_t const port_input;
 };
 
-config::key_t const print_number_process::priv::CONFIG_PATH_NAME = config::key_t("output");
-process::port_t const print_number_process::priv::INPUT_PORT_NAME = process::port_t("number");
+config::key_t const print_number_process::priv::config_path = config::key_t("output");
+process::port_t const print_number_process::priv::port_input = process::port_t("number");
 
 print_number_process
 ::print_number_process(config_t const& config)
   : process(config)
 {
-  priv::path_t path = config->get_value<priv::path_t>(priv::CONFIG_PATH_NAME, priv::path_t());
+  priv::path_t path = config->get_value<priv::path_t>(priv::config_path, priv::path_t());
 
   d = boost::shared_ptr<priv>(new priv(path));
 
@@ -51,12 +51,12 @@ print_number_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::INPUT_PORT_NAME, port_info_t(new port_info(
+  declare_input_port(priv::port_input, port_info_t(new port_info(
     port_types::t_integer,
     required,
     port_description_t("Where numbers are read from."))));
 
-  declare_configuration_key(priv::CONFIG_PATH_NAME, conf_info_t(new conf_info(
+  declare_configuration_key(priv::config_path, conf_info_t(new conf_info(
     config::value_t(),
     config::description_t("The path of the file to output to."))));
 }
@@ -76,7 +76,7 @@ print_number_process
   {
     config::value_t const value = config::value_t(path.begin(), path.end());
 
-    throw invalid_configuration_value_exception(name(), priv::CONFIG_PATH_NAME, value, "The path given was empty");
+    throw invalid_configuration_value_exception(name(), priv::config_path, value, "The path given was empty");
   }
 
   d->fout.open(path.c_str());
@@ -93,7 +93,7 @@ void
 print_number_process
 ::_step()
 {
-  edge_datum_t const input_dat = grab_from_port(priv::INPUT_PORT_NAME);
+  edge_datum_t const input_dat = grab_from_port(priv::port_input);
 
   switch (input_dat.get<0>()->type())
   {

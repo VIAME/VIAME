@@ -22,10 +22,10 @@ class const_process::priv
 
     port_info_t output_port_info;
 
-    static port_t const OUTPUT_PORT_NAME;
+    static port_t const port_output;
 };
 
-process::port_t const const_process::priv::OUTPUT_PORT_NAME = process::port_t("const");
+process::port_t const const_process::priv::port_output = process::port_t("const");
 
 const_process
 ::const_process(config_t const& config)
@@ -38,7 +38,7 @@ const_process
   const_required.insert(flag_required);
   const_required.insert(flag_output_const);
 
-  declare_output_port(priv::OUTPUT_PORT_NAME, port_info_t(new port_info(
+  declare_output_port(priv::port_output, port_info_t(new port_info(
     type_none,
     const_required,
     port_description_t("The port with the const flag set."))));
@@ -55,7 +55,7 @@ const_process
 {
   edge_datum_t const edat = edge_datum_t(datum::empty_datum(), heartbeat_stamp());
 
-  push_to_port(priv::OUTPUT_PORT_NAME, edat);
+  push_to_port(priv::port_output, edat);
 
   process::_step();
 }

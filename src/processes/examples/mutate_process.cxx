@@ -22,10 +22,10 @@ class mutate_process::priv
 
     port_info_t input_port_info;
 
-    static port_t const INPUT_PORT_NAME;
+    static port_t const port_input;
 };
 
-process::port_t const mutate_process::priv::INPUT_PORT_NAME = process::port_t("mutate");
+process::port_t const mutate_process::priv::port_input = process::port_t("mutate");
 
 mutate_process
 ::mutate_process(config_t const& config)
@@ -38,7 +38,7 @@ mutate_process
   mutate_required.insert(flag_required);
   mutate_required.insert(flag_input_mutable);
 
-  declare_input_port(priv::INPUT_PORT_NAME, port_info_t(new port_info(
+  declare_input_port(priv::port_input, port_info_t(new port_info(
     type_any,
     mutate_required,
     port_description_t("The port with the mutate flag set."))));
@@ -53,7 +53,7 @@ void
 mutate_process
 ::_step()
 {
-  edge_datum_t const input_dat = grab_from_port(priv::INPUT_PORT_NAME);
+  edge_datum_t const input_dat = grab_from_port(priv::port_input);
 
   switch (input_dat.get<0>()->type())
   {
