@@ -102,6 +102,10 @@ grayscale_process
     port_type_output,
     required,
     port_description_t("The resulting grayscale image."))));
+
+  declare_configuration_key(priv::config_pixtype, conf_info_t(new conf_info(
+    boost::lexical_cast<config::value_t>(priv::default_pixtype),
+    config::description_t("The pixel type of the input images."))));
 }
 
 grayscale_process
