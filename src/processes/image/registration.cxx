@@ -1,0 +1,31 @@
+/*ckwg +5
+ * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
+ * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
+ */
+
+#include "registration.h"
+
+#include "grayscale_process.h"
+
+#include <vistk/pipeline/process_registry.h>
+
+using namespace vistk;
+
+void
+register_processes()
+{
+  static process_registry::module_t const module_name = process_registry::module_t("image_processes");
+
+  process_registry_t const registry = process_registry::self();
+
+  if (registry->is_module_loaded(module_name))
+  {
+    return;
+  }
+
+  registry->register_process("grayscale_byte", "Convert a byte RGB image into grayscale.", create_grayscale_byte_process);
+  registry->register_process("grayscale_float", "Convert a floating point RGB image into grayscale.", create_grayscale_float_process);
+
+  registry->mark_module_as_loaded(module_name);
+}
