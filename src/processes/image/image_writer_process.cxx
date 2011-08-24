@@ -77,7 +77,16 @@ image_writer_process
   path_t::string_type const format = config->get_value<path_t::string_type>(priv::config_format, priv::default_format);
   path_t::string_type const path_fmt = config->get_value<path_t::string_type>(priv::config_path, priv::default_path);
 
-  path_t const path = boost::str(priv::format_t(path_fmt) % name());
+  path_t path;
+
+  try
+  {
+    path = boost::str(priv::format_t(path_fmt) % name());
+  }
+  catch (boost::io::format_error&)
+  {
+    path = path_fmt;
+  }
 
   write_func_t const func = write_for_pixtype(pixtype);
 
@@ -159,8 +168,14 @@ image_writer_process
   {
     case datum::DATUM_DATA:
     {
-      d->format % name();
-      d->format % d->count;
+      try
+      {
+        d->format % name();
+        d->format % d->count;
+      }
+      catch (boost::io::format_error&)
+      {
+      }
 
       path_t const path = boost::str(d->format);
 
