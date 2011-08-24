@@ -1,6 +1,7 @@
 project(vistk_processes_flow)
 
 set(flow_srcs
+  collate_process.cxx
   distribute_process.cxx
   registration.cxx)
 
