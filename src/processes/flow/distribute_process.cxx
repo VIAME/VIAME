@@ -37,16 +37,16 @@ class distribute_process::priv
 
     port_t src_for_dist_port(port_t const& port) const;
 
+    static port_t const src_sep;
     static port_t const port_src_prefix;
     static port_t const port_color_prefix;
     static port_t const port_dist_prefix;
-    static port_t const src_sep;
 };
 
+process::port_t const distribute_process::priv::src_sep = port_t("_");
 process::port_t const distribute_process::priv::port_src_prefix = port_t("src") + src_sep;
 process::port_t const distribute_process::priv::port_color_prefix = port_t("color") + src_sep;
 process::port_t const distribute_process::priv::port_dist_prefix = port_t("dist") + src_sep;
-process::port_t const distribute_process::priv::src_sep = port_t("_");
 
 distribute_process
 ::distribute_process(config_t const& config)
