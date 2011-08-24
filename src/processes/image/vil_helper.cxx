@@ -117,7 +117,7 @@ port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
 {
   /// \todo Handle alpha parameter.
 
-  if (pixtype == pixtypes::pixtype_byte)
+  if (pixtype == pixtypes::pixtype_byte())
   {
     if (grayscale)
     {
@@ -128,7 +128,7 @@ port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
       return vil_helper<uint8_t>::port_types<false>::type;
     }
   }
-  else if (pixtype == pixtypes::pixtypes::pixtype_float)
+  else if (pixtype == pixtypes::pixtypes::pixtype_float())
   {
     if (grayscale)
     {
@@ -146,11 +146,11 @@ port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
 read_func_t
 read_for_pixtype(pixtype_t const& pixtype)
 {
-  if (pixtype == pixtypes::pixtype_byte)
+  if (pixtype == pixtypes::pixtype_byte())
   {
     return vil_helper<uint8_t>::read;
   }
-  else if (pixtype == pixtypes::pixtype_float)
+  else if (pixtype == pixtypes::pixtype_float())
   {
     return vil_helper<float>::read;
   }
@@ -161,11 +161,11 @@ read_for_pixtype(pixtype_t const& pixtype)
 write_func_t
 write_for_pixtype(pixtype_t const& pixtype)
 {
-  if (pixtype == pixtypes::pixtype_byte)
+  if (pixtype == pixtypes::pixtype_byte())
   {
     return vil_helper<uint8_t>::write;
   }
-  else if (pixtype == pixtypes::pixtype_float)
+  else if (pixtype == pixtypes::pixtype_float())
   {
     return vil_helper<float>::write;
   }
@@ -176,11 +176,11 @@ write_for_pixtype(pixtype_t const& pixtype)
 gray_func_t
 gray_for_pixtype(pixtype_t const& pixtype)
 {
-  if (pixtype == pixtypes::pixtype_byte)
+  if (pixtype == pixtypes::pixtype_byte())
   {
     return vil_helper<uint8_t>::convert_to_gray;
   }
-  else if (pixtype == pixtypes::pixtype_float)
+  else if (pixtype == pixtypes::pixtype_float())
   {
     return vil_helper<float>::convert_to_gray;
   }

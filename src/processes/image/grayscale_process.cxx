@@ -28,7 +28,7 @@ class grayscale_process::priv
 };
 
 config::key_t const grayscale_process::priv::config_pixtype = config::key_t("pixtype");
-pixtype_t const grayscale_process::priv::default_pixtype = pixtypes::pixtype_byte;
+pixtype_t const grayscale_process::priv::default_pixtype = pixtypes::pixtype_byte();
 process::port_t const grayscale_process::priv::port_input = port_t("rgbimage");
 process::port_t const grayscale_process::priv::port_output = port_t("grayimage");
 

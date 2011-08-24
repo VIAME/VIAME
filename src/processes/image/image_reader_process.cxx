@@ -56,7 +56,7 @@ class image_reader_process::priv
 config::key_t const image_reader_process::priv::config_pixtype = config::key_t("pixtype");
 config::key_t const image_reader_process::priv::config_grayscale = config::key_t("grayscale");
 config::key_t const image_reader_process::priv::config_path = config::key_t("input");
-pixtype_t const image_reader_process::priv::default_pixtype = pixtypes::pixtype_byte;
+pixtype_t const image_reader_process::priv::default_pixtype = pixtypes::pixtype_byte();
 bool const image_reader_process::priv::default_grayscale = false;
 process::port_t const image_reader_process::priv::port_color = process::port_t("color");
 process::port_t const image_reader_process::priv::port_output = process::port_t("image");
