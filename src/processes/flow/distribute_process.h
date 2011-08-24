@@ -64,13 +64,6 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT distribute_process
     void _step();
 
     /**
-     * \brief Subclass input connection method.
-     *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
-     */
-    void _connect_input_port(port_t const& port, edge_ref_t edge);
-    /**
      * \brief Subclass output connection method.
      *
      * \param port The port to connect to.

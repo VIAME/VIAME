@@ -140,11 +140,11 @@ distribute_process
 
 void
 distribute_process
-::_connect_input_port(port_t const& port, edge_ref_t edge)
+::_connect_output_port(port_t const& port, edge_ref_t edge)
 {
-  if (boost::starts_with(port, priv::port_src_prefix))
+  if (boost::starts_with(port, priv::port_color_prefix))
   {
-    port_t const src_name = port.substr(priv::port_src_prefix.size());
+    port_t const src_name = port.substr(priv::port_color_prefix.size());
 
     priv::dist_data_t::const_iterator const i = d->dist_data.find(src_name);
 
@@ -163,23 +163,16 @@ distribute_process
 
     required.insert(flag_required);
 
-    declare_input_port(port, port_info_t(new port_info(
+    declare_input_port(priv::port_src_prefix + src_name, port_info_t(new port_info(
       type_any,
       required,
       port_description_t("The input port for " + src_name + "."))));
-    declare_output_port(priv::port_color_prefix + src_name, port_info_t(new port_info(
+    declare_output_port(port, port_info_t(new port_info(
       type_none,
       required,
       port_description_t("The original color for the input " + src_name + "."))));
   }
 
-  process::_connect_input_port(port, edge);
-}
-
-void
-distribute_process
-::_connect_output_port(port_t const& port, edge_ref_t edge)
-{
   port_t const src_for_dist = d->src_for_dist_port(port);
 
   if (!src_for_dist.empty())
