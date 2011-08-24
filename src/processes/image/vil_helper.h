@@ -31,7 +31,7 @@ typedef boost::function<void (path_t const&, datum_t const&)> write_func_t;
 
 typedef boost::function<datum_t (datum_t const&)> gray_func_t;
 
-class pixtypes
+class VISTK_PROCESSES_IMAGE_NO_EXPORT pixtypes
 {
   public:
     static pixtype_t const& pixtype_byte();
