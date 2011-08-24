@@ -165,7 +165,7 @@ distribute_process
 
     declare_input_port(port, port_info_t(new port_info(
       type_any,
-      port_flags_t(),
+      required,
       port_description_t("The input port for " + src_name + "."))));
     declare_output_port(priv::port_color_prefix + src_name, port_info_t(new port_info(
       type_none,
