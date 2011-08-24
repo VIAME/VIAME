@@ -6,14 +6,9 @@
 
 #include "grayscale_process.h"
 
-#include <vistk/pipeline_types/image_types.h>
+#include "vil_helper.h"
 
 #include <vistk/pipeline/process_exception.h>
-
-#include <boost/function.hpp>
-
-#include <vil/vil_convert.h>
-#include <vil/vil_image_view.h>
 
 namespace vistk
 {
@@ -21,13 +16,10 @@ namespace vistk
 class grayscale_process::priv
 {
   public:
-    typedef boost::function<datum_t (datum_t const&)> convert_func_t;
-
-    priv(config::value_t const& pix, convert_func_t func);
+    priv(gray_func_t func);
     ~priv();
 
-    config::value_t const pixtype;
-    convert_func_t const convert;
+    gray_func_t const convert;
 
     static config::key_t const config_pixtype;
     static config::value_t const default_pixtype;
@@ -36,59 +28,22 @@ class grayscale_process::priv
 };
 
 config::key_t const grayscale_process::priv::config_pixtype = config::key_t("pixtype");
-config::value_t const grayscale_process::priv::default_pixtype = config::value_t("byte");
+pixtype_t const grayscale_process::priv::default_pixtype = pixtypes::pixtype_byte;
 process::port_t const grayscale_process::priv::port_input = port_t("rgbimage");
 process::port_t const grayscale_process::priv::port_output = port_t("grayimage");
-
-template<class T>
-struct convert
-{
-  typedef vil_image_view<T> rgb_image_t;
-  typedef vil_image_view<T> grayscale_image_t;
-
-  static process::port_type_t const port_type_input;
-  static process::port_type_t const port_type_output;
-
-  static datum_t convert_to_gray(datum_t const& dat);
-};
-
-template<>
-process::port_type_t const convert<uint8_t>::port_type_input = image_types::t_byte_rgb;
-template<>
-process::port_type_t const convert<uint8_t>::port_type_output = image_types::t_byte_grayscale;
-
-template<>
-process::port_type_t const convert<float>::port_type_input = image_types::t_float_rgb;
-template<>
-process::port_type_t const convert<float>::port_type_output = image_types::t_float_grayscale;
 
 grayscale_process
 ::grayscale_process(config_t const& config)
   : process(config)
 {
-  config::value_t pixtype = config->get_value<config::value_t>(priv::config_pixtype, priv::default_pixtype);
+  pixtype_t pixtype = config->get_value<pixtype_t>(priv::config_pixtype, priv::default_pixtype);
 
-  port_type_t port_type_input = type_none;
-  port_type_t port_type_output = type_none;
+  gray_func_t const func = gray_for_pixtype(pixtype);
 
-  priv::convert_func_t func = NULL;
+  d = boost::shared_ptr<priv>(new priv(func));
 
-  if (pixtype == "byte")
-  {
-    port_type_input = convert<uint8_t>::port_type_input;
-    port_type_output = convert<uint8_t>::port_type_output;
-
-    func = convert<uint8_t>::convert_to_gray;
-  }
-  else if (pixtype == "float")
-  {
-    port_type_input = convert<float>::port_type_input;
-    port_type_output = convert<float>::port_type_output;
-
-    func = convert<float>::convert_to_gray;
-  }
-
-  d = boost::shared_ptr<priv>(new priv(pixtype, func));
+  port_type_t const port_type_input = port_type_for_pixtype(pixtype, false);
+  port_type_t const port_type_output = port_type_for_pixtype(pixtype, true);
 
   port_flags_t required;
 
@@ -165,34 +120,14 @@ grayscale_process
 }
 
 grayscale_process::priv
-::priv(config::value_t const& pix, convert_func_t func)
-  : pixtype(pix)
-  , convert(func)
+::priv(gray_func_t func)
+  : convert(func)
 {
 }
 
 grayscale_process::priv
 ::~priv()
 {
-}
-
-template<class T>
-datum_t
-convert<T>
-::convert_to_gray(datum_t const& dat)
-{
-  rgb_image_t rgb_image = dat->get_datum<rgb_image_t>();
-
-  if (rgb_image.nplanes() != 3)
-  {
-    return datum::error_datum("Input image does not have three planes.");
-  }
-
-  grayscale_image_t gray_image;
-
-  vil_convert_planes_to_grey(rgb_image, gray_image);
-
-  return datum::new_datum(gray_image);
 }
 
 }
