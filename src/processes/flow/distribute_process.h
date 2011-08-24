@@ -36,6 +36,7 @@ namespace vistk
  * \req The \port{src} input must be connected.
  *
  * \todo Add configuration to allow forcing a number of outputs for a source.
+ * \todo Add configuration to allow same number of outputs for all sources.
  */
 class VISTK_PROCESSES_FLOW_NO_EXPORT distribute_process
   : public process
