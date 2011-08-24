@@ -1,6 +1,7 @@
 project(vistk_processes)
 
 add_subdirectory(examples)
+add_subdirectory(flow)
 
 if (VISTK_ENABLE_DOCUMENTATION)
   create_doxygen(
