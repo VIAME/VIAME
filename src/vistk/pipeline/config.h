@@ -383,6 +383,41 @@ config
   }
 }
 
+template <>
+inline
+bool
+config
+::get_value<bool>(key_t const& key) const
+{
+  boost::optional<value_t> value = find_value(key);
+
+  if (!value)
+  {
+    throw no_such_configuration_value_exception(key);
+  }
+
+  static value_t const true_string = value_t("true");
+  static value_t const false_string = value_t("false");
+
+  if (value == true_string)
+  {
+    return true;
+  }
+  else if (value == false_string)
+  {
+    return false;
+  }
+
+  try
+  {
+    return boost::lexical_cast<bool>(*value);
+  }
+  catch (boost::bad_lexical_cast& e)
+  {
+    throw bad_configuration_cast_exception(key, *value, typeid(bool).name(), e.what());
+  }
+}
+
 template <typename T>
 T
 config
