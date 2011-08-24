@@ -19,7 +19,7 @@ static process_t create_distribute_process(config_t const& config);
 void
 register_processes()
 {
-  static process_registry::module_t const module_name = process_registry::module_t("example_processes");
+  static process_registry::module_t const module_name = process_registry::module_t("flow_processes");
 
   process_registry_t const registry = process_registry::self();
 
