@@ -78,7 +78,7 @@ image_writer_process
   path_t::string_type const format = config->get_value<path_t::string_type>(priv::config_format, priv::default_format);
   path_t::string_type const path_fmt = config->get_value<path_t::string_type>(priv::config_path, priv::default_path);
 
-  path_t path;
+  path_t path = path_fmt;
 
   try
   {
@@ -86,7 +86,6 @@ image_writer_process
   }
   catch (boost::io::format_error&)
   {
-    path = path_fmt;
   }
 
   write_func_t const func = write_for_pixtype(pixtype);
