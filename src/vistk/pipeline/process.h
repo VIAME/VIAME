@@ -253,7 +253,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns Information about the input port.
      */
-    port_info_t input_port_info(port_t const& port) const;
+    port_info_t input_port_info(port_t const& port);
     /**
      * \brief Information about an output port on the process.
      *
@@ -263,7 +263,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns Information about the output port.
      */
-    port_info_t output_port_info(port_t const& port) const;
+    port_info_t output_port_info(port_t const& port);
 
     /**
      * \brief Request available configuration options for the process.
@@ -281,7 +281,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns Information about the parameter.
      */
-    conf_info_t config_info(config::key_t const& key) const;
+    conf_info_t config_info(config::key_t const& key);
 
     /**
      * \brief The name of the process.
@@ -371,7 +371,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns Information about an output port.
      */
-    virtual port_info_t _input_port_info(port_t const& port) const;
+    virtual port_info_t _input_port_info(port_t const& port);
     /**
      * \brief Subclass output port information.
      *
@@ -379,7 +379,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns Information about an output port.
      */
-    virtual port_info_t _output_port_info(port_t const& port) const;
+    virtual port_info_t _output_port_info(port_t const& port);
 
     /**
      * \brief Subclass available configuration keys.
@@ -395,7 +395,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns Information about the parameter.
      */
-    virtual conf_info_t _config_info(config::key_t const& key) const;
+    virtual conf_info_t _config_info(config::key_t const& key);
 
     /**
      * \brief Declares an input port for the process.

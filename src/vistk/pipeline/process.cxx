@@ -221,7 +221,7 @@ process
 
 process::port_info_t
 process
-::input_port_info(port_t const& port) const
+::input_port_info(port_t const& port)
 {
   priv::port_map_t::iterator i = d->input_ports.find(port);
 
@@ -235,7 +235,7 @@ process
 
 process::port_info_t
 process
-::output_port_info(port_t const& port) const
+::output_port_info(port_t const& port)
 {
   priv::port_map_t::iterator i = d->output_ports.find(port);
 
@@ -263,7 +263,7 @@ process
 
 process::conf_info_t
 process
-::config_info(config::key_t const& key) const
+::config_info(config::key_t const& key)
 {
   priv::conf_map_t::iterator i = d->config_keys.find(key);
 
@@ -368,14 +368,14 @@ process
 
 process::port_info_t
 process
-::_input_port_info(port_t const& port) const
+::_input_port_info(port_t const& port)
 {
   throw no_such_port_exception(d->name, port);
 }
 
 process::port_info_t
 process
-::_output_port_info(port_t const& port) const
+::_output_port_info(port_t const& port)
 {
   throw no_such_port_exception(d->name, port);
 }
@@ -389,7 +389,7 @@ process
 
 process::conf_info_t
 process
-::_config_info(config::key_t const& key) const
+::_config_info(config::key_t const& key)
 {
   throw unknown_configuration_value_exception(d->name, key);
 }
