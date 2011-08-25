@@ -163,7 +163,14 @@ image_reader_process
 
     std::getline(d->fin, line);
 
-    dat = d->read(line);
+    if (line.empty())
+    {
+      dat = datum::empty_datum();
+    }
+    else
+    {
+      dat = d->read(line);
+    }
   }
 
   d->output_stamp = stamp::incremented_stamp(d->output_stamp);
