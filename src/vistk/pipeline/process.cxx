@@ -168,12 +168,10 @@ process
 
   edge_ref_t const ref = edge_ref_t(edge);
 
-  if (d->connect_input_port(port, ref))
+  if (!d->connect_input_port(port, ref))
   {
-    return;
+    _connect_input_port(port, ref);
   }
-
-  _connect_input_port(port, ref);
 }
 
 void
@@ -187,12 +185,10 @@ process
 
   edge_ref_t const ref = edge_ref_t(edge);
 
-  if (d->connect_output_port(port, ref))
+  if (!d->connect_output_port(port, ref))
   {
-    return;
+    _connect_output_port(port, ref);
   }
-
-  _connect_output_port(port, ref);
 }
 
 process::ports_t
@@ -340,24 +336,20 @@ void
 process
 ::_connect_input_port(port_t const& port, edge_ref_t edge)
 {
-  if (d->connect_input_port(port, edge))
+  if (!d->connect_input_port(port, edge))
   {
-    return;
+    throw no_such_port_exception(d->name, port);
   }
-
-  throw no_such_port_exception(d->name, port);
 }
 
 void
 process
 ::_connect_output_port(port_t const& port, edge_ref_t edge)
 {
-  if (d->connect_output_port(port, edge))
+  if (!d->connect_output_port(port, edge))
   {
-    return;
+    throw no_such_port_exception(d->name, port);
   }
-
-  throw no_such_port_exception(d->name, port);
 }
 
 process::ports_t
