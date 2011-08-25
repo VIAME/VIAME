@@ -223,13 +223,6 @@ process::port_info_t
 process
 ::input_port_info(port_t const& port)
 {
-  priv::port_map_t::iterator i = d->input_ports.find(port);
-
-  if (i != d->input_ports.end())
-  {
-    return i->second;
-  }
-
   return _input_port_info(port);
 }
 
@@ -237,13 +230,6 @@ process::port_info_t
 process
 ::output_port_info(port_t const& port)
 {
-  priv::port_map_t::iterator i = d->output_ports.find(port);
-
-  if (i != d->output_ports.end())
-  {
-    return i->second;
-  }
-
   return _output_port_info(port);
 }
 
@@ -265,13 +251,6 @@ process::conf_info_t
 process
 ::config_info(config::key_t const& key)
 {
-  priv::conf_map_t::iterator i = d->config_keys.find(key);
-
-  if (i != d->config_keys.end())
-  {
-    return i->second;
-  }
-
   return _config_info(key);
 }
 
@@ -370,6 +349,13 @@ process::port_info_t
 process
 ::_input_port_info(port_t const& port)
 {
+  priv::port_map_t::iterator i = d->input_ports.find(port);
+
+  if (i != d->input_ports.end())
+  {
+    return i->second;
+  }
+
   throw no_such_port_exception(d->name, port);
 }
 
@@ -377,6 +363,13 @@ process::port_info_t
 process
 ::_output_port_info(port_t const& port)
 {
+  priv::port_map_t::iterator i = d->output_ports.find(port);
+
+  if (i != d->output_ports.end())
+  {
+    return i->second;
+  }
+
   throw no_such_port_exception(d->name, port);
 }
 
@@ -391,6 +384,13 @@ process::conf_info_t
 process
 ::_config_info(config::key_t const& key)
 {
+  priv::conf_map_t::iterator i = d->config_keys.find(key);
+
+  if (i != d->config_keys.end())
+  {
+    return i->second;
+  }
+
   throw unknown_configuration_value_exception(d->name, key);
 }
 
