@@ -1,0 +1,25 @@
+config grayscale
+  :pixtype byte
+  :input input.txt
+  :output output.txt
+
+process read
+  :: image_reader
+  :input[ro]{CONF} grayscale:input
+  :pixtype[ro]{CONF} grayscale:pixtype
+
+process gray
+  :: grayscale
+  :pixtype[ro]{CONF} grayscale:pixtype
+
+process write
+  :: image_writer
+  :output[ro]{CONF} grayscale:output
+  :pixtype[ro]{CONF} grayscale:pixtype
+  :grayscale[ro] true
+
+connect from read.image
+        to   gray.rgbimage
+
+connect from gray.grayimage
+        to   write.image
