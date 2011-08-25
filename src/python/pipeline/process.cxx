@@ -42,12 +42,12 @@ class wrap_process
     ports_t _base_input_ports() const;
     ports_t _base_output_ports() const;
 
-    port_info_t _base_input_port_info(port_t const& port) const;
-    port_info_t _base_output_port_info(port_t const& port) const;
+    port_info_t _base_input_port_info(port_t const& port);
+    port_info_t _base_output_port_info(port_t const& port);
 
     vistk::config::keys_t _base_available_config() const;
 
-    conf_info_t _base_config_info(vistk::config::key_t const& key) const;
+    conf_info_t _base_config_info(vistk::config::key_t const& key);
 
     void _init();
 
@@ -59,12 +59,12 @@ class wrap_process
     ports_t _input_ports() const;
     ports_t _output_ports() const;
 
-    port_info_t _input_port_info(port_t const& port) const;
-    port_info_t _output_port_info(port_t const& port) const;
+    port_info_t _input_port_info(port_t const& port);
+    port_info_t _output_port_info(port_t const& port);
 
     vistk::config::keys_t _available_config() const;
 
-    conf_info_t _config_info(vistk::config::key_t const& key) const;
+    conf_info_t _config_info(vistk::config::key_t const& key);
 
     void _declare_input_port(port_t const& port, port_info_t const& info);
     void _declare_output_port(port_t const& port, port_info_t const& info);
@@ -356,14 +356,14 @@ wrap_process
 
 vistk::process::port_info_t
 wrap_process
-::_base_input_port_info(port_t const& port) const
+::_base_input_port_info(port_t const& port)
 {
   return process::_input_port_info(port);
 }
 
 vistk::process::port_info_t
 wrap_process
-::_base_output_port_info(port_t const& port) const
+::_base_output_port_info(port_t const& port)
 {
   return process::_output_port_info(port);
 }
@@ -377,7 +377,7 @@ wrap_process
 
 vistk::process::conf_info_t
 wrap_process
-::_base_config_info(vistk::config::key_t const& key) const
+::_base_config_info(vistk::config::key_t const& key)
 {
   return process::_config_info(key);
 }
@@ -480,7 +480,7 @@ wrap_process
 
 vistk::process::port_info_t
 wrap_process
-::_input_port_info(port_t const& port) const
+::_input_port_info(port_t const& port)
 {
   override const f = get_override("_input_port_info");
 
@@ -496,7 +496,7 @@ wrap_process
 
 vistk::process::port_info_t
 wrap_process
-::_output_port_info(port_t const& port) const
+::_output_port_info(port_t const& port)
 {
   override const f = get_override("_output_port_info");
 
@@ -528,7 +528,7 @@ wrap_process
 
 vistk::process::conf_info_t
 wrap_process
-::_config_info(vistk::config::key_t const& key) const
+::_config_info(vistk::config::key_t const& key)
 {
   override const f = get_override("_config_info");
 
