@@ -78,7 +78,7 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT distribute_process
      *
      * \returns Information about an output port.
      */
-    port_info_t _output_port_info(port_t const& port) const;
+    port_info_t _output_port_info(port_t const& port);
   private:
     class priv;
     boost::shared_ptr<priv> d;

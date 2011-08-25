@@ -137,7 +137,7 @@ collate_process
 
 process::port_info_t
 collate_process
-::_input_port_info(port_t const& port) const
+::_input_port_info(port_t const& port)
 {
   if (boost::starts_with(port, priv::port_color_prefix))
   {
@@ -180,7 +180,7 @@ collate_process
       port_description_t("An input for the " + res_for_dist + " data."))));
   }
 
-  return process::_connect_input_port(port, edge);
+  return process::_input_port_info(port);
 }
 
 collate_process::priv

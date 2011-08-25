@@ -140,7 +140,7 @@ distribute_process
 
 process::port_info_t
 distribute_process
-::_output_port_info(port_t const& port) const
+::_output_port_info(port_t const& port)
 {
   if (boost::starts_with(port, priv::port_color_prefix))
   {
@@ -187,7 +187,7 @@ distribute_process
       port_description_t("An output for the " + src_for_dist + " data."))));
   }
 
-  return process::_output_port_info(port, edge);
+  return process::_output_port_info(port);
 }
 
 distribute_process::priv
