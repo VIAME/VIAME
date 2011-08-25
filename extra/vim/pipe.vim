@@ -10,47 +10,54 @@ endif
 
 syn case match
 
-syn match pipeConnectDecl /\(^ *\)\zs\<connect\>/ nextgroup=pipeConnectFrom skipwhite
-syn match pipeConnectFrom /\<from\>/              nextgroup=pipeConnectPortAddr contained skipwhite
-syn match pipeConnectTo   /\(^ *\)\zs\<to\>/      nextgroup=pipePortAddr contained skipwhite
+let s:begin_line='\(^[ \t]*\)'
+let s:config_name='[a-zA-Z_-]\+'
+let s:port_name=s:config_name
+let s:flag='[a-zA-Z]\+'
+let s:provider='[A-Z]\+'
+let s:config_value='[a-zA-Z0-9./:_-]\+'
 
-syn match pipeImapDecl /\(^ *\)\zs\<imap\>/ nextgroup=pipeIMapFlags skipwhite
-syn match pipeImapFrom /\<from\>/           nextgroup=pipeIMapPortAddr skipwhite
-syn match pipeImapTo   /\(^ *\)\zs\<to\>/   nextgroup=pipePort skipwhite
+exec 'syn match pipeConnectDecl /' . s:begin_line . '\zs\<connect\>/ nextgroup=pipeConnectFrom               skipwhite'
+exec 'syn match pipeConnectFrom                        /\<from\>/    nextgroup=pipeConnectPortAddr contained skipwhite'
+exec 'syn match pipeConnectTo   /' . s:begin_line . '\zs\<to\>/      nextgroup=pipePortAddr        contained skipwhite'
 
-syn match pipeOmapDecl /\(^ *\)\zs\<omap\>/ nextgroup=pipeOMapFlags skipwhite
-syn match pipeOmapFrom /\<from\>/           nextgroup=pipeOMapPort skipwhite
-syn match pipeOmapTo   /\(^ *\)\zs\<to\>/   nextgroup=pipePortAddr skipwhite
+exec 'syn match pipeImapDecl /' . s:begin_line . '\zs\<imap\>/ nextgroup=pipeIMapFlags           skipwhite'
+exec 'syn match pipeImapFrom                        /\<from\>/ nextgroup=pipeIMapPort  contained skipwhite'
+exec 'syn match pipeImapTo   /' . s:begin_line . '\zs\<to\>/   nextgroup=pipePortAddr  contained skipwhite'
 
-syn match pipeConnectPortAddr /[a-zA-Z_-]\+\.[a-zA-Z_-]\+$/ nextgroup=pipeConnectTo contained skipnl skipwhite
+exec 'syn match pipeOmapDecl /' . s:begin_line . '\zs\<omap\>/ nextgroup=pipeOMapFlags              skipwhite'
+exec 'syn match pipeOmapFrom                        /\<from\>/ nextgroup=pipeOMapPortAddr contained skipwhite'
+exec 'syn match pipeOmapTo   /' . s:begin_line . '\zs\<to\>/   nextgroup=pipePort         contained skipwhite'
 
-syn match pipeImapFlags    /\(\[[a-zA-Z_-]\+\(,[a-zA-Z_-]\+\)*\]\)?/ nextgroup=pipeImapFrom contained skipwhite
-syn match pipeImapPortAddr /[a-zA-Z_-]\+$/                           nextgroup=pipeImapTo contained skipnl skipwhite
+exec 'syn match pipeConnectPortAddr /' . s:config_name . '\.' . s:port_name . '$/ nextgroup=pipeConnectTo contained skipnl skipwhite'
 
-syn match pipeOmapFlags /\(\[[a-zA-Z_-]\+\(,[a-zA-Z_-]\+\)*\]\)?/ nextgroup=pipeOmapFrom contained skipwhite
-syn match pipeOmapPort  /[a-zA-Z_-]\+\.[a-zA-Z_-]\+$/             nextgroup=pipeOmapTo contained skipnl skipwhite
+exec 'syn match pipeImapFlags /\(\[' . s:flag . '\(,' . s:flag . '\)*\]\)\?/ nextgroup=pipeImapFrom contained        skipwhite'
+exec 'syn match pipeImapPort  /' . s:port_name . '$/                         nextgroup=pipeImapTo   contained skipnl skipwhite'
 
-syn match pipePort     /[a-zA-Z_-]\+$/               contained
-syn match pipePortAddr /[a-zA-Z_-]\+\.[a-zA-Z_-]\+$/ contained
+exec 'syn match pipeOmapFlags    /\(\[' . s:flag . '\(,' . s:flag . '\)*\]\)\?/ nextgroup=pipeOmapFrom contained        skipwhite'
+exec 'syn match pipeOmapPortAddr /' . s:config_name . '\.' . s:port_name . '$/  nextgroup=pipeOmapTo   contained skipnl skipwhite'
 
-syn keyword pipeTodo  FIXME NOTE NOTES TODO XXX contained
-syn match pipeComment /\(^ *\)\zs#.*/           contains=pipeTodo,@Spell
+exec 'syn match pipePort     /' . s:port_name . '$/                        contained'
+exec 'syn match pipePortAddr /' . s:config_name . '\.' . s:port_name . '$/ contained'
 
-syn match pipeInclude     /^!include/         nextgroup=pipeIncludeFile skipwhite
-syn match pipeIncludeFile /[a-zA-Z_/.\\-]\+$/ contained
+exec 'syn keyword pipeTodo  FIXME NOTE NOTES TODO XXX                             contained'
+exec 'syn match pipeComment /' . s:begin_line . '\zs#.*/ contains=pipeTodo,@Spell'
 
-syn match pipeBlockDecl  /\(^ *\)\zs\<\(process\|group\)\>/    nextgroup=pipeName skipwhite
-syn match pipeConfigDecl /\(^ *\)\zs\<config\>/                nextgroup=pipeConfig skipwhite
-syn match pipeName       /\<[a-zA-Z_-]\+\>$/                   contained
-syn match pipeConfig     /\<[a-zA-Z_-]\+\(:[a-zA-Z_-]\+\)*\>$/ contained
+exec 'syn match pipeInclude     /^!include/       nextgroup=pipeIncludeFile           skipwhite'
+exec 'syn match pipeIncludeFile /[a-zA-Z_/.-]\+$/                           contained'
 
-syn match pipeConfigType /\(^ *\)\zs::/  nextgroup=pipeType skipwhite
-syn match pipeType       /[a-zA-Z_-]\+$/ contained
+exec 'syn match pipeBlockDecl  /' . s:begin_line . '\zs\<\(process\|group\)\>/         nextgroup=pipeName             skipwhite'
+exec 'syn match pipeConfigDecl /' . s:begin_line . '\zs\<config\>/                     nextgroup=pipeConfig           skipwhite'
+exec 'syn match pipeName       /\<' . s:config_name . '\>$/                                                 contained'
+exec 'syn match pipeConfig     /\<' . s:config_name . '\(:' . s:config_name . '\)*\>$/                      contained'
 
-syn match pipeConfigIndex    /\(^ *\)\zs\(:[a-zA-Z_-]\+\)\+/            nextgroup=pipeConfigFlags
-syn match pipeConfigFlags    /\(\[[a-zA-Z_-]\+\(,[a-zA-Z_-]\+\)*\]\)\?/ nextgroup=pipeConfigProvider contained
-syn match pipeConfigProvider /\({[A-Z]\+}\)\?/                          nextgroup=pipeConfigValue contains=pipeConfigValue contained skipwhite
-syn match pipeConfigValue    /\([a-zA-Z0-9\._/: -]\+\|".*"\)$/          contains=@Spell contained
+exec 'syn match pipeConfigType /' . s:begin_line . '\zs::/  nextgroup=pipeType           skipwhite'
+exec 'syn match pipeType       /' . s:config_name . '$/                        contained'
+
+exec 'syn match pipeConfigIndex    /' . s:begin_line . '\zs\(:' . s:config_name . '\)\+/ nextgroup=pipeConfigFlags'
+exec 'syn match pipeConfigFlags    /\(\[' . s:flag . '\(,' . s:flag . '\)*\]\)\?/        nextgroup=pipeConfigProvider contained'
+exec 'syn match pipeConfigProvider /\({' . s:provider . '}\)\?/                          nextgroup=pipeConfigValue    contained skipwhite'
+exec 'syn match pipeConfigValue    /' . s:config_value . '$/                             contains=@Spell              contained'
 
 hi def link pipeDecl              Keyword
 hi def link pipeConn              Character
