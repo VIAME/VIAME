@@ -9,6 +9,7 @@
 #include <vistk/pipeline_types/image_types.h>
 
 #include <vil/vil_convert.h>
+#include <vil/vil_crop.h>
 #include <vil/vil_load.h>
 #include <vil/vil_save.h>
 
@@ -112,6 +113,23 @@ vil_helper<PixType>
   return datum::new_datum(gray_image);
 }
 
+template <class PixType>
+datum_t
+vil_helper<PixType>
+::crop(datum_t const& dat, size_t x_offset, size_t y_offset, size_t width, size_t height)
+{
+  image_t const img = dat->get_datum<image_t>();
+
+  image_t const crop_img = vil_crop(img, x_offset, width, y_offset, height);
+
+  if (!crop_img)
+  {
+    return datum::error_datum("Unable to crop the image.");
+  }
+
+  return datum::new_datum(crop_img);
+}
+
 process::port_type_t
 port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
 {
@@ -183,6 +201,21 @@ gray_for_pixtype(pixtype_t const& pixtype)
   else if (pixtype == pixtypes::pixtype_float())
   {
     return vil_helper<float>::convert_to_gray;
+  }
+
+  return NULL;
+}
+
+crop_func_t
+crop_for_pixtype(pixtype_t const& pixtype)
+{
+  if (pixtype == pixtypes::pixtype_byte())
+  {
+    return vil_helper<uint8_t>::crop;
+  }
+  else if (pixtype == pixtypes::pixtype_float())
+  {
+    return vil_helper<float>::crop;
   }
 
   return NULL;

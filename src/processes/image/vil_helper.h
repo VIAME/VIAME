@@ -30,6 +30,7 @@ typedef boost::function<datum_t (path_t const&)> read_func_t;
 typedef boost::function<void (path_t const&, datum_t const&)> write_func_t;
 
 typedef boost::function<datum_t (datum_t const&)> gray_func_t;
+typedef boost::function<datum_t (datum_t const&, size_t, size_t, size_t, size_t)> crop_func_t;
 
 class VISTK_PROCESSES_IMAGE_NO_EXPORT pixtypes
 {
@@ -59,6 +60,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT vil_helper
     static void write(path_t const& path, datum_t const& dat);
 
     static datum_t convert_to_gray(datum_t const& dat);
+    static datum_t crop(datum_t const& dat, size_t x_offset, size_t y_offset, size_t width, size_t height);
 };
 
 process::port_type_t VISTK_PROCESSES_IMAGE_NO_EXPORT port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool alpha = false);
@@ -67,6 +69,7 @@ read_func_t VISTK_PROCESSES_IMAGE_NO_EXPORT read_for_pixtype(pixtype_t const& pi
 write_func_t VISTK_PROCESSES_IMAGE_NO_EXPORT write_for_pixtype(pixtype_t const& pixtype);
 
 gray_func_t VISTK_PROCESSES_IMAGE_NO_EXPORT gray_for_pixtype(pixtype_t const& pixtype);
+crop_func_t VISTK_PROCESSES_IMAGE_NO_EXPORT crop_for_pixtype(pixtype_t const& pixtype);
 
 }
 
