@@ -219,8 +219,6 @@ pipeline
     throw no_such_group_exception(group);
   }
 
-  (void)process_by_name(mapped_process);
-
   priv::input_port_mapping_t& mapping = group_it->second.first;
 
   priv::input_mapping_info_t& mapping_info = mapping[port];
@@ -245,8 +243,6 @@ pipeline
   {
     throw no_such_group_exception(group);
   }
-
-  (void)process_by_name(mapped_process);
 
   priv::output_port_mapping_t& mapping = group_it->second.second;
 
