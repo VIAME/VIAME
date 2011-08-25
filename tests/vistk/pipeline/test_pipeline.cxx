@@ -347,11 +347,9 @@ test_map_input_no_process()
 
   pipeline->add_group(proc_name);
 
-  EXPECT_EXCEPTION(vistk::no_such_process_exception,
-                   pipeline->map_input_port(proc_name, vistk::process::port_t(),
-                                            vistk::process::name_t(), vistk::process::port_t(),
-                                            vistk::process::port_flags_t()),
-                   "mapping an input on an non-existent group");
+  pipeline->map_input_port(proc_name, vistk::process::port_t(),
+                           vistk::process::name_t(), vistk::process::port_t(),
+                           vistk::process::port_flags_t());
 }
 
 void
@@ -363,11 +361,9 @@ test_map_output_no_process()
 
   pipeline->add_group(proc_name);
 
-  EXPECT_EXCEPTION(vistk::no_such_process_exception,
-                   pipeline->map_output_port(proc_name, vistk::process::port_t(),
-                                             vistk::process::name_t(), vistk::process::port_t(),
-                                             vistk::process::port_flags_t()),
-                   "mapping an output on a non-existent group");
+  pipeline->map_output_port(proc_name, vistk::process::port_t(),
+                            vistk::process::name_t(), vistk::process::port_t(),
+                            vistk::process::port_flags_t());
 }
 
 void
