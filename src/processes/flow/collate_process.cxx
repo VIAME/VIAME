@@ -145,25 +145,23 @@ collate_process
 
     priv::coll_data_t::const_iterator const i = d->coll_data.find(res_name);
 
-    if (i != d->coll_data.end())
+    if (i == d->coll_data.end())
     {
-      throw port_reconnect_exception(name(), port);
+      d->coll_data[res_name] = priv::coll_info();
+
+      port_flags_t required;
+
+      required.insert(flag_required);
+
+      declare_input_port(port, port_info_t(new port_info(
+        type_none,
+        required,
+        port_description_t("The original color for the result " + res_name + "."))));
+      declare_output_port(priv::port_res_prefix + res_name, port_info_t(new port_info(
+        type_any,
+        required,
+        port_description_t("The output port for " + res_name + "."))));
     }
-
-    d->coll_data[res_name] = priv::coll_info();
-
-    port_flags_t required;
-
-    required.insert(flag_required);
-
-    declare_input_port(port, port_info_t(new port_info(
-      type_none,
-      required,
-      port_description_t("The original color for the result " + res_name + "."))));
-    declare_output_port(priv::port_res_prefix + res_name, port_info_t(new port_info(
-      type_any,
-      required,
-      port_description_t("The output port for " + res_name + "."))));
   }
 
   port_t const res_for_dist = d->res_for_coll_port(port);

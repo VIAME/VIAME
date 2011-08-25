@@ -148,29 +148,27 @@ distribute_process
 
     priv::dist_data_t::const_iterator const i = d->dist_data.find(src_name);
 
-    if (i != d->dist_data.end())
+    if (i == d->dist_data.end())
     {
-      throw port_reconnect_exception(name(), port);
+      priv::dist_info info;
+
+      info.stamp_color = stamp::new_stamp();
+
+      d->dist_data[src_name] = info;
+
+      port_flags_t required;
+
+      required.insert(flag_required);
+
+      declare_input_port(priv::port_src_prefix + src_name, port_info_t(new port_info(
+        type_any,
+        required,
+        port_description_t("The input port for " + src_name + "."))));
+      declare_output_port(port, port_info_t(new port_info(
+        type_none,
+        required,
+        port_description_t("The original color for the input " + src_name + "."))));
     }
-
-    priv::dist_info info;
-
-    info.stamp_color = stamp::new_stamp();
-
-    d->dist_data[src_name] = info;
-
-    port_flags_t required;
-
-    required.insert(flag_required);
-
-    declare_input_port(priv::port_src_prefix + src_name, port_info_t(new port_info(
-      type_any,
-      required,
-      port_description_t("The input port for " + src_name + "."))));
-    declare_output_port(port, port_info_t(new port_info(
-      type_none,
-      required,
-      port_description_t("The original color for the input " + src_name + "."))));
   }
 
   port_t const src_for_dist = d->src_for_dist_port(port);
