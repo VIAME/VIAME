@@ -1,6 +1,7 @@
 project(vistk_processes_image)
 
 set(image_srcs
+  crop_image_process.cxx
   grayscale_process.cxx
   image_reader_process.cxx
   image_writer_process.cxx
