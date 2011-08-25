@@ -11,6 +11,7 @@
 #include "pipe_declaration_types.h"
 
 #include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
@@ -471,6 +472,9 @@ pipe_grammar<Iterator>
         |  input_map_block[boost::phoenix::push_back(_b, _1)]
         |  output_map_block[boost::phoenix::push_back(_c, _1)]
         )
+        [boost::phoenix::at_c<1>(_val) = _a]
+        [boost::phoenix::at_c<2>(_val) = _b]
+        [boost::phoenix::at_c<3>(_val) = _c]
      );
 
   block_set.name("block-spec");
