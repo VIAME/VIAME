@@ -27,7 +27,7 @@ namespace vistk
  *
  * \oports
  *
- * \oport{grayimage} The number generated for the step.
+ * \oport{grayimage} The input image in grayscale.
  *
  * \configs
  *

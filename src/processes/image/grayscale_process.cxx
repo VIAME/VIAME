@@ -38,7 +38,7 @@ grayscale_process
 ::grayscale_process(config_t const& config)
   : process(config)
 {
-  pixtype_t pixtype = config->get_value<pixtype_t>(priv::config_pixtype, priv::default_pixtype);
+  pixtype_t const pixtype = config->get_value<pixtype_t>(priv::config_pixtype, priv::default_pixtype);
 
   gray_func_t const func = gray_for_pixtype(pixtype);
 
