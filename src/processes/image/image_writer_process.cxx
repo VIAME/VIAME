@@ -168,6 +168,8 @@ image_writer_process
   {
     case datum::DATUM_DATA:
     {
+      d->format.clear();
+
       try
       {
         d->format % name();
