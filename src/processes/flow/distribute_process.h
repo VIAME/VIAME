@@ -72,12 +72,13 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT distribute_process
     void _step();
 
     /**
-     * \brief Subclass output connection method.
+     * \brief Subclass output port information.
      *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
+     * \param port The port to get information about.
+     *
+     * \returns Information about an output port.
      */
-    void _connect_output_port(port_t const& port, edge_ref_t edge);
+    port_info_t _output_port_info(port_t const& port) const;
   private:
     class priv;
     boost::shared_ptr<priv> d;

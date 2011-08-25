@@ -138,9 +138,9 @@ distribute_process
   }
 }
 
-void
+process::port_info_t
 distribute_process
-::_connect_output_port(port_t const& port, edge_ref_t edge)
+::_output_port_info(port_t const& port) const
 {
   if (boost::starts_with(port, priv::port_color_prefix))
   {
@@ -187,7 +187,7 @@ distribute_process
       port_description_t("An output for the " + src_for_dist + " data."))));
   }
 
-  process::_connect_output_port(port, edge);
+  return process::_output_port_info(port, edge);
 }
 
 distribute_process::priv

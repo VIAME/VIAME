@@ -135,9 +135,9 @@ collate_process
   }
 }
 
-void
+process::port_info_t
 collate_process
-::_connect_input_port(port_t const& port, edge_ref_t edge)
+::_input_port_info(port_t const& port) const
 {
   if (boost::starts_with(port, priv::port_color_prefix))
   {
@@ -180,7 +180,7 @@ collate_process
       port_description_t("An input for the " + res_for_dist + " data."))));
   }
 
-  process::_connect_input_port(port, edge);
+  return process::_connect_input_port(port, edge);
 }
 
 collate_process::priv
