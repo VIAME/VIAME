@@ -208,7 +208,7 @@ make_options()
     ("config,c", po::value<vistk::paths_t>(), "supplemental configuration file")
     ("setting,s", po::value<std::vector<std::string> >(), "additional configuration")
     ("include,I", po::value<vistk::paths_t>(), "configuration include path")
-    ("name,n", po::value<std::string>()->default_value("(unnamed)"), "name of the graph")
+    ("name,n", po::value<std::string>()->default_value("unnamed"), "name of the graph")
   ;
 
   return desc;
