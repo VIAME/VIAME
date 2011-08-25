@@ -150,6 +150,7 @@ image_reader_process
 
   if (d->fin.eof())
   {
+    mark_as_complete();
     dat = datum::complete_datum();
   }
   else if (!d->fin.good())
