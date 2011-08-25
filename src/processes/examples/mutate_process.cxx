@@ -9,6 +9,8 @@
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 
+#include <boost/make_shared.hpp>
+
 namespace vistk
 {
 
@@ -31,17 +33,17 @@ mutate_process
 ::mutate_process(config_t const& config)
   : process(config)
 {
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 
   port_flags_t mutate_required;
 
   mutate_required.insert(flag_required);
   mutate_required.insert(flag_input_mutable);
 
-  declare_input_port(priv::port_input, port_info_t(new port_info(
+  declare_input_port(priv::port_input, boost::make_shared<port_info>(
     type_any,
     mutate_required,
-    port_description_t("The port with the mutate flag set."))));
+    port_description_t("The port with the mutate flag set.")));
 }
 
 mutate_process

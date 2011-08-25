@@ -14,6 +14,8 @@
 #include <vistk/pipeline/schedule.h>
 #include <vistk/pipeline/schedule_registry.h>
 
+#include <boost/make_shared.hpp>
+
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -316,5 +318,5 @@ create_pipeline()
 {
   static vistk::config_t const config = vistk::config::empty_config();
 
-  return vistk::pipeline_t(new vistk::pipeline(config));
+  return boost::make_shared<vistk::pipeline>(config);
 }

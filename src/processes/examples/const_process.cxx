@@ -9,6 +9,8 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 
+#include <boost/make_shared.hpp>
+
 namespace vistk
 {
 
@@ -31,17 +33,17 @@ const_process
 ::const_process(config_t const& config)
   : process(config)
 {
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 
   port_flags_t const_required;
 
   const_required.insert(flag_required);
   const_required.insert(flag_output_const);
 
-  declare_output_port(priv::port_output, port_info_t(new port_info(
+  declare_output_port(priv::port_output, boost::make_shared<port_info>(
     type_none,
     const_required,
-    port_description_t("The port with the const flag set."))));
+    port_description_t("The port with the const flag set.")));
 }
 
 const_process

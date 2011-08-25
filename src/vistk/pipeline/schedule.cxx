@@ -7,6 +7,8 @@
 #include "schedule.h"
 #include "schedule_exception.h"
 
+#include <boost/make_shared.hpp>
+
 /**
  * \file schedule.cxx
  *
@@ -43,7 +45,7 @@ schedule
     throw null_schedule_pipeline_exception();
   }
 
-  d = boost::shared_ptr<priv>(new priv(pipe));
+  d = boost::make_shared<priv>(pipe);
 }
 
 pipeline_t

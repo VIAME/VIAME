@@ -11,6 +11,8 @@
 
 #include <vistk/pipeline/process_registry.h>
 
+#include <boost/make_shared.hpp>
+
 using namespace vistk;
 
 static process_t create_collate_process(config_t const& config);
@@ -37,11 +39,11 @@ register_processes()
 process_t
 create_collate_process(config_t const& config)
 {
-  return process_t(new collate_process(config));
+  return boost::make_shared<collate_process>(config);
 }
 
 process_t
 create_distribute_process(config_t const& config)
 {
-  return process_t(new distribute_process(config));
+  return boost::make_shared<distribute_process>(config);
 }

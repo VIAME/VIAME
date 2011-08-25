@@ -15,6 +15,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 #include <map>
 #include <utility>
@@ -276,22 +277,22 @@ process
     throw null_process_config_exception();
   }
 
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 
   d->name = config->get_value<name_t>(config_name, priv::DEFAULT_PROCESS_NAME);
   d->type = config->get_value<process_registry::type_t>(config_type);
 
-  declare_output_port(port_heartbeat, port_info_t(new port_info(
+  declare_output_port(port_heartbeat, boost::make_shared<port_info>(
     type_none,
     port_flags_t(),
-    port_description_t("Outputs the heartbeat stamp with an empty datum"))));
+    port_description_t("Outputs the heartbeat stamp with an empty datum.")));
 
-  declare_configuration_key(config_name, conf_info_t(new conf_info(
+  declare_configuration_key(config_name, boost::make_shared<conf_info>(
     boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME),
-    config::description_t("The name of the process"))));
-  declare_configuration_key(config_type, conf_info_t(new conf_info(
+    config::description_t("The name of the process.")));
+  declare_configuration_key(config_type, boost::make_shared<conf_info>(
     config::value_t(),
-    config::description_t("The type of the process"))));
+    config::description_t("The type of the process.")));
 }
 
 process
@@ -545,7 +546,7 @@ process
     }
   }
 
-  return data_info_t(new data_info(same_color, in_sync, max_type));
+  return boost::make_shared<data_info>(same_color, in_sync, max_type);
 }
 
 void

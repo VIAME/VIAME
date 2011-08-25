@@ -15,6 +15,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 #include <algorithm>
 #include <deque>
@@ -40,7 +41,7 @@ sync_schedule
 ::sync_schedule(config_t const& config, pipeline_t const& pipe)
   : schedule(config, pipe)
 {
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 }
 
 sync_schedule
@@ -98,7 +99,7 @@ run_sync(pipeline_t const& pipe)
   BOOST_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = pipe->process_by_name(name);
-    edge_t const monitor_edge = edge_t(new edge(edge_conf));
+    edge_t const monitor_edge = boost::make_shared<edge>(edge_conf);
 
     proc->connect_output_port(process::port_heartbeat, monitor_edge);
     monitor_edges[name] = monitor_edge;

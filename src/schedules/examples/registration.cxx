@@ -13,6 +13,8 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/schedule_registry.h>
 
+#include <boost/make_shared.hpp>
+
 using namespace vistk;
 
 static schedule_t create_sync_schedule(config_t const& config, pipeline_t const& pipe);
@@ -41,13 +43,13 @@ register_schedules()
 schedule_t
 create_sync_schedule(config_t const& config, pipeline_t const& pipe)
 {
-  return schedule_t(new sync_schedule(config, pipe));
+  return boost::make_shared<sync_schedule>(config, pipe);
 }
 
 schedule_t
 create_thread_per_process_schedule(config_t const& config, pipeline_t const& pipe)
 {
-  return schedule_t(new thread_per_process_schedule(config, pipe));
+  return boost::make_shared<thread_per_process_schedule>(config, pipe);
 }
 
 schedule_t
@@ -55,5 +57,5 @@ create_thread_pool_schedule(config_t const& config, pipeline_t const& pipe)
 {
   size_t const num_threads = config->get_value<size_t>("num_threads", 0);
 
-  return schedule_t(new thread_pool_schedule(config, pipe, num_threads));
+  return boost::make_shared<thread_pool_schedule>(config, pipe, num_threads);
 }

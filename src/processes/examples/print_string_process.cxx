@@ -12,6 +12,7 @@
 #include <vistk/pipeline/process_exception.h>
 
 #include <boost/filesystem/path.hpp>
+#include <boost/make_shared.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -46,20 +47,20 @@ print_string_process
 {
   priv::path_t path = config->get_value<priv::path_t>(priv::config_path, priv::path_t());
 
-  d = boost::shared_ptr<priv>(new priv(path));
+  d = boost::make_shared<priv>(path);
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_input, port_info_t(new port_info(
+  declare_input_port(priv::port_input, boost::make_shared<port_info>(
     basic_types::t_string,
     required,
-    port_description_t("Where strings are read from."))));
+    port_description_t("Where strings are read from.")));
 
-  declare_configuration_key(priv::config_path, conf_info_t(new conf_info(
+  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
     config::value_t(),
-    config::description_t("The path of the file to output to."))));
+    config::description_t("The path of the file to output to.")));
 }
 
 print_string_process

@@ -21,6 +21,7 @@
 #include <boost/graph/topological_sort.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/variant.hpp>
 
 #include <algorithm>
@@ -170,7 +171,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
   // Create pipeline.
   config_t const pipeline_conf = global_conf->subblock_view(config_pipeline_key);
 
-  pipe = pipeline_t(new pipeline(pipeline_conf));
+  pipe = boost::make_shared<pipeline>(pipeline_conf);
 
   // Create processes.
   {
@@ -529,14 +530,14 @@ pipe_bakery
 provider_dereferencer
 ::provider_dereferencer()
 {
-  m_providers[provider_system] = provider_t(new system_provider);
-  m_providers[provider_environment] = provider_t(new environment_provider);
+  m_providers[provider_system] = boost::make_shared<system_provider>();
+  m_providers[provider_environment] = boost::make_shared<environment_provider>();
 }
 
 provider_dereferencer
 ::provider_dereferencer(config_t const conf)
 {
-  m_providers[provider_config] = provider_t(new config_provider(conf));
+  m_providers[provider_config] = boost::make_shared<config_provider>(conf);
 }
 
 provider_dereferencer

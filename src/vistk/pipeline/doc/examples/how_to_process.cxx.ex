@@ -1,5 +1,7 @@
 #include <vistk/pipeline/process.h>
 
+#include <boost/make_shared.hpp>
+
 using namespace vistk;
 
 class compare_string_process
@@ -43,28 +45,28 @@ compare_string_process
 {
   bool const icase = config->get_value<bool>(priv::config_icase, priv::default_icase);
 
-  d = boost::shared_ptr<priv>(new priv(icase));
+  d = boost::make_shared<priv>(icase);
 
-  declare_configuration_key(priv::config_icase, conf_info_t(new conf_info(
+  declare_configuration_key(priv::config_icase, boost::make_shared<conf_info>(
     boost::lexical_cast<config::value_t>(priv::default_icase),
-    config::description_t("If set to \'true\', compares strings case insensitively."))));
+    config::description_t("If set to \'true\', compares strings case insensitively.")));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_string1, port_info_t(new port_info(
+  declare_input_port(priv::port_string1, boost::make_shared<port_info>(
     "string",
     required,
-    port_description_t("The first string to compare."))));
-  declare_input_port(priv::port_string2, port_info_t(new port_info(
+    port_description_t("The first string to compare.")));
+  declare_input_port(priv::port_string2, boost::make_shared<port_info>(
     "string",
     required,
-    port_description_t("The second string to compare."))));
-  declare_output_port(priv::port_output, port_info_t(new port_info(
+    port_description_t("The second string to compare.")));
+  declare_output_port(priv::port_output, boost::make_shared<port_info>(
     "bool",
     required,
-    port_description_t("Sends \'true\' if the strings were the same."))));
+    port_description_t("Sends \'true\' if the strings were the same.")));
 }
 
 compare_string_process::priv
@@ -160,7 +162,7 @@ compare_string_process::priv
 process_t
 create_compare_string_process(config_t const& config)
 {
-  return process_t(new compare_string_process(config));
+  return boost::make_shared<compare_string_process>(config);
 }
 
 void

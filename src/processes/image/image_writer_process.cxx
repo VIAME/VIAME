@@ -16,6 +16,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
+#include <boost/make_shared.hpp>
 
 #include <fstream>
 
@@ -90,7 +91,7 @@ image_writer_process
 
   write_func_t const func = write_for_pixtype(pixtype);
 
-  d = boost::shared_ptr<priv>(new priv(path, format, func));
+  d = boost::make_shared<priv>(path, format, func);
 
   port_type_t const port_type_input = port_type_for_pixtype(pixtype, grayscale);
 
@@ -98,23 +99,23 @@ image_writer_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_input, port_info_t(new port_info(
+  declare_input_port(priv::port_input, boost::make_shared<port_info>(
     port_type_input,
     required,
-    port_description_t("The images that are to be written."))));
+    port_description_t("The images that are to be written.")));
 
-  declare_configuration_key(priv::config_pixtype, conf_info_t(new conf_info(
+  declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
     boost::lexical_cast<config::value_t>(priv::default_pixtype),
-    config::description_t("The pixel type of the input images."))));
-  declare_configuration_key(priv::config_grayscale, conf_info_t(new conf_info(
+    config::description_t("The pixel type of the input images.")));
+  declare_configuration_key(priv::config_grayscale, boost::make_shared<conf_info>(
     boost::lexical_cast<config::value_t>(priv::default_grayscale),
-    config::description_t("Set to \'true\' if the input is grayscale, \'false\' otherwise."))));
-  declare_configuration_key(priv::config_format, conf_info_t(new conf_info(
+    config::description_t("Set to \'true\' if the input is grayscale, \'false\' otherwise.")));
+  declare_configuration_key(priv::config_format, boost::make_shared<conf_info>(
     boost::lexical_cast<config::value_t>(priv::default_format),
-    config::description_t("The format for output filenames."))));
-  declare_configuration_key(priv::config_path, conf_info_t(new conf_info(
+    config::description_t("The format for output filenames.")));
+  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
     config::value_t(),
-    config::description_t("The input file with a list of images to read."))));
+    config::description_t("The input file with a list of images to read.")));
 }
 
 image_writer_process
@@ -176,6 +177,8 @@ image_writer_process
       catch (boost::io::format_error&)
       {
       }
+
+      ++d->count;
 
       path_t const path = boost::str(d->format);
 

@@ -15,6 +15,7 @@
 #include <vistk/pipeline/types.h>
 
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 #include <exception>
 #include <iostream>
@@ -185,7 +186,7 @@ test_process_input_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+    vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
     process->connect_input_port(port, edge);
 
@@ -239,8 +240,8 @@ test_process_output_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    vistk::edge_t edge1 = vistk::edge_t(new vistk::edge(config));
-    vistk::edge_t edge2 = vistk::edge_t(new vistk::edge(config));
+    vistk::edge_t edge1 = boost::make_shared<vistk::edge>(config);
+    vistk::edge_t edge2 = boost::make_shared<vistk::edge>(config);
 
     process->connect_output_port(port, edge1);
     process->connect_output_port(port, edge2);
@@ -267,7 +268,7 @@ test_process_invalid_input_port(vistk::process_t const process)
                    process->input_port_info(non_existent_port),
                    "requesting the info for a non-existent input port");
 
-  vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
   EXPECT_EXCEPTION(vistk::no_such_port_exception,
                    process->connect_input_port(non_existent_port, edge),
@@ -285,7 +286,7 @@ test_process_invalid_output_port(vistk::process_t const process)
                    process->output_port_info(non_existent_port),
                    "requesting the info for a non-existent output port");
 
-  vistk::edge_t edge = vistk::edge_t(new vistk::edge(config));
+  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
   EXPECT_EXCEPTION(vistk::no_such_port_exception,
                    process->connect_output_port(non_existent_port, edge),

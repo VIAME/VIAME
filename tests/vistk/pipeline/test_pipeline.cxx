@@ -13,6 +13,8 @@
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_exception.h>
 
+#include <boost/make_shared.hpp>
+
 #include <exception>
 #include <iostream>
 #include <string>
@@ -204,7 +206,7 @@ test_null_config()
   vistk::config_t const config;
 
   EXPECT_EXCEPTION(vistk::null_pipeline_config_exception,
-                   vistk::pipeline_t(new vistk::pipeline(config)),
+                   boost::make_shared<vistk::pipeline>(config),
                    "passing a NULL config to the pipeline");
 }
 void
@@ -802,5 +804,5 @@ create_pipeline()
 {
   static vistk::config_t const config = vistk::config::empty_config();
 
-  return vistk::pipeline_t(new vistk::pipeline(config));
+  return boost::make_shared<vistk::pipeline>(config);
 }

@@ -11,6 +11,7 @@
 #include "process_exception.h"
 
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 #include <queue>
 #include <set>
@@ -65,7 +66,7 @@ pipeline
     throw null_pipeline_config_exception();
   }
 
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 }
 
 pipeline
@@ -192,7 +193,7 @@ pipeline
 
   config_t edge_config = config::empty_config();
 
-  edge_t e = edge_t(new edge(edge_config));
+  edge_t e = boost::make_shared<edge>(edge_config);
 
   up_proc->connect_output_port(upstream_port, e);
   down_proc->connect_input_port(downstream_port, e);

@@ -6,8 +6,9 @@
 
 #include "thread_pool_schedule.h"
 
-#include <boost/foreach.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 namespace vistk
 {
@@ -27,8 +28,8 @@ thread_pool_schedule
 ::thread_pool_schedule(config_t const& config, pipeline_t const& pipe, size_t num_threads)
   : schedule(config, pipe)
   , m_num_threads(num_threads)
-  , d(new priv)
 {
+  d = boost::make_shared<priv>();
 }
 
 thread_pool_schedule

@@ -9,8 +9,9 @@
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/utils.h>
 
-#include <boost/foreach.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 namespace vistk
 {
@@ -30,7 +31,7 @@ thread_per_process_schedule
 ::thread_per_process_schedule(config_t const& config, pipeline_t const& pipe)
   : schedule(config, pipe)
 {
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 }
 
 thread_per_process_schedule
@@ -82,7 +83,7 @@ run_process(process_t process)
   static config_t edge_conf = monitor_edge_config();
 
   name_thread(process->name());
-  edge_t monitor_edge = edge_t(new edge(edge_conf));
+  edge_t monitor_edge = boost::make_shared<edge>(edge_conf);
 
   process->connect_output_port(process::port_heartbeat, monitor_edge);
 

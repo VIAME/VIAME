@@ -12,6 +12,8 @@
 
 #include <vistk/pipeline/process_registry.h>
 
+#include <boost/make_shared.hpp>
+
 using namespace vistk;
 
 static process_t create_grayscale_process(config_t const& config);
@@ -40,17 +42,17 @@ register_processes()
 process_t
 create_grayscale_process(config_t const& config)
 {
-  return process_t(new grayscale_process(config));
+  return boost::make_shared<grayscale_process>(config);
 }
 
 process_t
 create_image_reader_process(config_t const& config)
 {
-  return process_t(new image_reader_process(config));
+  return boost::make_shared<image_reader_process>(config);
 }
 
 process_t
 create_image_writer_process(config_t const& config)
 {
-  return process_t(new image_writer_process(config));
+  return boost::make_shared<image_writer_process>(config);
 }

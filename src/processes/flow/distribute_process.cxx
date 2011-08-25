@@ -12,6 +12,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 #include <map>
 
@@ -52,7 +53,7 @@ distribute_process
 ::distribute_process(config_t const& config)
   : process(config)
 {
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 }
 
 distribute_process
@@ -160,14 +161,14 @@ distribute_process
 
       required.insert(flag_required);
 
-      declare_input_port(priv::port_src_prefix + src_name, port_info_t(new port_info(
+      declare_input_port(priv::port_src_prefix + src_name, boost::make_shared<port_info>(
         type_any,
         required,
-        port_description_t("The input port for " + src_name + "."))));
-      declare_output_port(port, port_info_t(new port_info(
+        port_description_t("The input port for " + src_name + ".")));
+      declare_output_port(port, boost::make_shared<port_info>(
         type_none,
         required,
-        port_description_t("The original color for the input " + src_name + "."))));
+        port_description_t("The original color for the input " + src_name + ".")));
     }
   }
 
@@ -181,10 +182,10 @@ distribute_process
 
     required.insert(flag_required);
 
-    declare_output_port(port, port_info_t(new port_info(
+    declare_output_port(port, boost::make_shared<port_info>(
       type_any,
       required,
-      port_description_t("An output for the " + src_for_dist + " data."))));
+      port_description_t("An output for the " + src_for_dist + " data.")));
   }
 
   return process::_output_port_info(port);

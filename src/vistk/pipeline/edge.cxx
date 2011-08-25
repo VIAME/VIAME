@@ -12,6 +12,7 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/make_shared.hpp>
 
 #include <queue>
 
@@ -52,7 +53,7 @@ edge
     throw null_edge_config_exception();
   }
 
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 }
 
 edge

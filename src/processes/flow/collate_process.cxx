@@ -12,6 +12,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 #include <map>
 
@@ -50,7 +51,7 @@ collate_process
 ::collate_process(config_t const& config)
   : process(config)
 {
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 }
 
 collate_process
@@ -153,14 +154,14 @@ collate_process
 
       required.insert(flag_required);
 
-      declare_input_port(port, port_info_t(new port_info(
+      declare_input_port(port, boost::make_shared<port_info>(
         type_none,
         required,
-        port_description_t("The original color for the result " + res_name + "."))));
-      declare_output_port(priv::port_res_prefix + res_name, port_info_t(new port_info(
+        port_description_t("The original color for the result " + res_name + ".")));
+      declare_output_port(priv::port_res_prefix + res_name, boost::make_shared<port_info>(
         type_any,
         required,
-        port_description_t("The output port for " + res_name + "."))));
+        port_description_t("The output port for " + res_name + ".")));
     }
   }
 
@@ -174,10 +175,10 @@ collate_process
 
     required.insert(flag_required);
 
-    declare_input_port(port, port_info_t(new port_info(
+    declare_input_port(port, boost::make_shared<port_info>(
       type_any,
       required,
-      port_description_t("An input for the " + res_for_dist + " data."))));
+      port_description_t("An input for the " + res_for_dist + " data.")));
   }
 
   return process::_input_port_info(port);

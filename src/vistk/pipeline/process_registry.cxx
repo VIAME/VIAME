@@ -11,10 +11,11 @@
 #include "process.h"
 #include "types.h"
 
-#include <boost/foreach.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 #include <map>
 #include <set>
@@ -156,7 +157,7 @@ process_registry
 process_registry
 ::process_registry()
 {
-  d = boost::shared_ptr<priv>(new priv);
+  d = boost::make_shared<priv>();
 }
 
 process_registry::priv

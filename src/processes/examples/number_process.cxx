@@ -13,6 +13,8 @@
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/stamp.h>
 
+#include <boost/make_shared.hpp>
+
 namespace vistk
 {
 
@@ -55,27 +57,27 @@ number_process
   priv::number_t start = config->get_value<priv::number_t>(priv::config_start, priv::default_start);
   priv::number_t end = config->get_value<priv::number_t>(priv::config_end, priv::default_end);
 
-  d = boost::shared_ptr<priv>(new priv(start, end));
+  d = boost::make_shared<priv>(start, end);
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_color, port_info_t(new port_info(
+  declare_input_port(priv::port_color, boost::make_shared<port_info>(
     type_none,
     port_flags_t(),
-    port_description_t("If connected, uses the stamp's color for the output."))));
-  declare_output_port(priv::port_output, port_info_t(new port_info(
+    port_description_t("If connected, uses the stamp's color for the output.")));
+  declare_output_port(priv::port_output, boost::make_shared<port_info>(
     basic_types::t_integer,
     required,
-    port_description_t("Where the numbers will be available."))));
+    port_description_t("Where the numbers will be available.")));
 
-  declare_configuration_key(priv::config_start, conf_info_t(new conf_info(
+  declare_configuration_key(priv::config_start, boost::make_shared<conf_info>(
     boost::lexical_cast<config::value_t>(priv::default_start),
-    config::description_t("The value to start counting at."))));
-  declare_configuration_key(priv::config_end, conf_info_t(new conf_info(
+    config::description_t("The value to start counting at.")));
+  declare_configuration_key(priv::config_end, boost::make_shared<conf_info>(
     boost::lexical_cast<config::value_t>(priv::default_end),
-    config::description_t("The value to stop counting at."))));
+    config::description_t("The value to stop counting at.")));
 }
 
 number_process

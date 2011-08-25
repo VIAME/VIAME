@@ -15,6 +15,7 @@
 #include <vistk/pipeline/types.h>
 
 #include <boost/foreach.hpp>
+#include <boost/make_shared.hpp>
 
 #include <exception>
 #include <iostream>
@@ -124,7 +125,7 @@ test_load_schedules()
   vistk::schedule_registry::types_t const types = reg->types();
 
   vistk::config_t config = vistk::config::empty_config();
-  vistk::pipeline_t pipe = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipe = boost::make_shared<vistk::pipeline>(config);
 
   BOOST_FOREACH (vistk::schedule_registry::type_t const& type, types)
   {
@@ -196,7 +197,7 @@ test_unknown_types()
   vistk::schedule_registry::type_t const non_existent_schedule = vistk::schedule_registry::type_t("no_such_schedule");
 
   vistk::config_t config = vistk::config::empty_config();
-  vistk::pipeline_t pipe = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t pipe = boost::make_shared<vistk::pipeline>(config);
 
   EXPECT_EXCEPTION(vistk::no_such_schedule_type_exception,
                    reg->create_schedule(non_existent_schedule, config, pipe),

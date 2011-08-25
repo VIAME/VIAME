@@ -16,6 +16,8 @@
 
 #include <vistk/pipeline/process_registry.h>
 
+#include <boost/make_shared.hpp>
+
 using namespace vistk;
 
 static process_t create_const_process(config_t const& config);
@@ -52,41 +54,41 @@ register_processes()
 process_t
 create_const_process(config_t const& config)
 {
-  return process_t(new const_process(config));
+  return boost::make_shared<const_process>(config);
 }
 
 process_t
 create_multiplication_process(config_t const& config)
 {
-  return process_t(new multiplication_process(config));
+  return boost::make_shared<multiplication_process>(config);
 }
 
 process_t
 create_mutate_process(config_t const& config)
 {
-  return process_t(new mutate_process(config));
+  return boost::make_shared<mutate_process>(config);
 }
 
 process_t
 create_number_process(config_t const& config)
 {
-  return process_t(new number_process(config));
+  return boost::make_shared<number_process>(config);
 }
 
 process_t
 create_orphan_process(config_t const& config)
 {
-  return process_t(new orphan_process(config));
+  return boost::make_shared<orphan_process>(config);
 }
 
 process_t
 create_print_number_process(config_t const& config)
 {
-  return process_t(new print_number_process(config));
+  return boost::make_shared<print_number_process>(config);
 }
 
 process_t
 create_print_string_process(config_t const& config)
 {
-  return process_t(new print_string_process(config));
+  return boost::make_shared<print_string_process>(config);
 }
