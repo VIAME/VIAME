@@ -202,6 +202,7 @@ image_reader_process::priv
 ::priv(path_t const& input_path, read_func_t func)
   : path(input_path)
   , read(func)
+  , has_color(false)
 {
 }
 
