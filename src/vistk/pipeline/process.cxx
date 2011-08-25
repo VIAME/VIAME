@@ -87,6 +87,8 @@ class process::priv
     ~priv();
 
     void run_heartbeat();
+    bool connect_input_port(port_t const& port, edge_ref_t edge);
+    bool connect_output_port(port_t const& port, edge_ref_t edge);
 
     name_t name;
     process_registry::type_t type;
@@ -166,17 +168,8 @@ process
 
   edge_ref_t const ref = edge_ref_t(edge);
 
-  priv::port_map_t::iterator i = d->input_ports.find(port);
-
-  if (i != d->input_ports.end())
+  if (d->connect_input_port(port, ref))
   {
-    if (!d->input_edges[port].expired())
-    {
-      throw port_reconnect_exception(d->name, port);
-    }
-
-    d->input_edges[port] = ref;
-
     return;
   }
 
@@ -194,16 +187,12 @@ process
 
   edge_ref_t const ref = edge_ref_t(edge);
 
-  priv::port_map_t::iterator i = d->output_ports.find(port);
-
-  if (i != d->output_ports.end())
+  if (d->connect_output_port(port, ref))
   {
-    d->output_edges[port].push_back(ref);
-
     return;
   }
 
-  _connect_output_port(port, edge_ref_t(edge));
+  _connect_output_port(port, ref);
 }
 
 process::ports_t
@@ -610,6 +599,43 @@ process::priv
   push_to_edges(output_edges[port_heartbeat], edge_dat);
 
   hb_stamp = stamp::incremented_stamp(hb_stamp);
+}
+
+bool
+process::priv
+::connect_input_port(port_t const& port, edge_ref_t edge)
+{
+  port_map_t::iterator i = input_ports.find(port);
+
+  if (i != input_ports.end())
+  {
+    if (!input_edges[port].expired())
+    {
+      throw port_reconnect_exception(name, port);
+    }
+
+    input_edges[port] = edge;
+
+    return true;
+  }
+
+  return false;
+}
+
+bool
+process::priv
+::connect_output_port(port_t const& port, edge_ref_t edge)
+{
+  port_map_t::iterator i = output_ports.find(port);
+
+  if (i != output_ports.end())
+  {
+    output_edges[port].push_back(edge);
+
+    return true;
+  }
+
+  return false;
 }
 
 }
