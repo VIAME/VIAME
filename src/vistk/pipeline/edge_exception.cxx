@@ -33,6 +33,23 @@ null_edge_config_exception
 {
 }
 
+datum_requested_after_complete
+::datum_requested_after_complete() throw()
+  : edge_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A datum was requested after "
+          "downstream indicated completion.";
+
+  m_what = sstr.str();
+}
+
+datum_requested_after_complete
+::~datum_requested_after_complete() throw()
+{
+}
+
 null_process_connection_exception
 ::null_process_connection_exception() throw()
   : edge_connection_exception()

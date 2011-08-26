@@ -58,6 +58,27 @@ class VISTK_PIPELINE_EXPORT null_edge_config_exception
 };
 
 /**
+ * \class datum_requested_after_complete pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when data was requested after completion was indicated.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT datum_requested_after_complete
+  : public edge_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    datum_requested_after_complete() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~datum_requested_after_complete() throw();
+};
+
+/**
  * \class edge_connection_exception edge_exception.h <vistk/pipeline/edge_exception.h>
  *
  * \brief The base class for all exceptions thrown from an \ref edge due to connections.
