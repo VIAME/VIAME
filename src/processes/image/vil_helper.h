@@ -20,20 +20,45 @@
 namespace vistk
 {
 
+/// The type for the type for pixels in an image.
 typedef std::string pixtype_t;
 
+/// The type for file paths.
 typedef boost::filesystem::path path_t;
 
+/// The type of a function which reads an image from a file.
 typedef boost::function<datum_t (path_t const&)> read_func_t;
+/// The type of a function which writes in an image to a file.
 typedef boost::function<void (path_t const&, datum_t const&)> write_func_t;
 
+/// The type of a function which turns an image into grayscale.
 typedef boost::function<datum_t (datum_t const&)> gray_func_t;
+/// The type of a function which crops an image.
 typedef boost::function<datum_t (datum_t const&, size_t, size_t, size_t, size_t)> crop_func_t;
 
+/**
+ * \class pixtypes "vil_helper.h"
+ *
+ * \brief Names for common pixtypes.
+ */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT pixtypes
 {
   public:
+    /**
+     * \brief The pixtype for byte images.
+     *
+     * \note This is a function to enforce static initialization orders.
+     *
+     * \returns The pixtype for images with bytes for pixels.
+     */
     static pixtype_t const& pixtype_byte();
+    /**
+     * \brief The pixtype for floating images.
+     *
+     * \note This is a function to enforce static initialization orders.
+     *
+     * \returns The pixtype for images with floats for pixels.
+     */
     static pixtype_t const& pixtype_float();
 };
 
@@ -46,19 +71,62 @@ template <class PixType>
 class VISTK_PROCESSES_IMAGE_NO_EXPORT vil_helper
 {
   public:
+    /**
+     * \struct port_types
+     *
+     * \brief Port types for images.
+     */
     template <bool Grayscale = false, bool Alpha = false>
     struct port_types
     {
+      /// The port type for the image.
       static process::port_type_t const type;
     };
 };
 
+/**
+ * \brief Port types for images with different parameters.
+ *
+ * \param pixtype The type for pixels.
+ * \param grayscale True if the images are grayscale, false otherwise.
+ * \param alpha True if the images have an alpha channel, false otherwise.
+ *
+ * \returns The port type for images of the given information.
+ */
 process::port_type_t VISTK_PROCESSES_IMAGE_NO_EXPORT port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool alpha = false);
 
+/**
+ * \brief A reading function for images of the given type.
+ *
+ * \param pixtype The type for pixels.
+ *
+ * \returns A function to reading \p pixtype images from a file.
+ */
 read_func_t VISTK_PROCESSES_IMAGE_NO_EXPORT read_for_pixtype(pixtype_t const& pixtype);
+/**
+ * \brief A writing function for images of the given type.
+ *
+ * \param pixtype The type for pixels.
+ *
+ * \returns A function to writing \p pixtype images to a file.
+ */
 write_func_t VISTK_PROCESSES_IMAGE_NO_EXPORT write_for_pixtype(pixtype_t const& pixtype);
 
+/**
+ * \brief A grayscale conversion for images of the given type.
+ *
+ * \param pixtype The type for pixels.
+ *
+ * \returns A function to converting \p pixtype images to grayscale.
+ */
 gray_func_t VISTK_PROCESSES_IMAGE_NO_EXPORT gray_for_pixtype(pixtype_t const& pixtype);
+/**
+ * \brief A cropping function for images of the given type.
+ *
+ * \param pixtype The type for pixels.
+ *
+ * \returns A function to cropping \p pixtype images.
+ */
 crop_func_t VISTK_PROCESSES_IMAGE_NO_EXPORT crop_for_pixtype(pixtype_t const& pixtype);
 
 }
