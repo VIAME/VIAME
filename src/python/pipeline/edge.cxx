@@ -80,6 +80,10 @@ BOOST_PYTHON_MODULE(edge)
     .def("set_downstream_process", &vistk::edge::set_downstream_process
       , (arg("process"))
       , "Set the process which is reading data from the edge.")
+    .def("mark_downstream_as_complete", &vistk::edge::mark_downstream_as_complete
+      , "Indicate that the downstream process is complete.")
+    .def("is_downstream_complete", &vistk::edge::is_downstream_complete
+      , "Returns True if the downstream process is complete, False otherwise.")
   ;
 }
 
