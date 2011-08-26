@@ -62,6 +62,8 @@ static void test_null_upstream_process();
 static void test_null_downstream_process();
 static void test_set_upstream_process();
 static void test_set_downstream_process();
+static void test_push_data_into_complete();
+static void test_get_data_from_complete();
 
 void
 run_test(std::string const& test_name)
@@ -121,6 +123,14 @@ run_test(std::string const& test_name)
   else if (test_name == "set_downstream_process")
   {
     test_set_downstream_process();
+  }
+  else if (test_name == "push_data_into_complete")
+  {
+    test_push_data_into_complete();
+  }
+  else if (test_name == "get_data_from_complete")
+  {
+    test_get_data_from_complete();
   }
   else
   {
@@ -389,4 +399,55 @@ test_set_downstream_process()
   EXPECT_EXCEPTION(vistk::output_already_connected_exception,
                    edge->set_downstream_process(process),
                    "setting a second process as downstream");
+}
+
+void
+test_push_data_into_complete()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+
+  vistk::datum_t const dat = vistk::datum::complete_datum();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+
+  vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
+
+  edge->push_datum(edat);
+
+  edge->mark_downstream_as_complete();
+
+  if (edge->datum_count())
+  {
+    TEST_ERROR("A complete edge did not flush data");
+  }
+
+  edge->push_datum(edat);
+
+  if (edge->datum_count())
+  {
+    TEST_ERROR("A complete edge accepted data");
+  }
+}
+
+void
+test_get_data_from_complete()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+
+  edge->mark_downstream_as_complete();
+
+  EXPECT_EXCEPTION(vistk::datum_requested_after_complete,
+                   edge->peek_datum(),
+                   "peeking at a complete edge");
+
+  EXPECT_EXCEPTION(vistk::datum_requested_after_complete,
+                   edge->get_datum(),
+                   "getting data from a complete edge");
+
+  EXPECT_EXCEPTION(vistk::datum_requested_after_complete,
+                   edge->pop_datum(),
+                   "popping data from a complete edge");
 }
