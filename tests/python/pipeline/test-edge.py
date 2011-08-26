@@ -80,6 +80,9 @@ def test_api_calls():
     e.set_upstream_process(p)
     e.set_downstream_process(p)
 
+    e.mark_downstream_as_complete()
+    e.is_downstream_complete()
+
 
 def test_datum_api_calls():
     from vistk.pipeline import datum
