@@ -125,7 +125,7 @@
  *     computable or a recoverable error occurred which prevented computation.
  * \li \ref vistk::datum::DATUM_DATA — Contains actual data.
  *
- * The \ref vistk::process::max_status method can be used to determine the
+ * The \ref vistk::process::data_info method can be used to determine the
  * highest priority status within a group of packets.
  *
  * \until insert

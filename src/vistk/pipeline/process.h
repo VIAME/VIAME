@@ -457,6 +457,8 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Grabs a datum from a port.
      *
      * \param port The port to get data from.
+     *
+     * \returns The datum available on the port.
      */
     edge_datum_t grab_from_port(port_t const& port) const;
     /**

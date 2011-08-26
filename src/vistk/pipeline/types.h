@@ -94,6 +94,7 @@ class VISTK_PIPELINE_EXPORT pipeline_exception
      */
     char const* what() const throw();
   protected:
+    /// The text of the exception.
     std::string m_what;
 };
 

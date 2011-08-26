@@ -196,9 +196,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find the edge that represents a connection.
      *
-     * \param upstream_process The upstream process name.
+     * \param upstream_name The upstream process name.
      * \param upstream_port The upstream process port.
-     * \param downstream_process The downstream process name.
+     * \param downstream_name The downstream process name.
      * \param downstream_port The downstream process port.
      *
      * \returns The edge for the connection, or \c NULL if there is no such connection.
