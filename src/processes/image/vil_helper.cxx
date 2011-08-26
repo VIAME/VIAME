@@ -10,6 +10,7 @@
 
 #include <vil/vil_convert.h>
 #include <vil/vil_crop.h>
+#include <vil/vil_image_view.h>
 #include <vil/vil_load.h>
 #include <vil/vil_save.h>
 
@@ -53,9 +54,87 @@ process::port_type_t const vil_helper<float>::port_types<true, false>::type = im
 template <class PixType> template <bool Grayscale, bool Alpha>
 process::port_type_t const vil_helper<PixType>::port_types<Grayscale, Alpha>::type = process::type_none;
 
+namespace
+{
+
+template <class PixType>
+class vil_functions
+{
+  public:
+    static datum_t read(path_t const& dat);
+    static void write(path_t const& path, datum_t const& dat);
+
+    static datum_t convert_to_gray(datum_t const& dat);
+    static datum_t crop(datum_t const& dat, size_t x_offset, size_t y_offset, size_t width, size_t height);
+  protected:
+    typedef vil_image_view<PixType> image_t;
+};
+
+}
+
+read_func_t
+read_for_pixtype(pixtype_t const& pixtype)
+{
+  if (pixtype == pixtypes::pixtype_byte())
+  {
+    return vil_functions<uint8_t>::read;
+  }
+  else if (pixtype == pixtypes::pixtype_float())
+  {
+    return vil_functions<float>::read;
+  }
+
+  return NULL;
+}
+
+write_func_t
+write_for_pixtype(pixtype_t const& pixtype)
+{
+  if (pixtype == pixtypes::pixtype_byte())
+  {
+    return vil_functions<uint8_t>::write;
+  }
+  else if (pixtype == pixtypes::pixtype_float())
+  {
+    return vil_functions<float>::write;
+  }
+
+  return NULL;
+}
+
+gray_func_t
+gray_for_pixtype(pixtype_t const& pixtype)
+{
+  if (pixtype == pixtypes::pixtype_byte())
+  {
+    return vil_functions<uint8_t>::convert_to_gray;
+  }
+  else if (pixtype == pixtypes::pixtype_float())
+  {
+    return vil_functions<float>::convert_to_gray;
+  }
+
+  return NULL;
+}
+
+crop_func_t
+crop_for_pixtype(pixtype_t const& pixtype)
+{
+  if (pixtype == pixtypes::pixtype_byte())
+  {
+    return vil_functions<uint8_t>::crop;
+  }
+  else if (pixtype == pixtypes::pixtype_float())
+  {
+    return vil_functions<float>::crop;
+  }
+
+  return NULL;
+}
+
 template <class PixType>
 datum_t
-vil_helper<PixType>
+vil_functions<PixType>
 ::read(path_t const& path)
 {
   path_t::string_type const fstr = path.native();
@@ -73,7 +152,7 @@ vil_helper<PixType>
 
 template <class PixType>
 void
-vil_helper<PixType>
+vil_functions<PixType>
 ::write(path_t const& path, datum_t const& dat)
 {
   path_t::string_type const fpath = path.native();
@@ -91,7 +170,7 @@ vil_helper<PixType>
 
 template <class PixType>
 datum_t
-vil_helper<PixType>
+vil_functions<PixType>
 ::convert_to_gray(datum_t const& dat)
 {
   image_t const rgb_image = dat->get_datum<image_t>();
@@ -115,7 +194,7 @@ vil_helper<PixType>
 
 template <class PixType>
 datum_t
-vil_helper<PixType>
+vil_functions<PixType>
 ::crop(datum_t const& dat, size_t x_offset, size_t y_offset, size_t width, size_t height)
 {
   image_t const img = dat->get_datum<image_t>();
@@ -159,66 +238,6 @@ port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
   }
 
   return process::type_none;
-}
-
-read_func_t
-read_for_pixtype(pixtype_t const& pixtype)
-{
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    return vil_helper<uint8_t>::read;
-  }
-  else if (pixtype == pixtypes::pixtype_float())
-  {
-    return vil_helper<float>::read;
-  }
-
-  return NULL;
-}
-
-write_func_t
-write_for_pixtype(pixtype_t const& pixtype)
-{
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    return vil_helper<uint8_t>::write;
-  }
-  else if (pixtype == pixtypes::pixtype_float())
-  {
-    return vil_helper<float>::write;
-  }
-
-  return NULL;
-}
-
-gray_func_t
-gray_for_pixtype(pixtype_t const& pixtype)
-{
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    return vil_helper<uint8_t>::convert_to_gray;
-  }
-  else if (pixtype == pixtypes::pixtype_float())
-  {
-    return vil_helper<float>::convert_to_gray;
-  }
-
-  return NULL;
-}
-
-crop_func_t
-crop_for_pixtype(pixtype_t const& pixtype)
-{
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    return vil_helper<uint8_t>::crop;
-  }
-  else if (pixtype == pixtypes::pixtype_float())
-  {
-    return vil_helper<float>::crop;
-  }
-
-  return NULL;
 }
 
 }

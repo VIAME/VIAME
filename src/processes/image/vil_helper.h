@@ -15,8 +15,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/function.hpp>
 
-#include <vil/vil_image_view.h>
-
 #include <string>
 
 namespace vistk
@@ -40,7 +38,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT pixtypes
 };
 
 /**
- * \class vil_helper
+ * \class vil_helper "vil_helper.h"
  *
  * \brief Helper class to help with managing vil types.
  */
@@ -48,19 +46,11 @@ template <class PixType>
 class VISTK_PROCESSES_IMAGE_NO_EXPORT vil_helper
 {
   public:
-    typedef vil_image_view<PixType> image_t;
-
     template <bool Grayscale = false, bool Alpha = false>
     struct port_types
     {
       static process::port_type_t const type;
     };
-
-    static datum_t read(path_t const& dat);
-    static void write(path_t const& path, datum_t const& dat);
-
-    static datum_t convert_to_gray(datum_t const& dat);
-    static datum_t crop(datum_t const& dat, size_t x_offset, size_t y_offset, size_t width, size_t height);
 };
 
 process::port_type_t VISTK_PROCESSES_IMAGE_NO_EXPORT port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool alpha = false);
