@@ -94,7 +94,7 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Extract a datum from the edge.
      *
-     * This calls \ref edge::peek_datum and then removes it from the edge.
+     * \throws datum_requested_after_complete Thrown if called after \ref mark_downstream_as_complete.
      *
      * \returns The next datum available from the edge.
      */
@@ -102,11 +102,15 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Look at the next datum in the edge.
      *
+     * \throws datum_requested_after_complete Thrown if called after \ref mark_downstream_as_complete.
+     *
      * \returns The next datum available from the edge.
      */
     edge_datum_t peek_datum();
     /**
      * \brief Removes a datum from the edge.
+     *
+     * \throws datum_requested_after_complete Thrown if called after \ref mark_downstream_as_complete.
      */
     void pop_datum();
 
@@ -122,6 +126,17 @@ class VISTK_PIPELINE_EXPORT edge
      * \returns True if the edge carries required data for downstream, false otherwise.
      */
     bool required_by_downstream() const;
+
+    /**
+     * \brief Triggers the edge to flush all data and not accept any more data.
+     */
+    void mark_downstream_as_complete();
+    /**
+     * \brief Triggers the edge to flush all data and not accept any more data.
+     *
+     * \returns True if the downstream process indicated that no more data is required, false otherwise.
+     */
+    bool is_downstream_complete() const;
 
     /**
      * \brief Set the process which is connected to the input side of the edge.

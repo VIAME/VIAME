@@ -32,8 +32,10 @@ class edge::priv
     ~priv();
 
     bool has_data() const;
+    void complete_check() const;
 
     bool required;
+    bool downstream_complete;
 
     process_t upstream;
     process_t downstream;
@@ -43,6 +45,7 @@ class edge::priv
     boost::condition_variable cond_have_data;
 
     mutable boost::mutex mutex;
+    mutable boost::mutex complete_mutex;
 };
 
 edge
@@ -100,6 +103,15 @@ edge
 ::push_datum(edge_datum_t const& datum)
 {
   {
+    boost::mutex::scoped_lock lock(d->complete_mutex);
+
+    if (d->downstream_complete)
+    {
+      return;
+    }
+  }
+
+  {
     boost::mutex::scoped_lock lock(d->mutex);
 
     (void)lock;
@@ -114,6 +126,8 @@ edge_datum_t
 edge
 ::get_datum()
 {
+  d->complete_check();
+
   boost::mutex::scoped_lock lock(d->mutex);
 
   while (!d->has_data())
@@ -132,6 +146,8 @@ edge_datum_t
 edge
 ::peek_datum()
 {
+  d->complete_check();
+
   boost::mutex::scoped_lock lock(d->mutex);
 
   while (!d->has_data())
@@ -146,6 +162,8 @@ void
 edge
 ::pop_datum()
 {
+  d->complete_check();
+
   boost::mutex::scoped_lock lock(d->mutex);
 
   while (!d->has_data())
@@ -168,6 +186,35 @@ edge
 ::required_by_downstream() const
 {
   return d->required;
+}
+
+void
+edge
+::mark_downstream_as_complete()
+{
+  boost::mutex::scoped_lock complete_lock(d->complete_mutex);
+
+  (void)complete_lock;
+
+  d->downstream_complete = true;
+
+  boost::mutex::scoped_lock lock(d->mutex);
+
+  (void)lock;
+
+  while (d->q.size())
+  {
+    d->q.pop();
+  }
+}
+
+bool
+edge
+::is_downstream_complete() const
+{
+  boost::mutex::scoped_lock lock(d->complete_mutex);
+
+  return d->downstream_complete;
 }
 
 void
@@ -214,6 +261,7 @@ operator == (edge_datum_t const& a, edge_datum_t const& b)
 edge::priv
 ::priv()
   : required(true)
+  , downstream_complete(false)
 {
 }
 
@@ -227,6 +275,20 @@ edge::priv
 ::has_data() const
 {
   return (q.size() != 0);
+}
+
+void
+edge::priv
+::complete_check() const
+{
+  boost::mutex::scoped_lock lock(complete_mutex);
+
+  (void)lock;
+
+  if (downstream_complete)
+  {
+    throw datum_requested_after_complete();
+  }
 }
 
 }
