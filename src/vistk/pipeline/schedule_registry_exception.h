@@ -12,8 +12,6 @@
 #include "schedule_registry.h"
 #include "types.h"
 
-#include <string>
-
 /**
  * \file schedule_registry_exception.h
  *
@@ -59,15 +57,6 @@ class VISTK_PIPELINE_EXPORT null_schedule_ctor_exception
 
     /// The type that was passed a \c NULL constructor.
     schedule_registry::type_t const m_type;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -89,15 +78,6 @@ class VISTK_PIPELINE_EXPORT null_schedule_registry_config_exception
      * \brief Destructor.
      */
     ~null_schedule_registry_config_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -119,15 +99,6 @@ class VISTK_PIPELINE_EXPORT null_schedule_registry_pipeline_exception
      * \brief Destructor.
      */
     ~null_schedule_registry_pipeline_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -154,15 +125,6 @@ class VISTK_PIPELINE_EXPORT no_such_schedule_type_exception
 
     /// The type that was requested from the \link schedule_registry schedule registry\endlink.
     schedule_registry::type_t const m_type;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -189,15 +151,6 @@ class VISTK_PIPELINE_EXPORT schedule_type_already_exists_exception
 
     /// The type that was requested from the \link schedule_registry schedule registry\endlink.
     schedule_registry::type_t const m_type;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 }

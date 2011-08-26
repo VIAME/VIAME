@@ -12,8 +12,6 @@
 #include "process.h"
 #include "types.h"
 
-#include <string>
-
 /**
  * \file pipeline_exception.h
  *
@@ -54,15 +52,6 @@ class VISTK_PIPELINE_EXPORT null_pipeline_config_exception
      * \brief Destructor.
      */
     ~null_pipeline_config_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -84,15 +73,6 @@ class VISTK_PIPELINE_EXPORT null_process_addition_exception
      * \brief Destructor.
      */
     ~null_process_addition_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -117,17 +97,8 @@ class VISTK_PIPELINE_EXPORT duplicate_process_name_exception
      */
     ~duplicate_process_name_exception() throw();
 
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-
     /// The name of the process.
     process::name_t const m_name;
-  private:
-    std::string m_what;
 };
 
 /**
@@ -166,15 +137,6 @@ class VISTK_PIPELINE_EXPORT no_such_process_exception
 
     /// The name of the process requested.
     process::name_t const m_name;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -221,15 +183,6 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch_exception
     process::port_t const m_downstream_port;
     /// The name of the type available on the downstream port.
     process::port_type_t const m_downstream_type;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -268,15 +221,6 @@ class VISTK_PIPELINE_EXPORT connection_flag_mismatch_exception
     process::name_t const m_downstream_name;
     /// The name of the downstream process requested.
     process::port_t const m_downstream_port;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -310,15 +254,6 @@ class VISTK_PIPELINE_EXPORT no_processes_exception
      * \brief Destructor.
      */
     ~no_processes_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -340,15 +275,6 @@ class VISTK_PIPELINE_EXPORT orphaned_processes_exception
      * \brief Destructor.
      */
     ~orphaned_processes_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -375,15 +301,6 @@ class VISTK_PIPELINE_EXPORT no_such_group_exception
 
     /// The name of the group requested.
     process::name_t const m_name;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -413,15 +330,6 @@ class VISTK_PIPELINE_EXPORT no_such_group_port_exception
     process::name_t const m_name;
     /// The name of the port requested.
     process::port_t const m_port;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -468,15 +376,6 @@ class VISTK_PIPELINE_EXPORT group_output_already_mapped_exception
     process::name_t const m_new_process;
     /// The name of the new port requested.
     process::port_t const m_new_port;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 }

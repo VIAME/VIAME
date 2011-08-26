@@ -37,13 +37,6 @@ unrecognized_config_flag_exception
 {
 }
 
-char const*
-unrecognized_config_flag_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 unrecognized_provider_exception
 ::unrecognized_provider_exception(config::key_t const& key, config_provider_t const& provider, config::value_t const& index) throw()
   : pipe_bakery_exception()
@@ -65,13 +58,6 @@ unrecognized_provider_exception
 {
 }
 
-char const*
-unrecognized_provider_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 circular_config_provide_exception
 ::circular_config_provide_exception() throw()
   : pipe_bakery_exception()
@@ -86,13 +72,6 @@ circular_config_provide_exception
 circular_config_provide_exception
 ::~circular_config_provide_exception() throw()
 {
-}
-
-char const*
-circular_config_provide_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 unrecognized_system_index_exception
@@ -111,13 +90,6 @@ unrecognized_system_index_exception
 unrecognized_system_index_exception
 ::~unrecognized_system_index_exception() throw()
 {
-}
-
-char const*
-unrecognized_system_index_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 }

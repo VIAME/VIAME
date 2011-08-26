@@ -13,6 +13,7 @@
 #include <boost/weak_ptr.hpp>
 
 #include <exception>
+#include <string>
 
 /**
  * \file types.h
@@ -80,6 +81,20 @@ typedef boost::shared_ptr<stamp const> stamp_t;
 class VISTK_PIPELINE_EXPORT pipeline_exception
   : public std::exception
 {
+  public:
+    /**
+     * \brief Destructor.
+     */
+    virtual ~pipeline_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  protected:
+    std::string m_what;
 };
 
 }

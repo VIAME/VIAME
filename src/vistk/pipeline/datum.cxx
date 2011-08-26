@@ -91,11 +91,4 @@ bad_datum_cast_exception
 {
 }
 
-char const*
-bad_datum_cast_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 }

@@ -33,11 +33,4 @@ null_pipeline_export_dot_exception
 {
 }
 
-char const*
-null_pipeline_export_dot_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 }

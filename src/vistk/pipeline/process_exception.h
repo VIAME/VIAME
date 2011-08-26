@@ -54,15 +54,6 @@ class VISTK_PIPELINE_EXPORT null_process_config_exception
      * \brief Destructor.
      */
     ~null_process_config_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -89,15 +80,6 @@ class VISTK_PIPELINE_EXPORT reinitialization_exception
 
     /// The name of the \ref process.
     process::name_t const m_process;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -124,15 +106,6 @@ class VISTK_PIPELINE_EXPORT uninitialized_exception
 
     /// The name of the \ref process.
     process::name_t const m_process;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -186,15 +159,6 @@ class VISTK_PIPELINE_EXPORT connect_to_initialized_process_exception
      * \brief Destructor.
      */
     ~connect_to_initialized_process_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -219,15 +183,6 @@ class VISTK_PIPELINE_EXPORT no_such_port_exception
      * \brief Destructor.
      */
     ~no_such_port_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -252,15 +207,6 @@ class VISTK_PIPELINE_EXPORT null_edge_port_connection_exception
      * \brief Destructor.
      */
     ~null_edge_port_connection_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -285,15 +231,6 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
      * \brief Destructor.
      */
     ~port_reconnect_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -322,15 +259,6 @@ class VISTK_PIPELINE_EXPORT missing_connection_exception
 
     /// A reason for the missing connection.
     std::string const m_reason;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -372,15 +300,6 @@ class VISTK_PIPELINE_EXPORT unknown_configuration_value_exception
     process::name_t const m_process;
     /// The name of the key which was given.
     config::key_t const m_key;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -416,15 +335,6 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_value_exception
     config::value_t const m_value;
     /// A description of the key.
     config::description_t const m_desc;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -454,15 +364,6 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_exception
     process::name_t const m_process;
     /// A reason for the invalid configuration.
     std::string const m_reason;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 }

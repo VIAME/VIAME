@@ -12,8 +12,6 @@
 #include "process_registry.h"
 #include "types.h"
 
-#include <string>
-
 /**
  * \file process_registry_exception.h
  *
@@ -59,15 +57,6 @@ class VISTK_PIPELINE_EXPORT null_process_ctor_exception
 
     /// The type that was passed a \c NULL constructor.
     process_registry::type_t const m_type;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -89,15 +78,6 @@ class VISTK_PIPELINE_EXPORT null_process_registry_config_exception
      * \brief Destructor.
      */
     ~null_process_registry_config_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -124,15 +104,6 @@ class VISTK_PIPELINE_EXPORT no_such_process_type_exception
 
     /// The type that was requested from the \link process_registry process registry\endlink.
     process_registry::type_t const m_type;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -159,15 +130,6 @@ class VISTK_PIPELINE_EXPORT process_type_already_exists_exception
 
     /// The type that was requested from the \link process_registry process registry\endlink.
     process_registry::type_t const m_type;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 }

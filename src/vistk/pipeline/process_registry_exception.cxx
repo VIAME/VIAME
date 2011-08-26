@@ -35,13 +35,6 @@ null_process_ctor_exception
 {
 }
 
-char const*
-null_process_ctor_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 null_process_registry_config_exception
 ::null_process_registry_config_exception() throw()
   : process_registry_exception()
@@ -56,13 +49,6 @@ null_process_registry_config_exception
 null_process_registry_config_exception
 ::~null_process_registry_config_exception() throw()
 {
-}
-
-char const*
-null_process_registry_config_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 no_such_process_type_exception
@@ -83,13 +69,6 @@ no_such_process_type_exception
 {
 }
 
-char const*
-no_such_process_type_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 process_type_already_exists_exception
 ::process_type_already_exists_exception(process_registry::type_t const& type) throw()
   : process_registry_exception()
@@ -106,13 +85,6 @@ process_type_already_exists_exception
 process_type_already_exists_exception
 ::~process_type_already_exists_exception() throw()
 {
-}
-
-char const*
-process_type_already_exists_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 }

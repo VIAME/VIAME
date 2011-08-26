@@ -33,13 +33,6 @@ null_schedule_config_exception
 {
 }
 
-char const*
-null_schedule_config_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 null_schedule_pipeline_exception
 ::null_schedule_pipeline_exception() throw()
   : schedule_exception()
@@ -54,13 +47,6 @@ null_schedule_pipeline_exception
 null_schedule_pipeline_exception
 ::~null_schedule_pipeline_exception() throw()
 {
-}
-
-char const*
-null_schedule_pipeline_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 }

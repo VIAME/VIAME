@@ -154,15 +154,6 @@ class VISTK_PIPELINE_EXPORT bad_datum_cast_exception
     datum::datum_type_t const m_type;
     /// The reason for the failed cast.
     std::string const m_reason;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 template <typename T>

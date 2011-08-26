@@ -34,13 +34,6 @@ file_no_exist_exception
 {
 }
 
-char const*
-file_no_exist_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 not_a_file_exception
 ::not_a_file_exception(boost::filesystem::path const& path) throw()
   : load_pipe_exception()
@@ -56,13 +49,6 @@ not_a_file_exception
 not_a_file_exception
 ::~not_a_file_exception() throw()
 {
-}
-
-char const*
-not_a_file_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 file_open_exception
@@ -82,13 +68,6 @@ file_open_exception
 {
 }
 
-char const*
-file_open_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 stream_failure_exception
 ::stream_failure_exception(std::string const& msg) throw()
   : load_pipe_exception()
@@ -104,13 +83,6 @@ stream_failure_exception
 stream_failure_exception
 ::~stream_failure_exception() throw()
 {
-}
-
-char const*
-stream_failure_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 size_t const failed_to_parse::max_size = 64;
@@ -133,13 +105,6 @@ failed_to_parse
 failed_to_parse
 ::~failed_to_parse() throw()
 {
-}
-
-char const*
-failed_to_parse
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 }

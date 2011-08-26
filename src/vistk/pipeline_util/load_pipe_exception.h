@@ -13,8 +13,6 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include <string>
-
 /**
  * \file load_pipe_exception.h
  *
@@ -60,15 +58,6 @@ class VISTK_PIPELINE_UTIL_EXPORT file_no_exist_exception
 
     /// The path that does not exist.
     boost::filesystem::path const m_fname;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -95,15 +84,6 @@ class VISTK_PIPELINE_UTIL_EXPORT not_a_file_exception
 
     /// The path is not a file.
     boost::filesystem::path const m_path;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -130,15 +110,6 @@ class VISTK_PIPELINE_UTIL_EXPORT file_open_exception
 
     /// The path that was unable to be loaded.
     boost::filesystem::path const m_fname;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -165,15 +136,6 @@ class VISTK_PIPELINE_UTIL_EXPORT stream_failure_exception
 
     /// The message given for the stream failure.
     std::string const m_msg;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -205,17 +167,8 @@ class VISTK_PIPELINE_UTIL_EXPORT failed_to_parse
     std::string const m_where_full;
     /// Where the error occurred, abbreviated to 64 bytes.
     std::string const m_where_brief;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
   private:
     static size_t const max_size;
-
-    std::string m_what;
 };
 
 }

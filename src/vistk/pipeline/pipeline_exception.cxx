@@ -33,13 +33,6 @@ null_pipeline_config_exception
 {
 }
 
-char const*
-null_pipeline_config_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 null_process_addition_exception
 ::null_process_addition_exception() throw()
   : pipeline_addition_exception()
@@ -55,13 +48,6 @@ null_process_addition_exception
 null_process_addition_exception
 ::~null_process_addition_exception() throw()
 {
-}
-
-char const*
-null_process_addition_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 duplicate_process_name_exception
@@ -83,13 +69,6 @@ duplicate_process_name_exception
 {
 }
 
-char const*
-duplicate_process_name_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 no_such_process_exception
 ::no_such_process_exception(process::name_t const& name) throw()
   : pipeline_connection_exception()
@@ -107,13 +86,6 @@ no_such_process_exception
 no_such_process_exception
 ::~no_such_process_exception() throw()
 {
-}
-
-char const*
-no_such_process_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 connection_type_mismatch_exception
@@ -148,13 +120,6 @@ connection_type_mismatch_exception
 {
 }
 
-char const*
-connection_type_mismatch_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 connection_flag_mismatch_exception
 ::connection_flag_mismatch_exception(process::name_t const& upstream_name,
                                      process::port_t const& upstream_port,
@@ -182,13 +147,6 @@ connection_flag_mismatch_exception
 {
 }
 
-char const*
-connection_flag_mismatch_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 no_processes_exception
 ::no_processes_exception() throw()
   : pipeline_setup_exception()
@@ -205,13 +163,6 @@ no_processes_exception
 {
 }
 
-char const*
-no_processes_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 orphaned_processes_exception
 ::orphaned_processes_exception() throw()
   : pipeline_setup_exception()
@@ -226,13 +177,6 @@ orphaned_processes_exception
 orphaned_processes_exception
 ::~orphaned_processes_exception() throw()
 {
-}
-
-char const*
-orphaned_processes_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 no_such_group_exception
@@ -254,13 +198,6 @@ no_such_group_exception
 {
 }
 
-char const*
-no_such_group_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 no_such_group_port_exception
 ::no_such_group_port_exception(process::name_t const& name, process::port_t const& port) throw()
   : pipeline_exception()
@@ -279,13 +216,6 @@ no_such_group_port_exception
 no_such_group_port_exception
 ::~no_such_group_port_exception() throw()
 {
-}
-
-char const*
-no_such_group_port_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 group_output_already_mapped_exception
@@ -319,13 +249,6 @@ group_output_already_mapped_exception
 group_output_already_mapped_exception
 ::~group_output_already_mapped_exception() throw()
 {
-}
-
-char const*
-group_output_already_mapped_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 }

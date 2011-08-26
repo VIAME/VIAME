@@ -35,13 +35,6 @@ null_schedule_ctor_exception
 {
 }
 
-char const*
-null_schedule_ctor_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 null_schedule_registry_config_exception
 ::null_schedule_registry_config_exception() throw()
   : schedule_registry_exception()
@@ -58,13 +51,6 @@ null_schedule_registry_config_exception
 {
 }
 
-char const*
-null_schedule_registry_config_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 null_schedule_registry_pipeline_exception
 ::null_schedule_registry_pipeline_exception() throw()
   : schedule_registry_exception()
@@ -79,13 +65,6 @@ null_schedule_registry_pipeline_exception
 null_schedule_registry_pipeline_exception
 ::~null_schedule_registry_pipeline_exception() throw()
 {
-}
-
-char const*
-null_schedule_registry_pipeline_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 no_such_schedule_type_exception
@@ -106,13 +85,6 @@ no_such_schedule_type_exception
 {
 }
 
-char const*
-no_such_schedule_type_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 schedule_type_already_exists_exception
 ::schedule_type_already_exists_exception(schedule_registry::type_t const& type) throw()
   : schedule_registry_exception()
@@ -129,13 +101,6 @@ schedule_type_already_exists_exception
 schedule_type_already_exists_exception
 ::~schedule_type_already_exists_exception() throw()
 {
-}
-
-char const*
-schedule_type_already_exists_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 }

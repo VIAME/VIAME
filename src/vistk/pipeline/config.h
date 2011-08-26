@@ -227,15 +227,6 @@ class VISTK_PIPELINE_EXPORT no_such_configuration_value_exception
 
     /// The requested key name.
     config::key_t const m_key;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -271,15 +262,6 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast_exception
     std::string const m_type;
     /// The reason for the failed cast.
     std::string const m_reason;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -312,15 +294,6 @@ class VISTK_PIPELINE_EXPORT set_on_read_only_value_exception
     config::value_t const m_value;
     /// The new value.
     config::value_t const m_new_value;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -350,15 +323,6 @@ class VISTK_PIPELINE_EXPORT unset_on_read_only_value_exception
     config::key_t const m_key;
     /// The existing value.
     config::value_t const m_value;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 template <typename T>

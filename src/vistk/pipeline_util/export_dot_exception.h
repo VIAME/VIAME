@@ -11,8 +11,6 @@
 
 #include <vistk/pipeline/types.h>
 
-#include <string>
-
 /**
  * \file export_dot_exception.h
  *
@@ -53,15 +51,6 @@ class VISTK_PIPELINE_UTIL_EXPORT null_pipeline_export_dot_exception
      * \brief Destructor.
      */
     ~null_pipeline_export_dot_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 }

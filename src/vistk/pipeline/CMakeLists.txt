@@ -17,6 +17,7 @@ set(pipeline_srcs
   schedule_registry.cxx
   schedule_registry_exception.cxx
   stamp.cxx
+  types.cxx
   utils.cxx)
 
 set(pipeline_headers

@@ -11,8 +11,6 @@
 
 #include "pipe_declaration_types.h"
 
-#include <string>
-
 /**
  * \file pipe_bakery_exception.h
  *
@@ -61,15 +59,6 @@ class VISTK_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
     config::key_t const m_key;
     /// The unrecognized flag.
     config_flag_t const m_flag;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -102,15 +91,6 @@ class VISTK_PIPELINE_UTIL_EXPORT unrecognized_provider_exception
     config_provider_t const m_provider;
     /// The index requested from the provider.
     config::value_t const m_index;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -132,15 +112,6 @@ class VISTK_PIPELINE_UTIL_EXPORT circular_config_provide_exception
      * \brief Destructor.
      */
     ~circular_config_provide_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -165,15 +136,6 @@ class VISTK_PIPELINE_UTIL_EXPORT unrecognized_system_index_exception
 
     /// The index that was requested.
     config::value_t const m_index;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 }

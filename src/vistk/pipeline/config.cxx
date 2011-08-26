@@ -230,13 +230,6 @@ no_such_configuration_value_exception
 {
 }
 
-char const*
-no_such_configuration_value_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 bad_configuration_cast_exception
 ::bad_configuration_cast_exception(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) throw()
   : configuration_exception()
@@ -257,13 +250,6 @@ bad_configuration_cast_exception
 bad_configuration_cast_exception
 ::~bad_configuration_cast_exception() throw()
 {
-}
-
-char const*
-bad_configuration_cast_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 set_on_read_only_value_exception
@@ -288,13 +274,6 @@ set_on_read_only_value_exception
 {
 }
 
-char const*
-set_on_read_only_value_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 unset_on_read_only_value_exception
 ::unset_on_read_only_value_exception(config::key_t const& key, config::value_t const& value) throw()
   : configuration_exception()
@@ -314,13 +293,6 @@ unset_on_read_only_value_exception
 unset_on_read_only_value_exception
 ::~unset_on_read_only_value_exception() throw()
 {
-}
-
-char const*
-unset_on_read_only_value_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 bool

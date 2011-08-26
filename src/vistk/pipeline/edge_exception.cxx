@@ -33,13 +33,6 @@ null_edge_config_exception
 {
 }
 
-char const*
-null_edge_config_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 null_process_connection_exception
 ::null_process_connection_exception() throw()
   : edge_connection_exception()
@@ -54,13 +47,6 @@ null_process_connection_exception
 null_process_connection_exception
 ::~null_process_connection_exception() throw()
 {
-}
-
-char const*
-null_process_connection_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 duplicate_edge_connection_exception
@@ -82,13 +68,6 @@ duplicate_edge_connection_exception
 duplicate_edge_connection_exception
 ::~duplicate_edge_connection_exception() throw()
 {
-}
-
-char const*
-duplicate_edge_connection_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 input_already_connected_exception

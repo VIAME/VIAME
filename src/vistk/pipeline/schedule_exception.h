@@ -11,8 +11,6 @@
 
 #include "types.h"
 
-#include <string>
-
 /**
  * \file schedule_exception.h
  *
@@ -53,15 +51,6 @@ class VISTK_PIPELINE_EXPORT null_schedule_config_exception
      * \brief Destructor.
      */
     ~null_schedule_config_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -83,15 +72,6 @@ class VISTK_PIPELINE_EXPORT null_schedule_pipeline_exception
      * \brief Destructor.
      */
     ~null_schedule_pipeline_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 }

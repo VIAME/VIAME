@@ -15,8 +15,6 @@
 #include <boost/operators.hpp>
 #include <boost/utility.hpp>
 
-#include <string>
-#include <map>
 #include <vector>
 
 /**

@@ -55,15 +55,6 @@ class VISTK_PIPELINE_EXPORT null_edge_config_exception
      * \brief Destructor.
      */
     ~null_edge_config_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -97,15 +88,6 @@ class VISTK_PIPELINE_EXPORT null_process_connection_exception
      * \brief Destructor.
      */
     ~null_process_connection_exception() throw();
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-  private:
-    std::string m_what;
 };
 
 /**
@@ -132,19 +114,10 @@ class VISTK_PIPELINE_EXPORT duplicate_edge_connection_exception
      */
     virtual ~duplicate_edge_connection_exception() throw();
 
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const throw();
-
     /// The name of the process which was already connected.
     process::name_t const m_process;
     /// The name of the process which was attempted to be connected.
     process::name_t const m_new_process;
-  private:
-    std::string m_what;
 };
 
 /**

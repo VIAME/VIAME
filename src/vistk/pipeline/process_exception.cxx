@@ -33,13 +33,6 @@ null_process_config_exception
 {
 }
 
-char const*
-null_process_config_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 reinitialization_exception
 ::reinitialization_exception(process::name_t const& process) throw()
   : process_exception()
@@ -58,13 +51,6 @@ reinitialization_exception
 {
 }
 
-char const*
-reinitialization_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 uninitialized_exception
 ::uninitialized_exception(process::name_t const& process) throw()
   : process_exception()
@@ -81,13 +67,6 @@ uninitialized_exception
 uninitialized_exception
 ::~uninitialized_exception() throw()
 {
-}
-
-char const*
-uninitialized_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 port_connection_exception
@@ -122,13 +101,6 @@ connect_to_initialized_process_exception
 {
 }
 
-char const*
-connect_to_initialized_process_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 no_such_port_exception
 ::no_such_port_exception(process::name_t const& process, process::port_t const& port) throw()
   : port_connection_exception(process, port)
@@ -145,13 +117,6 @@ no_such_port_exception
 no_such_port_exception
 ::~no_such_port_exception() throw()
 {
-}
-
-char const*
-no_such_port_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 null_edge_port_connection_exception
@@ -172,13 +137,6 @@ null_edge_port_connection_exception
 {
 }
 
-char const*
-null_edge_port_connection_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 port_reconnect_exception
 ::port_reconnect_exception(process::name_t const& process, process::port_t const& port) throw()
   : port_connection_exception(process, port)
@@ -195,13 +153,6 @@ port_reconnect_exception
 port_reconnect_exception
 ::~port_reconnect_exception() throw()
 {
-}
-
-char const*
-port_reconnect_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 missing_connection_exception
@@ -223,13 +174,6 @@ missing_connection_exception
 {
 }
 
-char const*
-missing_connection_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 unknown_configuration_value_exception
 ::unknown_configuration_value_exception(process::name_t const& process, config::key_t const& key) throw()
   : process_configuration_exception()
@@ -248,13 +192,6 @@ unknown_configuration_value_exception
 unknown_configuration_value_exception
 ::~unknown_configuration_value_exception() throw()
 {
-}
-
-char const*
-unknown_configuration_value_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 invalid_configuration_value_exception
@@ -280,13 +217,6 @@ invalid_configuration_value_exception
 {
 }
 
-char const*
-invalid_configuration_value_exception
-::what() const throw()
-{
-  return m_what.c_str();
-}
-
 invalid_configuration_exception
 ::invalid_configuration_exception(process::name_t const& process, std::string const& reason) throw()
   : process_configuration_exception()
@@ -304,13 +234,6 @@ invalid_configuration_exception
 invalid_configuration_exception
 ::~invalid_configuration_exception() throw()
 {
-}
-
-char const*
-invalid_configuration_exception
-::what() const throw()
-{
-  return m_what.c_str();
 }
 
 }
