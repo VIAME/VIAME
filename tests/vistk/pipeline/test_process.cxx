@@ -6,9 +6,12 @@
 
 #include <test_common.h>
 
+#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_exception.h>
+
+#include <boost/make_shared.hpp>
 
 #include <exception>
 #include <iostream>
@@ -44,6 +47,9 @@ main(int argc, char* argv[])
 
 static void test_null_input_edge();
 static void test_null_output_edge();
+static void test_connect_after_init();
+static void test_reinit();
+static void test_step_before_init();
 
 void
 run_test(std::string const& test_name)
@@ -55,6 +61,18 @@ run_test(std::string const& test_name)
   else if (test_name == "null_output_edge")
   {
     test_null_output_edge();
+  }
+  else if (test_name == "connect_after_init")
+  {
+    test_connect_after_init();
+  }
+  else if (test_name == "reinit")
+  {
+    test_reinit();
+  }
+  else if (test_name == "step_before_init")
+  {
+    test_step_before_init();
   }
   else
   {
@@ -90,6 +108,50 @@ test_null_output_edge()
   EXPECT_EXCEPTION(vistk::null_edge_port_connection_exception,
                    process->connect_output_port(vistk::process::port_t(), edge),
                    "connecting a NULL edge to an output port");
+}
+
+void
+test_connect_after_init()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+
+  process->init();
+
+  EXPECT_EXCEPTION(vistk::connect_to_initialized_process_exception,
+                   process->connect_input_port(vistk::process::port_t(), edge),
+                   "connecting an input edge after initialization");
+}
+
+void
+test_reinit()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+
+  process->init();
+
+  EXPECT_EXCEPTION(vistk::reinitialization_exception,
+                   process->init(),
+                   "reinitializing a process");
+}
+
+void
+test_step_before_init()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+
+  EXPECT_EXCEPTION(vistk::uninitialized_exception,
+                   process->step(),
+                   "stepping before initialization");
 }
 
 vistk::process_t

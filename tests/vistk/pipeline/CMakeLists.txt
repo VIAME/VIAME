@@ -74,6 +74,9 @@ vistk_build_test(process libraries test_process.cxx)
 
 vistk_make_test(process null_input_edge)
 vistk_make_test(process null_output_edge)
+vistk_make_test(process connect_after_init)
+vistk_make_test(process reinit)
+vistk_make_test(process step_before_init)
 
 ##############################
 # Pipeline tests
