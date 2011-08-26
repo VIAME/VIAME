@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_IMAGE_VIL_HELPER_H
-#define VISTK_PROCESSES_IMAGE_VIL_HELPER_H
+#ifndef VISTK_PROCESSES_IMAGE_IMAGE_HELPER_H
+#define VISTK_PROCESSES_IMAGE_IMAGE_HELPER_H
 
 #include "image-config.h"
 
@@ -37,7 +37,7 @@ typedef boost::function<datum_t (datum_t const&)> gray_func_t;
 typedef boost::function<datum_t (datum_t const&, size_t, size_t, size_t, size_t)> crop_func_t;
 
 /**
- * \class pixtypes "vil_helper.h"
+ * \class pixtypes "image_helper.h"
  *
  * \brief Names for common pixtypes.
  */
@@ -63,12 +63,12 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT pixtypes
 };
 
 /**
- * \class vil_helper "vil_helper.h"
+ * \class image_helper "image_helper.h"
  *
- * \brief Helper class to help with managing vil types.
+ * \brief Helper class to help with managing image types.
  */
 template <class PixType>
-class VISTK_PROCESSES_IMAGE_NO_EXPORT vil_helper
+class VISTK_PROCESSES_IMAGE_NO_EXPORT image_helper
 {
   public:
     /**
@@ -131,4 +131,4 @@ crop_func_t VISTK_PROCESSES_IMAGE_NO_EXPORT crop_for_pixtype(pixtype_t const& pi
 
 }
 
-#endif // VISTK_PROCESSES_IMAGE_VIL_HELPER_H
+#endif // VISTK_PROCESSES_IMAGE_IMAGE_HELPER_H

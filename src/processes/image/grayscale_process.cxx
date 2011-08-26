@@ -6,7 +6,7 @@
 
 #include "grayscale_process.h"
 
-#include "vil_helper.h"
+#include "image_helper.h"
 
 #include <vistk/pipeline/process_exception.h>
 

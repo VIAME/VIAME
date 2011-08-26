@@ -6,7 +6,7 @@
 
 #include "image_reader_process.h"
 
-#include "vil_helper.h"
+#include "image_helper.h"
 
 #include <vistk/pipeline_types/image_types.h>
 

@@ -3,10 +3,17 @@ project(vistk_processes_image)
 set(image_srcs
   crop_image_process.cxx
   grayscale_process.cxx
+  image_helper.cxx
   image_reader_process.cxx
   image_writer_process.cxx
-  registration.cxx
-  vil_helper.cxx)
+  registration.cxx)
+
+set(image_helper_process_build_options
+  ${boost_filesystem_options})
+
+set_source_files_properties(image_helper_process.cxx
+  PROPERTIES
+    COMPILE_DEFINITIONS "${image_helper_process_build_options}")
 
 set(image_reader_process_build_options
   ${boost_filesystem_options})
@@ -21,13 +28,6 @@ set(image_writer_process_build_options
 set_source_files_properties(image_writer_process.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${image_writer_process_build_options}")
-
-set(vil_helper_process_build_options
-  ${boost_filesystem_options})
-
-set_source_files_properties(vil_helper_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${vil_helper_process_build_options}")
 
 add_vistk_plugin(processes_image
   MAKE_VISTK_PROCESSES_IMAGE_LIB

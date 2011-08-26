@@ -4,7 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "vil_helper.h"
+#include "image_helper.h"
 
 #include <vistk/pipeline_types/image_types.h>
 
@@ -34,25 +34,25 @@ pixtypes
 }
 
 template <> template <>
-process::port_type_t const vil_helper<uint8_t>::port_types<false, true>::type = image_types::t_byte_rgb;
+process::port_type_t const image_helper<uint8_t>::port_types<false, true>::type = image_types::t_byte_rgb;
 template <> template <>
-process::port_type_t const vil_helper<uint8_t>::port_types<false, false>::type = image_types::t_byte_rgb;
+process::port_type_t const image_helper<uint8_t>::port_types<false, false>::type = image_types::t_byte_rgb;
 template <> template <>
-process::port_type_t const vil_helper<uint8_t>::port_types<true, true>::type = image_types::t_byte_grayscale;
+process::port_type_t const image_helper<uint8_t>::port_types<true, true>::type = image_types::t_byte_grayscale;
 template <> template <>
-process::port_type_t const vil_helper<uint8_t>::port_types<true, false>::type = image_types::t_byte_grayscale;
+process::port_type_t const image_helper<uint8_t>::port_types<true, false>::type = image_types::t_byte_grayscale;
 
 template <> template <>
-process::port_type_t const vil_helper<float>::port_types<false, true>::type = image_types::t_float_rgb;
+process::port_type_t const image_helper<float>::port_types<false, true>::type = image_types::t_float_rgb;
 template <> template <>
-process::port_type_t const vil_helper<float>::port_types<false, false>::type = image_types::t_float_rgb;
+process::port_type_t const image_helper<float>::port_types<false, false>::type = image_types::t_float_rgb;
 template <> template <>
-process::port_type_t const vil_helper<float>::port_types<true, true>::type = image_types::t_float_grayscale;
+process::port_type_t const image_helper<float>::port_types<true, true>::type = image_types::t_float_grayscale;
 template <> template <>
-process::port_type_t const vil_helper<float>::port_types<true, false>::type = image_types::t_float_grayscale;
+process::port_type_t const image_helper<float>::port_types<true, false>::type = image_types::t_float_grayscale;
 
 template <class PixType> template <bool Grayscale, bool Alpha>
-process::port_type_t const vil_helper<PixType>::port_types<Grayscale, Alpha>::type = process::type_none;
+process::port_type_t const image_helper<PixType>::port_types<Grayscale, Alpha>::type = process::type_none;
 
 namespace
 {
@@ -218,22 +218,22 @@ port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
   {
     if (grayscale)
     {
-      return vil_helper<uint8_t>::port_types<true>::type;
+      return image_helper<uint8_t>::port_types<true>::type;
     }
     else
     {
-      return vil_helper<uint8_t>::port_types<false>::type;
+      return image_helper<uint8_t>::port_types<false>::type;
     }
   }
   else if (pixtype == pixtypes::pixtypes::pixtype_float())
   {
     if (grayscale)
     {
-      return vil_helper<float>::port_types<true>::type;
+      return image_helper<float>::port_types<true>::type;
     }
     else
     {
-      return vil_helper<float>::port_types<false>::type;
+      return image_helper<float>::port_types<false>::type;
     }
   }
 
