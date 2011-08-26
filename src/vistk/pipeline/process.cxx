@@ -113,6 +113,7 @@ class process::priv
 
     config_t const conf;
 
+    bool initialized;
     bool is_complete;
 
     stamp_t hb_stamp;
@@ -126,6 +127,13 @@ void
 process
 ::init()
 {
+  if (d->initialized)
+  {
+    throw reinitialization_exception(d->name);
+  }
+
+  d->initialized = true;
+
   _init();
 }
 
@@ -133,6 +141,11 @@ void
 process
 ::step()
 {
+  if (!d->initialized)
+  {
+    throw uninitialized_exception(d->name);
+  }
+
   /// \todo Make reentrant.
 
   /// \todo Are there any pre-_step actions?
@@ -165,6 +178,11 @@ process
   if (!edge)
   {
     throw null_edge_port_connection_exception(d->name, port);
+  }
+
+  if (d->initialized)
+  {
+    throw connect_to_initialized_process_exception(d->name, port);
   }
 
   edge_ref_t const ref = edge_ref_t(edge);
@@ -572,7 +590,8 @@ process
 
 process::priv
 ::priv()
-  : is_complete(false)
+  : initialized(false)
+  , is_complete(false)
   , hb_stamp(stamp::new_stamp())
 {
 }

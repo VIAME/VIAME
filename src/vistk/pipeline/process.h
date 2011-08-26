@@ -186,11 +186,15 @@ class VISTK_PIPELINE_EXPORT process
 
     /**
      * \brief Post-connection initialization.
+     *
+     * \throws reinitialization_exception Thrown if called multiple times.
      */
     void init();
 
     /**
      * \brief Steps through one iteration of the process.
+     *
+     * \throws uninitialized_exception Thrown if called before \ref init.
      */
     void step();
 
@@ -214,6 +218,7 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Connects an edge to an input port on the process.
      *
      * \throws null_edge_port_connection_exception Thrown when \p edge is \c NULL.
+     * \throws connect_to_initialized_process_exception Thrown if called after \ref init.
      * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to connect to.
