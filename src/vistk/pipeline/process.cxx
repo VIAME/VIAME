@@ -439,6 +439,14 @@ process
 ::mark_as_complete()
 {
   d->is_complete = true;
+
+  // Indicate to input edges that we are complete.
+  BOOST_FOREACH (priv::input_edge_map_t::value_type& port_edge, d->input_edges)
+  {
+    edge_t edge = port_edge.second.lock();
+
+    edge->mark_downstream_as_complete();
+  }
 }
 
 stamp_t
