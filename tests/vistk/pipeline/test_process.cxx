@@ -67,7 +67,7 @@ static vistk::process_t create_process(vistk::process_registry::type_t const& ty
 void
 test_null_input_edge()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
@@ -81,7 +81,7 @@ test_null_input_edge()
 void
 test_null_output_edge()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
