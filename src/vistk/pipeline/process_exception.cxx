@@ -40,6 +40,56 @@ null_process_config_exception
   return m_what.c_str();
 }
 
+reinitialization_exception
+::reinitialization_exception(process::name_t const& process) throw()
+  : process_exception()
+  , m_process(process)
+{
+  std::ostringstream sstr;
+
+  sstr << "The process \'" << m_process << "\' "
+          "was initialized a second time.";
+
+  m_what = sstr.str();
+}
+
+reinitialization_exception
+::~reinitialization_exception() throw()
+{
+}
+
+char const*
+reinitialization_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
+uninitialized_exception
+::uninitialized_exception(process::name_t const& process) throw()
+  : process_exception()
+  , m_process(process)
+{
+  std::ostringstream sstr;
+
+  sstr << "The process \'" << m_process << "\' "
+          "was stepped before initialization.";
+
+  m_what = sstr.str();
+}
+
+uninitialized_exception
+::~uninitialized_exception() throw()
+{
+}
+
+char const*
+uninitialized_exception
+::what() const throw()
+{
+  return m_what.c_str();
+}
+
 port_connection_exception
 ::port_connection_exception(process::name_t const& process, process::port_t const& port) throw()
   : process_exception()
@@ -51,6 +101,32 @@ port_connection_exception
 port_connection_exception
 ::~port_connection_exception() throw()
 {
+}
+
+connect_to_initialized_process_exception
+::connect_to_initialized_process_exception(process::name_t const& process, process::port_t const& port) throw()
+  : port_connection_exception(process, port)
+{
+  std::ostringstream sstr;
+
+  sstr << "The port \'" << m_port << "\' "
+          "on process \'" << m_process << "\' "
+          "was requested for a connection after "
+          "initialization.";
+
+  m_what = sstr.str();
+}
+
+connect_to_initialized_process_exception
+::~connect_to_initialized_process_exception() throw()
+{
+}
+
+char const*
+connect_to_initialized_process_exception
+::what() const throw()
+{
+  return m_what.c_str();
 }
 
 no_such_port_exception

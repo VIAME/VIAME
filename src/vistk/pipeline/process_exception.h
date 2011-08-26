@@ -66,6 +66,76 @@ class VISTK_PIPELINE_EXPORT null_process_config_exception
 };
 
 /**
+ * \class reinitialization_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when a process is initialized for a second time.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT reinitialization_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     */
+    reinitialization_exception(process::name_t const& name) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~reinitialization_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_process;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
+ * \class uninitialized_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when a process is stepped before initialization.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT uninitialized_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     */
+    uninitialized_exception(process::name_t const& name) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~uninitialized_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_process;
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
+};
+
+/**
  * \class port_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief The base class used when an error occurs when connecting to a port.
@@ -92,6 +162,39 @@ class VISTK_PIPELINE_EXPORT port_connection_exception
     process::name_t const m_process;
     /// The name of the port which was connected to.
     process::port_t const m_port;
+};
+
+/**
+ * \class connect_to_initialized_process_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when a connection is requested to be made to an initialized process.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT connect_to_initialized_process_exception
+  : public port_connection_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The name of the port.
+     */
+    connect_to_initialized_process_exception(process::name_t const& process, process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~connect_to_initialized_process_exception() throw();
+
+    /**
+     * \brief A description of the exception.
+     *
+     * \returns A string describing what went wrong.
+     */
+    char const* what() const throw();
+  private:
+    std::string m_what;
 };
 
 /**
