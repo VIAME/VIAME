@@ -23,13 +23,6 @@
 namespace vistk
 {
 
-namespace
-{
-
-typedef boost::filesystem::path path_t;
-
-}
-
 class image_writer_process::priv
 {
   public:
