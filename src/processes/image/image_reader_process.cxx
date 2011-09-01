@@ -124,8 +124,9 @@ image_reader_process
   if (path.empty())
   {
     config::value_t const value = config::value_t(path.begin(), path.end());
+    static std::string const reason = "The path given was empty";
 
-    throw invalid_configuration_value_exception(name(), priv::config_path, value, "The path given was empty");
+    throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
 
   d->fin.open(path.c_str());
