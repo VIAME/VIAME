@@ -15,6 +15,7 @@
 #include "process_registry.h"
 #include "types.h"
 
+#include <boost/scoped_ptr.hpp>
 #include <boost/utility.hpp>
 
 #include <set>
@@ -494,7 +495,7 @@ class VISTK_PIPELINE_EXPORT process
     static edge_datum_t grab_from_edge_ref(edge_ref_t const& edge);
   private:
     class priv;
-    boost::shared_ptr<priv> d;
+    boost::scoped_ptr<priv> d;
 };
 
 }

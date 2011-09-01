@@ -11,6 +11,8 @@
 
 #include <vistk/pipeline/process.h>
 
+#include <boost/scoped_ptr.hpp>
+
 namespace vistk
 {
 
@@ -81,7 +83,7 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT collate_process
     port_info_t _input_port_info(port_t const& port);
   private:
     class priv;
-    boost::shared_ptr<priv> d;
+    boost::scoped_ptr<priv> d;
 };
 
 }

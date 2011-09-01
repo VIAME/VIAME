@@ -33,7 +33,7 @@ const_process
 ::const_process(config_t const& config)
   : process(config)
 {
-  d = boost::make_shared<priv>();
+  d.reset(new priv);
 
   port_flags_t const_required;
 

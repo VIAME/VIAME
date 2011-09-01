@@ -11,7 +11,7 @@
 
 #include <vistk/pipeline/schedule.h>
 
-#include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace vistk
 {
@@ -56,7 +56,7 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT sync_schedule
     void stop();
   private:
     class priv;
-    boost::shared_ptr<priv> d;
+    boost::scoped_ptr<priv> d;
 };
 
 }

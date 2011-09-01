@@ -53,7 +53,7 @@ distribute_process
 ::distribute_process(config_t const& config)
   : process(config)
 {
-  d = boost::make_shared<priv>();
+  d.reset(new priv);
 }
 
 distribute_process

@@ -13,6 +13,7 @@
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/operators.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/utility.hpp>
 
 #include <vector>
@@ -158,7 +159,7 @@ class VISTK_PIPELINE_EXPORT edge
     void set_downstream_process(process_t process);
   private:
     class priv;
-    boost::shared_ptr<priv> d;
+    boost::scoped_ptr<priv> d;
 };
 
 /**

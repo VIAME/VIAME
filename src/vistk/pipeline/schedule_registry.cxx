@@ -13,7 +13,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
 
 #include <map>
 #include <set>
@@ -160,7 +159,7 @@ schedule_registry
 schedule_registry
 ::schedule_registry()
 {
-  d = boost::make_shared<priv>();
+  d.reset(new priv);
 }
 
 schedule_registry::priv

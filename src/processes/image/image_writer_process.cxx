@@ -90,7 +90,7 @@ image_writer_process
 
   write_func_t const func = write_for_pixtype(pixtype);
 
-  d = boost::make_shared<priv>(path, format, func);
+  d.reset(new priv(path, format, func));
 
   port_type_t const port_type_input = port_type_for_pixtype(pixtype, grayscale);
 

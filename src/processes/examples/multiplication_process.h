@@ -11,6 +11,8 @@
 
 #include <vistk/pipeline/process.h>
 
+#include <boost/scoped_ptr.hpp>
+
 namespace vistk
 {
 
@@ -55,7 +57,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT multiplication_process
     void _step();
   private:
     class priv;
-    boost::shared_ptr<priv> d;
+    boost::scoped_ptr<priv> d;
 };
 
 }

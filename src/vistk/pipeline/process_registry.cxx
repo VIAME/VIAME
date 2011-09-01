@@ -15,7 +15,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
 
 #include <map>
 #include <set>
@@ -157,7 +156,7 @@ process_registry
 process_registry
 ::process_registry()
 {
-  d = boost::make_shared<priv>();
+  d.reset(new priv);
 }
 
 process_registry::priv

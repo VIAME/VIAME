@@ -57,7 +57,7 @@ number_process
   priv::number_t start = config->get_value<priv::number_t>(priv::config_start, priv::default_start);
   priv::number_t end = config->get_value<priv::number_t>(priv::config_end, priv::default_end);
 
-  d = boost::make_shared<priv>(start, end);
+  d.reset(new priv(start, end));
 
   port_flags_t required;
 

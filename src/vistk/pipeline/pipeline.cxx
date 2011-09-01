@@ -66,7 +66,7 @@ pipeline
     throw null_pipeline_config_exception();
   }
 
-  d = boost::make_shared<priv>();
+  d.reset(new priv);
 }
 
 pipeline

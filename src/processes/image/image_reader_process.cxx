@@ -72,7 +72,7 @@ image_reader_process
 
   read_func_t const func = read_for_pixtype(pixtype);
 
-  d = boost::make_shared<priv>(path, func);
+  d.reset(new priv(path, func));
 
   port_type_t const port_type_output = port_type_for_pixtype(pixtype, grayscale);
 

@@ -12,6 +12,7 @@
 #include "process.h"
 #include "types.h"
 
+#include <boost/scoped_ptr.hpp>
 #include <boost/utility.hpp>
 
 /**
@@ -319,7 +320,7 @@ class VISTK_PIPELINE_EXPORT pipeline
     process::port_addr_t mapped_group_output_port(process::name_t const& name, process::port_t const& port) const;
   private:
     class priv;
-    boost::shared_ptr<priv> d;
+    boost::scoped_ptr<priv> d;
 };
 
 }

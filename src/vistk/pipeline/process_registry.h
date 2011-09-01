@@ -12,6 +12,7 @@
 #include "types.h"
 
 #include <boost/function.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include <string>
 #include <vector>
@@ -114,7 +115,7 @@ class VISTK_PIPELINE_EXPORT process_registry
     process_registry();
 
     class priv;
-    boost::shared_ptr<priv> d;
+    boost::scoped_ptr<priv> d;
 };
 
 }

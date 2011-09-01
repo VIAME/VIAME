@@ -47,7 +47,7 @@ print_string_process
 {
   priv::path_t path = config->get_value<priv::path_t>(priv::config_path, priv::path_t());
 
-  d = boost::make_shared<priv>(path);
+  d.reset(new priv(path));
 
   port_flags_t required;
 

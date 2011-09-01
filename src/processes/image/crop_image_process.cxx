@@ -72,7 +72,7 @@ crop_image_process
 
   crop_func_t const func = crop_for_pixtype(pixtype);
 
-  d = boost::make_shared<priv>(func, x, y, w, h);
+  d.reset(new priv(func, x, y, w, h));
 
   port_type_t const port_type = port_type_for_pixtype(pixtype, grayscale);
 

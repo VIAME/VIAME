@@ -26,7 +26,7 @@ sink_process
 ::sink_process(config_t const& config)
   : process(config)
 {
-  d = boost::make_shared<priv>();
+  d.reset(new priv);
 
   port_flags_t required;
 

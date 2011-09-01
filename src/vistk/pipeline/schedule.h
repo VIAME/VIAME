@@ -11,7 +11,7 @@
 
 #include "types.h"
 
-#include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/utility.hpp>
 
 /**
@@ -74,7 +74,7 @@ class VISTK_PIPELINE_EXPORT schedule
     pipeline_t pipeline() const;
   private:
     class priv;
-    boost::shared_ptr<priv> d;
+    boost::scoped_ptr<priv> d;
 };
 
 }

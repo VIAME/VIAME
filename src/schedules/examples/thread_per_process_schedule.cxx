@@ -31,7 +31,7 @@ thread_per_process_schedule
 ::thread_per_process_schedule(config_t const& config, pipeline_t const& pipe)
   : schedule(config, pipe)
 {
-  d = boost::make_shared<priv>();
+  d.reset(new priv);
 }
 
 thread_per_process_schedule

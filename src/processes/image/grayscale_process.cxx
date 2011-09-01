@@ -42,7 +42,7 @@ grayscale_process
 
   gray_func_t const func = gray_for_pixtype(pixtype);
 
-  d = boost::make_shared<priv>(func);
+  d.reset(new priv(func));
 
   port_type_t const port_type_input = port_type_for_pixtype(pixtype, false);
   port_type_t const port_type_output = port_type_for_pixtype(pixtype, true);
