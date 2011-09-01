@@ -67,7 +67,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT pixtypes
  *
  * \brief Helper class to help with managing image types.
  */
-template <class PixType>
+template <typename PixType>
 class VISTK_PROCESSES_IMAGE_NO_EXPORT image_helper
 {
   public:

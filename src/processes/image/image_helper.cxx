@@ -51,13 +51,13 @@ process::port_type_t const image_helper<float>::port_types<true, true>::type = i
 template <> template <>
 process::port_type_t const image_helper<float>::port_types<true, false>::type = image_types::t_float_grayscale;
 
-template <class PixType> template <bool Grayscale, bool Alpha>
+template <typename PixType> template <bool Grayscale, bool Alpha>
 process::port_type_t const image_helper<PixType>::port_types<Grayscale, Alpha>::type = process::type_none;
 
 namespace
 {
 
-template <class PixType>
+template <typename PixType>
 class vil_functions
 {
   public:
@@ -132,7 +132,7 @@ crop_for_pixtype(pixtype_t const& pixtype)
   return NULL;
 }
 
-template <class PixType>
+template <typename PixType>
 datum_t
 vil_functions<PixType>
 ::read(path_t const& path)
@@ -150,7 +150,7 @@ vil_functions<PixType>
   return datum::new_datum(img);
 }
 
-template <class PixType>
+template <typename PixType>
 void
 vil_functions<PixType>
 ::write(path_t const& path, datum_t const& dat)
@@ -168,7 +168,7 @@ vil_functions<PixType>
   }
 }
 
-template <class PixType>
+template <typename PixType>
 datum_t
 vil_functions<PixType>
 ::convert_to_gray(datum_t const& dat)
@@ -192,7 +192,7 @@ vil_functions<PixType>
   return datum::new_datum(gray_image);
 }
 
-template <class PixType>
+template <typename PixType>
 datum_t
 vil_functions<PixType>
 ::crop(datum_t const& dat, size_t x_offset, size_t y_offset, size_t width, size_t height)
