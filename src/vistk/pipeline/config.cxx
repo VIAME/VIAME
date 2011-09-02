@@ -211,6 +211,18 @@ config
   return i->second;
 }
 
+bad_configuration_cast
+::bad_configuration_cast(char const* reason) throw()
+  : configuration_exception()
+{
+  m_what = reason;
+}
+
+bad_configuration_cast
+::~bad_configuration_cast() throw()
+{
+}
+
 no_such_configuration_value_exception
 ::no_such_configuration_value_exception(config::key_t const& key) throw()
   : configuration_exception()

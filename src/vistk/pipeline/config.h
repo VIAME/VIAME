@@ -204,6 +204,29 @@ class VISTK_PIPELINE_EXPORT configuration_exception
 };
 
 /**
+ * \class bad_configuration_cast config.h <vistk/pipeline/config.h>
+ *
+ * \brief The inner exception thrown when casting fails.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT bad_configuration_cast
+  : public configuration_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param reason The reason for the bad cast.
+     */
+    bad_configuration_cast(char const* reason) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~bad_configuration_cast() throw();
+};
+
+/**
  * \class no_such_configuration_value_exception config.h <vistk/pipeline/config.h>
  *
  * \brief Thrown when a value is requested for a value which does not exist.
@@ -325,6 +348,81 @@ class VISTK_PIPELINE_EXPORT unset_on_read_only_value_exception
     config::value_t const m_value;
 };
 
+/**
+ * \brief Default cast handling of configuration values.
+ *
+ * \note Do not use this in user code. Use \ref config_cast instead.
+ *
+ * \param value The value to convert.
+ *
+ * \returns The value of \p value in the requested type.
+ */
+template <typename T>
+T VISTK_PIPELINE_EXPORT
+config_cast_default(config::value_t const& value)
+{
+  try
+  {
+    return boost::lexical_cast<T>(value);
+  }
+  catch (boost::bad_lexical_cast& e)
+  {
+    throw bad_configuration_cast(e.what());
+  }
+}
+
+/**
+ * \brief Type-specific casting handling.
+ *
+ * \note Do not use this in user code. Use \ref config_cast instead.
+ *
+ * \param value The value to convert.
+ *
+ * \returns The value of \p value in the requested type.
+ */
+template <typename T>
+T VISTK_PIPELINE_EXPORT
+config_cast_inner(config::value_t const& value)
+{
+  return config_cast_default<T>(value);
+}
+
+template <>
+inline
+bool VISTK_PIPELINE_EXPORT
+config_cast_inner(config::value_t const& value)
+{
+  static config::value_t const true_string = config::value_t("true");
+  static config::value_t const false_string = config::value_t("false");
+
+  if (value == true_string)
+  {
+    return true;
+  }
+  else if (value == false_string)
+  {
+    return false;
+  }
+
+  return config_cast_default<bool>(value);
+}
+
+/**
+ * \brief Casts a configuration value to the requested type.
+ *
+ * \throws bad_configuration_cast Thrown when the conversion fails.
+ *
+ * \param value The value to convert.
+ *
+ * \returns The value of \p value in the requested type.
+ */
+template <typename T>
+T VISTK_PIPELINE_EXPORT
+config_cast(config::value_t const& value)
+{
+  return config_cast_inner<T>(value);
+}
+
 template <typename T>
 T
 config
@@ -339,46 +437,11 @@ config
 
   try
   {
-    return boost::lexical_cast<T>(*value);
+    return config_cast<T>(*value);
   }
-  catch (boost::bad_lexical_cast& e)
+  catch (bad_configuration_cast& e)
   {
     throw bad_configuration_cast_exception(key, *value, typeid(T).name(), e.what());
-  }
-}
-
-template <>
-inline
-bool
-config
-::get_value<bool>(key_t const& key) const
-{
-  boost::optional<value_t> value = find_value(key);
-
-  if (!value)
-  {
-    throw no_such_configuration_value_exception(key);
-  }
-
-  static value_t const true_string = value_t("true");
-  static value_t const false_string = value_t("false");
-
-  if (value == true_string)
-  {
-    return true;
-  }
-  else if (value == false_string)
-  {
-    return false;
-  }
-
-  try
-  {
-    return boost::lexical_cast<bool>(*value);
-  }
-  catch (boost::bad_lexical_cast& e)
-  {
-    throw bad_configuration_cast_exception(key, *value, typeid(bool).name(), e.what());
   }
 }
 
