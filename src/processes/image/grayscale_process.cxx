@@ -12,6 +12,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file grayscale_process.cxx
+ *
+ * \brief Implementation of the grayscale process.
+ */
+
 namespace vistk
 {
 

@@ -11,6 +11,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file mutate_process.cxx
+ *
+ * \brief Implementation of the mutate process.
+ */
+
 namespace vistk
 {
 

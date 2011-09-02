@@ -9,9 +9,18 @@
 
 #include "image-config.h"
 
+/**
+ * \file image/registration.h
+ *
+ * \brief Register schedules for use.
+ */
+
 extern "C"
 {
 
+/**
+ * \brief Register schedules.
+ */
 void VISTK_PROCESSES_IMAGE_EXPORT register_processes();
 
 }

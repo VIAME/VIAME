@@ -9,9 +9,18 @@
 
 #include "examples-config.h"
 
+/**
+ * \file examples/registration.h
+ *
+ * \brief Register schedules for use.
+ */
+
 extern "C"
 {
 
+/**
+ * \brief Register schedules.
+ */
 void VISTK_PROCESSES_EXAMPLES_EXPORT register_processes();
 
 }

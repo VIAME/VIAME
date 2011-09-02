@@ -9,6 +9,12 @@
 
 #include <vistk/config.h>
 
+/**
+ * \file image-config.h
+ *
+ * \brief Defines for symbol visibility in the image processes.
+ */
+
 #ifndef VISTK_PROCESSES_IMAGE_EXPORT
 #ifdef MAKE_VISTK_PROCESSES_IMAGE_LIB
 /// Export the symbol if building the library.

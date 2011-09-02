@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file multiplication_process.h
+ *
+ * \brief Declaration of the multiplication process.
+ */
+
 namespace vistk
 {
 

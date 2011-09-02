@@ -16,6 +16,12 @@
 
 #include <map>
 
+/**
+ * \file collate_process.cxx
+ *
+ * \brief Implementation of the collating process.
+ */
+
 namespace vistk
 {
 

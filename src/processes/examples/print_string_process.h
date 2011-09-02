@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file print_string_process.h
+ *
+ * \brief Declaration of the string printing process.
+ */
+
 namespace vistk
 {
 

@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file sync_schedule.h
+ *
+ * \brief Declaration of the synchronized schedule.
+ */
+
 namespace vistk
 {
 

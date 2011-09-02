@@ -11,6 +11,12 @@
 
 #include <vistk/pipeline/process.h>
 
+/**
+ * \file orphan_process.h
+ *
+ * \brief Declaration of the orphan process.
+ */
+
 namespace vistk
 {
 

@@ -14,6 +14,12 @@
 #include <vil/vil_load.h>
 #include <vil/vil_save.h>
 
+/**
+ * \file image_helper.cxx
+ *
+ * \brief Implementations of functions to help manage images in the pipeline.
+ */
+
 namespace vistk
 {
 

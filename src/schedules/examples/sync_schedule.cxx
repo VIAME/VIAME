@@ -23,6 +23,12 @@
 #include <map>
 #include <queue>
 
+/**
+ * \file sync_schedule.cxx
+ *
+ * \brief Implementation of the synchronized schedule.
+ */
+
 namespace vistk
 {
 

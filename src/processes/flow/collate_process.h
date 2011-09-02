@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file collate_process.h
+ *
+ * \brief Declaration of the collating process.
+ */
+
 namespace vistk
 {
 

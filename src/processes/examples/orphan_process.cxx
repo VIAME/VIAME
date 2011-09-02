@@ -6,6 +6,12 @@
 
 #include "orphan_process.h"
 
+/**
+ * \file orphan_process.cxx
+ *
+ * \brief Implementation of the orphan process.
+ */
+
 namespace vistk
 {
 

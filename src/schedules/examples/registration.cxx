@@ -15,6 +15,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file examples/registration.cxx
+ *
+ * \brief Register schedules for use.
+ */
+
 using namespace vistk;
 
 static schedule_t create_sync_schedule(config_t const& config, pipeline_t const& pipe);

@@ -9,7 +9,7 @@
 #include "basic_types.h"
 
 /**
- * \file image_types.h
+ * \file image_types.cxx
  *
  * \brief Basic port types within the pipeline.
  */

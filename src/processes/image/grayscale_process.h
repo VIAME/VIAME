@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file grayscale_process.h
+ *
+ * \brief Declaration of the grayscale process.
+ */
+
 namespace vistk
 {
 

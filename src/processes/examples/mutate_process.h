@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file mutate_process.h
+ *
+ * \brief Declaration of the mutate process.
+ */
+
 namespace vistk
 {
 

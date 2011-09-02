@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file print_number_process.h
+ *
+ * \brief Declaration of the number printing process.
+ */
+
 namespace vistk
 {
 

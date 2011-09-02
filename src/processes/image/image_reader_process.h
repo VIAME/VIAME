@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file image_reader_process.h
+ *
+ * \brief Declaration of the image reader process.
+ */
+
 namespace vistk
 {
 

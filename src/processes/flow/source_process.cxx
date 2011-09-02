@@ -11,6 +11,12 @@
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
+/**
+ * \file source_process.cxx
+ *
+ * \brief Implementation of the source process.
+ */
+
 namespace vistk
 {
 

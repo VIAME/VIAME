@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file thread_pool_schedule.h
+ *
+ * \brief Declaration of the thread pool schedule.
+ */
+
 namespace vistk
 {
 

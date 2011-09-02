@@ -15,6 +15,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file number_process.cxx
+ *
+ * \brief Implementation of the number process.
+ */
+
 namespace vistk
 {
 

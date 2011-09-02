@@ -8,6 +8,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file sink_process.cxx
+ *
+ * \brief Implementation of the sink process.
+ */
+
 namespace vistk
 {
 

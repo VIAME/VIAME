@@ -20,6 +20,12 @@
 #include <fstream>
 #include <string>
 
+/**
+ * \file image_reader_process.cxx
+ *
+ * \brief Implementation of the image reader process.
+ */
+
 namespace vistk
 {
 

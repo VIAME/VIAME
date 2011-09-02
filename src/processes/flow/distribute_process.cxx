@@ -16,6 +16,12 @@
 
 #include <map>
 
+/**
+ * \file distribute_process.cxx
+ *
+ * \brief Implementation of the distribute process.
+ */
+
 namespace vistk
 {
 

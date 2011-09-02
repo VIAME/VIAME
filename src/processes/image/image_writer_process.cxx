@@ -20,6 +20,12 @@
 
 #include <fstream>
 
+/**
+ * \file image_writer_process.cxx
+ *
+ * \brief Implementation of the image writer process.
+ */
+
 namespace vistk
 {
 

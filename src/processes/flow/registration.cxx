@@ -14,6 +14,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file flow/registration.cxx
+ *
+ * \brief Register schedules for use.
+ */
+
 using namespace vistk;
 
 static process_t create_collate_process(config_t const& config);

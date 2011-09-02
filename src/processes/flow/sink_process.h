@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file sink_process.h
+ *
+ * \brief Declaration of the sink process.
+ */
+
 namespace vistk
 {
 

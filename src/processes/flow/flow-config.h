@@ -9,6 +9,12 @@
 
 #include <vistk/config.h>
 
+/**
+ * \file flow-config.h
+ *
+ * \brief Defines for symbol visibility in the flow processes.
+ */
+
 #ifndef VISTK_PROCESSES_FLOW_EXPORT
 #ifdef MAKE_VISTK_PROCESSES_FLOW_LIB
 /// Export the symbol if building the library.

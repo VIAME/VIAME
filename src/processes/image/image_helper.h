@@ -17,6 +17,12 @@
 
 #include <string>
 
+/**
+ * \file image_helper.h
+ *
+ * \brief Types and functions to help manage images in the pipeline.
+ */
+
 namespace vistk
 {
 

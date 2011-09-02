@@ -18,6 +18,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file examples/registration.cxx
+ *
+ * \brief Register schedules for use.
+ */
+
 using namespace vistk;
 
 static process_t create_const_process(config_t const& config);

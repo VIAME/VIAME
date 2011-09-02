@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file image_writer_process.h
+ *
+ * \brief Declaration of the image writer process.
+ */
+
 namespace vistk
 {
 

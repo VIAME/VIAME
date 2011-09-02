@@ -16,6 +16,12 @@
 
 #include <algorithm>
 
+/**
+ * \file multiplication_process.cxx
+ *
+ * \brief Implementation of the multiplication process.
+ */
+
 namespace vistk
 {
 

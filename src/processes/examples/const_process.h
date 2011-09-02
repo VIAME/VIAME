@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file const_process.h
+ *
+ * \brief Declaration of the const process.
+ */
+
 namespace vistk
 {
 

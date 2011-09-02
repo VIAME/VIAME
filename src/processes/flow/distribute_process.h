@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file distribute_process.h
+ *
+ * \brief Declaration of the distribution process.
+ */
+
 namespace vistk
 {
 

@@ -9,9 +9,18 @@
 
 #include "flow-config.h"
 
+/**
+ * \file flow/registration.h
+ *
+ * \brief Register schedules for use.
+ */
+
 extern "C"
 {
 
+/**
+ * \brief Register schedules.
+ */
 void VISTK_PROCESSES_FLOW_EXPORT register_processes();
 
 }

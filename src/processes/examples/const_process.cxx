@@ -11,6 +11,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file const_process.cxx
+ *
+ * \brief Implementation of the const process.
+ */
+
 namespace vistk
 {
 

@@ -12,6 +12,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file crop_image_process.cxx
+ *
+ * \brief Implementation of the image cropping process.
+ */
+
 namespace vistk
 {
 

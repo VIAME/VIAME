@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file crop_image_process.h
+ *
+ * \brief Declaration of the image cropping process.
+ */
+
 namespace vistk
 {
 

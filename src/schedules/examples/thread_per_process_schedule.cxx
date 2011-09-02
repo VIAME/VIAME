@@ -13,6 +13,12 @@
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
+/**
+ * \file thread_per_process_schedule.cxx
+ *
+ * \brief Implementation of the thread-per-process schedule.
+ */
+
 namespace vistk
 {
 

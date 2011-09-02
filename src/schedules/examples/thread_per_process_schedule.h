@@ -13,6 +13,12 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \file thread_per_process_schedule.h
+ *
+ * \brief Declaration of the thread-per-process schedule.
+ */
+
 namespace vistk
 {
 

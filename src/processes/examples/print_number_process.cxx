@@ -17,6 +17,12 @@
 #include <iostream>
 #include <fstream>
 
+/**
+ * \file print_number_process.cxx
+ *
+ * \brief Implementation of the number printing process.
+ */
+
 namespace vistk
 {
 

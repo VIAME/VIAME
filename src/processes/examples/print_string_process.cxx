@@ -18,6 +18,12 @@
 #include <fstream>
 #include <string>
 
+/**
+ * \file print_string_process.cxx
+ *
+ * \brief Implementation of the string printing process.
+ */
+
 namespace vistk
 {
 
