@@ -41,19 +41,19 @@ class VISTK_PIPELINE_EXPORT datum
     typedef enum
     {
       /// An invalid type.
-      DATUM_INVALID,
+      invalid,
       /// Data is included in the edge.
-      DATUM_DATA,
+      data,
       /// No data was computed for the computation.
-      DATUM_EMPTY,
+      empty,
       /// The process is complete and no more data will be available on this edge.
-      DATUM_COMPLETE,
+      complete,
       /// An error occurred when computing the data.
-      DATUM_ERROR
-    } datum_type_t;
+      error
+    } type_t;
 
     /**
-     * \brief Create a datum with the #DATUM_DATA type.
+     * \brief Create a datum with the #data type.
      *
      * \param datum The data to pass through the edge.
      *
@@ -62,19 +62,19 @@ class VISTK_PIPELINE_EXPORT datum
     template <typename T>
     static datum_t new_datum(T const& datum);
     /**
-     * \brief Create a datum with the #DATUM_EMPTY type.
+     * \brief Create a datum with the #empty type.
      *
      * \returns A new datum which indicates that a result could not be computed.
      */
     static datum_t empty_datum();
     /**
-     * \brief Create a datum with the #DATUM_COMPLETE type.
+     * \brief Create a datum with the #complete type.
      *
      * \returns A new datum which indicates that the calculation of results is complete.
      */
     static datum_t complete_datum();
     /**
-     * \brief Create a datum with the #DATUM_ERROR type.
+     * \brief Create a datum with the #error type.
      *
      * \param error Information about the error that occurred.
      *
@@ -87,7 +87,7 @@ class VISTK_PIPELINE_EXPORT datum
      *
      * \returns The type of the datum.
      */
-    datum_type_t type() const;
+    type_t type() const;
 
     /**
      * \brief Queries for the error that occurred.
@@ -107,10 +107,10 @@ class VISTK_PIPELINE_EXPORT datum
     T get_datum() const;
   private:
     datum(bool is_complete);
-    datum(error_t const& error);
-    datum(boost::any const& datum);
+    datum(error_t const& err);
+    datum(boost::any const& dat);
 
-    datum_type_t const m_type;
+    type_t const m_type;
     error_t const m_error;
     boost::any const m_datum;
 };
@@ -144,14 +144,14 @@ class VISTK_PIPELINE_EXPORT bad_datum_cast_exception
      * \param type The type that was requested.
      * \param reason The reason for the bad cast.
      */
-    bad_datum_cast_exception(datum::datum_type_t const& type, char const* reason) throw();
+    bad_datum_cast_exception(datum::type_t const& type, char const* reason) throw();
     /**
      * \brief Destructor.
      */
     ~bad_datum_cast_exception() throw();
 
     /// The datum type.
-    datum::datum_type_t const m_type;
+    datum::type_t const m_type;
     /// The reason for the failed cast.
     std::string const m_reason;
 };

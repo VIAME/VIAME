@@ -38,7 +38,7 @@ datum
   return datum_t(new datum(error));
 }
 
-datum::datum_type_t
+datum::type_t
 datum
 ::type() const
 {
@@ -54,26 +54,26 @@ datum
 
 datum
 ::datum(bool is_complete)
-  : m_type(is_complete ? DATUM_COMPLETE : DATUM_EMPTY)
+  : m_type(is_complete ? complete : empty)
 {
 }
 
 datum
-::datum(error_t const& error)
-  : m_type(DATUM_ERROR)
-  , m_error(error)
+::datum(error_t const& err)
+  : m_type(error)
+  , m_error(err)
 {
 }
 
 datum
 ::datum(boost::any const& dat)
-  : m_type(DATUM_DATA)
+  : m_type(data)
   , m_datum(dat)
 {
 }
 
 bad_datum_cast_exception
-::bad_datum_cast_exception(datum::datum_type_t const& type, char const* reason) throw()
+::bad_datum_cast_exception(datum::type_t const& type, char const* reason) throw()
   : datum_exception()
   , m_type(type)
   , m_reason(reason)
