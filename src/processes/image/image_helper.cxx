@@ -169,6 +169,9 @@ crop_for_pixtype(pixtype_t const& pixtype)
   return NULL;
 }
 
+namespace
+{
+
 template <typename PixType>
 datum_t
 vil_functions<PixType>
@@ -244,6 +247,8 @@ vil_functions<PixType>
   }
 
   return datum::new_datum(crop_img);
+}
+
 }
 
 }
