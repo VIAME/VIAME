@@ -1,6 +1,6 @@
 #include <vistk/pipeline/process.h>
 
-#include <boost/make_shared.hpp>
+#include <boost/scoped_ptr.hpp>
 
 using namespace vistk;
 
@@ -11,11 +11,11 @@ class compare_string_process
     compare_string_process(config_t const& config);
     ~compare_string_process();
 
-    //void _init();
+    void _init();
     void _step();
   private:
     class priv;
-    boost::shared_ptr<priv> d;
+    boost::scoped_ptr<priv> d;
 };
 
 class compare_string_process::priv
@@ -27,14 +27,14 @@ class compare_string_process::priv
     bool const ignore_case;
 
     static config::key_t const config_icase;
-    static bool const default_icase;
+    static config::value_t const default_icase;
     static port_t const port_string1;
     static port_t const port_string2;
     static port_t const port_output;
 };
 
 config::key_t const compare_string_process::priv::config_icase = config::key_t("ignore_case");
-bool const compare_string_process::priv::default_icase = false;
+config::value_t const compare_string_process::priv::default_icase = config::value_t("false");
 process::port_t const compare_string_process::priv::port_string1 = process::port_t("string1");
 process::port_t const compare_string_process::priv::port_string2 = process::port_t("string2");
 process::port_t const compare_string_process::priv::port_output = process::port_t("are_same");
@@ -43,12 +43,8 @@ compare_string_process
 ::compare_string_process(config_t const& config)
   : process(config)
 {
-  bool const icase = config->get_value<bool>(priv::config_icase, priv::default_icase);
-
-  d = boost::make_shared<priv>(icase);
-
   declare_configuration_key(priv::config_icase, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_icase),
+    priv::default_icase,
     config::description_t("If set to \'true\', compares strings case insensitively.")));
 
   port_flags_t required;
@@ -75,6 +71,18 @@ compare_string_process::priv
 {
 }
 
+void
+compare_string_process
+::_init()
+{
+  // Configure the process.
+  {
+    bool const icase = config_value<bool>(priv::config_icase);
+
+    d.reset(new priv(icase));
+  }
+}
+
 #include <boost/algorithm/string/predicate.hpp>
 
 void
@@ -98,7 +106,7 @@ compare_string_process
 
   switch (info->max_status)
   {
-    case datum::DATUM_DATA:
+    case datum::data:
       if (!info->same_color)
       {
         st = heartbeat_stamp();
@@ -126,17 +134,17 @@ compare_string_process
         dat = datum::new_datum(cmp);
       }
       break;
-    case datum::DATUM_EMPTY:
+    case datum::empty:
       dat = datum::empty_datum();
       break;
-    case datum::DATUM_COMPLETE:
+    case datum::complete:
       mark_as_complete();
       dat = datum::complete_datum();
       break;
-    case datum::DATUM_ERROR:
+    case datum::error:
       dat = datum::error_datum("Error on the input edges.");
       break;
-    case datum::DATUM_INVALID:
+    case datum::invalid:
     default:
       dat = datum::error_datum("Unrecognized datum type.");
       break;
@@ -168,7 +176,14 @@ create_compare_string_process(config_t const& config)
 void
 register_processes()
 {
+  static process_registry::module_t const module_name = process_registry::module_t("example_processes");
+
   process_registry_t const registry = process_registry::self();
+
+  if (registry->is_module_loaded(module_name))
+  {
+    return;
+  }
 
   registry->register_process("compare_string", "Compares strings", create_compare_string_process);
 }
