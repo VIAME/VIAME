@@ -387,6 +387,18 @@ config_cast_inner(config::value_t const& value)
   return config_cast_default<T>(value);
 }
 
+/**
+ * \brief Type-specific casting handling.
+ *
+ * This is the \c bool specialization to handle \tt{true} and \tt{false}
+ * literals versus just \tt{1} and \tt{0}.
+ *
+ * \note Do not use this in user code. Use \ref config_cast instead.
+ *
+ * \param value The value to convert.
+ *
+ * \returns The value of \p value in the requested type.
+ */
 template <>
 inline
 bool VISTK_PIPELINE_EXPORT
