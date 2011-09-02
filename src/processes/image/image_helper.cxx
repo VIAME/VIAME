@@ -60,6 +60,37 @@ process::port_type_t const image_helper<float>::port_types<true, false>::type = 
 template <typename PixType> template <bool Grayscale, bool Alpha>
 process::port_type_t const image_helper<PixType>::port_types<Grayscale, Alpha>::type = process::type_none;
 
+process::port_type_t
+port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
+{
+  /// \todo Handle alpha parameter.
+
+  if (pixtype == pixtypes::pixtype_byte())
+  {
+    if (grayscale)
+    {
+      return image_helper<uint8_t>::port_types<true>::type;
+    }
+    else
+    {
+      return image_helper<uint8_t>::port_types<false>::type;
+    }
+  }
+  else if (pixtype == pixtypes::pixtypes::pixtype_float())
+  {
+    if (grayscale)
+    {
+      return image_helper<float>::port_types<true>::type;
+    }
+    else
+    {
+      return image_helper<float>::port_types<false>::type;
+    }
+  }
+
+  return process::type_none;
+}
+
 namespace
 {
 
@@ -213,37 +244,6 @@ vil_functions<PixType>
   }
 
   return datum::new_datum(crop_img);
-}
-
-process::port_type_t
-port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
-{
-  /// \todo Handle alpha parameter.
-
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    if (grayscale)
-    {
-      return image_helper<uint8_t>::port_types<true>::type;
-    }
-    else
-    {
-      return image_helper<uint8_t>::port_types<false>::type;
-    }
-  }
-  else if (pixtype == pixtypes::pixtypes::pixtype_float())
-  {
-    if (grayscale)
-    {
-      return image_helper<float>::port_types<true>::type;
-    }
-    else
-    {
-      return image_helper<float>::port_types<false>::type;
-    }
-  }
-
-  return process::type_none;
 }
 
 }
