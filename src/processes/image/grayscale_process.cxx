@@ -95,20 +95,20 @@ grayscale_process
 
   switch (input_datum->type())
   {
-    case datum::DATUM_DATA:
+    case datum::data:
       dat = d->convert(input_datum);
       break;
-    case datum::DATUM_EMPTY:
+    case datum::empty:
       dat = datum::empty_datum();
       break;
-    case datum::DATUM_COMPLETE:
+    case datum::complete:
       dat = datum::complete_datum();
       mark_as_complete();
       break;
-    case datum::DATUM_ERROR:
+    case datum::error:
       dat = datum::error_datum("Error on the input edges.");
       break;
-    case datum::DATUM_INVALID:
+    case datum::invalid:
     default:
       dat = datum::error_datum("Unrecognized datum type.");
       break;

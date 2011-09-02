@@ -110,7 +110,7 @@ collate_process
     data.push_back(coll_dat);
     data.push_back(color_dat);
 
-    if (edge_data_info(data)->max_status == datum::DATUM_COMPLETE)
+    if (edge_data_info(data)->max_status == datum::complete)
     {
       push_to_port(output_port, edge_datum_t(datum::complete_datum(), color_stamp));
 

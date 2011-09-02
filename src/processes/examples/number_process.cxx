@@ -129,16 +129,16 @@ number_process
 
     switch (color_dat.get<0>()->type())
     {
-      case datum::DATUM_COMPLETE:
+      case datum::complete:
         mark_as_complete();
         dat = datum::complete_datum();
-      case datum::DATUM_DATA:
-      case datum::DATUM_EMPTY:
+      case datum::data:
+      case datum::empty:
         break;
-      case datum::DATUM_ERROR:
+      case datum::error:
         dat = datum::error_datum("Error on the color input edge.");
         break;
-      case datum::DATUM_INVALID:
+      case datum::invalid:
       default:
         dat = datum::error_datum("Unrecognized datum type.");
         break;

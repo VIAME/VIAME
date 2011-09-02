@@ -34,7 +34,7 @@ def test_empty():
 
     d = datum.empty()
 
-    if not d.type() == datum.DatumType.EMPTY:
+    if not d.type() == datum.DatumType.empty:
         log("Error: Datum type mismatch")
 
     if len(d.get_error()):
@@ -49,7 +49,7 @@ def test_complete():
 
     d = datum.complete()
 
-    if not d.type() == datum.DatumType.COMPLETE:
+    if not d.type() == datum.DatumType.complete:
         log("Error: Datum type mismatch")
 
     if len(d.get_error()):
@@ -66,7 +66,7 @@ def test_error():
 
     d = datum.error(err)
 
-    if not d.type() == datum.DatumType.ERROR:
+    if not d.type() == datum.DatumType.error:
         log("Error: Datum type mismatch")
 
     if not d.get_error() == err:

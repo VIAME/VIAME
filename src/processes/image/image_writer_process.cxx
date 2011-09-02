@@ -159,7 +159,7 @@ image_writer_process
 
   switch (input_datum->type())
   {
-    case datum::DATUM_DATA:
+    case datum::data:
     {
       d->format.clear();
 
@@ -187,12 +187,12 @@ image_writer_process
       d->write(path, input_datum);
       break;
     }
-    case datum::DATUM_COMPLETE:
+    case datum::complete:
       mark_as_complete();
       break;
-    case datum::DATUM_EMPTY:
-    case datum::DATUM_ERROR:
-    case datum::DATUM_INVALID:
+    case datum::empty:
+    case datum::error:
+    case datum::invalid:
     default:
       break;
   }

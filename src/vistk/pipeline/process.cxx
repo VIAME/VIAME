@@ -69,7 +69,7 @@ process::conf_info
 process::data_info
 ::data_info(bool same_color_,
             bool in_sync_,
-            datum::datum_type_t max_status_)
+            datum::type_t max_status_)
   : same_color(same_color_)
   , in_sync(in_sync_)
   , max_status(max_status_)
@@ -553,14 +553,14 @@ process
 {
   bool same_color = true;
   bool in_sync = true;
-  datum::datum_type_t max_type = datum::DATUM_INVALID;
+  datum::type_t max_type = datum::invalid;
 
   edge_datum_t const& fst = data[0];
   stamp_t const& st = fst.get<1>();
 
   BOOST_FOREACH (edge_datum_t const& dat, data)
   {
-    datum::datum_type_t const type = dat.get<0>()->type();
+    datum::type_t const type = dat.get<0>()->type();
 
     if (max_type < type)
     {

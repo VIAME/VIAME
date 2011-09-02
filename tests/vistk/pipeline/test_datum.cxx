@@ -75,7 +75,7 @@ test_empty()
 {
   vistk::datum_t dat = vistk::datum::empty_datum();
 
-  if (dat->type() != vistk::datum::DATUM_EMPTY)
+  if (dat->type() != vistk::datum::empty)
   {
     TEST_ERROR("Datum type mismatch");
   }
@@ -95,7 +95,7 @@ test_complete()
 {
   vistk::datum_t dat = vistk::datum::complete_datum();
 
-  if (dat->type() != vistk::datum::DATUM_COMPLETE)
+  if (dat->type() != vistk::datum::complete)
   {
     TEST_ERROR("Datum type mismatch");
   }
@@ -116,7 +116,7 @@ test_error()
   vistk::datum::error_t const error = vistk::datum::error_t("An error");
   vistk::datum_t dat = vistk::datum::error_datum(error);
 
-  if (dat->type() != vistk::datum::DATUM_ERROR)
+  if (dat->type() != vistk::datum::error)
   {
     TEST_ERROR("Datum type mismatch");
   }
@@ -137,7 +137,7 @@ test_new()
   int const datum = 100;
   vistk::datum_t dat = vistk::datum::new_datum(100);
 
-  if (dat->type() != vistk::datum::DATUM_DATA)
+  if (dat->type() != vistk::datum::data)
   {
     TEST_ERROR("Datum type mismatch");
   }

@@ -26,13 +26,13 @@ BOOST_PYTHON_MODULE(datum)
   register_exception_translator<
     vistk::datum_exception>(translator);
 
-  enum_<vistk::datum::datum_type_t>("DatumType"
+  enum_<vistk::datum::type_t>("DatumType"
     , "A type for a datum packet.")
-    .value("INVALID", vistk::datum::DATUM_INVALID)
-    .value("DATA", vistk::datum::DATUM_DATA)
-    .value("EMPTY", vistk::datum::DATUM_EMPTY)
-    .value("COMPLETE", vistk::datum::DATUM_COMPLETE)
-    .value("ERROR", vistk::datum::DATUM_ERROR)
+    .value("invalid", vistk::datum::invalid)
+    .value("data", vistk::datum::data)
+    .value("empty", vistk::datum::empty)
+    .value("complete", vistk::datum::complete)
+    .value("error", vistk::datum::error)
   ;
 
   class_<vistk::datum::error_t>("DatumError"

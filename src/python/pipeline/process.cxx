@@ -168,7 +168,7 @@ BOOST_PYTHON_MODULE(process)
   class_<vistk::process::data_info, vistk::process::data_info_t>("DataInfo"
     , "Information about a set of data packets from edges."
     , no_init)
-    .def(init<bool, bool, vistk::datum::datum_type_t>())
+    .def(init<bool, bool, vistk::datum::type_t>())
     .def_readonly("same_color", &vistk::process::data_info::same_color)
     .def_readonly("in_sync", &vistk::process::data_info::in_sync)
     .def_readonly("max_status", &vistk::process::data_info::max_status)

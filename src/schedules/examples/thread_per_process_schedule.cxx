@@ -98,7 +98,7 @@ run_process(process_t process)
       edge_datum_t const edat = monitor_edge->get_datum();
       datum_t const dat = edat.get<0>();
 
-      if (dat->type() == datum::DATUM_COMPLETE)
+      if (dat->type() == datum::complete)
       {
         complete = true;
       }

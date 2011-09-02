@@ -123,7 +123,7 @@ run_sync(pipeline_t const& pipe)
       edge_datum_t const edat = monitor_edge->get_datum();
       datum_t const dat = edat.get<0>();
 
-      if (dat->type() == datum::DATUM_COMPLETE)
+      if (dat->type() == datum::complete)
       {
         proc_complete = true;
       }

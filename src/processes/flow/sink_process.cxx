@@ -51,13 +51,13 @@ sink_process
 
   switch (input_dat.get<0>()->type())
   {
-    case datum::DATUM_COMPLETE:
+    case datum::complete:
       mark_as_complete();
       break;
-    case datum::DATUM_DATA:
-    case datum::DATUM_EMPTY:
-    case datum::DATUM_ERROR:
-    case datum::DATUM_INVALID:
+    case datum::data:
+    case datum::empty:
+    case datum::error:
+    case datum::invalid:
     default:
       break;
   }

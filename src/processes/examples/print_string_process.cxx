@@ -99,21 +99,19 @@ print_string_process
 
   switch (input_dat.get<0>()->type())
   {
-    case datum::DATUM_DATA:
+    case datum::data:
     {
       priv::string_t const input = input_dat.get<0>()->get_datum<priv::string_t>();
 
       d->fout << input << std::endl;
       break;
     }
-    case datum::DATUM_EMPTY:
-      break;
-    case datum::DATUM_COMPLETE:
+    case datum::complete:
       mark_as_complete();
       break;
-    case datum::DATUM_ERROR:
-      break;
-    case datum::DATUM_INVALID:
+    case datum::empty:
+    case datum::error:
+    case datum::invalid:
     default:
       break;
   }

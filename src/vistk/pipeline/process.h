@@ -169,7 +169,7 @@ class VISTK_PIPELINE_EXPORT process
          */
         data_info(bool same_color_,
                   bool in_sync_,
-                  datum::datum_type_t max_status_);
+                  datum::type_t max_status_);
         /**
          * \brief Destructor.
          */
@@ -180,7 +180,7 @@ class VISTK_PIPELINE_EXPORT process
         /// True if the data is synchonized.
         bool const in_sync;
         /// The highest priority status in the set.
-        datum::datum_type_t const max_status;
+        datum::type_t const max_status;
     };
     /// Type for information about a set of data.
     typedef boost::shared_ptr<data_info const> data_info_t;

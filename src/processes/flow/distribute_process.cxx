@@ -97,7 +97,7 @@ distribute_process
     edge_datum_t const src_dat = grab_from_port(input_port);
     stamp_t const src_stamp = src_dat.get<1>();
 
-    if (src_dat.get<0>()->type() == datum::DATUM_COMPLETE)
+    if (src_dat.get<0>()->type() == datum::complete)
     {
       push_to_port(color_port, edge_datum_t(datum::complete_datum(), src_stamp));
 
