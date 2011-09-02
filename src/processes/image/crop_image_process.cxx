@@ -66,6 +66,9 @@ crop_image_process
   declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
     priv::default_pixtype,
     config::description_t("The pixel type of the input images.")));
+  declare_configuration_key(priv::config_grayscale, boost::make_shared<conf_info>(
+    priv::default_grayscale,
+    config::description_t("Set to \'true\' if the input is grayscale, \'false\' otherwise.")));
   declare_configuration_key(priv::config_x_offset, boost::make_shared<conf_info>(
     priv::default_x_offset,
     config::description_t("The x offset to start cropping at.")));
