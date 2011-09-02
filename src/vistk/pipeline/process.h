@@ -471,6 +471,24 @@ class VISTK_PIPELINE_EXPORT process
     void push_to_port(port_t const& port, edge_datum_t const& dat) const;
 
     /**
+     * \brief The configuration for the process.
+     *
+     * \returns The configuration for the process.
+     */
+    config_t get_config() const;
+    /**
+     * \brief Retrieves a configuration key
+     *
+     * \throws no_such_configuration_key_exception Thrown if \p key was not declared for the process.
+     *
+     * \param key The key to request for the value.
+     *
+     * \returns The value of the configuration.
+     */
+    template <typename T>
+    T config_value(config::key_t const& key) const;
+
+    /**
      * \brief Check a set of edge data for certain properites.
      *
      * \param data The data to inspect.
@@ -494,9 +512,19 @@ class VISTK_PIPELINE_EXPORT process
      */
     static edge_datum_t grab_from_edge_ref(edge_ref_t const& edge);
   private:
+    config::value_t config_value_raw(config::key_t const& key) const;
+
     class priv;
     boost::scoped_ptr<priv> d;
 };
+
+template <typename T>
+T
+process
+::config_value(config::key_t const& key) const
+{
+  return config_cast<T>(config_value_raw(key));
+}
 
 }
 

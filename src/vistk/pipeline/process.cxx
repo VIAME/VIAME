@@ -84,7 +84,7 @@ process::data_info
 class process::priv
 {
   public:
-    priv();
+    priv(config_t c);
     ~priv();
 
     void run_heartbeat();
@@ -295,7 +295,7 @@ process
     throw null_process_config_exception();
   }
 
-  d.reset(new priv);
+  d.reset(new priv(config));
 
   d->name = config->get_value<name_t>(config_name, priv::DEFAULT_PROCESS_NAME);
   d->type = config->get_value<process_registry::type_t>(config_type);
@@ -540,6 +540,13 @@ process
   }
 }
 
+config_t
+process
+::get_config() const
+{
+  return d->conf;
+}
+
 process::data_info_t
 process
 ::edge_data_info(edge_data_t const& data)
@@ -596,9 +603,29 @@ process
   return cur_edge->get_datum();
 }
 
+config::value_t
+process
+::config_value_raw(config::key_t const& key) const
+{
+  priv::conf_map_t::const_iterator const i = d->config_keys.find(key);
+
+  if (i == d->config_keys.end())
+  {
+    throw unknown_configuration_value_exception(d->name, key);
+  }
+
+  if (d->conf->has_value(key))
+  {
+    return d->conf->get_value<config::value_t>(key);
+  }
+
+  return i->second->def;
+}
+
 process::priv
-::priv()
-  : initialized(false)
+::priv(config_t c)
+  : conf(c)
+  , initialized(false)
   , is_complete(false)
   , hb_stamp(stamp::new_stamp())
 {
