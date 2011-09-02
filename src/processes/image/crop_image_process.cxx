@@ -35,11 +35,11 @@ class crop_image_process::priv
     static config::key_t const config_width;
     static config::key_t const config_height;
     static config::value_t const default_pixtype;
-    static bool const default_grayscale;
-    static size_t const default_x_offset;
-    static size_t const default_y_offset;
-    static size_t const default_width;
-    static size_t const default_height;
+    static config::value_t const default_grayscale;
+    static config::value_t const default_x_offset;
+    static config::value_t const default_y_offset;
+    static config::value_t const default_width;
+    static config::value_t const default_height;
     static port_t const port_input;
     static port_t const port_output;
 };
@@ -50,12 +50,12 @@ config::key_t const crop_image_process::priv::config_x_offset = config::key_t("x
 config::key_t const crop_image_process::priv::config_y_offset = config::key_t("y_offset");
 config::key_t const crop_image_process::priv::config_width = config::key_t("width");
 config::key_t const crop_image_process::priv::config_height = config::key_t("height");
-pixtype_t const crop_image_process::priv::default_pixtype = pixtypes::pixtype_byte();
-bool const crop_image_process::priv::default_grayscale = false;
-size_t const crop_image_process::priv::default_x_offset = 0;
-size_t const crop_image_process::priv::default_y_offset = 0;
-size_t const crop_image_process::priv::default_width = 0;
-size_t const crop_image_process::priv::default_height = 0;
+config::value_t const crop_image_process::priv::default_pixtype = config::value_t(pixtypes::pixtype_byte());
+config::value_t const crop_image_process::priv::default_grayscale = config::value_t("false");
+config::value_t const crop_image_process::priv::default_x_offset = config::value_t("0");
+config::value_t const crop_image_process::priv::default_y_offset = config::value_t("0");
+config::value_t const crop_image_process::priv::default_width = config::value_t("0");
+config::value_t const crop_image_process::priv::default_height = config::value_t("0");
 process::port_t const crop_image_process::priv::port_input = port_t("image");
 process::port_t const crop_image_process::priv::port_output = port_t("cropimage");
 
@@ -63,16 +63,24 @@ crop_image_process
 ::crop_image_process(config_t const& config)
   : process(config)
 {
-  pixtype_t const pixtype = config->get_value<pixtype_t>(priv::config_pixtype, priv::default_pixtype);
-  bool const grayscale = config->get_value<bool>(priv::config_grayscale, priv::default_grayscale);
-  size_t const x = config->get_value<size_t>(priv::config_x_offset, priv::default_x_offset);
-  size_t const y = config->get_value<size_t>(priv::config_y_offset, priv::default_y_offset);
-  size_t const w = config->get_value<size_t>(priv::config_width, priv::default_width);
-  size_t const h = config->get_value<size_t>(priv::config_height, priv::default_height);
+  declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
+    priv::default_pixtype,
+    config::description_t("The pixel type of the input images.")));
+  declare_configuration_key(priv::config_x_offset, boost::make_shared<conf_info>(
+    priv::default_x_offset,
+    config::description_t("The x offset to start cropping at.")));
+  declare_configuration_key(priv::config_y_offset, boost::make_shared<conf_info>(
+    priv::default_y_offset,
+    config::description_t("The y offset to start cropping at.")));
+  declare_configuration_key(priv::config_width, boost::make_shared<conf_info>(
+    priv::default_width,
+    config::description_t("The width of the cropped image.")));
+  declare_configuration_key(priv::config_height, boost::make_shared<conf_info>(
+    priv::default_height,
+    config::description_t("The height of the cropped image.")));
 
-  crop_func_t const func = crop_for_pixtype(pixtype);
-
-  d.reset(new priv(func, x, y, w, h));
+  pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
+  bool const grayscale = config_value<bool>(priv::config_grayscale);
 
   port_type_t const port_type = port_type_for_pixtype(pixtype, grayscale);
 
@@ -88,22 +96,6 @@ crop_image_process
     port_type,
     required,
     port_description_t("The resulting grayscale image.")));
-
-  declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_pixtype),
-    config::description_t("The pixel type of the input images.")));
-  declare_configuration_key(priv::config_x_offset, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_x_offset),
-    config::description_t("The x offset to start cropping at.")));
-  declare_configuration_key(priv::config_y_offset, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_y_offset),
-    config::description_t("The y offset to start cropping at.")));
-  declare_configuration_key(priv::config_width, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_width),
-    config::description_t("The width of the cropped image.")));
-  declare_configuration_key(priv::config_height, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_height),
-    config::description_t("The height of the cropped image.")));
 }
 
 crop_image_process
@@ -115,6 +107,19 @@ void
 crop_image_process
 ::_init()
 {
+  // Configure the process.
+  {
+    pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
+    size_t const x = config_value<size_t>(priv::config_x_offset);
+    size_t const y = config_value<size_t>(priv::config_y_offset);
+    size_t const w = config_value<size_t>(priv::config_width);
+    size_t const h = config_value<size_t>(priv::config_height);
+
+    crop_func_t const func = crop_for_pixtype(pixtype);
+
+    d.reset(new priv(func, x, y, w, h));
+  }
+
   if (!d->crop)
   {
     static std::string const reason = "A cropping function for the "
@@ -122,6 +127,8 @@ crop_image_process
 
     throw invalid_configuration_exception(name(), reason);
   }
+
+  /// \todo Check crop dimensions.
 }
 
 void

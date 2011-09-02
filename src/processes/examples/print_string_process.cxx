@@ -45,9 +45,9 @@ print_string_process
 ::print_string_process(config_t const& config)
   : process(config)
 {
-  priv::path_t path = config->get_value<priv::path_t>(priv::config_path, priv::path_t());
-
-  d.reset(new priv(path));
+  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+    config::value_t(),
+    config::description_t("The path of the file to output to.")));
 
   port_flags_t required;
 
@@ -57,10 +57,6 @@ print_string_process
     basic_types::t_string,
     required,
     port_description_t("Where strings are read from.")));
-
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
-    config::value_t(),
-    config::description_t("The path of the file to output to.")));
 }
 
 print_string_process
@@ -72,6 +68,13 @@ void
 print_string_process
 ::_init()
 {
+  // Configure the process.
+  {
+    priv::path_t const path = config_value<priv::path_t>(priv::config_path);
+
+    d.reset(new priv(path));
+  }
+
   boost::filesystem::path::string_type const path = d->path.native();
 
   if (path.empty())

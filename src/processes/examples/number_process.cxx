@@ -35,18 +35,18 @@ class number_process::priv
 
     stamp_t output_stamp;
 
-    static number_t const default_start;
-    static number_t const default_end;
     static config::key_t const config_start;
     static config::key_t const config_end;
+    static config::value_t const default_start;
+    static config::value_t const default_end;
     static port_t const port_output;
     static port_t const port_color;
 };
 
-number_process::priv::number_t const number_process::priv::default_start = 0;
-number_process::priv::number_t const number_process::priv::default_end = 100;
 config::key_t const number_process::priv::config_start = config::key_t("start");
 config::key_t const number_process::priv::config_end = config::key_t("end");
+config::value_t const number_process::priv::default_start = config::value_t("0");
+config::value_t const number_process::priv::default_end = config::value_t("100");
 process::port_t const number_process::priv::port_output = process::port_t("number");
 process::port_t const number_process::priv::port_color = process::port_t("color");
 
@@ -54,10 +54,12 @@ number_process
 ::number_process(config_t const& config)
   : process(config)
 {
-  priv::number_t start = config->get_value<priv::number_t>(priv::config_start, priv::default_start);
-  priv::number_t end = config->get_value<priv::number_t>(priv::config_end, priv::default_end);
-
-  d.reset(new priv(start, end));
+  declare_configuration_key(priv::config_start, boost::make_shared<conf_info>(
+    priv::default_start,
+    config::description_t("The value to start counting at.")));
+  declare_configuration_key(priv::config_end, boost::make_shared<conf_info>(
+    priv::default_end,
+    config::description_t("The value to stop counting at.")));
 
   port_flags_t required;
 
@@ -71,13 +73,6 @@ number_process
     basic_types::t_integer,
     required,
     port_description_t("Where the numbers will be available.")));
-
-  declare_configuration_key(priv::config_start, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_start),
-    config::description_t("The value to start counting at.")));
-  declare_configuration_key(priv::config_end, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_end),
-    config::description_t("The value to stop counting at.")));
 }
 
 number_process
@@ -89,10 +84,20 @@ void
 number_process
 ::_init()
 {
+  // Configure the process.
+  {
+    priv::number_t start = config_value<priv::number_t>(priv::config_start);
+    priv::number_t end = config_value<priv::number_t>(priv::config_end);
+
+    d.reset(new priv(start, end));
+  }
+
   // Check the configuration.
   if (d->end <= d->start)
   {
-    throw invalid_configuration_exception(name(), "The start value must be greater than the end value");
+    static std::string const reason = "The start value must be greater than the end value";
+
+    throw invalid_configuration_exception(name(), reason);
   }
 
   if (!input_port_edge(priv::port_color).expired())

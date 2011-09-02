@@ -43,9 +43,9 @@ class image_reader_process::priv
     static config::key_t const config_grayscale;
     static config::key_t const config_path;
     static config::key_t const config_verify;
-    static pixtype_t const default_pixtype;
-    static bool const default_grayscale;
-    static bool const default_verify;
+    static config::value_t const default_pixtype;
+    static config::value_t const default_grayscale;
+    static config::value_t const default_verify;
     static port_t const port_color;
     static port_t const port_output;
 };
@@ -54,9 +54,9 @@ config::key_t const image_reader_process::priv::config_pixtype = config::key_t("
 config::key_t const image_reader_process::priv::config_grayscale = config::key_t("grayscale");
 config::key_t const image_reader_process::priv::config_path = config::key_t("input");
 config::key_t const image_reader_process::priv::config_verify = config::key_t("verify");
-pixtype_t const image_reader_process::priv::default_pixtype = pixtypes::pixtype_byte();
-bool const image_reader_process::priv::default_grayscale = false;
-bool const image_reader_process::priv::default_verify = false;
+config::value_t const image_reader_process::priv::default_pixtype = config::value_t(pixtypes::pixtype_byte());
+config::value_t const image_reader_process::priv::default_grayscale = config::value_t("false");
+config::value_t const image_reader_process::priv::default_verify = config::value_t("false");
 process::port_t const image_reader_process::priv::port_color = process::port_t("color");
 process::port_t const image_reader_process::priv::port_output = process::port_t("image");
 
@@ -64,14 +64,21 @@ image_reader_process
 ::image_reader_process(config_t const& config)
   : process(config)
 {
-  pixtype_t const pixtype = config->get_value<pixtype_t>(priv::config_pixtype, priv::default_pixtype);
-  bool const grayscale = config->get_value<bool>(priv::config_grayscale, priv::default_grayscale);
-  path_t const path = config->get_value<path_t>(priv::config_path, path_t());
-  bool const verify = config->get_value<bool>(priv::config_verify, priv::default_verify);
+  declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
+    priv::default_pixtype,
+    config::description_t("The pixel type of the input images.")));
+  declare_configuration_key(priv::config_grayscale, boost::make_shared<conf_info>(
+    priv::default_grayscale,
+    config::description_t("Set to \'true\' if the input is grayscale, \'false\' otherwise.")));
+  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+    config::value_t(),
+    config::description_t("The input file with a list of images to read.")));
+  declare_configuration_key(priv::config_verify, boost::make_shared<conf_info>(
+    priv::default_verify,
+    config::description_t("If \'true\', the paths in the input file will checked that they can be read.")));
 
-  read_func_t const func = read_for_pixtype(pixtype);
-
-  d.reset(new priv(path, func, verify));
+  pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
+  bool const grayscale = config_value<bool>(priv::config_grayscale);
 
   port_type_t const port_type_output = port_type_for_pixtype(pixtype, grayscale);
 
@@ -87,19 +94,6 @@ image_reader_process
     port_type_output,
     required,
     port_description_t("The images that are read in.")));
-
-  declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_pixtype),
-    config::description_t("The pixel type of the input images.")));
-  declare_configuration_key(priv::config_grayscale, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_grayscale),
-    config::description_t("Set to \'true\' if the input is grayscale, \'false\' otherwise.")));
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
-    config::value_t(),
-    config::description_t("The input file with a list of images to read.")));
-  declare_configuration_key(priv::config_verify, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::default_verify),
-    config::description_t("If \'true\', the paths in the input file will checked that they can be read.")));
 }
 
 image_reader_process
@@ -111,6 +105,17 @@ void
 image_reader_process
 ::_init()
 {
+  // Configure the process.
+  {
+    pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
+    path_t const path = config_value<path_t>(priv::config_path);
+    bool const verify = config_value<bool>(priv::config_verify);
+
+    read_func_t const func = read_for_pixtype(pixtype);
+
+    d.reset(new priv(path, func, verify));
+  }
+
   if (!d->read)
   {
     static std::string const reason = "A read function for the "
