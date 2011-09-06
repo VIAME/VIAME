@@ -157,7 +157,7 @@ test_step_before_init()
 vistk::process_t
 create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name)
 {
-  static bool modules_loaded = (vistk::load_known_modules(), true);
+  static bool const modules_loaded = (vistk::load_known_modules(), true);
   static vistk::process_registry_t const reg = vistk::process_registry::self();
 
   (void)modules_loaded;
