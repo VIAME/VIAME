@@ -17,8 +17,8 @@
 
 using namespace boost::python;
 
-static vistk::config::value_t config_get_value(vistk::config_t self, vistk::config::key_t const& key);
-static vistk::config::value_t config_get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def);
+static vistk::config::value_t config_get_value(vistk::config_t conf, vistk::config::key_t const& key);
+static vistk::config::value_t config_get_value_with_default(vistk::config_t conf, vistk::config::key_t const& key, vistk::config::value_t const& def);
 
 static void translator(vistk::configuration_exception const& e);
 
@@ -82,15 +82,15 @@ BOOST_PYTHON_MODULE(config)
 }
 
 vistk::config::value_t
-config_get_value(vistk::config_t self, vistk::config::key_t const& key)
+config_get_value(vistk::config_t conf, vistk::config::key_t const& key)
 {
-  return self->get_value<vistk::config::value_t>(key);
+  return conf->get_value<vistk::config::value_t>(key);
 }
 
 vistk::config::value_t
-config_get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def)
+config_get_value_with_default(vistk::config_t conf, vistk::config::key_t const& key, vistk::config::value_t const& def)
 {
-  return self->get_value<vistk::config::value_t>(key, def);
+  return conf->get_value<vistk::config::value_t>(key, def);
 }
 
 void

@@ -19,7 +19,7 @@
 
 using namespace boost::python;
 
-static void register_schedule(vistk::schedule_registry_t self,
+static void register_schedule(vistk::schedule_registry_t reg,
                               vistk::schedule_registry::type_t const& type,
                               vistk::schedule_registry::description_t const& desc,
                               object obj);
@@ -91,14 +91,14 @@ class python_schedule_wrapper
 };
 
 void
-register_schedule(vistk::schedule_registry_t self,
+register_schedule(vistk::schedule_registry_t reg,
                   vistk::schedule_registry::type_t const& type,
                   vistk::schedule_registry::description_t const& desc,
                   object obj)
 {
   python_schedule_wrapper wrap(obj);
 
-  self->register_schedule(type, desc, wrap);
+  reg->register_schedule(type, desc, wrap);
 }
 
 void

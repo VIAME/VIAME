@@ -19,7 +19,7 @@
 
 using namespace boost::python;
 
-static void register_process(vistk::process_registry_t self,
+static void register_process(vistk::process_registry_t reg,
                              vistk::process_registry::type_t const& type,
                              vistk::process_registry::description_t const& desc,
                              object obj);
@@ -128,14 +128,14 @@ class python_process_wrapper
 };
 
 void
-register_process(vistk::process_registry_t self,
+register_process(vistk::process_registry_t reg,
                  vistk::process_registry::type_t const& type,
                  vistk::process_registry::description_t const& desc,
                  object obj)
 {
   python_process_wrapper wrap(obj);
 
-  self->register_process(type, desc, wrap);
+  reg->register_process(type, desc, wrap);
 }
 
 void
