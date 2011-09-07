@@ -120,7 +120,7 @@ class process::priv
     static config::value_t const default_name;
 };
 
-config::key_t const process::priv::default_name = "(unnamed)";
+config::value_t const process::priv::default_name = "(unnamed)";
 
 void
 process
