@@ -296,20 +296,20 @@ process
 
   d.reset(new priv(config));
 
-  d->name = config->get_value<name_t>(config_name, priv::DEFAULT_PROCESS_NAME);
-  d->type = config->get_value<process_registry::type_t>(config_type);
-
-  declare_output_port(port_heartbeat, boost::make_shared<port_info>(
-    type_none,
-    port_flags_t(),
-    port_description_t("Outputs the heartbeat stamp with an empty datum.")));
-
   declare_configuration_key(config_name, boost::make_shared<conf_info>(
     priv::default_name,
     config::description_t("The name of the process.")));
   declare_configuration_key(config_type, boost::make_shared<conf_info>(
     config::value_t(),
     config::description_t("The type of the process.")));
+
+  d->name = config_value<name_t>(config_name);
+  d->type = config_value<process_registry::type_t>(config_type);
+
+  declare_output_port(port_heartbeat, boost::make_shared<port_info>(
+    type_none,
+    port_flags_t(),
+    port_description_t("Outputs the heartbeat stamp with an empty datum.")));
 }
 
 process
