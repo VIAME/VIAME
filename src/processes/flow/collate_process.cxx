@@ -7,6 +7,7 @@
 #include "collate_process.h"
 
 #include <vistk/pipeline/datum.h>
+#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/stamp.h>
 
@@ -15,6 +16,7 @@
 #include <boost/make_shared.hpp>
 
 #include <map>
+#include <string>
 
 /**
  * \file collate_process.cxx

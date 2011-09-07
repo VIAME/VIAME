@@ -6,6 +6,9 @@
 
 #include "thread_per_process_schedule.h"
 
+#include <vistk/pipeline/config.h>
+#include <vistk/pipeline/datum.h>
+#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/utils.h>
 

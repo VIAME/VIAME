@@ -8,6 +8,10 @@
 
 #include <vistk/pipeline_types/image_types.h>
 
+#include <vistk/pipeline/datum.h>
+
+#include <boost/cstdint.hpp>
+
 #include <vil/vil_convert.h>
 #include <vil/vil_crop.h>
 #include <vil/vil_image_view.h>

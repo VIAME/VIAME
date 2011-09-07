@@ -13,7 +13,6 @@
 #include "stamp.h"
 #include "types.h"
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 

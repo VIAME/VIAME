@@ -13,8 +13,13 @@
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
+#include <map>
 #include <queue>
 #include <set>
+#include <string>
+#include <vector>
+
+#include <cstddef>
 
 /**
  * \file pipeline.cxx

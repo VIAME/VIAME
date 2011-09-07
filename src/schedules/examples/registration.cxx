@@ -15,6 +15,8 @@
 
 #include <boost/make_shared.hpp>
 
+#include <cstddef>
+
 /**
  * \file examples/registration.cxx
  *

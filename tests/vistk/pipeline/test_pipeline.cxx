@@ -12,6 +12,7 @@
 #include <vistk/pipeline/pipeline_exception.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_exception.h>
+#include <vistk/pipeline/process_registry.h>
 
 #include <boost/make_shared.hpp>
 

@@ -8,6 +8,7 @@
 #include "edge_exception.h"
 
 #include "stamp.h"
+#include "types.h"
 
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/locks.hpp>

@@ -8,13 +8,14 @@
 
 #include <vistk/pipeline_types/basic_types.h>
 
+#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
+#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/process_exception.h>
 
 #include <boost/filesystem/path.hpp>
 #include <boost/make_shared.hpp>
 
-#include <iostream>
 #include <fstream>
 #include <string>
 

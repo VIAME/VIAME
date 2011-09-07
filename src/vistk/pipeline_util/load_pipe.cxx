@@ -7,7 +7,6 @@
 #include "load_pipe.h"
 #include "load_pipe_exception.h"
 
-#include "pipe_bakery.h"
 #include "pipe_grammar.h"
 
 #include <vistk/pipeline/pipeline.h>
@@ -17,7 +16,7 @@
 #include <boost/filesystem/operations.hpp>
 
 #include <fstream>
-#include <ios>
+#include <istream>
 #include <sstream>
 #include <string>
 

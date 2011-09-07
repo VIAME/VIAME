@@ -11,6 +11,8 @@
 
 #include <vistk/pipeline/config.h>
 
+#include <boost/shared_ptr.hpp>
+
 /**
  * \file providers.h
  *

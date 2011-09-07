@@ -12,6 +12,8 @@
 
 #include <boost/foreach.hpp>
 
+#include <ostream>
+
 /**
  * \file export_dot.cxx
  *

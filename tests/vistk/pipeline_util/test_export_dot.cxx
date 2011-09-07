@@ -9,10 +9,9 @@
 #include <vistk/pipeline_util/export_dot.h>
 #include <vistk/pipeline_util/export_dot_exception.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
+#include <vistk/pipeline_util/types.h>
 
 #include <vistk/pipeline/modules.h>
-
-#include <boost/filesystem/path.hpp>
 
 #include <exception>
 #include <iostream>
@@ -21,7 +20,7 @@
 
 static std::string const pipe_ext = ".pipe";
 
-static void run_test(std::string const& test_name, boost::filesystem::path const& pipe_file);
+static void run_test(std::string const& test_name, vistk::path_t const& pipe_file);
 
 int
 main(int argc, char* argv[])
@@ -34,9 +33,9 @@ main(int argc, char* argv[])
   }
 
   std::string const test_name = argv[1];
-  boost::filesystem::path const pipe_dir = argv[2];
+  vistk::path_t const pipe_dir = argv[2];
 
-  boost::filesystem::path const pipe_file = pipe_dir / (test_name + pipe_ext);
+  vistk::path_t const pipe_file = pipe_dir / (test_name + pipe_ext);
 
   try
   {
@@ -52,12 +51,12 @@ main(int argc, char* argv[])
   return 0;
 }
 
-static void test_pipeline_null(boost::filesystem::path const& pipe_file);
-static void test_simple_pipeline(boost::filesystem::path const& pipe_file);
-static void test_simple_group_pipeline(boost::filesystem::path const& pipe_file);
+static void test_pipeline_null(vistk::path_t const& pipe_file);
+static void test_simple_pipeline(vistk::path_t const& pipe_file);
+static void test_simple_group_pipeline(vistk::path_t const& pipe_file);
 
 void
-run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
+run_test(std::string const& test_name, vistk::path_t const& pipe_file)
 {
   if (test_name == "pipeline_null")
   {
@@ -78,7 +77,7 @@ run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
 }
 
 void
-test_pipeline_null(boost::filesystem::path const& /*pipe_file*/)
+test_pipeline_null(vistk::path_t const& /*pipe_file*/)
 {
   vistk::pipeline_t pipeline;
 
@@ -90,7 +89,7 @@ test_pipeline_null(boost::filesystem::path const& /*pipe_file*/)
 }
 
 void
-test_simple_pipeline(boost::filesystem::path const& pipe_file)
+test_simple_pipeline(vistk::path_t const& pipe_file)
 {
   vistk::load_known_modules();
 
@@ -102,7 +101,7 @@ test_simple_pipeline(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_simple_group_pipeline(boost::filesystem::path const& pipe_file)
+test_simple_group_pipeline(vistk::path_t const& pipe_file)
 {
   vistk::load_known_modules();
 

@@ -8,7 +8,6 @@
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/process_registry_exception.h>
 #include <vistk/pipeline/types.h>

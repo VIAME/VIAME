@@ -14,7 +14,7 @@
 
 #include <vistk/pipeline/types.h>
 
-#include <istream>
+#include <iosfwd>
 
 /**
  * \file pipe_bakery.h

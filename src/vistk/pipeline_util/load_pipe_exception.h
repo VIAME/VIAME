@@ -13,6 +13,10 @@
 
 #include <boost/filesystem/path.hpp>
 
+#include <string>
+
+#include <cstddef>
+
 /**
  * \file load_pipe_exception.h
  *

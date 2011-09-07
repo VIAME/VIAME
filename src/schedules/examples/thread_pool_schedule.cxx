@@ -7,7 +7,6 @@
 #include "thread_pool_schedule.h"
 
 #include <boost/thread/thread.hpp>
-#include <boost/foreach.hpp>
 
 /**
  * \file thread_pool_schedule.cxx

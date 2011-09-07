@@ -12,8 +12,8 @@
 #include "types.h"
 
 #include <boost/cstdint.hpp>
+#include <boost/noncopyable.hpp>
 #include <boost/operators.hpp>
-#include <boost/utility.hpp>
 
 /**
  * \file stamp.h

@@ -11,11 +11,11 @@
 #include <vistk/pipeline_util/load_pipe_exception.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
 #include <vistk/pipeline_util/pipe_bakery_exception.h>
+#include <vistk/pipeline_util/types.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 
-#include <boost/filesystem/path.hpp>
 #include <boost/variant.hpp>
 
 #include <algorithm>
@@ -24,9 +24,11 @@
 #include <string>
 #include <vector>
 
+#include <cstddef>
+
 static std::string const pipe_ext = ".pipe";
 
-static void run_test(std::string const& test_name, boost::filesystem::path const& pipe_file);
+static void run_test(std::string const& test_name, vistk::path_t const& pipe_file);
 
 int
 main(int argc, char* argv[])
@@ -41,9 +43,9 @@ main(int argc, char* argv[])
   vistk::load_known_modules();
 
   std::string const test_name = argv[1];
-  boost::filesystem::path const pipe_dir = argv[2];
+  vistk::path_t const pipe_dir = argv[2];
 
-  boost::filesystem::path const pipe_file = pipe_dir / (test_name + pipe_ext);
+  vistk::path_t const pipe_file = pipe_dir / (test_name + pipe_ext);
 
   try
   {
@@ -59,41 +61,41 @@ main(int argc, char* argv[])
   return 0;
 }
 
-static void test_empty(boost::filesystem::path const& pipe_file);
-static void test_comments(boost::filesystem::path const& pipe_file);
-static void test_empty_config(boost::filesystem::path const& pipe_file);
-static void test_config_block(boost::filesystem::path const& pipe_file);
-static void test_one_process(boost::filesystem::path const& pipe_file);
-static void test_connected_processes(boost::filesystem::path const& pipe_file);
-static void test_config_overrides(boost::filesystem::path const& pipe_file);
-static void test_config_read_only(boost::filesystem::path const& pipe_file);
-static void test_config_not_a_flag(boost::filesystem::path const& pipe_file);
-static void test_config_read_only_override(boost::filesystem::path const& pipe_file);
-static void test_config_provider_conf(boost::filesystem::path const& pipe_file);
-static void test_config_provider_conf_dep(boost::filesystem::path const& pipe_file);
-static void test_config_provider_conf_circular_dep(boost::filesystem::path const& pipe_file);
-static void test_config_provider_env(boost::filesystem::path const& pipe_file);
-static void test_config_provider_read_only(boost::filesystem::path const& pipe_file);
-static void test_config_provider_read_only_override(boost::filesystem::path const& pipe_file);
-static void test_config_provider_unprovided(boost::filesystem::path const& pipe_file);
-static void test_include(boost::filesystem::path const& pipe_file);
-static void test_no_exist(boost::filesystem::path const& pipe_file);
-static void test_not_a_file(boost::filesystem::path const& pipe_file);
-static void test_include_no_exist(boost::filesystem::path const& pipe_file);
-static void test_include_not_a_file(boost::filesystem::path const& pipe_file);
-static void test_group_declare(boost::filesystem::path const& pipe_file);
-static void test_group_config(boost::filesystem::path const& pipe_file);
-static void test_group_input_map(boost::filesystem::path const& pipe_file);
-static void test_group_output_map(boost::filesystem::path const& pipe_file);
-static void test_group_input_map_flags(boost::filesystem::path const& pipe_file);
-static void test_group_output_map_flags(boost::filesystem::path const& pipe_file);
-static void test_group_mappings(boost::filesystem::path const& pipe_file);
-static void test_group_all(boost::filesystem::path const& pipe_file);
-static void test_no_parse(boost::filesystem::path const& pipe_file);
-static void test_parse_error(boost::filesystem::path const& pipe_file);
+static void test_empty(vistk::path_t const& pipe_file);
+static void test_comments(vistk::path_t const& pipe_file);
+static void test_empty_config(vistk::path_t const& pipe_file);
+static void test_config_block(vistk::path_t const& pipe_file);
+static void test_one_process(vistk::path_t const& pipe_file);
+static void test_connected_processes(vistk::path_t const& pipe_file);
+static void test_config_overrides(vistk::path_t const& pipe_file);
+static void test_config_read_only(vistk::path_t const& pipe_file);
+static void test_config_not_a_flag(vistk::path_t const& pipe_file);
+static void test_config_read_only_override(vistk::path_t const& pipe_file);
+static void test_config_provider_conf(vistk::path_t const& pipe_file);
+static void test_config_provider_conf_dep(vistk::path_t const& pipe_file);
+static void test_config_provider_conf_circular_dep(vistk::path_t const& pipe_file);
+static void test_config_provider_env(vistk::path_t const& pipe_file);
+static void test_config_provider_read_only(vistk::path_t const& pipe_file);
+static void test_config_provider_read_only_override(vistk::path_t const& pipe_file);
+static void test_config_provider_unprovided(vistk::path_t const& pipe_file);
+static void test_include(vistk::path_t const& pipe_file);
+static void test_no_exist(vistk::path_t const& pipe_file);
+static void test_not_a_file(vistk::path_t const& pipe_file);
+static void test_include_no_exist(vistk::path_t const& pipe_file);
+static void test_include_not_a_file(vistk::path_t const& pipe_file);
+static void test_group_declare(vistk::path_t const& pipe_file);
+static void test_group_config(vistk::path_t const& pipe_file);
+static void test_group_input_map(vistk::path_t const& pipe_file);
+static void test_group_output_map(vistk::path_t const& pipe_file);
+static void test_group_input_map_flags(vistk::path_t const& pipe_file);
+static void test_group_output_map_flags(vistk::path_t const& pipe_file);
+static void test_group_mappings(vistk::path_t const& pipe_file);
+static void test_group_all(vistk::path_t const& pipe_file);
+static void test_no_parse(vistk::path_t const& pipe_file);
+static void test_parse_error(vistk::path_t const& pipe_file);
 
 void
-run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
+run_test(std::string const& test_name, vistk::path_t const& pipe_file)
 {
   if (test_name == "empty")
   {
@@ -270,7 +272,7 @@ class test_visitor
 };
 
 void
-test_empty(boost::filesystem::path const& pipe_file)
+test_empty(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -282,7 +284,7 @@ test_empty(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_comments(boost::filesystem::path const& pipe_file)
+test_comments(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -294,7 +296,7 @@ test_comments(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_empty_config(boost::filesystem::path const& pipe_file)
+test_empty_config(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -306,7 +308,7 @@ test_empty_config(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_block(boost::filesystem::path const& pipe_file)
+test_config_block(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -330,7 +332,7 @@ test_config_block(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_one_process(boost::filesystem::path const& pipe_file)
+test_one_process(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -342,7 +344,7 @@ test_one_process(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_connected_processes(boost::filesystem::path const& pipe_file)
+test_connected_processes(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -354,7 +356,7 @@ test_connected_processes(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_overrides(boost::filesystem::path const& pipe_file)
+test_config_overrides(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -378,7 +380,7 @@ test_config_overrides(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_read_only(boost::filesystem::path const& pipe_file)
+test_config_read_only(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -390,7 +392,7 @@ test_config_read_only(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_not_a_flag(boost::filesystem::path const& pipe_file)
+test_config_not_a_flag(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -406,7 +408,7 @@ test_config_not_a_flag(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_read_only_override(boost::filesystem::path const& pipe_file)
+test_config_read_only_override(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -422,7 +424,7 @@ test_config_read_only_override(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_provider_conf(boost::filesystem::path const& pipe_file)
+test_config_provider_conf(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -446,7 +448,7 @@ test_config_provider_conf(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_provider_conf_dep(boost::filesystem::path const& pipe_file)
+test_config_provider_conf_dep(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -479,7 +481,7 @@ test_config_provider_conf_dep(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_provider_conf_circular_dep(boost::filesystem::path const& pipe_file)
+test_config_provider_conf_circular_dep(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -495,7 +497,7 @@ test_config_provider_conf_circular_dep(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_provider_env(boost::filesystem::path const& pipe_file)
+test_config_provider_env(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -509,7 +511,7 @@ test_config_provider_env(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_provider_read_only(boost::filesystem::path const& pipe_file)
+test_config_provider_read_only(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -523,7 +525,7 @@ test_config_provider_read_only(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_config_provider_read_only_override(boost::filesystem::path const& pipe_file)
+test_config_provider_read_only_override(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -539,7 +541,7 @@ test_config_provider_read_only_override(boost::filesystem::path const& pipe_file
 }
 
 void
-test_config_provider_unprovided(boost::filesystem::path const& pipe_file)
+test_config_provider_unprovided(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -555,7 +557,7 @@ test_config_provider_unprovided(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_include(boost::filesystem::path const& pipe_file)
+test_include(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -579,7 +581,7 @@ test_include(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_no_exist(boost::filesystem::path const& pipe_file)
+test_no_exist(vistk::path_t const& pipe_file)
 {
   EXPECT_EXCEPTION(vistk::file_no_exist_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
@@ -587,7 +589,7 @@ test_no_exist(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_not_a_file(boost::filesystem::path const& pipe_file)
+test_not_a_file(vistk::path_t const& pipe_file)
 {
   EXPECT_EXCEPTION(vistk::not_a_file_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
@@ -595,7 +597,7 @@ test_not_a_file(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_include_no_exist(boost::filesystem::path const& pipe_file)
+test_include_no_exist(vistk::path_t const& pipe_file)
 {
   EXPECT_EXCEPTION(vistk::file_no_exist_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
@@ -603,7 +605,7 @@ test_include_no_exist(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_include_not_a_file(boost::filesystem::path const& pipe_file)
+test_include_not_a_file(vistk::path_t const& pipe_file)
 {
   EXPECT_EXCEPTION(vistk::not_a_file_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
@@ -611,7 +613,7 @@ test_include_not_a_file(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_group_declare(boost::filesystem::path const& pipe_file)
+test_group_declare(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -623,7 +625,7 @@ test_group_declare(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_group_config(boost::filesystem::path const& pipe_file)
+test_group_config(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -635,7 +637,7 @@ test_group_config(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_group_input_map(boost::filesystem::path const& pipe_file)
+test_group_input_map(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -647,7 +649,7 @@ test_group_input_map(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_group_output_map(boost::filesystem::path const& pipe_file)
+test_group_output_map(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -659,7 +661,7 @@ test_group_output_map(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_group_input_map_flags(boost::filesystem::path const& pipe_file)
+test_group_input_map_flags(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -671,7 +673,7 @@ test_group_input_map_flags(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_group_output_map_flags(boost::filesystem::path const& pipe_file)
+test_group_output_map_flags(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -683,7 +685,7 @@ test_group_output_map_flags(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_group_mappings(boost::filesystem::path const& pipe_file)
+test_group_mappings(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -695,7 +697,7 @@ test_group_mappings(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_group_all(boost::filesystem::path const& pipe_file)
+test_group_all(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -707,7 +709,7 @@ test_group_all(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_no_parse(boost::filesystem::path const& pipe_file)
+test_no_parse(vistk::path_t const& pipe_file)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_pipe_blocks_from_file(pipe_file),
@@ -715,7 +717,7 @@ test_no_parse(boost::filesystem::path const& pipe_file)
 }
 
 void
-test_parse_error(boost::filesystem::path const& pipe_file)
+test_parse_error(vistk::path_t const& pipe_file)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_pipe_blocks_from_file(pipe_file),

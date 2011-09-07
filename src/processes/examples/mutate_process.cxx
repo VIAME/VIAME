@@ -7,7 +7,6 @@
 #include "mutate_process.h"
 
 #include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/process_exception.h>
 
 #include <boost/make_shared.hpp>
 

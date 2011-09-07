@@ -12,8 +12,8 @@
 #include "process.h"
 #include "types.h"
 
+#include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/utility.hpp>
 
 /**
  * \file pipeline.h

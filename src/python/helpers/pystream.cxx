@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <string>
 
+#include <cstddef>
+
 pyistream_device
 ::pyistream_device(boost::python::object const& obj)
   : m_obj(obj)

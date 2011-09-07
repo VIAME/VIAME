@@ -7,6 +7,7 @@
 #include <test_common.h>
 
 #include <vistk/pipeline/config.h>
+#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_exception.h>

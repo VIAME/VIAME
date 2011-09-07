@@ -11,7 +11,7 @@
 
 #include <vistk/pipeline/types.h>
 
-#include <ostream>
+#include <iosfwd>
 #include <string>
 
 /**

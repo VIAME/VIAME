@@ -13,13 +13,9 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/thread/thread.hpp>
-
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#else
-#include <cstdlib>
-#endif
+#include <boost/lexical_cast.hpp>
 
 /**
  * \file providers.cxx

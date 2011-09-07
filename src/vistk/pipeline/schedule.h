@@ -11,8 +11,8 @@
 
 #include "types.h"
 
+#include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/utility.hpp>
 
 /**
  * \file schedule.h

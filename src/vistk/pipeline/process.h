@@ -15,8 +15,8 @@
 #include "process_registry.h"
 #include "types.h"
 
+#include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/utility.hpp>
 
 #include <set>
 #include <string>

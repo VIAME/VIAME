@@ -11,15 +11,17 @@
 
 #include "types.h"
 
+#include <boost/optional/optional.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/optional.hpp>
-#include <boost/utility.hpp>
+#include <boost/noncopyable.hpp>
 
 #include <map>
 #include <set>
 #include <string>
 #include <typeinfo>
 #include <vector>
+
+#include <cstddef>
 
 /**
  * \file config.h

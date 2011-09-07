@@ -18,6 +18,7 @@
 
 #include <map>
 #include <set>
+#include <utility>
 
 /**
  * \file process_registry.cxx

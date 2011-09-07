@@ -6,6 +6,9 @@
 
 #include "sync_schedule.h"
 
+#include <vistk/pipeline/config.h>
+#include <vistk/pipeline/datum.h>
+#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/utils.h>
@@ -17,7 +20,6 @@
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
-#include <algorithm>
 #include <deque>
 #include <iterator>
 #include <map>

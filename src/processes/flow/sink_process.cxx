@@ -6,6 +6,9 @@
 
 #include "sink_process.h"
 
+#include <vistk/pipeline/datum.h>
+#include <vistk/pipeline/edge.h>
+
 #include <boost/make_shared.hpp>
 
 /**

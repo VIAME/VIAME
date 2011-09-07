@@ -7,7 +7,10 @@
 #include <vistk/pipeline_util/export_dot.h>
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
+#include <vistk/pipeline_util/pipe_declaration_types.h>
+#include <vistk/pipeline_util/types.h>
 
+#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/types.h>
 
@@ -19,6 +22,11 @@
 
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
+
+#include <cstddef>
+#include <cstdlib>
 
 namespace po = boost::program_options;
 

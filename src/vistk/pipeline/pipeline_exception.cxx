@@ -7,6 +7,7 @@
 #include "pipeline_exception.h"
 
 #include <sstream>
+#include <string>
 
 /**
  * \file pipeline_exception.cxx

@@ -9,7 +9,6 @@
 
 #include "pipeline-config.h"
 
-#include "edge.h"
 #include "process.h"
 #include "types.h"
 

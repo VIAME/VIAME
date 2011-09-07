@@ -12,9 +12,9 @@
 #include "types.h"
 
 #include <boost/tuple/tuple.hpp>
+#include <boost/noncopyable.hpp>
 #include <boost/operators.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <boost/utility.hpp>
 
 #include <vector>
 

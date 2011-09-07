@@ -12,9 +12,7 @@
 #include "pipe_declaration_types.h"
 #include "types.h"
 
-#include <vistk/pipeline/types.h>
-
-#include <istream>
+#include <iosfwd>
 
 /**
  * \file load_pipe.h

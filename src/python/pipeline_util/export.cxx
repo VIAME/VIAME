@@ -11,6 +11,8 @@
 
 #include <boost/python.hpp>
 
+#include <string>
+
 /**
  * \file export.cxx
  *

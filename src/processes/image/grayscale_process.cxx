@@ -8,9 +8,14 @@
 
 #include "image_helper.h"
 
+#include <vistk/pipeline/config.h>
+#include <vistk/pipeline/datum.h>
+#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/process_exception.h>
 
 #include <boost/make_shared.hpp>
+
+#include <string>
 
 /**
  * \file grayscale_process.cxx

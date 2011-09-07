@@ -11,6 +11,9 @@
 
 #include "pipe_declaration_types.h"
 
+#include <vistk/pipeline/config.h>
+#include <vistk/pipeline/types.h>
+
 /**
  * \file pipe_bakery_exception.h
  *

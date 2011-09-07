@@ -13,6 +13,8 @@
 
 #include <boost/scoped_ptr.hpp>
 
+#include <cstddef>
+
 /**
  * \file thread_pool_schedule.h
  *

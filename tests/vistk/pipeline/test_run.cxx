@@ -14,12 +14,16 @@
 #include <vistk/pipeline/schedule.h>
 #include <vistk/pipeline/schedule_registry.h>
 
+#include <boost/cstdint.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
 
 #include <exception>
 #include <fstream>
 #include <iostream>
 #include <string>
+
+#include <cstddef>
 
 static std::string const test_sep = "-";
 

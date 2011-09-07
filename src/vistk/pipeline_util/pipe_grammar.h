@@ -9,7 +9,7 @@
 
 #include "pipeline_util-config.h"
 
-#include "load_pipe.h"
+#include "pipe_declaration_types.h"
 
 #include <string>
 

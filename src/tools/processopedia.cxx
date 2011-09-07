@@ -14,6 +14,9 @@
 #include <boost/program_options.hpp>
 
 #include <iostream>
+#include <string>
+
+#include <cstdlib>
 
 namespace po = boost::program_options;
 

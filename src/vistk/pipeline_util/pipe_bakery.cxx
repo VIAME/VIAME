@@ -25,7 +25,9 @@
 #include <boost/variant.hpp>
 
 #include <algorithm>
+#include <istream>
 #include <iterator>
+#include <map>
 #include <utility>
 #include <vector>
 

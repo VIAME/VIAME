@@ -6,6 +6,8 @@
 
 #include "source_process.h"
 
+#include <vistk/pipeline/datum.h>
+#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/stamp.h>
 
 #include <boost/foreach.hpp>

@@ -23,6 +23,8 @@
 #include <dlfcn.h>
 #endif
 
+#include <cstddef>
+
 /**
  * \file modules.cxx
  *
