@@ -117,10 +117,10 @@ class process::priv
 
     stamp_t hb_stamp;
 
-    static config::value_t const DEFAULT_PROCESS_NAME;
+    static config::value_t const default_name;
 };
 
-config::key_t const process::priv::DEFAULT_PROCESS_NAME = "(unnamed)";
+config::key_t const process::priv::default_name = "(unnamed)";
 
 void
 process
@@ -305,7 +305,7 @@ process
     port_description_t("Outputs the heartbeat stamp with an empty datum.")));
 
   declare_configuration_key(config_name, boost::make_shared<conf_info>(
-    boost::lexical_cast<config::value_t>(priv::DEFAULT_PROCESS_NAME),
+    priv::default_name,
     config::description_t("The name of the process.")));
   declare_configuration_key(config_type, boost::make_shared<conf_info>(
     config::value_t(),
