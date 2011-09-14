@@ -151,14 +151,11 @@ void
 crop_image_process
 ::_step()
 {
-  edge_datum_t const input_dat = grab_from_port(priv::port_input);
-  datum_t const input_datum = input_dat.get<0>();
+  datum_t const input = grab_datum_from_port(priv::port_input);
 
-  datum_t const dat = d->crop(input_datum, d->x, d->y, d->w, d->h);
+  datum_t const dat = d->crop(input, d->x, d->y, d->w, d->h);
 
-  edge_datum_t const edat = edge_datum_t(dat, stamp_for_inputs());
-
-  push_to_port(priv::port_output, edat);
+  push_datum_to_port(priv::port_output, dat);
 
   process::_step();
 }

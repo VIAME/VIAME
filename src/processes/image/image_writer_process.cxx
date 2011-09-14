@@ -167,8 +167,7 @@ void
 image_writer_process
 ::_step()
 {
-  edge_datum_t const input_dat = grab_from_port(priv::port_input);
-  datum_t const input_datum = input_dat.get<0>();
+  datum_t const input = grab_datum_from_port(priv::port_input);
 
   d->format.clear();
 
@@ -193,7 +192,7 @@ image_writer_process
     d->fout << str << std::endl;
   }
 
-  d->write(path, input_datum);
+  d->write(path, input);
 
   process::_step();
 }

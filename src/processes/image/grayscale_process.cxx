@@ -103,14 +103,11 @@ void
 grayscale_process
 ::_step()
 {
-  edge_datum_t const input_dat = grab_from_port(priv::port_input);
-  datum_t const input_datum = input_dat.get<0>();
+  datum_t const input = grab_datum_from_port(priv::port_input);
 
-  datum_t const dat = d->convert(input_datum);
+  datum_t const dat = d->convert(input);
 
-  edge_datum_t const edat = edge_datum_t(dat, stamp_for_inputs());
-
-  push_to_port(priv::port_output, edat);
+  push_datum_to_port(priv::port_output, dat);
 
   process::_step();
 }
