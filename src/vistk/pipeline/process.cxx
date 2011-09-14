@@ -93,9 +93,6 @@ class process::priv
     name_t name;
     process_registry::type_t type;
 
-    typedef std::pair<edge_t, edge_t> edge_pair_t;
-    typedef std::map<port_t, edge_pair_t> edge_map_t;
-
     typedef std::map<port_t, port_info_t> port_map_t;
     typedef std::map<config::key_t, conf_info_t> conf_map_t;
 
