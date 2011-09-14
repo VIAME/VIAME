@@ -6,6 +6,8 @@
 
 #include "thread_pool_schedule.h"
 
+#include <vistk/pipeline/config.h>
+
 #include <boost/thread/thread.hpp>
 
 /**
@@ -20,20 +22,28 @@ namespace vistk
 class thread_pool_schedule::priv
 {
   public:
-    priv();
+    priv(size_t num_threads_);
     ~priv();
+
+    size_t const num_threads;
 
     bool complete;
 
     boost::thread_group thread_pool;
+
+    static config::key_t const config_num_threads;
 };
 
+config::key_t const thread_pool_schedule::priv::config_num_threads = config::key_t("num_threads");
+
 thread_pool_schedule
-::thread_pool_schedule(config_t const& config, pipeline_t const& pipe, size_t num_threads)
+::thread_pool_schedule(config_t const& config, pipeline_t const& pipe)
   : schedule(config, pipe)
-  , m_num_threads(num_threads)
 {
-  d.reset(new priv);
+  unsigned const hardware_concurrency = boost::thread::hardware_concurrency();
+  size_t const num_threads = config->get_value<size_t>(priv::config_num_threads, hardware_concurrency - 1);
+
+  d.reset(new priv(num_threads));
 }
 
 thread_pool_schedule
@@ -71,8 +81,9 @@ thread_pool_schedule
 }
 
 thread_pool_schedule::priv
-::priv()
-  : complete(false)
+::priv(size_t num_threads_)
+  : num_threads(num_threads_)
+  , complete(false)
 {
 }
 

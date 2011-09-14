@@ -10,7 +10,6 @@
 #include "thread_per_process_schedule.h"
 #include "thread_pool_schedule.h"
 
-#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/schedule_registry.h>
 
 #include <boost/make_shared.hpp>
@@ -63,7 +62,5 @@ create_thread_per_process_schedule(config_t const& config, pipeline_t const& pip
 schedule_t
 create_thread_pool_schedule(config_t const& config, pipeline_t const& pipe)
 {
-  size_t const num_threads = config->get_value<size_t>("num_threads", 0);
-
-  return boost::make_shared<thread_pool_schedule>(config, pipe, num_threads);
+  return boost::make_shared<thread_pool_schedule>(config, pipe);
 }

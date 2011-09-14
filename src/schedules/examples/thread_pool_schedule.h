@@ -46,7 +46,7 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_pool_schedule
      * \param pipe The pipeline to schedule.
      * \param num_threads The number of threads to use. 0 means the number of processors available.
      */
-    thread_pool_schedule(config_t const& config, pipeline_t const& pipe, size_t num_threads);
+    thread_pool_schedule(config_t const& config, pipeline_t const& pipe);
     /**
      * \brief Destructor.
      */
@@ -64,9 +64,6 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_pool_schedule
      * \brief Stop execution of the pipeline.
      */
     virtual void stop();
-  protected:
-    /// The number of threads to run.
-    size_t const m_num_threads;
   private:
     class priv;
     boost::scoped_ptr<priv> d;
