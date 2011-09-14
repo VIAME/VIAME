@@ -861,7 +861,16 @@ void
 process::priv
 ::grab_from_input_edges()
 {
-  /// \todo Implement.
+  BOOST_FOREACH (input_edge_map_t::value_type const& edge_for_port, input_edges)
+  {
+    edge_ref_t const& edge_ref = edge_for_port.second;
+    edge_t const edge = edge_ref.lock();
+
+    if (edge->has_data())
+    {
+      edge->pop_datum();
+    }
+  }
 }
 
 void
