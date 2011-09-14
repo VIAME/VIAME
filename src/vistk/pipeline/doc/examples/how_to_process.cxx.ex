@@ -99,11 +99,7 @@ compare_string_process
     cmp = boost::iequals(str1, str2);
   }
 
-  datum_t const dat = datum::new_datum(cmp);
-
-  edge_datum_t const edat = edge_datum_t(dat, stamp_for_inputs());
-
-  push_to_port(priv::port_output, edat);
+  push_to_port_as<bool>(priv::port_output, cmp);
 
   process::_step();
 }

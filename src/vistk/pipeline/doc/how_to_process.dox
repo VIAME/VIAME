@@ -194,13 +194,9 @@
  * The case insensitive comparison is only made if the case sensitive compare
  * failed and the option for it is set.
  *
- * \until new_datum
+ * \until push_to_port_as
  *
- * The result is wrapped into a datum packet.
- *
- * \until push_to_port
- *
- * The result is pushed into the output port with the stamp that the input used.
+ * The result is pushed into the output port.
  *
  * \until }
  *
