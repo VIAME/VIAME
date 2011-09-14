@@ -463,6 +463,15 @@ class VISTK_PIPELINE_EXPORT process
      */
     edge_datum_t grab_from_port(port_t const& port) const;
     /**
+     * \brief Grabs a datum from a port as a certain type.
+     *
+     * \param port The port to get data from.
+     *
+     * \returns The datum from the port.
+     */
+    template <typename T>
+    T grab_from_port_as(port_t const& port) const;
+    /**
      * \brief Outputs a datum on a port.
      *
      * \param port The port to push to.
@@ -586,6 +595,14 @@ process
 ::config_value(config::key_t const& key) const
 {
   return config_cast<T>(config_value_raw(key));
+}
+
+template <typename T>
+T
+process
+::grab_from_port_as(port_t const& port) const
+{
+  return grab_from_port(port).get<0>()->get_datum<T>();
 }
 
 }
