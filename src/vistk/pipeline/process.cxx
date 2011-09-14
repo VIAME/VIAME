@@ -875,9 +875,27 @@ process::priv
 
 void
 process::priv
-::push_to_output_edges(edge_datum_t const& /*edat*/) const
+::push_to_output_edges(edge_datum_t const& edat) const
 {
-  /// \todo Implement.
+  BOOST_FOREACH (output_edge_map_t::value_type const& edges_for_port, output_edges)
+  {
+    port_t const& port = edges_for_port.first;
+
+    // The heartbeat port is handled elsewhere.
+    if (port == port_heartbeat)
+    {
+      continue;
+    }
+
+    edge_group_t const& edges = edges_for_port.second;
+
+    BOOST_FOREACH (edge_ref_t const& edge_ref, edges)
+    {
+      edge_t const edge = edge_ref.lock();
+
+      edge->push_datum(edat);
+    }
+  }
 }
 
 bool
