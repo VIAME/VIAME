@@ -73,63 +73,12 @@ void
 multiplication_process
 ::_step()
 {
-  edge_datum_t const factor1_dat = grab_from_port(priv::port_factor1);
-  edge_datum_t const factor2_dat = grab_from_port(priv::port_factor2);
+  priv::number_t const factor1 = grab_from_port_as<priv::number_t>(priv::port_factor1);
+  priv::number_t const factor2 = grab_from_port_as<priv::number_t>(priv::port_factor2);
 
-  edge_data_t input_dats;
+  priv::number_t const product = factor1 * factor2;
 
-  input_dats.push_back(factor1_dat);
-  input_dats.push_back(factor2_dat);
-
-  data_info_t const info = edge_data_info(input_dats);
-
-  datum_t dat;
-  stamp_t st;
-
-  st = factor1_dat.get<1>();
-
-  switch (info->max_status)
-  {
-    case datum::data:
-      if (!info->same_color)
-      {
-        st = heartbeat_stamp();
-
-        dat = datum::error_datum("The input edges are not colored the same.");
-      }
-      else if (!info->in_sync)
-      {
-        st = heartbeat_stamp();
-
-        dat = datum::error_datum("The input edges are not synchronized.");
-      }
-      else
-      {
-        priv::number_t const factor1 = factor1_dat.get<0>()->get_datum<priv::number_t>();
-        priv::number_t const factor2 = factor2_dat.get<0>()->get_datum<priv::number_t>();
-
-        priv::number_t const product = factor1 * factor2;
-
-        dat = datum::new_datum(product);
-      }
-      break;
-    case datum::empty:
-      dat = datum::empty_datum();
-      break;
-    case datum::complete:
-      mark_as_complete();
-      dat = datum::complete_datum();
-      break;
-    case datum::error:
-      dat = datum::error_datum("Error on the input edges.");
-      break;
-    case datum::invalid:
-    default:
-      dat = datum::error_datum("Unrecognized datum type.");
-      break;
-  }
-
-  edge_datum_t const edat = edge_datum_t(dat, st);
+  edge_datum_t const edat = edge_datum_t(datum::new_datum(product), stamp_for_inputs());
 
   push_to_port(priv::port_output, edat);
 

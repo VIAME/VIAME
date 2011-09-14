@@ -60,20 +60,7 @@ void
 mutate_process
 ::_step()
 {
-  edge_datum_t const input_dat = grab_from_port(priv::port_input);
-
-  switch (input_dat.get<0>()->type())
-  {
-    case datum::complete:
-      mark_as_complete();
-      break;
-    case datum::data:
-    case datum::empty:
-    case datum::error:
-    case datum::invalid:
-    default:
-      break;
-  }
+  (void)grab_from_port(priv::port_input);
 
   process::_step();
 }

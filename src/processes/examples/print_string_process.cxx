@@ -105,26 +105,9 @@ void
 print_string_process
 ::_step()
 {
-  edge_datum_t const input_dat = grab_from_port(priv::port_input);
+  priv::string_t const input = grab_from_port_as<priv::string_t>(priv::port_input);
 
-  switch (input_dat.get<0>()->type())
-  {
-    case datum::data:
-    {
-      priv::string_t const input = input_dat.get<0>()->get_datum<priv::string_t>();
-
-      d->fout << input << std::endl;
-      break;
-    }
-    case datum::complete:
-      mark_as_complete();
-      break;
-    case datum::empty:
-    case datum::error:
-    case datum::invalid:
-    default:
-      break;
-  }
+  d->fout << input << std::endl;
 
   process::_step();
 }

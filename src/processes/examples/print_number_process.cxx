@@ -106,26 +106,9 @@ void
 print_number_process
 ::_step()
 {
-  edge_datum_t const input_dat = grab_from_port(priv::port_input);
+  priv::number_t const input = grab_from_port_as<priv::number_t>(priv::port_input);
 
-  switch (input_dat.get<0>()->type())
-  {
-    case datum::data:
-    {
-      priv::number_t const input = input_dat.get<0>()->get_datum<priv::number_t>();
-
-      d->fout << input << std::endl;
-      break;
-    }
-    case datum::complete:
-      mark_as_complete();
-      break;
-    case datum::empty:
-    case datum::error:
-    case datum::invalid:
-    default:
-      break;
-  }
+  d->fout << input << std::endl;
 
   process::_step();
 }
