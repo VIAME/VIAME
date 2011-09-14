@@ -762,7 +762,15 @@ edge_datum_t
 process::priv
 ::check_required_input(process* /*proc*/)
 {
+  if ((!input_same_color && !input_valid) ||
+      required_inputs.empty())
+  {
+    return edge_datum_t(datum_t(), stamp_t());
+  }
+
   /// \todo Implement.
+
+  return edge_datum_t(datum_t(), stamp_t());
 }
 
 void
