@@ -8,9 +8,6 @@
 
 #include <vistk/pipeline_types/basic_types.h>
 
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/edge.h>
-
 #include <boost/cstdint.hpp>
 #include <boost/make_shared.hpp>
 

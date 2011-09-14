@@ -11,10 +11,7 @@
 #include <vistk/pipeline_types/image_types.h>
 
 #include <vistk/pipeline/config.h>
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/process_exception.h>
-#include <vistk/pipeline/stamp.h>
 
 #include <boost/filesystem/path.hpp>
 #include <boost/cstdint.hpp>

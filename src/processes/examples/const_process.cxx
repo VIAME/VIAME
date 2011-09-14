@@ -6,7 +6,6 @@
 
 #include "const_process.h"
 
-#include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/datum.h>
 
 #include <boost/make_shared.hpp>
