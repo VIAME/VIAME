@@ -90,6 +90,9 @@ class process::priv
     bool connect_input_port(port_t const& port, edge_ref_t edge);
     bool connect_output_port(port_t const& port, edge_ref_t edge);
 
+    edge_datum_t check_required_input(process* proc);
+    void grab_from_input_edges();
+    void push_to_output_edges(edge_datum_t const& edat) const;
     bool required_outputs_done() const;
 
     name_t name;
@@ -161,7 +164,17 @@ process
   }
   else
   {
-    _step();
+    edge_datum_t const edat = d->check_required_input(this);
+
+    if (edat.get<0>())
+    {
+      d->grab_from_input_edges();
+      d->push_to_output_edges(edat);
+    }
+    else
+    {
+      _step();
+    }
   }
 
   /// \todo Are there any post-_step actions?
@@ -743,6 +756,27 @@ process::priv
   }
 
   return false;
+}
+
+edge_datum_t
+process::priv
+::check_required_input(process* /*proc*/)
+{
+  /// \todo Implement.
+}
+
+void
+process::priv
+::grab_from_input_edges()
+{
+  /// \todo Implement.
+}
+
+void
+process::priv
+::push_to_output_edges(edge_datum_t const& /*edat*/) const
+{
+  /// \todo Implement.
 }
 
 bool
