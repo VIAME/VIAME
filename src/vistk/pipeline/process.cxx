@@ -663,6 +663,15 @@ process
   return cur_edge->get_datum();
 }
 
+edge_datum_t
+process
+::peek_at_edge_ref(edge_ref_t const& edge)
+{
+  edge_t const cur_edge = edge.lock();
+
+  return cur_edge->peek_datum();
+}
+
 config::value_t
 process
 ::config_value_raw(config::key_t const& key) const

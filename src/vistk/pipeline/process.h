@@ -553,6 +553,14 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The next datum from the edge.
      */
     static edge_datum_t grab_from_edge_ref(edge_ref_t const& edge);
+    /**
+     * \brief Peeks at the next datum on an edge.
+     *
+     * \param edge The edge to peek at.
+     *
+     * \returns The next datum on the edge.
+     */
+    static edge_datum_t peek_at_edge_ref(edge_ref_t const& edge);
   private:
     config::value_t config_value_raw(config::key_t const& key) const;
 
