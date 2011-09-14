@@ -489,6 +489,48 @@ class VISTK_PIPELINE_EXPORT process
     T config_value(config::key_t const& key) const;
 
     /**
+     * \brief Set whether color checking is enabled before stepping.
+     *
+     * If enabled, the input ports which are marked as \flag{required} are
+     * guaranteed to be the same color. When the inputs are not the same color,
+     * an error datum is pushed to all output edges and all input edges will be
+     * grabbed from. If this behavior is not wanted, it must be manually
+     * handled. The default is that it is enabled.
+     *
+     * \param ensure If true, ensure required inputs are the same color.
+     */
+    void ensure_inputs_are_same_color(bool ensure);
+    /**
+     * \brief Set whether synchronization checking is enabled before stepping.
+     *
+     * If enabled, the input ports which are marked as \flag{required} are
+     * guaranteed to be synchronized. When the inputs are not synchonized, an
+     * error datum is pushed to all output edges and all input edges will be
+     * grabbed from. If this behavior is not wanted, it must be manually
+     * handled. The default is that it is enabled.
+     *
+     * \note The inputs can only be ensured to be synchonized if they are also
+     * the same color, so if the colors are not verified, the synchonization
+     * cannot be either.
+     *
+     * \param ensure If true, ensure required inputs are synchonized.
+     */
+    void ensure_inputs_are_in_sync(bool ensure);
+    /**
+     * \brief Set whether input validity is enabled before stepping.
+     *
+     * If enabled, the input ports which are marked as \flag{required} are
+     * guaranteed to have valid data available. When the inputs are not
+     * available, a default corresponding datum packet is generated and pushed
+     * to all of the output edges and all input edges will be grabbed from. If
+     * this behavior is not wanted, it must be manually handled. The default is
+     * that it is enabled.
+     *
+     * \param ensure If true, ensure required inputs are the same color.
+     */
+    void ensure_inputs_are_valid(bool ensure);
+
+    /**
      * \brief Check a set of edge data for certain properites.
      *
      * \param data The data to inspect.

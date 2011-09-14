@@ -112,6 +112,10 @@ class process::priv
     bool initialized;
     bool is_complete;
 
+    bool input_same_color;
+    bool input_sync;
+    bool input_valid;
+
     stamp_t hb_stamp;
 
     static config::value_t const default_name;
@@ -543,6 +547,27 @@ process
   return d->conf;
 }
 
+void
+process
+::ensure_inputs_are_same_color(bool ensure)
+{
+  d->input_same_color = ensure;
+}
+
+void
+process
+::ensure_inputs_are_in_sync(bool ensure)
+{
+  d->input_sync = ensure;
+}
+
+void
+process
+::ensure_inputs_are_valid(bool ensure)
+{
+  d->input_valid = ensure;
+}
+
 process::data_info_t
 process
 ::edge_data_info(edge_data_t const& data)
@@ -623,6 +648,9 @@ process::priv
   : conf(c)
   , initialized(false)
   , is_complete(false)
+  , input_same_color(true)
+  , input_sync(true)
+  , input_valid(true)
   , hb_stamp(stamp::new_stamp())
 {
 }
