@@ -125,6 +125,7 @@ class process::priv
     bool input_valid;
 
     stamp_t hb_stamp;
+    stamp_t stamp_for_inputs;
 
     static config::value_t const default_name;
 };
@@ -164,6 +165,8 @@ process
   }
   else
   {
+    d->stamp_for_inputs = d->hb_stamp;
+
     edge_datum_t const edat = d->check_required_input(this);
 
     if (edat.get<0>())
@@ -175,6 +178,8 @@ process
     {
       _step();
     }
+
+    d->stamp_for_inputs = stamp_t();
   }
 
   /// \todo Are there any post-_step actions?
@@ -769,7 +774,7 @@ process::priv
 
 edge_datum_t
 process::priv
-::check_required_input(process* /*proc*/)
+::check_required_input(process* proc)
 {
   if ((!input_same_color && !input_valid) ||
       required_inputs.empty())
@@ -791,7 +796,56 @@ process::priv
     data.push_back(peek_at_edge_ref(i->second));
   }
 
-  /// \todo Implement.
+  data_info_t const info = edge_data_info(data);
+
+  if (input_same_color && !info->same_color)
+  {
+    static std::string const err_string = "Required input edges are not the same color.";
+
+    return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+  }
+
+  if (input_same_color && input_sync && !info->in_sync)
+  {
+    static std::string const err_string = "Required input edges are not synchronized.";
+
+    return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+  }
+
+  // Save the stamp for the inputs.
+  if (input_same_color && input_sync)
+  {
+    stamp_for_inputs = data[0].get<1>();
+  }
+
+  if (!input_valid)
+  {
+    return edge_datum_t(datum_t(), stamp_t());
+  }
+
+  switch (info->max_status)
+  {
+    case datum::data:
+      break;
+    case datum::empty:
+      return edge_datum_t(datum::empty_datum(), stamp_for_inputs);
+    case datum::complete:
+      proc->mark_as_complete();
+      return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
+    case datum::error:
+    {
+      static std::string const err_string = "Error in a required input edge.";
+
+      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+    }
+    case datum::invalid:
+    default:
+    {
+      static std::string const err_string = "Unrecognized datum type in a required input edge.";
+
+      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+    }
+  }
 
   return edge_datum_t(datum_t(), stamp_t());
 }
