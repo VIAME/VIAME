@@ -153,34 +153,10 @@ crop_image_process
 {
   edge_datum_t const input_dat = grab_from_port(priv::port_input);
   datum_t const input_datum = input_dat.get<0>();
-  stamp_t const input_stamp = input_dat.get<1>();
 
-  datum_t dat;
+  datum_t const dat = d->crop(input_datum, d->x, d->y, d->w, d->h);
 
-  switch (input_datum->type())
-  {
-    case datum::data:
-    {
-      dat = d->crop(input_datum, d->x, d->y, d->w, d->h);
-      break;
-    }
-    case datum::empty:
-      dat = datum::empty_datum();
-      break;
-    case datum::complete:
-      dat = datum::complete_datum();
-      mark_as_complete();
-      break;
-    case datum::error:
-      dat = datum::error_datum("Error on the input edges.");
-      break;
-    case datum::invalid:
-    default:
-      dat = datum::error_datum("Unrecognized datum type.");
-      break;
-  }
-
-  edge_datum_t const edat = edge_datum_t(dat, input_stamp);
+  edge_datum_t const edat = edge_datum_t(dat, stamp_for_inputs());
 
   push_to_port(priv::port_output, edat);
 

@@ -170,47 +170,30 @@ image_writer_process
   edge_datum_t const input_dat = grab_from_port(priv::port_input);
   datum_t const input_datum = input_dat.get<0>();
 
-  datum_t dat;
+  d->format.clear();
 
-  switch (input_datum->type())
+  try
   {
-    case datum::data:
-    {
-      d->format.clear();
-
-      try
-      {
-        d->format % name();
-        d->format % d->count;
-      }
-      catch (boost::io::format_error&)
-      {
-      }
-
-      ++d->count;
-
-      path_t const path = boost::str(d->format);
-
-      if (d->has_output)
-      {
-        path_t::string_type const fstr = path.native();
-        std::string const str(fstr.begin(), fstr.end());
-
-        d->fout << str << std::endl;
-      }
-
-      d->write(path, input_datum);
-      break;
-    }
-    case datum::complete:
-      mark_as_complete();
-      break;
-    case datum::empty:
-    case datum::error:
-    case datum::invalid:
-    default:
-      break;
+    d->format % name();
+    d->format % d->count;
   }
+  catch (boost::io::format_error&)
+  {
+  }
+
+  ++d->count;
+
+  path_t const path = boost::str(d->format);
+
+  if (d->has_output)
+  {
+    path_t::string_type const fstr = path.native();
+    std::string const str(fstr.begin(), fstr.end());
+
+    d->fout << str << std::endl;
+  }
+
+  d->write(path, input_datum);
 
   process::_step();
 }

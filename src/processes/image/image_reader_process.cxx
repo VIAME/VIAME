@@ -225,15 +225,22 @@ image_reader_process
       case datum::complete:
         mark_as_complete();
         dat = datum::complete_datum();
-      case datum::error:
-        dat = datum::error_datum("Error on the color input edge.");
-        break;
       case datum::data:
       case datum::empty:
+        break;
+      case datum::error:
+      {
+        static std::string const err_string = "Error on the color edge.";
+
+        dat = datum::error_datum(err_string);
+      }
       case datum::invalid:
       default:
-        dat = datum::error_datum("Unrecognized datum type.");
-        break;
+      {
+        static std::string const err_string = "Unrecognized datum type on the color edge.";
+
+        dat = datum::error_datum(err_string);
+      }
     }
 
     d->output_stamp = stamp::recolored_stamp(d->output_stamp, color_dat.get<1>());
