@@ -25,10 +25,6 @@ class mutate_process::priv
     priv();
     ~priv();
 
-    edge_ref_t input_edge;
-
-    port_info_t input_port_info;
-
     static port_t const port_input;
 };
 

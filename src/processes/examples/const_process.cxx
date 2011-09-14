@@ -26,10 +26,6 @@ class const_process::priv
     priv();
     ~priv();
 
-    edge_group_t output_edges;
-
-    port_info_t output_port_info;
-
     static port_t const port_output;
 };
 
