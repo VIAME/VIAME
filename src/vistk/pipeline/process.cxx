@@ -584,6 +584,13 @@ process
   }
 }
 
+stamp_t
+process
+::stamp_for_inputs() const
+{
+  return d->stamp_for_inputs;
+}
+
 config_t
 process
 ::get_config() const
