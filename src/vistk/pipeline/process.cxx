@@ -777,6 +777,20 @@ process::priv
     return edge_datum_t(datum_t(), stamp_t());
   }
 
+  edge_data_t data;
+
+  BOOST_FOREACH (port_t const& port, required_inputs)
+  {
+    input_edge_map_t::const_iterator const i = input_edges.find(port);
+
+    if (i == input_edges.end())
+    {
+      continue;
+    }
+
+    data.push_back(peek_at_edge_ref(i->second));
+  }
+
   /// \todo Implement.
 
   return edge_datum_t(datum_t(), stamp_t());
