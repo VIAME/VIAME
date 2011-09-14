@@ -109,6 +109,9 @@ class process::priv
 
     config_t const conf;
 
+    ports_t required_inputs;
+    ports_t required_outputs;
+
     bool initialized;
     bool is_complete;
 
@@ -418,6 +421,14 @@ process
 ::declare_input_port(port_t const& port, port_info_t const& info)
 {
   d->input_ports[port] = info;
+
+  port_flags_t const& flags = info->flags;
+  port_flags_t::const_iterator const i = flags.find(flag_required);
+
+  if (i != flags.end())
+  {
+    d->required_inputs.push_back(port);
+  }
 }
 
 void
@@ -425,6 +436,14 @@ process
 ::declare_output_port(port_t const& port, port_info_t const& info)
 {
   d->output_ports[port] = info;
+
+  port_flags_t const& flags = info->flags;
+  port_flags_t::const_iterator const i = flags.find(flag_required);
+
+  if (i != flags.end())
+  {
+    d->required_outputs.push_back(port);
+  }
 }
 
 void
