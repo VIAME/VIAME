@@ -317,13 +317,12 @@ process
 
 process
 ::process(config_t const& config)
+  : d(new priv(config))
 {
   if (!config)
   {
     throw null_process_config_exception();
   }
-
-  d.reset(new priv(config));
 
   declare_configuration_key(config_name, boost::make_shared<conf_info>(
     priv::default_name,

@@ -33,9 +33,8 @@ process::port_t const mutate_process::priv::port_input = process::port_t("mutate
 mutate_process
 ::mutate_process(config_t const& config)
   : process(config)
+  , d(new priv)
 {
-  d.reset(new priv);
-
   port_flags_t mutate_required;
 
   mutate_required.insert(flag_required);

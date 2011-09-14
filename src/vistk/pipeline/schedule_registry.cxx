@@ -158,8 +158,8 @@ schedule_registry
 
 schedule_registry
 ::schedule_registry()
+  : d(new priv)
 {
-  d.reset(new priv);
 }
 
 schedule_registry::priv

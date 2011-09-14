@@ -156,8 +156,8 @@ process_registry
 
 process_registry
 ::process_registry()
+  : d(new priv)
 {
-  d.reset(new priv);
 }
 
 process_registry::priv

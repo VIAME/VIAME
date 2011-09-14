@@ -48,8 +48,8 @@ class sync_schedule::priv
 sync_schedule
 ::sync_schedule(config_t const& config, pipeline_t const& pipe)
   : schedule(config, pipe)
+  , d(new priv)
 {
-  d.reset(new priv);
 }
 
 sync_schedule

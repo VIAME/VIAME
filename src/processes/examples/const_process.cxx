@@ -33,9 +33,8 @@ process::port_t const const_process::priv::port_output = process::port_t("const"
 const_process
 ::const_process(config_t const& config)
   : process(config)
+  , d(new priv)
 {
-  d.reset(new priv);
-
   port_flags_t const_required;
 
   const_required.insert(flag_required);

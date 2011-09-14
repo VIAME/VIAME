@@ -34,9 +34,8 @@ process::port_t const sink_process::priv::port_input = process::port_t("sink");
 sink_process
 ::sink_process(config_t const& config)
   : process(config)
+  , d(new priv)
 {
-  d.reset(new priv);
-
   port_flags_t required;
 
   required.insert(flag_required);

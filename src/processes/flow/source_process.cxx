@@ -38,9 +38,8 @@ process::port_t const source_process::priv::port_output = process::port_t("color
 source_process
 ::source_process(config_t const& config)
   : process(config)
+  , d(new priv)
 {
-  d.reset(new priv);
-
   port_flags_t required;
 
   required.insert(flag_required);

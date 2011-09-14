@@ -58,9 +58,8 @@ process::port_t const collate_process::priv::port_coll_prefix = port_t("coll") +
 collate_process
 ::collate_process(config_t const& config)
   : process(config)
+  , d(new priv)
 {
-  d.reset(new priv);
-
   // This process manages its own colors and inputs.
   ensure_inputs_are_same_color(false);
   ensure_inputs_are_valid(false);

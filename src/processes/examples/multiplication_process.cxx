@@ -40,9 +40,8 @@ process::port_t const multiplication_process::priv::port_output = process::port_
 multiplication_process
 ::multiplication_process(config_t const& config)
   : process(config)
+  , d(new priv)
 {
-  d.reset(new priv);
-
   port_flags_t required;
 
   required.insert(flag_required);

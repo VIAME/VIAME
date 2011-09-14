@@ -32,6 +32,7 @@ schedule
 
 schedule
 ::schedule(config_t const& config, pipeline_t const& pipe)
+  : d(new priv(pipe))
 {
   if (!config)
   {
@@ -42,8 +43,6 @@ schedule
   {
     throw null_schedule_pipeline_exception();
   }
-
-  d.reset(new priv(pipe));
 }
 
 pipeline_t

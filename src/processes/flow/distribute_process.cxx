@@ -60,9 +60,8 @@ process::port_t const distribute_process::priv::port_dist_prefix = port_t("dist"
 distribute_process
 ::distribute_process(config_t const& config)
   : process(config)
+  , d(new priv)
 {
-  d.reset(new priv);
-
   // This process manages its own colors and inputs.
   ensure_inputs_are_same_color(false);
   ensure_inputs_are_valid(false);

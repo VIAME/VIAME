@@ -50,13 +50,12 @@ class edge::priv
 
 edge
 ::edge(config_t const& config)
+  : d(new priv)
 {
   if (!config)
   {
     throw null_edge_config_exception();
   }
-
-  d.reset(new priv);
 }
 
 edge

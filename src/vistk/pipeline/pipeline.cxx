@@ -65,13 +65,12 @@ class pipeline::priv
 
 pipeline
 ::pipeline(config_t const& config)
+  : d(new priv)
 {
   if (!config)
   {
     throw null_pipeline_config_exception();
   }
-
-  d.reset(new priv);
 }
 
 pipeline
