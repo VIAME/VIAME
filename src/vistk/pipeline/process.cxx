@@ -90,6 +90,8 @@ class process::priv
     bool connect_input_port(port_t const& port, edge_ref_t edge);
     bool connect_output_port(port_t const& port, edge_ref_t edge);
 
+    bool required_outputs_done() const;
+
     name_t name;
     process_registry::type_t type;
 
@@ -165,6 +167,11 @@ process
   /// \todo Are there any post-_step actions?
 
   d->run_heartbeat();
+
+  if (d->required_outputs_done())
+  {
+    mark_as_complete();
+  }
 }
 
 bool
@@ -736,6 +743,40 @@ process::priv
   }
 
   return false;
+}
+
+bool
+process::priv
+::required_outputs_done() const
+{
+  if (required_outputs.empty())
+  {
+    return false;
+  }
+
+  BOOST_FOREACH (port_t const& port, required_outputs)
+  {
+    output_edge_map_t::const_iterator const i = output_edges.find(port);
+
+    if (i == output_edges.end())
+    {
+      continue;
+    }
+
+    edge_group_t const& edges = i->second;
+
+    BOOST_FOREACH (edge_ref_t const& edge_ref, edges)
+    {
+      edge_t const edge = edge_ref.lock();
+
+      if (!edge->is_downstream_complete())
+      {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 }
