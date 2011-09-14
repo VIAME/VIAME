@@ -62,6 +62,10 @@ distribute_process
   : process(config)
 {
   d.reset(new priv);
+
+  // This process manages its own colors and inputs.
+  ensure_inputs_are_same_color(false);
+  ensure_inputs_are_valid(false);
 }
 
 distribute_process

@@ -60,38 +60,13 @@ void
 source_process
 ::_step()
 {
-  datum_t dat;
-
-  edge_group_t edges = output_port_edges(priv::port_output);
-
-  bool downstreams_complete = true;
-
-  BOOST_FOREACH (edge_ref_t const& edge_ref, edges)
-  {
-    edge_t const edge = edge_ref.lock();
-
-    if (!edge->is_downstream_complete())
-    {
-      downstreams_complete = false;
-      break;
-    }
-  }
-
-  if (downstreams_complete)
-  {
-    dat = datum::complete_datum();
-    mark_as_complete();
-  }
-  else
-  {
-    dat = datum::empty_datum();
-  }
+  datum_t const dat = datum::empty_datum();
 
   edge_datum_t const edat = edge_datum_t(dat, d->color_stamp);
 
-  d->color_stamp = stamp::incremented_stamp(d->color_stamp);
-
   push_to_port(priv::port_output, edat);
+
+  d->color_stamp = stamp::incremented_stamp(d->color_stamp);
 
   process::_step();
 }
