@@ -200,6 +200,7 @@ image_writer_process::priv
   , format(fmt)
   , write(func)
   , count(0)
+  , has_output(false)
 {
 }
 
