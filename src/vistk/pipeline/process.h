@@ -455,13 +455,21 @@ class VISTK_PIPELINE_EXPORT process
     edge_group_t output_port_edges(port_t const& port) const;
 
     /**
-     * \brief Grabs a datum from a port.
+     * \brief Grabs an edge datum packet from a port.
      *
      * \param port The port to get data from.
      *
      * \returns The datum available on the port.
      */
     edge_datum_t grab_from_port(port_t const& port) const;
+    /**
+     * \brief Grabs a datum packet from a port.
+     *
+     * \param port The port to get data from.
+     *
+     * \returns The datum available on the port.
+     */
+    datum_t grab_datum_from_port(port_t const& port) const;
     /**
      * \brief Grabs a datum from a port as a certain type.
      *
@@ -472,12 +480,27 @@ class VISTK_PIPELINE_EXPORT process
     template <typename T>
     T grab_from_port_as(port_t const& port) const;
     /**
-     * \brief Outputs a datum on a port.
+     * \brief Outputs an edge datum packet on a port.
+     *
+     * \param port The port to push to.
+     * \param dat The edge datum to push.
+     */
+    void push_to_port(port_t const& port, edge_datum_t const& dat) const;
+    /**
+     * \brief Outputs a datum packet on a port.
      *
      * \param port The port to push to.
      * \param dat The datum to push.
      */
-    void push_to_port(port_t const& port, edge_datum_t const& dat) const;
+    void push_datum_to_port(port_t const& port, datum_t const& dat) const;
+    /**
+     * \brief Outputs a result on a port.
+     *
+     * \param port The port to push to.
+     * \param dat The result to push.
+     */
+    template <typename T>
+    void push_to_port_as(port_t const& port, T const& dat) const;
 
     /**
      * \brief Returns the stamp for this step.
@@ -602,7 +625,15 @@ T
 process
 ::grab_from_port_as(port_t const& port) const
 {
-  return grab_from_port(port).get<0>()->get_datum<T>();
+  return grab_datum_from_port(port)->get_datum<T>();
+}
+
+template <typename T>
+void
+process
+::push_to_port_as(port_t const& port, T const& dat) const
+{
+  push_datum_to_port(port, datum::new_datum(dat));
 }
 
 }

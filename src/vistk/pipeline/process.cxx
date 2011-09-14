@@ -565,6 +565,13 @@ process
   return grab_from_edge_ref(e->second);
 }
 
+datum_t
+process
+::grab_datum_from_port(port_t const& port) const
+{
+  return grab_from_port(port).get<0>();
+}
+
 void
 process
 ::push_to_port(port_t const& port, edge_datum_t const& dat) const
@@ -582,6 +589,13 @@ process
   {
     push_to_edges(e->second, dat);
   }
+}
+
+void
+process
+::push_datum_to_port(port_t const& port, datum_t const& dat) const
+{
+  push_to_port(port, edge_datum_t(dat, stamp_for_inputs()));
 }
 
 stamp_t
