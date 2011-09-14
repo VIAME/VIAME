@@ -78,9 +78,7 @@ multiplication_process
 
   priv::number_t const product = factor1 * factor2;
 
-  edge_datum_t const edat = edge_datum_t(datum::new_datum(product), stamp_for_inputs());
-
-  push_to_port(priv::port_output, edat);
+  push_to_port_as<priv::number_t>(priv::port_output, product);
 
   process::_step();
 }

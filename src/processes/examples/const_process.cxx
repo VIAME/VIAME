@@ -61,9 +61,7 @@ void
 const_process
 ::_step()
 {
-  edge_datum_t const edat = edge_datum_t(datum::empty_datum(), heartbeat_stamp());
-
-  push_to_port(priv::port_output, edat);
+  push_datum_to_port(priv::port_output, datum::empty_datum());
 
   process::_step();
 }
