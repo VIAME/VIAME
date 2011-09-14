@@ -243,6 +243,8 @@ vil_functions<PixType>
 {
   image_t const img = dat->get_datum<image_t>();
 
+  /// \todo Sanity check the parameters.
+
   image_t const crop_img = vil_crop(img, x_offset, width, y_offset, height);
 
   if (!crop_img)
