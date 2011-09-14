@@ -89,68 +89,19 @@ void
 compare_string_process
 ::_step()
 {
-  datum_t dat;
-  stamp_t st;
+  std::string const str1 = grab_from_port_as<std::string>(priv::port_string1);
+  std::string const str2 = grab_from_port_as<std::string>(priv::port_string2);
 
-  edge_datum_t const str1_dat = grab_from_port(priv::port_string1);
-  edge_datum_t const str2_dat = grab_from_port(priv::port_string2);
+  bool cmp = (str1 == str2);
 
-  st = str1_dat.get<1>();
-
-  edge_data_t input_dats;
-
-  input_dats.push_back(str1_dat);
-  input_dats.push_back(str2_dat);
-
-  data_info_t const info = data_info(input_dats);
-
-  switch (info->max_status)
+  if (!cmp && d->ignore_case)
   {
-    case datum::data:
-      if (!info->same_color)
-      {
-        st = heartbeat_stamp();
-
-        dat = datum::error_datum("The input edges are not colored the same.");
-      }
-      else if (!info->in_sync)
-      {
-        st = heartbeat_stamp();
-
-        dat = datum::error_datum("The input edges are not synchronized.");
-      }
-      else
-      {
-        std::string const str1 = str1_dat.get<0>()->get_datum<std::string>();
-        std::string const str2 = str2_dat.get<0>()->get_datum<std::string>();
-
-        bool cmp = (str1 == str2);
-
-        if (!cmp && d->ignore_case)
-        {
-           cmp = boost::iequals(str1, str2);
-        }
-
-        dat = datum::new_datum(cmp);
-      }
-      break;
-    case datum::empty:
-      dat = datum::empty_datum();
-      break;
-    case datum::complete:
-      mark_as_complete();
-      dat = datum::complete_datum();
-      break;
-    case datum::error:
-      dat = datum::error_datum("Error on the input edges.");
-      break;
-    case datum::invalid:
-    default:
-      dat = datum::error_datum("Unrecognized datum type.");
-      break;
+    cmp = boost::iequals(str1, str2);
   }
 
-  edge_datum_t const edat = edge_datum_t(dat, st);
+  datum_t const dat = datum::new_datum(cmp);
+
+  edge_datum_t const edat = edge_datum_t(dat, stamp_for_inputs());
 
   push_to_port(priv::port_output, edat);
 

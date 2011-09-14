@@ -174,74 +174,33 @@
  *
  * \section how_to_process_run Running
  *
+ * The base \ref vistk::process class will do checking for input ports that have
+ * the \flag{required} flag to ensure that they are the same color,
+ * synchronized and all have data available on them. The default behavior is
+ * meant to handle the common case for processes that receive inputs and compute
+ * a single result based on it. The default behavior can be enabled or disabled
+ * for each case using the \c ensure_* methods on the \ref vistk::process class.
+ *
  * \until include
  *
  * The process will use Boost to compare strings and ignoring case.
  *
- * \until str2_dat
+ * \until str2
  *
  * First, data is grabbed from the input ports.
  *
- * \until st
- *
- * Use the stamp of the first datum packet as our output's stamp.
- *
- * \until str2_dat
- *
- * Gather the data packets together. This allows the packets to be queried as a
- * group. Processes may group packets as needed for querying.
- *
- * \until {
- *
- * Check the packets received for the highest priority status on any of them.
- * The process then reacts differently depending on what was received on the
- * inputs.
- *
- * \until datum::data
- *
- * If all the received data contained actual data, the process can actually do
- * computations on it.
- *
  * \until }
  *
- * The data packets are first checked to ensure that they are the same color. If
- * the packets are not the same color, then they may have different data rates
- * which can cause errors later in the pipeline. Here, it's not too much of an
- * issue, but it's good to check for this anyways.
+ * The case insensitive comparison is only made if the case sensitive compare
+ * failed and the option for it is set.
  *
- * \until }
+ * \until new_datum
  *
- * The packets are then checked to make sure that they are on the same step. If
- * they are not, an error is generated.
- *
- * \until break
- *
- * Here is where the actual computation is made. The case insensitive comparison
- * is only made if the case sensitive compare failed and the option for it is
- * set.
- *
- * \until break
- *
- * If either of our inputs is empty, a comparison cannot be made, so an empty
- * datum is pushed along as well.
- *
- * \until break
- *
- * If either of our inputs is complete, it means that no more data will be
- * available on that edge, so we should mark that this process is also complete
- * and notify downstream processes as well.
- *
- * \until break
- *
- * When an error is received, the process also errors out.
- *
- * \until break
- *
- * If some input data has an unknown type, an error is generated.
+ * The result is wrapped into a datum packet.
  *
  * \until push_to_port
  *
- * The result is pushed into the output port.
+ * The result is pushed into the output port with the stamp that the input used.
  *
  * \until }
  *
