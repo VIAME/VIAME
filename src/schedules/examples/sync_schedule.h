@@ -29,7 +29,6 @@ namespace vistk
  *
  * \schedule Runs the pipeline in one thread.
  *
- * \todo Does not handle infinite sources.
  * \todo Does not handle lag in the pipeline.
  */
 class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT sync_schedule

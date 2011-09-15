@@ -29,7 +29,6 @@ namespace vistk
  *
  * \schedule Runs a thread for each process.
  *
- * \todo Does not handle infinite sources.
  * \todo Does not handle reentrant processes.
  */
 class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_per_process_schedule
