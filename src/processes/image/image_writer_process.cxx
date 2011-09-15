@@ -36,7 +36,7 @@ class image_writer_process::priv
     priv(path_t const& output_path, config::value_t const& fmt, write_func_t func);
     ~priv();
 
-    typedef boost::basic_format<path_t::string_type::value_type> format_t;
+    typedef boost::basic_format<config::value_t::value_type> format_t;
 
     path_t const path;
     format_t format;
@@ -113,8 +113,8 @@ image_writer_process
   // Configure the process.
   {
     pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
-    path_t::string_type const format = config_value<path_t::string_type>(priv::config_format);
-    path_t::string_type const path_fmt = config_value<path_t::string_type>(priv::config_path);
+    config::value_t const format = config_value<config::value_t>(priv::config_format);
+    config::value_t const path_fmt = config_value<config::value_t>(priv::config_path);
 
     path_t path = path_fmt;
 
