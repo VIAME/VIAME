@@ -360,7 +360,8 @@ class VISTK_PIPELINE_EXPORT unset_on_read_only_value_exception
  * \returns The value of \p value in the requested type.
  */
 template <typename T>
-T VISTK_PIPELINE_EXPORT
+inline
+T
 config_cast_default(config::value_t const& value)
 {
   try
@@ -383,7 +384,8 @@ config_cast_default(config::value_t const& value)
  * \returns The value of \p value in the requested type.
  */
 template <typename T>
-T VISTK_PIPELINE_EXPORT
+inline
+T
 config_cast_inner(config::value_t const& value)
 {
   return config_cast_default<T>(value);
@@ -403,7 +405,7 @@ config_cast_inner(config::value_t const& value)
  */
 template <>
 inline
-bool VISTK_PIPELINE_EXPORT
+bool
 config_cast_inner(config::value_t const& value)
 {
   static config::value_t const true_string = config::value_t("true");
@@ -431,7 +433,8 @@ config_cast_inner(config::value_t const& value)
  * \returns The value of \p value in the requested type.
  */
 template <typename T>
-T VISTK_PIPELINE_EXPORT
+inline
+T
 config_cast(config::value_t const& value)
 {
   return config_cast_inner<T>(value);
