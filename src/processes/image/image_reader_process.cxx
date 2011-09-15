@@ -199,7 +199,7 @@ image_reader_process
   }
   else
   {
-    path_t::string_type line;
+    std::string line;
 
     std::getline(d->fin, line);
 
