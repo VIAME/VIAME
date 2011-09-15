@@ -80,7 +80,7 @@ port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
       return image_helper<uint8_t>::port_types<false>::type;
     }
   }
-  else if (pixtype == pixtypes::pixtypes::pixtype_float())
+  else if (pixtype == pixtypes::pixtype_float())
   {
     if (grayscale)
     {
