@@ -38,6 +38,12 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Constructor.
      *
+     * \preconds
+     *
+     * \precond{\p config}
+     *
+     * \endpreconds
+     *
      * \param config Contains configuration for the pipeline.
      */
     pipeline(config_t const& config);
@@ -49,8 +55,21 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Add a process to the pipeline.
      *
+     * \preconds
+     *
+     * \precond{\p process}
+     * \precond{Another process or group is not already named \c process->name()}
+     *
+     * \endpreconds
+     *
      * \throws null_process_addition_exception Thrown when \p process is \c NULL.
      * \throws duplicate_process_name_exception Thrown when \p process has the same name as another process in the pipeline already.
+     *
+     * \postconds
+     *
+     * \postcond{\p process is owned by \c this}
+     *
+     * \endpostconds
      *
      * \param process The process to add to the pipeline.
      */
@@ -58,16 +77,51 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Declares a logical group of processes in the pipeline.
      *
+     * \preconds
+     *
+     * \precond{Another process or group is not already named \p name}
+     *
+     * \endpreconds
+     *
      * \throws duplicate_process_name_exception Thrown when a process or group is already named \p name.
+     *
+     * \postconds
+     *
+     * \postcond{A group with the name \p name is available within the pipeline.}
+     *
+     * \endpostconds
      *
      * \param name The name of the group.
      */
     void add_group(process::name_t const& name);
 
+    // FIXME: Something is wrong with the doxygen formatting below... --Ben
     /**
      * \brief Connect two ports in the pipeline together with an edge.
      *
+     * \preconds
+     *
+     * \precond{\p upstream_process is the name of a process or group in the pipeline}
+     * \precond{\p upstream_port is an output port on \p upstream_process}
+     * \precond{\p downstream_process is the name of a process or group in the pipeline}
+     * \precond{\p downstream_port is an input port on \p downstream_process}
+     * \precond{The types of the ports match, or at least one is \ref process::type_any}
+     * \precond{The flags of the ports are compatible (a \ref
+     *          process::flag_output_const output may not be connected to a \ref
+     *          process::flag_input_mutable input)}
+     *
+     * \endpreconds
+     *
+     * \throws connection_type_mismatch_exception Thrown when the types of the ports are incompatible.
+     * \throws connection_flag_mismatch_exception Thrown when the flags of the ports are incompatible.
      * \throws no_such_process_exception Thrown when either \p upstream_process or \p downstream_process do not exist in the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{The ports \port{upstream_process.upstream_port} and
+     *           \port{downstream_process.downstream_port} are connected}
+     *
+     * \endpostconds
      *
      * \param upstream_process The upstream process name.
      * \param upstream_port The upstream process port.
@@ -84,8 +138,22 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \todo How to declare types/desc for these ports?
      *
+     * \preconds
+     *
+     * \precond{A group named \p group exists}
+     * \precond{A process or group named \c mapped_process exists}
+     *
+     * \endpreconds
+     *
      * \throws no_such_group_exception Thrown when \p group does not exist in the pipeline.
      * \throws no_such_process_exception Thrown when \p mapped_process does not exist in the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{A connection to \port{group.port} is mapped to a connection to
+     *           \port{mapped_process.mapped_port} instead}
+     *
+     * \endpostconds
      *
      * \param group The group name.
      * \param port The group port.
@@ -103,9 +171,24 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \todo How to declare types/desc for these ports?
      *
+     * \preconds
+     *
+     * \precond{A group named \p group exists}
+     * \precond{An output port named \p port does not already exist for the group \p group}
+     * \precond{A process or group named \c mapped_process exists}
+     *
+     * \endpreconds
+     *
      * \throws no_such_group_exception Thrown when \p group does not exist in the pipeline.
      * \throws no_such_process_exception Thrown when \p mapped_process does not exist in the pipeline.
      * \throws group_output_already_mapped_exception Thrown when \p port on \p group has already been mapped.
+     *
+     * \postconds
+     *
+     * \postcond{A connection to \port{group.port} is mapped to a connection to
+     *           \port{mapped_process.mapped_port} instead}
+     *
+     * \endpostconds
      *
      * \param group The group name.
      * \param port The group port.
@@ -121,6 +204,17 @@ class VISTK_PIPELINE_EXPORT pipeline
 
     /**
      * \brief Sets the pipeline up for execution.
+     *
+     * This method ensures that all ports with the flag \ref
+     * process::flag_required are connected to an edge. It also ensures that the
+     * entire pipeline is fully connected (no set of processes is not connected
+     * to some other set of processes within the pipeline somehow).
+     *
+     * \postconds
+     *
+     * \postcond{The pipeline is ready to be executed}
+     *
+     * \endpostconds
      */
     void setup_pipeline();
 
@@ -132,6 +226,12 @@ class VISTK_PIPELINE_EXPORT pipeline
     process::names_t process_names() const;
     /**
      * \brief Get a process by name.
+     *
+     * \preconds
+     *
+     * \precond{A process with the name \p name exists in the pipeline}
+     *
+     * \endpreconds
      *
      * \throws no_such_process_exception Thrown when \p name does not exist in the pipeline.
      *
@@ -253,6 +353,12 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief The input port names for a group.
      *
+     * \preconds
+     *
+     * \precond{A group with the name \p name exists in the pipeline}
+     *
+     * \endpreconds
+     *
      * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
      *
      * \param name The name of the group.
@@ -263,6 +369,12 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief The output port names for a group.
      *
+     * \preconds
+     *
+     * \precond{A group with the name \p name exists in the pipeline}
+     *
+     * \endpreconds
+     *
      * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
      *
      * \param name The name of the group.
@@ -272,6 +384,13 @@ class VISTK_PIPELINE_EXPORT pipeline
     process::ports_t output_ports_for_group(process::name_t const& name) const;
     /**
      * \brief Flags on an input port on a group.
+     *
+     * \preconds
+     *
+     * \precond{A group with the name \p name exists in the pipeline}
+     * \precond{The group has a mapped input port named \p port}
+     *
+     * \endpreconds
      *
      * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
      * \throws no_such_group_port_exception Thrown when \p port is not an input port on the group.
@@ -285,6 +404,13 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Flags on an output port on a group.
      *
+     * \preconds
+     *
+     * \precond{A group with the name \p name exists in the pipeline}
+     * \precond{The group has a mapped output port named \p port}
+     *
+     * \endpreconds
+     *
      * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
      * \throws no_such_group_port_exception Thrown when \p port is not an output port on the group.
      *
@@ -297,6 +423,13 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Ports that are mapped to the group input port.
      *
+     * \preconds
+     *
+     * \precond{A group with the name \p name exists in the pipeline}
+     * \precond{The group has a mapped input port named \p port}
+     *
+     * \endpreconds
+     *
      * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
      * \throws no_such_group_port_exception Thrown when \p port is not an input port on the group.
      *
@@ -308,6 +441,13 @@ class VISTK_PIPELINE_EXPORT pipeline
     process::port_addrs_t mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const;
     /**
      * \brief The port that is mapped to the group output port.
+     *
+     * \preconds
+     *
+     * \precond{A group with the name \p name exists in the pipeline}
+     * \precond{The group has a mapped output port named \p port}
+     *
+     * \endpreconds
      *
      * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
      * \throws no_such_group_port_exception Thrown when \p port is not an output port on the group.
