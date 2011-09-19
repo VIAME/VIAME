@@ -118,6 +118,12 @@ class VISTK_PIPELINE_EXPORT config
      *
      * \throws set_on_read_only_value_exception Thrown if \p key is marked as read-only.
      *
+     * \postconds
+     *
+     * \postcond{<code>this->get_value<value_t>(key) == value</code>}
+     *
+     * \endpostconds
+     *
      * \param key The index of the configuration value to set.
      * \param value The value to set for the \p key.
      */
@@ -127,6 +133,12 @@ class VISTK_PIPELINE_EXPORT config
      * \brief Removes a value from the configuration.
      *
      * \throws unset_on_read_only_value_exception Thrown if \p key is marked as read-only.
+     *
+     * \postconds
+     *
+     * \postcond{<code>this->get_value<T>(key)</code> throws \c no_such_configuration_value_exception}
+     *
+     * \endpostconds
      *
      * \param key The index of the configuration value to unset.
      */
@@ -143,6 +155,12 @@ class VISTK_PIPELINE_EXPORT config
     /**
      * \brief Sets the value within the configuration as read-only.
      *
+     * \postconds
+     *
+     * \postcond{<code>this->is_read_only(key) == true</code>}
+     *
+     * \endpostconds
+     *
      * \param key The key of the value to mark as read-only.
      */
     void mark_read_only(key_t const& key);
@@ -153,6 +171,12 @@ class VISTK_PIPELINE_EXPORT config
      * \note Any values currently set within \c *this will be overwritten if conficts occur.
      *
      * \throws set_on_read_only_value_exception Thrown if \p key is marked as read-only.
+     *
+     * \postconds
+     *
+     * \postcond{\c this->available_values() ⊆ \c config->available_values()}
+     *
+     * \endpostconds
      *
      * \param config The other configuration.
      */
