@@ -87,7 +87,12 @@ void load_known_modules()
   free_envvar(extra_module_dirs);
   extra_module_dirs = NULL;
 
-  boost::split(module_dirs, default_module_dirs, is_separator, boost::token_compress_on);
+  /// \bug Boost <= 1.47 boost::split *overwrites* destination.
+  module_paths_t module_dirs_tmp;
+
+  boost::split(module_dirs_tmp, default_module_dirs, is_separator, boost::token_compress_on);
+
+  module_dirs.insert(module_dirs.end(), module_dirs_tmp.begin(), module_dirs_tmp.end());
 
   BOOST_FOREACH (module_path_t const& module_dir, module_dirs)
   {

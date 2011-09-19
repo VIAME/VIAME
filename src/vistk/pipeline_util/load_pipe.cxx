@@ -85,17 +85,24 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
   {
     include_dirs.push_back(inc_root);
 
+    /// \bug Boost <= 1.47 boost::split *overwrites* destination.
+    include_paths_t include_dirs_tmp;
+
     envvar_value_t extra_include_dirs = get_envvar(vistk_include_envvar);
 
     if (extra_include_dirs)
     {
-      boost::split(include_dirs, extra_include_dirs, is_separator, boost::token_compress_on);
+      boost::split(include_dirs_tmp, extra_include_dirs, is_separator, boost::token_compress_on);
+
+      include_dirs.insert(include_dirs.end(), include_dirs_tmp.begin(), include_dirs_tmp.end());
     }
 
     free_envvar(extra_include_dirs);
     extra_include_dirs = NULL;
 
-    boost::split(include_dirs, default_include_dirs, is_separator, boost::token_compress_on);
+    boost::split(include_dirs_tmp, default_include_dirs, is_separator, boost::token_compress_on);
+
+    include_dirs.insert(include_dirs.end(), include_dirs_tmp.begin(), include_dirs_tmp.end());
   }
 
   while (istr.good())
