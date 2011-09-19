@@ -189,11 +189,23 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Post-connection initialization.
      *
      * \throws reinitialization_exception Thrown if called multiple times.
+     *
+     * \postconds
+     *
+     * \postcond{\c this is ready to be stepped}
+     *
+     * \endpostconds
      */
     void init();
 
     /**
      * \brief Steps through one iteration of the process.
+     *
+     * \preconds
+     *
+     * \precond{\c this was initialized}
+     *
+     * \endpreconds
      *
      * \throws uninitialized_exception Thrown if called before \ref init.
      */
@@ -218,9 +230,23 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Connects an edge to an input port on the process.
      *
+     * \preconds
+     *
+     * \precond{\p edge}
+     * \precond{The input port \p port exists}
+     * \precond{The input port \p port has not been connected to before}
+     *
+     * \endpreconds
+     *
      * \throws null_edge_port_connection_exception Thrown when \p edge is \c NULL.
      * \throws connect_to_initialized_process_exception Thrown if called after \ref init.
      * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     *
+     * \postconds
+     *
+     * \postcond{The input port \p port is connected via the edge \p edge}
+     *
+     * \endpostconds
      *
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
@@ -229,8 +255,21 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Connects an edge to an output port on the process.
      *
+     * \preconds
+     *
+     * \precond{\p edge}
+     * \precond{The output port \p port exists}
+     *
+     * \endpreconds
+     *
      * \throws null_edge_port_connection_exception Thrown when \p edge is \c NULL.
      * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     *
+     * \postconds
+     *
+     * \postcond{The input port \p port is connected via the edge \p edge}
+     *
+     * \endpostconds
      *
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
