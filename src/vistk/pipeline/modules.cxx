@@ -61,6 +61,7 @@ static bool is_separator(char ch);
 
 static function_name_t const process_function_name = function_name_t("register_processes");
 static function_name_t const schedule_function_name = function_name_t("register_schedules");
+static module_path_t const default_module_dirs = module_path_t(VISTK_DEFAULT_MODULE_PATHS);
 static envvar_name_t const vistk_module_envvar = envvar_name_t("VISTK_MODULE_PATH");
 static lib_suffix_t const library_suffix = lib_suffix_t(
 #if defined(_WIN32) || defined(_WIN64)
@@ -76,14 +77,6 @@ void load_known_modules()
 {
   module_paths_t module_dirs;
 
-#ifdef VISTK_LIBRARY_OUTPUT_PATH
-  module_dirs.push_back(VISTK_LIBRARY_OUTPUT_PATH);
-#endif
-
-#ifdef VISTK_MODULE_INSTALL_PATH
-  module_dirs.push_back(VISTK_MODULE_INSTALL_PATH);
-#endif
-
   envvar_value_t extra_module_dirs = get_envvar(vistk_module_envvar);
 
   if (extra_module_dirs)
@@ -93,6 +86,8 @@ void load_known_modules()
 
   free_envvar(extra_module_dirs);
   extra_module_dirs = NULL;
+
+  boost::split(module_dirs, default_module_dirs, is_separator, boost::token_compress_on);
 
   BOOST_FOREACH (module_path_t const& module_dir, module_dirs)
   {

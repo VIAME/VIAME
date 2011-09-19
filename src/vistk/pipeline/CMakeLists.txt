@@ -41,28 +41,27 @@ set(pipeline_headers
   types.h
   utils.h)
 
-set(vistk_library_options)
+set(vistk_default_module_paths
+  "${MODULE_INSTALL_PATH}")
 
-option(VISTK_MODULE_USE_BUILD_PATH "Turn on to search the build path for modules" OFF)
-if (VISTK_MODULE_USE_BUILD_PATH)
-  if (WIN32)
-    set(vistk_library_options
-      ${vistk_library_options}
-      "VISTK_LIBRARY_OUTPUT_PATH=VISTK_LIBRARY_OUTPUT_PATH_BASE\ L\"/\"\ VISTK_CONFIGURATION_L"
-      "VISTK_LIBRARY_OUTPUT_PATH_BASE=L\"${MODULE_OUTPUT_PATH}\"")
-  else (WIN32)
-    set(vistk_library_options
-      ${vistk_library_options}
-      "VISTK_LIBRARY_OUTPUT_PATH=\"${MODULE_OUTPUT_PATH}\"")
-  endif (WIN32)
-endif (VISTK_MODULE_USE_BUILD_PATH)
+if (WIN32)
+  set(vistk_default_module_paths
+    "${vistk_default_module_paths};${MODULE_OUTPUT_PATH}")
+else (WIN32)
+  set(vistk_default_module_paths
+    "${vistk_default_module_paths}:${MODULE_OUTPUT_PATH}")
+endif (WIN32)
 
-option(VISTK_MODULE_USE_INSTALL_PATH "Turn on to search the install path for modules" OFF)
-if (VISTK_MODULE_USE_INSTALL_PATH)
-  set(vistk_library_options
-    ${vistk_library_options}
-    "VISTK_MODULE_INSTALL_PATH=\"${MODULE_INSTALL_PATH}\"")
-endif (VISTK_MODULE_USE_INSTALL_PATH)
+set(vistk_path_prefix)
+
+if (WIN32)
+  set(vistk_path_prefix "L")
+endif (WIN32)
+
+set(VISTK_DEFAULT_MODULE_PATHS "${vistk_default_module_paths}"
+  CACHE PATH "The default paths to search for modules in")
+set(vistk_library_options
+  "VISTK_DEFAULT_MODULE_PATHS=${vistk_path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
 
 set(module_build_options
   ${boost_filesystem_options}
