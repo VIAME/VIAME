@@ -22,9 +22,21 @@ set(pipeline_util_headers
   pipeline_util-config.h
   types.h)
 
-set(vistk_pipe_include_options)
+set(vistk_default_pipe_include_paths
+  "${PIPE_INCLUDE_INSTALL_PATH}")
 
-# TODO: Set system pipe include directories
+if (WIN32)
+  set(vistk_default_pipe_include_paths
+    "${vistk_default_pipe_include_paths};${CMAKE_SOURCE_DIR}/tools/pipe_include")
+else (WIN32)
+  set(vistk_default_pipe_include_paths
+    "${vistk_default_pipe_include_paths}:${CMAKE_SOURCE_DIR}/tools/pipe_include")
+endif (WIN32)
+
+set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
+  CACHE PATH "The default paths to search for pipe includes in")
+set(vistk_pipe_include_options
+  "VISTK_DEFAULT_PIPE_INCLUDE_PATHS=\"${VISTK_DEFAULT_PIPE_INCLUDE_PATHS}\"")
 
 set(load_pipe_build_options
   ${boost_filesystem_options}
