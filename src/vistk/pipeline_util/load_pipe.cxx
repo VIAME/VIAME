@@ -10,10 +10,13 @@
 #include "pipe_grammar.h"
 
 #include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/utils.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/foreach.hpp>
 
 #include <fstream>
 #include <istream>
@@ -29,10 +32,16 @@
 namespace vistk
 {
 
+typedef path_t include_path_t;
+typedef std::vector<include_path_t> include_paths_t;
+
+static std::string const default_include_dirs = std::string(VISTK_DEFAULT_PIPE_INCLUDE_PATHS);
+static envvar_name_t const vistk_include_envvar = envvar_name_t("VISTK_PIPE_INCLUDE_PATH");
 static std::string const include_directive = "!include ";
 static char const comment_marker = '#';
 
 static void flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t const& inc_root);
+static bool is_separator(char ch);
 
 pipe_blocks
 load_pipe_blocks_from_file(path_t const& fname)
@@ -70,6 +79,25 @@ load_pipe_blocks(std::istream& istr, path_t const& inc_root)
 void
 flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t const& inc_root)
 {
+  include_paths_t include_dirs;
+
+  // Build include directories.
+  {
+    include_dirs.push_back(inc_root);
+
+    envvar_value_t extra_include_dirs = get_envvar(vistk_include_envvar);
+
+    if (extra_include_dirs)
+    {
+      boost::split(include_dirs, extra_include_dirs, is_separator, boost::token_compress_on);
+    }
+
+    free_envvar(extra_include_dirs);
+    extra_include_dirs = NULL;
+
+    boost::split(include_dirs, default_include_dirs, is_separator, boost::token_compress_on);
+  }
+
   while (istr.good())
   {
     std::string line;
@@ -87,14 +115,21 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
     {
       path_t file_path(line.substr(include_directive.size()));
 
+      boost::system::error_code ec;
+
       if (file_path.is_relative())
       {
-        file_path = inc_root / file_path;
+        BOOST_FOREACH (include_path_t const& include_dir, include_dirs)
+        {
+          path_t const inc_file_path = include_dir / file_path;
 
-        /// \todo Support system include directories?
+          if (boost::filesystem::exists(inc_file_path, ec))
+          {
+            file_path = inc_file_path;
+            break;
+          }
+        }
       }
-
-      boost::system::error_code ec;
 
       if (!boost::filesystem::exists(file_path, ec))
       {
@@ -133,6 +168,18 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
       sstr << line << std::endl;
     }
   }
+}
+
+bool is_separator(char ch)
+{
+  char const separator =
+#if defined(_WIN32) || defined(_WIN64)
+    ';';
+#else
+    ':';
+#endif
+
+  return (ch == separator);
 }
 
 }
