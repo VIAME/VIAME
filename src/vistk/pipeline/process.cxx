@@ -186,6 +186,7 @@ process
 
   d->run_heartbeat();
 
+  /// \todo Should this really be done here?
   if (d->required_outputs_done())
   {
     mark_as_complete();
@@ -935,6 +936,7 @@ process::priv
     {
       edge_t const edge = edge_ref.lock();
 
+      // If any required edge is not complete, then return false.
       if (!edge->is_downstream_complete())
       {
         return false;
