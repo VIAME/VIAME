@@ -238,8 +238,8 @@ class VISTK_PIPELINE_EXPORT edge
      *
      * \endpreconds
      *
-     * \throws null_process_connection Thrown if \p process is \c NULL.
-     * \throws output_already_connected Thrown if a process is already connected.
+     * \throws null_process_connection_exception Thrown if \p process is \c NULL.
+     * \throws output_already_connected_exception Thrown if a process is already connected.
      *
      * \param process The process which can pull data from the edge.
      */
