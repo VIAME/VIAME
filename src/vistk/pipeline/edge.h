@@ -50,6 +50,12 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Constructor.
      *
+     * \preconds
+     *
+     * \precond{\p config}
+     *
+     * \endpreconds
+     *
      * \param config Contains configuration for the edge.
      */
     edge(config_t const& config);
@@ -89,13 +95,39 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Push a datum into the edge.
      *
+     * \note This call blocks if \c full_of_data is \c true.
+     *
+     * \postconds
+     *
+     * \postcond{<code>this->has_data() == true</code>}
+     * \postcond{The edge has one more datum packet in it.}
+     * \postcond{\c this takes ownership of \p datum.}
+     *
+     * \endpostconds
+     *
      * \param datum The datum to put into the edge.
      */
     void push_datum(edge_datum_t const& datum);
     /**
      * \brief Extract a datum from the edge.
      *
+     * \note This call blocks if \c has_data is \c false.
+     *
      * \throws datum_requested_after_complete Thrown if called after \ref mark_downstream_as_complete.
+     *
+     * \preconds
+     *
+     * \precond{<code>this->is_downstream_complete() == false</code>}
+     *
+     * \endpreconds
+     *
+     * \postconds
+     *
+     * \postcond{<code>this->full_of_data() == false</code>}}
+     * \postcond{The edge has one less datum packet in it.}
+     * \postcond{The caller takes ownership of the returned datum packet.}
+     *
+     * \endpostconds
      *
      * \returns The next datum available from the edge.
      */
@@ -103,7 +135,22 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Look at the next datum in the edge.
      *
+     * \note This call blocks if \c has_data is \c false.
+     *
+     * \preconds
+     *
+     * \precond{<code>this->is_downstream_complete() == false</code>}
+     *
+     * \endpreconds
+     *
      * \throws datum_requested_after_complete Thrown if called after \ref mark_downstream_as_complete.
+     *
+     * \postconds
+     *
+     * \postcond{The edge has the same number of data packets as before.}
+     * \postcond{The edge retains ownership of the datum packet.}
+     *
+     * \endpostconds
      *
      * \returns The next datum available from the edge.
      */
@@ -111,12 +158,31 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Removes a datum from the edge.
      *
+     * \preconds
+     *
+     * \precond{<code>this->is_downstream_complete() == false</code>}
+     *
+     * \endpreconds
+     *
      * \throws datum_requested_after_complete Thrown if called after \ref mark_downstream_as_complete.
+     *
+     * \postconds
+     *
+     * \postcond{<code>this->full_of_data() == false</code>}
+     * \postcond{The edge has one less datum packet in it.}
+     *
+     * \endpostconds
      */
     void pop_datum();
 
     /**
      * \brief Set whether the data the edge delivers is required for downstream.
+     *
+     * \postconds
+     *
+     * \postcond{<code>this->required_by_downstream() == required</code>}
+     *
+     * \endpostconds
      *
      * \param required Whether the data the edge delivers is required for downstream.
      */
@@ -130,6 +196,13 @@ class VISTK_PIPELINE_EXPORT edge
 
     /**
      * \brief Triggers the edge to flush all data and not accept any more data.
+     *
+     * \postconds
+     *
+     * \postcond{<code>this->is_downstream_complete() == true</code>}
+     * \postcond{<code>this->has_data() == false</code>}
+     *
+     * \endpostconds
      */
     void mark_downstream_as_complete();
     /**
@@ -142,6 +215,13 @@ class VISTK_PIPELINE_EXPORT edge
     /**
      * \brief Set the process which is connected to the input side of the edge.
      *
+     * \preconds
+     *
+     * \precond{\p process}
+     * \precond{An upstream process is not already set.}
+     *
+     * \endpreconds
+     *
      * \throws null_process_connection_exception Thrown if \p process is \c NULL.
      * \throws input_already_connected_exception Thrown if a process is already connected.
      *
@@ -150,6 +230,13 @@ class VISTK_PIPELINE_EXPORT edge
     void set_upstream_process(process_t process);
     /**
      * \brief Set the process which is connected to the output side of the edge.
+     *
+     * \preconds
+     *
+     * \precond{\p process}
+     * \precond{A downstream process is not already set.}
+     *
+     * \endpreconds
      *
      * \throws null_process_connection Thrown if \p process is \c NULL.
      * \throws output_already_connected Thrown if a process is already connected.
