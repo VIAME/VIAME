@@ -154,7 +154,7 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
         throw file_open_exception(file_path);
       }
 
-      flatten_pipe_declaration(sstr, fin, inc_root);
+      flatten_pipe_declaration(sstr, fin, file_path.parent_path());
 
       fin.close();
     }
