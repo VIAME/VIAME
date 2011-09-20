@@ -64,10 +64,29 @@ vistk_make_test(edge get_data_from_complete)
 ##############################
 # Modules tests
 ##############################
+add_library(processes_test SHARED
+  processes_test.cxx)
+
+if (WIN32)
+  set(module_output RUNTIME_OUTPUT_DIRECTORY)
+else (WIN32)
+  set(module_output LIBRARY_OUTPUT_DIRECTORY)
+endif (WIN32)
+
+set_target_properties(processes_test
+  PROPERTIES
+    ${module_output} "${CMAKE_CURRENT_BINARY_DIR}"
+    PREFIX           "")
+
 vistk_build_test(modules libraries test_modules.cxx)
 
 vistk_make_test(modules load)
 vistk_make_test(modules multiple_load)
+vistk_make_test(modules envvar)
+
+set_tests_properties(test-modules-envvar
+  PROPERTIES
+    ENVIRONMENT "VISTK_MODULE_PATH=${CMAKE_CURRENT_BINARY_DIR}")
 
 ##############################
 # Process tests

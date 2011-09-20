@@ -6,7 +6,10 @@
 
 #include <test_common.h>
 
+#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
+#include <vistk/pipeline/process.h>
+#include <vistk/pipeline/process_registry.h>
 
 #include <exception>
 #include <iostream>
@@ -42,6 +45,7 @@ main(int argc, char* argv[])
 
 static void test_load();
 static void test_multiple_load();
+static void test_envvar();
 
 void
 run_test(std::string const& test_name)
@@ -53,6 +57,10 @@ run_test(std::string const& test_name)
   else if (test_name == "multiple_load")
   {
     test_multiple_load();
+  }
+  else if (test_name == "envvar")
+  {
+    test_envvar();
   }
   else
   {
@@ -71,4 +79,17 @@ test_multiple_load()
 {
   vistk::load_known_modules();
   vistk::load_known_modules();
+}
+
+void
+test_envvar()
+{
+  vistk::load_known_modules();
+
+  vistk::process_registry_t reg = vistk::process_registry::self();
+
+  vistk::process::name_t const proc_type = vistk::process::name_t("test");
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  reg->create_process(proc_type, conf);
 }
