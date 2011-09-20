@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <exception>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -93,6 +94,7 @@ static void test_group_mappings(vistk::path_t const& pipe_file);
 static void test_group_all(vistk::path_t const& pipe_file);
 static void test_no_parse(vistk::path_t const& pipe_file);
 static void test_parse_error(vistk::path_t const& pipe_file);
+static void test_envvar(vistk::path_t const& pipe_file);
 
 void
 run_test(std::string const& test_name, vistk::path_t const& pipe_file)
@@ -224,6 +226,10 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   else if (test_name == "parse_error")
   {
     test_parse_error(pipe_file);
+  }
+  else if (test_name == "envvar")
+  {
+    test_envvar(pipe_file);
   }
   else
   {
@@ -722,6 +728,22 @@ test_parse_error(vistk::path_t const& pipe_file)
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
+}
+
+void
+test_envvar(vistk::path_t const& /*pipe_file*/)
+{
+  std::stringstream sstr;
+
+  sstr << "!include include_test.pipe" << std::endl;
+
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks(sstr);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 0);
 }
 
 test_visitor
