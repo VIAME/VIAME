@@ -21,7 +21,7 @@
 /**
  * \file examples/registration.cxx
  *
- * \brief Register schedules for use.
+ * \brief Register processes for use.
  */
 
 using namespace vistk;

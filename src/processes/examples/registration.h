@@ -12,14 +12,14 @@
 /**
  * \file examples/registration.h
  *
- * \brief Register schedules for use.
+ * \brief Register processes for use.
  */
 
 extern "C"
 {
 
 /**
- * \brief Register schedules.
+ * \brief Register processes.
  */
 void VISTK_PROCESSES_EXAMPLES_EXPORT register_processes();
 
