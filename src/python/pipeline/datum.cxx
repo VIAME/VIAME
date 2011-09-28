@@ -58,7 +58,7 @@ BOOST_PYTHON_MODULE(datum)
     .def("get_error", &vistk::datum::get_error
       , "The error contained within the datum packet.")
     /// \todo How to do this?
-    //.def("get_datum", &vistk::datum::get_value
+    //.def("get_datum", &vistk::datum::get_datum
     //  , "Get the data contained within the packet.")
   ;
 
