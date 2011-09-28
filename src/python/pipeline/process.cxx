@@ -247,29 +247,30 @@ BOOST_PYTHON_MODULE(process)
     .def("_base_config_info", &wrap_process::_base_config_info
       , (arg("config"))
       , "Base class configuration information.")
-    .def("_init", &wrap_process::_init
+    /// \bug Need a bug fix in boost::python for this to work properly.
+    .def("_init", &wrap_process::_init//, &wrap_process::_base_init
       , "Initializes the process subclass.")
-    .def("_step", &wrap_process::_step
+    .def("_step", &wrap_process::_step//, &wrap_process::_base_step
       , "Step the process subclass for one iteration.")
-    .def("_connect_input_port", &wrap_process::_connect_input_port
+    .def("_connect_input_port", &wrap_process::_connect_input_port//, &wrap_process::_base_connect_input_port
       , (arg("port"), arg("edge"))
       , "Connects the given edge to the subclass input port.")
-    .def("_connect_output_port", &wrap_process::_connect_output_port
+    .def("_connect_output_port", &wrap_process::_connect_output_port//, &wrap_process::_base_connect_output_port
       , (arg("port"), arg("edge"))
       , "Connects the given edge to the subclass output port.")
-    .def("_input_ports", &wrap_process::_input_ports
+    .def("_input_ports", &wrap_process::_input_ports//, &wrap_process::_base_input_ports
       , "Returns a list on input ports on the subclass process.")
-    .def("_output_ports", &wrap_process::_output_ports
+    .def("_output_ports", &wrap_process::_output_ports//, &wrap_process::_base_output_ports
       , "Returns a list on output ports on the subclass process.")
-    .def("_input_port_info", &wrap_process::_input_port_info
+    .def("_input_port_info", &wrap_process::_input_port_info//, &wrap_process::_base_input_port_info
       , (arg("port"))
       , "Returns information about the given subclass input port.")
-    .def("_output_port_info", &wrap_process::_output_port_info
+    .def("_output_port_info", &wrap_process::_output_port_info//, &wrap_process::_base_output_port_info
       , (arg("port"))
       , "Returns information about the given subclass output port.")
-    .def("_available_config", &wrap_process::_available_config
+    .def("_available_config", &wrap_process::_available_config//, &wrap_process::_base_available_config
       , "Returns a list of available configuration keys for the subclass process.")
-    .def("_config_info", &wrap_process::_config_info
+    .def("_config_info", &wrap_process::_config_info//, &wrap_process::_base_config_info
       , (arg("key"))
       , "Returns information about the given configuration key.")
     .def("declare_input_port", &wrap_process::_declare_input_port
