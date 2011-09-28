@@ -55,3 +55,12 @@ vistk_build_lua_test(pipeline test-pipeline.lua)
 vistk_make_lua_test(pipeline import)
 vistk_make_lua_test(pipeline create)
 vistk_make_lua_test(pipeline api_calls)
+
+##############################
+# Process tests
+##############################
+vistk_build_lua_test(process test-process.lua)
+
+vistk_make_lua_test(process import)
+vistk_make_lua_test(process create)
+vistk_make_lua_test(process api_calls)
