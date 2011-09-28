@@ -1,5 +1,13 @@
 project(vistk_lua_pipeline)
 
+add_vistk_lua_library(datum
+  vistk/pipeline
+  datum.cxx)
+target_link_libraries(lua-datum
+  vistk_pipeline
+  ${LUABIND_LIBRARY}
+  ${LUA_LIBRARIES})
+
 add_vistk_lua_library(modules
   vistk/pipeline
   modules.cxx)
