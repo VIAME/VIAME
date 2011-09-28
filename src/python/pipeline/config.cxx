@@ -7,6 +7,7 @@
 #include <vistk/pipeline/config.h>
 
 #include <boost/python.hpp>
+#include <boost/python/return_internal_reference.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 /**
@@ -47,7 +48,9 @@ BOOST_PYTHON_MODULE(config)
       , "Returns a subblock from the configuration.")
     .def("subblock_view", &vistk::config::subblock_view
       , (arg("name"))
-      , "Returns a linked subblock from the configuration.")
+      , "Returns a linked subblock from the configuration."
+      /// \todo This should be done...
+      )//, return_internal_reference<1>())
     .def("get_value", &config_get_value
       , (arg("key"))
       , "Retrieve a value from the configuration.")
