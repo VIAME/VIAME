@@ -8,6 +8,14 @@ target_link_libraries(lua-datum
   ${LUABIND_LIBRARY}
   ${LUA_LIBRARIES})
 
+add_vistk_lua_library(edge
+  vistk/pipeline
+  edge.cxx)
+target_link_libraries(lua-edge
+  vistk_pipeline
+  ${LUABIND_LIBRARY}
+  ${LUA_LIBRARIES})
+
 add_vistk_lua_library(modules
   vistk/pipeline
   modules.cxx)
