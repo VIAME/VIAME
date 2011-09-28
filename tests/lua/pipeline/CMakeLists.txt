@@ -101,3 +101,12 @@ vistk_build_lua_test(stamp test-stamp.lua)
 vistk_make_lua_test(stamp import)
 vistk_make_lua_test(stamp create)
 vistk_make_lua_test(stamp api_calls)
+
+##############################
+# Utils tests
+##############################
+vistk_build_lua_test(utils test-utils.lua)
+
+vistk_make_lua_test(utils import)
+vistk_make_lua_test(utils create)
+vistk_make_lua_test(utils name_thread)
