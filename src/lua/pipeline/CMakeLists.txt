@@ -8,6 +8,14 @@ target_link_libraries(lua-modules
   ${LUABIND_LIBRARY}
   ${LUA_LIBRARIES})
 
+add_vistk_lua_library(stamp
+  vistk/pipeline
+  stamp.cxx)
+target_link_libraries(lua-stamp
+  vistk_pipeline
+  ${LUABIND_LIBRARY}
+  ${LUA_LIBRARIES})
+
 add_vistk_lua_library(utils
   vistk/pipeline
   utils.cxx)
