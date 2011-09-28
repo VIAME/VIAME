@@ -75,3 +75,10 @@ vistk_make_lua_test(process_registry create)
 vistk_make_lua_test(process_registry api_calls)
 vistk_make_lua_test(process_registry register)
 vistk_make_lua_test(process_registry wrapper_api)
+
+##############################
+# Schedule tests
+##############################
+vistk_build_lua_test(schedule test-schedule.lua)
+
+vistk_make_lua_test(schedule import)
