@@ -92,3 +92,12 @@ vistk_make_lua_test(schedule_registry import)
 vistk_make_lua_test(schedule_registry create)
 vistk_make_lua_test(schedule_registry api_calls)
 vistk_make_lua_test(schedule_registry register)
+
+##############################
+# Stamp tests
+##############################
+vistk_build_lua_test(stamp test-stamp.lua)
+
+vistk_make_lua_test(stamp import)
+vistk_make_lua_test(stamp create)
+vistk_make_lua_test(stamp api_calls)
