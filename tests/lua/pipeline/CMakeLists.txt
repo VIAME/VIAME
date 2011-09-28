@@ -17,3 +17,13 @@ vistk_make_lua_test(config read_only_unset)
 vistk_make_lua_test(config subblock)
 vistk_make_lua_test(config subblock_view)
 vistk_make_lua_test(config merge_config)
+
+##############################
+# Datum tests
+##############################
+vistk_build_lua_test(datum test-datum.lua)
+
+vistk_make_lua_test(datum import)
+vistk_make_lua_test(datum empty)
+vistk_make_lua_test(datum complete)
+vistk_make_lua_test(datum error)
