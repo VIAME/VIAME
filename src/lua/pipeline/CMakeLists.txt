@@ -40,6 +40,14 @@ target_link_libraries(lua-pipeline
   ${LUABIND_LIBRARY}
   ${LUA_LIBRARIES})
 
+add_vistk_lua_library(schedule
+  vistk/pipeline
+  schedule.cxx)
+target_link_libraries(lua-schedule
+  vistk_pipeline
+  ${LUABIND_LIBRARY}
+  ${LUA_LIBRARIES})
+
 add_vistk_lua_library(stamp
   vistk/pipeline
   stamp.cxx)
