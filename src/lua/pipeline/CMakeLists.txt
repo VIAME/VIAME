@@ -48,6 +48,14 @@ target_link_libraries(lua-process
   ${LUABIND_LIBRARY}
   ${LUA_LIBRARIES})
 
+add_vistk_lua_library(process_registry
+  vistk/pipeline
+  process_registry.cxx)
+target_link_libraries(lua-process_registry
+  vistk_pipeline
+  ${LUABIND_LIBRARY}
+  ${LUA_LIBRARIES})
+
 add_vistk_lua_library(schedule
   vistk/pipeline
   schedule.cxx)
