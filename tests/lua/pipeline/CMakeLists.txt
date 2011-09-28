@@ -46,3 +46,12 @@ vistk_build_lua_test(modules test-modules.lua)
 
 vistk_make_lua_test(modules import)
 vistk_make_lua_test(modules load)
+
+##############################
+# Pipeline tests
+##############################
+vistk_build_lua_test(pipeline test-pipeline.lua)
+
+vistk_make_lua_test(pipeline import)
+vistk_make_lua_test(pipeline create)
+vistk_make_lua_test(pipeline api_calls)
