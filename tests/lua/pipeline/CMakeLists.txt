@@ -27,3 +27,14 @@ vistk_make_lua_test(datum import)
 vistk_make_lua_test(datum empty)
 vistk_make_lua_test(datum complete)
 vistk_make_lua_test(datum error)
+
+##############################
+# Edge tests
+##############################
+vistk_build_lua_test(edge test-edge.lua)
+
+vistk_make_lua_test(edge import)
+vistk_make_lua_test(edge create)
+vistk_make_lua_test(edge datum_create)
+vistk_make_lua_test(edge api_calls)
+vistk_make_lua_test(edge datum_api_calls)
