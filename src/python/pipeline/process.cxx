@@ -99,8 +99,10 @@ BOOST_PYTHON_MODULE(process)
   class_<vistk::edge_ref_t>("EdgeRef"
     , "A reference of an edge.")
   ;
-  class_<vistk::edge_ref_t>("EdgeGroup"
+  class_<vistk::edge_group_t>("EdgeGroup"
     , "A collection of references of edges.")
+    /// \todo Need an operator == for edge_ref_t.
+    //.def(vector_indexing_suite<vistk::edge_group_t>())
   ;
 
   class_<vistk::process::name_t>("ProcessName"
