@@ -64,3 +64,14 @@ vistk_build_lua_test(process test-process.lua)
 vistk_make_lua_test(process import)
 vistk_make_lua_test(process create)
 vistk_make_lua_test(process api_calls)
+
+##############################
+# Process registry tests
+##############################
+vistk_build_lua_test(process_registry test-process_registry.lua)
+
+vistk_make_lua_test(process_registry import)
+vistk_make_lua_test(process_registry create)
+vistk_make_lua_test(process_registry api_calls)
+vistk_make_lua_test(process_registry register)
+vistk_make_lua_test(process_registry wrapper_api)
