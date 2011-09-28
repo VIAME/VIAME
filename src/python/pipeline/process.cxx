@@ -49,6 +49,9 @@ class wrap_process
 
     conf_info_t _base_config_info(vistk::config::key_t const& key);
 
+    bool is_reentrant() const;
+    bool default_is_reentrant() const;
+
     void _init();
 
     void _step();
@@ -182,7 +185,7 @@ BOOST_PYTHON_MODULE(process)
       , "Initializes the process.")
     .def("step", &vistk::process::step
       , "Steps the process for one iteration.")
-    .def("is_reentrant", &vistk::process::is_reentrant
+    .def("is_reentrant", &vistk::process::is_reentrant, &wrap_process::default_is_reentrant
       , "Returns True if the process is reentrant, False otherwise.")
     .def("connect_input_port", &vistk::process::connect_input_port
       , (arg("port"), arg("edge"))
@@ -388,6 +391,29 @@ wrap_process
 ::_base_config_info(vistk::config::key_t const& key)
 {
   return process::_config_info(key);
+}
+
+bool
+wrap_process
+::is_reentrant() const
+{
+  override const f = get_override("is_reentrant");
+
+  if (f)
+  {
+    return f();
+  }
+  else
+  {
+    return default_is_reentrant();
+  }
+}
+
+bool
+wrap_process
+::default_is_reentrant() const
+{
+  return process::is_reentrant();
 }
 
 void
