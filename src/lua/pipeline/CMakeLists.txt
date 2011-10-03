@@ -13,6 +13,7 @@ add_vistk_lua_library(datum
   datum.cxx)
 target_link_libraries(lua-datum
   vistk_pipeline
+  lua_convert_any
   ${LUABIND_LIBRARY}
   ${LUA_LIBRARIES})
 

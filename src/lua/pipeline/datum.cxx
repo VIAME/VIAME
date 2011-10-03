@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <lua/helpers/lua_convert_any.h>
+
 #include <vistk/pipeline/datum.h>
 
 extern "C"
@@ -14,6 +16,8 @@ extern "C"
 #include <luabind/luabind.hpp>
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>
+
+#include <boost/any.hpp>
 
 /**
  * \file datum.cxx
@@ -30,6 +34,8 @@ int luaopen_vistk_pipeline_datum(lua_State* L);
 
 using namespace luabind;
 
+static vistk::datum_t new_datum(object const& obj);
+
 int
 luaopen_vistk_pipeline_datum(lua_State* L)
 {
@@ -40,8 +46,8 @@ luaopen_vistk_pipeline_datum(lua_State* L)
     namespace_("pipeline")
     [
       class_<vistk::datum::error_t>("datum_error")
-    /// \todo How to create a new datum packet?
-    //, def("new_datum", &vistk::datum::new_datum)
+        .def(constructor<>())
+    , def("new_datum", &new_datum)
     , def("empty_datum", &vistk::datum::empty_datum)
     , def("complete_datum", &vistk::datum::complete_datum)
     , def("error_datum", &vistk::datum::error_datum)
@@ -56,10 +62,17 @@ luaopen_vistk_pipeline_datum(lua_State* L)
         ]
       .def("type", &vistk::datum::type)
       .def("get_error", &vistk::datum::get_error)
-      /// \todo How to do this?
-      //.def("get_datum", &vistk::datum::get_datum)
+      .def("get_datum", &vistk::datum::get_datum<boost::any>)
     ]
   ];
 
+  register_any_coverters(L);
+
   return 0;
+}
+
+vistk::datum_t
+new_datum(object const& obj)
+{
+  return vistk::datum::new_datum<boost::any>(object_cast<boost::any>(obj));
 }
