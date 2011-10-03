@@ -4,6 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <lua/helpers/lua_convert_set.h>
 #include <lua/helpers/lua_convert_vector.h>
 
 #include <vistk/pipeline/edge.h>
@@ -131,25 +132,6 @@ luaopen_vistk_pipeline_process(lua_State* L)
         .def(constructor<>())
     , class_<vistk::process::port_flags_t>("port_flags")
         .def(constructor<>())
-        .def("__len__", &vistk::process::port_flags_t::size)
-        //.def("__contains__", &port_flags_contains)
-        //.def("isdisjoint", &port_flags_isdisjoint)
-        //.def("issubset", &port_flags_issubset)
-        //.def("issuperset", &port_flags_issuperset)
-        //.def("union", &port_flags_union)
-        //.def("intersection", &port_flags_intersection)
-        //.def("difference", &port_flags_difference)
-        //.def("symmetric_difference", &port_flags_symmetric_difference)
-        //.def("copy", &port_flags_copy)
-        //.def("update", &port_flags_update)
-        //.def("intersection_update", &port_flags_intersection_update)
-        //.def("difference_update", &port_flags_difference_update)
-        //.def("symmetric_difference_update", &port_flags_symmetric_difference_update)
-        //.def("add", &port_flags_add)
-        //.def("remove", &port_flags_remove)
-        //.def("discard", &port_flags_discard)
-        //.def("pop", &port_flags_discard)
-        .def("clear", &vistk::process::port_flags_t::clear)
     , class_<vistk::process::port_addr_t>("port_addr")
         .def(constructor<>())
         .def_readwrite("process", &vistk::process::port_addr_t::first)
