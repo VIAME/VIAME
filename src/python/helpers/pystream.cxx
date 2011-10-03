@@ -26,13 +26,13 @@ std::streamsize
 pyistream_device
 ::read(char_type* s, std::streamsize n)
 {
-  boost::python::str bytes = boost::python::str(m_obj.attr("read")(n));
+  boost::python::str const bytes = boost::python::str(m_obj.attr("read")(n));
 
   long const sz = boost::python::len(bytes);
 
   if (sz)
   {
-    std::string cppstr = boost::python::extract<std::string>(bytes);
+    std::string const cppstr = boost::python::extract<std::string>(bytes);
 
     std::copy(cppstr.begin(), cppstr.end(), s);
 
@@ -59,7 +59,7 @@ std::streamsize
 pyostream_device
 ::write(char_type const* s, std::streamsize n)
 {
-  boost::python::str bytes(s, static_cast<size_t>(n));
+  boost::python::str const bytes(s, static_cast<size_t>(n));
 
   m_obj.attr("write")(bytes);
 
