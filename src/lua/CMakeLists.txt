@@ -6,6 +6,8 @@ include_directories(SYSTEM ${LUA_INCLUDE_DIR})
 find_package(Luabind REQUIRED)
 include_directories(SYSTEM ${LUABIND_INCLUDE_DIR})
 
+add_subdirectory(helpers)
+
 add_custom_target(lua)
 
 function (add_vistk_lua_library name modpath)
