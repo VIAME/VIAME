@@ -49,7 +49,12 @@ register_processes()
 
     if (python_modules)
     {
-      boost::split(modules, python_modules, is_separator, boost::token_compress_on);
+      /// \bug Boost <= 1.47 boost::split *overwrites* destination.
+      std::vector<std::string> modules_tmp;
+
+      boost::split(modules_tmp, python_modules, is_separator, boost::token_compress_on);
+
+      modules.insert(modules.end(), modules.begin(), modules_tmp.end());
     }
 
     free_envvar(python_modules);
@@ -96,7 +101,12 @@ register_schedules()
 
     if (python_modules)
     {
-      boost::split(modules, python_modules, is_separator, boost::token_compress_on);
+      /// \bug Boost <= 1.47 boost::split *overwrites* destination.
+      std::vector<std::string> modules_tmp;
+
+      boost::split(modules_tmp, python_modules, is_separator, boost::token_compress_on);
+
+      modules.insert(modules.end(), modules.begin(), modules_tmp.end());
     }
 
     free_envvar(python_modules);
