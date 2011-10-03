@@ -23,3 +23,13 @@ vistk_build_lua_test(export test-export.lua)
 
 vistk_make_lua_load_test(export import)
 vistk_make_lua_load_test(export simple_pipeline)
+
+##############################
+# Load tests
+##############################
+vistk_build_lua_test(load test-load.lua)
+
+vistk_make_lua_load_test(load import)
+vistk_make_lua_load_test(load create)
+vistk_make_lua_load_test(load api_calls)
+vistk_make_lua_load_test(load simple_pipeline)
