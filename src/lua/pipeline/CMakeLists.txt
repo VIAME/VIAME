@@ -87,3 +87,15 @@ target_link_libraries(lua-utils
   vistk_pipeline
   ${LUABIND_LIBRARY}
   ${LUA_LIBRARIES})
+
+make_lua_init_file(vistk/pipeline)
+#  config
+#  datum
+#  edge
+#  modules
+#  pipeline
+#  process
+#  process_registry
+#  schedule
+#  schedule_registry
+#  stamp)

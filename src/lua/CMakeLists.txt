@@ -91,3 +91,6 @@ ${import_lines}
 endfunction (make_lua_init_file modpath)
 
 add_subdirectory(pipeline)
+
+make_lua_init_file(vistk)
+#  pipeline)
