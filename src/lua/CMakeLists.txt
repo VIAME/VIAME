@@ -1,5 +1,9 @@
 project(vistk_lua)
 
+find_package(Boost ${vistk_boost_version} REQUIRED
+  COMPONENTS
+    iostreams)
+
 find_package(Lua51 REQUIRED)
 include_directories(SYSTEM ${LUA_INCLUDE_DIR})
 
