@@ -1,5 +1,16 @@
 project(vistk_lua_pipeline_util)
 
+add_vistk_lua_library(bake
+  vistk/pipeline_util
+  bake.cxx)
+target_link_libraries(lua-bake
+  vistk_pipeline
+  vistk_pipeline_util
+  luastream
+  ${Boost_IOSTREAMS_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${LUABIND_LIBRARY}
+  ${LUA_LIBRARIES})
 
 add_vistk_lua_library(export
   vistk/pipeline_util
@@ -24,5 +35,6 @@ target_link_libraries(lua-load
   ${LUA_LIBRARIES})
 
 make_lua_init_file(vistk/pipeline_util)
+#  bake
 #  export
 #  load)
