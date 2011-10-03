@@ -18,6 +18,12 @@ extern "C"
 
 #include <vector>
 
+/**
+ * \file lua_convert_vector.h
+ *
+ * \brief Helpers for working with std::vector in Lua.
+ */
+
 namespace luabind
 {
 

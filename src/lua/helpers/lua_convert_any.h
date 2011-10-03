@@ -21,6 +21,12 @@ extern "C"
 #include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
 
+/**
+ * \file lua_convert_any.h
+ *
+ * \brief Helpers for working with boost::any in Lua.
+ */
+
 class any_converter
 {
   public:

@@ -20,9 +20,9 @@ extern "C"
 #include <string>
 
 /**
- * \file datum.cxx
+ * \file lua_convert_any.cxx
  *
- * \brief Lua bindings for \link vistk::datum\endlink.
+ * \brief Helpers for working with boost::any in Lua.
  */
 
 class any_converter::priv

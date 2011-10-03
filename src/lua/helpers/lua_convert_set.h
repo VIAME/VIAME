@@ -18,6 +18,12 @@ extern "C"
 
 #include <set>
 
+/**
+ * \file lua_convert_set.h
+ *
+ * \brief Helpers for working with std::set in Lua.
+ */
+
 namespace luabind
 {
 
