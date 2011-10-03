@@ -104,6 +104,14 @@ vistk_make_test(process null_output_port_info)
 vistk_make_test(process null_conf_info)
 
 ##############################
+# Schedule tests
+##############################
+vistk_build_test(schedule libraries test_schedule.cxx)
+
+vistk_make_test(schedule null_config)
+vistk_make_test(schedule null_pipeline)
+
+##############################
 # Pipeline tests
 ##############################
 vistk_build_test(pipeline libraries test_pipeline.cxx)
