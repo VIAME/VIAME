@@ -445,6 +445,11 @@ void
 process
 ::declare_input_port(port_t const& port, port_info_t const& info)
 {
+  if (!info)
+  {
+    throw null_input_port_info_exception(d->name, port);
+  }
+
   d->input_ports[port] = info;
 
   port_flags_t const& flags = info->flags;
@@ -460,6 +465,11 @@ void
 process
 ::declare_output_port(port_t const& port, port_info_t const& info)
 {
+  if (!info)
+  {
+    throw null_output_port_info_exception(d->name, port);
+  }
+
   d->output_ports[port] = info;
 
   port_flags_t const& flags = info->flags;
@@ -475,6 +485,11 @@ void
 process
 ::declare_configuration_key(config::key_t const& key,conf_info_t const& info)
 {
+  if (!info)
+  {
+    throw null_conf_info_exception(d->name, key);
+  }
+
   d->config_keys[key] = info;
 }
 

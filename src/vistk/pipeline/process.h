@@ -445,12 +445,16 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Declares an input port for the process.
      *
+     * \throws null_input_port_info_exception Thrown if \p info is \c NULL.
+     *
      * \param port The port name.
      * \param info Information about the port.
      */
     void declare_input_port(port_t const& port, port_info_t const& info);
     /**
      * \brief Declares an output port for the process.
+     *
+     * \throws null_output_port_info_exception Thrown if \p info is \c NULL.
      *
      * \param port The port name.
      * \param info Information about the port.
@@ -459,6 +463,8 @@ class VISTK_PIPELINE_EXPORT process
 
     /**
      * \brief Declares a configuration value for the process.
+     *
+     * \throws null_conf_info_exception Thrown if \p info is \c NULL.
      *
      * \param key The configuration key.
      * \param info Information about the port.
