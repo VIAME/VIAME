@@ -15,3 +15,11 @@ vistk_build_lua_test(bake test-bake.lua)
 
 vistk_make_lua_load_test(bake import)
 vistk_make_lua_load_test(bake simple_pipeline)
+
+##############################
+# Export tests
+##############################
+vistk_build_lua_test(export test-export.lua)
+
+vistk_make_lua_load_test(export import)
+vistk_make_lua_load_test(export simple_pipeline)
