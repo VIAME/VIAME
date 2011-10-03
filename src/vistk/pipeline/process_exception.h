@@ -71,9 +71,9 @@ class VISTK_PIPELINE_EXPORT reinitialization_exception
     /**
      * \brief Constructor.
      *
-     * \param name The name of the process.
+     * \param process The name of the process.
      */
-    reinitialization_exception(process::name_t const& name) throw();
+    reinitialization_exception(process::name_t const& process) throw();
     /**
      * \brief Destructor.
      */
@@ -213,9 +213,9 @@ class VISTK_PIPELINE_EXPORT uninitialized_exception
     /**
      * \brief Constructor.
      *
-     * \param name The name of the process.
+     * \param process The name of the process.
      */
-    uninitialized_exception(process::name_t const& name) throw();
+    uninitialized_exception(process::name_t const& process) throw();
     /**
      * \brief Destructor.
      */
