@@ -5,6 +5,7 @@
  */
 
 #include <lua/helpers/lua_convert_optional.h>
+#include <lua/helpers/lua_convert_vector.h>
 #include <lua/helpers/luastream.h>
 
 #include <vistk/pipeline_util/load_pipe.h>
@@ -86,8 +87,6 @@ luaopen_vistk_pipeline_util_load(lua_State* L)
         .def(constructor<>())
     , class_<vistk::config_flags_t>("config_flags")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::config_flags_t>())
     , class_<vistk::config_provider_t>("config_provider")
         .def(constructor<>())
     , class_<vistk::config_key_options_t>("config_key_options")
@@ -105,8 +104,6 @@ luaopen_vistk_pipeline_util_load(lua_State* L)
     , class_<vistk::config_values_t>("config_values")
         .def(constructor<>())
         /// \todo Need operator == on config_value_t
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::config_values_t>())
     , class_<vistk::map_options_t>("map_options")
         .def(constructor<>())
         .def_readwrite("flags", &vistk::map_options_t::flags)
@@ -118,8 +115,6 @@ luaopen_vistk_pipeline_util_load(lua_State* L)
     , class_<vistk::input_maps_t>("input_maps")
         .def(constructor<>())
         /// \todo Need operator == on input_map_t.
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::input_maps_t>())
     , class_<vistk::output_map_t>("output_map")
         .def(constructor<>())
         .def_readwrite("options", &vistk::output_map_t::options)
@@ -128,8 +123,6 @@ luaopen_vistk_pipeline_util_load(lua_State* L)
     , class_<vistk::output_maps_t>("output_maps")
         .def(constructor<>())
         /// \todo Need operator == on output_map_t.
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::output_maps_t>())
     , class_<vistk::config_pipe_block>("config_block")
         .def(constructor<>())
         .def_readwrite("key", &vistk::config_pipe_block::key)
@@ -158,8 +151,6 @@ luaopen_vistk_pipeline_util_load(lua_State* L)
     , class_<vistk::pipe_blocks>("pipe_blocks")
         .def(constructor<>())
         /// \todo Need operator == on pipe_block.
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::pipe_blocks>())
     , def("load_pipe_file", &load_pipe_file)
     , def("load_pipe", &load_pipe)
     , def("load_pipe", &default_load_pipe)
