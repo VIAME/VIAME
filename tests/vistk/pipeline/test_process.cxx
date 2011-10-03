@@ -52,6 +52,9 @@ static void test_null_output_edge();
 static void test_connect_after_init();
 static void test_reinit();
 static void test_step_before_init();
+static void test_null_input_port_info();
+static void test_null_output_port_info();
+static void test_null_conf_info();
 
 void
 run_test(std::string const& test_name)
@@ -76,6 +79,18 @@ run_test(std::string const& test_name)
   {
     test_step_before_init();
   }
+  else if (test_name == "null_input_port_info")
+  {
+    test_null_input_port_info();
+  }
+  else if (test_name == "null_output_port_info")
+  {
+    test_null_output_port_info();
+  }
+  else if (test_name == "null_conf_info")
+  {
+    test_null_conf_info();
+  }
   else
   {
     TEST_ERROR("Unknown test: " << test_name);
@@ -83,6 +98,9 @@ run_test(std::string const& test_name)
 }
 
 static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name);
+static vistk::process_t create_null_input_port_info_process(vistk::config_t const& config);
+static vistk::process_t create_null_output_port_info_process(vistk::config_t const& config);
+static vistk::process_t create_null_conf_info_process(vistk::config_t const& config);
 
 void
 test_null_input_edge()
@@ -156,6 +174,54 @@ test_step_before_init()
                    "stepping before initialization");
 }
 
+void
+test_null_input_port_info()
+{
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_input_port");
+
+  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_input_port_info_process);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
+
+  EXPECT_EXCEPTION(vistk::null_input_port_info_exception,
+                   create_process(proc_type, proc_name),
+                   "passing NULL as an input port info structure");
+}
+
+void
+test_null_output_port_info()
+{
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_output_port");
+
+  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_output_port_info_process);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
+
+  EXPECT_EXCEPTION(vistk::null_output_port_info_exception,
+                   create_process(proc_type, proc_name),
+                   "passing NULL as an output port info structure");
+}
+
+void
+test_null_conf_info()
+{
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_conf");
+
+  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_conf_info_process);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
+
+  EXPECT_EXCEPTION(vistk::null_conf_info_exception,
+                   create_process(proc_type, proc_name),
+                   "passing NULL as an configuration info structure");
+}
+
 vistk::process_t
 create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name)
 {
@@ -169,4 +235,88 @@ create_process(vistk::process_registry::type_t const& type, vistk::process::name
   config->set_value(vistk::process::config_name, vistk::config::value_t(name));
 
   return reg->create_process(type, config);
+}
+
+class null_input_info_process
+  : public vistk::process
+{
+  public:
+    null_input_info_process(vistk::config_t const& config);
+    ~null_input_info_process();
+};
+
+class null_output_info_process
+  : public vistk::process
+{
+  public:
+    null_output_info_process(vistk::config_t const& config);
+    ~null_output_info_process();
+};
+
+class null_conf_info_process
+  : public vistk::process
+{
+  public:
+    null_conf_info_process(vistk::config_t const& config);
+    ~null_conf_info_process();
+};
+
+vistk::process_t
+create_null_input_port_info_process(vistk::config_t const& config)
+{
+  return boost::make_shared<null_input_info_process>(config);
+}
+
+vistk::process_t
+create_null_output_port_info_process(vistk::config_t const& config)
+{
+  return boost::make_shared<null_output_info_process>(config);
+}
+
+vistk::process_t
+create_null_conf_info_process(vistk::config_t const& config)
+{
+  return boost::make_shared<null_conf_info_process>(config);
+}
+
+null_input_info_process
+::null_input_info_process(vistk::config_t const& config)
+  : vistk::process(config)
+{
+  name_t const port = name_t("port");
+
+  declare_input_port(port, port_info_t());
+}
+
+null_input_info_process
+::~null_input_info_process()
+{
+}
+
+null_output_info_process
+::null_output_info_process(vistk::config_t const& config)
+  : vistk::process(config)
+{
+  name_t const port = name_t("port");
+
+  declare_output_port(port, port_info_t());
+}
+
+null_output_info_process
+::~null_output_info_process()
+{
+}
+
+null_conf_info_process
+::null_conf_info_process(vistk::config_t const& config)
+  : vistk::process(config)
+{
+  vistk::config::key_t const key = vistk::config::key_t("key");
+
+  declare_configuration_key(key, conf_info_t());
+}
+
+null_conf_info_process
+::~null_conf_info_process()
+{
 }
