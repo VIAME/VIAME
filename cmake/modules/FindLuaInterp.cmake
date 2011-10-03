@@ -44,7 +44,7 @@ endif()
 
 # handle the QUIETLY and REQUIRED arguments and set LUAINTERP_FOUND to TRUE if
 # all listed variables are TRUE
-#include(FindPackageHandleStandardArgs.cmake)
-#find_package_handle_standard_args(LuaInterp DEFAULT_MSG LUA_EXECUTABLE)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(LuaInterp DEFAULT_MSG LUA_EXECUTABLE)
 
 mark_as_advanced(LUA_EXECUTABLE)

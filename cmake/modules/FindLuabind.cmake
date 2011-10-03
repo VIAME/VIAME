@@ -13,10 +13,10 @@ find_path(LUABIND_INCLUDE_DIR luabind/luabind.hpp)
 
 find_library(LUABIND_LIBRARY luabind)
 
-#include(FindPackageHandleStandardArgs.cmake)
 # handle the QUIETLY and REQUIRED arguments and set LUA_FOUND to TRUE if
 # all listed variables are TRUE
-#find_package_handle_standard_args(Luabind DEFAULT_MSG LUABIND_LIBRARY LUABIND_INCLUDE_DIR)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Luabind DEFAULT_MSG LUABIND_LIBRARY LUABIND_INCLUDE_DIR)
 
 mark_as_advanced(
   LUABIND_INCLUDE_DIR
