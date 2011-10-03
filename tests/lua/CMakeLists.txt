@@ -29,3 +29,4 @@ function (vistk_make_lua_test group instance)
 endfunction (vistk_make_lua_test)
 
 add_subdirectory(pipeline)
+add_subdirectory(pipeline_util)
