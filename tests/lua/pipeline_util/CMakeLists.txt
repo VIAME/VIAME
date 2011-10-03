@@ -7,3 +7,11 @@ function (vistk_make_lua_load_test name instance)
   vistk_make_lua_test(${name} ${instance}
     "${vistk_test_pipelines_directory}")
 endfunction (vistk_make_lua_load_test name instance)
+
+##############################
+# Bake tests
+##############################
+vistk_build_lua_test(bake test-bake.lua)
+
+vistk_make_lua_load_test(bake import)
+vistk_make_lua_load_test(bake simple_pipeline)
