@@ -51,6 +51,69 @@ reinitialization_exception
 {
 }
 
+null_conf_info_exception
+::null_conf_info_exception(process::name_t const& process, config::key_t const& key) throw()
+  : process_exception()
+  , m_process(process)
+  , m_key(key)
+{
+  std::ostringstream sstr;
+
+  sstr << "The process \'" << m_process << "\' "
+          "gave NULL for the information about the "
+          "configuration \'" << m_key << "\'.";
+
+  m_what = sstr.str();
+}
+
+null_conf_info_exception
+::~null_conf_info_exception() throw()
+{
+}
+
+null_port_info_exception
+::null_port_info_exception(process::name_t const& process, process::port_t const& port, std::string const& type) throw()
+  : process_exception()
+  , m_process(process)
+  , m_port(port)
+{
+  std::ostringstream sstr;
+
+  sstr << "The process \'" << m_process << "\' "
+          "gave NULL for the information about "
+          "the " << type << " port "
+          "\'" << m_port << "\'.";
+
+  m_what = sstr.str();
+}
+
+null_port_info_exception
+::~null_port_info_exception() throw()
+{
+}
+
+null_input_port_info_exception
+::null_input_port_info_exception(process::name_t const& process, process::port_t const& port) throw()
+  : null_port_info_exception(process, port, "input")
+{
+}
+
+null_input_port_info_exception
+::~null_input_port_info_exception() throw()
+{
+}
+
+null_output_port_info_exception
+::null_output_port_info_exception(process::name_t const& process, process::port_t const& port) throw()
+  : null_port_info_exception(process, port, "output")
+{
+}
+
+null_output_port_info_exception
+::~null_output_port_info_exception() throw()
+{
+}
+
 uninitialized_exception
 ::uninitialized_exception(process::name_t const& process) throw()
   : process_exception()

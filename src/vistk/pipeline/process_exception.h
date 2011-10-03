@@ -84,6 +84,122 @@ class VISTK_PIPELINE_EXPORT reinitialization_exception
 };
 
 /**
+ * \class null_conf_info_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when a port is declared with a \c NULL info structure.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_conf_info_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param key The configuration key with \c NULL information.
+     */
+    null_conf_info_exception(process::name_t const& process, config::key_t const& key) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_conf_info_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_process;
+    /// The configuration key.
+    config::key_t const m_key;
+};
+
+/**
+ * \class null_port_info_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when \c NULL is passed as information for a port.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_port_info_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The port with \c NULL information.
+     */
+    null_port_info_exception(process::name_t const& process, process::port_t const& port, std::string const& type) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_port_info_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_process;
+    /// The name of the port.
+    process::port_t const m_port;
+};
+
+/**
+ * \class null_input_port_info_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when \c NULL is passed as information for an input port.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_input_port_info_exception
+  : public null_port_info_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The port with \c NULL information.
+     */
+    null_input_port_info_exception(process::name_t const& process, process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_input_port_info_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_process;
+    /// The name of the port.
+    process::port_t const m_port;
+};
+
+/**
+ * \class null_output_port_info_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when \c NULL is passed as information for an output port.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT null_output_port_info_exception
+  : public null_port_info_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The port with \c NULL information.
+     */
+    null_output_port_info_exception(process::name_t const& process, process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_output_port_info_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_process;
+    /// The name of the port.
+    process::port_t const m_port;
+};
+
+/**
  * \class uninitialized_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a process is stepped before initialization.
