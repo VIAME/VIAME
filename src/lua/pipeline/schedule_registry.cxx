@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <lua/helpers/lua_convert_vector.h>
+
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/schedule.h>
 #include <vistk/pipeline/schedule_registry.h>
@@ -52,8 +54,6 @@ luaopen_vistk_pipeline_schedule_registry(lua_State* L)
         .def(constructor<>())
     , class_<vistk::schedule_registry::types_t>("schedule_types")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::schedule_registry::types_t>())
     , class_<vistk::schedule_registry::module_t>("schedule_module")
         .def(constructor<>())
     , class_<vistk::schedule, vistk::schedule_t>("schedule")

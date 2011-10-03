@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <lua/helpers/lua_convert_vector.h>
+
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
 
@@ -51,8 +53,6 @@ luaopen_vistk_pipeline_process_registry(lua_State* L)
         .def(constructor<>())
     , class_<vistk::process_registry::types_t>("process_types")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::process_registry::types_t>())
     , class_<vistk::process_registry::module_t>("process_module")
         .def(constructor<>())
     , class_<vistk::process, vistk::process_t>("process")
@@ -82,8 +82,6 @@ luaopen_vistk_pipeline_process_registry(lua_State* L)
         //]
     , class_<vistk::processes_t>("processes")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::processes_t>())
     , class_<vistk::process_registry, vistk::process_registry_t>("process_registry")
         .scope
         [

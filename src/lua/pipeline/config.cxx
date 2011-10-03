@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <lua/helpers/lua_convert_vector.h>
+
 #include <vistk/pipeline/config.h>
 
 extern "C"
@@ -50,8 +52,6 @@ luaopen_vistk_pipeline_config(lua_State* L)
         .def(constructor<>())
     , class_<vistk::config::keys_t>("config_keys")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::config::keys_t()>())
     , class_<vistk::config::value_t>("config_value")
         .def(constructor<>())
     , class_<vistk::config, vistk::config_t>("config")

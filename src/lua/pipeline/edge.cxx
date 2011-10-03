@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <lua/helpers/lua_convert_vector.h>
+
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/stamp.h>
@@ -52,12 +54,8 @@ luaopen_vistk_pipeline_edge(lua_State* L)
         .property("stamp", &edge_datum_stamp, &edge_datum_stamp_set)
     , class_<vistk::edge_data_t>("edge_data")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::edge_data_t>())
     , class_<vistk::edges_t>("edges")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::edges_t>())
     , class_<vistk::edge, vistk::edge_t>("edge")
         .def(constructor<vistk::config_t>())
         .def("makes_dependency", &vistk::edge::makes_dependency)

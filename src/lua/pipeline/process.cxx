@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <lua/helpers/lua_convert_vector.h>
+
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/stamp.h>
@@ -113,22 +115,16 @@ luaopen_vistk_pipeline_process(lua_State* L)
         .def(constructor<vistk::edge_t>())
     , class_<vistk::edge_group_t>("edge_group")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::process::edge_group_t>())
     , class_<vistk::process::name_t>("process_name")
         .def(constructor<>())
     , class_<vistk::process::names_t>("process_names")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::process::names_t>())
     , class_<vistk::process::port_description_t>("port_description")
         .def(constructor<>())
     , class_<vistk::process::port_t>("port")
         .def(constructor<>())
     , class_<vistk::process::ports_t>("ports")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::process::ports_t>())
     , class_<vistk::process::port_type_t>("port_type")
         .def(constructor<>())
     , class_<vistk::process::port_flag_t>("port_flag")
@@ -160,8 +156,6 @@ luaopen_vistk_pipeline_process(lua_State* L)
         .def_readwrite("port", &vistk::process::port_addr_t::second)
     , class_<vistk::process::port_addrs_t>("port_addrs")
         .def(constructor<>())
-        /// \todo Add vector methods.
-        //.def(vector_indexing_suite<vistk::process::port_addrs_t>())
     , class_<vistk::process::port_info, vistk::process::port_info_t>("port_info")
         .def(constructor<vistk::process::port_type_t, vistk::process::port_flags_t, vistk::process::port_description_t>())
         .def_readonly("type", &vistk::process::port_info::type)
