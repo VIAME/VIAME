@@ -163,6 +163,14 @@ datum::new_datum(T const& dat)
   return datum_t(new datum(boost::any(dat)));
 }
 
+template <>
+inline
+datum_t
+datum::new_datum(boost::any const& dat)
+{
+  return datum_t(new datum(dat));
+}
+
 template <typename T>
 T
 datum::get_datum() const
@@ -175,6 +183,14 @@ datum::get_datum() const
   {
     throw bad_datum_cast_exception(m_type, e.what());
   }
+}
+
+template <>
+inline
+boost::any
+datum::get_datum() const
+{
+  return m_datum;
 }
 
 }
