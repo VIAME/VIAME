@@ -24,6 +24,7 @@ vistk_make_lua_test(config merge_config)
 vistk_build_lua_test(datum test-datum.lua)
 
 vistk_make_lua_test(datum import)
+vistk_make_lua_test(datum new)
 vistk_make_lua_test(datum empty)
 vistk_make_lua_test(datum complete)
 vistk_make_lua_test(datum error)

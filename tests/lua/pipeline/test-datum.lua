@@ -30,6 +30,23 @@ function test_import()
 end
 
 
+function test_new()
+    require("vistk.pipeline.datum")
+
+    local d = vistk.pipeline.new_datum('test_datum')
+
+    if d:type() ~= vistk.pipeline.datum.data then
+        log("Error: Datum type mismatch")
+    end
+
+    if string.len(d:get_error()) ~= 0 then
+        log("Error: A data datum has an error string")
+    end
+
+    local str = d:get_datum()
+end
+
+
 function test_empty()
     require("vistk.pipeline.datum")
 
@@ -43,8 +60,8 @@ function test_empty()
         log("Error: A empty datum has an error string")
     end
 
---    ensure_exception("retrieving data from an empty datum",
---                     d.get_datum)
+    ensure_exception("retrieving data from an empty datum",
+                     d.get_datum)
 end
 
 
@@ -61,8 +78,8 @@ function test_complete()
         log("Error: A complete datum has an error string")
     end
 
---    ensure_exception("retrieving data from a complete datum",
---                     d.get_datum)
+    ensure_exception("retrieving data from a complete datum",
+                     d.get_datum)
 end
 
 
@@ -81,14 +98,16 @@ function test_error()
         log("Error: An error datum did not keep the message")
     end
 
---    ensure_exception("retrieving data from an error datum",
---                     d.get_datum)
+    ensure_exception("retrieving data from an error datum",
+                     d.get_datum)
 end
 
 
 function main(testname)
     if testname == 'import' then
         test_import()
+    elseif testname == 'new' then
+        test_new()
     elseif testname == 'empty' then
         test_empty()
     elseif testname == 'complete' then
