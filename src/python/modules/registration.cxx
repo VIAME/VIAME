@@ -149,12 +149,7 @@ is_suppressed()
 
   free_envvar(python_suppress);
 
-  if (suppress_python_modules)
-  {
-    return true;
-  }
-
-  return false;
+  return suppress_python_modules;
 }
 
 void
