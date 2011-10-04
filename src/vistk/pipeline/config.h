@@ -12,6 +12,7 @@
 #include "types.h"
 
 #include <boost/optional/optional.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/noncopyable.hpp>
 
@@ -40,7 +41,8 @@ namespace vistk
  * \ingroup base_classes
  */
 class VISTK_PIPELINE_EXPORT config
-  : boost::noncopyable
+  : public boost::enable_shared_from_this<config>
+  , boost::noncopyable
 {
   public:
     /// The type that represents a configuration value key.
@@ -203,7 +205,7 @@ class VISTK_PIPELINE_EXPORT config
     /// The magic group for global parameters.
     static key_t const global_value;
   private:
-    config(key_t const& name, config* parent = NULL);
+    config(key_t const& name, config_t parent);
 
     boost::optional<value_t> find_value(key_t const& key) const;
     value_t get_value(key_t const& key) const;
@@ -211,7 +213,7 @@ class VISTK_PIPELINE_EXPORT config
     typedef std::map<key_t, value_t> store_t;
     typedef std::set<key_t> ro_list_t;
 
-    config* m_parent;
+    config_t m_parent;
     key_t m_name;
     store_t m_store;
     ro_list_t m_ro_list;

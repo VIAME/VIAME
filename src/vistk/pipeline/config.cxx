@@ -33,7 +33,7 @@ config_t
 config
 ::empty_config(key_t const& name)
 {
-  return config_t(new config(name));
+  return config_t(new config(name, config_t()));
 }
 
 config
@@ -66,7 +66,7 @@ config_t
 config
 ::subblock_view(key_t const& key)
 {
-  return config_t(new config(key, this));
+  return config_t(new config(key, shared_from_this()));
 }
 
 void
@@ -173,7 +173,7 @@ config
 }
 
 config
-::config(key_t const& name, config* parent)
+::config(key_t const& name, config_t parent)
   : m_parent(parent)
   , m_name(name)
   , m_store()
