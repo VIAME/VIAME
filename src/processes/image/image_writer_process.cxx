@@ -6,7 +6,8 @@
 
 #include "image_writer_process.h"
 
-#include "image_helper.h"
+#include <processes/helpers/image/format.h>
+#include <processes/helpers/image/write.h>
 
 #include <vistk/pipeline_types/image_types.h>
 

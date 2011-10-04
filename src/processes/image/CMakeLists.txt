@@ -3,17 +3,9 @@ project(vistk_processes_image)
 set(image_srcs
   crop_image_process.cxx
   grayscale_process.cxx
-  image_helper.cxx
   image_reader_process.cxx
   image_writer_process.cxx
   registration.cxx)
-
-set(image_helper_process_build_options
-  ${boost_filesystem_options})
-
-set_source_files_properties(image_helper_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${image_helper_process_build_options}")
 
 set(image_reader_process_build_options
   ${boost_filesystem_options})
@@ -35,6 +27,7 @@ add_vistk_plugin(processes_image
 target_link_libraries(processes_image
   vistk_pipeline_types
   vistk_pipeline
+  image_helper
   vil
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})

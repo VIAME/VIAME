@@ -6,7 +6,8 @@
 
 #include "crop_image_process.h"
 
-#include "image_helper.h"
+#include <processes/helpers/image/crop.h>
+#include <processes/helpers/image/format.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>

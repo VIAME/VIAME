@@ -1,5 +1,6 @@
 project(vistk_processes)
 
+add_subdirectory(helpers)
 add_subdirectory(examples)
 add_subdirectory(flow)
 
