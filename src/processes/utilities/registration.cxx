@@ -6,6 +6,8 @@
 
 #include "registration.h"
 
+#include "homography_reader_process.h"
+
 #include <vistk/pipeline/process_registry.h>
 
 #include <boost/make_shared.hpp>
@@ -17,6 +19,8 @@
  */
 
 using namespace vistk;
+
+static process_t create_timestamper_process(config_t const& config);
 
 void
 register_processes()
@@ -30,5 +34,13 @@ register_processes()
     return;
   }
 
+  registry->register_process("timestamper", "A process which generates timestamps", create_timestamper_process);
+
   registry->mark_module_as_loaded(module_name);
+}
+
+process_t
+create_homography_reader_process(config_t const& config)
+{
+  return boost::make_shared<homography_reader_process>(config);
 }
