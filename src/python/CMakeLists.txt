@@ -6,7 +6,7 @@ find_package(Boost ${vistk_boost_version} REQUIRED
     python)
 
 find_package(PythonLibs REQUIRED)
-include_directories(${PYTHON_INCLUDE_PATH})
+include_directories(SYSTEM ${PYTHON_INCLUDE_PATH})
 
 add_subdirectory(helpers)
 
