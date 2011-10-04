@@ -1,6 +1,7 @@
 set(utilities_srcs
   homography_reader_process.cxx
-  registration.cxx)
+  registration.cxx
+  timestamper_process.cxx)
 
 set(homography_reader_process_build_options
   ${boost_filesystem_options})
