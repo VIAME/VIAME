@@ -128,6 +128,7 @@ WARN_LOGFILE           = @DOXY_DOCUMENTATION_OUTPUT_PATH@/@DOXY_PROJECT_NAME@.wa
 INPUT                  = @DOXY_PROJECT_SOURCE_DIR@
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.cxx \
+                         *.txx \
                          *.h \
                          *.dox
 RECURSIVE              = YES
