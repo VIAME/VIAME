@@ -5,7 +5,8 @@ set(image_srcs
   grayscale_process.cxx
   image_reader_process.cxx
   image_writer_process.cxx
-  registration.cxx)
+  registration.cxx
+  warp_image_process.cxx)
 
 set(image_reader_process_build_options
   ${boost_filesystem_options})
@@ -25,9 +26,13 @@ add_vistk_plugin(processes_image
   MAKE_VISTK_PROCESSES_IMAGE_LIB
   ${image_srcs})
 target_link_libraries(processes_image
+  vistk_image
+  vistk_utilities
   vistk_pipeline_types
   vistk_pipeline
   image_helper
+  vgl
+  vgl_algo
   vil
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
