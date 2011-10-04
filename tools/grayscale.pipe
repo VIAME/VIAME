@@ -7,6 +7,7 @@ process read
   :: image_reader
   :input[ro]{CONF} grayscale:input
   :pixtype[ro]{CONF} grayscale:pixtype
+  :grayscale[ro] false
 
 process gray
   :: grayscale
