@@ -43,13 +43,13 @@ namespace vistk
  *
  * \oports
  *
- * \oport{out_\portvar{res}} The collated result \portvar{res}.
+ * \oport{res_\portvar{res}} The collated result \portvar{res}.
  *
  * \reqs
  *
  * \req Each input port \port{color_\portvar{res}} must be connected.
  * \req Each \portvar{res} must have at least two inputs to collate.
- * \req Each output port \port{out_\portvar{res}} must be connected.
+ * \req Each output port \port{res_\portvar{res}} must be connected.
  *
  * \todo Add configuration to allow forcing a number of inputs for a result.
  * \todo Add configuration to allow same number of sources for all results.
