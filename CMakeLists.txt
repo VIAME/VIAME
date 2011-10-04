@@ -168,10 +168,8 @@ find_package(Boost ${vistk_boost_version} REQUIRED
     system
     thread)
 
-find_package(VXL)
-if (VXL_FOUND)
-  include(${VXL_CMAKE_DIR}/UseVXL.cmake)
-endif (VXL_FOUND)
+find_package(VXL REQUIRED)
+include(${VXL_CMAKE_DIR}/UseVXL.cmake)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
@@ -179,6 +177,12 @@ link_directories(${Boost_LIBRARY_DIRS})
 set(boost_filesystem_options
   "BOOST_FILESYSTEM_NO_DEPRECATED"
   "BOOST_FILESYSTEM_VERSION=3")
+
+include_directories(SYSTEM ${VXL_CORE_INCLUDE_DIR})
+include_directories(SYSTEM ${VXL_VCL_INCLUDE_DIR})
+link_directories(${VXL_LIBRARY_DIR})
+
+include(${CMAKE_SOURCE_DIR}/cmake/vxl_tests.cmake)
 
 add_subdirectory(src)
 
