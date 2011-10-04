@@ -1,19 +1,34 @@
 project(vistk_utilities)
 
 set(utilities_srcs
+  homography.cxx
+  homography_debug.cxx
+  plane_ref.cxx
+  plane_ref_debug.cxx
   timestamp.cxx
-  timestamp_debug.cxx)
+  timestamp_debug.cxx
+  utm.cxx
+  utm_debug.cxx)
 
 set(utilities_headers
+  homography.h
+  homography_debug.h
+  homography_types.h
   path.h
+  plane_ref.h
+  plane_ref_debug.h
   timestamp.h
   timestamp_debug.h
-  utilities-config.h)
+  utilities-config.h
+  utm.h
+  utm_debug.h)
 
 add_library(vistk_utilities
   ${utilities_srcs})
-target_link_libraries(vistk_utilities)
-target_link_libraries(vistk_utilities LINK_INTERFACE_LIBRARIES)
+target_link_libraries(vistk_utilities
+  vgl_algo)
+target_link_libraries(vistk_utilities LINK_INTERFACE_LIBRARIES
+  vgl_algo)
 set_target_properties(vistk_utilities
   PROPERTIES
     VERSION       ${vistk_version}
