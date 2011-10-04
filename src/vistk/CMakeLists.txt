@@ -7,6 +7,7 @@ add_subdirectory(pipeline)
 add_subdirectory(pipeline_types)
 add_subdirectory(utilities)
 add_subdirectory(pipeline_util)
+add_subdirectory(image)
 
 install(
   FILES       ${CMAKE_CURRENT_BINARY_DIR}/config.h
