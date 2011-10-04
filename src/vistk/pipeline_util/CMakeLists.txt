@@ -19,8 +19,7 @@ set(pipeline_util_headers
   pipe_bakery_exception.h
   pipe_declaration_types.h
   pipe_grammar.h
-  pipeline_util-config.h
-  types.h)
+  pipeline_util-config.h)
 
 set(vistk_default_pipe_include_paths
   "${PIPE_INCLUDE_INSTALL_PATH}")

@@ -9,7 +9,7 @@
 
 #include "format.h"
 
-#include <vistk/pipeline_utils/types.h>
+#include <vistk/utilities/path.h>
 
 #include <vistk/pipeline/types.h>
 

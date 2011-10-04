@@ -4,26 +4,27 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_TYPES_H
-#define VISTK_PIPELINE_UTIL_TYPES_H
+#ifndef VISTK_UTILITIES_PATH_H
+#define VISTK_UTILITIES_PATH_H
 
 #include <boost/filesystem/path.hpp>
 
 #include <vector>
 
 /**
- * \file types.h
+ * \file path.h
  *
- * \brief Types used in the pipeline_util library.
+ * \brief Types for paths.
  */
 
 namespace vistk
 {
 
-///
+/// A path on the filesystem.
 typedef boost::filesystem::path path_t;
+/// A collection of paths on the filesystem.
 typedef std::vector<path_t> paths_t;
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_TYPES_H
+#endif // VISTK_UTILITIES_PATH_H

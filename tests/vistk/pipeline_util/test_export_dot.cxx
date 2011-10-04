@@ -9,7 +9,8 @@
 #include <vistk/pipeline_util/export_dot.h>
 #include <vistk/pipeline_util/export_dot_exception.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
-#include <vistk/pipeline_util/types.h>
+
+#include <vistk/utilities/path.h>
 
 #include <vistk/pipeline/modules.h>
 

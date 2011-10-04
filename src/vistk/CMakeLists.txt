@@ -5,6 +5,7 @@ configure_file(config.h.in
 
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_types)
+add_subdirectory(utilities)
 add_subdirectory(pipeline_util)
 
 install(
