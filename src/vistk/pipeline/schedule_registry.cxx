@@ -34,8 +34,6 @@ class schedule_registry::priv
     priv();
     ~priv();
 
-    static schedule_registry_t self;
-
     typedef boost::tuple<description_t, schedule_ctor_t> schedule_typeinfo_t;
     typedef std::map<type_t, schedule_typeinfo_t> schedule_store_t;
     schedule_store_t registry;
@@ -44,7 +42,7 @@ class schedule_registry::priv
     loaded_modules_t loaded_modules;
 };
 
-schedule_registry_t schedule_registry::priv::self = schedule_registry_t();
+static schedule_registry_t reg_self = schedule_registry_t();
 
 schedule_registry
 ::~schedule_registry()
@@ -142,18 +140,18 @@ schedule_registry
 {
   static boost::mutex mut;
 
-  if (priv::self)
+  if (reg_self)
   {
-    return priv::self;
+    return reg_self;
   }
 
   boost::unique_lock<boost::mutex> lock(mut);
-  if (!priv::self)
+  if (!reg_self)
   {
-    priv::self = schedule_registry_t(new schedule_registry);
+    reg_self = schedule_registry_t(new schedule_registry);
   }
 
-  return priv::self;
+  return reg_self;
 }
 
 schedule_registry

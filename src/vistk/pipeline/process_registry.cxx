@@ -35,8 +35,6 @@ class process_registry::priv
     priv();
     ~priv();
 
-    static process_registry_t self;
-
     typedef boost::tuple<description_t, process_ctor_t> process_typeinfo_t;
     typedef std::map<type_t, process_typeinfo_t> process_store_t;
     process_store_t registry;
@@ -45,7 +43,7 @@ class process_registry::priv
     loaded_modules_t loaded_modules;
 };
 
-process_registry_t process_registry::priv::self = process_registry_t();
+static process_registry_t reg_self = process_registry_t();
 
 process_registry
 ::~process_registry()
@@ -140,18 +138,18 @@ process_registry
 {
   static boost::mutex mut;
 
-  if (priv::self)
+  if (reg_self)
   {
-    return priv::self;
+    return reg_self;
   }
 
   boost::unique_lock<boost::mutex> lock(mut);
-  if (!priv::self)
+  if (!reg_self)
   {
-    priv::self = process_registry_t(new process_registry);
+    reg_self = process_registry_t(new process_registry);
   }
 
-  return priv::self;
+  return reg_self;
 }
 
 process_registry
