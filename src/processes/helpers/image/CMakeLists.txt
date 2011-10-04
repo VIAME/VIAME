@@ -6,11 +6,13 @@ set(image_helper_srcs
   grayscale.cxx
   pixtypes.cxx
   read.cxx
+  warp.cxx
   write.cxx)
 
 add_library(image_helper STATIC
   ${image_helper_srcs})
 target_link_libraries(image_helper
+  vistk_image
   vil)
 
 if (NOT WIN32)
