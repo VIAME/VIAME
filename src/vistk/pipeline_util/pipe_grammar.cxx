@@ -378,7 +378,10 @@ pipe_grammar<Iterator>
 
   port_name.name("port-name");
   port_name %=
-     (  config_key
+    +(  qi::alnum
+     |  qi::lit('-')
+     |  qi::lit('_')
+     |  qi::lit('/')
      );
 
   port_addr.name("port-addr");

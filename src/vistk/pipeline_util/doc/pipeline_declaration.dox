@@ -209,9 +209,11 @@
  * \par Specification
  *
  * <pre>
+ *   <port-char>           ::= <symbol-char> | "/"
+ *   <port-component>      ::= <port-char> <port-component>
  *   <port-process>        ::= <key-component>
  *   <port-addr-separator> ::= "."
- *   <port-name>           ::= <key-component>
+ *   <port-name>           ::= <port-component>
  *   <port-addr>           ::= <port-process> <port-addr-separator> <port-name>
  *   <connect-block-spec>  ::= <opt-whitespace> "connect" <whitespace> "from" <whitespace> <port-addr> <line-end>
  *                             <opt-whitespace> "to" <port-addr> <line-end>
