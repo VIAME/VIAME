@@ -74,7 +74,9 @@ bool
 edge
 ::has_data() const
 {
-  boost::mutex::scoped_lock lock(d->mutex);
+  boost::mutex::scoped_lock const lock(d->mutex);
+
+  (void)lock;
 
   return d->has_data();
 }
@@ -90,7 +92,7 @@ size_t
 edge
 ::datum_count() const
 {
-  boost::mutex::scoped_lock lock(d->mutex);
+  boost::mutex::scoped_lock const lock(d->mutex);
 
   (void)lock;
 
@@ -102,7 +104,9 @@ edge
 ::push_datum(edge_datum_t const& datum)
 {
   {
-    boost::mutex::scoped_lock lock(d->complete_mutex);
+    boost::mutex::scoped_lock const lock(d->complete_mutex);
+
+    (void)lock;
 
     if (d->downstream_complete)
     {
@@ -111,7 +115,7 @@ edge
   }
 
   {
-    boost::mutex::scoped_lock lock(d->mutex);
+    boost::mutex::scoped_lock const lock(d->mutex);
 
     (void)lock;
 
@@ -197,7 +201,7 @@ edge
 
   d->downstream_complete = true;
 
-  boost::mutex::scoped_lock lock(d->mutex);
+  boost::mutex::scoped_lock const lock(d->mutex);
 
   (void)lock;
 
@@ -211,7 +215,9 @@ bool
 edge
 ::is_downstream_complete() const
 {
-  boost::mutex::scoped_lock lock(d->complete_mutex);
+  boost::mutex::scoped_lock const lock(d->complete_mutex);
+
+  (void)lock;
 
   return d->downstream_complete;
 }
@@ -280,7 +286,7 @@ void
 edge::priv
 ::complete_check() const
 {
-  boost::mutex::scoped_lock lock(complete_mutex);
+  boost::mutex::scoped_lock const lock(complete_mutex);
 
   (void)lock;
 
