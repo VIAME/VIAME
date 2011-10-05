@@ -32,6 +32,9 @@ namespace vistk
  * the other ports to not exist and will cause errors. In short: The first
  * connection for any \portvar{src} must be \port{color/\portvar{src}}.
  *
+ * \note Ports sharing the same \port{\portvar{any}} string will use the same
+ * coloring.
+ *
  * \process A process for generating numbers.
  *
  * \iports

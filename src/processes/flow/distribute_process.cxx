@@ -33,18 +33,21 @@ class distribute_process::priv
     priv();
     ~priv();
 
+    typedef std::map<port_t, stamp_t> colors_t;
     typedef std::map<port_t, stamp_t> dist_ports_t;
     struct dist_info
     {
-      stamp_t stamp_color;
       dist_ports_t dist_ports;
       dist_ports_t::const_iterator cur_port;
     };
     typedef std::map<port_t, dist_info> dist_data_t;
 
     dist_data_t dist_data;
+    colors_t any_colors;
 
     port_t src_for_dist_port(port_t const& port) const;
+    process::port_t any_for_dist_port(port_t const& port) const;
+    stamp_t color_for_any(port_t const& port);
 
     static port_t const src_sep;
     static port_t const port_src_prefix;
@@ -164,8 +167,6 @@ distribute_process
     {
       priv::dist_info info;
 
-      info.stamp_color = stamp::new_stamp();
-
       d->dist_data[src_name] = info;
 
       port_flags_t required;
@@ -187,7 +188,9 @@ distribute_process
 
   if (!src_for_dist.empty())
   {
-    d->dist_data[src_for_dist].dist_ports[port] = stamp::new_stamp();
+    port_t const any_for_dist = d->any_for_dist_port(port);
+
+    d->dist_data[src_for_dist].dist_ports[port] = d->color_for_any(any_for_dist);
 
     port_flags_t required;
 
@@ -232,6 +235,44 @@ distribute_process::priv
   }
 
   return port_t();
+}
+
+process::port_t
+distribute_process::priv
+::any_for_dist_port(port_t const& port) const
+{
+  if (boost::starts_with(port, priv::port_dist_prefix))
+  {
+    port_t const no_prefix = port.substr(priv::port_dist_prefix.size());
+
+    BOOST_FOREACH (priv::dist_data_t::value_type const& data, dist_data)
+    {
+      port_t const src_prefix = data.first + priv::src_sep;
+
+      if (boost::starts_with(no_prefix, src_prefix))
+      {
+        port_t const any_part = no_prefix.substr(src_prefix.size());
+
+        return any_part;
+      }
+    }
+  }
+
+  return port_t();
+}
+
+stamp_t
+distribute_process::priv
+::color_for_any(port_t const& port)
+{
+  colors_t::const_iterator const i = any_colors.find(port);
+
+  if (i == any_colors.end())
+  {
+    any_colors[port] = stamp::new_stamp();
+  }
+
+  return any_colors[port];
 }
 
 }
