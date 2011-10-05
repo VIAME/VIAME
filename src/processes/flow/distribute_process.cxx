@@ -52,7 +52,7 @@ class distribute_process::priv
     static port_t const port_dist_prefix;
 };
 
-process::port_t const distribute_process::priv::src_sep = port_t("_");
+process::port_t const distribute_process::priv::src_sep = port_t("/");
 process::port_t const distribute_process::priv::port_src_prefix = port_t("src") + src_sep;
 process::port_t const distribute_process::priv::port_color_prefix = port_t("color") + src_sep;
 process::port_t const distribute_process::priv::port_dist_prefix = port_t("dist") + src_sep;

@@ -28,27 +28,27 @@ namespace vistk
  * \brief A process which distributes input data along multiple output edges.
  *
  * \note Edges for a \portvar{src} may \em only be connected after the
- * \port{color_\portvar{src}} is connected to. Before this connection happens,
+ * \port{color/\portvar{src}} is connected to. Before this connection happens,
  * the other ports to not exist and will cause errors. In short: The first
- * connection for any \portvar{src} must be \port{color_\portvar{src}}.
+ * connection for any \portvar{src} must be \port{color/\portvar{src}}.
  *
  * \process A process for generating numbers.
  *
  * \iports
  *
- * \iport{src_\portvar{src}} The source input \portvar{src}.
+ * \iport{src/\portvar{src}} The source input \portvar{src}.
  *
  * \oports
  *
- * \oport{color_\portvar{src}} The color of the input \portvar{src}.
- * \oport{dist_\portvar{src}_\portvar{any}} A port to distribute the input
+ * \oport{color/\portvar{src}} The color of the input \portvar{src}.
+ * \oport{dist/\portvar{src}/\portvar{any}} A port to distribute the input
  *                                          \portvar{src} to. Data is
  *                                          distributed in ASCII-betical order.
  *
  * \reqs
  *
- * \req Each input port \port{src_\portvar{src}} must be connected.
- * \req Each output port \port{color_\portvar{res}} must be connected.
+ * \req Each input port \port{src/\portvar{src}} must be connected.
+ * \req Each output port \port{color/\portvar{res}} must be connected.
  * \req Each \portvar{res} must have at least two outputs to distribute to.
  *
  * \todo Add configuration to allow forcing a number of outputs for a source.

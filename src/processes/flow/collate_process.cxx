@@ -50,7 +50,7 @@ class collate_process::priv
     static port_t const port_coll_prefix;
 };
 
-process::port_t const collate_process::priv::res_sep = port_t("_");
+process::port_t const collate_process::priv::res_sep = port_t("/");
 process::port_t const collate_process::priv::port_res_prefix = port_t("res") + res_sep;
 process::port_t const collate_process::priv::port_color_prefix = port_t("color") + res_sep;
 process::port_t const collate_process::priv::port_coll_prefix = port_t("coll") + res_sep;
