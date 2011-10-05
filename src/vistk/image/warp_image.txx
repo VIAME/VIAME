@@ -16,6 +16,8 @@
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_inverse.h>
 
+#include <limits>
+
 #include <cmath>
 
 /**
@@ -23,6 +25,8 @@
  *
  * \brief Implementation of the function to warp images.
  */
+
+static bool is_identity(vistk::homography_base::transform_t const& transform);
 
 namespace vistk
 {
@@ -70,8 +74,6 @@ warp_image<PixType>
   return d->mask;
 }
 
-static bool is_identity(homography_base::transform_t const& transform);
-
 template <typename PixType>
 typename warp_image<PixType>::image_t
 warp_image<PixType>
@@ -98,7 +100,8 @@ warp_image<PixType>
 
   if (is_identity(transform))
   {
-    /// \todo Short circuit.
+    d->dest = image;
+    d->mask.fill(false);
 
     return d->dest;
   }
@@ -234,12 +237,28 @@ warp_image<PixType>::priv
   mask.fill(true);
 }
 
-bool
-is_identity(homography_base::transform_t const& /*transform*/)
-{
-  /// \todo Determine if the transformation is the identity matrix.
-
-  return false;
 }
 
+template <typename T>
+static bool fuzzy_cmp(T const& a, T const& b, T const epsilon = std::numeric_limits<T>::epsilon());
+
+bool
+is_identity(vistk::homography_base::transform_t const& transform)
+{
+  typedef vnl_matrix_fixed<double, 3, 3> matrix_t;
+
+  matrix_t const mat = transform.get_matrix();
+
+  return (fuzzy_cmp(mat(0, 1), 0.0) && fuzzy_cmp(mat(0, 2), 0.0) &&
+          fuzzy_cmp(mat(1, 0), 0.0) && fuzzy_cmp(mat(1, 2), 0.0) &&
+          fuzzy_cmp(mat(2, 0), 0.0) && fuzzy_cmp(mat(2, 1), 0.0) &&
+          fuzzy_cmp(mat(0, 0), mat(1, 1)) && fuzzy_cmp(mat(1, 1), mat(2, 2)));
+}
+
+template <typename T>
+bool
+fuzzy_cmp(T const& a, T const& b, T const epsilon)
+{
+  T const diff = std::fabs(a - b);
+  return (diff <= epsilon);
 }
