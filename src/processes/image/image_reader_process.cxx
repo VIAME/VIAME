@@ -188,11 +188,13 @@ image_reader_process
 ::_step()
 {
   datum_t dat;
+  bool complete = false;
 
   if (d->fin.eof())
   {
     mark_as_complete();
     dat = datum::complete_datum();
+    complete = true;
   }
   else if (!d->fin.good())
   {
@@ -216,7 +218,7 @@ image_reader_process
 
   d->output_stamp = stamp::incremented_stamp(d->output_stamp);
 
-  if (d->has_color)
+  if (!complete && d->has_color)
   {
     edge_datum_t const color_dat = grab_from_port(priv::port_color);
 
