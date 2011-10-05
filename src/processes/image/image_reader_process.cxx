@@ -192,8 +192,6 @@ image_reader_process
 
   if (d->fin.eof())
   {
-    mark_as_complete();
-    dat = datum::complete_datum();
     complete = true;
   }
   else if (!d->fin.good())
@@ -220,15 +218,14 @@ image_reader_process
 
   d->output_stamp = stamp::incremented_stamp(d->output_stamp);
 
-  if (!complete && d->has_color)
+  if (d->has_color)
   {
     edge_datum_t const color_dat = grab_from_port(priv::port_color);
 
     switch (color_dat.get<0>()->type())
     {
       case datum::complete:
-        mark_as_complete();
-        dat = datum::complete_datum();
+        complete = true;
       case datum::data:
       case datum::empty:
         break;
@@ -248,6 +245,12 @@ image_reader_process
     }
 
     d->output_stamp = stamp::recolored_stamp(d->output_stamp, color_dat.get<1>());
+  }
+
+  if (complete)
+  {
+    mark_as_complete();
+    dat = datum::complete_datum();
   }
 
   edge_datum_t const edat = edge_datum_t(dat, d->output_stamp);
