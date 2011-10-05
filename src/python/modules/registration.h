@@ -9,12 +9,23 @@
 
 #include "modules-config.h"
 
+/**
+ * \file python/modules/registration.h
+ *
+ * \brief Register processes for use.
+ */
+
 extern "C"
 {
 
+/**
+ * \brief Register processes.
+ */
 void VISTK_MODULES_PYTHON_EXPORT register_processes();
+/**
+ * \brief Register schedules.
+ */
 void VISTK_MODULES_PYTHON_EXPORT register_schedules();
-
 
 }
 
