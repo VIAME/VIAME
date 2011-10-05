@@ -158,6 +158,7 @@ homography_reader_process
       if (!istr)
       {
         d->read_error = true;
+        break;
       }
 
       if (d->fin.eof())
