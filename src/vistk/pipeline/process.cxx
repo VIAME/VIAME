@@ -834,6 +834,30 @@ process::priv
 
   data_info_t const info = edge_data_info(data);
 
+  switch (info->max_status)
+  {
+    case datum::data:
+      break;
+    case datum::empty:
+      return edge_datum_t(datum::empty_datum(), stamp_for_inputs);
+    case datum::complete:
+      proc->mark_as_complete();
+      return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
+    case datum::error:
+    {
+      static datum::error_t const err_string = datum::error_t("Error in a required input edge.");
+
+      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+    }
+    case datum::invalid:
+    default:
+    {
+      static datum::error_t const err_string = datum::error_t("Unrecognized datum type in a required input edge.");
+
+      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+    }
+  }
+
   if (input_same_color && !info->same_color)
   {
     static datum::error_t const err_string = datum::error_t("Required input edges are not the same color.");
@@ -857,30 +881,6 @@ process::priv
   if (!input_valid)
   {
     return edge_datum_t(datum_t(), stamp_t());
-  }
-
-  switch (info->max_status)
-  {
-    case datum::data:
-      break;
-    case datum::empty:
-      return edge_datum_t(datum::empty_datum(), stamp_for_inputs);
-    case datum::complete:
-      proc->mark_as_complete();
-      return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
-    case datum::error:
-    {
-      static datum::error_t const err_string = datum::error_t("Error in a required input edge.");
-
-      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
-    }
-    case datum::invalid:
-    default:
-    {
-      static datum::error_t const err_string = datum::error_t("Unrecognized datum type in a required input edge.");
-
-      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
-    }
   }
 
   return edge_datum_t(datum_t(), stamp_t());
