@@ -29,6 +29,7 @@ class source_process::priv
     ~priv();
 
     stamp_t color_stamp;
+    edge_group_t edges;
 
     static port_t const port_output;
 };
@@ -57,11 +58,33 @@ source_process
 
 void
 source_process
+::_init()
+{
+  d->edges = output_port_edges(priv::port_output);
+}
+
+void
+source_process
 ::_step()
 {
   datum_t const dat = datum::empty_datum();
 
   edge_datum_t const edat = edge_datum_t(dat, d->color_stamp);
+
+  bool needs_data = false;
+
+  do
+  {
+    BOOST_FOREACH (edge_ref_t& edge_ref, d->edges)
+    {
+      edge_t const edge = edge_ref.lock();
+
+      if (!edge->has_data())
+      {
+        needs_data = true;
+      }
+    }
+  } while (!needs_data);
 
   push_to_port(priv::port_output, edat);
 

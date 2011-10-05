@@ -53,6 +53,11 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT source_process
     ~source_process();
   protected:
     /**
+     * \brief Checks the output port connections and the configuration.
+     */
+    void _init();
+
+    /**
      * \brief Ignores data on the incoming edge.
      */
     void _step();
