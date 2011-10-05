@@ -147,7 +147,9 @@ homography_reader_process
   }
   else
   {
-    vnl_double_3x3 read_mat;
+    typedef vnl_matrix_fixed<double, 3, 3> matrix_t;
+
+    matrix_t read_mat;
 
     for (size_t i = 0; i < 9; ++i)
     {
