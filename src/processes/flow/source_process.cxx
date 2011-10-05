@@ -79,7 +79,7 @@ source_process
     {
       edge_t const edge = edge_ref.lock();
 
-      if (!edge->has_data())
+      if (!edge->is_downstream_complete() && !edge->has_data())
       {
         needs_data = true;
       }
