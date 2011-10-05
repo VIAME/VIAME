@@ -1,0 +1,12 @@
+config warp
+  :pixtype byte
+  :grayscale false
+
+!include _warp1.pipe
+#!include _warp2.pipe
+#!include _warp3.pipe
+#!include _warp4.pipe
+#!include _warp5.pipe
+#!include _warp6.pipe
+#!include _warp7.pipe
+#!include _warp8.pipe

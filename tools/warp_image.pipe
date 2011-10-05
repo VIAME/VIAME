@@ -1,0 +1,48 @@
+config warp_image
+  :pixtype byte
+  :grayscale false
+  :homography_type image_to_image
+  :input input.txt
+  :input_homography input-homog.txt
+  :output output.txt
+
+process source
+  :: source
+
+process read
+  :: image_reader
+  :input[ro]{CONF} warp_image:input
+  :pixtype[ro]{CONF} warp_image:pixtype
+  :grayscale[ro]{CONF} warp_image:grayscale
+
+process read_trans
+  :: homography_reader
+  :input[ro]{CONF} warp_image:input_homography
+  :homography_type[ro]{CONF} warp_image:homography_type
+
+!include warp.pipe
+
+config warp
+  :pixtype[ro]{CONF} warp_image:pixtype
+  :grayscale[ro]{CONF} warp_image:grayscale
+
+process write
+  :: image_writer
+  :output[ro]{CONF} warp_image:output
+  :pixtype[ro]{CONF} warp_image:pixtype
+  :grayscale[ro]{CONF} warp_image:grayscale
+
+connect from source.color
+        to   read.color
+
+connect from source.color
+        to   read_trans.color
+
+connect from read.image
+        to   warp.image
+
+connect from read_trans.homography
+        to   warp.transform
+
+connect from warp.warped_image
+        to   write.image

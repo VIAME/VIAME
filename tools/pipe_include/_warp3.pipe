@@ -1,0 +1,14 @@
+!include _warp2.pipe
+
+process _warp3
+  :: warp_image
+  :pixtype[ro]{CONF} warp:pixtype
+  :grayscale[ro]{CONF} warp:grayscale
+
+connect from _warp_dist.dist/image/3
+        to   _warp3.image
+connect from _warp_dist.dist/transform/3
+        to   _warp3.transform
+
+connect from _warp3.warped_image
+        to   _warp_coll.coll/image/3
