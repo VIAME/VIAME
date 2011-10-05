@@ -143,7 +143,9 @@ homography_reader_process
   }
   else if (!d->fin.good())
   {
-    dat = datum::error_datum("Error with input file stream.");
+    static std::string const err_string = "Error with input file stream.";
+
+    dat = datum::error_datum(err_string);
   }
   else
   {
@@ -168,7 +170,9 @@ homography_reader_process
 
   if (d->read_error)
   {
-    dat = datum::error_datum("Error reading from the input file.");
+    static std::string const err_string = "Error reading from the input file.";
+
+    dat = datum::error_datum(err_string);
   }
 
   d->output_stamp = stamp::incremented_stamp(d->output_stamp);

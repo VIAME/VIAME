@@ -55,7 +55,9 @@ read(path_t const& path)
 
   if (!img)
   {
-    return datum::error_datum("Unable to load image.");
+    static std::string const err_string = "Unable to load image.";
+
+    return datum::error_datum(err_string);
   }
 
   return datum::new_datum(img);

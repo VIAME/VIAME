@@ -198,7 +198,9 @@ image_reader_process
   }
   else if (!d->fin.good())
   {
-    dat = datum::error_datum("Error with input file stream.");
+    static std::string const err_string = "Error with input file stream.";
+
+    dat = datum::error_datum(err_string);
   }
   else
   {

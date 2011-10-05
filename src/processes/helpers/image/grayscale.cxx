@@ -55,7 +55,9 @@ convert_to_gray(datum_t const& dat)
 
   if (rgb_image.nplanes() != 3)
   {
-    return datum::error_datum("Input image does not have three planes.");
+    static std::string const err_string = "Input image does not have three planes.";
+
+    return datum::error_datum(err_string);
   }
 
   image_t gray_image;
