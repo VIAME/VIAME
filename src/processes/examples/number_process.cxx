@@ -150,14 +150,14 @@ number_process
         break;
       case datum::error:
       {
-        static std::string const err_string = "Error on the color edge.";
+        static datum::error_t const err_string = datum::error_t("Error on the color edge.");
 
         dat = datum::error_datum(err_string);
       }
       case datum::invalid:
       default:
       {
-        static std::string const err_string = "Unrecognized datum type on the color edge.";
+        static datum::error_t const err_string = datum::error_t("Unrecognized datum type on the color edge.");
 
         dat = datum::error_datum(err_string);
       }

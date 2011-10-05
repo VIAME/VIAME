@@ -836,14 +836,14 @@ process::priv
 
   if (input_same_color && !info->same_color)
   {
-    static std::string const err_string = "Required input edges are not the same color.";
+    static datum::error_t const err_string = datum::error_t("Required input edges are not the same color.");
 
     return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
   }
 
   if (input_same_color && input_sync && !info->in_sync)
   {
-    static std::string const err_string = "Required input edges are not synchronized.";
+    static datum::error_t const err_string = datum::error_t("Required input edges are not synchronized.");
 
     return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
   }
@@ -870,14 +870,14 @@ process::priv
       return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
     case datum::error:
     {
-      static std::string const err_string = "Error in a required input edge.";
+      static datum::error_t const err_string = datum::error_t("Error in a required input edge.");
 
       return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
     }
     case datum::invalid:
     default:
     {
-      static std::string const err_string = "Unrecognized datum type in a required input edge.";
+      static datum::error_t const err_string = datum::error_t("Unrecognized datum type in a required input edge.");
 
       return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
     }

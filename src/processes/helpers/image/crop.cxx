@@ -54,7 +54,7 @@ crop(datum_t const& dat, size_t x_offset, size_t y_offset, size_t width, size_t 
 
   if (!crop_img)
   {
-    static std::string const err_string = "Unable to crop the image.";
+    static datum::error_t const err_string = datum::error_t("Unable to crop the image.");
 
     return datum::error_datum(err_string);
   }

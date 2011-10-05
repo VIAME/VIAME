@@ -143,7 +143,7 @@ homography_reader_process
   }
   else if (!d->fin.good())
   {
-    static std::string const err_string = "Error with input file stream.";
+    static datum::error_t const err_string = datum::error_t("Error with input file stream.");
 
     dat = datum::error_datum(err_string);
   }
@@ -170,7 +170,7 @@ homography_reader_process
 
   if (d->read_error)
   {
-    static std::string const err_string = "Error reading from the input file.";
+    static datum::error_t const err_string = datum::error_t("Error reading from the input file.");
 
     dat = datum::error_datum(err_string);
   }
@@ -191,14 +191,14 @@ homography_reader_process
         break;
       case datum::error:
       {
-        static std::string const err_string = "Error on the color edge.";
+        static datum::error_t const err_string = datum::error_t("Error on the color edge.");
 
         dat = datum::error_datum(err_string);
       }
       case datum::invalid:
       default:
       {
-        static std::string const err_string = "Unrecognized datum type on the color edge.";
+        static datum::error_t const err_string = datum::error_t("Unrecognized datum type on the color edge.");
 
         dat = datum::error_datum(err_string);
       }
