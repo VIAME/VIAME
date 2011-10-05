@@ -71,20 +71,29 @@ source_process
 
   edge_datum_t const edat = edge_datum_t(dat, d->color_stamp);
 
+  bool has_incomplete = false;
   bool needs_data = false;
 
+  /// \todo Replace this busy loop.
   do
   {
+    has_incomplete = false;
+
     BOOST_FOREACH (edge_ref_t& edge_ref, d->edges)
     {
       edge_t const edge = edge_ref.lock();
 
-      if (!edge->is_downstream_complete() && !edge->has_data())
+      if (!edge->is_downstream_complete())
       {
-        needs_data = true;
+        has_incomplete = true;
+
+        if (!edge->has_data())
+        {
+          needs_data = true;
+        }
       }
     }
-  } while (!needs_data);
+  } while (has_incomplete && !needs_data);
 
   push_to_port(priv::port_output, edat);
 
