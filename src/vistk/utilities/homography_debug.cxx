@@ -6,8 +6,6 @@
 
 #include "homography_debug.h"
 
-#include "homography.h"
-
 #include <boost/io/ios_state.hpp>
 
 #include <iomanip>
@@ -23,9 +21,11 @@ namespace vistk
 {
 
 void
-debug_homography_base_write(std::ostream& ostr, homography_base const& homog)
+debug_transform_write(std::ostream& ostr, homography_base::transform_t const& transform)
 {
   static int const precision = 16;
+
+  homography_base::transform_t const& t = transform;
 
   boost::io::ios_flags_saver ifs(ostr);
 
@@ -35,13 +35,20 @@ debug_homography_base_write(std::ostream& ostr, homography_base const& homog)
   ostr << std::fixed;
   ostr << std::setprecision(precision);
 
-  homography_base::transform_t const& t = homog.transform();
-
-  ostr << "Valid:   " << homog.is_valid() << "\n"
-          "New ref: " << homog.is_new_reference() << "\n"
-          "  [ " << t.get(0, 0) << ", " << t.get(0, 1) << ", " << t.get(0, 2) << " ]\n"
+  ostr << "  [ " << t.get(0, 0) << ", " << t.get(0, 1) << ", " << t.get(0, 2) << " ]\n"
           "  [ " << t.get(1, 0) << ", " << t.get(1, 1) << ", " << t.get(1, 2) << " ]\n"
           "  [ " << t.get(2, 0) << ", " << t.get(2, 1) << ", " << t.get(2, 2) << " ]";
+}
+
+void
+debug_homography_base_write(std::ostream& ostr, homography_base const& homog)
+{
+  homography_base::transform_t const& transform = homog.transform();
+
+  ostr << "Valid:   " << homog.is_valid() << "\n"
+          "New ref: " << homog.is_new_reference() << "\n";
+
+  debug_transform_write(ostr, transform);
 }
 
 template <typename Source, typename Dest>

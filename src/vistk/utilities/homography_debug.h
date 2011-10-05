@@ -9,6 +9,8 @@
 
 #include "utilities-config.h"
 
+#include "homography.h"
+
 #include <iosfwd>
 
 /**
@@ -20,13 +22,13 @@
 namespace vistk
 {
 
-class homography_base;
-template <typename Source, typename Dest> class homography;
-
-}
-
-namespace vistk
-{
+/**
+ * \brief Output information in the transformation for a homography.
+ *
+ * \param ostr The stream to output to.
+ * \param transform The transform to output.
+ */
+void VISTK_UTILITIES_EXPORT debug_transform_write(std::ostream& ostr, homography_base::transform_t const& transform);
 
 /**
  * \brief Output information in the base homography class.
