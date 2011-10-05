@@ -120,6 +120,10 @@ class VISTK_UTILITIES_EXPORT homography
     typedef homography<Source, Dest> self_t;
     /// A typedef for the inverse of the current homography type.
     typedef homography<Dest, Source> inverse_t;
+    /// A typedef for the source type.
+    typedef Source source_t;
+    /// A typedef for the destination type.
+    typedef Dest dest_t;
 
     /**
      * \brief Constructor.
@@ -141,26 +145,26 @@ class VISTK_UTILITIES_EXPORT homography
      *
      * \returns The source plane data.
      */
-    Source source() const;
+    source_t source() const;
     /**
      * \brief Queries for the destination plane data.
      *
      * \returns The destination plane data.
      */
-    Dest destination() const;
+    dest_t destination() const;
 
     /**
      * \brief Sets the source plane data.
      *
      * \param src The source plane data.
      */
-    void set_source(Source const& src);
+    void set_source(source_t const& src);
     /**
      * \brief Sets the destination plane data.
      *
      * \param dest The destination plane data.
      */
-    void set_destination(Dest const& dest);
+    void set_destination(dest_t const& dest);
 
     /**
      * \brief The inverse of the current homography.
@@ -178,8 +182,8 @@ class VISTK_UTILITIES_EXPORT homography
      */
     bool operator == (self_t const& h) const;
   private:
-    Source m_source;
-    Dest m_dest;
+    source_t m_source;
+    dest_t m_dest;
 };
 
 /**

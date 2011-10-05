@@ -120,7 +120,7 @@ homography<Source, Dest>
 }
 
 template <typename Source, typename Dest>
-Source
+typename homography<Source, Dest>::source_t
 homography<Source, Dest>
 ::source() const
 {
@@ -128,7 +128,7 @@ homography<Source, Dest>
 }
 
 template <typename Source, typename Dest>
-Dest
+typename homography<Source, Dest>::dest_t
 homography<Source, Dest>
 ::destination() const
 {
@@ -138,7 +138,7 @@ homography<Source, Dest>
 template <typename Source, typename Dest>
 void
 homography<Source, Dest>
-::set_source(Source const& src)
+::set_source(source_t const& src)
 {
   m_source = src;
 }
@@ -146,7 +146,7 @@ homography<Source, Dest>
 template <typename Source, typename Dest>
 void
 homography<Source, Dest>
-::set_destination(Dest const& dest)
+::set_destination(dest_t const& dest)
 {
   m_dest = dest;
 }
