@@ -147,19 +147,6 @@ homography_reader_process
   }
   else
   {
-    // Read the timestamp headers from each matrix.
-    {
-      timestamp::frame_t frame;
-      timestamp::time_t time;
-
-      std::istream const& istr = d->fin >> frame >> time;
-
-      if (!istr)
-      {
-        d->read_error = true;
-      }
-    }
-
     vnl_double_3x3 read_mat;
 
     for (size_t i = 0; i < 9; ++i)
