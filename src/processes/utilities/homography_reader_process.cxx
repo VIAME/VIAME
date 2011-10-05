@@ -161,7 +161,7 @@ homography_reader_process
       }
     }
 
-    homography_base::transform_t mat(read_mat);
+    homography_base::transform_t const mat(read_mat);
 
     dat = datum::new_datum(mat);
   }
