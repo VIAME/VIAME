@@ -50,7 +50,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
     throw null_pipeline_export_dot_exception();
   }
 
-  ostr << "strict digraph " << graph_name << " {" << std::endl;
+  ostr << "strict digraph \"" << graph_name << "\" {" << std::endl;
   ostr << std::endl;
 
   vistk::process::names_t const proc_names = pipe->process_names();
@@ -60,7 +60,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
   {
     vistk::process_t const proc = pipe->process_by_name(name);
 
-    ostr << "subgraph cluster_" << name << " {" << std::endl;
+    ostr << "subgraph \"cluster_" << name << "\" {" << std::endl;
 
     ostr << style_process_subgraph << std::endl;
 
@@ -69,7 +69,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
     std::string const node_name = name + node_suffix_main;
 
     // Central node
-    ostr << node_name << " ["
+    ostr << "\"" << node_name << "\" ["
             "label=\"" << name << "\\n:: " << proc->type() << "\","
          << style_process
          << "];" << std::endl;
@@ -84,12 +84,12 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 
       std::string const node_port_name = name + node_prefix_input + port;
 
-      ostr << node_port_name << " ["
+      ostr << "\"" << node_port_name << "\" ["
               "label=\"" << port << "\\n:: " << ptype << "\","
            << style_input_port
            << "];" << std::endl;
-      ostr << node_port_name << " -> "
-           << node_name << " ["
+      ostr << "\"" << node_port_name << "\" -> "
+              "\"" << node_name << "\" ["
            << style_input_port_edge
            << "];" << std::endl;
     }
@@ -104,12 +104,12 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 
       std::string const node_port_name = name + node_prefix_output + port;
 
-      ostr << node_port_name << " ["
+      ostr << "\"" << node_port_name << "\" ["
               "label=\"" << port << "\\n:: " << ptype << "\","
            << style_output_port
            << "];" << std::endl;
-      ostr << node_name << " -> "
-           << node_port_name << " ["
+      ostr << "\"" << node_name << "\" -> "
+              "\"" << node_port_name << "\" ["
            << style_output_port_edge
            << "];" << std::endl;
     }
@@ -137,8 +137,8 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
       {
         std::string const node_to_port_name = addr.first + node_prefix_input + addr.second;
 
-        ostr << node_from_port_name << " -> "
-             << node_to_port_name << " ["
+        ostr << "\"" << node_from_port_name << "\" -> "
+                "\"" << node_to_port_name << "\" ["
              << style_connection_edge
              << "];" << std::endl;
       }
