@@ -6,14 +6,14 @@
 
 #include "homography_reader_process.h"
 
+#include <vistk/utilities/homography.h>
+
 #include <vistk/pipeline_types/utility_types.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/stamp.h>
-
-#include <vistk/utilities/homography_types.h>
 
 #include <boost/filesystem/path.hpp>
 #include <boost/make_shared.hpp>
