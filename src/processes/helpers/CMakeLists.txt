@@ -1,5 +1,7 @@
 project(vistk_processes_helpers)
 
+add_subdirectory(functions)
+
 if (VXL_FOUND)
   include_directories(SYSTEM ${VXL_CORE_INCLUDE_DIR})
   include_directories(SYSTEM ${VXL_VCL_INCLUDE_DIR})
