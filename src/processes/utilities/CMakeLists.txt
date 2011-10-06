@@ -1,3 +1,5 @@
+project(vistk_processes_utilities)
+
 set(utilities_srcs
   homography_reader_process.cxx
   registration.cxx

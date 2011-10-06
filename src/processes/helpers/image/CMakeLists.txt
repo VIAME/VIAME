@@ -1,4 +1,4 @@
-project(vistk_process_helpers_image)
+project(vistk_processes_helpers_image)
 
 set(image_helper_srcs
   crop.cxx

@@ -1,4 +1,4 @@
-project(vistk_image_helpers)
+project(vistk_processes_helpers)
 
 if (VXL_FOUND)
   include_directories(SYSTEM ${VXL_CORE_INCLUDE_DIR})
