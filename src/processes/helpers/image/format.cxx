@@ -19,6 +19,21 @@
 namespace vistk
 {
 
+namespace
+{
+
+template <typename PixType>
+class image_helper
+{
+  public:
+    template <bool Grayscale = false, bool Alpha = false>
+    struct port_types
+    {
+      public:
+        static process::port_type_t const type;
+    };
+};
+
 template <> template <>
 process::port_type_t const image_helper<uint8_t>::port_types<false, true>::type = image_types::t_byte_rgb;
 template <> template <>
@@ -39,6 +54,8 @@ process::port_type_t const image_helper<float>::port_types<true, false>::type = 
 
 template <typename PixType> template <bool Grayscale, bool Alpha>
 process::port_type_t const image_helper<PixType>::port_types<Grayscale, Alpha>::type = process::type_none;
+
+}
 
 process::port_type_t
 port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)

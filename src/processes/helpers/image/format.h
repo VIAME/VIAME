@@ -21,28 +21,6 @@ namespace vistk
 {
 
 /**
- * \class image_helper "format.h" <processes/helpers/image/format.h>
- *
- * \brief Helper class to help with managing image types.
- */
-template <typename PixType>
-class image_helper
-{
-  public:
-    /**
-     * \struct port_types
-     *
-     * \brief Port types for images.
-     */
-    template <bool Grayscale = false, bool Alpha = false>
-    struct port_types
-    {
-      /// The port type for the image.
-      static process::port_type_t const type;
-    };
-};
-
-/**
  * \brief Port types for images with different parameters.
  *
  * \param pixtype The type for pixels.
