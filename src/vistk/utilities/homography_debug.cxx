@@ -31,7 +31,6 @@ debug_transform_write(std::ostream& ostr, homography_base::transform_t const& tr
 
   (void)ifs;
 
-  ostr << std::boolalpha;
   ostr << std::fixed;
   ostr << std::setprecision(precision);
 
@@ -44,6 +43,12 @@ void
 debug_homography_base_write(std::ostream& ostr, homography_base const& homog)
 {
   homography_base::transform_t const& transform = homog.transform();
+
+  boost::io::ios_flags_saver ifs(ostr);
+
+  (void)ifs;
+
+  ostr << std::boolalpha;
 
   ostr << "Valid:   " << homog.is_valid() << "\n"
           "New ref: " << homog.is_new_reference() << "\n";

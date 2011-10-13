@@ -33,7 +33,6 @@ debug_timestamp_write(std::ostream& ostr, timestamp const& ts)
 
   (void)ifs;
 
-  ostr << std::boolalpha;
   ostr << std::fixed;
   ostr << std::setprecision(precision);
 
