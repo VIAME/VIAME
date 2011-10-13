@@ -194,7 +194,7 @@ operator * (homography<Shared, Dest> const& l, homography<Source, Shared> const&
 
   result.set_transform(l.transform() * r.transform());
   result.set_source(r.source());
-  result.set_dest(l.dest());
+  result.set_destination(l.dest());
   result.set_valid(l.is_valid() && r.is_valid());
 
   return result;
