@@ -33,6 +33,7 @@ class VISTK_PIPELINE_TYPES_EXPORT utility_types
 
     /// The type for homography transform data on a port.
     static process::port_type_t const t_transform;
+    /// The type for a homography from an image to another image.
     static process::port_type_t const t_image_to_image_homography;
     /// The type for a homography from an image to an arbitrary plane.
     static process::port_type_t const t_image_to_plane_homography;

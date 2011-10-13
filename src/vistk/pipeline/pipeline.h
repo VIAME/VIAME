@@ -95,7 +95,6 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     void add_group(process::name_t const& name);
 
-    // FIXME: Something is wrong with the doxygen formatting below... --Ben
     /**
      * \brief Connect two ports in the pipeline together with an edge.
      *
@@ -105,7 +104,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \precond{\p upstream_port is an output port on \p upstream_process}
      * \precond{\p downstream_process is the name of a process or group in the pipeline}
      * \precond{\p downstream_port is an input port on \p downstream_process}
-     * \precond{The types of the ports match, or at least one is \ref process::type_any}
+     * \precond{The types of the ports match\, or at least one is \ref process::type_any}
      * \precond{The flags of the ports are compatible (a \ref
      *          process::flag_output_const output may not be connected to a \ref
      *          process::flag_input_mutable input)}

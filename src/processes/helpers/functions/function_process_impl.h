@@ -98,6 +98,7 @@
  * \brief Declares static variables for the names of input ports.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -111,6 +112,7 @@
  * \brief Defines static variables for the names of input ports.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -125,6 +127,7 @@
  * \brief Declares static variables for the names of output ports.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -138,6 +141,7 @@
  * \brief Defines static variables for the names of output ports.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -152,7 +156,7 @@
  * \brief Declares variables for the name, default, and storage of a configuration.
  *
  * \param cls The C++ class the configuration is for.
- * \param name The name of the class to implement.
+ * \param name The name of configuration key.
  * \param type The C++ type for the value retrieved from the configuration.
  * \param default The default value of the configuration.
  * \param desc A description of the configuration.
@@ -167,7 +171,7 @@
  * \brief Defines static variables for the names of configuration keys and defaults.
  *
  * \param cls The C++ class the configuration is for.
- * \param name The name of the class to implement.
+ * \param name The name of configuration key.
  * \param type The C++ type for the value retrieved from the configuration.
  * \param default The default value of the configuration.
  * \param desc A description of the configuration.
@@ -182,7 +186,7 @@
  * \brief Expands to an argument to a function taking the configuration.
  *
  * \param cls The C++ class the configuration is for.
- * \param name The name of the class to implement.
+ * \param name The name of configuration key.
  * \param type The C++ type for the value retrieved from the configuration.
  * \param default The default value of the configuration.
  * \param desc A description of the configuration.
@@ -196,6 +200,7 @@
  * \brief Declares an input port for the process.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -212,6 +217,7 @@
  * \brief Declares an output port for the process.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -228,7 +234,7 @@
  * \brief Declares a configuration value for the process.
  *
  * \param cls The C++ class the configuration is for.
- * \param name The name of the class to implement.
+ * \param name The name of configuration key.
  * \param type The C++ type for the value retrieved from the configuration.
  * \param default The default value of the configuration.
  * \param desc A description of the configuration.
@@ -244,7 +250,7 @@
  * \brief Grabs the configuration value for the process.
  *
  * \param cls The C++ class the configuration is for.
- * \param name The name of the class to implement.
+ * \param name The name of configuration key.
  * \param type The C++ type for the value retrieved from the configuration.
  * \param default The default value of the configuration.
  * \param desc A description of the configuration.
@@ -258,7 +264,7 @@
  * \brief Passes configuration values as arguments.
  *
  * \param cls The C++ class the configuration is for.
- * \param name The name of the class to implement.
+ * \param name The name of configuration key.
  * \param type The C++ type for the value retrieved from the configuration.
  * \param default The default value of the configuration.
  * \param desc A description of the configuration.
@@ -272,7 +278,7 @@
  * \brief The initializer list for configuration values.
  *
  * \param cls The C++ class the configuration is for.
- * \param name The name of the class to implement.
+ * \param name The name of configuration key.
  * \param type The C++ type for the value retrieved from the configuration.
  * \param default The default value of the configuration.
  * \param desc A description of the configuration.
@@ -286,6 +292,7 @@
  * \brief Grabs a datum from an input port.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -300,6 +307,7 @@
  * \brief Declares result variables from the function for the output port.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -314,6 +322,7 @@
  * \brief Passes the input data as arguments.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -328,6 +337,7 @@
  * \brief Expands to the fill the output variables from the function.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.
@@ -342,6 +352,7 @@
  * \brief Pushes the result to the output port.
  *
  * \param cls The C++ class the port is for.
+ * \param name The name of the port.
  * \param type The C++ type for the value retrieved from the port.
  * \param port_type The type of the port.
  * \param flags Flags for the port.

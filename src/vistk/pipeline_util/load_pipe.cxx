@@ -32,8 +32,13 @@
 namespace vistk
 {
 
+namespace
+{
+
 typedef path_t include_path_t;
 typedef std::vector<include_path_t> include_paths_t;
+
+}
 
 static std::string const default_include_dirs = std::string(VISTK_DEFAULT_PIPE_INCLUDE_PATHS);
 static envvar_name_t const vistk_include_envvar = envvar_name_t("VISTK_PIPE_INCLUDE_PATH");

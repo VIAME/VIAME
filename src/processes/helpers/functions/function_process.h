@@ -18,7 +18,7 @@
  *
  * \brief The class name of a function process given the base name.
  *
- * \param func The name of the class.
+ * \param cls The name of the class.
  */
 #define CLASS_NAME(cls) function_##cls##_process
 /**
@@ -26,7 +26,7 @@
  *
  * \brief The destructor name of a function process given the base name.
  *
- * \param func The name of the class.
+ * \param cls The name of the class.
  */
 #define CLASS_DTOR(cls) ~function_##cls##_process
 

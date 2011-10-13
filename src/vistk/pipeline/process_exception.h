@@ -128,6 +128,7 @@ class VISTK_PIPELINE_EXPORT null_port_info_exception
      *
      * \param process The name of the process.
      * \param port The port with \c NULL information.
+     * \param type The type of port.
      */
     null_port_info_exception(process::name_t const& process, process::port_t const& port, std::string const& type) throw();
     /**

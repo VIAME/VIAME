@@ -22,7 +22,7 @@ namespace vistk
 typedef std::string pixtype_t;
 
 /**
- * \class pixtypes "image_helper.h"
+ * \class pixtypes "pixtypes.h"
  *
  * \brief Names for common pixtypes.
  */
