@@ -185,7 +185,7 @@ warp_image<PixType>
 
       double& x = pt[0];
       double& y = pt[1];
-      double& w = pt[2];
+      double const& w = pt[2];
 
       x /= w;
       y /= w;
