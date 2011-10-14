@@ -22,11 +22,21 @@ namespace vistk
 namespace
 {
 
+enum pixel_format_t
+{
+  pix_rgb,
+  pix_bgr,
+  pix_rgba,
+  pix_bgra,
+  pix_yuv,
+  pix_gray
+};
+
 template <typename PixType>
 class image_helper
 {
   public:
-    template <bool Grayscale = false, bool Alpha = false>
+    template <pixel_format_t Format>
     struct port_types
     {
       public:
@@ -35,55 +45,62 @@ class image_helper
 };
 
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<false, true>::type = image_types::t_byte_rgb;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_rgb>::type = image_types::t_byte_rgb;
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<false, false>::type = image_types::t_byte_rgb;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_bgr>::type = image_types::t_byte_bgr;
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<true, true>::type = image_types::t_byte_grayscale;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_rgba>::type = image_types::t_byte_rgba;
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<true, false>::type = image_types::t_byte_grayscale;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_bgra>::type = image_types::t_byte_bgra;
+template <> template <>
+process::port_type_t const image_helper<uint8_t>::port_types<pix_yuv>::type = image_types::t_byte_grayscale;
+template <> template <>
+process::port_type_t const image_helper<uint8_t>::port_types<pix_gray>::type = image_types::t_byte_grayscale;
 
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<false, true>::type = image_types::t_float_rgb;
+process::port_type_t const image_helper<float>::port_types<pix_rgb>::type = image_types::t_float_rgb;
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<false, false>::type = image_types::t_float_rgb;
+process::port_type_t const image_helper<float>::port_types<pix_bgr>::type = image_types::t_float_bgr;
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<true, true>::type = image_types::t_float_grayscale;
+process::port_type_t const image_helper<float>::port_types<pix_rgba>::type = image_types::t_float_rgba;
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<true, false>::type = image_types::t_float_grayscale;
+process::port_type_t const image_helper<float>::port_types<pix_bgra>::type = image_types::t_float_bgra;
+template <> template <>
+process::port_type_t const image_helper<float>::port_types<pix_yuv>::type = image_types::t_float_grayscale;
+template <> template <>
+process::port_type_t const image_helper<float>::port_types<pix_gray>::type = image_types::t_float_grayscale;
 
-template <typename PixType> template <bool Grayscale, bool Alpha>
-process::port_type_t const image_helper<PixType>::port_types<Grayscale, Alpha>::type = process::type_none;
+template <typename PixType> template <pixel_format_t Format>
+process::port_type_t const image_helper<PixType>::port_types<Format>::type = process::type_none;
 
 }
 
 process::port_type_t
-port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool /*alpha*/)
+port_type_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& format)
 {
-  /// \todo Handle alpha parameter.
+#define PORT_TYPE(ptype, pix) \
+  if (format == pixfmts::pixfmt_##pix())                     \
+  {                                                          \
+    return image_helper<ptype>::port_types<pix_##pix>::type; \
+  }
+#define PORT_TYPES(ptype)     \
+  PORT_TYPE(ptype, rgb)       \
+  else PORT_TYPE(ptype, bgr)  \
+  else PORT_TYPE(ptype, rgba) \
+  else PORT_TYPE(ptype, bgra) \
+  else PORT_TYPE(ptype, yuv)  \
+  else PORT_TYPE(ptype, gray)
 
   if (pixtype == pixtypes::pixtype_byte())
   {
-    if (grayscale)
-    {
-      return image_helper<uint8_t>::port_types<true>::type;
-    }
-    else
-    {
-      return image_helper<uint8_t>::port_types<false>::type;
-    }
+    PORT_TYPES(uint8_t)
   }
   else if (pixtype == pixtypes::pixtype_float())
   {
-    if (grayscale)
-    {
-      return image_helper<float>::port_types<true>::type;
-    }
-    else
-    {
-      return image_helper<float>::port_types<false>::type;
-    }
+    PORT_TYPES(float)
   }
+#undef PORT_TYPES
+#undef PORT_TYPE
 
   return process::type_none;
 }

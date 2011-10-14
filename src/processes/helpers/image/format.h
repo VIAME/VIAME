@@ -24,12 +24,11 @@ namespace vistk
  * \brief Port types for images with different parameters.
  *
  * \param pixtype The type for pixels.
- * \param grayscale True if the images are grayscale, false otherwise.
- * \param alpha True if the images have an alpha channel, false otherwise.
+ * \param format The format of the pixels.
  *
  * \returns The port type for images of the given information.
  */
-process::port_type_t port_type_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool alpha = false);
+process::port_type_t port_type_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& format);
 
 }
 
