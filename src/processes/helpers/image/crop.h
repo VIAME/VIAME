@@ -30,7 +30,7 @@ typedef boost::function<datum_t (datum_t const&, size_t, size_t, size_t, size_t)
  *
  * \param pixtype The type for pixels.
  *
- * \returns A function to cropping \p pixtype images.
+ * \returns A function to crop \p pixtype images.
  */
 crop_func_t crop_for_pixtype(pixtype_t const& pixtype);
 
