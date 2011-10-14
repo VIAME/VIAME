@@ -10,6 +10,7 @@
 #include "grayscale_process.h"
 #include "image_reader_process.h"
 #include "image_writer_process.h"
+#include "video_reader_process.h"
 #include "warp_image_process.h"
 
 #include <vistk/pipeline/process_registry.h>
@@ -28,6 +29,7 @@ static process_t create_crop_image_process(config_t const& config);
 static process_t create_grayscale_process(config_t const& config);
 static process_t create_image_reader_process(config_t const& config);
 static process_t create_image_writer_process(config_t const& config);
+static process_t create_video_reader_process(config_t const& config);
 static process_t create_warp_image_process(config_t const& config);
 
 void
@@ -46,6 +48,7 @@ register_processes()
   registry->register_process("grayscale", "Convert an RGB image into grayscale.", create_grayscale_process);
   registry->register_process("image_reader", "Read images from files given a list of images.", create_image_reader_process);
   registry->register_process("image_writer", "Write images to files.", create_image_writer_process);
+  registry->register_process("video_reader", "Reads images from a video.", create_video_reader_process);
   registry->register_process("warp_image", "Warps images using tranformation matrices.", create_warp_image_process);
 
   registry->mark_module_as_loaded(module_name);
@@ -73,6 +76,12 @@ process_t
 create_image_writer_process(config_t const& config)
 {
   return boost::make_shared<image_writer_process>(config);
+}
+
+process_t
+create_video_reader_process(config_t const& config)
+{
+  return boost::make_shared<video_reader_process>(config);
 }
 
 process_t
