@@ -50,25 +50,25 @@ namespace vistk
 template <typename PixType>
 static datum_t istream_read(vidl_pixel_color color, istream_t const& istream);
 
-static istream_impl_t glob_impl();
+static istream_impl_t const& glob_impl();
 #if VIDL_HAS_FFMPEG
-static istream_impl_t ffmpeg_impl();
+static istream_impl_t const& ffmpeg_impl();
 #endif
 #if VIDL_HAS_DSHOW
-static istream_impl_t dshow_file_impl();
-static istream_impl_t dshow_live_impl();
+static istream_impl_t const& dshow_file_impl();
+static istream_impl_t const& dshow_live_impl();
 #endif
 #if VIDL_HAS_DC1394
-static istream_impl_t dc1394_impl();
+static istream_impl_t const& dc1394_impl();
 #endif
 #if VIDL_HAS_VIDEODEV
-static istream_impl_t v4l_impl();
+static istream_impl_t const& v4l_impl();
 #endif
 #if VIDL_HAS_VIDEODEV2
-static istream_impl_t v4l2_impl();
+static istream_impl_t const& v4l2_impl();
 #endif
 
-istream_impl_t
+istream_impl_t const&
 default_istream_impl()
 {
 #if VIDL_HAS_FFMPEG
@@ -232,7 +232,7 @@ istream_read(vidl_pixel_color color, istream_t const& istream)
   return datum::new_datum(img);
 }
 
-istream_impl_t
+istream_impl_t const&
 glob_impl()
 {
   static istream_impl_t impl = istream_impl_t("glob");
@@ -241,7 +241,7 @@ glob_impl()
 }
 
 #if VIDL_HAS_FFMPEG
-istream_impl_t
+istream_impl_t const&
 ffmpeg_impl()
 {
   static istream_impl_t impl = istream_impl_t("ffmpeg");
@@ -251,7 +251,7 @@ ffmpeg_impl()
 #endif
 
 #if VIDL_HAS_DSHOW
-istream_impl_t
+istream_impl_t const&
 dshow_file_impl()
 {
   static istream_impl_t impl = istream_impl_t("dshow_file");
@@ -259,7 +259,7 @@ dshow_file_impl()
   return impl;
 }
 
-istream_impl_t
+istream_impl_t const&
 dshow_live_impl()
 {
   static istream_impl_t impl = istream_impl_t("dshow_live");
@@ -269,7 +269,7 @@ dshow_live_impl()
 #endif
 
 #if VIDL_HAS_DC1394
-istream_impl_t
+istream_impl_t const&
 dc1394_impl()
 {
   static istream_impl_t impl = istream_impl_t("dc1394");
@@ -279,7 +279,7 @@ dc1394_impl()
 #endif
 
 #if VIDL_HAS_VIDEODEV
-istream_impl_t
+istream_impl_t const&
 v4l_impl()
 {
   static istream_impl_t impl = istream_impl_t("v4l");
@@ -289,7 +289,7 @@ v4l_impl()
 #endif
 
 #if VIDL_HAS_VIDEODEV2
-istream_impl_t
+istream_impl_t const&
 v4l2_impl()
 {
   static istream_impl_t impl = istream_impl_t("v4l2");

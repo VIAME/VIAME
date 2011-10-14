@@ -45,7 +45,7 @@ typedef std::set<istream_impl_t> istream_impls_t;
  *
  * \returns The default implementation.
  */
-istream_impl_t default_istream_impl();
+istream_impl_t const& default_istream_impl();
 
 /**
  * \brief The known implementation types.
