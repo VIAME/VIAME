@@ -57,9 +57,8 @@ istream_impls_t known_istream_impls();
 /**
  * \brief An istream for a given implementation.
  *
+ * \param impl The implementation to use for reading videos.
  * \param path The path to open.
- * \param grayscale Whether the output should be grayscale or not.
- * \param alpha Whether the output has an alpha channel or not.
  *
  * \returns An istream for the given implementation.
  */
@@ -69,10 +68,11 @@ istream_t istream_for_impl(istream_impl_t const& impl, path_t const& path);
  * \brief An istream function for pixtypes of a given type.
  *
  * \param pixtype The type for pixels.
+ * \param pixfmt The format for pixels.
  *
  * \returns A function to read \p pixtype images from a video.
  */
-istream_read_func_t istream_read_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool alpha = false);
+istream_read_func_t istream_read_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& pixfmt);
 
 }
 

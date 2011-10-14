@@ -157,17 +157,30 @@ istream_for_impl(istream_impl_t const& impl, path_t const& path)
 }
 
 istream_read_func_t
-istream_read_for_pixtype(pixtype_t const& pixtype, bool grayscale, bool alpha)
+istream_read_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& pixfmt)
 {
-  vidl_pixel_color color = VIDL_PIXEL_COLOR_RGB;
+  vidl_pixel_color color;
 
-  if (alpha)
+  if (pixfmt == pixfmts::pixfmt_rgb())
+  {
+    color = VIDL_PIXEL_COLOR_RGB;
+  }
+  else if (pixfmt == pixfmts::pixfmt_rgba())
   {
     color = VIDL_PIXEL_COLOR_RGBA;
   }
-  if (grayscale)
+  else if (pixfmt == pixfmts::pixfmt_yuv())
+  {
+    color = VIDL_PIXEL_COLOR_YUV;
+  }
+  else if (pixfmt == pixfmts::pixfmt_gray())
   {
     color = VIDL_PIXEL_COLOR_MONO;
+  }
+  else
+  {
+    /// \todo Log a warning that the pixel format is unsupported.
+    return istream_read_func_t();
   }
 
   if (pixtype == pixtypes::pixtype_byte())
