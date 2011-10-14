@@ -29,10 +29,11 @@ typedef boost::function<datum_t (datum_t const&)> gray_func_t;
  * \brief A grayscale conversion for images of the given type.
  *
  * \param pixtype The type for pixels.
+ * \param pixfmt The format for pixels.
  *
  * \returns A function to converting \p pixtype images to grayscale.
  */
-gray_func_t gray_for_pixtype(pixtype_t const& pixtype);
+gray_func_t gray_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& pixfmt);
 
 }
 

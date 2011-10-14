@@ -26,8 +26,14 @@ template <typename PixType>
 static datum_t convert_to_gray(datum_t const& dat);
 
 gray_func_t
-gray_for_pixtype(pixtype_t const& pixtype)
+gray_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& pixfmt)
 {
+  /// \todo Need functions for things other than RGB images.
+  if (pixfmt != pixfmts::pixfmt_rgb())
+  {
+    return gray_func_t();
+  }
+
   if (pixtype == pixtypes::pixtype_byte())
   {
     return &convert_to_gray<uint8_t>;
