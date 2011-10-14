@@ -3,7 +3,7 @@
 process _warp6
   :: warp_image
   :pixtype[ro]{CONF} warp:pixtype
-  :grayscale[ro]{CONF} warp:grayscale
+  :pixfmt[ro]{CONF} warp:pixfmt
 
 connect from _warp_dist.dist/image/6
         to   _warp6.image

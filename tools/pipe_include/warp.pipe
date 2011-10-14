@@ -1,6 +1,6 @@
 config warp
   :pixtype byte
-  :grayscale false
+  :pixfmt rgb
 
 !include _warp1.pipe
 #!include _warp2.pipe

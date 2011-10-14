@@ -7,12 +7,12 @@ process _warp_trans_color_sink
 process _warp1
   :: warp_image
   :pixtype[ro]{CONF} warp:pixtype
-  :grayscale[ro]{CONF} warp:grayscale
+  :pixfmt[ro]{CONF} warp:pixfmt
 
 process _warp2
   :: warp_image
   :pixtype[ro]{CONF} warp:pixtype
-  :grayscale[ro]{CONF} warp:grayscale
+  :pixfmt[ro]{CONF} warp:pixfmt
 
 process _warp_coll
   :: collate

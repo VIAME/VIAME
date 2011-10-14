@@ -1,6 +1,6 @@
 config warp_image
   :pixtype byte
-  :grayscale false
+  :pixfmt rgb
   :homography_type image_to_image
   :input input.txt
   :input_homography input-homog.txt
@@ -13,7 +13,7 @@ process read
   :: image_reader
   :input[ro]{CONF} warp_image:input
   :pixtype[ro]{CONF} warp_image:pixtype
-  :grayscale[ro]{CONF} warp_image:grayscale
+  :pixfmt[ro]{CONF} warp_image:pixfmt
 
 process read_trans
   :: homography_reader
@@ -24,13 +24,13 @@ process read_trans
 
 config warp
   :pixtype[ro]{CONF} warp_image:pixtype
-  :grayscale[ro]{CONF} warp_image:grayscale
+  :pixfmt[ro]{CONF} warp_image:pixfmt
 
 process write
   :: image_writer
   :output[ro]{CONF} warp_image:output
   :pixtype[ro]{CONF} warp_image:pixtype
-  :grayscale[ro]{CONF} warp_image:grayscale
+  :pixfmt[ro]{CONF} warp_image:pixfmt
 
 connect from source.color
         to   read.color
