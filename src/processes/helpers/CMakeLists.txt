@@ -9,4 +9,5 @@ if (VXL_FOUND)
   link_directories(${VXL_LIBRARY_DIR})
 
   add_subdirectory(image)
+  add_subdirectory(video)
 endif (VXL_FOUND)
