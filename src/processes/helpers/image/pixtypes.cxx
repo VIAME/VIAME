@@ -31,4 +31,52 @@ pixtypes
   return type;
 }
 
+pixfmt_t const&
+pixfmts
+::pixfmt_rgb()
+{
+  static pixfmt_t const fmt = pixfmt_t("rgb");
+  return fmt;
+}
+
+pixfmt_t const&
+pixfmts
+::pixfmt_bgr()
+{
+  static pixfmt_t const fmt = pixfmt_t("bgr");
+  return fmt;
+}
+
+pixfmt_t const&
+pixfmts
+::pixfmt_rgba()
+{
+  static pixfmt_t const fmt = pixfmt_t("rgba");
+  return fmt;
+}
+
+pixfmt_t const&
+pixfmts
+::pixfmt_bgra()
+{
+  static pixfmt_t const fmt = pixfmt_t("bgra");
+  return fmt;
+}
+
+pixfmt_t const&
+pixfmts
+::pixfmt_yuv()
+{
+  static pixfmt_t const fmt = pixfmt_t("yuv");
+  return fmt;
+}
+
+pixfmt_t const&
+pixfmts
+::pixfmt_gray()
+{
+  static pixfmt_t const fmt = pixfmt_t("gray");
+  return fmt;
+}
+
 }
