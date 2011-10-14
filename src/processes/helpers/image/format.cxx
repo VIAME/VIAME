@@ -53,7 +53,7 @@ process::port_type_t const image_helper<uint8_t>::port_types<pix_rgba>::type = i
 template <> template <>
 process::port_type_t const image_helper<uint8_t>::port_types<pix_bgra>::type = image_types::t_byte_bgra;
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_yuv>::type = image_types::t_byte_grayscale;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_yuv>::type = image_types::t_byte_yuv;
 template <> template <>
 process::port_type_t const image_helper<uint8_t>::port_types<pix_gray>::type = image_types::t_byte_grayscale;
 
@@ -66,7 +66,7 @@ process::port_type_t const image_helper<float>::port_types<pix_rgba>::type = ima
 template <> template <>
 process::port_type_t const image_helper<float>::port_types<pix_bgra>::type = image_types::t_float_bgra;
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_yuv>::type = image_types::t_float_grayscale;
+process::port_type_t const image_helper<float>::port_types<pix_yuv>::type = image_types::t_float_yuv;
 template <> template <>
 process::port_type_t const image_helper<float>::port_types<pix_gray>::type = image_types::t_float_grayscale;
 
