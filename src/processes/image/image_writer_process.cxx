@@ -50,22 +50,22 @@ class image_writer_process::priv
     std::ofstream fout;
 
     static config::key_t const config_pixtype;
-    static config::key_t const config_grayscale;
+    static config::key_t const config_pixfmt;
     static config::key_t const config_format;
     static config::key_t const config_path;
     static config::value_t const default_pixtype;
-    static config::value_t const default_grayscale;
+    static config::value_t const default_pixfmt;
     static config::value_t const default_format;
     static config::value_t const default_path;
     static port_t const port_input;
 };
 
 config::key_t const image_writer_process::priv::config_pixtype = config::key_t("pixtype");
-config::key_t const image_writer_process::priv::config_grayscale = config::key_t("grayscale");
+config::key_t const image_writer_process::priv::config_pixfmt = config::key_t("pixfmt");
 config::key_t const image_writer_process::priv::config_format = config::key_t("format");
 config::key_t const image_writer_process::priv::config_path = config::key_t("output");
 config::value_t const image_writer_process::priv::default_pixtype = config::value_t(pixtypes::pixtype_byte());
-config::value_t const image_writer_process::priv::default_grayscale = config::value_t("false");
+config::value_t const image_writer_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const image_writer_process::priv::default_format = config::value_t("image-%1%-%2%.png");
 config::value_t const image_writer_process::priv::default_path = config::value_t("image-%1%.txt");
 process::port_t const image_writer_process::priv::port_input = process::port_t("image");
@@ -77,9 +77,9 @@ image_writer_process
   declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
     priv::default_pixtype,
     config::description_t("The pixel type of the input images.")));
-  declare_configuration_key(priv::config_grayscale, boost::make_shared<conf_info>(
-    priv::default_grayscale,
-    config::description_t("Set to \'true\' if the input is grayscale, \'false\' otherwise.")));
+  declare_configuration_key(priv::config_pixfmt, boost::make_shared<conf_info>(
+    priv::default_pixfmt,
+    config::description_t("The pixel format of the input images.")));
   declare_configuration_key(priv::config_format, boost::make_shared<conf_info>(
     priv::default_format,
     config::description_t("The format for output filenames.")));
@@ -88,9 +88,9 @@ image_writer_process
     config::description_t("The input file with a list of images to read.")));
 
   pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
-  bool const grayscale = config_value<bool>(priv::config_grayscale);
+  pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
 
-  port_type_t const port_type_input = port_type_for_pixtype(pixtype, grayscale);
+  port_type_t const port_type_input = port_type_for_pixtype(pixtype, pixfmt);
 
   port_flags_t required;
 

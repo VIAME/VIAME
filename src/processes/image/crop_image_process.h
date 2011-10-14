@@ -39,8 +39,8 @@ namespace vistk
  *
  * \configs
  *
- * \config{pixtype} The type of image to convert.
- * \config{grayscale} Whether the inputs are grayscale or not.
+ * \config{pixtype} The pixel type of the input images.
+ * \config{pixfmt} The pixel format of the input images.
  * \config{x_offset} The x offset to crop at.
  * \config{y_offset} The y offset to crop at.
  * \config{width} The width of the resulting image.

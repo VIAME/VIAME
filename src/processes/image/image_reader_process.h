@@ -39,8 +39,8 @@ namespace vistk
  *
  * \configs
  *
- * \config{pixtype} The type of image to read.
- * \config{grayscale} Whether the inputs are grayscale or not.
+ * \config{pixtype} The pixel type of the input images.
+ * \config{pixfmt} The pixel format of the input images.
  * \config{input} The file to read filepaths from.
  * \config{verify} Verify images during initialization.
  *

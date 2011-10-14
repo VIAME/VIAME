@@ -39,8 +39,8 @@ namespace vistk
  *
  * \configs
  *
- * \config{pixtype} The type of image to read frames as.
- * \config{grayscale} Whether the images are grayscale or not.
+ * \config{pixtype} The pixel type of the input images.
+ * \config{pixfmt} The pixel format of the input images.
  * \config{input} The file to read the video from.
  * \config{verify} Verify frames during initialization.
  * \config{impl} The implementation of readers to support.

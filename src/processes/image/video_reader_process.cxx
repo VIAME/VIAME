@@ -49,12 +49,12 @@ class video_reader_process::priv
     stamp_t output_stamp;
 
     static config::key_t const config_pixtype;
-    static config::key_t const config_grayscale;
+    static config::key_t const config_pixfmt;
     static config::key_t const config_path;
     static config::key_t const config_verify;
     static config::key_t const config_impl;
     static config::value_t const default_pixtype;
-    static config::value_t const default_grayscale;
+    static config::value_t const default_pixfmt;
     static config::value_t const default_verify;
     static config::value_t const default_impl;
     static port_t const port_color;
@@ -62,12 +62,12 @@ class video_reader_process::priv
 };
 
 config::key_t const video_reader_process::priv::config_pixtype = config::key_t("pixtype");
-config::key_t const video_reader_process::priv::config_grayscale = config::key_t("grayscale");
+config::key_t const video_reader_process::priv::config_pixfmt = config::key_t("pixfmt");
 config::key_t const video_reader_process::priv::config_path = config::key_t("input");
 config::key_t const video_reader_process::priv::config_verify = config::key_t("verify");
 config::key_t const video_reader_process::priv::config_impl = config::key_t("impl");
 config::value_t const video_reader_process::priv::default_pixtype = config::value_t(pixtypes::pixtype_byte());
-config::value_t const video_reader_process::priv::default_grayscale = config::value_t("false");
+config::value_t const video_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const video_reader_process::priv::default_verify = config::value_t("false");
 config::value_t const video_reader_process::priv::default_impl = config::value_t(default_istream_impl());
 process::port_t const video_reader_process::priv::port_color = process::port_t("color");
@@ -85,9 +85,9 @@ video_reader_process
   declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
     priv::default_pixtype,
     config::description_t("The pixel type of the input images.")));
-  declare_configuration_key(priv::config_grayscale, boost::make_shared<conf_info>(
-    priv::default_grayscale,
-    config::description_t("Set to \'true\' if the input is grayscale, \'false\' otherwise.")));
+  declare_configuration_key(priv::config_pixfmt, boost::make_shared<conf_info>(
+    priv::default_pixfmt,
+    config::description_t("The pixel format of the input images.")));
   declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
     config::value_t(),
     config::description_t("The input file with a list of images to read.")));
@@ -99,9 +99,9 @@ video_reader_process
     config::description_t("The implementation to use for reading the input. Known: " + impls_str)));
 
   pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
-  bool const grayscale = config_value<bool>(priv::config_grayscale);
+  pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
 
-  port_type_t const port_type_output = port_type_for_pixtype(pixtype, grayscale);
+  port_type_t const port_type_output = port_type_for_pixtype(pixtype, pixfmt);
 
   port_flags_t required;
 
@@ -129,14 +129,14 @@ video_reader_process
   // Configure the process.
   {
     pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
-    bool const grayscale = config_value<bool>(priv::config_grayscale);
+    pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
     path_t const path = config_value<path_t>(priv::config_path);
     bool const verify = config_value<bool>(priv::config_verify);
     istream_impl_t const impl = config_value<istream_impl_t>(priv::config_impl);
 
     istream_t const istr = istream_for_impl(impl, path);
 
-    istream_read_func_t const func = istream_read_for_pixtype(pixtype, grayscale);
+    istream_read_func_t const func = istream_read_for_pixtype(pixtype, pixfmt);
 
     d.reset(new priv(path, istr, func, verify));
   }

@@ -35,8 +35,8 @@ namespace vistk
  *
  * \configs
  *
- * \config{pixtype} The type of image to write.
- * \config{grayscale} Whether the inputs are grayscale or not.
+ * \config{pixtype} The pixel type of the input images.
+ * \config{pixfmt} The pixel format of the input images.
  * \config{format} The format for the output file names.
  * \config{output} The file to write filepaths to.
  *

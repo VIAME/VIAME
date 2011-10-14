@@ -39,7 +39,8 @@ namespace vistk
  *
  * \configs
  *
- * \config{pixtype} The type of image to convert.
+ * \config{pixtype} The pixel type of the input images.
+ * \config{pixfmt} The pixel format of the input images.
  *
  * \reqs
  *
