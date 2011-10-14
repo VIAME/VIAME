@@ -43,6 +43,26 @@ class VISTK_PIPELINE_TYPES_EXPORT image_types
     /// The type for floating point RGB images.
     static process::port_type_t const t_float_rgb;
 
+    /// The type for 8-bit BGR images.
+    static process::port_type_t const t_byte_bgr;
+    /// The type for floating point BGR images.
+    static process::port_type_t const t_float_bgr;
+
+    /// The type for 8-bit RGBA images.
+    static process::port_type_t const t_byte_rgba;
+    /// The type for floating point RGBA images.
+    static process::port_type_t const t_float_rgba;
+
+    /// The type for 8-bit BGRA images.
+    static process::port_type_t const t_byte_bgra;
+    /// The type for floating point BGRA images.
+    static process::port_type_t const t_float_bgra;
+
+    /// The type for 8-bit YUV images.
+    static process::port_type_t const t_byte_yuv;
+    /// The type for floating point YUV images.
+    static process::port_type_t const t_float_yuv;
+
     /// The type for IPL images.
     static process::port_type_t const t_ipl;
     /// The type for OpenCV images.
