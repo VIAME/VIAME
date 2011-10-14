@@ -78,11 +78,26 @@ process::port_type_t const image_helper<PixType>::port_types<Format>::type = pro
 process::port_type_t
 port_type_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& format)
 {
-#define PORT_TYPE(ptype, pix) \
-  if (format == pixfmts::pixfmt_##pix())                     \
+/**
+ * \def PORT_TYPE
+ *
+ * \brief Checks for a pixel format.
+ *
+ * \param ptype The C++ pixel type.
+ * \param fmt The pixel format.
+ */
+#define PORT_TYPE(ptype, fmt) \
+  if (format == pixfmts::pixfmt_##fmt())                     \
   {                                                          \
-    return image_helper<ptype>::port_types<pix_##pix>::type; \
+    return image_helper<ptype>::port_types<pix_##fmt>::type; \
   }
+/**
+ * \def PORT_TYPES
+ *
+ * \brief Checks all pixel formats to get the port type.
+ *
+ * \param ptype The C++ pixel type.
+ */
 #define PORT_TYPES(ptype)     \
   PORT_TYPE(ptype, rgb)       \
   else PORT_TYPE(ptype, bgr)  \

@@ -51,7 +51,7 @@ class pixtypes
 };
 
 /**
- * \class pixfmt "pixtypes.h"
+ * \class pixfmts "pixtypes.h"
  *
  * \brief Names for common pixfmts.
  */
