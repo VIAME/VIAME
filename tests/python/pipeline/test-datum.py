@@ -40,8 +40,10 @@ def test_empty():
     if len(d.get_error()):
         log("Error: A empty datum has an error string")
 
-#    ensure_exception("retrieving data from an empty datum",
-#                     d.get_datum)
+    p = d.get_datum()
+
+    if p is not None:
+        log("Error: An empty datum does not have None as its data")
 
 
 def test_complete():
@@ -55,8 +57,10 @@ def test_complete():
     if len(d.get_error()):
         log("Error: A complete datum has an error string")
 
-#    ensure_exception("retrieving data from a complete datum",
-#                     d.get_datum)
+    p = d.get_datum()
+
+    if p is not None:
+        log("Error: A complete datum does not have None as its data")
 
 
 def test_error():
@@ -72,8 +76,10 @@ def test_error():
     if not d.get_error() == err:
         log("Error: An error datum did not keep the message")
 
-#    ensure_exception("retrieving data from an error datum",
-#                     d.get_datum)
+    p = d.get_datum()
+
+    if p is not None:
+        log("Error: An error datum does not have None as its data")
 
 
 def main(testname):
