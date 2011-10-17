@@ -5,10 +5,13 @@
  */
 
 #include <python/helpers/pystream.h>
+#include <python/helpers/python_convert_optional.h>
 
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/load_pipe_exception.h>
 #include <vistk/pipeline_util/pipe_declaration_types.h>
+
+#include <vistk/pipeline/process.h>
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -23,12 +26,6 @@
 
 using namespace boost::python;
 
-static object config_key_options_flags(vistk::config_key_options_t const& options);
-static void config_key_options_flags_set(vistk::config_key_options_t& options, vistk::config_flags_t const& flags);
-static object config_key_options_provider(vistk::config_key_options_t const& options);
-static void config_key_options_provider_set(vistk::config_key_options_t& options, vistk::config_provider_t const& provider);
-static object map_options_flags(vistk::map_options_t const& options);
-static void map_options_flags_set(vistk::map_options_t& options, vistk::process::port_flags_t const& flags);
 static object pipe_block_config(vistk::pipe_block const& block);
 static void pipe_block_config_set(vistk::pipe_block& block, vistk::config_pipe_block const& config);
 static object pipe_block_process(vistk::pipe_block const& block);
@@ -70,6 +67,10 @@ BOOST_PYTHON_MODULE(load)
   register_exception_translator<
     vistk::load_pipe_exception>(translator);
 
+  REGISTER_OPTIONAL_CONVERTER(vistk::config_flags_t);
+  REGISTER_OPTIONAL_CONVERTER(vistk::config_provider_t);
+  REGISTER_OPTIONAL_CONVERTER(vistk::process::port_flags_t);
+
   class_<vistk::token_t>("Token"
     , "A token in the pipeline description.");
   class_<vistk::config_flag_t>("ConfigFlag"
@@ -82,8 +83,8 @@ BOOST_PYTHON_MODULE(load)
     , "A provider key for a configuration setting.");
   class_<vistk::config_key_options_t>("ConfigKeyOptions"
     , "A collection of options on a configuration setting.")
-    .add_property("flags", &config_key_options_flags, &config_key_options_flags_set)
-    .add_property("provider", &config_key_options_provider, &config_key_options_provider_set)
+    .def_readwrite("flags", &vistk::config_key_options_t::flags)
+    .def_readwrite("provider", &vistk::config_key_options_t::provider)
   ;
   class_<vistk::config_key_t>("ConfigKey"
     , "A configuration key with its settings.")
@@ -102,7 +103,7 @@ BOOST_PYTHON_MODULE(load)
   ;
   class_<vistk::map_options_t>("MapOptions"
     , "A collection of options for a mapping.")
-    .add_property("flags", &map_options_flags, &map_options_flags_set)
+    .def_readwrite("flags", &vistk::map_options_t::flags)
   ;
   class_<vistk::input_map_t>("InputMap"
     , "An input mapping for a group.")
@@ -174,57 +175,6 @@ void
 translator(vistk::load_pipe_exception const& e)
 {
   PyErr_SetString(PyExc_RuntimeError, e.what());
-}
-
-object
-config_key_options_flags(vistk::config_key_options_t const& options)
-{
-  if (options.flags)
-  {
-    return object(*options.flags);
-  }
-
-  return object();
-}
-
-void
-config_key_options_flags_set(vistk::config_key_options_t& options, vistk::config_flags_t const& flags)
-{
-  options.flags = flags;
-}
-
-object
-config_key_options_provider(vistk::config_key_options_t const& options)
-{
-  if (options.provider)
-  {
-    return object(*options.provider);
-  }
-
-  return object();
-}
-
-void
-config_key_options_provider_set(vistk::config_key_options_t& options, vistk::config_provider_t const& provider)
-{
-  options.provider = provider;
-}
-
-object
-map_options_flags(vistk::map_options_t const& options)
-{
-  if (options.flags)
-  {
-    return object(*options.flags);
-  }
-
-  return object();
-}
-
-void
-map_options_flags_set(vistk::map_options_t& options, vistk::process::port_flags_t const& flags)
-{
-  options.flags = flags;
 }
 
 object
