@@ -82,15 +82,15 @@ struct default_converter<boost::any>
       }
       else
       {
-#define TRY_CONVERT_FROM_RAW(T) \
-      (!luabind::default_converter<T>().compute_score(L, index))           \
-      {                                                                    \
-        return boost::any(luabind::default_converter<T>().from(L, index)); \
-      }
-#define TRY_CONVERT_FROM(T) \
-      if TRY_CONVERT_FROM_RAW(T)             \
-      else if TRY_CONVERT_FROM_RAW(T const)  \
-      else if TRY_CONVERT_FROM_RAW(T const&)
+#define TRY_CONVERT_FROM_RAW(T)                                        \
+  if (!luabind::default_converter<T>().compute_score(L, index))        \
+  {                                                                    \
+    return boost::any(luabind::default_converter<T>().from(L, index)); \
+  }
+#define TRY_CONVERT_FROM(T)          \
+  TRY_CONVERT_FROM_RAW(T)            \
+  else TRY_CONVERT_FROM_RAW(T const) \
+  else TRY_CONVERT_FROM_RAW(T const&)
 
         TRY_CONVERT_FROM(bool)
         else TRY_CONVERT_FROM(char)
