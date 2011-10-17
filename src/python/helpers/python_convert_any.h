@@ -34,14 +34,15 @@ struct rvalue_from_python_stage1_data;
 
 }
 
-struct boost_any_to_object
+class boost_any_to_object
 {
-  boost_any_to_object();
-  ~boost_any_to_object();
+  public:
+    boost_any_to_object();
+    ~boost_any_to_object();
 
-  static void* convertible(PyObject* obj);
-  static PyObject* convert(boost::any const& any);
-  static void construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data);
+    static void* convertible(PyObject* obj);
+    static PyObject* convert(boost::any const& any);
+    static void construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data);
 };
 
 #endif // VISTK_PYTHON_PIPELINE_PYTHON_CONVERT_ANY_H
