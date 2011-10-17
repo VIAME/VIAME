@@ -13,6 +13,7 @@ add_vistk_python_library(datum
   datum.cxx)
 target_link_libraries(python-datum
   vistk_pipeline
+  python_convert_any
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 

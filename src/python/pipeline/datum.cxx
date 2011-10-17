@@ -5,10 +5,13 @@
  */
 
 #include <python/helpers/python_wrap_const_shared_ptr.h>
+#include <python/helpers/python_convert_any.h>
 
 #include <vistk/pipeline/datum.h>
 
+#include <boost/any.hpp>
 #include <boost/python.hpp>
+#include <boost/python/extract.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 /**
@@ -20,6 +23,8 @@
 using namespace boost::python;
 
 static void translator(vistk::datum_exception const& e);
+
+static vistk::datum_t new_datum(object const& obj);
 
 BOOST_PYTHON_MODULE(datum)
 {
@@ -38,10 +43,9 @@ BOOST_PYTHON_MODULE(datum)
   class_<vistk::datum::error_t>("DatumError"
     , "The type of an error message.");
 
-  /// \todo How to do this?
-  //def("new", &vistk::datum::new_datum
-  //  , (arg("dat"))
-  //  , "Creates a new datum packet.");
+  def("new", &new_datum
+    , (arg("dat"))
+    , "Creates a new datum packet.");
   def("empty", &vistk::datum::empty_datum
     , "Creates an empty datum packet.");
   def("complete", &vistk::datum::complete_datum
@@ -57,16 +61,24 @@ BOOST_PYTHON_MODULE(datum)
       , "The type of the datum packet.")
     .def("get_error", &vistk::datum::get_error
       , "The error contained within the datum packet.")
-    /// \todo How to do this?
-    //.def("get_datum", &vistk::datum::get_datum
-    //  , "Get the data contained within the packet.")
+    .def("get_datum", &vistk::datum::get_datum<boost::any>
+      , "Get the data contained within the packet.")
   ;
 
   implicitly_convertible<boost::shared_ptr<vistk::datum>, vistk::datum_t>();
+  to_python_converter<boost::any, boost_any_to_object>();
+
+  boost_any_to_object();
 }
 
 void
 translator(vistk::datum_exception const& e)
 {
   PyErr_SetString(PyExc_RuntimeError, e.what());
+}
+
+vistk::datum_t
+new_datum(object const& obj)
+{
+  return vistk::datum::new_datum<boost::any>(extract<boost::any>(obj));
 }
