@@ -29,6 +29,23 @@ def test_import():
         log("Error: Failed to import the datum module")
 
 
+def test_new():
+    from vistk.pipeline import datum
+
+    d = datum.new('test_datum')
+
+    if not d.type() == datum.DatumType.data:
+        log("Error: Datum type mismatch")
+
+    if len(d.get_error()):
+        log("Error: A data datum has an error string")
+
+    p = d.get_datum()
+
+    if p is None:
+        log("Error: A data datum has None as its data")
+
+
 def test_empty():
     from vistk.pipeline import datum
 
@@ -85,6 +102,8 @@ def test_error():
 def main(testname):
     if testname == 'import':
         test_import()
+    elif testname == 'new':
+        test_new()
     elif testname == 'empty':
         test_empty()
     elif testname == 'complete':

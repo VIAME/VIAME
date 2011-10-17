@@ -24,6 +24,7 @@ vistk_make_python_test(config merge_config)
 vistk_build_python_test(datum test-datum.py)
 
 vistk_make_python_test(datum import)
+vistk_make_python_test(datum new)
 vistk_make_python_test(datum empty)
 vistk_make_python_test(datum complete)
 vistk_make_python_test(datum error)
