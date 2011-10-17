@@ -58,7 +58,7 @@ boost_any_to_object
 {
   if (a.empty())
   {
-    return Py_None;
+    return boost::python::detail::none();
   }
 
   boost::python::type_info const info(a.type());
@@ -88,7 +88,7 @@ boost_any_to_object
 
 #undef TRY_CONVERT_TO
 
-  return Py_None;
+  return boost::python::detail::none();
 }
 
 void
