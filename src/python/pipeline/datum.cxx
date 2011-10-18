@@ -66,9 +66,12 @@ BOOST_PYTHON_MODULE(datum)
   ;
 
   implicitly_convertible<boost::shared_ptr<vistk::datum>, vistk::datum_t>();
-  to_python_converter<boost::any, boost_any_to_object>();
 
+  to_python_converter<boost::any, boost_any_to_object>();
   boost_any_to_object();
+
+  implicitly_convertible<boost::any, object>();
+  implicitly_convertible<object, boost::any>();
 }
 
 void
