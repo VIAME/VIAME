@@ -80,6 +80,8 @@ boost_any_to_object
       }                                                               \
       catch (boost::python::error_already_set&)                       \
       {                                                               \
+        /** \todo Log that there is not a known converter for the type. */ \
+        return boost::python::detail::none();                         \
       }                                                               \
     }                                                                 \
   } while (false)
@@ -87,6 +89,8 @@ boost_any_to_object
   REGISTER_TYPES(TRY_CONVERT_TO);
 
 #undef TRY_CONVERT_TO
+
+  /// \todo Log that the any has a type which is not supported yet.
 
   return boost::python::detail::none();
 }
