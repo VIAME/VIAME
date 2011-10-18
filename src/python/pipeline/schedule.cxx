@@ -31,6 +31,8 @@ class wrap_schedule
     void start();
     void wait();
     void stop();
+
+    override get_pure_override(char const* name);
 };
 
 BOOST_PYTHON_MODULE(schedule)
@@ -72,19 +74,35 @@ void
 wrap_schedule
 ::start()
 {
-  get_override("start")();
+  get_pure_override("start")();
 }
 
 void
 wrap_schedule
 ::wait()
 {
-  get_override("wait")();
+  get_pure_override("wait")();
 }
 
 void
 wrap_schedule
 ::stop()
 {
-  get_override("stop")();
+  get_pure_override("stop")();
+}
+
+override
+wrap_schedule
+::get_pure_override(char const* name)
+{
+  override const o = get_override(name);
+
+  if (!o)
+  {
+    std::ostringstream sstr;
+    sstr << name << " is not implemented";
+    throw std::runtime_error(sstr.str().c_str());
+  }
+
+  return o;
 }
