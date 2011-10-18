@@ -15,7 +15,7 @@ extern "C"
 /**
  * \file lua_convert_optional.cxx
  *
- * \brief Helpers for working with std::optional in Lua.
+ * \brief Helpers for working with boost::optional in Lua.
  */
 
 #include <luabind/detail/policy.hpp>

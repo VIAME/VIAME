@@ -15,9 +15,9 @@
 #include <Python.h>
 
 /**
- * \file python_convert_any.h
+ * \file python_convert_optional.h
  *
- * \brief Helpers for working with boost::any in Python.
+ * \brief Helpers for working with boost::optional in Python.
  */
 
 template <typename T>
