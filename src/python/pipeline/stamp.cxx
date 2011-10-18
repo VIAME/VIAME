@@ -38,6 +38,7 @@ BOOST_PYTHON_MODULE(stamp)
     , "Creates a copy of the given stamp with a new color.");
 
   class_<vistk::stamp, vistk::stamp_t, boost::noncopyable>("Stamp"
+    , "An identifier to help synchronize data within the pipeline."
     , no_init)
     .def("is_same_color", &vistk::stamp::is_same_color
       , (arg("stamp"))
