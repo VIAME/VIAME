@@ -42,6 +42,7 @@ BOOST_PYTHON_MODULE(config)
     , "A value in the configuration.");
 
   class_<vistk::config, vistk::config_t, boost::noncopyable>("Config"
+    , "A key-value store of configuration values"
     , no_init)
     .def("subblock", &vistk::config::subblock
       , (arg("name"))
