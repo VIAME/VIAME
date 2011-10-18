@@ -85,7 +85,9 @@ class wrap_process
     vistk::edge_group_t _output_port_edge(port_t const& port) const;
 
     vistk::edge_datum_t _grab_from_port(port_t const& port) const;
+    vistk::datum_t _grab_datum_from_port(port_t const& port) const;
     void _push_to_port(port_t const& port, vistk::edge_datum_t const& dat) const;
+    void _push_datum_to_port(port_t const& port, vistk::datum_t const& dat) const;
 
     vistk::config_t _get_config() const;
     vistk::config::value_t _config_value(vistk::config::key_t const& key) const;
@@ -301,9 +303,15 @@ BOOST_PYTHON_MODULE(process)
     .def("grab_from_port", &wrap_process::_grab_from_port
       , (arg("port"))
       , "Grab a datum packet from a port.")
+    .def("grab_datum_from_port", &wrap_process::_grab_datum_from_port
+      , (arg("port"))
+      , "Grab a datum from a port.")
     .def("push_to_port", &wrap_process::_push_to_port
       , (arg("port"), arg("datum"))
       , "Push a datum packet to a port.")
+    .def("push_datum_to_port", &wrap_process::_push_datum_to_port
+      , (arg("port"), arg("datum"))
+      , "Push a datum to a port.")
     .def("get_config", &wrap_process::_get_config
       , "Gets the configuration for the process.")
     .def("config_value", &wrap_process::_config_value
@@ -647,11 +655,25 @@ wrap_process
   return grab_from_port(port);
 }
 
+vistk::datum_t
+wrap_process
+::_grab_datum_from_port(port_t const& port) const
+{
+  return grab_datum_from_port(port);
+}
+
 void
 wrap_process
 ::_push_to_port(port_t const& port, vistk::edge_datum_t const& dat) const
 {
   return push_to_port(port, dat);
+}
+
+void
+wrap_process
+::_push_datum_to_port(port_t const& port, vistk::datum_t const& dat) const
+{
+  return push_datum_to_port(port, dat);
 }
 
 vistk::config_t
