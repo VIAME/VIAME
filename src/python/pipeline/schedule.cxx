@@ -7,8 +7,12 @@
 #include <vistk/pipeline/schedule.h>
 #include <vistk/pipeline/schedule_exception.h>
 
-#include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/class.hpp>
+#include <boost/python/exception_translator.hpp>
+#include <boost/python/module.hpp>
+#include <boost/python/override.hpp>
+#include <boost/python/pure_virtual.hpp>
 
 /**
  * \file schedule.cxx

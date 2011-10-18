@@ -11,7 +11,9 @@
 #include <vistk/pipeline_util/pipe_bakery.h>
 #include <vistk/pipeline_util/pipe_bakery_exception.h>
 
-#include <boost/python.hpp>
+#include <boost/python/def.hpp>
+#include <boost/python/module.hpp>
+#include <boost/python/exception_translator.hpp>
 
 #include <string>
 

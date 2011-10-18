@@ -9,7 +9,7 @@
 
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
-#include <boost/python.hpp>
+#include <boost/python/object.hpp>
 
 #include <iostream>
 

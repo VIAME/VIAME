@@ -6,6 +6,9 @@
 
 #include "pystream.h"
 
+#include <boost/python/extract.hpp>
+#include <boost/python/str.hpp>
+
 #include <algorithm>
 #include <string>
 

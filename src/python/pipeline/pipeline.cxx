@@ -7,7 +7,9 @@
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/pipeline_exception.h>
 
-#include <boost/python.hpp>
+#include <boost/python/class.hpp>
+#include <boost/python/exception_translator.hpp>
+#include <boost/python/module.hpp>
 
 /**
  * \file pipeline.cxx

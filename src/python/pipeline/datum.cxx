@@ -9,10 +9,15 @@
 
 #include <vistk/pipeline/datum.h>
 
-#include <boost/any.hpp>
-#include <boost/python.hpp>
-#include <boost/python/extract.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/def.hpp>
+#include <boost/python/enum.hpp>
+#include <boost/python/exception_translator.hpp>
+#include <boost/python/extract.hpp>
+#include <boost/python/implicit.hpp>
+#include <boost/python/module.hpp>
+#include <boost/python/object.hpp>
+#include <boost/any.hpp>
 
 /**
  * \file datum.cxx

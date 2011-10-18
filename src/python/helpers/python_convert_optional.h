@@ -10,6 +10,7 @@
 #include <boost/python/converter/registry.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/default_call_policies.hpp>
+#include <boost/python/implicit.hpp>
 #include <boost/optional.hpp>
 
 #include <Python.h>

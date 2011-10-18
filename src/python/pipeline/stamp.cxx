@@ -8,7 +8,12 @@
 
 #include <vistk/pipeline/stamp.h>
 
-#include <boost/python.hpp>
+#include <boost/python/class.hpp>
+#include <boost/python/def.hpp>
+#include <boost/python/implicit.hpp>
+#include <boost/python/module.hpp>
+#include <boost/python/operators.hpp>
+#include <boost/python/self.hpp>
 
 /**
  * \file stamp.cxx

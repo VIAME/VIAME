@@ -13,8 +13,11 @@
 
 #include <vistk/pipeline/process.h>
 
-#include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/class.hpp>
+#include <boost/python/def.hpp>
+#include <boost/python/module.hpp>
+#include <boost/python/exception_translator.hpp>
 
 #include <string>
 

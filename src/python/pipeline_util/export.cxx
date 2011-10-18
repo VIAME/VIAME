@@ -9,6 +9,10 @@
 #include <vistk/pipeline_util/export_dot.h>
 #include <vistk/pipeline_util/export_dot_exception.h>
 
+#include <boost/python/def.hpp>
+#include <boost/python/module.hpp>
+#include <boost/python/exception_translator.hpp>
+
 #include <boost/python.hpp>
 
 #include <string>
