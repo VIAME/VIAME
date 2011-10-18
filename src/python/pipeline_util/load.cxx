@@ -67,9 +67,9 @@ BOOST_PYTHON_MODULE(load)
   register_exception_translator<
     vistk::load_pipe_exception>(translator);
 
-  REGISTER_OPTIONAL_CONVERTER(vistk::config_flags_t);
-  REGISTER_OPTIONAL_CONVERTER(vistk::config_provider_t);
-  REGISTER_OPTIONAL_CONVERTER(vistk::process::port_flags_t);
+  register_optional_converter<vistk::config_flags_t>("ConfigFlagsOpt", "An optional config flags.");
+  register_optional_converter<vistk::config_provider_t>("ConfigProviderOpt", "An optional config provider.");
+  register_optional_converter<vistk::process::port_flags_t>("PortFlagsOpt", "An optional port flags.");
 
   class_<vistk::token_t>("Token"
     , "A token in the pipeline description.");
