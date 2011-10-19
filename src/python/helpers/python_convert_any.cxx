@@ -8,6 +8,7 @@
 
 #include <boost/python/converter/registry.hpp>
 #include <boost/python/extract.hpp>
+#include <boost/cstdint.hpp>
 
 /**
  * \file python_convert_any.cxx
@@ -15,13 +16,15 @@
  * \brief Helpers for working with boost::any in Python.
  */
 
+using namespace boost::python;
+
 boost_any_to_object
 ::boost_any_to_object()
 {
-  boost::python::converter::registry::push_back(
+  converter::registry::push_back(
     &convertible,
     &construct,
-    boost::python::type_id<boost::any>());
+    type_id<boost::any>());
 }
 
 boost_any_to_object
@@ -58,16 +61,16 @@ boost_any_to_object
 {
   if (a.empty())
   {
-    return boost::python::detail::none();
+    return detail::none();
   }
 
-  boost::python::type_info const info(a.type());
+  type_info const info(a.type());
 
 #define TRY_CONVERT_TO(T)                                             \
   do                                                                  \
   {                                                                   \
-    boost::python::converter::registration const* const reg =         \
-      boost::python::converter::registry::query(info);                \
+    converter::registration const* const reg =                        \
+      converter::registry::query(info);                               \
     if (reg)                                                          \
     {                                                                 \
       try                                                             \
@@ -78,10 +81,10 @@ boost_any_to_object
       catch (boost::bad_any_cast&)                                    \
       {                                                               \
       }                                                               \
-      catch (boost::python::error_already_set&)                       \
+      catch (error_already_set&)                                      \
       {                                                               \
         /** \todo Log that there is not a known converter for the type. */ \
-        return boost::python::detail::none();                         \
+        return detail::none();                                        \
       }                                                               \
     }                                                                 \
   } while (false)
@@ -92,14 +95,14 @@ boost_any_to_object
 
   /// \todo Log that the any has a type which is not supported yet.
 
-  return boost::python::detail::none();
+  return detail::none();
 }
 
 void
 boost_any_to_object
-::construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
+::construct(PyObject* obj, converter::rvalue_from_python_stage1_data* data)
 {
-  void* storage = reinterpret_cast<boost::python::converter::rvalue_from_python_storage<boost::any>*>(data)->storage.bytes;
+  void* storage = reinterpret_cast<converter::rvalue_from_python_storage<boost::any>*>(data)->storage.bytes;
 
 #define CONSTRUCT(args)            \
   do                               \
@@ -117,7 +120,7 @@ boost_any_to_object
 #define TRY_CONVERT_FROM_RAW(T)        \
   do                                   \
   {                                    \
-    boost::python::extract<T> ex(obj); \
+    extract<T> ex(obj);                \
     if (ex.check())                    \
     {                                  \
       CONSTRUCT((ex()));               \
