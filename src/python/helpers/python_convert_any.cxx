@@ -41,19 +41,10 @@ boost_any_to_object
 
 #define REGISTER_TYPES(call) \
   call(std::string);         \
-  call(bool);                \
+  call(int32_t);             \
   call(char);                \
-  call(char signed);         \
-  call(char unsigned);       \
-  call(short signed);        \
-  call(short unsigned);      \
-  call(int signed);          \
-  call(int unsigned);        \
-  call(long signed);         \
-  call(long unsigned);       \
-  call(float);               \
-  call(double);              \
-  call(long double)
+  call(bool);                \
+  call(double)
 
 PyObject*
 boost_any_to_object
