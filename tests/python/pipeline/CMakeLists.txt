@@ -116,3 +116,5 @@ vistk_make_python_test(utils name_thread)
 # Run tests
 ##############################
 vistk_build_python_test(run test-run.py)
+
+vistk_make_python_test(run python_to_python)

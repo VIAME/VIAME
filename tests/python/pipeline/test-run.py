@@ -183,9 +183,76 @@ def run_pipeline(conf, pipe):
     s.wait()
 
 
+def check_file(fname, expect):
+    with open(fname, 'r') as fin:
+        ints = map(lambda l: int(l.strip()), list(fin))
+
+        num_ints = len(ints)
+        num_expect = len(expect)
+
+        if not num_ints == num_expect:
+            log("Error: Got %d results when %d were expected." % (num_ints, num_expect))
+
+        res = zip(ints, expect)
+
+        line = 1
+
+        for i, e in res:
+            if not i == e:
+                log("Error: Result %d is %d, where %d was expected" % (line, i, e))
+            line += 1
+
+
+def test_python_to_python():
+    from vistk.pipeline import config
+    from vistk.pipeline import pipeline
+    from vistk.pipeline import process
+
+    name_source = 'source'
+    name_sink = 'sink'
+
+    port_output = 'number'
+    port_input = 'number'
+
+    min = 0
+    max = 10
+    output_file = 'test-python-run-python_to_python.txt'
+
+    c = config.empty_config()
+
+    c.set_value(process.PythonProcess.config_name, name_source)
+    c.set_value('start', str(min))
+    c.set_value('end', str(max))
+
+    s = make_source(c)
+
+    c = config.empty_config()
+
+    c.set_value(process.PythonProcess.config_name, name_sink)
+    c.set_value('output', output_file)
+
+    t = make_sink(c)
+
+    p = pipeline.Pipeline(c)
+
+    p.add_process(s)
+    p.add_process(t)
+
+    p.connect(name_source, port_output,
+              name_sink, port_input)
+
+    p.setup_pipeline()
+
+    run_pipeline(c, p)
+
+    check_file(output_file, range(min, max))
+
+
 def main(testname):
-    #else:
-    log("Error: No such test '%s'" % testname)
+    if testname == 'python_to_python':
+        test_python_to_python()
+    else:
+        log("Error: No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
