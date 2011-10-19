@@ -15,6 +15,7 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/exception_translator.hpp>
+#include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
 
 /**
@@ -166,6 +167,9 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("flags", &vistk::process::port_info::flags)
     .def_readonly("description", &vistk::process::port_info::description)
   ;
+
+  implicitly_convertible<boost::shared_ptr<vistk::process::port_info>, vistk::process::port_info_t>();
+
   class_<vistk::process::conf_info, vistk::process::conf_info_t>("ConfInfo"
     , "Information about a configuration on a process."
     , no_init)
@@ -173,6 +177,9 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("default", &vistk::process::conf_info::def)
     .def_readonly("description", &vistk::process::conf_info::description)
   ;
+
+  implicitly_convertible<boost::shared_ptr<vistk::process::conf_info>, vistk::process::conf_info_t>();
+
   class_<vistk::process::data_info, vistk::process::data_info_t>("DataInfo"
     , "Information about a set of data packets from edges."
     , no_init)
@@ -181,6 +188,8 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("in_sync", &vistk::process::data_info::in_sync)
     .def_readonly("max_status", &vistk::process::data_info::max_status)
   ;
+
+  implicitly_convertible<boost::shared_ptr<vistk::process::data_info>, vistk::process::data_info_t>();
 
   class_<wrap_process, boost::noncopyable>("PythonProcess"
     , "The base class for Python processes."
