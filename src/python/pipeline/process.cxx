@@ -106,6 +106,10 @@ BOOST_PYTHON_MODULE(process)
 
   class_<vistk::edge_ref_t>("EdgeRef"
     , "A reference of an edge.")
+    .def("expired", &vistk::edge_ref_t::expired
+      , "Returns True if the reference is expired, False otherwise.")
+    .def("lock", &vistk::edge_ref_t::lock
+      , "Locks the reference and returns a usable edge.")
   ;
   class_<vistk::edge_group_t>("EdgeGroup"
     , "A collection of references of edges.")
