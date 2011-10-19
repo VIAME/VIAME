@@ -6,6 +6,8 @@
 
 #include "print_string_process.h"
 
+#include <vistk/utilities/path.h>
+
 #include <vistk/pipeline_types/basic_types.h>
 
 #include <vistk/pipeline/config.h>
@@ -30,7 +32,6 @@ class print_string_process::priv
 {
   public:
     typedef std::string string_t;
-    typedef boost::filesystem::path path_t;
 
     priv(path_t const& output_path);
     ~priv();
@@ -75,7 +76,7 @@ print_string_process
 {
   // Configure the process.
   {
-    priv::path_t const path = config_value<priv::path_t>(priv::config_path);
+    path_t const path = config_value<path_t>(priv::config_path);
 
     d.reset(new priv(path));
   }

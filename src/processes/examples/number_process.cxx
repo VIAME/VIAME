@@ -29,7 +29,7 @@ namespace vistk
 class number_process::priv
 {
   public:
-    typedef uint32_t number_t;
+    typedef int32_t number_t;
 
     priv(number_t s, number_t e);
     ~priv();

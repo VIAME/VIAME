@@ -6,6 +6,8 @@
 
 #include "print_number_process.h"
 
+#include <vistk/utilities/path.h>
+
 #include <vistk/pipeline_types/basic_types.h>
 
 #include <vistk/pipeline/config.h>
@@ -30,8 +32,7 @@ namespace vistk
 class print_number_process::priv
 {
   public:
-    typedef uint32_t number_t;
-    typedef boost::filesystem::path path_t;
+    typedef int32_t number_t;
 
     priv(path_t const& output_path);
     ~priv();
@@ -76,7 +77,7 @@ print_number_process
 {
   // Configure the process.
   {
-    priv::path_t const path = config_value<priv::path_t>(priv::config_path);
+    path_t const path = config_value<path_t>(priv::config_path);
 
     d.reset(new priv(path));
   }

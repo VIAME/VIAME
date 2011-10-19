@@ -23,7 +23,7 @@ namespace vistk
 class multiplication_process::priv
 {
   public:
-    typedef uint32_t number_t;
+    typedef int32_t number_t;
 
     priv();
     ~priv();

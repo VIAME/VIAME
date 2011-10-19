@@ -101,8 +101,8 @@ test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
   std::string const output_path = "test-run-simple_pipeline-print_number.txt";
 
-  uint32_t const start_value = 10;
-  uint32_t const end_value = 20;
+  int32_t const start_value = 10;
+  int32_t const end_value = 20;
 
   {
     vistk::config_t configu = vistk::config::empty_config();
@@ -157,7 +157,7 @@ test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
   std::string line;
 
-  for (uint32_t i = start_value; i < end_value; ++i)
+  for (int32_t i = start_value; i < end_value; ++i)
   {
     std::getline(fin, line);
 
@@ -196,11 +196,11 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
   std::string const output_path = "test-run-simple_pipeline-print_number.txt";
 
-  uint32_t const start_value1 = 10;
-  uint32_t const end_value1 = 20;
+  int32_t const start_value1 = 10;
+  int32_t const end_value1 = 20;
 
-  uint32_t const start_value2 = 10;
-  uint32_t const end_value2= 30;
+  int32_t const start_value2 = 10;
+  int32_t const end_value2= 30;
 
   {
     vistk::config_t configu1 = vistk::config::empty_config();
@@ -278,7 +278,7 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
   std::string line;
 
-  for (uint32_t i = start_value1, j = start_value2;
+  for (int32_t i = start_value1, j = start_value2;
        (i < end_value1) && (j < end_value2); ++i, ++j)
   {
     std::getline(fin, line);
