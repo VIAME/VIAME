@@ -306,6 +306,12 @@ BOOST_PYTHON_MODULE(process)
       , "Tags the process as complete.")
     .def("heartbeat_stamp", &wrap_process::_heartbeat_stamp
       , "The heartbeat stamp for the process.")
+    .def("input_port_edge", &wrap_process::_input_port_edge
+      , (arg("port"))
+      , "The edge that is connected to an input port.")
+    .def("output_port_edges", &wrap_process::_output_port_edges
+      , (arg("port"))
+      , "The edges that are connected to an output port.")
     .def("grab_from_port", &wrap_process::_grab_from_port
       , (arg("port"))
       , "Grab a datum packet from a port.")
