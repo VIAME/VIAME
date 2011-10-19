@@ -119,3 +119,4 @@ vistk_build_python_test(run test-run.py)
 
 vistk_make_python_test(run python_to_python)
 vistk_make_python_test(run cpp_to_python)
+vistk_make_python_test(run python_to_cpp)

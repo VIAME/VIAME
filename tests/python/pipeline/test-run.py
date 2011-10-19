@@ -293,11 +293,58 @@ def test_cpp_to_python():
     check_file(output_file, range(min, max))
 
 
+def test_python_to_cpp():
+    from vistk.pipeline import config
+    from vistk.pipeline import pipeline
+    from vistk.pipeline import process
+
+    name_source = 'source'
+    name_sink = 'sink'
+
+    port_output = 'number'
+    port_input = 'number'
+
+    min = 0
+    max = 10
+    output_file = 'test-python-run-python_to_cpp.txt'
+
+    c = config.empty_config()
+
+    c.set_value(process.PythonProcess.config_name, name_source)
+    c.set_value('start', str(min))
+    c.set_value('end', str(max))
+
+    s = make_source(c)
+
+    c = config.empty_config()
+
+    c.set_value(process.PythonProcess.config_name, name_sink)
+    c.set_value('output', output_file)
+
+    t = create_process('print_number', c)
+
+    p = pipeline.Pipeline(c)
+
+    p.add_process(s)
+    p.add_process(t)
+
+    p.connect(name_source, port_output,
+              name_sink, port_input)
+
+    p.setup_pipeline()
+
+    run_pipeline(c, p)
+
+    check_file(output_file, range(min, max))
+
+
 def main(testname):
     if testname == 'python_to_python':
         test_python_to_python()
     elif testname == 'cpp_to_python':
         test_cpp_to_python()
+    elif testname == 'python_to_cpp':
+        test_python_to_cpp()
     else:
         log("Error: No such test '%s'" % testname)
 
