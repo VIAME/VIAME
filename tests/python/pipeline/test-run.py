@@ -338,6 +338,91 @@ def test_python_to_cpp():
     check_file(output_file, range(min, max))
 
 
+def test_python_via_cpp():
+    from vistk.pipeline import config
+    from vistk.pipeline import pipeline
+    from vistk.pipeline import process
+
+    name_source = 'source'
+    name_source1 = 'source1'
+    name_source2 = 'source2'
+    name_mult = 'mult'
+    name_sink = 'sink'
+
+    port_color = 'color'
+    port_output = 'number'
+    port_factor1 = 'factor1'
+    port_factor2 = 'factor2'
+    port_product = 'product'
+    port_input = 'number'
+
+    min1 = 0
+    max1 = 10
+    min2 = 10
+    max2 = 15
+    output_file = 'test-python-run-python_via_cpp.txt'
+
+    c = config.empty_config()
+
+    c.set_value(process.PythonProcess.config_name, name_source)
+
+    s = create_process('source', c)
+
+    c = config.empty_config()
+
+    c.set_value(process.PythonProcess.config_name, name_source1)
+    c.set_value('start', str(min1))
+    c.set_value('end', str(max1))
+
+    s1 = make_source(c)
+
+    c = config.empty_config()
+
+    c.set_value(process.PythonProcess.config_name, name_source2)
+    c.set_value('start', str(min2))
+    c.set_value('end', str(max2))
+
+    s2 = make_source(c)
+
+    c = config.empty_config()
+
+    c.set_value(process.PythonProcess.config_name, name_mult)
+
+    m = create_process('multiplication', c)
+
+    c = config.empty_config()
+
+    c.set_value(process.PythonProcess.config_name, name_sink)
+    c.set_value('output', output_file)
+
+    t = make_sink(c)
+
+    p = pipeline.Pipeline(c)
+
+    p.add_process(s)
+    p.add_process(s1)
+    p.add_process(s2)
+    p.add_process(m)
+    p.add_process(t)
+
+    p.connect(name_source, port_color,
+              name_source1, port_color)
+    p.connect(name_source, port_color,
+              name_source2, port_color)
+    p.connect(name_source1, port_output,
+              name_mult, port_factor1)
+    p.connect(name_source2, port_output,
+              name_mult, port_factor2)
+    p.connect(name_mult, port_product,
+              name_sink, port_input)
+
+    p.setup_pipeline()
+
+    run_pipeline(c, p)
+
+    check_file(output_file, [a * b for a, b in zip(range(min1, max1), range(min2, max2))])
+
+
 def main(testname):
     if testname == 'python_to_python':
         test_python_to_python()
@@ -345,6 +430,8 @@ def main(testname):
         test_cpp_to_python()
     elif testname == 'python_to_cpp':
         test_python_to_cpp()
+    elif testname == 'python_via_cpp':
+        test_python_via_cpp()
     else:
         log("Error: No such test '%s'" % testname)
 
