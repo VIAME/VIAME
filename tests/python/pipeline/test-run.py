@@ -22,6 +22,36 @@ def ensure_exception(action, func, *args):
         log("Error: Did not get exception when %s" % action)
 
 
+def create_process(type, conf):
+    from vistk.pipeline import modules
+    from vistk.pipeline import process_registry
+
+    modules.load_known_modules()
+
+    reg = process_registry.ProcessRegistry.self()
+
+    p = reg.create_process(type, conf)
+
+    return p
+
+
+def run_pipeline(conf, pipe):
+    from vistk.pipeline import config
+    from vistk.pipeline import modules
+    from vistk.pipeline import schedule_registry
+
+    modules.load_known_modules()
+
+    reg = schedule_registry.ScheduleRegistry.self()
+
+    sched_type = 'sync'
+
+    s = reg.create_schedule(sched_type, conf, pipe)
+
+    s.start()
+    s.wait()
+
+
 def main(testname):
     #else:
     log("Error: No such test '%s'" % testname)
