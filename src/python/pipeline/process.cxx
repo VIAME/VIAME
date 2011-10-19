@@ -84,7 +84,7 @@ class wrap_process
     vistk::stamp_t _heartbeat_stamp() const;
 
     vistk::edge_ref_t _input_port_edge(port_t const& port) const;
-    vistk::edge_group_t _output_port_edge(port_t const& port) const;
+    vistk::edge_group_t _output_port_edges(port_t const& port) const;
 
     vistk::edge_datum_t _grab_from_port(port_t const& port) const;
     vistk::datum_t _grab_datum_from_port(port_t const& port) const;
@@ -651,7 +651,7 @@ wrap_process
 
 vistk::edge_group_t
 wrap_process
-::_output_port_edge(port_t const& port) const
+::_output_port_edges(port_t const& port) const
 {
   return output_port_edges(port);
 }
