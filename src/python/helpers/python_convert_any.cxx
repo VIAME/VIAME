@@ -76,7 +76,8 @@ boost_any_to_object
       try                                                             \
       {                                                               \
         T const t = boost::any_cast<T>(a);                            \
-        return reg->to_python(static_cast<void const volatile*>(&t)); \
+        object const o(t);                                            \
+        return incref(o.ptr());                                       \
       }                                                               \
       catch (boost::bad_any_cast&)                                    \
       {                                                               \
