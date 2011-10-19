@@ -28,6 +28,8 @@ using namespace boost::python;
 
 static void translator(vistk::process_exception const& e);
 
+static void port_flags_add(vistk::process::port_flags_t* self, vistk::process::port_flag_t const& flag);
+
 class wrap_process
   : public vistk::process
   , public wrapper<vistk::process>
@@ -145,7 +147,7 @@ BOOST_PYTHON_MODULE(process)
     //.def("intersection_update", &port_flags_intersection_update)
     //.def("difference_update", &port_flags_difference_update)
     //.def("symmetric_difference_update", &port_flags_symmetric_difference_update)
-    //.def("add", &port_flags_add)
+    .def("add", &port_flags_add)
     //.def("remove", &port_flags_remove)
     //.def("discard", &port_flags_discard)
     //.def("pop", &port_flags_discard)
@@ -333,6 +335,12 @@ void
 translator(vistk::process_exception const& e)
 {
   PyErr_SetString(PyExc_RuntimeError, e.what());
+}
+
+void
+port_flags_add(vistk::process::port_flags_t* self, vistk::process::port_flag_t const& flag)
+{
+  self->insert(flag);
 }
 
 wrap_process
