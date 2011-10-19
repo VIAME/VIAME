@@ -22,6 +22,137 @@ def ensure_exception(action, func, *args):
         log("Error: Did not get exception when %s" % action)
 
 
+# TODO: Get types imports working.
+PORT_TYPE = '_integer'
+
+
+def make_source(conf):
+    from vistk.pipeline import process
+
+    class Source(process.PythonProcess):
+        def __init__(self, conf):
+            process.PythonProcess.__init__(self, conf)
+
+            self.conf_start = 'start'
+            self.conf_end = 'end'
+
+            info = process.ConfInfo(str(0), 'Starting number')
+
+            self.declare_configuration_key(self.conf_start, info)
+
+            info = process.ConfInfo(str(10), 'Ending number')
+
+            self.declare_configuration_key(self.conf_end, info)
+
+            self.port_color = 'color'
+            self.port_output = 'number'
+
+            info = process.PortInfo(self.type_none, process.PortFlags(), 'color port')
+
+            self.declare_input_port(self.port_color, info)
+
+            required = process.PortFlags()
+            required.add(self.flag_required)
+            info = process.PortInfo(PORT_TYPE, required, 'output port')
+
+            self.declare_output_port(self.port_output, info)
+
+        def _init(self):
+            from vistk.pipeline import stamp
+
+            self.counter = int(self.config_value(self.conf_start))
+            self.end = int(self.config_value(self.conf_end))
+
+            self.has_color = False
+            if not self.input_port_edge(self.port_color).expired():
+                self.has_color = True
+
+            self.stamp = self.heartbeat_stamp()
+
+        def _step(self):
+            from vistk.pipeline import datum
+            from vistk.pipeline import edge
+            from vistk.pipeline import stamp
+
+            complete = False
+
+            if self.counter >= self.end:
+                complete = True
+            else:
+                dat = datum.new(self.counter)
+                self.counter += 1
+
+            if self.has_color:
+                color_dat = self.grab_from_port(self.port_color)
+
+                color_status = color_dat.datum.type()
+
+                if color_status == datum.DatumType.complete:
+                    complete = True
+                elif color_status == datum.DatumType.error:
+                    dat = datum.error('Error on the color edge.')
+                elif color_status == datum.DatumType.invalid:
+                    dat = datum.error('Invalid status on the color edge.')
+
+                self.stamp = stamp.recolored_stamp(self.stamp, color_dat.stamp)
+
+            if complete:
+                self.mark_as_complete()
+                dat = datum.complete()
+
+            edat = edge.EdgeDatum(dat, self.stamp)
+
+            self.push_to_port(self.port_output, edat)
+
+            self.stamp = stamp.incremented_stamp(self.stamp)
+
+            self._base_step()
+
+    return Source(conf)
+
+
+def make_sink(conf):
+    from vistk.pipeline import process
+
+    class Sink(process.PythonProcess):
+        def __init__(self, conf):
+            process.PythonProcess.__init__(self, conf)
+
+            self.conf_output = 'output'
+
+            info = process.ConfInfo('output.txt', 'Output file name')
+
+            self.declare_configuration_key(self.conf_output, info)
+
+            self.port_input = 'number'
+
+            required = process.PortFlags()
+            required.add(self.flag_required)
+            info = process.PortInfo(PORT_TYPE, required, 'input port')
+
+            self.declare_input_port(self.port_input, info)
+
+        def _init(self):
+            output = self.config_value(self.conf_output)
+
+            self.fout = open(output, 'w+')
+
+            self._base_init()
+
+        def _step(self):
+            from vistk.pipeline import datum
+
+            dat = self.grab_datum_from_port(self.port_input)
+            num = dat.get_datum()
+
+            self.fout.write('%d\n' % num)
+            self.fout.flush()
+
+            self._base_step()
+
+    return Sink(conf)
+
+
 def create_process(type, conf):
     from vistk.pipeline import modules
     from vistk.pipeline import process_registry
