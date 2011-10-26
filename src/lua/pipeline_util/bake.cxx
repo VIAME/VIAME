@@ -15,6 +15,7 @@ extern "C"
 #include <lua.h>
 }
 
+#include <luabind/class.hpp>
 #include <luabind/function.hpp>
 
 #include <string>
