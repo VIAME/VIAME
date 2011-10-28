@@ -49,7 +49,7 @@ function test_api_calls()
 end
 
 
-function lua_example(conf, pipe)
+function schedule_example(conf, pipe)
     -- TODO: How to do this?
     return nil
 end
@@ -71,7 +71,7 @@ function test_register()
     local c = vistk.pipeline.empty_config()
     local p = vistk.pipeline.pipeline(c)
 
-    reg:register_schedule(sched_type, sched_desc, lua_example)
+    reg:register_schedule(sched_type, sched_desc, schedule_example)
 
     if sched_desc ~= reg:description(sched_type) then
         log("Error: Description was not preserved when registering")
