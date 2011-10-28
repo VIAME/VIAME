@@ -62,6 +62,15 @@ def test_api_calls():
     a.in_sync
     a.max_status
 
+    process.PythonProcess.port_heartbeat
+    process.PythonProcess.config_name
+    process.PythonProcess.config_type
+    process.PythonProcess.type_any
+    process.PythonProcess.type_none
+    process.PythonProcess.flag_output_const
+    process.PythonProcess.flag_input_mutable
+    process.PythonProcess.flag_required
+
 
 def main(testname):
     if testname == 'import':
