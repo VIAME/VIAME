@@ -51,7 +51,7 @@ def make_source(conf):
 
             required = process.PortFlags()
             required.add(self.flag_required)
-            info = process.PortInfo(basic.t_number, required, 'output port')
+            info = process.PortInfo(basic.t_integer, required, 'output port')
 
             self.declare_output_port(self.port_output, info)
 
@@ -128,7 +128,7 @@ def make_sink(conf):
 
             required = process.PortFlags()
             required.add(self.flag_required)
-            info = process.PortInfo(basic.t_number, required, 'input port')
+            info = process.PortInfo(basic.t_integer, required, 'input port')
 
             self.declare_input_port(self.port_input, info)
 
