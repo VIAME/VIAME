@@ -63,6 +63,7 @@ luaopen_vistk_pipeline_schedule_registry(lua_State* L)
         .scope
         [
           def("self", &vistk::schedule_registry::self)
+        //, def_readonly("default_type", &vistk::schedule_registry::default_type)
         ]
         .def("register_schedule", &register_schedule)
         .def("create_schedule", &vistk::schedule_registry::create_schedule)

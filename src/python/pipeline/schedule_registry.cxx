@@ -80,6 +80,8 @@ BOOST_PYTHON_MODULE(schedule_registry)
     .def("mark_module_as_loaded", &vistk::schedule_registry::mark_module_as_loaded
       , (arg("module"))
       , "Marks a module as loaded.")
+    .def_readonly("default_type", &vistk::schedule_registry::default_type
+      , "The default schedule type.")
   ;
 }
 

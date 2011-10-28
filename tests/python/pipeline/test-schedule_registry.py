@@ -43,6 +43,7 @@ def test_api_calls():
     reg.create_schedule(sched_type, c, p)
     reg.types()
     reg.description(sched_type)
+    reg.default_type
 
 
 def test_register():
