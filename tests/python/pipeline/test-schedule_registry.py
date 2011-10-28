@@ -46,11 +46,41 @@ def test_api_calls():
     reg.default_type
 
 
+def example_schedule():
+    from vistk.pipeline import schedule
+
+    class PythonExample(schedule.PythonSchedule):
+        def __init__(self, conf, pipe):
+            schedule.PythonSchedule.__init__(self, conf, pipe)
+
+            self.ran_start = False
+            self.ran_wait = False
+            self.ran_stop = False
+
+        def start(self):
+            self.ran_start = True
+
+        def wait(self):
+            self.ran_wait = True
+
+        def stop(self):
+            self.ran_stop = True
+
+        def check(self):
+            if not self.ran_start:
+                log("Error: start override was not called")
+            if not self.ran_wait:
+                log("Error: wait override was not called")
+            if not self.ran_stop:
+                log("Error: stop override was not called")
+
+    return PythonExample
+
+
 def test_register():
     from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import pipeline
-    from vistk.pipeline import schedule
     from vistk.pipeline import schedule_registry
 
     modules.load_known_modules()
@@ -59,24 +89,46 @@ def test_register():
 
     sched_type = 'python_example'
     sched_desc = 'simple description'
-    c = config.empty_config()
-    p = pipeline.Pipeline(c)
 
-    class PythonExample(schedule.PythonSchedule):
-        def __init__(self, conf, pipe):
-            schedule.PythonSchedule.__init__(self, conf, pipe)
-
-    reg.register_schedule(sched_type, sched_desc, PythonExample)
+    reg.register_schedule(sched_type, sched_desc, example_schedule())
 
     if not sched_desc == reg.description(sched_type):
         log("Error: Description was not preserved when registering")
 
-    reg.create_schedule(sched_type, c, p)
+    c = config.empty_config()
+    p = pipeline.Pipeline(c)
 
     try:
         reg.create_schedule(sched_type, c, p)
     except:
         log("Error: Could not create newly registered schedule type")
+
+
+def test_wrapper_api():
+    from vistk.pipeline import config
+    from vistk.pipeline import modules
+    from vistk.pipeline import pipeline
+    from vistk.pipeline import schedule_registry
+
+    sched_type = 'python_example'
+    sched_desc = 'simple description'
+
+    reg = schedule_registry.ScheduleRegistry.self()
+
+    reg.register_schedule(sched_type, sched_desc, example_schedule())
+
+    c = config.empty_config()
+    p = pipeline.Pipeline(c)
+
+    def check_schedule(s):
+        s.start()
+        s.wait()
+        s.stop()
+
+        s.check()
+
+    s = reg.create_schedule(sched_type, c, p)
+    check_schedule(s)
 
 
 def main(testname):
@@ -88,6 +140,8 @@ def main(testname):
         test_api_calls()
     elif testname == 'register':
         test_register()
+    elif testname == 'wrapper_api':
+        test_wrapper_api()
     else:
         log("Error: No such test '%s'" % testname)
 
