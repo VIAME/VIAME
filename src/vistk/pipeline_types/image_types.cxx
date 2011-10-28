@@ -53,6 +53,5 @@ process::port_type_t const image_types::t_byte_yuv = basic_types::t_byte + yuv_t
 process::port_type_t const image_types::t_float_yuv = basic_types::t_float + yuv_type + image_suffix;
 
 process::port_type_t const image_types::t_ipl = process::port_type_t("_ipl") + image_suffix;
-process::port_type_t const image_types::t_opencv = t_ipl;
 
 }

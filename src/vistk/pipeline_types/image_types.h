@@ -65,8 +65,6 @@ class VISTK_PIPELINE_TYPES_EXPORT image_types
 
     /// The type for IPL images.
     static process::port_type_t const t_ipl;
-    /// The type for OpenCV images.
-    static process::port_type_t const t_opencv;
 };
 
 }
