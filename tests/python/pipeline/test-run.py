@@ -22,15 +22,13 @@ def ensure_exception(action, func, *args):
         log("Error: Did not get exception when %s" % action)
 
 
-# TODO: Get types imports working.
-PORT_TYPE = '_integer'
-
-
 def make_source(conf):
     from vistk.pipeline import process
 
     class Source(process.PythonProcess):
         def __init__(self, conf):
+            from vistk.pipeline_types import basic
+
             process.PythonProcess.__init__(self, conf)
 
             self.conf_start = 'start'
@@ -53,7 +51,7 @@ def make_source(conf):
 
             required = process.PortFlags()
             required.add(self.flag_required)
-            info = process.PortInfo(PORT_TYPE, required, 'output port')
+            info = process.PortInfo(basic.t_number, required, 'output port')
 
             self.declare_output_port(self.port_output, info)
 
@@ -116,6 +114,8 @@ def make_sink(conf):
 
     class Sink(process.PythonProcess):
         def __init__(self, conf):
+            from vistk.pipeline_types import basic
+
             process.PythonProcess.__init__(self, conf)
 
             self.conf_output = 'output'
@@ -128,7 +128,7 @@ def make_sink(conf):
 
             required = process.PortFlags()
             required.add(self.flag_required)
-            info = process.PortInfo(PORT_TYPE, required, 'input port')
+            info = process.PortInfo(basic.t_number, required, 'input port')
 
             self.declare_input_port(self.port_input, info)
 
