@@ -186,6 +186,9 @@ function base_example_process()
 --            process.PythonProcess.__init__(self, conf)
 --        end
 --
+--        function check(self)
+--        end
+--
 --    return PythonBaseExample
 end
 
@@ -260,6 +263,8 @@ function test_wrapper_api()
 
         p:init()
         p:step()
+
+        p:check()
     end
 
     local p
