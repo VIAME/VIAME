@@ -157,6 +157,9 @@ def base_example_process():
         def __init__(self, conf):
             process.PythonProcess.__init__(self, conf)
 
+        def check(self):
+            pass
+
     return PythonBaseExample
 
 
@@ -227,6 +230,8 @@ def test_wrapper_api():
 
         p.init()
         p.step()
+
+        p.check()
 
     p = reg.create_process(proc_type, c)
     check_process(p)
