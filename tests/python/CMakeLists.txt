@@ -31,4 +31,5 @@ function (vistk_make_python_test group instance)
 endfunction (vistk_make_python_test)
 
 add_subdirectory(pipeline)
+add_subdirectory(pipeline_types)
 add_subdirectory(pipeline_util)
