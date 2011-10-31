@@ -27,6 +27,9 @@ static envvar_name_t const python_schedule_modules_envvar = envvar_name_t("VISTK
 static std::string const standard_python_process_module = "vistk.processes";
 static std::string const standard_python_schedule_module = "vistk.schedules";
 
+static std::string const processes_function = "register_processes";
+static std::string const schedules_function = "register_schedules";
+
 static bool is_suppressed();
 static void load_from_module(std::string const& module, std::string const& function);
 static bool is_separator(char ch);
@@ -75,9 +78,7 @@ register_processes()
       continue;
     }
 
-    std::string const function = "register_processes";
-
-    load_from_module(module, function);
+    load_from_module(module, processes_function);
 
     registry->mark_module_as_loaded(module_name);
   }
@@ -127,9 +128,7 @@ register_schedules()
       continue;
     }
 
-    std::string const function = "register_schedule";
-
-    load_from_module(module, function);
+    load_from_module(module, schedules_function);
 
     registry->mark_module_as_loaded(module_name);
   }
