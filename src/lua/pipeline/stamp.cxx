@@ -30,6 +30,9 @@ int luaopen_vistk_pipeline_stamp(lua_State* L);
 
 using namespace luabind;
 
+static bool stamp_eq(vistk::stamp_t const& st, vistk::stamp_t const& st2);
+static bool stamp_lt(vistk::stamp_t const& st, vistk::stamp_t const& st2);
+
 int
 luaopen_vistk_pipeline_stamp(lua_State* L)
 {
@@ -45,10 +48,22 @@ luaopen_vistk_pipeline_stamp(lua_State* L)
     , def("recolored_stamp", &vistk::stamp::recolored_stamp)
     , class_<vistk::stamp, vistk::stamp_t>("stamp")
         .def("is_same_color", &vistk::stamp::is_same_color)
-        .def(self == self)
-        .def(self < self)
+        .def("__eq", &stamp_eq)
+        .def("__lt", &stamp_lt)
     ]
   ];
 
   return 0;
+}
+
+bool
+stamp_eq(vistk::stamp_t const& st, vistk::stamp_t const& st2)
+{
+    return (*st == *st2);
+}
+
+bool
+stamp_lt(vistk::stamp_t const& st, vistk::stamp_t const& st2)
+{
+    return (*st < *st2);
 }
