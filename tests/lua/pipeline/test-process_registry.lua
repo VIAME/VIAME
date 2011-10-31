@@ -59,137 +59,145 @@ end
 
 
 function example_process()
-    -- TODO: How to do this?
-    return nil
---    require("vistk.pipeline.process")
---
---    class PythonExample(process.PythonProcess):
---        function __init__(self, conf)
---            process.PythonProcess.__init__(self, conf)
---
---            self.ran_init = False
---            self.ran_step = False
---            self.ran_connect_input_port = False
---            self.ran_connect_output_port = False
---            self.ran_input_ports = False
---            self.ran_output_ports = False
---            self.ran_input_port_info = False
---            self.ran_output_port_info = False
---            self.ran_available_config = False
---            self.ran_conf_info = False
---        end
---
---        function _init(self)
---            self.ran_init = True
---
---            self._base_init()
---        end
---
---        function _step(self)
---            self.ran_step = True
---
---            self.check()
---
---            self._base_step()
---        end
---
---        function _connect_input_port(self, port, edge)
---            self.ran_connect_input_port = True
---
---            self._base_connect_input_port(port, edge)
---        end
---
---        function _connect_output_port(self, port, edge)
---            self.ran_connect_output_port = True
---
---            self._base_connect_output_port(port, edge)
---        end
---
---        function _input_ports(self)
---            self.ran_input_ports = True
---
---            return self._base_input_ports()
---        end
---
---        function _output_ports(self)
---            self.ran_output_ports = True
---
---            return self._base_output_ports()
---        end
---
---        function _input_port_info(self, port)
---            self.ran_input_port_info = True
---
---            return self._base_input_port_info(port)
---        end
---
---        function _output_port_info(self, port)
---            self.ran_output_port_info = True
---
---            return self._base_output_port_info(port)
---        end
---
---        function _available_config(self)
---            self.ran_available_config = True
---
---            return self._base_available_config()
---        end
---
---        function _config_info(self, key)
---            self.ran_conf_info = True
---
---            return self._base_conf_info(key)
---        end
---
---        function check(self)
---            if not self.ran_init then
---                log("Error: _init override was not called")
---            end
---            if not self.ran_step then
---                log("Error: _step override was not called")
---            end
---            if not self.ran_connect_input_port then
---                log("Error: _connect_input_port override was not called")
---            end
---            if not self.ran_connect_output_port then
---                log("Error: _connect_output_port override was not called")
---            end
---            if not self.ran_input_ports then
---                log("Error: _input_ports override was not called")
---            end
---            if not self.ran_output_ports then
---                log("Error: _output_ports override was not called")
---            end
---            if not self.ran_input_port_info then
---                log("Error: _input_port_info override was not called")
---            end
---            if not self.ran_output_port_info then
---                log("Error: _output_port_info override was not called")
---            end
---            if not self.ran_available_config then
---                log("Error: _available_config override was not called")
---            end
---            if not self.ran_conf_info then
---                log("Error: _conf_info override was not called")
---            end
---        end
+    require("vistk.pipeline.process")
+
+    class 'lua_example' (vistk.pipeline.lua_process)
+
+    function lua_example:__init(conf)
+        vistk.pipeline.lua_process:__init(conf)
+
+        self.ran_init = false
+        self.ran_step = false
+        self.ran_connect_input_port = false
+        self.ran_connect_output_port = false
+        self.ran_input_ports = false
+        self.ran_output_ports = false
+        self.ran_input_port_info = false
+        self.ran_output_port_info = false
+        self.ran_available_config = false
+        self.ran_conf_info = false
+    end
+
+    function lua_example:_init()
+        self.ran_init = true
+
+        vistk.pipeline.lua_process:_init()
+    end
+
+    function lua_example:_step()
+        self.ran_step = true
+
+        self.check()
+
+        vistk.pipeline.lua_process:_step()
+    end
+
+    function lua_example:_connect_input_port(self, port, edge)
+        self.ran_connect_input_port = true
+
+        vistk.pipeline.lua_process:_connect_input_port(port, edge)
+    end
+
+    function lua_example:_connect_output_port(self, port, edge)
+        self.ran_connect_output_port = true
+
+        vistk.pipeline.lua_process:_connect_output_port(port, edge)
+    end
+
+    function lua_example:_input_ports()
+        self.ran_input_ports = true
+
+        return vistk.pipeline.lua_process:_input_ports()
+    end
+
+    function lua_example:_output_ports()
+        self.ran_output_ports = true
+
+        return vistk.pipeline.lua_process:_output_ports()
+    end
+
+    function lua_example:_input_port_info(self, port)
+        self.ran_input_port_info = true
+
+        return vistk.pipeline.lua_process:_input_port_info(port)
+    end
+
+    function lua_example:_output_port_info(self, port)
+        self.ran_output_port_info = true
+
+        return vistk.pipeline.lua_process:_output_port_info(port)
+    end
+
+    function lua_example:_available_config()
+        self.ran_available_config = true
+
+        return vistk.pipeline.lua_process:_available_config()
+    end
+
+    function lua_example:_config_info(self, key)
+        self.ran_conf_info = true
+
+        return vistk.pipeline.lua_process:_conf_info(key)
+    end
+
+    function lua_example:check()
+        if not self.ran_init then
+            log("Error: _init override was not called")
+        end
+        if not self.ran_step then
+            log("Error: _step override was not called")
+        end
+        if not self.ran_connect_input_port then
+            log("Error: _connect_input_port override was not called")
+        end
+        if not self.ran_connect_output_port then
+            log("Error: _connect_output_port override was not called")
+        end
+        if not self.ran_input_ports then
+            log("Error: _input_ports override was not called")
+        end
+        if not self.ran_output_ports then
+            log("Error: _output_ports override was not called")
+        end
+        if not self.ran_input_port_info then
+            log("Error: _input_port_info override was not called")
+        end
+        if not self.ran_output_port_info then
+            log("Error: _output_port_info override was not called")
+        end
+        if not self.ran_available_config then
+            log("Error: _available_config override was not called")
+        end
+        if not self.ran_conf_info then
+            log("Error: _conf_info override was not called")
+        end
+    end
+
+    function mk_example(conf)
+        return lua_example(conf)
+    end
+
+    return mk_example
 end
 
 
 function base_example_process()
-    -- TODO: How to do this?
-    return nil
---    require("vistk.pipeline.process")
---
---    class PythonBaseExample(process.PythonProcess):
---        function __init__(self, conf)
---            process.PythonProcess.__init__(self, conf)
---        end
---
---        function check(self)
---        end
---
---    return PythonBaseExample
+    require("vistk.pipeline.process")
+
+    class 'lua_base_example' (vistk.pipeline.lua_process)
+
+    function lua_base_example:__init(conf)
+        vistk.pipeline.lua_process:__init(conf)
+    end
+
+    function lua_base_example:check()
+    end
+
+    function mk_base_example(conf)
+        return lua_base_example(conf)
+    end
+
+    return mk_base_example
 end
 
 
@@ -203,7 +211,7 @@ function test_register()
 
     local reg = vistk.pipeline.process_registry.self()
 
-    reg:register_process(proc_type, proc_desc, example_process)
+    reg:register_process(proc_type, proc_desc, example_process())
 
     if proc_desc ~= reg:description(proc_type) then
         log("Error: Description was not preserved when registering")
@@ -237,8 +245,8 @@ function test_wrapper_api()
 
     local reg = vistk.pipeline.process_registry.self()
 
-    reg:register_process(proc_type, proc_desc, example_process)
-    reg:register_process(proc_base_type, proc_base_desc, base_example_process)
+    reg:register_process(proc_type, proc_desc, example_process())
+    reg:register_process(proc_base_type, proc_base_desc, base_example_process())
 
     local c = vistk.pipeline.empty_config()
 

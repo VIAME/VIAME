@@ -51,37 +51,48 @@ function test_api_calls()
 end
 
 
-function schedule_example(conf, pipe)
-    -- TODO: How to do this?
-    return nil
---    require("vistk.pipeline.schedule")
---
---    class PythonExample(schedule.PythonSchedule):
---        function __init__(self, conf, pipe):
---            schedule.PythonSchedule.__init__(self, conf, pipe)
---
---            self.ran_start = False
---            self.ran_wait = False
---            self.ran_stop = False
---
---        def start(self):
---            self.ran_start = True
---
---        def wait(self):
---            self.ran_wait = True
---
---        def stop(self):
---            self.ran_stop = True
---
---        def check(self):
---            if not self.ran_start:
---                log("Error: start override was not called")
---            if not self.ran_wait:
---                log("Error: wait override was not called")
---            if not self.ran_stop:
---                log("Error: stop override was not called")
---
---    return PythonExample
+function example_schedule(conf, pipe)
+    require("vistk.pipeline.schedule")
+
+    class 'lua_example' (vistk.pipeline.lua_schedule)
+
+    function lua_example:__init(conf, pipe)
+        vistk.pipeline.lua_schedule:__init(conf, pipe)
+
+        self.ran_start = false
+        self.ran_wait = false
+        self.ran_stop = false
+    end
+
+    function lua_example:start()
+        self.ran_start = true
+    end
+
+    function lua_example:wait()
+        self.ran_wait = true
+    end
+
+    function lua_example:stop()
+        self.ran_stop = true
+    end
+
+    function lua_example:check()
+        if not self.ran_start then
+            log("Error: start override was not called")
+        end
+        if not self.ran_wait then
+            log("Error: wait override was not called")
+        end
+        if not self.ran_stop then
+            log("Error: stop override was not called")
+        end
+    end
+
+    function mk_example(conf, pipe)
+        return lua_example(conf, pipe)
+    end
+
+    return mk_example
 end
 
 
@@ -101,7 +112,7 @@ function test_register()
     local c = vistk.pipeline.empty_config()
     local p = vistk.pipeline.pipeline(c)
 
-    reg:register_schedule(sched_type, sched_desc, schedule_example)
+    reg:register_schedule(sched_type, sched_desc, example_schedule())
 
     if sched_desc ~= reg:description(sched_type) then
         log("Error: Description was not preserved when registering")
