@@ -33,7 +33,9 @@ function test_api_calls()
     require("vistk.pipeline.pipeline")
     require("vistk.pipeline.schedule_registry")
 
-    vistk.pipeline.schedule_registry:default_type
+    local tmp
+
+    tmp = vistk.pipeline.schedule_registry.default_type
 
     vistk.pipeline.load_known_modules()
 

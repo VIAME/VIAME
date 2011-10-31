@@ -65,14 +65,14 @@ function test_api_calls()
     tmp = a.in_sync
     tmp = a.max_status
 
-    process.lua_process.port_heartbeat
-    process.lua_process.config_name
-    process.lua_process.config_type
-    process.lua_process.type_any
-    process.lua_process.type_none
-    process.lua_process.flag_output_const
-    process.lua_process.flag_input_mutable
-    process.lua_process.flag_required
+    tmp = vistk.pipeline.process.lua_process.port_heartbeat
+    tmp = vistk.pipeline.process.lua_process.config_name
+    tmp = vistk.pipeline.process.lua_process.config_type
+    tmp = vistk.pipeline.process.lua_process.type_any
+    tmp = vistk.pipeline.process.lua_process.type_none
+    tmp = vistk.pipeline.process.lua_process.flag_output_const
+    tmp = vistk.pipeline.process.lua_process.flag_input_mutable
+    tmp = vistk.pipeline.process.lua_process.flag_required
 end
 
 
