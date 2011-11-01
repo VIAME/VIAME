@@ -23,7 +23,7 @@ function test_simple_pipeline(path)
     require("vistk.pipeline.pipeline")
     require("vistk.pipeline.modules")
     require("vistk.pipeline_util.bake")
-    require("vistk.pipeline_util.export_")
+    require("vistk.pipeline_util.export")
 
     vistk.pipeline.load_known_modules()
 
