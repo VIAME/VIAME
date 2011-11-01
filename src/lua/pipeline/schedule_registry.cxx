@@ -10,6 +10,7 @@
 
 #include <lua/helpers/lua_include.h>
 #include <lua/helpers/lua_convert_vector.h>
+#include <lua/helpers/lua_static_member.h>
 
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>
@@ -59,7 +60,6 @@ luaopen_vistk_pipeline_schedule_registry(lua_State* L)
         .scope
         [
           def("self", &vistk::schedule_registry::self)
-        //, def_readonly("default_type", &vistk::schedule_registry::default_type)
         ]
         .def("register_schedule", &register_schedule)
         .def("create_schedule", &vistk::schedule_registry::create_schedule)
@@ -69,6 +69,12 @@ luaopen_vistk_pipeline_schedule_registry(lua_State* L)
         .def("mark_module_as_loaded", &vistk::schedule_registry::mark_module_as_loaded)
     ]
   ];
+
+  lua_getfield(L, LUA_GLOBALSINDEX, "vistk");
+  lua_getfield(L, -1, "pipeline");
+  lua_getfield(L, -1, "schedule_registry");
+  LUA_STATIC_MEMBER(L, string, vistk::schedule_registry::default_type, "default_type");
+  lua_pop(L, 3);
 
   return 0;
 }

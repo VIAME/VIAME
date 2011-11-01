@@ -8,6 +8,7 @@
 
 #include <lua/helpers/lua_include.h>
 #include <lua/helpers/lua_convert_vector.h>
+#include <lua/helpers/lua_static_member.h>
 
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>
@@ -63,13 +64,15 @@ luaopen_vistk_pipeline_config(lua_State* L)
         .def("available_values", &vistk::config::available_values
           , return_stl_iterator)
         .def("has_value", &vistk::config::has_value)
-        //.scope
-        //[
-        //  def("block_sep", &vistk::config::block_sep)
-        //, def("global_value", &vistk::config::global_value)
-        //]
     ]
   ];
+
+  lua_getfield(L, LUA_GLOBALSINDEX, "vistk");
+  lua_getfield(L, -1, "pipeline");
+  lua_getfield(L, -1, "config");
+  LUA_STATIC_MEMBER(L, string, vistk::config::block_sep, "block_sep");
+  LUA_STATIC_MEMBER(L, string, vistk::config::global_value, "global_value");
+  lua_pop(L, 3);
 
   return 0;
 }

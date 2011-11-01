@@ -9,6 +9,7 @@
 
 #include <lua/helpers/lua_include.h>
 #include <lua/helpers/lua_convert_vector.h>
+#include <lua/helpers/lua_static_member.h>
 
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>
@@ -64,17 +65,6 @@ luaopen_vistk_pipeline_process_registry(lua_State* L)
         .def("config_info", &vistk::process::config_info)
         .def("name", &vistk::process::name)
         .def("type", &vistk::process::type)
-        //.scope
-        //[
-        //  def("port_heartbeat", &vistk::process::port_heartbeat)
-        //, def("config_name", &vistk::process::config_name)
-        //, def("config_type", &vistk::process::config_type)
-        //, def("type_any", &vistk::process::type_any)
-        //, def("type_none", &vistk::process::type_none)
-        //, def("flag_output_const", &vistk::process::flag_output_const)
-        //, def("flag_input_mutable", &vistk::process::flag_input_mutable)
-        //, def("flag_required", &vistk::process::flag_required)
-        //]
     , class_<vistk::processes_t>("processes")
         .def(constructor<>())
     , class_<vistk::process_registry, vistk::process_registry_t>("process_registry")
@@ -90,6 +80,19 @@ luaopen_vistk_pipeline_process_registry(lua_State* L)
         .def("mark_module_as_loaded", &vistk::process_registry::mark_module_as_loaded)
     ]
   ];
+
+  lua_getfield(L, LUA_GLOBALSINDEX, "vistk");
+  lua_getfield(L, -1, "pipeline");
+  lua_getfield(L, -1, "process");
+  LUA_STATIC_MEMBER(L, string, vistk::process::port_heartbeat, "port_heartbeat");
+  LUA_STATIC_MEMBER(L, string, vistk::process::config_name, "config_name");
+  LUA_STATIC_MEMBER(L, string, vistk::process::config_type, "config_type");
+  LUA_STATIC_MEMBER(L, string, vistk::process::type_any, "type_any");
+  LUA_STATIC_MEMBER(L, string, vistk::process::type_none, "type_none");
+  LUA_STATIC_MEMBER(L, string, vistk::process::flag_output_const, "flag_output_const");
+  LUA_STATIC_MEMBER(L, string, vistk::process::flag_input_mutable, "flag_input_mutable");
+  LUA_STATIC_MEMBER(L, string, vistk::process::flag_required, "flag_required");
+  lua_pop(L, 3);
 
   return 0;
 }
