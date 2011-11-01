@@ -4,16 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <lua/helpers/luastream.h>
-
 #include <vistk/pipeline/pipeline.h>
 
 #include <vistk/pipeline_util/pipe_bakery.h>
 
-extern "C"
-{
-#include <lua.h>
-}
+#include <lua/helpers/lua_include.h>
+#include <lua/helpers/luastream.h>
 
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>

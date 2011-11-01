@@ -7,10 +7,7 @@
 #ifndef VISTK_LUA_HELPERS_LUASTREAM_H
 #define VISTK_LUA_HELPERS_LUASTREAM_H
 
-extern "C"
-{
-#include <lua.h>
-}
+#include "lua_include.h"
 
 #include <luabind/object.hpp>
 

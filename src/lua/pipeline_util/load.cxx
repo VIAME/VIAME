@@ -4,17 +4,13 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <lua/helpers/lua_convert_optional.h>
-#include <lua/helpers/lua_convert_vector.h>
-#include <lua/helpers/luastream.h>
-
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/pipe_declaration_types.h>
 
-extern "C"
-{
-#include <lua.h>
-}
+#include <lua/helpers/lua_include.h>
+#include <lua/helpers/lua_convert_optional.h>
+#include <lua/helpers/lua_convert_vector.h>
+#include <lua/helpers/luastream.h>
 
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>

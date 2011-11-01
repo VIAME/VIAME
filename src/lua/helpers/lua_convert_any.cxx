@@ -6,11 +6,6 @@
 
 #include "lua_convert_any.h"
 
-extern "C"
-{
-#include <lua.h>
-}
-
 #include <luabind/class.hpp>
 
 #include <boost/any.hpp>

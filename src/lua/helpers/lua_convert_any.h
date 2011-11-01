@@ -7,10 +7,7 @@
 #ifndef VISTK_LUA_HELPERS_LUA_CONVERT_ANY_H
 #define VISTK_LUA_HELPERS_LUA_CONVERT_ANY_H
 
-extern "C"
-{
-#include <lua.h>
-}
+#include "lua_include.h"
 
 #include <luabind/object.hpp>
 #include <luabind/detail/class_rep.hpp>

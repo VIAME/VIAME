@@ -6,10 +6,7 @@
 
 #include <vistk/pipeline/schedule.h>
 
-extern "C"
-{
-#include <lua.h>
-}
+#include <lua/helpers/lua_include.h>
 
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>

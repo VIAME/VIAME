@@ -4,14 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <lua/helpers/lua_convert_any.h>
-
 #include <vistk/pipeline/datum.h>
 
-extern "C"
-{
-#include <lua.h>
-}
+#include <lua/helpers/lua_include.h>
+#include <lua/helpers/lua_convert_any.h>
 
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>

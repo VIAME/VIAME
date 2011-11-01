@@ -4,15 +4,11 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <lua/helpers/lua_convert_vector.h>
-
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
 
-extern "C"
-{
-#include <lua.h>
-}
+#include <lua/helpers/lua_include.h>
+#include <lua/helpers/lua_convert_vector.h>
 
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>

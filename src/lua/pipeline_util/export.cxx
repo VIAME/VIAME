@@ -4,14 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <lua/helpers/luastream.h>
-
 #include <vistk/pipeline_util/export_dot.h>
 
-extern "C"
-{
-#include <lua.h>
-}
+#include <lua/helpers/lua_include.h>
+#include <lua/helpers/luastream.h>
 
 #include <luabind/function.hpp>
 
