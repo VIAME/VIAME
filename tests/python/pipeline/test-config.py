@@ -42,6 +42,13 @@ def test_create():
     config.ConfigValue()
 
 
+def test_api_calls():
+    from vistk.pipeline import config
+
+    config.Config.block_sep
+    config.Config.global_value
+
+
 def test_has_value():
     from vistk.pipeline import config
 
@@ -314,6 +321,8 @@ def main(testname):
         test_import()
     elif testname == 'create':
         test_create()
+    elif testname == 'api_calls':
+        test_api_calls()
     elif testname == 'has_value':
         test_has_value()
     elif testname == 'get_value':

@@ -7,6 +7,7 @@ vistk_build_python_test(config test-config.py)
 
 vistk_make_python_test(config import)
 vistk_make_python_test(config create)
+vistk_make_python_test(config api_calls)
 vistk_make_python_test(config has_value)
 vistk_make_python_test(config get_value)
 vistk_make_python_test(config get_value_no_exist)

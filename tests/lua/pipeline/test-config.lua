@@ -43,6 +43,16 @@ function test_create()
 end
 
 
+function test_api_calls()
+    require("vistk.pipeline.config")
+
+    local tmp
+
+    tmp = vistk.pipeline.config.block_sep
+    tmp = vistk.pipeline.config.global_value
+end
+
+
 function test_has_value()
     require("vistk.pipeline.config")
 
@@ -347,6 +357,8 @@ function main(testname)
         test_import()
     elseif testname == 'create' then
         test_create()
+    elseif testname == 'api_calls' then
+        test_api_calls()
     elseif testname == 'has_value' then
         test_has_value()
     elseif testname == 'get_value' then
