@@ -36,7 +36,7 @@ class VISTK_PIPELINE_EXPORT process_registry_exception
 /**
  * \class null_process_ctor_exception process_registry_exception.h <vistk/pipeline/process_registry_exception.h>
  *
- * \brief Thrown when \c NULL constructor function to the registry.
+ * \brief Thrown when a \c NULL constructor function is added to the registry.
  *
  * \ingroup exceptions
  */

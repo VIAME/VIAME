@@ -56,6 +56,7 @@ class VISTK_PIPELINE_EXPORT schedule_registry
     /**
      * \brief Adds a schedule type to the registry.
      *
+     * \throws null_schedule_ctor_exception Thrown if \p ctor is \c NULL.
      * \throws schedule_type_already_exists_exception Thrown if the type already exists.
      *
      * \param type The name of the \ref schedule type.

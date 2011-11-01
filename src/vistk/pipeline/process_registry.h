@@ -56,6 +56,7 @@ class VISTK_PIPELINE_EXPORT process_registry
     /**
      * \brief Adds a process type to the registry.
      *
+     * \throws null_process_ctor_exception Thrown if \p ctor is \c NULL.
      * \throws process_type_already_exists_exception Thrown if the type already exists.
      *
      * \param type The name of the \ref process type.

@@ -36,7 +36,7 @@ class VISTK_PIPELINE_EXPORT schedule_registry_exception
 /**
  * \class null_schedule_ctor_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
  *
- * \brief Thrown when \c NULL constructor function to the registry.
+ * \brief Thrown when a \c NULL constructor function is added to the registry.
  *
  * \ingroup exceptions
  */
