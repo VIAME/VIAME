@@ -3,6 +3,8 @@ project(vistk_pipeline)
 set(pipeline_srcs
   config.cxx
   datum.cxx
+  dtor_registry.cxx
+  dtor_registry_exception.cxx
   edge.cxx
   edge_exception.cxx
   modules.cxx
@@ -23,6 +25,8 @@ set(pipeline_srcs
 set(pipeline_headers
   config.h
   datum.h
+  dtor_registry.h
+  dtor_registry_exception.h
   edge.h
   edge_exception.h
   modules.h
