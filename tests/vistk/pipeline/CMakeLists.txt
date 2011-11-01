@@ -162,6 +162,7 @@ vistk_make_test(process_registry load_processes)
 vistk_make_test(process_registry null_ctor)
 vistk_make_test(process_registry duplicate_types)
 vistk_make_test(process_registry unknown_types)
+vistk_make_test(process_registry module_marking)
 
 ##############################
 # Schedule registry tests
@@ -174,6 +175,7 @@ vistk_make_test(schedule_registry load_schedules)
 vistk_make_test(schedule_registry null_ctor)
 vistk_make_test(schedule_registry duplicate_types)
 vistk_make_test(schedule_registry unknown_types)
+vistk_make_test(schedule_registry module_marking)
 
 ##############################
 # Running tests

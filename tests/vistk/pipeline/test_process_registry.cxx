@@ -51,6 +51,7 @@ static void test_load_processes();
 static void test_null_ctor();
 static void test_duplicate_types();
 static void test_unknown_types();
+static void test_module_marking();
 
 void
 run_test(std::string const& test_name)
@@ -74,6 +75,10 @@ run_test(std::string const& test_name)
   else if (test_name == "unknown_types")
   {
     test_unknown_types();
+  }
+  else if (test_name == "module_marking")
+  {
+    test_module_marking();
   }
   else
   {
@@ -182,6 +187,28 @@ test_unknown_types()
   EXPECT_EXCEPTION(vistk::no_such_process_type_exception,
                    reg->description(non_existent_process),
                    "requesting an non-existent process type");
+}
+
+void
+test_module_marking()
+{
+  vistk::process_registry_t reg = vistk::process_registry::self();
+
+  vistk::process_registry::module_t const module = vistk::process_registry::module_t("module");
+
+  if (reg->is_module_loaded(module))
+  {
+    TEST_ERROR("The module \'" << module << "\' is "
+               "already marked as loaded");
+  }
+
+  reg->mark_module_as_loaded(module);
+
+  if (!reg->is_module_loaded(module))
+  {
+    TEST_ERROR("The module \'" << module << "\' is "
+               "not marked as loaded");
+  }
 }
 
 vistk::process_t
