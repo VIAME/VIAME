@@ -55,6 +55,12 @@ struct default_converter<boost::optional<T> >
 };
 
 template <typename T>
+struct default_converter<boost::optional<T>&>
+  : default_converter<boost::optional<T> >
+{
+};
+
+template <typename T>
 struct default_converter<boost::optional<T> const&>
   : default_converter<boost::optional<T> >
 {
