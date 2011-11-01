@@ -31,6 +31,20 @@ vistk_make_test(datum error)
 vistk_make_test(datum new)
 
 ##############################
+# Dtor registry tests
+##############################
+vistk_build_test(dtor_registry libraries test_dtor_registry.cxx)
+
+vistk_make_test(dtor_registry null_dtor)
+vistk_make_test(dtor_registry call_dtor)
+
+set_tests_properties(test-dtor_registry-call_dtor
+  PROPERTIES
+    PASS_REGULAR_EXPRESSION "PASS: Dtor called")
+
+vistk_make_test(dtor_registry module_marking)
+
+##############################
 # Stamp tests
 ##############################
 vistk_build_test(stamp libraries test_stamp.cxx)
