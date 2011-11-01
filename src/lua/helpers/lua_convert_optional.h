@@ -7,18 +7,18 @@
 #ifndef VISTK_LUA_PIPELINE_UTIL_LUA_CONVERT_OPTIONAL_H
 #define VISTK_LUA_PIPELINE_UTIL_LUA_CONVERT_OPTIONAL_H
 
-/**
- * \file lua_convert_optional.cxx
- *
- * \brief Helpers for working with boost::optional in Lua.
- */
-
 #include "lua_include.h"
 
 #include <luabind/detail/policy.hpp>
 #include <luabind/object.hpp>
 
 #include <boost/optional.hpp>
+
+/**
+ * \file lua_convert_optional.h
+ *
+ * \brief Helpers for working with boost::optional in Lua.
+ */
 
 namespace luabind
 {
