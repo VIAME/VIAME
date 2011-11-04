@@ -15,6 +15,8 @@
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/types.h>
 
+#include <tools/helpers/typed_value_desc.h>
+
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -212,12 +214,12 @@ make_options()
 
   desc.add_options()
     ("help,h", "output help message and quit")
-    ("input,i", po::value<vistk::path_t>(), "input path")
-    ("output,o", po::value<vistk::path_t>()->default_value("-"), "output path")
-    ("config,c", po::value<vistk::paths_t>(), "supplemental configuration file")
-    ("setting,s", po::value<std::vector<std::string> >(), "additional configuration")
-    ("include,I", po::value<vistk::paths_t>(), "configuration include path")
-    ("name,n", po::value<std::string>()->default_value("unnamed"), "name of the graph")
+    ("input,i", po::value_desc<vistk::path_t>()->metavar("FILE"), "input path")
+    ("output,o", po::value_desc<vistk::path_t>()->metavar("FILE")->default_value("-"), "output path")
+    ("config,c", po::value_desc<vistk::paths_t>()->metavar("FILE"), "supplemental configuration file")
+    ("setting,s", po::value_desc<std::vector<std::string> >()->metavar("VAR=VALUE"), "additional configuration")
+    ("include,I", po::value_desc<vistk::paths_t>()->metavar("DIR"), "configuration include path")
+    ("name,n", po::value_desc<std::string>()->metavar("NAME")->default_value("unnamed"), "name of the graph")
   ;
 
   return desc;

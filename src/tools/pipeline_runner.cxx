@@ -16,6 +16,8 @@
 #include <vistk/pipeline/schedule_registry.h>
 #include <vistk/pipeline/pipeline.h>
 
+#include <tools/helpers/typed_value_desc.h>
+
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -213,11 +215,11 @@ make_options()
 
   desc.add_options()
     ("help,h", "output help message and quit")
-    ("pipeline,p", po::value<vistk::path_t>(), "pipeline")
-    ("config,c", po::value<vistk::paths_t>(), "supplemental configuration file")
-    ("setting,s", po::value<std::vector<std::string> >(), "additional configuration")
-    ("include,I", po::value<vistk::paths_t>(), "configuration include path")
-    ("schedule,S", po::value<vistk::schedule_registry::type_t>(), "schedule type")
+    ("pipeline,p", po::value_desc<vistk::path_t>()->metavar("FILE"), "pipeline")
+    ("config,c", po::value_desc<vistk::paths_t>()->metavar("FILE"), "supplemental configuration file")
+    ("setting,s", po::value_desc<std::vector<std::string> >()->metavar("VAR=VALUE"), "additional configuration")
+    ("include,I", po::value_desc<vistk::paths_t>()->metavar("DIR"), "configuration include path")
+    ("schedule,S", po::value_desc<vistk::schedule_registry::type_t>()->metavar("TYPE"), "schedule type")
   ;
 
   return desc;

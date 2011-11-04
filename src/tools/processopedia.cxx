@@ -9,6 +9,8 @@
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
 
+#include <tools/helpers/typed_value_desc.h>
+
 #include <boost/algorithm/string/join.hpp>
 #include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
@@ -150,7 +152,7 @@ make_options()
 
   desc.add_options()
     ("help,h", "output help message and quit")
-    ("type,t", po::value<vistk::process_registry::types_t>(), "type to describe")
+    ("type,t", po::value_desc<vistk::process_registry::types_t>()->metavar("TYPE"), "type to describe")
     ("list,l", "simply list types")
     ("detail,d", "output detailed information")
   ;
