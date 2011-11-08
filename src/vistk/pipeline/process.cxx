@@ -28,6 +28,9 @@
 namespace vistk
 {
 
+process::constraint_t const process::constraint_no_threads = constraint_t("_no_thread");
+process::constraint_t const process::constraint_no_reentrancy = constraint_t("_no_reentrant");
+process::constraint_t const process::constraint_unsync_output = constraint_t("_unsync_output");
 process::port_t const process::port_heartbeat = port_t("heartbeat");
 config::key_t const process::config_name = config::key_t("_name");
 config::key_t const process::config_type = config::key_t("_type");
@@ -193,11 +196,11 @@ process
   }
 }
 
-bool
+process::constraints_t
 process
-::is_reentrant() const
+::constraints() const
 {
-  return false;
+  return _constraints();
 }
 
 void
@@ -356,6 +359,17 @@ void
 process
 ::_step()
 {
+}
+
+process::constraints_t
+process
+::_constraints() const
+{
+  constraints_t consts;
+
+  consts.insert(constraint_no_reentrancy);
+
+  return consts;
 }
 
 void

@@ -73,6 +73,10 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::string name_t;
     /// The type for a group of process names.
     typedef std::vector<name_t> names_t;
+    /// The type for a constraint on a process.
+    typedef std::string constraint_t;
+    /// The type for a set of constraints on a process.
+    typedef std::set<constraint_t> constraints_t;
     /// The type for a description of a port.
     typedef std::string port_description_t;
     /// The type for the name of a port on a process.
@@ -212,20 +216,11 @@ class VISTK_PIPELINE_EXPORT process
     void step();
 
     /**
-     * \brief Query if a process is reentrant.
+     * \brief Query for the constraints on the process.
      *
-     * \warning The base class is not yet reentrant.
-     *
-     * If \c true, it indicates that the \ref process::_step() method is
-     * reentrant and does data collation of its edges properly. The default
-     * implementation returns \c false for safety.
-     *
-     * \warning Please be sure that your process is \em actually reentrant
-     * before returning \c true from this method.
-     *
-     * \returns True if the process can be \ref process::step()'d recursively, false otherwise.
+     * \returns The set of constraints on the process.
      */
-    virtual bool is_reentrant() const;
+    virtual constraints_t constraints() const;
 
     /**
      * \brief Connects an edge to an input port on the process.
@@ -341,6 +336,12 @@ class VISTK_PIPELINE_EXPORT process
      */
     process_registry::type_t type() const;
 
+    /// A constraint which indicates that the process cannot be run in a thread of its own.
+    static constraint_t const constraint_no_threads;
+    /// A constraint which indicates that the process is not reentrant.
+    static constraint_t const constraint_no_reentrancy;
+    /// A constraint which indicates that the output of the process is not synchronized.
+    static constraint_t const constraint_unsync_output;
     /// The name of the heartbeat port.
     static port_t const port_heartbeat;
     /// The name of the configuration value for the name.
@@ -380,6 +381,13 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Method where subclass data processing occurs.
      */
     virtual void _step();
+
+    /**
+     * \brief Subclass constraint query method.
+     *
+     * \returns Constraints on the subclass.
+     */
+    virtual constraints_t _constraints() const;
 
     /**
      * \brief Subclass input connection method.
