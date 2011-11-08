@@ -79,6 +79,11 @@ int main(int argc, char* argv[])
 
     vistk::process_t const proc = reg->create_process(proc_type, conf);
 
+    vistk::process::constraints_t const constraints = proc->constraints();
+    std::string const constraints_str = boost::join(constraints, ", ");
+
+    std::cout << "  Constraints:" << constraints_str << std::endl;
+
     std::cout << "  Configuration:" << std::endl;
 
     vistk::config::keys_t const keys = proc->available_config();
