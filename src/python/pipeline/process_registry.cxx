@@ -56,8 +56,8 @@ BOOST_PYTHON_MODULE(process_registry)
       , "Initializes the process.")
     .def("step", &vistk::process::step
       , "Steps the process for one iteration.")
-    .def("is_reentrant", &vistk::process::is_reentrant
-      , "Returns True if the process is reentrant, False otherwise.")
+    .def("constraints", &vistk::process::constraints
+      , "Returns the constraints on the process.")
     .def("connect_input_port", &vistk::process::connect_input_port
       , (arg("port"), arg("edge"))
       , "Connects the given edge to the input port.")
@@ -83,6 +83,9 @@ BOOST_PYTHON_MODULE(process_registry)
       , "Returns the name of the process.")
     .def("type", &vistk::process::type
       , "Returns the type of the process.")
+    .def_readonly("constraint_no_threads", &vistk::process::constraint_no_threads)
+    .def_readonly("constraint_no_reentrancy", &vistk::process::constraint_no_reentrancy)
+    .def_readonly("constraint_unsync_output", &vistk::process::constraint_unsync_output)
     .def_readonly("port_heartbeat", &vistk::process::port_heartbeat)
     .def_readonly("config_name", &vistk::process::config_name)
     .def_readonly("config_type", &vistk::process::config_type)

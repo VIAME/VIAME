@@ -28,6 +28,7 @@ using namespace boost::python;
 
 static void translator(vistk::process_exception const& e);
 
+static void constraints_add(vistk::process::constraints_t* self, vistk::process::port_flag_t const& flag);
 static void port_flags_add(vistk::process::port_flags_t* self, vistk::process::port_flag_t const& flag);
 
 class wrap_process
@@ -42,6 +43,8 @@ class wrap_process
 
     void _base_step();
 
+    constraints_t _base_constraints() const;
+
     void _base_connect_input_port(port_t const& port, vistk::edge_ref_t edge);
     void _base_connect_output_port(port_t const& port, vistk::edge_ref_t edge);
 
@@ -55,12 +58,11 @@ class wrap_process
 
     conf_info_t _base_config_info(vistk::config::key_t const& key);
 
-    bool is_reentrant() const;
-    bool default_is_reentrant() const;
-
     void _init();
 
     void _step();
+
+    constraints_t _constraints() const;
 
     void _connect_input_port(port_t const& port, vistk::edge_ref_t edge);
     void _connect_output_port(port_t const& port, vistk::edge_ref_t edge);
@@ -122,6 +124,30 @@ BOOST_PYTHON_MODULE(process)
   class_<vistk::process::names_t>("ProcessNames"
     , "A collection of process names.")
     .def(vector_indexing_suite<vistk::process::names_t>())
+  ;
+  class_<vistk::process::constraint_t>("ProcessConstraint"
+    , "A constraint on a process.");
+  class_<vistk::process::constraints_t>("ProcessConstraints"
+    , "A collection of constraints on a process.")
+    .def("__len__", &vistk::process::constraints_t::size)
+    //.def("__contains__", &constraints_contains)
+    //.def("isdisjoint", &constraints_isdisjoint)
+    //.def("issubset", &constraints_issubset)
+    //.def("issuperset", &constraints_issuperset)
+    //.def("union", &constraints_union)
+    //.def("intersection", &constraints_intersection)
+    //.def("difference", &constraints_difference)
+    //.def("symmetric_difference", &constraints_symmetric_difference)
+    //.def("copy", &constraints_copy)
+    //.def("update", &constraints_update)
+    //.def("intersection_update", &constraints_intersection_update)
+    //.def("difference_update", &constraints_difference_update)
+    //.def("symmetric_difference_update", &constraints_symmetric_difference_update)
+    .def("add", &constraints_add)
+    //.def("remove", &constraints_remove)
+    //.def("discard", &constraints_discard)
+    //.def("pop", &constraints_discard)
+    .def("clear", &vistk::process::constraints_t::clear)
   ;
   class_<vistk::process::port_description_t>("PortDescription"
     , "A description for a port.");
@@ -207,8 +233,8 @@ BOOST_PYTHON_MODULE(process)
       , "Initializes the process.")
     .def("step", &vistk::process::step
       , "Steps the process for one iteration.")
-    .def("is_reentrant", &vistk::process::is_reentrant, &wrap_process::default_is_reentrant
-      , "Returns True if the process is reentrant, False otherwise.")
+    .def("constraints", &vistk::process::constraints
+      , "Returns the constraints on the process.")
     .def("connect_input_port", &vistk::process::connect_input_port
       , (arg("port"), arg("edge"))
       , "Connects the given edge to the input port.")
@@ -234,6 +260,9 @@ BOOST_PYTHON_MODULE(process)
       , "Returns the name of the process.")
     .def("type", &vistk::process::type
       , "Returns the type of the process.")
+    .def_readonly("constraint_no_threads", &vistk::process::constraint_no_threads)
+    .def_readonly("constraint_no_reentrancy", &vistk::process::constraint_no_reentrancy)
+    .def_readonly("constraint_unsync_output", &vistk::process::constraint_unsync_output)
     .def_readonly("port_heartbeat", &vistk::process::port_heartbeat)
     .def_readonly("config_name", &vistk::process::config_name)
     .def_readonly("config_type", &vistk::process::config_type)
@@ -246,6 +275,8 @@ BOOST_PYTHON_MODULE(process)
       , "Base class initialization.")
     .def("_base_step", &wrap_process::_base_step
       , "Base class step.")
+    .def("_base_constraints", &wrap_process::_base_constraints
+      , "Base class constraints.")
     .def("_base_connect_input_port", &wrap_process::_base_connect_input_port
       , (arg("port"), arg("edge"))
       , "Base class input port connection.")
@@ -272,6 +303,8 @@ BOOST_PYTHON_MODULE(process)
       , "Initializes the process subclass.")
     .def("_step", &wrap_process::_step//, &wrap_process::_base_step
       , "Step the process subclass for one iteration.")
+    .def("_constraints", &wrap_process::_constraints//, &wrap_process::_base_constraints
+      , "The constraints on the subclass.")
     .def("_connect_input_port", &wrap_process::_connect_input_port//, &wrap_process::_base_connect_input_port
       , (arg("port"), arg("edge"))
       , "Connects the given edge to the subclass input port.")
@@ -348,6 +381,12 @@ translator(vistk::process_exception const& e)
 }
 
 void
+constraints_add(vistk::process::constraints_t* self, vistk::process::port_flag_t const& flag)
+{
+  self->insert(flag);
+}
+
+void
 port_flags_add(vistk::process::port_flags_t* self, vistk::process::port_flag_t const& flag)
 {
   self->insert(flag);
@@ -376,6 +415,21 @@ wrap_process
 ::_base_step()
 {
   process::_step();
+}
+
+vistk::process::constraints_t
+wrap_process
+::_base_constraints() const
+{
+  static constraint_t const constraint_python = constraint_t("_python");
+
+  constraints_t consts = process::_constraints();
+
+  /// \todo Python doesn't work well with non-Python threads.
+  consts.insert(constraint_no_threads);
+  consts.insert(constraint_python);
+
+  return consts;
 }
 
 void
@@ -434,29 +488,6 @@ wrap_process
   return process::_config_info(key);
 }
 
-bool
-wrap_process
-::is_reentrant() const
-{
-  override const f = get_override("is_reentrant");
-
-  if (f)
-  {
-    return f();
-  }
-  else
-  {
-    return default_is_reentrant();
-  }
-}
-
-bool
-wrap_process
-::default_is_reentrant() const
-{
-  return process::is_reentrant();
-}
-
 void
 wrap_process
 ::_init()
@@ -486,6 +517,22 @@ wrap_process
   else
   {
     _base_step();
+  }
+}
+
+vistk::process::constraints_t
+wrap_process
+::_constraints() const
+{
+  override const f = get_override("_constraints");
+
+  if (f)
+  {
+    return f();
+  }
+  else
+  {
+    return _base_constraints();
   }
 }
 

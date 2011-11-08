@@ -25,6 +25,8 @@ def test_create():
     process.EdgeGroup()
     process.ProcessName()
     process.ProcessNames()
+    process.ProcessConstraint()
+    process.ProcessConstraints()
     process.PortDescription()
     process.Port()
     process.Ports()
@@ -62,6 +64,9 @@ def test_api_calls():
     a.in_sync
     a.max_status
 
+    process.PythonProcess.constraint_no_threads
+    process.PythonProcess.constraint_no_reentrancy
+    process.PythonProcess.constraint_unsync_output
     process.PythonProcess.port_heartbeat
     process.PythonProcess.config_name
     process.PythonProcess.config_type
