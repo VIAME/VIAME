@@ -51,6 +51,38 @@ sync_schedule
   : schedule(config, pipe)
   , d(new priv)
 {
+  pipeline_t const p = pipeline();
+  process::names_t const names = p->process_names();
+
+  BOOST_FOREACH (process::name_t const& name, names)
+  {
+    process_t const proc = p->process_by_name(name);
+    process::constraints_t const consts = proc->constraints();
+
+    {
+      process::constraints_t::const_iterator const i = consts.find(process::constraint_unsync_output);
+
+      if (i != consts.end())
+      {
+        static std::string const reason = "The process \'" + name + "\' does not output "
+                                          "consistent data across all its output ports";
+
+        throw incompatible_pipeline_exception(reason);
+      }
+    }
+
+    {
+      process::constraints_t::const_iterator const i = consts.find(process::constraint_unsync_input);
+
+      if (i != consts.end())
+      {
+        static std::string const reason = "The process \'" + name + "\' does not expect "
+                                          "consistent data across all its input ports";
+
+        throw incompatible_pipeline_exception(reason);
+      }
+    }
+  }
 }
 
 sync_schedule
