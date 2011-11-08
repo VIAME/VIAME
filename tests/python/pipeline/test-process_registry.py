@@ -82,8 +82,6 @@ def example_process():
         def _step(self):
             self.ran_step = True
 
-            self.check()
-
             self._base_step()
 
         def _constraints(self):

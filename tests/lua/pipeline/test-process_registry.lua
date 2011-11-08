@@ -88,8 +88,6 @@ function example_process()
     function lua_example:_step()
         self.ran_step = true
 
-        self.check()
-
         self:_base_step()
     end
 
