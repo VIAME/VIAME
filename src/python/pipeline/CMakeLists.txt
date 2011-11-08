@@ -54,6 +54,8 @@ add_vistk_python_library(process_registry
   process_registry.cxx)
 target_link_libraries(python-process_registry
   vistk_pipeline
+  python_gil
+  python_threading
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
@@ -70,6 +72,8 @@ add_vistk_python_library(schedule_registry
   schedule_registry.cxx)
 target_link_libraries(python-schedule_registry
   vistk_pipeline
+  python_gil
+  python_threading
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 

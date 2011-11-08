@@ -4,6 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <python/helpers/python_gil.h>
+#include <python/helpers/python_threading.h>
+
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/process_registry_exception.h>
@@ -121,6 +124,7 @@ BOOST_PYTHON_MODULE(process_registry)
 }
 
 class python_process_wrapper
+  : python_threading
 {
   public:
     python_process_wrapper(object obj);
@@ -163,5 +167,9 @@ vistk::process_t
 python_process_wrapper
 ::operator () (vistk::config_t const& config)
 {
+  python_gil gil;
+
+  (void)gil;
+
   return extract<vistk::process_t>(m_obj(config));
 }

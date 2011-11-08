@@ -4,6 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <python/helpers/python_gil.h>
+#include <python/helpers/python_threading.h>
+
 #include <vistk/pipeline/schedule.h>
 #include <vistk/pipeline/schedule_registry.h>
 #include <vistk/pipeline/schedule_registry_exception.h>
@@ -86,6 +89,7 @@ BOOST_PYTHON_MODULE(schedule_registry)
 }
 
 class python_schedule_wrapper
+  : python_threading
 {
   public:
     python_schedule_wrapper(object obj);
@@ -128,5 +132,9 @@ vistk::schedule_t
 python_schedule_wrapper
 ::operator () (vistk::config_t const& config, vistk::pipeline_t const& pipeline)
 {
+  python_gil gil;
+
+  (void)gil;
+
   return extract<vistk::schedule_t>(m_obj(config, pipeline));
 }
