@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 
     vistk::config::keys_t const keys = proc->available_config();
 
-    BOOST_FOREACH (vistk::config::key_t const key, keys)
+    BOOST_FOREACH (vistk::config::key_t const& key, keys)
     {
       vistk::process::conf_info_t const info = proc->config_info(key);
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 
     vistk::process::ports_t const iports = proc->input_ports();
 
-    BOOST_FOREACH (vistk::process::port_t const port, iports)
+    BOOST_FOREACH (vistk::process::port_t const& port, iports)
     {
       vistk::process::port_info_t const info = proc->input_port_info(port);
 
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
 
     vistk::process::ports_t const oports = proc->output_ports();
 
-    BOOST_FOREACH (vistk::process::port_t const port, oports)
+    BOOST_FOREACH (vistk::process::port_t const& port, oports)
     {
       vistk::process::port_info_t const info = proc->output_port_info(port);
 
