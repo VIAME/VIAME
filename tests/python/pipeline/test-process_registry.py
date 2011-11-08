@@ -85,7 +85,7 @@ def example_process():
             self._base_step()
 
         def _constraints(self):
-            self.ran_step = True
+            self.ran_constraints = True
 
             return self._base_constraints()
 
