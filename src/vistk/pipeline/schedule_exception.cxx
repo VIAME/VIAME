@@ -17,6 +17,23 @@
 namespace vistk
 {
 
+incompatible_pipeline_exception
+::incompatible_pipeline_exception(std::string const& reason) throw()
+  : schedule_exception()
+  , m_reason(reason)
+{
+  std::ostringstream sstr;
+
+  sstr << "The pipeline cannot be run: " << m_reason;
+
+  m_what = sstr.str();
+}
+
+incompatible_pipeline_exception
+::~incompatible_pipeline_exception() throw()
+{
+}
+
 null_schedule_config_exception
 ::null_schedule_config_exception() throw()
   : schedule_exception()

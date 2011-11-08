@@ -11,6 +11,8 @@
 
 #include "types.h"
 
+#include <string>
+
 /**
  * \file schedule_exception.h
  *
@@ -30,6 +32,30 @@ namespace vistk
 class VISTK_PIPELINE_EXPORT schedule_exception
   : public pipeline_exception
 {
+};
+
+/**
+ * \class incompatible_pipeline_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a schedule cannot execute the given pipeline.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT incompatible_pipeline_exception
+  : public schedule_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    incompatible_pipeline_exception(std::string const& reason) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~incompatible_pipeline_exception() throw();
+
+    /// The reason why the schedule cannot run the given pipeline.
+    std::string const m_reason;
 };
 
 /**
