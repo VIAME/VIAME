@@ -25,6 +25,8 @@ function test_create()
     vistk.pipeline.edge_group()
     vistk.pipeline.process_name()
     vistk.pipeline.process_names()
+    vistk.pipeline.constraint()
+    vistk.pipeline.constraints()
     vistk.pipeline.port_description()
     vistk.pipeline.port()
     vistk.pipeline.ports()
@@ -65,6 +67,9 @@ function test_api_calls()
     tmp = a.in_sync
     tmp = a.max_status
 
+    tmp = vistk.pipeline.process.lua_process.constraint_no_threads
+    tmp = vistk.pipeline.process.lua_process.constraint_no_reentrancy
+    tmp = vistk.pipeline.process.lua_process.constraint_unsync_output
     tmp = vistk.pipeline.process.lua_process.port_heartbeat
     tmp = vistk.pipeline.process.lua_process.config_name
     tmp = vistk.pipeline.process.lua_process.config_type

@@ -54,7 +54,7 @@ luaopen_vistk_pipeline_process_registry(lua_State* L)
     , class_<vistk::process, vistk::process_t>("process")
         .def("init", &vistk::process::init)
         .def("step", &vistk::process::step)
-        .def("is_reentrant", &vistk::process::is_reentrant)
+        .def("constraints", &vistk::process::constraints)
         .def("connect_input_port", &vistk::process::connect_input_port)
         .def("connect_output_port", &vistk::process::connect_output_port)
         .def("input_ports", &vistk::process::input_ports)
@@ -84,6 +84,9 @@ luaopen_vistk_pipeline_process_registry(lua_State* L)
   lua_getfield(L, LUA_GLOBALSINDEX, "vistk");
   lua_getfield(L, -1, "pipeline");
   lua_getfield(L, -1, "process");
+  LUA_STATIC_MEMBER(L, string, vistk::process::constraint_no_threads, "constraint_no_threads");
+  LUA_STATIC_MEMBER(L, string, vistk::process::constraint_no_reentrancy, "constraint_no_reentrancy");
+  LUA_STATIC_MEMBER(L, string, vistk::process::constraint_unsync_output, "constraint_unsync_output");
   LUA_STATIC_MEMBER(L, string, vistk::process::port_heartbeat, "port_heartbeat");
   LUA_STATIC_MEMBER(L, string, vistk::process::config_name, "config_name");
   LUA_STATIC_MEMBER(L, string, vistk::process::config_type, "config_type");

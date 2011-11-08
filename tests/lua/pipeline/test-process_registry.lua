@@ -68,6 +68,7 @@ function example_process()
 
         self.ran_init = false
         self.ran_step = false
+        self.ran_constraints = false
         self.ran_connect_input_port = false
         self.ran_connect_output_port = false
         self.ran_input_ports = false
@@ -90,6 +91,12 @@ function example_process()
         self.check()
 
         vistk.pipeline.lua_process:_step()
+    end
+
+    function lua_example:_constraints()
+        self.ran_constraints = true
+
+        return vistk.pipeline.lua_process:_constraints()
     end
 
     function lua_example:_connect_input_port(self, port, edge)
@@ -146,6 +153,9 @@ function example_process()
         end
         if not self.ran_step then
             log("Error: _step override was not called")
+        end
+        if not self.ran_constraints then
+            log("Error: _constraints override was not called")
         end
         if not self.ran_connect_input_port then
             log("Error: _connect_input_port override was not called")

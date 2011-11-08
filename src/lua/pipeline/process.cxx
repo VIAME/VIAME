@@ -43,6 +43,8 @@ class wrap_process
 
     void _base_step();
 
+    constraints_t _base_constraints() const;
+
     void _base_connect_input_port(port_t const& port, vistk::edge_ref_t edge);
     void _base_connect_output_port(port_t const& port, vistk::edge_ref_t edge);
 
@@ -56,12 +58,11 @@ class wrap_process
 
     conf_info_t _base_config_info(vistk::config::key_t const& key);
 
-    bool is_reentrant() const;
-    bool default_is_reentrant() const;
-
     void _init();
 
     void _step();
+
+    constraints_t _constraints() const;
 
     void _connect_input_port(port_t const& port, vistk::edge_ref_t edge);
     void _connect_output_port(port_t const& port, vistk::edge_ref_t edge);
@@ -116,6 +117,10 @@ luaopen_vistk_pipeline_process(lua_State* L)
         .def(constructor<>())
     , class_<vistk::process::names_t>("process_names")
         .def(constructor<>())
+    , class_<vistk::process::constraint_t>("constraint")
+        .def(constructor<>())
+    , class_<vistk::process::constraints_t>("constraints")
+        .def(constructor<>())
     , class_<vistk::process::port_description_t>("port_description")
         .def(constructor<>())
     , class_<vistk::process::port_t>("port")
@@ -152,7 +157,7 @@ luaopen_vistk_pipeline_process(lua_State* L)
         .def(constructor<vistk::config_t>())
         .def("init", &vistk::process::init)
         .def("step", &vistk::process::step)
-        .def("is_reentrant", &vistk::process::is_reentrant, &wrap_process::default_is_reentrant)
+        .def("constraints", &vistk::process::constraints)
         .def("connect_input_port", &vistk::process::connect_input_port)
         .def("connect_output_port", &vistk::process::connect_output_port)
         .def("input_ports", &vistk::process::input_ports)
@@ -163,16 +168,17 @@ luaopen_vistk_pipeline_process(lua_State* L)
         .def("config_info", &vistk::process::config_info)
         .def("name", &vistk::process::name)
         .def("type", &vistk::process::type)
-        .def("_init", &wrap_process::init, &wrap_process::_base_init)
-        .def("_step", &wrap_process::step, &wrap_process::_base_step)
-        .def("_connect_input_port", &wrap_process::connect_input_port, &wrap_process::_base_connect_input_port)
-        .def("_connect_output_port", &wrap_process::connect_output_port, &wrap_process::_base_connect_output_port)
-        .def("_input_ports", &wrap_process::input_ports, &wrap_process::_base_input_ports)
-        .def("_output_ports", &wrap_process::output_ports, &wrap_process::_base_output_ports)
-        .def("_input_port_info", &wrap_process::input_port_info, &wrap_process::_base_input_port_info)
-        .def("_output_port_info", &wrap_process::output_port_info, &wrap_process::_base_output_port_info)
-        .def("_available_config", &wrap_process::available_config, &wrap_process::_base_available_config)
-        .def("_config_info", &wrap_process::config_info, &wrap_process::_base_config_info)
+        .def("_init", &wrap_process::_init, &wrap_process::_base_init)
+        .def("_step", &wrap_process::_step, &wrap_process::_base_step)
+        .def("_constraints", &wrap_process::_constraints, &wrap_process::_base_constraints)
+        .def("_connect_input_port", &wrap_process::_connect_input_port, &wrap_process::_base_connect_input_port)
+        .def("_connect_output_port", &wrap_process::_connect_output_port, &wrap_process::_base_connect_output_port)
+        .def("_input_ports", &wrap_process::_input_ports, &wrap_process::_base_input_ports)
+        .def("_output_ports", &wrap_process::_output_ports, &wrap_process::_base_output_ports)
+        .def("_input_port_info", &wrap_process::_input_port_info, &wrap_process::_base_input_port_info)
+        .def("_output_port_info", &wrap_process::_output_port_info, &wrap_process::_base_output_port_info)
+        .def("_available_config", &wrap_process::_available_config, &wrap_process::_base_available_config)
+        .def("_config_info", &wrap_process::_config_info, &wrap_process::_base_config_info)
         .def("declare_input_port", &wrap_process::_declare_input_port)
         .def("declare_output_port", &wrap_process::_declare_output_port)
         .def("declare_configuration_key", &wrap_process::_declare_configuration_key)
@@ -191,6 +197,9 @@ luaopen_vistk_pipeline_process(lua_State* L)
   lua_getfield(L, LUA_GLOBALSINDEX, "vistk");
   lua_getfield(L, -1, "pipeline");
   lua_getfield(L, -1, "lua_process");
+  LUA_STATIC_MEMBER(L, string, vistk::process::constraint_no_threads, "constraint_no_threads");
+  LUA_STATIC_MEMBER(L, string, vistk::process::constraint_no_reentrancy, "constraint_no_reentrancy");
+  LUA_STATIC_MEMBER(L, string, vistk::process::constraint_unsync_output, "constraint_unsync_output");
   LUA_STATIC_MEMBER(L, string, vistk::process::port_heartbeat, "port_heartbeat");
   LUA_STATIC_MEMBER(L, string, vistk::process::config_name, "config_name");
   LUA_STATIC_MEMBER(L, string, vistk::process::config_type, "config_type");
@@ -227,6 +236,19 @@ wrap_process
 ::_base_step()
 {
   process::_step();
+}
+
+vistk::process::constraints_t
+wrap_process
+::_base_constraints() const
+{
+  static constraint_t const constraint_lua = constraint_t("_lua");
+
+  constraints_t consts = process::_constraints();
+
+  consts.insert(constraint_lua);
+
+  return consts;
 }
 
 void
@@ -285,20 +307,6 @@ wrap_process
   return process::_config_info(key);
 }
 
-bool
-wrap_process
-::is_reentrant() const
-{
-  return call<bool>("is_reentrant");
-}
-
-bool
-wrap_process
-::default_is_reentrant() const
-{
-  return process::is_reentrant();
-}
-
 void
 wrap_process
 ::_init()
@@ -311,6 +319,13 @@ wrap_process
 ::_step()
 {
   call<void>("_step");
+}
+
+vistk::process::constraints_t
+wrap_process
+::_constraints() const
+{
+  return call<vistk::process::constraints_t>("_constraints");
 }
 
 void
