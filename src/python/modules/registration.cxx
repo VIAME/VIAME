@@ -52,7 +52,6 @@ register_processes()
 
     if (python_modules)
     {
-      /// \bug Boost <= 1.47 boost::split *overwrites* destination.
       std::vector<std::string> modules_tmp;
 
       boost::split(modules_tmp, python_modules, is_separator, boost::token_compress_on);
