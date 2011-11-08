@@ -166,7 +166,7 @@ def create_process(type, conf):
     return p
 
 
-def run_pipeline(conf, pipe):
+def run_pipeline(sched_type, conf, pipe):
     from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import schedule_registry
@@ -174,8 +174,6 @@ def run_pipeline(conf, pipe):
     modules.load_known_modules()
 
     reg = schedule_registry.ScheduleRegistry.self()
-
-    sched_type = 'sync'
 
     s = reg.create_schedule(sched_type, conf, pipe)
 
@@ -203,7 +201,7 @@ def check_file(fname, expect):
             line += 1
 
 
-def test_python_to_python():
+def test_python_to_python(sched_type):
     from vistk.pipeline import config
     from vistk.pipeline import pipeline
     from vistk.pipeline import process
@@ -243,12 +241,12 @@ def test_python_to_python():
 
     p.setup_pipeline()
 
-    run_pipeline(c, p)
+    run_pipeline(sched_type, c, p)
 
     check_file(output_file, range(min, max))
 
 
-def test_cpp_to_python():
+def test_cpp_to_python(sched_type):
     from vistk.pipeline import config
     from vistk.pipeline import pipeline
     from vistk.pipeline import process
@@ -288,12 +286,12 @@ def test_cpp_to_python():
 
     p.setup_pipeline()
 
-    run_pipeline(c, p)
+    run_pipeline(sched_type, c, p)
 
     check_file(output_file, range(min, max))
 
 
-def test_python_to_cpp():
+def test_python_to_cpp(sched_type):
     from vistk.pipeline import config
     from vistk.pipeline import pipeline
     from vistk.pipeline import process
@@ -333,12 +331,12 @@ def test_python_to_cpp():
 
     p.setup_pipeline()
 
-    run_pipeline(c, p)
+    run_pipeline(sched_type, c, p)
 
     check_file(output_file, range(min, max))
 
 
-def test_python_via_cpp():
+def test_python_via_cpp(sched_type):
     from vistk.pipeline import config
     from vistk.pipeline import pipeline
     from vistk.pipeline import process
@@ -418,20 +416,20 @@ def test_python_via_cpp():
 
     p.setup_pipeline()
 
-    run_pipeline(c, p)
+    run_pipeline(sched_type, c, p)
 
     check_file(output_file, [a * b for a, b in zip(range(min1, max1), range(min2, max2))])
 
 
-def main(testname):
+def main(testname, sched_type):
     if testname == 'python_to_python':
-        test_python_to_python()
+        test_python_to_python(sched_type)
     elif testname == 'cpp_to_python':
-        test_cpp_to_python()
+        test_cpp_to_python(sched_type)
     elif testname == 'python_to_cpp':
-        test_python_to_cpp()
+        test_python_to_cpp(sched_type)
     elif testname == 'python_via_cpp':
-        test_python_via_cpp()
+        test_python_via_cpp(sched_type)
     else:
         log("Error: No such test '%s'" % testname)
 
@@ -444,13 +442,13 @@ if __name__ == '__main__':
         log("Error: Expected three arguments")
         sys.exit(1)
 
-    testname = sys.argv[1]
+    (testname, sched_type) = tuple(sys.argv[1].split('-', 1))
 
     os.chdir(sys.argv[2])
 
     sys.path.append(sys.argv[3])
 
     try:
-        main(testname)
+        main(testname, sched_type)
     except BaseException as e:
         log("Error: Unexpected exception: %s" % str(e))

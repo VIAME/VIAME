@@ -119,7 +119,17 @@ vistk_make_python_test(utils name_thread)
 ##############################
 vistk_build_python_test(run test-run.py)
 
-vistk_make_python_test(run python_to_python)
-vistk_make_python_test(run cpp_to_python)
-vistk_make_python_test(run python_to_cpp)
-vistk_make_python_test(run python_via_cpp)
+set(schedules
+#  thread_per_process
+  sync)
+
+function (vistk_make_python_run_test group instance)
+  foreach (schedule ${schedules})
+    vistk_make_python_test(${group} ${instance}-${schedule})
+  endforeach (schedule ${schedules})
+endfunction (vistk_make_python_run_test group instance)
+
+vistk_make_python_run_test(run python_to_python)
+vistk_make_python_run_test(run cpp_to_python)
+vistk_make_python_run_test(run python_to_cpp)
+vistk_make_python_run_test(run python_via_cpp)
