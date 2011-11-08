@@ -65,6 +65,7 @@ main()
   return 0;
 }
 
+static void test_process_constraints(vistk::process_t const process);
 static void test_process_configuration(vistk::process_t const process);
 static void test_process_input_ports(vistk::process_t const process);
 static void test_process_output_ports(vistk::process_t const process);
@@ -108,6 +109,7 @@ test_process(vistk::process_registry::type_t const& type)
     TEST_ERROR("The type does not match the registry type");
   }
 
+  test_process_constraints(process);
   test_process_configuration(process);
   test_process_input_ports(process);
   test_process_output_ports(process);
@@ -115,6 +117,16 @@ test_process(vistk::process_registry::type_t const& type)
   test_process_invalid_configuration(process);
   test_process_invalid_input_port(process);
   test_process_invalid_output_port(process);
+}
+
+void
+test_process_constraints(vistk::process_t const process)
+{
+  vistk::process::constraints_t const consts = process->constraints();
+
+  (void)consts;
+
+  /// \todo Test for conflicting constraints.
 }
 
 void
