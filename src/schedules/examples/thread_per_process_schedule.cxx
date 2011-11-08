@@ -10,6 +10,7 @@
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/schedule_exception.h>
 #include <vistk/pipeline/utils.h>
 
 #include <boost/thread/thread.hpp>
@@ -41,6 +42,24 @@ thread_per_process_schedule
   : schedule(config, pipe)
   , d(new priv)
 {
+  pipeline_t const p = pipeline();
+  process::names_t const names = p->process_names();
+
+  BOOST_FOREACH (process::name_t const& name, names)
+  {
+    process_t const proc = p->process_by_name(name);
+    process::constraints_t const consts = proc->constraints();
+
+    process::constraints_t::const_iterator const i = consts.find(process::constraint_no_threads);
+
+    if (i != consts.end())
+    {
+      static std::string const reason = "The process \'" + name + "\' does "
+                                        "not support being in its own thread";
+
+      throw incompatible_pipeline_exception(reason);
+    }
+  }
 }
 
 thread_per_process_schedule
