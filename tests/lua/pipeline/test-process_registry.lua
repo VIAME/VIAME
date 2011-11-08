@@ -259,6 +259,8 @@ function test_wrapper_api()
     local c = vistk.pipeline.empty_config()
 
     function check_process(p)
+        p:constraints()
+
         p:input_ports()
         p:output_ports()
         ensure_exception("asking for info on a non-existant input port",

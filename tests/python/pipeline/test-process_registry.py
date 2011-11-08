@@ -216,6 +216,8 @@ def test_wrapper_api():
     c = config.empty_config()
 
     def check_process(p):
+        p.constraints()
+
         p.input_ports()
         p.output_ports()
         ensure_exception("asking for info on a non-existant input port",
