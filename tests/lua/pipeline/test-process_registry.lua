@@ -82,7 +82,7 @@ function example_process()
     function lua_example:_init()
         self.ran_init = true
 
-        vistk.pipeline.lua_process:_init()
+        self:_base_init()
     end
 
     function lua_example:_step()
@@ -90,61 +90,61 @@ function example_process()
 
         self.check()
 
-        vistk.pipeline.lua_process:_step()
+        self:_base_step()
     end
 
     function lua_example:_constraints()
         self.ran_constraints = true
 
-        return vistk.pipeline.lua_process:_constraints()
+        return self:_base_constraints()
     end
 
     function lua_example:_connect_input_port(self, port, edge)
         self.ran_connect_input_port = true
 
-        vistk.pipeline.lua_process:_connect_input_port(port, edge)
+        self:_base_connect_input_port(port, edge)
     end
 
     function lua_example:_connect_output_port(self, port, edge)
         self.ran_connect_output_port = true
 
-        vistk.pipeline.lua_process:_connect_output_port(port, edge)
+        self:_base_connect_output_port(port, edge)
     end
 
     function lua_example:_input_ports()
         self.ran_input_ports = true
 
-        return vistk.pipeline.lua_process:_input_ports()
+        return self:_base_input_ports()
     end
 
     function lua_example:_output_ports()
         self.ran_output_ports = true
 
-        return vistk.pipeline.lua_process:_output_ports()
+        return self:_base_output_ports()
     end
 
     function lua_example:_input_port_info(self, port)
         self.ran_input_port_info = true
 
-        return vistk.pipeline.lua_process:_input_port_info(port)
+        return self:_base_input_port_info(port)
     end
 
     function lua_example:_output_port_info(self, port)
         self.ran_output_port_info = true
 
-        return vistk.pipeline.lua_process:_output_port_info(port)
+        return self:_base_output_port_info(port)
     end
 
     function lua_example:_available_config()
         self.ran_available_config = true
 
-        return vistk.pipeline.lua_process:_available_config()
+        return self:_base_available_config()
     end
 
     function lua_example:_config_info(self, key)
         self.ran_conf_info = true
 
-        return vistk.pipeline.lua_process:_conf_info(key)
+        return self:_base_conf_info(key)
     end
 
     function lua_example:check()
