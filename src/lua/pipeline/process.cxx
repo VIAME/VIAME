@@ -210,6 +210,7 @@ luaopen_vistk_pipeline_process(lua_State* L)
   lua_getfield(L, -1, "lua_process");
   LUA_STATIC_MEMBER(L, string, vistk::process::constraint_no_threads, "constraint_no_threads");
   LUA_STATIC_MEMBER(L, string, vistk::process::constraint_no_reentrancy, "constraint_no_reentrancy");
+  LUA_STATIC_MEMBER(L, string, vistk::process::constraint_unsync_input, "constraint_unsync_input");
   LUA_STATIC_MEMBER(L, string, vistk::process::constraint_unsync_output, "constraint_unsync_output");
   LUA_STATIC_MEMBER(L, string, vistk::process::port_heartbeat, "port_heartbeat");
   LUA_STATIC_MEMBER(L, string, vistk::process::config_name, "config_name");

@@ -69,6 +69,7 @@ function test_api_calls()
 
     tmp = vistk.pipeline.process.lua_process.constraint_no_threads
     tmp = vistk.pipeline.process.lua_process.constraint_no_reentrancy
+    tmp = vistk.pipeline.process.lua_process.constraint_unsync_input
     tmp = vistk.pipeline.process.lua_process.constraint_unsync_output
     tmp = vistk.pipeline.process.lua_process.port_heartbeat
     tmp = vistk.pipeline.process.lua_process.config_name

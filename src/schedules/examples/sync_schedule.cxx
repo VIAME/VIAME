@@ -11,6 +11,7 @@
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
+#include <vistk/pipeline/schedule_exception.h>
 #include <vistk/pipeline/utils.h>
 
 #include <boost/graph/directed_graph.hpp>

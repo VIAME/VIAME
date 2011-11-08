@@ -30,6 +30,7 @@ namespace vistk
 
 process::constraint_t const process::constraint_no_threads = constraint_t("_no_thread");
 process::constraint_t const process::constraint_no_reentrancy = constraint_t("_no_reentrant");
+process::constraint_t const process::constraint_unsync_input = constraint_t("_unsync_input");
 process::constraint_t const process::constraint_unsync_output = constraint_t("_unsync_output");
 process::port_t const process::port_heartbeat = port_t("heartbeat");
 config::key_t const process::config_name = config::key_t("_name");

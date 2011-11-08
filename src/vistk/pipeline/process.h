@@ -340,6 +340,8 @@ class VISTK_PIPELINE_EXPORT process
     static constraint_t const constraint_no_threads;
     /// A constraint which indicates that the process is not reentrant.
     static constraint_t const constraint_no_reentrancy;
+    /// A constraint which indicates that the input of the process is not synchronized.
+    static constraint_t const constraint_unsync_input;
     /// A constraint which indicates that the output of the process is not synchronized.
     static constraint_t const constraint_unsync_output;
     /// The name of the heartbeat port.
