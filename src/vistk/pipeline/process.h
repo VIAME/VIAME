@@ -71,23 +71,23 @@ class VISTK_PIPELINE_EXPORT process
   public:
     /// The type for the name of a process.
     typedef std::string name_t;
-    /// A group of process names.
+    /// The type for a group of process names.
     typedef std::vector<name_t> names_t;
-    /// A type for a description of a port.
+    /// The type for a description of a port.
     typedef std::string port_description_t;
     /// The type for the name of a port on a process.
     typedef std::string port_t;
-    /// A group of ports.
+    /// The type for a group of ports.
     typedef std::vector<port_t> ports_t;
     /// The type for the type of data on a port.
     typedef std::string port_type_t;
     /// The type for a flag on a port.
     typedef std::string port_flag_t;
-    /// A group of port flags.
+    /// The type for a group of port flags.
     typedef std::set<port_flag_t> port_flags_t;
-    /// Type for the address of a port within the pipeline.
+    /// The type for the address of a port within the pipeline.
     typedef std::pair<name_t, port_t> port_addr_t;
-    /// A group of port addresses.
+    /// The type for a group of port addresses.
     typedef std::vector<port_addr_t> port_addrs_t;
 
     /**
