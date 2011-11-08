@@ -80,6 +80,11 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT collate_process
     void _step();
 
     /**
+     * \brief Set constraints on the process.
+     */
+    constraints_t _constraints() const;
+
+    /**
      * \brief Subclass input port information.
      *
      * \param port The port to get information about.

@@ -153,6 +153,17 @@ distribute_process
   }
 }
 
+process::constraints_t
+distribute_process
+::_constraints() const
+{
+  constraints_t consts = process::_constraints();
+
+  consts.insert(constraint_unsync_output);
+
+  return consts;
+}
+
 process::port_info_t
 distribute_process
 ::_output_port_info(port_t const& port)

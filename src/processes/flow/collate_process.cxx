@@ -147,6 +147,17 @@ collate_process
   }
 }
 
+process::constraints_t
+collate_process
+::_constraints() const
+{
+  constraints_t consts = process::_constraints();
+
+  consts.insert(constraint_unsync_input);
+
+  return consts;
+}
+
 process::port_info_t
 collate_process
 ::_input_port_info(port_t const& port)
