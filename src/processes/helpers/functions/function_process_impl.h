@@ -379,6 +379,25 @@
  */
 #define SEMICOLON ;
 
+#define BEG(symbol) BEG_##symbol
+#define SEP(symbol) SEP_##symbol
+#define END(symbol) END_##symbol
+
+#define SEMICOLON     ;
+#define BEG_SEMICOLON
+#define SEP_SEMICOLON SEMICOLON
+#define END_SEMICOLON SEMICOLON
+
+#define COMMA     ,
+#define BEG_COMMA
+#define SEP_COMMA COMMA
+#define END_COMMA
+
+#define INIT     ,
+#define BEG_INIT :
+#define SEP_INIT COMMA
+#define END_INIT
+
 /**
  * \def IMPLEMENT_FUNCTION_PROCESS
  *
@@ -458,14 +477,14 @@ class CLASS_NAME(name)::priv                                           \
     priv(conf(CONFIG_DECLARE_ARGS, COMMA));                            \
     ~priv();                                                           \
                                                                        \
-    conf(DECLARE_CONF_VARS, SEMICOLON);                                \
-    iports(DECLARE_IPORT_VARS, SEMICOLON);                             \
-    oports(DECLARE_OPORT_VARS, SEMICOLON);                             \
+    conf(DECLARE_CONF_VARS, SEMICOLON)                                 \
+    iports(DECLARE_IPORT_VARS, SEMICOLON)                              \
+    oports(DECLARE_OPORT_VARS, SEMICOLON)                              \
 };                                                                     \
                                                                        \
-conf(DEFINE_CONF_VARS, SEMICOLON);                                     \
-iports(DEFINE_IPORT_VARS, SEMICOLON);                                  \
-oports(DEFINE_OPORT_VARS, SEMICOLON);                                  \
+conf(DEFINE_CONF_VARS, SEMICOLON)                                      \
+iports(DEFINE_IPORT_VARS, SEMICOLON)                                   \
+oports(DEFINE_OPORT_VARS, SEMICOLON)                                   \
                                                                        \
 CLASS_NAME(name)                                                       \
 ::CLASS_NAME(name)(vistk::config_t const& config)                      \
@@ -475,9 +494,9 @@ CLASS_NAME(name)                                                       \
                                                                        \
   required.insert(flag_required);                                      \
                                                                        \
-  conf(DECLARE_CONFIG, SEMICOLON);                                     \
-  iports(DECLARE_IPORT, SEMICOLON);                                    \
-  oports(DECLARE_OPORT, SEMICOLON);                                    \
+  conf(DECLARE_CONFIG, SEMICOLON)                                      \
+  iports(DECLARE_IPORT, SEMICOLON)                                     \
+  oports(DECLARE_OPORT, SEMICOLON)                                     \
 }                                                                      \
                                                                        \
 CLASS_NAME(name)                                                       \
@@ -489,7 +508,7 @@ void                                                                   \
 CLASS_NAME(name)                                                       \
 ::_init()                                                              \
 {                                                                      \
-  conf(GRAB_CONFIG_VALUE, SEMICOLON);                                  \
+  conf(GRAB_CONFIG_VALUE, SEMICOLON)                                   \
                                                                        \
   d.reset(new priv(conf(CONF_ARGS, COMMA)));                           \
 }                                                                      \
@@ -498,20 +517,20 @@ void                                                                   \
 CLASS_NAME(name)                                                       \
 ::_step()                                                              \
 {                                                                      \
-  iports(GRAB_FROM_IPORT, SEMICOLON);                                  \
+  iports(GRAB_FROM_IPORT, SEMICOLON)                                   \
                                                                        \
-  oports(DECLARE_RESULT_VARS, SEMICOLON);                              \
+  oports(DECLARE_RESULT_VARS, SEMICOLON)                               \
                                                                        \
   boost::tie(oports(RESULT, COMMA)) = func(iports(IPORT_ARGS, COMMA)); \
                                                                        \
-  oports(PUSH_TO_OPORT, SEMICOLON);                                    \
+  oports(PUSH_TO_OPORT, SEMICOLON)                                     \
                                                                        \
   process::_step();                                                    \
 }                                                                      \
                                                                        \
 CLASS_NAME(name)::priv                                                 \
 ::priv(conf(CONFIG_DECLARE_ARGS, COMMA))                               \
-  : conf(CONF_INIT_PRIV, COMMA)                                        \
+  conf(CONF_INIT_PRIV, INIT)                                           \
 {                                                                      \
 }                                                                      \
                                                                        \
