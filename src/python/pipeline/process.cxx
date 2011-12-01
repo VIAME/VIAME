@@ -45,8 +45,8 @@ class wrap_process
 
     constraints_t _base_constraints() const;
 
-    void _base_connect_input_port(port_t const& port, vistk::edge_ref_t edge);
-    void _base_connect_output_port(port_t const& port, vistk::edge_ref_t edge);
+    void _base_connect_input_port(port_t const& port, vistk::edge_t edge);
+    void _base_connect_output_port(port_t const& port, vistk::edge_t edge);
 
     ports_t _base_input_ports() const;
     ports_t _base_output_ports() const;
@@ -64,8 +64,8 @@ class wrap_process
 
     constraints_t _constraints() const;
 
-    void _connect_input_port(port_t const& port, vistk::edge_ref_t edge);
-    void _connect_output_port(port_t const& port, vistk::edge_ref_t edge);
+    void _connect_input_port(port_t const& port, vistk::edge_t edge);
+    void _connect_output_port(port_t const& port, vistk::edge_t edge);
 
     ports_t _input_ports() const;
     ports_t _output_ports() const;
@@ -85,8 +85,8 @@ class wrap_process
     void _mark_as_complete();
     vistk::stamp_t _heartbeat_stamp() const;
 
-    vistk::edge_ref_t _input_port_edge(port_t const& port) const;
-    vistk::edge_group_t _output_port_edges(port_t const& port) const;
+    vistk::edge_t _input_port_edge(port_t const& port) const;
+    vistk::edges_t _output_port_edges(port_t const& port) const;
 
     vistk::edge_datum_t _grab_from_port(port_t const& port) const;
     vistk::datum_t _grab_datum_from_port(port_t const& port) const;
@@ -97,27 +97,14 @@ class wrap_process
     vistk::config::value_t _config_value(vistk::config::key_t const& key) const;
 
     vistk::process::data_info_t _edge_data_info(vistk::edge_data_t const& data);
-    void _push_to_edges(vistk::edge_group_t const& edges, vistk::edge_datum_t const& dat);
-    vistk::edge_datum_t _grab_from_edge_ref(vistk::edge_ref_t const& edge);
+    void _push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat);
+    vistk::edge_datum_t _grab_from_edge(vistk::edge_t const& edge);
 };
 
 BOOST_PYTHON_MODULE(process)
 {
   register_exception_translator<
     vistk::process_exception>(translator);
-
-  class_<vistk::edge_ref_t>("EdgeRef"
-    , "A reference of an edge.")
-    .def("expired", &vistk::edge_ref_t::expired
-      , "Returns True if the reference is expired, False otherwise.")
-    .def("lock", &vistk::edge_ref_t::lock
-      , "Locks the reference and returns a usable edge.")
-  ;
-  class_<vistk::edge_group_t>("EdgeGroup"
-    , "A collection of references of edges.")
-    /// \todo Need an operator == for edge_ref_t.
-    //.def(vector_indexing_suite<vistk::edge_group_t>())
-  ;
 
   class_<vistk::process::name_t>("ProcessName"
     , "A type for the name of a process.");
@@ -369,7 +356,7 @@ BOOST_PYTHON_MODULE(process)
     .def("push_to_edges", &wrap_process::_push_to_edges
       , (arg("edges"), arg("datum"))
       , "Pushes the given datum packet to the edges.")
-    .def("grab_from_edge", &wrap_process::_grab_from_edge_ref
+    .def("grab_from_edge", &wrap_process::_grab_from_edge
       , (arg("edge"))
       , "Extracts a datum packet from the edge.")
   ;
@@ -435,14 +422,14 @@ wrap_process
 
 void
 wrap_process
-::_base_connect_input_port(port_t const& port, vistk::edge_ref_t edge)
+::_base_connect_input_port(port_t const& port, vistk::edge_t edge)
 {
   process::_connect_input_port(port, edge);
 }
 
 void
 wrap_process
-::_base_connect_output_port(port_t const& port, vistk::edge_ref_t edge)
+::_base_connect_output_port(port_t const& port, vistk::edge_t edge)
 {
   process::_connect_output_port(port, edge);
 }
@@ -539,7 +526,7 @@ wrap_process
 
 void
 wrap_process
-::_connect_input_port(port_t const& port, vistk::edge_ref_t edge)
+::_connect_input_port(port_t const& port, vistk::edge_t edge)
 {
   override const f = get_override("_connect_input_port");
 
@@ -555,7 +542,7 @@ wrap_process
 
 void
 wrap_process
-::_connect_output_port(port_t const& port, vistk::edge_ref_t edge)
+::_connect_output_port(port_t const& port, vistk::edge_t edge)
 {
   override const f = get_override("_connect_output_port");
 
@@ -700,14 +687,14 @@ wrap_process
   return heartbeat_stamp();
 }
 
-vistk::edge_ref_t
+vistk::edge_t
 wrap_process
 ::_input_port_edge(port_t const& port) const
 {
   return input_port_edge(port);
 }
 
-vistk::edge_group_t
+vistk::edges_t
 wrap_process
 ::_output_port_edges(port_t const& port) const
 {
@@ -765,14 +752,14 @@ wrap_process
 
 void
 wrap_process
-::_push_to_edges(vistk::edge_group_t const& edges, vistk::edge_datum_t const& dat)
+::_push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat)
 {
   push_to_edges(edges, dat);
 }
 
 vistk::edge_datum_t
 wrap_process
-::_grab_from_edge_ref(vistk::edge_ref_t const& edge)
+::_grab_from_edge(vistk::edge_t const& edge)
 {
-  return grab_from_edge_ref(edge);
+  return grab_from_edge(edge);
 }
