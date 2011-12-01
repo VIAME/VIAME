@@ -397,14 +397,14 @@ class VISTK_PIPELINE_EXPORT process
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
      */
-    virtual void _connect_input_port(port_t const& port, edge_ref_t edge);
+    virtual void _connect_input_port(port_t const& port, edge_t edge);
     /**
      * \brief Subclass output connection method.
      *
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
      */
-    virtual void _connect_output_port(port_t const& port, edge_ref_t edge);
+    virtual void _connect_output_port(port_t const& port, edge_t edge);
 
     /**
      * \brief Subclass input ports.
@@ -499,7 +499,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \return The edge connected to an input port, or \c NULL if there is none.
      */
-    edge_ref_t input_port_edge(port_t const& port) const;
+    edge_t input_port_edge(port_t const& port) const;
     /**
      * \brief Get the edges for an output port.
      *
@@ -507,7 +507,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns The edges connected to an output port.
      */
-    edge_group_t output_port_edges(port_t const& port) const;
+    edges_t output_port_edges(port_t const& port) const;
 
     /**
      * \brief Grabs an edge datum packet from a port.
@@ -643,7 +643,7 @@ class VISTK_PIPELINE_EXPORT process
      * \param edges The edges to push to.
      * \param dat The data to push.
      */
-    static void push_to_edges(edge_group_t const& edges, edge_datum_t const& dat);
+    static void push_to_edges(edges_t const& edges, edge_datum_t const& dat);
     /**
      * \brief Grabs a data from an edge.
      *
@@ -651,7 +651,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns The next datum from the edge.
      */
-    static edge_datum_t grab_from_edge_ref(edge_ref_t const& edge);
+    static edge_datum_t grab_from_edge(edge_t const& edge);
     /**
      * \brief Peeks at the next datum on an edge.
      *
@@ -659,7 +659,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns The next datum on the edge.
      */
-    static edge_datum_t peek_at_edge_ref(edge_ref_t const& edge);
+    static edge_datum_t peek_at_edge(edge_t const& edge);
   private:
     config::value_t config_value_raw(config::key_t const& key) const;
 

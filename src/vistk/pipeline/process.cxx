@@ -91,8 +91,8 @@ class process::priv
     ~priv();
 
     void run_heartbeat();
-    bool connect_input_port(port_t const& port, edge_ref_t edge);
-    bool connect_output_port(port_t const& port, edge_ref_t edge);
+    bool connect_input_port(port_t const& port, edge_t edge);
+    bool connect_output_port(port_t const& port, edge_t edge);
 
     edge_datum_t check_required_input(process* proc);
     void grab_from_input_edges();
@@ -105,8 +105,8 @@ class process::priv
     typedef std::map<port_t, port_info_t> port_map_t;
     typedef std::map<config::key_t, conf_info_t> conf_map_t;
 
-    typedef std::map<port_t, edge_ref_t> input_edge_map_t;
-    typedef std::map<port_t, edge_group_t> output_edge_map_t;
+    typedef std::map<port_t, edge_t> input_edge_map_t;
+    typedef std::map<port_t, edges_t> output_edge_map_t;
 
     port_map_t input_ports;
     port_map_t output_ports;
@@ -218,11 +218,9 @@ process
     throw connect_to_initialized_process_exception(d->name, port);
   }
 
-  edge_ref_t const ref = edge_ref_t(edge);
-
-  if (!d->connect_input_port(port, ref))
+  if (!d->connect_input_port(port, edge))
   {
-    _connect_input_port(port, ref);
+    _connect_input_port(port, edge);
   }
 }
 
@@ -235,11 +233,9 @@ process
     throw null_edge_port_connection_exception(d->name, port);
   }
 
-  edge_ref_t const ref = edge_ref_t(edge);
-
-  if (!d->connect_output_port(port, ref))
+  if (!d->connect_output_port(port, edge))
   {
-    _connect_output_port(port, ref);
+    _connect_output_port(port, edge);
   }
 }
 
@@ -375,7 +371,7 @@ process
 
 void
 process
-::_connect_input_port(port_t const& port, edge_ref_t edge)
+::_connect_input_port(port_t const& port, edge_t edge)
 {
   if (!d->connect_input_port(port, edge))
   {
@@ -385,7 +381,7 @@ process
 
 void
 process
-::_connect_output_port(port_t const& port, edge_ref_t edge)
+::_connect_output_port(port_t const& port, edge_t edge)
 {
   if (!d->connect_output_port(port, edge))
   {
@@ -517,7 +513,7 @@ process
   // Indicate to input edges that we are complete.
   BOOST_FOREACH (priv::input_edge_map_t::value_type& port_edge, d->input_edges)
   {
-    edge_t edge = port_edge.second.lock();
+    edge_t& edge = port_edge.second;
 
     edge->mark_downstream_as_complete();
   }
@@ -530,7 +526,7 @@ process
   return d->hb_stamp;
 }
 
-edge_ref_t
+edge_t
 process
 ::input_port_edge(port_t const& port) const
 {
@@ -545,13 +541,13 @@ process
 
   if (e == d->input_edges.end())
   {
-    return edge_ref_t();
+    return edge_t();
   }
 
   return e->second;
 }
 
-edge_group_t
+edges_t
 process
 ::output_port_edges(port_t const& port) const
 {
@@ -566,7 +562,7 @@ process
 
   if (e == d->output_edges.end())
   {
-    return edge_group_t();
+    return edges_t();
   }
 
   return e->second;
@@ -592,7 +588,7 @@ process
     throw missing_connection_exception(d->name, port, reason);
   }
 
-  return grab_from_edge_ref(e->second);
+  return grab_from_edge(e->second);
 }
 
 datum_t
@@ -700,32 +696,26 @@ process
 
 void
 process
-::push_to_edges(edge_group_t const& edges, edge_datum_t const& dat)
+::push_to_edges(edges_t const& edges, edge_datum_t const& dat)
 {
-  BOOST_FOREACH (edge_ref_t const& e, edges)
+  BOOST_FOREACH (edge_t const& edge, edges)
   {
-    edge_t const cur_edge = e.lock();
-
-    cur_edge->push_datum(dat);
+    edge->push_datum(dat);
   }
 }
 
 edge_datum_t
 process
-::grab_from_edge_ref(edge_ref_t const& edge)
+::grab_from_edge(edge_t const& edge)
 {
-  edge_t const cur_edge = edge.lock();
-
-  return cur_edge->get_datum();
+  return edge->get_datum();
 }
 
 edge_datum_t
 process
-::peek_at_edge_ref(edge_ref_t const& edge)
+::peek_at_edge(edge_t const& edge)
 {
-  edge_t const cur_edge = edge.lock();
-
-  return cur_edge->peek_datum();
+  return edge->peek_datum();
 }
 
 config::value_t
@@ -788,13 +778,13 @@ process::priv
 
 bool
 process::priv
-::connect_input_port(port_t const& port, edge_ref_t edge)
+::connect_input_port(port_t const& port, edge_t edge)
 {
   port_map_t::iterator i = input_ports.find(port);
 
   if (i != input_ports.end())
   {
-    if (!input_edges[port].expired())
+    if (input_edges[port])
     {
       throw port_reconnect_exception(name, port);
     }
@@ -809,7 +799,7 @@ process::priv
 
 bool
 process::priv
-::connect_output_port(port_t const& port, edge_ref_t edge)
+::connect_output_port(port_t const& port, edge_t edge)
 {
   port_map_t::iterator i = output_ports.find(port);
 
@@ -844,7 +834,7 @@ process::priv
       continue;
     }
 
-    data.push_back(peek_at_edge_ref(i->second));
+    data.push_back(peek_at_edge(i->second));
   }
 
   data_info_t const info = edge_data_info(data);
@@ -907,8 +897,7 @@ process::priv
 {
   BOOST_FOREACH (input_edge_map_t::value_type const& edge_for_port, input_edges)
   {
-    edge_ref_t const& edge_ref = edge_for_port.second;
-    edge_t const edge = edge_ref.lock();
+    edge_t const& edge = edge_for_port.second;
 
     if (edge->has_data())
     {
@@ -931,12 +920,10 @@ process::priv
       continue;
     }
 
-    edge_group_t const& edges = edges_for_port.second;
+    edges_t const& edges = edges_for_port.second;
 
-    BOOST_FOREACH (edge_ref_t const& edge_ref, edges)
+    BOOST_FOREACH (edge_t const& edge, edges)
     {
-      edge_t const edge = edge_ref.lock();
-
       edge->push_datum(edat);
     }
   }
@@ -960,12 +947,10 @@ process::priv
       continue;
     }
 
-    edge_group_t const& edges = i->second;
+    edges_t const& edges = i->second;
 
-    BOOST_FOREACH (edge_ref_t const& edge_ref, edges)
+    BOOST_FOREACH (edge_t const& edge, edges)
     {
-      edge_t const edge = edge_ref.lock();
-
       // If any required edge is not complete, then return false.
       if (!edge->is_downstream_complete())
       {

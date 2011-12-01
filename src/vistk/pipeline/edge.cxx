@@ -13,6 +13,7 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/weak_ptr.hpp>
 
 #include <queue>
 
@@ -31,14 +32,16 @@ class edge::priv
     priv();
     ~priv();
 
+    typedef boost::weak_ptr<process> process_ref_t;
+
     bool has_data() const;
     void complete_check() const;
 
     bool required;
     bool downstream_complete;
 
-    process_t upstream;
-    process_t downstream;
+    process_ref_t upstream;
+    process_ref_t downstream;
 
     std::queue<edge_datum_t> q;
 
@@ -231,9 +234,11 @@ edge
     throw null_process_connection_exception();
   }
 
-  if (d->upstream)
+  if (!d->upstream.expired())
   {
-    throw input_already_connected_exception(d->upstream->name(), process->name());
+    process_t const up = d->upstream.lock();
+
+    throw input_already_connected_exception(up->name(), process->name());
   }
 
   d->upstream = process;
@@ -248,9 +253,11 @@ edge
     throw null_process_connection_exception();
   }
 
-  if (d->downstream)
+  if (!d->downstream.expired())
   {
-    throw output_already_connected_exception(d->downstream->name(), process->name());
+    process_t const down = d->downstream.lock();
+
+    throw output_already_connected_exception(down->name(), process->name());
   }
 
   d->downstream = process;
