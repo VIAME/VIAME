@@ -117,7 +117,7 @@ timestamper_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  if (!input_port_edge(priv::port_color).expired())
+  if (input_port_edge(priv::port_color))
   {
     d->has_color = true;
   }

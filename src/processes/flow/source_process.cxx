@@ -29,7 +29,7 @@ class source_process::priv
     ~priv();
 
     stamp_t color_stamp;
-    edge_group_t edges;
+    edges_t edges;
 
     static port_t const port_output;
 };
@@ -79,10 +79,8 @@ source_process
   {
     has_incomplete = false;
 
-    BOOST_FOREACH (edge_ref_t& edge_ref, d->edges)
+    BOOST_FOREACH (edge_t const& edge, d->edges)
     {
-      edge_t const edge = edge_ref.lock();
-
       if (!edge->is_downstream_complete())
       {
         has_incomplete = true;

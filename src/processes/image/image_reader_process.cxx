@@ -175,7 +175,7 @@ image_reader_process
     d->fin.seekg(0, std::ios::beg);
   }
 
-  if (!input_port_edge(priv::port_color).expired())
+  if (input_port_edge(priv::port_color))
   {
     d->has_color = true;
   }

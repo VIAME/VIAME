@@ -229,7 +229,7 @@ video_reader_process
     }
   }
 
-  if (!input_port_edge(priv::port_color).expired())
+  if (input_port_edge(priv::port_color))
   {
     d->has_color = true;
   }

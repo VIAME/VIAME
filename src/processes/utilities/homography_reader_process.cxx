@@ -120,7 +120,7 @@ homography_reader_process
     throw invalid_configuration_exception(name(), "Failed to open the path: " + file_path);
   }
 
-  if (!input_port_edge(priv::port_color).expired())
+  if (input_port_edge(priv::port_color))
   {
     d->has_color = true;
   }
