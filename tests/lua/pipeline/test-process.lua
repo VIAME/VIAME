@@ -21,8 +21,6 @@ function test_create()
     require("vistk.pipeline.datum")
     require("vistk.pipeline.process")
 
-    vistk.pipeline.edge_ref()
-    vistk.pipeline.edge_group()
     vistk.pipeline.process_name()
     vistk.pipeline.process_names()
     vistk.pipeline.constraint()

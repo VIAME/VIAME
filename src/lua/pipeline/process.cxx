@@ -45,8 +45,8 @@ class wrap_process
 
     constraints_t _base_constraints() const;
 
-    void _base_connect_input_port(port_t const& port, vistk::edge_ref_t edge);
-    void _base_connect_output_port(port_t const& port, vistk::edge_ref_t edge);
+    void _base_connect_input_port(port_t const& port, vistk::edge_t edge);
+    void _base_connect_output_port(port_t const& port, vistk::edge_t edge);
 
     ports_t _base_input_ports() const;
     ports_t _base_output_ports() const;
@@ -64,8 +64,8 @@ class wrap_process
 
     constraints_t _constraints() const;
 
-    void _connect_input_port(port_t const& port, vistk::edge_ref_t edge);
-    void _connect_output_port(port_t const& port, vistk::edge_ref_t edge);
+    void _connect_input_port(port_t const& port, vistk::edge_t edge);
+    void _connect_output_port(port_t const& port, vistk::edge_t edge);
 
     ports_t _input_ports() const;
     ports_t _output_ports() const;
@@ -85,8 +85,8 @@ class wrap_process
     void _mark_as_complete();
     vistk::stamp_t _heartbeat_stamp() const;
 
-    vistk::edge_ref_t _input_port_edge(port_t const& port) const;
-    vistk::edge_group_t _output_port_edge(port_t const& port) const;
+    vistk::edge_t _input_port_edge(port_t const& port) const;
+    vistk::edges_t _output_port_edges(port_t const& port) const;
 
     vistk::edge_datum_t _grab_from_port(port_t const& port) const;
     void _push_to_port(port_t const& port, vistk::edge_datum_t const& dat) const;
@@ -95,8 +95,8 @@ class wrap_process
     vistk::config::value_t _config_value(vistk::config::key_t const& key) const;
 
     vistk::process::data_info_t _edge_data_info(vistk::edge_data_t const& data);
-    void _push_to_edges(vistk::edge_group_t const& edges, vistk::edge_datum_t const& dat);
-    vistk::edge_datum_t _grab_from_edge_ref(vistk::edge_ref_t const& edge);
+    void _push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat);
+    vistk::edge_datum_t _grab_from_edge(vistk::edge_t const& edge);
 };
 
 int
@@ -108,12 +108,7 @@ luaopen_vistk_pipeline_process(lua_State* L)
   [
     namespace_("pipeline")
     [
-      class_<vistk::edge_ref_t>("edge_ref")
-        .def(constructor<>())
-        .def(constructor<vistk::edge_t>())
-    , class_<vistk::edge_group_t>("edge_group")
-        .def(constructor<>())
-    , class_<vistk::process::name_t>("process_name")
+      class_<vistk::process::name_t>("process_name")
         .def(constructor<>())
     , class_<vistk::process::names_t>("process_names")
         .def(constructor<>())
@@ -195,13 +190,15 @@ luaopen_vistk_pipeline_process(lua_State* L)
         .def("declare_configuration_key", &wrap_process::_declare_configuration_key)
         .def("mark_as_complete", &wrap_process::_mark_as_complete)
         .def("heartbeat_stamp", &wrap_process::_heartbeat_stamp)
+        .def("input_port_edge", &wrap_process::_input_port_edge)
+        .def("output_port_edges", &wrap_process::_output_port_edges)
         .def("grab_from_port", &wrap_process::_grab_from_port)
         .def("push_to_port", &wrap_process::_push_to_port)
         .def("get_config", &wrap_process::_get_config)
         .def("config_value", &wrap_process::_config_value)
         .def("edge_data_info", &wrap_process::_edge_data_info)
         .def("push_to_edges", &wrap_process::_push_to_edges)
-        .def("grab_from_edge", &wrap_process::_grab_from_edge_ref)
+        .def("grab_from_edge", &wrap_process::_grab_from_edge)
     ]
   ];
 
@@ -265,14 +262,14 @@ wrap_process
 
 void
 wrap_process
-::_base_connect_input_port(port_t const& port, vistk::edge_ref_t edge)
+::_base_connect_input_port(port_t const& port, vistk::edge_t edge)
 {
   process::_connect_input_port(port, edge);
 }
 
 void
 wrap_process
-::_base_connect_output_port(port_t const& port, vistk::edge_ref_t edge)
+::_base_connect_output_port(port_t const& port, vistk::edge_t edge)
 {
   process::_connect_output_port(port, edge);
 }
@@ -342,14 +339,14 @@ wrap_process
 
 void
 wrap_process
-::_connect_input_port(port_t const& port, vistk::edge_ref_t edge)
+::_connect_input_port(port_t const& port, vistk::edge_t edge)
 {
   call<void>("_connect_input_port", port, edge);
 }
 
 void
 wrap_process
-::_connect_output_port(port_t const& port, vistk::edge_ref_t edge)
+::_connect_output_port(port_t const& port, vistk::edge_t edge)
 {
   call<void>("_connect_output_port", port, edge);
 }
@@ -431,16 +428,16 @@ wrap_process
   return heartbeat_stamp();
 }
 
-vistk::edge_ref_t
+vistk::edge_t
 wrap_process
 ::_input_port_edge(port_t const& port) const
 {
   return input_port_edge(port);
 }
 
-vistk::edge_group_t
+vistk::edges_t
 wrap_process
-::_output_port_edge(port_t const& port) const
+::_output_port_edges(port_t const& port) const
 {
   return output_port_edges(port);
 }
@@ -482,14 +479,14 @@ wrap_process
 
 void
 wrap_process
-::_push_to_edges(vistk::edge_group_t const& edges, vistk::edge_datum_t const& dat)
+::_push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat)
 {
   push_to_edges(edges, dat);
 }
 
 vistk::edge_datum_t
 wrap_process
-::_grab_from_edge_ref(vistk::edge_ref_t const& edge)
+::_grab_from_edge(vistk::edge_t const& edge)
 {
-  return grab_from_edge_ref(edge);
+  return grab_from_edge(edge);
 }
