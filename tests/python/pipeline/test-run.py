@@ -62,7 +62,7 @@ def make_source(conf):
             self.end = int(self.config_value(self.conf_end))
 
             self.has_color = False
-            if not self.input_port_edge(self.port_color).expired():
+            if self.input_port_edge(self.port_color):
                 self.has_color = True
 
             self.stamp = self.heartbeat_stamp()
