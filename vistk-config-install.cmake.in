@@ -1,0 +1,2 @@
+# Include the library targets
+include(@LIBRARY_INSTALL_PATH@/cmake/vistk-config-targets.cmake)

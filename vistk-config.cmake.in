@@ -1,0 +1,4 @@
+# vistk include directory
+set(VISTK_INCLUDE_DIRS
+  "@CMAKE_SOURCE_DIR@/src"
+  "@CMAKE_BINARY_DIR@/src")
