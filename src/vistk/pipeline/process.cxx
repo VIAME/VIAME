@@ -66,6 +66,7 @@ void
 process
 ::init()
 {
+  process::_init();
 }
 
 void
