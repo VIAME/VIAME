@@ -5,12 +5,14 @@
  */
 
 #include <vistk/pipeline_util/pipe_declaration_types.h>
+#include <vistk/pipeline_util/load_pipe.h>
 
 #include <vistk/pipeline/modules.h>
 
 #include <boost/filesystem/path.hpp>
 #include <boost/variant.hpp>
 
+#include <algorithm>
 #include <exception>
 #include <iostream>
 #include <string>
@@ -51,10 +53,16 @@ main(int argc, char* argv[])
   return 0;
 }
 
+static void test_empty(boost::filesystem::path const& pipe_file);
+
 void
 run_test(std::string const& test_name, boost::filesystem::path const& pipe_file)
 {
-  //else
+  if (test_name == "empty")
+  {
+    test_empty(pipe_file);
+  }
+  else
   {
     std::cerr << "Error: Unknown test: " << test_name << std::endl;
   }
@@ -99,6 +107,18 @@ class test_visitor
 
     block_types_t types;
 };
+
+void
+test_empty(boost::filesystem::path const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 0);
+}
 
 test_visitor
 ::test_visitor()
