@@ -8,8 +8,6 @@ set(pipeline_srcs
   modules.cxx
   pipeline.cxx
   pipeline_exception.cxx
-  pipeline_registry.cxx
-  pipeline_registry_exception.cxx
   process.cxx
   process_exception.cxx
   process_registry.cxx
@@ -27,8 +25,6 @@ set(pipeline_headers
   pipeline-config.h
   pipeline.h
   pipeline_exception.h
-  pipeline_registry.h
-  pipeline_registry_exception.h
   process.h
   process_exception.h
   process_registry.h

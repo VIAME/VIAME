@@ -52,7 +52,6 @@ typedef std::string function_name_t;
 static void load_from_module(module_path_t const path);
 static bool is_separator(char ch);
 
-static function_name_t const pipeline_function_name = function_name_t("register_pipelines");
 static function_name_t const process_function_name = function_name_t("register_processes");
 static envvar_name_t const vistk_module_envvar = envvar_name_t("VISTK_MODULE_PATH");
 static lib_suffix_t const library_suffix = lib_suffix_t(
@@ -151,29 +150,17 @@ void load_from_module(module_path_t const path)
   {
     wchar_t function_name[MB_CUR_MAX];
 
-    mbstowcs(function_name, pipeline_function_name.c_str(), MB_CUR_MAX);
-    pipeline_function = GetProcAddress(library, function_name);
-
     mbstowcs(function_name, process_function_name.c_str(), MB_CUR_MAX);
     process_function = GetProcAddress(library, function_name);
   }
 #else
-  function_t pipeline_function = dlsym(library, pipeline_function_name.c_str());
   function_t process_function = dlsym(library, process_function_name.c_str());
 #endif
 
-  load_module_t pipeline_registrar = reinterpret_cast<load_module_t>(pipeline_function);
   load_module_t process_registrar = reinterpret_cast<load_module_t>(process_function);
 
   bool functions_found = false;
 
-  if (pipeline_registrar)
-  {
-    /// \todo Log info that we have loaded pipelines.
-
-    (*pipeline_registrar)();
-    functions_found = true;
-  }
   if (process_registrar)
   {
     /// \todo Log info that we have loaded processes.

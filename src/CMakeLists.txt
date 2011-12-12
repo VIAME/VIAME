@@ -25,5 +25,4 @@ function (add_vistk_plugin name define)
     COMPONENT   runtime)
 endfunction (add_vistk_plugin name define)
 
-add_subdirectory(pipelines)
 add_subdirectory(processes)

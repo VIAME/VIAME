@@ -47,10 +47,6 @@ class pipeline;
 /// A typedef used to handle \link pipeline pipelines\endlink.
 typedef boost::shared_ptr<pipeline> pipeline_t;
 
-class pipeline_registry;
-/// A typedef used to handle \link pipeline_registry pipeline registries\endlink.
-typedef boost::shared_ptr<pipeline_registry> pipeline_registry_t;
-
 class process;
 /// A typedef used to handle \link process processes\endlink.
 typedef boost::shared_ptr<process> process_t;
