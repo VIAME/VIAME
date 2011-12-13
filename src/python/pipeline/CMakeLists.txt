@@ -8,5 +8,14 @@ target_link_libraries(python-config
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
+add_vistk_python_library(edge
+  vistk/pipeline
+  edge.cxx)
+target_link_libraries(python-edge
+  vistk_pipeline
+  ${Boost_PYTHON_LIBRARY}
+  ${PYTHON_LIBRARIES})
+
 make_python_init_file(vistk/pipeline
-  config)
+  config
+  edge)
