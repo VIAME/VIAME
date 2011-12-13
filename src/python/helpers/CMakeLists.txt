@@ -13,3 +13,14 @@ if (NOT WIN32)
     PROPERTIES
       COMPILE_FLAGS "-fPIC")
 endif (NOT WIN32)
+
+add_library(python_gil STATIC
+  python_gil.cxx)
+target_link_libraries(python_gil
+  ${PYTHON_LIBRARIES})
+
+if (NOT WIN32)
+  set_target_properties(python_gil
+    PROPERTIES
+      COMPILE_FLAGS "-fPIC")
+endif (NOT WIN32)
