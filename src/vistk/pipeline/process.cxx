@@ -243,7 +243,7 @@ process
 }
 
 process
-::process(config_t const& config) throw()
+::process(config_t const& config)
 {
   if (!config)
   {

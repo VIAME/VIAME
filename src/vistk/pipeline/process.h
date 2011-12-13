@@ -287,7 +287,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \param config Contains configuration for the process.
      */
-    process(config_t const& config) throw();
+    process(config_t const& config);
     /**
      * \brief Destructor.
      */
