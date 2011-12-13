@@ -10,6 +10,7 @@
 #include "number_process.h"
 #include "orphan_process.h"
 #include "print_number_process.h"
+#include "print_string_process.h"
 
 #include <vistk/pipeline/process_registry.h>
 
@@ -19,6 +20,7 @@ static process_t create_multiplication_process(config_t const& config);
 static process_t create_number_process(config_t const& config);
 static process_t create_orphan_process(config_t const& config);
 static process_t create_print_number_process(config_t const& config);
+static process_t create_print_string_process(config_t const& config);
 
 void
 register_processes()
@@ -29,6 +31,7 @@ register_processes()
   registry->register_process("numbers", "Outputs numbers within a range", create_number_process);
   registry->register_process("orphan", "A dummy process", create_orphan_process);
   registry->register_process("print_number", "Print numbers to a file", create_print_number_process);
+  registry->register_process("print_string", "Print strings to a file", create_print_string_process);
 }
 
 process_t
@@ -53,4 +56,10 @@ process_t
 create_print_number_process(config_t const& config)
 {
   return process_t(new print_number_process(config));
+}
+
+process_t
+create_print_string_process(config_t const& config)
+{
+  return process_t(new print_string_process(config));
 }

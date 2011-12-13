@@ -5,6 +5,7 @@ set(examples_srcs
   number_process.cxx
   orphan_process.cxx
   print_number_process.cxx
+  print_string_process.cxx
   registration.cxx)
 
 set(print_number_process_build_options
@@ -13,6 +14,13 @@ set(print_number_process_build_options
 set_source_files_properties(print_number_process.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${print_number_process_build_options}")
+
+set(print_string_process_build_options
+  ${boost_filesystem_options})
+
+set_source_files_properties(print_string_process.cxx
+  PROPERTIES
+    COMPILE_DEFINITIONS "${print_string_process_build_options}")
 
 add_vistk_plugin(processes_examples
   MAKE_VISTK_PROCESSES_EXAMPLES_LIB
