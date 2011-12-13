@@ -42,6 +42,7 @@ static void test_get_value();
 static void test_get_value_no_exist();
 static void test_get_value_type_mismatch();
 static void test_unset_value();
+static void test_read_only();
 
 void
 run_test(std::string const& test_name)
@@ -65,6 +66,10 @@ run_test(std::string const& test_name)
   else if (test_name == "unset_value")
   {
     test_unset_value();
+  }
+  else if (test_name == "read_only")
+  {
+    test_read_only();
   }
   else
   {
@@ -246,5 +251,51 @@ test_unset_value()
   if (valueb != get_valueb)
   {
     std::cerr << "Error: Did not retrieve default when requesting value after an unrelated unset" << std::endl;
+  }
+}
+
+void
+test_read_only()
+{
+  vistk::config_t config = vistk::config::empty_config();
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
+
+  config->set_value(keya, valuea);
+
+  config->mark_read_only(keya);
+
+  bool got_exception = false;
+
+  try
+  {
+    config->set_value(keya, valueb);
+  }
+  catch (vistk::set_on_read_only_value_exception&)
+  {
+    got_exception = true;
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: Unexpected exception: "
+              << e.what() << std::endl;
+
+    got_exception = true;
+  }
+
+  if (!got_exception)
+  {
+    std::cerr << "Error: Did not get expected exception "
+              << "when setting a read only value" << std::endl;
+  }
+
+  vistk::config::value_t const get_valuea = config->get_value<vistk::config::value_t>(keya);
+
+  if (valuea != get_valuea)
+  {
+    std::cerr << "Error: Read only value changed" << std::endl;
   }
 }
