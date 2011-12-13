@@ -42,6 +42,7 @@ static void test_get_value();
 static void test_get_value_no_exist();
 static void test_get_value_type_mismatch();
 static void test_unset_value();
+static void test_available_values();
 static void test_read_only();
 
 void
@@ -66,6 +67,10 @@ run_test(std::string const& test_name)
   else if (test_name == "unset_value")
   {
     test_unset_value();
+  }
+  else if (test_name == "available_values")
+  {
+    test_available_values();
   }
   else if (test_name == "read_only")
   {
@@ -251,6 +256,33 @@ test_unset_value()
   if (valueb != get_valueb)
   {
     std::cerr << "Error: Did not retrieve default when requesting value after an unrelated unset" << std::endl;
+  }
+}
+
+void
+test_available_values()
+{
+  vistk::config_t config = vistk::config::empty_config();
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
+
+  config->set_value(keya, valuea);
+  config->set_value(keyb, valueb);
+
+  vistk::config::keys_t keys;
+
+  keys.push_back(keya);
+  keys.push_back(keyb);
+
+  vistk::config::keys_t const get_keys = config->available_values();
+
+  if (keys.size() != get_keys.size())
+  {
+    std::cerr << "Error: Did not retrieve correct number of keys" << std::endl;
   }
 }
 
