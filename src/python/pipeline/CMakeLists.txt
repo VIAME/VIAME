@@ -8,6 +8,14 @@ target_link_libraries(python-config
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
+add_vistk_python_library(datum
+  vistk/pipeline
+  datum.cxx)
+target_link_libraries(python-datum
+  vistk_pipeline
+  ${Boost_PYTHON_LIBRARY}
+  ${PYTHON_LIBRARIES})
+
 add_vistk_python_library(edge
   vistk/pipeline
   edge.cxx)
@@ -66,6 +74,7 @@ target_link_libraries(python-schedule_registry
 
 make_python_init_file(vistk/pipeline
   config
+  datum
   edge
   modules
   pipeline
