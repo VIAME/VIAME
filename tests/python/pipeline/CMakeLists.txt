@@ -11,3 +11,4 @@ configure_file(
 vistk_declare_test(python-config)
 
 vistk_make_python_test(python-config import)
+vistk_make_python_test(python-config create)

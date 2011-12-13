@@ -17,9 +17,20 @@ def test_import():
         stderr.write("Error: Failed to import the config module")
 
 
+def test_create():
+    from vistk.pipeline import config
+
+    try:
+        config.empty_config()
+    except:
+        stderr.write("Error: Failed to create an empty configuration")
+
+
 def main(testname):
     if testname == 'import':
         test_import()
+    elif testname == 'create':
+        test_create()
     else:
         stderr.write("Error: No such test '%s'" % testname)
 
