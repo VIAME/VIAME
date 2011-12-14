@@ -28,9 +28,9 @@ include(CTest)
 find_program(VALGRIND_EXECUTABLE valgrind)
 
 if (VALGRIND_EXECUTABLE)
-  set(VISTK_VALGRIND_GENERATE_SUPPRESSIONS OFF CACHE BOOL "Output suppression rules for valgrind leak detections")
-  set(VISTK_VALGRIND_VERBOSE OFF CACHE BOOL "Make valgrind verbose")
-  set(VISTK_VALGRIND_USE_SUPPRESSIONS ON CACHE BOOL "Suppress known leaks in valgrind")
+  option(VISTK_VALGRIND_GENERATE_SUPPRESSIONS "Output suppression rules for valgrind leak detections" OFF)
+  option(VISTK_VALGRIND_VERBOSE "Make valgrind verbose" OFF)
+  option(VISTK_VALGRIND_USE_SUPPRESSIONS "Suppress known leaks in valgrind" ON)
 
   set(vistk_valgrind_arguments)
   if (VISTK_VALGRIND_GENERATE_SUPPRESSIONS)
