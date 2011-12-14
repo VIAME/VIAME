@@ -1,5 +1,7 @@
 project(vistk_tools)
 
+add_subdirectory(pipelines)
+
 find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
     program_options)
