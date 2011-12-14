@@ -22,12 +22,16 @@ set(pipeline_util_headers
   pipeline_util-config.h)
 
 set(vistk_default_pipe_include_paths
-  "${PIPE_INCLUDE_INSTALL_PATH}")
+  "${PIPE_INSTALL_PATH}")
 
 if (WIN32)
   set(vistk_default_pipe_include_paths
+    "${vistk_default_pipe_include_paths};${PIPE_INCLUDE_INSTALL_PATH}")
+  set(vistk_default_pipe_include_paths
     "${vistk_default_pipe_include_paths};${CMAKE_SOURCE_DIR}/src/tools/include")
 else (WIN32)
+  set(vistk_default_pipe_include_paths
+    "${vistk_default_pipe_include_paths}:${PIPE_INCLUDE_INSTALL_PATH}")
   set(vistk_default_pipe_include_paths
     "${vistk_default_pipe_include_paths}:${CMAKE_SOURCE_DIR}/src/tools/include")
 endif (WIN32)
