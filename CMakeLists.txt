@@ -153,6 +153,11 @@ endforeach (config)
 option(VISTK_ENABLE_LUA "Enable Lua bindings" OFF)
 option(VISTK_ENABLE_PYTHON "Enable Python bindings" OFF)
 
+option(VISTK_ENABLE_EXTRAS "Enable extra files to help with tooling" OFF)
+if (VISTK_ENABLE_EXTRAS)
+  add_subdirectory(extra)
+endif (VISTK_ENABLE_EXTRAS)
+
 option(VISTK_ENABLE_DOCUMENTATION "Build documentation" OFF)
 if (VISTK_ENABLE_DOCUMENTATION)
   include(${CMAKE_SOURCE_DIR}/cmake/doxygen.cmake)
