@@ -39,11 +39,6 @@
  * that any situation where data is shared across threads where more than one
  * thread expects to be able to modify the data is detected as an error.
  *
- * A special case is allowed for processes that are coded such that they can be
- * run concurrently with itself. By returning \c true from the \ref
- * vistk::process::is_reentrant method, a \ref vistk::schedule can optimize the
- * execution of the pipeline to allow a process to run beside itself.
- *
  * \section design_error_handling Error Handling
  *
  * Errors within the pipeline are indicated with exceptions. Exceptions allow
