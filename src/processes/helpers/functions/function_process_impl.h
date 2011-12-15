@@ -388,20 +388,50 @@
  */
 #define COLON :
 
+/**
+ * \def BEG
+ *
+ * \brief Expands into the starting symbol for the context of an expansion.
+ *
+ * \param ctx The context.
+ */
 #define BEG(ctx) BEG_##ctx
+/**
+ * \def SEP
+ *
+ * \brief Expands into the separator symbol for the context of an expansion.
+ *
+ * \param ctx The context.
+ */
 #define SEP(ctx) SEP_##ctx
+/**
+ * \def END
+ *
+ * \brief Expands into the terminal symbol for the context of an expansion.
+ *
+ * \param ctx The context.
+ */
 #define END(ctx) END_##ctx
 
+/// The starting symbol when expansion becomes lines.
 #define BEG_LINES
+///The separator symbol when expansion becomes lines.
 #define SEP_LINES SEMICOLON
+///The terminal symbol when expansion becomes lines.
 #define END_LINES SEMICOLON
 
+///The terminal symbol when expansion becomes an argument list.
 #define BEG_ARGS
+///The terminal symbol when expansion becomes an argument list.
 #define SEP_ARGS COMMA
+///The terminal symbol when expansion becomes an argument list.
 #define END_ARGS
 
+///The terminal symbol when expansion becomes an initializer list.
 #define BEG_INIT COLON
+///The terminal symbol when expansion becomes an initializer list.
 #define SEP_INIT COMMA
+///The terminal symbol when expansion becomes an initializer list.
 #define END_INIT
 
 /**
