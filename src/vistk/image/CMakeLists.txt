@@ -9,8 +9,13 @@ set(image_headers
 
 add_library(vistk_image
   ${image_srcs})
-target_link_libraries(vistk_image)
-target_link_libraries(vistk_image LINK_INTERFACE_LIBRARIES)
+target_link_libraries(vistk_image
+  vistk_utilities
+  vil
+  vgl)
+target_link_libraries(vistk_image LINK_INTERFACE_LIBRARIES
+  vistk_utilities
+  vil)
 set_target_properties(vistk_image
   PROPERTIES
     VERSION       ${vistk_version}
