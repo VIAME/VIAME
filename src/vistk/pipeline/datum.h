@@ -55,12 +55,23 @@ class VISTK_PIPELINE_EXPORT datum
     /**
      * \brief Create a datum with the #data type.
      *
-     * \param datum The data to pass through the edge.
+     * This method is for bindings to be able to create boost::any objects
+     * manually.
+     *
+     * \param dat The data to pass through the edge.
+     *
+     * \returns A new datum containing a result.
+     */
+    static datum_t new_datum(boost::any const& dat);
+    /**
+     * \brief Create a datum with the #data type.
+     *
+     * \param dat The data to pass through the edge.
      *
      * \returns A new datum containing a result.
      */
     template <typename T>
-    static datum_t new_datum(T const& datum);
+    static datum_t new_datum(T const& dat);
     /**
      * \brief Create a datum with the #empty type.
      *
@@ -161,14 +172,6 @@ datum_t
 datum::new_datum(T const& dat)
 {
   return datum_t(new datum(boost::any(dat)));
-}
-
-template <>
-inline
-datum_t
-datum::new_datum(boost::any const& dat)
-{
-  return datum_t(new datum(dat));
 }
 
 template <typename T>

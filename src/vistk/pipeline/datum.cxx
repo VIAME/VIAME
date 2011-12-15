@@ -18,6 +18,12 @@ namespace vistk
 {
 
 datum_t
+datum::new_datum(boost::any const& dat)
+{
+  return datum_t(new datum(dat));
+}
+
+datum_t
 datum
 ::empty_datum()
 {
