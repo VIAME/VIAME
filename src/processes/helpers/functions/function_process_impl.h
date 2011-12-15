@@ -378,23 +378,29 @@
  * define.
  */
 #define SEMICOLON ;
+/**
+ * \def COLON
+ *
+ * \brief A macro which expands to a colon.
+ *
+ * Not necessary, <em>per se</em>, but is used more to match the other symbol
+ * defines.
+ */
+#define COLON :
 
-#define BEG(symbol) BEG_##symbol
-#define SEP(symbol) SEP_##symbol
-#define END(symbol) END_##symbol
+#define BEG(ctx) BEG_##ctx
+#define SEP(ctx) SEP_##ctx
+#define END(ctx) END_##ctx
 
-#define SEMICOLON     ;
-#define BEG_SEMICOLON
-#define SEP_SEMICOLON SEMICOLON
-#define END_SEMICOLON SEMICOLON
+#define BEG_LINES
+#define SEP_LINES SEMICOLON
+#define END_LINES SEMICOLON
 
-#define COMMA     ,
-#define BEG_COMMA
-#define SEP_COMMA COMMA
-#define END_COMMA
+#define BEG_ARGS
+#define SEP_ARGS COMMA
+#define END_ARGS
 
-#define INIT     ,
-#define BEG_INIT :
+#define BEG_INIT COLON
 #define SEP_INIT COMMA
 #define END_INIT
 
@@ -470,73 +476,73 @@
  * \param iports The macro which expands to information for input ports.
  * \param oports The macro which expands to information for output ports.
  */
-#define IMPLEMENT_FUNCTION_PROCESS(name, func, conf, iports, oports)   \
-class CLASS_NAME(name)::priv                                           \
-{                                                                      \
-  public:                                                              \
-    priv(conf(CONFIG_DECLARE_ARGS, COMMA));                            \
-    ~priv();                                                           \
-                                                                       \
-    conf(DECLARE_CONF_VARS, SEMICOLON)                                 \
-    iports(DECLARE_IPORT_VARS, SEMICOLON)                              \
-    oports(DECLARE_OPORT_VARS, SEMICOLON)                              \
-};                                                                     \
-                                                                       \
-conf(DEFINE_CONF_VARS, SEMICOLON)                                      \
-iports(DEFINE_IPORT_VARS, SEMICOLON)                                   \
-oports(DEFINE_OPORT_VARS, SEMICOLON)                                   \
-                                                                       \
-CLASS_NAME(name)                                                       \
-::CLASS_NAME(name)(vistk::config_t const& config)                      \
-  : vistk::process(config)                                             \
-{                                                                      \
-  port_flags_t required;                                               \
-                                                                       \
-  required.insert(flag_required);                                      \
-                                                                       \
-  conf(DECLARE_CONFIG, SEMICOLON)                                      \
-  iports(DECLARE_IPORT, SEMICOLON)                                     \
-  oports(DECLARE_OPORT, SEMICOLON)                                     \
-}                                                                      \
-                                                                       \
-CLASS_NAME(name)                                                       \
-::CLASS_DTOR(name)()                                                   \
-{                                                                      \
-}                                                                      \
-                                                                       \
-void                                                                   \
-CLASS_NAME(name)                                                       \
-::_init()                                                              \
-{                                                                      \
-  conf(GRAB_CONFIG_VALUE, SEMICOLON)                                   \
-                                                                       \
-  d.reset(new priv(conf(CONF_ARGS, COMMA)));                           \
-}                                                                      \
-                                                                       \
-void                                                                   \
-CLASS_NAME(name)                                                       \
-::_step()                                                              \
-{                                                                      \
-  iports(GRAB_FROM_IPORT, SEMICOLON)                                   \
-                                                                       \
-  oports(DECLARE_RESULT_VARS, SEMICOLON)                               \
-                                                                       \
-  boost::tie(oports(RESULT, COMMA)) = func(iports(IPORT_ARGS, COMMA)); \
-                                                                       \
-  oports(PUSH_TO_OPORT, SEMICOLON)                                     \
-                                                                       \
-  process::_step();                                                    \
-}                                                                      \
-                                                                       \
-CLASS_NAME(name)::priv                                                 \
-::priv(conf(CONFIG_DECLARE_ARGS, COMMA))                               \
-  conf(CONF_INIT_PRIV, INIT)                                           \
-{                                                                      \
-}                                                                      \
-                                                                       \
-CLASS_NAME(name)::priv                                                 \
-::~priv()                                                              \
-{                                                                      \
+#define IMPLEMENT_FUNCTION_PROCESS(name, func, conf, iports, oports)  \
+class CLASS_NAME(name)::priv                                          \
+{                                                                     \
+  public:                                                             \
+    priv(conf(CONFIG_DECLARE_ARGS, ARGS));                            \
+    ~priv();                                                          \
+                                                                      \
+    conf(DECLARE_CONF_VARS, LINES)                                    \
+    iports(DECLARE_IPORT_VARS, LINES)                                 \
+    oports(DECLARE_OPORT_VARS, LINES)                                 \
+};                                                                    \
+                                                                      \
+conf(DEFINE_CONF_VARS, LINES)                                         \
+iports(DEFINE_IPORT_VARS, LINES)                                      \
+oports(DEFINE_OPORT_VARS, LINES)                                      \
+                                                                      \
+CLASS_NAME(name)                                                      \
+::CLASS_NAME(name)(vistk::config_t const& config)                     \
+  : vistk::process(config)                                            \
+{                                                                     \
+  port_flags_t required;                                              \
+                                                                      \
+  required.insert(flag_required);                                     \
+                                                                      \
+  conf(DECLARE_CONFIG, LINES)                                         \
+  iports(DECLARE_IPORT, LINES)                                        \
+  oports(DECLARE_OPORT, LINES)                                        \
+}                                                                     \
+                                                                      \
+CLASS_NAME(name)                                                      \
+::CLASS_DTOR(name)()                                                  \
+{                                                                     \
+}                                                                     \
+                                                                      \
+void                                                                  \
+CLASS_NAME(name)                                                      \
+::_init()                                                             \
+{                                                                     \
+  conf(GRAB_CONFIG_VALUE, LINES)                                      \
+                                                                      \
+  d.reset(new priv(conf(CONF_ARGS, ARGS)));                           \
+}                                                                     \
+                                                                      \
+void                                                                  \
+CLASS_NAME(name)                                                      \
+::_step()                                                             \
+{                                                                     \
+  iports(GRAB_FROM_IPORT, LINES)                                      \
+                                                                      \
+  oports(DECLARE_RESULT_VARS, LINES)                                  \
+                                                                      \
+  boost::tie(oports(RESULT, ARGS)) = func(iports(IPORT_ARGS, ARGS));  \
+                                                                      \
+  oports(PUSH_TO_OPORT, LINES)                                        \
+                                                                      \
+  process::_step();                                                   \
+}                                                                     \
+                                                                      \
+CLASS_NAME(name)::priv                                                \
+::priv(conf(CONFIG_DECLARE_ARGS, ARGS))                               \
+  conf(CONF_INIT_PRIV, INIT)                                          \
+{                                                                     \
+}                                                                     \
+                                                                      \
+CLASS_NAME(name)::priv                                                \
+::~priv()                                                             \
+{                                                                     \
 }
 
 #endif // VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_IMPL_H
