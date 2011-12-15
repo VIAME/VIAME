@@ -69,5 +69,5 @@ luaopen_vistk_pipeline_datum(lua_State* L)
 vistk::datum_t
 new_datum(object const& obj)
 {
-  return vistk::datum::new_datum<boost::any>(object_cast<boost::any>(obj));
+  return vistk::datum::new_datum(object_cast<boost::any>(obj));
 }
