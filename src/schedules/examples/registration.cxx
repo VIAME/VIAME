@@ -24,10 +24,6 @@
 
 using namespace vistk;
 
-static schedule_t create_sync_schedule(config_t const& config, pipeline_t const& pipe);
-static schedule_t create_thread_per_process_schedule(config_t const& config, pipeline_t const& pipe);
-static schedule_t create_thread_pool_schedule(config_t const& config, pipeline_t const& pipe);
-
 void
 register_schedules()
 {
@@ -40,27 +36,9 @@ register_schedules()
     return;
   }
 
-  registry->register_schedule("sync", "Runs the pipeline synchronously", create_sync_schedule);
-  registry->register_schedule("thread_per_process", "Runs each process in its own thread", create_thread_per_process_schedule);
-  registry->register_schedule("thread_pool", "Uses a pool of threads to step processes", create_thread_pool_schedule);
+  registry->register_schedule("sync", "Runs the pipeline synchronously", CREATE_SCHEDULE(sync_schedule));
+  registry->register_schedule("thread_per_process", "Runs each process in its own thread", CREATE_SCHEDULE(thread_per_process_schedule));
+  registry->register_schedule("thread_pool", "Uses a pool of threads to step processes", CREATE_SCHEDULE(thread_pool_schedule));
 
   registry->mark_module_as_loaded(module_name);
-}
-
-schedule_t
-create_sync_schedule(config_t const& config, pipeline_t const& pipe)
-{
-  return boost::make_shared<sync_schedule>(config, pipe);
-}
-
-schedule_t
-create_thread_per_process_schedule(config_t const& config, pipeline_t const& pipe)
-{
-  return boost::make_shared<thread_per_process_schedule>(config, pipe);
-}
-
-schedule_t
-create_thread_pool_schedule(config_t const& config, pipeline_t const& pipe)
-{
-  return boost::make_shared<thread_pool_schedule>(config, pipe);
 }
