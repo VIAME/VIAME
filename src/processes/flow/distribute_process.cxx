@@ -149,7 +149,7 @@ distribute_process
 
   if (d->dist_data.empty())
   {
-    mark_as_complete();
+    mark_process_as_complete();
   }
 }
 

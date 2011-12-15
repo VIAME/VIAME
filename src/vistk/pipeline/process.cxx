@@ -193,7 +193,7 @@ process
   /// \todo Should this really be done here?
   if (d->required_outputs_done())
   {
-    mark_as_complete();
+    mark_process_as_complete();
   }
 }
 
@@ -506,7 +506,7 @@ process
 
 void
 process
-::mark_as_complete()
+::mark_process_as_complete()
 {
   d->is_complete = true;
 
@@ -846,7 +846,7 @@ process::priv
     case datum::empty:
       return edge_datum_t(datum::empty_datum(), stamp_for_inputs);
     case datum::complete:
-      proc->mark_as_complete();
+      proc->mark_process_as_complete();
       return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
     case datum::error:
     {

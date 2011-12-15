@@ -95,7 +95,7 @@ def make_source(conf):
                 self.stamp = stamp.recolored_stamp(self.stamp, color_dat.stamp)
 
             if complete:
-                self.mark_as_complete()
+                self.mark_process_as_complete()
                 dat = datum.complete()
 
             edat = edge.EdgeDatum(dat, self.stamp)

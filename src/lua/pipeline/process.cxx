@@ -82,7 +82,7 @@ class wrap_process
 
     void _declare_configuration_key(vistk::config::key_t const& key, conf_info_t const& info);
 
-    void _mark_as_complete();
+    void _mark_process_as_complete();
     vistk::stamp_t _heartbeat_stamp() const;
 
     vistk::edge_t _input_port_edge(port_t const& port) const;
@@ -188,7 +188,7 @@ luaopen_vistk_pipeline_process(lua_State* L)
         .def("declare_input_port", &wrap_process::_declare_input_port)
         .def("declare_output_port", &wrap_process::_declare_output_port)
         .def("declare_configuration_key", &wrap_process::_declare_configuration_key)
-        .def("mark_as_complete", &wrap_process::_mark_as_complete)
+        .def("mark_process_as_complete", &wrap_process::_mark_process_as_complete)
         .def("heartbeat_stamp", &wrap_process::_heartbeat_stamp)
         .def("input_port_edge", &wrap_process::_input_port_edge)
         .def("output_port_edges", &wrap_process::_output_port_edges)
@@ -416,9 +416,9 @@ wrap_process
 
 void
 wrap_process
-::_mark_as_complete()
+::_mark_process_as_complete()
 {
-  mark_as_complete();
+  mark_process_as_complete();
 }
 
 vistk::stamp_t

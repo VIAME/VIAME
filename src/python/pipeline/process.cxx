@@ -82,7 +82,7 @@ class wrap_process
 
     void _declare_configuration_key(vistk::config::key_t const& key, conf_info_t const& info);
 
-    void _mark_as_complete();
+    void _mark_process_as_complete();
     vistk::stamp_t _heartbeat_stamp() const;
 
     vistk::edge_t _input_port_edge(port_t const& port) const;
@@ -322,7 +322,7 @@ BOOST_PYTHON_MODULE(process)
     .def("declare_configuration_key", &wrap_process::_declare_configuration_key
       , (arg("key"), arg("info"))
       , "Declare a configuration key for the process.")
-    .def("mark_as_complete", &wrap_process::_mark_as_complete
+    .def("mark_process_as_complete", &wrap_process::_mark_process_as_complete
       , "Tags the process as complete.")
     .def("heartbeat_stamp", &wrap_process::_heartbeat_stamp
       , "The heartbeat stamp for the process.")
@@ -674,9 +674,9 @@ wrap_process
 
 void
 wrap_process
-::_mark_as_complete()
+::_mark_process_as_complete()
 {
-  mark_as_complete();
+  mark_process_as_complete();
 }
 
 vistk::stamp_t

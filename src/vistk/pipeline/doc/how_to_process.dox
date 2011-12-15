@@ -209,8 +209,8 @@
  * \until }
  *
  * The process is terminated when the destructor is called. It may be called at
- * any time (i.e., before the \ref vistk::process::mark_as_complete method is
- * called) if the pipeline is terminated before completion.
+ * any time (i.e., before the \ref vistk::process::mark_process_as_complete
+ * method is called) if the pipeline is terminated before completion.
  *
  * \section how_to_process_registration Registration
  *

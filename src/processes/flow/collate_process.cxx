@@ -143,7 +143,7 @@ collate_process
 
   if (d->coll_data.empty())
   {
-    mark_as_complete();
+    mark_process_as_complete();
   }
 }
 

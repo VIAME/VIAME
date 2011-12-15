@@ -212,7 +212,7 @@ homography_reader_process
 
   if (complete)
   {
-    mark_as_complete();
+    mark_process_as_complete();
     dat = datum::complete_datum();
   }
 

@@ -484,7 +484,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Marks the process as complete.
      */
-    void mark_as_complete();
+    void mark_process_as_complete();
     /**
      * \brief The \ref stamp that the hearbeat is based off of.
      *

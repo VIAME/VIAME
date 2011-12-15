@@ -144,7 +144,7 @@ timestamper_process
     switch (color_dat.get<0>()->type())
     {
       case datum::complete:
-        mark_as_complete();
+        mark_process_as_complete();
         dat = datum::complete_datum();
       case datum::data:
       case datum::empty:
