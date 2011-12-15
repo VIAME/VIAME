@@ -10,6 +10,11 @@
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/any.hpp>
 
+/*
+ * This file may be removed once Boost bug #4781
+ * (<https://svn.boost.org/trac/boost/ticket/4781>) is resolved.
+ */
+
 namespace boost
 {
 
