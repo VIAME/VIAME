@@ -23,11 +23,6 @@
 
 using namespace vistk;
 
-static process_t create_collate_process(config_t const& config);
-static process_t create_distribute_process(config_t const& config);
-static process_t create_sink_process(config_t const& config);
-static process_t create_source_process(config_t const& config);
-
 void
 register_processes()
 {
@@ -40,34 +35,10 @@ register_processes()
     return;
   }
 
-  registry->register_process("collate", "A process which collates data from multiple worker processes.", create_collate_process);
-  registry->register_process("distribute", "A process which distributes data to multiple worker processes.", create_distribute_process);
-  registry->register_process("sink", "A process which ignores incoming data.", create_sink_process);
-  registry->register_process("source", "A process which outputs a consistent color to help color all data within the pipeline.", create_source_process);
+  registry->register_process("collate", "A process which collates data from multiple worker processes.", CREATE_PROCESS(collate_process));
+  registry->register_process("distribute", "A process which distributes data to multiple worker processes.", CREATE_PROCESS(distribute_process));
+  registry->register_process("sink", "A process which ignores incoming data.", CREATE_PROCESS(sink_process));
+  registry->register_process("source", "A process which outputs a consistent color to help color all data within the pipeline.", CREATE_PROCESS(source_process));
 
   registry->mark_module_as_loaded(module_name);
-}
-
-process_t
-create_collate_process(config_t const& config)
-{
-  return boost::make_shared<collate_process>(config);
-}
-
-process_t
-create_distribute_process(config_t const& config)
-{
-  return boost::make_shared<distribute_process>(config);
-}
-
-process_t
-create_sink_process(config_t const& config)
-{
-  return boost::make_shared<sink_process>(config);
-}
-
-process_t
-create_source_process(config_t const& config)
-{
-  return boost::make_shared<source_process>(config);
 }

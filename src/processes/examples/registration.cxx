@@ -26,14 +26,6 @@
 
 using namespace vistk;
 
-static process_t create_const_process(config_t const& config);
-static process_t create_multiplication_process(config_t const& config);
-static process_t create_mutate_process(config_t const& config);
-static process_t create_number_process(config_t const& config);
-static process_t create_orphan_process(config_t const& config);
-static process_t create_print_number_process(config_t const& config);
-static process_t create_print_string_process(config_t const& config);
-
 void
 register_processes()
 {
@@ -46,55 +38,13 @@ register_processes()
     return;
   }
 
-  registry->register_process("const", "A process with the const flag", create_const_process);
-  registry->register_process("multiplication", "Multiplies numbers", create_multiplication_process);
-  registry->register_process("mutate", "A process with a mutable flag", create_mutate_process);
-  registry->register_process("numbers", "Outputs numbers within a range", create_number_process);
-  registry->register_process("orphan", "A dummy process", create_orphan_process);
-  registry->register_process("print_number", "Print numbers to a file", create_print_number_process);
-  registry->register_process("print_string", "Print strings to a file", create_print_string_process);
+  registry->register_process("const", "A process with the const flag", CREATE_PROCESS(const_process));
+  registry->register_process("multiplication", "Multiplies numbers", CREATE_PROCESS(multiplication_process));
+  registry->register_process("mutate", "A process with a mutable flag", CREATE_PROCESS(mutate_process));
+  registry->register_process("numbers", "Outputs numbers within a range", CREATE_PROCESS(number_process));
+  registry->register_process("orphan", "A dummy process", CREATE_PROCESS(orphan_process));
+  registry->register_process("print_number", "Print numbers to a file", CREATE_PROCESS(print_number_process));
+  registry->register_process("print_string", "Print strings to a file", CREATE_PROCESS(print_string_process));
 
   registry->mark_module_as_loaded(module_name);
-}
-
-process_t
-create_const_process(config_t const& config)
-{
-  return boost::make_shared<const_process>(config);
-}
-
-process_t
-create_multiplication_process(config_t const& config)
-{
-  return boost::make_shared<multiplication_process>(config);
-}
-
-process_t
-create_mutate_process(config_t const& config)
-{
-  return boost::make_shared<mutate_process>(config);
-}
-
-process_t
-create_number_process(config_t const& config)
-{
-  return boost::make_shared<number_process>(config);
-}
-
-process_t
-create_orphan_process(config_t const& config)
-{
-  return boost::make_shared<orphan_process>(config);
-}
-
-process_t
-create_print_number_process(config_t const& config)
-{
-  return boost::make_shared<print_number_process>(config);
-}
-
-process_t
-create_print_string_process(config_t const& config)
-{
-  return boost::make_shared<print_string_process>(config);
 }

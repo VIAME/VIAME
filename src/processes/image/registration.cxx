@@ -25,13 +25,7 @@
 
 using namespace vistk;
 
-static process_t create_crop_image_process(config_t const& config);
-static process_t create_grayscale_process(config_t const& config);
-static process_t create_image_reader_process(config_t const& config);
-static process_t create_image_writer_process(config_t const& config);
-static process_t create_video_reader_process(config_t const& config);
 static process_t create_image_source_process(config_t const& config);
-static process_t create_warp_image_process(config_t const& config);
 
 void
 register_processes()
@@ -45,45 +39,15 @@ register_processes()
     return;
   }
 
-  registry->register_process("crop_image", "Crop an image to a specific size.", create_crop_image_process);
-  registry->register_process("grayscale", "Convert an RGB image into grayscale.", create_grayscale_process);
-  registry->register_process("image_reader", "Read images from files given a list of images.", create_image_reader_process);
-  registry->register_process("image_writer", "Write images to files.", create_image_writer_process);
-  registry->register_process("video_reader", "Reads images from a video.", create_video_reader_process);
+  registry->register_process("crop_image", "Crop an image to a specific size.", CREATE_PROCESS(crop_image_process));
+  registry->register_process("grayscale", "Convert an RGB image into grayscale.", CREATE_PROCESS(grayscale_process));
+  registry->register_process("image_reader", "Read images from files given a list of images.", CREATE_PROCESS(image_reader_process));
+  registry->register_process("image_writer", "Write images to files.", CREATE_PROCESS(image_writer_process));
+  registry->register_process("video_reader", "Reads images from a video.", CREATE_PROCESS(video_reader_process));
   registry->register_process("image_source", "Reads images using different sources.", create_image_source_process);
-  registry->register_process("warp_image", "Warps images using tranformation matrices.", create_warp_image_process);
+  registry->register_process("warp_image", "Warps images using tranformation matrices.", CREATE_PROCESS(warp_image_process));
 
   registry->mark_module_as_loaded(module_name);
-}
-
-process_t
-create_crop_image_process(config_t const& config)
-{
-  return boost::make_shared<crop_image_process>(config);
-}
-
-process_t
-create_grayscale_process(config_t const& config)
-{
-  return boost::make_shared<grayscale_process>(config);
-}
-
-process_t
-create_image_reader_process(config_t const& config)
-{
-  return boost::make_shared<image_reader_process>(config);
-}
-
-process_t
-create_image_writer_process(config_t const& config)
-{
-  return boost::make_shared<image_writer_process>(config);
-}
-
-process_t
-create_video_reader_process(config_t const& config)
-{
-  return boost::make_shared<video_reader_process>(config);
 }
 
 process_t
@@ -98,20 +62,14 @@ create_image_source_process(config_t const& config)
 
   if (type_value == image_list_type)
   {
-    return create_image_reader_process(config);
+    return boost::make_shared<image_reader_process>(config);
   }
   else if (type_value == vidl_type)
   {
-    return create_video_reader_process(config);
+    return boost::make_shared<video_reader_process>(config);
   }
 
   /// \todo Throw an exception.
 
   return process_t();
-}
-
-process_t
-create_warp_image_process(config_t const& config)
-{
-  return boost::make_shared<warp_image_process>(config);
 }
