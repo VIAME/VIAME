@@ -125,4 +125,16 @@ class VISTK_PIPELINE_EXPORT schedule_registry
 
 }
 
+/**
+ * \def CREATE_SCHEDULE
+ *
+ * \brief A macro to create a schedule.
+ *
+ * This is to help reduce the amount of code needed in registration functions.
+ *
+ * \param cls The schedule to create.
+ */
+#define CREATE_SCHEDULE(cls) \
+  &boost::make_shared<cls, config_t const&, pipeline_t const&>
+
 #endif // VISTK_PIPELINE_SCHEDULE_REGISTRY_H

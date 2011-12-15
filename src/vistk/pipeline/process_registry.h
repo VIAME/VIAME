@@ -121,4 +121,16 @@ class VISTK_PIPELINE_EXPORT process_registry
 
 }
 
+/**
+ * \def CREATE_PROCESS
+ *
+ * \brief A macro to create a process.
+ *
+ * This is to help reduce the amount of code needed in registration functions.
+ *
+ * \param cls The process to create.
+ */
+#define CREATE_PROCESS(cls) \
+  &boost::make_shared<cls, config_t const&>
+
 #endif // VISTK_PIPELINE_PROCESS_REGISTRY_H
