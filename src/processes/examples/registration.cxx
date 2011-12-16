@@ -16,8 +16,6 @@
 
 #include <vistk/pipeline/process_registry.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file examples/registration.cxx
  *
@@ -38,13 +36,13 @@ register_processes()
     return;
   }
 
-  registry->register_process("const", "A process with the const flag", CREATE_PROCESS(const_process));
-  registry->register_process("multiplication", "Multiplies numbers", CREATE_PROCESS(multiplication_process));
-  registry->register_process("mutate", "A process with a mutable flag", CREATE_PROCESS(mutate_process));
-  registry->register_process("numbers", "Outputs numbers within a range", CREATE_PROCESS(number_process));
-  registry->register_process("orphan", "A dummy process", CREATE_PROCESS(orphan_process));
-  registry->register_process("print_number", "Print numbers to a file", CREATE_PROCESS(print_number_process));
-  registry->register_process("print_string", "Print strings to a file", CREATE_PROCESS(print_string_process));
+  registry->register_process("const", "A process with the const flag", create_process<const_process>);
+  registry->register_process("multiplication", "Multiplies numbers", create_process<multiplication_process>);
+  registry->register_process("mutate", "A process with a mutable flag", create_process<mutate_process>);
+  registry->register_process("numbers", "Outputs numbers within a range", create_process<number_process>);
+  registry->register_process("orphan", "A dummy process", create_process<orphan_process>);
+  registry->register_process("print_number", "Print numbers to a file", create_process<print_number_process>);
+  registry->register_process("print_string", "Print strings to a file", create_process<print_string_process>);
 
   registry->mark_module_as_loaded(module_name);
 }

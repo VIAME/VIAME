@@ -15,8 +15,6 @@
 
 #include <vistk/pipeline/process_registry.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file image/registration.cxx
  *
@@ -39,13 +37,13 @@ register_processes()
     return;
   }
 
-  registry->register_process("crop_image", "Crop an image to a specific size.", CREATE_PROCESS(crop_image_process));
-  registry->register_process("grayscale", "Convert an RGB image into grayscale.", CREATE_PROCESS(grayscale_process));
-  registry->register_process("image_reader", "Read images from files given a list of images.", CREATE_PROCESS(image_reader_process));
-  registry->register_process("image_writer", "Write images to files.", CREATE_PROCESS(image_writer_process));
-  registry->register_process("video_reader", "Reads images from a video.", CREATE_PROCESS(video_reader_process));
+  registry->register_process("crop_image", "Crop an image to a specific size.", create_process<crop_image_process>);
+  registry->register_process("grayscale", "Convert an RGB image into grayscale.", create_process<grayscale_process>);
+  registry->register_process("image_reader", "Read images from files given a list of images.", create_process<image_reader_process>);
+  registry->register_process("image_writer", "Write images to files.", create_process<image_writer_process>);
+  registry->register_process("video_reader", "Reads images from a video.", create_process<video_reader_process>);
   registry->register_process("image_source", "Reads images using different sources.", create_image_source_process);
-  registry->register_process("warp_image", "Warps images using tranformation matrices.", CREATE_PROCESS(warp_image_process));
+  registry->register_process("warp_image", "Warps images using tranformation matrices.", create_process<warp_image_process>);
 
   registry->mark_module_as_loaded(module_name);
 }
@@ -62,11 +60,11 @@ create_image_source_process(config_t const& config)
 
   if (type_value == image_list_type)
   {
-    return boost::make_shared<image_reader_process>(config);
+    return create_process<image_reader_process>(config);
   }
   else if (type_value == vidl_type)
   {
-    return boost::make_shared<video_reader_process>(config);
+    return create_process<video_reader_process>(config);
   }
 
   /// \todo Throw an exception.

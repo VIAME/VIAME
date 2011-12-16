@@ -12,6 +12,7 @@
 #include "types.h"
 
 #include <boost/function.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/scoped_ptr.hpp>
 
 #include <string>
@@ -123,18 +124,21 @@ class VISTK_PIPELINE_EXPORT schedule_registry
     boost::scoped_ptr<priv> d;
 };
 
-}
-
 /**
- * \def CREATE_SCHEDULE
- *
- * \brief A macro to create a schedule.
+ * \brief A template function to create a schedule.
  *
  * This is to help reduce the amount of code needed in registration functions.
  *
- * \param cls The schedule to create.
+ * \param conf The configuration to pass to the \ref schedule.
+ * \param pipe The \ref pipeline to pass the \ref schedule.
  */
-#define CREATE_SCHEDULE(cls) \
-  &boost::make_shared<cls, config_t const&, pipeline_t const&>
+template <typename T>
+schedule_t
+create_schedule(config_t const& conf, pipeline_t const& pipe)
+{
+  return boost::make_shared<T>(conf, pipe);
+}
+
+}
 
 #endif // VISTK_PIPELINE_SCHEDULE_REGISTRY_H

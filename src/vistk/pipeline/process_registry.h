@@ -12,6 +12,7 @@
 #include "types.h"
 
 #include <boost/function.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/scoped_ptr.hpp>
 
 #include <string>
@@ -119,18 +120,20 @@ class VISTK_PIPELINE_EXPORT process_registry
     boost::scoped_ptr<priv> d;
 };
 
-}
-
 /**
- * \def CREATE_PROCESS
- *
- * \brief A macro to create a process.
+ * \brief A template function to create a process.
  *
  * This is to help reduce the amount of code needed in registration functions.
  *
- * \param cls The process to create.
+ * \param conf The configuration to pass to the \ref process.
  */
-#define CREATE_PROCESS(cls) \
-  &boost::make_shared<cls, config_t const&>
+template <typename T>
+process_t
+create_process(config_t const& conf)
+{
+  return boost::make_shared<T>(conf);
+}
+
+}
 
 #endif // VISTK_PIPELINE_PROCESS_REGISTRY_H

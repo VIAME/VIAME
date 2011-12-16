@@ -11,8 +11,6 @@
 
 #include <vistk/pipeline/process_registry.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file utilities/registration.cxx
  *
@@ -33,8 +31,8 @@ register_processes()
     return;
   }
 
-  registry->register_process("homography_reader", "A process which reads homographies from a file", CREATE_PROCESS(homography_reader_process));
-  registry->register_process("timestamper", "A process which generates timestamps", CREATE_PROCESS(timestamper_process));
+  registry->register_process("homography_reader", "A process which reads homographies from a file", create_process<homography_reader_process>);
+  registry->register_process("timestamper", "A process which generates timestamps", create_process<timestamper_process>);
 
   registry->mark_module_as_loaded(module_name);
 }

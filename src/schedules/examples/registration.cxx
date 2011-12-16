@@ -12,10 +12,6 @@
 
 #include <vistk/pipeline/schedule_registry.h>
 
-#include <boost/make_shared.hpp>
-
-#include <cstddef>
-
 /**
  * \file examples/registration.cxx
  *
@@ -36,9 +32,9 @@ register_schedules()
     return;
   }
 
-  registry->register_schedule("sync", "Runs the pipeline synchronously", CREATE_SCHEDULE(sync_schedule));
-  registry->register_schedule("thread_per_process", "Runs each process in its own thread", CREATE_SCHEDULE(thread_per_process_schedule));
-  registry->register_schedule("thread_pool", "Uses a pool of threads to step processes", CREATE_SCHEDULE(thread_pool_schedule));
+  registry->register_schedule("sync", "Runs the pipeline synchronously", create_schedule<sync_schedule>);
+  registry->register_schedule("thread_per_process", "Runs each process in its own thread", create_schedule<thread_per_process_schedule>);
+  registry->register_schedule("thread_pool", "Uses a pool of threads to step processes", create_schedule<thread_pool_schedule>);
 
   registry->mark_module_as_loaded(module_name);
 }
