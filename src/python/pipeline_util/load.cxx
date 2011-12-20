@@ -29,6 +29,12 @@
 
 using namespace boost::python;
 
+static object group_subblock_config(vistk::group_subblock_t const& subblock);
+static void group_subblock_config_set(vistk::group_subblock_t& subblock, vistk::config_value_t const& config);
+static object group_subblock_input(vistk::group_subblock_t const& subblock);
+static void group_subblock_input_set(vistk::group_subblock_t& subblock, vistk::input_map_t const& input);
+static object group_subblock_output(vistk::group_subblock_t const& subblock);
+static void group_subblock_output_set(vistk::group_subblock_t& subblock, vistk::output_map_t const& output);
 static object pipe_block_config(vistk::pipe_block const& block);
 static void pipe_block_config_set(vistk::pipe_block& block, vistk::config_pipe_block const& config);
 static object pipe_block_process(vistk::pipe_block const& block);
@@ -41,29 +47,6 @@ static vistk::pipe_blocks load_pipe_file(std::string const& path);
 static vistk::pipe_blocks load_pipe(object const& stream, std::string const& inc_root);
 
 static void translator(vistk::load_pipe_exception const& e);
-
-class block_visitor
-  : public boost::static_visitor<object>
-{
-  public:
-    typedef enum
-    {
-      BLOCK_CONFIG,
-      BLOCK_PROCESS,
-      BLOCK_CONNECT,
-      BLOCK_GROUP
-    } block_t;
-
-    block_visitor(block_t type);
-    ~block_visitor();
-
-    block_t const block_type;
-
-    object operator () (vistk::config_pipe_block const& config_block) const;
-    object operator () (vistk::process_pipe_block const& process_block) const;
-    object operator () (vistk::connect_pipe_block const& connect_block) const;
-    object operator () (vistk::group_pipe_block const& group_block) const;
-};
 
 BOOST_PYTHON_MODULE(load)
 {
@@ -114,21 +97,11 @@ BOOST_PYTHON_MODULE(load)
     .def_readwrite("from_", &vistk::input_map_t::from)
     .def_readwrite("to", &vistk::input_map_t::to)
   ;
-  class_<vistk::input_maps_t>("InputMaps"
-    , "A collection of input mappings.")
-    /// \todo Need operator == on input_map_t.
-    //.def(vector_indexing_suite<vistk::input_maps_t>())
-  ;
   class_<vistk::output_map_t>("OutputMap"
     , "An output mapping for a group.")
     .def_readwrite("options", &vistk::output_map_t::options)
     .def_readwrite("from_", &vistk::output_map_t::from)
     .def_readwrite("to", &vistk::output_map_t::to)
-  ;
-  class_<vistk::output_maps_t>("OutputMaps"
-    , "A collection of output mappings.")
-    /// \todo Need operator == on output_map_t.
-    //.def(vector_indexing_suite<vistk::output_maps_t>())
   ;
   class_<vistk::config_pipe_block>("ConfigBlock"
     , "A block of configuration settings.")
@@ -146,12 +119,21 @@ BOOST_PYTHON_MODULE(load)
     .def_readwrite("from_", &vistk::connect_pipe_block::from)
     .def_readwrite("to", &vistk::connect_pipe_block::to)
   ;
+  class_<vistk::group_subblock_t>("GroupSubblock"
+    , "A subblock within a group.")
+    .add_property("config", &group_subblock_config, &group_subblock_config_set)
+    .add_property("input", &group_subblock_input, &group_subblock_input_set)
+    .add_property("output", &group_subblock_output, &group_subblock_output_set)
+  ;
+  class_<vistk::group_subblocks_t>("GroupSubblocks"
+    , "A collection of group subblocks.")
+    /// \todo Need operator == on group_subblock_t.
+    //.def(vector_indexing_suite<vistk::group_subblocks_t>())
+  ;
   class_<vistk::group_pipe_block>("GroupBlock"
     , "A block which declares a group within the pipeline.")
     .def_readwrite("name", &vistk::group_pipe_block::name)
-    .def_readwrite("config_values", &vistk::group_pipe_block::config_values)
-    .def_readwrite("input_mappings", &vistk::group_pipe_block::input_mappings)
-    .def_readwrite("output_mappings", &vistk::group_pipe_block::output_mappings)
+    .def_readwrite("subblocks", &vistk::group_pipe_block::subblocks)
   ;
   class_<vistk::pipe_block>("PipeBlock"
     , "A block in a pipeline declaration file.")
@@ -180,10 +162,90 @@ translator(vistk::load_pipe_exception const& e)
   PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
+class group_subblock_visitor
+  : public boost::static_visitor<object>
+{
+  public:
+    typedef enum
+    {
+      BLOCK_CONFIG,
+      BLOCK_INPUT,
+      BLOCK_OUTPUT
+    } block_t;
+
+    group_subblock_visitor(block_t type);
+    ~group_subblock_visitor();
+
+    block_t const block_type;
+
+    object operator () (vistk::config_value_t const& config) const;
+    object operator () (vistk::input_map_t const& input) const;
+    object operator () (vistk::output_map_t const& output) const;
+};
+
+object
+group_subblock_config(vistk::group_subblock_t const& subblock)
+{
+  return boost::apply_visitor(group_subblock_visitor(group_subblock_visitor::BLOCK_CONFIG), subblock);
+}
+
+void
+group_subblock_config_set(vistk::group_subblock_t& subblock, vistk::config_value_t const& config)
+{
+  subblock = config;
+}
+
+object
+group_subblock_input(vistk::group_subblock_t const& subblock)
+{
+  return boost::apply_visitor(group_subblock_visitor(group_subblock_visitor::BLOCK_INPUT), subblock);
+}
+
+void
+group_subblock_input_set(vistk::group_subblock_t& subblock, vistk::input_map_t const& input)
+{
+  subblock = input;
+}
+
+object
+group_subblock_output(vistk::group_subblock_t const& subblock)
+{
+  return boost::apply_visitor(group_subblock_visitor(group_subblock_visitor::BLOCK_OUTPUT), subblock);
+}
+
+void
+group_subblock_output_set(vistk::group_subblock_t& subblock, vistk::output_map_t const& output)
+{
+  subblock = output;
+}
+
+class pipe_block_visitor
+  : public boost::static_visitor<object>
+{
+  public:
+    typedef enum
+    {
+      BLOCK_CONFIG,
+      BLOCK_PROCESS,
+      BLOCK_CONNECT,
+      BLOCK_GROUP
+    } block_t;
+
+    pipe_block_visitor(block_t type);
+    ~pipe_block_visitor();
+
+    block_t const block_type;
+
+    object operator () (vistk::config_pipe_block const& config_block) const;
+    object operator () (vistk::process_pipe_block const& process_block) const;
+    object operator () (vistk::connect_pipe_block const& connect_block) const;
+    object operator () (vistk::group_pipe_block const& group_block) const;
+};
+
 object
 pipe_block_config(vistk::pipe_block const& block)
 {
-  return boost::apply_visitor(block_visitor(block_visitor::BLOCK_CONFIG), block);
+  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG), block);
 }
 
 void
@@ -195,7 +257,7 @@ pipe_block_config_set(vistk::pipe_block& block, vistk::config_pipe_block const& 
 object
 pipe_block_process(vistk::pipe_block const& block)
 {
-  return boost::apply_visitor(block_visitor(block_visitor::BLOCK_PROCESS), block);
+  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS), block);
 }
 
 void
@@ -207,7 +269,7 @@ pipe_block_process_set(vistk::pipe_block& block, vistk::process_pipe_block const
 object
 pipe_block_connect(vistk::pipe_block const& block)
 {
-  return boost::apply_visitor(block_visitor(block_visitor::BLOCK_CONNECT), block);
+  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT), block);
 }
 
 void
@@ -219,7 +281,7 @@ pipe_block_connect_set(vistk::pipe_block& block, vistk::connect_pipe_block const
 object
 pipe_block_group(vistk::pipe_block const& block)
 {
-  return boost::apply_visitor(block_visitor(block_visitor::BLOCK_GROUP), block);
+  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_GROUP), block);
 }
 
 void
@@ -242,19 +304,66 @@ load_pipe(object const& stream, std::string const& inc_root)
   return vistk::load_pipe_blocks(istr, boost::filesystem::path(inc_root));
 }
 
-block_visitor
-::block_visitor(block_t type)
+group_subblock_visitor
+::group_subblock_visitor(block_t type)
   : block_type(type)
 {
 }
 
-block_visitor
-::~block_visitor()
+group_subblock_visitor
+::~group_subblock_visitor()
 {
 }
 
 object
-block_visitor
+group_subblock_visitor
+::operator () (vistk::config_value_t const& config) const
+{
+  if (block_type == BLOCK_CONFIG)
+  {
+    return object(config);
+  }
+
+  return object();
+}
+
+object
+group_subblock_visitor
+::operator () (vistk::input_map_t const& input) const
+{
+  if (block_type == BLOCK_INPUT)
+  {
+    return object(input);
+  }
+
+  return object();
+}
+
+object
+group_subblock_visitor
+::operator () (vistk::output_map_t const& output) const
+{
+  if (block_type == BLOCK_OUTPUT)
+  {
+    return object(output);
+  }
+
+  return object();
+}
+
+pipe_block_visitor
+::pipe_block_visitor(block_t type)
+  : block_type(type)
+{
+}
+
+pipe_block_visitor
+::~pipe_block_visitor()
+{
+}
+
+object
+pipe_block_visitor
 ::operator () (vistk::config_pipe_block const& config_block) const
 {
   if (block_type == BLOCK_CONFIG)
@@ -266,7 +375,7 @@ block_visitor
 }
 
 object
-block_visitor
+pipe_block_visitor
 ::operator () (vistk::process_pipe_block const& process_block) const
 {
   if (block_type == BLOCK_PROCESS)
@@ -278,7 +387,7 @@ block_visitor
 }
 
 object
-block_visitor
+pipe_block_visitor
 ::operator () (vistk::connect_pipe_block const& connect_block) const
 {
   if (block_type == BLOCK_CONNECT)
@@ -290,7 +399,7 @@ block_visitor
 }
 
 object
-block_visitor
+pipe_block_visitor
 ::operator () (vistk::group_pipe_block const& group_block) const
 {
   if (block_type == BLOCK_GROUP)

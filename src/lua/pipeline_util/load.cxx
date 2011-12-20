@@ -32,6 +32,12 @@ int luaopen_vistk_pipeline_util_load(lua_State* L);
 
 }
 
+static void group_subblock_config(lua_State* L, vistk::group_subblock_t const& subblock);
+static void group_subblock_config_set(vistk::group_subblock_t& subblock, vistk::config_value_t const& config);
+static void group_subblock_input(lua_State* L, vistk::group_subblock_t const& subblock);
+static void group_subblock_input_set(vistk::group_subblock_t& subblock, vistk::input_map_t const& input);
+static void group_subblock_output(lua_State* L, vistk::group_subblock_t const& subblock);
+static void group_subblock_output_set(vistk::group_subblock_t& subblock, vistk::output_map_t const& output);
 static void pipe_block_config(lua_State* L, vistk::pipe_block const& block);
 static void pipe_block_config_set(vistk::pipe_block& block, vistk::config_pipe_block const& config);
 static void pipe_block_process(lua_State* L, vistk::pipe_block const& block);
@@ -43,30 +49,6 @@ static void pipe_block_group_set(vistk::pipe_block& block, vistk::group_pipe_blo
 static vistk::pipe_blocks load_pipe_file(std::string const& path);
 static vistk::pipe_blocks load_pipe(object const& stream, std::string const& inc_root);
 static vistk::pipe_blocks default_load_pipe(object const& stream);
-
-class block_visitor
-  : public boost::static_visitor<>
-{
-  public:
-    typedef enum
-    {
-      BLOCK_CONFIG,
-      BLOCK_PROCESS,
-      BLOCK_CONNECT,
-      BLOCK_GROUP
-    } block_t;
-
-    block_visitor(block_t type, lua_State* L);
-    ~block_visitor();
-
-    block_t const block_type;
-    lua_State* interpreter;
-
-    void operator () (vistk::config_pipe_block const& config_block) const;
-    void operator () (vistk::process_pipe_block const& process_block) const;
-    void operator () (vistk::connect_pipe_block const& connect_block) const;
-    void operator () (vistk::group_pipe_block const& group_block) const;
-};
 
 int
 luaopen_vistk_pipeline_util_load(lua_State* L)
@@ -108,17 +90,11 @@ luaopen_vistk_pipeline_util_load(lua_State* L)
         .def_readwrite("options", &vistk::input_map_t::options)
         .def_readwrite("from", &vistk::input_map_t::from)
         .def_readwrite("to", &vistk::input_map_t::to)
-    , class_<vistk::input_maps_t>("input_maps")
-        .def(constructor<>())
-        /// \todo Need operator == on input_map_t.
     , class_<vistk::output_map_t>("output_map")
         .def(constructor<>())
         .def_readwrite("options", &vistk::output_map_t::options)
         .def_readwrite("from", &vistk::output_map_t::from)
         .def_readwrite("to", &vistk::output_map_t::to)
-    , class_<vistk::output_maps_t>("output_maps")
-        .def(constructor<>())
-        /// \todo Need operator == on output_map_t.
     , class_<vistk::config_pipe_block>("config_block")
         .def(constructor<>())
         .def_readwrite("key", &vistk::config_pipe_block::key)
@@ -132,12 +108,18 @@ luaopen_vistk_pipeline_util_load(lua_State* L)
         .def(constructor<>())
         .def_readwrite("from", &vistk::connect_pipe_block::from)
         .def_readwrite("to", &vistk::connect_pipe_block::to)
+    , class_<vistk::group_subblock_t>("group_subblock")
+        .def(constructor<>())
+        .property("config", &group_subblock_config, &group_subblock_config_set)
+        .property("input", &group_subblock_input, &group_subblock_input_set)
+        .property("output", &group_subblock_output, &group_subblock_output_set)
+    , class_<vistk::group_subblocks_t>("group_subblocks")
+        .def(constructor<>())
+        /// \todo Need operator == on group_subblock_t
     , class_<vistk::group_pipe_block>("group_block")
         .def(constructor<>())
         .def_readwrite("name", &vistk::group_pipe_block::name)
-        .def_readwrite("config_values", &vistk::group_pipe_block::config_values)
-        .def_readwrite("input_mappings", &vistk::group_pipe_block::input_mappings)
-        .def_readwrite("output_mappings", &vistk::group_pipe_block::output_mappings)
+        .def_readwrite("subblocks", &vistk::group_pipe_block::subblocks)
     , class_<vistk::pipe_block>("pipe_block")
         .def(constructor<>())
         .property("config", &pipe_block_config, &pipe_block_config_set)
@@ -156,10 +138,92 @@ luaopen_vistk_pipeline_util_load(lua_State* L)
   return 0;
 }
 
+class group_subblock_visitor
+  : public boost::static_visitor<>
+{
+  public:
+    typedef enum
+    {
+      BLOCK_CONFIG,
+      BLOCK_INPUT,
+      BLOCK_OUTPUT
+    } block_t;
+
+    group_subblock_visitor(block_t type, lua_State* L);
+    ~group_subblock_visitor();
+
+    block_t const block_type;
+    lua_State* interpreter;
+
+    void operator () (vistk::config_value_t const& config) const;
+    void operator () (vistk::input_map_t const& input) const;
+    void operator () (vistk::output_map_t const& output) const;
+};
+
+void
+group_subblock_config(lua_State* L, vistk::group_subblock_t const& subblock)
+{
+  boost::apply_visitor(group_subblock_visitor(group_subblock_visitor::BLOCK_CONFIG, L), subblock);
+}
+
+void
+group_subblock_config_set(vistk::group_subblock_t& subblock, vistk::config_value_t const& config)
+{
+  subblock = config;
+}
+
+void
+group_subblock_input(lua_State* L, vistk::group_subblock_t const& subblock)
+{
+  boost::apply_visitor(group_subblock_visitor(group_subblock_visitor::BLOCK_INPUT, L), subblock);
+}
+
+void
+group_subblock_input_set(vistk::group_subblock_t& subblock, vistk::input_map_t const& input)
+{
+  subblock = input;
+}
+
+void
+group_subblock_output(lua_State* L, vistk::group_subblock_t const& subblock)
+{
+  boost::apply_visitor(group_subblock_visitor(group_subblock_visitor::BLOCK_OUTPUT, L), subblock);
+}
+
+void
+group_subblock_output_set(vistk::group_subblock_t& subblock, vistk::output_map_t const& output)
+{
+  subblock = output;
+}
+
+class pipe_block_visitor
+  : public boost::static_visitor<>
+{
+  public:
+    typedef enum
+    {
+      BLOCK_CONFIG,
+      BLOCK_PROCESS,
+      BLOCK_CONNECT,
+      BLOCK_GROUP
+    } block_t;
+
+    pipe_block_visitor(block_t type, lua_State* L);
+    ~pipe_block_visitor();
+
+    block_t const block_type;
+    lua_State* interpreter;
+
+    void operator () (vistk::config_pipe_block const& config_block) const;
+    void operator () (vistk::process_pipe_block const& process_block) const;
+    void operator () (vistk::connect_pipe_block const& connect_block) const;
+    void operator () (vistk::group_pipe_block const& group_block) const;
+};
+
 void
 pipe_block_config(lua_State* L, vistk::pipe_block const& block)
 {
-  boost::apply_visitor(block_visitor(block_visitor::BLOCK_CONFIG, L), block);
+  boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG, L), block);
 }
 
 void
@@ -171,7 +235,7 @@ pipe_block_config_set(vistk::pipe_block& block, vistk::config_pipe_block const& 
 void
 pipe_block_process(lua_State* L, vistk::pipe_block const& block)
 {
-  boost::apply_visitor(block_visitor(block_visitor::BLOCK_PROCESS, L), block);
+  boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS, L), block);
 }
 
 void
@@ -183,7 +247,7 @@ pipe_block_process_set(vistk::pipe_block& block, vistk::process_pipe_block const
 void
 pipe_block_connect(lua_State* L, vistk::pipe_block const& block)
 {
-  boost::apply_visitor(block_visitor(block_visitor::BLOCK_CONNECT, L), block);
+  boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT, L), block);
 }
 
 void
@@ -195,7 +259,7 @@ pipe_block_connect_set(vistk::pipe_block& block, vistk::connect_pipe_block const
 void
 pipe_block_group(lua_State* L, vistk::pipe_block const& block)
 {
-  boost::apply_visitor(block_visitor(block_visitor::BLOCK_GROUP, L), block);
+  boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_GROUP, L), block);
 }
 
 void
@@ -226,66 +290,124 @@ default_load_pipe(object const& stream)
   return vistk::load_pipe_blocks(istr);
 }
 
-block_visitor
-::block_visitor(block_t type, lua_State* L)
+group_subblock_visitor
+::group_subblock_visitor(block_t type, lua_State* L)
   : block_type(type)
   , interpreter(L)
 {
 }
 
-block_visitor
-::~block_visitor()
+group_subblock_visitor
+::~group_subblock_visitor()
 {
 }
 
 void
-block_visitor
+group_subblock_visitor
+::operator () (vistk::config_value_t const& config) const
+{
+  if (block_type == BLOCK_CONFIG)
+  {
+    detail::convert_to_lua(interpreter, config);
+  }
+  else
+  {
+    lua_pushnil(interpreter);
+  }
+}
+
+void
+group_subblock_visitor
+::operator () (vistk::input_map_t const& input) const
+{
+  if (block_type == BLOCK_INPUT)
+  {
+    detail::convert_to_lua(interpreter, input);
+  }
+  else
+  {
+    lua_pushnil(interpreter);
+  }
+}
+
+void
+group_subblock_visitor
+::operator () (vistk::output_map_t const& output) const
+{
+  if (block_type == BLOCK_OUTPUT)
+  {
+    detail::convert_to_lua(interpreter, output);
+  }
+  else
+  {
+    lua_pushnil(interpreter);
+  }
+}
+
+pipe_block_visitor
+::pipe_block_visitor(block_t type, lua_State* L)
+  : block_type(type)
+  , interpreter(L)
+{
+}
+
+pipe_block_visitor
+::~pipe_block_visitor()
+{
+}
+
+void
+pipe_block_visitor
 ::operator () (vistk::config_pipe_block const& config_block) const
 {
   if (block_type == BLOCK_CONFIG)
   {
     detail::convert_to_lua(interpreter, config_block);
-    return;
   }
-
-  lua_pushnil(interpreter);
+  else
+  {
+    lua_pushnil(interpreter);
+  }
 }
 
 void
-block_visitor
+pipe_block_visitor
 ::operator () (vistk::process_pipe_block const& process_block) const
 {
   if (block_type == BLOCK_PROCESS)
   {
     detail::convert_to_lua(interpreter, process_block);
-    return;
   }
-
-  lua_pushnil(interpreter);
+  else
+  {
+    lua_pushnil(interpreter);
+  }
 }
 
 void
-block_visitor
+pipe_block_visitor
 ::operator () (vistk::connect_pipe_block const& connect_block) const
 {
   if (block_type == BLOCK_CONNECT)
   {
     detail::convert_to_lua(interpreter, connect_block);
-    return;
   }
-
-  lua_pushnil(interpreter);
+  else
+  {
+    lua_pushnil(interpreter);
+  }
 }
 
 void
-block_visitor
+pipe_block_visitor
 ::operator () (vistk::group_pipe_block const& group_block) const
 {
   if (block_type == BLOCK_GROUP)
   {
     detail::convert_to_lua(interpreter, group_block);
-    return;
   }
-
-  lua_pushnil(interpreter);
+  else
+  {
+    lua_pushnil(interpreter);
+  }
 }
