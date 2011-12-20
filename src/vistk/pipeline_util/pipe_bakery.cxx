@@ -101,6 +101,25 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
     group_decls_t m_groups;
 };
 
+class VISTK_PIPELINE_UTIL_NO_EXPORT group_splitter
+  : public boost::static_visitor<>
+{
+  public:
+    group_splitter();
+    ~group_splitter();
+
+    void operator () (config_value_t const& config_block);
+    void operator () (input_map_t const& input_block);
+    void operator () (output_map_t const& output_block);
+
+    typedef std::vector<input_map_t> input_maps_t;
+    typedef std::vector<output_map_t> output_maps_t;
+
+    config_values_t m_configs;
+    input_maps_t m_inputs;
+    output_maps_t m_outputs;
+};
+
 class VISTK_PIPELINE_UTIL_NO_EXPORT provider_dereferencer
   : public boost::static_visitor<pipe_bakery::config_reference_t>
 {
@@ -430,7 +449,13 @@ void
 pipe_bakery
 ::operator () (group_pipe_block const& group_block)
 {
-  config_values_t const& values = group_block.config_values;
+  group_subblocks_t const& subblocks = group_block.subblocks;
+
+  group_splitter splitter;
+
+  std::for_each(subblocks.begin(), subblocks.end(), boost::apply_visitor(splitter));
+
+  config_values_t const& values = splitter.m_configs;
 
   BOOST_FOREACH (config_value_t const& value, values)
   {
@@ -441,7 +466,7 @@ pipe_bakery
 
   mappings_t input_mappings;
 
-  BOOST_FOREACH (input_map_t const& map, group_block.input_mappings)
+  BOOST_FOREACH (input_map_t const& map, splitter.m_inputs)
   {
     process::port_flags_t flags = default_flags;
 
@@ -457,7 +482,7 @@ pipe_bakery
 
   mappings_t output_mappings;
 
-  BOOST_FOREACH (output_map_t const& map, group_block.output_mappings)
+  BOOST_FOREACH (output_map_t const& map, splitter.m_outputs)
   {
     process::port_flags_t flags = default_flags;
 
@@ -527,6 +552,37 @@ pipe_bakery
 ::flatten_keys(config::keys_t const& keys)
 {
   return boost::join(keys, config::block_sep);
+}
+
+group_splitter
+::group_splitter()
+{
+}
+
+group_splitter
+::~group_splitter()
+{
+}
+
+void
+group_splitter
+::operator () (config_value_t const& config_block)
+{
+  m_configs.push_back(config_block);
+}
+
+void
+group_splitter
+::operator () (input_map_t const& input_block)
+{
+  m_inputs.push_back(input_block);
+}
+
+void
+group_splitter
+::operator () (output_map_t const& output_block)
+{
+  m_outputs.push_back(output_block);
 }
 
 provider_dereferencer
