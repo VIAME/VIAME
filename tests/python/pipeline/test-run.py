@@ -56,6 +56,7 @@ def make_source(conf):
             self.declare_output_port(self.port_output, info)
 
         def _init(self):
+            from vistk.pipeline import edge
             from vistk.pipeline import stamp
 
             self.counter = int(self.config_value(self.conf_start))
