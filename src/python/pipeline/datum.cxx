@@ -88,5 +88,7 @@ translator(vistk::datum_exception const& e)
 vistk::datum_t
 new_datum(object const& obj)
 {
-  return vistk::datum::new_datum(extract<boost::any>(obj));
+  boost::any const any = extract<boost::any>(obj);
+
+  return vistk::datum::new_datum(any);
 }
