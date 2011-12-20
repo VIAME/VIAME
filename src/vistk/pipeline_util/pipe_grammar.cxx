@@ -170,7 +170,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
     qi::rule<Iterator, connect_pipe_block()> connect_block;
 
     qi::rule<Iterator, process::port_flag_t()> map_flag;
-    qi::rule<Iterator, process::port_flags_t(), qi::locals<process::port_flags_t> > map_flags;
+    qi::rule<Iterator, process::port_flags_t()> map_flags;
     qi::rule<Iterator, process::port_flags_t()> map_flags_decl;
 
     qi::rule<Iterator, map_options_t()> map_options;
@@ -178,7 +178,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
     qi::rule<Iterator, input_map_t()> input_map_block;
     qi::rule<Iterator, output_map_t()> output_map_block;
 
-    qi::rule<Iterator, group_pipe_block(), qi::locals<config_values_t, input_maps_t, output_maps_t> > group_block;
+    qi::rule<Iterator, group_pipe_block()> group_block;
 
     qi::rule<Iterator, pipe_blocks()> block_set;
 };
@@ -238,6 +238,8 @@ pipe_grammar<Iterator>
 ::pipe_grammar()
   : pipe_grammar::base_type(block_set, "pipeline-declaration")
 {
+  using namespace boost::phoenix;
+
   opt_whitespace.name("opt-namespace");
   opt_whitespace %=
     *(  qi::blank
@@ -414,7 +416,7 @@ pipe_grammar<Iterator>
 
   map_flags.name("map-flags");
   map_flags %=
-     (  map_flag[boost::phoenix::insert(_a, _1)]
+     (  map_flag
      %  qi::lit(flag_separator)
      );
 
@@ -471,13 +473,10 @@ pipe_grammar<Iterator>
      >  whitespace
      >  process_name
      >  line_end
-     > *(  partial_config_value_decl[boost::phoenix::push_back(_a, _1)]
-        |  input_map_block[boost::phoenix::push_back(_b, _1)]
-        |  output_map_block[boost::phoenix::push_back(_c, _1)]
+     > *(  partial_config_value_decl   [push_back(at_c<1>(_val), _1)]
+        |  input_map_block             [push_back(at_c<2>(_val), _1)]
+        |  output_map_block            [push_back(at_c<3>(_val), _1)]
         )
-        [boost::phoenix::at_c<1>(_val) = _a]
-        [boost::phoenix::at_c<2>(_val) = _b]
-        [boost::phoenix::at_c<3>(_val) = _c]
      );
 
   block_set.name("block-spec");
