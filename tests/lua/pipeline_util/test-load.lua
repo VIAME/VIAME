@@ -30,12 +30,12 @@ function test_create()
     vistk.pipeline_util.config_values()
     vistk.pipeline_util.map_options()
     vistk.pipeline_util.input_map()
-    vistk.pipeline_util.input_maps()
     vistk.pipeline_util.output_map()
-    vistk.pipeline_util.output_maps()
     vistk.pipeline_util.config_block()
     vistk.pipeline_util.process_block()
     vistk.pipeline_util.connect_block()
+    vistk.pipeline_util.group_subblock()
+    vistk.pipeline_util.group_subblocks()
     vistk.pipeline_util.group_block()
     vistk.pipeline_util.pipe_block()
     vistk.pipeline_util.pipe_blocks()
@@ -109,15 +109,19 @@ function test_api_calls()
     o.from = vistk.pipeline.port_addr()
     o.to = vistk.pipeline.port_addr()
 
+    o = vistk.pipeline_util.group_subblock()
+    o.config = vistk.pipeline_util.config_value()
+    tmp = o.config
+    o.input = vistk.pipeline_util.input_map()
+    tmp = o.input
+    o.output = vistk.pipeline_util.output_map()
+    tmp = o.output
+
     o = vistk.pipeline_util.group_block()
     tmp = o.name
-    tmp = o.config_values
-    tmp = o.input_mappings
-    tmp = o.output_mappings
+    tmp = o.subblocks
     o.name = vistk.pipeline.process_name()
-    o.config_values = vistk.pipeline_util.config_values()
-    o.input_mappings = vistk.pipeline_util.input_maps()
-    o.output_mappings = vistk.pipeline_util.output_maps()
+    o.subblocks = vistk.pipeline_util.group_subblocks()
 
     o = vistk.pipeline_util.pipe_block()
     o.config = vistk.pipeline_util.config_block()
