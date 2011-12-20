@@ -105,9 +105,6 @@ struct input_map_t
   process::port_addr_t to;
 };
 
-/// A type for a collection of input mappings.
-typedef std::vector<input_map_t> input_maps_t;
-
 /**
  * \struct output_map_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
  *
@@ -122,9 +119,6 @@ struct output_map_t
   /// The name of the group output port.
   process::port_t to;
 };
-
-/// A type for a collection of output mappings.
-typedef std::vector<output_map_t> output_maps_t;
 
 /**
  * \struct config_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
@@ -167,6 +161,11 @@ struct connect_pipe_block
   process::port_addr_t to;
 };
 
+/// A variant over the possible blocks that may be contained within a group.
+typedef boost::variant<config_value_t, input_map_t, output_map_t> group_subblock_t;
+/// A type for a collection of group subblocks.
+typedef std::vector<group_subblock_t> group_subblocks_t;
+
 /**
  * \struct group_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
  *
@@ -176,12 +175,8 @@ struct group_pipe_block
 {
   /// The name of the group.
   process::name_t name;
-  /// Configuration values associated with the group.
-  config_values_t config_values;
-  /// Mapped input ports.
-  input_maps_t input_mappings;
-  /// Mapped output ports.
-  output_maps_t output_mappings;
+  /// Subblocks of the group.
+  group_subblocks_t subblocks;
 };
 
 /// A discriminating union over all available block types.

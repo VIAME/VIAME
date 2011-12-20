@@ -90,9 +90,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
   vistk::group_pipe_block,
   (vistk::process::name_t, name)
-  (vistk::config_values_t, config_values)
-  (vistk::input_maps_t, input_mappings)
-  (vistk::output_maps_t, output_mappings)
+  (vistk::group_subblocks_t, subblocks)
 )
 
 #endif
@@ -473,9 +471,9 @@ pipe_grammar<Iterator>
      >  whitespace
      >  process_name
      >  line_end
-     > *(  partial_config_value_decl   [push_back(at_c<1>(_val), _1)]
-        |  input_map_block             [push_back(at_c<2>(_val), _1)]
-        |  output_map_block            [push_back(at_c<3>(_val), _1)]
+     > *(  partial_config_value_decl
+        |  input_map_block
+        |  output_map_block
         )
      );
 
