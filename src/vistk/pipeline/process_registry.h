@@ -126,6 +126,8 @@ class VISTK_PIPELINE_EXPORT process_registry
  * This is to help reduce the amount of code needed in registration functions.
  *
  * \param conf The configuration to pass to the \ref process.
+ *
+ * \return The new process.
  */
 template <typename T>
 process_t

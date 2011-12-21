@@ -131,6 +131,8 @@ class VISTK_PIPELINE_EXPORT schedule_registry
  *
  * \param conf The configuration to pass to the \ref schedule.
  * \param pipe The \ref pipeline to pass the \ref schedule.
+ *
+ * \return The new schedule.
  */
 template <typename T>
 schedule_t
