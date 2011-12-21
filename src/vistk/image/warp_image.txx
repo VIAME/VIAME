@@ -119,11 +119,14 @@ warp_image<PixType>
 
   box_t mapped_bbox;
 
+  size_t const snc = sni - 1;
+  size_t const snr = snj - 1;
+
   homog_point_t const corner[4] =
     { homog_point_t(0, 0)
-    , homog_point_t(sni - 1, 0)
-    , homog_point_t(sni - 1, snj - 1)
-    , homog_point_t(0, snj - 1)
+    , homog_point_t(snc, 0)
+    , homog_point_t(snc, snr)
+    , homog_point_t(0, snr)
     };
 
   for (size_t i = 0; i < 4; ++i)
@@ -134,9 +137,6 @@ warp_image<PixType>
 
   box_t const dest_bounds(0, dni - 1, 0, dnj - 1);
   box_t const intersection = vgl_intersection(mapped_bbox, dest_bounds);
-
-  size_t const snc = sni - 1;
-  size_t const snr = snj - 1;
 
   size_t const begin_i = std::floor(intersection.min_x());
   size_t const begin_j = std::floor(intersection.min_y());
