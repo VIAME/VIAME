@@ -66,7 +66,7 @@ any_converter::to_map_t any_converter::m_to = any_converter::to_map_t();
 
 }
 
-void register_to_python();
+static void register_to_python();
 
 void
 register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to)
@@ -84,16 +84,6 @@ register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to)
   {
     any_converter::add_to(priority, to);
   }
-}
-
-void
-register_to_python()
-{
-  to_python_converter<boost::any, any_converter>();
-  converter::registry::push_back(
-    &any_converter::convertible,
-    &any_converter::construct,
-    type_id<boost::any>());
 }
 
 namespace
@@ -195,6 +185,16 @@ any_converter
   data->convertible = storage;
 }
 
+}
+
+void
+register_to_python()
+{
+  to_python_converter<boost::any, any_converter>();
+  converter::registry::push_back(
+    &any_converter::convertible,
+    &any_converter::construct,
+    type_id<boost::any>());
 }
 
 }
