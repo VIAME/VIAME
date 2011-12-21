@@ -34,6 +34,9 @@ namespace vistk
 namespace python
 {
 
+namespace
+{
+
 class any_converter;
 typedef boost::shared_ptr<any_converter> any_converter_t;
 
@@ -60,6 +63,8 @@ boost::shared_mutex any_converter::m_mutex;
 
 any_converter::from_map_t any_converter::m_from = any_converter::from_map_t();
 any_converter::to_map_t any_converter::m_to = any_converter::to_map_t();
+
+}
 
 void register_to_python();
 
@@ -90,6 +95,9 @@ register_to_python()
     &any_converter::construct,
     type_id<boost::any>());
 }
+
+namespace
+{
 
 void
 any_converter
@@ -185,6 +193,8 @@ any_converter
 
   new (storage) boost::any;
   data->convertible = storage;
+}
+
 }
 
 }
