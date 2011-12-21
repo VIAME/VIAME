@@ -4,15 +4,20 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <vistk/pipeline/datum.h>
-
 #include <lua/helpers/lua_include.h>
-#include <lua/helpers/lua_convert_any.h>
+
+#include <vistk/lua/any_conversion/prototypes.h>
+#include <vistk/lua/any_conversion/registration.h>
+
+#include <vistk/pipeline/datum.h>
 
 #include <luabind/class.hpp>
 #include <luabind/function.hpp>
 
 #include <boost/any.hpp>
+#include <boost/cstdint.hpp>
+
+#include <string>
 
 /**
  * \file datum.cxx
@@ -61,7 +66,11 @@ luaopen_vistk_pipeline_datum(lua_State* L)
     ]
   ];
 
-  register_any_coverters(L);
+  vistk::lua::register_type<std::string>(0);
+  vistk::lua::register_type<int32_t>(1);
+  vistk::lua::register_type<char>(2);
+  vistk::lua::register_type<bool>(3);
+  vistk::lua::register_type<double>(4);
 
   return 0;
 }
