@@ -14,18 +14,6 @@ if (NOT WIN32)
       COMPILE_FLAGS "-fPIC")
 endif (NOT WIN32)
 
-add_library(python_convert_any STATIC
-  python_convert_any.cxx)
-target_link_libraries(python_convert_any
-  ${Boost_PYTHON_LIBRARY}
-  ${PYTHON_LIBRARIES})
-
-if (NOT WIN32)
-  set_target_properties(python_convert_any
-    PROPERTIES
-      COMPILE_FLAGS "-fPIC")
-endif (NOT WIN32)
-
 add_library(python_gil STATIC
   python_gil.cxx)
 target_link_libraries(python_gil
