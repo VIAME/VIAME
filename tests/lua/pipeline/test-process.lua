@@ -65,18 +65,18 @@ function test_api_calls()
     tmp = a.in_sync
     tmp = a.max_status
 
-    tmp = vistk.pipeline.process.lua_process.constraint_no_threads
-    tmp = vistk.pipeline.process.lua_process.constraint_no_reentrancy
-    tmp = vistk.pipeline.process.lua_process.constraint_unsync_input
-    tmp = vistk.pipeline.process.lua_process.constraint_unsync_output
-    tmp = vistk.pipeline.process.lua_process.port_heartbeat
-    tmp = vistk.pipeline.process.lua_process.config_name
-    tmp = vistk.pipeline.process.lua_process.config_type
-    tmp = vistk.pipeline.process.lua_process.type_any
-    tmp = vistk.pipeline.process.lua_process.type_none
-    tmp = vistk.pipeline.process.lua_process.flag_output_const
-    tmp = vistk.pipeline.process.lua_process.flag_input_mutable
-    tmp = vistk.pipeline.process.lua_process.flag_required
+    tmp = vistk.pipeline.lua_process.constraint_no_threads
+    tmp = vistk.pipeline.lua_process.constraint_no_reentrancy
+    tmp = vistk.pipeline.lua_process.constraint_unsync_input
+    tmp = vistk.pipeline.lua_process.constraint_unsync_output
+    tmp = vistk.pipeline.lua_process.port_heartbeat
+    tmp = vistk.pipeline.lua_process.config_name
+    tmp = vistk.pipeline.lua_process.config_type
+    tmp = vistk.pipeline.lua_process.type_any
+    tmp = vistk.pipeline.lua_process.type_none
+    tmp = vistk.pipeline.lua_process.flag_output_const
+    tmp = vistk.pipeline.lua_process.flag_input_mutable
+    tmp = vistk.pipeline.lua_process.flag_required
 end
 
 
