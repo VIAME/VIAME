@@ -20,6 +20,9 @@
 #include <boost/python/module.hpp>
 #include <boost/python/object.hpp>
 #include <boost/any.hpp>
+#include <boost/cstdint.hpp>
+
+#include <string>
 
 /**
  * \file datum.cxx
