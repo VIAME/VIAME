@@ -57,32 +57,32 @@ boost_any_to_object
 
   type_info const info(a.type());
 
-#define TRY_CONVERT_TO(T)                      \
-  do                                           \
-  {                                            \
-    converter::registration const* const reg = \
-      converter::registry::query(info);        \
-    if (reg)                                   \
-    {                                          \
-      try                                      \
-      {                                        \
-        T const t = boost::any_cast<T>(a);     \
-        object const o(t);                     \
-        return incref(o.ptr());                \
-      }                                        \
-      catch (boost::bad_any_cast&)             \
-      {                                        \
-      }                                        \
-      catch (error_already_set&)               \
-      {                                        \
-        /** \todo Log that there is not a */   \
-        /** known converter for the type. */   \
-        return detail::none();                 \
-      }                                        \
-    }                                          \
+  converter::registration const* const reg = converter::registry::query(info);
+
+#define TRY_CONVERT_TO(T)                  \
+  do                                       \
+  {                                        \
+    try                                    \
+    {                                      \
+      T const t = boost::any_cast<T>(a);   \
+      object const o(t);                   \
+      return incref(o.ptr());              \
+    }                                      \
+    catch (boost::bad_any_cast&)           \
+    {                                      \
+    }                                      \
+    catch (error_already_set&)             \
+    {                                      \
+      /** \todo Log that there is not a */ \
+      /** known converter for the type. */ \
+      return detail::none();               \
+    }                                      \
   } while (false)
 
-  REGISTER_TYPES(TRY_CONVERT_TO);
+  if (reg)
+  {
+    REGISTER_TYPES(TRY_CONVERT_TO);
+  }
 
 #undef TRY_CONVERT_TO
 
