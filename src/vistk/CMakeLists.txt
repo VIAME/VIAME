@@ -9,6 +9,10 @@ add_subdirectory(utilities)
 add_subdirectory(pipeline_util)
 add_subdirectory(image)
 
+if (VISTK_ENABLE_LUA)
+  add_subdirectory(lua)
+endif (VISTK_ENABLE_LUA)
+
 if (VISTK_ENABLE_PYTHON)
   add_subdirectory(python)
 endif (VISTK_ENABLE_PYTHON)
