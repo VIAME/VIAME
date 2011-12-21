@@ -113,7 +113,7 @@ boost_any_to_object
 #define TRY_CONVERT_FROM_RAW(T)        \
   do                                   \
   {                                    \
-    extract<T> ex(obj);                \
+    extract<T> const ex(obj);          \
     if (ex.check())                    \
     {                                  \
       CONSTRUCT((ex()));               \
