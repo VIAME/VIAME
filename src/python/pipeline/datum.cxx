@@ -5,7 +5,9 @@
  */
 
 #include <python/helpers/python_wrap_const_shared_ptr.h>
-#include <python/helpers/python_convert_any.h>
+
+#include <vistk/python/any_conversion/prototypes.h>
+#include <vistk/python/any_conversion/registration.h>
 
 #include <vistk/pipeline/datum.h>
 
@@ -72,8 +74,11 @@ BOOST_PYTHON_MODULE(datum)
 
   implicitly_convertible<boost::shared_ptr<vistk::datum>, vistk::datum_t>();
 
-  to_python_converter<boost::any, boost_any_to_object>();
-  boost_any_to_object();
+  vistk::python::register_type<std::string>(0);
+  vistk::python::register_type<int32_t>(1);
+  vistk::python::register_type<char>(2);
+  vistk::python::register_type<bool>(3);
+  vistk::python::register_type<double>(4);
 
   implicitly_convertible<boost::any, object>();
   implicitly_convertible<object, boost::any>();
