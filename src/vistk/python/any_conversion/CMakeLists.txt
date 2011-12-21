@@ -23,12 +23,6 @@ set_target_properties(vistk_python_any_conversion
     SOVERSION     0
     DEFINE_SYMBOL MAKE_VISTK_PYTHON_ANY_CONVERSION_LIB)
 
-if (VISTK_ENABLE_DOCUMENTATION)
-  create_doxygen(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    any_conversion)
-endif (VISTK_ENABLE_DOCUMENTATION)
-
 install(
   FILES       ${python_any_conversion_headers}
   DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/python/any_conversion"
