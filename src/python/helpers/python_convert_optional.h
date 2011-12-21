@@ -67,7 +67,7 @@ class boost_optional_converter
       }
       else
       {
-        return boost::python::detail::none();
+        Py_RETURN_NONE;
       }
     }
 

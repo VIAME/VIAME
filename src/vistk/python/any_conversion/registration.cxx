@@ -7,7 +7,6 @@
 #include "registration.h"
 
 #include <boost/python/converter/registry.hpp>
-#include <boost/python/detail/none.hpp>
 #include <boost/python/errors.hpp>
 #include <boost/python/to_python_converter.hpp>
 #include <boost/thread/locks.hpp>
@@ -127,7 +126,7 @@ any_converter
 {
   if (any.empty())
   {
-    return detail::none();
+    Py_RETURN_NONE;
   }
 
   type_info const info(any.type());
@@ -159,7 +158,7 @@ any_converter
 
   /// \todo Log that the any has a type which is not supported yet.
 
-  return detail::none();
+  Py_RETURN_NONE;
 }
 
 void
