@@ -9,6 +9,10 @@ add_subdirectory(utilities)
 add_subdirectory(pipeline_util)
 add_subdirectory(image)
 
+if (VISTK_ENABLE_PYTHON)
+  add_subdirectory(python)
+endif (VISTK_ENABLE_PYTHON)
+
 install(
   FILES       ${CMAKE_CURRENT_BINARY_DIR}/config.h
   DESTINATION "${INCLUDE_INSTALL_PATH}/vistk"
