@@ -38,7 +38,7 @@ function (create_doxygen inputdir name)
   add_custom_command(
     TARGET  doxygen-${name}-doxyfile
     COMMAND ${CMAKE_COMMAND}
-            -D "DOXYGEN_TEMPLATE=${CMAKE_SOURCE_DIR}/Doxyfile.in"
+            -D "DOXYGEN_TEMPLATE=${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in"
             -D "DOXY_PROJECT_SOURCE_DIR=${inputdir}"
             -D "DOXY_DOCUMENTATION_OUTPUT_PATH=${DOCUMENTATION_OUTPUT_PATH}"
             -D "DOXY_PROJECT_NAME=${name}"
