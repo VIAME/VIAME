@@ -195,44 +195,12 @@ link_directories(${VXL_LIBRARY_DIR})
 
 include(${CMAKE_SOURCE_DIR}/cmake/vxl_tests.cmake)
 
+add_subdirectory(conf)
 add_subdirectory(src)
 
 option(VISTK_ENABLE_TESTING "Build tests" OFF)
 if (VISTK_ENABLE_TESTING)
   include(${CMAKE_SOURCE_DIR}/cmake/test.cmake)
 
-  # Configure the warning and code coverage suppression file
-  configure_file(
-    "${CMAKE_SOURCE_DIR}/CTestCustom.cmake.in"
-    "${CMAKE_BINARY_DIR}/CTestCustom.cmake"
-    COPYONLY)
-
   add_subdirectory(tests)
 endif (VISTK_ENABLE_TESTING)
-
-set(vistk_config_file "${CMAKE_BINARY_DIR}/vistk-config.cmake")
-configure_file(
-  "${CMAKE_SOURCE_DIR}/vistk-config.cmake.in"
-  "${vistk_config_file}")
-set(vistk_config_install_file "${CMAKE_BINARY_DIR}/vistk-config-install.cmake")
-configure_file(
-  "${CMAKE_SOURCE_DIR}/vistk-config-install.cmake.in"
-  "${vistk_config_install_file}"
-  @ONLY)
-set(vistk_macros_file "${CMAKE_BINARY_DIR}/vistk-macros.cmake")
-configure_file(
-  "${CMAKE_SOURCE_DIR}/vistk-macros.cmake.in"
-  "${vistk_macros_file}"
-  @ONLY)
-
-# Configure the CMake EXPORT file during installation
-install(
-  FILES       ${vistk_config_install_file}
-              ${vistk_macros_file}
-  DESTINATION "${LIBRARY_INSTALL_PATH}/cmake"
-  COMPONENT   runtime)
-install(
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}/cmake"
-  FILE        vistk-config-targets.cmake
-  COMPONENT   runtime)
