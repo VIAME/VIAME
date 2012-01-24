@@ -55,9 +55,9 @@ class timestamper_process::priv
     static port_t const port_output;
 };
 
-config::key_t const timestamper_process::priv::config_start_frame = port_t("start_frame");
-config::key_t const timestamper_process::priv::config_start_time = port_t("start_time");
-config::key_t const timestamper_process::priv::config_frame_rate = port_t("frame_rate");
+config::key_t const timestamper_process::priv::config_start_frame = config::key_t("start_frame");
+config::key_t const timestamper_process::priv::config_start_time = config::key_t("start_time");
+config::key_t const timestamper_process::priv::config_frame_rate = config::key_t("frame_rate");
 config::value_t const timestamper_process::priv::default_start_frame = config::value_t("0");
 config::value_t const timestamper_process::priv::default_start_time = config::value_t("0");
 config::value_t const timestamper_process::priv::default_frame_rate = config::value_t("30");
