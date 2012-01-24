@@ -298,8 +298,8 @@ pipe_grammar<Iterator>
   config_key.name("key-component");
   config_key %=
     +(  qi::alnum
-     |  qi::lit('-')
-     |  qi::lit('_')
+     |  qi::char_('-')
+     |  qi::char_('_')
      );
 
   config_key_path.name("key-path");
@@ -311,8 +311,8 @@ pipe_grammar<Iterator>
   config_value.name("key-value");
   config_value %=
     +(  qi::graph
-     |  qi::lit(' ')
-     |  qi::lit('\t')
+     |  qi::char_(' ')
+     |  qi::char_('\t')
      );
 
   config_key_full.name("full-key-path");
@@ -379,9 +379,9 @@ pipe_grammar<Iterator>
   port_name.name("port-name");
   port_name %=
     +(  qi::alnum
-     |  qi::lit('-')
-     |  qi::lit('_')
-     |  qi::lit('/')
+     |  qi::char_('-')
+     |  qi::char_('_')
+     |  qi::char_('/')
      );
 
   port_addr.name("port-addr");
