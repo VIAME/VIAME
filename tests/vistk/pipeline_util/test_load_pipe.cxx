@@ -67,8 +67,11 @@ static void test_empty(vistk::path_t const& pipe_file);
 static void test_comments(vistk::path_t const& pipe_file);
 static void test_empty_config(vistk::path_t const& pipe_file);
 static void test_config_block(vistk::path_t const& pipe_file);
+static void test_config_block_notalnum(vistk::path_t const& pipe_file);
+static void test_config_value_spaces(vistk::path_t const& pipe_file);
 static void test_one_process(vistk::path_t const& pipe_file);
 static void test_connected_processes(vistk::path_t const& pipe_file);
+static void test_connected_processes_notalnum(vistk::path_t const& pipe_file);
 static void test_config_overrides(vistk::path_t const& pipe_file);
 static void test_config_read_only(vistk::path_t const& pipe_file);
 static void test_config_not_a_flag(vistk::path_t const& pipe_file);
@@ -116,6 +119,14 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   {
     test_config_block(pipe_file);
   }
+  else if (test_name == "config_block_notalnum")
+  {
+    test_config_block_notalnum(pipe_file);
+  }
+  else if (test_name == "config_value_spaces")
+  {
+    test_config_value_spaces(pipe_file);
+  }
   else if (test_name == "one_process")
   {
     test_one_process(pipe_file);
@@ -123,6 +134,10 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   else if (test_name == "connected_processes")
   {
     test_connected_processes(pipe_file);
+  }
+  else if (test_name == "connected_processes_notalnum")
+  {
+    test_connected_processes_notalnum(pipe_file);
   }
   else if (test_name == "config_overrides")
   {
@@ -332,9 +347,77 @@ test_config_block(vistk::path_t const& pipe_file)
 
   if (mykey != expected)
   {
-    TEST_ERROR("Configuration was not overriden: "
+    TEST_ERROR("Configuration was not correct: "
                "Expected: " << expected << " "
                "Received: " << mykey);
+  }
+}
+
+void
+test_config_block_notalnum(vistk::path_t const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(2, 0, 0, 0);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = conf->get_value<vistk::config::key_t>("my_block:my-key");
+  vistk::config::key_t const expected = vistk::config::key_t("myvalue");
+
+  if (mykey != expected)
+  {
+    TEST_ERROR("Configuration was not correct: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
+  }
+
+  vistk::config::key_t const myotherkey = conf->get_value<vistk::config::key_t>("my-block:my_key");
+  vistk::config::key_t const otherexpected = vistk::config::key_t("myothervalue");
+
+  if (myotherkey != otherexpected)
+  {
+    TEST_ERROR("Configuration was not correct: "
+               "Expected: " << otherexpected << " "
+               "Received: " << myotherkey);
+  }
+}
+
+void
+test_config_value_spaces(vistk::path_t const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = conf->get_value<vistk::config::key_t>("myblock:mykey");
+  vistk::config::key_t const expected = vistk::config::key_t("my value with spaces");
+
+  if (mykey != expected)
+  {
+    TEST_ERROR("Configuration was not correct: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
+  }
+
+  vistk::config::key_t const mytabkey = conf->get_value<vistk::config::key_t>("myblock:mytabs");
+  vistk::config::key_t const tabexpected = vistk::config::key_t("my	value	with	tabs");
+
+  if (mytabkey != tabexpected)
+  {
+    TEST_ERROR("Configuration was not correct: "
+               "Expected: " << tabexpected << " "
+               "Received: " << mytabkey);
   }
 }
 
@@ -360,6 +443,18 @@ test_connected_processes(vistk::path_t const& pipe_file)
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
   v.expect(0, 2, 1, 0);
+}
+
+void
+test_connected_processes_notalnum(vistk::path_t const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 2, 3, 0);
 }
 
 void

@@ -1,0 +1,5 @@
+config my_block
+  :my-key myvalue
+
+config my-block
+  :my_key myothervalue
