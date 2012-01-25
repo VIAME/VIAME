@@ -47,7 +47,16 @@ int main(int argc, char* argv[])
   po::options_description const desc = make_options();
 
   po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
+  try
+  {
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+  }
+  catch (po::unknown_option& e)
+  {
+    std::cerr << "Error: unknown option " << e.get_option_name() << std::endl;
+
+    usage(desc);
+  }
   po::notify(vm);
 
   if (vm.count("help"))
