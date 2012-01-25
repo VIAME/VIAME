@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
       std::cout << type << std::endl;
     }
 
-    return 0;
+    return EXIT_SUCCESS;
   }
 
   vistk::config_t const conf = vistk::config::empty_config();
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
     std::cout << std::endl;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 po::options_description
@@ -172,5 +172,5 @@ usage(po::options_description const& options)
 {
   std::cerr << options << std::endl;
 
-  exit(1);
+  exit(EXIT_FAILURE);
 }

@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
       {
         std::cerr << "Error: Unable to open input file" << std::endl;
 
-        return 1;
+        return EXIT_FAILURE;
       }
 
       pistr = &fin;
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
                        "the \'" << split_str << "\' string which "
                        "separates the key from the value" << std::endl;
 
-          return 1;
+          return EXIT_FAILURE;
         }
 
         vistk::config::key_t setting_key = setting.substr(0, split_pos);
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
           std::cerr << "Error: The block separator is not than "
                        "one character and does not work here" << std::endl;
 
-          return 1;
+          return EXIT_FAILURE;
         }
 
         /// \bug Does not work if (vistk::config::block_sep.size() != 1).
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
                        "at least two keys in its keypath which is "
                        "invalid" << std::endl;
 
-          return 1;
+          return EXIT_FAILURE;
         }
 
         value.key.key_path.push_back(keys.back());
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
   {
     std::cerr << "Error: Unable to bake pipeline" << std::endl;
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   pipe->setup_pipeline();
@@ -201,13 +201,13 @@ int main(int argc, char* argv[])
   {
     std::cerr << "Error: Unable to create schedule" << std::endl;
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   schedule->start();
   schedule->wait();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 po::options_description
@@ -232,5 +232,5 @@ usage(po::options_description const& options)
 {
   std::cerr << options << std::endl;
 
-  exit(1);
+  exit(EXIT_FAILURE);
 }
