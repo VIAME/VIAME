@@ -275,7 +275,7 @@ set_on_read_only_value_exception
   sstr << "The key \'" << m_key << "\' "
           "was marked as read-only with the value "
           "\'" << m_value << "\' was attempted to be "
-          "set to \'" << m_key << "\'.";
+          "set to \'" << m_new_value << "\'.";
 
   m_what = sstr.str();
 }
