@@ -54,8 +54,8 @@ thread_per_process_schedule
 
     if (i != consts.end())
     {
-      static std::string const reason = "The process \'" + name + "\' does "
-                                        "not support being in its own thread";
+      std::string const reason = "The process \'" + name + "\' does "
+                                 "not support being in its own thread";
 
       throw incompatible_pipeline_exception(reason);
     }

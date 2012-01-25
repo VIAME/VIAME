@@ -64,8 +64,8 @@ sync_schedule
 
       if (i != consts.end())
       {
-        static std::string const reason = "The process \'" + name + "\' does not output "
-                                          "consistent data across all its output ports";
+        std::string const reason = "The process \'" + name + "\' does not output "
+                                   "consistent data across all its output ports";
 
         throw incompatible_pipeline_exception(reason);
       }
@@ -76,8 +76,8 @@ sync_schedule
 
       if (i != consts.end())
       {
-        static std::string const reason = "The process \'" + name + "\' does not expect "
-                                          "consistent data across all its input ports";
+        std::string const reason = "The process \'" + name + "\' does not expect "
+                                   "consistent data across all its input ports";
 
         throw incompatible_pipeline_exception(reason);
       }

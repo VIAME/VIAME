@@ -155,8 +155,9 @@ image_writer_process
     if (!d->fout.good())
     {
       std::string const file_path(path.begin(), path.end());
+      std::string const reason = "Failed to open the path: " + file_path;
 
-      throw invalid_configuration_exception(name(), "Failed to open the path: " + file_path);
+      throw invalid_configuration_exception(name(), reason);
     }
   }
 }

@@ -86,9 +86,10 @@ print_number_process
 
   if (path.empty())
   {
+    static std::string const reason = "The path given was empty";
     config::value_t const value = config::value_t(path.begin(), path.end());
 
-    throw invalid_configuration_value_exception(name(), priv::config_path, value, "The path given was empty");
+    throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
 
   d->fout.open(path.c_str());
@@ -96,8 +97,9 @@ print_number_process
   if (!d->fout.good())
   {
     std::string const file_path(path.begin(), path.end());
+    std::string const reason = "Failed to open the path: " + file_path;
 
-    throw invalid_configuration_exception(name(), "Failed to open the path: " + file_path);
+    throw invalid_configuration_exception(name(), reason);
   }
 }
 

@@ -81,7 +81,9 @@ config
   {
     if (is_read_only(key))
     {
-      throw set_on_read_only_value_exception(key, get_value<value_t>(key, value_t()), value);
+      value_t const current_value = get_value<value_t>(key, value_t());
+
+      throw set_on_read_only_value_exception(key, current_value, value);
     }
 
     m_store[key] = value;
@@ -100,7 +102,9 @@ config
   {
     if (is_read_only(key))
     {
-      throw unset_on_read_only_value_exception(key, get_value<value_t>(key, value_t()));
+      value_t const current_value = get_value<value_t>(key, value_t());
+
+      throw unset_on_read_only_value_exception(key, current_value);
     }
 
     m_store.erase(key);

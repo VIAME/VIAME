@@ -168,10 +168,10 @@ video_reader_process
 
   if (path.empty())
   {
-    config::value_t const value = config::value_t(path.begin(), path.end());
+    config::value_t const file_path = config::value_t(path.begin(), path.end());
     static std::string const reason = "The path given was empty";
 
-    throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
+    throw invalid_configuration_value_exception(name(), priv::config_path, file_path, reason);
   }
 
   if (d->verify)
@@ -210,7 +210,7 @@ video_reader_process
 
       if (!ok)
       {
-        std::string const reason = "The video file has invalid frames in it";
+        static std::string const reason = "The video file has invalid frames in it";
 
         throw invalid_configuration_exception(name(), reason);
       }
