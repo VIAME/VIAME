@@ -150,7 +150,7 @@ warp_image<PixType>
   ptrdiff_t const sjs = image.jstep();
   ptrdiff_t const sps = image.planestep();
 
-  size_t const factor_size = std::floor(intersection.width());
+  size_t const factor_size = end_i - begin_i;
 
   column_t const homog_col_1 = homog.get_column(0);
   column_t const homog_col_2 = homog.get_column(1);
