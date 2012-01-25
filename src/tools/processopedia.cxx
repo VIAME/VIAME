@@ -9,6 +9,8 @@
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
 
+#include <vistk/config.h>
+
 #include <tools/helpers/typed_value_desc.h>
 
 #include <boost/algorithm/string/join.hpp>
@@ -23,7 +25,7 @@
 namespace po = boost::program_options;
 
 static po::options_description make_options();
-static void usage(po::options_description const& options);
+static void VISTK_NO_RETURN usage(po::options_description const& options);
 
 int main(int argc, char* argv[])
 {

@@ -16,6 +16,8 @@
 #include <vistk/pipeline/schedule_registry.h>
 #include <vistk/pipeline/pipeline.h>
 
+#include <vistk/config.h>
+
 #include <tools/helpers/typed_value_desc.h>
 
 #include <boost/algorithm/string/classification.hpp>
@@ -37,7 +39,7 @@ static std::string const split_str = "=";
 static vistk::config::key_t const schedule_block = vistk::config::key_t("_schedule");
 
 static po::options_description make_options();
-static void usage(po::options_description const& options);
+static void VISTK_NO_RETURN usage(po::options_description const& options);
 
 int main(int argc, char* argv[])
 {
