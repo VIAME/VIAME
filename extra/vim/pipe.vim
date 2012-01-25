@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:	vistk pipeline
 " Maintainer:	Ben Boeckel <ben.boeckel@kitware.com>
-" Last Change:	2011-08-24
+" Last Change:	2012-01-25
 " Credits:	Ben Boeckel <ben.boeckel@kitware.com>
 
 if exists("b:current_syntax")
@@ -11,11 +11,11 @@ endif
 syn case match
 
 let s:begin_line='\(^[ \t]*\)'
-let s:config_name='[a-zA-Z_-]\+'
-let s:port_name='[a-zA-Z_/-]\+'
+let s:config_name='[a-zA-Z0-9_-]\+'
+let s:port_name='[a-zA-Z0-9_/-]\+'
 let s:flag='[a-zA-Z]\+'
 let s:provider='[A-Z]\+'
-let s:config_value='[a-zA-Z0-9./:_-]\+'
+let s:config_value='[a-zA-Z0-9./:_ \t-]\+'
 
 exec 'syn match pipeConnectDecl /' . s:begin_line . '\zs\<connect\>/ nextgroup=pipeConnectFrom               skipwhite'
 exec 'syn match pipeConnectFrom                        /\<from\>/    nextgroup=pipeConnectPortAddr contained skipwhite'
