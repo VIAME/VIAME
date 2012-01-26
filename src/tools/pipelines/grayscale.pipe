@@ -22,7 +22,7 @@ process write
   :pixfmt[ro] gray
 
 connect from read.image
-        to   gray.rgbimage
+        to   gray.image
 
 connect from gray.grayimage
         to   write.image
