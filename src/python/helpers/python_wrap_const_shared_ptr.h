@@ -8,6 +8,7 @@
 #define VISTK_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H
 
 #include <boost/python/pointee.hpp>
+#include <boost/get_pointer.hpp>
 #include <boost/shared_ptr.hpp>
 
 // Retrieved from http://mail.python.org/pipermail/cplusplus-sig/2006-November/011329.html
@@ -30,6 +31,10 @@ struct pointee<boost::shared_ptr<T const> >
 {
   typedef T type;
 };
+
+// Don't hide other get_pointer instances.
+using boost::python::get_pointer;
+using boost::get_pointer;
 
 }
 
