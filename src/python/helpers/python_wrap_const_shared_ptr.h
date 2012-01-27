@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_PYTHON_WRAP_CONST_SHARED_PTR_H
-#define VISTK_PYTHON_PYTHON_WRAP_CONST_SHARED_PTR_H
+#ifndef VISTK_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H
+#define VISTK_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H
 
 #include <boost/python/pointee.hpp>
 #include <boost/shared_ptr.hpp>
@@ -35,4 +35,4 @@ struct pointee<boost::shared_ptr<T const> >
 
 }
 
-#endif // VISTK_PYTHON_PYTHON_WRAP_CONST_SHARED_PTR_H
+#endif // VISTK_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H

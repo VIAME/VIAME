@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_PYTHON_THREADING_H
-#define VISTK_PYTHON_PYTHON_THREADING_H
+#ifndef VISTK_PYTHON_HELPERS_PYTHON_THREADING_H
+#define VISTK_PYTHON_HELPERS_PYTHON_THREADING_H
 
 class python_threading
 {
@@ -14,4 +14,4 @@ class python_threading
     virtual ~python_threading();
 };
 
-#endif // VISTK_PYTHON_PYTHON_THREADING_H
+#endif // VISTK_PYTHON_HELPERS_PYTHON_THREADING_H
