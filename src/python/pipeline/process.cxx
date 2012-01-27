@@ -5,6 +5,7 @@
  */
 
 #include <python/helpers/python_wrap_const_shared_ptr.h>
+#include <python/helpers/set_indexing_suite.h>
 
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/process.h>
@@ -27,9 +28,6 @@
 using namespace boost::python;
 
 static void translator(vistk::process_exception const& e);
-
-static void constraints_add(vistk::process::constraints_t* self, vistk::process::port_flag_t const& flag);
-static void port_flags_add(vistk::process::port_flags_t* self, vistk::process::port_flag_t const& flag);
 
 class wrap_process
   : public vistk::process
@@ -116,25 +114,7 @@ BOOST_PYTHON_MODULE(process)
     , "A constraint on a process.");
   class_<vistk::process::constraints_t>("ProcessConstraints"
     , "A collection of constraints on a process.")
-    .def("__len__", &vistk::process::constraints_t::size)
-    //.def("__contains__", &constraints_contains)
-    //.def("isdisjoint", &constraints_isdisjoint)
-    //.def("issubset", &constraints_issubset)
-    //.def("issuperset", &constraints_issuperset)
-    //.def("union", &constraints_union)
-    //.def("intersection", &constraints_intersection)
-    //.def("difference", &constraints_difference)
-    //.def("symmetric_difference", &constraints_symmetric_difference)
-    //.def("copy", &constraints_copy)
-    //.def("update", &constraints_update)
-    //.def("intersection_update", &constraints_intersection_update)
-    //.def("difference_update", &constraints_difference_update)
-    //.def("symmetric_difference_update", &constraints_symmetric_difference_update)
-    .def("add", &constraints_add)
-    //.def("remove", &constraints_remove)
-    //.def("discard", &constraints_discard)
-    //.def("pop", &constraints_discard)
-    .def("clear", &vistk::process::constraints_t::clear)
+    .def(set_indexing_suite<vistk::process::constraints_t>())
   ;
   class_<vistk::process::port_description_t>("PortDescription"
     , "A description for a port.");
@@ -150,25 +130,7 @@ BOOST_PYTHON_MODULE(process)
     , "A flag on a port.");
   class_<vistk::process::port_flags_t>("PortFlags"
     , "A collection of port flags.")
-    .def("__len__", &vistk::process::port_flags_t::size)
-    //.def("__contains__", &port_flags_contains)
-    //.def("isdisjoint", &port_flags_isdisjoint)
-    //.def("issubset", &port_flags_issubset)
-    //.def("issuperset", &port_flags_issuperset)
-    //.def("union", &port_flags_union)
-    //.def("intersection", &port_flags_intersection)
-    //.def("difference", &port_flags_difference)
-    //.def("symmetric_difference", &port_flags_symmetric_difference)
-    //.def("copy", &port_flags_copy)
-    //.def("update", &port_flags_update)
-    //.def("intersection_update", &port_flags_intersection_update)
-    //.def("difference_update", &port_flags_difference_update)
-    //.def("symmetric_difference_update", &port_flags_symmetric_difference_update)
-    .def("add", &port_flags_add)
-    //.def("remove", &port_flags_remove)
-    //.def("discard", &port_flags_discard)
-    //.def("pop", &port_flags_discard)
-    .def("clear", &vistk::process::port_flags_t::clear)
+    .def(set_indexing_suite<vistk::process::port_flags_t>())
   ;
   class_<vistk::process::port_addr_t>("PortAddr"
     , "An address for a port within a pipeline.")
@@ -365,18 +327,6 @@ void
 translator(vistk::process_exception const& e)
 {
   PyErr_SetString(PyExc_RuntimeError, e.what());
-}
-
-void
-constraints_add(vistk::process::constraints_t* self, vistk::process::port_flag_t const& flag)
-{
-  self->insert(flag);
-}
-
-void
-port_flags_add(vistk::process::port_flags_t* self, vistk::process::port_flag_t const& flag)
-{
-  self->insert(flag);
 }
 
 wrap_process
