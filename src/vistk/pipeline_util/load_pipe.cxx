@@ -90,7 +90,6 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
   {
     include_dirs.push_back(inc_root);
 
-    /// \bug Boost <= 1.47 boost::split *overwrites* destination.
     include_paths_t include_dirs_tmp;
 
     envvar_value_t extra_include_dirs = get_envvar(vistk_include_envvar);
