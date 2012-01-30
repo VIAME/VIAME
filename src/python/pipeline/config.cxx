@@ -52,9 +52,7 @@ BOOST_PYTHON_MODULE(config)
       , "Returns a subblock from the configuration.")
     .def("subblock_view", &vistk::config::subblock_view
       , (arg("name"))
-      , "Returns a linked subblock from the configuration."
-      /// \todo This should be done...
-      )//, return_internal_reference<1>())
+      , "Returns a linked subblock from the configuration.")
     .def("get_value", &config_get_value
       , (arg("key"))
       , "Retrieve a value from the configuration.")
