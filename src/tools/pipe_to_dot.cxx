@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 
         if (vistk::config::block_sep.size() != 1)
         {
-          std::cerr << "Error: The block separator is not than "
+          std::cerr << "Error: The block separator is longer than "
                        "one character and does not work here" << std::endl;
 
           return EXIT_FAILURE;
