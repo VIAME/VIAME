@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
     vistk::process::constraints_t const constraints = proc->constraints();
     std::string const constraints_str = boost::join(constraints, ", ");
 
-    std::cout << "  Constraints:" << constraints_str << std::endl;
+    std::cout << "  Constraints: " << constraints_str << std::endl;
 
     std::cout << "  Configuration:" << std::endl;
 
