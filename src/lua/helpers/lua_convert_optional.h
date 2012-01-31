@@ -27,31 +27,33 @@ template <typename T>
 struct default_converter<boost::optional<T> >
   : native_converter_base<boost::optional<T> >
 {
-  static int compute_score(lua_State* L, int index)
-  {
-    object const obj(from_stack(L, index));
-
-    return object_cast_nothrow<T>(obj) ? 0 : -1;
-  }
-
-  boost::optional<T> from(lua_State* L, int index)
-  {
-    object const obj(from_stack(L, index));
-
-    return object_cast<T>(obj);
-  }
-
-  void to(lua_State* L, boost::optional<T> const& o)
-  {
-    if (o)
+  public:
+    static int compute_score(lua_State* L, int index)
     {
-      detail::convert_to_lua(L, *o);
+      object const obj(from_stack(L, index));
+
+      return (object_cast_nothrow<T>(obj) ? 0 : -1);
+
     }
-    else
+
+    boost::optional<T> from(lua_State* L, int index)
     {
-      lua_pushnil(L);
+      object const obj(from_stack(L, index));
+
+      return object_cast<T>(obj);
     }
-  }
+
+    void to(lua_State* L, boost::optional<T> const& o)
+    {
+      if (o)
+      {
+        detail::convert_to_lua(L, *o);
+      }
+      else
+      {
+        lua_pushnil(L);
+      }
+    }
 };
 
 template <typename T>

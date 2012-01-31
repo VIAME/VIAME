@@ -31,7 +31,7 @@ struct default_converter<std::vector<T> >
   public:
     static int compute_score(lua_State* L, int index)
     {
-      return lua_type(L, index) == LUA_TTABLE ? 0 : -1;
+      return ((lua_type(L, index) == LUA_TTABLE) ? 0 : -1);
     }
 
     std::vector<T> from(lua_State* L, int index)
