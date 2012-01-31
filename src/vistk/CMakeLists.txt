@@ -4,7 +4,6 @@ configure_file(config.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 add_subdirectory(pipeline)
-add_subdirectory(pipeline_types)
 add_subdirectory(utilities)
 add_subdirectory(pipeline_util)
 add_subdirectory(image)

@@ -11,8 +11,6 @@
 
 #include <vistk/utilities/homography.h>
 
-#include <vistk/pipeline_types/utility_types.h>
-
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
@@ -76,7 +74,7 @@ warp_image_process
   required.insert(flag_required);
 
   declare_input_port(priv::port_transform, boost::make_shared<port_info>(
-    utility_types::t_transform,
+    "transform",
     required,
     port_description_t("The transform to use to warp the image")));
   declare_input_port(priv::port_input, boost::make_shared<port_info>(

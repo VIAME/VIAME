@@ -9,8 +9,6 @@
 #include <processes/helpers/image/format.h>
 #include <processes/helpers/image/write.h>
 
-#include <vistk/pipeline_types/image_types.h>
-
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_exception.h>
 

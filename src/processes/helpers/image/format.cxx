@@ -6,8 +6,6 @@
 
 #include "format.h"
 
-#include <vistk/pipeline_types/image_types.h>
-
 #include <boost/cstdint.hpp>
 
 /**
@@ -45,30 +43,30 @@ class image_helper
 };
 
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_rgb>::type = image_types::t_byte_rgb;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_rgb>::type = "image_byte_rgb";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_bgr>::type = image_types::t_byte_bgr;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_bgr>::type = "image_byte_bgr";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_rgba>::type = image_types::t_byte_rgba;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_rgba>::type = "image_byte_rgb";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_bgra>::type = image_types::t_byte_bgra;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_bgra>::type = "image_byte_bgra";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_yuv>::type = image_types::t_byte_yuv;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_yuv>::type = "image_byte_yuv";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_gray>::type = image_types::t_byte_grayscale;
+process::port_type_t const image_helper<uint8_t>::port_types<pix_gray>::type = "image_byte_grayscale";
 
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_rgb>::type = image_types::t_float_rgb;
+process::port_type_t const image_helper<float>::port_types<pix_rgb>::type = "image_float_rgb";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_bgr>::type = image_types::t_float_bgr;
+process::port_type_t const image_helper<float>::port_types<pix_bgr>::type = "image_float_bgr";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_rgba>::type = image_types::t_float_rgba;
+process::port_type_t const image_helper<float>::port_types<pix_rgba>::type = "image_float_rgba";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_bgra>::type = image_types::t_float_bgra;
+process::port_type_t const image_helper<float>::port_types<pix_bgra>::type = "image_float_bgra";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_yuv>::type = image_types::t_float_yuv;
+process::port_type_t const image_helper<float>::port_types<pix_yuv>::type = "image_float_yuv";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_gray>::type = image_types::t_float_grayscale;
+process::port_type_t const image_helper<float>::port_types<pix_gray>::type = "image_float_grayscale";
 
 template <typename PixType> template <pixel_format_t Format>
 process::port_type_t const image_helper<PixType>::port_types<Format>::type = process::type_none;

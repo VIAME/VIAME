@@ -8,8 +8,6 @@
 
 #include <vistk/utilities/homography.h>
 
-#include <vistk/pipeline_types/utility_types.h>
-
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
@@ -80,7 +78,7 @@ homography_reader_process
     port_flags_t(),
     port_description_t("If connected, uses the stamp's color for the output.")));
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
-    utility_types::t_transform,
+    "transform",
     required,
     port_description_t("The homographies that are read in.")));
 }

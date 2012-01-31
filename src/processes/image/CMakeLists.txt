@@ -36,7 +36,6 @@ add_vistk_plugin(processes_image
 target_link_libraries(processes_image
   vistk_image
   vistk_utilities
-  vistk_pipeline_types
   vistk_pipeline
   video_helper
   image_helper

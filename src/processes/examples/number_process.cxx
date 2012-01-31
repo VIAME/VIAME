@@ -6,8 +6,6 @@
 
 #include "number_process.h"
 
-#include <vistk/pipeline_types/basic_types.h>
-
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
@@ -78,7 +76,7 @@ number_process
     port_flags_t(),
     port_description_t("If connected, uses the stamp's color for the output.")));
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
-    basic_types::t_integer,
+    "integer",
     required,
     port_description_t("Where the numbers will be available.")));
 }

@@ -6,8 +6,6 @@
 
 #include "timestamper_process.h"
 
-#include <vistk/pipeline_types/utility_types.h>
-
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/edge.h>
@@ -87,7 +85,7 @@ timestamper_process
     port_flags_t(),
     port_description_t("If connected, uses the stamp's color for the output.")));
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
-    utility_types::t_timestamp,
+    "timestamp",
     required,
     port_description_t("Where the timestamps will be available.")));
 }

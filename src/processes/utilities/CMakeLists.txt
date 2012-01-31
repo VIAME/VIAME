@@ -17,7 +17,6 @@ add_vistk_plugin(processes_utilities
   ${utilities_srcs})
 target_link_libraries(processes_utilities
   vistk_utilities
-  vistk_pipeline_types
   vistk_pipeline
   vgl_algo
   ${Boost_FILESYSTEM_LIBRARY}

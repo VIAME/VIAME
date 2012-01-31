@@ -8,8 +8,6 @@
 
 #include <vistk/utilities/path.h>
 
-#include <vistk/pipeline_types/basic_types.h>
-
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_exception.h>
 
@@ -61,7 +59,7 @@ print_number_process
   required.insert(flag_required);
 
   declare_input_port(priv::port_input, boost::make_shared<port_info>(
-    basic_types::t_integer,
+    "integer",
     required,
     port_description_t("Where numbers are read from.")));
 }
