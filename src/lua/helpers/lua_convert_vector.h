@@ -53,7 +53,8 @@ struct default_converter<std::vector<T> >
     {
       object table = newtable(L);
 
-      size_t i = 0;
+      // Lua tables are indexed from 1.
+      size_t i = 1;
 
       BOOST_FOREACH (T const& e, v)
       {
