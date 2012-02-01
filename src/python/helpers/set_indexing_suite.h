@@ -98,10 +98,10 @@ class set_indexing_suite
     {
       cl
         .def("__and__", &intersection)
-        .def("__iand__", &intersection)
-        .def("__ior__", &union_)
-        .def("__isub__", &difference)
-        .def("__ixor__", &symmetric_difference)
+        .def("__iand__", &intersection_update)
+        .def("__ior__", &update)
+        .def("__isub__", &difference_update)
+        .def("__ixor__", &symmetric_difference_update)
         .def("__or__", &union_)
         .def("__rand__", &intersection)
         .def("__ror__", &union_)
