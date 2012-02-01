@@ -354,6 +354,10 @@ class VISTK_PIPELINE_EXPORT process
     static port_type_t const type_any;
     /// A type which indicates that no actual data is ever created.
     static port_type_t const type_none;
+    /// A type which indicates that the type is dependent on data.
+    static port_type_t const type_data_dependent;
+    /// A type which indicates that the type may depend on the connected port's type.
+    static port_type_t const type_flow_dependent;
     /// A flag which indicates that the output cannot be modified.
     static port_flag_t const flag_output_const;
     /// A flag which indicates that the input may be modified.
