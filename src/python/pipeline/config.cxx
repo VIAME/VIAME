@@ -12,6 +12,9 @@
 #include <boost/python/exception_translator.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/return_internal_reference.hpp>
+#include <boost/python/str.hpp>
+
+#include <sstream>
 
 /**
  * \file config.cxx
@@ -23,6 +26,10 @@ using namespace boost::python;
 
 static vistk::config::value_t config_get_value(vistk::config_t self, vistk::config::key_t const& key);
 static vistk::config::value_t config_get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def);
+static size_t config_len(vistk::config_t self);
+static vistk::config::value_t config_getitem(vistk::config_t self, vistk::config::key_t const& key);
+static void config_setitem(vistk::config_t self, vistk::config::key_t const& key, object const& value);
+static void config_delitem(vistk::config_t self, vistk::config::key_t const& key);
 
 static void translator(vistk::configuration_exception const& e);
 
@@ -83,6 +90,10 @@ BOOST_PYTHON_MODULE(config)
       , "The string which separates block names from key names.")
     .def_readonly("global_value", &vistk::config::global_value
       , "A special key which is automatically inherited on subblock requests.")
+    .def("__len__", &config_len)
+    .def("__getitem__", &config_getitem)
+    .def("__setitem__", &config_setitem)
+    .def("__delitem__", &config_delitem)
   ;
 }
 
@@ -96,6 +107,57 @@ vistk::config::value_t
 config_get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def)
 {
   return self->get_value<vistk::config::value_t>(key, def);
+}
+
+size_t
+config_len(vistk::config_t self)
+{
+  return self->available_values().size();
+}
+
+vistk::config::value_t
+config_getitem(vistk::config_t self, vistk::config::key_t const& key)
+{
+  try
+  {
+    return config_get_value(self, key);
+  }
+  catch (vistk::no_such_configuration_value_exception&)
+  {
+    std::ostringstream sstr;
+
+    sstr << "\'" << key << "\'";
+
+    PyErr_SetString(PyExc_KeyError, sstr.str().c_str());
+    throw_error_already_set();
+  }
+
+  // Prevent a warning.
+  return vistk::config::value_t();
+}
+
+void
+config_setitem(vistk::config_t self, vistk::config::key_t const& key, object const& value)
+{
+  self->set_value(key, extract<vistk::config::value_t>(str(value)));
+}
+
+void
+config_delitem(vistk::config_t self, vistk::config::key_t const& key)
+{
+  try
+  {
+    self->unset_value(key);
+  }
+  catch (vistk::no_such_configuration_value_exception&)
+  {
+    std::ostringstream sstr;
+
+    sstr << "\'" << key << "\'";
+
+    PyErr_SetString(PyExc_KeyError, sstr.str().c_str());
+    throw_error_already_set();
+  }
 }
 
 void
