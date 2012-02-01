@@ -9,6 +9,7 @@
 
 #include "pipeline-config.h"
 
+#include "config.h"
 #include "types.h"
 
 #include <boost/tuple/tuple.hpp>
@@ -64,8 +65,6 @@ class VISTK_PIPELINE_EXPORT edge
 
     /**
      * \brief Whether the edge represents a dependency from upstream to downstream.
-     *
-     * \todo Is this really necessary?
      *
      * \returns True if the edge expresses that upstream must be executed before downstream, false otherwise.
      */
@@ -223,6 +222,8 @@ class VISTK_PIPELINE_EXPORT edge
      * \param process The process which can pull data from the edge.
      */
     void set_downstream_process(process_t process);
+
+    static config::key_t const config_dependency;
   private:
     class priv;
     boost::scoped_ptr<priv> d;

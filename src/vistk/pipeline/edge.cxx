@@ -26,10 +26,12 @@
 namespace vistk
 {
 
+config::key_t const edge::config_dependency = config::key_t("_dependency");
+
 class edge::priv
 {
   public:
-    priv();
+    priv(bool depends_);
     ~priv();
 
     typedef boost::weak_ptr<process> process_ref_t;
@@ -37,6 +39,7 @@ class edge::priv
     bool has_data() const;
     void complete_check() const;
 
+    bool const depends;
     bool downstream_complete;
 
     process_ref_t upstream;
@@ -52,12 +55,15 @@ class edge::priv
 
 edge
 ::edge(config_t const& config)
-  : d(new priv)
 {
   if (!config)
   {
     throw null_edge_config_exception();
   }
+
+  bool const depends = config->get_value<bool>(config_dependency, "true");
+
+  d.reset(new priv(depends));
 }
 
 edge
@@ -69,7 +75,7 @@ bool
 edge
 ::makes_dependency() const
 {
-  return true;
+  return d->depends;
 }
 
 bool
@@ -256,8 +262,9 @@ operator == (edge_datum_t const& a, edge_datum_t const& b)
 }
 
 edge::priv
-::priv()
-  : downstream_complete(false)
+::priv(bool depends_)
+  : depends(depends_)
+  , downstream_complete(false)
 {
 }
 

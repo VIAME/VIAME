@@ -81,6 +81,7 @@ BOOST_PYTHON_MODULE(edge)
       , "Indicate that the downstream process is complete.")
     .def("is_downstream_complete", &vistk::edge::is_downstream_complete
       , "Returns True if the downstream process is complete, False otherwise.")
+    .def_readonly("config_dependency", &vistk::edge::config_dependency)
   ;
 }
 

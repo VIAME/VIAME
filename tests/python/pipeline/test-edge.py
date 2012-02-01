@@ -80,6 +80,8 @@ def test_api_calls():
     e.mark_downstream_as_complete()
     e.is_downstream_complete()
 
+    e.config_dependency
+
 
 def test_datum_api_calls():
     from vistk.pipeline import datum

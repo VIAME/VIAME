@@ -150,7 +150,20 @@ test_makes_dependency()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
-  edge->makes_dependency();
+  if (!edge->makes_dependency())
+  {
+    TEST_ERROR("A default edge does not imply a dependency");
+  }
+
+  config->set_value(vistk::edge::config_dependency, "false");
+
+  edge = boost::make_shared<vistk::edge>(config);
+
+  if (edge->makes_dependency())
+  {
+    TEST_ERROR("Setting the dependency config to \'false\' "
+               "was not reflected in the result");
+  }
 }
 
 void
