@@ -43,30 +43,30 @@ class image_helper
 };
 
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_rgb>::type = "image_byte_rgb";
+process::port_type_t const image_helper<uint8_t>::port_types<pix_rgb>::type = "image/vil/byte/rgb";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_bgr>::type = "image_byte_bgr";
+process::port_type_t const image_helper<uint8_t>::port_types<pix_bgr>::type = "image/vil/byte/bgr";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_rgba>::type = "image_byte_rgb";
+process::port_type_t const image_helper<uint8_t>::port_types<pix_rgba>::type = "image/vil/byte/rgb";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_bgra>::type = "image_byte_bgra";
+process::port_type_t const image_helper<uint8_t>::port_types<pix_bgra>::type = "image/vil/byte/bgra";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_yuv>::type = "image_byte_yuv";
+process::port_type_t const image_helper<uint8_t>::port_types<pix_yuv>::type = "image/vil/byte/yuv";
 template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_gray>::type = "image_byte_grayscale";
+process::port_type_t const image_helper<uint8_t>::port_types<pix_gray>::type = "image/vil/byte/grayscale";
 
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_rgb>::type = "image_float_rgb";
+process::port_type_t const image_helper<float>::port_types<pix_rgb>::type = "image/vil/float/rgb";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_bgr>::type = "image_float_bgr";
+process::port_type_t const image_helper<float>::port_types<pix_bgr>::type = "image/vil/float/bgr";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_rgba>::type = "image_float_rgba";
+process::port_type_t const image_helper<float>::port_types<pix_rgba>::type = "image/vil/float/rgba";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_bgra>::type = "image_float_bgra";
+process::port_type_t const image_helper<float>::port_types<pix_bgra>::type = "image/vil/float/bgra";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_yuv>::type = "image_float_yuv";
+process::port_type_t const image_helper<float>::port_types<pix_yuv>::type = "image/vil/float/yuv";
 template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_gray>::type = "image_float_grayscale";
+process::port_type_t const image_helper<float>::port_types<pix_gray>::type = "image/vil/float/grayscale";
 
 template <typename PixType> template <pixel_format_t Format>
 process::port_type_t const image_helper<PixType>::port_types<Format>::type = process::type_none;
