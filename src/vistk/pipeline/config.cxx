@@ -107,7 +107,14 @@ config
       throw unset_on_read_only_value_exception(key, current_value);
     }
 
-    m_store.erase(key);
+    store_t::iterator const i = m_store.find(key);
+
+    if (i == m_store.end())
+    {
+      throw no_such_configuration_value_exception(key);
+    }
+
+    m_store.erase(i);
   }
 }
 

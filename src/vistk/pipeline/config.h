@@ -135,6 +135,7 @@ class VISTK_PIPELINE_EXPORT config
      * \brief Removes a value from the configuration.
      *
      * \throws unset_on_read_only_value_exception Thrown if \p key is marked as read-only.
+     * \throws no_such_configuration_value_exception Thrown if the requested index does not exist.
      *
      * \postconds
      *
