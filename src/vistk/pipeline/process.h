@@ -387,6 +387,8 @@ class VISTK_PIPELINE_EXPORT process
     static port_flag_t const flag_output_const;
     /// A flag which indicates that the input may be modified.
     static port_flag_t const flag_input_mutable;
+    /// A flag which indicates that a connection to the port does not imply a dependency.
+    static port_flag_t const flag_input_nodep;
     /// A flag which indicates that the port is required to be connected.
     static port_flag_t const flag_required;
   protected:

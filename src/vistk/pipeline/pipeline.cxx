@@ -195,7 +195,13 @@ pipeline
                                              downstream_process, downstream_port);
   }
 
+  i = down_flags.find(process::flag_input_nodep);
+
+  bool const has_nodep = (i != down_flags.end());
+
   config_t edge_config = config::empty_config();
+
+  edge_config->set_value(edge::config_dependency, has_nodep ? "false" : "true");
 
   edge_t e = boost::make_shared<edge>(edge_config);
 

@@ -220,6 +220,7 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("type_none", &vistk::process::type_none)
     .def_readonly("flag_output_const", &vistk::process::flag_output_const)
     .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
+    .def_readonly("flag_input_nodep", &vistk::process::flag_input_nodep)
     .def_readonly("flag_required", &vistk::process::flag_required)
     .def("_base_init", &wrap_process::_base_init
       , "Base class initialization.")

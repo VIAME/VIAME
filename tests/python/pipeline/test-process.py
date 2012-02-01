@@ -73,6 +73,7 @@ def test_api_calls():
     process.PythonProcess.type_none
     process.PythonProcess.flag_output_const
     process.PythonProcess.flag_input_mutable
+    process.PythonProcess.flag_input_nodep
     process.PythonProcess.flag_required
 
 
