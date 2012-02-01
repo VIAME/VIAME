@@ -316,6 +316,45 @@ def test_merge_config():
         log("Error: New key did not appear")
 
 
+def test_dict():
+    from vistk.pipeline import config
+
+    c = config.empty_config()
+
+    key = 'key'
+    value = 'oldvalue'
+
+    c[key] = value
+
+    if not c[key] == value:
+        log("Error: Value was not set")
+
+    value = 'newvalue'
+    origvalue = 'newvalue'
+
+    c[key] = value
+
+    value = 'replacedvalue'
+
+    if not c[key] == origvalue:
+        log("Error: Value was overwritten")
+
+    del c[key]
+
+    ensure_exception("getting an unset value",
+                     c.__getitem__, key)
+
+    ensure_exception("deleting an unset value",
+                     c.__delitem__, key)
+
+    value = 10
+
+    c[key] = value
+
+    if not c[key] == str(value):
+        log("Error: Value was not converted to a string")
+
+
 def main(testname):
     if testname == 'import':
         test_import()
@@ -343,6 +382,8 @@ def main(testname):
         test_subblock_view()
     elif testname == 'merge_config':
         test_merge_config()
+    elif testname == 'dict':
+        test_dict()
     else:
         log("Error: No such test '%s'" % testname)
 

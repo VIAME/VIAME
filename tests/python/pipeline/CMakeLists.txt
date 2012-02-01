@@ -18,6 +18,7 @@ vistk_make_python_test(config read_only_unset)
 vistk_make_python_test(config subblock)
 vistk_make_python_test(config subblock_view)
 vistk_make_python_test(config merge_config)
+vistk_make_python_test(config dict)
 
 ##############################
 # Datum tests
