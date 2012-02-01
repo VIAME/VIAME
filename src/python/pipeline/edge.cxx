@@ -71,11 +71,6 @@ BOOST_PYTHON_MODULE(edge)
       , "Returns the next datum packet from the edge.")
     .def("pop_datum", &vistk::edge::pop_datum
       , "Remove the next datum packet from the edge.")
-    .def("set_required_by_downstream", &vistk::edge::set_required_by_downstream
-      , (arg("required"))
-      , "Set whether the data within the edge is required by downstream to work.")
-    .def("required_by_downstream", &vistk::edge::required_by_downstream
-      , "Returns True if the downstream process needs the data in the edge.")
     .def("set_upstream_process", &vistk::edge::set_upstream_process
       , (arg("process"))
       , "Set the process which is feeding data into the edge.")

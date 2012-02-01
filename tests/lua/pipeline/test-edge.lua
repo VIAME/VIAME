@@ -70,9 +70,6 @@ function test_api_calls()
     e:peek_datum()
     e:pop_datum()
 
-    e:set_required_by_downstream(true)
-    e:required_by_downstream()
-
     vistk.pipeline.load_known_modules()
 
     local reg = vistk.pipeline.process_registry.self()

@@ -57,7 +57,6 @@ static void test_push_datum();
 static void test_peek_datum();
 static void test_pop_datum();
 static void test_get_datum();
-static void test_required_by_downstream();
 static void test_null_upstream_process();
 static void test_null_downstream_process();
 static void test_set_upstream_process();
@@ -103,10 +102,6 @@ run_test(std::string const& test_name)
   else if (test_name == "get_datum")
   {
     test_get_datum();
-  }
-  else if (test_name == "required_by_downstream")
-  {
-    test_required_by_downstream();
   }
   else if (test_name == "null_upstream_process")
   {
@@ -297,33 +292,6 @@ test_get_datum()
   if (*get_edat.get<1>() != *stamp)
   {
     TEST_ERROR("The edge modified a stamp on a get");
-  }
-}
-
-void
-test_required_by_downstream()
-{
-  vistk::config_t const config = vistk::config::empty_config();
-
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
-
-  if (!edge->required_by_downstream())
-  {
-    TEST_ERROR("A new edge is not marked as required by downstream");
-  }
-
-  edge->set_required_by_downstream(false);
-
-  if (edge->required_by_downstream())
-  {
-    TEST_ERROR("Setting the requirement by downstream failed");
-  }
-
-  edge->set_required_by_downstream(true);
-
-  if (!edge->required_by_downstream())
-  {
-    TEST_ERROR("Setting the requirement by downstream failed");
   }
 }
 

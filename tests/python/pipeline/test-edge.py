@@ -68,9 +68,6 @@ def test_api_calls():
     e.peek_datum()
     e.pop_datum()
 
-    e.set_required_by_downstream(True)
-    e.required_by_downstream()
-
     modules.load_known_modules()
 
     reg = process_registry.ProcessRegistry.self()

@@ -37,7 +37,6 @@ class edge::priv
     bool has_data() const;
     void complete_check() const;
 
-    bool required;
     bool downstream_complete;
 
     process_ref_t upstream;
@@ -182,20 +181,6 @@ edge
 
 void
 edge
-::set_required_by_downstream(bool required)
-{
-  d->required = required;
-}
-
-bool
-edge
-::required_by_downstream() const
-{
-  return d->required;
-}
-
-void
-edge
 ::mark_downstream_as_complete()
 {
   boost::mutex::scoped_lock complete_lock(d->complete_mutex);
@@ -272,8 +257,7 @@ operator == (edge_datum_t const& a, edge_datum_t const& b)
 
 edge::priv
 ::priv()
-  : required(true)
-  , downstream_complete(false)
+  : downstream_complete(false)
 {
 }
 

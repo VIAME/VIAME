@@ -174,25 +174,6 @@ class VISTK_PIPELINE_EXPORT edge
     void pop_datum();
 
     /**
-     * \brief Set whether the data the edge delivers is required for downstream.
-     *
-     * \postconds
-     *
-     * \postcond{<code>this->required_by_downstream() == required</code>}
-     *
-     * \endpostconds
-     *
-     * \param required Whether the data the edge delivers is required for downstream.
-     */
-    void set_required_by_downstream(bool required);
-    /**
-     * \brief Whether the data the edge delivers is required for downstream.
-     *
-     * \returns True if the edge carries required data for downstream, false otherwise.
-     */
-    bool required_by_downstream() const;
-
-    /**
      * \brief Triggers the edge to flush all data and not accept any more data.
      *
      * \postconds
