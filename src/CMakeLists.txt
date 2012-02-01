@@ -7,10 +7,6 @@ if (VISTK_ENABLE_TOOLS)
   add_subdirectory(tools)
 endif (VISTK_ENABLE_TOOLS)
 
-if (VISTK_ENABLE_LUA)
-  add_subdirectory(lua)
-endif (VISTK_ENABLE_LUA)
-
 if (VISTK_ENABLE_PYTHON)
   add_subdirectory(python)
 endif (VISTK_ENABLE_PYTHON)
