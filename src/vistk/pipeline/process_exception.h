@@ -328,6 +328,35 @@ class VISTK_PIPELINE_EXPORT null_edge_port_connection_exception
 };
 
 /**
+ * \class static_type_reset_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when a port type is attempted to be reset on a static type.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT static_type_reset_exception
+  : public port_connection_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the process.
+     * \param port The name of the port.
+     * \param orig_type The original type of the port.
+     * \param new_type The type that was attempted to be set on the port.
+     */
+    static_type_reset_exception(process::name_t const& process, process::port_t const& port, process::port_type_t const& orig_type, process::port_type_t const& new_type) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~static_type_reset_exception() throw();
+
+    process::port_type_t const m_orig_type;
+    process::port_type_t const m_new_type;
+};
+
+/**
  * \class port_reconnect_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a port that is already connected is connected to again.

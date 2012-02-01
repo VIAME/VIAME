@@ -200,6 +200,28 @@ null_edge_port_connection_exception
 {
 }
 
+static_type_reset_exception
+::static_type_reset_exception(process::name_t const& process, process::port_t const& port, process::port_type_t const& orig_type, process::port_type_t const& new_type) throw()
+  : port_connection_exception(process, port)
+  , m_orig_type(orig_type)
+  , m_new_type(new_type)
+{
+  std::ostringstream sstr;
+
+  sstr << "The port \'" << m_port << "\' "
+          "on process \'" << m_process << "\' "
+          "has the type \'" << m_orig_type << "\' "
+          "and has was attempted to be set to have "
+          "a type of \'" << m_new_type << "\'.";
+
+  m_what = sstr.str();
+}
+
+static_type_reset_exception
+::~static_type_reset_exception() throw()
+{
+}
+
 port_reconnect_exception
 ::port_reconnect_exception(process::name_t const& process, process::port_t const& port) throw()
   : port_connection_exception(process, port)

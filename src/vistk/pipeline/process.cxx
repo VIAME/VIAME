@@ -283,6 +283,20 @@ process
   return _output_port_info(port);
 }
 
+bool
+process
+::set_input_port_type(port_t const& port, port_type_t const& new_type)
+{
+  return _set_input_port_type(port, new_type);
+}
+
+bool
+process
+::set_output_port_type(port_t const& port, port_type_t const& new_type)
+{
+  return _set_output_port_type(port, new_type);
+}
+
 config::keys_t
 process
 ::available_config() const
@@ -431,6 +445,46 @@ process
   }
 
   throw no_such_port_exception(d->name, port);
+}
+
+bool
+process
+::_set_input_port_type(port_t const& port, port_type_t const& new_type)
+{
+  port_info_t const info = input_port_info(port);
+
+  if ((info->type != type_data_dependent) ||
+      (info->type != type_flow_dependent))
+  {
+    throw static_type_reset_exception(name(), port, info->type, new_type);
+  }
+
+  declare_input_port(port, boost::make_shared<port_info>(
+    new_type,
+    info->flags,
+    info->description));
+
+  return true;
+}
+
+bool
+process
+::_set_output_port_type(port_t const& port, port_type_t const& new_type)
+{
+  port_info_t const info = output_port_info(port);
+
+  if ((info->type != type_data_dependent) ||
+      (info->type != type_flow_dependent))
+  {
+    throw static_type_reset_exception(name(), port, info->type, new_type);
+  }
+
+  declare_output_port(port, boost::make_shared<port_info>(
+    new_type,
+    info->flags,
+    info->description));
+
+  return true;
 }
 
 config::keys_t

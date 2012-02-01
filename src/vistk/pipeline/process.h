@@ -306,6 +306,31 @@ class VISTK_PIPELINE_EXPORT process
     port_info_t output_port_info(port_t const& port);
 
     /**
+     * \brief Sets the type of a flow-dependent input port type.
+     *
+     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
+     *
+     * \param port The name of the port.
+     * \param type The type of the connected port.
+     *
+     * \returns True if the type can work, false otherwise.
+     */
+    bool set_input_port_type(port_t const& port, port_type_t const& new_type);
+    /**
+     * \brief Sets the type of a flow-dependent output port type.
+     *
+     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
+     *
+     * \param port The name of the port.
+     * \param type The type of the connected port.
+     *
+     * \returns True if the type can work, false otherwise.
+     */
+    bool set_output_port_type(port_t const& port, port_type_t const& new_type);
+
+    /**
      * \brief Request available configuration options for the process.
      *
      * \returns The names of all available configuration keys.
@@ -439,6 +464,25 @@ class VISTK_PIPELINE_EXPORT process
      * \returns Information about an output port.
      */
     virtual port_info_t _output_port_info(port_t const& port);
+
+    /**
+     * \brief Subclass input port type setting.
+     *
+     * \param port The name of the port.
+     * \param type The type of the connected port.
+     *
+     * \returns True if the type can work, false otherwise.
+     */
+    virtual bool _set_input_port_type(port_t const& port, port_type_t const& new_type);
+    /**
+     * \brief Subclass output port type setting.
+     *
+     * \param port The name of the port.
+     * \param type The type of the connected port.
+     *
+     * \returns True if the type can work, false otherwise.
+     */
+    virtual bool _set_output_port_type(port_t const& port, port_type_t const& new_type);
 
     /**
      * \brief Subclass available configuration keys.
