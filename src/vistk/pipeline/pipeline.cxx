@@ -10,6 +10,8 @@
 #include "edge.h"
 #include "process_exception.h"
 
+#include <boost/graph/directed_graph.hpp>
+#include <boost/graph/topological_sort.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
@@ -38,6 +40,7 @@ class pipeline::priv
 
     void check_duplicate_name(process::name_t const& name);
     void propogate(process::name_t const& root);
+    process::names_t sorted_names() const;
 
     typedef std::map<process::name_t, process_t> process_map_t;
     typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
@@ -1100,6 +1103,87 @@ pipeline::priv
     // Overwrite untyped connections.
     untyped_connections = unresolved_connections;
   }
+}
+
+namespace
+{
+
+struct vertex_name_t
+{
+  typedef boost::vertex_property_tag kind;
+};
+
+}
+
+process::names_t
+pipeline::priv
+::sorted_names() const
+{
+  typedef boost::property<vertex_name_t, process::name_t> name_property_t;
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, name_property_t> pipeline_graph_t;
+  typedef boost::graph_traits<pipeline_graph_t>::vertex_descriptor vertex_t;
+  typedef std::deque<vertex_t> vertices_t;
+  typedef std::map<process::name_t, vertex_t> vertex_map_t;
+
+  pipeline_graph_t graph;
+
+  boost::property_map<pipeline_graph_t, vertex_name_t>::type key_prop = boost::get(vertex_name_t(), graph);
+
+  // Create the graph.
+  {
+    vertex_map_t vertex_map;
+
+    process::names_t const names = p->process_names();
+
+    BOOST_FOREACH (process::name_t const& name, names)
+    {
+      vertex_t s = boost::add_vertex(graph);
+      key_prop[s] = name;
+      vertex_map[name] = s;
+    }
+
+    BOOST_FOREACH (process::name_t const& name, names)
+    {
+      process_t const proc = p->process_by_name(name);
+      process::ports_t const iports = proc->input_ports();
+
+      vertex_t const t = vertex_map[name];
+
+      BOOST_FOREACH (process::port_t const& port, iports)
+      {
+        process::port_addr_t const sender = p->sender_for_port(name, port);
+        edge_t const edge = p->edge_for_connection(sender.first, sender.second,
+                                                   name, port);
+
+        if (edge && edge->makes_dependency())
+        {
+          vertex_t const s = vertex_map[sender.first];
+
+          boost::add_edge(s, t, graph);
+        }
+      }
+    }
+  }
+
+  vertices_t vertices;
+
+  try
+  {
+    boost::topological_sort(graph, std::front_inserter(vertices));
+  }
+  catch (boost::not_a_dag&)
+  {
+    /// \todo Throw an exception.
+  }
+
+  process::names_t names;
+
+  BOOST_FOREACH (vertex_t const& vertex, vertices)
+  {
+    names.push_back(boost::get(key_prop, vertex));
+  }
+
+  return names;
 }
 
 pipeline::priv::propogation_exception
