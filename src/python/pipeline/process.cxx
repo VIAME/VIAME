@@ -52,6 +52,9 @@ class wrap_process
     port_info_t _base_input_port_info(port_t const& port);
     port_info_t _base_output_port_info(port_t const& port);
 
+    bool _base_set_input_port_type(port_t const& port, port_type_t const& new_type);
+    bool _base_set_output_port_type(port_t const& port, port_type_t const& new_type);
+
     vistk::config::keys_t _base_available_config() const;
 
     conf_info_t _base_config_info(vistk::config::key_t const& key);
@@ -70,6 +73,9 @@ class wrap_process
 
     port_info_t _input_port_info(port_t const& port);
     port_info_t _output_port_info(port_t const& port);
+
+    bool _set_input_port_type(port_t const& port, port_type_t const& new_type);
+    bool _set_output_port_type(port_t const& port, port_type_t const& new_type);
 
     vistk::config::keys_t _available_config() const;
 
@@ -218,6 +224,8 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("config_type", &vistk::process::config_type)
     .def_readonly("type_any", &vistk::process::type_any)
     .def_readonly("type_none", &vistk::process::type_none)
+    .def_readonly("type_data_dependent", &vistk::process::type_data_dependent)
+    .def_readonly("type_flow_dependent", &vistk::process::type_flow_dependent)
     .def_readonly("flag_output_const", &vistk::process::flag_output_const)
     .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
     .def_readonly("flag_input_nodep", &vistk::process::flag_input_nodep)
@@ -244,6 +252,12 @@ BOOST_PYTHON_MODULE(process)
     .def("_base_output_port_info", &wrap_process::_base_output_port_info
       , (arg("port"))
       , "Base class output port info.")
+    .def("_base_input_port_info", &wrap_process::_base_input_port_info
+      , (arg("port"), arg("new_type"))
+      , "Base class input port type setting.")
+    .def("_base_output_port_info", &wrap_process::_base_output_port_info
+      , (arg("port"), arg("new_type"))
+      , "Base class output port type setting.")
     .def("_base_available_config", &wrap_process::_base_available_config
       , "Base class available configuration information.")
     .def("_base_config_info", &wrap_process::_base_config_info
@@ -271,6 +285,12 @@ BOOST_PYTHON_MODULE(process)
     .def("_output_port_info", &wrap_process::_output_port_info, &wrap_process::_base_output_port_info
       , (arg("port"))
       , "Returns information about the given subclass output port.")
+    .def("_set_input_port_type", &wrap_process::_set_input_port_type, &wrap_process::_base_set_input_port_type
+      , (arg("port"), arg("new_type"))
+      , "Sets the type for an input port.")
+    .def("_set_output_port_type", &wrap_process::_set_output_port_type, &wrap_process::_base_set_output_port_type
+      , (arg("port"), arg("new_type"))
+      , "Sets the type for an output port.")
     .def("_available_config", &wrap_process::_available_config, &wrap_process::_base_available_config
       , "Returns a list of available configuration keys for the subclass process.")
     .def("_config_info", &wrap_process::_config_info, &wrap_process::_base_config_info
@@ -410,6 +430,20 @@ wrap_process
 ::_base_output_port_info(port_t const& port)
 {
   return process::_output_port_info(port);
+}
+
+bool
+wrap_process
+::_base_set_input_port_type(port_t const& port, port_type_t const& new_type)
+{
+  return process::_set_input_port_type(port, new_type);
+}
+
+bool
+wrap_process
+::_base_set_output_port_type(port_t const& port, port_type_t const& new_type)
+{
+  return process::_set_input_port_type(port, new_type);
 }
 
 vistk::config::keys_t
@@ -567,6 +601,38 @@ wrap_process
   else
   {
     return _base_output_port_info(port);
+  }
+}
+
+bool
+wrap_process
+::_set_input_port_type(port_t const& port, port_type_t const& new_type)
+{
+  override const f = get_override("_set_input_port_type");
+
+  if (f)
+  {
+    return f(port, new_type);
+  }
+  else
+  {
+    return _base_set_input_port_type(port, new_type);
+  }
+}
+
+bool
+wrap_process
+::_set_output_port_type(port_t const& port, port_type_t const& new_type)
+{
+  override const f = get_override("_set_output_port_type");
+
+  if (f)
+  {
+    return f(port, new_type);
+  }
+  else
+  {
+    return _base_set_output_port_type(port, new_type);
   }
 }
 
