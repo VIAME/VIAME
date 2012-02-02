@@ -89,7 +89,8 @@ flow_dependent_process
   if (res)
   {
     // Link the input and output types.
-    set_output_port_type(priv::port_input, new_type);
+    // Skip checking done in the local override.
+    process::_set_output_port_type(priv::port_output, new_type);
   }
 
   return res;
@@ -109,7 +110,8 @@ flow_dependent_process
   if (res)
   {
     // Link the input and output types.
-    set_input_port_type(priv::port_input, new_type);
+    // Skip checking done in the local override.
+    process::_set_input_port_type(priv::port_input, new_type);
   }
 
   return res;
