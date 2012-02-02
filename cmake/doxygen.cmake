@@ -43,6 +43,7 @@ function (create_doxygen inputdir name)
             -D "DOXY_DOCUMENTATION_OUTPUT_PATH=${DOCUMENTATION_OUTPUT_PATH}"
             -D "DOXY_PROJECT_NAME=${name}"
             -D "DOXY_TAG_FILES=\"${tag_files}\""
+            -D "DOXY_EXCLUDE_PATTERNS=${DOXY_EXCLUDE_PATTERNS}"
             -P "${CMAKE_SOURCE_DIR}/cmake/doxygen-script.cmake"
     WORKING_DIRECTORY
             ${DOCUMENTATION_OUTPUT_PATH}/${name}
