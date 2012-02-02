@@ -544,12 +544,14 @@ pipeline
     throw orphaned_processes_exception();
   }
 
-  /// \todo Topologically sort processes.
+  process::names_t const sorted_names = d->sorted_names();
 
   // Initialize processes.
-  BOOST_FOREACH (priv::process_map_t::value_type& value, d->process_map)
+  BOOST_FOREACH (process::name_t const& name, sorted_names)
   {
-    value.second->init();
+    process_t const proc = process_by_name(name);
+
+    proc->init();
 
     /// \todo Check for untyped data-dependent ports.
   }
