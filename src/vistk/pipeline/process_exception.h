@@ -201,6 +201,38 @@ class VISTK_PIPELINE_EXPORT null_output_port_info_exception
 };
 
 /**
+ * \class set_type_on_initialized_process_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when \c NULL is passed as information for an output port.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT set_type_on_initialized_process_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param process The name of the \ref process.
+     * \param port The name of the port on the \ref process.
+     * \param type The type that was attempted to be set.
+     */
+    set_type_on_initialized_process_exception(process::name_t const& process, process::port_t const& port, process::port_type_t const& type) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~set_type_on_initialized_process_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_process;
+    /// The name of the port.
+    process::port_t const m_port;
+    /// The type that was attempted to be set.
+    process::port_type_t const m_type;
+};
+
+/**
  * \class uninitialized_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a process is stepped before initialization.

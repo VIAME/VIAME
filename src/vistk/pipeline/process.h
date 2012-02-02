@@ -310,6 +310,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
+     * \throws set_type_on_initialized_process_exception Thrown when the port type is set after initialization.
      *
      * \param port The name of the port.
      * \param type The type of the connected port.
@@ -322,6 +323,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
      * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
+     * \throws set_type_on_initialized_process_exception Thrown when the port type is set after initialization.
      *
      * \param port The name of the port.
      * \param type The type of the connected port.

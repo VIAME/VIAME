@@ -114,6 +114,27 @@ null_output_port_info_exception
 {
 }
 
+set_type_on_initialized_process_exception
+::set_type_on_initialized_process_exception(process::name_t const& process, process::port_t const& port, process::port_type_t const& type) throw()
+  : process_exception()
+  , m_process(process)
+  , m_port(port)
+  , m_type(type)
+{
+  std::ostringstream sstr;
+
+  sstr << "The type of the port \'" << m_port << "\' "
+          "on the process \'" << m_process << "\' was "
+          "attempted to be set to \'" << m_type << "\'.";
+
+  m_what = sstr.str();
+}
+
+set_type_on_initialized_process_exception
+::~set_type_on_initialized_process_exception() throw()
+{
+}
+
 uninitialized_exception
 ::uninitialized_exception(process::name_t const& process) throw()
   : process_exception()

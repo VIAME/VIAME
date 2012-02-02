@@ -288,6 +288,11 @@ bool
 process
 ::set_input_port_type(port_t const& port, port_type_t const& new_type)
 {
+  if (d->initialized)
+  {
+    throw set_type_on_initialized_process_exception(d->name, port, new_type);
+  }
+
   return _set_input_port_type(port, new_type);
 }
 
@@ -295,6 +300,11 @@ bool
 process
 ::set_output_port_type(port_t const& port, port_type_t const& new_type)
 {
+  if (d->initialized)
+  {
+    throw set_type_on_initialized_process_exception(d->name, port, new_type);
+  }
+
   return _set_output_port_type(port, new_type);
 }
 
