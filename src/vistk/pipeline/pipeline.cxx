@@ -33,7 +33,7 @@ namespace vistk
 class pipeline::priv
 {
   public:
-    priv();
+    priv(pipeline* pipe);
     ~priv();
 
     void check_duplicate_name(process::name_t const& name);
@@ -52,6 +52,8 @@ class pipeline::priv
     typedef std::map<process::name_t, port_mapping_t> group_t;
 
     typedef std::map<process::name_t, process::ports_t> connected_mappings_t;
+
+    pipeline* const p;
 
     connections_t connections;
 
@@ -89,7 +91,7 @@ class pipeline::priv
 
 pipeline
 ::pipeline(config_t const& config)
-  : d(new priv)
+  : d(new priv(this))
 {
   if (!config)
   {
@@ -965,7 +967,8 @@ pipeline
 }
 
 pipeline::priv
-::priv()
+::priv(pipeline* pipe)
+  : p(pipe)
 {
 }
 
@@ -1001,7 +1004,79 @@ pipeline::priv
     process::name_t const name = q.front();
     q.pop();
 
-    /// \todo Resolve connections from the process.
+    process_t const proc = p->process_by_name(name);
+
+    connections_t unresolved_connections;
+
+    BOOST_FOREACH (connection_t const& connection, untyped_connections)
+    {
+      process::port_addr_t const& upstream_addr = connection.first;
+      process::port_addr_t const& downstream_addr = connection.second;
+      process::name_t const& upstream_name = upstream_addr.first;
+      process::port_t const& upstream_port = upstream_addr.second;
+      process::name_t const& downstream_name = downstream_addr.first;
+      process::port_t const& downstream_port = downstream_addr.second;
+
+      if (downstream_name == name)
+      {
+        // Push up.
+        process::port_info_t const info = proc->input_port_info(downstream_port);
+        process::port_type_t const& type = info->type;
+
+        bool const data_dep = (type == process::type_data_dependent);
+        bool const flow_dep = (type == process::type_flow_dependent);
+
+        if (!data_dep && !flow_dep)
+        {
+          process_t const up_proc = p->process_by_name(upstream_name);
+
+          if (up_proc->set_output_port_type(upstream_port, type))
+          {
+            q.push(upstream_name);
+
+            /// \todo Handle data-dependent ports.
+          }
+          else
+          {
+            throw propogation_exception(upstream_name, upstream_port,
+                                        downstream_name, downstream_port,
+                                        type, true);
+          }
+        }
+      }
+      else if (upstream_name == name)
+      {
+        // Push down.
+        process::port_info_t const info = proc->output_port_info(upstream_port);
+        process::port_type_t const& type = info->type;
+
+        bool const flow_dep = (type == process::type_flow_dependent);
+
+        if (!flow_dep)
+        {
+          process_t const down_proc = p->process_by_name(downstream_name);
+
+          if (down_proc->set_input_port_type(downstream_port, type))
+          {
+            q.push(downstream_name);
+          }
+          else
+          {
+            throw propogation_exception(upstream_name, upstream_port,
+                                        downstream_name, downstream_port,
+                                        type, false);
+          }
+        }
+      }
+      else
+      {
+        // Remember that the push didn't happen.
+        unresolved_connections.push_back(connection);
+      }
+    }
+
+    // Overwrite untyped connections.
+    untyped_connections = unresolved_connections;
   }
 }
 
