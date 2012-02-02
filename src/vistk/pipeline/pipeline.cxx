@@ -1044,7 +1044,19 @@ pipeline::priv
           {
             q.push(upstream_name);
 
-            /// \todo Handle data-dependent ports.
+            if (data_dep)
+            {
+              process::port_addrs_t::iterator const i = std::find(data_dep_ports.begin(), data_dep_ports.end(), upstream_addr);
+
+              if (i == data_dep_ports.end())
+              {
+                static std::string const reason = "Data dependency port tracking failed.";
+
+                throw std::logic_error(reason);
+              }
+
+              data_dep_ports.erase(i);
+            }
           }
           else
           {
