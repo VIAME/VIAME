@@ -464,7 +464,7 @@ process
 {
   port_info_t const info = input_port_info(port);
 
-  if ((info->type != type_data_dependent) ||
+  if ((info->type != type_data_dependent) &&
       (info->type != type_flow_dependent))
   {
     throw static_type_reset_exception(name(), port, info->type, new_type);
@@ -484,7 +484,7 @@ process
 {
   port_info_t const info = output_port_info(port);
 
-  if ((info->type != type_data_dependent) ||
+  if ((info->type != type_data_dependent) &&
       (info->type != type_flow_dependent))
   {
     throw static_type_reset_exception(name(), port, info->type, new_type);
