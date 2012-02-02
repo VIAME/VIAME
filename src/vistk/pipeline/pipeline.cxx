@@ -213,7 +213,7 @@ pipeline
   }
   else if (up_flow_dep)
   {
-    if (!up_proc->set_input_port_type(upstream_port, down_type))
+    if (!up_proc->set_output_port_type(upstream_port, down_type))
     {
       throw connection_dependent_type_exception(upstream_process, upstream_port,
                                                 downstream_process, downstream_port,
