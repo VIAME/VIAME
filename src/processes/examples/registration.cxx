@@ -7,6 +7,8 @@
 #include "registration.h"
 
 #include "const_process.h"
+#include "data_dependent_process.h"
+#include "flow_dependent_process.h"
 #include "multiplication_process.h"
 #include "mutate_process.h"
 #include "number_process.h"
@@ -37,6 +39,8 @@ register_processes()
   }
 
   registry->register_process("const", "A process with the const flag", create_process<const_process>);
+  registry->register_process("data_dependent", "A process with a data dependent type", create_process<data_dependent_process>);
+  registry->register_process("flow_dependent", "A process with a flow dependent type", create_process<flow_dependent_process>);
   registry->register_process("multiplication", "Multiplies numbers", create_process<multiplication_process>);
   registry->register_process("mutate", "A process with a mutable flag", create_process<mutate_process>);
   registry->register_process("numbers", "Outputs numbers within a range", create_process<number_process>);
