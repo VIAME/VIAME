@@ -156,7 +156,7 @@ class VISTK_PIPELINE_EXPORT null_input_port_info_exception
     /**
      * \brief Constructor.
      *
-     * \param process The name of the process.
+     * \param process The name of the \ref process.
      * \param port The port with \c NULL information.
      */
     null_input_port_info_exception(process::name_t const& process, process::port_t const& port) throw();
@@ -185,7 +185,7 @@ class VISTK_PIPELINE_EXPORT null_output_port_info_exception
     /**
      * \brief Constructor.
      *
-     * \param process The name of the process.
+     * \param process The name of the \ref process.
      * \param port The port with \c NULL information.
      */
     null_output_port_info_exception(process::name_t const& process, process::port_t const& port) throw();
