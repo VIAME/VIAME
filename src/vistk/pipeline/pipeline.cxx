@@ -37,6 +37,7 @@ class pipeline::priv
     ~priv();
 
     void check_duplicate_name(process::name_t const& name);
+    void propogate(process::name_t const& root);
 
     typedef std::map<process::name_t, process_t> process_map_t;
     typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
@@ -61,6 +62,29 @@ class pipeline::priv
 
     connected_mappings_t used_input_mappings;
     connected_mappings_t used_output_mappings;
+
+    process::port_addrs_t data_dep_ports;
+    connections_t untyped_connections;
+
+    class propogation_exception
+      : public pipeline_exception
+    {
+      public:
+        propogation_exception(process::name_t const& upstream_process,
+                              process::port_t const& upstream_port,
+                              process::name_t const& downstream_process,
+                              process::port_t const& downstream_port,
+                              process::port_type_t const& type,
+                              bool push_upstream) throw();
+        ~propogation_exception() throw();
+
+        process::name_t const m_upstream_process;
+        process::port_t const m_upstream_port;
+        process::name_t const m_downstream_process;
+        process::port_t const m_downstream_port;
+        process::port_type_t const m_type;
+        bool const m_push_upstream;
+    };
 };
 
 pipeline
@@ -167,6 +191,65 @@ pipeline
 
   process::port_type_t const& up_type = up_info->type;
   process::port_type_t const& down_type = down_info->type;
+
+  bool const up_data_dep = (up_type == process::type_data_dependent);
+
+  if (up_data_dep)
+  {
+    d->data_dep_ports.push_back(up_port);
+  }
+
+  bool const up_flow_dep = (up_type == process::type_flow_dependent);
+  bool const down_flow_dep = (down_type == process::type_flow_dependent);
+
+  if ((up_data_dep || up_flow_dep) && down_flow_dep)
+  {
+    d->untyped_connections.push_back(conn);
+  }
+  else if (up_flow_dep)
+  {
+    if (!up_proc->set_input_port_type(upstream_port, down_type))
+    {
+      /// \todo Throw exception.
+    }
+
+    try
+    {
+      d->propogate(upstream_process);
+    }
+    catch (priv::propogation_exception& e)
+    {
+      /// \todo Translate exception.
+    }
+
+    // Retry the connection.
+    connect(upstream_process, upstream_port,
+            downstream_process, downstream_port);
+
+    return;
+  }
+  else if (down_flow_dep)
+  {
+    if (!down_proc->set_input_port_type(downstream_port, up_type))
+    {
+      /// \todo Throw exception.
+    }
+
+    try
+    {
+      d->propogate(downstream_process);
+    }
+    catch (priv::propogation_exception& e)
+    {
+      /// \todo Translate exception.
+    }
+
+    // Retry the connection.
+    connect(upstream_process, upstream_port,
+            downstream_process, downstream_port);
+
+    return;
+  }
 
   if ((up_type != process::type_any) &&
       (down_type != process::type_any) &&
@@ -446,10 +529,19 @@ pipeline
     throw orphaned_processes_exception();
   }
 
+  /// \todo Topologically sort processes.
+
   // Initialize processes.
   BOOST_FOREACH (priv::process_map_t::value_type& value, d->process_map)
   {
     value.second->init();
+
+    /// \todo Check for untyped data-dependent ports.
+  }
+
+  if (d->untyped_connections.size())
+  {
+    /// \todo Throw exception.
   }
 }
 
@@ -894,6 +986,45 @@ pipeline::priv
   {
     throw duplicate_process_name_exception(name);
   }
+}
+
+void
+pipeline::priv
+::propogate(process::name_t const& root)
+{
+  std::queue<process::name_t> q;
+
+  q.push(root);
+
+  while (!q.empty())
+  {
+    process::name_t const name = q.front();
+    q.pop();
+
+    /// \todo Resolve connections from the process.
+  }
+}
+
+pipeline::priv::propogation_exception
+::propogation_exception(process::name_t const& upstream_process,
+                        process::port_t const& upstream_port,
+                        process::name_t const& downstream_process,
+                        process::port_t const& downstream_port,
+                        process::port_type_t const& type,
+                        bool push_upstream) throw()
+  : m_upstream_process(upstream_process)
+  , m_upstream_port(upstream_port)
+  , m_downstream_process(downstream_process)
+  , m_downstream_port(downstream_port)
+  , m_type(type)
+  , m_push_upstream(push_upstream)
+{
+  m_what = "<internal>";
+}
+
+pipeline::priv::propogation_exception
+::~propogation_exception() throw()
+{
 }
 
 }
