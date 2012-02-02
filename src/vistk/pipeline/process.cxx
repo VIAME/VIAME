@@ -148,9 +148,9 @@ process
     throw reinitialization_exception(d->name);
   }
 
-  d->initialized = true;
-
   _init();
+
+  d->initialized = true;
 }
 
 void
