@@ -89,6 +89,80 @@ no_such_process_exception
 {
 }
 
+connection_dependent_type_exception
+::connection_dependent_type_exception(process::name_t const& upstream_name,
+                                      process::port_t const& upstream_port,
+                                      process::name_t const& downstream_name,
+                                      process::port_t const& downstream_port,
+                                      process::port_type_t const& type,
+                                      bool push_upstream) throw()
+  : pipeline_connection_exception()
+  , m_upstream_name(upstream_name)
+  , m_upstream_port(upstream_port)
+  , m_downstream_name(downstream_name)
+  , m_downstream_port(downstream_port)
+  , m_type(type)
+  , m_push_upstream(push_upstream)
+{
+  std::ostringstream sstr;
+
+  process::name_t const& error_name = (m_push_upstream ? m_upstream_name : m_downstream_name);
+
+  sstr << "When connecting "
+          "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
+          "\'" << m_downstream_name << "." << m_downstream_port << "\', "
+          "the process \'" << error_name << "\' rejected the type "
+          "\'" << m_type << ".";
+
+  m_what = sstr.str();
+}
+
+connection_dependent_type_exception
+::~connection_dependent_type_exception() throw()
+{
+}
+
+connection_dependent_type_cascade_exception
+::connection_dependent_type_cascade_exception(process::name_t const& name,
+                                              process::port_t const& port,
+                                              process::port_type_t const& type,
+                                              process::name_t const& upstream_name,
+                                              process::port_t const& upstream_port,
+                                              process::name_t const& downstream_name,
+                                              process::port_t const& downstream_port,
+                                              process::port_type_t const& cascade_type,
+                                              bool push_upstream) throw()
+  : pipeline_connection_exception()
+  , m_name(name)
+  , m_port(port)
+  , m_type(type)
+  , m_upstream_name(upstream_name)
+  , m_upstream_port(upstream_port)
+  , m_downstream_name(downstream_name)
+  , m_downstream_port(downstream_port)
+  , m_cascade_type(cascade_type)
+  , m_push_upstream(push_upstream)
+{
+  std::ostringstream sstr;
+
+  process::name_t const& error_name = (m_push_upstream ? m_upstream_name : m_downstream_name);
+
+  sstr << "When setting the type of the port "
+          "\'" << m_name << "." << m_port << "\' to "
+          "\'" << m_type << "\', the setting of the connection from "
+          "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
+          "\'" << m_downstream_name << "." << m_downstream_port << "\' "
+          "was set to the type \'" << m_cascade_type << "\' which was "
+          "rejected by the \'" << error_name << "\' process.";
+
+  m_what = sstr.str();
+}
+
+connection_dependent_type_cascade_exception
+::~connection_dependent_type_cascade_exception() throw()
+{
+}
+
 connection_type_mismatch_exception
 ::connection_type_mismatch_exception(process::name_t const& upstream_name,
                                      process::port_t const& upstream_port,

@@ -212,7 +212,9 @@ pipeline
   {
     if (!up_proc->set_input_port_type(upstream_port, down_type))
     {
-      /// \todo Throw exception.
+      throw connection_dependent_type_exception(upstream_process, upstream_port,
+                                                downstream_process, downstream_port,
+                                                down_type, true);
     }
 
     try
@@ -221,7 +223,10 @@ pipeline
     }
     catch (priv::propogation_exception& e)
     {
-      /// \todo Translate exception.
+      throw connection_dependent_type_cascade_exception(upstream_process, upstream_port, down_type,
+                                                        e.m_upstream_process, e.m_upstream_port,
+                                                        e.m_downstream_process, e.m_downstream_port,
+                                                        e.m_type, e.m_push_upstream);
     }
 
     // Retry the connection.
@@ -234,7 +239,9 @@ pipeline
   {
     if (!down_proc->set_input_port_type(downstream_port, up_type))
     {
-      /// \todo Throw exception.
+      throw connection_dependent_type_exception(upstream_process, upstream_port,
+                                                downstream_process, downstream_port,
+                                                up_type, false);
     }
 
     try
@@ -243,7 +250,10 @@ pipeline
     }
     catch (priv::propogation_exception& e)
     {
-      /// \todo Translate exception.
+      throw connection_dependent_type_cascade_exception(downstream_process, downstream_port, up_type,
+                                                        e.m_upstream_process, e.m_upstream_port,
+                                                        e.m_downstream_process, e.m_downstream_port,
+                                                        e.m_type, e.m_push_upstream);
     }
 
     // Retry the connection.

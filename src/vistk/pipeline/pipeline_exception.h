@@ -140,6 +140,105 @@ class VISTK_PIPELINE_EXPORT no_such_process_exception
 };
 
 /**
+ * \class connection_dependent_type_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a connection sets a type on a port that is rejected.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT connection_dependent_type_exception
+  : public pipeline_connection_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param upstream_name The name of the upstream process requested.
+     * \param upstream_port The port on the upstream process requested.
+     * \param downstream_name The name of the downstream process requested.
+     * \param downstream_port The port on the downstream process requested.
+     * \param type The type that was attempted to be set.
+     * \param push_upstream True if upstream rejected the type.
+     */
+    connection_dependent_type_exception(process::name_t const& upstream_name,
+                                        process::port_t const& upstream_port,
+                                        process::name_t const& downstream_name,
+                                        process::port_t const& downstream_port,
+                                        process::port_type_t const& type,
+                                        bool push_upstream) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~connection_dependent_type_exception() throw();
+
+    /// The name of the upstream process requested.
+    process::name_t const m_upstream_name;
+    /// The name of the upstream port requested.
+    process::port_t const m_upstream_port;
+    /// The name of the downstream process requested.
+    process::name_t const m_downstream_name;
+    /// The name of the downstream port requested.
+    process::port_t const m_downstream_port;
+    /// The name of the type that was attempted to be set.
+    process::port_type_t const m_type;
+    /// If set to \c true, upstream rejected the type, otherwise downstream did.
+    bool const m_push_upstream;
+};
+
+/**
+ * \class connection_dependent_type_cascade_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a connection sets a type on a port that is rejected due to propogation of the type.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT connection_dependent_type_cascade_exception
+  : public pipeline_connection_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process which had a type set.
+     * \param port The port on the process.
+     * \param type The type that was attempted to be set.
+     * \param push_upstream True if upstream rejected the type.
+     */
+    connection_dependent_type_cascade_exception(process::name_t const& name,
+                                                process::port_t const& port,
+                                                process::port_type_t const& type,
+                                                process::name_t const& upstream_name,
+                                                process::port_t const& upstream_port,
+                                                process::name_t const& downstream_name,
+                                                process::port_t const& downstream_port,
+                                                process::port_type_t const& cascade_type,
+                                                bool push_upstream) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~connection_dependent_type_cascade_exception() throw();
+
+    /// The name of the process which had a type set.
+    process::name_t const m_name;
+    /// The name of the port which had a type set.
+    process::port_t const m_port;
+    /// The name of the type that was set.
+    process::port_type_t const m_type;
+    /// The name of the cascaded upstream process requested.
+    process::name_t const m_upstream_name;
+    /// The name of the cascaded upstream port requested.
+    process::port_t const m_upstream_port;
+    /// The name of the cascaded downstream process requested.
+    process::name_t const m_downstream_name;
+    /// The name of the cascaded downstream port requested.
+    process::port_t const m_downstream_port;
+    /// The name of the type that was rejected.
+    process::port_type_t const m_cascade_type;
+    /// If set to \c true, upstream rejected the type, otherwise downstream did.
+    bool const m_push_upstream;
+};
+
+/**
  * \class connection_type_mismatch_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a connection is requested with type mismatched ports.
