@@ -553,7 +553,40 @@ pipeline
 
     proc->init();
 
-    /// \todo Check for untyped data-dependent ports.
+    bool resolved_types = false;
+
+    BOOST_FOREACH (process::port_addr_t const& data_dep_port, d->data_dep_ports)
+    {
+      process::name_t const& data_proc = data_dep_port.first;
+      process::port_t const& data_port = data_dep_port.second;
+
+      if (name == data_proc)
+      {
+        process::port_info_t const info = proc->output_port_info(data_port);
+
+        if (info->type == process::type_data_dependent)
+        {
+          /// \todo Throw exception.
+        }
+
+        resolved_types = true;
+      }
+    }
+
+    if (resolved_types)
+    {
+      try
+      {
+        d->propogate(name);
+      }
+      catch (priv::propogation_exception& e)
+      {
+        throw connection_dependent_type_cascade_exception(name, "<data-dependent ports>", "<data-dependent types>",
+                                                          e.m_upstream_process, e.m_upstream_port,
+                                                          e.m_downstream_process, e.m_downstream_port,
+                                                          e.m_type, e.m_push_upstream);
+      }
+    }
   }
 
   if (d->untyped_connections.size())
