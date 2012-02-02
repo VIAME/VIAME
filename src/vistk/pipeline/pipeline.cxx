@@ -265,10 +265,9 @@ pipeline
 
     return;
   }
-
-  if ((up_type != process::type_any) &&
-      (down_type != process::type_any) &&
-      (up_type != down_type))
+  else if ((up_type != process::type_any) &&
+           (down_type != process::type_any) &&
+           (up_type != down_type))
   {
     throw connection_type_mismatch_exception(upstream_process, upstream_port, up_type,
                                              downstream_process, downstream_port, down_type);
@@ -299,7 +298,7 @@ pipeline
 
   config_t edge_config = config::empty_config();
 
-  edge_config->set_value(edge::config_dependency, has_nodep ? "false" : "true");
+  edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
 
   edge_t e = boost::make_shared<edge>(edge_config);
 
