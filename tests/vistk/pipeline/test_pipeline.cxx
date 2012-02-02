@@ -64,6 +64,19 @@ static void test_map_input();
 static void test_map_output();
 static void test_connect_no_upstream();
 static void test_connect_no_downstream();
+static void test_connect_untyped_data_connection();
+static void test_connect_untyped_flow_connection();
+static void test_connect_type_force_data_upstream();
+static void test_connect_type_force_data_upstream_reject();
+static void test_connect_type_force_flow_upstream();
+static void test_connect_type_force_flow_upstream_reject();
+static void test_connect_type_force_flow_downstream();
+static void test_connect_type_force_flow_downstream_reject();
+static void test_connect_type_force_cascade_up();
+static void test_connect_type_force_cascade_down();
+static void test_connect_type_force_cascade_both();
+static void test_connect_type_force_cascade_data_dependent();
+static void test_connect_type_force_cascade_reject();
 static void test_connect_type_mismatch();
 static void test_connect_flag_mismatch();
 static void test_connect();
@@ -71,6 +84,14 @@ static void test_connect_input_map();
 static void test_connect_output_map();
 static void test_setup_pipeline_no_processes();
 static void test_setup_pipeline_orphaned_process();
+static void test_setup_pipeline_backwards_edge();
+static void test_setup_pipeline_not_a_dag();
+static void test_setup_pipeline_data_dependent_set();
+static void test_setup_pipeline_data_dependent_set_reject();
+static void test_setup_pipeline_data_dependent_set_cascade();
+static void test_setup_pipeline_data_dependent_set_cascade_reject();
+static void test_setup_pipeline_untyped_data_dependent();
+static void test_setup_pipeline_untyped_connection();
 static void test_setup_pipeline_missing_required_input_connection();
 static void test_setup_pipeline_missing_required_output_connection();
 static void test_setup_pipeline_missing_required_group_input_connection();
@@ -144,6 +165,58 @@ run_test(std::string const& test_name)
   {
     test_connect_no_downstream();
   }
+  else if (test_name == "connect_untyped_data_connection")
+  {
+    test_connect_untyped_data_connection();
+  }
+  else if (test_name == "connect_untyped_flow_connection")
+  {
+    test_connect_untyped_flow_connection();
+  }
+  else if (test_name == "connect_type_force_data_upstream")
+  {
+    test_connect_type_force_data_upstream();
+  }
+  else if (test_name == "connect_type_force_data_upstream_reject")
+  {
+    test_connect_type_force_data_upstream_reject();
+  }
+  else if (test_name == "connect_type_force_flow_upstream")
+  {
+    test_connect_type_force_flow_upstream();
+  }
+  else if (test_name == "connect_type_force_flow_upstream_reject")
+  {
+    test_connect_type_force_flow_upstream_reject();
+  }
+  else if (test_name == "connect_type_force_flow_downstream")
+  {
+    test_connect_type_force_flow_downstream();
+  }
+  else if (test_name == "connect_type_force_flow_downstream_reject")
+  {
+    test_connect_type_force_flow_downstream_reject();
+  }
+  else if (test_name == "connect_type_force_cascade_up")
+  {
+    test_connect_type_force_cascade_up();
+  }
+  else if (test_name == "connect_type_force_cascade_down")
+  {
+    test_connect_type_force_cascade_down();
+  }
+  else if (test_name == "connect_type_force_cascade_both")
+  {
+    test_connect_type_force_cascade_both();
+  }
+  else if (test_name == "connect_type_force_cascade_data_dependent")
+  {
+    test_connect_type_force_cascade_data_dependent();
+  }
+  else if (test_name == "connect_type_force_cascade_reject")
+  {
+    test_connect_type_force_cascade_reject();
+  }
   else if (test_name == "connect_type_mismatch")
   {
     test_connect_type_mismatch();
@@ -171,6 +244,38 @@ run_test(std::string const& test_name)
   else if (test_name == "setup_pipeline_orphaned_process")
   {
     test_setup_pipeline_orphaned_process();
+  }
+  else if (test_name == "setup_pipeline_backwards_edge")
+  {
+    test_setup_pipeline_backwards_edge();
+  }
+  else if (test_name == "setup_pipeline_not_a_dag")
+  {
+    test_setup_pipeline_not_a_dag();
+  }
+  else if (test_name == "setup_pipeline_data_dependent_set")
+  {
+    test_setup_pipeline_data_dependent_set();
+  }
+  else if (test_name == "setup_pipeline_data_dependent_set_reject")
+  {
+    test_setup_pipeline_data_dependent_set_reject();
+  }
+  else if (test_name == "setup_pipeline_data_dependent_set_cascade")
+  {
+    test_setup_pipeline_data_dependent_set_cascade();
+  }
+  else if (test_name == "setup_pipeline_data_dependent_set_cascade_reject")
+  {
+    test_setup_pipeline_data_dependent_set_cascade_reject();
+  }
+  else if (test_name == "setup_pipeline_untyped_data_dependent")
+  {
+    test_setup_pipeline_untyped_data_dependent();
+  }
+  else if (test_name == "setup_pipeline_untyped_connection")
+  {
+    test_setup_pipeline_untyped_connection();
   }
   else if (test_name == "setup_pipeline_missing_required_input_connection")
   {
@@ -460,6 +565,84 @@ test_connect_no_downstream()
 }
 
 void
+test_connect_untyped_data_connection()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_untyped_flow_connection()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_data_upstream()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_data_upstream_reject()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_flow_upstream()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_flow_upstream_reject()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_flow_downstream()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_flow_downstream_reject()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_cascade_up()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_cascade_down()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_cascade_both()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_cascade_data_dependent()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_connect_type_force_cascade_reject()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
 test_connect_type_mismatch()
 {
   vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
@@ -628,6 +811,54 @@ test_setup_pipeline_orphaned_process()
   EXPECT_EXCEPTION(vistk::orphaned_processes_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline with orphaned processes");
+}
+
+void
+test_setup_pipeline_backwards_edge()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_setup_pipeline_not_a_dag()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_setup_pipeline_data_dependent_set()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_setup_pipeline_data_dependent_set_reject()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_setup_pipeline_data_dependent_set_cascade()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_setup_pipeline_data_dependent_set_cascade_reject()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_setup_pipeline_untyped_data_dependent()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_setup_pipeline_untyped_connection()
+{
+  TEST_ERROR("Not implemented");
 }
 
 void
