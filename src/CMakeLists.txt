@@ -27,10 +27,12 @@ function (add_vistk_plugin name define)
       ${module_output} "${MODULE_OUTPUT_PATH}"
       PREFIX           "")
 
-  install(
-    TARGETS     ${name}
-    DESTINATION "${MODULE_INSTALL_PATH}"
-    COMPONENT   runtime)
+  if (NOT ${no_install_plugin})
+    install(
+      TARGETS     ${name}
+      DESTINATION "${MODULE_INSTALL_PATH}"
+      COMPONENT   runtime)
+  endif (NOT ${no_install_plugin})
 endfunction (add_vistk_plugin name define)
 
 add_subdirectory(processes)

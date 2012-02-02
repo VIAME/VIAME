@@ -24,6 +24,8 @@ set_source_files_properties(print_string_process.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${print_string_process_build_options}")
 
+set(no_install_plugin TRUE)
+
 add_vistk_plugin(processes_examples
   MAKE_VISTK_PROCESSES_EXAMPLES_LIB
   ${examples_srcs})
