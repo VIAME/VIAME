@@ -38,7 +38,7 @@ function (create_doxygen inputdir name)
   add_custom_command(
     TARGET  doxygen-${name}-doxyfile
     COMMAND ${CMAKE_COMMAND}
-            -D "DOXYGEN_TEMPLATE=${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in"
+            -D "DOXYGEN_TEMPLATE=${CMAKE_SOURCE_DIR}/cmake/Doxyfile.in"
             -D "DOXY_PROJECT_SOURCE_DIR=${inputdir}"
             -D "DOXY_DOCUMENTATION_OUTPUT_PATH=${DOCUMENTATION_OUTPUT_PATH}"
             -D "DOXY_PROJECT_NAME=${name}"
@@ -72,7 +72,7 @@ function (create_doxygen inputdir name)
   if (VISTK_INSTALL_DOCUMENTATION)
     install(
       DIRECTORY   ${DOCUMENTATION_OUTPUT_PATH}/${name}
-      DESTINATION ${DOCUMENTATION_INSTALL_PATH}/${CMAKE_PROJECT_NAME}-${vistk_version}/${name}
+      DESTINATION ${DOCUMENTATION_INSTALL_PATH}/${name}
       COMPONENT   documentation)
   endif (VISTK_INSTALL_DOCUMENTATION)
 endfunction (create_doxygen)
