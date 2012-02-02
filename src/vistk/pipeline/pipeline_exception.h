@@ -156,9 +156,9 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch_exception
      * \param upstream_name The name of the upstream process requested.
      * \param upstream_port The port on the upstream process requested.
      * \param upstream_type The type of the upstream process port.
-     * \param downstream_name The name of the upstream process requested.
-     * \param downstream_port The port on the upstream process requested.
-     * \param downstream_type The type of the upstream process port.
+     * \param downstream_name The name of the downstream process requested.
+     * \param downstream_port The port on the downstream process requested.
+     * \param downstream_type The type of the downstream process port.
      */
     connection_type_mismatch_exception(process::name_t const& upstream_name,
                                        process::port_t const& upstream_port,
@@ -173,13 +173,13 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch_exception
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
-    /// The name of the upstream process requested.
+    /// The name of the upstream port requested.
     process::port_t const m_upstream_port;
     /// The name of the type available on the upstream port.
     process::port_type_t const m_upstream_type;
     /// The name of the downstream process requested.
     process::name_t const m_downstream_name;
-    /// The name of the downstream process requested.
+    /// The name of the downstream port requested.
     process::port_t const m_downstream_port;
     /// The name of the type available on the downstream port.
     process::port_type_t const m_downstream_type;
