@@ -191,6 +191,16 @@ test_process_input_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
+    vistk::process::port_type_t const& type = info->type;
+
+    bool const is_data_dependent = (type == vistk::process::type_data_dependent);
+
+    if (is_data_dependent)
+    {
+      TEST_ERROR("Data-dependent input port "
+                 "(" << process->type() << "." << port << ")");
+    }
+
     vistk::process::port_description_t const& description = info->description;
 
     if (description.empty())
@@ -242,6 +252,14 @@ test_process_output_ports(vistk::process_t const process)
     if (is_mutable)
     {
       TEST_ERROR("Mutable flag on output port "
+                 "(" << process->type() << "." << port << ")");
+    }
+
+    bool const is_nodep = (flags.find(vistk::process::flag_input_nodep) != flags.end());
+
+    if (is_nodep)
+    {
+      TEST_ERROR("No dependency flag on output port "
                  "(" << process->type() << "." << port << ")");
     }
 
