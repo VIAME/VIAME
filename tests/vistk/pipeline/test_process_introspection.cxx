@@ -21,6 +21,8 @@
 #include <exception>
 #include <iostream>
 
+#include <cstdlib>
+
 static void test_process(vistk::process_registry::type_t const& type);
 
 int
@@ -42,7 +44,7 @@ main()
   {
     TEST_ERROR("Unexpected exception when loading modules: " << e.what());
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   vistk::process_registry_t const reg = vistk::process_registry::self();
@@ -62,7 +64,7 @@ main()
     }
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 static void test_process_constraints(vistk::process_t const process);

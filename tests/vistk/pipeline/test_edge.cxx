@@ -20,6 +20,8 @@
 #include <iostream>
 #include <string>
 
+#include <cstdlib>
+
 static void run_test(std::string const& test_name);
 
 int
@@ -29,7 +31,7 @@ main(int argc, char* argv[])
   {
     TEST_ERROR("Expected one argument");
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   std::string const test_name = argv[1];
@@ -42,10 +44,10 @@ main(int argc, char* argv[])
   {
     TEST_ERROR("Unexpected exception: " << e.what());
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 static void test_null_config();

@@ -27,6 +27,7 @@
 #include <vector>
 
 #include <cstddef>
+#include <cstdlib>
 
 static std::string const pipe_ext = ".pipe";
 
@@ -39,7 +40,7 @@ main(int argc, char* argv[])
   {
     TEST_ERROR("Expected two arguments");
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   vistk::load_known_modules();
@@ -57,10 +58,10 @@ main(int argc, char* argv[])
   {
     TEST_ERROR("Unexpected exception: " << e.what());
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 static void test_empty(vistk::path_t const& pipe_file);

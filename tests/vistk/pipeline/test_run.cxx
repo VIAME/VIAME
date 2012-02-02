@@ -24,6 +24,7 @@
 #include <string>
 
 #include <cstddef>
+#include <cstdlib>
 
 static std::string const test_sep = "-";
 
@@ -36,7 +37,7 @@ main(int argc, char* argv[])
   {
     TEST_ERROR("Expected one argument");
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   std::string const full_test_name = argv[1];
@@ -47,7 +48,7 @@ main(int argc, char* argv[])
   {
     TEST_ERROR("Unexpected test name format: " << full_test_name);
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   std::string const test_name = full_test_name.substr(0, sep_pos);
@@ -61,10 +62,10 @@ main(int argc, char* argv[])
   {
     TEST_ERROR("Unexpected exception: " << e.what());
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 static void test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type);

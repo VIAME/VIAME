@@ -19,6 +19,8 @@
 #include <exception>
 #include <iostream>
 
+#include <cstdlib>
+
 int
 main()
 {
@@ -40,7 +42,7 @@ main()
   {
     TEST_ERROR("Unexpected exception when loading modules: " << e.what());
 
-    return 1;
+    return EXIT_FAILURE;
   }
 
   vistk::schedule_registry::types_t const types = reg->types();
@@ -94,5 +96,5 @@ main()
                      "requesting an non-existent schedule type");
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
