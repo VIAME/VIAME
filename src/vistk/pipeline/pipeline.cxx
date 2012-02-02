@@ -211,7 +211,7 @@ pipeline
   {
     d->untyped_connections.push_back(conn);
   }
-  else if (up_flow_dep)
+  else if (up_data_dep || up_flow_dep)
   {
     if (!up_proc->set_output_port_type(upstream_port, down_type))
     {
