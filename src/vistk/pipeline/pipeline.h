@@ -44,6 +44,8 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \endpreconds
      *
+     * \throws null_pipeline_config_exception Thrown when \p config is \c NULL.
+     *
      * \param config Contains configuration for the pipeline.
      */
     pipeline(config_t const& config);
@@ -104,13 +106,15 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \precond{\p upstream_port is an output port on \p upstream_process}
      * \precond{\p downstream_process is the name of a process or group in the pipeline}
      * \precond{\p downstream_port is an input port on \p downstream_process}
-     * \precond{The types of the ports match\, or at least one is \ref process::type_any}
+     * \precond{The types of the ports are compatible\, or at least one is \ref process::type_any}
      * \precond{The flags of the ports are compatible (a \ref
      *          process::flag_output_const output may not be connected to a \ref
      *          process::flag_input_mutable input)}
      *
      * \endpreconds
      *
+     * \throws connection_dependent_type_exception Thrown when a dependent type is rejected.
+     * \throws connection_dependent_type_cascade_exception Thrown when an indirect dependent type is rejected.
      * \throws connection_type_mismatch_exception Thrown when the types of the ports are incompatible.
      * \throws connection_flag_mismatch_exception Thrown when the flags of the ports are incompatible.
      * \throws no_such_process_exception Thrown when either \p upstream_process or \p downstream_process do not exist in the pipeline.
@@ -214,6 +218,13 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \postcond{The pipeline is ready to be executed}
      *
      * \endpostconds
+     *
+     * \throws no_processes_exception Thrown when there are no processes in the pipeline.
+     * \throws missing_connection_exception Thrown when there is a required port that is not connected in the pipeline.
+     * \throws orphaned_processes_exception Thrown when there is a subgraph which is not connected to another subgraph.
+     * \throws untyped_data_dependent_exception Thrown when a data-dependent port type is not set after initialization.
+     * \throws connection_dependent_type_cascade_exception Thrown when a data-dependent port type creates a problem in the pipeline.
+     * \throws untyped_data_dependent_exception Thrown when there are untyped connections left in the pipeline.
      */
     void setup_pipeline();
 
