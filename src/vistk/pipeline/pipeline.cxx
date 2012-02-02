@@ -566,7 +566,7 @@ pipeline
 
         if (info->type == process::type_data_dependent)
         {
-          /// \todo Throw exception.
+          throw untyped_data_dependent_exception(data_proc, data_port);
         }
 
         resolved_types = true;
@@ -591,7 +591,7 @@ pipeline
 
   if (d->untyped_connections.size())
   {
-    /// \todo Throw exception.
+    throw untyped_connection_exception();
   }
 }
 
@@ -1208,7 +1208,7 @@ pipeline::priv
   }
   catch (boost::not_a_dag&)
   {
-    /// \todo Throw an exception.
+    throw not_a_dag_exception();
   }
 
   process::names_t names;

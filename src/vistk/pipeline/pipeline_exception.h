@@ -377,6 +377,77 @@ class VISTK_PIPELINE_EXPORT orphaned_processes_exception
 };
 
 /**
+ * \class not_a_dag_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a \ref pipeline contains cycles.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT not_a_dag_exception
+  : public pipeline_setup_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    not_a_dag_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~not_a_dag_exception() throw();
+};
+
+/**
+ * \class untyped_data_dependent_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a \ref process contains a data-dependent port even after initialization.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT untyped_data_dependent_exception
+  : public pipeline_setup_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     * \param port The name of the untyped port on the process.
+     */
+    untyped_data_dependent_exception(process::name_t const& name, process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~untyped_data_dependent_exception() throw();
+
+    /// The name of the process.
+    process::name_t const m_name;
+    /// The name of the untyped port.
+    process::port_t const m_port;
+};
+
+/**
+ * \class untyped_connection_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a \ref process contains a data-dependent port even after initialization.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT untyped_connection_exception
+  : public pipeline_setup_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    untyped_connection_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~untyped_connection_exception() throw();
+};
+
+/**
  * \class no_such_group_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a group is requested that does not exist in a \ref pipeline.

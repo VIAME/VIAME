@@ -254,6 +254,61 @@ orphaned_processes_exception
 {
 }
 
+not_a_dag_exception
+::not_a_dag_exception() throw()
+  : pipeline_setup_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "The pipeline contains a cycle in it. Backwards "
+          "edges should only be connected to input ports "
+          "which have the process::flag_nodep flag on them.";
+
+  m_what = sstr.str();
+}
+
+not_a_dag_exception
+::~not_a_dag_exception() throw()
+{
+}
+
+untyped_data_dependent_exception
+::untyped_data_dependent_exception(process::name_t const& name, process::port_t const& port) throw()
+  : pipeline_setup_exception()
+  , m_name(name)
+  , m_port(port)
+{
+  std::ostringstream sstr;
+
+  sstr << "After initialization, the \'" << m_port << "\' "
+          "port on the \'" << m_name << "\' process "
+          "was still marked as data-dependent.";
+
+  m_what = sstr.str();
+}
+
+untyped_data_dependent_exception
+::~untyped_data_dependent_exception() throw()
+{
+}
+
+untyped_connection_exception
+::untyped_connection_exception() throw()
+  : pipeline_setup_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "After all of the processes have been initialized, "
+          "there are still untyped connections in the pipeline.";
+
+  m_what = sstr.str();
+}
+
+untyped_connection_exception
+::~untyped_connection_exception() throw()
+{
+}
+
 no_such_group_exception
 ::no_such_group_exception(process::name_t const& name) throw()
   : pipeline_exception()
