@@ -1333,19 +1333,80 @@ test_setup_pipeline_data_dependent_set_cascade_reject()
 void
 test_setup_pipeline_untyped_data_dependent_unconnected()
 {
-  TEST_ERROR("Not implemented");
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("data");
+
+  vistk::config_t conf = vistk::config::empty_config();
+
+  conf->set_value("set_on_init", "false");
+
+  vistk::process_t const process = create_process(proc_type, proc_name, conf);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  pipeline->setup_pipeline();
 }
 
 void
 test_setup_pipeline_untyped_data_dependent()
 {
-  TEST_ERROR("Not implemented");
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("data");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
+
+  vistk::config_t conf = vistk::config::empty_config();
+
+  conf->set_value("set_on_init", "false");
+
+  vistk::process_t const process = create_process(proc_type, proc_name, conf);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+
+  EXPECT_EXCEPTION(vistk::untyped_data_dependent_exception,
+                   pipeline->setup_pipeline(),
+                   "a connected, unresolved data-dependent port exists after initialization");
 }
 
 void
 test_setup_pipeline_untyped_connection()
 {
-  TEST_ERROR("Not implemented");
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("up");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("down");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type, proc_name2);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+
+  EXPECT_EXCEPTION(vistk::untyped_connection_exception,
+                   pipeline->setup_pipeline(),
+                   "an untyped connection exists in the pipeline");
 }
 
 void
