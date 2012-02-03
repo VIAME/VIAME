@@ -22,20 +22,25 @@ namespace vistk
 class data_dependent_process::priv
 {
   public:
-    priv(bool reject_);
+    priv(bool reject_, bool set_on_init_);
     ~priv();
 
     bool const reject;
+    bool const set_on_init;
     bool initializing;
     bool type_set;
 
     static config::key_t const config_reject;
+    static config::key_t const config_set_on_init;
     static config::value_t const default_reject;
+    static config::value_t const default_set_on_init;
     static port_t const port_output;
 };
 
 config::key_t const data_dependent_process::priv::config_reject = config::key_t("reject");
+config::key_t const data_dependent_process::priv::config_set_on_init = config::key_t("set_on_init");
 config::value_t const data_dependent_process::priv::default_reject = config::value_t("false");
+config::value_t const data_dependent_process::priv::default_set_on_init = config::value_t("true");
 process::port_t const data_dependent_process::priv::port_output = process::port_t("output");
 
 data_dependent_process
@@ -45,10 +50,14 @@ data_dependent_process
   declare_configuration_key(priv::config_reject, boost::make_shared<conf_info>(
     priv::default_reject,
     config::description_t("Whether to reject type setting requests or not.")));
+  declare_configuration_key(priv::config_set_on_init, boost::make_shared<conf_info>(
+    priv::default_set_on_init,
+    config::description_t("Whether to set the type on initialization or not.")));
 
   bool const reject = config_value<bool>(priv::config_reject);
+  bool const set_on_init = config_value<bool>(priv::config_set_on_init);
 
-  d.reset(new priv(reject));
+  d.reset(new priv(reject, set_on_init));
 
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
     type_data_dependent,
@@ -67,7 +76,7 @@ data_dependent_process
 {
   d->initializing = true;
 
-  if (!d->type_set)
+  if (!d->type_set && d->set_on_init)
   {
     set_output_port_type(priv::port_output, type_none);
   }
@@ -99,8 +108,9 @@ data_dependent_process
 }
 
 data_dependent_process::priv
-::priv(bool reject_)
+::priv(bool reject_, bool set_on_init_)
   : reject(reject_)
+  , set_on_init(set_on_init_)
   , initializing(false)
   , type_set(false)
 {

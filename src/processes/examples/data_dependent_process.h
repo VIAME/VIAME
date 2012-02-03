@@ -29,6 +29,10 @@ namespace vistk
  *
  * \process A process with a data dependent port.
  *
+ * \configs
+ *
+ * \config{set_on_init} Whether to set the type on initialization or not.
+ *
  * \oports
  *
  * \oport{output} A data dependent output port.
