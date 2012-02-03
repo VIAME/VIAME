@@ -92,6 +92,7 @@ static void test_setup_pipeline_data_dependent_set();
 static void test_setup_pipeline_data_dependent_set_reject();
 static void test_setup_pipeline_data_dependent_set_cascade();
 static void test_setup_pipeline_data_dependent_set_cascade_reject();
+static void test_setup_pipeline_untyped_data_dependent_unconnected();
 static void test_setup_pipeline_untyped_data_dependent();
 static void test_setup_pipeline_untyped_connection();
 static void test_setup_pipeline_missing_required_input_connection();
@@ -270,6 +271,10 @@ run_test(std::string const& test_name)
   else if (test_name == "setup_pipeline_data_dependent_set_cascade_reject")
   {
     test_setup_pipeline_data_dependent_set_cascade_reject();
+  }
+  else if (test_name == "setup_pipeline_untyped_data_dependent_unconnected")
+  {
+    test_setup_pipeline_untyped_data_dependent_unconnected();
   }
   else if (test_name == "setup_pipeline_untyped_data_dependent")
   {
@@ -1178,6 +1183,12 @@ test_setup_pipeline_data_dependent_set_cascade()
 
 void
 test_setup_pipeline_data_dependent_set_cascade_reject()
+{
+  TEST_ERROR("Not implemented");
+}
+
+void
+test_setup_pipeline_untyped_data_dependent_unconnected()
 {
   TEST_ERROR("Not implemented");
 }
