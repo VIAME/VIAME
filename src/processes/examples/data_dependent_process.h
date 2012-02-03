@@ -31,6 +31,7 @@ namespace vistk
  *
  * \configs
  *
+ * \config{reject} Whether to reject the set type or not.
  * \config{set_on_init} Whether to set the type on initialization or not.
  *
  * \oports

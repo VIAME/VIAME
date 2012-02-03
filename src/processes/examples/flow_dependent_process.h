@@ -29,6 +29,10 @@ namespace vistk
  *
  * \process A process with flow dependent ports.
  *
+ * \configs
+ *
+ * \config{reject} Whether to reject the set type or not.
+ *
  * \iports
  *
  * \iport{input} A flow dependent input port.
