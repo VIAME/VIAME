@@ -1160,7 +1160,25 @@ test_setup_pipeline_backwards_edge()
 void
 test_setup_pipeline_not_a_dag()
 {
-  TEST_ERROR("Not implemented");
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name, port_name2);
+
+  EXPECT_EXCEPTION(vistk::not_a_dag_exception,
+                   pipeline->setup_pipeline(),
+                   "a cycle is in the pipeline graph");
 }
 
 void
