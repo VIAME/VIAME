@@ -30,5 +30,6 @@ function (vistk_make_python_test group instance)
     ${python_chdir} ${python_module_path} ${ARGN})
 endfunction (vistk_make_python_test)
 
+add_subdirectory(image)
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)
