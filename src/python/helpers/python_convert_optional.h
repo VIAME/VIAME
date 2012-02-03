@@ -117,7 +117,7 @@ void
 register_optional_converter(char const* name, char const* desc)
 {
   typedef boost_optional_converter<T> converter_t;
-  typedef boost::optional<T> optional_t;
+  typedef typename converter_t::optional_t optional_t;
 
   boost::python::class_<optional_t>(name
     , desc
