@@ -1154,7 +1154,23 @@ test_setup_pipeline_orphaned_process()
 void
 test_setup_pipeline_backwards_edge()
 {
-  TEST_ERROR("Not implemented");
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("feedback");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("feedback");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name, port_name2);
+
+  pipeline->setup_pipeline();
 }
 
 void
