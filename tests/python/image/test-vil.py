@@ -74,9 +74,30 @@ def test_vil_to_numpy():
 
 def test_numpy_to_vil():
     from vistk.image import vil
-    import numpy
+    from vistk.test import test_image
+    import numpy as np
 
-    log("Error: Not implemented")
+    width = 800
+    height = 600
+    planes = 3
+
+    shape = (width, height, planes)
+
+    size = width * height * planes
+
+    types = [ (test_image.take_image_bool, np.bool)
+            , (test_image.take_image_uint8_t, np.uint8)
+            , (test_image.take_image_float, np.float32)
+            , (test_image.take_image_double, np.double)
+            ]
+
+    for f, t in types:
+        i = np.zeros(shape, dtype=t)
+
+        sz = f(i)
+
+        if not sz == size:
+            log("Error: Wrong size calculated: got: '%d' expected: '%d'" % (sz, size))
 
 
 def test_datum():
