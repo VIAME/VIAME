@@ -7,5 +7,7 @@
 #include <boost/cstdint.hpp>
 
 #define VISTK_IMAGE_INSTANTIATE(cls) \
+  template class cls<bool>;          \
   template class cls<uint8_t>;       \
-  template class cls<float>
+  template class cls<float>;         \
+  template class cls<double>
