@@ -10,6 +10,7 @@ if (NUMPY_FOUND)
     vil.cxx)
   target_link_libraries(python-vil
     vil
+    numpy_memory_chunk
     vistk_python_any_conversion
     ${Boost_PYTHON_LIBRARY}
     ${PYTHON_LIBRARIES})

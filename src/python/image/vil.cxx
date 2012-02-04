@@ -4,6 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <python/helpers/numpy_memory_chunk.h>
 #include <python/helpers/python_wrap_vil_smart_ptr.h>
 
 #include <vistk/python/any_conversion/prototypes.h>
@@ -148,8 +149,9 @@ class vil_image_converter
       npy_intp const* const strides = PyArray_STRIDES(arr);
       void* const mem = PyArray_DATA(arr);
 
-      /// \todo 
-      new (storage) image_t(reinterpret_cast<pixel_t*>(mem),
+      vil_memory_chunk_sptr chunk = new numpy_memory_chunk(arr);
+
+      new (storage) image_t(chunk, reinterpret_cast<pixel_t*>(mem),
                             dims[0], dims[1], dims[2],
                             strides[0], strides[1], strides[2]);
       data->convertible = storage;
