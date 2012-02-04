@@ -102,7 +102,7 @@ def test_numpy_to_vil():
 
 def test_datum():
     from vistk.image import vil
-    import numpy
+    import numpy as np
 
     log("Error: Not implemented")
 
