@@ -102,9 +102,27 @@ def test_numpy_to_vil():
 
 def test_datum():
     from vistk.image import vil
+    from vistk.test import test_image
     import numpy as np
 
-    log("Error: Not implemented")
+    width = 800
+    height = 600
+    planes = 3
+
+    shape = (width, height, planes)
+
+    types = [ (test_image.save_image_bool, 'bool', np.bool)
+            , (test_image.save_image_uint8_t, 'byte', np.uint8)
+            # \todo How to save these?
+            , (test_image.save_image_float, 'float', np.float32)
+            , (test_image.save_image_double, 'double', np.double)
+            ]
+
+    for f, pt, t in types:
+        a = np.zeros(shape, dtype=t)
+
+        if not f(a, '%s.tiff' % pt):
+            log("Error: Failed to save %s image" % pt)
 
 
 def main(testname):
