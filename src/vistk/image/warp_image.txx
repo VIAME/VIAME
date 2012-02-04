@@ -72,6 +72,10 @@ warp_image<PixType>
   return d->mask;
 }
 
+static bool is_identity(vistk::homography_base::transform_t const& transform);
+template <typename T, typename U>
+static T safe_cast(U const& value);
+
 template <typename PixType>
 typename warp_image<PixType>::image_t
 warp_image<PixType>
@@ -195,7 +199,7 @@ warp_image<PixType>
         for (pixel_t* dp = dest_col; sp < end_src; sp += sps, dp += dps)
         {
           double const v = vil_bilin_interp_raw(x, y, sp, sis, sjs);
-          *dp = pixel_t(v);
+          *dp = safe_cast<pixel_t>(v);
         }
 
         d->mask(i, j) = false;
@@ -249,6 +253,27 @@ is_identity(vistk::homography_base::transform_t const& transform)
           fuzzy_cmp(mat(1, 0), 0.0) && fuzzy_cmp(mat(1, 2), 0.0) &&
           fuzzy_cmp(mat(2, 0), 0.0) && fuzzy_cmp(mat(2, 1), 0.0) &&
           fuzzy_cmp(mat(0, 0), mat(1, 1)) && fuzzy_cmp(mat(1, 1), mat(2, 2)));
+}
+
+template <>
+bool
+safe_cast<bool, float>(float const& value)
+{
+  return fuzzy_cmp(value, float(0));
+}
+
+template <>
+bool
+safe_cast<bool, double>(double const& value)
+{
+  return fuzzy_cmp(value, double(0));
+}
+
+template <typename T, typename U>
+T
+safe_cast(U const& value)
+{
+  return T(value);
 }
 
 template <typename T>
