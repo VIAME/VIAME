@@ -8,6 +8,7 @@
 #include <boost/python/module.hpp>
 
 #include <vil/vil_image_view.h>
+#include <vil/vil_save.h>
 
 /**
  * \file test_image.cxx
@@ -21,18 +22,23 @@ template <typename T>
 static vil_image_view<T> make_image(size_t width, size_t height, size_t planes);
 template <typename T>
 static size_t take_image(vil_image_view<T> const& img);
+template <typename T>
+static bool save_image(vil_image_view<T> const& img, std::string const& path);
 
 BOOST_PYTHON_MODULE(test_image)
 {
-#define DEFINE_FUNCTIONS(type)                       \
-  do                                                 \
-  {                                                  \
-    def("make_image_" #type, &make_image<type>       \
-      , (arg("width"), arg("height"), arg("planes")) \
-      , "Create a " #type " image.");                \
-    def("take_image_" #type, &take_image<type>       \
-      , (arg("image")) \
-      , "Take a " #type " image and return its size.");                \
+#define DEFINE_FUNCTIONS(type)                             \
+  do                                                       \
+  {                                                        \
+    def("make_image_" #type, &make_image<type>             \
+      , (arg("width"), arg("height"), arg("planes"))       \
+      , "Create a " #type " image.");                      \
+    def("take_image_" #type, &take_image<type>             \
+      , (arg("image"))                                     \
+      , "Take a " #type " image and return its size.");    \
+    def("save_image_" #type, &save_image<type>             \
+      , (arg("image"), arg("path"))                        \
+      , "Take a " #type " image and write it to a file."); \
   } while (false)
 
   DEFINE_FUNCTIONS(bool);
@@ -59,4 +65,11 @@ take_image(vil_image_view<T> const& img)
   size_t const np = img.nplanes();
 
   return (ni * nj * np);
+}
+
+template <typename T>
+bool
+save_image(vil_image_view<T> const& img, std::string const& path)
+{
+  return vil_save(img, path.c_str());
 }
