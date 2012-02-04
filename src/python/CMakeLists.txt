@@ -104,6 +104,10 @@ add_subdirectory(image)
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)
 
+if (VISTK_ENABLE_TESTING)
+  add_subdirectory(test)
+endif (VISTK_ENABLE_TESTING)
+
 make_python_init_file(vistk)
 #  image
 #  pipeline
