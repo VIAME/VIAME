@@ -21,10 +21,10 @@
     return &function<type>;                  \
   }
 
-#define SPECIFY_FUNCTION(function)    \
-  TYPE_CHECK(bool, bool, function)    \
-  TYPE_CHECK(uint8_t, byte, function) \
-  TYPE_CHECK(float, float, function)  \
-  TYPE_CHECK(double, double, function)
+#define SPECIFY_FUNCTION(function)         \
+  TYPE_CHECK(bool, bool, function)         \
+  else TYPE_CHECK(uint8_t, byte, function) \
+  else TYPE_CHECK(float, float, function)  \
+  else TYPE_CHECK(double, double, function)
 
 #endif // VISTK_PROCESSES_HELPER_IMAGE_MACROS_H
