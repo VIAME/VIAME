@@ -15,12 +15,14 @@
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/object.hpp>
+#include <boost/cstdint.hpp>
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_memory_chunk.h>
 
-#include <numpy/ndarrayobject.h>
-#include <numpy/ndarraytypes.h>
+#include <Python.h>
+
+#include <numpy/arrayobject.h>
 
 /**
  * \file vil.cxx
