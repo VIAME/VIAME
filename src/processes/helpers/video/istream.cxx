@@ -183,13 +183,21 @@ istream_read_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& pixfmt)
     return istream_read_func_t();
   }
 
-  if (pixtype == pixtypes::pixtype_byte())
+  if (pixtype == pixtypes::pixtype_bool())
+  {
+    return boost::bind(&istream_read<bool>, color, _1);
+  }
+  else if (pixtype == pixtypes::pixtype_byte())
   {
     return boost::bind(&istream_read<uint8_t>, color, _1);
   }
   else if (pixtype == pixtypes::pixtype_float())
   {
     return boost::bind(&istream_read<float>, color, _1);
+  }
+  else if (pixtype == pixtypes::pixtype_double())
+  {
+    return boost::bind(&istream_read<double>, color, _1);
   }
 
   return istream_read_func_t();

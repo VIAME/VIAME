@@ -54,8 +54,10 @@ class image_helper
   PORT_TYPE(tpe, tname, yuv);    \
   PORT_TYPE(tpe, tname, gray)
 
+FORMAT_TYPES(bool, "bool");
 FORMAT_TYPES(uint8_t, "byte");
 FORMAT_TYPES(float, "float");
+FORMAT_TYPES(double, "double");
 
 #undef FORMAT_TYPES
 #undef PORT_TYPE
@@ -96,6 +98,10 @@ process::port_type_t const image_helper<PixType>::port_types<Format>::type = pro
 process::port_type_t
 port_type_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& format)
 {
+  if (pixtype == pixtypes::pixtype_bool())
+  {
+    PORT_TYPES(bool)
+  }
   if (pixtype == pixtypes::pixtype_byte())
   {
     PORT_TYPES(uint8_t)
@@ -103,6 +109,10 @@ port_type_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& format)
   else if (pixtype == pixtypes::pixtype_float())
   {
     PORT_TYPES(float)
+  }
+  else if (pixtype == pixtypes::pixtype_double())
+  {
+    PORT_TYPES(double)
   }
 
   return process::type_none;

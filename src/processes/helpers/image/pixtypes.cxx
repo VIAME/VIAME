@@ -17,6 +17,14 @@ namespace vistk
 
 pixtype_t const&
 pixtypes
+::pixtype_bool()
+{
+  static pixtype_t const type = pixtype_t("bool");
+  return type;
+}
+
+pixtype_t const&
+pixtypes
 ::pixtype_byte()
 {
   static pixtype_t const type = pixtype_t("byte");
@@ -28,6 +36,14 @@ pixtypes
 ::pixtype_float()
 {
   static pixtype_t const type = pixtype_t("float");
+  return type;
+}
+
+pixtype_t const&
+pixtypes
+::pixtype_double()
+{
+  static pixtype_t const type = pixtype_t("double");
   return type;
 }
 

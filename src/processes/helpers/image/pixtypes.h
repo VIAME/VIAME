@@ -33,6 +33,14 @@ class pixtypes
 {
   public:
     /**
+     * \brief The pixtype for boolean images.
+     *
+     * \note This is a function to enforce static initialization orders.
+     *
+     * \returns The pixtype for images with bools for pixels.
+     */
+    static pixtype_t const& pixtype_bool();
+    /**
      * \brief The pixtype for byte images.
      *
      * \note This is a function to enforce static initialization orders.
@@ -48,6 +56,14 @@ class pixtypes
      * \returns The pixtype for images with floats for pixels.
      */
     static pixtype_t const& pixtype_float();
+    /**
+     * \brief The pixtype for double precision images.
+     *
+     * \note This is a function to enforce static initialization orders.
+     *
+     * \returns The pixtype for images with doubles for pixels.
+     */
+    static pixtype_t const& pixtype_double();
 };
 
 /**
