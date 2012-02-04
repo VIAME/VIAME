@@ -32,7 +32,7 @@ read_for_pixtype(pixtype_t const& pixtype)
 {
   SPECIFY_FUNCTION(read)
 
-  return NULL;
+  return read_func_t();
 }
 
 template <typename PixType>

@@ -32,7 +32,7 @@ write_for_pixtype(pixtype_t const& pixtype)
 {
   SPECIFY_FUNCTION(write)
 
-  return NULL;
+  return write_func_t();
 }
 
 template <typename PixType>
