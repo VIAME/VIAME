@@ -44,9 +44,32 @@ def test_create():
 
 def test_vil_to_numpy():
     from vistk.image import vil
-    import numpy
+    from vistk.test import test_image
+    import numpy as np
 
-    log("Error: Not implemented")
+    width = 800
+    height = 600
+    planes = 3
+
+    shape = (width, height, planes)
+
+    types = [ (test_image.make_image_bool, np.bool)
+            , (test_image.make_image_uint8_t, np.uint8)
+            , (test_image.make_image_float, np.float32)
+            , (test_image.make_image_double, np.double)
+            ]
+
+    for f, t in types:
+        i = f(width, height, planes)
+
+        if not i.dtype == t:
+            log("Error: Wrong type returned: got: '%s' expected: '%s'" % (i.dtype, t))
+
+        if not i.ndim == 3:
+            log("Error: Did not get a 3-dimensional array: got: '%d' expected: '%d'" % (i.dim, 3))
+
+        if not i.shape == shape:
+            log("Error: Did not get expected array sizes: got '%s' expected: '%s'" % (str(i.shape), str(shape)))
 
 
 def test_numpy_to_vil():
