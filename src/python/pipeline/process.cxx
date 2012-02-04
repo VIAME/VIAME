@@ -206,6 +206,12 @@ BOOST_PYTHON_MODULE(process)
     .def("output_port_info", &vistk::process::output_port_info
       , (arg("port"))
       , "Returns information about the given output port.")
+    .def("set_input_port_type", &vistk::process::set_input_port_type
+      , (arg("port"), arg("new_type"))
+      , "Sets the type for an input port.")
+    .def("set_output_port_type", &vistk::process::set_output_port_type
+      , (arg("port"), arg("new_type"))
+      , "Sets the type for an output port.")
     .def("available_config", &vistk::process::available_config
       , "Returns a list of available configuration keys for the process.")
     .def("config_info", &vistk::process::config_info

@@ -74,6 +74,12 @@ BOOST_PYTHON_MODULE(process_registry)
     .def("output_port_info", &vistk::process::output_port_info
       , (arg("port"))
       , "Returns information about the given output port.")
+    .def("set_input_port_type", &vistk::process::set_input_port_type
+      , (arg("port"), arg("new_type"))
+      , "Sets the type for an input port.")
+    .def("set_output_port_type", &vistk::process::set_output_port_type
+      , (arg("port"), arg("new_type"))
+      , "Sets the type for an output port.")
     .def("available_config", &vistk::process::available_config
       , "Returns a list of available configuration keys for the process.")
     .def("config_info", &vistk::process::config_info
@@ -92,8 +98,11 @@ BOOST_PYTHON_MODULE(process_registry)
     .def_readonly("config_type", &vistk::process::config_type)
     .def_readonly("type_any", &vistk::process::type_any)
     .def_readonly("type_none", &vistk::process::type_none)
+    .def_readonly("type_data_dependent", &vistk::process::type_data_dependent)
+    .def_readonly("type_flow_dependent", &vistk::process::type_flow_dependent)
     .def_readonly("flag_output_const", &vistk::process::flag_output_const)
     .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
+    .def_readonly("flag_input_nodep", &vistk::process::flag_input_nodep)
     .def_readonly("flag_required", &vistk::process::flag_required)
   ;
   class_<vistk::processes_t>("Processes"
