@@ -133,7 +133,7 @@ class vil_image_converter
       }
       else
       {
-        /// \todo Log that vil doesn't own this memory...there be dragon's here.
+        /// \todo Log that vil doesn't own this memory...there be dragons here.
         Py_INCREF(obj);
       }
 
