@@ -54,6 +54,22 @@ def test_api_calls():
     reg.types()
     reg.description(proc_type)
 
+    process_registry.Process.constraint_no_threads
+    process_registry.Process.constraint_no_reentrancy
+    process_registry.Process.constraint_unsync_input
+    process_registry.Process.constraint_unsync_output
+    process_registry.Process.port_heartbeat
+    process_registry.Process.config_name
+    process_registry.Process.config_type
+    process_registry.Process.type_any
+    process_registry.Process.type_none
+    process_registry.Process.type_data_dependent
+    process_registry.Process.type_flow_dependent
+    process_registry.Process.flag_output_const
+    process_registry.Process.flag_input_mutable
+    process_registry.Process.flag_input_nodep
+    process_registry.Process.flag_required
+
 
 def example_process():
     from vistk.pipeline import process
@@ -71,6 +87,8 @@ def example_process():
             self.ran_output_ports = False
             self.ran_input_port_info = False
             self.ran_output_port_info = False
+            self.ran_set_input_port_type = False
+            self.ran_set_output_port_type = False
             self.ran_available_config = False
             self.ran_conf_info = False
 
@@ -119,6 +137,16 @@ def example_process():
 
             return self._base_output_port_info(port)
 
+        def _set_input_port_type(self, port, type):
+            self.ran_set_input_port_type = True
+
+            return self._base_set_input_port_type(port, type)
+
+        def _set_output_port_type(self, port, type):
+            self.ran_set_output_port_type = True
+
+            return self._base_set_output_port_type(port, type)
+
         def _available_config(self):
             self.ran_available_config = True
 
@@ -148,6 +176,10 @@ def example_process():
                 log("Error: _input_port_info override was not called")
             if not self.ran_output_port_info:
                 log("Error: _output_port_info override was not called")
+            if not self.ran_set_input_port_type:
+                log("Error: _set_input_port_type override was not called")
+            if not self.ran_set_output_port_type:
+                log("Error: _set_output_port_type override was not called")
             if not self.ran_available_config:
                 log("Error: _available_config override was not called")
             if not self.ran_conf_info:
@@ -207,6 +239,7 @@ def test_wrapper_api():
     iport = 'no_such_iport'
     oport = 'no_such_oport'
     key = 'no_such_key'
+    ptype = 'no_type'
 
     reg = process_registry.ProcessRegistry.self()
 
@@ -235,6 +268,11 @@ def test_wrapper_api():
         p.available_config()
         ensure_exception("asking for info on a non-existant config key",
                          p.config_info, key)
+
+        ensure_exception("setting a type on a non-existent input port",
+                         p.set_input_port_type, iport, ptype)
+        ensure_exception("setting a type on a non-existent output port",
+                         p.set_output_port_type, oport, ptype)
 
         p.init()
         p.step()

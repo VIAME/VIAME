@@ -71,6 +71,8 @@ def test_api_calls():
     process.PythonProcess.config_type
     process.PythonProcess.type_any
     process.PythonProcess.type_none
+    process.PythonProcess.type_data_dependent
+    process.PythonProcess.type_flow_dependent
     process.PythonProcess.flag_output_const
     process.PythonProcess.flag_input_mutable
     process.PythonProcess.flag_input_nodep
