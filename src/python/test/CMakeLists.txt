@@ -1,5 +1,7 @@
 project(vistk_python_test)
 
+set(no_install_plugin TRUE)
+
 add_vistk_python_library(test_image
   vistk/test
   test_image.cxx)
