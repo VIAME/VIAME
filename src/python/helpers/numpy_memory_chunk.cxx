@@ -66,7 +66,13 @@ void
 numpy_memory_chunk
 ::set_size(unsigned long n, vil_pixel_format format)
 {
-  size_ = 0;
+  if (m_arr)
+  {
+    size_ = 0;
+
+    Py_DECREF(m_arr);
+    m_arr = NULL;
+  }
 
   vil_memory_chunk::set_size(n, format);
 }
