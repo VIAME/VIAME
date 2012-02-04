@@ -28,10 +28,18 @@ numpy_memory_chunk
 
   vil_memory_chunk::set_size(0, vil_format);
 
-  npy_intp const* const dims = PyArray_DIMS(arr);
-  int const sz = PyArray_ITEMSIZE(arr);
+  /// \fixme Why does PyArray_NBYTES fail?
 
-  size_ = dims[0] * dims[1] * dims[3] * sz;
+  size_t const pxsz = PyArray_ITEMSIZE(m_arr);
+  size_t const nd = PyArray_NDIM(m_arr);
+  npy_intp* const dimensions = PyArray_DIMS(m_arr);
+
+  size_ = pxsz;
+
+  for (size_t i = 0; i < nd; ++i)
+  {
+    size_ *= dimensions[i];
+  }
 }
 
 numpy_memory_chunk

@@ -96,9 +96,9 @@ class vil_image_converter
       dims[1] = img.nj();
       dims[2] = img.nplanes();
 
-      strides[0] = img.istep();
-      strides[1] = img.jstep();
-      strides[2] = img.planestep();
+      strides[0] = img.istep() * sizeof(pixel_t);
+      strides[1] = img.jstep() * sizeof(pixel_t);
+      strides[2] = img.planestep() * sizeof(pixel_t);
 
       int flags = 0;
 
@@ -137,7 +137,7 @@ class vil_image_converter
         Py_INCREF(obj);
       }
 
-      PyObject* const arr = PyArray_New(&PyArray_Type, nd, dims, arr_type, strides, reinterpret_cast<void*>(mem), 0, flags, obj);
+      PyObject* const arr = PyArray_New(&PyArray_Type, nd, dims, arr_type, strides, reinterpret_cast<void*>(mem), sizeof(pixel_t), flags, obj);
 
       PyDimMem_FREE(dims);
       PyDimMem_FREE(strides);
@@ -153,12 +153,13 @@ class vil_image_converter
       npy_intp const* const dims = PyArray_DIMS(arr);
       npy_intp const* const strides = PyArray_STRIDES(arr);
       void* const mem = PyArray_DATA(arr);
+      size_t const pxsz = PyArray_ITEMSIZE(arr);
 
       vil_memory_chunk_sptr chunk = new numpy_memory_chunk(arr);
 
       new (storage) image_t(chunk, reinterpret_cast<pixel_t*>(mem),
                             dims[0], dims[1], dims[2],
-                            strides[0], strides[1], strides[2]);
+                            strides[0] / pxsz, strides[1] / pxsz, strides[2] / pxsz);
       data->convertible = storage;
     }
 };
