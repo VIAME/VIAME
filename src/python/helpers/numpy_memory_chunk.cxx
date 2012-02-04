@@ -26,7 +26,7 @@ numpy_memory_chunk
   int const numpy_format = PyArray_TYPE(m_arr);
   vil_pixel_format vil_format = convert_format(numpy_format);
 
-  set_size(0, vil_format);
+  vil_memory_chunk::set_size(0, vil_format);
 
   npy_intp const* const dims = PyArray_DIMS(arr);
   int const sz = PyArray_ITEMSIZE(arr);
