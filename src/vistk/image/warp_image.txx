@@ -26,8 +26,6 @@
  * \brief Implementation of the function to warp images.
  */
 
-static bool is_identity(vistk::homography_base::transform_t const& transform);
-
 namespace vistk
 {
 
@@ -237,8 +235,6 @@ warp_image<PixType>::priv
   mask.fill(true);
 }
 
-}
-
 template <typename T>
 static bool fuzzy_cmp(T const& a, T const& b, T const epsilon = std::numeric_limits<T>::epsilon());
 
@@ -261,4 +257,6 @@ fuzzy_cmp(T const& a, T const& b, T const epsilon)
 {
   T const diff = std::fabs(a - b);
   return (diff <= epsilon);
+}
+
 }
