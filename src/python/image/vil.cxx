@@ -139,6 +139,9 @@ class vil_image_converter
 
       PyObject* const arr = PyArray_New(&PyArray_Type, nd, dims, arr_type, strides, reinterpret_cast<void*>(mem), 0, flags, obj);
 
+      PyDimMem_FREE(dims);
+      PyDimMem_FREE(strides);
+
       return arr;
     }
 
