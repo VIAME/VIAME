@@ -42,31 +42,23 @@ class image_helper
     };
 };
 
-template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_rgb>::type = "image/vil/byte/rgb";
-template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_bgr>::type = "image/vil/byte/bgr";
-template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_rgba>::type = "image/vil/byte/rgb";
-template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_bgra>::type = "image/vil/byte/bgra";
-template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_yuv>::type = "image/vil/byte/yuv";
-template <> template <>
-process::port_type_t const image_helper<uint8_t>::port_types<pix_gray>::type = "image/vil/byte/grayscale";
+#define PORT_TYPE(tpe, tname, fmt) \
+  template <> template <>          \
+  process::port_type_t const image_helper<tpe>::port_types<pix_##fmt>::type = "image/vil/" tname "/" #fmt
 
-template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_rgb>::type = "image/vil/float/rgb";
-template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_bgr>::type = "image/vil/float/bgr";
-template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_rgba>::type = "image/vil/float/rgba";
-template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_bgra>::type = "image/vil/float/bgra";
-template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_yuv>::type = "image/vil/float/yuv";
-template <> template <>
-process::port_type_t const image_helper<float>::port_types<pix_gray>::type = "image/vil/float/grayscale";
+#define FORMAT_TYPES(tpe, tname) \
+  PORT_TYPE(tpe, tname, rgb);    \
+  PORT_TYPE(tpe, tname, bgr);    \
+  PORT_TYPE(tpe, tname, rgba);   \
+  PORT_TYPE(tpe, tname, bgra);   \
+  PORT_TYPE(tpe, tname, yuv);    \
+  PORT_TYPE(tpe, tname, gray)
+
+FORMAT_TYPES(uint8_t, "byte");
+FORMAT_TYPES(float, "float");
+
+#undef FORMAT_TYPES
+#undef PORT_TYPE
 
 template <typename PixType> template <pixel_format_t Format>
 process::port_type_t const image_helper<PixType>::port_types<Format>::type = process::type_none;

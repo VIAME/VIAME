@@ -6,13 +6,13 @@
 
 #include "warp.h"
 
+#include "macros.h"
+
 #include <vistk/image/warp_image.h>
 
 #include <vistk/utilities/homography.h>
 
 #include <vistk/pipeline/datum.h>
-
-#include <boost/cstdint.hpp>
 
 #include <vil/vil_image_view.h>
 
@@ -31,14 +31,7 @@ static datum_t warp(datum_t const& dat, datum_t const& trans_dat);
 warp_func_t
 warp_for_pixtype(pixtype_t const& pixtype)
 {
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    return &warp<uint8_t>;
-  }
-  else if (pixtype == pixtypes::pixtype_float())
-  {
-    return &warp<float>;
-  }
+  SPECIFY_FUNCTION(warp)
 
   return warp_func_t();
 }

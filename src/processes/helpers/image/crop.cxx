@@ -6,9 +6,9 @@
 
 #include "crop.h"
 
-#include <vistk/pipeline/datum.h>
+#include "macros.h"
 
-#include <boost/cstdint.hpp>
+#include <vistk/pipeline/datum.h>
 
 #include <vil/vil_crop.h>
 #include <vil/vil_image_view.h>
@@ -28,14 +28,7 @@ static datum_t crop(datum_t const& dat, size_t x_offset, size_t y_offset, size_t
 crop_func_t
 crop_for_pixtype(pixtype_t const& pixtype)
 {
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    return &crop<uint8_t>;
-  }
-  else if (pixtype == pixtypes::pixtype_float())
-  {
-    return &crop<float>;
-  }
+  SPECIFY_FUNCTION(crop)
 
   return crop_func_t();
 }

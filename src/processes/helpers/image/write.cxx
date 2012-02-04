@@ -6,9 +6,9 @@
 
 #include "write.h"
 
-#include <vistk/pipeline/datum.h>
+#include "macros.h"
 
-#include <boost/cstdint.hpp>
+#include <vistk/pipeline/datum.h>
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_save.h>
@@ -30,14 +30,7 @@ static void write(path_t const& path, datum_t const& dat);
 write_func_t
 write_for_pixtype(pixtype_t const& pixtype)
 {
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    return &write<uint8_t>;
-  }
-  else if (pixtype == pixtypes::pixtype_float())
-  {
-    return &write<float>;
-  }
+  SPECIFY_FUNCTION(write)
 
   return NULL;
 }

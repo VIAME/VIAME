@@ -6,9 +6,9 @@
 
 #include "grayscale.h"
 
-#include <vistk/pipeline/datum.h>
+#include "macros.h"
 
-#include <boost/cstdint.hpp>
+#include <vistk/pipeline/datum.h>
 
 #include <vil/vil_convert.h>
 #include <vil/vil_image_view.h>
@@ -34,14 +34,7 @@ gray_for_pixtype(pixtype_t const& pixtype, pixfmt_t const& pixfmt)
     return gray_func_t();
   }
 
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    return &convert_to_gray<uint8_t>;
-  }
-  else if (pixtype == pixtypes::pixtype_float())
-  {
-    return &convert_to_gray<float>;
-  }
+  SPECIFY_FUNCTION(convert_to_gray)
 
   return gray_func_t();
 }

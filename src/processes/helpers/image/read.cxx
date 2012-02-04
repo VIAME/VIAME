@@ -6,9 +6,9 @@
 
 #include "read.h"
 
-#include <vistk/pipeline/datum.h>
+#include "macros.h"
 
-#include <boost/cstdint.hpp>
+#include <vistk/pipeline/datum.h>
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_load.h>
@@ -30,14 +30,7 @@ static datum_t read(path_t const& path);
 read_func_t
 read_for_pixtype(pixtype_t const& pixtype)
 {
-  if (pixtype == pixtypes::pixtype_byte())
-  {
-    return &read<uint8_t>;
-  }
-  else if (pixtype == pixtypes::pixtype_float())
-  {
-    return &read<float>;
-  }
+  SPECIFY_FUNCTION(read)
 
   return NULL;
 }
