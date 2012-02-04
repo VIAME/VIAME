@@ -91,10 +91,12 @@ ${import_lines}
 ")
   endforeach (config)
 
-  install(
-    FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py"
-    DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
-    COMPONENT   runtime)
+  if (NOT ${no_install_plugin})
+    install(
+      FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py"
+      DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
+      COMPONENT   runtime)
+  endif (NOT ${no_install_plugin})
 
   add_dependencies(python
     python-init-${name})
