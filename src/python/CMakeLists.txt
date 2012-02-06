@@ -104,7 +104,33 @@ ${import_lines}
     python-init-${name})
 endfunction (make_python_init_file modpath)
 
+function (add_python_module path modpath module)
+  string(REPLACE "/" "." safe_modpath ${modpath})
+
+  configure_file(
+    "${path}"
+    "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py")
+
+  foreach (config ${CMAKE_CONFIGURATION_TYPES})
+    if (WIN32)
+      set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
+    endif (WIN32)
+
+    string(TOUPPER "${config}" upper_config)
+
+    configure_file(
+      "${path}"
+      "${output_path}/${modpath}/${module}.py")
+  endforeach (config)
+
+  install(
+    FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
+    DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
+    COMPONENT   runtime)
+endfunction (add_python_module path modpath module)
+
 add_subdirectory(image)
+add_subdirectory(modules)
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)
 

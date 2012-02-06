@@ -9,3 +9,12 @@ add_vistk_plugin(modules_python
 target_link_libraries(modules_python
   vistk_pipeline
   ${Boost_PYTHON_LIBRARY})
+
+add_python_module(modules.py
+  vistk/modules
+  modules)
+
+make_python_init_file(vistk/modules)
+#  modules)
+make_python_init_file(vistk/processes)
+make_python_init_file(vistk/schedules)
