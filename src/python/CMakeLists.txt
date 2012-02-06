@@ -13,7 +13,9 @@ add_subdirectory(helpers)
 add_custom_target(python)
 
 function (add_vistk_python_library name modpath)
-  add_library(python-${name}
+  string(REPLACE "/" "." safe_modpath ${modpath})
+
+  add_library(python-${safe_modpath}-${name}
     ${ARGN})
 
   if (WIN32)
@@ -22,14 +24,14 @@ function (add_vistk_python_library name modpath)
     set(module_output LIBRARY_OUTPUT_DIRECTORY)
   endif (WIN32)
 
-  set_target_properties(python-${name}
+  set_target_properties(python-${safe_modpath}-${name}
     PROPERTIES
       OUTPUT_NAME      ${name}
       ${module_output} "${PYTHON_OUTPUT_PATH}/${modpath}"
       PREFIX           "")
 
   if (WIN32)
-    set_target_properties(python-${name}
+    set_target_properties(python-${safe_modpath}-${name}
       PROPERTIES
         SUFFIX ".pyd")
   endif (WIN32)
@@ -41,18 +43,18 @@ function (add_vistk_python_library name modpath)
 
     string(TOUPPER "${config}" upper_config)
 
-    set_target_properties(python-${name}
+    set_target_properties(python-${safe_modpath}-${name}
       PROPERTIES
         "${module_output}_${upper_config}" "${output_path}/${modpath}")
   endforeach (config)
 
   install(
-    TARGETS     python-${name}
+    TARGETS     python-${safe_modpath}-${name}
     DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
     COMPONENT   runtime)
 
   add_dependencies(python
-    python-${name})
+    python-${safe_modpath}-${name})
 endfunction (add_vistk_python_library name modpath)
 
 function (make_python_init_file modpath)

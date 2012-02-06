@@ -8,7 +8,7 @@ if (NUMPY_FOUND)
   add_vistk_python_library(vil
     vistk/image
     vil.cxx)
-  target_link_libraries(python-vil
+  target_link_libraries(python-vistk.image-vil
     vil
     numpy_memory_chunk
     vistk_python_any_conversion

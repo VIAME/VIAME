@@ -3,7 +3,7 @@ project(vistk_python_pipeline_util)
 add_vistk_python_library(bake
   vistk/pipeline_util
   bake.cxx)
-target_link_libraries(python-bake
+target_link_libraries(python-vistk.pipeline_util-bake
   vistk_pipeline
   vistk_pipeline_util
   pystream
@@ -15,7 +15,7 @@ target_link_libraries(python-bake
 add_vistk_python_library(export_
   vistk/pipeline_util
   export.cxx)
-target_link_libraries(python-export_
+target_link_libraries(python-vistk.pipeline_util-export_
   vistk_pipeline
   vistk_pipeline_util
   pystream
@@ -25,7 +25,7 @@ target_link_libraries(python-export_
 add_vistk_python_library(load
   vistk/pipeline_util
   load.cxx)
-target_link_libraries(python-load
+target_link_libraries(python-vistk.pipeline_util-load
   vistk_pipeline
   vistk_pipeline_util
   pystream
