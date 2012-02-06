@@ -59,7 +59,7 @@ def load_python_modules():
                 modules.append(modname)
 
     for module in modules:
-        #try:
+        try:
             load_python_module(module)
-        #except BaseException as e:
-            #log("Failed to load '%s': %s" (module, str(e)))
+        except BaseException as e:
+            log("Failed to load '%s': %s" (module, str(e)))
