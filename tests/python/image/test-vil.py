@@ -158,7 +158,7 @@ def test_datum():
 
     width = 800
     height = 600
-    planes = 3
+    planes = 1
 
     shape = (width, height, planes)
 
@@ -200,7 +200,7 @@ def test_datum():
 
         c['input'] = lname
         c['pixtype'] = pt
-        c['pixfmt'] = 'rgb'
+        c['pixfmt'] = 'grayscale'
         c['verify'] = 'true'
         c[process.PythonProcess.config_name] = read_name
 
