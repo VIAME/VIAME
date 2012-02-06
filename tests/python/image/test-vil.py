@@ -113,21 +113,25 @@ def create_verify_process(c, shape, dtype):
 
             self.input_port = 'image'
 
-            info = process.PortInfo(self.type_any, process.PortFlags(), 'image port')
+            required = process.PortFlags()
+            required.add(self.flag_required)
+
+            info = process.PortInfo(self.type_any, required, 'image port')
 
             self.declare_input_port(self.input_port, info)
 
         def _step(self):
             from vistk.pipeline import datum
             from vistk.pipeline import edge
+            import numpy as np
 
             dat = self.grab_datum_from_port(self.input_port)
             img = dat.get_datum()
 
-            if img:
+            if isinstance(img, np.ndarray):
                 self.got_image = True
                 if dtype == img.dtype:
-                    self.same_image_size = True
+                    self.same_image_type = True
                 if shape == img.shape:
                     self.same_image_size = True
 
