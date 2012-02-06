@@ -173,6 +173,7 @@ image_reader_process
       }
     }
 
+    d->fin.clear();
     d->fin.seekg(0, std::ios::beg);
   }
 
