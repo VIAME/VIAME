@@ -8,7 +8,8 @@ add_vistk_plugin(modules_python
   ${modules_python_srcs})
 target_link_libraries(modules_python
   vistk_pipeline
-  ${Boost_PYTHON_LIBRARY})
+  ${Boost_PYTHON_LIBRARY}
+  ${PYTHON_LIBRARIES})
 
 add_python_module(modules.py
   vistk/modules

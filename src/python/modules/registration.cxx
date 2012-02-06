@@ -6,33 +6,18 @@
 
 #include "registration.h"
 
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/schedule_registry.h>
 #include <vistk/pipeline/utils.h>
 
-#include <boost/algorithm/string/split.hpp>
-#include <boost/foreach.hpp>
-
-#include <sstream>
+#include <boost/python/import.hpp>
 
 #include <Python.h>
 
+using namespace boost::python;
 using namespace vistk;
 
 static envvar_name_t const python_suppress_envvar = envvar_name_t("VISTK_NO_PYTHON_MODULES");
 
-static envvar_name_t const python_process_modules_envvar = envvar_name_t("VISTK_PYTHON_SCHEDULE_MODULES");
-static envvar_name_t const python_schedule_modules_envvar = envvar_name_t("VISTK_PYTHON_PROCESS_MODULES");
-
-static std::string const standard_python_process_module = "vistk.processes";
-static std::string const standard_python_schedule_module = "vistk.schedules";
-
-static std::string const processes_function = "register_processes";
-static std::string const schedules_function = "register_schedules";
-
 static bool is_suppressed();
-static void load_from_module(std::string const& module, std::string const& function);
-static bool is_separator(char ch);
 
 void
 register_processes()
@@ -42,93 +27,18 @@ register_processes()
     return;
   }
 
-  std::vector<std::string> modules;
-
-  modules.push_back(standard_python_process_module);
-
-  // Load extra modules given via the environment.
-  {
-    envvar_value_t const python_modules = get_envvar(python_process_modules_envvar);
-
-    if (python_modules)
-    {
-      std::vector<std::string> modules_tmp;
-
-      boost::split(modules_tmp, python_modules, is_separator, boost::token_compress_on);
-
-      modules.insert(modules.end(), modules.begin(), modules_tmp.end());
-    }
-
-    free_envvar(python_modules);
-  }
-
   Py_Initialize();
 
-  static process_registry::module_t const base_module_name = process_registry::module_t("python_process_module:");
-
-  process_registry_t const registry = process_registry::self();
-
-  BOOST_FOREACH (std::string const& module, modules)
+  try
   {
-    process_registry::module_t const module_name = base_module_name + process_registry::module_t(module);
+    object modules = import("vistk.modules.modules");
+    object loader = modules.attr("load_python_modules");
 
-    if (registry->is_module_loaded(module_name))
-    {
-      continue;
-    }
-
-    load_from_module(module, processes_function);
-
-    registry->mark_module_as_loaded(module_name);
+    loader();
   }
-}
-
-void
-register_schedules()
-{
-  if (is_suppressed())
+  catch (error_already_set& /*e*/)
   {
-    return;
-  }
-
-  std::vector<std::string> modules;
-
-  modules.push_back(standard_python_schedule_module);
-
-  // Load extra modules given via the environment.
-  {
-    envvar_value_t const python_modules = get_envvar(python_schedule_modules_envvar);
-
-    if (python_modules)
-    {
-      std::vector<std::string> modules_tmp;
-
-      boost::split(modules_tmp, python_modules, is_separator, boost::token_compress_on);
-
-      modules.insert(modules.end(), modules.begin(), modules_tmp.end());
-    }
-
-    free_envvar(python_modules);
-  }
-
-  Py_Initialize();
-
-  static schedule_registry::module_t const base_module_name = schedule_registry::module_t("python_schedule_module:");
-
-  schedule_registry_t const registry = schedule_registry::self();
-
-  BOOST_FOREACH (std::string const& module, modules)
-  {
-    schedule_registry::module_t const module_name = base_module_name + schedule_registry::module_t(module);
-
-    if (registry->is_module_loaded(module_name))
-    {
-      continue;
-    }
-
-    load_from_module(module, schedules_function);
-
-    registry->mark_module_as_loaded(module_name);
+    /// \todo Implement.
   }
 }
 
@@ -147,29 +57,4 @@ is_suppressed()
   free_envvar(python_suppress);
 
   return suppress_python_modules;
-}
-
-void
-load_from_module(std::string const& module, std::string const& function)
-{
-  std::stringstream sstr;
-
-  sstr << "import " << module << std::endl;
-  sstr << "if hasattr(" << module << ", \'" << function << "\'):" << std::endl;
-  sstr << "    if callable(" << module << "." << function << "):" << std::endl;
-  sstr << "        " << module << "." << function << "()" << std::endl;
-
-  PyRun_SimpleString(sstr.str().c_str());
-}
-
-bool is_separator(char ch)
-{
-  char const separator =
-#if defined(_WIN32) || defined(_WIN64)
-    ';';
-#else
-    ':';
-#endif
-
-  return (ch == separator);
 }
