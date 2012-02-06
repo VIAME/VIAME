@@ -100,8 +100,55 @@ def test_numpy_to_vil():
             log("Error: Wrong size calculated: got: '%d' expected: '%d'" % (sz, size))
 
 
+def create_verify_process(c, shape, dtype):
+    from vistk.pipeline import process
+
+    class VerifyProcess(process.PythonProcess):
+        def __init__(self, conf):
+            process.PythonProcess.__init__(self, conf)
+
+            self.got_image = False
+            self.same_image_type = False
+            self.same_image_size = False
+
+            self.input_port = 'image'
+
+            info = process.PortInfo(self.type_any, process.PortFlags(), 'image port')
+
+            self.declare_input_port(self.input_port, info)
+
+        def _step(self):
+            from vistk.pipeline import datum
+            from vistk.pipeline import edge
+
+            dat = self.grab_datum_from_port(self.input_port)
+            img = dat.get_datum()
+
+            if img:
+                self.got_image = True
+                if dtype == img.dtype:
+                    self.same_image_size = True
+                if shape == img.shape:
+                    self.same_image_size = True
+
+            self._base_step()
+
+        def check(self):
+            if not self.got_image:
+                log("Error: Could not grab an image from the datum")
+            if not self.same_image_type:
+                log("Error: Input image was not of the expected type")
+            if not self.same_image_size:
+                log("Error: Input image was not of the expected size")
+
+    return VerifyProcess(c)
+
+
 def test_datum():
     from vistk.image import vil
+    from vistk.pipeline import modules
+    from vistk.pipeline import process_registry
+    from vistk.pipeline import schedule_registry
     from vistk.test import test_image
     import numpy as np
 
@@ -113,16 +160,77 @@ def test_datum():
 
     types = [ (test_image.save_image_bool, 'bool', np.bool)
             , (test_image.save_image_uint8_t, 'byte', np.uint8)
-            # \todo How to save these?
             , (test_image.save_image_float, 'float', np.float32)
             , (test_image.save_image_double, 'double', np.double)
             ]
 
+    modules.load_known_modules()
+    reg = process_registry.ProcessRegistry.self()
+    sreg = schedule_registry.ScheduleRegistry.self()
+
+    sched_type = 'sync'
+
     for f, pt, t in types:
+        from vistk.pipeline import config
+        from vistk.pipeline import pipeline
+        from vistk.pipeline import process
+
         a = np.zeros(shape, dtype=t)
 
-        if not f(a, '%s.tiff' % pt):
-            log("Error: Failed to save %s image" % pt)
+        lname = 'test-python-vil-datum-%s.txt' % pt
+        fname = 'test-python-vil-datum-%s.tiff' % pt
+
+        if not f(a, fname):
+            log("Error: Failed to save '%s' image" % pt)
+            continue
+
+        with open(lname, 'w+') as f:
+            f.write('%s\n' % fname)
+
+        c = config.empty_config()
+
+        p = pipeline.Pipeline(c)
+
+        read_name = 'read'
+        verify_name = 'verify'
+
+        c['input'] = lname
+        c['pixtype'] = pt
+        c['pixfmt'] = 'rgb'
+        c['verify'] = 'true'
+        c[process.PythonProcess.config_name] = read_name
+
+        proc_type = 'image_reader'
+
+        r = reg.create_process(proc_type, c)
+
+        c[process.PythonProcess.config_name] = verify_name
+
+        v = create_verify_process(c, shape, t)
+
+        p.add_process(r)
+        p.add_process(v)
+
+        port = 'image'
+
+        p.connect(read_name, port,
+                  verify_name, port)
+
+        try:
+            p.setup_pipeline()
+        except BaseException as e:
+            log("Error: Could not initialize pipeline: '%s'" % str(e))
+            continue
+
+        s = sreg.create_schedule(sched_type, c, p)
+
+        try:
+            s.start()
+            s.wait()
+        except BaseException as e:
+            log("Error: Could not execute pipeline: '%s'" % str(e))
+
+        v.check()
 
 
 def test_memory():
