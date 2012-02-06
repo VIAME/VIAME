@@ -24,6 +24,8 @@ template <typename T>
 static size_t take_image(vil_image_view<T> const& img);
 template <typename T>
 static bool save_image(vil_image_view<T> const& img, std::string const& path);
+template <typename T>
+static vil_image_view<T> pass_image(vil_image_view<T> const& img);
 
 BOOST_PYTHON_MODULE(test_image)
 {
@@ -39,6 +41,9 @@ BOOST_PYTHON_MODULE(test_image)
     def("save_image_" #type, &save_image<type>             \
       , (arg("image"), arg("path"))                        \
       , "Take a " #type " image and write it to a file."); \
+    def("pass_image_" #type, &pass_image<type>             \
+      , (arg("image"))                                     \
+      , "Take a " #type " image and return it.");          \
   } while (false)
 
   DEFINE_FUNCTIONS(bool);
@@ -72,4 +77,11 @@ bool
 save_image(vil_image_view<T> const& img, std::string const& path)
 {
   return vil_save(img, path.c_str());
+}
+
+template <typename T>
+vil_image_view<T>
+pass_image(vil_image_view<T> const& img)
+{
+  return img;
 }
