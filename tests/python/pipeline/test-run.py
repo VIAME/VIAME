@@ -66,6 +66,8 @@ def make_source(conf):
 
             self.stamp = self.heartbeat_stamp()
 
+            self._base_init()
+
         def _step(self):
             from vistk.pipeline import datum
             from vistk.pipeline import edge
