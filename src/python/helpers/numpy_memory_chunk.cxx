@@ -26,7 +26,7 @@ numpy_memory_chunk
   int const numpy_format = PyArray_TYPE(m_arr);
   vil_pixel_format vil_format = convert_format(numpy_format);
 
-  vil_memory_chunk::set_size(0, vil_format);
+  pixel_format_ = vil_format;
 
   /// \fixme Why does PyArray_NBYTES fail?
 
