@@ -125,6 +125,40 @@ def test_datum():
             log("Error: Failed to save %s image" % pt)
 
 
+def test_memory():
+    from vistk.image import vil
+    from vistk.test import test_image
+    import numpy as np
+
+    width = 800
+    height = 600
+    planes = 3
+
+    shape = (width, height, planes)
+
+    types = [ (test_image.make_image_bool, test_image.pass_image_bool, np.bool)
+            , (test_image.make_image_uint8_t, test_image.pass_image_uint8_t, np.uint8)
+            , (test_image.make_image_float, test_image.pass_image_float, np.float32)
+            , (test_image.make_image_double, test_image.pass_image_double, np.double)
+            ]
+
+    for _, f, t in types:
+        a = np.zeros(shape, dtype=t)
+
+        x = f(a)
+        y = f(x)
+        z = f(y)
+        a = f(z)
+
+    for m, f, t in types:
+        a = m(width, height, planes)
+
+        x = f(a)
+        y = f(x)
+        z = f(y)
+        a = f(z)
+
+
 def main(testname):
     if testname == 'import':
         test_import()
@@ -134,6 +168,8 @@ def main(testname):
         test_numpy_to_vil()
     elif testname == 'datum':
         test_datum()
+    elif testname == 'memory':
+        test_memory()
     else:
         log("Error: No such test '%s'" % testname)
 
