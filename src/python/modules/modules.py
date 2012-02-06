@@ -62,4 +62,4 @@ def load_python_modules():
         try:
             load_python_module(module)
         except BaseException as e:
-            log("Failed to load '%s': %s" (module, str(e)))
+            log("Failed to load '%s': %s" % (module, str(e)))
