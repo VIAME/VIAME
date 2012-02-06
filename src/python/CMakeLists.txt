@@ -123,10 +123,12 @@ function (add_python_module path modpath module)
       "${output_path}/${modpath}/${module}.py")
   endforeach (config)
 
-  install(
-    FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
-    DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
-    COMPONENT   runtime)
+  if (NOT ${no_install_plugin})
+    install(
+      FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
+      DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
+      COMPONENT   runtime)
+  endif (NOT ${no_install_plugin})
 endfunction (add_python_module path modpath module)
 
 add_subdirectory(image)
