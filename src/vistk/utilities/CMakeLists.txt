@@ -50,3 +50,16 @@ install(
   EXPORT      vistk_exports
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
+
+if (UNIX)
+  set(vistk_utilities_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-utilities.pc")
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/vistk-utilities.pc.in"
+    "${vistk_utilities_pkgconfig_file}"
+    @ONLY)
+
+  install(
+    FILES       "${vistk_utilities_pkgconfig_file}"
+    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
+    COMPONENT   development)
+endif (UNIX)

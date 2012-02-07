@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+includedir=@INCLUDE_INSTALL_PATH@
+libdir=@LIBRARY_INSTALL_PATH@
+
+Name: vistk-utilities
+Description: The vistk-utilities library
+Version: @vistk_version@
+Requires: vistk-utilities = @vistk_version@
+Libs: -lvistk_utilities
