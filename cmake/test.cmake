@@ -68,6 +68,8 @@ if (WIN32)
     ${TEST_WORKING_DIRECTORY}/$<CONFIGURATION>)
 endif (WIN32)
 
+set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
+
 function (vistk_declare_test testname)
   if (NOT WIN32)
     add_custom_target(tests-${testname})
