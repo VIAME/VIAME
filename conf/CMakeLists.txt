@@ -29,9 +29,9 @@ install(
   FILES       "${vistk_config_install_file}"
               "${vistk_macros_file}"
   DESTINATION "${LIBRARY_INSTALL_PATH}/cmake"
-  COMPONENT   runtime)
+  COMPONENT   development)
 install(
   EXPORT      vistk_exports
   DESTINATION "${LIBRARY_INSTALL_PATH}/cmake"
   FILE        vistk-config-targets.cmake
-  COMPONENT   runtime)
+  COMPONENT   development)

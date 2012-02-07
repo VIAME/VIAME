@@ -31,7 +31,7 @@ endif (VISTK_ENABLE_DOCUMENTATION)
 install(
   FILES       ${image_headers}
   DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/image"
-  COMPONENT   runtime)
+  COMPONENT   development)
 install(
   TARGETS     vistk_image
   EXPORT      vistk_exports

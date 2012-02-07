@@ -44,7 +44,7 @@ endif (VISTK_ENABLE_DOCUMENTATION)
 install(
   FILES       ${utilities_headers}
   DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/utilities"
-  COMPONENT   runtime)
+  COMPONENT   development)
 install(
   TARGETS     vistk_utilities
   EXPORT      vistk_exports

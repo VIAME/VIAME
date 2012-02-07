@@ -26,7 +26,7 @@ set_target_properties(vistk_python_any_conversion
 install(
   FILES       ${python_any_conversion_headers}
   DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/python/any_conversion"
-  COMPONENT   runtime)
+  COMPONENT   development)
 install(
   TARGETS     vistk_python_any_conversion
   EXPORT      vistk_exports

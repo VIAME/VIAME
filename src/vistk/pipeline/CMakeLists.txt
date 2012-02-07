@@ -116,7 +116,7 @@ endif (VISTK_ENABLE_DOCUMENTATION)
 install(
   FILES       ${pipeline_headers}
   DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/pipeline"
-  COMPONENT   runtime)
+  COMPONENT   development)
 install(
   TARGETS     vistk_pipeline
   EXPORT      vistk_exports

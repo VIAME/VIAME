@@ -83,7 +83,7 @@ endif (VISTK_ENABLE_DOCUMENTATION)
 install(
   FILES       ${pipeline_util_headers}
   DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/pipeline_util"
-  COMPONENT   runtime)
+  COMPONENT   development)
 install(
   TARGETS     vistk_pipeline_util
   EXPORT      vistk_exports
