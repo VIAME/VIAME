@@ -11,7 +11,8 @@ endif (VISTK_ENABLE_TESTING)
 set(vistk_config_file "${CMAKE_BINARY_DIR}/vistk-config.cmake")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config.cmake.in"
-  "${vistk_config_file}")
+  "${vistk_config_file}"
+  @ONLY)
 set(vistk_config_install_file "${CMAKE_BINARY_DIR}/vistk-config-install.cmake")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config-install.cmake.in"
