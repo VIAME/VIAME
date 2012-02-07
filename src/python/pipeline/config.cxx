@@ -91,6 +91,7 @@ BOOST_PYTHON_MODULE(config)
     .def_readonly("global_value", &vistk::config::global_value
       , "A special key which is automatically inherited on subblock requests.")
     .def("__len__", &config_len)
+    .def("__contains__", &vistk::config::has_value)
     .def("__getitem__", &config_getitem)
     .def("__setitem__", &config_setitem)
     .def("__delitem__", &config_delitem)
