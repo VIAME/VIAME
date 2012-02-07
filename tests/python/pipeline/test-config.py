@@ -324,10 +324,25 @@ def test_dict():
     key = 'key'
     value = 'oldvalue'
 
+    if key in c:
+        log("Error: '%s' is in an empty config" % key)
+
+    if c:
+        log("Error: An empty config is not falsy")
+
     c[key] = value
 
     if not c[key] == value:
         log("Error: Value was not set")
+
+    if key not in c:
+        log("Error: '%s' is not in config after insertion" % key)
+
+    if not len(c) == 1:
+        log("Error: The len() operator is incorrect")
+
+    if not c:
+        log("Error: A non-empty config is not truthy")
 
     value = 'newvalue'
     origvalue = 'newvalue'
