@@ -26,8 +26,8 @@ configure_file(
 
 # Configure the CMake EXPORT file during installation
 install(
-  FILES       ${vistk_config_install_file}
-              ${vistk_macros_file}
+  FILES       "${vistk_config_install_file}"
+              "${vistk_macros_file}"
   DESTINATION "${LIBRARY_INSTALL_PATH}/cmake"
   COMPONENT   runtime)
 install(
