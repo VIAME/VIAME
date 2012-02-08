@@ -5,7 +5,13 @@ find_package(Boost ${vistk_boost_version} REQUIRED
 find_package(PythonLibs REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_PATH})
 
+find_package(NumPy)
+
 add_subdirectory(any_conversion)
+
+if (NUMPY_FOUND)
+  add_subdirectory(numpy)
+endif (NUMPY_FOUND)
 
 if (VISTK_ENABLE_DOCUMENTATION)
   create_doxygen(
