@@ -154,8 +154,29 @@ class vil_image_converter
       npy_intp const* const strides = PyArray_STRIDES(arr);
       void* const mem = PyArray_DATA(arr);
       size_t const pxsz = PyArray_ITEMSIZE(arr);
+      int const flags = PyArray_FLAGS(arr);
 
-      vil_memory_chunk_sptr chunk = new numpy_memory_chunk(arr);
+      vil_memory_chunk_sptr chunk;
+
+      if (~flags & NPY_UPDATEIFCOPY)
+      {
+        PyObject* const memobj = PyArray_BASE(arr);
+
+        if (memobj)
+        {
+          extract<vil_memory_chunk&> ex(memobj);
+
+          if (ex.check())
+          {
+            chunk = &ex();
+          }
+        }
+      }
+
+      if (!chunk)
+      {
+        chunk = new numpy_memory_chunk(arr);
+      }
 
       new (storage) image_t(chunk, reinterpret_cast<pixel_t*>(mem),
                             dims[0], dims[1], dims[2],
