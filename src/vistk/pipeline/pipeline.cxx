@@ -75,6 +75,8 @@ class pipeline::priv
     process::port_addrs_t data_dep_ports;
     connections_t untyped_connections;
 
+    bool setup;
+
     class propogation_exception
       : public pipeline_exception
     {
@@ -382,10 +384,17 @@ void
 pipeline
 ::setup_pipeline()
 {
+  if (d->setup)
+  {
+    /// \todo Throw an exception.
+  }
+
   d->check_for_processes();
   d->check_for_required_ports();
   d->initialize_processes();
   d->check_for_untyped_ports();
+
+  d->setup = true;
 }
 
 process::names_t
@@ -810,6 +819,7 @@ pipeline
 pipeline::priv
 ::priv(pipeline* pipe)
   : p(pipe)
+  , setup(false)
 {
 }
 
