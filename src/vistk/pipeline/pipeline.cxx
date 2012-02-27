@@ -144,14 +144,15 @@ pipeline
   if (up_group_it != d->groups.end())
   {
     priv::output_port_mapping_t const& mapping = up_group_it->second.second;
-
     priv::output_port_mapping_t::const_iterator const mapping_it = mapping.find(upstream_port);
 
     if (mapping_it != mapping.end())
     {
       process::port_addr_t const& mapped_port_addr = mapping_it->second.get<1>();
+      process::name_t const& proc_name = mapped_port_addr.first;
+      process::port_t const& port_name = mapped_port_addr.second;
 
-      connect(mapped_port_addr.first, mapped_port_addr.second,
+      connect(proc_name, port_name,
               downstream_process, downstream_port);
 
       d->used_output_mappings[upstream_process].push_back(upstream_port);
@@ -165,17 +166,19 @@ pipeline
   if (down_group_it != d->groups.end())
   {
     priv::input_port_mapping_t const& mapping = down_group_it->second.first;
-
     priv::input_port_mapping_t::const_iterator const mapping_it = mapping.find(downstream_port);
 
     if (mapping_it != mapping.end())
     {
       process::port_addrs_t const& mapped_port_addrs = mapping_it->second.get<1>();
 
-      BOOST_FOREACH (process::port_addr_t const& port_addr, mapped_port_addrs)
+      BOOST_FOREACH (process::port_addr_t const& mapped_port_addr, mapped_port_addrs)
       {
+        process::name_t const& proc_name = mapped_port_addr.first;
+        process::port_t const& port_name = mapped_port_addr.second;
+
         connect(upstream_process, upstream_port,
-                port_addr.first, port_addr.second);
+                proc_name, port_name);
       }
 
       d->used_input_mappings[downstream_process].push_back(downstream_port);
