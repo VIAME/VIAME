@@ -8,6 +8,7 @@
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
+#include <vistk/pipeline/process_registry_exception.h>
 
 #include <vistk/config.h>
 
@@ -80,7 +81,14 @@ int main(int argc, char* argv[])
   {
     if (!vm.count("detail"))
     {
-      std::cout << proc_type << ": " << reg->description(proc_type) << std::endl;
+      try
+      {
+        std::cout << proc_type << ": " << reg->description(proc_type) << std::endl;
+      }
+      catch (vistk::no_such_process_type_exception& e)
+      {
+        std::cerr << "Error: " << e.what() << std::endl;
+      }
 
       continue;
     }
@@ -88,7 +96,20 @@ int main(int argc, char* argv[])
     std::cout << "Process type: " << proc_type << std::endl;
     std::cout << "  Description: " << reg->description(proc_type) << std::endl;
 
-    vistk::process_t const proc = reg->create_process(proc_type, conf);
+    vistk::process_t proc_m;
+
+    try
+    {
+      proc_m = reg->create_process(proc_type, conf);
+    }
+    catch (vistk::no_such_process_type_exception& e)
+    {
+      std::cerr << "Error: " << e.what() << std::endl;
+
+      continue;
+    }
+
+    vistk::process_t const proc = proc_m;
 
     vistk::process::constraints_t const constraints = proc->constraints();
     std::string const constraints_str = boost::join(constraints, ", ");
