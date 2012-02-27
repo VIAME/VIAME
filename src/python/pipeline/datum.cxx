@@ -83,6 +83,9 @@ BOOST_PYTHON_MODULE(datum)
   vistk::python::register_type<bool>(3);
   vistk::python::register_type<double>(4);
 
+  // At worst, pass the object itself through.
+  vistk::python::register_type<object>(100);
+
   implicitly_convertible<boost::any, object>();
   implicitly_convertible<object, boost::any>();
 }
