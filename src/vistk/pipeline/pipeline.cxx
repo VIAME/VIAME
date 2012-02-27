@@ -386,7 +386,7 @@ pipeline
 {
   if (d->setup)
   {
-    /// \todo Throw an exception.
+    throw pipeline_duplicate_setup_exception();
   }
 
   d->check_for_processes();

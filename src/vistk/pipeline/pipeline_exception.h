@@ -335,6 +335,27 @@ class VISTK_PIPELINE_EXPORT pipeline_setup_exception
 };
 
 /**
+ * \class pipeline_duplicate_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a pipeline is setup more than once.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT pipeline_duplicate_setup_exception
+  : public pipeline_setup_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    pipeline_duplicate_setup_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~pipeline_duplicate_setup_exception() throw();
+};
+
+/**
  * \class no_processes_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref pipeline has no processes in it.

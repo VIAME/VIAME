@@ -99,6 +99,7 @@ static void test_setup_pipeline_missing_required_input_connection();
 static void test_setup_pipeline_missing_required_output_connection();
 static void test_setup_pipeline_missing_required_group_input_connection();
 static void test_setup_pipeline_missing_required_group_output_connection();
+static void test_setup_pipeline_duplicate();
 static void test_setup_pipeline();
 
 void
@@ -299,6 +300,10 @@ run_test(std::string const& test_name)
   else if (test_name == "setup_pipeline_missing_required_group_output_connection")
   {
     test_setup_pipeline_missing_required_group_output_connection();
+  }
+  else if (test_name == "setup_pipeline_duplicate")
+  {
+    test_setup_pipeline_duplicate();
   }
   else if (test_name == "setup_pipeline")
   {
@@ -1533,6 +1538,26 @@ test_setup_pipeline_missing_required_group_output_connection()
   EXPECT_EXCEPTION(vistk::missing_connection_exception,
                    pipeline->setup_pipeline(),
                    "missing required output port connection");
+}
+
+void
+test_setup_pipeline_duplicate()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  pipeline->setup_pipeline();
+
+  EXPECT_EXCEPTION(vistk::pipeline_duplicate_setup_exception,
+                   pipeline->setup_pipeline(),
+                   "setting up a pipeline multiple times");
 }
 
 void

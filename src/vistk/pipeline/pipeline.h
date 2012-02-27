@@ -219,6 +219,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \endpostconds
      *
+     * \throws pipeline_duplicate_setup_exception Thrown when called after a previous successful setup.
      * \throws no_processes_exception Thrown when there are no processes in the pipeline.
      * \throws missing_connection_exception Thrown when there is a required port that is not connected in the pipeline.
      * \throws orphaned_processes_exception Thrown when there is a subgraph which is not connected to another subgraph.

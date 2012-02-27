@@ -222,6 +222,22 @@ connection_flag_mismatch_exception
 {
 }
 
+pipeline_duplicate_setup_exception
+::pipeline_duplicate_setup_exception() throw()
+  : pipeline_setup_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "The pipeline was setup a second time.";
+
+  m_what = sstr.str();
+}
+
+pipeline_duplicate_setup_exception
+::~pipeline_duplicate_setup_exception() throw()
+{
+}
+
 no_processes_exception
 ::no_processes_exception() throw()
   : pipeline_setup_exception()
