@@ -40,7 +40,11 @@ class pipeline::priv
 
     void check_duplicate_name(process::name_t const& name);
     void propogate(process::name_t const& root);
-    process::names_t sorted_names() const;
+
+    void check_for_processes() const;
+    void check_for_required_ports() const;
+    void initialize_processes();
+    void check_for_untyped_ports() const;
 
     typedef std::map<process::name_t, process_t> process_map_t;
     typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
@@ -90,6 +94,8 @@ class pipeline::priv
         process::port_type_t const m_type;
         bool const m_push_upstream;
     };
+  private:
+    process::names_t sorted_names() const;
 };
 
 pipeline
@@ -376,225 +382,10 @@ void
 pipeline
 ::setup_pipeline()
 {
-  typedef std::set<process::name_t> name_set_t;
-  typedef std::queue<process::name_t> name_queue_t;
-
-  if (!d->process_map.size())
-  {
-    throw no_processes_exception();
-  }
-
-  name_set_t procs;
-
-  {
-    name_queue_t to_visit;
-
-    // Traverse the pipeline starting with a process.
-    to_visit.push(d->process_map.begin()->first);
-
-    // While we have processes to visit yet.
-    while (!to_visit.empty())
-    {
-      process::name_t const cur_proc = to_visit.front();
-
-      to_visit.pop();
-
-      // Ignore the process if we've already visited it.
-      name_set_t::const_iterator const i = procs.find(cur_proc);
-      if (i != procs.end())
-      {
-        continue;
-      }
-
-      procs.insert(cur_proc);
-
-      // Check for required ports.
-      {
-        process_t const process = process_by_name(cur_proc);
-
-        // Check for required input ports.
-        process::ports_t const input_ports = process->input_ports();
-        BOOST_FOREACH (process::port_t const& port, input_ports)
-        {
-          // Check for required flags.
-          process::port_flags_t const port_flags = process->input_port_info(port)->flags;
-
-          process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
-          if (f != port_flags.end())
-          {
-            if (!input_edge_for_port(cur_proc, port))
-            {
-              static std::string const reason = "The input port has the required flag";
-
-              throw missing_connection_exception(cur_proc, port, reason);
-            }
-          }
-        }
-
-        // Check for required output ports.
-        process::ports_t const output_ports = process->output_ports();
-        BOOST_FOREACH (process::port_t const& port, output_ports)
-        {
-          // Check for required flags.
-          process::port_flags_t const port_flags = process->output_port_info(port)->flags;
-
-          process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
-          if (f != port_flags.end())
-          {
-            if (output_edges_for_port(cur_proc, port).empty())
-            {
-              static std::string const reason = "The output port has the required flag";
-
-              throw missing_connection_exception(cur_proc, port, reason);
-            }
-          }
-        }
-      }
-
-      processes_t connected_procs;
-
-      // Find all processes upstream of the current process.
-      processes_t const upstream_procs = upstream_for_process(cur_proc);
-      connected_procs.insert(connected_procs.end(), upstream_procs.begin(), upstream_procs.end());
-
-      // Find all processes downstream of the current process.
-      processes_t const downstream_procs = downstream_for_process(cur_proc);
-      connected_procs.insert(connected_procs.end(), downstream_procs.begin(), downstream_procs.end());
-
-      // Mark all connected processes for visitation.
-      BOOST_FOREACH (process_t const& proc, connected_procs)
-      {
-        to_visit.push(proc->name());
-      }
-    }
-  }
-
-  if (d->groups.size())
-  {
-    process::names_t const group_names = groups();
-
-    BOOST_FOREACH(process::name_t const& cur_group, group_names)
-    {
-      process::port_addrs_t connected_ports;
-
-      // Get all processes input ports on the group map to.
-      process::ports_t const input_ports = input_ports_for_group(cur_group);
-      BOOST_FOREACH (process::port_t const& port, input_ports)
-      {
-        // Check for required flags.
-        process::port_flags_t const mapped_port_flags = mapped_group_input_port_flags(cur_group, port);
-
-        process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
-        if (i != mapped_port_flags.end())
-        {
-          priv::connected_mappings_t& connections = d->used_input_mappings;
-
-          priv::connected_mappings_t::const_iterator const c = connections.find(cur_group);
-
-          if (c == connections.end())
-          {
-            static std::string const reason = "The input mapping has the required flag";
-
-            throw missing_connection_exception(cur_group, port, reason);
-          }
-        }
-
-        // Mark mapped ports as connected.
-        process::port_addrs_t const mapped_ports = mapped_group_input_ports(cur_group, port);
-
-        connected_ports.insert(connected_ports.end(), mapped_ports.begin(), mapped_ports.end());
-      }
-
-      // Get all processes output ports on the group map to.
-      process::ports_t const output_ports = output_ports_for_group(cur_group);
-      BOOST_FOREACH (process::port_t const& port, output_ports)
-      {
-        // Check for required flags.
-        process::port_flags_t const mapped_port_flags = mapped_group_output_port_flags(cur_group, port);
-
-        process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
-        if (i != mapped_port_flags.end())
-        {
-          priv::connected_mappings_t& connections = d->used_input_mappings;
-
-          priv::connected_mappings_t::const_iterator const c = connections.find(cur_group);
-
-          if (c == connections.end())
-          {
-            static std::string const reason = "The output mapping has the required flag";
-
-            throw missing_connection_exception(cur_group, port, reason);
-          }
-        }
-
-        // Mark mapped ports as connected.
-        process::port_addr_t const mapped_port = mapped_group_output_port(cur_group, port);
-
-        connected_ports.push_back(mapped_port);
-      }
-
-      // Mark these processes as connected.
-      BOOST_FOREACH (process::port_addr_t const& port_addr, connected_ports)
-      {
-        procs.insert(port_addr.first);
-      }
-    }
-  }
-
-  if (procs.size() != d->process_map.size())
-  {
-    throw orphaned_processes_exception();
-  }
-
-  process::names_t const sorted_names = d->sorted_names();
-
-  // Initialize processes.
-  BOOST_FOREACH (process::name_t const& name, sorted_names)
-  {
-    process_t const proc = process_by_name(name);
-
-    proc->init();
-
-    bool resolved_types = false;
-
-    BOOST_FOREACH (process::port_addr_t const& data_dep_port, d->data_dep_ports)
-    {
-      process::name_t const& data_proc = data_dep_port.first;
-      process::port_t const& data_port = data_dep_port.second;
-
-      if (name == data_proc)
-      {
-        process::port_info_t const info = proc->output_port_info(data_port);
-
-        if (info->type == process::type_data_dependent)
-        {
-          throw untyped_data_dependent_exception(data_proc, data_port);
-        }
-
-        resolved_types = true;
-      }
-    }
-
-    if (resolved_types)
-    {
-      try
-      {
-        d->propogate(name);
-      }
-      catch (priv::propogation_exception& e)
-      {
-        throw connection_dependent_type_cascade_exception(name, "<data-dependent ports>", "<data-dependent types>",
-                                                          e.m_upstream_process, e.m_upstream_port,
-                                                          e.m_downstream_process, e.m_downstream_port,
-                                                          e.m_type, e.m_push_upstream);
-      }
-    }
-  }
-
-  if (d->untyped_connections.size())
-  {
-    throw untyped_connection_exception();
-  }
+  d->check_for_processes();
+  d->check_for_required_ports();
+  d->initialize_processes();
+  d->check_for_untyped_ports();
 }
 
 process::names_t
@@ -1139,6 +930,246 @@ pipeline::priv
 
     // Overwrite untyped connections.
     untyped_connections = unresolved_connections;
+  }
+}
+
+void
+pipeline::priv
+::check_for_processes() const
+{
+  if (!process_map.size())
+  {
+    throw no_processes_exception();
+  }
+}
+
+void
+pipeline::priv
+::check_for_required_ports() const
+{
+  typedef std::set<process::name_t> name_set_t;
+  typedef std::queue<process::name_t> name_queue_t;
+
+  name_set_t procs;
+
+  {
+    name_queue_t to_visit;
+
+    // Traverse the pipeline starting with a process.
+    to_visit.push(process_map.begin()->first);
+
+    // While we have processes to visit yet.
+    while (!to_visit.empty())
+    {
+      process::name_t const cur_proc = to_visit.front();
+
+      to_visit.pop();
+
+      // Ignore the process if we've already visited it.
+      name_set_t::const_iterator const i = procs.find(cur_proc);
+      if (i != procs.end())
+      {
+        continue;
+      }
+
+      procs.insert(cur_proc);
+
+      // Check for required ports.
+      {
+        process_t const process = p->process_by_name(cur_proc);
+
+        // Check for required input ports.
+        process::ports_t const input_ports = process->input_ports();
+        BOOST_FOREACH (process::port_t const& port, input_ports)
+        {
+          // Check for required flags.
+          process::port_flags_t const port_flags = process->input_port_info(port)->flags;
+
+          process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
+          if (f != port_flags.end())
+          {
+            if (!p->input_edge_for_port(cur_proc, port))
+            {
+              static std::string const reason = "The input port has the required flag";
+
+              throw missing_connection_exception(cur_proc, port, reason);
+            }
+          }
+        }
+
+        // Check for required output ports.
+        process::ports_t const output_ports = process->output_ports();
+        BOOST_FOREACH (process::port_t const& port, output_ports)
+        {
+          // Check for required flags.
+          process::port_flags_t const port_flags = process->output_port_info(port)->flags;
+
+          process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
+          if (f != port_flags.end())
+          {
+            if (p->output_edges_for_port(cur_proc, port).empty())
+            {
+              static std::string const reason = "The output port has the required flag";
+
+              throw missing_connection_exception(cur_proc, port, reason);
+            }
+          }
+        }
+      }
+
+      processes_t connected_procs;
+
+      // Find all processes upstream of the current process.
+      processes_t const upstream_procs = p->upstream_for_process(cur_proc);
+      connected_procs.insert(connected_procs.end(), upstream_procs.begin(), upstream_procs.end());
+
+      // Find all processes downstream of the current process.
+      processes_t const downstream_procs = p->downstream_for_process(cur_proc);
+      connected_procs.insert(connected_procs.end(), downstream_procs.begin(), downstream_procs.end());
+
+      // Mark all connected processes for visitation.
+      BOOST_FOREACH (process_t const& proc, connected_procs)
+      {
+        to_visit.push(proc->name());
+      }
+    }
+  }
+
+  if (groups.size())
+  {
+    process::names_t const group_names = p->groups();
+
+    BOOST_FOREACH(process::name_t const& cur_group, group_names)
+    {
+      process::port_addrs_t connected_ports;
+
+      // Get all processes input ports on the group map to.
+      process::ports_t const input_ports = p->input_ports_for_group(cur_group);
+      BOOST_FOREACH (process::port_t const& port, input_ports)
+      {
+        // Check for required flags.
+        process::port_flags_t const mapped_port_flags = p->mapped_group_input_port_flags(cur_group, port);
+
+        process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
+        if (i != mapped_port_flags.end())
+        {
+          connected_mappings_t const& conns = used_input_mappings;
+
+          connected_mappings_t::const_iterator const c = conns.find(cur_group);
+
+          if (c == conns.end())
+          {
+            static std::string const reason = "The input mapping has the required flag";
+
+            throw missing_connection_exception(cur_group, port, reason);
+          }
+        }
+
+        // Mark mapped ports as connected.
+        process::port_addrs_t const mapped_ports = p->mapped_group_input_ports(cur_group, port);
+
+        connected_ports.insert(connected_ports.end(), mapped_ports.begin(), mapped_ports.end());
+      }
+
+      // Get all processes output ports on the group map to.
+      process::ports_t const output_ports = p->output_ports_for_group(cur_group);
+      BOOST_FOREACH (process::port_t const& port, output_ports)
+      {
+        // Check for required flags.
+        process::port_flags_t const mapped_port_flags = p->mapped_group_output_port_flags(cur_group, port);
+
+        process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
+        if (i != mapped_port_flags.end())
+        {
+          connected_mappings_t const& conns = used_input_mappings;
+
+          connected_mappings_t::const_iterator const c = conns.find(cur_group);
+
+          if (c == conns.end())
+          {
+            static std::string const reason = "The output mapping has the required flag";
+
+            throw missing_connection_exception(cur_group, port, reason);
+          }
+        }
+
+        // Mark mapped ports as connected.
+        process::port_addr_t const mapped_port = p->mapped_group_output_port(cur_group, port);
+
+        connected_ports.push_back(mapped_port);
+      }
+
+      // Mark these processes as connected.
+      BOOST_FOREACH (process::port_addr_t const& port_addr, connected_ports)
+      {
+        procs.insert(port_addr.first);
+      }
+    }
+  }
+
+  if (procs.size() != process_map.size())
+  {
+    throw orphaned_processes_exception();
+  }
+}
+
+void
+pipeline::priv
+::initialize_processes()
+{
+  process::names_t const names = sorted_names();
+
+  // Initialize processes.
+  BOOST_FOREACH (process::name_t const& name, names)
+  {
+    process_t const proc = p->process_by_name(name);
+
+    proc->init();
+
+    bool resolved_types = false;
+
+    BOOST_FOREACH (process::port_addr_t const& data_dep_port, data_dep_ports)
+    {
+      process::name_t const& data_proc = data_dep_port.first;
+      process::port_t const& data_port = data_dep_port.second;
+
+      if (name == data_proc)
+      {
+        process::port_info_t const info = proc->output_port_info(data_port);
+
+        if (info->type == process::type_data_dependent)
+        {
+          throw untyped_data_dependent_exception(data_proc, data_port);
+        }
+
+        resolved_types = true;
+      }
+    }
+
+    if (resolved_types)
+    {
+      try
+      {
+        propogate(name);
+      }
+      catch (propogation_exception& e)
+      {
+        throw connection_dependent_type_cascade_exception(name, "<data-dependent ports>", "<data-dependent types>",
+                                                          e.m_upstream_process, e.m_upstream_port,
+                                                          e.m_downstream_process, e.m_downstream_port,
+                                                          e.m_type, e.m_push_upstream);
+      }
+    }
+  }
+}
+
+void
+pipeline::priv
+::check_for_untyped_ports() const
+{
+  if (untyped_connections.size())
+  {
+    throw untyped_connection_exception();
   }
 }
 
