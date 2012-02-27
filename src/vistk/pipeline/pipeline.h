@@ -64,6 +64,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \endpreconds
      *
+     * \throws add_after_setup_exception Thrown if called after the pipeline has been setup.
      * \throws null_process_addition_exception Thrown when \p process is \c NULL.
      * \throws duplicate_process_name_exception Thrown when \p process has the same name as another process in the pipeline already.
      *
@@ -85,6 +86,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \endpreconds
      *
+     * \throws add_after_setup_exception Thrown if called after the pipeline has been setup.
      * \throws duplicate_process_name_exception Thrown when a process or group is already named \p name.
      *
      * \postconds
@@ -113,6 +115,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \endpreconds
      *
+     * \throws connection_after_setup_exception Thrown if called after the pipeline has been setup.
      * \throws connection_dependent_type_exception Thrown when a dependent type is rejected.
      * \throws connection_dependent_type_cascade_exception Thrown when an indirect dependent type is rejected.
      * \throws connection_type_mismatch_exception Thrown when the types of the ports are incompatible.
@@ -148,6 +151,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \endpreconds
      *
+     * \throws connection_after_setup_exception Thrown if called after the pipeline has been setup.
      * \throws no_such_group_exception Thrown when \p group does not exist in the pipeline.
      * \throws no_such_process_exception Thrown when \p mapped_process does not exist in the pipeline.
      *
@@ -182,6 +186,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \endpreconds
      *
+     * \throws connection_after_setup_exception Thrown if called after the pipeline has been setup.
      * \throws no_such_group_exception Thrown when \p group does not exist in the pipeline.
      * \throws no_such_process_exception Thrown when \p mapped_process does not exist in the pipeline.
      * \throws group_output_already_mapped_exception Thrown when \p port on \p group has already been mapped.

@@ -124,6 +124,11 @@ pipeline
     throw null_process_addition_exception();
   }
 
+  if (d->setup)
+  {
+    throw add_after_setup_exception(process->name(), true);
+  }
+
   process::name_t const name = process->name();
 
   d->check_duplicate_name(name);
@@ -135,6 +140,11 @@ void
 pipeline
 ::add_group(process::name_t const& name)
 {
+  if (d->setup)
+  {
+    throw add_after_setup_exception(name, false);
+  }
+
   d->check_duplicate_name(name);
 
   d->groups[name] = priv::port_mapping_t();
@@ -147,6 +157,12 @@ pipeline
           process::name_t const& downstream_process,
           process::port_t const& downstream_port)
 {
+  if (d->setup)
+  {
+    throw connection_after_setup_exception(upstream_process, upstream_port,
+                                           downstream_process, downstream_port);
+  }
+
   priv::group_t::const_iterator const up_group_it = d->groups.find(upstream_process);
 
   if (up_group_it != d->groups.end())
@@ -331,6 +347,12 @@ pipeline
                  process::port_t const& mapped_port,
                  process::port_flags_t const& flags)
 {
+  if (d->setup)
+  {
+    throw connection_after_setup_exception(group, port,
+                                           mapped_process, mapped_port);
+  }
+
   priv::group_t::iterator const group_it = d->groups.find(group);
 
   if (group_it == d->groups.end())
@@ -356,6 +378,12 @@ pipeline
                   process::port_t const& mapped_port,
                   process::port_flags_t const& flags)
 {
+  if (d->setup)
+  {
+    throw connection_after_setup_exception(mapped_process, mapped_port,
+                                           group, port);
+  }
+
   priv::group_t::iterator const group_it = d->groups.find(group);
 
   if (group_it == d->groups.end())

@@ -179,6 +179,11 @@ vistk_make_test(pipeline setup_pipeline_missing_required_output_connection)
 vistk_make_test(pipeline setup_pipeline_missing_required_group_input_connection)
 vistk_make_test(pipeline setup_pipeline_missing_required_group_output_connection)
 vistk_make_test(pipeline setup_pipeline_duplicate)
+vistk_make_test(pipeline setup_pipeline_add_process)
+vistk_make_test(pipeline setup_pipeline_add_group)
+vistk_make_test(pipeline setup_pipeline_connect)
+vistk_make_test(pipeline setup_pipeline_map_input)
+vistk_make_test(pipeline setup_pipeline_map_output)
 vistk_make_test(pipeline setup_pipeline)
 
 ##############################

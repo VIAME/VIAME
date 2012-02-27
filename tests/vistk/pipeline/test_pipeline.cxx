@@ -100,6 +100,11 @@ static void test_setup_pipeline_missing_required_output_connection();
 static void test_setup_pipeline_missing_required_group_input_connection();
 static void test_setup_pipeline_missing_required_group_output_connection();
 static void test_setup_pipeline_duplicate();
+static void test_setup_pipeline_add_process();
+static void test_setup_pipeline_add_group();
+static void test_setup_pipeline_connect();
+static void test_setup_pipeline_map_input();
+static void test_setup_pipeline_map_output();
 static void test_setup_pipeline();
 
 void
@@ -304,6 +309,26 @@ run_test(std::string const& test_name)
   else if (test_name == "setup_pipeline_duplicate")
   {
     test_setup_pipeline_duplicate();
+  }
+  else if (test_name == "setup_pipeline_add_process")
+  {
+    test_setup_pipeline_add_process();
+  }
+  else if (test_name == "setup_pipeline_add_group")
+  {
+    test_setup_pipeline_add_group();
+  }
+  else if (test_name == "setup_pipeline_connect")
+  {
+    test_setup_pipeline_connect();
+  }
+  else if (test_name == "setup_pipeline_map_input")
+  {
+    test_setup_pipeline_map_input();
+  }
+  else if (test_name == "setup_pipeline_map_output")
+  {
+    test_setup_pipeline_map_output();
   }
   else if (test_name == "setup_pipeline")
   {
@@ -1558,6 +1583,143 @@ test_setup_pipeline_duplicate()
   EXPECT_EXCEPTION(vistk::pipeline_duplicate_setup_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline multiple times");
+}
+
+void
+test_setup_pipeline_add_process()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  pipeline->setup_pipeline();
+
+  EXPECT_EXCEPTION(vistk::add_after_setup_exception,
+                   pipeline->add_process(process),
+                   "adding a process after setup");
+}
+
+void
+test_setup_pipeline_add_group()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+  vistk::process::name_t const group_name = vistk::process::name_t("group");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  pipeline->setup_pipeline();
+
+  EXPECT_EXCEPTION(vistk::add_after_setup_exception,
+                   pipeline->add_group(group_name),
+                   "adding a group after setup");
+}
+
+void
+test_setup_pipeline_connect()
+{
+  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("sink");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("number");
+  vistk::process::name_t const proc_named = vistk::process::name_t("sink");
+
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processd = create_process(proc_typed, proc_named);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processd);
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
+  vistk::process::port_t const port_named = vistk::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_named, port_named);
+
+  pipeline->setup_pipeline();
+
+  vistk::process::port_t const iport_name = vistk::process::port_t("color");
+  vistk::process::port_t const oport_name = vistk::process::port_heartbeat;
+
+  EXPECT_EXCEPTION(vistk::connection_after_setup_exception,
+                   pipeline->connect(proc_named, oport_name,
+                                     proc_nameu, iport_name),
+                   "making a connection after setup");
+}
+
+void
+test_setup_pipeline_map_input()
+{
+  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("sink");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("number");
+  vistk::process::name_t const proc_named = vistk::process::name_t("sink");
+  vistk::process::name_t const group_name = vistk::process::name_t("group");
+
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processd = create_process(proc_typed, proc_named);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processd);
+  pipeline->add_group(group_name);
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
+  vistk::process::port_t const port_named = vistk::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_named, port_named);
+
+  pipeline->setup_pipeline();
+
+  vistk::process::port_t const iport_name = vistk::process::port_t("color");
+
+  EXPECT_EXCEPTION(vistk::connection_after_setup_exception,
+                   pipeline->map_input_port(group_name, iport_name,
+                                            proc_nameu, iport_name,
+                                            vistk::process::port_flags_t()),
+                   "mapping an input port after setup");
+}
+
+void
+test_setup_pipeline_map_output()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+  vistk::process::name_t const group_name = vistk::process::name_t("group");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_group(group_name);
+
+  pipeline->setup_pipeline();
+
+  vistk::process::port_t const port_name = vistk::process::port_heartbeat;
+
+  EXPECT_EXCEPTION(vistk::connection_after_setup_exception,
+                   pipeline->map_output_port(group_name, port_name,
+                                             proc_name, port_name,
+                                             vistk::process::port_flags_t()),
+                   "mapping an output port after setup");
 }
 
 void
