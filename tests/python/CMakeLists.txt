@@ -10,6 +10,8 @@ function (vistk_build_python_test group input)
     "${CMAKE_CURRENT_SOURCE_DIR}/${input}"
     "${EXECUTABLE_OUTPUT_PATH}/test-python-${group}"
     @ONLY)
+  set_directory_properties(PROPERTIES
+    ADDITIONAL_MAKE_CLEAN_FILES "${EXECUTABLE_OUTPUT_PATH}/test-python-${group}")
 
   vistk_declare_test(python-${group})
 endfunction (vistk_build_python_test)

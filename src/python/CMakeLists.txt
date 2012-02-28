@@ -81,6 +81,8 @@ function (make_python_init_file modpath)
 "${copyright_header}
 ${import_lines}
 ")
+  set_directory_properties(PROPERTIES
+    ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py")
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
     if (WIN32)
@@ -91,6 +93,8 @@ ${import_lines}
 "${copyright_header}
 ${import_lines}
 ")
+    set_directory_properties(PROPERTIES
+      ADDITIONAL_MAKE_CLEAN_FILES "${output_path}/${modpath}/__init__.py")
   endforeach (config)
 
   if (NOT ${no_install_plugin})
@@ -111,6 +115,8 @@ function (add_python_module path modpath module)
     "${path}"
     "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
     @ONLY)
+  set_directory_properties(PROPERTIES
+    ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py")
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
     if (WIN32)
@@ -123,6 +129,8 @@ function (add_python_module path modpath module)
       "${path}"
       "${output_path}/${modpath}/${module}.py"
       @ONLY)
+    set_directory_properties(PROPERTIES
+      ADDITIONAL_MAKE_CLEAN_FILES "${output_path}/${modpath}/${module}.py")
   endforeach (config)
 
   if (NOT ${no_install_plugin})

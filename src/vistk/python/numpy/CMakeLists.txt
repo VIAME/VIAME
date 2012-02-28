@@ -47,6 +47,8 @@ if (UNIX)
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk-python_numpy.pc.in"
     "${vistk_python_numpy_pkgconfig_file}"
     @ONLY)
+  set_directory_properties(PROPERTIES
+    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_python_numpy_pkgconfig_file}")
 
   install(
     FILES       "${vistk_python_numpy_pkgconfig_file}"

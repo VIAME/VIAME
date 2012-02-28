@@ -6,6 +6,8 @@ if (VISTK_ENABLE_TESTING)
     "${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in"
     "${CMAKE_BINARY_DIR}/CTestCustom.cmake"
     COPYONLY)
+  set_directory_properties(PROPERTIES
+    ADDITIONAL_MAKE_CLEAN_FILES "${CMAKE_BINARY_DIR}/CTestCustom.cmake")
 endif (VISTK_ENABLE_TESTING)
 
 set(vistk_config_file "${CMAKE_BINARY_DIR}/vistk-config.cmake")
@@ -13,18 +15,24 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config.cmake.in"
   "${vistk_config_file}"
   @ONLY)
+set_directory_properties(PROPERTIES
+  ADDITIONAL_MAKE_CLEAN_FILES "${vistk_config_file}")
 
 set(vistk_config_install_file "${CMAKE_BINARY_DIR}/vistk-config-install.cmake")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config-install.cmake.in"
   "${vistk_config_install_file}"
   @ONLY)
+set_directory_properties(PROPERTIES
+  ADDITIONAL_MAKE_CLEAN_FILES "${vistk_config_install_file}")
 
 set(vistk_macros_file "${CMAKE_BINARY_DIR}/vistk-macros.cmake")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-macros.cmake.in"
   "${vistk_macros_file}"
   @ONLY)
+set_directory_properties(PROPERTIES
+  ADDITIONAL_MAKE_CLEAN_FILES "${vistk_macros_file}")
 
 # Configure the CMake EXPORT file during installation
 install(
@@ -44,6 +52,8 @@ if (UNIX)
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk.pc.in"
     "${vistk_pkgconfig_file}"
     @ONLY)
+  set_directory_properties(PROPERTIES
+    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_pkgconfig_file}")
 
   install(
     FILES       "${vistk_pkgconfig_file}"

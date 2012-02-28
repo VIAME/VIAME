@@ -57,6 +57,8 @@ if (UNIX)
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk-utilities.pc.in"
     "${vistk_utilities_pkgconfig_file}"
     @ONLY)
+  set_directory_properties(PROPERTIES
+    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_utilities_pkgconfig_file}")
 
   install(
     FILES       "${vistk_utilities_pkgconfig_file}"

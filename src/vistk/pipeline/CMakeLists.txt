@@ -129,6 +129,8 @@ if (UNIX)
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk-pipeline.pc.in"
     "${vistk_pipeline_pkgconfig_file}"
     @ONLY)
+  set_directory_properties(PROPERTIES
+    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_pipeline_pkgconfig_file}")
 
   install(
     FILES       "${vistk_pipeline_pkgconfig_file}"
