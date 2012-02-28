@@ -109,7 +109,8 @@ function (add_python_module path modpath module)
 
   configure_file(
     "${path}"
-    "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py")
+    "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
+    @ONLY)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
     if (WIN32)
@@ -120,7 +121,8 @@ function (add_python_module path modpath module)
 
     configure_file(
       "${path}"
-      "${output_path}/${modpath}/${module}.py")
+      "${output_path}/${modpath}/${module}.py"
+      @ONLY)
   endforeach (config)
 
   if (NOT ${no_install_plugin})

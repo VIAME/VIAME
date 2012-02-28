@@ -13,11 +13,13 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config.cmake.in"
   "${vistk_config_file}"
   @ONLY)
+
 set(vistk_config_install_file "${CMAKE_BINARY_DIR}/vistk-config-install.cmake")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config-install.cmake.in"
   "${vistk_config_install_file}"
   @ONLY)
+
 set(vistk_macros_file "${CMAKE_BINARY_DIR}/vistk-macros.cmake")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-macros.cmake.in"

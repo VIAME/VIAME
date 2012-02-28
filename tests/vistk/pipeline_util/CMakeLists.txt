@@ -5,7 +5,7 @@ set(libraries
   vistk_pipeline)
 
 set(vistk_test_pipelines_directory
-  ${vistk_test_data_directory}/pipelines)
+  "${vistk_test_data_directory}/pipelines")
 
 function (vistk_make_load_test name instance)
   vistk_make_test(${name} ${instance}

@@ -24,7 +24,7 @@ set_target_properties(vistk_image
 
 if (VISTK_ENABLE_DOCUMENTATION)
   create_doxygen(
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    "${CMAKE_CURRENT_SOURCE_DIR}"
     image)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
