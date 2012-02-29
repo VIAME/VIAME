@@ -83,7 +83,10 @@ void
 thread_per_process_schedule
 ::start()
 {
-  BOOST_FOREACH (process::name_t const& name, pipeline()->process_names())
+  pipeline_t const p = pipeline();
+  process::names_t const names = p->process_names();
+
+  BOOST_FOREACH (process::name_t const& name, names)
   {
     process_t process = pipeline()->process_by_name(name);
 
