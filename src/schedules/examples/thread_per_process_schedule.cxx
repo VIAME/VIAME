@@ -50,12 +50,24 @@ thread_per_process_schedule
     process_t const proc = p->process_by_name(name);
     process::constraints_t const consts = proc->constraints();
 
-    process::constraints_t::const_iterator const i = consts.find(process::constraint_no_threads);
+    process::constraints_t::const_iterator i;
+
+    i = consts.find(process::constraint_no_threads);
 
     if (i != consts.end())
     {
       std::string const reason = "The process \'" + name + "\' does "
                                  "not support being in its own thread";
+
+      throw incompatible_pipeline_exception(reason);
+    }
+
+    i = consts.find(process::constraint_python);
+
+    if (i != consts.end())
+    {
+      std::string const reason = "The process \'" + name + "\' is written "
+                                 "in Python and does not work with boost::thread";
 
       throw incompatible_pipeline_exception(reason);
     }
