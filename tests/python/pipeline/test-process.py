@@ -63,6 +63,7 @@ def test_api_calls():
     a.max_status
 
     process.PythonProcess.constraint_no_threads
+    process.PythonProcess.constraint_python
     process.PythonProcess.constraint_no_reentrancy
     process.PythonProcess.constraint_unsync_input
     process.PythonProcess.constraint_unsync_output

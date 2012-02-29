@@ -29,6 +29,7 @@ namespace vistk
 {
 
 process::constraint_t const process::constraint_no_threads = constraint_t("_no_thread");
+process::constraint_t const process::constraint_python = constraint_t("_python");
 process::constraint_t const process::constraint_no_reentrancy = constraint_t("_no_reentrant");
 process::constraint_t const process::constraint_unsync_input = constraint_t("_unsync_input");
 process::constraint_t const process::constraint_unsync_output = constraint_t("_unsync_output");

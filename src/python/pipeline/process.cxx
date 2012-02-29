@@ -223,6 +223,7 @@ BOOST_PYTHON_MODULE(process)
       , "Returns the type of the process.")
     .def_readonly("constraint_no_threads", &vistk::process::constraint_no_threads)
     .def_readonly("constraint_no_reentrancy", &vistk::process::constraint_no_reentrancy)
+    .def_readonly("constraint_python", &vistk::process::constraint_python)
     .def_readonly("constraint_unsync_input", &vistk::process::constraint_unsync_input)
     .def_readonly("constraint_unsync_output", &vistk::process::constraint_unsync_output)
     .def_readonly("port_heartbeat", &vistk::process::port_heartbeat)
@@ -385,12 +386,8 @@ vistk::process::constraints_t
 wrap_process
 ::_base_constraints() const
 {
-  static constraint_t const constraint_python = constraint_t("_python");
-
   constraints_t consts = process::_constraints();
 
-  /// \todo Python doesn't work well with non-Python threads.
-  consts.insert(constraint_no_threads);
   consts.insert(constraint_python);
 
   return consts;

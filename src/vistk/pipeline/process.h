@@ -365,6 +365,8 @@ class VISTK_PIPELINE_EXPORT process
 
     /// A constraint which indicates that the process cannot be run in a thread of its own.
     static constraint_t const constraint_no_threads;
+    /// A constraint which indicates that the process is used through the Python bindings.
+    static constraint_t const constraint_python;
     /// A constraint which indicates that the process is not reentrant.
     static constraint_t const constraint_no_reentrancy;
     /// A constraint which indicates that the input of the process is not synchronized.
