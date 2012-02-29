@@ -4,6 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/schedule.h>
 #include <vistk/pipeline/schedule_exception.h>
 
@@ -36,6 +37,8 @@ class wrap_schedule
     void wait();
     void stop();
 
+    vistk::pipeline_t _pipeline() const;
+
     override get_pure_override(char const* name);
 };
 
@@ -54,6 +57,8 @@ BOOST_PYTHON_MODULE(schedule)
       , "Wait until the pipeline execution is complete.")
     .def("stop", pure_virtual(&vistk::schedule::stop)
       , "Stop the execution of the pipeline.")
+    .def("pipeline", &wrap_schedule::_pipeline
+      , "The pipeline the schedule is to run.")
   ;
 }
 
@@ -93,6 +98,13 @@ wrap_schedule
 ::stop()
 {
   get_pure_override("stop")();
+}
+
+vistk::pipeline_t
+wrap_schedule
+::_pipeline() const
+{
+  return pipeline();
 }
 
 override
