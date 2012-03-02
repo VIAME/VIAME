@@ -10,13 +10,14 @@
 
 #include <processes/helpers/image/format.h>
 
+#include <vistk/utilities/path.h>
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/stamp.h>
 
 #include <boost/algorithm/string/join.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/make_shared.hpp>
 
 #include <vidl/vidl_istream.h>
@@ -164,7 +165,7 @@ video_reader_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  boost::filesystem::path::string_type const path = d->path.native();
+  vistk::path_t::string_type const path = d->path.native();
 
   if (path.empty())
   {

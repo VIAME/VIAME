@@ -9,9 +9,9 @@
 
 #include "pipeline_util-config.h"
 
-#include <vistk/pipeline/types.h>
+#include <vistk/utilities/path.h>
 
-#include <boost/filesystem/path.hpp>
+#include <vistk/pipeline/types.h>
 
 #include <string>
 
@@ -54,14 +54,14 @@ class VISTK_PIPELINE_UTIL_EXPORT file_no_exist_exception
      *
      * \param fname The path that does not exist.
      */
-    file_no_exist_exception(boost::filesystem::path const& fname) throw();
+    file_no_exist_exception(path_t const& fname) throw();
     /**
      * \brief Destructor.
      */
     ~file_no_exist_exception() throw();
 
     /// The path that does not exist.
-    boost::filesystem::path const m_fname;
+    path_t const m_fname;
 };
 
 /**
@@ -80,14 +80,14 @@ class VISTK_PIPELINE_UTIL_EXPORT not_a_file_exception
      *
      * \param path The path that is not a file.
      */
-    not_a_file_exception(boost::filesystem::path const& path) throw();
+    not_a_file_exception(path_t const& path) throw();
     /**
      * \brief Destructor.
      */
     ~not_a_file_exception() throw();
 
     /// The path is not a file.
-    boost::filesystem::path const m_path;
+    path_t const m_path;
 };
 
 /**
@@ -106,14 +106,14 @@ class VISTK_PIPELINE_UTIL_EXPORT file_open_exception
      *
      * \param fname The path that was unable to be loaded.
      */
-    file_open_exception(boost::filesystem::path const& fname) throw();
+    file_open_exception(path_t const& fname) throw();
     /**
      * \brief Destructor.
      */
     ~file_open_exception() throw();
 
     /// The path that was unable to be loaded.
-    boost::filesystem::path const m_fname;
+    path_t const m_fname;
 };
 
 /**

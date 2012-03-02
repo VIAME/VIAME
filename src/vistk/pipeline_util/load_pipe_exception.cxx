@@ -18,7 +18,7 @@ namespace vistk
 {
 
 file_no_exist_exception
-::file_no_exist_exception(boost::filesystem::path const& fname) throw()
+::file_no_exist_exception(path_t const& fname) throw()
   : load_pipe_exception()
   , m_fname(fname)
 {
@@ -35,7 +35,7 @@ file_no_exist_exception
 }
 
 not_a_file_exception
-::not_a_file_exception(boost::filesystem::path const& path) throw()
+::not_a_file_exception(path_t const& path) throw()
   : load_pipe_exception()
   , m_path(path)
 {
@@ -52,7 +52,7 @@ not_a_file_exception
 }
 
 file_open_exception
-::file_open_exception(boost::filesystem::path const& fname) throw()
+::file_open_exception(path_t const& fname) throw()
   : load_pipe_exception()
   , m_fname(fname)
 {

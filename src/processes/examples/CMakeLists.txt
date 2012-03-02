@@ -13,15 +13,9 @@ set(examples_srcs
   print_string_process.cxx
   registration.cxx)
 
-set(print_number_process_build_options
-  ${boost_filesystem_options})
-
 set_source_files_properties(print_number_process.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${print_number_process_build_options}")
-
-set(print_string_process_build_options
-  ${boost_filesystem_options})
 
 set_source_files_properties(print_string_process.cxx
   PROPERTIES

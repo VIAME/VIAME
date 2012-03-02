@@ -8,11 +8,12 @@
 
 #include "pipe_bakery_exception.h"
 
+#include <vistk/utilities/path.h>
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/utils.h>
 
 #include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/lexical_cast.hpp>
@@ -94,11 +95,11 @@ system_provider
   else if (index == "curdir")
   {
     boost::system::error_code ec;
-    boost::filesystem::path const curdir = boost::filesystem::current_path(ec);
+    path_t const curdir = boost::filesystem::current_path(ec);
 
     /// \todo Check ec.
 
-    boost::filesystem::path::string_type const& raw_path = curdir.native();
+    path_t::string_type const& raw_path = curdir.native();
 
     value = config::value_t(raw_path.begin(), raw_path.end());
   }

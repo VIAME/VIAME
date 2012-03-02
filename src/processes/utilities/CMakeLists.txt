@@ -5,9 +5,6 @@ set(utilities_srcs
   registration.cxx
   timestamper_process.cxx)
 
-set(homography_reader_process_build_options
-  ${boost_filesystem_options})
-
 set_source_files_properties(homography_reader_process.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${homography_reader_process_build_options}")

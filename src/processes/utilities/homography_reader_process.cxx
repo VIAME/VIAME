@@ -8,12 +8,13 @@
 
 #include <vistk/utilities/homography.h>
 
+#include <vistk/utilities/path.h>
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/stamp.h>
 
-#include <boost/filesystem/path.hpp>
 #include <boost/make_shared.hpp>
 
 #include <vnl/vnl_double_3x3.h>
@@ -29,13 +30,6 @@
 
 namespace vistk
 {
-
-namespace
-{
-
-typedef boost::filesystem::path path_t;
-
-}
 
 class homography_reader_process::priv
 {
@@ -99,7 +93,7 @@ homography_reader_process
     d.reset(new priv(path));
   }
 
-  boost::filesystem::path::string_type const path = d->path.native();
+  path_t::string_type const path = d->path.native();
 
   if (path.empty())
   {

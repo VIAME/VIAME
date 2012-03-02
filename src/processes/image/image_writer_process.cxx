@@ -9,10 +9,11 @@
 #include <processes/helpers/image/format.h>
 #include <processes/helpers/image/write.h>
 
+#include <vistk/utilities/path.h>
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_exception.h>
 
-#include <boost/filesystem/path.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/format.hpp>
 #include <boost/make_shared.hpp>
@@ -138,7 +139,7 @@ image_writer_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  boost::filesystem::path::string_type const path = d->path.native();
+  vistk::path_t::string_type const path = d->path.native();
 
   if (path.empty())
   {

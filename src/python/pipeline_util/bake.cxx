@@ -6,6 +6,8 @@
 
 #include <python/helpers/pystream.h>
 
+#include <vistk/utilities/path.h>
+
 #include <vistk/pipeline/pipeline.h>
 
 #include <vistk/pipeline_util/pipe_bakery.h>
@@ -52,7 +54,7 @@ BOOST_PYTHON_MODULE(bake)
 vistk::pipeline_t
 bake_pipe_file(std::string const& path)
 {
-  return vistk::bake_pipe_from_file(boost::filesystem::path(path));
+  return vistk::bake_pipe_from_file(vistk::path_t(path));
 }
 
 vistk::pipeline_t
@@ -60,7 +62,7 @@ bake_pipe(object stream, std::string const& inc_root)
 {
   pyistream istr(stream);
 
-  return vistk::bake_pipe(istr, boost::filesystem::path(inc_root));
+  return vistk::bake_pipe(istr, vistk::path_t(inc_root));
 }
 
 void

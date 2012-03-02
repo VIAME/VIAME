@@ -8,10 +8,11 @@
 
 #include "utils.h"
 
+#include <vistk/utilities/path.h>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/foreach.hpp>
 
 #include <string>

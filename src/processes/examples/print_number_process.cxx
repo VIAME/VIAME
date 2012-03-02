@@ -11,7 +11,6 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_exception.h>
 
-#include <boost/filesystem/path.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/make_shared.hpp>
 
@@ -80,7 +79,7 @@ print_number_process
     d.reset(new priv(path));
   }
 
-  boost::filesystem::path::string_type const path = d->path.native();
+  path_t::string_type const path = d->path.native();
 
   if (path.empty())
   {

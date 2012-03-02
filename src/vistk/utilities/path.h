@@ -7,6 +7,18 @@
 #ifndef VISTK_UTILITIES_PATH_H
 #define VISTK_UTILITIES_PATH_H
 
+#ifndef BOOST_FILESYSTEM_NO_DEPRECATED
+#define BOOST_FILESYSTEM_NO_DEPRECATED
+#endif
+
+#ifndef BOOST_FILESYSTEM_VERSION
+#define BOOST_FILESYSTEM_VERSION 3
+#else
+#if BOOST_FILESYSTEM_VERSION == 2
+#error "Only boost::filesystem version 3 is supported."
+#endif
+#endif
+
 #include <boost/filesystem/path.hpp>
 
 #include <vector>

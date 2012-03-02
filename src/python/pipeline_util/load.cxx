@@ -7,6 +7,8 @@
 #include <python/helpers/pystream.h>
 #include <python/helpers/python_convert_optional.h>
 
+#include <vistk/utilities/path.h>
+
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/load_pipe_exception.h>
 #include <vistk/pipeline_util/pipe_declaration_types.h>
@@ -293,7 +295,7 @@ pipe_block_group_set(vistk::pipe_block& block, vistk::group_pipe_block const& gr
 vistk::pipe_blocks
 load_pipe_file(std::string const& path)
 {
-  return vistk::load_pipe_blocks_from_file(boost::filesystem::path(path));
+  return vistk::load_pipe_blocks_from_file(vistk::path_t(path));
 }
 
 vistk::pipe_blocks
@@ -301,7 +303,7 @@ load_pipe(object const& stream, std::string const& inc_root)
 {
   pyistream istr(stream);
 
-  return vistk::load_pipe_blocks(istr, boost::filesystem::path(inc_root));
+  return vistk::load_pipe_blocks(istr, vistk::path_t(inc_root));
 }
 
 group_subblock_visitor

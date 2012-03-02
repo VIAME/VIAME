@@ -68,7 +68,6 @@ set(vistk_library_options
   "VISTK_DEFAULT_MODULE_PATHS=${vistk_path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
 
 set(module_build_options
-  ${boost_filesystem_options}
   ${vistk_library_options})
 
 set_source_files_properties(modules.cxx
