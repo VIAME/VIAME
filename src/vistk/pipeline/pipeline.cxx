@@ -606,10 +606,19 @@ pipeline
   {
     priv::connection_t const& connection = d->connections[i];
 
-    if ((connection.first.first == upstream_name) &&
-        (connection.first.second == upstream_port) &&
-        (connection.second.first == downstream_name) &&
-        (connection.second.second == downstream_port))
+    process::port_addr_t const& up = connection.first;
+    process::port_addr_t const& down = connection.second;
+
+    process::name_t const& up_name = up.first;
+    process::port_t const& up_port = up.second;
+
+    process::name_t const& down_name = down.first;
+    process::port_t const& down_port = down.second;
+
+    if ((up_name == upstream_name) &&
+        (up_port == upstream_port) &&
+        (down_name == downstream_name) &&
+        (down_port == downstream_port))
     {
       return d->edge_map[i];
     }
