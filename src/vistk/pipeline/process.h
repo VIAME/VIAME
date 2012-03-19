@@ -308,9 +308,9 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Sets the type of a flow-dependent input port type.
      *
-     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
-     * \throws set_type_on_initialized_process_exception Thrown when the port type is set after initialization.
+     * \throws set_type_on_initialized_process_exception Thrown when the \p port's type is set after initialization.
      *
      * \param port The name of the port.
      * \param type The type of the connected port.
@@ -321,7 +321,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Sets the type of a flow-dependent output port type.
      *
-     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
      * \throws set_type_on_initialized_process_exception Thrown when the port type is set after initialization.
      *
@@ -385,7 +385,7 @@ class VISTK_PIPELINE_EXPORT process
     static port_type_t const type_none;
     /// A type which indicates that the type is dependent on data.
     static port_type_t const type_data_dependent;
-    /// A type which indicates that the type may depend on the connected port's type.
+    /// A type which indicates that the type depends on the connected port's type.
     static port_type_t const type_flow_dependent;
     /// A flag which indicates that the output cannot be modified.
     static port_flag_t const flag_output_const;
