@@ -235,7 +235,7 @@ distribute_process
       required.insert(flag_required);
 
       declare_input_port(priv::port_src_prefix + tag, boost::make_shared<port_info>(
-        type_any,
+        type_flow_dependent + tag,
         required,
         port_description_t("The input port for " + tag + ".")));
       declare_output_port(port, boost::make_shared<port_info>(
@@ -259,7 +259,7 @@ distribute_process
     required.insert(flag_required);
 
     declare_output_port(port, boost::make_shared<port_info>(
-      type_any,
+      type_flow_dependent + tag,
       required,
       port_description_t("An output for the " + tag + " data.")));
   }

@@ -228,7 +228,7 @@ collate_process
         required,
         port_description_t("The original color for the result " + tag + ".")));
       declare_output_port(priv::port_res_prefix + tag, boost::make_shared<port_info>(
-        type_any,
+        type_flow_dependent + tag,
         required,
         port_description_t("The output port for " + tag + ".")));
     }
@@ -247,7 +247,7 @@ collate_process
     required.insert(flag_required);
 
     declare_input_port(port, boost::make_shared<port_info>(
-      type_any,
+      type_flow_dependent + tag,
       required,
       port_description_t("An input for the " + tag + " data.")));
   }
