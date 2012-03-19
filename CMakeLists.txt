@@ -66,6 +66,8 @@ if (WIN32)
   endif (MSVC_VERSION EQUAL 1400 OR MSVC_VERSION GREATER 1400)
 else (WIN32)
   set(vistk_warnings
+    "${vistk_warnings} -fvisibility=hidden")
+  set(vistk_warnings
     "${vistk_warnings} -Wextra -Wall")
   set(vistk_warnings
     "${vistk_warnings} -Wctor-dtor-privacy -Woverloaded-virtual -Wformat=2 -Wshadow -Winit-self -Wswitch-enum -Wstrict-overflow=5 -Wcast-align -Wcast-qual -Wfloat-equal -Wabi -Wswitch-default")
