@@ -55,6 +55,49 @@ process::port_t const collate_process::priv::port_res_prefix = port_t("res") + r
 process::port_t const collate_process::priv::port_color_prefix = port_t("color") + res_sep;
 process::port_t const collate_process::priv::port_coll_prefix = port_t("coll") + res_sep;
 
+/**
+ * \internal
+ *
+ * Ports on the \ref distribute_process are broken down as follows:
+ *
+ *   \portvar{type}/\portvar{tag}[/\portvar{group}]
+ *
+ * The port name is broken down as follows:
+ *
+ * <dl>
+ * \term{\portvar{type}}
+ *   \termdef{The type of the port. This must be one of \type{res},
+ *   \type{color}, or \type{coll}.}
+ * \term{\portvar{tag}}
+ *   \termdef{The name of the stream the port is associated with.}
+ * \term{\portvar{group}}
+ *   \termdef{Only required for \type{coll}-type ports. Data from the same
+ *   \portvar{tag} stream from its \type{res} port is collected in sorted order
+ *   over all of the \type{coll} ports.}
+ * </dl>
+ *
+ * The available port types are:
+ *
+ * <dl>
+ * \term{\type{color}}
+ *   \termdef{This is the trigger port for the associated tagged stream. When
+ *   this port for the given tag is connected to, the \type{res} and \type{coll}
+ *   ports for the tag will not cause errors. The stamp received on the port
+ *   represents will be applied to the data leaving the \type{res} port for the
+ *   tag.}
+ * \term{\type{res}}
+ *   \termdef{This port for the given tag is where the data for a stream leaves
+ *   the process. The stamp from the \type{color} port for the \portvar{tag} is
+ *   applied.}
+ * \term{\type{coll}}
+ *   \termdef{These ports for a given \portvar{tag} receive data from a set of
+ *   sources, likely made by the \ref distribute_process. Data is collected in
+ *   sorted ordef of the \type{group} name, combined with the next value from
+ *   the \type{color} port and sent out the \type{res} port for the
+ *   \portvar{tag}.}
+ * </dl>
+ */
+
 collate_process
 ::collate_process(config_t const& config)
   : process(config)

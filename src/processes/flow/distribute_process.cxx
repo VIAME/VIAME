@@ -62,6 +62,49 @@ process::port_t const distribute_process::priv::port_src_prefix = port_t("src") 
 process::port_t const distribute_process::priv::port_color_prefix = port_t("color") + src_sep;
 process::port_t const distribute_process::priv::port_dist_prefix = port_t("dist") + src_sep;
 
+/**
+ * \internal
+ *
+ * Ports on the \ref distribute_process are broken down as follows:
+ *
+ *   \portvar{type}/\portvar{tag}[/\portvar{group}]
+ *
+ * The port name is broken down as follows:
+ *
+ * <dl>
+ * \term{\portvar{type}}
+ *   \termdef{The type of the port. This must be one of \type{src},
+ *   \type{color}, or \type{dist}.}
+ * \term{\portvar{tag}}
+ *   \termdef{The name of the stream the port is associated with.}
+ * \term{\portvar{group}}
+ *   \termdef{Only required for \type{dist}-type ports. Data from the same
+ *   \portvar{tag} stream from its \type{src} port is distributed in sorted
+ *   order over all of the \type{dist} ports. Ports which share the same
+ *   \portvar{group} name will share a common stamp stream. Each \portvar{group}
+ *   will receive different colorings on the stamps to avoid mixing data.}
+ * </dl>
+ *
+ * The available port types are:
+ *
+ * <dl>
+ * \term{\type{color}}
+ *   \termdef{This is the trigger port for the associated tagged stream. When
+ *   this port for the given tag is connected to, the \type{src} and \type{dist}
+ *   ports for the tag will not cause errors. The stamp on the port represents
+ *   the original stamps coming in the \type{src} port for the tag.}
+ * \term{\type{src}}
+ *   \termdef{This port for the given tag is where the original stream comes
+ *   into the process. The stamp is stripped off and sent down the corresponding
+ *   \type{color} port while the data is distributed among the \type{dist}
+ *   ports in distinct colored streams.}
+ * \term{\type{dist}}
+ *   \termdef{These ports for a given \portvar{tag} receive a subset of the data
+ *   from the corresponding \type{src} port. They are used in sorted order of
+ *   the \type{group} name.}
+ * </dl>
+ */
+
 distribute_process
 ::distribute_process(config_t const& config)
   : process(config)
