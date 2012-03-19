@@ -108,12 +108,6 @@ else (WIN32)
       set(CMAKE_CXX_FLAGS_DEBUG
         "${CMAKE_CXX_FLAGS_DEBUG} -fcatch-undefined-behavior")
     endif (VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
-
-    option(VISTK_ENABLE_CLANG_ANALYZER "Use clang's static analysis tool")
-    if (VISTK_ENABLE_CLANG_ANALYZER)
-      set(CMAKE_CXX_FLAGS_DEBUG
-        "${CMAKE_CXX_FLAGS_DEBUG} --analyze")
-    endif (VISTK_ENABLE_CLANG_ANALYZER)
   elseif (CMAKE_CXX_COMPILER MATCHES "g\\+\\+")
     # GCC-specific warnings
     set(vistk_warnings
