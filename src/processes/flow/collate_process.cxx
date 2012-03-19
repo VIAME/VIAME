@@ -33,16 +33,18 @@ class collate_process::priv
     priv();
     ~priv();
 
+    typedef port_t tag_t;
+
     struct tag_info
     {
       ports_t ports;
       ports_t::const_iterator cur_port;
     };
-    typedef std::map<port_t, tag_info> tag_data_t;
+    typedef std::map<tag_t, tag_info> tag_data_t;
 
     tag_data_t tag_data;
 
-    port_t tag_for_coll_port(port_t const& port) const;
+    tag_t tag_for_coll_port(port_t const& port) const;
 
     static port_t const res_sep;
     static port_t const port_res_prefix;
@@ -119,7 +121,7 @@ collate_process
 {
   BOOST_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
   {
-    port_t const& tag = tag_data.first;
+    priv::tag_t const& tag = tag_data.first;
     priv::tag_info& info = tag_data.second;
     ports_t const& ports = info.ports;
 
@@ -143,7 +145,7 @@ collate_process
 
   BOOST_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
   {
-    port_t const& tag = tag_data.first;
+    priv::tag_t const& tag = tag_data.first;
     port_t const output_port = priv::port_res_prefix + tag;
     port_t const color_port = priv::port_color_prefix + tag;
     priv::tag_info& info = tag_data.second;
@@ -209,7 +211,7 @@ collate_process
 {
   if (boost::starts_with(port, priv::port_color_prefix))
   {
-    port_t const tag = port.substr(priv::port_color_prefix.size());
+    priv::tag_t const tag = port.substr(priv::port_color_prefix.size());
 
     priv::tag_data_t::const_iterator const i = d->tag_data.find(tag);
 
@@ -234,7 +236,7 @@ collate_process
     }
   }
 
-  port_t const tag = d->tag_for_coll_port(port);
+  priv::tag_t const tag = d->tag_for_coll_port(port);
 
   if (!tag.empty())
   {
@@ -265,7 +267,7 @@ collate_process::priv
 {
 }
 
-process::port_t
+collate_process::priv::tag_t
 collate_process::priv
 ::tag_for_coll_port(port_t const& port) const
 {
@@ -275,7 +277,7 @@ collate_process::priv
 
     BOOST_FOREACH (priv::tag_data_t::value_type const& data, tag_data)
     {
-      port_t const& tag = data.first;
+      tag_t const& tag = data.first;
       port_t const tag_prefix = tag + priv::res_sep;
 
       if (boost::starts_with(no_prefix, tag_prefix))
@@ -285,7 +287,7 @@ collate_process::priv
     }
   }
 
-  return port_t();
+  return tag_t();
 }
 
 }
