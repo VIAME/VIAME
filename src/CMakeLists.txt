@@ -31,9 +31,6 @@ function (add_vistk_plugin name define)
   endif (NOT ${no_install_plugin})
 endfunction (add_vistk_plugin name define)
 
-if (VISTK_ENABLE_PYTHON)
-  add_subdirectory(python)
-endif (VISTK_ENABLE_PYTHON)
-
+add_subdirectory(bindings)
 add_subdirectory(processes)
 add_subdirectory(schedules)
