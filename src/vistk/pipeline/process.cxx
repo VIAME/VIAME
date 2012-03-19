@@ -13,6 +13,7 @@
 #include "stamp.h"
 #include "types.h"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
@@ -39,7 +40,7 @@ config::key_t const process::config_type = config::key_t("_type");
 process::port_type_t const process::type_any = port_type_t("_any");
 process::port_type_t const process::type_none = port_type_t("_none");
 process::port_type_t const process::type_data_dependent = port_type_t("_data_dependent");
-process::port_type_t const process::type_flow_dependent = port_type_t("_flow_dependent");
+process::port_type_t const process::type_flow_dependent = port_type_t("_flow_dependent/");
 process::port_flag_t const process::flag_output_const = port_flag_t("_const");
 process::port_flag_t const process::flag_input_mutable = port_flag_t("_mutable");
 process::port_flag_t const process::flag_input_nodep = port_flag_t("_nodep");
@@ -112,6 +113,13 @@ class process::priv
     typedef std::map<port_t, edge_t> input_edge_map_t;
     typedef std::map<port_t, edges_t> output_edge_map_t;
 
+    typedef port_t tag_t;
+
+    typedef boost::optional<port_type_t> flow_tag_port_type_t;
+    typedef std::map<tag_t, flow_tag_port_type_t> flow_tag_port_type_map_t;
+
+    typedef std::map<tag_t, ports_t> flow_tag_port_map_t;
+
     port_map_t input_ports;
     port_map_t output_ports;
 
@@ -124,6 +132,10 @@ class process::priv
 
     ports_t required_inputs;
     ports_t required_outputs;
+
+    flow_tag_port_type_map_t flow_tag_port_types;
+    flow_tag_port_map_t input_flow_tag_ports;
+    flow_tag_port_map_t output_flow_tag_ports;
 
     bool initialized;
     bool is_complete;
@@ -464,11 +476,50 @@ process
 ::_set_input_port_type(port_t const& port, port_type_t const& new_type)
 {
   port_info_t const info = input_port_info(port);
+  port_type_t const& old_type = info->type;
 
-  if ((info->type != type_data_dependent) &&
-      (info->type != type_flow_dependent))
+  if (old_type == new_type)
   {
-    throw static_type_reset_exception(name(), port, info->type, new_type);
+    return true;
+  }
+
+  bool const is_flow_dependent = boost::starts_with(old_type, type_flow_dependent);
+
+  if ((old_type != type_data_dependent) && !is_flow_dependent)
+  {
+    throw static_type_reset_exception(name(), port, old_type, new_type);
+  }
+
+  if (is_flow_dependent)
+  {
+    priv::tag_t const tag = old_type.substr(type_flow_dependent.size());
+
+    if (!tag.empty())
+    {
+      ports_t const& iports = d->input_flow_tag_ports[tag];
+
+      BOOST_FOREACH (port_t const& iport, iports)
+      {
+        declare_input_port(iport, boost::make_shared<port_info>(
+          new_type,
+          info->flags,
+          info->description));
+      }
+
+      ports_t const& oports = d->output_flow_tag_ports[tag];
+
+      BOOST_FOREACH (port_t const& oport, oports)
+      {
+        declare_output_port(oport, boost::make_shared<port_info>(
+          new_type,
+          info->flags,
+          info->description));
+      }
+
+      d->flow_tag_port_types[tag] = new_type;
+
+      return true;
+    }
   }
 
   declare_input_port(port, boost::make_shared<port_info>(
@@ -484,11 +535,50 @@ process
 ::_set_output_port_type(port_t const& port, port_type_t const& new_type)
 {
   port_info_t const info = output_port_info(port);
+  port_type_t const& old_type = info->type;
 
-  if ((info->type != type_data_dependent) &&
-      (info->type != type_flow_dependent))
+  if (old_type == new_type)
   {
-    throw static_type_reset_exception(name(), port, info->type, new_type);
+    return true;
+  }
+
+  bool const is_flow_dependent = boost::starts_with(old_type, type_flow_dependent);
+
+  if ((old_type != type_data_dependent) && !is_flow_dependent)
+  {
+    throw static_type_reset_exception(name(), port, old_type, new_type);
+  }
+
+  if (is_flow_dependent)
+  {
+    priv::tag_t const tag = old_type.substr(type_flow_dependent.size());
+
+    if (!tag.empty())
+    {
+      ports_t const& iports = d->input_flow_tag_ports[tag];
+
+      BOOST_FOREACH (port_t const& iport, iports)
+      {
+        declare_input_port(iport, boost::make_shared<port_info>(
+          new_type,
+          info->flags,
+          info->description));
+      }
+
+      ports_t const& oports = d->output_flow_tag_ports[tag];
+
+      BOOST_FOREACH (port_t const& oport, oports)
+      {
+        declare_output_port(oport, boost::make_shared<port_info>(
+          new_type,
+          info->flags,
+          info->description));
+      }
+
+      d->flow_tag_port_types[tag] = new_type;
+
+      return true;
+    }
   }
 
   declare_output_port(port, boost::make_shared<port_info>(
@@ -529,6 +619,30 @@ process
     throw null_input_port_info_exception(d->name, port);
   }
 
+  port_type_t const& port_type = info->type;
+
+  if (boost::starts_with(port_type, type_flow_dependent))
+  {
+    priv::tag_t const tag = port_type.substr(type_flow_dependent.size());
+
+    if (!tag.empty())
+    {
+      d->input_flow_tag_ports[tag].push_back(port);
+
+      if (d->flow_tag_port_types[tag])
+      {
+        port_type_t const& tag_type = *d->flow_tag_port_types[tag];
+
+        declare_input_port(port, boost::make_shared<port_info>(
+          tag_type,
+          info->flags,
+          info->description));
+
+        return;
+      }
+    }
+  }
+
   d->input_ports[port] = info;
 
   port_flags_t const& flags = info->flags;
@@ -547,6 +661,30 @@ process
   if (!info)
   {
     throw null_output_port_info_exception(d->name, port);
+  }
+
+  port_type_t const& port_type = info->type;
+
+  if (boost::starts_with(port_type, type_flow_dependent))
+  {
+    priv::tag_t const tag = port_type.substr(type_flow_dependent.size());
+
+    if (!tag.empty())
+    {
+      d->output_flow_tag_ports[tag].push_back(port);
+
+      if (d->flow_tag_port_types[tag])
+      {
+        port_type_t const& tag_type = *d->flow_tag_port_types[tag];
+
+        declare_output_port(port, boost::make_shared<port_info>(
+          tag_type,
+          info->flags,
+          info->description));
+
+        return;
+      }
+    }
   }
 
   d->output_ports[port] = info;
