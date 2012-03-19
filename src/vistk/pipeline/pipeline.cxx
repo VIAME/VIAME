@@ -12,6 +12,7 @@
 
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
@@ -231,8 +232,8 @@ pipeline
     d->data_dep_ports.push_back(up_port);
   }
 
-  bool const up_flow_dep = (up_type == process::type_flow_dependent);
-  bool const down_flow_dep = (down_type == process::type_flow_dependent);
+  bool const up_flow_dep = boost::starts_with(up_type, process::type_flow_dependent);
+  bool const down_flow_dep = boost::starts_with(down_type, process::type_flow_dependent);
 
   if ((up_data_dep || up_flow_dep) && down_flow_dep)
   {
@@ -912,7 +913,7 @@ pipeline::priv
         process::port_type_t const& type = info->type;
 
         bool const data_dep = (type == process::type_data_dependent);
-        bool const flow_dep = (type == process::type_flow_dependent);
+        bool const flow_dep = boost::starts_with(type, process::type_flow_dependent);
 
         if (!data_dep && !flow_dep)
         {
@@ -950,7 +951,7 @@ pipeline::priv
         process::port_info_t const info = proc->output_port_info(upstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const flow_dep = (type == process::type_flow_dependent);
+        bool const flow_dep = boost::starts_with(type, process::type_flow_dependent);
 
         if (!flow_dep)
         {
