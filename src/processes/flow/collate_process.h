@@ -27,29 +27,30 @@ namespace vistk
  *
  * \brief A process which collating input data from multiple input edges.
  *
- * \note Edges for a \portvar{res} may \em only be connected after the
- * \port{color/\portvar{res}} is connected to. Before this connection happens,
+ * \note Edges for a \portvar{tag} may \em only be connected after the
+ * \port{color/\portvar{tag}} is connected to. Before this connection happens,
  * the other ports to not exist and will cause errors. In short: The first
- * connection for any \portvar{res} must be \port{color/\portvar{res}}.
+ * connection for any \portvar{tag} must be \port{color/\portvar{tag}}.
  *
  * \process A process for collating data from multiple sources.
  *
  * \iports
  *
- * \iport{color/\portvar{res}} The color of the result \portvar{res}.
- * \iport{coll/\portvar{res}/\portvar{any}} A port to collate data for
- *                                          \portvar{res} from. Data is collated
- *                                          from ports in ASCII-betical order.
+ * \iport{color/\portvar{tag}} The color of the result \portvar{tag}.
+ * \iport{coll/\portvar{tag}/\portvar{group}} A port to collate data for
+ *                                            \portvar{tag} from. Data is
+ *                                            collated from ports in
+ *                                            ASCII-betical order.
  *
  * \oports
  *
- * \oport{res_\portvar{res}} The collated result \portvar{res}.
+ * \oport{res_\portvar{tag}} The collated result \portvar{tag}.
  *
  * \reqs
  *
- * \req Each input port \port{color/\portvar{res}} must be connected.
- * \req Each \portvar{res} must have at least two inputs to collate.
- * \req Each output port \port{res/\portvar{res}} must be connected.
+ * \req Each input port \port{color/\portvar{tag}} must be connected.
+ * \req Each \portvar{tag} must have at least two inputs to collate.
+ * \req Each output port \port{res/\portvar{tag}} must be connected.
  *
  * \todo Add configuration to allow forcing a number of inputs for a result.
  * \todo Add configuration to allow same number of sources for all results.

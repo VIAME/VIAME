@@ -33,16 +33,16 @@ class collate_process::priv
     priv();
     ~priv();
 
-    struct coll_info
+    struct tag_info
     {
-      ports_t coll_ports;
+      ports_t ports;
       ports_t::const_iterator cur_port;
     };
-    typedef std::map<port_t, coll_info> coll_data_t;
+    typedef std::map<port_t, tag_info> tag_data_t;
 
-    coll_data_t coll_data;
+    tag_data_t tag_data;
 
-    port_t res_for_coll_port(port_t const& port) const;
+    port_t tag_for_coll_port(port_t const& port) const;
 
     static port_t const res_sep;
     static port_t const port_res_prefix;
@@ -74,15 +74,16 @@ void
 collate_process
 ::_init()
 {
-  BOOST_FOREACH (priv::coll_data_t::value_type& coll_data, d->coll_data)
+  BOOST_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
   {
-    priv::coll_info& info = coll_data.second;
-    ports_t const& ports = info.coll_ports;
+    port_t const& tag = tag_data.first;
+    priv::tag_info& info = tag_data.second;
+    ports_t const& ports = info.ports;
 
     if (ports.size() < 2)
     {
       std::string const reason = "There must be at least two ports to collate "
-                                 "to for the " + coll_data.first + " result data";
+                                 "to for the \"" + tag + "\" result data";
 
       throw invalid_configuration_exception(name(), reason);
     }
@@ -97,20 +98,21 @@ collate_process
 {
   ports_t complete_ports;
 
-  BOOST_FOREACH (priv::coll_data_t::value_type& coll_data, d->coll_data)
+  BOOST_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
   {
-    port_t const output_port = priv::port_res_prefix + coll_data.first;
-    port_t const color_port = priv::port_color_prefix + coll_data.first;
-    priv::coll_info& info = coll_data.second;
+    port_t const& tag = tag_data.first;
+    port_t const output_port = priv::port_res_prefix + tag;
+    port_t const color_port = priv::port_color_prefix + tag;
+    priv::tag_info& info = tag_data.second;
 
     edge_datum_t const coll_dat = grab_from_port(*info.cur_port);
     stamp_t const coll_stamp = coll_dat.get<1>();
 
     ++info.cur_port;
 
-    if (info.cur_port == info.coll_ports.end())
+    if (info.cur_port == info.ports.end())
     {
-      info.cur_port = info.coll_ports.begin();
+      info.cur_port = info.ports.begin();
     }
 
     edge_datum_t const color_dat = grab_from_port(color_port);
@@ -125,7 +127,7 @@ collate_process
     {
       push_to_port(output_port, edge_datum_t(datum::complete_datum(), color_stamp));
 
-      complete_ports.push_back(coll_data.first);
+      complete_ports.push_back(tag_data.first);
 
       continue;
     }
@@ -138,10 +140,10 @@ collate_process
 
   BOOST_FOREACH (port_t const& port, complete_ports)
   {
-    d->coll_data.erase(port);
+    d->tag_data.erase(port);
   }
 
-  if (d->coll_data.empty())
+  if (d->tag_data.empty())
   {
     mark_process_as_complete();
   }
@@ -164,13 +166,15 @@ collate_process
 {
   if (boost::starts_with(port, priv::port_color_prefix))
   {
-    port_t const res_name = port.substr(priv::port_color_prefix.size());
+    port_t const tag = port.substr(priv::port_color_prefix.size());
 
-    priv::coll_data_t::const_iterator const i = d->coll_data.find(res_name);
+    priv::tag_data_t::const_iterator const i = d->tag_data.find(tag);
 
-    if (i == d->coll_data.end())
+    if (i == d->tag_data.end())
     {
-      d->coll_data[res_name] = priv::coll_info();
+      priv::tag_info info;
+
+      d->tag_data[tag] = info;
 
       port_flags_t required;
 
@@ -179,19 +183,21 @@ collate_process
       declare_input_port(port, boost::make_shared<port_info>(
         type_none,
         required,
-        port_description_t("The original color for the result " + res_name + ".")));
-      declare_output_port(priv::port_res_prefix + res_name, boost::make_shared<port_info>(
+        port_description_t("The original color for the result " + tag + ".")));
+      declare_output_port(priv::port_res_prefix + tag, boost::make_shared<port_info>(
         type_any,
         required,
-        port_description_t("The output port for " + res_name + ".")));
+        port_description_t("The output port for " + tag + ".")));
     }
   }
 
-  port_t const res_for_dist = d->res_for_coll_port(port);
+  port_t const tag = d->tag_for_coll_port(port);
 
-  if (!res_for_dist.empty())
+  if (!tag.empty())
   {
-    d->coll_data[res_for_dist].coll_ports.push_back(port);
+    priv::tag_info& info = d->tag_data[tag];
+
+    info.ports.push_back(port);
 
     port_flags_t required;
 
@@ -200,7 +206,7 @@ collate_process
     declare_input_port(port, boost::make_shared<port_info>(
       type_any,
       required,
-      port_description_t("An input for the " + res_for_dist + " data.")));
+      port_description_t("An input for the " + tag + " data.")));
   }
 
   return process::_input_port_info(port);
@@ -218,19 +224,20 @@ collate_process::priv
 
 process::port_t
 collate_process::priv
-::res_for_coll_port(port_t const& port) const
+::tag_for_coll_port(port_t const& port) const
 {
   if (boost::starts_with(port, priv::port_coll_prefix))
   {
     port_t const no_prefix = port.substr(priv::port_coll_prefix.size());
 
-    BOOST_FOREACH (priv::coll_data_t::value_type const& data, coll_data)
+    BOOST_FOREACH (priv::tag_data_t::value_type const& data, tag_data)
     {
-      port_t const res_prefix = data.first + priv::res_sep;
+      port_t const& tag = data.first;
+      port_t const tag_prefix = tag + priv::res_sep;
 
-      if (boost::starts_with(no_prefix, res_prefix))
+      if (boost::starts_with(no_prefix, tag_prefix))
       {
-        return data.first;
+        return tag;
       }
     }
   }

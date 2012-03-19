@@ -27,30 +27,30 @@ namespace vistk
  *
  * \brief A process which distributes input data along multiple output edges.
  *
- * \note Edges for a \portvar{src} may \em only be connected after the
- * \port{color/\portvar{src}} is connected to. Before this connection happens,
+ * \note Edges for a \portvar{tag} may \em only be connected after the
+ * \port{color/\portvar{tag}} is connected to. Before this connection happens,
  * the other ports to not exist and will cause errors. In short: The first
- * connection for any \portvar{src} must be \port{color/\portvar{src}}.
+ * connection for any \portvar{tag} must be \port{color/\portvar{tag}}.
  *
- * \note Ports sharing the same \port{\portvar{any}} string will use the same
+ * \note Ports sharing the same \port{\portvar{group}} string will use the same
  * coloring.
  *
  * \process A process for generating numbers.
  *
  * \iports
  *
- * \iport{src/\portvar{src}} The source input \portvar{src}.
+ * \iport{src/\portvar{tag}} The source input \portvar{tag}.
  *
  * \oports
  *
- * \oport{color/\portvar{src}} The color of the input \portvar{src}.
- * \oport{dist/\portvar{src}/\portvar{any}} A port to distribute the input
- *                                          \portvar{src} to. Data is
- *                                          distributed in ASCII-betical order.
+ * \oport{color/\portvar{tag}} The color of the input \portvar{tag}.
+ * \oport{dist/\portvar{tag}/\portvar{group}} A port to distribute the input
+ *                                            \portvar{tag} to. Data is
+ *                                            distributed in ASCII-betical order.
  *
  * \reqs
  *
- * \req Each input port \port{src/\portvar{src}} must be connected.
+ * \req Each input port \port{src/\portvar{tag}} must be connected.
  * \req Each output port \port{color/\portvar{res}} must be connected.
  * \req Each \portvar{res} must have at least two outputs to distribute to.
  *

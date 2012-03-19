@@ -33,21 +33,23 @@ class distribute_process::priv
     priv();
     ~priv();
 
-    typedef std::map<port_t, stamp_t> colors_t;
-    typedef std::map<port_t, stamp_t> dist_ports_t;
-    struct dist_info
+    typedef std::map<port_t, stamp_t> group_colors_t;
+    typedef std::map<port_t, stamp_t> tag_ports_t;
+    struct tag_info
     {
-      dist_ports_t dist_ports;
-      dist_ports_t::const_iterator cur_port;
+      tag_ports_t ports;
+      tag_ports_t::const_iterator cur_port;
     };
-    typedef std::map<port_t, dist_info> dist_data_t;
+    typedef std::map<port_t, tag_info> tag_data_t;
 
-    dist_data_t dist_data;
-    colors_t any_colors;
+    tag_data_t tag_data;
+    group_colors_t group_colors;
 
-    port_t src_for_dist_port(port_t const& port) const;
-    process::port_t any_for_dist_port(port_t const& port) const;
-    stamp_t color_for_any(port_t const& port);
+    // Port name break down.
+    port_t tag_for_dist_port(port_t const& port) const;
+    port_t group_for_dist_port(port_t const& port) const;
+
+    stamp_t color_for_group(port_t const& group);
 
     static port_t const src_sep;
     static port_t const port_src_prefix;
@@ -79,15 +81,17 @@ void
 distribute_process
 ::_init()
 {
-  BOOST_FOREACH (priv::dist_data_t::value_type& dist_data, d->dist_data)
+  BOOST_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
   {
-    priv::dist_info& info = dist_data.second;
-    priv::dist_ports_t const& ports = info.dist_ports;
+    port_t const& tag = tag_data.first;
+    priv::tag_info& info = tag_data.second;
+    priv::tag_ports_t const& ports = info.ports;
 
+    // Ensure that the extra process is actually doing work.
     if (ports.size() < 2)
     {
       std::string const reason = "There must be at least two ports to distribute "
-                                 "to for the " + dist_data.first + " source data";
+                                 "to for the \"" + tag + "\" source data";
 
       throw invalid_configuration_exception(name(), reason);
     }
@@ -102,11 +106,12 @@ distribute_process
 {
   ports_t complete_ports;
 
-  BOOST_FOREACH (priv::dist_data_t::value_type& dist_data, d->dist_data)
+  BOOST_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
   {
-    port_t const input_port = priv::port_src_prefix + dist_data.first;
-    port_t const color_port = priv::port_color_prefix + dist_data.first;
-    priv::dist_info& info = dist_data.second;
+    port_t const& tag = tag_data.first;
+    port_t const input_port = priv::port_src_prefix + tag;
+    port_t const color_port = priv::port_color_prefix + tag;
+    priv::tag_info& info = tag_data.second;
 
     edge_datum_t const src_dat = grab_from_port(input_port);
     stamp_t const src_stamp = src_dat.get<1>();
@@ -115,14 +120,16 @@ distribute_process
     {
       push_to_port(color_port, edge_datum_t(datum::complete_datum(), src_stamp));
 
-      BOOST_FOREACH (priv::dist_ports_t::value_type const& port, info.dist_ports)
+      BOOST_FOREACH (priv::tag_ports_t::value_type const& tag_port, info.ports)
       {
-        stamp_t const dist_stamp = stamp::recolored_stamp(src_stamp, port.second);
+        port_t const& dist_port = tag_port.first;
+        stamp_t const& group_stamp = tag_port.second;
+        stamp_t const dist_stamp = stamp::recolored_stamp(src_stamp, group_stamp);
 
-        push_to_port(port.first, edge_datum_t(datum::complete_datum(), dist_stamp));
+        push_to_port(dist_port, edge_datum_t(datum::complete_datum(), dist_stamp));
       }
 
-      complete_ports.push_back(dist_data.first);
+      complete_ports.push_back(tag);
 
       continue;
     }
@@ -136,18 +143,18 @@ distribute_process
 
     ++info.cur_port;
 
-    if (info.cur_port == info.dist_ports.end())
+    if (info.cur_port == info.ports.end())
     {
-      info.cur_port = info.dist_ports.begin();
+      info.cur_port = info.ports.begin();
     }
   }
 
   BOOST_FOREACH (port_t const& port, complete_ports)
   {
-    d->dist_data.erase(port);
+    d->tag_data.erase(port);
   }
 
-  if (d->dist_data.empty())
+  if (d->tag_data.empty())
   {
     mark_process_as_complete();
   }
@@ -170,38 +177,39 @@ distribute_process
 {
   if (boost::starts_with(port, priv::port_color_prefix))
   {
-    port_t const src_name = port.substr(priv::port_color_prefix.size());
+    port_t const tag = port.substr(priv::port_color_prefix.size());
 
-    priv::dist_data_t::const_iterator const i = d->dist_data.find(src_name);
+    priv::tag_data_t::const_iterator const i = d->tag_data.find(tag);
 
-    if (i == d->dist_data.end())
+    if (i == d->tag_data.end())
     {
-      priv::dist_info info;
+      priv::tag_info info;
 
-      d->dist_data[src_name] = info;
+      d->tag_data[tag] = info;
 
       port_flags_t required;
 
       required.insert(flag_required);
 
-      declare_input_port(priv::port_src_prefix + src_name, boost::make_shared<port_info>(
+      declare_input_port(priv::port_src_prefix + tag, boost::make_shared<port_info>(
         type_any,
         required,
-        port_description_t("The input port for " + src_name + ".")));
+        port_description_t("The input port for " + tag + ".")));
       declare_output_port(port, boost::make_shared<port_info>(
         type_none,
         required,
-        port_description_t("The original color for the input " + src_name + ".")));
+        port_description_t("The original color for the input " + tag + ".")));
     }
   }
 
-  port_t const src_for_dist = d->src_for_dist_port(port);
+  port_t const tag = d->tag_for_dist_port(port);
 
-  if (!src_for_dist.empty())
+  if (!tag.empty())
   {
-    port_t const any_for_dist = d->any_for_dist_port(port);
+    port_t const group = d->group_for_dist_port(port);
+    priv::tag_info& info = d->tag_data[tag];
 
-    d->dist_data[src_for_dist].dist_ports[port] = d->color_for_any(any_for_dist);
+    info.ports[port] = d->color_for_group(group);
 
     port_flags_t required;
 
@@ -210,7 +218,7 @@ distribute_process
     declare_output_port(port, boost::make_shared<port_info>(
       type_any,
       required,
-      port_description_t("An output for the " + src_for_dist + " data.")));
+      port_description_t("An output for the " + tag + " data.")));
   }
 
   return process::_output_port_info(port);
@@ -228,19 +236,20 @@ distribute_process::priv
 
 process::port_t
 distribute_process::priv
-::src_for_dist_port(port_t const& port) const
+::tag_for_dist_port(port_t const& port) const
 {
   if (boost::starts_with(port, priv::port_dist_prefix))
   {
     port_t const no_prefix = port.substr(priv::port_dist_prefix.size());
 
-    BOOST_FOREACH (priv::dist_data_t::value_type const& data, dist_data)
+    BOOST_FOREACH (priv::tag_data_t::value_type const& data, tag_data)
     {
-      port_t const src_prefix = data.first + priv::src_sep;
+      port_t const& tag = data.first;
+      port_t const tag_prefix = tag + priv::src_sep;
 
-      if (boost::starts_with(no_prefix, src_prefix))
+      if (boost::starts_with(no_prefix, tag_prefix))
       {
-        return data.first;
+        return tag;
       }
     }
   }
@@ -250,21 +259,22 @@ distribute_process::priv
 
 process::port_t
 distribute_process::priv
-::any_for_dist_port(port_t const& port) const
+::group_for_dist_port(port_t const& port) const
 {
   if (boost::starts_with(port, priv::port_dist_prefix))
   {
     port_t const no_prefix = port.substr(priv::port_dist_prefix.size());
 
-    BOOST_FOREACH (priv::dist_data_t::value_type const& data, dist_data)
+    BOOST_FOREACH (priv::tag_data_t::value_type const& data, tag_data)
     {
-      port_t const src_prefix = data.first + priv::src_sep;
+      port_t const& tag = data.first;
+      port_t const tag_prefix = tag + priv::src_sep;
 
-      if (boost::starts_with(no_prefix, src_prefix))
+      if (boost::starts_with(no_prefix, tag_prefix))
       {
-        port_t const any_part = no_prefix.substr(src_prefix.size());
+        port_t const group = no_prefix.substr(tag_prefix.size());
 
-        return any_part;
+        return group;
       }
     }
   }
@@ -274,16 +284,16 @@ distribute_process::priv
 
 stamp_t
 distribute_process::priv
-::color_for_any(port_t const& port)
+::color_for_group(port_t const& group)
 {
-  colors_t::const_iterator const i = any_colors.find(port);
+  group_colors_t::const_iterator const i = group_colors.find(group);
 
-  if (i == any_colors.end())
+  if (i == group_colors.end())
   {
-    any_colors[port] = stamp::new_stamp();
+    group_colors[group] = stamp::new_stamp();
   }
 
-  return any_colors[port];
+  return group_colors[group];
 }
 
 }
