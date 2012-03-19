@@ -11,7 +11,8 @@ set(examples_srcs
   orphan_process.cxx
   print_number_process.cxx
   print_string_process.cxx
-  registration.cxx)
+  registration.cxx
+  tagged_flow_dependent_process.cxx)
 
 set_source_files_properties(print_number_process.cxx
   PROPERTIES

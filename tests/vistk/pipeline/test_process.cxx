@@ -54,6 +54,8 @@ static void test_null_output_edge();
 static void test_connect_after_init();
 static void test_reinit();
 static void test_step_before_init();
+static void test_set_tagged_flow_dependent_port();
+static void test_set_untagged_flow_dependent_port();
 static void test_null_config();
 static void test_null_input_port_info();
 static void test_null_output_port_info();
@@ -81,6 +83,14 @@ run_test(std::string const& test_name)
   else if (test_name == "step_before_init")
   {
     test_step_before_init();
+  }
+  else if (test_name == "set_tagged_flow_dependent_port")
+  {
+    test_set_tagged_flow_dependent_port();
+  }
+  else if (test_name == "set_untagged_flow_dependent_port")
+  {
+    test_set_untagged_flow_dependent_port();
   }
   else if (test_name == "null_config")
   {
@@ -180,6 +190,107 @@ test_step_before_init()
   EXPECT_EXCEPTION(vistk::uninitialized_exception,
                    process->step(),
                    "stepping before initialization");
+}
+
+void
+test_set_tagged_flow_dependent_port()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("tagged_flow_dependent");
+
+  vistk::process::port_t const iport_name = vistk::process::port_t("tagged_input");
+  vistk::process::port_t const oport_name = vistk::process::port_t("tagged_output");
+
+  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+
+  vistk::process_t const input_process = create_process(proc_type, vistk::process::name_t());
+
+  if (!input_process->set_input_port_type(iport_name, port_type))
+  {
+    TEST_ERROR("Could not set the input port type");
+  }
+
+  vistk::process::port_info_t const iiinfo = input_process->input_port_info(iport_name);
+  vistk::process::port_info_t const ioinfo = input_process->output_port_info(oport_name);
+
+  if (iiinfo->type != port_type)
+  {
+    TEST_ERROR("Setting the input port type is not reflected in port info");
+  }
+
+  if (ioinfo->type != port_type)
+  {
+    TEST_ERROR("Setting the input port type did not also set the output port info");
+  }
+
+  vistk::process_t const output_process = create_process(proc_type, vistk::process::name_t());
+
+  if (!output_process->set_output_port_type(oport_name, port_type))
+  {
+    TEST_ERROR("Could not set the output port type");
+  }
+
+  vistk::process::port_info_t const oiinfo = output_process->input_port_info(iport_name);
+  vistk::process::port_info_t const ooinfo = output_process->output_port_info(oport_name);
+
+  if (ooinfo->type != port_type)
+  {
+    TEST_ERROR("Setting the output port type is not reflected in port info");
+  }
+
+  if (oiinfo->type != port_type)
+  {
+    TEST_ERROR("Setting the output port type did not also set the input port info");
+  }
+}
+
+void
+test_set_untagged_flow_dependent_port()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("tagged_flow_dependent");
+
+  vistk::process::port_t const iport_name = vistk::process::port_t("untagged_input");
+  vistk::process::port_t const oport_name = vistk::process::port_t("untagged_output");
+
+  vistk::process::port_type_t const iport_type = vistk::process::port_type_t("itype");
+  vistk::process::port_type_t const oport_type = vistk::process::port_type_t("otype");
+
+  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+
+  if (!process->set_input_port_type(iport_name, iport_type))
+  {
+    TEST_ERROR("Could not set the input port type");
+  }
+
+  vistk::process::port_info_t const iiinfo = process->input_port_info(iport_name);
+  vistk::process::port_info_t const ioinfo = process->output_port_info(oport_name);
+
+  if (iiinfo->type != iport_type)
+  {
+    TEST_ERROR("Setting the input port type is not reflected in port info");
+  }
+
+  if (ioinfo->type == iport_type)
+  {
+    TEST_ERROR("Setting the input port type set the output port info");
+  }
+
+  if (!process->set_output_port_type(oport_name, oport_type))
+  {
+    TEST_ERROR("Could not set the output port type");
+  }
+
+  vistk::process::port_info_t const oiinfo = process->input_port_info(iport_name);
+  vistk::process::port_info_t const ooinfo = process->output_port_info(oport_name);
+
+  if (ooinfo->type != oport_type)
+  {
+    TEST_ERROR("Setting the output port type is not reflected in port info");
+  }
+
+  if (oiinfo->type == oport_type)
+  {
+    TEST_ERROR("Setting the output port type did not also set the input port info");
+  }
 }
 
 void
