@@ -55,6 +55,7 @@ static void test_connect_after_init();
 static void test_reinit();
 static void test_step_before_init();
 static void test_set_tagged_flow_dependent_port();
+static void test_set_tagged_flow_dependent_port_cascade();
 static void test_set_untagged_flow_dependent_port();
 static void test_null_config();
 static void test_null_input_port_info();
@@ -83,6 +84,10 @@ run_test(std::string const& test_name)
   else if (test_name == "step_before_init")
   {
     test_step_before_init();
+  }
+  else if (test_name == "set_tagged_flow_dependent_port_cascade")
+  {
+    test_set_tagged_flow_dependent_port_cascade();
   }
   else if (test_name == "set_tagged_flow_dependent_port")
   {
@@ -240,6 +245,43 @@ test_set_tagged_flow_dependent_port()
   if (oiinfo->type != port_type)
   {
     TEST_ERROR("Setting the output port type did not also set the input port info");
+  }
+}
+
+void
+test_set_tagged_flow_dependent_port_cascade()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("tagged_flow_dependent");
+
+  vistk::process::port_t const iport_name = vistk::process::port_t("tagged_input");
+  vistk::process::port_t const oport_name = vistk::process::port_t("tagged_output");
+
+  vistk::process::port_type_t const tag_port_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("other_tag");
+  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+
+  vistk::process_t const input_process = create_process(proc_type, vistk::process::name_t());
+
+  if (!input_process->set_input_port_type(iport_name, tag_port_type))
+  {
+    TEST_ERROR("Could not set the input port type");
+  }
+
+  if (!input_process->set_output_port_type(oport_name, port_type))
+  {
+    TEST_ERROR("Could not set the output port type");
+  }
+
+  vistk::process::port_info_t const iinfo = input_process->input_port_info(iport_name);
+  vistk::process::port_info_t const oinfo = input_process->output_port_info(oport_name);
+
+  if (iinfo->type != port_type)
+  {
+    TEST_ERROR("Setting the input port type is not reflected in port info");
+  }
+
+  if (oinfo->type != port_type)
+  {
+    TEST_ERROR("Setting the input port type did not also set the output port info");
   }
 }
 
