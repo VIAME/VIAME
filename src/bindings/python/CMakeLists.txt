@@ -48,10 +48,12 @@ function (add_vistk_python_library name modpath)
         "${module_output}_${upper_config}" "${output_path}/${modpath}")
   endforeach (config)
 
-  install(
-    TARGETS     python-${safe_modpath}-${name}
-    DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
-    COMPONENT   runtime)
+  if (NOT ${no_install_plugin})
+    install(
+      TARGETS     python-${safe_modpath}-${name}
+      DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
+      COMPONENT   runtime)
+  endif (NOT ${no_install_plugin})
 
   add_dependencies(python
     python-${safe_modpath}-${name})
