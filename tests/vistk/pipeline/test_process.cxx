@@ -119,7 +119,7 @@ run_test(std::string const& test_name)
   }
 }
 
-static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name);
+static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t());
 static vistk::process_t create_null_config_process(vistk::config_t const& config);
 static vistk::process_t create_null_input_port_info_process(vistk::config_t const& config);
 static vistk::process_t create_null_output_port_info_process(vistk::config_t const& config);
@@ -130,7 +130,7 @@ test_null_input_edge()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  vistk::process_t const process = create_process(proc_type);
 
   vistk::edge_t const edge;
 
@@ -144,7 +144,7 @@ test_null_output_edge()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  vistk::process_t const process = create_process(proc_type);
 
   vistk::edge_t const edge;
 
@@ -158,7 +158,7 @@ test_connect_after_init()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  vistk::process_t const process = create_process(proc_type);
 
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -176,7 +176,7 @@ test_reinit()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  vistk::process_t const process = create_process(proc_type);
 
   process->init();
 
@@ -190,7 +190,7 @@ test_step_before_init()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  vistk::process_t const process = create_process(proc_type);
 
   EXPECT_EXCEPTION(vistk::uninitialized_exception,
                    process->step(),
@@ -207,7 +207,7 @@ test_set_tagged_flow_dependent_port()
 
   vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
 
-  vistk::process_t const input_process = create_process(proc_type, vistk::process::name_t());
+  vistk::process_t const input_process = create_process(proc_type);
 
   if (!input_process->set_input_port_type(iport_name, port_type))
   {
@@ -227,7 +227,7 @@ test_set_tagged_flow_dependent_port()
     TEST_ERROR("Setting the input port type did not also set the output port info");
   }
 
-  vistk::process_t const output_process = create_process(proc_type, vistk::process::name_t());
+  vistk::process_t const output_process = create_process(proc_type);
 
   if (!output_process->set_output_port_type(oport_name, port_type))
   {
@@ -259,7 +259,7 @@ test_set_tagged_flow_dependent_port_cascade()
   vistk::process::port_type_t const tag_port_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("other_tag");
   vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
 
-  vistk::process_t const input_process = create_process(proc_type, vistk::process::name_t());
+  vistk::process_t const input_process = create_process(proc_type);
 
   if (!input_process->set_input_port_type(iport_name, tag_port_type))
   {
@@ -296,7 +296,7 @@ test_set_untagged_flow_dependent_port()
   vistk::process::port_type_t const iport_type = vistk::process::port_type_t("itype");
   vistk::process::port_type_t const oport_type = vistk::process::port_type_t("otype");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  vistk::process_t const process = create_process(proc_type);
 
   if (!process->set_input_port_type(iport_name, iport_type))
   {
