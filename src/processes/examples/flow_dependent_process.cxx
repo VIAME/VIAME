@@ -27,6 +27,8 @@ class flow_dependent_process::priv
 
     bool const reject;
 
+    typedef port_t tag_t;
+
     static config::key_t const config_reject;
     static config::value_t const default_reject;
     static port_t const port_input;
@@ -47,16 +49,17 @@ flow_dependent_process
     config::description_t("Whether to reject type setting requests or not.")));
 
   bool const reject = config_value<bool>(priv::config_reject);
+  priv::tag_t const tag = priv::tag_t("tag");
 
   d.reset(new priv(reject));
 
   declare_input_port(priv::port_input, boost::make_shared<port_info>(
-    type_flow_dependent,
+    type_flow_dependent + tag,
     port_flags_t(),
     port_description_t("An input port with a flow dependent type.")));
 
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
-    type_flow_dependent,
+    type_flow_dependent + tag,
     port_flags_t(),
     port_description_t("An output port with a flow dependent type")));
 }
@@ -84,16 +87,7 @@ flow_dependent_process
     return false;
   }
 
-  bool const res = process::_set_input_port_type(port, new_type);
-
-  if (res)
-  {
-    // Link the input and output types.
-    // Skip checking done in the local override.
-    process::_set_output_port_type(priv::port_output, new_type);
-  }
-
-  return res;
+  return process::_set_input_port_type(port, new_type);
 }
 
 bool
@@ -105,16 +99,7 @@ flow_dependent_process
     return false;
   }
 
-  bool const res = process::_set_output_port_type(port, new_type);
-
-  if (res)
-  {
-    // Link the input and output types.
-    // Skip checking done in the local override.
-    process::_set_input_port_type(priv::port_input, new_type);
-  }
-
-  return res;
+  return process::_set_output_port_type(port, new_type);
 }
 
 flow_dependent_process::priv
