@@ -235,7 +235,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \throws null_edge_port_connection_exception Thrown when \p edge is \c NULL.
      * \throws connect_to_initialized_process_exception Thrown if called after \ref init.
-     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \postconds
      *
@@ -258,7 +258,7 @@ class VISTK_PIPELINE_EXPORT process
      * \endpreconds
      *
      * \throws null_edge_port_connection_exception Thrown when \p edge is \c NULL.
-     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \postconds
      *
@@ -287,7 +287,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Information about an input port on the process.
      *
-     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to return information about.
      *
@@ -297,7 +297,7 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Information about an output port on the process.
      *
-     * \throws no_such_port_exception_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to return information about.
      *
