@@ -368,46 +368,54 @@ object
 pipe_block_visitor
 ::operator () (vistk::config_pipe_block const& config_block) const
 {
+  object obj;
+
   if (block_type == BLOCK_CONFIG)
   {
-    return object(config_block);
+    obj = object(config_block);
   }
 
-  return object();
+  return obj;
 }
 
 object
 pipe_block_visitor
 ::operator () (vistk::process_pipe_block const& process_block) const
 {
+  object obj;
+
   if (block_type == BLOCK_PROCESS)
   {
-    return object(process_block);
+    obj = object(process_block);
   }
 
-  return object();
+  return obj;
 }
 
 object
 pipe_block_visitor
 ::operator () (vistk::connect_pipe_block const& connect_block) const
 {
+  object obj;
+
   if (block_type == BLOCK_CONNECT)
   {
-    return object(connect_block);
+    obj = object(connect_block);
   }
 
-  return object();
+  return obj;
 }
 
 object
 pipe_block_visitor
 ::operator () (vistk::group_pipe_block const& group_block) const
 {
+  object obj;
+
   if (block_type == BLOCK_GROUP)
   {
-    return object(group_block);
+    obj = object(group_block);
   }
 
-  return object();
+  return obj;
 }

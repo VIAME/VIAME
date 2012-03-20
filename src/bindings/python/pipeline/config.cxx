@@ -119,9 +119,11 @@ config_len(vistk::config_t self)
 vistk::config::value_t
 config_getitem(vistk::config_t self, vistk::config::key_t const& key)
 {
+  vistk::config::value_t val;
+
   try
   {
-    return config_get_value(self, key);
+    val = config_get_value(self, key);
   }
   catch (vistk::no_such_configuration_value_exception&)
   {
@@ -133,8 +135,7 @@ config_getitem(vistk::config_t self, vistk::config::key_t const& key)
     throw_error_already_set();
   }
 
-  // Prevent a warning.
-  return vistk::config::value_t();
+  return val;
 }
 
 void
