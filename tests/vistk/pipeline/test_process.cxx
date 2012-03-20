@@ -85,13 +85,13 @@ run_test(std::string const& test_name)
   {
     test_step_before_init();
   }
-  else if (test_name == "set_tagged_flow_dependent_port_cascade")
-  {
-    test_set_tagged_flow_dependent_port_cascade();
-  }
   else if (test_name == "set_tagged_flow_dependent_port")
   {
     test_set_tagged_flow_dependent_port();
+  }
+  else if (test_name == "set_tagged_flow_dependent_port_cascade")
+  {
+    test_set_tagged_flow_dependent_port_cascade();
   }
   else if (test_name == "set_untagged_flow_dependent_port")
   {
