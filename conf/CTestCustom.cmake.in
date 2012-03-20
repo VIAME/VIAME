@@ -9,6 +9,7 @@ SET(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS      500)
 # Files to explicitly exclude from code coverage
 SET(CTEST_CUSTOM_COVERAGE_EXCLUDE
  ${CTEST_CUSTOM_COVERAGE_EXCLUDE}
+ "/src/processes/examples/"
  "/tests/")
 
 # Warnings to explicitly ignore
