@@ -5,9 +5,9 @@ add_subdirectory(flow)
 add_subdirectory(image)
 add_subdirectory(utilities)
 
-if (VISTK_ENABLE_TESTS)
+if (VISTK_ENABLE_TESTING)
   add_subdirectory(examples)
-endif (VISTK_ENABLE_TESTS)
+endif (VISTK_ENABLE_TESTING)
 
 if (VISTK_ENABLE_DOCUMENTATION)
   set(DOXY_EXCLUDE_PATTERNS
