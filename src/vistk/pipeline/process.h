@@ -287,6 +287,9 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Information about an input port on the process.
      *
+     * \warning The returned pointer is not updated if the information for a
+     * port changes.
+     *
      * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to return information about.
@@ -296,6 +299,9 @@ class VISTK_PIPELINE_EXPORT process
     port_info_t input_port_info(port_t const& port);
     /**
      * \brief Information about an output port on the process.
+     *
+     * \warning The returned pointer is not updated if the information for a
+     * port changes.
      *
      * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
