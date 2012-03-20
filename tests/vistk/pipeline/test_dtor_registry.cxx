@@ -43,6 +43,7 @@ main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
+static void test_get_twice();
 static void test_null_dtor();
 static void test_call_dtor();
 static void test_module_marking();
@@ -50,7 +51,11 @@ static void test_module_marking();
 void
 run_test(std::string const& test_name)
 {
-  if (test_name == "null_dtor")
+  if (test_name == "get_twice")
+  {
+    test_get_twice();
+  }
+  else if (test_name == "null_dtor")
   {
     test_null_dtor();
   }
@@ -65,6 +70,18 @@ run_test(std::string const& test_name)
   else
   {
     TEST_ERROR("Unknown test: " << test_name);
+  }
+}
+
+void
+test_get_twice()
+{
+  vistk::dtor_registry_t reg1 = vistk::dtor_registry::self();
+  vistk::dtor_registry_t reg2 = vistk::dtor_registry::self();
+
+  if (reg1 != reg2)
+  {
+    TEST_ERROR("Received two different registries");
   }
 }
 

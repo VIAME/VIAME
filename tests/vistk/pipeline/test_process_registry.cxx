@@ -48,6 +48,7 @@ main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
+static void test_get_twice();
 static void test_null_config();
 static void test_load_processes();
 static void test_null_ctor();
@@ -58,7 +59,11 @@ static void test_module_marking();
 void
 run_test(std::string const& test_name)
 {
-  if (test_name == "null_config")
+  if (test_name == "get_twice")
+  {
+    test_get_twice();
+  }
+  else if (test_name == "null_config")
   {
     test_null_config();
   }
@@ -85,6 +90,18 @@ run_test(std::string const& test_name)
   else
   {
     TEST_ERROR("Unknown test: " << test_name);
+  }
+}
+
+void
+test_get_twice()
+{
+  vistk::process_registry_t reg1 = vistk::process_registry::self();
+  vistk::process_registry_t reg2 = vistk::process_registry::self();
+
+  if (reg1 != reg2)
+  {
+    TEST_ERROR("Received two different registries");
   }
 }
 

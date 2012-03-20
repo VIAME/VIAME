@@ -35,6 +35,7 @@ vistk_make_test(datum new)
 ##############################
 vistk_build_test(dtor_registry libraries test_dtor_registry.cxx)
 
+vistk_make_test(dtor_registry get_twice)
 vistk_make_test(dtor_registry null_dtor)
 vistk_make_test(dtor_registry call_dtor)
 
@@ -201,6 +202,7 @@ vistk_make_test(process_introspection all)
 ##############################
 vistk_build_test(process_registry libraries test_process_registry.cxx)
 
+vistk_make_test(process_registry get_twice)
 vistk_make_test(process_registry null_config)
 vistk_make_test(process_registry load_processes)
 vistk_make_test(process_registry null_ctor)
@@ -213,6 +215,7 @@ vistk_make_test(process_registry module_marking)
 ##############################
 vistk_build_test(schedule_registry libraries test_schedule_registry.cxx)
 
+vistk_make_test(schedule_registry get_twice)
 vistk_make_test(schedule_registry null_config)
 vistk_make_test(schedule_registry null_pipeline)
 vistk_make_test(schedule_registry load_schedules)
