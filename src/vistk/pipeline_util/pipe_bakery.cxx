@@ -46,6 +46,7 @@ namespace
 static config::key_t const config_pipeline_key = config::key_t("_pipeline");
 
 static config_flag_t const flag_read_only = config_flag_t("ro");
+static config_flag_t const flag_append = config_flag_t("append");
 
 static config_provider_t const provider_config = config_provider_t("CONF");
 static config_provider_t const provider_environment = config_provider_t("ENV");
@@ -76,7 +77,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
 
     typedef std::pair<config_provider_t, config::value_t> provider_request_t;
     typedef boost::variant<config::value_t, provider_request_t> config_reference_t;
-    typedef boost::tuple<config_reference_t, bool> config_info_t;
+    typedef boost::tuple<config_reference_t, bool, bool> config_info_t;
     typedef std::pair<config::key_t, config_info_t> config_decl_t;
     typedef std::vector<config_decl_t> config_decls_t;
 
@@ -299,6 +300,15 @@ extract_configuration(pipe_bakery& bakery)
       continue;
     }
 
+    bool const append = decl.second.get<2>();
+
+    if (append)
+    {
+      config::value_t const cur_val = tmp_conf->get_value(key, config::value_t());
+
+      val += cur_val;
+    }
+
     tmp_conf->set_value(key, val);
 
     bool const is_readonly = decl.second.get<1>();
@@ -345,7 +355,16 @@ extract_configuration(pipe_bakery& bakery)
 
         ref = boost::apply_visitor(deref, ref);
 
-        config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
+        config::value_t val = boost::apply_visitor(ensure_provided(), ref);
+
+        bool const append = decl.second.get<2>();
+
+        if (append)
+        {
+          config::value_t const cur_val = tmp_conf->get_value(key, config::value_t());
+
+          val += cur_val;
+        }
 
         // Set the value in the intermediate configuration.
         tmp_conf->set_value(cur_key, val);
@@ -376,6 +395,15 @@ extract_configuration(pipe_bakery& bakery)
     catch (unrecognized_provider_exception& e)
     {
       throw unrecognized_provider_exception(key, e.m_provider, e.m_index);
+    }
+
+    bool const append = decl.second.get<2>();
+
+    if (append)
+    {
+      config::value_t const cur_val = conf->get_value(key, config::value_t());
+
+      val += cur_val;
     }
 
     conf->set_value(key, val);
@@ -524,6 +552,7 @@ pipe_bakery
   config::key_t const full_key = root_key + config::block_sep + subkey;
 
   bool is_readonly = false;
+  bool append = false;
 
   if (key.options.flags)
   {
@@ -533,6 +562,10 @@ pipe_bakery
       {
         is_readonly = true;
       }
+      else if (flag == flag_append)
+      {
+        append = true;
+      }
       else
       {
         throw unrecognized_config_flag_exception(flag, full_key);
@@ -540,7 +573,7 @@ pipe_bakery
     }
   }
 
-  config_info_t const info = config_info_t(c_value, is_readonly);
+  config_info_t const info = config_info_t(c_value, is_readonly, append);
 
   config_decl_t const decl = config_decl_t(full_key, info);
 
