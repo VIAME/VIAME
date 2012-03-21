@@ -47,6 +47,7 @@ static config::key_t const config_pipeline_key = config::key_t("_pipeline");
 
 static config_flag_t const flag_read_only = config_flag_t("ro");
 static config_flag_t const flag_append = config_flag_t("append");
+static config_flag_t const flag_comma_append = config_flag_t("cappend");
 
 static config_provider_t const provider_config = config_provider_t("CONF");
 static config_provider_t const provider_environment = config_provider_t("ENV");
@@ -82,11 +83,13 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
       public:
         config_info_t(config_reference_t const& ref,
                       bool ro,
-                      bool app);
+                      bool app,
+                      bool capp);
 
         config_reference_t reference;
         bool read_only;
         bool append;
+        bool comma_append;
     };
     typedef std::pair<config::key_t, config_info_t> config_decl_t;
     typedef std::vector<config_decl_t> config_decls_t;
@@ -391,10 +394,12 @@ extract_configuration(pipe_bakery& bakery)
 pipe_bakery::config_info_t
 ::config_info_t(config_reference_t const& ref,
                 bool ro,
-                bool app)
+                bool app,
+                bool capp)
   : reference(ref)
   , read_only(ro)
   , append(app)
+  , comma_append(capp)
 {
 }
 
@@ -532,6 +537,7 @@ pipe_bakery
 
   bool is_readonly = false;
   bool append = false;
+  bool comma_append = false;
 
   if (key.options.flags)
   {
@@ -545,6 +551,10 @@ pipe_bakery
       {
         append = true;
       }
+      else if (flag == flag_comma_append)
+      {
+        comma_append = true;
+      }
       else
       {
         throw unrecognized_config_flag_exception(flag, full_key);
@@ -552,7 +562,7 @@ pipe_bakery
     }
   }
 
-  config_info_t const info = config_info_t(c_value, is_readonly, append);
+  config_info_t const info = config_info_t(c_value, is_readonly, append, comma_append);
 
   config_decl_t const decl = config_decl_t(full_key, info);
 
@@ -727,9 +737,14 @@ set_config_value(config_t conf, pipe_bakery::config_info_t const& flags, config:
 {
   config::value_t val = value;
 
-  if (flags.append)
+  if (flags.comma_append || flags.append)
   {
     config::value_t const cur_val = conf->get_value(key, config::value_t());
+
+    if (flags.comma_append && !cur_val.empty())
+    {
+      val += ',';
+    }
 
     val += cur_val;
   }
