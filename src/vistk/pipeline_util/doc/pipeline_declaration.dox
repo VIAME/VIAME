@@ -55,6 +55,8 @@
  * flags are:
  *
  * \cflag{ro} Marks the configuration value as read-only.
+ * \cflag{append} Appends to the configuration key.
+ * \cflag{cappend} Appends to the configuration key, prefixing a comma if the value is non-empty.
  *
  * \par Specification
  *
