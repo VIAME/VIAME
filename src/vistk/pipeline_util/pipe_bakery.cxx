@@ -268,6 +268,8 @@ extract_configuration(pipe_blocks const& blocks)
   return extract_configuration(bakery);
 }
 
+static void set_config_value(config_t conf, pipe_bakery::config_info_t const& flags, config::key_t const& key, config::value_t const& value);
+
 config_t
 extract_configuration(pipe_bakery& bakery)
 {
@@ -275,7 +277,8 @@ extract_configuration(pipe_bakery& bakery)
   {
     BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
     {
-      pipe_bakery::config_reference_t& ref = decl.second.get<0>();
+      pipe_bakery::config_info_t& info = decl.second;
+      pipe_bakery::config_reference_t& ref = info.get<0>();
 
       ref = boost::apply_visitor(provider_dereferencer(), ref);
     }
@@ -285,9 +288,10 @@ extract_configuration(pipe_bakery& bakery)
 
   BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
   {
-    pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
+    config::key_t const& key = decl.first;
+    pipe_bakery::config_info_t const& info = decl.second;
+    pipe_bakery::config_reference_t const& ref = info.get<0>();
 
-    config::key_t const key = decl.first;
     config::value_t val;
 
     // Only add provided configurations to the configuration.
@@ -300,37 +304,23 @@ extract_configuration(pipe_bakery& bakery)
       continue;
     }
 
-    bool const append = decl.second.get<2>();
-
-    if (append)
-    {
-      config::value_t const cur_val = tmp_conf->get_value(key, config::value_t());
-
-      val += cur_val;
-    }
-
-    tmp_conf->set_value(key, val);
-
-    bool const is_readonly = decl.second.get<1>();
-
-    if (is_readonly)
-    {
-      tmp_conf->mark_read_only(key);
-    }
+    set_config_value(tmp_conf, info, key, val);
   }
 
   // Dereference configuration providers.
   {
     config_provider_sorter sorter;
 
-    /// \bug Why must this be done?
-    typedef boost::variant<config::key_t> dummy_variant;
-
     BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
     {
-      pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
+      config::key_t const& key = decl.first;
+      pipe_bakery::config_info_t const& info = decl.second;
+      pipe_bakery::config_reference_t const& ref = info.get<0>();
 
-      dummy_variant var(decl.first);
+      /// \bug Why must this be done?
+      typedef boost::variant<config::key_t> dummy_variant;
+
+      dummy_variant const var(key);
 
       boost::apply_visitor(sorter, var, ref);
     }
@@ -351,30 +341,14 @@ extract_configuration(pipe_bakery& bakery)
           continue;
         }
 
-        pipe_bakery::config_reference_t& ref = decl.second.get<0>();
+        pipe_bakery::config_info_t& info = decl.second;
+        pipe_bakery::config_reference_t& ref = info.get<0>();
 
         ref = boost::apply_visitor(deref, ref);
 
-        config::value_t val = boost::apply_visitor(ensure_provided(), ref);
+        config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
 
-        bool const append = decl.second.get<2>();
-
-        if (append)
-        {
-          config::value_t const cur_val = tmp_conf->get_value(key, config::value_t());
-
-          val += cur_val;
-        }
-
-        // Set the value in the intermediate configuration.
-        tmp_conf->set_value(cur_key, val);
-
-        bool const is_readonly = decl.second.get<1>();
-
-        if (is_readonly)
-        {
-          tmp_conf->mark_read_only(key);
-        }
+        set_config_value(tmp_conf, info, key, val);
       }
     }
   }
@@ -383,9 +357,10 @@ extract_configuration(pipe_bakery& bakery)
 
   BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
   {
-    pipe_bakery::config_reference_t const& ref = decl.second.get<0>();
-
     config::key_t const& key = decl.first;
+    pipe_bakery::config_info_t const& info = decl.second;
+    pipe_bakery::config_reference_t const& ref = info.get<0>();
+
     config::value_t val;
 
     try
@@ -397,23 +372,7 @@ extract_configuration(pipe_bakery& bakery)
       throw unrecognized_provider_exception(key, e.m_provider, e.m_index);
     }
 
-    bool const append = decl.second.get<2>();
-
-    if (append)
-    {
-      config::value_t const cur_val = conf->get_value(key, config::value_t());
-
-      val += cur_val;
-    }
-
-    conf->set_value(key, val);
-
-    bool const is_readonly = decl.second.get<1>();
-
-    if (is_readonly)
-    {
-      conf->mark_read_only(key);
-    }
+    set_config_value(conf, info, key, val);
   }
 
   return conf;
@@ -741,6 +700,30 @@ config_provider_sorter
   t = to_iter.first->second;
 
   boost::add_edge(s, t, m_graph);
+}
+
+void
+set_config_value(config_t conf, pipe_bakery::config_info_t const& flags, config::key_t const& key, config::value_t const& value)
+{
+  config::value_t val = value;
+
+  bool const append = flags.get<2>();
+
+  if (append)
+  {
+    config::value_t const cur_val = conf->get_value(key, config::value_t());
+
+    val += cur_val;
+  }
+
+  conf->set_value(key, val);
+
+  bool const is_read_only = flags.get<1>();
+
+  if (is_read_only)
+  {
+    conf->mark_read_only(key);
+  }
 }
 
 }
