@@ -237,22 +237,28 @@ bake_pipe_blocks(pipe_blocks const& blocks)
 
       BOOST_FOREACH (pipe_bakery::mapping_t const& mapping, input_mappings)
       {
-        process::port_t const& port = mapping.get<0>();
+        process::port_t const& group_port = mapping.get<0>();
         process::port_flags_t const& flags = mapping.get<1>();
         process::port_addr_t const& addr = mapping.get<2>();
 
-        pipe->map_input_port(group_name, port, addr.first, addr.second, flags);
+        process::name_t const& proc_name = addr.first;
+        process::port_t const& proc_port = addr.second;
+
+        pipe->map_input_port(group_name, group_port, proc_name, proc_port, flags);
       }
 
       pipe_bakery::mappings_t const& output_mappings = group_info.second;
 
       BOOST_FOREACH (pipe_bakery::mapping_t const& mapping, output_mappings)
       {
-        process::port_t const& port = mapping.get<0>();
+        process::port_t const& group_port = mapping.get<0>();
         process::port_flags_t const& flags = mapping.get<1>();
         process::port_addr_t const& addr = mapping.get<2>();
 
-        pipe->map_output_port(group_name, port, addr.first, addr.second, flags);
+        process::name_t const& proc_name = addr.first;
+        process::port_t const& proc_port = addr.second;
+
+        pipe->map_output_port(group_name, group_port, proc_name, proc_port, flags);
       }
     }
   }
@@ -261,10 +267,15 @@ bake_pipe_blocks(pipe_blocks const& blocks)
   {
     BOOST_FOREACH (pipe_bakery::connection_t const& conn, bakery.m_connections)
     {
-      process::port_addr_t const& upstream = conn.first;
-      process::port_addr_t const& downstream = conn.second;
+      process::port_addr_t const& up = conn.first;
+      process::port_addr_t const& down = conn.second;
 
-      pipe->connect(upstream.first, upstream.second, downstream.first, downstream.second);
+      process::name_t const& up_name = up.first;
+      process::port_t const& up_port = up.second;
+      process::name_t const& down_name = down.first;
+      process::port_t const& down_port = down.second;
+
+      pipe->connect(up_name, up_port, down_name, down_port);
     }
   }
 
@@ -636,13 +647,18 @@ pipe_bakery::config_reference_t
 provider_dereferencer
 ::operator () (pipe_bakery::provider_request_t const& request) const
 {
-  provider_map_t::const_iterator const i = m_providers.find(request.first);
+  config_provider_t const& provider_name = request.first;
+  provider_map_t::const_iterator const i = m_providers.find(provider_name);
+
   if (i == m_providers.end())
   {
     return request;
   }
 
-  return (*i->second)(request.second);
+  provider_t const& provider = i->second;
+  config::value_t const& value = request.second;
+
+  return (*provider)(value);
 }
 
 config::value_t
@@ -656,7 +672,10 @@ config::value_t
 ensure_provided
 ::operator () (pipe_bakery::provider_request_t const& request) const
 {
-  throw unrecognized_provider_exception("(unknown)", request.first, request.second);
+  config_provider_t const& provider = request.first;
+  config::value_t const& value = request.second;
+
+  throw unrecognized_provider_exception("(unknown)", provider, value);
 }
 
 config::keys_t
@@ -696,40 +715,44 @@ void
 config_provider_sorter
 ::operator () (config::key_t const& key, pipe_bakery::provider_request_t const& request)
 {
-  if (request.first != provider_config)
+  config_provider_t const& provider = request.first;
+
+  if (provider != provider_config)
   {
     return;
   }
+
+  config::key_t const& target_key = config::key_t(request.second);
 
   boost::property_map<config_graph_t, vertex_name_t>::type key_prop = boost::get(vertex_name_t(), m_graph);
 
   typedef std::pair<vertex_map_t::iterator, bool> insertion_t;
 
   insertion_t from_iter = m_vertex_map.insert(std::make_pair(key, vertex_t()));
-  insertion_t to_iter = m_vertex_map.insert(std::make_pair(request.second, vertex_t()));
+  insertion_t to_iter = m_vertex_map.insert(std::make_pair(target_key, vertex_t()));
 
-  vertex_t s;
-  vertex_t t;
+  bool const& from_inserted = from_iter.second;
+  bool const& to_inserted = to_iter.second;
 
-  if (from_iter.second)
+  vertex_map_t::iterator& from = from_iter.first;
+  vertex_map_t::iterator& to = to_iter.first;
+
+  vertex_t& from_vertex = from->second;
+  vertex_t& to_vertex = to->second;
+
+  if (from_inserted)
   {
-    s = boost::add_vertex(m_graph);
-    key_prop[s] = key;
-    from_iter.first->second = s;
+    from_vertex = boost::add_vertex(m_graph);
+    key_prop[from_vertex] = key;
   }
 
-  s = from_iter.first->second;
-
-  if (to_iter.second)
+  if (to_inserted)
   {
-    t = boost::add_vertex(m_graph);
-    key_prop[t] = request.second;
-    to_iter.first->second = t;
+    to_vertex = boost::add_vertex(m_graph);
+    key_prop[to_vertex] = target_key;
   }
 
-  t = to_iter.first->second;
-
-  boost::add_edge(s, t, m_graph);
+  boost::add_edge(from_vertex, to_vertex, m_graph);
 }
 
 void
