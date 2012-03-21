@@ -77,7 +77,17 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
 
     typedef std::pair<config_provider_t, config::value_t> provider_request_t;
     typedef boost::variant<config::value_t, provider_request_t> config_reference_t;
-    typedef boost::tuple<config_reference_t, bool, bool> config_info_t;
+    class config_info_t
+    {
+      public:
+        config_info_t(config_reference_t const& ref,
+                      bool ro,
+                      bool app);
+
+        config_reference_t reference;
+        bool read_only;
+        bool append;
+    };
     typedef std::pair<config::key_t, config_info_t> config_decl_t;
     typedef std::vector<config_decl_t> config_decls_t;
 
@@ -278,7 +288,7 @@ extract_configuration(pipe_bakery& bakery)
     BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
     {
       pipe_bakery::config_info_t& info = decl.second;
-      pipe_bakery::config_reference_t& ref = info.get<0>();
+      pipe_bakery::config_reference_t& ref = info.reference;
 
       ref = boost::apply_visitor(provider_dereferencer(), ref);
     }
@@ -290,7 +300,7 @@ extract_configuration(pipe_bakery& bakery)
   {
     config::key_t const& key = decl.first;
     pipe_bakery::config_info_t const& info = decl.second;
-    pipe_bakery::config_reference_t const& ref = info.get<0>();
+    pipe_bakery::config_reference_t const& ref = info.reference;
 
     config::value_t val;
 
@@ -315,7 +325,7 @@ extract_configuration(pipe_bakery& bakery)
     {
       config::key_t const& key = decl.first;
       pipe_bakery::config_info_t const& info = decl.second;
-      pipe_bakery::config_reference_t const& ref = info.get<0>();
+      pipe_bakery::config_reference_t const& ref = info.reference;
 
       /// \bug Why must this be done?
       typedef boost::variant<config::key_t> dummy_variant;
@@ -342,7 +352,7 @@ extract_configuration(pipe_bakery& bakery)
         }
 
         pipe_bakery::config_info_t& info = decl.second;
-        pipe_bakery::config_reference_t& ref = info.get<0>();
+        pipe_bakery::config_reference_t& ref = info.reference;
 
         ref = boost::apply_visitor(deref, ref);
 
@@ -359,7 +369,7 @@ extract_configuration(pipe_bakery& bakery)
   {
     config::key_t const& key = decl.first;
     pipe_bakery::config_info_t const& info = decl.second;
-    pipe_bakery::config_reference_t const& ref = info.get<0>();
+    pipe_bakery::config_reference_t const& ref = info.reference;
 
     config::value_t val;
 
@@ -376,6 +386,16 @@ extract_configuration(pipe_bakery& bakery)
   }
 
   return conf;
+}
+
+pipe_bakery::config_info_t
+::config_info_t(config_reference_t const& ref,
+                bool ro,
+                bool app)
+  : reference(ref)
+  , read_only(ro)
+  , append(app)
+{
 }
 
 pipe_bakery
@@ -707,9 +727,7 @@ set_config_value(config_t conf, pipe_bakery::config_info_t const& flags, config:
 {
   config::value_t val = value;
 
-  bool const append = flags.get<2>();
-
-  if (append)
+  if (flags.append)
   {
     config::value_t const cur_val = conf->get_value(key, config::value_t());
 
@@ -718,9 +736,7 @@ set_config_value(config_t conf, pipe_bakery::config_info_t const& flags, config:
 
   conf->set_value(key, val);
 
-  bool const is_read_only = flags.get<1>();
-
-  if (is_read_only)
+  if (flags.read_only)
   {
     conf->mark_read_only(key);
   }
