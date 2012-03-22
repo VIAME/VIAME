@@ -159,6 +159,7 @@ add_subdirectory(modules)
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)
 add_subdirectory(processes)
+add_subdirectory(schedules)
 
 if (VISTK_ENABLE_TESTING)
   add_subdirectory(test)
