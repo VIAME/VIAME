@@ -240,8 +240,8 @@ vistk_make_test(schedule_registry module_marking)
 vistk_build_test(run libraries test_run.cxx)
 
 set(schedules
-  thread_per_process
-  sync)
+  sync
+  thread_per_process)
 
 function (vistk_make_run_test group instance)
   foreach (schedule ${schedules})

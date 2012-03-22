@@ -121,8 +121,8 @@ vistk_make_python_test(utils name_thread)
 vistk_build_python_test(run test-run.py)
 
 set(schedules
-#  thread_per_process
-  sync)
+  sync
+  thread_per_process)
 
 function (vistk_make_python_run_test group instance)
   foreach (schedule ${schedules})
