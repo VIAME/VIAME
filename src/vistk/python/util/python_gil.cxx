@@ -6,6 +6,12 @@
 
 #include "python_gil.h"
 
+namespace vistk
+{
+
+namespace python
+{
+
 python_gil
 ::python_gil()
   : state(PyGILState_Ensure())
@@ -16,4 +22,8 @@ python_gil
 ::~python_gil()
 {
   PyGILState_Release(state);
+}
+
+}
+
 }
