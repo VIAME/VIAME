@@ -7,13 +7,13 @@
 #include <python/helpers/pystream.h>
 #include <python/helpers/python_convert_optional.h>
 
-#include <vistk/utilities/path.h>
-
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/load_pipe_exception.h>
 #include <vistk/pipeline_util/pipe_declaration_types.h>
 
 #include <vistk/pipeline/process.h>
+
+#include <vistk/utilities/path.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>

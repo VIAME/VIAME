@@ -6,12 +6,12 @@
 
 #include <python/helpers/pystream.h>
 
-#include <vistk/utilities/path.h>
+#include <vistk/pipeline_util/pipe_bakery.h>
+#include <vistk/pipeline_util/pipe_bakery_exception.h>
 
 #include <vistk/pipeline/pipeline.h>
 
-#include <vistk/pipeline_util/pipe_bakery.h>
-#include <vistk/pipeline_util/pipe_bakery_exception.h>
+#include <vistk/utilities/path.h>
 
 #include <boost/python/def.hpp>
 #include <boost/python/module.hpp>
