@@ -99,7 +99,9 @@ def test_register():
     p = pipeline.Pipeline(c)
 
     try:
-        reg.create_schedule(sched_type, c, p)
+        s = reg.create_schedule(sched_type, c, p)
+        if s is None:
+            raise Exception()
     except:
         log("Error: Could not create newly registered schedule type")
 
@@ -121,6 +123,10 @@ def test_wrapper_api():
     p = pipeline.Pipeline(c)
 
     def check_schedule(s):
+        if s is None:
+            log("Error: Got a 'None' schedule")
+            return
+
         s.start()
         s.wait()
         s.stop()

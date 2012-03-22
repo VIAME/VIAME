@@ -219,7 +219,9 @@ def test_register():
     c = config.empty_config()
 
     try:
-        reg.create_process(proc_type, c)
+        p = reg.create_process(proc_type, c)
+        if p is None:
+            raise Exception()
     except:
         log("Error: Could not create newly registered process type")
 
@@ -249,6 +251,10 @@ def test_wrapper_api():
     c = config.empty_config()
 
     def check_process(p):
+        if p is None:
+            log("Error: Got a 'None' process")
+            return
+
         p.constraints()
 
         p.input_ports()
