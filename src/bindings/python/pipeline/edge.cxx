@@ -12,7 +12,6 @@
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
-#include <boost/python/exception_translator.hpp>
 #include <boost/python/module.hpp>
 
 /**
@@ -28,13 +27,8 @@ static void edge_datum_datum_set(vistk::edge_datum_t& edatum, vistk::datum_t con
 static vistk::stamp_t edge_datum_stamp(vistk::edge_datum_t const& edatum);
 static void edge_datum_stamp_set(vistk::edge_datum_t& edatum, vistk::stamp_t const& st);
 
-static void translator(vistk::edge_exception const& e);
-
 BOOST_PYTHON_MODULE(edge)
 {
-  register_exception_translator<
-    vistk::edge_exception>(translator);
-
   class_<vistk::edge_datum_t>("EdgeDatum"
     , no_init)
     .def(init<vistk::datum_t, vistk::stamp_t>())
@@ -109,14 +103,4 @@ void
 edge_datum_stamp_set(vistk::edge_datum_t& edatum, vistk::stamp_t const& st)
 {
   boost::get<1>(edatum) = st;
-}
-
-void
-translator(vistk::edge_exception const& e)
-{
-  vistk::python::python_gil gil;
-
-  (void)gil;
-
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }

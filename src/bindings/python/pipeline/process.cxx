@@ -17,7 +17,6 @@
 #include <boost/python/args.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
-#include <boost/python/exception_translator.hpp>
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
 
@@ -28,8 +27,6 @@
  */
 
 using namespace boost::python;
-
-static void translator(vistk::process_exception const& e);
 
 class wrap_process
   : public vistk::process
@@ -109,9 +106,6 @@ class wrap_process
 
 BOOST_PYTHON_MODULE(process)
 {
-  register_exception_translator<
-    vistk::process_exception>(translator);
-
   class_<vistk::process::name_t>("ProcessName"
     , "A type for the name of a process.");
   class_<vistk::process::names_t>("ProcessNames"
@@ -351,16 +345,6 @@ BOOST_PYTHON_MODULE(process)
       , (arg("edge"))
       , "Extracts a datum packet from the edge.")
   ;
-}
-
-void
-translator(vistk::process_exception const& e)
-{
-  vistk::python::python_gil gil;
-
-  (void)gil;
-
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
 wrap_process

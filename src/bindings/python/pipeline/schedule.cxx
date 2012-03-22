@@ -12,7 +12,6 @@
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
-#include <boost/python/exception_translator.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/override.hpp>
 #include <boost/python/pure_virtual.hpp>
@@ -24,8 +23,6 @@
  */
 
 using namespace boost::python;
-
-static void translator(vistk::schedule_exception const& e);
 
 class wrap_schedule
   : public vistk::schedule
@@ -46,9 +43,6 @@ class wrap_schedule
 
 BOOST_PYTHON_MODULE(schedule)
 {
-  register_exception_translator<
-    vistk::schedule_exception>(translator);
-
   class_<wrap_schedule, boost::noncopyable>("PythonSchedule"
     , "The base class for Python schedules."
     , no_init)
@@ -62,16 +56,6 @@ BOOST_PYTHON_MODULE(schedule)
     .def("pipeline", &wrap_schedule::_pipeline
       , "The pipeline the schedule is to run.")
   ;
-}
-
-void
-translator(vistk::schedule_exception const& e)
-{
-  vistk::python::python_gil gil;
-
-  (void)gil;
-
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
 wrap_schedule

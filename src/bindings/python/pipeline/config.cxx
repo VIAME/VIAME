@@ -11,7 +11,6 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
-#include <boost/python/exception_translator.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/return_internal_reference.hpp>
 #include <boost/python/str.hpp>
@@ -33,13 +32,8 @@ static vistk::config::value_t config_getitem(vistk::config_t self, vistk::config
 static void config_setitem(vistk::config_t self, vistk::config::key_t const& key, object const& value);
 static void config_delitem(vistk::config_t self, vistk::config::key_t const& key);
 
-static void translator(vistk::configuration_exception const& e);
-
 BOOST_PYTHON_MODULE(config)
 {
-  register_exception_translator<
-    vistk::configuration_exception>(translator);
-
   def("empty_config", &vistk::config::empty_config
     , (arg("name") = vistk::config::key_t())
     , "Returns an empty configuration.");
@@ -174,14 +168,4 @@ config_delitem(vistk::config_t self, vistk::config::key_t const& key)
     PyErr_SetString(PyExc_KeyError, sstr.str().c_str());
     throw_error_already_set();
   }
-}
-
-void
-translator(vistk::configuration_exception const& e)
-{
-  vistk::python::python_gil gil;
-
-  (void)gil;
-
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }

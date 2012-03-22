@@ -14,7 +14,6 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/enum.hpp>
-#include <boost/python/exception_translator.hpp>
 #include <boost/python/extract.hpp>
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
@@ -32,15 +31,10 @@
 
 using namespace boost::python;
 
-static void translator(vistk::datum_exception const& e);
-
 static vistk::datum_t new_datum(object const& obj);
 
 BOOST_PYTHON_MODULE(datum)
 {
-  register_exception_translator<
-    vistk::datum_exception>(translator);
-
   enum_<vistk::datum::type_t>("DatumType"
     , "A type for a datum packet.")
     .value("invalid", vistk::datum::invalid)
@@ -88,16 +82,6 @@ BOOST_PYTHON_MODULE(datum)
 
   implicitly_convertible<boost::any, object>();
   implicitly_convertible<object, boost::any>();
-}
-
-void
-translator(vistk::datum_exception const& e)
-{
-  vistk::python::python_gil gil;
-
-  (void)gil;
-
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
 vistk::datum_t

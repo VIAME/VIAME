@@ -14,7 +14,6 @@
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
-#include <boost/python/exception_translator.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/wrapper.hpp>
@@ -32,13 +31,8 @@ static void register_process(vistk::process_registry_t reg,
                              vistk::process_registry::description_t const& desc,
                              object obj);
 
-static void translator(vistk::process_registry_exception const& e);
-
 BOOST_PYTHON_MODULE(process_registry)
 {
-  register_exception_translator<
-    vistk::process_registry_exception>(translator);
-
   class_<vistk::process_registry::type_t>("ProcessType"
     , "The type for a type of process.");
   class_<vistk::process_registry::description_t>("ProcessDescription"
@@ -162,16 +156,6 @@ register_process(vistk::process_registry_t reg,
   python_process_wrapper wrap(obj);
 
   reg->register_process(type, desc, wrap);
-}
-
-void
-translator(vistk::process_registry_exception const& e)
-{
-  vistk::python::python_gil gil;
-
-  (void)gil;
-
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
 python_process_wrapper

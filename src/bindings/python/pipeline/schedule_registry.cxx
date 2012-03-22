@@ -14,7 +14,6 @@
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
-#include <boost/python/exception_translator.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/wrapper.hpp>
@@ -32,13 +31,8 @@ static void register_schedule(vistk::schedule_registry_t reg,
                               vistk::schedule_registry::description_t const& desc,
                               object obj);
 
-static void translator(vistk::schedule_registry_exception const& e);
-
 BOOST_PYTHON_MODULE(schedule_registry)
 {
-  register_exception_translator<
-    vistk::schedule_registry_exception>(translator);
-
   class_<vistk::schedule_registry::type_t>("ScheduleType"
     , "The type for a type of schedule.");
   class_<vistk::schedule_registry::description_t>("ScheduleDescription"
@@ -114,16 +108,6 @@ register_schedule(vistk::schedule_registry_t reg,
   python_schedule_wrapper wrap(obj);
 
   reg->register_schedule(type, desc, wrap);
-}
-
-void
-translator(vistk::schedule_registry_exception const& e)
-{
-  vistk::python::python_gil gil;
-
-  (void)gil;
-
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
 python_schedule_wrapper
