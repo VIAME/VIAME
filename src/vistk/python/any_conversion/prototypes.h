@@ -9,6 +9,8 @@
 
 #include "registration.h"
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/converter/registry.hpp>
 #include <boost/python/extract.hpp>
 
@@ -38,6 +40,10 @@ template <typename T>
 bool
 from_prototype(PyObject* obj, void* storage)
 {
+  python_gil gil;
+
+  (void)gil;
+
   using namespace boost::python;
 
   extract<T> const ex(obj);
@@ -75,6 +81,10 @@ template <typename T>
 opt_pyobject_t
 to_prototype(boost::any const& any)
 {
+  python_gil gil;
+
+  (void)gil;
+
   using namespace boost::python;
 
   try

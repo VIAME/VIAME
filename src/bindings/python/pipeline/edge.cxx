@@ -8,6 +8,8 @@
 #include <vistk/pipeline/edge_exception.h>
 #include <vistk/pipeline/stamp.h>
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/exception_translator.hpp>
@@ -112,5 +114,9 @@ edge_datum_stamp_set(vistk::edge_datum_t& edatum, vistk::stamp_t const& st)
 void
 translator(vistk::edge_exception const& e)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   PyErr_SetString(PyExc_RuntimeError, e.what());
 }

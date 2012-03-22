@@ -6,6 +6,8 @@
 
 #include <vistk/pipeline/config.h>
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
@@ -127,6 +129,10 @@ config_getitem(vistk::config_t self, vistk::config::key_t const& key)
   }
   catch (vistk::no_such_configuration_value_exception&)
   {
+    vistk::python::python_gil gil;
+
+    (void)gil;
+
     std::ostringstream sstr;
 
     sstr << "\'" << key << "\'";
@@ -141,6 +147,10 @@ config_getitem(vistk::config_t self, vistk::config::key_t const& key)
 void
 config_setitem(vistk::config_t self, vistk::config::key_t const& key, object const& value)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   self->set_value(key, extract<vistk::config::value_t>(str(value)));
 }
 
@@ -153,6 +163,10 @@ config_delitem(vistk::config_t self, vistk::config::key_t const& key)
   }
   catch (vistk::no_such_configuration_value_exception&)
   {
+    vistk::python::python_gil gil;
+
+    (void)gil;
+
     std::ostringstream sstr;
 
     sstr << "\'" << key << "\'";
@@ -165,5 +179,9 @@ config_delitem(vistk::config_t self, vistk::config::key_t const& key)
 void
 translator(vistk::configuration_exception const& e)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   PyErr_SetString(PyExc_RuntimeError, e.what());
 }

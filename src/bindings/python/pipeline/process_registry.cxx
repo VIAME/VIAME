@@ -4,12 +4,13 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/python_gil.h>
 #include <python/helpers/python_threading.h>
 
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/process_registry_exception.h>
+
+#include <vistk/python/util/python_gil.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
@@ -154,6 +155,10 @@ register_process(vistk::process_registry_t reg,
                  vistk::process_registry::description_t const& desc,
                  object obj)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   python_process_wrapper wrap(obj);
 
   reg->register_process(type, desc, wrap);
@@ -162,6 +167,10 @@ register_process(vistk::process_registry_t reg,
 void
 translator(vistk::process_registry_exception const& e)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
@@ -180,7 +189,7 @@ vistk::process_t
 python_process_wrapper
 ::operator () (vistk::config_t const& config)
 {
-  python_gil gil;
+  vistk::python::python_gil gil;
 
   (void)gil;
 

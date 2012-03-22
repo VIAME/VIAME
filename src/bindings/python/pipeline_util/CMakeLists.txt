@@ -6,6 +6,7 @@ add_vistk_python_library(bake
 target_link_libraries(python-vistk.pipeline_util-bake
   vistk_pipeline
   vistk_pipeline_util
+  vistk_python_util
   pystream
   ${Boost_IOSTREAMS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
@@ -18,6 +19,7 @@ add_vistk_python_library(export_
 target_link_libraries(python-vistk.pipeline_util-export_
   vistk_pipeline
   vistk_pipeline_util
+  vistk_python_util
   pystream
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
@@ -28,6 +30,7 @@ add_vistk_python_library(load
 target_link_libraries(python-vistk.pipeline_util-load
   vistk_pipeline
   vistk_pipeline_util
+  vistk_python_util
   pystream
   ${Boost_IOSTREAMS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}

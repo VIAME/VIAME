@@ -12,6 +12,8 @@
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/stamp.h>
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/args.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
@@ -354,6 +356,10 @@ BOOST_PYTHON_MODULE(process)
 void
 translator(vistk::process_exception const& e)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
@@ -467,208 +473,268 @@ void
 wrap_process
 ::_init()
 {
-  override const f = get_override("_init");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    f();
+    (void)gil;
+
+    override const f = get_override("_init");
+
+    if (f)
+    {
+      f();
+
+      return;
+    }
   }
-  else
-  {
-    _base_init();
-  }
+
+  _base_init();
 }
 
 void
 wrap_process
 ::_step()
 {
-  override const f = get_override("_step");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    f();
+    (void)gil;
+
+    override const f = get_override("_step");
+
+    if (f)
+    {
+      f();
+
+      return;
+    }
   }
-  else
-  {
-    _base_step();
-  }
+
+  _base_step();
 }
 
 vistk::process::constraints_t
 wrap_process
 ::_constraints() const
 {
-  override const f = get_override("_constraints");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    return f();
+    (void)gil;
+
+    override const f = get_override("_constraints");
+
+    if (f)
+    {
+      return f();
+    }
   }
-  else
-  {
-    return _base_constraints();
-  }
+
+  return _base_constraints();
 }
 
 void
 wrap_process
 ::_connect_input_port(port_t const& port, vistk::edge_t edge)
 {
-  override const f = get_override("_connect_input_port");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    f(port, edge);
+    (void)gil;
+
+    override const f = get_override("_connect_input_port");
+
+    if (f)
+    {
+      f(port, edge);
+
+      return;
+    }
   }
-  else
-  {
-    _base_connect_input_port(port, edge);
-  }
+
+  _base_connect_input_port(port, edge);
 }
 
 void
 wrap_process
 ::_connect_output_port(port_t const& port, vistk::edge_t edge)
 {
-  override const f = get_override("_connect_output_port");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    f(port, edge);
+    (void)gil;
+
+    override const f = get_override("_connect_output_port");
+
+    if (f)
+    {
+      f(port, edge);
+
+      return;
+    }
   }
-  else
-  {
-    _base_connect_output_port(port, edge);
-  }
+
+  _base_connect_output_port(port, edge);
 }
 
 vistk::process::ports_t
 wrap_process
 ::_input_ports() const
 {
-  override const f = get_override("_input_ports");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    return f();
+    (void)gil;
+
+    override const f = get_override("_input_ports");
+
+    if (f)
+    {
+      return f();
+    }
   }
-  else
-  {
-    return _base_input_ports();
-  }
+
+  return _base_input_ports();
 }
 
 vistk::process::ports_t
 wrap_process
 ::_output_ports() const
 {
-  override const f = get_override("_output_ports");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    return f();
+    (void)gil;
+
+    override const f = get_override("_output_ports");
+
+    if (f)
+    {
+      return f();
+    }
   }
-  else
-  {
-    return _base_output_ports();
-  }
+
+  return _base_output_ports();
 }
 
 vistk::process::port_info_t
 wrap_process
 ::_input_port_info(port_t const& port)
 {
-  override const f = get_override("_input_port_info");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    return f(port);
+    (void)gil;
+
+    override const f = get_override("_input_port_info");
+
+    if (f)
+    {
+      return f(port);
+    }
   }
-  else
-  {
-    return _base_input_port_info(port);
-  }
+
+  return _base_input_port_info(port);
 }
 
 vistk::process::port_info_t
 wrap_process
 ::_output_port_info(port_t const& port)
 {
-  override const f = get_override("_output_port_info");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    return f(port);
+    (void)gil;
+
+    override const f = get_override("_output_port_info");
+
+    if (f)
+    {
+      return f(port);
+    }
   }
-  else
-  {
-    return _base_output_port_info(port);
-  }
+
+  return _base_output_port_info(port);
 }
 
 bool
 wrap_process
 ::_set_input_port_type(port_t const& port, port_type_t const& new_type)
 {
-  override const f = get_override("_set_input_port_type");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    return f(port, new_type);
+    (void)gil;
+
+    override const f = get_override("_set_input_port_type");
+
+    if (f)
+    {
+      return f(port, new_type);
+    }
   }
-  else
-  {
-    return _base_set_input_port_type(port, new_type);
-  }
+
+  return _base_set_input_port_type(port, new_type);
 }
 
 bool
 wrap_process
 ::_set_output_port_type(port_t const& port, port_type_t const& new_type)
 {
-  override const f = get_override("_set_output_port_type");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    return f(port, new_type);
+    (void)gil;
+
+    override const f = get_override("_set_output_port_type");
+
+    if (f)
+    {
+      return f(port, new_type);
+    }
   }
-  else
-  {
-    return _base_set_output_port_type(port, new_type);
-  }
+
+  return _base_set_output_port_type(port, new_type);
 }
 
 vistk::config::keys_t
 wrap_process
 ::_available_config() const
 {
-  override const f = get_override("_available_config");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    return f();
+    (void)gil;
+
+    override const f = get_override("_available_config");
+
+    if (f)
+    {
+      return f();
+    }
   }
-  else
-  {
-    return _base_available_config();
-  }
+
+  return _base_available_config();
 }
 
 vistk::process::conf_info_t
 wrap_process
 ::_config_info(vistk::config::key_t const& key)
 {
-  override const f = get_override("_config_info");
+  {
+    vistk::python::python_gil gil;
 
-  if (f)
-  {
-    return f(key);
+    (void)gil;
+
+    override const f = get_override("_config_info");
+
+    if (f)
+    {
+      return f(key);
+    }
   }
-  else
-  {
-    return _base_config_info(key);
-  }
+
+  return _base_config_info(key);
 }
 
 void

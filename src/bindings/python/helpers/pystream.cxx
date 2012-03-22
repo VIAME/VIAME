@@ -6,6 +6,8 @@
 
 #include "pystream.h"
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/extract.hpp>
 #include <boost/python/str.hpp>
 
@@ -29,6 +31,10 @@ std::streamsize
 pyistream_device
 ::read(char_type* s, std::streamsize n)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   boost::python::str const bytes = boost::python::str(m_obj.attr("read")(n));
 
   long const sz = boost::python::len(bytes);
@@ -62,6 +68,10 @@ std::streamsize
 pyostream_device
 ::write(char_type const* s, std::streamsize n)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   boost::python::str const bytes(s, static_cast<size_t>(n));
 
   m_obj.attr("write")(bytes);

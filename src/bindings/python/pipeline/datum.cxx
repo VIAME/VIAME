@@ -93,12 +93,20 @@ BOOST_PYTHON_MODULE(datum)
 void
 translator(vistk::datum_exception const& e)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
 vistk::datum_t
 new_datum(object const& obj)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   boost::any const any = extract<boost::any>(obj);
 
   return vistk::datum::new_datum(any);

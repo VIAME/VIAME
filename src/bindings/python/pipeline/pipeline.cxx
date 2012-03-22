@@ -7,6 +7,8 @@
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/pipeline_exception.h>
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/class.hpp>
 #include <boost/python/exception_translator.hpp>
 #include <boost/python/module.hpp>
@@ -111,5 +113,9 @@ BOOST_PYTHON_MODULE(pipeline)
 void
 translator(vistk::pipeline_exception const& e)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   PyErr_SetString(PyExc_RuntimeError, e.what());
 }

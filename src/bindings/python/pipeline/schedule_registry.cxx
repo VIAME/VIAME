@@ -4,12 +4,13 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/python_gil.h>
 #include <python/helpers/python_threading.h>
 
 #include <vistk/pipeline/schedule.h>
 #include <vistk/pipeline/schedule_registry.h>
 #include <vistk/pipeline/schedule_registry_exception.h>
+
+#include <vistk/python/util/python_gil.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
@@ -106,6 +107,10 @@ register_schedule(vistk::schedule_registry_t reg,
                   vistk::schedule_registry::description_t const& desc,
                   object obj)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   python_schedule_wrapper wrap(obj);
 
   reg->register_schedule(type, desc, wrap);
@@ -114,6 +119,10 @@ register_schedule(vistk::schedule_registry_t reg,
 void
 translator(vistk::schedule_registry_exception const& e)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
@@ -132,7 +141,7 @@ vistk::schedule_t
 python_schedule_wrapper
 ::operator () (vistk::config_t const& config, vistk::pipeline_t const& pipeline)
 {
-  python_gil gil;
+  vistk::python::python_gil gil;
 
   (void)gil;
 

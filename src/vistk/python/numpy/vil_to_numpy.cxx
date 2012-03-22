@@ -9,6 +9,8 @@
 #include "registration.h"
 #include "type_mappings.h"
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/object.hpp>
 
 #include <vil/vil_image_view.h>
@@ -29,6 +31,10 @@ namespace python
 PyObject*
 vil_to_numpy(vil_image_view_base_sptr const& img)
 {
+  vistk::python::python_gil gil;
+
+  (void) gil;
+
   register_image_base();
 
   vil_pixel_format const vil_format = img->pixel_format();
@@ -118,6 +124,10 @@ template <typename T>
 PyObject*
 vil_to_numpy(vil_image_view<T> const& img)
 {
+  vistk::python::python_gil gil;
+
+  (void) gil;
+
   typedef vil_image_view<T> image_t;
   typedef typename image_t::pixel_type pixel_t;
 
