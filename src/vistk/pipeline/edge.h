@@ -223,6 +223,7 @@ class VISTK_PIPELINE_EXPORT edge
      */
     void set_downstream_process(process_t process);
 
+    /// Configuration key that indicates the edge implies an execution dependency between upstream and downstream.
     static config::key_t const config_dependency;
   private:
     class priv;
