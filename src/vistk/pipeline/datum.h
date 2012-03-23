@@ -171,7 +171,7 @@ template <typename T>
 datum_t
 datum::new_datum(T const& dat)
 {
-  return datum_t(new datum(boost::any(dat)));
+  return new_datum(boost::any(dat));
 }
 
 template <typename T>
