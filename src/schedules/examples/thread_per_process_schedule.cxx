@@ -123,7 +123,7 @@ static config_t monitor_edge_config();
 void
 run_process(process_t process)
 {
-  static config_t edge_conf = monitor_edge_config();
+  config_t const edge_conf = monitor_edge_config();
 
   name_thread(process->name());
   edge_t monitor_edge = boost::make_shared<edge>(edge_conf);
