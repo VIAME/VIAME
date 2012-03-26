@@ -80,6 +80,8 @@ vistk_make_test(edge get_data_from_complete)
 ##############################
 add_library(processes_test SHARED
   processes_test.cxx)
+target_link_libraries(processes_test
+  vistk_pipeline)
 
 if (WIN32)
   set(module_output RUNTIME_OUTPUT_DIRECTORY)
