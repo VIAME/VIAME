@@ -8,6 +8,7 @@
 from vistk.pipeline import config
 from vistk.pipeline import datum
 from vistk.pipeline import edge
+from vistk.pipeline import pipeline
 from vistk.pipeline import process
 from vistk.pipeline import schedule
 from vistk.pipeline import utils
