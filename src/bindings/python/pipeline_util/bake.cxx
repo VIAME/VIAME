@@ -13,6 +13,8 @@
 
 #include <vistk/utilities/path.h>
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/def.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/exception_translator.hpp>
@@ -60,6 +62,10 @@ bake_pipe_file(std::string const& path)
 vistk::pipeline_t
 bake_pipe(object stream, std::string const& inc_root)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   pyistream istr(stream);
 
   return vistk::bake_pipe(istr, vistk::path_t(inc_root));
@@ -68,5 +74,9 @@ bake_pipe(object stream, std::string const& inc_root)
 void
 translator(vistk::pipe_bakery_exception const& e)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   PyErr_SetString(PyExc_RuntimeError, e.what());
 }

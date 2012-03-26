@@ -61,16 +61,6 @@ thread_per_process_schedule
 
       throw incompatible_pipeline_exception(reason);
     }
-
-    i = consts.find(process::constraint_python);
-
-    if (i != consts.end())
-    {
-      std::string const reason = "The process \'" + name + "\' is written "
-                                 "in Python and does not work with boost::thread";
-
-      throw incompatible_pipeline_exception(reason);
-    }
   }
 }
 

@@ -8,6 +8,17 @@ find_package(Boost ${vistk_boost_version} REQUIRED
 find_package(PythonLibs REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_PATH})
 
+option(VISTK_ENABLE_BOOST_PYTHON_FIXES "Enables fixes for Boost.Python bugs (recommended)" ON)
+mark_as_advanced(VISTK_ENABLE_BOOST_PYTHON_FIXES)
+
+if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
+  # Not fixed yet.
+  #if (${Boost_VERSION} LESS 10XX00)
+    # Override Boost's invoke.hpp
+    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/threading")
+  #endif (${Boost_VERSION} LESS 10XX00)
+endif (VISTK_ENABLE_BOOST_PYTHON_FIXES)
+
 add_subdirectory(helpers)
 
 add_custom_target(python)
@@ -148,6 +159,7 @@ add_subdirectory(modules)
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)
 add_subdirectory(processes)
+add_subdirectory(schedules)
 
 if (VISTK_ENABLE_TESTING)
   add_subdirectory(test)

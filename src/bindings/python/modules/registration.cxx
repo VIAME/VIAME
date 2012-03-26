@@ -8,6 +8,8 @@
 
 #include <vistk/pipeline/utils.h>
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/import.hpp>
 
 #include <Python.h>
@@ -31,6 +33,10 @@ register_processes()
 
   try
   {
+    vistk::python::python_gil gil;
+
+    (void)gil;
+
     object modules = import("vistk.modules.modules");
     object loader = modules.attr("load_python_modules");
 

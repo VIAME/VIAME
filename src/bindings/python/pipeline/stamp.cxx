@@ -4,16 +4,11 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/python_wrap_const_shared_ptr.h>
-
 #include <vistk/pipeline/stamp.h>
 
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
-#include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
-#include <boost/python/operators.hpp>
-#include <boost/python/self.hpp>
 
 /**
  * \file stamp.cxx
@@ -22,6 +17,10 @@
  */
 
 using namespace boost::python;
+
+static bool stamp_is_same_color(vistk::stamp_t const& self, vistk::stamp_t const& other);
+static bool stamp_eq(vistk::stamp_t const& self, vistk::stamp_t const& other);
+static bool stamp_lt(vistk::stamp_t const& self, vistk::stamp_t const& other);
 
 BOOST_PYTHON_MODULE(stamp)
 {
@@ -37,15 +36,31 @@ BOOST_PYTHON_MODULE(stamp)
     , (arg("stamp"), arg("colored_stamp"))
     , "Creates a copy of the given stamp with a new color.");
 
-  class_<vistk::stamp, vistk::stamp_t, boost::noncopyable>("Stamp"
+  class_<vistk::stamp_t>("Stamp"
     , "An identifier to help synchronize data within the pipeline."
     , no_init)
-    .def("is_same_color", &vistk::stamp::is_same_color
+    .def("is_same_color", &stamp_is_same_color
       , (arg("stamp"))
       , "Returns True if the stamps are the same color, False otherwise.")
-    .def(self == self)
-    .def(self < self)
+    .def("__eq__", stamp_eq)
+    .def("__lt__", stamp_lt)
   ;
+}
 
-  implicitly_convertible<boost::shared_ptr<vistk::stamp>, vistk::stamp_t>();
+bool
+stamp_is_same_color(vistk::stamp_t const& self, vistk::stamp_t const& other)
+{
+  return self->is_same_color(other);
+}
+
+bool
+stamp_eq(vistk::stamp_t const& self, vistk::stamp_t const& other)
+{
+  return (*self == *other);
+}
+
+bool
+stamp_lt(vistk::stamp_t const& self, vistk::stamp_t const& other)
+{
+  return (*self < *other);
 }

@@ -18,6 +18,7 @@ add_library(vistk_python_numpy
   ${python_numpy_srcs})
 target_link_libraries(vistk_python_numpy
   vil
+  vistk_python_util
   ${Boost_THREAD_LIBRARY}
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})

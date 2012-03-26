@@ -7,6 +7,7 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_PATH})
 
 find_package(NumPy)
 
+add_subdirectory(util)
 add_subdirectory(any_conversion)
 
 if (NUMPY_FOUND)

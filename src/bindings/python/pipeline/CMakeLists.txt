@@ -5,6 +5,7 @@ add_vistk_python_library(config
   config.cxx)
 target_link_libraries(python-vistk.pipeline-config
   vistk_pipeline
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
@@ -14,6 +15,7 @@ add_vistk_python_library(datum
 target_link_libraries(python-vistk.pipeline-datum
   vistk_pipeline
   vistk_python_any_conversion
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
@@ -22,6 +24,7 @@ add_vistk_python_library(edge
   edge.cxx)
 target_link_libraries(python-vistk.pipeline-edge
   vistk_pipeline
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
@@ -30,6 +33,7 @@ add_vistk_python_library(modules
   modules.cxx)
 target_link_libraries(python-vistk.pipeline-modules
   vistk_pipeline
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
@@ -38,6 +42,7 @@ add_vistk_python_library(pipeline
   pipeline.cxx)
 target_link_libraries(python-vistk.pipeline-pipeline
   vistk_pipeline
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
@@ -46,6 +51,7 @@ add_vistk_python_library(process
   process.cxx)
 target_link_libraries(python-vistk.pipeline-process
   vistk_pipeline
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
@@ -54,7 +60,7 @@ add_vistk_python_library(process_registry
   process_registry.cxx)
 target_link_libraries(python-vistk.pipeline-process_registry
   vistk_pipeline
-  python_gil
+  vistk_python_util
   python_threading
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
@@ -64,6 +70,7 @@ add_vistk_python_library(schedule
   schedule.cxx)
 target_link_libraries(python-vistk.pipeline-schedule
   vistk_pipeline
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
@@ -72,7 +79,7 @@ add_vistk_python_library(schedule_registry
   schedule_registry.cxx)
 target_link_libraries(python-vistk.pipeline-schedule_registry
   vistk_pipeline
-  python_gil
+  vistk_python_util
   python_threading
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
@@ -82,6 +89,7 @@ add_vistk_python_library(stamp
   stamp.cxx)
 target_link_libraries(python-vistk.pipeline-stamp
   vistk_pipeline
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 
@@ -90,6 +98,7 @@ add_vistk_python_library(utils
   utils.cxx)
 target_link_libraries(python-vistk.pipeline-utils
   vistk_pipeline
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 

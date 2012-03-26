@@ -8,9 +8,10 @@
 #include <vistk/pipeline/schedule.h>
 #include <vistk/pipeline/schedule_exception.h>
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
-#include <boost/python/exception_translator.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/override.hpp>
 #include <boost/python/pure_virtual.hpp>
@@ -22,8 +23,6 @@
  */
 
 using namespace boost::python;
-
-static void translator(vistk::schedule_exception const& e);
 
 class wrap_schedule
   : public vistk::schedule
@@ -44,9 +43,6 @@ class wrap_schedule
 
 BOOST_PYTHON_MODULE(schedule)
 {
-  register_exception_translator<
-    vistk::schedule_exception>(translator);
-
   class_<wrap_schedule, boost::noncopyable>("PythonSchedule"
     , "The base class for Python schedules."
     , no_init)
@@ -60,12 +56,6 @@ BOOST_PYTHON_MODULE(schedule)
     .def("pipeline", &wrap_schedule::_pipeline
       , "The pipeline the schedule is to run.")
   ;
-}
-
-void
-translator(vistk::schedule_exception const& e)
-{
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
 wrap_schedule
@@ -83,6 +73,10 @@ void
 wrap_schedule
 ::start()
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   get_pure_override("start")();
 }
 
@@ -90,6 +84,10 @@ void
 wrap_schedule
 ::wait()
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   get_pure_override("wait")();
 }
 
@@ -97,6 +95,10 @@ void
 wrap_schedule
 ::stop()
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   get_pure_override("stop")();
 }
 

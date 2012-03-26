@@ -11,10 +11,12 @@ set(python_any_conversion_headers
 add_library(vistk_python_any_conversion
   ${python_any_conversion_srcs})
 target_link_libraries(vistk_python_any_conversion
+  vistk_python_util
   ${Boost_THREAD_LIBRARY}
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 target_link_libraries(vistk_python_any_conversion LINK_INTERFACE_LIBRARIES
+  vistk_python_util
   ${Boost_PYTHON_LIBRARY}
   ${PYTHON_LIBRARIES})
 set_target_properties(vistk_python_any_conversion

@@ -7,6 +7,8 @@
 #ifndef VISTK_PYTHON_HELPERS_SET_INDEXING_SUITE_H
 #define VISTK_PYTHON_HELPERS_SET_INDEXING_SUITE_H
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/suite/indexing/indexing_suite.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
@@ -212,6 +214,10 @@ class set_indexing_suite
     {
       if (container.empty())
       {
+        vistk::python::python_gil gil;
+
+        (void)gil;
+
         PyErr_SetString(PyExc_KeyError, "pop from an empty set");
         throw_error_already_set();
       }
@@ -232,6 +238,10 @@ class set_indexing_suite
 
       if (i == container.end())
       {
+        vistk::python::python_gil gil;
+
+        (void)gil;
+
         PyErr_SetString(PyExc_KeyError, boost::lexical_cast<std::string>(v).c_str());
         throw_error_already_set();
       }
@@ -281,6 +291,10 @@ class set_indexing_suite
     static void
     index_error()
     {
+      vistk::python::python_gil gil;
+
+      (void)gil;
+
       PyErr_SetString(PyExc_TypeError, "'set' object does not support indexing");
       throw_error_already_set();
     }

@@ -23,6 +23,8 @@ class numpy_memory_chunk
 
     void set_size(unsigned long n, vil_pixel_format format);
   private:
+    void release();
+
     PyArrayObject* m_arr;
 };
 

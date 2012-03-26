@@ -7,6 +7,8 @@
 #ifndef VISTK_PYTHON_HELPERS_PYTHON_CONVERT_OPTIONAL_H
 #define VISTK_PYTHON_HELPERS_PYTHON_CONVERT_OPTIONAL_H
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/converter/registry.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/default_call_policies.hpp>
@@ -41,6 +43,10 @@ class boost_optional_converter
 
     static void* convertible(PyObject* obj)
     {
+      vistk::python::python_gil gil;
+
+      (void)gil;
+
       if (obj == Py_None)
       {
         return obj;
@@ -61,6 +67,10 @@ class boost_optional_converter
 
     static PyObject* convert(optional_t const& opt)
     {
+      vistk::python::python_gil gil;
+
+      (void)gil;
+
       if (opt)
       {
         return boost::python::to_python_value<T>()(*opt);
@@ -73,6 +83,10 @@ class boost_optional_converter
 
     static void construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
     {
+      vistk::python::python_gil gil;
+
+      (void)gil;
+
       void* storage = reinterpret_cast<boost::python::converter::rvalue_from_python_storage<optional_t>*>(data)->storage.bytes;
 
 #define CONSTRUCT(args)            \

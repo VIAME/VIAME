@@ -6,6 +6,8 @@
 
 #include "numpy_memory_chunk.h"
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/cstdint.hpp>
 
 #include <vil/vil_pixel_format.h>
@@ -21,6 +23,10 @@ numpy_memory_chunk
   : vil_memory_chunk()
   , m_arr(arr)
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   Py_INCREF(m_arr);
 
   int const numpy_format = PyArray_TYPE(m_arr);
@@ -45,10 +51,7 @@ numpy_memory_chunk
 numpy_memory_chunk
 ::~numpy_memory_chunk()
 {
-  if (m_arr)
-  {
-    Py_DECREF(m_arr);
-  }
+  release();
 }
 
 void*
@@ -67,6 +70,10 @@ numpy_memory_chunk
     return vil_memory_chunk::const_data();
   }
 
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   return PyArray_DATA(m_arr);
 }
 
@@ -78,11 +85,25 @@ numpy_memory_chunk
   {
     size_ = 0;
 
-    Py_DECREF(m_arr);
-    m_arr = NULL;
+    release();
   }
 
   vil_memory_chunk::set_size(n, format);
+}
+
+void
+numpy_memory_chunk
+::release()
+{
+  if (m_arr)
+  {
+    vistk::python::python_gil gil;
+
+    (void)gil;
+
+    Py_DECREF(m_arr);
+    m_arr = NULL;
+  }
 }
 
 vil_pixel_format

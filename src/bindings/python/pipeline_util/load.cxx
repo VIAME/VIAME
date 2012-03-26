@@ -15,6 +15,8 @@
 
 #include <vistk/utilities/path.h>
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
@@ -321,6 +323,10 @@ object
 group_subblock_visitor
 ::operator () (vistk::config_value_t const& config) const
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   if (block_type == BLOCK_CONFIG)
   {
     return object(config);
@@ -333,6 +339,10 @@ object
 group_subblock_visitor
 ::operator () (vistk::input_map_t const& input) const
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   if (block_type == BLOCK_INPUT)
   {
     return object(input);
@@ -345,6 +355,10 @@ object
 group_subblock_visitor
 ::operator () (vistk::output_map_t const& output) const
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   if (block_type == BLOCK_OUTPUT)
   {
     return object(output);
@@ -368,6 +382,10 @@ object
 pipe_block_visitor
 ::operator () (vistk::config_pipe_block const& config_block) const
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   object obj;
 
   if (block_type == BLOCK_CONFIG)
@@ -382,6 +400,10 @@ object
 pipe_block_visitor
 ::operator () (vistk::process_pipe_block const& process_block) const
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   object obj;
 
   if (block_type == BLOCK_PROCESS)
@@ -396,6 +418,10 @@ object
 pipe_block_visitor
 ::operator () (vistk::connect_pipe_block const& connect_block) const
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   object obj;
 
   if (block_type == BLOCK_CONNECT)
@@ -410,6 +436,10 @@ object
 pipe_block_visitor
 ::operator () (vistk::group_pipe_block const& group_block) const
 {
+  vistk::python::python_gil gil;
+
+  (void)gil;
+
   object obj;
 
   if (block_type == BLOCK_GROUP)

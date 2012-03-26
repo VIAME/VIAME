@@ -8,7 +8,6 @@
 #include <vistk/pipeline/pipeline_exception.h>
 
 #include <boost/python/class.hpp>
-#include <boost/python/exception_translator.hpp>
 #include <boost/python/module.hpp>
 
 /**
@@ -19,13 +18,8 @@
 
 using namespace boost::python;
 
-static void translator(vistk::pipeline_exception const& e);
-
 BOOST_PYTHON_MODULE(pipeline)
 {
-  register_exception_translator<
-    vistk::pipeline_exception>(translator);
-
   class_<vistk::pipeline, vistk::pipeline_t, boost::noncopyable>("Pipeline"
     , "A data structure for a collection of connected processes."
     , no_init)
@@ -106,10 +100,4 @@ BOOST_PYTHON_MODULE(pipeline)
       , (arg("name"), arg("port"))
       , "Return the ports that are mapped to the group's output port.")
   ;
-}
-
-void
-translator(vistk::pipeline_exception const& e)
-{
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }

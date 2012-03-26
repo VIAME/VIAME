@@ -6,6 +6,8 @@
 
 #include "registration.h"
 
+#include <vistk/python/util/python_gil.h>
+
 #include <boost/python/converter/registry.hpp>
 #include <boost/python/errors.hpp>
 #include <boost/python/to_python_converter.hpp>
@@ -122,6 +124,10 @@ PyObject*
 any_converter
 ::convert(boost::any const& any)
 {
+  python_gil gil;
+
+  (void)gil;
+
   if (any.empty())
   {
     Py_RETURN_NONE;
@@ -163,6 +169,10 @@ void
 any_converter
 ::construct(PyObject* obj, converter::rvalue_from_python_stage1_data* data)
 {
+  python_gil gil;
+
+  (void)gil;
+
   void* storage = reinterpret_cast<converter::rvalue_from_python_storage<boost::any>*>(data)->storage.bytes;
 
   if (obj != Py_None)
@@ -190,6 +200,10 @@ any_converter
 void
 register_to_python()
 {
+  python_gil gil;
+
+  (void)gil;
+
   to_python_converter<boost::any, any_converter>();
   converter::registry::push_back(
     &any_converter::convertible,

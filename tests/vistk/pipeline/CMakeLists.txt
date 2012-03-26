@@ -240,13 +240,41 @@ vistk_make_test(schedule_registry module_marking)
 vistk_build_test(run libraries test_run.cxx)
 
 set(schedules
-  thread_per_process
-  sync)
+  sync
+  thread_per_process)
+
+if (VISTK_ENABLE_PYTHON)
+  set(schedules
+    ${schedules}
+    pythread_per_process)
+endif (VISTK_ENABLE_PYTHON)
 
 function (vistk_make_run_test group instance)
   foreach (schedule ${schedules})
     vistk_make_test(${group} ${instance}-${schedule})
   endforeach (schedule ${schedules})
+
+  if (VISTK_ENABLE_PYTHON)
+    set(python_module_path
+      "${PYTHON_OUTPUT_PATH}")
+
+    if (WIN32)
+      set(python_module_path
+        "${python_module_path}/$<CONFIGURATION>")
+    endif (WIN32)
+
+    set(cur_python_path
+      "$ENV{PYTHONPATH}")
+
+    if (cur_python_path)
+      set(cur_python_path
+        ":${cur_python_path}")
+    endif (cur_python_path)
+
+    set_tests_properties(test-${group}-${instance}-pythread_per_process
+      PROPERTIES
+        ENVIRONMENT "PYTHONPATH=${python_module_path}${cur_python_path}")
+  endif (VISTK_ENABLE_PYTHON)
 endfunction (vistk_make_run_test group instance)
 
 vistk_make_run_test(run simple_pipeline)
