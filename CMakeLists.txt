@@ -155,7 +155,7 @@ endif (VISTK_ENABLE_DOCUMENTATION)
 
 option(VISTK_ENABLE_TOOLS "Build tools" ON)
 
-set(vistk_boost_version 1.44)
+set(vistk_boost_version 1.46)
 
 if (VISTK_ENABLE_PYTHON)
   set(vistk_boost_version 1.48)
