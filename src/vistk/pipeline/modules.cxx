@@ -145,7 +145,7 @@ void load_from_module(module_path_t const path)
 #if defined(_WIN32) || defined(_WIN64)
   library = LoadLibraryW(path.c_str());
 #else
-  library = dlopen(path.c_str(), RTLD_LAZY);
+  library = dlopen(path.c_str(), RTLD_GLOBAL | RTLD_LAZY);
 #endif
 
   if (!library)
