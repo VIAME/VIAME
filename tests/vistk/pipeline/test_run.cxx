@@ -100,7 +100,7 @@ test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
 
-  std::string const output_path = "test-run-simple_pipeline-print_number.txt";
+  std::string const output_path = "test-run-simple_pipeline-" + schedule_type + "-print_number.txt";
 
   int32_t const start_value = 10;
   int32_t const end_value = 20;
@@ -119,7 +119,7 @@ test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
     vistk::config_t configt = vistk::config::empty_config();
 
     vistk::config::key_t const output_key = vistk::config::key_t("output");
-    vistk::config::value_t const output_value = vistk::config::value_t("test-run-simple_pipeline-print_number.txt");
+    vistk::config::value_t const output_value = vistk::config::value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
@@ -195,7 +195,7 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
 
-  std::string const output_path = "test-run-simple_pipeline-print_number.txt";
+  std::string const output_path = "test-run-multiplier_pipeline-" + schedule_type + "-print_number.txt";
 
   int32_t const start_value1 = 10;
   int32_t const end_value1 = 20;
@@ -226,7 +226,7 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
     vistk::config_t configt = vistk::config::empty_config();
 
     vistk::config::key_t const output_key = vistk::config::key_t("output");
-    vistk::config::value_t const output_value = vistk::config::value_t("test-run-simple_pipeline-print_number.txt");
+    vistk::config::value_t const output_value = vistk::config::value_t(output_path);
 
     configt->set_value(output_key, output_value);
 

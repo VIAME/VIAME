@@ -1737,7 +1737,7 @@ test_setup_pipeline()
   vistk::config_t configt = vistk::config::empty_config();
 
   vistk::config::key_t const output_key = vistk::config::key_t("output");
-  vistk::config::value_t const output_path = vistk::config::value_t("tests-pipeline-setup_pipeline-print_number.txt");
+  vistk::config::value_t const output_path = vistk::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
 
   configt->set_value(output_key, output_path);
 
