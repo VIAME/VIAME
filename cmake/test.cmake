@@ -61,11 +61,11 @@ if (GPROF_EXECUTABLE)
 endif (GPROF_EXECUTABLE)
 
 set(TEST_WORKING_DIRECTORY
-  ${EXECUTABLE_OUTPUT_PATH})
+  "${EXECUTABLE_OUTPUT_PATH}")
 
 if (WIN32)
   set(TEST_WORKING_DIRECTORY
-    ${TEST_WORKING_DIRECTORY}/$<CONFIGURATION>)
+    "${TEST_WORKING_DIRECTORY}/$<CONFIGURATION>")
 endif (WIN32)
 
 set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
@@ -102,7 +102,7 @@ endmacro (vistk_build_test)
 function (vistk_make_test testname instance)
   add_test(NAME test-${testname}-${instance}
     COMMAND ${TEST_RUNNER}
-            ${EXECUTABLE_OUTPUT_PATH}/test-${testname}
+            "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
             ${instance}
             ${ARGN})
   set_tests_properties(test-${testname}-${instance}
@@ -114,11 +114,11 @@ function (vistk_make_test testname instance)
     add_custom_command(
       TARGET  test-${testname}-${instance}
       COMMAND ${TEST_RUNNER}
-              ${EXECUTABLE_OUTPUT_PATH}/test-${testname}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              ${EXECUTABLE_OUTPUT_PATH}
+              "${EXECUTABLE_OUTPUT_PATH}"
       COMMENT "Running test \"${testname}\" instance \"${instance}\"")
     add_dependencies(tests-${testname}
       test-${testname}-${instance})
@@ -127,58 +127,58 @@ function (vistk_make_test testname instance)
     add_custom_target(valgrind-${testname}-${instance})
     add_custom_command(
       TARGET  valgrind-${testname}-${instance}
-      COMMAND ${VALGRIND_EXECUTABLE}
+      COMMAND "${VALGRIND_EXECUTABLE}"
               --leak-check=full
               --show-reachable=yes
               --track-fds=yes
               --track-origins=yes
-              --log-file=${EXECUTABLE_OUTPUT_PATH}/valgrind.log.${testname}.${instance}
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/valgrind.log.${testname}.${instance}"
               ${vistk_valgrind_arguments}
               ${TEST_RUNNER}
-              ${EXECUTABLE_OUTPUT_PATH}/test-${testname}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              ${TEST_WORKING_DIRECTORY}
+              "${TEST_WORKING_DIRECTORY}"
       COMMENT "Running valgrind on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(valgrind-${testname}
       valgrind-${testname}-${instance})
     add_custom_target(callgrind-${testname}-${instance})
     add_custom_command(
       TARGET  callgrind-${testname}-${instance}
-      COMMAND ${VALGRIND_EXECUTABLE}
+      COMMAND "${VALGRIND_EXECUTABLE}"
               --tool=callgrind
               --dump-instr=yes
-              --log-file=${EXECUTABLE_OUTPUT_PATH}/callgrind.log.${testname}.${instance}
-              --callgrind-out-file=${EXECUTABLE_OUTPUT_PATH}/callgrind.out.${testname}.${instance}
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/callgrind.log.${testname}.${instance}"
+              --callgrind-out-file="${EXECUTABLE_OUTPUT_PATH}/callgrind.out.${testname}.${instance}"
               ${TEST_RUNNER}
-              ${EXECUTABLE_OUTPUT_PATH}/test-${testname}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              ${TEST_WORKING_DIRECTORY}
+              "${TEST_WORKING_DIRECTORY}"
       COMMENT "Running callgrind on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(callgrind-${testname}
       callgrind-${testname}-${instance})
     add_custom_target(ptrcheck-${testname}-${instance})
     add_custom_command(
       TARGET  ptrcheck-${testname}-${instance}
-      COMMAND ${VALGRIND_EXECUTABLE}
+      COMMAND "${VALGRIND_EXECUTABLE}"
               --tool=exp-ptrcheck
-              --log-file=${EXECUTABLE_OUTPUT_PATH}/ptrcheck.log.${testname}.${instance}
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/ptrcheck.log.${testname}.${instance}"
               ${TEST_RUNNER}
-              ${EXECUTABLE_OUTPUT_PATH}/test-${testname}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              ${TEST_WORKING_DIRECTORY}
+              "${TEST_WORKING_DIRECTORY}"
       COMMENT "Running ptrcheck on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(ptrcheck-${testname}
       ptrcheck-${testname}-${instance})
   endif (VALGRIND_EXECUTABLE)
   if (GPROF_EXECUTABLE)
     set(real_command
-      ${EXECUTABLE_OUTPUT_PATH}/test-${testname})
+      "${EXECUTABLE_OUTPUT_PATH}/test-${testname}")
     if (TEST_RUNNER)
       set(real_command
         ${TEST_RUNNER})
@@ -188,15 +188,15 @@ function (vistk_make_test testname instance)
     add_custom_command(
       TARGET  gprof-${testname}-${instance}
       COMMAND ${TEST_RUNNER}
-              ${EXECUTABLE_OUTPUT_PATH}/test-${testname}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
-      COMMAND ${GPROF_EXECUTABLE}
-              ${real_command}
-              ${EXECUTABLE_OUTPUT_PATH}/gmon.out
-              > ${EXECUTABLE_OUTPUT_PATH}/gprof.log.${testname}.${instance}
+      COMMAND "${GPROF_EXECUTABLE}"
+              "${real_command}"
+              "${EXECUTABLE_OUTPUT_PATH}/gmon.out"
+              > "${EXECUTABLE_OUTPUT_PATH}/gprof.log.${testname}.${instance}"
       WORKING_DIRECTORY
-              ${TEST_WORKING_DIRECTORY}
+              "${TEST_WORKING_DIRECTORY}"
       COMMENT "Running gprof on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(gprof-${testname}
       gprof-${testname}-${instance})
