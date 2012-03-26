@@ -1,0 +1,22 @@
+project(vistk_tests_test)
+
+set(libraries)
+
+vistk_build_test(test libraries test_test.cxx)
+
+vistk_make_test(test return_code)
+vistk_make_test(test error_string)
+vistk_make_test(test error_string_mid)
+vistk_make_test(test error_string_stdout)
+
+set_tests_properties(test-test-return_code
+  PROPERTIES
+    WILL_FAIL TRUE)
+
+set_tests_properties(test-test-error_string
+  PROPERTIES
+    WILL_FAIL TRUE)
+
+set_tests_properties(test-test-error_string_stdout
+  PROPERTIES
+    WILL_FAIL TRUE)
