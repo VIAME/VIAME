@@ -46,6 +46,7 @@ static void test_has_value();
 static void test_get_value();
 static void test_get_value_no_exist();
 static void test_get_value_type_mismatch();
+static void test_bool_conversion();
 static void test_unset_value();
 static void test_available_values();
 static void test_read_only();
@@ -72,6 +73,10 @@ run_test(std::string const& test_name)
   else if (test_name == "get_value_type_mismatch")
   {
     test_get_value_type_mismatch();
+  }
+  else if (test_name == "bool_conversion")
+  {
+    test_bool_conversion();
   }
   else if (test_name == "unset_value")
   {
@@ -192,6 +197,53 @@ test_get_value_type_mismatch()
   if (valueb != get_valueb)
   {
     TEST_ERROR("Did not retrieve default when requesting a bad cast");
+  }
+}
+
+void
+test_bool_conversion()
+{
+  vistk::config_t config = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("key");
+
+  vistk::config::value_t const lit_true = vistk::config::value_t("true");
+  vistk::config::value_t const lit_false = vistk::config::value_t("false");
+  vistk::config::value_t const lit_1 = vistk::config::value_t("1");
+  vistk::config::value_t const lit_0 = vistk::config::value_t("0");
+
+  bool val;
+
+  config->set_value(key, lit_true);
+  val = config->get_value<bool>(key);
+
+  if (!val)
+  {
+    TEST_ERROR("The value \'true\' did not get converted to true when read as a boolean");
+  }
+
+  config->set_value(key, lit_false);
+  val = config->get_value<bool>(key);
+
+  if (val)
+  {
+    TEST_ERROR("The value \'false\' did not get converted to false when read as a boolean");
+  }
+
+  config->set_value(key, lit_1);
+  val = config->get_value<bool>(key);
+
+  if (!val)
+  {
+    TEST_ERROR("The value \'1\' did not get converted to true when read as a boolean");
+  }
+
+  config->set_value(key, lit_0);
+  val = config->get_value<bool>(key);
+
+  if (val)
+  {
+    TEST_ERROR("The value \'0\' did not get converted to true when read as a boolean");
   }
 }
 
