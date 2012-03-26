@@ -31,7 +31,7 @@ namespace vistk
  * \brief Warps an image given a transformation.
  */
 template <typename PixType>
-class warp_image
+class VISTK_IMAGE_EXPORT warp_image
 {
   public:
     /// The type of an image for warping.
