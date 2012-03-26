@@ -51,6 +51,7 @@ if (VALGRIND_EXECUTABLE)
 
   add_custom_target(valgrind)
   add_custom_target(callgrind)
+  add_custom_target(helgrind)
   add_custom_target(ptrcheck)
 endif (VALGRIND_EXECUTABLE)
 
@@ -77,11 +78,14 @@ function (vistk_declare_test testname)
   if (VALGRIND_EXECUTABLE)
     add_custom_target(valgrind-${testname})
     add_custom_target(callgrind-${testname})
+    add_custom_target(helgrind-${testname})
     add_custom_target(ptrcheck-${testname})
     add_dependencies(valgrind
       valgrind-${testname})
     add_dependencies(callgrind
       callgrind-${testname})
+    add_dependencies(helgrind
+      helgrind-${testname})
     add_dependencies(ptrcheck
       ptrcheck-${testname})
   endif (VALGRIND_EXECUTABLE)
@@ -160,6 +164,21 @@ function (vistk_make_test testname instance)
       COMMENT "Running callgrind on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(callgrind-${testname}
       callgrind-${testname}-${instance})
+    add_custom_target(helgrind-${testname}-${instance})
+    add_custom_command(
+      TARGET  helgrind-${testname}-${instance}
+      COMMAND "${VALGRIND_EXECUTABLE}"
+              --tool=helgrind
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/helgrind.log.${testname}.${instance}"
+              ${TEST_RUNNER}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              ${instance}
+              ${ARGN}
+      WORKING_DIRECTORY
+              "${TEST_WORKING_DIRECTORY}"
+      COMMENT "Running helgrind on test \"${testname}\" instance \"${instance}\"")
+    add_dependencies(helgrind-${testname}
+      helgrind-${testname}-${instance})
     add_custom_target(ptrcheck-${testname}-${instance})
     add_custom_command(
       TARGET  ptrcheck-${testname}-${instance}
