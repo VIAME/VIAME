@@ -112,7 +112,7 @@ function (vistk_make_test testname instance)
   set_tests_properties(test-${testname}-${instance}
     PROPERTIES
       WORKING_DIRECTORY       "${EXECUTABLE_OUTPUT_PATH}"
-      FAIL_REGULAR_EXPRESSION "Error: ")
+      FAIL_REGULAR_EXPRESSION "^Error: ")
   if (NOT WIN32)
     add_custom_target(test-${testname}-${instance})
     add_custom_command(
