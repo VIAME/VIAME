@@ -2,7 +2,7 @@ find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
     python)
 
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
 find_package(NumPy)
