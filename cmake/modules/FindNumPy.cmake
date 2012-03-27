@@ -10,7 +10,7 @@
 
 if (PYTHON_EXECUTABLE)
   execute_process(
-    COMMAND         ${PYTHON_EXECUTABLE} -c
+    COMMAND         "${PYTHON_EXECUTABLE}" -c
                     "import numpy, sys; sys.stdout.write(numpy.get_include())"
     RESULT_VARIABLE __numpy_include_dir_res
     OUTPUT_VARIABLE __numpy_include_dir
