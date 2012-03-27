@@ -6,7 +6,7 @@ find_package(Boost ${vistk_boost_version} REQUIRED
     python)
 
 find_package(PythonLibs REQUIRED)
-include_directories(SYSTEM ${PYTHON_INCLUDE_PATH})
+include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
 option(VISTK_ENABLE_BOOST_PYTHON_FIXES "Enables fixes for Boost.Python bugs (recommended)" ON)
 mark_as_advanced(VISTK_ENABLE_BOOST_PYTHON_FIXES)
