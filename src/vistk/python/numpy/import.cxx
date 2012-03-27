@@ -18,7 +18,20 @@ namespace vistk
 namespace python
 {
 
-static void import_numpy_module();
+namespace
+{
+
+typedef
+#if PY_VERSION_HEX >= 0x03000000
+  PyObject*
+#else
+  void
+#endif
+  pyimport_return_t;
+
+}
+
+static pyimport_return_t import_numpy_module();
 
 void
 import_numpy()
@@ -28,10 +41,14 @@ import_numpy()
   boost::call_once(once, import_numpy_module);
 }
 
-void
+pyimport_return_t
 import_numpy_module()
 {
   import_array();
+
+#if PY_VERSION_HEX >= 0x03000000
+  return NULL;
+#endif
 }
 
 }

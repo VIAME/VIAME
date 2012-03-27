@@ -188,9 +188,24 @@ class vil_image_converter
 template <typename T>
 void register_vil_image_converter();
 
+namespace
+{
+
+typedef
+#if PY_VERSION_HEX >= 0x03000000
+  PyObject*
+#else
+  void
+#endif
+  pyimport_return_t;
+
+}
+
+static pyimport_return_t import_numpy();
+
 BOOST_PYTHON_MODULE(vil)
 {
-  import_array();
+  import_numpy();
 
   // Expose vil_memory_chunk to Python. This is treated as opaque because Python
   // shouldn't be messing with such things, but it allows us to have numpy
@@ -248,4 +263,14 @@ register_vil_image_converter()
 
   boost::python::to_python_converter<image_t, converter_t>();
   converter_t();
+}
+
+pyimport_return_t
+import_numpy()
+{
+  import_array();
+
+#if PY_VERSION_HEX >= 0x03000000
+  return NULL;
+#endif
 }
