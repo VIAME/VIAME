@@ -70,7 +70,7 @@ else (WIN32)
   set(vistk_warnings
     "${vistk_warnings} -Wextra -Wall")
   set(vistk_warnings
-    "${vistk_warnings} -Wctor-dtor-privacy -Woverloaded-virtual -Wformat=2 -Wshadow -Winit-self -Wswitch-enum -Wstrict-overflow=5 -Wcast-align -Wcast-qual -Wfloat-equal -Wabi -Wswitch-default")
+    "${vistk_warnings} -Wctor-dtor-privacy -Wpointer-arith -Wwrite-strings -Wformat-security -Woverloaded-virtual -Wformat=2 -Wshadow -Winit-self -Wswitch-enum -Wstrict-overflow=5 -Wcast-align -Wcast-qual -Wfloat-equal -Wabi -Wswitch-default")
 
   option(VISTK_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
   if (VISTK_ENABLE_NITPICK)
