@@ -17,7 +17,7 @@ find_package(Boost ${vistk_boost_version} REQUIRED
 find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
-find_package(PythonInterp EXACT ${PYTHON_VERSION})
+find_package(PythonInterp ${PYTHON_VERSION})
 
 find_package(NumPy)
 
