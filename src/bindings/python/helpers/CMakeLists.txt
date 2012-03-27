@@ -1,5 +1,7 @@
 project(vistk_python_helpers)
 
+find_package(PythonInterp EXACT ${PYTHON_VERSION})
+
 find_package(NumPy)
 
 if (NUMPY_FOUND)
