@@ -182,7 +182,7 @@ def run_pipeline(sched_type, conf, pipe):
 
 def check_file(fname, expect):
     with open(fname, 'r') as fin:
-        ints = map(lambda l: int(l.strip()), list(fin))
+        ints = list([int(l.strip()) for l in list(fin)])
 
         num_ints = len(ints)
         num_expect = len(expect)
@@ -190,7 +190,7 @@ def check_file(fname, expect):
         if not num_ints == num_expect:
             log("Error: Got %d results when %d were expected." % (num_ints, num_expect))
 
-        res = zip(ints, expect)
+        res = list(zip(ints, expect))
 
         line = 1
 
@@ -242,7 +242,7 @@ def test_python_to_python(sched_type):
 
     run_pipeline(sched_type, c, p)
 
-    check_file(output_file, range(min, max))
+    check_file(output_file, list(range(min, max)))
 
 
 def test_cpp_to_python(sched_type):
@@ -287,7 +287,7 @@ def test_cpp_to_python(sched_type):
 
     run_pipeline(sched_type, c, p)
 
-    check_file(output_file, range(min, max))
+    check_file(output_file, list(range(min, max)))
 
 
 def test_python_to_cpp(sched_type):
@@ -332,7 +332,7 @@ def test_python_to_cpp(sched_type):
 
     run_pipeline(sched_type, c, p)
 
-    check_file(output_file, range(min, max))
+    check_file(output_file, list(range(min, max)))
 
 
 def test_python_via_cpp(sched_type):
@@ -417,7 +417,7 @@ def test_python_via_cpp(sched_type):
 
     run_pipeline(sched_type, c, p)
 
-    check_file(output_file, [a * b for a, b in zip(range(min1, max1), range(min2, max2))])
+    check_file(output_file, [a * b for a, b in zip(list(range(min1, max1)), list(range(min2, max2)))])
 
 
 def main(testname, sched_type):

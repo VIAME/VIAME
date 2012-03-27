@@ -17,7 +17,9 @@ def load_python_module(mname):
     mod = sys.modules[mname]
 
     if hasattr(mod, '__vistk_register__'):
-        if callable(mod.__vistk_register__):
+        import collections
+
+        if isinstance(mod.__vistk_register__, collections.Callable):
             mod.__vistk_register__()
 
 

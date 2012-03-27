@@ -1,6 +1,6 @@
 project(vistk_test_python)
 
-find_package(PythonInterp REQUIRED)
+find_package(PythonInterp EXACT ${PYTHON_VERSION} REQUIRED)
 
 set(TEST_RUNNER
   "${PYTHON_EXECUTABLE}")

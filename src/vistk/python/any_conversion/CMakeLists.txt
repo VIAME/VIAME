@@ -13,11 +13,11 @@ add_library(vistk_python_any_conversion
 target_link_libraries(vistk_python_any_conversion
   vistk_python_util
   ${Boost_THREAD_LIBRARY}
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 target_link_libraries(vistk_python_any_conversion LINK_INTERFACE_LIBRARIES
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 set_target_properties(vistk_python_any_conversion
   PROPERTIES

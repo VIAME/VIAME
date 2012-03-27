@@ -8,7 +8,7 @@ add_vistk_python_library(test_image
 target_link_libraries(python-vistk.test-test_image
   vil
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 make_python_init_file(vistk/test)

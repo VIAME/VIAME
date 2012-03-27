@@ -23,7 +23,7 @@ target_link_libraries(pystream
   vistk_python_util
   ${Boost_IOSTREAMS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 if (NOT WIN32)
