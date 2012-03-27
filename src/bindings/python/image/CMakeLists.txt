@@ -13,7 +13,7 @@ if (NUMPY_FOUND)
     numpy_memory_chunk
     vistk_python_any_conversion
     vistk_python_util
-    ${Boost_PYTHON_LIBRARY}
+    ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 endif (NUMPY_FOUND)
 

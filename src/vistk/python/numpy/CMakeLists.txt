@@ -20,11 +20,11 @@ target_link_libraries(vistk_python_numpy
   vil
   vistk_python_util
   ${Boost_THREAD_LIBRARY}
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 target_link_libraries(vistk_python_numpy LINK_INTERFACE_LIBRARIES
   vil
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 set_target_properties(vistk_python_numpy
   PROPERTIES

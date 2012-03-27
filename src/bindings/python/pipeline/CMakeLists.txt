@@ -6,7 +6,7 @@ add_vistk_python_library(config
 target_link_libraries(python-vistk.pipeline-config
   vistk_pipeline
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(datum
@@ -16,7 +16,7 @@ target_link_libraries(python-vistk.pipeline-datum
   vistk_pipeline
   vistk_python_any_conversion
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(edge
@@ -25,7 +25,7 @@ add_vistk_python_library(edge
 target_link_libraries(python-vistk.pipeline-edge
   vistk_pipeline
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(modules
@@ -34,7 +34,7 @@ add_vistk_python_library(modules
 target_link_libraries(python-vistk.pipeline-modules
   vistk_pipeline
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(pipeline
@@ -43,7 +43,7 @@ add_vistk_python_library(pipeline
 target_link_libraries(python-vistk.pipeline-pipeline
   vistk_pipeline
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(process
@@ -52,7 +52,7 @@ add_vistk_python_library(process
 target_link_libraries(python-vistk.pipeline-process
   vistk_pipeline
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(process_registry
@@ -62,7 +62,7 @@ target_link_libraries(python-vistk.pipeline-process_registry
   vistk_pipeline
   vistk_python_util
   python_threading
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(schedule
@@ -71,7 +71,7 @@ add_vistk_python_library(schedule
 target_link_libraries(python-vistk.pipeline-schedule
   vistk_pipeline
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(schedule_registry
@@ -81,7 +81,7 @@ target_link_libraries(python-vistk.pipeline-schedule_registry
   vistk_pipeline
   vistk_python_util
   python_threading
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(stamp
@@ -90,7 +90,7 @@ add_vistk_python_library(stamp
 target_link_libraries(python-vistk.pipeline-stamp
   vistk_pipeline
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 add_vistk_python_library(utils
@@ -99,7 +99,7 @@ add_vistk_python_library(utils
 target_link_libraries(python-vistk.pipeline-utils
   vistk_pipeline
   vistk_python_util
-  ${Boost_PYTHON_LIBRARY}
+  ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
 make_python_init_file(vistk/pipeline)
