@@ -146,13 +146,12 @@ endforeach (config)
 option(VISTK_ENABLE_PYTHON "Enable Python bindings" OFF)
 if (VISTK_ENABLE_PYTHON)
   option(VISTK_ENABLE_PYTHON3 "Use Python3" OFF)
+  if (VISTK_ENABLE_PYTHON3)
+    set(Python_ADDITIONAL_VERSIONS
+      3
+      ${PYTHON_VERSION})
+  endif (VISTK_ENABLE_PYTHON3)
 endif (VISTK_ENABLE_PYTHON)
-
-if (VISTK_ENABLE_PYTHON AND VISTK_ENABLE_PYTHON3)
-  set(Python_ADDITIONAL_VERSIONS
-    3
-    ${PYTHON_VERSION})
-endif (VISTK_ENABLE_PYTHON AND VISTK_ENABLE_PYTHON3)
 
 option(VISTK_ENABLE_EXTRAS "Enable extra files to help with tooling" OFF)
 if (VISTK_ENABLE_EXTRAS)
