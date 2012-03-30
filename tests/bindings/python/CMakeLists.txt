@@ -2,7 +2,7 @@ project(vistk_test_python)
 
 find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 
-set(TEST_RUNNER
+set(test_runner
   "${PYTHON_EXECUTABLE}")
 
 function (vistk_build_python_test group input)

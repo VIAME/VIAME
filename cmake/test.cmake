@@ -141,7 +141,7 @@ endmacro (vistk_build_test)
 
 function (vistk_make_test testname instance)
   add_test(NAME test-${testname}-${instance}
-    COMMAND ${TEST_RUNNER}
+    COMMAND ${test_runner}
             "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
             ${instance}
             ${ARGN})
@@ -153,7 +153,7 @@ function (vistk_make_test testname instance)
     add_custom_target(test-${testname}-${instance})
     add_custom_command(
       TARGET  test-${testname}-${instance}
-      COMMAND ${TEST_RUNNER}
+      COMMAND ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -174,7 +174,7 @@ function (vistk_make_test testname instance)
               --track-origins=yes
               --log-file="${EXECUTABLE_OUTPUT_PATH}/valgrind.log.${testname}.${instance}"
               ${vistk_valgrind_arguments}
-              ${TEST_RUNNER}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -190,7 +190,7 @@ function (vistk_make_test testname instance)
               --tool=cachegrind
               --log-file="${EXECUTABLE_OUTPUT_PATH}/cachegrind.log.${testname}.${instance}"
               --cachegrind-out-file="${EXECUTABLE_OUTPUT_PATH}/cachegrind.out.${testname}.${instance}"
-              ${TEST_RUNNER}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -207,7 +207,7 @@ function (vistk_make_test testname instance)
               --dump-instr=yes
               --log-file="${EXECUTABLE_OUTPUT_PATH}/callgrind.log.${testname}.${instance}"
               --callgrind-out-file="${EXECUTABLE_OUTPUT_PATH}/callgrind.out.${testname}.${instance}"
-              ${TEST_RUNNER}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -222,7 +222,7 @@ function (vistk_make_test testname instance)
       COMMAND "${VALGRIND_EXECUTABLE}"
               --tool=helgrind
               --log-file="${EXECUTABLE_OUTPUT_PATH}/helgrind.log.${testname}.${instance}"
-              ${TEST_RUNNER}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -237,7 +237,7 @@ function (vistk_make_test testname instance)
       COMMAND "${VALGRIND_EXECUTABLE}"
               --tool=drd
               --log-file="${EXECUTABLE_OUTPUT_PATH}/drd.log.${testname}.${instance}"
-              ${TEST_RUNNER}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -254,7 +254,7 @@ function (vistk_make_test testname instance)
               --stacks=yes
               --log-file="${EXECUTABLE_OUTPUT_PATH}/massif.log.${testname}.${instance}"
               --massif-out-file="${EXECUTABLE_OUTPUT_PATH}/massif.out.${testname}.${instance}"
-              ${TEST_RUNNER}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -269,7 +269,7 @@ function (vistk_make_test testname instance)
       COMMAND "${VALGRIND_EXECUTABLE}"
               --tool=dhat
               --log-file="${EXECUTABLE_OUTPUT_PATH}/dhat.log.${testname}.${instance}"
-              ${TEST_RUNNER}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -284,7 +284,7 @@ function (vistk_make_test testname instance)
       COMMAND "${VALGRIND_EXECUTABLE}"
               --tool=sgcheck
               --log-file="${EXECUTABLE_OUTPUT_PATH}/sgcheck.log.${testname}.${instance}"
-              ${TEST_RUNNER}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -301,7 +301,7 @@ function (vistk_make_test testname instance)
               --log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.log.${testname}.${instance}"
               --bb-out-file="${EXECUTABLE_OUTPUT_PATH}/bbv.bb.out.${testname}.${instance}"
               --pc-out-file="${EXECUTABLE_OUTPUT_PATH}/bbv.pc.log.${testname}.${instance}"
-              ${TEST_RUNNER}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -314,15 +314,15 @@ function (vistk_make_test testname instance)
   if (GPROF_EXECUTABLE)
     set(real_command
       "${EXECUTABLE_OUTPUT_PATH}/test-${testname}")
-    if (TEST_RUNNER)
+    if (test_runner)
       set(real_command
-        ${TEST_RUNNER})
-    endif (TEST_RUNNER)
+        ${test_runner})
+    endif (test_runner)
 
     add_custom_target(gprof-${testname}-${instance})
     add_custom_command(
       TARGET  gprof-${testname}-${instance}
-      COMMAND ${TEST_RUNNER}
+      COMMAND ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
