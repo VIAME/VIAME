@@ -299,8 +299,8 @@ function (vistk_make_test testname instance)
       COMMAND "${VALGRIND_EXECUTABLE}"
               --tool=bbv
               --log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.log.${testname}.${instance}"
-              --bb-log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.bb.out.${testname}.${instance}"
-              --pc-log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.pc.log.${testname}.${instance}"
+              --bb-out-file="${EXECUTABLE_OUTPUT_PATH}/bbv.bb.out.${testname}.${instance}"
+              --pc-out-file="${EXECUTABLE_OUTPUT_PATH}/bbv.pc.log.${testname}.${instance}"
               ${TEST_RUNNER}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
