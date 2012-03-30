@@ -25,6 +25,8 @@
 enable_testing()
 include(CTest)
 
+add_custom_target(tooling)
+
 find_program(VALGRIND_EXECUTABLE valgrind)
 
 if (VALGRIND_EXECUTABLE)
@@ -58,12 +60,26 @@ if (VALGRIND_EXECUTABLE)
   add_custom_target(dhat)
   add_custom_target(sgcheck)
   add_custom_target(bbv)
+
+  add_dependencies(tooling
+    valgrind
+    cachegrind
+    callgrind
+    helgrind
+    drd
+    massif
+    dhat
+    sgcheck
+    bbv)
 endif (VALGRIND_EXECUTABLE)
 
 find_program(GPROF_EXECUTABLE gprof)
 
 if (GPROF_EXECUTABLE)
   add_custom_target(gprof)
+
+  add_dependencies(tooling
+    gprof)
 endif (GPROF_EXECUTABLE)
 
 set(TEST_WORKING_DIRECTORY
