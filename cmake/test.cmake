@@ -50,9 +50,14 @@ if (VALGRIND_EXECUTABLE)
   endif (VISTK_VALGRIND_USE_SUPPRESSIONS)
 
   add_custom_target(valgrind)
+  add_custom_target(cachegrind)
   add_custom_target(callgrind)
   add_custom_target(helgrind)
-  add_custom_target(ptrcheck)
+  add_custom_target(drd)
+  add_custom_target(massif)
+  add_custom_target(dhat)
+  add_custom_target(sgcheck)
+  add_custom_target(bbv)
 endif (VALGRIND_EXECUTABLE)
 
 find_program(GPROF_EXECUTABLE gprof)
@@ -77,17 +82,32 @@ function (vistk_declare_test testname)
   endif (NOT WIN32)
   if (VALGRIND_EXECUTABLE)
     add_custom_target(valgrind-${testname})
+    add_custom_target(cachegrind-${testname})
     add_custom_target(callgrind-${testname})
     add_custom_target(helgrind-${testname})
-    add_custom_target(ptrcheck-${testname})
+    add_custom_target(drd-${testname})
+    add_custom_target(massif-${testname})
+    add_custom_target(dhat-${testname})
+    add_custom_target(sgcheck-${testname})
+    add_custom_target(bbv-${testname})
     add_dependencies(valgrind
       valgrind-${testname})
+    add_dependencies(cachegrind
+      cachegrind-${testname})
     add_dependencies(callgrind
       callgrind-${testname})
     add_dependencies(helgrind
       helgrind-${testname})
-    add_dependencies(ptrcheck
-      ptrcheck-${testname})
+    add_dependencies(drd
+      drd-${testname})
+    add_dependencies(massif
+      massif-${testname})
+    add_dependencies(dhat
+      dhat-${testname})
+    add_dependencies(sgcheck
+      sgcheck-${testname})
+    add_dependencies(bbv
+      bbv-${testname})
   endif (VALGRIND_EXECUTABLE)
   if (GPROF_EXECUTABLE)
     add_custom_target(gprof-${testname})
@@ -147,6 +167,22 @@ function (vistk_make_test testname instance)
       COMMENT "Running valgrind on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(valgrind-${testname}
       valgrind-${testname}-${instance})
+    add_custom_target(cachegrind-${testname}-${instance})
+    add_custom_command(
+      TARGET  cachegrind-${testname}-${instance}
+      COMMAND "${VALGRIND_EXECUTABLE}"
+              --tool=cachegrind
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/cachegrind.log.${testname}.${instance}"
+              --cachegrind-out-file="${EXECUTABLE_OUTPUT_PATH}/cachegrind.out.${testname}.${instance}"
+              ${TEST_RUNNER}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              ${instance}
+              ${ARGN}
+      WORKING_DIRECTORY
+              "${TEST_WORKING_DIRECTORY}"
+      COMMENT "Running cachegrind on test \"${testname}\" instance \"${instance}\"")
+    add_dependencies(cachegrind-${testname}
+      cachegrind-${testname}-${instance})
     add_custom_target(callgrind-${testname}-${instance})
     add_custom_command(
       TARGET  callgrind-${testname}-${instance}
@@ -179,21 +215,85 @@ function (vistk_make_test testname instance)
       COMMENT "Running helgrind on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(helgrind-${testname}
       helgrind-${testname}-${instance})
-    add_custom_target(ptrcheck-${testname}-${instance})
+    add_custom_target(drd-${testname}-${instance})
     add_custom_command(
-      TARGET  ptrcheck-${testname}-${instance}
+      TARGET  drd-${testname}-${instance}
       COMMAND "${VALGRIND_EXECUTABLE}"
-              --tool=exp-ptrcheck
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/ptrcheck.log.${testname}.${instance}"
+              --tool=drd
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/drd.log.${testname}.${instance}"
               ${TEST_RUNNER}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
               "${TEST_WORKING_DIRECTORY}"
-      COMMENT "Running ptrcheck on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(ptrcheck-${testname}
-      ptrcheck-${testname}-${instance})
+      COMMENT "Running drd on test \"${testname}\" instance \"${instance}\"")
+    add_dependencies(drd-${testname}
+      drd-${testname}-${instance})
+    add_custom_target(massif-${testname}-${instance})
+    add_custom_command(
+      TARGET  massif-${testname}-${instance}
+      COMMAND "${VALGRIND_EXECUTABLE}"
+              --tool=massif
+              --stacks=yes
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/massif.log.${testname}.${instance}"
+              --massif-out-file="${EXECUTABLE_OUTPUT_PATH}/massif.out.${testname}.${instance}"
+              ${TEST_RUNNER}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              ${instance}
+              ${ARGN}
+      WORKING_DIRECTORY
+              "${TEST_WORKING_DIRECTORY}"
+      COMMENT "Running massif on test \"${testname}\" instance \"${instance}\"")
+    add_dependencies(massif-${testname}
+      massif-${testname}-${instance})
+    add_custom_target(dhat-${testname}-${instance})
+    add_custom_command(
+      TARGET  dhat-${testname}-${instance}
+      COMMAND "${VALGRIND_EXECUTABLE}"
+              --tool=dhat
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/dhat.log.${testname}.${instance}"
+              ${TEST_RUNNER}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              ${instance}
+              ${ARGN}
+      WORKING_DIRECTORY
+              "${TEST_WORKING_DIRECTORY}"
+      COMMENT "Running dhat on test \"${testname}\" instance \"${instance}\"")
+    add_dependencies(dhat-${testname}
+      dhat-${testname}-${instance})
+    add_custom_target(sgcheck-${testname}-${instance})
+    add_custom_command(
+      TARGET  sgcheck-${testname}-${instance}
+      COMMAND "${VALGRIND_EXECUTABLE}"
+              --tool=sgcheck
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/sgcheck.log.${testname}.${instance}"
+              ${TEST_RUNNER}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              ${instance}
+              ${ARGN}
+      WORKING_DIRECTORY
+              "${TEST_WORKING_DIRECTORY}"
+      COMMENT "Running sgcheck on test \"${testname}\" instance \"${instance}\"")
+    add_dependencies(sgcheck-${testname}
+      sgcheck-${testname}-${instance})
+    add_custom_target(bbv-${testname}-${instance})
+    add_custom_command(
+      TARGET  bbv-${testname}-${instance}
+      COMMAND "${VALGRIND_EXECUTABLE}"
+              --tool=bbv
+              --log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.log.${testname}.${instance}"
+              --bb-log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.bb.out.${testname}.${instance}"
+              --pc-log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.pc.log.${testname}.${instance}"
+              ${TEST_RUNNER}
+              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              ${instance}
+              ${ARGN}
+      WORKING_DIRECTORY
+              "${TEST_WORKING_DIRECTORY}"
+      COMMENT "Running bbv on test \"${testname}\" instance \"${instance}\"")
+    add_dependencies(bbv-${testname}
+      bbv-${testname}-${instance})
   endif (VALGRIND_EXECUTABLE)
   if (GPROF_EXECUTABLE)
     set(real_command
