@@ -151,6 +151,10 @@ if (VISTK_ENABLE_PYTHON)
       3
       ${PYTHON_VERSION})
   endif (VISTK_ENABLE_PYTHON3)
+
+  if (CMAKE_VERSION VERSION_LESS "2.8.8")
+    message(WARNING "Python 3 support may not work with CMake versions older than 2.8.8")
+  endif (CMAKE_VERSION VERSION_LESS "2.8.8")
 endif (VISTK_ENABLE_PYTHON)
 
 option(VISTK_ENABLE_EXTRAS "Enable extra files to help with tooling" OFF)
