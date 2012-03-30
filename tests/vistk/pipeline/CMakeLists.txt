@@ -99,11 +99,9 @@ vistk_build_test(modules libraries test_modules.cxx)
 
 vistk_make_test(modules load)
 vistk_make_test(modules multiple_load)
+set(test_environment "VISTK_MODULE_PATH=\"${CMAKE_CURRENT_BINARY_DIR}\"")
 vistk_make_test(modules envvar)
-
-set_tests_properties(test-modules-envvar
-  PROPERTIES
-    ENVIRONMENT "VISTK_MODULE_PATH=${CMAKE_CURRENT_BINARY_DIR}")
+unset(test_environment)
 
 ##############################
 # Process tests
@@ -250,32 +248,36 @@ if (VISTK_ENABLE_PYTHON)
     pythread_per_process)
 endif (VISTK_ENABLE_PYTHON)
 
+if (VISTK_ENABLE_PYTHON)
+  set(python_module_path
+    "${PYTHON_OUTPUT_PATH}")
+
+  if (WIN32)
+    set(python_module_path
+      "${python_module_path}/$<CONFIGURATION>")
+  endif (WIN32)
+
+  set(cur_python_path
+    "$ENV{PYTHONPATH}")
+
+  if (cur_python_path)
+    set(cur_python_path
+      ":${cur_python_path}")
+  endif (cur_python_path)
+endif (VISTK_ENABLE_PYTHON)
+
 function (vistk_make_run_test group instance)
   foreach (schedule ${schedules})
+    if (VISTK_ENABLE_PYTHON)
+      if (${schedule} STREQUAL "pythread_per_process")
+        set(test_environment "PYTHONPATH=${python_module_path}${cur_python_path}")
+      endif (${schedule} STREQUAL "pythread_per_process")
+    endif (VISTK_ENABLE_PYTHON)
+
     vistk_make_test(${group} ${instance}-${schedule})
+
+    unset(test_environment)
   endforeach (schedule ${schedules})
-
-  if (VISTK_ENABLE_PYTHON)
-    set(python_module_path
-      "${PYTHON_OUTPUT_PATH}")
-
-    if (WIN32)
-      set(python_module_path
-        "${python_module_path}/$<CONFIGURATION>")
-    endif (WIN32)
-
-    set(cur_python_path
-      "$ENV{PYTHONPATH}")
-
-    if (cur_python_path)
-      set(cur_python_path
-        ":${cur_python_path}")
-    endif (cur_python_path)
-
-    set_tests_properties(test-${group}-${instance}-pythread_per_process
-      PROPERTIES
-        ENVIRONMENT "PYTHONPATH=${python_module_path}${cur_python_path}")
-  endif (VISTK_ENABLE_PYTHON)
 endfunction (vistk_make_run_test group instance)
 
 vistk_make_run_test(run simple_pipeline)

@@ -56,11 +56,9 @@ vistk_make_load_test(load_pipe group_mappings)
 vistk_make_load_test(load_pipe group_all)
 vistk_make_load_test(load_pipe no_parse)
 vistk_make_load_test(load_pipe parse_error)
+set(test_environment "VISTK_PIPE_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}")
 vistk_make_load_test(load_pipe envvar)
-
-set_tests_properties(test-load_pipe-envvar
-  PROPERTIES
-    ENVIRONMENT "VISTK_PIPE_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}")
+unset(test_environment)
 
 ##############################
 # Export tests
