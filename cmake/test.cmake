@@ -149,11 +149,17 @@ function (vistk_make_test testname instance)
     PROPERTIES
       WORKING_DIRECTORY       "${EXECUTABLE_OUTPUT_PATH}"
       FAIL_REGULAR_EXPRESSION "^Error: ")
+  if (test_environment)
+    set_tests_properties(test-${testname}-${instance}
+      PROPERTIES
+        ENVIRONMENT ${test_environment})
+  endif (test_environment)
   if (NOT WIN32)
     add_custom_target(test-${testname}-${instance})
     add_custom_command(
       TARGET  test-${testname}-${instance}
-      COMMAND ${test_runner}
+      COMMAND ${test_environment}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
@@ -167,7 +173,8 @@ function (vistk_make_test testname instance)
     add_custom_target(valgrind-${testname}-${instance})
     add_custom_command(
       TARGET  valgrind-${testname}-${instance}
-      COMMAND "${VALGRIND_EXECUTABLE}"
+      COMMAND ${test_environment}
+              "${VALGRIND_EXECUTABLE}"
               --leak-check=full
               --show-reachable=yes
               --track-fds=yes
@@ -186,7 +193,8 @@ function (vistk_make_test testname instance)
     add_custom_target(cachegrind-${testname}-${instance})
     add_custom_command(
       TARGET  cachegrind-${testname}-${instance}
-      COMMAND "${VALGRIND_EXECUTABLE}"
+      COMMAND ${test_environment}
+              "${VALGRIND_EXECUTABLE}"
               --tool=cachegrind
               --log-file="${EXECUTABLE_OUTPUT_PATH}/cachegrind.log.${testname}.${instance}"
               --cachegrind-out-file="${EXECUTABLE_OUTPUT_PATH}/cachegrind.out.${testname}.${instance}"
@@ -202,7 +210,8 @@ function (vistk_make_test testname instance)
     add_custom_target(callgrind-${testname}-${instance})
     add_custom_command(
       TARGET  callgrind-${testname}-${instance}
-      COMMAND "${VALGRIND_EXECUTABLE}"
+      COMMAND ${test_environment}
+              "${VALGRIND_EXECUTABLE}"
               --tool=callgrind
               --dump-instr=yes
               --log-file="${EXECUTABLE_OUTPUT_PATH}/callgrind.log.${testname}.${instance}"
@@ -219,7 +228,8 @@ function (vistk_make_test testname instance)
     add_custom_target(helgrind-${testname}-${instance})
     add_custom_command(
       TARGET  helgrind-${testname}-${instance}
-      COMMAND "${VALGRIND_EXECUTABLE}"
+      COMMAND ${test_environment}
+              "${VALGRIND_EXECUTABLE}"
               --tool=helgrind
               --log-file="${EXECUTABLE_OUTPUT_PATH}/helgrind.log.${testname}.${instance}"
               ${test_runner}
@@ -234,7 +244,8 @@ function (vistk_make_test testname instance)
     add_custom_target(drd-${testname}-${instance})
     add_custom_command(
       TARGET  drd-${testname}-${instance}
-      COMMAND "${VALGRIND_EXECUTABLE}"
+      COMMAND ${test_environment}
+              "${VALGRIND_EXECUTABLE}"
               --tool=drd
               --log-file="${EXECUTABLE_OUTPUT_PATH}/drd.log.${testname}.${instance}"
               ${test_runner}
@@ -249,7 +260,8 @@ function (vistk_make_test testname instance)
     add_custom_target(massif-${testname}-${instance})
     add_custom_command(
       TARGET  massif-${testname}-${instance}
-      COMMAND "${VALGRIND_EXECUTABLE}"
+      COMMAND ${test_environment}
+              "${VALGRIND_EXECUTABLE}"
               --tool=massif
               --stacks=yes
               --log-file="${EXECUTABLE_OUTPUT_PATH}/massif.log.${testname}.${instance}"
@@ -266,7 +278,8 @@ function (vistk_make_test testname instance)
     add_custom_target(dhat-${testname}-${instance})
     add_custom_command(
       TARGET  dhat-${testname}-${instance}
-      COMMAND "${VALGRIND_EXECUTABLE}"
+      COMMAND ${test_environment}
+              "${VALGRIND_EXECUTABLE}"
               --tool=dhat
               --log-file="${EXECUTABLE_OUTPUT_PATH}/dhat.log.${testname}.${instance}"
               ${test_runner}
@@ -281,7 +294,8 @@ function (vistk_make_test testname instance)
     add_custom_target(sgcheck-${testname}-${instance})
     add_custom_command(
       TARGET  sgcheck-${testname}-${instance}
-      COMMAND "${VALGRIND_EXECUTABLE}"
+      COMMAND ${test_environment}
+              "${VALGRIND_EXECUTABLE}"
               --tool=sgcheck
               --log-file="${EXECUTABLE_OUTPUT_PATH}/sgcheck.log.${testname}.${instance}"
               ${test_runner}
@@ -296,7 +310,8 @@ function (vistk_make_test testname instance)
     add_custom_target(bbv-${testname}-${instance})
     add_custom_command(
       TARGET  bbv-${testname}-${instance}
-      COMMAND "${VALGRIND_EXECUTABLE}"
+      COMMAND ${test_environment}
+              "${VALGRIND_EXECUTABLE}"
               --tool=bbv
               --log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.log.${testname}.${instance}"
               --bb-out-file="${EXECUTABLE_OUTPUT_PATH}/bbv.bb.out.${testname}.${instance}"
@@ -322,7 +337,8 @@ function (vistk_make_test testname instance)
     add_custom_target(gprof-${testname}-${instance})
     add_custom_command(
       TARGET  gprof-${testname}-${instance}
-      COMMAND ${test_runner}
+      COMMAND ${test_environment}
+              ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
               ${instance}
               ${ARGN}
