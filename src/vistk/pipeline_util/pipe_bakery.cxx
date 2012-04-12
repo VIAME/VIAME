@@ -766,10 +766,10 @@ set_config_value(config_t conf, pipe_bakery::config_info_t const& flags, config:
 
     if (flags.comma_append && !cur_val.empty())
     {
-      val += ',';
+      val = ',' + val;
     }
 
-    val += cur_val;
+    val = cur_val + val;
   }
 
   conf->set_value(key, val);
