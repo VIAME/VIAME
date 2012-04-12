@@ -283,7 +283,7 @@ function (vistk_make_test testname instance)
       TARGET  dhat-${testname}-${instance}
       COMMAND ${test_environment}
               "${VALGRIND_EXECUTABLE}"
-              --tool=dhat
+              --tool=exp-dhat
               --log-file="${EXECUTABLE_OUTPUT_PATH}/dhat.log.${testname}.${instance}"
               ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
@@ -299,7 +299,7 @@ function (vistk_make_test testname instance)
       TARGET  sgcheck-${testname}-${instance}
       COMMAND ${test_environment}
               "${VALGRIND_EXECUTABLE}"
-              --tool=sgcheck
+              --tool=exp-ptrcheck
               --log-file="${EXECUTABLE_OUTPUT_PATH}/sgcheck.log.${testname}.${instance}"
               ${test_runner}
               "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
@@ -315,7 +315,7 @@ function (vistk_make_test testname instance)
       TARGET  bbv-${testname}-${instance}
       COMMAND ${test_environment}
               "${VALGRIND_EXECUTABLE}"
-              --tool=bbv
+              --tool=exp-bbv
               --log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.log.${testname}.${instance}"
               --bb-out-file="${EXECUTABLE_OUTPUT_PATH}/bbv.bb.out.${testname}.${instance}"
               --pc-out-file="${EXECUTABLE_OUTPUT_PATH}/bbv.pc.log.${testname}.${instance}"
