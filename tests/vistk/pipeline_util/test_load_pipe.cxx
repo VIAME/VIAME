@@ -77,6 +77,9 @@ static void test_config_overrides(vistk::path_t const& pipe_file);
 static void test_config_read_only(vistk::path_t const& pipe_file);
 static void test_config_not_a_flag(vistk::path_t const& pipe_file);
 static void test_config_read_only_override(vistk::path_t const& pipe_file);
+static void test_config_append(vistk::path_t const& pipe_file);
+static void test_config_cappend(vistk::path_t const& pipe_file);
+static void test_config_cappend_empty(vistk::path_t const& pipe_file);
 static void test_config_provider_conf(vistk::path_t const& pipe_file);
 static void test_config_provider_conf_dep(vistk::path_t const& pipe_file);
 static void test_config_provider_conf_circular_dep(vistk::path_t const& pipe_file);
@@ -155,6 +158,18 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   else if (test_name == "config_read_only_override")
   {
     test_config_read_only_override(pipe_file);
+  }
+  else if (test_name == "config_append")
+  {
+    test_config_append(pipe_file);
+  }
+  else if (test_name == "config_cappend")
+  {
+    test_config_cappend(pipe_file);
+  }
+  else if (test_name == "config_cappend_empty")
+  {
+    test_config_cappend_empty(pipe_file);
   }
   else if (test_name == "config_provider_conf")
   {
@@ -524,6 +539,78 @@ test_config_read_only_override(vistk::path_t const& pipe_file)
   EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
                    vistk::extract_configuration(blocks),
                    "setting a read-only value");
+}
+
+void
+test_config_append(vistk::path_t const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = conf->get_value<vistk::config::key_t>("myblock:mykey");
+  vistk::config::key_t const expected = vistk::config::key_t("myvalue");
+
+  if (mykey != expected)
+  {
+    TEST_ERROR("Configuration value was not appended: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
+  }
+}
+
+void
+test_config_cappend(vistk::path_t const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = conf->get_value<vistk::config::key_t>("myblock:mykey");
+  vistk::config::key_t const expected = vistk::config::key_t("myvalue,othervalue");
+
+  if (mykey != expected)
+  {
+    TEST_ERROR("Configuration value was not appended with a comma separator: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
+  }
+}
+
+void
+test_config_cappend_empty(vistk::path_t const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = conf->get_value<vistk::config::key_t>("myblock:mykey");
+  vistk::config::key_t const expected = vistk::config::key_t("othervalue");
+
+  if (mykey != expected)
+  {
+    TEST_ERROR("Configuration value was created with a comma separator: "
+               "Expected: " << expected << " "
+               "Received: " << mykey);
+  }
 }
 
 void
