@@ -58,6 +58,14 @@ class pipeline::priv
 
     typedef enum
     {
+      group_upstream,
+      group_downstream
+    } group_connection_type_t;
+    typedef std::pair<connection_t, group_connection_type_t> group_connection_t;
+    typedef std::vector<group_connection_t> group_connections_t;
+
+    typedef enum
+    {
       push_upstream,
       push_downstream
     } direction_t;
@@ -70,6 +78,7 @@ class pipeline::priv
 
     // Steps for setting up the pipeline.
     void check_for_processes() const;
+    void map_group_connections();
     void propogate_pinned_types();
     void make_connections();
     void check_for_required_ports() const;
@@ -89,6 +98,7 @@ class pipeline::priv
     connected_mappings_t used_output_mappings;
 
     process::port_addrs_t data_dep_ports;
+    group_connections_t group_connections;
     connections_t untyped_connections;
     type_pinnings_t type_pinnings;
 
@@ -182,59 +192,29 @@ pipeline
                                            downstream_name, downstream_port);
   }
 
-  priv::group_map_t::const_iterator const up_group_it = d->groups.find(upstream_name);
-
-  if (up_group_it != d->groups.end())
-  {
-    priv::port_mapping_t const& port_mapping = up_group_it->second;
-    priv::output_port_mapping_t const& mapping = port_mapping.second;
-    priv::output_port_mapping_t::const_iterator const mapping_it = mapping.find(upstream_port);
-
-    if (mapping_it != mapping.end())
-    {
-      process::port_addr_t const& mapped_port_addr = mapping_it->second.get<1>();
-      process::name_t const& proc_name = mapped_port_addr.first;
-      process::port_t const& port_name = mapped_port_addr.second;
-
-      connect(proc_name, port_name,
-              downstream_name, downstream_port);
-
-      d->used_output_mappings[upstream_name].push_back(upstream_port);
-
-      return;
-    }
-  }
-
-  priv::group_map_t::const_iterator const down_group_it = d->groups.find(downstream_name);
-
-  if (down_group_it != d->groups.end())
-  {
-    priv::port_mapping_t const& port_mapping = down_group_it->second;
-    priv::input_port_mapping_t const& mapping = port_mapping.first;
-    priv::input_port_mapping_t::const_iterator const mapping_it = mapping.find(downstream_port);
-
-    if (mapping_it != mapping.end())
-    {
-      process::port_addrs_t const& mapped_port_addrs = mapping_it->second.get<1>();
-
-      BOOST_FOREACH (process::port_addr_t const& mapped_port_addr, mapped_port_addrs)
-      {
-        process::name_t const& proc_name = mapped_port_addr.first;
-        process::port_t const& port_name = mapped_port_addr.second;
-
-        connect(upstream_name, upstream_port,
-                proc_name, port_name);
-      }
-
-      d->used_input_mappings[downstream_name].push_back(downstream_port);
-
-      return;
-    }
-  }
-
   process::port_addr_t const up_port = process::port_addr_t(upstream_name, upstream_port);
   process::port_addr_t const down_port = process::port_addr_t(downstream_name, downstream_port);
   priv::connection_t const conn = priv::connection_t(up_port, down_port);
+
+  priv::group_map_t::const_iterator const up_group_it = d->groups.find(upstream_name);
+  priv::group_map_t::const_iterator const down_group_it = d->groups.find(downstream_name);
+
+  bool const upstream_is_group = (up_group_it != d->groups.end());
+  bool const downstream_is_group = (down_group_it != d->groups.end());
+
+  if (upstream_is_group || downstream_is_group)
+  {
+    if (upstream_is_group)
+    {
+      d->group_connections.push_back(priv::group_connection_t(conn, priv::group_upstream));
+    }
+    else if (downstream_is_group)
+    {
+      d->group_connections.push_back(priv::group_connection_t(conn, priv::group_downstream));
+    }
+
+    return;
+  }
 
   process_t const up_proc = process_by_name(upstream_name);
   process_t const down_proc = process_by_name(downstream_name);
@@ -353,6 +333,7 @@ pipeline
   d->setup = true;
   d->setup_in_progress = true;
 
+  d->map_group_connections();
   d->propogate_pinned_types();
   d->make_connections();
   d->check_for_required_ports();
@@ -1071,6 +1052,114 @@ pipeline::priv
   if (!process_map.size())
   {
     throw no_processes_exception();
+  }
+}
+
+void
+pipeline::priv
+::map_group_connections()
+{
+  group_connections_t const gconnections = group_connections;
+
+  // Forget the connections we'll be mapping.
+  group_connections.clear();
+
+  BOOST_FOREACH (group_connection_t const& gconnection, gconnections)
+  {
+    connection_t const& connection = gconnection.first;
+    group_connection_type_t const& type = gconnection.second;
+
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    switch (type)
+    {
+      case group_upstream:
+        {
+          process::name_t const& group_name = upstream_name;
+          process::port_t const& group_port = upstream_port;
+
+          group_map_t::const_iterator const group_it = groups.find(group_name);
+
+          if (group_it == groups.end())
+          {
+            throw no_such_group_exception(group_name);
+          }
+
+          port_mapping_t const& port_mapping = group_it->second;
+          output_port_mapping_t const& mapping = port_mapping.second;
+          output_port_mapping_t::const_iterator const mapping_it = mapping.find(group_port);
+
+          if (mapping_it == mapping.end())
+          {
+            throw no_such_group_port_exception(group_name, group_port);
+          }
+
+          output_mapping_info_t const& info = mapping_it->second;
+          process::port_addr_t const& mapped_port_addr = info.get<1>();
+
+          process::name_t const& mapped_name = mapped_port_addr.first;
+          process::port_t const& mapped_port = mapped_port_addr.second;
+
+          q->connect(mapped_name, mapped_port,
+                     downstream_name, downstream_port);
+
+          used_output_mappings[group_name].push_back(group_port);
+        }
+
+        break;
+      case group_downstream:
+        {
+          process::name_t const& group_name = downstream_name;
+          process::port_t const& group_port = downstream_port;
+
+          group_map_t::const_iterator const group_it = groups.find(group_name);
+
+          if (group_it == groups.end())
+          {
+            throw no_such_group_exception(group_name);
+          }
+
+          port_mapping_t const& port_mapping = group_it->second;
+          input_port_mapping_t const& mapping = port_mapping.first;
+          input_port_mapping_t::const_iterator const mapping_it = mapping.find(group_port);
+
+          if (mapping_it == mapping.end())
+          {
+            throw no_such_group_port_exception(group_name, group_port);
+          }
+
+          input_mapping_info_t const& info = mapping_it->second;
+          process::port_addrs_t const& mapped_port_addrs = info.get<1>();
+
+          BOOST_FOREACH (process::port_addr_t const& mapped_port_addr, mapped_port_addrs)
+          {
+            process::name_t const& mapped_name = mapped_port_addr.first;
+            process::port_t const& mapped_port = mapped_port_addr.second;
+
+            q->connect(upstream_name, upstream_port,
+                       mapped_name, mapped_port);
+          }
+
+          used_input_mappings[group_name].push_back(group_port);
+        }
+
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Group ports could be mapped to other group ports. We need to call again
+  // until every group port has been resolved to a process.
+  if (group_connections.size())
+  {
+    map_group_connections();
   }
 }
 
