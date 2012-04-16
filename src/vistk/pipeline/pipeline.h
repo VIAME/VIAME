@@ -91,7 +91,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \postconds
      *
-     * \postcond{A group with the name \p name is available within the pipeline.}
+     * \postcond{A group with the name \p name is available within the pipeline}
      *
      * \endpostconds
      *
