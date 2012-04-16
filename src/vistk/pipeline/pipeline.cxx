@@ -42,11 +42,6 @@ class pipeline::priv
     void check_duplicate_name(process::name_t const& name);
     void propogate(process::name_t const& root);
 
-    void check_for_processes() const;
-    void check_for_required_ports() const;
-    void initialize_processes();
-    void check_for_untyped_ports() const;
-
     typedef std::map<process::name_t, process_t> process_map_t;
     typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
     typedef std::vector<connection_t> connections_t;
@@ -63,6 +58,12 @@ class pipeline::priv
 
     // Steps for checking a connection.
     bool check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const;
+
+    // Steps for setting up the pipeline.
+    void check_for_processes() const;
+    void check_for_required_ports() const;
+    void initialize_processes();
+    void check_for_untyped_ports() const;
 
     pipeline* const q;
 
