@@ -1479,6 +1479,7 @@ pipeline::priv
   BOOST_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = q->process_by_name(name);
+    process::port_addrs_t unresolved_ports;
 
     proc->init();
 
@@ -1500,10 +1501,16 @@ pipeline::priv
 
         resolved_types = true;
       }
+      else
+      {
+        unresolved_ports.push_back(data_dep_port);
+      }
     }
 
     if (resolved_types)
     {
+      data_dep_ports = unresolved_ports;
+
       try
       {
         propogate(name);
