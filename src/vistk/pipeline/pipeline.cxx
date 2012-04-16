@@ -61,6 +61,9 @@ class pipeline::priv
 
     typedef std::map<process::name_t, process::ports_t> connected_mappings_t;
 
+    // Steps for checking a connection.
+    bool check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const;
+
     pipeline* const q;
 
     connections_t connections;
@@ -307,23 +310,13 @@ pipeline
   process::port_flags_t const& up_flags = up_info->flags;
   process::port_flags_t const& down_flags = down_info->flags;
 
-  process::port_flags_t::const_iterator i;
-
-  i = up_flags.find(process::flag_output_const);
-
-  bool const is_const = (i != up_flags.end());
-
-  i = down_flags.find(process::flag_input_mutable);
-
-  bool const requires_mutable = (i != down_flags.end());
-
-  if (is_const && requires_mutable)
+  if (!d->check_connection_flags(up_flags, down_flags))
   {
     throw connection_flag_mismatch_exception(upstream_name, upstream_port,
                                              downstream_name, downstream_port);
   }
 
-  i = down_flags.find(process::flag_input_nodep);
+  process::port_flags_t::const_iterator const i = down_flags.find(process::flag_input_nodep);
 
   bool const has_nodep = (i != down_flags.end());
 
@@ -976,6 +969,28 @@ pipeline::priv
   {
     throw duplicate_process_name_exception(name);
   }
+}
+
+bool
+pipeline::priv
+::check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const
+{
+  process::port_flags_t::const_iterator i;
+
+  i = up_flags.find(process::flag_output_const);
+
+  bool const is_const = (i != up_flags.end());
+
+  i = down_flags.find(process::flag_input_mutable);
+
+  bool const requires_mutable = (i != down_flags.end());
+
+  if (is_const && requires_mutable)
+  {
+    return false;
+  }
+
+  return true;
 }
 
 void
