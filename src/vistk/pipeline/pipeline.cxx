@@ -57,7 +57,7 @@ class pipeline::priv
     typedef std::map<process::port_t, input_mapping_info_t> input_port_mapping_t;
     typedef std::map<process::port_t, output_mapping_info_t> output_port_mapping_t;
     typedef std::pair<input_port_mapping_t, output_port_mapping_t> port_mapping_t;
-    typedef std::map<process::name_t, port_mapping_t> group_t;
+    typedef std::map<process::name_t, port_mapping_t> group_map_t;
 
     typedef std::map<process::name_t, process::ports_t> connected_mappings_t;
 
@@ -68,7 +68,7 @@ class pipeline::priv
     process_map_t process_map;
     edge_map_t edge_map;
 
-    group_t groups;
+    group_map_t groups;
 
     connected_mappings_t used_input_mappings;
     connected_mappings_t used_output_mappings;
@@ -164,7 +164,7 @@ pipeline
                                            downstream_name, downstream_port);
   }
 
-  priv::group_t::const_iterator const up_group_it = d->groups.find(upstream_name);
+  priv::group_map_t::const_iterator const up_group_it = d->groups.find(upstream_name);
 
   if (up_group_it != d->groups.end())
   {
@@ -186,7 +186,7 @@ pipeline
     }
   }
 
-  priv::group_t::const_iterator const down_group_it = d->groups.find(downstream_name);
+  priv::group_map_t::const_iterator const down_group_it = d->groups.find(downstream_name);
 
   if (down_group_it != d->groups.end())
   {
@@ -354,7 +354,7 @@ pipeline
                                            mapped_name, mapped_port);
   }
 
-  priv::group_t::iterator const group_it = d->groups.find(group);
+  priv::group_map_t::iterator const group_it = d->groups.find(group);
 
   if (group_it == d->groups.end())
   {
@@ -385,7 +385,7 @@ pipeline
                                            group, port);
   }
 
-  priv::group_t::iterator const group_it = d->groups.find(group);
+  priv::group_map_t::iterator const group_it = d->groups.find(group);
 
   if (group_it == d->groups.end())
   {
@@ -702,7 +702,7 @@ pipeline
 {
   process::names_t names;
 
-  BOOST_FOREACH (priv::group_t::value_type const& group, d->groups)
+  BOOST_FOREACH (priv::group_map_t::value_type const& group, d->groups)
   {
     process::name_t const& name = group.first;
 
@@ -718,7 +718,7 @@ pipeline
 {
   process::ports_t ports;
 
-  priv::group_t::const_iterator const group_it = d->groups.find(name);
+  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
 
   if (group_it == d->groups.end())
   {
@@ -743,7 +743,7 @@ pipeline
 {
   process::ports_t ports;
 
-  priv::group_t::const_iterator const group_it = d->groups.find(name);
+  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
 
   if (group_it == d->groups.end())
   {
@@ -766,7 +766,7 @@ process::port_flags_t
 pipeline
 ::mapped_group_input_port_flags(process::name_t const& name, process::port_t const& port) const
 {
-  priv::group_t::const_iterator const group_it = d->groups.find(name);
+  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
 
   if (group_it == d->groups.end())
   {
@@ -789,7 +789,7 @@ process::port_flags_t
 pipeline
 ::mapped_group_output_port_flags(process::name_t const& name, process::port_t const& port) const
 {
-  priv::group_t::const_iterator const group_it = d->groups.find(name);
+  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
 
   if (group_it == d->groups.end())
   {
@@ -812,7 +812,7 @@ process::port_addrs_t
 pipeline
 ::mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const
 {
-  priv::group_t::const_iterator const group_it = d->groups.find(name);
+  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
 
   if (group_it == d->groups.end())
   {
@@ -835,7 +835,7 @@ process::port_addr_t
 pipeline
 ::mapped_group_output_port(process::name_t const& name, process::port_t const& port) const
 {
-  priv::group_t::const_iterator const group_it = d->groups.find(name);
+  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
 
   if (group_it == d->groups.end())
   {
@@ -871,7 +871,7 @@ pipeline::priv
 ::check_duplicate_name(process::name_t const& name)
 {
   process_map_t::const_iterator const proc_it = process_map.find(name);
-  group_t::const_iterator const group_it = groups.find(name);
+  group_map_t::const_iterator const group_it = groups.find(name);
 
   if ((proc_it != process_map.end()) ||
       (group_it != groups.end()))
