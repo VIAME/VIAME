@@ -235,6 +235,19 @@ class VISTK_PIPELINE_EXPORT pipeline
     void setup_pipeline();
 
     /**
+     * \brief Query whether the pipeline has been setup.
+     *
+     * \returns True if the pipeline has been setup, false otherwise.
+     */
+    bool is_setup() const;
+    /**
+     * \brief Query whether the pipeline has been setup successfully.
+     *
+     * \returns True if the pipeline has been setup successfully, false otherwise.
+     */
+    bool setup_successful() const;
+
+    /**
      * \brief Get a list of processes in the pipeline.
      *
      * \returns The names of all processes in the pipeline.

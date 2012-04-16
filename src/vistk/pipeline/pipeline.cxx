@@ -77,6 +77,7 @@ class pipeline::priv
     connections_t untyped_connections;
 
     bool setup;
+    bool setup_successful;
 
     class propogation_exception
       : public pipeline_exception
@@ -420,10 +421,29 @@ pipeline
 
   d->check_for_processes();
   d->check_for_required_ports();
+
+  // There's no turning back after this (processes are modified and may not be
+  // able to be added/removed without compromising the checks after this point).
+  d->setup = true;
+
   d->initialize_processes();
   d->check_for_untyped_ports();
 
-  d->setup = true;
+  d->setup_successful = true;
+}
+
+bool
+pipeline
+::is_setup() const
+{
+  return d->setup;
+}
+
+bool
+pipeline
+::setup_successful() const
+{
+  return d->setup_successful;
 }
 
 process::names_t
@@ -858,6 +878,7 @@ pipeline::priv
 ::priv(pipeline* pipe)
   : q(pipe)
   , setup(false)
+  , setup_successful(false)
 {
 }
 
