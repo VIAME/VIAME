@@ -61,6 +61,7 @@ class pipeline::priv
 
     // Steps for setting up the pipeline.
     void check_for_processes() const;
+    void make_connections();
     void check_for_required_ports() const;
     void initialize_processes();
     void check_for_untyped_ports() const;
@@ -317,24 +318,7 @@ pipeline
                                              downstream_name, downstream_port);
   }
 
-  process::port_flags_t::const_iterator const i = down_flags.find(process::flag_input_nodep);
-
-  bool const has_nodep = (i != down_flags.end());
-
-  config_t edge_config = config::empty_config();
-
-  edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
-
-  edge_t e = boost::make_shared<edge>(edge_config);
-
-  up_proc->connect_output_port(upstream_port, e);
-  down_proc->connect_input_port(downstream_port, e);
-
-  d->edge_map[d->connections.size()] = e;
   d->connections.push_back(conn);
-
-  e->set_upstream_process(up_proc);
-  e->set_downstream_process(down_proc);
 }
 
 void
@@ -421,12 +405,13 @@ pipeline
   }
 
   d->check_for_processes();
-  d->check_for_required_ports();
 
   // There's no turning back after this (processes are modified and may not be
   // able to be added/removed without compromising the checks after this point).
   d->setup = true;
 
+  d->make_connections();
+  d->check_for_required_ports();
   d->initialize_processes();
   d->check_for_untyped_ports();
 
@@ -1102,6 +1087,53 @@ pipeline::priv
   if (!process_map.size())
   {
     throw no_processes_exception();
+  }
+}
+
+void
+pipeline::priv
+::make_connections()
+{
+  size_t const len = connections.size();
+
+  for (size_t i = 0; i < len; ++i)
+  {
+    connection_t const& connection = connections[i];
+
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    process_t const up_proc = q->process_by_name(upstream_name);
+    process_t const down_proc = q->process_by_name(downstream_name);
+
+    process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
+    process::port_flags_t const& down_flags = down_info->flags;
+
+    config_t edge_config = config::empty_config();
+
+    // Configure the edge.
+    {
+      process::port_flags_t::const_iterator const it = down_flags.find(process::flag_input_nodep);
+
+      bool const has_nodep = (it != down_flags.end());
+
+      edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
+    }
+
+    edge_t e = boost::make_shared<edge>(edge_config);
+
+    edge_map[i] = e;
+
+    up_proc->connect_output_port(upstream_port, e);
+    down_proc->connect_input_port(downstream_port, e);
+
+    e->set_upstream_process(up_proc);
+    e->set_downstream_process(down_proc);
   }
 }
 
