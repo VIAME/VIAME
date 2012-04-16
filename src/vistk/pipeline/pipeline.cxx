@@ -192,9 +192,9 @@ pipeline
                                            downstream_name, downstream_port);
   }
 
-  process::port_addr_t const up_port = process::port_addr_t(upstream_name, upstream_port);
-  process::port_addr_t const down_port = process::port_addr_t(downstream_name, downstream_port);
-  priv::connection_t const conn = priv::connection_t(up_port, down_port);
+  process::port_addr_t const up_addr = process::port_addr_t(upstream_name, upstream_port);
+  process::port_addr_t const down_addr = process::port_addr_t(downstream_name, downstream_port);
+  priv::connection_t const connection = priv::connection_t(up_addr, down_addr);
 
   priv::group_map_t::const_iterator const up_group_it = d->groups.find(upstream_name);
   priv::group_map_t::const_iterator const down_group_it = d->groups.find(downstream_name);
@@ -206,11 +206,11 @@ pipeline
   {
     if (upstream_is_group)
     {
-      d->group_connections.push_back(priv::group_connection_t(conn, priv::group_upstream));
+      d->group_connections.push_back(priv::group_connection_t(connection, priv::group_upstream));
     }
     else if (downstream_is_group)
     {
-      d->group_connections.push_back(priv::group_connection_t(conn, priv::group_downstream));
+      d->group_connections.push_back(priv::group_connection_t(connection, priv::group_downstream));
     }
 
     return;
@@ -225,7 +225,7 @@ pipeline
   process::port_type_t const& up_type = up_info->type;
   process::port_type_t const& down_type = down_info->type;
 
-  if (!d->check_connection_types(conn, up_type, down_type))
+  if (!d->check_connection_types(connection, up_type, down_type))
   {
     throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
                                              downstream_name, downstream_port, down_type);
@@ -240,7 +240,7 @@ pipeline
                                              downstream_name, downstream_port);
   }
 
-  d->connections.push_back(conn);
+  d->connections.push_back(connection);
 }
 
 void
@@ -571,14 +571,13 @@ pipeline
   {
     priv::connection_t const& connection = d->connections[i];
 
-    process::port_addr_t const& up = connection.first;
-    process::port_addr_t const& down = connection.second;
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
 
-    process::name_t const& up_name = up.first;
-    process::port_t const& up_port = up.second;
-
-    process::name_t const& down_name = down.first;
-    process::port_t const& down_port = down.second;
+    process::name_t const& up_name = upstream_addr.first;
+    process::port_t const& up_port = upstream_addr.second;
+    process::name_t const& down_name = downstream_addr.first;
+    process::port_t const& down_port = downstream_addr.second;
 
     if ((up_name == upstream_name) &&
         (up_port == upstream_port) &&
