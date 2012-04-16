@@ -61,7 +61,7 @@ class pipeline::priv
 
     typedef std::map<process::name_t, process::ports_t> connected_mappings_t;
 
-    pipeline* const p;
+    pipeline* const q;
 
     connections_t connections;
 
@@ -856,7 +856,7 @@ pipeline
 
 pipeline::priv
 ::priv(pipeline* pipe)
-  : p(pipe)
+  : q(pipe)
   , setup(false)
 {
 }
@@ -884,16 +884,16 @@ void
 pipeline::priv
 ::propogate(process::name_t const& root)
 {
-  std::queue<process::name_t> q;
+  std::queue<process::name_t> kyu;
 
-  q.push(root);
+  kyu.push(root);
 
-  while (!q.empty())
+  while (!kyu.empty())
   {
-    process::name_t const name = q.front();
-    q.pop();
+    process::name_t const name = kyu.front();
+    kyu.pop();
 
-    process_t const proc = p->process_by_name(name);
+    process_t const proc = q->process_by_name(name);
 
     connections_t unresolved_connections;
 
@@ -917,11 +917,11 @@ pipeline::priv
 
         if (!data_dep && !flow_dep)
         {
-          process_t const up_proc = p->process_by_name(upstream_name);
+          process_t const up_proc = q->process_by_name(upstream_name);
 
           if (up_proc->set_output_port_type(upstream_port, type))
           {
-            q.push(upstream_name);
+            kyu.push(upstream_name);
 
             if (data_dep)
             {
@@ -955,11 +955,11 @@ pipeline::priv
 
         if (!flow_dep)
         {
-          process_t const down_proc = p->process_by_name(downstream_name);
+          process_t const down_proc = q->process_by_name(downstream_name);
 
           if (down_proc->set_input_port_type(downstream_port, type))
           {
-            q.push(downstream_name);
+            kyu.push(downstream_name);
           }
           else
           {
@@ -1024,7 +1024,7 @@ pipeline::priv
 
       // Check for required ports.
       {
-        process_t const process = p->process_by_name(cur_proc);
+        process_t const process = q->process_by_name(cur_proc);
 
         // Check for required input ports.
         process::ports_t const input_ports = process->input_ports();
@@ -1036,7 +1036,7 @@ pipeline::priv
           process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
           if (f != port_flags.end())
           {
-            if (!p->input_edge_for_port(cur_proc, port))
+            if (!q->input_edge_for_port(cur_proc, port))
             {
               static std::string const reason = "The input port has the required flag";
 
@@ -1055,7 +1055,7 @@ pipeline::priv
           process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
           if (f != port_flags.end())
           {
-            if (p->output_edges_for_port(cur_proc, port).empty())
+            if (q->output_edges_for_port(cur_proc, port).empty())
             {
               static std::string const reason = "The output port has the required flag";
 
@@ -1068,11 +1068,11 @@ pipeline::priv
       processes_t connected_procs;
 
       // Find all processes upstream of the current process.
-      processes_t const upstream_procs = p->upstream_for_process(cur_proc);
+      processes_t const upstream_procs = q->upstream_for_process(cur_proc);
       connected_procs.insert(connected_procs.end(), upstream_procs.begin(), upstream_procs.end());
 
       // Find all processes downstream of the current process.
-      processes_t const downstream_procs = p->downstream_for_process(cur_proc);
+      processes_t const downstream_procs = q->downstream_for_process(cur_proc);
       connected_procs.insert(connected_procs.end(), downstream_procs.begin(), downstream_procs.end());
 
       // Mark all connected processes for visitation.
@@ -1085,18 +1085,18 @@ pipeline::priv
 
   if (groups.size())
   {
-    process::names_t const group_names = p->groups();
+    process::names_t const group_names = q->groups();
 
     BOOST_FOREACH(process::name_t const& cur_group, group_names)
     {
       process::port_addrs_t connected_ports;
 
       // Get all processes input ports on the group map to.
-      process::ports_t const input_ports = p->input_ports_for_group(cur_group);
+      process::ports_t const input_ports = q->input_ports_for_group(cur_group);
       BOOST_FOREACH (process::port_t const& port, input_ports)
       {
         // Check for required flags.
-        process::port_flags_t const mapped_port_flags = p->mapped_group_input_port_flags(cur_group, port);
+        process::port_flags_t const mapped_port_flags = q->mapped_group_input_port_flags(cur_group, port);
 
         process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
         if (i != mapped_port_flags.end())
@@ -1114,17 +1114,17 @@ pipeline::priv
         }
 
         // Mark mapped ports as connected.
-        process::port_addrs_t const mapped_ports = p->mapped_group_input_ports(cur_group, port);
+        process::port_addrs_t const mapped_ports = q->mapped_group_input_ports(cur_group, port);
 
         connected_ports.insert(connected_ports.end(), mapped_ports.begin(), mapped_ports.end());
       }
 
       // Get all processes output ports on the group map to.
-      process::ports_t const output_ports = p->output_ports_for_group(cur_group);
+      process::ports_t const output_ports = q->output_ports_for_group(cur_group);
       BOOST_FOREACH (process::port_t const& port, output_ports)
       {
         // Check for required flags.
-        process::port_flags_t const mapped_port_flags = p->mapped_group_output_port_flags(cur_group, port);
+        process::port_flags_t const mapped_port_flags = q->mapped_group_output_port_flags(cur_group, port);
 
         process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
         if (i != mapped_port_flags.end())
@@ -1142,7 +1142,7 @@ pipeline::priv
         }
 
         // Mark mapped ports as connected.
-        process::port_addr_t const mapped_port = p->mapped_group_output_port(cur_group, port);
+        process::port_addr_t const mapped_port = q->mapped_group_output_port(cur_group, port);
 
         connected_ports.push_back(mapped_port);
       }
@@ -1170,7 +1170,7 @@ pipeline::priv
   // Initialize processes.
   BOOST_FOREACH (process::name_t const& name, names)
   {
-    process_t const proc = p->process_by_name(name);
+    process_t const proc = q->process_by_name(name);
 
     proc->init();
 
@@ -1236,7 +1236,7 @@ pipeline::priv
   {
     vertex_map_t vertex_map;
 
-    process::names_t const names = p->process_names();
+    process::names_t const names = q->process_names();
 
     BOOST_FOREACH (process::name_t const& name, names)
     {
@@ -1247,15 +1247,15 @@ pipeline::priv
 
     BOOST_FOREACH (process::name_t const& name, names)
     {
-      process_t const proc = p->process_by_name(name);
+      process_t const proc = q->process_by_name(name);
       process::ports_t const iports = proc->input_ports();
 
       vertex_t const t = vertex_map[name];
 
       BOOST_FOREACH (process::port_t const& port, iports)
       {
-        process::port_addr_t const sender = p->sender_for_port(name, port);
-        edge_t const edge = p->edge_for_connection(sender.first, sender.second,
+        process::port_addr_t const sender = q->sender_for_port(name, port);
+        edge_t const edge = q->edge_for_connection(sender.first, sender.second,
                                                    name, port);
 
         if (edge && edge->makes_dependency())
