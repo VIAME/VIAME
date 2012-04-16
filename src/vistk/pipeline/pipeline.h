@@ -129,14 +129,14 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \endpostconds
      *
-     * \param upstream_process The upstream process name.
+     * \param upstream_name The upstream process name.
      * \param upstream_port The upstream process port.
-     * \param downstream_process The downstream process name.
+     * \param downstream_name The downstream process name.
      * \param downstream_port The downstream process port.
      */
-    void connect(process::name_t const& upstream_process,
+    void connect(process::name_t const& upstream_name,
                  process::port_t const& upstream_port,
-                 process::name_t const& downstream_process,
+                 process::name_t const& downstream_name,
                  process::port_t const& downstream_port);
 
     /**
@@ -164,13 +164,13 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \param group The group name.
      * \param port The group port.
-     * \param mapped_process The mapped process name.
+     * \param mapped_name The mapped process name.
      * \param mapped_port The mapped process port.
      * \param flags A list of flags for the port.
      */
     void map_input_port(process::name_t const& group,
                         process::port_t const& port,
-                        process::name_t const& mapped_process,
+                        process::name_t const& mapped_name,
                         process::port_t const& mapped_port,
                         process::port_flags_t const& flags);
     /**
@@ -200,13 +200,13 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \param group The group name.
      * \param port The group port.
-     * \param mapped_process The mapped process name.
+     * \param mapped_name The mapped process name.
      * \param mapped_port The mapped process port.
      * \param flags A list of flags for the port.
      */
     void map_output_port(process::name_t const& group,
                          process::port_t const& port,
-                         process::name_t const& mapped_process,
+                         process::name_t const& mapped_name,
                          process::port_t const& mapped_port,
                          process::port_flags_t const& flags);
 

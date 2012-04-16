@@ -82,17 +82,17 @@ class pipeline::priv
       : public pipeline_exception
     {
       public:
-        propogation_exception(process::name_t const& upstream_process,
+        propogation_exception(process::name_t const& upstream_name,
                               process::port_t const& upstream_port,
-                              process::name_t const& downstream_process,
+                              process::name_t const& downstream_name,
                               process::port_t const& downstream_port,
                               process::port_type_t const& type,
                               bool push_upstream) throw();
         ~propogation_exception() throw();
 
-        process::name_t const m_upstream_process;
+        process::name_t const m_upstream_name;
         process::port_t const m_upstream_port;
-        process::name_t const m_downstream_process;
+        process::name_t const m_downstream_name;
         process::port_t const m_downstream_port;
         process::port_type_t const m_type;
         bool const m_push_upstream;
@@ -153,18 +153,18 @@ pipeline
 
 void
 pipeline
-::connect(process::name_t const& upstream_process,
+::connect(process::name_t const& upstream_name,
           process::port_t const& upstream_port,
-          process::name_t const& downstream_process,
+          process::name_t const& downstream_name,
           process::port_t const& downstream_port)
 {
   if (d->setup)
   {
-    throw connection_after_setup_exception(upstream_process, upstream_port,
-                                           downstream_process, downstream_port);
+    throw connection_after_setup_exception(upstream_name, upstream_port,
+                                           downstream_name, downstream_port);
   }
 
-  priv::group_t::const_iterator const up_group_it = d->groups.find(upstream_process);
+  priv::group_t::const_iterator const up_group_it = d->groups.find(upstream_name);
 
   if (up_group_it != d->groups.end())
   {
@@ -178,15 +178,15 @@ pipeline
       process::port_t const& port_name = mapped_port_addr.second;
 
       connect(proc_name, port_name,
-              downstream_process, downstream_port);
+              downstream_name, downstream_port);
 
-      d->used_output_mappings[upstream_process].push_back(upstream_port);
+      d->used_output_mappings[upstream_name].push_back(upstream_port);
 
       return;
     }
   }
 
-  priv::group_t::const_iterator const down_group_it = d->groups.find(downstream_process);
+  priv::group_t::const_iterator const down_group_it = d->groups.find(downstream_name);
 
   if (down_group_it != d->groups.end())
   {
@@ -202,22 +202,22 @@ pipeline
         process::name_t const& proc_name = mapped_port_addr.first;
         process::port_t const& port_name = mapped_port_addr.second;
 
-        connect(upstream_process, upstream_port,
+        connect(upstream_name, upstream_port,
                 proc_name, port_name);
       }
 
-      d->used_input_mappings[downstream_process].push_back(downstream_port);
+      d->used_input_mappings[downstream_name].push_back(downstream_port);
 
       return;
     }
   }
 
-  process::port_addr_t const up_port = process::port_addr_t(upstream_process, upstream_port);
-  process::port_addr_t const down_port = process::port_addr_t(downstream_process, downstream_port);
+  process::port_addr_t const up_port = process::port_addr_t(upstream_name, upstream_port);
+  process::port_addr_t const down_port = process::port_addr_t(downstream_name, downstream_port);
   priv::connection_t const conn = priv::connection_t(up_port, down_port);
 
-  process_t const up_proc = process_by_name(upstream_process);
-  process_t const down_proc = process_by_name(downstream_process);
+  process_t const up_proc = process_by_name(upstream_name);
+  process_t const down_proc = process_by_name(downstream_name);
 
   process::port_info_t const up_info = up_proc->output_port_info(upstream_port);
   process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
@@ -243,26 +243,26 @@ pipeline
   {
     if (!up_proc->set_output_port_type(upstream_port, down_type))
     {
-      throw connection_dependent_type_exception(upstream_process, upstream_port,
-                                                downstream_process, downstream_port,
+      throw connection_dependent_type_exception(upstream_name, upstream_port,
+                                                downstream_name, downstream_port,
                                                 down_type, true);
     }
 
     try
     {
-      d->propogate(upstream_process);
+      d->propogate(upstream_name);
     }
     catch (priv::propogation_exception& e)
     {
-      throw connection_dependent_type_cascade_exception(upstream_process, upstream_port, down_type,
-                                                        e.m_upstream_process, e.m_upstream_port,
-                                                        e.m_downstream_process, e.m_downstream_port,
+      throw connection_dependent_type_cascade_exception(upstream_name, upstream_port, down_type,
+                                                        e.m_upstream_name, e.m_upstream_port,
+                                                        e.m_downstream_name, e.m_downstream_port,
                                                         e.m_type, e.m_push_upstream);
     }
 
     // Retry the connection.
-    connect(upstream_process, upstream_port,
-            downstream_process, downstream_port);
+    connect(upstream_name, upstream_port,
+            downstream_name, downstream_port);
 
     return;
   }
@@ -270,26 +270,26 @@ pipeline
   {
     if (!down_proc->set_input_port_type(downstream_port, up_type))
     {
-      throw connection_dependent_type_exception(upstream_process, upstream_port,
-                                                downstream_process, downstream_port,
+      throw connection_dependent_type_exception(upstream_name, upstream_port,
+                                                downstream_name, downstream_port,
                                                 up_type, false);
     }
 
     try
     {
-      d->propogate(downstream_process);
+      d->propogate(downstream_name);
     }
     catch (priv::propogation_exception& e)
     {
-      throw connection_dependent_type_cascade_exception(downstream_process, downstream_port, up_type,
-                                                        e.m_upstream_process, e.m_upstream_port,
-                                                        e.m_downstream_process, e.m_downstream_port,
+      throw connection_dependent_type_cascade_exception(downstream_name, downstream_port, up_type,
+                                                        e.m_upstream_name, e.m_upstream_port,
+                                                        e.m_downstream_name, e.m_downstream_port,
                                                         e.m_type, e.m_push_upstream);
     }
 
     // Retry the connection.
-    connect(upstream_process, upstream_port,
-            downstream_process, downstream_port);
+    connect(upstream_name, upstream_port,
+            downstream_name, downstream_port);
 
     return;
   }
@@ -297,8 +297,8 @@ pipeline
            (down_type != process::type_any) &&
            (up_type != down_type))
   {
-    throw connection_type_mismatch_exception(upstream_process, upstream_port, up_type,
-                                             downstream_process, downstream_port, down_type);
+    throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
+                                             downstream_name, downstream_port, down_type);
   }
 
   process::port_flags_t const& up_flags = up_info->flags;
@@ -316,8 +316,8 @@ pipeline
 
   if (is_const && requires_mutable)
   {
-    throw connection_flag_mismatch_exception(upstream_process, upstream_port,
-                                             downstream_process, downstream_port);
+    throw connection_flag_mismatch_exception(upstream_name, upstream_port,
+                                             downstream_name, downstream_port);
   }
 
   i = down_flags.find(process::flag_input_nodep);
@@ -344,14 +344,14 @@ void
 pipeline
 ::map_input_port(process::name_t const& group,
                  process::port_t const& port,
-                 process::name_t const& mapped_process,
+                 process::name_t const& mapped_name,
                  process::port_t const& mapped_port,
                  process::port_flags_t const& flags)
 {
   if (d->setup)
   {
     throw connection_after_setup_exception(group, port,
-                                           mapped_process, mapped_port);
+                                           mapped_name, mapped_port);
   }
 
   priv::group_t::iterator const group_it = d->groups.find(group);
@@ -365,7 +365,7 @@ pipeline
 
   priv::input_mapping_info_t& mapping_info = mapping[port];
 
-  process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_process, mapped_port);
+  process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_name, mapped_port);
 
   mapping_info.get<0>().insert(flags.begin(), flags.end());
   mapping_info.get<1>().push_back(mapped_port_addr);
@@ -375,13 +375,13 @@ void
 pipeline
 ::map_output_port(process::name_t const& group,
                   process::port_t const& port,
-                  process::name_t const& mapped_process,
+                  process::name_t const& mapped_name,
                   process::port_t const& mapped_port,
                   process::port_flags_t const& flags)
 {
   if (d->setup)
   {
-    throw connection_after_setup_exception(mapped_process, mapped_port,
+    throw connection_after_setup_exception(mapped_name, mapped_port,
                                            group, port);
   }
 
@@ -403,7 +403,7 @@ pipeline
     throw group_output_already_mapped_exception(group, port, prev_port_addr.first, prev_port_addr.second, mapped_process, mapped_port);
   }
 
-  process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_process, mapped_port);
+  process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_name, mapped_port);
   priv::output_mapping_info_t const mapping_info = priv::output_mapping_info_t(flags, mapped_port_addr);
 
   mapping[port] = mapping_info;
@@ -1178,16 +1178,16 @@ pipeline::priv
 
     BOOST_FOREACH (process::port_addr_t const& data_dep_port, data_dep_ports)
     {
-      process::name_t const& data_proc = data_dep_port.first;
+      process::name_t const& data_name = data_dep_port.first;
       process::port_t const& data_port = data_dep_port.second;
 
-      if (name == data_proc)
+      if (name == data_name)
       {
         process::port_info_t const info = proc->output_port_info(data_port);
 
         if (info->type == process::type_data_dependent)
         {
-          throw untyped_data_dependent_exception(data_proc, data_port);
+          throw untyped_data_dependent_exception(data_name, data_port);
         }
 
         resolved_types = true;
@@ -1203,8 +1203,8 @@ pipeline::priv
       catch (propogation_exception& e)
       {
         throw connection_dependent_type_cascade_exception(name, "<data-dependent ports>", "<data-dependent types>",
-                                                          e.m_upstream_process, e.m_upstream_port,
-                                                          e.m_downstream_process, e.m_downstream_port,
+                                                          e.m_upstream_name, e.m_upstream_port,
+                                                          e.m_downstream_name, e.m_downstream_port,
                                                           e.m_type, e.m_push_upstream);
       }
     }
@@ -1290,15 +1290,15 @@ pipeline::priv
 }
 
 pipeline::priv::propogation_exception
-::propogation_exception(process::name_t const& upstream_process,
+::propogation_exception(process::name_t const& upstream_name,
                         process::port_t const& upstream_port,
-                        process::name_t const& downstream_process,
+                        process::name_t const& downstream_name,
                         process::port_t const& downstream_port,
                         process::port_type_t const& type,
                         bool push_upstream) throw()
-  : m_upstream_process(upstream_process)
+  : m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
-  , m_downstream_process(downstream_process)
+  , m_downstream_name(downstream_name)
   , m_downstream_port(downstream_port)
   , m_type(type)
   , m_push_upstream(push_upstream)
