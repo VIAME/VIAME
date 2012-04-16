@@ -229,6 +229,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \throws missing_connection_exception Thrown when there is a required port that is not connected in the pipeline.
      * \throws orphaned_processes_exception Thrown when there is a subgraph which is not connected to another subgraph.
      * \throws untyped_data_dependent_exception Thrown when a data-dependent port type is not set after initialization.
+     * \throws connection_dependent_type_exception Thrown when a connection creates a port type problem in the pipeline.
      * \throws connection_dependent_type_cascade_exception Thrown when a data-dependent port type creates a problem in the pipeline.
      * \throws untyped_data_dependent_exception Thrown when there are untyped connections left in the pipeline.
      */

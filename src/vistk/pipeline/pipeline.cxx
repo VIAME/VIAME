@@ -56,11 +56,21 @@ class pipeline::priv
 
     typedef std::map<process::name_t, process::ports_t> connected_mappings_t;
 
+    typedef enum
+    {
+      push_upstream,
+      push_downstream
+    } direction_t;
+    typedef std::pair<connection_t, direction_t> type_pinning_t;
+    typedef std::vector<type_pinning_t> type_pinnings_t;
+
     // Steps for checking a connection.
+    bool check_connection_types(connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type);
     bool check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const;
 
     // Steps for setting up the pipeline.
     void check_for_processes() const;
+    void propogate_pinned_types();
     void make_connections();
     void check_for_required_ports() const;
     void initialize_processes();
@@ -80,6 +90,7 @@ class pipeline::priv
 
     process::port_addrs_t data_dep_ports;
     connections_t untyped_connections;
+    type_pinnings_t type_pinnings;
 
     bool setup;
     bool setup_in_progress;
@@ -234,77 +245,7 @@ pipeline
   process::port_type_t const& up_type = up_info->type;
   process::port_type_t const& down_type = down_info->type;
 
-  bool const up_data_dep = (up_type == process::type_data_dependent);
-
-  if (up_data_dep)
-  {
-    d->data_dep_ports.push_back(up_port);
-  }
-
-  bool const up_flow_dep = boost::starts_with(up_type, process::type_flow_dependent);
-  bool const down_flow_dep = boost::starts_with(down_type, process::type_flow_dependent);
-
-  if ((up_data_dep || up_flow_dep) && down_flow_dep)
-  {
-    d->untyped_connections.push_back(conn);
-  }
-  else if (up_data_dep || up_flow_dep)
-  {
-    if (!up_proc->set_output_port_type(upstream_port, down_type))
-    {
-      throw connection_dependent_type_exception(upstream_name, upstream_port,
-                                                downstream_name, downstream_port,
-                                                down_type, true);
-    }
-
-    try
-    {
-      d->propogate(upstream_name);
-    }
-    catch (priv::propogation_exception& e)
-    {
-      throw connection_dependent_type_cascade_exception(upstream_name, upstream_port, down_type,
-                                                        e.m_upstream_name, e.m_upstream_port,
-                                                        e.m_downstream_name, e.m_downstream_port,
-                                                        e.m_type, e.m_push_upstream);
-    }
-
-    // Retry the connection.
-    connect(upstream_name, upstream_port,
-            downstream_name, downstream_port);
-
-    return;
-  }
-  else if (down_flow_dep)
-  {
-    if (!down_proc->set_input_port_type(downstream_port, up_type))
-    {
-      throw connection_dependent_type_exception(upstream_name, upstream_port,
-                                                downstream_name, downstream_port,
-                                                up_type, false);
-    }
-
-    try
-    {
-      d->propogate(downstream_name);
-    }
-    catch (priv::propogation_exception& e)
-    {
-      throw connection_dependent_type_cascade_exception(downstream_name, downstream_port, up_type,
-                                                        e.m_upstream_name, e.m_upstream_port,
-                                                        e.m_downstream_name, e.m_downstream_port,
-                                                        e.m_type, e.m_push_upstream);
-    }
-
-    // Retry the connection.
-    connect(upstream_name, upstream_port,
-            downstream_name, downstream_port);
-
-    return;
-  }
-  else if ((up_type != process::type_any) &&
-           (down_type != process::type_any) &&
-           (up_type != down_type))
+  if (!d->check_connection_types(conn, up_type, down_type))
   {
     throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
                                              downstream_name, downstream_port, down_type);
@@ -412,6 +353,7 @@ pipeline
   d->setup = true;
   d->setup_in_progress = true;
 
+  d->propogate_pinned_types();
   d->make_connections();
   d->check_for_required_ports();
   d->initialize_processes();
@@ -963,6 +905,44 @@ pipeline::priv
 
 bool
 pipeline::priv
+::check_connection_types(connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type)
+{
+  bool const up_data_dep = (up_type == process::type_data_dependent);
+
+  if (up_data_dep)
+  {
+    process::port_addr_t const& up_port = connection.first;
+
+    data_dep_ports.push_back(up_port);
+  }
+
+  bool const up_flow_dep = boost::starts_with(up_type, process::type_flow_dependent);
+  bool const down_flow_dep = boost::starts_with(down_type, process::type_flow_dependent);
+
+  if ((up_data_dep || up_flow_dep) && down_flow_dep)
+  {
+    untyped_connections.push_back(connection);
+  }
+  else if (up_data_dep || up_flow_dep)
+  {
+    type_pinning.push_back(priv::propogation_t(connection, priv::push_upstream));
+  }
+  else if (down_flow_dep)
+  {
+    type_pinning.push_back(priv::propogation_t(connection, priv::push_downstream));
+  }
+  else if ((up_type != process::type_any) &&
+           (down_type != process::type_any) &&
+           (up_type != down_type))
+  {
+    return false;
+  }
+
+  return true;
+}
+
+bool
+pipeline::priv
 ::check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const
 {
   process::port_flags_t::const_iterator i;
@@ -1091,6 +1071,94 @@ pipeline::priv
   if (!process_map.size())
   {
     throw no_processes_exception();
+  }
+}
+
+void
+pipeline::priv
+::propogate_pinned_types()
+{
+  type_pinnings_t const pinnings = type_pinnings;
+  type_pinnings.clear();
+
+  BOOST_FOREACH (type_pinning_t const& pinning, pinnings)
+  {
+    connection_t const& connection = pinning.first;
+    direction_t const& direction = pinning.second;
+
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    process_t const up_proc = q->process_by_name(upstream_name);
+    process_t const down_proc = q->process_by_name(downstream_name);
+
+    process::port_info_t const up_info = up_proc->output_port_info(upstream_port);
+    process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
+
+    process::port_type_t const& up_type = up_info->type;
+    process::port_type_t const& down_type = down_info->type;
+
+    process::name_t name;
+    process::port_t port;
+    process::port_type_t type;
+
+    switch (direction)
+    {
+      case push_upstream:
+        if (!up_proc->set_output_port_type(upstream_port, down_type))
+        {
+          throw connection_dependent_type_exception(upstream_name, upstream_port,
+                                                    downstream_name, downstream_port,
+                                                    down_type, true);
+        }
+
+        name = upstream_name;
+        port = upstream_port;
+        type = down_type;
+
+        break;
+      case push_downstream:
+        if (!down_proc->set_input_port_type(downstream_port, up_type))
+        {
+          throw connection_dependent_type_exception(upstream_name, upstream_port,
+                                                    downstream_name, downstream_port,
+                                                    up_type, false);
+        }
+
+        name = downstream_name;
+        port = downstream_port;
+        type = up_type;
+
+        break;
+      default:
+        continue;
+    }
+
+    try
+    {
+      propogate(name);
+    }
+    catch (propogation_exception& e)
+    {
+      throw connection_dependent_type_cascade_exception(name, port, type,
+                                                        e.m_upstream_name, e.m_upstream_port,
+                                                        e.m_downstream_name, e.m_downstream_port,
+                                                        e.m_type, e.m_push_upstream);
+    }
+
+    // Retry the connection.
+    q->connect(upstream_name, upstream_port,
+               downstream_name, downstream_port);
+  }
+
+  if (type_pinnings.size())
+  {
+    propogate_pinned_types();
   }
 }
 
