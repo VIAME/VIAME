@@ -169,7 +169,8 @@ pipeline
 
   if (up_group_it != d->groups.end())
   {
-    priv::output_port_mapping_t const& mapping = up_group_it->second.second;
+    priv::port_mapping_t const& port_mapping = up_group_it->second;
+    priv::output_port_mapping_t const& mapping = port_mapping.second;
     priv::output_port_mapping_t::const_iterator const mapping_it = mapping.find(upstream_port);
 
     if (mapping_it != mapping.end())
@@ -191,7 +192,8 @@ pipeline
 
   if (down_group_it != d->groups.end())
   {
-    priv::input_port_mapping_t const& mapping = down_group_it->second.first;
+    priv::port_mapping_t const& port_mapping = down_group_it->second;
+    priv::input_port_mapping_t const& mapping = port_mapping.first;
     priv::input_port_mapping_t::const_iterator const mapping_it = mapping.find(downstream_port);
 
     if (mapping_it != mapping.end())
@@ -362,7 +364,8 @@ pipeline
     throw no_such_group_exception(group);
   }
 
-  priv::input_port_mapping_t& mapping = group_it->second.first;
+  priv::port_mapping_t& port_mapping = group_it->second;
+  priv::input_port_mapping_t& mapping = port_mapping.first;
 
   priv::input_mapping_info_t& mapping_info = mapping[port];
 
@@ -393,15 +396,19 @@ pipeline
     throw no_such_group_exception(group);
   }
 
-  priv::output_port_mapping_t& mapping = group_it->second.second;
+  priv::port_mapping_t& port_mapping = group_it->second;
+  priv::output_port_mapping_t& mapping = port_mapping.second;
 
   priv::output_port_mapping_t::const_iterator const port_it = mapping.find(port);
 
   if (port_it != mapping.end())
   {
-    process::port_addr_t const prev_port_addr = port_it->second.get<1>();
+    priv::output_mapping_info_t const& output_info = port_it->second;
+    process::port_addr_t const& prev_port_addr = output_info.get<1>();
+    process::name_t const& prev_name = prev_port_addr.first;
+    process::port_t const& prev_port = prev_port_addr.second;
 
-    throw group_output_already_mapped_exception(group, port, prev_port_addr.first, prev_port_addr.second, mapped_process, mapped_port);
+    throw group_output_already_mapped_exception(group, port, prev_name, prev_port, mapped_name, mapped_port);
   }
 
   process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_name, mapped_port);
@@ -454,7 +461,9 @@ pipeline
 
   BOOST_FOREACH (priv::process_map_t::value_type const& process_index, d->process_map)
   {
-    names.push_back(process_index.first);
+    process::name_t const& name = process_index.first;
+
+    names.push_back(name);
   }
 
   return names;
@@ -482,10 +491,14 @@ pipeline
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
-    if (connection.second.first == name)
-    {
-      process::name_t const& upstream_name = connection.first.first;
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
 
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::name_t const& downstream_name = downstream_addr.first;
+
+    if (downstream_name == name)
+    {
       names.insert(upstream_name);
     }
   }
@@ -495,8 +508,9 @@ pipeline
   BOOST_FOREACH (process::name_t const& process_name, names)
   {
     priv::process_map_t::const_iterator i = d->process_map.find(process_name);
+    process_t const& process = i->second;
 
-    processes.push_back(i->second);
+    processes.push_back(process);
   }
 
   return processes;
@@ -508,10 +522,16 @@ pipeline
 {
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
-    if ((connection.second.first == name) &&
-        (connection.second.second == port))
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    if ((downstream_name == name) &&
+        (downstream_port == port))
     {
-      process::name_t const& upstream_name = connection.first.first;
       priv::process_map_t::const_iterator const i = d->process_map.find(upstream_name);
 
       return i->second;
@@ -529,10 +549,14 @@ pipeline
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
-    if (connection.first.first == name)
-    {
-      process::name_t const& downstream_name = connection.second.first;
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
 
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::name_t const& downstream_name = downstream_addr.first;
+
+    if (upstream_name == name)
+    {
       names.insert(downstream_name);
     }
   }
@@ -542,8 +566,9 @@ pipeline
   BOOST_FOREACH (process::name_t const& process_name, names)
   {
     priv::process_map_t::const_iterator const i = d->process_map.find(process_name);
+    process_t const& process = i->second;
 
-    processes.push_back(i->second);
+    processes.push_back(process);
   }
 
   return processes;
@@ -557,11 +582,16 @@ pipeline
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
-    if ((connection.first.first == name) &&
-        (connection.first.second == port))
-    {
-      process::name_t const& downstream_name = connection.second.first;
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
 
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+    process::name_t const& downstream_name = downstream_addr.first;
+
+    if ((upstream_name == name) &&
+        (upstream_port == port))
+    {
       names.insert(downstream_name);
     }
   }
@@ -571,8 +601,9 @@ pipeline
   BOOST_FOREACH (process::name_t const& process_name, names)
   {
     priv::process_map_t::const_iterator const i = d->process_map.find(process_name);
+    process_t const& process = i->second;
 
-    processes.push_back(i->second);
+    processes.push_back(process);
   }
 
   return processes;
@@ -584,11 +615,15 @@ pipeline
 {
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
-    if ((connection.second.first == name) &&
-        (connection.second.second == port))
-    {
-      process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
 
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    if ((downstream_name == name) &&
+        (downstream_port == port))
+    {
       return upstream_addr;
     }
   }
@@ -604,11 +639,15 @@ pipeline
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
-    if ((connection.first.first == name) &&
-        (connection.first.second == port))
-    {
-      process::port_addr_t const& downstream_addr = connection.second;
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
 
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+
+    if ((upstream_name == name) &&
+        (upstream_port == port))
+    {
       port_addrs.push_back(downstream_addr);
     }
   }
@@ -656,9 +695,18 @@ pipeline
 
   BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
   {
-    if (d->connections[edge_index.first].second.first == name)
+    size_t const& i = edge_index.first;
+    edge_t const& edge = edge_index.second;
+
+    priv::connection_t const connection = d->connections[i];
+
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& downstream_name = downstream_addr.first;
+
+    if (downstream_name == name)
     {
-      edges.push_back(edge_index.second);
+      edges.push_back(edge);
     }
   }
 
@@ -671,10 +719,20 @@ pipeline
 {
   BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
   {
-    if ((d->connections[edge_index.first].second.first == name) &&
-        (d->connections[edge_index.first].second.second == port))
+    size_t const& i = edge_index.first;
+    edge_t const& edge = edge_index.second;
+
+    priv::connection_t const connection = d->connections[i];
+
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    if ((downstream_name == name) &&
+        (downstream_port == port))
     {
-      return edge_index.second;
+      return edge;
     }
   }
 
@@ -689,9 +747,18 @@ pipeline
 
   BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
   {
-    if (d->connections[edge_index.first].first.first == name)
+    size_t const& i = edge_index.first;
+    edge_t const& edge = edge_index.second;
+
+    priv::connection_t const connection = d->connections[i];
+
+    process::port_addr_t const& upstream_addr = connection.first;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+
+    if (upstream_name == name)
     {
-      edges.push_back(edge_index.second);
+      edges.push_back(edge);
     }
   }
 
@@ -706,10 +773,20 @@ pipeline
 
   BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
   {
-    if ((d->connections[edge_index.first].first.first == name) &&
-        (d->connections[edge_index.first].first.second == port))
+    size_t const& i = edge_index.first;
+    edge_t const& edge = edge_index.second;
+
+    priv::connection_t const connection = d->connections[i];
+
+    process::port_addr_t const& upstream_addr = connection.first;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+
+    if ((upstream_name == name) &&
+        (upstream_port == port))
     {
-      edges.push_back(edge_index.second);
+      edges.push_back(edge);
     }
   }
 
@@ -1171,7 +1248,9 @@ pipeline::priv
       // Mark these processes as connected.
       BOOST_FOREACH (process::port_addr_t const& port_addr, connected_ports)
       {
-        procs.insert(port_addr.first);
+        process::name_t const& name = port_addr.first;
+
+        procs.insert(name);
       }
     }
   }
@@ -1276,12 +1355,14 @@ pipeline::priv
       BOOST_FOREACH (process::port_t const& port, iports)
       {
         process::port_addr_t const sender = q->sender_for_port(name, port);
-        edge_t const edge = q->edge_for_connection(sender.first, sender.second,
+        process::name_t const& sender_name = sender.first;
+        process::port_t const& sender_port = sender.second;
+        edge_t const edge = q->edge_for_connection(sender_name, sender_port,
                                                    name, port);
 
         if (edge && edge->makes_dependency())
         {
-          vertex_t const s = vertex_map[sender.first];
+          vertex_t const s = vertex_map[sender_name];
 
           boost::add_edge(s, t, graph);
         }
