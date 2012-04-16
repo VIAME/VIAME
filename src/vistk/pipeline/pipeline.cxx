@@ -118,7 +118,7 @@ pipeline
 
 void
 pipeline
-::add_process(process_t process)
+::add_process(process_t const& process)
 {
   if (!process)
   {

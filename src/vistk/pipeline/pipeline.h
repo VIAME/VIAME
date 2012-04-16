@@ -76,7 +76,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \param process The process to add to the pipeline.
      */
-    void add_process(process_t process);
+    void add_process(process_t const& process);
     /**
      * \brief Declares a logical group of processes in the pipeline.
      *
