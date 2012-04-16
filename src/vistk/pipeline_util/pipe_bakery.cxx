@@ -166,12 +166,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider_sorter
 
     config::keys_t sorted() const;
   private:
-    struct vertex_name_t
-    {
-      typedef boost::vertex_property_tag kind;
-    };
-    typedef boost::property<vertex_name_t, config::key_t> name_property_t;
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, name_property_t> config_graph_t;
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, config::key_t> config_graph_t;
     typedef boost::graph_traits<config_graph_t>::vertex_descriptor vertex_t;
     typedef std::vector<vertex_t> vertices_t;
     typedef std::map<config::key_t, vertex_t> vertex_map_t;
@@ -695,11 +690,9 @@ config_provider_sorter
 
   config::keys_t keys;
 
-  boost::property_map<config_graph_t, vertex_name_t>::const_type const key_prop = boost::get(vertex_name_t(), m_graph);
-
   BOOST_FOREACH (vertex_t const& vertex, vertices)
   {
-    keys.push_back(boost::get(key_prop, vertex));
+    keys.push_back(m_graph[vertex]);
   }
 
   return keys;
@@ -724,8 +717,6 @@ config_provider_sorter
 
   config::key_t const& target_key = config::key_t(request.second);
 
-  boost::property_map<config_graph_t, vertex_name_t>::type key_prop = boost::get(vertex_name_t(), m_graph);
-
   typedef std::pair<vertex_map_t::iterator, bool> insertion_t;
 
   insertion_t from_iter = m_vertex_map.insert(std::make_pair(key, vertex_t()));
@@ -743,13 +734,13 @@ config_provider_sorter
   if (from_inserted)
   {
     from_vertex = boost::add_vertex(m_graph);
-    key_prop[from_vertex] = key;
+    m_graph[from_vertex] = key;
   }
 
   if (to_inserted)
   {
     to_vertex = boost::add_vertex(m_graph);
-    key_prop[to_vertex] = target_key;
+    m_graph[to_vertex] = target_key;
   }
 
   boost::add_edge(from_vertex, to_vertex, m_graph);

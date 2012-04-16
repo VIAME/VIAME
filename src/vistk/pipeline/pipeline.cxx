@@ -1221,29 +1221,16 @@ pipeline::priv
   }
 }
 
-namespace
-{
-
-struct vertex_name_t
-{
-  typedef boost::vertex_property_tag kind;
-};
-
-}
-
 process::names_t
 pipeline::priv
 ::sorted_names() const
 {
-  typedef boost::property<vertex_name_t, process::name_t> name_property_t;
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, name_property_t> pipeline_graph_t;
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, process::name_t> pipeline_graph_t;
   typedef boost::graph_traits<pipeline_graph_t>::vertex_descriptor vertex_t;
   typedef std::deque<vertex_t> vertices_t;
   typedef std::map<process::name_t, vertex_t> vertex_map_t;
 
   pipeline_graph_t graph;
-
-  boost::property_map<pipeline_graph_t, vertex_name_t>::type key_prop = boost::get(vertex_name_t(), graph);
 
   // Create the graph.
   {
@@ -1254,7 +1241,7 @@ pipeline::priv
     BOOST_FOREACH (process::name_t const& name, names)
     {
       vertex_t s = boost::add_vertex(graph);
-      key_prop[s] = name;
+      graph[s] = name;
       vertex_map[name] = s;
     }
 
@@ -1296,7 +1283,7 @@ pipeline::priv
 
   BOOST_FOREACH (vertex_t const& vertex, vertices)
   {
-    names.push_back(boost::get(key_prop, vertex));
+    names.push_back(graph[vertex]);
   }
 
   return names;
