@@ -14,6 +14,7 @@
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/process_registry.h>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/make_shared.hpp>
 
 #include <exception>
@@ -751,7 +752,7 @@ test_connect_type_force_cascade_up()
 
   vistk::process::port_info_t const info = process->output_port_info(port_name);
 
-  if (info->type == vistk::process::type_flow_dependent)
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propogated properly up the pipeline");
   }
@@ -788,7 +789,7 @@ test_connect_type_force_cascade_down()
 
   vistk::process::port_info_t const info = process3->input_port_info(port_name2);
 
-  if (info->type == vistk::process::type_flow_dependent)
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propogated properly down the pipeline");
   }
@@ -832,14 +833,14 @@ test_connect_type_force_cascade_both()
 
   info = process->output_port_info(port_name);
 
-  if (info->type == vistk::process::type_flow_dependent)
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propogated properly within the pipeline");
   }
 
   info = process3->input_port_info(port_name2);
 
-  if (info->type == vistk::process::type_flow_dependent)
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propogated properly within the pipeline");
   }
@@ -877,7 +878,7 @@ test_connect_type_force_cascade_data_dependent()
 
   vistk::process::port_info_t const info = process3->input_port_info(port_name3);
 
-  if (info->type == vistk::process::type_flow_dependent)
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propogated properly");
   }
@@ -1127,7 +1128,7 @@ test_setup_pipeline_data_dependent_set()
 
   vistk::process::port_info_t const info = process2->input_port_info(port_name2);
 
-  if (info->type == vistk::process::type_flow_dependent)
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propogated properly down the pipeline after initialization");
   }
@@ -1199,14 +1200,14 @@ test_setup_pipeline_data_dependent_set_cascade()
 
   info = process2->input_port_info(port_name2);
 
-  if (info->type == vistk::process::type_flow_dependent)
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propogated properly down the pipeline after initialization");
   }
 
   info = process3->input_port_info(port_name2);
 
-  if (info->type == vistk::process::type_flow_dependent)
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propogated properly down the pipeline after initialization");
   }
