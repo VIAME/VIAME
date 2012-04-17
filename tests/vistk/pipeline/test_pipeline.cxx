@@ -1161,7 +1161,7 @@ test_setup_pipeline_data_dependent_set_reject()
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
 
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_cascade_exception,
+  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
                    pipeline->setup_pipeline(),
                    "a data dependent type propogation gets rejected");
 }
@@ -1277,7 +1277,7 @@ test_setup_pipeline_type_force_data_upstream_reject()
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
 
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
+  EXPECT_EXCEPTION(vistk::connection_type_mismatch_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline where an upstream dependent type that gets rejected");
 }
