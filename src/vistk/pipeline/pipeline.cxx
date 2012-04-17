@@ -1008,6 +1008,9 @@ pipeline::priv
                                         type, true);
           }
 
+          q->connect(upstream_name, upstream_port,
+                     downstream_name, downstream_port);
+
           kyu.push(upstream_name);
         }
       }
@@ -1029,6 +1032,9 @@ pipeline::priv
                                         downstream_name, downstream_port,
                                         type, false);
           }
+
+          q->connect(upstream_name, upstream_port,
+                     downstream_name, downstream_port);
 
           kyu.push(downstream_name);
         }
