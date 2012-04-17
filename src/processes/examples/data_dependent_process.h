@@ -32,7 +32,7 @@ namespace vistk
  * \configs
  *
  * \config{reject} Whether to reject the set type or not.
- * \config{set_on_init} Whether to set the type on initialization or not.
+ * \config{set_on_analysis} Whether to set the type on analyze or not.
  *
  * \oports
  *
@@ -54,9 +54,9 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
     ~data_dependent_process();
   protected:
     /**
-     * \brief Initializes the process.
+     * \brief Analysis the data for the process.
      */
-    void _init();
+    void _analyze();
     /**
      * \brief Pushes a new number through the output edge.
      */
