@@ -325,7 +325,7 @@ not_a_dag_exception
 
   sstr << "The pipeline contains a cycle in it. Backwards "
           "edges should only be connected to input ports "
-          "which have the process::flag_nodep flag on them.";
+          "which have the process::flag_input_nodep flag on them.";
 
   m_what = sstr.str();
 }
