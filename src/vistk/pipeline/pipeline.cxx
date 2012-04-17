@@ -909,9 +909,11 @@ pipeline::priv
   if (up_data_dep)
   {
     data_dep_connections.push_back(connection);
+
+    return type_deferred;
   }
 
-  bool const up_flow_dep = up_data_dep || boost::starts_with(up_type, process::type_flow_dependent);
+  bool const up_flow_dep = boost::starts_with(up_type, process::type_flow_dependent);
   bool const down_flow_dep = boost::starts_with(down_type, process::type_flow_dependent);
 
   if (up_flow_dep || down_flow_dep)
