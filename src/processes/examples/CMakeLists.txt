@@ -10,9 +10,9 @@ set(examples_srcs
   number_process.cxx
   orphan_process.cxx
   print_number_process.cxx
-  print_string_process.cxx
   registration.cxx
-  tagged_flow_dependent_process.cxx)
+  tagged_flow_dependent_process.cxx
+  take_string_process.cxx)
 
 set(no_install_plugin TRUE)
 
