@@ -69,16 +69,12 @@ static void test_connect_no_downstream();
 static void test_connect_untyped_data_connection();
 static void test_connect_untyped_flow_connection();
 static void test_connect_type_force_data_upstream();
-static void test_connect_type_force_data_upstream_reject();
 static void test_connect_type_force_flow_upstream();
-static void test_connect_type_force_flow_upstream_reject();
 static void test_connect_type_force_flow_downstream();
-static void test_connect_type_force_flow_downstream_reject();
 static void test_connect_type_force_cascade_up();
 static void test_connect_type_force_cascade_down();
 static void test_connect_type_force_cascade_both();
 static void test_connect_type_force_cascade_data_dependent();
-static void test_connect_type_force_cascade_reject();
 static void test_connect_type_mismatch();
 static void test_connect_flag_mismatch();
 static void test_connect();
@@ -91,6 +87,10 @@ static void test_setup_pipeline_not_a_dag();
 static void test_setup_pipeline_data_dependent_set();
 static void test_setup_pipeline_data_dependent_set_reject();
 static void test_setup_pipeline_data_dependent_set_cascade();
+static void test_setup_pipeline_type_force_data_upstream_reject();
+static void test_setup_pipeline_type_force_flow_upstream_reject();
+static void test_setup_pipeline_type_force_flow_downstream_reject();
+static void test_setup_pipeline_type_force_cascade_reject();
 static void test_setup_pipeline_data_dependent_set_cascade_reject();
 static void test_setup_pipeline_untyped_data_dependent_unconnected();
 static void test_setup_pipeline_untyped_data_dependent();
@@ -186,25 +186,13 @@ run_test(std::string const& test_name)
   {
     test_connect_type_force_data_upstream();
   }
-  else if (test_name == "connect_type_force_data_upstream_reject")
-  {
-    test_connect_type_force_data_upstream_reject();
-  }
   else if (test_name == "connect_type_force_flow_upstream")
   {
     test_connect_type_force_flow_upstream();
   }
-  else if (test_name == "connect_type_force_flow_upstream_reject")
-  {
-    test_connect_type_force_flow_upstream_reject();
-  }
   else if (test_name == "connect_type_force_flow_downstream")
   {
     test_connect_type_force_flow_downstream();
-  }
-  else if (test_name == "connect_type_force_flow_downstream_reject")
-  {
-    test_connect_type_force_flow_downstream_reject();
   }
   else if (test_name == "connect_type_force_cascade_up")
   {
@@ -221,10 +209,6 @@ run_test(std::string const& test_name)
   else if (test_name == "connect_type_force_cascade_data_dependent")
   {
     test_connect_type_force_cascade_data_dependent();
-  }
-  else if (test_name == "connect_type_force_cascade_reject")
-  {
-    test_connect_type_force_cascade_reject();
   }
   else if (test_name == "connect_type_mismatch")
   {
@@ -273,6 +257,22 @@ run_test(std::string const& test_name)
   else if (test_name == "setup_pipeline_data_dependent_set_cascade")
   {
     test_setup_pipeline_data_dependent_set_cascade();
+  }
+  else if (test_name == "setup_pipeline_type_force_data_upstream_reject")
+  {
+    test_setup_pipeline_type_force_data_upstream_reject();
+  }
+  else if (test_name == "setup_pipeline_type_force_flow_upstream_reject")
+  {
+    test_setup_pipeline_type_force_flow_upstream_reject();
+  }
+  else if (test_name == "setup_pipeline_type_force_flow_downstream_reject")
+  {
+    test_setup_pipeline_type_force_flow_downstream_reject();
+  }
+  else if (test_name == "setup_pipeline_type_force_cascade_reject")
+  {
+    test_setup_pipeline_type_force_cascade_reject();
   }
   else if (test_name == "setup_pipeline_data_dependent_set_cascade_reject")
   {
@@ -673,36 +673,6 @@ test_connect_type_force_data_upstream()
 }
 
 void
-test_connect_type_force_data_upstream_reject()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
-
-  vistk::config_t conf = vistk::config::empty_config();
-
-  conf->set_value("reject", "true");
-
-  vistk::process_t const process = create_process(proc_type, proc_name, conf);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
-
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
-                   pipeline->connect(proc_name, port_name,
-                                     proc_name2, port_name2),
-                   "connecting a upstream dependent type that gets rejected");
-}
-
-void
 test_connect_type_force_flow_upstream()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
@@ -727,36 +697,6 @@ test_connect_type_force_flow_upstream()
 }
 
 void
-test_connect_type_force_flow_upstream_reject()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
-
-  vistk::config_t conf = vistk::config::empty_config();
-
-  conf->set_value("reject", "true");
-
-  vistk::process_t const process = create_process(proc_type, proc_name, conf);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
-
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
-                   pipeline->connect(proc_name, port_name,
-                                     proc_name2, port_name2),
-                   "connecting a upstream dependent type that gets rejected");
-}
-
-void
 test_connect_type_force_flow_downstream()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
@@ -778,36 +718,6 @@ test_connect_type_force_flow_downstream()
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
-}
-
-void
-test_connect_type_force_flow_downstream_reject()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
-
-  vistk::config_t conf = vistk::config::empty_config();
-
-  conf->set_value("reject", "true");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2, conf);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("number");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
-                   pipeline->connect(proc_name, port_name,
-                                     proc_name2, port_name2),
-                   "connecting a downstream dependent type that gets rejected");
 }
 
 void
@@ -971,43 +881,6 @@ test_connect_type_force_cascade_data_dependent()
   {
     TEST_ERROR("Dependent types were not propogated properly");
   }
-}
-
-void
-test_connect_type_force_cascade_reject()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow_reject");
-
-  vistk::config_t conf = vistk::config::empty_config();
-
-  conf->set_value("reject", "true");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type2, proc_name3, conf);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-  pipeline->add_process(process3);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("number");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("output");
-
-  pipeline->connect(proc_name2, port_name3,
-                    proc_name3, port_name2);
-
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_cascade_exception,
-                   pipeline->connect(proc_name, port_name,
-                                     proc_name2, port_name2),
-                   "connecting a dependent type that gets rejected elsewhere");
 }
 
 void
@@ -1337,6 +1210,141 @@ test_setup_pipeline_data_dependent_set_cascade()
   {
     TEST_ERROR("Dependent types were not propogated properly down the pipeline after initialization");
   }
+}
+
+void
+test_setup_pipeline_type_force_data_upstream_reject()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
+
+  vistk::config_t conf = vistk::config::empty_config();
+
+  conf->set_value("reject", "true");
+
+  vistk::process_t const process = create_process(proc_type, proc_name, conf);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+
+  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
+                   pipeline->setup_pipeline(),
+                   "setting up a pipeline where an upstream dependent type that gets rejected");
+}
+
+void
+test_setup_pipeline_type_force_flow_upstream_reject()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
+
+  vistk::config_t conf = vistk::config::empty_config();
+
+  conf->set_value("reject", "true");
+
+  vistk::process_t const process = create_process(proc_type, proc_name, conf);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+
+  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
+                   pipeline->setup_pipeline(),
+                   "setting up a pipeline where an upstream dependent type that gets rejected");
+}
+
+void
+test_setup_pipeline_type_force_flow_downstream_reject()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("data");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
+
+  vistk::config_t conf = vistk::config::empty_config();
+
+  conf->set_value("reject", "true");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2, conf);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("number");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+
+  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
+                   pipeline->setup_pipeline(),
+                   "setting up a pipeline with a downstream dependent type that gets rejected");
+}
+
+void
+test_setup_pipeline_type_force_cascade_reject()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("data");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
+  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow_reject");
+
+  vistk::config_t conf = vistk::config::empty_config();
+
+  conf->set_value("reject", "true");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+  vistk::process_t const process3 = create_process(proc_type2, proc_name3, conf);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+  pipeline->add_process(process3);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("number");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  vistk::process::port_t const port_name3 = vistk::process::port_t("output");
+
+  pipeline->connect(proc_name2, port_name3,
+                    proc_name3, port_name2);
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+
+  EXPECT_EXCEPTION(vistk::connection_dependent_type_cascade_exception,
+                   pipeline->setup_pipeline(),
+                   "setting up a pipeline where a dependent type that gets rejected elsewhere");
 }
 
 void
