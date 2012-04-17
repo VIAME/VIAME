@@ -61,9 +61,9 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT image_writer_process
     ~image_writer_process();
   protected:
     /**
-     * \brief Initialize the process.
+     * \brief Configure the process.
      */
-    void _init();
+    void _configure();
 
     /**
      * \brief Writes the next image.

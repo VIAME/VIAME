@@ -61,6 +61,11 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT image_reader_process
     ~image_reader_process();
   protected:
     /**
+     * \brief Configure the process.
+     */
+    void _configure();
+
+    /**
      * \brief Initialize the process.
      */
     void _init();

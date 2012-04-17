@@ -125,7 +125,7 @@ video_reader_process
 
 void
 video_reader_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {
@@ -174,7 +174,12 @@ video_reader_process
 
     throw invalid_configuration_value_exception(name(), priv::config_path, file_path, reason);
   }
+}
 
+void
+video_reader_process
+::_init()
+{
   if (d->verify)
   {
     if (d->istream->is_seekable())

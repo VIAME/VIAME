@@ -62,9 +62,9 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT grayscale_process
     ~grayscale_process();
   protected:
     /**
-     * \brief Initialize the process.
+     * \brief Configure the process.
      */
-    void _init();
+    void _configure();
 
     /**
      * \brief Turns an image into grayscale.

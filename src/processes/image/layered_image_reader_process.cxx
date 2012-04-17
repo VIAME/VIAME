@@ -109,7 +109,7 @@ layered_image_reader_process
 
 void
 layered_image_reader_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {
@@ -129,7 +129,7 @@ layered_image_reader_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  process::_init();
+  process::_configure();
 }
 
 void

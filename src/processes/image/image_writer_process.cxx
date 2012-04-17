@@ -108,7 +108,7 @@ image_writer_process
 
 void
 image_writer_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {

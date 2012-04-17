@@ -94,7 +94,7 @@ warp_image_process
 
 void
 warp_image_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {

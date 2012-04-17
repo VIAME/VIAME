@@ -59,9 +59,9 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT layered_image_reader_process
     ~layered_image_reader_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
+     * \brief Configure the process.
      */
-    void _init();
+    void _configure();
 
     /**
      * \brief Collate data from the input edges.

@@ -121,7 +121,7 @@ crop_image_process
 
 void
 crop_image_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {

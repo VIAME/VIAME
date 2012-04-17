@@ -68,9 +68,9 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT crop_image_process
     ~crop_image_process();
   protected:
     /**
-     * \brief Initialize the process.
+     * \brief Configure the process.
      */
-    void _init();
+    void _configure();
 
     /**
      * \brief Crops an image.
