@@ -91,6 +91,7 @@ class pipeline::priv
     void propogate_pinned_types();
     void make_connections();
     void check_for_required_ports() const;
+    void check_for_dag() const;
     void initialize_processes();
     void check_for_untyped_ports() const;
 
@@ -135,8 +136,6 @@ class pipeline::priv
         process::port_type_t const m_type;
         bool const m_push_upstream;
     };
-  private:
-    process::names_t sorted_names() const;
 };
 
 pipeline
@@ -360,6 +359,7 @@ pipeline
   d->propogate_pinned_types();
   d->make_connections();
   d->check_for_required_ports();
+  d->check_for_dag();
   d->initialize_processes();
   d->check_for_untyped_ports();
 
@@ -1181,7 +1181,7 @@ void
 pipeline::priv
 ::analyze_processes()
 {
-  process::names_t const names = sorted_names();
+  process::names_t const names = q->process_names();
 
   // Analyze processes.
   BOOST_FOREACH (process::name_t const& name, names)
@@ -1551,32 +1551,7 @@ pipeline::priv
 
 void
 pipeline::priv
-::initialize_processes()
-{
-  process::names_t const names = sorted_names();
-
-  // Initialize processes.
-  BOOST_FOREACH (process::name_t const& name, names)
-  {
-    process_t const proc = q->process_by_name(name);
-
-    proc->init();
-  }
-}
-
-void
-pipeline::priv
-::check_for_untyped_ports() const
-{
-  if (untyped_connections.size())
-  {
-    throw untyped_connection_exception();
-  }
-}
-
-process::names_t
-pipeline::priv
-::sorted_names() const
+::check_for_dag() const
 {
   typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, process::name_t> pipeline_graph_t;
   typedef boost::graph_traits<pipeline_graph_t>::vertex_descriptor vertex_t;
@@ -1643,15 +1618,31 @@ pipeline::priv
   {
     throw not_a_dag_exception();
   }
+}
 
-  process::names_t names;
+void
+pipeline::priv
+::initialize_processes()
+{
+  process::names_t const names = q->process_names();
 
-  BOOST_FOREACH (vertex_t const& vertex, vertices)
+  // Initialize processes.
+  BOOST_FOREACH (process::name_t const& name, names)
   {
-    names.push_back(graph[vertex]);
-  }
+    process_t const proc = q->process_by_name(name);
 
-  return names;
+    proc->init();
+  }
+}
+
+void
+pipeline::priv
+::check_for_untyped_ports() const
+{
+  if (untyped_connections.size())
+  {
+    throw untyped_connection_exception();
+  }
 }
 
 pipeline::priv::propogation_exception
