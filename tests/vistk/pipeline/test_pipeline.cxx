@@ -1392,7 +1392,7 @@ void
 test_setup_pipeline_missing_required_group_input_connection()
 {
   vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("take_number");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
@@ -1431,7 +1431,7 @@ void
 test_setup_pipeline_missing_required_group_output_connection()
 {
   vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("take_number");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
