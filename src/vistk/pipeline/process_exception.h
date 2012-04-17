@@ -58,6 +58,84 @@ class VISTK_PIPELINE_EXPORT null_process_config_exception
 };
 
 /**
+ * \class already_initialized_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when a process has been initialized before analysis.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT already_initialized_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     */
+    already_initialized_exception(process::name_t const& name) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~already_initialized_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_name;
+};
+
+/**
+ * \class unanalyzed_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when a process hasn't been analyzed before initialization or stepping.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT unanalyzed_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     */
+    unanalyzed_exception(process::name_t const& name) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~unanalyzed_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_name;
+};
+
+/**
+ * \class reanalyzed_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when a process is analyzed for a second time.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT reanalyzed_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     */
+    reanalyzed_exception(process::name_t const& name) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~reanalyzed_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_name;
+};
+
+/**
  * \class reinitialization_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when a process is initialized for a second time.

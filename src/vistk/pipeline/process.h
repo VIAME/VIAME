@@ -190,8 +190,22 @@ class VISTK_PIPELINE_EXPORT process
     typedef boost::shared_ptr<data_info const> data_info_t;
 
     /**
+     * \brief Pre-connection initialization.
+     *
+     * \throws reanalyzed_exception Thrown if called multiple times.
+     *
+     * \postconds
+     *
+     * \postcond{\c this is ready to be initialized}
+     *
+     * \endpostconds
+     */
+    void analyze();
+
+    /**
      * \brief Post-connection initialization.
      *
+     * \throws unanalyzed_exception Thrown if called before \ref analyze.
      * \throws reinitialization_exception Thrown if called multiple times.
      *
      * \postconds
@@ -211,6 +225,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \endpreconds
      *
+     * \throws unanalyzed_exception Thrown if called before \ref analyze.
      * \throws uninitialized_exception Thrown if called before \ref init.
      */
     void step();
@@ -414,6 +429,11 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Destructor.
      */
     virtual ~process();
+
+    /**
+     * \brief Analysis checks for subclasses.
+     */
+    virtual void _analyze();
 
     /**
      * \brief Initialization checks for subclasses.

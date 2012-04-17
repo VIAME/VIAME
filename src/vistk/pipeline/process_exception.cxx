@@ -33,6 +33,60 @@ null_process_config_exception
 {
 }
 
+already_initialized_exception
+::already_initialized_exception(process::name_t const& name) throw()
+  : process_exception()
+  , m_name(name)
+{
+  std::ostringstream sstr;
+
+  sstr << "The process \"" << m_name << "\' "
+          "has already been initialized.";
+
+  m_what = sstr.str();
+}
+
+already_initialized_exception
+::~already_initialized_exception() throw()
+{
+}
+
+unanalyzed_exception
+::unanalyzed_exception(process::name_t const& name) throw()
+  : process_exception()
+  , m_name(name)
+{
+  std::ostringstream sstr;
+
+  sstr << "The process \'" << m_name << "\' "
+          "hasn\'t been analyzed yet.";
+
+  m_what = sstr.str();
+}
+
+unanalyzed_exception
+::~unanalyzed_exception() throw()
+{
+}
+
+reanalyzed_exception
+::reanalyzed_exception(process::name_t const& name) throw()
+  : process_exception()
+  , m_name(name)
+{
+  std::ostringstream sstr;
+
+  sstr << "The process \'" << m_name << "\' "
+          "was analyzed a second time.";
+
+  m_what = sstr.str();
+}
+
+reanalyzed_exception
+::~reanalyzed_exception() throw()
+{
+}
+
 reinitialization_exception
 ::reinitialization_exception(process::name_t const& name) throw()
   : process_exception()
