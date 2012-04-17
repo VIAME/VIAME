@@ -222,15 +222,6 @@ pipeline
   process::port_info_t const up_info = up_proc->output_port_info(upstream_port);
   process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
 
-  process::port_type_t const& up_type = up_info->type;
-  process::port_type_t const& down_type = down_info->type;
-
-  if (!d->check_connection_types(connection, up_type, down_type))
-  {
-    throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
-                                             downstream_name, downstream_port, down_type);
-  }
-
   process::port_flags_t const& up_flags = up_info->flags;
   process::port_flags_t const& down_flags = down_info->flags;
 
@@ -238,6 +229,15 @@ pipeline
   {
     throw connection_flag_mismatch_exception(upstream_name, upstream_port,
                                              downstream_name, downstream_port);
+  }
+
+  process::port_type_t const& up_type = up_info->type;
+  process::port_type_t const& down_type = down_info->type;
+
+  if (!d->check_connection_types(connection, up_type, down_type))
+  {
+    throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
+                                             downstream_name, downstream_port, down_type);
   }
 
   d->connections.push_back(connection);
