@@ -86,6 +86,8 @@ class pipeline::priv
     // Steps for setting up the pipeline.
     void check_for_processes() const;
     void map_group_connections();
+    void analyze_processes();
+    void check_for_data_dep_ports() const;
     void propogate_pinned_types();
     void make_connections();
     void check_for_required_ports() const;
@@ -347,6 +349,8 @@ pipeline
   d->setup_in_progress = true;
 
   d->map_group_connections();
+  d->analyze_processes();
+  d->check_for_data_dep_ports();
   d->propogate_pinned_types();
   d->make_connections();
   d->check_for_required_ports();
@@ -991,30 +995,15 @@ pipeline::priv
         process::port_info_t const info = proc->input_port_info(downstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const data_dep = (type == process::type_data_dependent);
         bool const flow_dep = boost::starts_with(type, process::type_flow_dependent);
 
-        if (!data_dep && !flow_dep)
+        if (!flow_dep)
         {
           process_t const up_proc = q->process_by_name(upstream_name);
 
           if (up_proc->set_output_port_type(upstream_port, type))
           {
             kyu.push(upstream_name);
-
-            if (data_dep)
-            {
-              connections_t::iterator const i = std::find(data_dep_connections.begin(), data_dep_connections.end(), connection);
-
-              if (i == data_dep_connections.end())
-              {
-                static std::string const reason = "Data dependency port tracking failed.";
-
-                throw std::logic_error(reason);
-              }
-
-              data_dep_connections.erase(i);
-            }
           }
           else
           {
@@ -1175,6 +1164,71 @@ pipeline::priv
   if (group_connections.size())
   {
     map_group_connections();
+  }
+}
+
+void
+pipeline::priv
+::analyze_processes()
+{
+  process::names_t const names = sorted_names();
+
+  // Analyze processes.
+  BOOST_FOREACH (process::name_t const& name, names)
+  {
+    process_t const proc = q->process_by_name(name);
+    connections_t unresolved_connections;
+
+    proc->analyze();
+
+    bool resolved_types = false;
+
+    BOOST_FOREACH (connection_t const& data_dep_connection, data_dep_connections)
+    {
+      process::port_addr_t const& data_addr = data_dep_connection.first;
+      process::port_addr_t const& downstream_addr = data_dep_connection.second;
+
+      process::name_t const& data_name = data_addr.first;
+      process::port_t const& data_port = data_addr.second;
+      process::name_t const& downstream_name = downstream_addr.first;
+      process::port_t const& downstream_port = downstream_addr.second;
+
+      if (name == data_name)
+      {
+        process::port_info_t const info = proc->output_port_info(data_port);
+
+        if (info->type == process::type_data_dependent)
+        {
+          throw untyped_data_dependent_exception(data_name, data_port);
+        }
+
+        resolved_types = true;
+
+        q->connect(data_name, data_port,
+                   downstream_name, downstream_port);
+      }
+      else
+      {
+        unresolved_connections.push_back(data_dep_connection);
+      }
+    }
+
+    if (resolved_types)
+    {
+      data_dep_connections = unresolved_connections;
+    }
+  }
+}
+
+void
+pipeline::priv
+::check_for_data_dep_ports() const
+{
+  if (data_dep_connections.size())
+  {
+    static std::string const reason = "Data dependency port tracking failed.";
+
+    throw std::logic_error(reason);
   }
 }
 
@@ -1495,50 +1549,8 @@ pipeline::priv
   BOOST_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = q->process_by_name(name);
-    process::port_addrs_t unresolved_ports;
 
     proc->init();
-
-    bool resolved_types = false;
-
-    BOOST_FOREACH (process::port_addr_t const& data_dep_port, data_dep_ports)
-    {
-      process::name_t const& data_name = data_dep_port.first;
-      process::port_t const& data_port = data_dep_port.second;
-
-      if (name == data_name)
-      {
-        process::port_info_t const info = proc->output_port_info(data_port);
-
-        if (info->type == process::type_data_dependent)
-        {
-          throw untyped_data_dependent_exception(data_name, data_port);
-        }
-
-        resolved_types = true;
-      }
-      else
-      {
-        unresolved_ports.push_back(data_dep_port);
-      }
-    }
-
-    if (resolved_types)
-    {
-      data_dep_ports = unresolved_ports;
-
-      try
-      {
-        propogate(name);
-      }
-      catch (propogation_exception& e)
-      {
-        throw connection_dependent_type_cascade_exception(name, "<data-dependent ports>", "<data-dependent types>",
-                                                          e.m_upstream_name, e.m_upstream_port,
-                                                          e.m_downstream_name, e.m_downstream_port,
-                                                          e.m_type, e.m_push_upstream);
-      }
-    }
   }
 }
 
