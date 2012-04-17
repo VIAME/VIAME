@@ -70,7 +70,7 @@ print_number_process
 
 void
 print_number_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {
@@ -99,7 +99,7 @@ print_number_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  process::_init();
+  process::_configure();
 }
 
 void

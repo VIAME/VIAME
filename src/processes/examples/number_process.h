@@ -63,9 +63,9 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     ~number_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
+     * \brief Checks the configuration.
      */
-    void _init();
+    void _configure();
 
     /**
      * \brief Pushes a new number through the output edge.
