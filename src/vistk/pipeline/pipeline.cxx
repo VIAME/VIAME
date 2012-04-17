@@ -1603,16 +1603,20 @@ pipeline::priv
       {
         process::port_addr_t const sender = q->sender_for_port(name, port);
         process::name_t const& sender_name = sender.first;
-        process::port_t const& sender_port = sender.second;
-        edge_t const edge = q->edge_for_connection(sender_name, sender_port,
-                                                   name, port);
 
-        if (edge && edge->makes_dependency())
+        process::port_info_t const info = proc->input_port_info(port);
+        process::port_flags_t const& flags = info->flags;
+
+        process::port_flags_t::const_iterator const i = flags.find(process::flag_input_nodep);
+
+        if (i != flags.end())
         {
-          vertex_t const s = vertex_map[sender_name];
-
-          boost::add_edge(s, t, graph);
+          continue;
         }
+
+        vertex_t const s = vertex_map[sender_name];
+
+        boost::add_edge(s, t, graph);
       }
     }
   }
