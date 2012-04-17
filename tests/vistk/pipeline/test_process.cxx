@@ -52,7 +52,9 @@ main(int argc, char* argv[])
 static void test_null_input_edge();
 static void test_null_output_edge();
 static void test_connect_after_init();
+static void test_reanalyze();
 static void test_reinit();
+static void test_step_before_analyze();
 static void test_step_before_init();
 static void test_set_static_input_type();
 static void test_set_static_output_type();
@@ -85,9 +87,17 @@ run_test(std::string const& test_name)
   {
     test_connect_after_init();
   }
+  else if (test_name == "reanalyze")
+  {
+    test_reanalyze();
+  }
   else if (test_name == "reinit")
   {
     test_reinit();
+  }
+  else if (test_name == "step_before_analyze")
+  {
+    test_step_before_analyze();
   }
   else if (test_name == "step_before_init")
   {
@@ -214,6 +224,20 @@ test_connect_after_init()
 }
 
 void
+test_reanalyze()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type);
+
+  process->analyze();
+
+  EXPECT_EXCEPTION(vistk::reanalyzed_exception,
+                   process->analyze(),
+                   "reanalyzing a process");
+}
+
+void
 test_reinit()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
@@ -226,6 +250,18 @@ test_reinit()
   EXPECT_EXCEPTION(vistk::reinitialization_exception,
                    process->init(),
                    "reinitializing a process");
+}
+
+void
+test_step_before_analyze()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type);
+
+  EXPECT_EXCEPTION(vistk::unanalyzed_exception,
+                   process->step(),
+                   "stepping before analysis");
 }
 
 void
