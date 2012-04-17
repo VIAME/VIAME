@@ -986,9 +986,10 @@ pipeline::priv
 
     process_t const proc = q->process_by_name(name);
 
-    connections_t unresolved_connections;
+    connections_t const conns = untyped_connections;
+    untyped_connections.clear();
 
-    BOOST_FOREACH (connection_t const& connection, untyped_connections)
+    BOOST_FOREACH (connection_t const& connection, conns)
     {
       process::port_addr_t const& upstream_addr = connection.first;
       process::port_addr_t const& downstream_addr = connection.second;
@@ -996,6 +997,8 @@ pipeline::priv
       process::port_t const& upstream_port = upstream_addr.second;
       process::name_t const& downstream_name = downstream_addr.first;
       process::port_t const& downstream_port = downstream_addr.second;
+
+      bool resolved = false;
 
       if (downstream_name == name)
       {
@@ -1015,6 +1018,8 @@ pipeline::priv
                                         downstream_name, downstream_port,
                                         type, true);
           }
+
+          resolved = true;
 
           q->connect(upstream_name, upstream_port,
                      downstream_name, downstream_port);
@@ -1041,21 +1046,21 @@ pipeline::priv
                                         type, false);
           }
 
+          resolved = true;
+
           q->connect(upstream_name, upstream_port,
                      downstream_name, downstream_port);
 
           kyu.push(downstream_name);
         }
       }
-      else
+
+      if (!resolved)
       {
-        // Remember that the push didn't happen.
-        unresolved_connections.push_back(connection);
+        // Remember that the resolution didn't happen.
+        untyped_connections.push_back(connection);
       }
     }
-
-    // Overwrite untyped connections.
-    untyped_connections = unresolved_connections;
   }
 }
 
