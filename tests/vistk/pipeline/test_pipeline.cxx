@@ -842,6 +842,8 @@ test_setup_pipeline_type_force_data_upstream()
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
+
+  pipeline->setup_pipeline();
 }
 
 void
@@ -866,6 +868,8 @@ test_setup_pipeline_type_force_flow_upstream()
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
+
+  pipeline->setup_pipeline();
 }
 
 void
@@ -890,6 +894,8 @@ test_setup_pipeline_type_force_flow_downstream()
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
+
+  pipeline->setup_pipeline();
 }
 
 void
@@ -920,6 +926,8 @@ test_setup_pipeline_type_force_cascade_up()
                     proc_name2, port_name2);
   pipeline->connect(proc_name2, port_name,
                     proc_name3, port_name3);
+
+  pipeline->setup_pipeline();
 
   vistk::process::port_info_t const info = process->output_port_info(port_name);
 
@@ -957,6 +965,8 @@ test_setup_pipeline_type_force_cascade_down()
                     proc_name3, port_name2);
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
+
+  pipeline->setup_pipeline();
 
   vistk::process::port_info_t const info = process3->input_port_info(port_name2);
 
@@ -999,6 +1009,8 @@ test_setup_pipeline_type_force_cascade_both()
                     proc_name3, port_name2);
   pipeline->connect(proc_name2, port_name,
                     proc_name4, port_name3);
+
+  pipeline->setup_pipeline();
 
   vistk::process::port_info_t info;
 
@@ -1046,6 +1058,8 @@ test_setup_pipeline_type_force_cascade_data_dependent()
                     proc_name3, port_name3);
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
+
+  pipeline->setup_pipeline();
 
   vistk::process::port_info_t const info = process3->input_port_info(port_name3);
 
