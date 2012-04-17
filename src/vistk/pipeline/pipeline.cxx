@@ -1001,16 +1001,14 @@ pipeline::priv
         {
           process_t const up_proc = q->process_by_name(upstream_name);
 
-          if (up_proc->set_output_port_type(upstream_port, type))
-          {
-            kyu.push(upstream_name);
-          }
-          else
+          if (!up_proc->set_output_port_type(upstream_port, type))
           {
             throw propogation_exception(upstream_name, upstream_port,
                                         downstream_name, downstream_port,
                                         type, true);
           }
+
+          kyu.push(upstream_name);
         }
       }
       else if (upstream_name == name)
@@ -1025,16 +1023,14 @@ pipeline::priv
         {
           process_t const down_proc = q->process_by_name(downstream_name);
 
-          if (down_proc->set_input_port_type(downstream_port, type))
-          {
-            kyu.push(downstream_name);
-          }
-          else
+          if (!down_proc->set_input_port_type(downstream_port, type))
           {
             throw propogation_exception(upstream_name, upstream_port,
                                         downstream_name, downstream_port,
                                         type, false);
           }
+
+          kyu.push(downstream_name);
         }
       }
       else
