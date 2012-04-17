@@ -205,6 +205,7 @@ test_connect_after_init()
 
   vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
+  process->analyze();
   process->init();
 
   EXPECT_EXCEPTION(vistk::connect_to_initialized_process_exception,
@@ -219,6 +220,7 @@ test_reinit()
 
   vistk::process_t const process = create_process(proc_type);
 
+  process->analyze();
   process->init();
 
   EXPECT_EXCEPTION(vistk::reinitialization_exception,
@@ -232,6 +234,8 @@ test_step_before_init()
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
+
+  process->analyze();
 
   EXPECT_EXCEPTION(vistk::uninitialized_exception,
                    process->step(),
@@ -328,6 +332,7 @@ test_set_input_type_after_init()
 
   vistk::process_t const process = create_process(proc_type);
 
+  process->analyze();
   process->init();
 
   EXPECT_EXCEPTION(vistk::set_type_on_initialized_process_exception,
@@ -345,6 +350,7 @@ test_set_output_type_after_init()
 
   vistk::process_t const process = create_process(proc_type);
 
+  process->analyze();
   process->init();
 
   EXPECT_EXCEPTION(vistk::set_type_on_initialized_process_exception,
