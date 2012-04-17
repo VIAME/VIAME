@@ -104,7 +104,7 @@ class pipeline::priv
     connected_mappings_t used_input_mappings;
     connected_mappings_t used_output_mappings;
 
-    process::port_addrs_t data_dep_ports;
+    connections_t data_dep_connections;
     group_connections_t group_connections;
     connections_t untyped_connections;
     type_pinnings_t type_pinnings;
@@ -904,9 +904,7 @@ pipeline::priv
 
   if (up_data_dep)
   {
-    process::port_addr_t const& up_port = connection.first;
-
-    data_dep_ports.push_back(up_port);
+    data_dep_connections.push_back(connection);
   }
 
   bool const up_flow_dep = up_data_dep || boost::starts_with(up_type, process::type_flow_dependent);
@@ -1006,16 +1004,16 @@ pipeline::priv
 
             if (data_dep)
             {
-              process::port_addrs_t::iterator const i = std::find(data_dep_ports.begin(), data_dep_ports.end(), upstream_addr);
+              connections_t::iterator const i = std::find(data_dep_connections.begin(), data_dep_connections.end(), connection);
 
-              if (i == data_dep_ports.end())
+              if (i == data_dep_connections.end())
               {
                 static std::string const reason = "Data dependency port tracking failed.";
 
                 throw std::logic_error(reason);
               }
 
-              data_dep_ports.erase(i);
+              data_dep_connections.erase(i);
             }
           }
           else
