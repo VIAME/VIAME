@@ -89,11 +89,11 @@ class pipeline::priv
     void analyze_processes();
     void check_for_data_dep_ports() const;
     void propogate_pinned_types();
+    void check_for_untyped_ports() const;
     void make_connections();
     void check_for_required_ports() const;
     void check_for_dag() const;
     void initialize_processes();
-    void check_for_untyped_ports() const;
 
     pipeline* const q;
 
@@ -357,11 +357,11 @@ pipeline
   d->analyze_processes();
   d->check_for_data_dep_ports();
   d->propogate_pinned_types();
+  d->check_for_untyped_ports();
   d->make_connections();
   d->check_for_required_ports();
   d->check_for_dag();
   d->initialize_processes();
-  d->check_for_untyped_ports();
 
   d->setup_in_progress = false;
   d->setup_successful = true;
@@ -1332,6 +1332,16 @@ pipeline::priv
 
 void
 pipeline::priv
+::check_for_untyped_ports() const
+{
+  if (untyped_connections.size())
+  {
+    throw untyped_connection_exception();
+  }
+}
+
+void
+pipeline::priv
 ::make_connections()
 {
   size_t const len = connections.size();
@@ -1632,16 +1642,6 @@ pipeline::priv
     process_t const proc = q->process_by_name(name);
 
     proc->init();
-  }
-}
-
-void
-pipeline::priv
-::check_for_untyped_ports() const
-{
-  if (untyped_connections.size())
-  {
-    throw untyped_connection_exception();
   }
 }
 
