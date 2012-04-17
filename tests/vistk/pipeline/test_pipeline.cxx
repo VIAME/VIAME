@@ -1424,7 +1424,7 @@ test_setup_pipeline_missing_required_group_input_connection()
 
   EXPECT_EXCEPTION(vistk::missing_connection_exception,
                    pipeline->setup_pipeline(),
-                   "missing required output port connection");
+                   "missing required group input port connection");
 }
 
 void
@@ -1463,7 +1463,7 @@ test_setup_pipeline_missing_required_group_output_connection()
 
   EXPECT_EXCEPTION(vistk::missing_connection_exception,
                    pipeline->setup_pipeline(),
-                   "missing required output port connection");
+                   "missing required group output port connection");
 }
 
 void
