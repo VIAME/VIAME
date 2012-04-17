@@ -69,13 +69,6 @@ static void test_connect_no_upstream();
 static void test_connect_no_downstream();
 static void test_connect_untyped_data_connection();
 static void test_connect_untyped_flow_connection();
-static void test_connect_type_force_data_upstream();
-static void test_connect_type_force_flow_upstream();
-static void test_connect_type_force_flow_downstream();
-static void test_connect_type_force_cascade_up();
-static void test_connect_type_force_cascade_down();
-static void test_connect_type_force_cascade_both();
-static void test_connect_type_force_cascade_data_dependent();
 static void test_connect_type_mismatch();
 static void test_connect_flag_mismatch();
 static void test_connect();
@@ -83,6 +76,13 @@ static void test_connect_input_map();
 static void test_connect_output_map();
 static void test_setup_pipeline_no_processes();
 static void test_setup_pipeline_orphaned_process();
+static void test_setup_pipeline_type_force_data_upstream();
+static void test_setup_pipeline_type_force_flow_upstream();
+static void test_setup_pipeline_type_force_flow_downstream();
+static void test_setup_pipeline_type_force_cascade_up();
+static void test_setup_pipeline_type_force_cascade_down();
+static void test_setup_pipeline_type_force_cascade_both();
+static void test_setup_pipeline_type_force_cascade_data_dependent();
 static void test_setup_pipeline_backwards_edge();
 static void test_setup_pipeline_not_a_dag();
 static void test_setup_pipeline_data_dependent_set();
@@ -183,34 +183,6 @@ run_test(std::string const& test_name)
   {
     test_connect_untyped_flow_connection();
   }
-  else if (test_name == "connect_type_force_data_upstream")
-  {
-    test_connect_type_force_data_upstream();
-  }
-  else if (test_name == "connect_type_force_flow_upstream")
-  {
-    test_connect_type_force_flow_upstream();
-  }
-  else if (test_name == "connect_type_force_flow_downstream")
-  {
-    test_connect_type_force_flow_downstream();
-  }
-  else if (test_name == "connect_type_force_cascade_up")
-  {
-    test_connect_type_force_cascade_up();
-  }
-  else if (test_name == "connect_type_force_cascade_down")
-  {
-    test_connect_type_force_cascade_down();
-  }
-  else if (test_name == "connect_type_force_cascade_both")
-  {
-    test_connect_type_force_cascade_both();
-  }
-  else if (test_name == "connect_type_force_cascade_data_dependent")
-  {
-    test_connect_type_force_cascade_data_dependent();
-  }
   else if (test_name == "connect_type_mismatch")
   {
     test_connect_type_mismatch();
@@ -238,6 +210,34 @@ run_test(std::string const& test_name)
   else if (test_name == "setup_pipeline_orphaned_process")
   {
     test_setup_pipeline_orphaned_process();
+  }
+  else if (test_name == "setup_pipeline_type_force_data_upstream")
+  {
+    test_setup_pipeline_type_force_data_upstream();
+  }
+  else if (test_name == "setup_pipeline_type_force_flow_upstream")
+  {
+    test_setup_pipeline_type_force_flow_upstream();
+  }
+  else if (test_name == "setup_pipeline_type_force_flow_downstream")
+  {
+    test_setup_pipeline_type_force_flow_downstream();
+  }
+  else if (test_name == "setup_pipeline_type_force_cascade_up")
+  {
+    test_setup_pipeline_type_force_cascade_up();
+  }
+  else if (test_name == "setup_pipeline_type_force_cascade_down")
+  {
+    test_setup_pipeline_type_force_cascade_down();
+  }
+  else if (test_name == "setup_pipeline_type_force_cascade_both")
+  {
+    test_setup_pipeline_type_force_cascade_both();
+  }
+  else if (test_name == "setup_pipeline_type_force_cascade_data_dependent")
+  {
+    test_setup_pipeline_type_force_cascade_data_dependent();
   }
   else if (test_name == "setup_pipeline_backwards_edge")
   {
@@ -650,241 +650,6 @@ test_connect_untyped_flow_connection()
 }
 
 void
-test_connect_type_force_data_upstream()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
-
-  pipeline->connect(proc_name, port_name,
-                    proc_name2, port_name2);
-}
-
-void
-test_connect_type_force_flow_upstream()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
-
-  pipeline->connect(proc_name, port_name,
-                    proc_name2, port_name2);
-}
-
-void
-test_connect_type_force_flow_downstream()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("number");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-
-  pipeline->connect(proc_name, port_name,
-                    proc_name2, port_name2);
-}
-
-void
-test_connect_type_force_cascade_up()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("print");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type2, proc_name3);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-  pipeline->add_process(process3);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("number");
-
-  pipeline->connect(proc_name, port_name,
-                    proc_name2, port_name2);
-  pipeline->connect(proc_name2, port_name,
-                    proc_name3, port_name3);
-
-  vistk::process::port_info_t const info = process->output_port_info(port_name);
-
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
-  {
-    TEST_ERROR("Dependent types were not propogated properly up the pipeline");
-  }
-}
-
-void
-test_connect_type_force_cascade_down()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow2");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type2, proc_name3);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-  pipeline->add_process(process3);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("number");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("output");
-
-  pipeline->connect(proc_name2, port_name3,
-                    proc_name3, port_name2);
-  pipeline->connect(proc_name, port_name,
-                    proc_name2, port_name2);
-
-  vistk::process::port_info_t const info = process3->input_port_info(port_name2);
-
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
-  {
-    TEST_ERROR("Dependent types were not propogated properly down the pipeline");
-  }
-}
-
-void
-test_connect_type_force_cascade_both()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow3");
-  vistk::process::name_t const proc_name4 = vistk::process::name_t("print");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type, proc_name3);
-  vistk::process_t const process4 = create_process(proc_type2, proc_name4);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-  pipeline->add_process(process3);
-  pipeline->add_process(process4);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("number");
-
-  pipeline->connect(proc_name, port_name,
-                    proc_name2, port_name2);
-  pipeline->connect(proc_name2, port_name,
-                    proc_name3, port_name2);
-  pipeline->connect(proc_name2, port_name,
-                    proc_name4, port_name3);
-
-  vistk::process::port_info_t info;
-
-  info = process->output_port_info(port_name);
-
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
-  {
-    TEST_ERROR("Dependent types were not propogated properly within the pipeline");
-  }
-
-  info = process3->input_port_info(port_name2);
-
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
-  {
-    TEST_ERROR("Dependent types were not propogated properly within the pipeline");
-  }
-}
-
-void
-test_connect_type_force_cascade_data_dependent()
-{
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
-  vistk::process_registry::type_t const proc_type3 = vistk::process_registry::type_t("flow_dependent");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type3, proc_name3);
-
-  vistk::pipeline_t pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_process(process2);
-  pipeline->add_process(process3);
-
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("input");
-
-  pipeline->connect(proc_name, port_name,
-                    proc_name3, port_name3);
-  pipeline->connect(proc_name, port_name,
-                    proc_name2, port_name2);
-
-  vistk::process::port_info_t const info = process3->input_port_info(port_name3);
-
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
-  {
-    TEST_ERROR("Dependent types were not propogated properly");
-  }
-}
-
-void
 test_connect_type_mismatch()
 {
   vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
@@ -1053,6 +818,241 @@ test_setup_pipeline_orphaned_process()
   EXPECT_EXCEPTION(vistk::orphaned_processes_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline with orphaned processes");
+}
+
+void
+test_setup_pipeline_type_force_data_upstream()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+}
+
+void
+test_setup_pipeline_type_force_flow_upstream()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+}
+
+void
+test_setup_pipeline_type_force_flow_downstream()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("data");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("number");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+}
+
+void
+test_setup_pipeline_type_force_cascade_up()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
+  vistk::process::name_t const proc_name3 = vistk::process::name_t("print");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type, proc_name2);
+  vistk::process_t const process3 = create_process(proc_type2, proc_name3);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+  pipeline->add_process(process3);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  vistk::process::port_t const port_name3 = vistk::process::port_t("number");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+  pipeline->connect(proc_name2, port_name,
+                    proc_name3, port_name3);
+
+  vistk::process::port_info_t const info = process->output_port_info(port_name);
+
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  {
+    TEST_ERROR("Dependent types were not propogated properly up the pipeline");
+  }
+}
+
+void
+test_setup_pipeline_type_force_cascade_down()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("data");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
+  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow2");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+  vistk::process_t const process3 = create_process(proc_type2, proc_name3);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+  pipeline->add_process(process3);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("number");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  vistk::process::port_t const port_name3 = vistk::process::port_t("output");
+
+  pipeline->connect(proc_name2, port_name3,
+                    proc_name3, port_name2);
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+
+  vistk::process::port_info_t const info = process3->input_port_info(port_name2);
+
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  {
+    TEST_ERROR("Dependent types were not propogated properly down the pipeline");
+  }
+}
+
+void
+test_setup_pipeline_type_force_cascade_both()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
+  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow3");
+  vistk::process::name_t const proc_name4 = vistk::process::name_t("print");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type, proc_name2);
+  vistk::process_t const process3 = create_process(proc_type, proc_name3);
+  vistk::process_t const process4 = create_process(proc_type2, proc_name4);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+  pipeline->add_process(process3);
+  pipeline->add_process(process4);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  vistk::process::port_t const port_name3 = vistk::process::port_t("number");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+  pipeline->connect(proc_name2, port_name,
+                    proc_name3, port_name2);
+  pipeline->connect(proc_name2, port_name,
+                    proc_name4, port_name3);
+
+  vistk::process::port_info_t info;
+
+  info = process->output_port_info(port_name);
+
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  {
+    TEST_ERROR("Dependent types were not propogated properly within the pipeline");
+  }
+
+  info = process3->input_port_info(port_name2);
+
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  {
+    TEST_ERROR("Dependent types were not propogated properly within the pipeline");
+  }
+}
+
+void
+test_setup_pipeline_type_force_cascade_data_dependent()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("print_number");
+  vistk::process_registry::type_t const proc_type3 = vistk::process_registry::type_t("flow_dependent");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("data");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("print");
+  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+  vistk::process_t const process3 = create_process(proc_type3, proc_name3);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+  pipeline->add_process(process3);
+
+  vistk::process::port_t const port_name = vistk::process::port_t("output");
+  vistk::process::port_t const port_name2 = vistk::process::port_t("number");
+  vistk::process::port_t const port_name3 = vistk::process::port_t("input");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name3, port_name3);
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2);
+
+  vistk::process::port_info_t const info = process3->input_port_info(port_name3);
+
+  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  {
+    TEST_ERROR("Dependent types were not propogated properly");
+  }
 }
 
 void
