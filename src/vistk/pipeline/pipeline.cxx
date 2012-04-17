@@ -96,6 +96,7 @@ class pipeline::priv
 
     pipeline* const q;
 
+    connections_t planned_connections;
     connections_t connections;
 
     process_map_t process_map;
@@ -204,6 +205,11 @@ pipeline
   process::port_addr_t const up_addr = process::port_addr_t(upstream_name, upstream_port);
   process::port_addr_t const down_addr = process::port_addr_t(downstream_name, downstream_port);
   priv::connection_t const connection = priv::connection_t(up_addr, down_addr);
+
+  if (!d->setup_in_progress)
+  {
+    d->planned_connections.push_back(connection);
+  }
 
   priv::group_map_t::const_iterator const up_group_it = d->groups.find(upstream_name);
   priv::group_map_t::const_iterator const down_group_it = d->groups.find(downstream_name);
