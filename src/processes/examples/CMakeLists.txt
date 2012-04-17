@@ -14,14 +14,6 @@ set(examples_srcs
   registration.cxx
   tagged_flow_dependent_process.cxx)
 
-set_source_files_properties(print_number_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${print_number_process_build_options}")
-
-set_source_files_properties(print_string_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${print_string_process_build_options}")
-
 set(no_install_plugin TRUE)
 
 add_vistk_plugin(processes_examples

@@ -6,10 +6,6 @@ set(utilities_srcs
   timestamp_reader_process.cxx
   timestamper_process.cxx)
 
-set_source_files_properties(homography_reader_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${homography_reader_process_build_options}")
-
 add_vistk_plugin(processes_utilities
   MAKE_VISTK_PROCESSES_UTILITIES_LIB
   ${utilities_srcs})
