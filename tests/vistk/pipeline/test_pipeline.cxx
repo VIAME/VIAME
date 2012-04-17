@@ -1308,7 +1308,7 @@ test_setup_pipeline_untyped_data_dependent()
 
   vistk::config_t conf = vistk::config::empty_config();
 
-  conf->set_value("set_on_analysis", "false");
+  conf->set_value("set_on_configure", "false");
 
   vistk::process_t const process = create_process(proc_type, proc_name, conf);
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
