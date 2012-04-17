@@ -72,8 +72,15 @@ class pipeline::priv
     typedef std::pair<connection_t, direction_t> type_pinning_t;
     typedef std::vector<type_pinning_t> type_pinnings_t;
 
+    typedef enum
+    {
+      type_deferred,
+      type_mismatch,
+      type_compatible
+    } port_type_status;
+
     // Steps for checking a connection.
-    bool check_connection_types(connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type);
+    port_type_status check_connection_types(connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type);
     bool check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const;
 
     // Steps for setting up the pipeline.
@@ -234,10 +241,16 @@ pipeline
   process::port_type_t const& up_type = up_info->type;
   process::port_type_t const& down_type = down_info->type;
 
-  if (!d->check_connection_types(connection, up_type, down_type))
+  switch (d->check_connection_types(connection, up_type, down_type))
   {
-    throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
-                                             downstream_name, downstream_port, down_type);
+    case priv::type_deferred:
+      return;
+    case priv::type_mismatch:
+      throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
+                                               downstream_name, downstream_port, down_type);
+    case priv::type_compatible:
+    default:
+      break;
   }
 
   d->connections.push_back(connection);
@@ -883,7 +896,7 @@ pipeline::priv
   }
 }
 
-bool
+pipeline::priv::port_type_status
 pipeline::priv
 ::check_connection_types(connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type)
 {
@@ -913,15 +926,17 @@ pipeline::priv
     {
       type_pinnings.push_back(priv::type_pinning_t(connection, priv::push_downstream));
     }
+
+    return type_deferred;
   }
   else if ((up_type != process::type_any) &&
            (down_type != process::type_any) &&
            (up_type != down_type))
   {
-    return false;
+    return type_mismatch;
   }
 
-  return true;
+  return type_compatible;
 }
 
 bool
