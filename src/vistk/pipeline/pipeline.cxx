@@ -1608,6 +1608,12 @@ pipeline::priv
       BOOST_FOREACH (process::port_t const& port, iports)
       {
         process::port_addr_t const sender = q->sender_for_port(name, port);
+
+        if (sender == process::port_addr_t())
+        {
+          continue;
+        }
+
         process::name_t const& sender_name = sender.first;
 
         process::port_info_t const info = proc->input_port_info(port);
