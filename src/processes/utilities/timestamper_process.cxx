@@ -94,7 +94,7 @@ timestamper_process
 
 void
 timestamper_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {
@@ -113,7 +113,7 @@ timestamper_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  process::_init();
+  process::_configure();
 }
 
 void

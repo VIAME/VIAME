@@ -58,9 +58,9 @@ class VISTK_PROCESSES_UTILITIES_NO_EXPORT homography_reader_process
     ~homography_reader_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
+     * \brief Configure the process.
      */
-    void _init();
+    void _configure();
 
     /**
      * \brief Pushes the next homography through the output port.
