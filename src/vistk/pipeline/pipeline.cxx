@@ -86,7 +86,7 @@ class pipeline::priv
     // Steps for setting up the pipeline.
     void check_for_processes() const;
     void map_group_connections();
-    void analyze_processes();
+    void configure_processes();
     void check_for_data_dep_ports() const;
     void propogate_pinned_types();
     void check_for_untyped_ports() const;
@@ -354,7 +354,7 @@ pipeline
   d->setup_in_progress = true;
 
   d->map_group_connections();
-  d->analyze_processes();
+  d->configure_processes();
   d->check_for_data_dep_ports();
   d->propogate_pinned_types();
   d->check_for_untyped_ports();
@@ -1184,17 +1184,17 @@ pipeline::priv
 
 void
 pipeline::priv
-::analyze_processes()
+::configure_processes()
 {
   process::names_t const names = q->process_names();
 
-  // Analyze processes.
+  // Configure processes.
   BOOST_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = q->process_by_name(name);
     connections_t unresolved_connections;
 
-    proc->analyze();
+    proc->configure();
 
     bool resolved_types = false;
 

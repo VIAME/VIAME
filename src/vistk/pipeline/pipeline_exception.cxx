@@ -343,7 +343,7 @@ untyped_data_dependent_exception
 {
   std::ostringstream sstr;
 
-  sstr << "After analysis, the \'" << m_port << "\' "
+  sstr << "After configure, the \'" << m_port << "\' "
           "port on the \'" << m_name << "\' process "
           "was still marked as data-dependent.";
 
