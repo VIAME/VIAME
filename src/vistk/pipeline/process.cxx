@@ -137,7 +137,7 @@ class process::priv
     flow_tag_port_map_t input_flow_tag_ports;
     flow_tag_port_map_t output_flow_tag_ports;
 
-    bool analyzed;
+    bool configured;
     bool initialized;
     bool is_complete;
 
@@ -155,30 +155,30 @@ config::value_t const process::priv::default_name = "(unnamed)";
 
 void
 process
-::analyze()
+::configure()
 {
   if (d->initialized)
   {
     throw already_initialized_exception(d->name);
   }
 
-  if (d->analyzed)
+  if (d->configured)
   {
-    throw reanalyzed_exception(d->name);
+    throw reconfigured_exception(d->name);
   }
 
-  _analyze();
+  _configure();
 
-  d->analyzed = true;
+  d->configured = true;
 }
 
 void
 process
 ::init()
 {
-  if (!d->analyzed)
+  if (!d->configured)
   {
-    throw unanalyzed_exception(d->name);
+    throw unconfigured_exception(d->name);
   }
 
   if (d->initialized)
@@ -195,9 +195,9 @@ void
 process
 ::step()
 {
-  if (!d->analyzed)
+  if (!d->configured)
   {
-    throw unanalyzed_exception(d->name);
+    throw unconfigured_exception(d->name);
   }
 
   if (!d->initialized)
@@ -424,7 +424,7 @@ process
 
 void
 process
-::_analyze()
+::_configure()
 {
 }
 
@@ -988,7 +988,7 @@ process
 process::priv
 ::priv(config_t c)
   : conf(c)
-  , analyzed(false)
+  , configured(false)
   , initialized(false)
   , is_complete(false)
   , input_same_color(true)

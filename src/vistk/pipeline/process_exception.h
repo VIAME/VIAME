@@ -60,7 +60,7 @@ class VISTK_PIPELINE_EXPORT null_process_config_exception
 /**
  * \class already_initialized_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
- * \brief Thrown when a process has been initialized before analysis.
+ * \brief Thrown when a process has been initialized before configure.
  *
  * \ingroup exceptions
  */
@@ -84,13 +84,13 @@ class VISTK_PIPELINE_EXPORT already_initialized_exception
 };
 
 /**
- * \class unanalyzed_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class unconfigured_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
- * \brief Thrown when a process hasn't been analyzed before initialization or stepping.
+ * \brief Thrown when a process hasn't been configured before initialization or stepping.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT unanalyzed_exception
+class VISTK_PIPELINE_EXPORT unconfigured_exception
   : public process_exception
 {
   public:
@@ -99,24 +99,24 @@ class VISTK_PIPELINE_EXPORT unanalyzed_exception
      *
      * \param name The name of the process.
      */
-    unanalyzed_exception(process::name_t const& name) throw();
+    unconfigured_exception(process::name_t const& name) throw();
     /**
      * \brief Destructor.
      */
-    ~unanalyzed_exception() throw();
+    ~unconfigured_exception() throw();
 
     /// The name of the \ref process.
     process::name_t const m_name;
 };
 
 /**
- * \class reanalyzed_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class reconfigured_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
- * \brief Thrown when a process is analyzed for a second time.
+ * \brief Thrown when a process is configured for a second time.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT reanalyzed_exception
+class VISTK_PIPELINE_EXPORT reconfigured_exception
   : public process_exception
 {
   public:
@@ -125,11 +125,11 @@ class VISTK_PIPELINE_EXPORT reanalyzed_exception
      *
      * \param name The name of the process.
      */
-    reanalyzed_exception(process::name_t const& name) throw();
+    reconfigured_exception(process::name_t const& name) throw();
     /**
      * \brief Destructor.
      */
-    ~reanalyzed_exception() throw();
+    ~reconfigured_exception() throw();
 
     /// The name of the \ref process.
     process::name_t const m_name;

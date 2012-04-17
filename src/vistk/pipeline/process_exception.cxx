@@ -51,39 +51,39 @@ already_initialized_exception
 {
 }
 
-unanalyzed_exception
-::unanalyzed_exception(process::name_t const& name) throw()
+unconfigured_exception
+::unconfigured_exception(process::name_t const& name) throw()
   : process_exception()
   , m_name(name)
 {
   std::ostringstream sstr;
 
   sstr << "The process \'" << m_name << "\' "
-          "hasn\'t been analyzed yet.";
+          "hasn\'t been configured yet.";
 
   m_what = sstr.str();
 }
 
-unanalyzed_exception
-::~unanalyzed_exception() throw()
+unconfigured_exception
+::~unconfigured_exception() throw()
 {
 }
 
-reanalyzed_exception
-::reanalyzed_exception(process::name_t const& name) throw()
+reconfigured_exception
+::reconfigured_exception(process::name_t const& name) throw()
   : process_exception()
   , m_name(name)
 {
   std::ostringstream sstr;
 
   sstr << "The process \'" << m_name << "\' "
-          "was analyzed a second time.";
+          "was configured a second time.";
 
   m_what = sstr.str();
 }
 
-reanalyzed_exception
-::~reanalyzed_exception() throw()
+reconfigured_exception
+::~reconfigured_exception() throw()
 {
 }
 
