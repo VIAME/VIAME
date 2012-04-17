@@ -12,6 +12,7 @@ set(examples_srcs
   print_number_process.cxx
   registration.cxx
   tagged_flow_dependent_process.cxx
+  take_number_process.cxx
   take_string_process.cxx)
 
 set(no_install_plugin TRUE)
