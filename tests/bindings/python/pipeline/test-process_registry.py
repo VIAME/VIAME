@@ -78,6 +78,7 @@ def example_process():
         def __init__(self, conf):
             process.PythonProcess.__init__(self, conf)
 
+            self.ran_analyze = False
             self.ran_init = False
             self.ran_step = False
             self.ran_constraints = False
@@ -91,6 +92,11 @@ def example_process():
             self.ran_set_output_port_type = False
             self.ran_available_config = False
             self.ran_conf_info = False
+
+        def _analyze(self):
+            self.ran_analyze = True
+
+            self._base_analyze()
 
         def _init(self):
             self.ran_init = True
@@ -158,6 +164,8 @@ def example_process():
             return self._base_conf_info(key)
 
         def check(self):
+            if not self.ran_analyze:
+                log("Error: _analyze override was not called")
             if not self.ran_init:
                 log("Error: _init override was not called")
             if not self.ran_step:
@@ -280,6 +288,7 @@ def test_wrapper_api():
         ensure_exception("setting a type on a non-existent output port",
                          p.set_output_port_type, oport, ptype)
 
+        p.analyze()
         p.init()
         p.step()
 

@@ -36,6 +36,8 @@ class wrap_process
     wrap_process(vistk::config_t const& config);
     ~wrap_process();
 
+    void _base_analyze();
+
     void _base_init();
 
     void _base_step();
@@ -57,6 +59,8 @@ class wrap_process
     vistk::config::keys_t _base_available_config() const;
 
     conf_info_t _base_config_info(vistk::config::key_t const& key);
+
+    void _analyze();
 
     void _init();
 
@@ -180,6 +184,8 @@ BOOST_PYTHON_MODULE(process)
     , "The base class for Python processes."
     , no_init)
     .def(init<vistk::config_t>())
+    .def("analyze", &vistk::process::analyze
+      , "Analyze the process.")
     .def("init", &vistk::process::init
       , "Initializes the process.")
     .def("step", &vistk::process::step
@@ -233,6 +239,8 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
     .def_readonly("flag_input_nodep", &vistk::process::flag_input_nodep)
     .def_readonly("flag_required", &vistk::process::flag_required)
+    .def("_base_analyze", &wrap_process::_base_analyze
+      , "Base class analysis.")
     .def("_base_init", &wrap_process::_base_init
       , "Base class initialization.")
     .def("_base_step", &wrap_process::_base_step
@@ -266,6 +274,8 @@ BOOST_PYTHON_MODULE(process)
     .def("_base_config_info", &wrap_process::_base_config_info
       , (arg("config"))
       , "Base class configuration information.")
+    .def("_analyze", &wrap_process::_analyze, &wrap_process::_base_analyze
+      , "Analyzes the process subclass.")
     .def("_init", &wrap_process::_init, &wrap_process::_base_init
       , "Initializes the process subclass.")
     .def("_step", &wrap_process::_step, &wrap_process::_base_step
@@ -356,6 +366,13 @@ wrap_process
 wrap_process
 ::~wrap_process()
 {
+}
+
+void
+wrap_process
+::_base_analyze()
+{
+  process::_analyze();
 }
 
 void
@@ -451,6 +468,28 @@ wrap_process
 ::_base_config_info(vistk::config::key_t const& key)
 {
   return process::_config_info(key);
+}
+
+void
+wrap_process
+::_analyze()
+{
+  {
+    vistk::python::python_gil gil;
+
+    (void)gil;
+
+    override const f = get_override("_analyze");
+
+    if (f)
+    {
+      f();
+
+      return;
+    }
+  }
+
+  _base_analyze();
 }
 
 void
