@@ -896,20 +896,23 @@ pipeline::priv
     data_dep_ports.push_back(up_port);
   }
 
-  bool const up_flow_dep = boost::starts_with(up_type, process::type_flow_dependent);
+  bool const up_flow_dep = up_data_dep || boost::starts_with(up_type, process::type_flow_dependent);
   bool const down_flow_dep = boost::starts_with(down_type, process::type_flow_dependent);
 
-  if ((up_data_dep || up_flow_dep) && down_flow_dep)
+  if (up_flow_dep || down_flow_dep)
   {
-    untyped_connections.push_back(connection);
-  }
-  else if (up_data_dep || up_flow_dep)
-  {
-    type_pinning.push_back(priv::propogation_t(connection, priv::push_upstream));
-  }
-  else if (down_flow_dep)
-  {
-    type_pinning.push_back(priv::propogation_t(connection, priv::push_downstream));
+    if (up_flow_dep && down_flow_dep)
+    {
+      untyped_connections.push_back(connection);
+    }
+    else if (up_flow_dep)
+    {
+      type_pinnings.push_back(priv::type_pinning_t(connection, priv::push_upstream));
+    }
+    else if (down_flow_dep)
+    {
+      type_pinnings.push_back(priv::type_pinning_t(connection, priv::push_downstream));
+    }
   }
   else if ((up_type != process::type_any) &&
            (down_type != process::type_any) &&
