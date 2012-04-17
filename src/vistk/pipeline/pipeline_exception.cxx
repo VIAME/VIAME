@@ -159,7 +159,7 @@ connection_dependent_type_exception
           "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
           "\'" << m_downstream_name << "." << m_downstream_port << "\', "
           "the process \'" << error_name << "\' rejected the type "
-          "\'" << m_type << ".";
+          "\'" << m_type << "\'.";
 
   m_what = sstr.str();
 }
@@ -343,7 +343,7 @@ untyped_data_dependent_exception
 {
   std::ostringstream sstr;
 
-  sstr << "After initialization, the \'" << m_port << "\' "
+  sstr << "After analysis, the \'" << m_port << "\' "
           "port on the \'" << m_name << "\' process "
           "was still marked as data-dependent.";
 
