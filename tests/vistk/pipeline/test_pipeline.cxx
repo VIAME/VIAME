@@ -1009,20 +1009,36 @@ void
 test_setup_pipeline_not_a_dag()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("multiplication");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("flow");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
+  vistk::process::name_t const proc_name3 = vistk::process::name_t("mult");
 
   vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type, proc_name2);
+  vistk::process_t const process3 = create_process(proc_type2, proc_name3);
 
   vistk::pipeline_t pipeline = create_pipeline();
 
   pipeline->add_process(process);
+  pipeline->add_process(process2);
+  pipeline->add_process(process3);
 
   vistk::process::port_t const port_name = vistk::process::port_t("output");
   vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  vistk::process::port_t const port_name3 = vistk::process::port_t("factor1");
+  vistk::process::port_t const port_name4 = vistk::process::port_t("factor2");
+  vistk::process::port_t const port_name5 = vistk::process::port_t("product");
 
   pipeline->connect(proc_name, port_name,
+                    proc_name3, port_name3);
+  pipeline->connect(proc_name2, port_name,
+                    proc_name3, port_name4);
+  pipeline->connect(proc_name3, port_name5,
                     proc_name, port_name2);
+  pipeline->connect(proc_name3, port_name5,
+                    proc_name2, port_name2);
 
   EXPECT_EXCEPTION(vistk::not_a_dag_exception,
                    pipeline->setup_pipeline(),
