@@ -80,6 +80,7 @@ def example_process():
 
             self.ran_configure = False
             self.ran_init = False
+            self.ran_reset = False
             self.ran_step = False
             self.ran_constraints = False
             self.ran_connect_input_port = False
@@ -102,6 +103,11 @@ def example_process():
             self.ran_init = True
 
             self._base_init()
+
+        def _reset(self):
+            self.ran_reset = True
+
+            self._base_reset()
 
         def _step(self):
             self.ran_step = True
@@ -168,6 +174,8 @@ def example_process():
                 log("Error: _configure override was not called")
             if not self.ran_init:
                 log("Error: _init override was not called")
+            if not self.ran_reset:
+                log("Error: _reset override was not called")
             if not self.ran_step:
                 log("Error: _step override was not called")
             if not self.ran_constraints:
@@ -287,6 +295,8 @@ def test_wrapper_api():
                          p.set_input_port_type, iport, ptype)
         ensure_exception("setting a type on a non-existent output port",
                          p.set_output_port_type, oport, ptype)
+
+        p.reset()
 
         p.configure()
         p.init()
