@@ -54,6 +54,7 @@ static void test_null_output_edge();
 static void test_connect_after_init();
 static void test_reconfigure();
 static void test_reinit();
+static void test_reset();
 static void test_step_before_configure();
 static void test_step_before_init();
 static void test_set_static_input_type();
@@ -94,6 +95,10 @@ run_test(std::string const& test_name)
   else if (test_name == "reinit")
   {
     test_reinit();
+  }
+  else if (test_name == "reset")
+  {
+    test_reset();
   }
   else if (test_name == "step_before_configure")
   {
@@ -250,6 +255,26 @@ test_reinit()
   EXPECT_EXCEPTION(vistk::reinitialization_exception,
                    process->init(),
                    "reinitializing a process");
+}
+
+void
+test_reset()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type);
+
+  process->configure();
+
+  process->reset();
+
+  process->configure();
+  process->init();
+
+  process->reset();
+
+  process->configure();
+  process->init();
 }
 
 void
