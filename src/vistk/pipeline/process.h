@@ -217,6 +217,13 @@ class VISTK_PIPELINE_EXPORT process
     void init();
 
     /**
+     * \brief Resets the process.
+     *
+     * Calling this removes all edges from the process.
+     */
+    void reset();
+
+    /**
      * \brief Steps through one iteration of the process.
      *
      * \preconds
@@ -439,6 +446,11 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Initialization checks for subclasses.
      */
     virtual void _init();
+
+    /**
+     * \brief Reset logic for subclasses.
+     */
+    virtual void _reset();
 
     /**
      * \brief Method where subclass data processing occurs.

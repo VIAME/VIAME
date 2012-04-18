@@ -196,6 +196,13 @@ process
 
 void
 process
+::reset()
+{
+  _reset();
+}
+
+void
+process
 ::step()
 {
   if (!d->configured)
@@ -435,6 +442,17 @@ void
 process
 ::_init()
 {
+}
+
+void
+process
+::_reset()
+{
+  d->input_edges.clear();
+  d->output_edges.clear();
+
+  d->configured = false;
+  d->initialized = false;
 }
 
 void
