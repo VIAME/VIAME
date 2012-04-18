@@ -76,6 +76,16 @@ source_process
 
 void
 source_process
+::_reset()
+{
+  d->color_stamp = stamp::new_stamp();
+  d->tags.clear();
+
+  process::_reset();
+}
+
+void
+source_process
 ::_step()
 {
   std::map<port_t, edge_datum_t> data;

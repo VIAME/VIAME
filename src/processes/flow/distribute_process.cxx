@@ -37,7 +37,7 @@ class distribute_process::priv
     typedef port_t tag_t;
 
     typedef std::map<group_t, stamp_t> group_colors_t;
-    typedef std::map<tag_t, stamp_t> tag_ports_t;
+    typedef std::map<port_t, stamp_t> tag_ports_t;
     struct tag_info
     {
       tag_ports_t ports;
@@ -146,6 +146,35 @@ distribute_process
   }
 
   process::_init();
+}
+
+void
+distribute_process
+::_reset()
+{
+  BOOST_FOREACH (priv::tag_data_t::value_type const& tag_data, d->tag_data)
+  {
+    priv::tag_t const& tag = tag_data.first;
+    port_t const input_port = priv::port_src_prefix + tag;
+    port_t const color_port = priv::port_color_prefix + tag;
+    priv::tag_info const& info = tag_data.second;
+    priv::tag_ports_t const& ports = info.ports;
+
+    BOOST_FOREACH (priv::tag_ports_t::value_type const& port, ports)
+    {
+      port_t const& port_name = port.first;
+
+      remove_output_port(port_name);
+    }
+
+    remove_output_port(color_port);
+    remove_input_port(input_port);
+  }
+
+  d->tag_data.clear();
+  d->group_colors.clear();
+
+  process::_reset();
 }
 
 void

@@ -76,6 +76,11 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT collate_process
     void _init();
 
     /**
+     * \brief Resets the process.
+     */
+    void _reset();
+
+    /**
      * \brief Collate data from the input edges.
      */
     void _step();
