@@ -40,6 +40,8 @@ class wrap_process
 
     void _base_init();
 
+    void _base_reset();
+
     void _base_step();
 
     constraints_t _base_constraints() const;
@@ -63,6 +65,8 @@ class wrap_process
     void _configure();
 
     void _init();
+
+    void _reset();
 
     void _step();
 
@@ -191,6 +195,8 @@ BOOST_PYTHON_MODULE(process)
       , "Configure the process.")
     .def("init", &vistk::process::init
       , "Initializes the process.")
+    .def("reset", &vistk::process::reset
+      , "Resets the process.")
     .def("step", &vistk::process::step
       , "Steps the process for one iteration.")
     .def("constraints", &vistk::process::constraints
@@ -246,6 +252,8 @@ BOOST_PYTHON_MODULE(process)
       , "Base class configure.")
     .def("_base_init", &wrap_process::_base_init
       , "Base class initialization.")
+    .def("_base_reset", &wrap_process::_base_reset
+      , "Base class reset.")
     .def("_base_step", &wrap_process::_base_step
       , "Base class step.")
     .def("_base_constraints", &wrap_process::_base_constraints
@@ -281,6 +289,8 @@ BOOST_PYTHON_MODULE(process)
       , "Configures the process subclass.")
     .def("_init", &wrap_process::_init, &wrap_process::_base_init
       , "Initializes the process subclass.")
+    .def("_reset", &wrap_process::_reset, &wrap_process::_base_reset
+      , "Resets the process subclass.")
     .def("_step", &wrap_process::_step, &wrap_process::_base_step
       , "Step the process subclass for one iteration.")
     .def("_constraints", &wrap_process::_constraints, &wrap_process::_base_constraints
@@ -389,6 +399,13 @@ wrap_process
 ::_base_init()
 {
   process::_init();
+}
+
+void
+wrap_process
+::_base_reset()
+{
+  process::_reset();
 }
 
 void
@@ -521,6 +538,28 @@ wrap_process
   }
 
   _base_init();
+}
+
+void
+wrap_process
+::_reset()
+{
+  {
+    vistk::python::python_gil gil;
+
+    (void)gil;
+
+    override const f = get_override("_reset");
+
+    if (f)
+    {
+      f();
+
+      return;
+    }
+  }
+
+  _base_reset();
 }
 
 void

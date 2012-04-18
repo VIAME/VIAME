@@ -51,6 +51,8 @@ BOOST_PYTHON_MODULE(process_registry)
       , "Configures the process.")
     .def("init", &vistk::process::init
       , "Initializes the process.")
+    .def("reset", &vistk::process::reset
+      , "Resets the process.")
     .def("step", &vistk::process::step
       , "Steps the process for one iteration.")
     .def("constraints", &vistk::process::constraints
