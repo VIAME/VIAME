@@ -62,6 +62,10 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
      */
     void _step();
     /**
+     * \brief Resets the process.
+     */
+    void _reset();
+    /**
      * \brief Sets the type for an output port.
      *
      * \param port The name of the port.
@@ -71,6 +75,8 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
      */
     bool _set_output_port_type(port_t const& port, port_type_t const& new_type);
   private:
+    void make_ports();
+
     class priv;
     boost::scoped_ptr<priv> d;
 };

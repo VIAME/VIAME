@@ -59,10 +59,7 @@ data_dependent_process
 
   d.reset(new priv(reject, set_on_configure));
 
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
-    type_data_dependent,
-    port_flags_t(),
-    port_description_t("An output port with a data dependent type")));
+  make_ports();
 }
 
 data_dependent_process
@@ -93,6 +90,19 @@ data_dependent_process
   process::_step();
 }
 
+void
+data_dependent_process
+::_reset()
+{
+  d->type_set = false;
+
+  remove_output_port(priv::port_output);
+
+  make_ports();
+
+  process::_reset();
+}
+
 bool
 data_dependent_process
 ::_set_output_port_type(port_t const& port, port_type_t const& new_type)
@@ -105,6 +115,16 @@ data_dependent_process
   d->type_set = process::_set_output_port_type(port, new_type);
 
   return d->type_set;
+}
+
+void
+data_dependent_process
+::make_ports()
+{
+  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+    type_data_dependent,
+    port_flags_t(),
+    port_description_t("An output port with a data dependent type")));
 }
 
 data_dependent_process::priv

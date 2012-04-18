@@ -55,10 +55,17 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT tagged_flow_dependent_process
     ~tagged_flow_dependent_process();
   protected:
     /**
+     * \brief Resets the process.
+     */
+    void _reset();
+
+    /**
      * \brief Pushes a new number through the output edge.
      */
     void _step();
   private:
+    void make_ports();
+
     class priv;
     boost::scoped_ptr<priv> d;
 };

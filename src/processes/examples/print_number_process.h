@@ -62,6 +62,11 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT print_number_process
     void _configure();
 
     /**
+     * \brief Resets the process.
+     */
+    void _reset();
+
+    /**
      * \brief Prints numbers to the output stream.
      */
     void _step();

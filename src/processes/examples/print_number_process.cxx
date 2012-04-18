@@ -104,6 +104,15 @@ print_number_process
 
 void
 print_number_process
+::_reset()
+{
+  d->fout.close();
+
+  process::_reset();
+}
+
+void
+print_number_process
 ::_step()
 {
   priv::number_t const input = grab_from_port_as<priv::number_t>(priv::port_input);
