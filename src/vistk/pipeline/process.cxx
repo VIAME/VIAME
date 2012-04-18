@@ -121,6 +121,7 @@ class process::priv
     typedef std::map<tag_t, ports_t> flow_tag_port_map_t;
 
     tag_t port_flow_tag_name(port_type_t const& port_type) const;
+    void check_tag(tag_t const& tag);
 
     port_map_t input_ports;
     port_map_t output_ports;
@@ -738,6 +739,74 @@ process
 
 void
 process
+::remove_input_port(port_t const& port)
+{
+  port_info_t const info = input_port_info(port);
+  port_type_t const& port_type = info->type;
+
+  // Remove from known ports.
+  d->input_ports.erase(port);
+
+  // Remove all connected edges.
+  d->input_edges.erase(port);
+
+  // Remove from bookkeeping structures.
+  ports_t::iterator const ri = std::remove(d->required_inputs.begin(), d->required_inputs.end(), port);
+  d->required_inputs.erase(ri, d->required_inputs.end());
+
+  priv::tag_t const tag = d->port_flow_tag_name(port_type);
+
+  if (!tag.empty())
+  {
+    ports_t& ports = d->input_flow_tag_ports[tag];
+    ports_t::iterator const i = std::remove(ports.begin(), ports.end(), port);
+    ports.erase(i, ports.end());
+
+    if (!ports.size())
+    {
+      d->input_flow_tag_ports.erase(tag);
+
+      d->check_tag(tag);
+    }
+  }
+}
+
+void
+process
+::remove_output_port(port_t const& port)
+{
+  port_info_t const info = output_port_info(port);
+  port_type_t const& port_type = info->type;
+
+  // Remove from known ports.
+  d->output_ports.erase(port);
+
+  // Remove all connected edges.
+  d->output_edges.erase(port);
+
+  // Remove from bookkeeping structures.
+  ports_t::iterator const ri = std::remove(d->required_outputs.begin(), d->required_outputs.end(), port);
+  d->required_outputs.erase(ri, d->required_outputs.end());
+
+  priv::tag_t const tag = d->port_flow_tag_name(port_type);
+
+  if (!tag.empty())
+  {
+    ports_t& ports = d->output_flow_tag_ports[tag];
+    ports_t::iterator const i = std::remove(ports.begin(), ports.end(), port);
+    ports.erase(i, ports.end());
+
+    if (!ports.size())
+    {
+      d->output_flow_tag_ports.erase(tag);
+
+      d->check_tag(tag);
+    }
+  }
+}
+
+void
+process
 ::declare_configuration_key(config::key_t const& key,conf_info_t const& info)
 {
   if (!info)
@@ -1217,6 +1286,22 @@ process::priv
   }
 
   return tag_t();
+}
+
+void
+process::priv
+::check_tag(tag_t const& tag)
+{
+  flow_tag_port_map_t::const_iterator const input_i = input_flow_tag_ports.find(tag);
+  flow_tag_port_map_t::const_iterator const output_i = output_flow_tag_ports.find(tag);
+
+  bool const have_input = (input_i != input_flow_tag_ports.end());
+  bool const have_output = (output_i != output_flow_tag_ports.end());
+
+  if (!have_input && !have_output)
+  {
+    flow_tag_port_types.erase(tag);
+  }
 }
 
 }

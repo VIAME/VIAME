@@ -552,6 +552,19 @@ class VISTK_PIPELINE_EXPORT process
     void declare_output_port(port_t const& port, port_info_t const& info);
 
     /**
+     * \brief Remove an input port from the process.
+     *
+     * \param port The input port to remove.
+     */
+    void remove_input_port(port_t const& port);
+    /**
+     * \brief Remove an output port from the process.
+     *
+     * \param port The output port to remove.
+     */
+    void remove_output_port(port_t const& port);
+
+    /**
      * \brief Declares a configuration value for the process.
      *
      * \throws null_conf_info_exception Thrown if \p info is \c NULL.
