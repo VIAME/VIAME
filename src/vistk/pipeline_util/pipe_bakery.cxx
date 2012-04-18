@@ -709,13 +709,14 @@ config_provider_sorter
 ::operator () (config::key_t const& key, pipe_bakery::provider_request_t const& request)
 {
   config_provider_t const& provider = request.first;
+  config::value_t const& value = request.second;
 
   if (provider != provider_config)
   {
     return;
   }
 
-  config::key_t const& target_key = config::key_t(request.second);
+  config::key_t const& target_key = config::key_t(value);
 
   typedef std::pair<vertex_map_t::iterator, bool> insertion_t;
 

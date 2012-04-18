@@ -96,7 +96,9 @@ process_registry
 
   BOOST_FOREACH (priv::process_store_t::value_type const& entry, d->registry)
   {
-    ts.push_back(entry.first);
+    type_t const& type = entry.first;
+
+    ts.push_back(type);
   }
 
   return ts;

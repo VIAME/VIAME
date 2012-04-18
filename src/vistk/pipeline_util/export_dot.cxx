@@ -135,7 +135,10 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 
       BOOST_FOREACH (vistk::process::port_addr_t const& addr, addrs)
       {
-        std::string const node_to_port_name = addr.first + node_prefix_input + addr.second;
+        vistk::process::name_t const& recv_name = addr.first;
+        vistk::process::port_t const& recv_port = addr.second;
+
+        std::string const node_to_port_name = recv_name + node_prefix_input + recv_port;
 
         ostr << "\"" << node_from_port_name << "\" -> "
                 "\"" << node_to_port_name << "\" ["

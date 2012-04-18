@@ -221,12 +221,14 @@ sorted_names(pipeline_t const& pipe)
       BOOST_FOREACH (process::port_t const& port, iports)
       {
         process::port_addr_t const sender = pipe->sender_for_port(name, port);
-        edge_t const edge = pipe->edge_for_connection(sender.first, sender.second,
+        process::name_t const& sender_name = sender.first;
+        process::port_t const& sender_port = sender.second;
+        edge_t const edge = pipe->edge_for_connection(sender_name, sender_port,
                                                       name, port);
 
         if (edge && edge->makes_dependency())
         {
-          vertex_t const s = vertex_map[sender.first];
+          vertex_t const s = vertex_map[sender_name];
 
           boost::add_edge(s, t, graph);
         }

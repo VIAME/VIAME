@@ -140,7 +140,10 @@ config
 {
   BOOST_FOREACH (store_t::value_type const& value, conf->m_store)
   {
-    set_value(value.first, value.second);
+    key_t const& key = value.first;
+    value_t const& val = value.second;
+
+    set_value(key, val);
   }
 }
 
@@ -164,7 +167,9 @@ config
   {
     BOOST_FOREACH (store_t::value_type const& value, m_store)
     {
-      keys.push_back(value.first);
+      key_t const& key = value.first;
+
+      keys.push_back(key);
     }
   }
 

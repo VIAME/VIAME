@@ -263,7 +263,9 @@ process
 
   BOOST_FOREACH (priv::port_map_t::value_type const& port, d->input_ports)
   {
-    ports.push_back(port.first);
+    port_t const& port_name = port.first;
+
+    ports.push_back(port_name);
   }
 
   return ports;
@@ -277,7 +279,9 @@ process
 
   BOOST_FOREACH (priv::port_map_t::value_type const& port, d->output_ports)
   {
-    ports.push_back(port.first);
+    port_t const& port_name = port.first;
+
+    ports.push_back(port_name);
   }
 
   return ports;
@@ -329,7 +333,9 @@ process
 
   BOOST_FOREACH (priv::conf_map_t::value_type const& conf, d->config_keys)
   {
-    keys.push_back(conf.first);
+    config::key_t const& key = conf.first;
+
+    keys.push_back(key);
   }
 
   return keys;

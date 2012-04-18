@@ -174,7 +174,7 @@ collate_process
     {
       push_to_port(output_port, edge_datum_t(datum::complete_datum(), color_stamp));
 
-      complete_ports.push_back(tag_data.first);
+      complete_ports.push_back(tag);
 
       continue;
     }

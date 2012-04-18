@@ -145,9 +145,11 @@ any_converter
 
     BOOST_FOREACH (to_map_t::value_type const& to, m_to)
     {
+      to_any_func_t const& func = to.second;
+
       try
       {
-        opt_pyobject_t const opt = to.second(any);
+        opt_pyobject_t const opt = func(any);
 
         if (opt)
         {
@@ -183,7 +185,9 @@ any_converter
 
     BOOST_FOREACH (from_map_t::value_type const& from, m_from)
     {
-      if (from.second(obj, storage))
+      from_any_func_t const& func = from.second;
+
+      if (func(obj, storage))
       {
         data->convertible = storage;
         return;
