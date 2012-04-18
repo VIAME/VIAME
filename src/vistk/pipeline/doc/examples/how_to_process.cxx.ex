@@ -11,7 +11,7 @@ class compare_string_process
     compare_string_process(config_t const& config);
     ~compare_string_process();
 
-    void _init();
+    void _configure();
     void _step();
   private:
     class priv;
@@ -73,7 +73,7 @@ compare_string_process::priv
 
 void
 compare_string_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {
