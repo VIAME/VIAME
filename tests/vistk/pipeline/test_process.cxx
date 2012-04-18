@@ -68,6 +68,12 @@ static void test_set_tagged_flow_dependent_port_cascade();
 static void test_add_input_port_after_type_pin();
 static void test_add_output_port_after_type_pin();
 static void test_set_untagged_flow_dependent_port();
+static void test_remove_input_port();
+static void test_remove_output_port();
+static void test_remove_non_exist_input_port();
+static void test_remove_non_exist_output_port();
+static void test_remove_only_tagged_flow_dependent_port();
+static void test_remove_tagged_flow_dependent_port();
 static void test_null_config();
 static void test_null_input_port_info();
 static void test_null_output_port_info();
@@ -151,6 +157,30 @@ run_test(std::string const& test_name)
   else if (test_name == "set_untagged_flow_dependent_port")
   {
     test_set_untagged_flow_dependent_port();
+  }
+  else if (test_name == "remove_input_port")
+  {
+    test_remove_input_port();
+  }
+  else if (test_name == "remove_output_port")
+  {
+    test_remove_output_port();
+  }
+  else if (test_name == "remove_non_exist_input_port")
+  {
+    test_remove_non_exist_input_port();
+  }
+  else if (test_name == "remove_non_exist_output_port")
+  {
+    test_remove_non_exist_output_port();
+  }
+  else if (test_name == "remove_only_tagged_flow_dependent_port")
+  {
+    test_remove_only_tagged_flow_dependent_port();
+  }
+  else if (test_name == "remove_tagged_flow_dependent_port")
+  {
+    test_remove_tagged_flow_dependent_port();
   }
   else if (test_name == "null_config")
   {
@@ -627,6 +657,42 @@ test_set_untagged_flow_dependent_port()
   {
     TEST_ERROR("Setting the output port type did not also set the input port info");
   }
+}
+
+void
+test_remove_input_port()
+{
+  TEST_ERROR("Unimplemented");
+}
+
+void
+test_remove_output_port()
+{
+  TEST_ERROR("Unimplemented");
+}
+
+void
+test_remove_non_exist_input_port()
+{
+  TEST_ERROR("Unimplemented");
+}
+
+void
+test_remove_non_exist_output_port()
+{
+  TEST_ERROR("Unimplemented");
+}
+
+void
+test_remove_only_tagged_flow_dependent_port()
+{
+  TEST_ERROR("Unimplemented");
+}
+
+void
+test_remove_tagged_flow_dependent_port()
+{
+  TEST_ERROR("Unimplemented");
 }
 
 void
