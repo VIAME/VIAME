@@ -165,6 +165,17 @@ image_writer_process
 
 void
 image_writer_process
+::_reset()
+{
+  d->count = 0;
+  d->has_output = false;
+  d->fout.close();
+
+  process::_reset();
+}
+
+void
+image_writer_process
 ::_step()
 {
   datum_t const input = grab_datum_from_port(priv::port_input);

@@ -66,6 +66,11 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT image_writer_process
     void _configure();
 
     /**
+     * \brief Resets the process.
+     */
+    void _reset();
+
+    /**
      * \brief Writes the next image.
      */
     void _step();

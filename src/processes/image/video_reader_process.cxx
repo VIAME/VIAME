@@ -247,6 +247,17 @@ video_reader_process
 
 void
 video_reader_process
+::_reset()
+{
+  d->istream->close();
+  d->has_color = false;
+  d->output_stamp = stamp_t();
+
+  process::_reset();
+}
+
+void
+video_reader_process
 ::_step()
 {
   datum_t dat;
