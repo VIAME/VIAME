@@ -120,6 +120,8 @@ class process::priv
 
     typedef std::map<tag_t, ports_t> flow_tag_port_map_t;
 
+    tag_t port_flow_tag_name(port_type_t const& port_type) const;
+
     port_map_t input_ports;
     port_map_t output_ports;
 
@@ -534,7 +536,7 @@ process
 
   if (is_flow_dependent)
   {
-    priv::tag_t const tag = old_type.substr(type_flow_dependent.size());
+    priv::tag_t const tag = d->port_flow_tag_name(old_type);
 
     if (!tag.empty())
     {
@@ -593,7 +595,7 @@ process
 
   if (is_flow_dependent)
   {
-    priv::tag_t const tag = old_type.substr(type_flow_dependent.size());
+    priv::tag_t const tag = d->port_flow_tag_name(old_type);
 
     if (!tag.empty())
     {
@@ -663,25 +665,22 @@ process
 
   port_type_t const& port_type = info->type;
 
-  if (boost::starts_with(port_type, type_flow_dependent))
+  priv::tag_t const tag = d->port_flow_tag_name(port_type);
+
+  if (!tag.empty())
   {
-    priv::tag_t const tag = port_type.substr(type_flow_dependent.size());
+    d->input_flow_tag_ports[tag].push_back(port);
 
-    if (!tag.empty())
+    if (d->flow_tag_port_types[tag])
     {
-      d->input_flow_tag_ports[tag].push_back(port);
+      port_type_t const& tag_type = *d->flow_tag_port_types[tag];
 
-      if (d->flow_tag_port_types[tag])
-      {
-        port_type_t const& tag_type = *d->flow_tag_port_types[tag];
+      declare_input_port(port, boost::make_shared<port_info>(
+        tag_type,
+        info->flags,
+        info->description));
 
-        declare_input_port(port, boost::make_shared<port_info>(
-          tag_type,
-          info->flags,
-          info->description));
-
-        return;
-      }
+      return;
     }
   }
 
@@ -707,25 +706,22 @@ process
 
   port_type_t const& port_type = info->type;
 
-  if (boost::starts_with(port_type, type_flow_dependent))
+  priv::tag_t const tag = d->port_flow_tag_name(port_type);
+
+  if (!tag.empty())
   {
-    priv::tag_t const tag = port_type.substr(type_flow_dependent.size());
+    d->output_flow_tag_ports[tag].push_back(port);
 
-    if (!tag.empty())
+    if (d->flow_tag_port_types[tag])
     {
-      d->output_flow_tag_ports[tag].push_back(port);
+      port_type_t const& tag_type = *d->flow_tag_port_types[tag];
 
-      if (d->flow_tag_port_types[tag])
-      {
-        port_type_t const& tag_type = *d->flow_tag_port_types[tag];
+      declare_output_port(port, boost::make_shared<port_info>(
+        tag_type,
+        info->flags,
+        info->description));
 
-        declare_output_port(port, boost::make_shared<port_info>(
-          tag_type,
-          info->flags,
-          info->description));
-
-        return;
-      }
+      return;
     }
   }
 
@@ -1209,6 +1205,18 @@ process::priv
   }
 
   return true;
+}
+
+process::priv::tag_t
+process::priv
+::port_flow_tag_name(port_type_t const& port_type) const
+{
+  if (boost::starts_with(port_type, type_flow_dependent))
+  {
+    return port_type.substr(type_flow_dependent.size());
+  }
+
+  return tag_t();
 }
 
 }
