@@ -78,6 +78,8 @@ data_dependent_process
     set_output_port_type(priv::port_output, type_none);
   }
 
+  d->configuring = false;
+
   process::_configure();
 }
 
