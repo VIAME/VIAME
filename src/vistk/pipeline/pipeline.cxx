@@ -353,6 +353,7 @@ pipeline
   // able to be added/removed without compromising the checks after this point).
   d->setup = true;
   d->setup_in_progress = true;
+  d->setup_successful = false;
 
   d->map_group_connections();
   d->configure_processes();
