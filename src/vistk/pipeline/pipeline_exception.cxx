@@ -444,4 +444,52 @@ group_output_already_mapped_exception
 {
 }
 
+pipeline_not_setup_exception
+::pipeline_not_setup_exception() throw()
+  : pipeline_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A pipeline was started before it was setup.";
+
+  m_what = sstr.str();
+}
+
+pipeline_not_setup_exception
+::~pipeline_not_setup_exception() throw()
+{
+}
+
+pipeline_not_ready_exception
+::pipeline_not_ready_exception() throw()
+  : pipeline_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A pipeline was started before it was successfully setup.";
+
+  m_what = sstr.str();
+}
+
+pipeline_not_ready_exception
+::~pipeline_not_ready_exception() throw()
+{
+}
+
+pipeline_not_running_exception
+::pipeline_not_running_exception() throw()
+  : pipeline_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A pipeline was stopped before it was started.";
+
+  m_what = sstr.str();
+}
+
+pipeline_not_running_exception
+::~pipeline_not_running_exception() throw()
+{
+}
+
 }

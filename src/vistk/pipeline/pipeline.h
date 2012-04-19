@@ -249,6 +249,15 @@ class VISTK_PIPELINE_EXPORT pipeline
     bool setup_successful() const;
 
     /**
+     * \brief Notify the pipeline that its execution has started.
+     */
+    void start();
+    /**
+     * \brief Notify the pipeline that its execution has ended.
+     */
+    void stop();
+
+    /**
      * \brief Get a list of processes in the pipeline.
      *
      * \returns The names of all processes in the pipeline.

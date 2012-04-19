@@ -116,6 +116,7 @@ class pipeline::priv
     bool setup;
     bool setup_in_progress;
     bool setup_successful;
+    bool running;
 
     class propogation_exception
       : public pipeline_exception
@@ -379,6 +380,35 @@ pipeline
 ::setup_successful() const
 {
   return d->setup_successful;
+}
+
+void
+pipeline
+::start()
+{
+  if (!d->setup)
+  {
+    throw pipeline_not_setup_exception();
+  }
+
+  if (!d->setup_successful)
+  {
+    throw pipeline_not_ready_exception();
+  }
+
+  d->running = true;
+}
+
+void
+pipeline
+::stop()
+{
+  if (!d->running)
+  {
+    throw pipeline_not_running_exception();
+  }
+
+  d->running = false;
 }
 
 process::names_t
@@ -884,6 +914,7 @@ pipeline::priv
   , setup(false)
   , setup_in_progress(false)
   , setup_successful(false)
+  , running(false)
 {
 }
 
