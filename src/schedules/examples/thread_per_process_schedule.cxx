@@ -71,7 +71,7 @@ thread_per_process_schedule
 
 void
 thread_per_process_schedule
-::start()
+::_start()
 {
   pipeline_t const p = pipeline();
   process::names_t const names = p->process_names();
@@ -86,14 +86,14 @@ thread_per_process_schedule
 
 void
 thread_per_process_schedule
-::wait()
+::_wait()
 {
   d->process_threads.join_all();
 }
 
 void
 thread_per_process_schedule
-::stop()
+::_stop()
 {
   d->process_threads.interrupt_all();
 }

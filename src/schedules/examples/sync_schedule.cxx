@@ -94,21 +94,21 @@ static void run_sync(pipeline_t const& pipe);
 
 void
 sync_schedule
-::start()
+::_start()
 {
   d->thread = boost::thread(boost::bind(run_sync, pipeline()));
 }
 
 void
 sync_schedule
-::wait()
+::_wait()
 {
   d->thread.join();
 }
 
 void
 sync_schedule
-::stop()
+::_stop()
 {
   d->thread.interrupt();
 }

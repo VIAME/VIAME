@@ -53,7 +53,7 @@ thread_pool_schedule
 
 void
 thread_pool_schedule
-::start()
+::_start()
 {
   /// \todo Map processes to upstream edges.
   /// \todo Map processes to downstream edges.
@@ -67,14 +67,14 @@ thread_pool_schedule
 
 void
 thread_pool_schedule
-::wait()
+::_wait()
 {
   d->thread_pool.join_all();
 }
 
 void
 thread_pool_schedule
-::stop()
+::_stop()
 {
   d->complete = true;
   d->thread_pool.interrupt_all();
