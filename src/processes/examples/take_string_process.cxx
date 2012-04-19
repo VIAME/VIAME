@@ -60,7 +60,7 @@ void
 take_string_process
 ::_step()
 {
-  grab_from_port_as<priv::string_t>(priv::port_input);
+  (void)grab_from_port_as<priv::string_t>(priv::port_input);
 
   process::_step();
 }
