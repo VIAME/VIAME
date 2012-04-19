@@ -103,6 +103,10 @@ static void test_setup_pipeline_connect();
 static void test_setup_pipeline_map_input();
 static void test_setup_pipeline_map_output();
 static void test_setup_pipeline();
+static void test_start_before_setup();
+static void test_start_unsuccessful_setup();
+static void test_stop_before_start();
+static void test_start_and_stop();
 
 void
 run_test(std::string const& test_name)
@@ -314,6 +318,22 @@ run_test(std::string const& test_name)
   else if (test_name == "setup_pipeline")
   {
     test_setup_pipeline();
+  }
+  else if (test_name == "start_before_setup")
+  {
+    test_start_before_setup();
+  }
+  else if (test_name == "start_unsuccessful_setup")
+  {
+    test_start_unsuccessful_setup();
+  }
+  else if (test_name == "stop_before_start")
+  {
+    test_stop_before_start();
+  }
+  else if (test_name == "start_and_stop")
+  {
+    test_start_and_stop();
   }
   else
   {
@@ -1668,6 +1688,74 @@ test_setup_pipeline()
                     proc_namet, port_namet);
 
   pipeline->setup_pipeline();
+}
+
+void
+test_start_before_setup()
+{
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  EXPECT_EXCEPTION(vistk::pipeline_not_setup_exception,
+                   pipeline->start(),
+                   "starting a pipeline that has not been setup");
+}
+
+void
+test_start_unsuccessful_setup()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+  vistk::process::name_t const proc_name2 = vistk::process::name_t("orphan2");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+  vistk::process_t const process2 = create_process(proc_type, proc_name2);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+
+  try
+  {
+    pipeline->setup_pipeline();
+  }
+  catch (vistk::pipeline_exception&)
+  {
+  }
+
+  EXPECT_EXCEPTION(vistk::pipeline_not_ready_exception,
+                   pipeline->start(),
+                   "starting a pipeline that has not been successfully setup");
+}
+
+void
+test_stop_before_start()
+{
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  EXPECT_EXCEPTION(vistk::pipeline_not_running_exception,
+                   pipeline->stop(),
+                   "stopping a pipeline that has not been started");
+}
+
+void
+test_start_and_stop()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  pipeline->setup_pipeline();
+
+  pipeline->start();
+  pipeline->stop();
 }
 
 vistk::process_t

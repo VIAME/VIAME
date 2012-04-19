@@ -203,6 +203,10 @@ vistk_make_test(pipeline setup_pipeline_connect)
 vistk_make_test(pipeline setup_pipeline_map_input)
 vistk_make_test(pipeline setup_pipeline_map_output)
 vistk_make_test(pipeline setup_pipeline)
+vistk_make_test(pipeline start_before_setup)
+vistk_make_test(pipeline start_unsuccessful_setup)
+vistk_make_test(pipeline stop_before_start)
+vistk_make_test(pipeline start_and_stop)
 
 ##############################
 # Introspection tests
