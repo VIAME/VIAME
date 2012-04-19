@@ -41,6 +41,16 @@ BOOST_PYTHON_MODULE(pipeline)
       , "Maps a group output port to an output port on a process.")
     .def("setup_pipeline", &vistk::pipeline::setup_pipeline
       , "Prepares the pipeline for execution.")
+    .def("is_setup", &vistk::pipeline::is_setup
+      , "Returns True if the pipeline has been setup, False otherwise.")
+    .def("setup_successful", &vistk::pipeline::setup_successful
+      , "Returns True if the pipeline has been successfully setup, False otherwise.")
+    .def("reset", &vistk::pipeline::reset
+      , "Resets connections within the pipeline.")
+    .def("start", &vistk::pipeline::start
+      , "Notify the pipeline that its execution has started.")
+    .def("stop", &vistk::pipeline::stop
+      , "Notify the pipeline that its execution has ended.")
     .def("process_names", &vistk::pipeline::process_names
       , "Returns a list of all process names in the pipeline.")
     .def("process_by_name", &vistk::pipeline::process_by_name
