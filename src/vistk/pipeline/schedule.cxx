@@ -7,6 +7,11 @@
 #include "schedule.h"
 #include "schedule_exception.h"
 
+#include "pipeline.h"
+
+#include <boost/thread/locks.hpp>
+#include <boost/thread/mutex.hpp>
+
 /**
  * \file schedule.cxx
  *
@@ -23,6 +28,8 @@ class schedule::priv
     ~priv();
 
     pipeline_t const p;
+    bool running;
+    boost::mutex mut;
 };
 
 schedule
@@ -45,6 +52,61 @@ schedule
   }
 }
 
+void
+schedule
+::start()
+{
+  {
+    boost::unique_lock<boost::mutex> lock(d->mut);
+
+    (void)lock;
+
+    d->p->start();
+    d->running = true;
+  }
+
+  _start();
+}
+
+void
+schedule
+::wait()
+{
+  {
+    boost::unique_lock<boost::mutex> lock(d->mut);
+
+    (void)lock;
+
+    if (!d->running)
+    {
+      /// \todo Throw an exception.
+    }
+  }
+
+  _wait();
+
+  stop();
+}
+
+void
+schedule
+::stop()
+{
+  boost::unique_lock<boost::mutex> lock(d->mut);
+
+  (void)lock;
+
+  if (!d->running)
+  {
+    /// \todo Throw an exception.
+  }
+
+  _stop();
+
+  d->p->stop();
+  d->running = false;
+}
+
 pipeline_t
 schedule
 ::pipeline() const
@@ -55,6 +117,7 @@ schedule
 schedule::priv
 ::priv(pipeline_t const& pipe)
   : p(pipe)
+  , running(false)
 {
 }
 

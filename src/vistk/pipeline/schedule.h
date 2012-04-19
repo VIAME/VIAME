@@ -41,22 +41,16 @@ class VISTK_PIPELINE_EXPORT schedule
 
     /**
      * \brief Starts execution.
-     *
-     * \warning Implementations should *not* return if this fails to start the
-     * pipeline. Exceptions should be thrown instead.
      */
-    virtual void start() = 0;
+    void start();
     /**
      * \brief Waits until execution is finished.
      */
-    virtual void wait() = 0;
+    void wait();
     /**
      * \brief Stop execution of the pipeline.
-     *
-     * \warning Implementations should *not* return if they fail to stop the
-     * pipeline. Exceptions should be thrown instead.
      */
-    virtual void stop() = 0;
+    void stop();
   protected:
     /**
      * \brief Constructor.
@@ -65,6 +59,25 @@ class VISTK_PIPELINE_EXPORT schedule
      * \param pipe The pipeline to run.
      */
     schedule(config_t const& config, pipeline_t const& pipe);
+
+    /**
+     * \brief Starts execution.
+     *
+     * \warning Implementations should *not* return if this fails to start the
+     * pipeline. Exceptions should be thrown instead.
+     */
+    virtual void _start() = 0;
+    /**
+     * \brief Waits until execution is finished.
+     */
+    virtual void _wait() = 0;
+    /**
+     * \brief Stop execution of the pipeline.
+     *
+     * \warning Implementations should *not* return if they fail to stop the
+     * pipeline. Exceptions should be thrown instead.
+     */
+    virtual void _stop() = 0;
 
     /**
      * \brief The pipeline that should be run.
