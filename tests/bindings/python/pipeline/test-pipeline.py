@@ -99,6 +99,14 @@ def test_api_calls():
 
     p.setup_pipeline()
 
+    p.is_setup()
+    p.setup_successful()
+
+    p.start()
+    p.stop()
+
+    p.reset()
+
 
 def main(testname):
     if testname == 'import':
