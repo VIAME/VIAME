@@ -444,6 +444,21 @@ group_output_already_mapped_exception
 {
 }
 
+reset_running_pipeline_exception
+::reset_running_pipeline_exception() throw()
+{
+  std::ostringstream sstr;
+
+  sstr << "A pipeline was running when a reset was attempted.";
+
+  m_what = sstr.str();
+}
+
+reset_running_pipeline_exception
+::~reset_running_pipeline_exception() throw()
+{
+}
+
 pipeline_not_setup_exception
 ::pipeline_not_setup_exception() throw()
   : pipeline_exception()

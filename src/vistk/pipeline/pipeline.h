@@ -249,6 +249,11 @@ class VISTK_PIPELINE_EXPORT pipeline
     bool setup_successful() const;
 
     /**
+     * \brief Resets the pipeline.
+     */
+    void reset();
+
+    /**
      * \brief Notify the pipeline that its execution has started.
      */
     void start();

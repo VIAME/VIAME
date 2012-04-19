@@ -637,6 +637,27 @@ class VISTK_PIPELINE_EXPORT group_output_already_mapped_exception
 };
 
 /**
+ * \class reset_running_pipeline_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a pipeline is reset while it is running.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT reset_running_pipeline_exception
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    reset_running_pipeline_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~reset_running_pipeline_exception() throw();
+};
+
+/**
  * \class pipeline_not_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a pipeline that has not been setup is started.

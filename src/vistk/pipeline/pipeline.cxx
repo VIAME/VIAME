@@ -385,6 +385,58 @@ pipeline
 
 void
 pipeline
+::reset()
+{
+  if (d->running)
+  {
+    throw reset_running_pipeline_exception();
+  }
+
+  d->setup = false;
+  d->setup_successful = false;
+
+  priv::process_map_t const names = d->process_map;
+
+  // Reset all the processes.
+  BOOST_FOREACH (priv::process_map_t::value_type& process_entry, d->process_map)
+  {
+    process_t const& process = process_entry.second;
+
+    process->reset();
+  }
+
+  // Clear internal bookkeeping.
+  d->connections.clear();
+  d->edge_map.clear();
+  d->used_input_mappings.clear();
+  d->used_output_mappings.clear();
+  d->data_dep_connections.clear();
+  d->group_connections.clear();
+  d->untyped_connections.clear();
+  d->type_pinnings.clear();
+
+  d->setup_in_progress = true;
+
+  // Replay connections.
+  BOOST_FOREACH (priv::connection_t const& connection, d->planned_connections)
+  {
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    connect(upstream_name, upstream_port,
+            downstream_name, downstream_port);
+  }
+
+  d->setup_in_progress = false;
+}
+
+void
+pipeline
 ::start()
 {
   if (!d->setup)
