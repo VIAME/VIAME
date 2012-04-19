@@ -207,6 +207,8 @@ vistk_make_test(pipeline start_before_setup)
 vistk_make_test(pipeline start_unsuccessful_setup)
 vistk_make_test(pipeline stop_before_start)
 vistk_make_test(pipeline start_and_stop)
+vistk_make_test(pipeline reset_while_running)
+vistk_make_test(pipeline reset)
 
 ##############################
 # Introspection tests

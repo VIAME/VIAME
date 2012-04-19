@@ -107,6 +107,8 @@ static void test_start_before_setup();
 static void test_start_unsuccessful_setup();
 static void test_stop_before_start();
 static void test_start_and_stop();
+static void test_reset_while_running();
+static void test_reset();
 
 void
 run_test(std::string const& test_name)
@@ -334,6 +336,14 @@ run_test(std::string const& test_name)
   else if (test_name == "start_and_stop")
   {
     test_start_and_stop();
+  }
+  else if (test_name == "reset_while_running")
+  {
+    test_reset_while_running();
+  }
+  else if (test_name == "reset")
+  {
+    test_reset();
   }
   else
   {
@@ -1756,6 +1766,79 @@ test_start_and_stop()
 
   pipeline->start();
   pipeline->stop();
+}
+
+void
+test_reset_while_running()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type, proc_name);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  pipeline->setup_pipeline();
+
+  pipeline->start();
+
+  EXPECT_EXCEPTION(vistk::reset_running_pipeline_exception,
+                   pipeline->reset(),
+                   "resetting a running pipeline");
+}
+
+void
+test_reset()
+{
+  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+
+  vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
+  vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
+  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+
+  vistk::config_t configt = vistk::config::empty_config();
+
+  vistk::config::key_t const output_key = vistk::config::key_t("output");
+  vistk::config::value_t const output_path = vistk::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
+
+  configt->set_value(output_key, output_path);
+
+  vistk::process_t const processu1 = create_process(proc_typeu, proc_nameu1);
+  vistk::process_t const processu2 = create_process(proc_typeu, proc_nameu2);
+  vistk::process_t const processd = create_process(proc_typed, proc_named);
+  vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+
+  vistk::pipeline_t pipeline = create_pipeline();
+
+  pipeline->add_process(processu1);
+  pipeline->add_process(processu2);
+  pipeline->add_process(processd);
+  pipeline->add_process(processt);
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
+  vistk::process::port_t const port_named1 = vistk::process::port_t("factor1");
+  vistk::process::port_t const port_named2 = vistk::process::port_t("factor2");
+  vistk::process::port_t const port_namedo = vistk::process::port_t("product");
+  vistk::process::port_t const port_namet = vistk::process::port_t("number");
+
+  pipeline->connect(proc_nameu1, port_nameu,
+                    proc_named, port_named1);
+  pipeline->connect(proc_nameu2, port_nameu,
+                    proc_named, port_named2);
+  pipeline->connect(proc_named, port_namedo,
+                    proc_namet, port_namet);
+
+  pipeline->setup_pipeline();
+
+  pipeline->reset();
+
+  pipeline->setup_pipeline();
 }
 
 vistk::process_t
