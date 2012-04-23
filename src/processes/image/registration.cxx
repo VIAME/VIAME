@@ -10,6 +10,7 @@
 #include "grayscale_process.h"
 #include "image_reader_process.h"
 #include "image_writer_process.h"
+#include "layered_image_reader_process.h"
 #include "video_reader_process.h"
 #include "warp_image_process.h"
 
@@ -41,6 +42,7 @@ register_processes()
   registry->register_process("grayscale", "Convert an RGB image into grayscale.", create_process<grayscale_process>);
   registry->register_process("image_reader", "Read images from files given a list of images.", create_process<image_reader_process>);
   registry->register_process("image_writer", "Write images to files.", create_process<image_writer_process>);
+  registry->register_process("layered_image_reader", "Read image layers from the filesystem.", create_process<layered_image_reader_process>);
   registry->register_process("video_reader", "Reads images from a video.", create_process<video_reader_process>);
   registry->register_process("image_source", "Reads images using different sources.", create_image_source_process);
   registry->register_process("warp_image", "Warps images using tranformation matrices.", create_process<warp_image_process>);
