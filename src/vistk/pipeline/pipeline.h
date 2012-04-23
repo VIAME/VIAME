@@ -100,6 +100,51 @@ class VISTK_PIPELINE_EXPORT pipeline
     void add_group(process::name_t const& name);
 
     /**
+     * \brief Removes a process to the pipeline.
+     *
+     * \preconds
+     *
+     * \precond{A process named \c name already exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws remove_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_process_exception Thrown when there is no process named \p name in the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{The process named \p name is no longer owned by \c this}
+     * \postcond{All connections and mappings to the \p name process are removed}
+     *
+     * \endpostconds
+     *
+     * \param name The process to add to the pipeline.
+     */
+    void remove_process(process::name_t const& name);
+    /**
+     * \brief Removes a logical group of processes from the pipeline.
+     *
+     * \preconds
+     *
+     * \precond{A group named \p name already exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws remove_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_group_exception Thrown when \p name is not a group in the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{The group with the name \p name is no longer available available within the pipeline}
+     * \postcond{All mapped ports on the group \p name are disconnected and unmapped}
+     *
+     * \endpostconds
+     *
+     * \param name The name of the group.
+     */
+    void remove_group(process::name_t const& name);
+
+    /**
      * \brief Connect two ports in the pipeline together with an edge.
      *
      * \preconds
@@ -138,6 +183,35 @@ class VISTK_PIPELINE_EXPORT pipeline
                  process::port_t const& upstream_port,
                  process::name_t const& downstream_name,
                  process::port_t const& downstream_port);
+
+    /**
+     * \brief Disconnect two ports in the pipeline together with an edge.
+     *
+     * \preconds
+     *
+     * \precond{A connection from \p upstream_process\ \c .\ \p upstream_port to \p downstream_process\ \c .\ \p downstream_port exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws disconnection_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_connection_exception Thrown when the connection does not exist within the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{The ports \port{upstream_process.upstream_port} and
+     *           \port{downstream_process.downstream_port} are disconnected}
+     *
+     * \endpostconds
+     *
+     * \param upstream_name The upstream process name.
+     * \param upstream_port The upstream process port.
+     * \param downstream_name The downstream process name.
+     * \param downstream_port The downstream process port.
+     */
+    void disconnect(process::name_t const& upstream_name,
+                    process::port_t const& upstream_port,
+                    process::name_t const& downstream_name,
+                    process::port_t const& downstream_port);
 
     /**
      * \brief Map a group input port to a process input port.
@@ -209,6 +283,63 @@ class VISTK_PIPELINE_EXPORT pipeline
                          process::name_t const& mapped_name,
                          process::port_t const& mapped_port,
                          process::port_flags_t const& flags);
+
+    /**
+     * \brief Unmap a group input port to a process input port.
+     *
+     * \preconds
+     *
+     * \precond{A mapping from \p group\ \c .\ \p port to \p mapped_process\ \c .\ \p mapped_port exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws disconnection_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_connection_exception Thrown when the mapping does not exist within the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{Connections to \port{group.port} are no longer mapped to a connection to
+     *           \port{mapped_process.mapped_port}}
+     *
+     * \endpostconds
+     *
+     * \param group The group name.
+     * \param port The group port.
+     * \param mapped_name The mapped process name.
+     * \param mapped_port The mapped process port.
+     */
+    void unmap_input_port(process::name_t const& group,
+                          process::port_t const& port,
+                          process::name_t const& mapped_name,
+                          process::port_t const& mapped_port);
+    /**
+     * \brief Unmap a group output port to a process output port.
+     *
+     * \preconds
+     *
+     * \precond{A mapping from \p mapped_process\ \c .\ \p mapped_port to \p group\ \c .\ \p port exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws disconnection_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_connection_exception Thrown when the mapping does not exist within the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{Connections to \port{group.port} are no longer mapped to a connection to
+     *           \port{mapped_process.mapped_port}}
+     *
+     * \endpostconds
+     *
+     * \param group The group name.
+     * \param port The group port.
+     * \param mapped_name The mapped process name.
+     * \param mapped_port The mapped process port.
+     */
+    void unmap_output_port(process::name_t const& group,
+                           process::port_t const& port,
+                           process::name_t const& mapped_name,
+                           process::port_t const& mapped_port);
 
     /**
      * \brief Sets the pipeline up for execution.

@@ -191,6 +191,18 @@ pipeline
 
 void
 pipeline
+::remove_process(process::name_t const& name)
+{
+}
+
+void
+pipeline
+::remove_group(process::name_t const& name)
+{
+}
+
+void
+pipeline
 ::connect(process::name_t const& upstream_name,
           process::port_t const& upstream_port,
           process::name_t const& downstream_name,
@@ -266,6 +278,15 @@ pipeline
 
 void
 pipeline
+::disconnect(process::name_t const& upstream_name,
+             process::port_t const& upstream_port,
+             process::name_t const& downstream_name,
+             process::port_t const& downstream_port)
+{
+}
+
+void
+pipeline
 ::map_input_port(process::name_t const& group,
                  process::port_t const& port,
                  process::name_t const& mapped_name,
@@ -336,6 +357,23 @@ pipeline
   priv::output_mapping_info_t const mapping_info = priv::output_mapping_info_t(flags, mapped_port_addr);
 
   mapping[port] = mapping_info;
+}
+
+void
+pipeline
+::unmap_input_port(process::name_t const& group,
+                   process::port_t const& port,
+                   process::name_t const& mapped_name,
+                   process::port_t const& mapped_port)
+{
+}
+void
+pipeline
+::unmap_output_port(process::name_t const& group,
+                    process::port_t const& port,
+                    process::name_t const& mapped_name,
+                    process::port_t const& mapped_port)
+{
 }
 
 void
