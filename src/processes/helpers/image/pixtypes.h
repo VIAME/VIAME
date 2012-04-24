@@ -79,7 +79,7 @@ class pixfmts
      *
      * \note This is a function to enforce static initialization orders.
      *
-     * \returns The pixtype for images with RGB pixels..
+     * \returns The pixtype for images with RGB pixels.
      */
     static pixfmt_t const& pixfmt_rgb();
     /**
@@ -87,7 +87,7 @@ class pixfmts
      *
      * \note This is a function to enforce static initialization orders.
      *
-     * \returns The pixtype for images with BGR pixels..
+     * \returns The pixtype for images with BGR pixels.
      */
     static pixfmt_t const& pixfmt_bgr();
     /**
@@ -95,7 +95,7 @@ class pixfmts
      *
      * \note This is a function to enforce static initialization orders.
      *
-     * \returns The pixtype for images with RGBA pixels..
+     * \returns The pixtype for images with RGBA pixels.
      */
     static pixfmt_t const& pixfmt_rgba();
     /**
@@ -103,7 +103,7 @@ class pixfmts
      *
      * \note This is a function to enforce static initialization orders.
      *
-     * \returns The pixtype for images with BGRA pixels..
+     * \returns The pixtype for images with BGRA pixels.
      */
     static pixfmt_t const& pixfmt_bgra();
     /**
@@ -111,7 +111,7 @@ class pixfmts
      *
      * \note This is a function to enforce static initialization orders.
      *
-     * \returns The pixtype for images with YUV pixels..
+     * \returns The pixtype for images with YUV pixels.
      */
     static pixfmt_t const& pixfmt_yuv();
     /**
@@ -119,7 +119,7 @@ class pixfmts
      *
      * \note This is a function to enforce static initialization orders.
      *
-     * \returns The pixtype for images with grayscale pixels..
+     * \returns The pixtype for images with grayscale pixels.
      */
     static pixfmt_t const& pixfmt_gray();
 };
