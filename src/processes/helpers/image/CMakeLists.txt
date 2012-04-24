@@ -4,6 +4,7 @@ set(image_helper_srcs
   crop.cxx
   format.cxx
   grayscale.cxx
+  operators.cxx
   pixtypes.cxx
   read.cxx
   warp.cxx
