@@ -6,6 +6,7 @@
 
 #include "registration.h"
 
+#include "combine_masks_process.h"
 #include "crop_image_process.h"
 #include "grayscale_process.h"
 #include "image_reader_process.h"
@@ -38,6 +39,7 @@ register_processes()
     return;
   }
 
+  registry->register_process("combine_masks", "Combine image masks into a single mask.", create_process<combine_masks_process>);
   registry->register_process("crop_image", "Crop an image to a specific size.", create_process<crop_image_process>);
   registry->register_process("grayscale", "Convert an RGB image into grayscale.", create_process<grayscale_process>);
   registry->register_process("image_reader", "Read images from files given a list of images.", create_process<image_reader_process>);
