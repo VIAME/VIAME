@@ -49,6 +49,14 @@ pixtypes
 
 pixfmt_t const&
 pixfmts
+::pixfmt_mask()
+{
+  static pixfmt_t const fmt = pixfmt_t("mask");
+  return fmt;
+}
+
+pixfmt_t const&
+pixfmts
 ::pixfmt_rgb()
 {
   static pixfmt_t const fmt = pixfmt_t("rgb");

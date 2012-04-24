@@ -75,6 +75,14 @@ class pixfmts
 {
   public:
     /**
+     * \brief The pixfmt for mask images.
+     *
+     * \note This is a function to enforce static initialization orders.
+     *
+     * \returns The pixtype for images with mask pixels.
+     */
+    static pixfmt_t const& pixfmt_mask();
+    /**
      * \brief The pixfmt for RGB images.
      *
      * \note This is a function to enforce static initialization orders.
