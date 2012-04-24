@@ -3,6 +3,7 @@ project(vistk_processes)
 add_subdirectory(helpers)
 add_subdirectory(flow)
 add_subdirectory(image)
+add_subdirectory(scoring)
 add_subdirectory(utilities)
 
 if (VISTK_ENABLE_TESTING)
