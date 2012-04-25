@@ -1,14 +1,20 @@
 project(vistk_scoring)
 
 set(scoring_srcs
+  score_mask.cxx
   scoring_result.cxx)
 
 set(scoring_headers
+  score_mask.h
   scoring-config.h
   scoring_result.h)
 
 add_library(vistk_scoring
   ${scoring_srcs})
+target_link_libraries(vistk_scoring
+  vil)
+target_link_libraries(vistk_scoring LINK_INTERFACE_LIBRARIES
+  vil)
 set_target_properties(vistk_scoring
   PROPERTIES
     VERSION       ${vistk_version}
