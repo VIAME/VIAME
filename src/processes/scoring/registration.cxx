@@ -6,6 +6,8 @@
 
 #include "registration.h"
 
+#include "mask_scoring_process.h"
+
 #include <vistk/pipeline/process_registry.h>
 
 /**
@@ -27,6 +29,8 @@ register_processes()
   {
     return;
   }
+
+  registry->register_process("mask_scoring", "A process which scores masks.", create_process<mask_scoring_process>);
 
   registry->mark_module_as_loaded(module_name);
 }
