@@ -61,6 +61,8 @@ source_process
 ::_init()
 {
   d->edges = output_port_edges(priv::port_output);
+
+  process::_init();
 }
 
 void

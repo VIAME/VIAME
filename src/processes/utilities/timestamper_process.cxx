@@ -121,6 +121,8 @@ timestamper_process
   }
 
   d->output_stamp = heartbeat_stamp();
+
+  process::_init();
 }
 
 void

@@ -145,6 +145,8 @@ crop_image_process
   }
 
   /// \todo Check crop dimensions.
+
+  process::_init();
 }
 
 void

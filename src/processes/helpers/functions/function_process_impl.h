@@ -547,6 +547,8 @@ CLASS_NAME(name)                                                      \
   conf(GRAB_CONFIG_VALUE, LINES)                                      \
                                                                       \
   d.reset(new priv(conf(CONF_ARGS, ARGS)));                           \
+                                                                      \
+  process::_init();                                                   \
 }                                                                     \
                                                                       \
 void                                                                  \

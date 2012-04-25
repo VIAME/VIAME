@@ -112,6 +112,8 @@ warp_image_process
 
     throw invalid_configuration_exception(name(), reason);
   }
+
+  process::_init();
 }
 
 void

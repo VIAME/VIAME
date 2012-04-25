@@ -144,6 +144,8 @@ distribute_process
 
     info.cur_port = ports.begin();
   }
+
+  process::_init();
 }
 
 void
@@ -204,6 +206,8 @@ distribute_process
   {
     mark_process_as_complete();
   }
+
+  process::_step();
 }
 
 process::constraints_t
