@@ -30,9 +30,7 @@ target_link_libraries(processes_image
   vistk_pipeline
   video_helper
   image_helper
-  vidl
   vgl
   vgl_algo
-  vil
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
