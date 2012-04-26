@@ -10,7 +10,6 @@
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/process_exception.h>
-#include <vistk/pipeline/stamp.h>
 
 #include <vistk/utilities/timestamp.h>
 
@@ -39,17 +38,12 @@ class timestamper_process::priv
     timestamp::time_t time;
     frame_rate_t const time_diff;
 
-    bool has_color;
-
-    stamp_t output_stamp;
-
     static config::key_t const config_start_frame;
     static config::key_t const config_start_time;
     static config::key_t const config_frame_rate;
     static config::value_t const default_start_frame;
     static config::value_t const default_start_time;
     static config::value_t const default_frame_rate;
-    static port_t const port_color;
     static port_t const port_output;
 };
 
@@ -59,7 +53,6 @@ config::key_t const timestamper_process::priv::config_frame_rate = config::key_t
 config::value_t const timestamper_process::priv::default_start_frame = config::value_t("0");
 config::value_t const timestamper_process::priv::default_start_time = config::value_t("0");
 config::value_t const timestamper_process::priv::default_frame_rate = config::value_t("30");
-process::port_t const timestamper_process::priv::port_color = port_t("color");
 process::port_t const timestamper_process::priv::port_output = port_t("timestamp");
 
 timestamper_process
@@ -80,10 +73,6 @@ timestamper_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_color, boost::make_shared<port_info>(
-    type_none,
-    port_flags_t(),
-    port_description_t("If connected, uses the stamp's color for the output.")));
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
     "timestamp",
     required,
@@ -115,13 +104,6 @@ timestamper_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  if (input_port_edge(priv::port_color))
-  {
-    d->has_color = true;
-  }
-
-  d->output_stamp = heartbeat_stamp();
-
   process::_init();
 }
 
@@ -135,40 +117,7 @@ timestamper_process
 
   d->time += d->time_diff;
 
-  d->output_stamp = stamp::incremented_stamp(d->output_stamp);
-
-  if (d->has_color)
-  {
-    edge_datum_t const color_dat = grab_from_port(priv::port_color);
-
-    switch (color_dat.get<0>()->type())
-    {
-      case datum::complete:
-        mark_process_as_complete();
-        dat = datum::complete_datum();
-      case datum::data:
-      case datum::empty:
-        break;
-      case datum::error:
-      {
-        static datum::error_t const err_string = datum::error_t("Error on the color edge.");
-
-        dat = datum::error_datum(err_string);
-      }
-      case datum::invalid:
-      default:
-      {
-        static datum::error_t const err_string = datum::error_t("Unrecognized datum type on the color edge.");
-
-        dat = datum::error_datum(err_string);
-      }
-    }
-
-  }
-
-  edge_datum_t const edat = edge_datum_t(dat, d->output_stamp);
-
-  push_to_port(priv::port_output, edat);
+  push_datum_to_port(priv::port_output, dat);
 
   process::_step();
 }
@@ -178,7 +127,6 @@ timestamper_process::priv
   : frame(start_frame)
   , time(start_time)
   , time_diff(1.0 / rate)
-  , has_color(false)
 {
 }
 

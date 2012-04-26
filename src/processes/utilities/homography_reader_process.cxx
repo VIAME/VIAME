@@ -13,7 +13,6 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
-#include <vistk/pipeline/stamp.h>
 
 #include <boost/make_shared.hpp>
 
@@ -42,17 +41,11 @@ class homography_reader_process::priv
 
     std::ifstream fin;
 
-    bool has_color;
-
-    stamp_t output_stamp;
-
     static config::key_t const config_path;
-    static port_t const port_color;
     static port_t const port_output;
 };
 
 config::key_t const homography_reader_process::priv::config_path = config::key_t("input");
-process::port_t const homography_reader_process::priv::port_color = process::port_t("color");
 process::port_t const homography_reader_process::priv::port_output = process::port_t("homography");
 
 homography_reader_process
@@ -67,10 +60,6 @@ homography_reader_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_color, boost::make_shared<port_info>(
-    type_none,
-    port_flags_t(),
-    port_description_t("If connected, uses the stamp's color for the output.")));
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
     "transform",
     required,
@@ -112,13 +101,6 @@ homography_reader_process
 
     throw invalid_configuration_exception(name(), reason);
   }
-
-  if (input_port_edge(priv::port_color))
-  {
-    d->has_color = true;
-  }
-
-  d->output_stamp = heartbeat_stamp();
 
   process::_init();
 }
@@ -174,46 +156,13 @@ homography_reader_process
     dat = datum::error_datum(err_string);
   }
 
-  d->output_stamp = stamp::incremented_stamp(d->output_stamp);
-
-  if (d->has_color)
-  {
-    edge_datum_t const color_dat = grab_from_port(priv::port_color);
-
-    switch (color_dat.get<0>()->type())
-    {
-      case datum::complete:
-        complete = true;
-      case datum::data:
-      case datum::empty:
-        break;
-      case datum::error:
-      {
-        static datum::error_t const err_string = datum::error_t("Error on the color edge.");
-
-        dat = datum::error_datum(err_string);
-      }
-      case datum::invalid:
-      default:
-      {
-        static datum::error_t const err_string = datum::error_t("Unrecognized datum type on the color edge.");
-
-        dat = datum::error_datum(err_string);
-      }
-    }
-
-    d->output_stamp = stamp::recolored_stamp(d->output_stamp, color_dat.get<1>());
-  }
-
   if (complete)
   {
     mark_process_as_complete();
     dat = datum::complete_datum();
   }
 
-  edge_datum_t const edat = edge_datum_t(dat, d->output_stamp);
-
-  push_to_port(priv::port_output, edat);
+  push_datum_to_port(priv::port_output, dat);
 
   process::_step();
 }
@@ -222,7 +171,6 @@ homography_reader_process::priv
 ::priv(path_t const& input_path)
   : path(input_path)
   , read_error(false)
-  , has_color(false)
 {
 }
 
