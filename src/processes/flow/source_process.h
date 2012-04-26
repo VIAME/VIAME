@@ -29,13 +29,17 @@ namespace vistk
  *
  * \process A process which provides a consistent stamp color.
  *
+ * \iports
+ *
+ * \iport{src/\portvar{tag}} The input stream for \portvar{tag}.
+ *
  * \oports
  *
- * \oport{color} The consistently colored port.
+ * \oport{out/\portvar{tag}} Recolored output stream for \portvar{tag}.
  *
  * \reqs
  *
- * \req The \port{color} port must be connected.
+ * \req All \port{src/\portvar{tag}} and \port{out/\portvar{tag}} ports must be connected.
  */
 class VISTK_PROCESSES_FLOW_NO_EXPORT source_process
   : public process
@@ -61,6 +65,15 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT source_process
      * \brief Ignores data on the incoming edge.
      */
     void _step();
+
+    /**
+     * \brief Subclass input port information.
+     *
+     * \param port The port to get information about.
+     *
+     * \returns Information about an input port.
+     */
+    port_info_t _input_port_info(port_t const& port);
   private:
     class priv;
     boost::scoped_ptr<priv> d;
