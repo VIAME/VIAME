@@ -40,12 +40,7 @@ def make_source(conf):
 
             self.declare_configuration_key(self.conf_end, info)
 
-            self.port_color = 'color'
             self.port_output = 'number'
-
-            info = process.PortInfo(self.type_none, process.PortFlags(), 'color port')
-
-            self.declare_input_port(self.port_color, info)
 
             required = process.PortFlags()
             required.add(self.flag_required)
@@ -55,55 +50,26 @@ def make_source(conf):
 
         def _init(self):
             from vistk.pipeline import edge
-            from vistk.pipeline import stamp
 
             self.counter = int(self.config_value(self.conf_start))
             self.end = int(self.config_value(self.conf_end))
-
-            self.has_color = False
-            if self.input_port_edge(self.port_color):
-                self.has_color = True
-
-            self.stamp = self.heartbeat_stamp()
 
             self._base_init()
 
         def _step(self):
             from vistk.pipeline import datum
             from vistk.pipeline import edge
-            from vistk.pipeline import stamp
 
             complete = False
 
             if self.counter >= self.end:
-                complete = True
+                self.mark_process_as_complete()
+                dat = datum.complete()
             else:
                 dat = datum.new(self.counter)
                 self.counter += 1
 
-            if self.has_color:
-                color_dat = self.grab_from_port(self.port_color)
-
-                color_status = color_dat.datum.type()
-
-                if color_status == datum.DatumType.complete:
-                    complete = True
-                elif color_status == datum.DatumType.error:
-                    dat = datum.error('Error on the color edge.')
-                elif color_status == datum.DatumType.invalid:
-                    dat = datum.error('Invalid status on the color edge.')
-
-                self.stamp = stamp.recolored_stamp(self.stamp, color_dat.stamp)
-
-            if complete:
-                self.mark_process_as_complete()
-                dat = datum.complete()
-
-            edat = edge.EdgeDatum(dat, self.stamp)
-
-            self.push_to_port(self.port_output, edat)
-
-            self.stamp = stamp.incremented_stamp(self.stamp)
+            self.push_datum_to_port(self.port_output, dat)
 
             self._base_step()
 
@@ -346,8 +312,11 @@ def test_python_via_cpp(sched_type):
     name_mult = 'mult'
     name_sink = 'sink'
 
-    port_color = 'color'
     port_output = 'number'
+    port_input1 = 'src/1'
+    port_input2 = 'src/2'
+    port_output1 = 'out/1'
+    port_output2 = 'out/2'
     port_factor1 = 'factor1'
     port_factor2 = 'factor2'
     port_product = 'product'
@@ -402,13 +371,14 @@ def test_python_via_cpp(sched_type):
     p.add_process(m)
     p.add_process(t)
 
-    p.connect(name_source, port_color,
-              name_source1, port_color)
-    p.connect(name_source, port_color,
-              name_source2, port_color)
     p.connect(name_source1, port_output,
-              name_mult, port_factor1)
+              name_source, port_input1)
     p.connect(name_source2, port_output,
+              name_source, port_input2)
+
+    p.connect(name_source, port_output1,
+              name_mult, port_factor1)
+    p.connect(name_source, port_output2,
               name_mult, port_factor2)
     p.connect(name_mult, port_product,
               name_sink, port_input)
