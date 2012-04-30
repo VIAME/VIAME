@@ -90,7 +90,7 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT collate_process
      *
      * \param port The port to get information about.
      *
-     * \returns Information about an output port.
+     * \returns Information about an input port.
      */
     port_info_t _input_port_info(port_t const& port);
   private:

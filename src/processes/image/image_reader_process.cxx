@@ -14,7 +14,6 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
-#include <vistk/pipeline/stamp.h>
 
 #include <boost/make_shared.hpp>
 
@@ -42,10 +41,6 @@ class image_reader_process::priv
 
     std::ifstream fin;
 
-    bool has_color;
-
-    stamp_t output_stamp;
-
     static config::key_t const config_pixtype;
     static config::key_t const config_pixfmt;
     static config::key_t const config_path;
@@ -53,7 +48,6 @@ class image_reader_process::priv
     static config::value_t const default_pixtype;
     static config::value_t const default_pixfmt;
     static config::value_t const default_verify;
-    static port_t const port_color;
     static port_t const port_output;
 };
 
@@ -64,7 +58,6 @@ config::key_t const image_reader_process::priv::config_verify = config::key_t("v
 config::value_t const image_reader_process::priv::default_pixtype = config::value_t(pixtypes::pixtype_byte());
 config::value_t const image_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const image_reader_process::priv::default_verify = config::value_t("false");
-process::port_t const image_reader_process::priv::port_color = process::port_t("color");
 process::port_t const image_reader_process::priv::port_output = process::port_t("image");
 
 image_reader_process
@@ -93,10 +86,6 @@ image_reader_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_color, boost::make_shared<port_info>(
-    type_none,
-    port_flags_t(),
-    port_description_t("If connected, uses the stamp's color for the output.")));
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
     port_type_output,
     required,
@@ -178,13 +167,6 @@ image_reader_process
     d->fin.seekg(0, std::ios::beg);
   }
 
-  if (input_port_edge(priv::port_color))
-  {
-    d->has_color = true;
-  }
-
-  d->output_stamp = heartbeat_stamp();
-
   process::_init();
 }
 
@@ -193,11 +175,11 @@ image_reader_process
 ::_step()
 {
   datum_t dat;
-  bool complete = false;
 
   if (d->fin.eof())
   {
-    complete = true;
+    mark_process_as_complete();
+    dat = datum::complete_datum();
   }
   else if (!d->fin.good())
   {
@@ -221,46 +203,7 @@ image_reader_process
     }
   }
 
-  d->output_stamp = stamp::incremented_stamp(d->output_stamp);
-
-  if (d->has_color)
-  {
-    edge_datum_t const color_dat = grab_from_port(priv::port_color);
-
-    switch (color_dat.get<0>()->type())
-    {
-      case datum::complete:
-        complete = true;
-      case datum::data:
-      case datum::empty:
-        break;
-      case datum::error:
-      {
-        static datum::error_t const err_string = datum::error_t("Error on the color edge.");
-
-        dat = datum::error_datum(err_string);
-      }
-      case datum::invalid:
-      default:
-      {
-        static datum::error_t const err_string = datum::error_t("Unrecognized datum type on the color edge.");
-
-        dat = datum::error_datum(err_string);
-      }
-    }
-
-    d->output_stamp = stamp::recolored_stamp(d->output_stamp, color_dat.get<1>());
-  }
-
-  if (complete)
-  {
-    mark_process_as_complete();
-    dat = datum::complete_datum();
-  }
-
-  edge_datum_t const edat = edge_datum_t(dat, d->output_stamp);
-
-  push_to_port(priv::port_output, edat);
+  push_datum_to_port(priv::port_output, dat);
 
   process::_step();
 }
@@ -270,7 +213,6 @@ image_reader_process::priv
   : path(input_path)
   , read(func)
   , verify(ver)
-  , has_color(false)
 {
 }
 

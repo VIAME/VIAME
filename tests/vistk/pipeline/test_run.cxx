@@ -187,11 +187,13 @@ void
 test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 {
   vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
+  vistk::process_registry::type_t const proc_types = vistk::process_registry::type_t("source");
   vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
   vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
 
   vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
   vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
+  vistk::process::name_t const proc_names = vistk::process::name_t("source");
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
 
@@ -232,6 +234,7 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
     vistk::process_t const processu1 = create_process(proc_typeu, proc_nameu1, configu1);
     vistk::process_t const processu2 = create_process(proc_typeu, proc_nameu2, configu2);
+    vistk::process_t const processs = create_process(proc_types, proc_names);
     vistk::process_t const processd = create_process(proc_typed, proc_named);
     vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
@@ -239,21 +242,27 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
     pipeline->add_process(processu1);
     pipeline->add_process(processu2);
+    pipeline->add_process(processs);
     pipeline->add_process(processd);
     pipeline->add_process(processt);
 
     vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-    vistk::process::port_t const port_name_color = vistk::process::port_t("color");
+    vistk::process::port_t const port_namesi1 = vistk::process::port_t("src/factor1");
+    vistk::process::port_t const port_namesi2 = vistk::process::port_t("src/factor2");
+    vistk::process::port_t const port_nameso1 = vistk::process::port_t("out/factor1");
+    vistk::process::port_t const port_nameso2 = vistk::process::port_t("out/factor2");
     vistk::process::port_t const port_named1 = vistk::process::port_t("factor1");
     vistk::process::port_t const port_named2 = vistk::process::port_t("factor2");
     vistk::process::port_t const port_namedo = vistk::process::port_t("product");
     vistk::process::port_t const port_namet = vistk::process::port_t("number");
 
-    pipeline->connect(proc_nameu1, vistk::process::port_heartbeat,
-                      proc_nameu2, port_name_color);
     pipeline->connect(proc_nameu1, port_nameu,
-                      proc_named, port_named1);
+                      proc_names, port_namesi1);
     pipeline->connect(proc_nameu2, port_nameu,
+                      proc_names, port_namesi2);
+    pipeline->connect(proc_names, port_nameso1,
+                      proc_named, port_named1);
+    pipeline->connect(proc_names, port_nameso2,
                       proc_named, port_named2);
     pipeline->connect(proc_named, port_namedo,
                       proc_namet, port_namet);
