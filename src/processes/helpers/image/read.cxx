@@ -13,6 +13,8 @@
 #include <vil/vil_image_view.h>
 #include <vil/vil_load.h>
 
+#include <boost/filesystem/operations.hpp>
+
 #include <string>
 
 /**
@@ -40,6 +42,15 @@ datum_t
 read(path_t const& path)
 {
   typedef vil_image_view<PixType> image_t;
+
+  boost::system::error_code ec;
+
+  if (!boost::filesystem::exists(path, ec))
+  {
+    return datum::empty_datum();
+  }
+
+  /// \todo Check ec.
 
   path_t::string_type const fstr = path.native();
   std::string const str(fstr.begin(), fstr.end());
