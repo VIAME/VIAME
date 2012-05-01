@@ -84,6 +84,13 @@ combine_masks_process
     throw invalid_configuration_exception(name(), reason);
   }
 
+  if (!d->tags.size())
+  {
+    static std::string const reason = "There must be at least one mask to combine";
+
+    throw invalid_configuration_exception(name(), reason);
+  }
+
   process::_init();
 }
 
