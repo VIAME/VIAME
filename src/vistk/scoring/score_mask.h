@@ -13,6 +13,8 @@
 
 #include <vil/vil_image_view.h>
 
+#include <boost/cstdint.hpp>
+
 /**
  * \file mask_scoring.h
  *
@@ -23,7 +25,7 @@ namespace vistk
 {
 
 /// A typedef for a mask image.
-typedef vil_image_view<bool> mask_t;
+typedef vil_image_view<uint8_t> mask_t;
 
 /**
  * \brief Scores a computed mask against a truth mask.
