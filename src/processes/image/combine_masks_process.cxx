@@ -99,6 +99,7 @@ combine_masks_process
 ::_step()
 {
   std::vector<datum_t> data;
+  bool complete = false;
 
   datum_t dat;
 
@@ -114,7 +115,7 @@ combine_masks_process
         data.push_back(dat);
         break;
       case datum::complete:
-        mark_process_as_complete();
+        complete = true;
         break;
       case datum::invalid:
       case datum::error:
@@ -130,6 +131,12 @@ combine_masks_process
     }
 
     data.push_back(idat);
+  }
+
+  if (complete)
+  {
+    mark_process_as_complete();
+    dat = datum::complete_datum();
   }
 
   if (!dat)
