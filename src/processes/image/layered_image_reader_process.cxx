@@ -9,6 +9,7 @@
 #include <processes/helpers/image/format.h>
 #include <processes/helpers/image/read.h>
 
+#include <vistk/utilities/timestamp.h>
 #include <vistk/utilities/path.h>
 
 #include <vistk/pipeline/config.h>
@@ -35,7 +36,7 @@ namespace vistk
 class layered_image_reader_process::priv
 {
   public:
-    priv(config::value_t const& fmt, uint64_t offset_, read_func_t func, port_type_t const& port_type);
+    priv(config::value_t const& fmt, read_func_t func, port_type_t const& port_type);
     ~priv();
 
     typedef boost::basic_format<config::value_t::value_type> format_t;
@@ -48,27 +49,24 @@ class layered_image_reader_process::priv
     port_type_t const port_type_output;
 
     layers_t layers;
-    uint64_t frame;
 
     static config::key_t const config_pixtype;
     static config::key_t const config_pixfmt;
     static config::key_t const config_format;
-    static config::key_t const config_offset;
     static config::value_t const default_pixtype;
     static config::value_t const default_pixfmt;
     static config::value_t const default_format;
-    static config::value_t const default_offset;
+    static port_t const port_timestamp;
     static port_t const port_image_prefix;
 };
 
 config::key_t const layered_image_reader_process::priv::config_pixtype = config::key_t("pixtype");
 config::key_t const layered_image_reader_process::priv::config_pixfmt = config::key_t("pixfmt");
 config::key_t const layered_image_reader_process::priv::config_format = config::key_t("format");
-config::key_t const layered_image_reader_process::priv::config_offset = config::key_t("offset");
 config::value_t const layered_image_reader_process::priv::default_pixtype = config::value_t(pixtypes::pixtype_byte());
 config::value_t const layered_image_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const layered_image_reader_process::priv::default_format = config::value_t("image-%1%-%2%.png");
-config::value_t const layered_image_reader_process::priv::default_offset = config::value_t("0");
+process::port_t const layered_image_reader_process::priv::port_timestamp = process::port_t("timestamp");
 process::port_t const layered_image_reader_process::priv::port_image_prefix = process::port_t("image/");
 
 layered_image_reader_process
@@ -86,9 +84,15 @@ layered_image_reader_process
   declare_configuration_key(priv::config_format, boost::make_shared<conf_info>(
     priv::default_format,
     config::description_t("The format string for the input layers.")));
-  declare_configuration_key(priv::config_offset, boost::make_shared<conf_info>(
-    priv::default_offset,
-    config::description_t("The frame number to start reading.")));
+
+  port_flags_t required;
+
+  required.insert(flag_required);
+
+  declare_input_port(priv::port_timestamp, boost::make_shared<port_info>(
+    "timestamp",
+    required,
+    port_description_t("The timestamp to use when reading masks.")));
 }
 
 layered_image_reader_process
@@ -105,12 +109,11 @@ layered_image_reader_process
     pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
     pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
     config::value_t const format = config_value<config::value_t>(priv::config_format);
-    uint64_t const offset = config_value<uint64_t>(priv::config_offset);
 
     port_type_t const port_type = port_type_for_pixtype(pixtype, pixfmt);
     read_func_t const func = read_for_pixtype(pixtype);
 
-    d.reset(new priv(format, offset, func, port_type));
+    d.reset(new priv(format, func, port_type));
   }
 
   if (!d->read)
@@ -128,6 +131,8 @@ void
 layered_image_reader_process
 ::_step()
 {
+  timestamp const ts = grab_from_port_as<timestamp>(priv::port_timestamp);
+
   BOOST_FOREACH (priv::layer_t const& layer, d->layers)
   {
     d->format.clear();
@@ -135,7 +140,7 @@ layered_image_reader_process
     try
     {
       d->format % layer;
-      d->format % d->frame;
+      d->format % ts.frame();
     }
     catch (boost::io::format_error&)
     {
@@ -147,8 +152,6 @@ layered_image_reader_process
 
     push_datum_to_port(priv::port_image_prefix + layer, dat);
   }
-
-  ++d->frame;
 
   process::_step();
 }
@@ -182,11 +185,10 @@ layered_image_reader_process
 }
 
 layered_image_reader_process::priv
-::priv(config::value_t const& fmt, uint64_t offset_, read_func_t func, port_type_t const& port_type)
+::priv(config::value_t const& fmt, read_func_t func, port_type_t const& port_type)
   : format(fmt)
   , read(func)
   , port_type_output(port_type)
-  , frame(offset_)
 {
 }
 
