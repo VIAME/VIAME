@@ -112,7 +112,7 @@ combine_masks_process
       case datum::data:
         /// \todo Check image sizes.
 
-        data.push_back(dat);
+        data.push_back(idat);
         break;
       case datum::complete:
         complete = true;
@@ -129,8 +129,6 @@ combine_masks_process
       default:
         break;
     }
-
-    data.push_back(idat);
   }
 
   if (complete)
