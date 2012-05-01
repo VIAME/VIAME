@@ -129,7 +129,7 @@ timestamper_process
   }
   else
   {
-    timestamp const ts = timestamp(d->frame, d->time);
+    timestamp const ts = timestamp(d->time, d->frame);
 
     ++d->frame;
     d->time += d->time_diff;
