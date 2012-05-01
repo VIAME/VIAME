@@ -55,6 +55,8 @@ combine_masks_process
   : process(config)
   , d(new priv)
 {
+  ensure_inputs_are_valid(false);
+
   port_flags_t required;
 
   required.insert(flag_required);
@@ -91,14 +93,42 @@ combine_masks_process
 {
   std::vector<datum_t> data;
 
+  datum_t dat;
+
   BOOST_FOREACH (priv::tag_t const& tag, d->tags)
   {
-    data.push_back(grab_datum_from_port(priv::port_mask_prefix + tag));
+    datum_t const idat = grab_datum_from_port(priv::port_mask_prefix + tag);
 
-    /// \todo Check image sizes.
+    switch (idat->type())
+    {
+      case datum::data:
+        /// \todo Check image sizes.
+
+        data.push_back(dat);
+        break;
+      case datum::complete:
+        mark_process_as_complete();
+        break;
+      case datum::invalid:
+      case datum::error:
+      {
+        datum::error_t const err_string = datum::error_t("Error on input tag \'" + tag + "\'");
+
+        dat = datum::error_datum(err_string);
+        break;
+      }
+      case datum::empty:
+      default:
+        break;
+    }
+
+    data.push_back(idat);
   }
 
-  datum_t const dat = std::accumulate(data.begin(), data.end(), datum_t(), d->combine);
+  if (!dat)
+  {
+    dat = std::accumulate(data.begin(), data.end(), datum_t(), d->combine);
+  }
 
   push_datum_to_port(priv::port_mask, dat);
 
