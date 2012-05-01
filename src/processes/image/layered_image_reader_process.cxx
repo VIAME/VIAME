@@ -35,7 +35,7 @@ namespace vistk
 class layered_image_reader_process::priv
 {
   public:
-    priv(config::value_t const& fmt, read_func_t func, port_type_t const& port_type);
+    priv(config::value_t const& fmt, uint64_t offset_, read_func_t func, port_type_t const& port_type);
     ~priv();
 
     typedef boost::basic_format<config::value_t::value_type> format_t;
@@ -53,24 +53,30 @@ class layered_image_reader_process::priv
     static config::key_t const config_pixtype;
     static config::key_t const config_pixfmt;
     static config::key_t const config_format;
+    static config::key_t const config_offset;
     static config::value_t const default_pixtype;
     static config::value_t const default_pixfmt;
     static config::value_t const default_format;
+    static config::value_t const default_offset;
     static port_t const port_image_prefix;
 };
 
 config::key_t const layered_image_reader_process::priv::config_pixtype = config::key_t("pixtype");
 config::key_t const layered_image_reader_process::priv::config_pixfmt = config::key_t("pixfmt");
 config::key_t const layered_image_reader_process::priv::config_format = config::key_t("format");
+config::key_t const layered_image_reader_process::priv::config_offset = config::key_t("offset");
 config::value_t const layered_image_reader_process::priv::default_pixtype = config::value_t(pixtypes::pixtype_byte());
 config::value_t const layered_image_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const layered_image_reader_process::priv::default_format = config::value_t("image-%1%-%2%.png");
+config::value_t const layered_image_reader_process::priv::default_offset = config::value_t("0");
 process::port_t const layered_image_reader_process::priv::port_image_prefix = process::port_t("image/");
 
 layered_image_reader_process
 ::layered_image_reader_process(config_t const& config)
   : process(config)
 {
+  /// \todo There should probably be timestamp input rather than manually keeping track of the frame.
+
   declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
     priv::default_pixtype,
     config::description_t("The pixel type of the input images.")));
@@ -80,6 +86,9 @@ layered_image_reader_process
   declare_configuration_key(priv::config_format, boost::make_shared<conf_info>(
     priv::default_format,
     config::description_t("The format string for the input layers.")));
+  declare_configuration_key(priv::config_offset, boost::make_shared<conf_info>(
+    priv::default_offset,
+    config::description_t("The frame number to start reading.")));
 }
 
 layered_image_reader_process
@@ -96,11 +105,12 @@ layered_image_reader_process
     pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
     pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
     config::value_t const format = config_value<config::value_t>(priv::config_format);
+    uint64_t const offset = config_value<uint64_t>(priv::config_offset);
 
     port_type_t const port_type = port_type_for_pixtype(pixtype, pixfmt);
     read_func_t const func = read_for_pixtype(pixtype);
 
-    d.reset(new priv(format, func, port_type));
+    d.reset(new priv(format, offset, func, port_type));
   }
 
   if (!d->read)
@@ -172,11 +182,11 @@ layered_image_reader_process
 }
 
 layered_image_reader_process::priv
-::priv(config::value_t const& fmt, read_func_t func, port_type_t const& port_type)
+::priv(config::value_t const& fmt, uint64_t offset_, read_func_t func, port_type_t const& port_type)
   : format(fmt)
   , read(func)
   , port_type_output(port_type)
-  , frame(0)
+  , frame(offset_)
 {
 }
 
