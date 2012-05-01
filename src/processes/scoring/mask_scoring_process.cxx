@@ -47,7 +47,7 @@ mask_scoring_process
 
   required.insert(flag_required);
 
-  port_type_t const mask_port_type = port_type_for_pixtype(pixtypes::pixtype_bool(), pixfmts::pixfmt_mask());
+  port_type_t const mask_port_type = port_type_for_pixtype(pixtypes::pixtype_byte(), pixfmts::pixfmt_mask());
 
   declare_input_port(priv::port_computed_mask, boost::make_shared<port_info>(
     mask_port_type,
