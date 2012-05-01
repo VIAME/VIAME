@@ -55,6 +55,10 @@ score_aggregation_process
   // We only calculate on 'complete' datum.
   ensure_inputs_are_valid(false);
 
+  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+    priv::default_path,
+    config::description_t("The file to write the results to.")));
+
   port_flags_t required;
 
   required.insert(flag_required);
