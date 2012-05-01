@@ -36,13 +36,14 @@ namespace vistk
 class layered_image_reader_process::priv
 {
   public:
-    priv(config::value_t const& fmt, read_func_t func, port_type_t const& port_type);
+    typedef port_t layer_t;
+    typedef std::vector<layer_t> layers_t;
+
+    priv(port_type_t const& port_type);
+    priv(config::value_t const& fmt, read_func_t func, port_type_t const& port_type, layers_t const& layers_);
     ~priv();
 
     typedef boost::basic_format<config::value_t::value_type> format_t;
-
-    typedef port_t layer_t;
-    typedef std::vector<layer_t> layers_t;
 
     format_t format;
     read_func_t const read;
@@ -85,6 +86,13 @@ layered_image_reader_process
     priv::default_format,
     config::description_t("The format string for the input layers.")));
 
+  pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
+  pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
+
+  port_type_t const port_type = port_type_for_pixtype(pixtype, pixfmt);
+
+  d.reset(new priv(port_type));
+
   port_flags_t required;
 
   required.insert(flag_required);
@@ -107,13 +115,11 @@ layered_image_reader_process
   // Configure the process.
   {
     pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
-    pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
     config::value_t const format = config_value<config::value_t>(priv::config_format);
 
-    port_type_t const port_type = port_type_for_pixtype(pixtype, pixfmt);
     read_func_t const func = read_for_pixtype(pixtype);
 
-    d.reset(new priv(format, func, port_type));
+    d.reset(new priv(format, func, d->port_type_output, d->layers));
   }
 
   if (!d->read)
@@ -185,10 +191,17 @@ layered_image_reader_process
 }
 
 layered_image_reader_process::priv
-::priv(config::value_t const& fmt, read_func_t func, port_type_t const& port_type)
+::priv(port_type_t const& port_type)
+  : port_type_output(port_type)
+{
+}
+
+layered_image_reader_process::priv
+::priv(config::value_t const& fmt, read_func_t func, port_type_t const& port_type, layers_t const& layers_)
   : format(fmt)
   , read(func)
   , port_type_output(port_type)
+  , layers(layers_)
 {
 }
 
