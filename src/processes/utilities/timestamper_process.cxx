@@ -31,28 +31,33 @@ class timestamper_process::priv
   public:
     typedef double frame_rate_t;
 
-    priv(timestamp::frame_t start_frame, timestamp::time_t start_time, frame_rate_t rate);
+    priv(timestamp::frame_t start_frame, timestamp::time_t start_time, timestamp::frame_t end_frame, frame_rate_t rate);
     ~priv();
 
     timestamp::frame_t frame;
     timestamp::time_t time;
+    timestamp::frame_t const end;
     frame_rate_t const time_diff;
 
     static config::key_t const config_start_frame;
     static config::key_t const config_start_time;
     static config::key_t const config_frame_rate;
+    static config::key_t const config_end_frame;
     static config::value_t const default_start_frame;
     static config::value_t const default_start_time;
     static config::value_t const default_frame_rate;
+    static config::value_t const default_end_frame;
     static port_t const port_output;
 };
 
 config::key_t const timestamper_process::priv::config_start_frame = config::key_t("start_frame");
 config::key_t const timestamper_process::priv::config_start_time = config::key_t("start_time");
 config::key_t const timestamper_process::priv::config_frame_rate = config::key_t("frame_rate");
+config::key_t const timestamper_process::priv::config_end_frame = config::key_t("end_frame");
 config::value_t const timestamper_process::priv::default_start_frame = config::value_t("0");
 config::value_t const timestamper_process::priv::default_start_time = config::value_t("0");
 config::value_t const timestamper_process::priv::default_frame_rate = config::value_t("30");
+config::value_t const timestamper_process::priv::default_end_frame = config::value_t("0");
 process::port_t const timestamper_process::priv::port_output = port_t("timestamp");
 
 timestamper_process
@@ -67,6 +72,9 @@ timestamper_process
     config::description_t("")));
   declare_configuration_key(priv::config_frame_rate, boost::make_shared<conf_info>(
     priv::default_frame_rate,
+    config::description_t("")));
+  declare_configuration_key(priv::config_end_frame, boost::make_shared<conf_info>(
+    priv::default_end_frame,
     config::description_t("")));
 
   port_flags_t required;
@@ -93,8 +101,9 @@ timestamper_process
     timestamp::frame_t const start_frame = config_value<timestamp::frame_t>(priv::config_start_frame);
     timestamp::time_t const start_time = config_value<timestamp::time_t>(priv::config_start_time);
     priv::frame_rate_t const rate = config_value<priv::frame_rate_t>(priv::config_frame_rate);
+    timestamp::frame_t const end_frame = config_value<timestamp::frame_t>(priv::config_end_frame);
 
-    d.reset(new priv(start_frame, start_time, rate));
+    d.reset(new priv(start_frame, start_time, end_frame, rate));
   }
 
   if (d->time < 0)
@@ -113,9 +122,20 @@ timestamper_process
 {
   datum_t dat;
 
-  timestamp ts = timestamp(d->frame, d->time);
+  if (d->frame > d->end)
+  {
+    dat = datum::complete_datum();
+    mark_process_as_complete();
+  }
+  else
+  {
+    timestamp const ts = timestamp(d->frame, d->time);
 
-  d->time += d->time_diff;
+    ++d->frame;
+    d->time += d->time_diff;
+
+    dat = datum::new_datum(ts);
+  }
 
   push_datum_to_port(priv::port_output, dat);
 
@@ -123,9 +143,10 @@ timestamper_process
 }
 
 timestamper_process::priv
-::priv(timestamp::frame_t start_frame, timestamp::time_t start_time, frame_rate_t rate)
+::priv(timestamp::frame_t start_frame, timestamp::time_t start_time, timestamp::frame_t end_frame, frame_rate_t rate)
   : frame(start_frame)
   , time(start_time)
+  , end(end_frame)
   , time_diff(1.0 / rate)
 {
 }
