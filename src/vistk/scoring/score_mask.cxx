@@ -34,17 +34,23 @@ score_mask(mask_t const& truth_mask, mask_t const& computed_mask)
 
   typedef mask_t::pixel_type pixel_t;
 
-  pixel_t const* tp = truth_mask.top_left_ptr();
-  pixel_t const* cp = computed_mask.top_left_ptr();
+  pixel_t const* to = truth_mask.top_left_ptr();
+  pixel_t const* co = computed_mask.top_left_ptr();
 
   scoring_result::count_t hit = 0;
   scoring_result::count_t miss = 0;
   scoring_result::count_t truth = 0;
 
-  for (size_t i = 0; i < ni; ++i, tp += tsi, cp += csi)
+  for (size_t i = 0; i < ni; ++i, to += tsi, co += csi)
   {
-    for (size_t j = 0; j < nj; ++j, tp += tsj, cp += csj)
+    pixel_t const* tr = to;
+    pixel_t const* cr = co;
+
+    for (size_t j = 0; j < nj; ++j, tr += tsj, cr += csj)
     {
+      pixel_t const* tp = tr;
+      pixel_t const* cp = cr;
+
       for (size_t p = 0; p < np; ++p, tp += tsp, cp += csp)
       {
         pixel_t const& t = *tp;
