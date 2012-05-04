@@ -10,6 +10,7 @@
 #include "timestamp_reader_process.h"
 #include "timestamper_process.h"
 
+#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_registry.h>
 
 /**
@@ -19,6 +20,8 @@
  */
 
 using namespace vistk;
+
+static process_t create_timestamp_source(config_t const& config);
 
 void
 register_processes()
@@ -34,7 +37,32 @@ register_processes()
 
   registry->register_process("homography_reader", "A process which reads homographies from a file", create_process<homography_reader_process>);
   registry->register_process("timestamp_reader", "A process which reads timestamps from a file", create_process<timestamp_reader_process>);
+  registry->register_process("timestamp_source", "A process which acts as a source of timestamps", create_timestamp_source);
   registry->register_process("timestamper", "A process which generates timestamps", create_process<timestamper_process>);
 
   registry->mark_module_as_loaded(module_name);
+}
+
+process_t
+create_timestamp_source(config_t const& config)
+{
+  static config::key_t const type_key = config::key_t("type");
+  static config::value_t const file_type = config::value_t("list");
+  static config::value_t const generate_type = config::value_t("generate");
+  static config::value_t const& default_type = file_type;
+
+  config::value_t const type_value = config->get_value<config::value_t>(type_key, default_type);
+
+  if (type_value == file_type)
+  {
+    return create_process<timestamp_reader_process>(config);
+  }
+  else if (type_value == generate_type)
+  {
+    return create_process<timestamper_process>(config);
+  }
+
+  /// \todo Throw an exception.
+
+  return process_t();
 }
