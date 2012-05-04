@@ -29,10 +29,6 @@ namespace vistk
  *
  * \process A process which reads layered image files.
  *
- * \iports
- *
- * \iport{color} The color of the result output types.
- *
  * \oports
  *
  * \oport{image/\portvar{layer}} The image layer named \portvar{tag}.

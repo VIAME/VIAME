@@ -29,10 +29,6 @@ namespace vistk
  *
  * \process A process for reading homographies from a file.
  *
- * \iports
- *
- * \iport{color} The color to use for the output stamps.
- *
  * \oports
  *
  * \oport{homography} The homography read from the file.

@@ -29,10 +29,6 @@ namespace vistk
  *
  * \process A process for generating timestamps.
  *
- * \iports
- *
- * \iport{color} The color to use for the output stamps.
- *
  * \oports
  *
  * \oport{timestamp} The timestamp read from the file.
