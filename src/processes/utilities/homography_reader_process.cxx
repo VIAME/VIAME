@@ -37,7 +37,6 @@ class homography_reader_process::priv
     ~priv();
 
     path_t const path;
-    bool read_error;
 
     std::ifstream fin;
 
@@ -110,6 +109,7 @@ homography_reader_process
 ::_step()
 {
   datum_t dat;
+  bool read_error = false;
   bool complete = false;
 
   if (d->fin.eof())
@@ -134,7 +134,7 @@ homography_reader_process
 
       if (!istr)
       {
-        d->read_error = true;
+        read_error = true;
         break;
       }
 
@@ -149,7 +149,7 @@ homography_reader_process
     dat = datum::new_datum(mat);
   }
 
-  if (d->read_error)
+  if (read_error)
   {
     static datum::error_t const err_string = datum::error_t("Error reading from the input file.");
 
@@ -170,7 +170,6 @@ homography_reader_process
 homography_reader_process::priv
 ::priv(path_t const& input_path)
   : path(input_path)
-  , read_error(false)
 {
 }
 
