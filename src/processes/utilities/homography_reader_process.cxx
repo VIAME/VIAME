@@ -128,19 +128,19 @@ homography_reader_process
 
     matrix_t read_mat;
 
-    for (size_t i = 0; i < 9; ++i)
+    for (size_t i = 0; !read_error && (i < 9); ++i)
     {
       std::istream const& istr = d->fin >> read_mat(i / 3, i % 3);
 
       if (!istr)
       {
         read_error = true;
-        break;
       }
 
       if (d->fin.eof())
       {
         complete = true;
+        break;
       }
     }
 
