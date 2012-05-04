@@ -15,7 +15,6 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
-#include <vistk/pipeline/stamp.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
