@@ -51,7 +51,7 @@ class VISTK_UTILITIES_EXPORT timestamp
      *
      * \param t The time of the frame.
      */
-    timestamp(time_t t);
+    explicit timestamp(time_t t);
     /**
      * \brief Constructor.
      *
@@ -59,7 +59,7 @@ class VISTK_UTILITIES_EXPORT timestamp
      *
      * \param f The frame number.
      */
-    timestamp(frame_t f);
+    explicit timestamp(frame_t f);
     /**
      * \brief Constructor.
      *
