@@ -2,14 +2,12 @@ config mask_scoring
   :input       image_list.txt
   :truth_input video.mask.%2$04d.%1%.png
   :output      output.txt
-  :start       0
-  :end         100
+  :ts_source   file
   :verify      true
 
 process timestamp
-  :: timestamper
-  :start_frame[ro]{CONF} mask_scoring:start
-  :end_frame[ro]{CONF} mask_scoring:end
+  :: timestamp_source
+  :type[ro]{CONF} mask_scoring:ts_source
 
 process truth_reader
   :: layered_image_reader
