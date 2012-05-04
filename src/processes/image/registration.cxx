@@ -15,6 +15,7 @@
 #include "video_reader_process.h"
 #include "warp_image_process.h"
 
+#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_registry.h>
 
 /**
