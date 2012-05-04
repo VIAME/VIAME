@@ -7,6 +7,7 @@
 #include "registration.h"
 
 #include "homography_reader_process.h"
+#include "timestamp_reader_process.h"
 #include "timestamper_process.h"
 
 #include <vistk/pipeline/process_registry.h>
@@ -32,6 +33,7 @@ register_processes()
   }
 
   registry->register_process("homography_reader", "A process which reads homographies from a file", create_process<homography_reader_process>);
+  registry->register_process("timestamp_reader", "A process which reads timestamps from a file", create_process<timestamp_reader_process>);
   registry->register_process("timestamper", "A process which generates timestamps", create_process<timestamper_process>);
 
   registry->mark_module_as_loaded(module_name);
