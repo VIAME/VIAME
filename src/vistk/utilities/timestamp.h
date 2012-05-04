@@ -55,6 +55,14 @@ class VISTK_UTILITIES_EXPORT timestamp
     /**
      * \brief Constructor.
      *
+     * \note The time is invalid.
+     *
+     * \param f The frame number.
+     */
+    timestamp(frame_t f);
+    /**
+     * \brief Constructor.
+     *
      * \param t The time of the frame.
      * \param f The frame number.
      */
