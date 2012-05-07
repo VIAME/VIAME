@@ -90,10 +90,6 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
               "label=\"" << port << "\","
            << style_input_port
            << "];" << std::endl;
-      ostr << "\"" << node_port_name << "\" ["
-              "\"" << group << "\" -> "
-           << style_input_port_edge
-           << "];" << std::endl;
 
       // Connect mapped ports.
       process::port_addrs_t const addrs = pipe->mapped_group_input_ports(group, port);
@@ -121,10 +117,6 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
       ostr << "\"" << node_port_name << "\" ["
               "label=\"" << port << "\","
            << style_output_port
-           << "];" << std::endl;
-      ostr << "\"" << group << "\" -> "
-              "\"" << node_port_name << "\" ["
-           << style_output_port_edge
            << "];" << std::endl;
 
       // Connect mapped port.
