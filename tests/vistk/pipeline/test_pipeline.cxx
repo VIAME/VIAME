@@ -109,6 +109,11 @@ static void test_stop_before_start();
 static void test_start_and_stop();
 static void test_reset_while_running();
 static void test_reset();
+static void test_remove_process();
+static void test_remove_group();
+static void test_disconnect();
+static void test_unmap_input();
+static void test_unmap_output();
 
 void
 run_test(std::string const& test_name)
@@ -344,6 +349,26 @@ run_test(std::string const& test_name)
   else if (test_name == "reset")
   {
     test_reset();
+  }
+  else if (test_name == "remove_process")
+  {
+    test_remove_process();
+  }
+  else if (test_name == "remove_group")
+  {
+    test_remove_group();
+  }
+  else if (test_name == "disconnect")
+  {
+    test_disconnect();
+  }
+  else if (test_name == "unmap_input")
+  {
+    test_unmap_input();
+  }
+  else if (test_name == "unmap_output")
+  {
+    test_unmap_output();
   }
   else
   {
@@ -1839,6 +1864,36 @@ test_reset()
   pipeline->reset();
 
   pipeline->setup_pipeline();
+}
+
+void
+test_remove_process()
+{
+  TEST_ERROR("Unimplemented");
+}
+
+void
+test_remove_group()
+{
+  TEST_ERROR("Unimplemented");
+}
+
+void
+test_disconnect()
+{
+  TEST_ERROR("Unimplemented");
+}
+
+void
+test_unmap_input()
+{
+  TEST_ERROR("Unimplemented");
+}
+
+void
+test_unmap_output()
+{
+  TEST_ERROR("Unimplemented");
 }
 
 vistk::process_t

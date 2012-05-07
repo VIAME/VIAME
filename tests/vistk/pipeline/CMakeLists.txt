@@ -209,6 +209,11 @@ vistk_make_test(pipeline stop_before_start)
 vistk_make_test(pipeline start_and_stop)
 vistk_make_test(pipeline reset_while_running)
 vistk_make_test(pipeline reset)
+vistk_make_test(pipeline remove_process)
+vistk_make_test(pipeline remove_group)
+vistk_make_test(pipeline disconnect)
+vistk_make_test(pipeline unmap_input)
+vistk_make_test(pipeline unmap_output)
 
 ##############################
 # Introspection tests
