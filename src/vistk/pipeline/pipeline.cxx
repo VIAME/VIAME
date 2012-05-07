@@ -1849,7 +1849,7 @@ pipeline::priv
     throw pipeline_not_setup_exception();
   }
 
-  if (!setup_successful)
+  if (!setup_in_progress && !setup_successful)
   {
     throw pipeline_not_ready_exception();
   }
