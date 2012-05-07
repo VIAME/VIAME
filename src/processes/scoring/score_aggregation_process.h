@@ -33,13 +33,13 @@ namespace vistk
  *
  * \iport{score} The score.
  *
- * \configs
+ * \oports
  *
- * \config{path} The path to the file to write resulting scores to.
+ * \oport{aggregate} The aggregate score.
  *
  * \reqs
  *
- * \req The input port \port{score} must be connected.
+ * \req The ports \port{score} and \port{aggregate} must be connected.
  */
 class VISTK_PROCESSES_SCORING_NO_EXPORT score_aggregation_process
   : public process
@@ -56,11 +56,6 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_aggregation_process
      */
     ~score_aggregation_process();
   protected:
-    /**
-     * \brief Configure the subclass.
-     */
-    void _configure();
-
     /**
      * \brief Step the subclass.
      */
