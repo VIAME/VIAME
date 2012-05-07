@@ -768,7 +768,13 @@ void
 process
 ::remove_input_port(port_t const& port)
 {
-  port_info_t const info = input_port_info(port);
+  // Ensure the port exists.
+  priv::port_map_t::const_iterator const p = d->input_ports.find(port);
+
+  if (p == d->input_ports.end())
+  {
+    throw no_such_port_exception(d->name, port);
+  }
 
   // Remove from known ports.
   d->input_ports.erase(port);
@@ -804,7 +810,13 @@ void
 process
 ::remove_output_port(port_t const& port)
 {
-  port_info_t const info = output_port_info(port);
+  // Ensure the port exists.
+  priv::port_map_t::const_iterator const p = d->output_ports.find(port);
+
+  if (p == d->output_ports.end())
+  {
+    throw no_such_port_exception(d->name, port);
+  }
 
   // Remove from known ports.
   d->output_ports.erase(port);
