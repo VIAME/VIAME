@@ -381,15 +381,22 @@ class VISTK_PIPELINE_EXPORT pipeline
 
     /**
      * \brief Resets the pipeline.
+     *
+     * \throws reset_running_pipeline_exception Thrown when the pipeline is running.
      */
     void reset();
 
     /**
      * \brief Notify the pipeline that its execution has started.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      */
     void start();
     /**
      * \brief Notify the pipeline that its execution has ended.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been started yet.
      */
     void stop();
 
@@ -419,6 +426,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find processes that are feeding data directly into a process.
      *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     *
      * \param name The name of the process to lookup.
      *
      * \returns All processes that feed data into \p name.
@@ -426,6 +436,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     processes_t upstream_for_process(process::name_t const& name) const;
     /**
      * \brief Find the process that is sending data directly to a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
@@ -436,6 +449,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find processes that are siphoning data directly from a process.
      *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     *
      * \param name The name of the process to lookup.
      *
      * \returns All processes that receive data from \p name.
@@ -443,6 +459,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     processes_t downstream_for_process(process::name_t const& name) const;
     /**
      * \brief Find processes that are siphoning data directly from a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
@@ -453,6 +472,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find the port that is sending data directly to a port.
      *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
      *
@@ -461,6 +483,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     process::port_addr_t sender_for_port(process::name_t const& name, process::port_t const& port) const;
     /**
      * \brief Find ports that are siphoning data directly from a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
@@ -471,6 +496,9 @@ class VISTK_PIPELINE_EXPORT pipeline
 
     /**
      * \brief Find the edge that represents a connection.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param upstream_name The upstream process name.
      * \param upstream_port The upstream process port.
@@ -487,6 +515,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find edges that are feeding data directly into a process.
      *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     *
      * \param name The name of the process to lookup.
      *
      * \returns All edges that carry data into \p name.
@@ -494,6 +525,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     edges_t input_edges_for_process(process::name_t const& name) const;
     /**
      * \brief Find the edge that is sending data directly to a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
@@ -504,6 +538,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find edges that are siphoning data directly from a process.
      *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     *
      * \param name The name of the process to lookup.
      *
      * \returns All edges that carry data from \p name.
@@ -511,6 +548,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     edges_t output_edges_for_process(process::name_t const& name) const;
     /**
      * \brief Find edges that are siphoning data directly from a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
