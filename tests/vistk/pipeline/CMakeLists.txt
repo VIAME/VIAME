@@ -99,7 +99,7 @@ vistk_build_test(modules libraries test_modules.cxx)
 
 vistk_make_test(modules load)
 vistk_make_test(modules multiple_load)
-set(test_environment "VISTK_MODULE_PATH=\"${CMAKE_CURRENT_BINARY_DIR}\"")
+set(test_environment "VISTK_MODULE_PATH=${CMAKE_CURRENT_BINARY_DIR}")
 vistk_make_test(modules envvar)
 unset(test_environment)
 
