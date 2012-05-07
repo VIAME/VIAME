@@ -55,7 +55,7 @@ class VISTK_PIPELINE_EXPORT null_pipeline_config_exception
 };
 
 /**
- * \class add_process_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class add_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a process or group is added to a pipeline after setup.
  *
