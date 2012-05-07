@@ -797,8 +797,6 @@ process
 
     if (!ports.size())
     {
-      d->input_flow_tag_ports.erase(tag);
-
       d->check_tag(tag);
     }
 
@@ -839,8 +837,6 @@ process
 
     if (!ports.size())
     {
-      d->output_flow_tag_ports.erase(tag);
-
       d->check_tag(tag);
     }
 
@@ -1335,13 +1331,10 @@ void
 process::priv
 ::check_tag(tag_t const& tag)
 {
-  flow_tag_port_map_t::const_iterator const input_i = input_flow_tag_ports.find(tag);
-  flow_tag_port_map_t::const_iterator const output_i = output_flow_tag_ports.find(tag);
+  ports_t const iports = input_flow_tag_ports[tag];
+  ports_t const oports = output_flow_tag_ports[tag];
 
-  bool const have_input = (input_i != input_flow_tag_ports.end());
-  bool const have_output = (output_i != output_flow_tag_ports.end());
-
-  if (!have_input && !have_output)
+  if (!iports.size() && !oports.size())
   {
     flow_tag_port_types.erase(tag);
   }
