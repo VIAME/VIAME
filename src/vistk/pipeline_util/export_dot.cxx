@@ -122,20 +122,20 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
       // Connect mapped port.
       process::port_addr_t const addr = pipe->mapped_group_output_port(group, port);
 
-      if (addr == process::port_addr_t())
+      if (addr != process::port_addr_t())
       {
-        continue;
+        process::name_t const& mapped_name = addr.first;
+        process::port_t const& mapped_port = addr.second;
+
+        std::string const mapped_node_name = mapped_name + node_prefix_output + mapped_port;
+
+        ostr << "\"" << mapped_node_name << "\" -> "
+                "\"" << node_port_name << "\" ["
+             << style_output_port_edge
+             << "];" << std::endl;
       }
 
-      process::name_t const& mapped_name = addr.first;
-      process::port_t const& mapped_port = addr.second;
-
-      std::string const mapped_node_name = mapped_name + node_prefix_output + mapped_port;
-
-      ostr << "\"" << mapped_node_name << "\" -> "
-              "\"" << node_port_name << "\" ["
-           << style_output_port_edge
-           << "];" << std::endl;
+      ostr << std::endl;
     }
 
     ostr << std::endl;
