@@ -206,10 +206,38 @@ run_test(std::string const& test_name)
 
 static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t());
 static vistk::edge_t create_edge();
-static vistk::process_t create_null_config_process(vistk::config_t const& config);
-static vistk::process_t create_null_input_port_info_process(vistk::config_t const& config);
-static vistk::process_t create_null_output_port_info_process(vistk::config_t const& config);
-static vistk::process_t create_null_conf_info_process(vistk::config_t const& config);
+
+class null_config_process
+  : public vistk::process
+{
+  public:
+    null_config_process(vistk::config_t const& config);
+    ~null_config_process();
+};
+
+class null_input_info_process
+  : public vistk::process
+{
+  public:
+    null_input_info_process(vistk::config_t const& config);
+    ~null_input_info_process();
+};
+
+class null_output_info_process
+  : public vistk::process
+{
+  public:
+    null_output_info_process(vistk::config_t const& config);
+    ~null_output_info_process();
+};
+
+class null_conf_info_process
+  : public vistk::process
+{
+  public:
+    null_conf_info_process(vistk::config_t const& config);
+    ~null_conf_info_process();
+};
 
 void
 test_null_input_edge()
@@ -702,7 +730,7 @@ test_null_config()
 
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_config");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_config_process);
+  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_config_process>);
 
   vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
 
@@ -718,7 +746,7 @@ test_null_input_port_info()
 
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_input_port");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_input_port_info_process);
+  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_input_info_process>);
 
   vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
 
@@ -734,7 +762,7 @@ test_null_output_port_info()
 
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_output_port");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_output_port_info_process);
+  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_output_info_process>);
 
   vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
 
@@ -750,7 +778,7 @@ test_null_conf_info()
 
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_conf");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_conf_info_process);
+  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_conf_info_process>);
 
   vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
 
@@ -781,62 +809,6 @@ create_edge()
   vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   return edge;
-}
-
-class null_config_process
-  : public vistk::process
-{
-  public:
-    null_config_process(vistk::config_t const& config);
-    ~null_config_process();
-};
-
-class null_input_info_process
-  : public vistk::process
-{
-  public:
-    null_input_info_process(vistk::config_t const& config);
-    ~null_input_info_process();
-};
-
-class null_output_info_process
-  : public vistk::process
-{
-  public:
-    null_output_info_process(vistk::config_t const& config);
-    ~null_output_info_process();
-};
-
-class null_conf_info_process
-  : public vistk::process
-{
-  public:
-    null_conf_info_process(vistk::config_t const& config);
-    ~null_conf_info_process();
-};
-
-vistk::process_t
-create_null_config_process(vistk::config_t const& config)
-{
-  return boost::make_shared<null_config_process>(config);
-}
-
-vistk::process_t
-create_null_input_port_info_process(vistk::config_t const& config)
-{
-  return boost::make_shared<null_input_info_process>(config);
-}
-
-vistk::process_t
-create_null_output_port_info_process(vistk::config_t const& config)
-{
-  return boost::make_shared<null_output_info_process>(config);
-}
-
-vistk::process_t
-create_null_conf_info_process(vistk::config_t const& config)
-{
-  return boost::make_shared<null_conf_info_process>(config);
 }
 
 null_config_process
