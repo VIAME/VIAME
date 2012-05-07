@@ -760,13 +760,42 @@ test_remove_non_exist_output_port()
 void
 test_remove_only_tagged_flow_dependent_port()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process::port_t const port = vistk::process::port_t("port");
+  vistk::process::port_type_t const flow_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("tag");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
+
+  proc->_remove_input_port(remove_ports_process::input_port);
+  proc->set_output_port_type(remove_ports_process::output_port, type);
+  proc->_remove_output_port(remove_ports_process::output_port);
+  proc->create_input_port(port, flow_type);
+
+  vistk::process::port_info_t const info = proc->input_port_info(port);
+  vistk::process::port_type_t const& new_type = info->type;
+
+  if (new_type != flow_type)
+  {
+    TEST_ERROR("The flow type was not reset after all tagged ports were removed.");
+  }
 }
 
 void
 test_remove_tagged_flow_dependent_port()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process::port_type_t const flow_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("tag");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
+
+  proc->set_output_port_type(remove_ports_process::output_port, type);
+  proc->_remove_output_port(remove_ports_process::output_port);
+
+  vistk::process::port_info_t const info = proc->input_port_info(remove_ports_process::input_port);
+  vistk::process::port_type_t const& new_type = info->type;
+
+  if (new_type != type)
+  {
+    TEST_ERROR("The flow type was reset even when more were left.");
+  }
 }
 
 void
