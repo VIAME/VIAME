@@ -101,8 +101,8 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 
         std::string const mapped_node_name = mapped_name + node_prefix_input + mapped_port;
 
-        ostr << "\"" << node_port_name << "\" ["
-                "\"" << mapped_node_name << "\" -> "
+        ostr << "\"" << node_port_name << "\" -> "
+                "\"" << mapped_node_name << "\" ["
              << style_input_port_edge
              << "];" << std::endl;
       }
