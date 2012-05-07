@@ -60,6 +60,16 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
   process::names_t const proc_names = pipe->process_names();
   process::names_t const groups = pipe->groups();
 
+  ostr << std::endl;
+
+  // Output free processes
+  BOOST_FOREACH (process::name_t const& name, proc_names)
+  {
+    process_t const proc = pipe->process_by_name(name);
+
+    output_process(ostr, proc);
+  }
+
   // Output groups
   BOOST_FOREACH (process::name_t const& group, groups)
   {
@@ -141,14 +151,6 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
     ostr << "}" << std::endl;
 
     ostr << std::endl;
-  }
-
-  // Output free processes
-  BOOST_FOREACH (process::name_t const& name, proc_names)
-  {
-    process_t const proc = pipe->process_by_name(name);
-
-    output_process(ostr, proc);
   }
 
   // Output connections
