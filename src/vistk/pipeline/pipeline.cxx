@@ -526,6 +526,50 @@ pipeline
   return i->second;
 }
 
+process::port_addrs_t
+pipeline
+::connections_from_addr(process::name_t const& name, process::port_t const& port) const
+{
+  process::port_addrs_t addrs;
+
+  BOOST_FOREACH (priv::connection_t const& connection, d->planned_connections)
+  {
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+
+    if ((upstream_name == name) && (upstream_port == port))
+    {
+      addrs.push_back(downstream_addr);
+    }
+  }
+
+  return addrs;
+}
+
+process::port_addr_t
+pipeline
+::connection_to_addr(process::name_t const& name, process::port_t const& port) const
+{
+  BOOST_FOREACH (priv::connection_t const& connection, d->planned_connections)
+  {
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    if ((downstream_name == name) && (downstream_port == port))
+    {
+      return upstream_addr;
+    }
+  }
+
+  return process::port_addr_t();
+}
+
 processes_t
 pipeline
 ::upstream_for_process(process::name_t const& name) const

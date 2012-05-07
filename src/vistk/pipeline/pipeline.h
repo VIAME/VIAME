@@ -424,6 +424,25 @@ class VISTK_PIPELINE_EXPORT pipeline
     process_t process_by_name(process::name_t const& name) const;
 
     /**
+     * \brief Find the ports requested to receive data from a port.
+     *
+     * \param name The name to lookup.
+     * \param port The port to lookup.
+     *
+     * \returns The port address that sends data from \p name's \p port.
+     */
+    process::port_addrs_t connections_from_addr(process::name_t const& name, process::port_t const& port) const;
+    /**
+     * \brief Find the port requested to send data to a port.
+     *
+     * \param name The name to lookup.
+     * \param port The port to lookup.
+     *
+     * \returns All port addresses that receive data from \p name's \p port.
+     */
+    process::port_addr_t connection_to_addr(process::name_t const& name, process::port_t const& port) const;
+
+    /**
      * \brief Find processes that are feeding data directly into a process.
      *
      * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
