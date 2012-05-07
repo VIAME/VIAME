@@ -52,6 +52,7 @@ source_process
   , d(new priv)
 {
   ensure_inputs_are_same_color(false);
+  ensure_inputs_are_valid(false);
 }
 
 source_process
@@ -77,17 +78,49 @@ void
 source_process
 ::_step()
 {
+  std::map<port_t, edge_datum_t> data;
+  bool complete = false;
+
   BOOST_FOREACH (priv::tag_t const& tag, d->tags)
   {
     edge_datum_t const edat = grab_from_port(priv::port_src_prefix + tag);
     datum_t const& dat = edat.get<0>();
     stamp_t const& src_stamp = edat.get<1>();
 
+    if (dat->type() == datum::complete)
+    {
+      complete = true;
+    }
+
     stamp_t const recolored_stamp = stamp::recolored_stamp(src_stamp, d->color_stamp);
 
     edge_datum_t const edat_out = edge_datum_t(dat, recolored_stamp);
 
-    push_to_port(priv::port_out_prefix + tag, edat_out);
+    data[tag] = edat_out;
+  }
+
+  BOOST_FOREACH (priv::tag_t const& tag, d->tags)
+  {
+    edge_datum_t edat;
+    edge_datum_t const edat_in = data[tag];
+
+    if (complete)
+    {
+      stamp_t const& st = edat_in.get<1>();
+
+      edat = edge_datum_t(datum::complete_datum(), st);
+    }
+    else
+    {
+      edat = edat_in;
+    }
+
+    push_to_port(priv::port_out_prefix + tag, edat);
+  }
+
+  if (complete)
+  {
+    mark_process_as_complete();
   }
 
   process::_step();

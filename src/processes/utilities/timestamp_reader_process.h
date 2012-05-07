@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_UTILITIES_TIMESTAMPER_PROCESS_H
-#define VISTK_PROCESSES_UTILITIES_TIMESTAMPER_PROCESS_H
+#ifndef VISTK_PROCESSES_UTILITIES_TIMESTAMP_READER_PROCESS_H
+#define VISTK_PROCESSES_UTILITIES_TIMESTAMP_READER_PROCESS_H
 
 #include "utilities-config.h"
 
@@ -14,20 +14,20 @@
 #include <boost/scoped_ptr.hpp>
 
 /**
- * \file timestamper_process.h
+ * \file timestamp_reader_process.h
  *
- * \brief Declaration of the timestamper process.
+ * \brief Declaration of the timestamp reader process.
  */
 
 namespace vistk
 {
 
 /**
- * \class timestamper_process
+ * \class timestamp_reader_process
  *
- * \brief A process for generating timestamps.
+ * \brief A process for reading timestamps from a file.
  *
- * \process A process for generating timestamps.
+ * \process Read timestamps from a file.
  *
  * \oports
  *
@@ -35,15 +35,13 @@ namespace vistk
  *
  * \configs
  *
- * \config{start_frame} The frame number to start at.
- * \config{start_time} The time to start .
- * \config{frame_rate} The number of frames per second.
+ * \config{path} The file to read.
  *
  * \reqs
  *
  * \req The \port{timestamp} output must be connected.
  */
-class VISTK_PROCESSES_UTILITIES_NO_EXPORT timestamper_process
+class VISTK_PROCESSES_UTILITIES_NO_EXPORT timestamp_reader_process
   : public process
 {
   public:
@@ -52,11 +50,11 @@ class VISTK_PROCESSES_UTILITIES_NO_EXPORT timestamper_process
      *
      * \param config Contains config for the process.
      */
-    timestamper_process(config_t const& config);
+    timestamp_reader_process(config_t const& config);
     /**
      * \brief Destructor.
      */
-    ~timestamper_process();
+    ~timestamp_reader_process();
   protected:
     /**
      * \brief Checks the output port connections and the configuration.
@@ -74,4 +72,4 @@ class VISTK_PROCESSES_UTILITIES_NO_EXPORT timestamper_process
 
 }
 
-#endif // VISTK_PROCESSES_UTILITIES_TIMESTAMPER_PROCESS_H
+#endif // VISTK_PROCESSES_UTILITIES_TIMESTAMP_READER_PROCESS_H

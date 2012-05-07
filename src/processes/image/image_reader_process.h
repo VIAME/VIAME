@@ -29,10 +29,6 @@ namespace vistk
  *
  * \process A process for reading images from files.
  *
- * \iports
- *
- * \iport{color} The color to use for output stamps.
- *
  * \oports
  *
  * \oport{image} The image read in for the step.

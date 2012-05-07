@@ -22,6 +22,7 @@ namespace
 
 enum pixel_format_t
 {
+  pix_mask,
   pix_rgb,
   pix_bgr,
   pix_rgba,
@@ -47,6 +48,7 @@ class image_helper
   process::port_type_t const image_helper<tpe>::port_types<pix_##fmt>::type = "image/vil/" tname "/" #fmt
 
 #define FORMAT_TYPES(tpe, tname) \
+  PORT_TYPE(tpe, tname, mask);   \
   PORT_TYPE(tpe, tname, rgb);    \
   PORT_TYPE(tpe, tname, bgr);    \
   PORT_TYPE(tpe, tname, rgba);   \
@@ -88,7 +90,8 @@ process::port_type_t const image_helper<PixType>::port_types<Format>::type = pro
  * \param ptype The C++ pixel type.
  */
 #define PORT_TYPES(ptype)     \
-  PORT_TYPE(ptype, rgb)       \
+  PORT_TYPE(ptype, mask)      \
+  else PORT_TYPE(ptype, rgb)  \
   else PORT_TYPE(ptype, bgr)  \
   else PORT_TYPE(ptype, rgba) \
   else PORT_TYPE(ptype, bgra) \

@@ -29,6 +29,12 @@ timestamp
 }
 
 timestamp
+::timestamp(frame_t f)
+  : m_frame(f)
+{
+}
+
+timestamp
 ::timestamp(time_t t, frame_t f)
   : m_time(t)
   , m_frame(f)

@@ -3,6 +3,7 @@ project(vistk_processes_utilities)
 set(utilities_srcs
   homography_reader_process.cxx
   registration.cxx
+  timestamp_reader_process.cxx
   timestamper_process.cxx)
 
 set_source_files_properties(homography_reader_process.cxx

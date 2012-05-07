@@ -1,0 +1,67 @@
+config mask_scoring
+  :input       image_list.txt
+  :truth_input video.mask.%2$04d.%1%.png
+  :output      output.txt
+  :ts_source   file
+  :verify      true
+
+process timestamp
+  :: timestamp_source
+  :type[ro]{CONF} mask_scoring:ts_source
+
+process truth_reader
+  :: layered_image_reader
+  :format[ro]{CONF} mask_scoring:truth_input
+  :pixfmt[ro] mask
+  :pixtype[ro] byte
+
+process reader
+  :: image_reader
+  :input[ro]{CONF} mask_scoring:input
+  :verify[ro]{CONF} mask_scoring:verify
+  :pixfmt[ro] mask
+  :pixtype[ro] byte
+
+process source
+  :: source
+
+process combine
+  :: combine_masks
+
+process scoring
+  :: mask_scoring
+
+process aggregate
+  :: score_aggregation
+  :path[ro]{CONF} mask_scoring:output
+
+# Computed mask
+connect from reader.image
+        to   source.src/computed_mask
+connect from timestamp.timestamp
+        to   source.src/timestamp
+
+# Filter into the combining process
+connect from source.out/timestamp
+        to   truth_reader.timestamp
+
+connect from truth_reader.image/crosshair
+        to   combine.mask/crosshair
+connect from truth_reader.image/movingtext
+        to   combine.mask/movingtext
+connect from truth_reader.image/stationary
+        to   combine.mask/stationary
+connect from truth_reader.image/rectangle
+        to   combine.mask/rectangle
+connect from truth_reader.image/other
+        to   combine.mask/other
+
+# Score the masks
+connect from combine.mask
+        to   scoring.truth_mask
+connect from source.out/computed_mask
+        to   scoring.computed_mask
+
+# Aggregate the scores
+connect from scoring.result
+        to   aggregate.score

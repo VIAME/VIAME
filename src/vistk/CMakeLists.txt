@@ -9,6 +9,7 @@ add_subdirectory(pipeline)
 add_subdirectory(utilities)
 add_subdirectory(pipeline_util)
 add_subdirectory(image)
+add_subdirectory(scoring)
 
 if (VISTK_ENABLE_PYTHON)
   add_subdirectory(python)

@@ -4,33 +4,31 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "homography_reader_process.h"
-
-#include <vistk/utilities/homography.h>
-
-#include <vistk/utilities/path.h>
+#include "timestamp_reader_process.h"
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 
-#include <boost/make_shared.hpp>
+#include <vistk/utilities/path.h>
+#include <vistk/utilities/timestamp.h>
 
-#include <vnl/vnl_double_3x3.h>
+#include <boost/lexical_cast.hpp>
+#include <boost/make_shared.hpp>
 
 #include <fstream>
 #include <string>
 
 /**
- * \file homography_reader_process.cxx
+ * \file timestamp_reader_process.cxx
  *
- * \brief Implementation of the homography reader process.
+ * \brief Implementation of the timestamp reader process.
  */
 
 namespace vistk
 {
 
-class homography_reader_process::priv
+class timestamp_reader_process::priv
 {
   public:
     priv(path_t const& input_path);
@@ -44,34 +42,34 @@ class homography_reader_process::priv
     static port_t const port_output;
 };
 
-config::key_t const homography_reader_process::priv::config_path = config::key_t("input");
-process::port_t const homography_reader_process::priv::port_output = process::port_t("homography");
+config::key_t const timestamp_reader_process::priv::config_path = config::key_t("path");
+process::port_t const timestamp_reader_process::priv::port_output = port_t("timestamp");
 
-homography_reader_process
-::homography_reader_process(config_t const& config)
+timestamp_reader_process
+::timestamp_reader_process(config_t const& config)
   : process(config)
 {
   declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
     config::value_t(),
-    config::description_t("The input file with homographies to read.")));
+    config::description_t("The path to the file to read")));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
-    "transform",
+    "timestamp",
     required,
-    port_description_t("The homographies that are read in.")));
+    port_description_t("Where the timestamps will be available.")));
 }
 
-homography_reader_process
-::~homography_reader_process()
+timestamp_reader_process
+::~timestamp_reader_process()
 {
 }
 
 void
-homography_reader_process
+timestamp_reader_process
 ::_init()
 {
   // Configure the process.
@@ -85,10 +83,10 @@ homography_reader_process
 
   if (path.empty())
   {
-    config::value_t const file_path = config::value_t(path.begin(), path.end());
     static std::string const reason = "The path given was empty";
+    config::value_t const value = config::value_t(path.begin(), path.end());
 
-    throw invalid_configuration_value_exception(name(), priv::config_path, file_path, reason);
+    throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
 
   d->fin.open(path.c_str());
@@ -105,7 +103,7 @@ homography_reader_process
 }
 
 void
-homography_reader_process
+timestamp_reader_process
 ::_step()
 {
   datum_t dat;
@@ -120,33 +118,60 @@ homography_reader_process
   {
     static datum::error_t const err_string = datum::error_t("Error with input file stream.");
 
+    read_error = true;
+
     dat = datum::error_datum(err_string);
   }
   else
   {
-    typedef vnl_matrix_fixed<double, 3, 3> matrix_t;
+    std::string time_str;
+    std::string frame_str;
 
-    matrix_t read_mat;
-
-    for (size_t i = 0; !read_error && (i < 9); ++i)
+    if (!(d->fin >> time_str) ||
+        !(d->fin >> frame_str))
     {
-      std::istream const& istr = d->fin >> read_mat(i / 3, i % 3);
-
-      if (!istr)
-      {
-        read_error = true;
-      }
-
-      if (d->fin.eof())
-      {
-        complete = true;
-        break;
-      }
+      read_error = true;
     }
 
-    homography_base::transform_t const mat(read_mat);
+    if (d->fin.eof())
+    {
+      complete = true;
+    }
 
-    dat = datum::new_datum(mat);
+    if (!read_error && !complete)
+    {
+      static std::string const undefined_string = "-";
+
+      boost::optional<timestamp::time_t> time;
+      boost::optional<timestamp::frame_t> frame;
+
+      if (time_str != undefined_string)
+      {
+        time = boost::lexical_cast<timestamp::time_t>(time_str);
+      }
+
+      if (frame_str != undefined_string)
+      {
+        frame = boost::lexical_cast<timestamp::frame_t>(frame_str);
+      }
+
+      if (time && frame)
+      {
+        dat = datum::new_datum(timestamp(*time, *frame));
+      }
+      else if (time)
+      {
+        dat = datum::new_datum(timestamp(*time));
+      }
+      else if (frame)
+      {
+        dat = datum::new_datum(timestamp(*frame));
+      }
+      else
+      {
+        dat = datum::new_datum(timestamp());
+      }
+    }
   }
 
   if (read_error)
@@ -167,13 +192,13 @@ homography_reader_process
   process::_step();
 }
 
-homography_reader_process::priv
+timestamp_reader_process::priv
 ::priv(path_t const& input_path)
   : path(input_path)
 {
 }
 
-homography_reader_process::priv
+timestamp_reader_process::priv
 ::~priv()
 {
 }
