@@ -112,6 +112,8 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
              << style_input_map_edge
              << "];" << std::endl;
       }
+
+      ostr << std::endl;
     }
 
     process::ports_t const oports = pipe->output_ports_for_group(group);
