@@ -707,25 +707,51 @@ vistk::process::port_type_t const remove_ports_process::output_port = vistk::pro
 void
 test_remove_input_port()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+
+  proc->_remove_input_port(remove_ports_process::input_port);
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   proc->input_port_info(remove_ports_process::input_port),
+                   "after removing an input port");
 }
 
 void
 test_remove_output_port()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+
+  proc->_remove_output_port(remove_ports_process::output_port);
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   proc->output_port_info(remove_ports_process::output_port),
+                   "after removing an output port");
 }
 
 void
 test_remove_non_exist_input_port()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process::port_t const port = vistk::process::port_t("port");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   proc->_remove_input_port(port),
+                   "after removing a non-existent input port");
 }
 
 void
 test_remove_non_exist_output_port()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process::port_t const port = vistk::process::port_t("port");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   proc->_remove_output_port(port),
+                   "after removing a non-existent output port");
 }
 
 void
