@@ -131,6 +131,47 @@ class VISTK_PIPELINE_EXPORT duplicate_process_name_exception
 };
 
 /**
+ * \class pipeline_removal_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief The base exception thrown when removing processes to the pipeline.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT pipeline_removal_exception
+  : public pipeline_exception
+{
+};
+
+/**
+ * \class remove_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a process or group is removed from a pipeline after setup.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT remove_after_setup_exception
+  : public pipeline_removal_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     * \param is_process True if the addition is a process, false if it was a group.
+     */
+    remove_after_setup_exception(process::name_t const& name, bool is_process) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~remove_after_setup_exception() throw();
+
+    /// The name of the process.
+    process::name_t const m_name;
+    /// True if the addition is a process, false if it was a group.
+    bool const m_is_process;
+};
+
+/**
  * \class pipeline_connection_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref pipeline due to connections.
@@ -169,6 +210,44 @@ class VISTK_PIPELINE_EXPORT connection_after_setup_exception
      * \brief Destructor.
      */
     ~connection_after_setup_exception() throw();
+
+    /// The name of the upstream process requested.
+    process::name_t const m_upstream_name;
+    /// The name of the upstream port requested.
+    process::port_t const m_upstream_port;
+    /// The name of the downstream process requested.
+    process::name_t const m_downstream_name;
+    /// The name of the downstream port requested.
+    process::port_t const m_downstream_port;
+};
+
+/**
+ * \class disconnection_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a disconnection is requested after setup.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT disconnection_after_setup_exception
+  : public pipeline_connection_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param upstream_name The name of the upstream process requested.
+     * \param upstream_port The port on the upstream process requested.
+     * \param downstream_name The name of the downstream process requested.
+     * \param downstream_port The port on the downstream process requested.
+     */
+    disconnection_after_setup_exception(process::name_t const& upstream_name,
+                                        process::port_t const& upstream_port,
+                                        process::name_t const& downstream_name,
+                                        process::port_t const& downstream_port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~disconnection_after_setup_exception() throw();
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;

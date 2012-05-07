@@ -195,12 +195,24 @@ void
 pipeline
 ::remove_process(process::name_t const& name)
 {
+  if (d->setup)
+  {
+    throw remove_after_setup_exception(name, true);
+  }
+
+  /// \todo Implement.
 }
 
 void
 pipeline
 ::remove_group(process::name_t const& name)
 {
+  if (d->setup)
+  {
+    throw remove_after_setup_exception(name, false);
+  }
+
+  /// \todo Implement.
 }
 
 void
@@ -285,6 +297,13 @@ pipeline
              process::name_t const& downstream_name,
              process::port_t const& downstream_port)
 {
+  if (d->setup)
+  {
+    throw disconnection_after_setup_exception(upstream_name, upstream_port,
+                                              downstream_name, downstream_port);
+  }
+
+  /// \todo Implement.
 }
 
 void
@@ -368,7 +387,15 @@ pipeline
                    process::name_t const& mapped_name,
                    process::port_t const& mapped_port)
 {
+  if (d->setup)
+  {
+    throw disconnection_after_setup_exception(group, port,
+                                              mapped_name, mapped_port);
+  }
+
+  /// \todo Implement.
 }
+
 void
 pipeline
 ::unmap_output_port(process::name_t const& group,
@@ -376,6 +403,13 @@ pipeline
                     process::name_t const& mapped_name,
                     process::port_t const& mapped_port)
 {
+  if (d->setup)
+  {
+    throw disconnection_after_setup_exception(mapped_name, mapped_port,
+                                              group, port);
+  }
+
+  /// \todo Implement.
 }
 
 void

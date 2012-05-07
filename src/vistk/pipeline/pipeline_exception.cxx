@@ -91,6 +91,27 @@ duplicate_process_name_exception
 {
 }
 
+remove_after_setup_exception
+::remove_after_setup_exception(process::name_t const& name, bool is_process) throw()
+  : pipeline_removal_exception()
+  , m_name(name)
+  , m_is_process(is_process)
+{
+  std::ostringstream sstr;
+
+  std::string const& type = (m_is_process ? "process" : "group");
+
+  sstr << "The " << type << " named \'" << m_name << "\' "
+          "was removed from the pipeline after it was setup.";
+
+  m_what = sstr.str();
+}
+
+remove_after_setup_exception
+::~remove_after_setup_exception() throw()
+{
+}
+
 connection_after_setup_exception
 ::connection_after_setup_exception(process::name_t const& upstream_name,
                                    process::port_t const& upstream_port,
@@ -114,6 +135,32 @@ connection_after_setup_exception
 
 connection_after_setup_exception
 ::~connection_after_setup_exception() throw()
+{
+}
+
+disconnection_after_setup_exception
+::disconnection_after_setup_exception(process::name_t const& upstream_name,
+                                      process::port_t const& upstream_port,
+                                      process::name_t const& downstream_name,
+                                      process::port_t const& downstream_port) throw()
+  : pipeline_connection_exception()
+  , m_upstream_name(upstream_name)
+  , m_upstream_port(upstream_port)
+  , m_downstream_name(downstream_name)
+  , m_downstream_port(downstream_port)
+{
+  std::ostringstream sstr;
+
+  sstr << "The connection from "
+          "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
+          "\'" << m_downstream_name << "." << m_downstream_port << "\', "
+          "was requested to be disconnected after the pipeline was setup.";
+
+  m_what = sstr.str();
+}
+
+disconnection_after_setup_exception
+::~disconnection_after_setup_exception() throw()
 {
 }
 
