@@ -76,7 +76,7 @@ score_aggregation_process
 
 void
 score_aggregation_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {
@@ -105,7 +105,7 @@ score_aggregation_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  process::_init();
+  process::_configure();
 }
 
 void

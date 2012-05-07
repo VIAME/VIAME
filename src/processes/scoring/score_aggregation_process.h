@@ -57,9 +57,9 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_aggregation_process
     ~score_aggregation_process();
   protected:
     /**
-     * \brief Initialize the subclass.
+     * \brief Configure the subclass.
      */
-    void _init();
+    void _configure();
 
     /**
      * \brief Step the subclass.
