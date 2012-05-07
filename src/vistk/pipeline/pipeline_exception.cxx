@@ -465,7 +465,7 @@ pipeline_not_setup_exception
 {
   std::ostringstream sstr;
 
-  sstr << "A pipeline was started before it was setup.";
+  sstr << "The pipeline has not been setup.";
 
   m_what = sstr.str();
 }
@@ -481,7 +481,7 @@ pipeline_not_ready_exception
 {
   std::ostringstream sstr;
 
-  sstr << "A pipeline was started before it was successfully setup.";
+  sstr << "The pipeline has not been successfully setup.";
 
   m_what = sstr.str();
 }
