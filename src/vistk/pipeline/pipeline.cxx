@@ -395,15 +395,23 @@ pipeline
   d->setup_in_progress = true;
   d->setup_successful = false;
 
-  d->map_group_connections();
-  d->configure_processes();
-  d->check_for_data_dep_ports();
-  d->propogate_pinned_types();
-  d->check_for_untyped_ports();
-  d->make_connections();
-  d->check_for_required_ports();
-  d->check_for_dag();
-  d->initialize_processes();
+  try
+  {
+    d->map_group_connections();
+    d->configure_processes();
+    d->check_for_data_dep_ports();
+    d->propogate_pinned_types();
+    d->check_for_untyped_ports();
+    d->make_connections();
+    d->check_for_required_ports();
+    d->check_for_dag();
+    d->initialize_processes();
+  }
+  catch (...)
+  {
+    d->setup_in_progress = false;
+    throw;
+  }
 
   d->setup_in_progress = false;
   d->setup_successful = true;
