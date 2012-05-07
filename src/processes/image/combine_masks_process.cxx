@@ -106,6 +106,7 @@ combine_masks_process
 ::_step()
 {
   std::vector<datum_t> data;
+  bool flush = false;
   bool complete = false;
 
   datum_t dat;
@@ -120,6 +121,9 @@ combine_masks_process
         /// \todo Check image sizes.
 
         data.push_back(idat);
+        break;
+      case datum::flush:
+        flush = true;
         break;
       case datum::complete:
         complete = true;
@@ -142,6 +146,11 @@ combine_masks_process
   {
     mark_process_as_complete();
     dat = datum::complete_datum();
+  }
+
+  if (flush)
+  {
+    dat = datum::flush_datum();
   }
 
   if (!dat)

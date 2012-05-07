@@ -114,9 +114,13 @@ score_aggregation_process
 {
   datum_t const dat = grab_datum_from_port(priv::port_score);
 
+  bool complete = false;
+
   switch (dat->type())
   {
     case datum::complete:
+      complete = true;
+    case datum::flush:
     {
       scoring_result_t const base = boost::make_shared<scoring_result>(0, 0, 0);
       scoring_result_t const overall = std::accumulate(d->results.begin(), d->results.end(), base);
@@ -127,8 +131,6 @@ score_aggregation_process
               << overall->truth_count << " "
               << overall->percent_detection() << " "
               << overall->precision() << std::endl;
-
-      mark_process_as_complete();
 
       break;
     }
@@ -145,6 +147,11 @@ score_aggregation_process
     case datum::error:
     default:
       break;
+  }
+
+  if (complete)
+  {
+    mark_process_as_complete();
   }
 
   process::_step();

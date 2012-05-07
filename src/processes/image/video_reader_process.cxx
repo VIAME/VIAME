@@ -198,6 +198,7 @@ video_reader_process
             /// \todo Log that there's a frame that could not be read.
           case datum::data:
             break;
+          case datum::flush:
           case datum::complete:
             done = true;
             break;
