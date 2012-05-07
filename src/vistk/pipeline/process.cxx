@@ -1223,6 +1223,9 @@ process::priv
       break;
     case datum::empty:
       return edge_datum_t(datum::empty_datum(), stamp_for_inputs);
+    case datum::flush:
+      stamp_for_inputs = stamp::new_stamp();
+      return edge_datum_t(datum::flush_datum(), stamp_for_inputs);
     case datum::complete:
       proc->mark_process_as_complete();
       return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
