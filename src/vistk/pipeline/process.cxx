@@ -120,6 +120,8 @@ class process::priv
 
     typedef std::map<tag_t, ports_t> flow_tag_port_map_t;
 
+    typedef std::map<port_t, tag_t> port_tag_map_t;
+
     tag_t port_flow_tag_name(port_type_t const& port_type) const;
     void check_tag(tag_t const& tag);
 
@@ -139,6 +141,9 @@ class process::priv
     flow_tag_port_type_map_t flow_tag_port_types;
     flow_tag_port_map_t input_flow_tag_ports;
     flow_tag_port_map_t output_flow_tag_ports;
+
+    port_tag_map_t input_port_tags;
+    port_tag_map_t output_port_tags;
 
     bool configured;
     bool initialized;
@@ -690,6 +695,8 @@ process
   {
     d->input_flow_tag_ports[tag].push_back(port);
 
+    d->input_port_tags[port] = tag;
+
     if (d->flow_tag_port_types[tag])
     {
       port_type_t const& tag_type = *d->flow_tag_port_types[tag];
@@ -731,6 +738,8 @@ process
   {
     d->output_flow_tag_ports[tag].push_back(port);
 
+    d->output_port_tags[port] = tag;
+
     if (d->flow_tag_port_types[tag])
     {
       port_type_t const& tag_type = *d->flow_tag_port_types[tag];
@@ -760,7 +769,6 @@ process
 ::remove_input_port(port_t const& port)
 {
   port_info_t const info = input_port_info(port);
-  port_type_t const& port_type = info->type;
 
   // Remove from known ports.
   d->input_ports.erase(port);
@@ -772,10 +780,11 @@ process
   ports_t::iterator const ri = std::remove(d->required_inputs.begin(), d->required_inputs.end(), port);
   d->required_inputs.erase(ri, d->required_inputs.end());
 
-  priv::tag_t const tag = d->port_flow_tag_name(port_type);
+  priv::port_tag_map_t::const_iterator const t = d->input_port_tags.find(port);
 
-  if (!tag.empty())
+  if (t != d->input_port_tags.end())
   {
+    priv::tag_t const& tag = t->second;
     ports_t& ports = d->input_flow_tag_ports[tag];
     ports_t::iterator const i = std::remove(ports.begin(), ports.end(), port);
     ports.erase(i, ports.end());
@@ -786,6 +795,8 @@ process
 
       d->check_tag(tag);
     }
+
+    d->input_port_tags.erase(port);
   }
 }
 
@@ -794,7 +805,6 @@ process
 ::remove_output_port(port_t const& port)
 {
   port_info_t const info = output_port_info(port);
-  port_type_t const& port_type = info->type;
 
   // Remove from known ports.
   d->output_ports.erase(port);
@@ -806,10 +816,11 @@ process
   ports_t::iterator const ri = std::remove(d->required_outputs.begin(), d->required_outputs.end(), port);
   d->required_outputs.erase(ri, d->required_outputs.end());
 
-  priv::tag_t const tag = d->port_flow_tag_name(port_type);
+  priv::port_tag_map_t::const_iterator const t = d->output_port_tags.find(port);
 
-  if (!tag.empty())
+  if (t != d->output_port_tags.end())
   {
+    priv::tag_t const& tag = t->second;
     ports_t& ports = d->output_flow_tag_ports[tag];
     ports_t::iterator const i = std::remove(ports.begin(), ports.end(), port);
     ports.erase(i, ports.end());
@@ -820,6 +831,8 @@ process
 
       d->check_tag(tag);
     }
+
+    d->output_port_tags.erase(port);
   }
 }
 
