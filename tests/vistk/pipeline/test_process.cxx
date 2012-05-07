@@ -214,6 +214,9 @@ class remove_ports_process
     remove_ports_process(port_type_t const& port_type);
     ~remove_ports_process();
 
+    void create_input_port(port_t const& port, port_type_t const& port_type);
+    void create_output_port(port_t const& port, port_type_t const& port_type);
+
     void _remove_input_port(port_t const& port);
     void _remove_output_port(port_t const& port);
 
@@ -911,19 +914,33 @@ remove_ports_process
 ::remove_ports_process(port_type_t const& port_type)
   : vistk::process(vistk::config::empty_config())
 {
-  declare_input_port(input_port, boost::make_shared<port_info>(
-    port_type,
-    port_flags_t(),
-    port_description_t("input port")));
-  declare_output_port(output_port, boost::make_shared<port_info>(
-    port_type,
-    port_flags_t(),
-    port_description_t("output port")));
+  create_input_port(input_port, port_type);
+  create_output_port(output_port, port_type);
 }
 
 remove_ports_process
 ::~remove_ports_process()
 {
+}
+
+void
+remove_ports_process
+::create_input_port(port_t const& port, port_type_t const& port_type)
+{
+  declare_input_port(port, boost::make_shared<port_info>(
+    port_type,
+    port_flags_t(),
+    port_description_t("input port")));
+}
+
+void
+remove_ports_process
+::create_output_port(port_t const& port, port_type_t const& port_type)
+{
+  declare_output_port(port, boost::make_shared<port_info>(
+    port_type,
+    port_flags_t(),
+    port_description_t("output port")));
 }
 
 void
