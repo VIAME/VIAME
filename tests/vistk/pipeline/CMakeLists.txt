@@ -27,6 +27,7 @@ vistk_make_test(config merge_config)
 vistk_build_test(datum libraries test_datum.cxx)
 
 vistk_make_test(datum empty)
+vistk_make_test(datum flush)
 vistk_make_test(datum complete)
 vistk_make_test(datum error)
 vistk_make_test(datum new)

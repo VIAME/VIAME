@@ -55,12 +55,29 @@ def test_empty():
         log("Error: Datum type mismatch")
 
     if len(d.get_error()):
-        log("Error: A empty datum has an error string")
+        log("Error: An empty datum has an error string")
 
     p = d.get_datum()
 
     if p is not None:
         log("Error: An empty datum does not have None as its data")
+
+
+def test_flush():
+    from vistk.pipeline import datum
+
+    d = datum.flush()
+
+    if not d.type() == datum.DatumType.flush:
+        log("Error: Datum type mismatch")
+
+    if len(d.get_error()):
+        log("Error: A flush datum has an error string")
+
+    p = d.get_datum()
+
+    if p is not None:
+        log("Error: A flush datum does not have None as its data")
 
 
 def test_complete():
@@ -106,6 +123,8 @@ def main(testname):
         test_new()
     elif testname == 'empty':
         test_empty()
+    elif testname == 'flush':
+        test_flush()
     elif testname == 'complete':
         test_complete()
     elif testname == 'error':
