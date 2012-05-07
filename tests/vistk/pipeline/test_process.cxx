@@ -207,6 +207,20 @@ run_test(std::string const& test_name)
 static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t());
 static vistk::edge_t create_edge();
 
+class remove_ports_process
+  : public vistk::process
+{
+  public:
+    remove_ports_process(port_type_t const& port_type);
+    ~remove_ports_process();
+
+    void _remove_input_port(port_t const& port);
+    void _remove_output_port(port_t const& port);
+
+    static port_type_t const input_port;
+    static port_type_t const output_port;
+};
+
 class null_config_process
   : public vistk::process
 {
@@ -687,6 +701,9 @@ test_set_untagged_flow_dependent_port()
   }
 }
 
+vistk::process::port_type_t const remove_ports_process::input_port = vistk::process::port_type_t("input");
+vistk::process::port_type_t const remove_ports_process::output_port = vistk::process::port_type_t("output");
+
 void
 test_remove_input_port()
 {
@@ -862,4 +879,37 @@ null_conf_info_process
 null_conf_info_process
 ::~null_conf_info_process()
 {
+}
+
+remove_ports_process
+::remove_ports_process(port_type_t const& port_type)
+  : vistk::process(vistk::config::empty_config())
+{
+  declare_input_port(input_port, boost::make_shared<port_info>(
+    port_type,
+    port_flags_t(),
+    port_description_t("input port")));
+  declare_output_port(output_port, boost::make_shared<port_info>(
+    port_type,
+    port_flags_t(),
+    port_description_t("output port")));
+}
+
+remove_ports_process
+::~remove_ports_process()
+{
+}
+
+void
+remove_ports_process
+::_remove_input_port(port_t const& port)
+{
+  remove_input_port(port);
+}
+
+void
+remove_ports_process
+::_remove_output_port(port_t const& port)
+{
+  remove_output_port(port);
 }
