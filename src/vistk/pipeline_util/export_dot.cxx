@@ -31,6 +31,7 @@ static std::string const node_suffix_main = "_main";
 static std::string const node_prefix_input = "_input_";
 static std::string const node_prefix_output = "_output_";
 
+static std::string const style_global = "";
 static std::string const style_process_subgraph = "color=lightgray;style=filled;";
 static std::string const style_process = "shape=ellipse,rank=same";
 static std::string const style_port = "shape=none,height=0,width=0,fontsize=7";
@@ -54,7 +55,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
   }
 
   ostr << "strict digraph \"" << graph_name << "\" {" << std::endl;
-  ostr << std::endl;
+  ostr << style_global << std::endl;
 
   process::names_t const proc_names = pipe->process_names();
   process::names_t const groups = pipe->groups();
@@ -201,7 +202,7 @@ export_dot_setup(std::ostream& ostr, pipeline_t const pipe, std::string const& g
   }
 
   ostr << "strict digraph \"" << graph_name << "\" {" << std::endl;
-  ostr << std::endl;
+  ostr << style_global << std::endl;
 
   process::names_t const proc_names = pipe->process_names();
 
