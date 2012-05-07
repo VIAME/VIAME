@@ -341,7 +341,7 @@ class VISTK_PIPELINE_EXPORT process
      * \throws set_type_on_initialized_process_exception Thrown when the \p port's type is set after initialization.
      *
      * \param port The name of the port.
-     * \param type The type of the connected port.
+     * \param new_type The type of the connected port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -354,7 +354,7 @@ class VISTK_PIPELINE_EXPORT process
      * \throws set_type_on_initialized_process_exception Thrown when the port type is set after initialization.
      *
      * \param port The name of the port.
-     * \param type The type of the connected port.
+     * \param new_type The type of the connected port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -513,7 +513,7 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Subclass input port type setting.
      *
      * \param port The name of the port.
-     * \param type The type of the connected port.
+     * \param new_type The type of the connected port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -522,7 +522,7 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Subclass output port type setting.
      *
      * \param port The name of the port.
-     * \param type The type of the connected port.
+     * \param new_type The type of the connected port.
      *
      * \returns True if the type can work, false otherwise.
      */

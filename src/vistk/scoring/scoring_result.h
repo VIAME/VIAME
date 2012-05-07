@@ -25,7 +25,9 @@ namespace vistk
 class VISTK_SCORING_EXPORT scoring_result
 {
   public:
+    /// A type for the counts of categories when scoring.
     typedef uint64_t count_t;
+    /// A type for the result of a derived score.
     typedef double result_t;
 
     /**

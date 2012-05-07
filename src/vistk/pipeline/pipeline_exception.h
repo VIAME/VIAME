@@ -348,6 +348,11 @@ class VISTK_PIPELINE_EXPORT connection_dependent_type_cascade_exception
      * \param name The name of the process which had a type set.
      * \param port The port on the process.
      * \param type The type that was attempted to be set.
+     * \param upstream_name The upstream process.
+     * \param upstream_port The port on upstream process that was attempted to be set to a type.
+     * \param downstream_name The downstream process.
+     * \param downstream_port The port on downstream process that was attempted to be set to a type.
+     * \param cascade_type The type that was cascaded through the pipeline.
      * \param push_upstream True if upstream rejected the type.
      */
     connection_dependent_type_cascade_exception(process::name_t const& name,

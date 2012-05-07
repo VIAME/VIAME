@@ -9,7 +9,7 @@
 #include <boost/make_shared.hpp>
 
 /**
- * \file mask_scoring.cxx
+ * \file score_mask.cxx
  *
  * \brief Implementation of a function for scoring a mask.
  */

@@ -462,7 +462,9 @@ class VISTK_PIPELINE_EXPORT static_type_reset_exception
      */
     ~static_type_reset_exception() throw();
 
+    /// The original type on the port.
     process::port_type_t const m_orig_type;
+    /// The new type for the port.
     process::port_type_t const m_new_type;
 };
 

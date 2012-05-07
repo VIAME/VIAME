@@ -16,7 +16,7 @@
 #include <boost/cstdint.hpp>
 
 /**
- * \file mask_scoring.h
+ * \file score_mask.h
  *
  * \brief A function for scoring a mask.
  */
