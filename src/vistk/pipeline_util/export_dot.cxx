@@ -34,12 +34,16 @@ static std::string const node_prefix_output = "_output_";
 static std::string const style_global = "";
 static std::string const style_process_subgraph = "color=lightgray;style=filled;";
 static std::string const style_process = "shape=ellipse,rank=same";
+static std::string const style_group = "labelloc=t;labeljust=l;color=lightgray;";
 static std::string const style_port = "shape=none,height=0,width=0,fontsize=7";
 static std::string const style_port_edge = "arrowhead=none,color=black";
+static std::string const style_map_edge = "color=gray";
 static std::string const style_input_port = style_port;
 static std::string const style_input_port_edge = style_port_edge;
+static std::string const style_input_map_edge = style_map_edge;
 static std::string const style_output_port = style_port;
 static std::string const style_output_port_edge = style_port_edge;
+static std::string const style_output_map_edge = style_map_edge;
 static std::string const style_connection_edge = "minlen=1,color=black,weight=1";
 
 }
@@ -74,11 +78,13 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
   BOOST_FOREACH (process::name_t const& group, groups)
   {
     ostr << "subgraph \"cluster_" << group << "\" {" << std::endl;
+    ostr << style_group << std::endl;
+
     ostr << std::endl;
 
     ostr << "label = \"" << group << "\";" << std::endl;
-    ostr << "labelloc = \"t\";" << std::endl;
-    ostr << "labeljust = \"l\";" << std::endl;
+
+    ostr << std::endl;
 
     process::ports_t const iports = pipe->input_ports_for_group(group);
 
@@ -103,7 +109,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 
         ostr << "\"" << node_port_name << "\" -> "
                 "\"" << mapped_node_name << "\" ["
-             << style_input_port_edge
+             << style_input_map_edge
              << "];" << std::endl;
       }
     }
@@ -131,7 +137,7 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 
         ostr << "\"" << mapped_node_name << "\" -> "
                 "\"" << node_port_name << "\" ["
-             << style_output_port_edge
+             << style_output_map_edge
              << "];" << std::endl;
       }
 
