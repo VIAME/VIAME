@@ -42,6 +42,7 @@ BOOST_PYTHON_MODULE(datum)
     .value("invalid", vistk::datum::invalid)
     .value("data", vistk::datum::data)
     .value("empty", vistk::datum::empty)
+    .value("flush", vistk::datum::flush)
     .value("complete", vistk::datum::complete)
     .value("error", vistk::datum::error)
   ;
@@ -54,6 +55,8 @@ BOOST_PYTHON_MODULE(datum)
     , "Creates a new datum packet.");
   def("empty", &vistk::datum::empty_datum
     , "Creates an empty datum packet.");
+  def("flush", &vistk::datum::flush_datum
+    , "Creates a flush marker datum packet.");
   def("complete", &vistk::datum::complete_datum
     , "Creates a complete marker datum packet.");
   def("error", &vistk::datum::error_datum
