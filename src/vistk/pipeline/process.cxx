@@ -515,7 +515,7 @@ process::port_info_t
 process
 ::_input_port_info(port_t const& port)
 {
-  priv::port_map_t::iterator i = d->input_ports.find(port);
+  priv::port_map_t::const_iterator const i = d->input_ports.find(port);
 
   if (i != d->input_ports.end())
   {
@@ -529,7 +529,7 @@ process::port_info_t
 process
 ::_output_port_info(port_t const& port)
 {
-  priv::port_map_t::iterator i = d->output_ports.find(port);
+  priv::port_map_t::const_iterator const i = d->output_ports.find(port);
 
   if (i != d->output_ports.end())
   {
