@@ -388,6 +388,7 @@ test_null_config()
                    boost::make_shared<vistk::pipeline>(config),
                    "passing a NULL config to the pipeline");
 }
+
 void
 test_null_process()
 {
