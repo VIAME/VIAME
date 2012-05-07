@@ -138,6 +138,27 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
       ostr << std::endl;
     }
 
+    // Output group connections
+    BOOST_FOREACH (process::port_t const& port, oports)
+    {
+      std::string const node_from_port_name = group + node_prefix_output + port;
+
+      process::port_addrs_t const addrs = pipe->connections_from_addr(group, port);
+
+      BOOST_FOREACH (process::port_addr_t const& addr, addrs)
+      {
+        process::name_t const& recv_name = addr.first;
+        process::port_t const& recv_port = addr.second;
+
+        std::string const node_to_port_name = recv_name + node_prefix_input + recv_port;
+
+        ostr << "\"" << node_from_port_name << "\" -> "
+                "\"" << node_to_port_name << "\" ["
+             << style_connection_edge
+             << "];" << std::endl;
+      }
+    }
+
     ostr << std::endl;
 
     ostr << "}" << std::endl;
