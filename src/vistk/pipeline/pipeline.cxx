@@ -95,6 +95,8 @@ class pipeline::priv
     void check_for_dag() const;
     void initialize_processes();
 
+    void ensure_setup() const;
+
     pipeline* const q;
 
     connections_t planned_connections;
@@ -477,15 +479,7 @@ void
 pipeline
 ::start()
 {
-  if (!d->setup)
-  {
-    throw pipeline_not_setup_exception();
-  }
-
-  if (!d->setup_successful)
-  {
-    throw pipeline_not_ready_exception();
-  }
+  d->ensure_setup();
 
   d->running = true;
 }
@@ -536,6 +530,8 @@ processes_t
 pipeline
 ::upstream_for_process(process::name_t const& name) const
 {
+  d->ensure_setup();
+
   std::set<process::name_t> names;
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
@@ -569,6 +565,8 @@ process_t
 pipeline
 ::upstream_for_port(process::name_t const& name, process::port_t const& port) const
 {
+  d->ensure_setup();
+
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
     process::port_addr_t const& upstream_addr = connection.first;
@@ -594,6 +592,8 @@ processes_t
 pipeline
 ::downstream_for_process(process::name_t const& name) const
 {
+  d->ensure_setup();
+
   std::set<process::name_t> names;
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
@@ -627,6 +627,8 @@ processes_t
 pipeline
 ::downstream_for_port(process::name_t const& name, process::port_t const& port) const
 {
+  d->ensure_setup();
+
   std::set<process::name_t> names;
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
@@ -662,6 +664,8 @@ process::port_addr_t
 pipeline
 ::sender_for_port(process::name_t const& name, process::port_t const& port) const
 {
+  d->ensure_setup();
+
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
   {
     process::port_addr_t const& upstream_addr = connection.first;
@@ -684,6 +688,8 @@ process::port_addrs_t
 pipeline
 ::receivers_for_port(process::name_t const& name, process::port_t const& port) const
 {
+  d->ensure_setup();
+
   process::port_addrs_t port_addrs;
 
   BOOST_FOREACH (priv::connection_t const& connection, d->connections)
@@ -711,6 +717,8 @@ pipeline
                       process::name_t const& downstream_name,
                       process::port_t const& downstream_port) const
 {
+  d->ensure_setup();
+
   for (size_t i = 0; i < d->connections.size(); ++i)
   {
     priv::connection_t const& connection = d->connections[i];
@@ -739,6 +747,8 @@ edges_t
 pipeline
 ::input_edges_for_process(process::name_t const& name) const
 {
+  d->ensure_setup();
+
   edges_t edges;
 
   BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
@@ -765,6 +775,8 @@ edge_t
 pipeline
 ::input_edge_for_port(process::name_t const& name, process::port_t const& port) const
 {
+  d->ensure_setup();
+
   BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
   {
     size_t const& i = edge_index.first;
@@ -791,6 +803,8 @@ edges_t
 pipeline
 ::output_edges_for_process(process::name_t const& name) const
 {
+  d->ensure_setup();
+
   edges_t edges;
 
   BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
@@ -817,6 +831,8 @@ edges_t
 pipeline
 ::output_edges_for_port(process::name_t const& name, process::port_t const& port) const
 {
+  d->ensure_setup();
+
   edges_t edges;
 
   BOOST_FOREACH (priv::edge_map_t::value_type const& edge_index, d->edge_map)
@@ -1769,6 +1785,21 @@ pipeline::priv
     process_t const proc = q->process_by_name(name);
 
     proc->init();
+  }
+}
+
+void
+pipeline::priv
+::ensure_setup() const
+{
+  if (!setup)
+  {
+    throw pipeline_not_setup_exception();
+  }
+
+  if (!setup_successful)
+  {
+    throw pipeline_not_ready_exception();
   }
 }
 
