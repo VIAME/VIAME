@@ -491,7 +491,7 @@ test_config_overrides(vistk::path_t const& pipe_file)
 
   if (mykey != expected)
   {
-    TEST_ERROR("Configuration was not overriden: "
+    TEST_ERROR("Configuration was not overridden: "
                "Expected: " << expected << " "
                "Received: " << mykey);
   }
@@ -631,7 +631,7 @@ test_config_provider_conf(vistk::path_t const& pipe_file)
 
   if (mykey != expected)
   {
-    TEST_ERROR("Configuration was not overriden: "
+    TEST_ERROR("Configuration was not overridden: "
                "Expected: " << expected << " "
                "Received: " << mykey);
   }
@@ -655,7 +655,7 @@ test_config_provider_conf_dep(vistk::path_t const& pipe_file)
 
   if (mykey != expected)
   {
-    TEST_ERROR("Configuration was not overriden: "
+    TEST_ERROR("Configuration was not overridden: "
                "Expected: " << expected << " "
                "Received: " << mykey);
   }
@@ -664,7 +664,7 @@ test_config_provider_conf_dep(vistk::path_t const& pipe_file)
 
   if (mykey != expected)
   {
-    TEST_ERROR("Configuration was not overriden: "
+    TEST_ERROR("Configuration was not overridden: "
                "Expected: " << expected << " "
                "Received: " << mykey);
   }
@@ -764,7 +764,7 @@ test_include(vistk::path_t const& pipe_file)
 
   if (mykey != expected)
   {
-    TEST_ERROR("Configuration was not overriden: "
+    TEST_ERROR("Configuration was not overridden: "
                "Expected: " << expected << " "
                "Received: " << mykey);
   }
