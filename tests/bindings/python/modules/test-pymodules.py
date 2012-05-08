@@ -83,8 +83,7 @@ if __name__ == '__main__':
 
     from vistk.test.test import *
 
-    main(testname)
-    #try:
-        #main(testname)
-    #except BaseException as e:
-        #test_error("Unexpected exception: %s" % str(e))
+    try:
+        main(testname)
+    except BaseException as e:
+        test_error("Unexpected exception: %s" % str(e))
