@@ -41,6 +41,11 @@ main(int argc, char* argv[])
   {
     std::cout << "Error: an error" << std::endl;
   }
+  else if (test_name == "error_string_second_line")
+  {
+    std::cerr << "Not an error" << std::endl;
+    TEST_ERROR("an error");
+  }
   else if (test_name == "expected_exception")
   {
     EXPECT_EXCEPTION(std::logic_error,

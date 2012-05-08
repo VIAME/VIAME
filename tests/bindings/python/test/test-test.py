@@ -22,6 +22,10 @@ def main(testname):
     elif testname == 'error_string_stdout':
         import sys
         sys.stdout.write("Error: an error\n")
+    elif testname == 'error_string_second_line':
+        import sys
+        sys.stderr.write('Not an error\n')
+        test_error("an error")
     elif testname == 'expected_exception':
         expect_exception('when throwing an exception', NotImplementedError,
                          raise_exception)
