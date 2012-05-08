@@ -1895,7 +1895,55 @@ test_reset()
 void
 test_remove_process()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
+  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::name_t const nameu = vistk::process::name_t("up");
+  vistk::process::name_t const named = vistk::process::name_t("down");
+  vistk::process::name_t const group = vistk::process::name_t("group");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t procu = create_process(typeu, nameu);
+  vistk::process_t procd = create_process(typed, named);
+
+  pipe->add_process(procu);
+  pipe->add_process(procd);
+  pipe->add_group(group);
+
+  vistk::process::port_t const portu = vistk::process::port_heartbeat;
+  vistk::process::port_t const portd = vistk::process::port_t("sink");
+
+  pipe->connect(nameu, portu,
+                named, portd);
+
+  pipe->map_input_port(group, portd,
+                       named, portd,
+                       vistk::process::port_flags_t());
+  pipe->map_output_port(group, portu,
+                        nameu, portu,
+                        vistk::process::port_flags_t());
+
+  pipe->remove_process(named);
+
+  EXPECT_EXCEPTION(vistk::no_such_process_exception,
+                   pipe->process_by_name(named),
+                   "requesting a process after it has been removed");
+
+  if (pipe->connections_from_addr(nameu, portu).size())
+  {
+    TEST_ERROR("A connection exists after one of the processes has been removed");
+  }
+
+  if (pipe->mapped_group_input_ports(group, portd).size())
+  {
+    TEST_ERROR("An input mapping exists after the mapped process has been removed");
+  }
+
+  pipe->remove_process(nameu);
+
+  if (pipe->mapped_group_output_port(group, portu) != vistk::process::port_addr_t())
+  {
+    TEST_ERROR("An output mapping exists after the mapped process has been removed");
+  }
 }
 
 void
@@ -1919,7 +1967,27 @@ test_remove_process_after_setup()
 void
 test_remove_group()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process_registry::type_t const type = vistk::process_registry::type_t("orphan");
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::name_t const group = vistk::process::name_t("group");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t proc = create_process(type, name);
+
+  pipe->add_process(proc);
+  pipe->add_group(group);
+
+  vistk::process::port_t const port = vistk::process::port_heartbeat;
+
+  pipe->map_output_port(group, port,
+                        name, port,
+                        vistk::process::port_flags_t());
+
+  pipe->remove_group(group);
+
+  EXPECT_EXCEPTION(vistk::no_such_group_exception,
+                   pipe->output_ports_for_group(group),
+                   "requesting a group after it has been removed");
 }
 
 void
@@ -1945,7 +2013,30 @@ test_remove_group_after_setup()
 void
 test_disconnect()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
+  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::name_t const nameu = vistk::process::name_t("up");
+  vistk::process::name_t const named = vistk::process::name_t("down");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t procu = create_process(typeu, nameu);
+  vistk::process_t procd = create_process(typed, named);
+
+  pipe->add_process(procu);
+  pipe->add_process(procd);
+
+  vistk::process::port_t const portu = vistk::process::port_heartbeat;
+  vistk::process::port_t const portd = vistk::process::port_t("sink");
+
+  pipe->connect(nameu, portu,
+                named, portd);
+  pipe->disconnect(nameu, portu,
+                   named, portd);
+
+  if (pipe->connections_from_addr(nameu, portu).size())
+  {
+    TEST_ERROR("A connection exists after being disconnected");
+  }
 }
 
 void
@@ -1980,7 +2071,29 @@ test_disconnect_after_setup()
 void
 test_unmap_input()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process_registry::type_t const type = vistk::process_registry::type_t("sink");
+  vistk::process::name_t const name = vistk::process::name_t("down");
+  vistk::process::name_t const group = vistk::process::name_t("group");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t proc = create_process(type, name);
+
+  pipe->add_process(proc);
+  pipe->add_group(group);
+
+  vistk::process::port_t const port = vistk::process::port_t("sink");
+
+  pipe->map_input_port(group, port,
+                       name, port,
+                       vistk::process::port_flags_t());
+
+  pipe->unmap_input_port(group, port,
+                         name, port);
+
+  if (pipe->mapped_group_input_ports(group, port).size())
+  {
+    TEST_ERROR("Input port mapping exists after unmapping");
+  }
 }
 
 void
@@ -2021,7 +2134,29 @@ test_unmap_input_after_setup()
 void
 test_unmap_output()
 {
-  TEST_ERROR("Unimplemented");
+  vistk::process_registry::type_t const type = vistk::process_registry::type_t("orphan");
+  vistk::process::name_t const name = vistk::process::name_t("up");
+  vistk::process::name_t const group = vistk::process::name_t("group");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t proc = create_process(type, name);
+
+  pipe->add_process(proc);
+  pipe->add_group(group);
+
+  vistk::process::port_t const port = vistk::process::port_heartbeat;
+
+  pipe->map_output_port(group, port,
+                        name, port,
+                        vistk::process::port_flags_t());
+
+  pipe->unmap_output_port(group, port,
+                          name, port);
+
+  if (pipe->mapped_group_output_port(group, port) != vistk::process::port_addr_t())
+  {
+    TEST_ERROR("Output port mapping exists after unmapping");
+  }
 }
 
 void
