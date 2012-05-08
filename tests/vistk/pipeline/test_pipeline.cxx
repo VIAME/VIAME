@@ -2088,10 +2088,9 @@ test_unmap_input()
   pipe->unmap_input_port(group, port,
                          name, port);
 
-  if (pipe->mapped_group_input_ports(group, port).size())
-  {
-    TEST_ERROR("Input port mapping exists after unmapping");
-  }
+  EXPECT_EXCEPTION(vistk::no_such_group_port_exception,
+                   pipe->mapped_group_input_ports(group, port),
+                   "when requesting mapped input ports after all of the mappings have been removed");
 }
 
 void
@@ -2151,10 +2150,9 @@ test_unmap_output()
   pipe->unmap_output_port(group, port,
                           name, port);
 
-  if (pipe->mapped_group_output_port(group, port) != vistk::process::port_addr_t())
-  {
-    TEST_ERROR("Output port mapping exists after unmapping");
-  }
+  EXPECT_EXCEPTION(vistk::no_such_group_port_exception,
+                   pipe->mapped_group_output_port(group, port),
+                   "when requesting the mapped output port after the mapping has been removed");
 }
 
 void
