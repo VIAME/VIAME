@@ -72,6 +72,32 @@ def test_api_calls():
                       process.PortFlags())
     p.process_names()
     p.process_by_name(proc_name1)
+    p.connections_from_addr(proc_name1, port_name1)
+    p.connection_to_addr(proc_name2, port_name2)
+    p.groups()
+    p.input_ports_for_group(group_name)
+    p.output_ports_for_group(group_name)
+    p.mapped_group_input_port_flags(group_name, group_iport)
+    p.mapped_group_output_port_flags(group_name, group_oport)
+    p.mapped_group_input_ports(group_name, group_iport)
+    p.mapped_group_output_port(group_name, group_oport)
+
+    p.disconnect(proc_name1, port_name1,
+                 proc_name2, port_name2)
+    p.unmap_input_port(group_name, group_iport,
+                       proc_name2, port_name2)
+    p.unmap_output_port(group_name, group_oport,
+                        proc_name1, port_name1)
+    p.remove_process(proc_name1)
+    p.remove_group(group_name)
+
+    # Restore the pipeline so that setup_pipeline works.
+    p.add_process(proc1)
+    p.connect(proc_name1, port_name1,
+              proc_name2, port_name2)
+
+    p.setup_pipeline()
+
     p.upstream_for_process(proc_name2)
     p.upstream_for_port(proc_name2, port_name2)
     p.downstream_for_process(proc_name1)
@@ -84,15 +110,6 @@ def test_api_calls():
     p.input_edge_for_port(proc_name2, port_name2)
     p.output_edges_for_process(proc_name1)
     p.output_edges_for_port(proc_name1, port_name1)
-    p.groups()
-    p.input_ports_for_group(group_name)
-    p.output_ports_for_group(group_name)
-    p.mapped_group_input_port_flags(group_name, group_iport)
-    p.mapped_group_output_port_flags(group_name, group_oport)
-    p.mapped_group_input_ports(group_name, group_iport)
-    p.mapped_group_output_port(group_name, group_oport)
-
-    p.setup_pipeline()
 
     p.is_setup()
     p.setup_successful()
