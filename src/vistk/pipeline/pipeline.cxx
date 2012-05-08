@@ -1265,6 +1265,7 @@ pipeline::priv
 
   BOOST_FOREACH (group_map_t::value_type& group, groups)
   {
+    process::name_t const& group_name = group.first;
     port_mapping_t& port_mapping = group.second;
 
     input_port_mapping_t& input_mappings = port_mapping.first;
@@ -1275,6 +1276,7 @@ pipeline::priv
     {
       input_port_mapping_t::value_type& input_mapping = *in;
 
+      process::port_t const& port = input_mapping.first;
       input_mapping_info_t& info = input_mapping.second;
 
       process::port_addrs_t& mappings = info.get<1>();
@@ -1285,7 +1287,11 @@ pipeline::priv
 
       if (!mappings.size())
       {
+        process::port_t const port_save = port;
+
         input_mappings.erase(in++);
+
+        remove_group_input_port(group_name, port_save);
       }
       else
       {
@@ -1301,13 +1307,18 @@ pipeline::priv
     {
       output_port_mapping_t::value_type& output_mapping = *out;
 
+      process::port_t const& port = output_mapping.first;
       output_mapping_info_t& info = output_mapping.second;
 
       process::port_addr_t& mapping = info.get<1>();
 
       if (!is_addr_on(name, mapping))
       {
+        process::port_t const port_save = port;
+
         output_mappings.erase(out++);
+
+        remove_group_input_port(group_name, port_save);
       }
       else
       {
