@@ -1933,17 +1933,15 @@ test_remove_process()
     TEST_ERROR("A connection exists after one of the processes has been removed");
   }
 
-  if (pipe->mapped_group_input_ports(group, portd).size())
-  {
-    TEST_ERROR("An input mapping exists after the mapped process has been removed");
-  }
+  EXPECT_EXCEPTION(vistk::no_such_group_port_exception,
+                   pipe->mapped_group_input_ports(group, portd),
+                   "requesting mapped input ports for a group port after all of the mapped processes were removed");
 
   pipe->remove_process(nameu);
 
-  if (pipe->mapped_group_output_port(group, portu) != vistk::process::port_addr_t())
-  {
-    TEST_ERROR("An output mapping exists after the mapped process has been removed");
-  }
+  EXPECT_EXCEPTION(vistk::no_such_group_port_exception,
+                   pipe->mapped_group_output_port(group, portu),
+                   "requesting mapped output port for a group port after the mapped process was removed");
 }
 
 void
