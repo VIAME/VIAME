@@ -43,10 +43,10 @@ BOOST_PYTHON_MODULE(pipeline)
       , (arg("upstream"), arg("upstream_port"), arg("downstream"), arg("downstream_port"))
       , "Disconnect two ports from each other in the pipeline.")
     .def("map_input_port", &vistk::pipeline::map_input_port
-      , (arg("group"), arg("group_port"), arg("process"), arg("process_port"), arg("flags"))
+      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"), arg("flags"))
       , "Maps a group input port to an input port on a process.")
     .def("map_output_port", &vistk::pipeline::map_output_port
-      , (arg("group"), arg("group_port"), arg("process"), arg("process_port"), arg("flags"))
+      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"), arg("flags"))
       , "Maps a group output port to an output port on a process.")
     .def("unmap_input_port", &vistk::pipeline::unmap_input_port
       , (arg("group"), arg("group_port"), arg("name"), arg("process_port"))
@@ -94,7 +94,7 @@ BOOST_PYTHON_MODULE(pipeline)
       , "Return the port that is sending to the given port.")
     .def("receivers_for_port", &vistk::pipeline::receivers_for_port
       , (arg("name"), arg("port"))
-      , "Return the port that is receiving from the given port.")
+      , "Return the ports that are receiving from the given port.")
     .def("edge_for_connection", &vistk::pipeline::edge_for_connection
       , (arg("upstream_name"), arg("upstream_port"), arg("downstream_name"), arg("downstream_port"))
       , "Returns the edge for the connection.")
