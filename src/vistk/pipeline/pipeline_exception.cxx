@@ -448,7 +448,7 @@ no_such_group_port_exception
 
   sstr << "The \'" << m_port << "\' on the group "
           "named \'" << m_name << "\' was "
-          "requested it does not exist.";
+          "requested when it does not exist.";
 
   m_what = sstr.str();
 }
