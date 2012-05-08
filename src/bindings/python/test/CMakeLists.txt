@@ -11,5 +11,9 @@ target_link_libraries(python-vistk.test-test_image
   ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
+add_python_module(test.py
+  vistk/test
+  test)
+
 make_python_init_file(vistk/test)
 #  test_image)
