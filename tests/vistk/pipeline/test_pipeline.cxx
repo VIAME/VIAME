@@ -110,10 +110,15 @@ static void test_start_and_stop();
 static void test_reset_while_running();
 static void test_reset();
 static void test_remove_process();
+static void test_remove_process_after_setup();
 static void test_remove_group();
+static void test_remove_group_after_setup();
 static void test_disconnect();
+static void test_disconnect_after_setup();
 static void test_unmap_input();
+static void test_unmap_input_after_setup();
 static void test_unmap_output();
+static void test_unmap_output_after_setup();
 
 void
 run_test(std::string const& test_name)
@@ -354,21 +359,41 @@ run_test(std::string const& test_name)
   {
     test_remove_process();
   }
+  else if (test_name == "remove_process_after_setup")
+  {
+    test_remove_process_after_setup();
+  }
   else if (test_name == "remove_group")
   {
     test_remove_group();
+  }
+  else if (test_name == "remove_group_after_setup")
+  {
+    test_remove_group_after_setup();
   }
   else if (test_name == "disconnect")
   {
     test_disconnect();
   }
+  else if (test_name == "disconnect_after_setup")
+  {
+    test_disconnect_after_setup();
+  }
   else if (test_name == "unmap_input")
   {
     test_unmap_input();
   }
+  else if (test_name == "unmap_input_after_setup")
+  {
+    test_unmap_input_after_setup();
+  }
   else if (test_name == "unmap_output")
   {
     test_unmap_output();
+  }
+  else if (test_name == "unmap_output_after_setup")
+  {
+    test_unmap_output_after_setup();
   }
   else
   {
@@ -1874,9 +1899,47 @@ test_remove_process()
 }
 
 void
+test_remove_process_after_setup()
+{
+  vistk::process_registry::type_t const type = vistk::process_registry::type_t("orphan");
+  vistk::process::name_t const name = vistk::process::name_t("name");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t proc = create_process(type, name);
+
+  pipe->add_process(proc);
+
+  pipe->setup_pipeline();
+
+  EXPECT_EXCEPTION(vistk::remove_after_setup_exception,
+                   pipe->remove_process(name),
+                   "removing a process after the pipeline has been setup");
+}
+
+void
 test_remove_group()
 {
   TEST_ERROR("Unimplemented");
+}
+
+void
+test_remove_group_after_setup()
+{
+  vistk::process_registry::type_t const type = vistk::process_registry::type_t("orphan");
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::name_t const group = vistk::process::name_t("group");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t proc = create_process(type, name);
+
+  pipe->add_process(proc);
+  pipe->add_group(group);
+
+  pipe->setup_pipeline();
+
+  EXPECT_EXCEPTION(vistk::remove_after_setup_exception,
+                   pipe->remove_group(group),
+                   "requesting a group after it has been removed");
 }
 
 void
@@ -1886,15 +1949,114 @@ test_disconnect()
 }
 
 void
+test_disconnect_after_setup()
+{
+  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
+  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::name_t const nameu = vistk::process::name_t("up");
+  vistk::process::name_t const named = vistk::process::name_t("down");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t procu = create_process(typeu, nameu);
+  vistk::process_t procd = create_process(typed, named);
+
+  pipe->add_process(procu);
+  pipe->add_process(procd);
+
+  vistk::process::port_t const portu = vistk::process::port_heartbeat;
+  vistk::process::port_t const portd = vistk::process::port_t("sink");
+
+  pipe->connect(nameu, portu,
+                named, portd);
+
+  pipe->setup_pipeline();
+
+  EXPECT_EXCEPTION(vistk::disconnection_after_setup_exception,
+                   pipe->disconnect(nameu, portu,
+                                    named, portd),
+                   "requesting a disconnect after the pipeline has been setup");
+}
+
+void
 test_unmap_input()
 {
   TEST_ERROR("Unimplemented");
 }
 
 void
+test_unmap_input_after_setup()
+{
+  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
+  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::name_t const nameu = vistk::process::name_t("up");
+  vistk::process::name_t const named = vistk::process::name_t("down");
+  vistk::process::name_t const group = vistk::process::name_t("group");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t procu = create_process(typeu, nameu);
+  vistk::process_t procd = create_process(typed, named);
+
+  pipe->add_process(procu);
+  pipe->add_process(procd);
+  pipe->add_group(group);
+
+  vistk::process::port_t const portu = vistk::process::port_heartbeat;
+  vistk::process::port_t const portd = vistk::process::port_t("sink");
+
+  pipe->connect(nameu, portu,
+                named, portd);
+
+  pipe->map_input_port(group, portd,
+                       named, portd,
+                       vistk::process::port_flags_t());
+
+  pipe->setup_pipeline();
+
+  EXPECT_EXCEPTION(vistk::disconnection_after_setup_exception,
+                   pipe->unmap_input_port(group, portd,
+                                          named, portd),
+                   "unmapping an input port after setup");
+}
+
+void
 test_unmap_output()
 {
   TEST_ERROR("Unimplemented");
+}
+
+void
+test_unmap_output_after_setup()
+{
+  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
+  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::name_t const nameu = vistk::process::name_t("up");
+  vistk::process::name_t const named = vistk::process::name_t("down");
+  vistk::process::name_t const group = vistk::process::name_t("group");
+
+  vistk::pipeline_t pipe = create_pipeline();
+  vistk::process_t procu = create_process(typeu, nameu);
+  vistk::process_t procd = create_process(typed, named);
+
+  pipe->add_process(procu);
+  pipe->add_process(procd);
+  pipe->add_group(group);
+
+  vistk::process::port_t const portu = vistk::process::port_heartbeat;
+  vistk::process::port_t const portd = vistk::process::port_t("sink");
+
+  pipe->connect(nameu, portu,
+                named, portd);
+
+  pipe->map_output_port(group, portu,
+                        nameu, portu,
+                        vistk::process::port_flags_t());
+
+  pipe->setup_pipeline();
+
+  EXPECT_EXCEPTION(vistk::disconnection_after_setup_exception,
+                   pipe->unmap_output_port(group, portu,
+                                           nameu, portu),
+                   "unmapping an output port after setup");
 }
 
 vistk::process_t
