@@ -18,6 +18,7 @@
 #include <boost/function.hpp>
 #include <boost/make_shared.hpp>
 
+#include <functional>
 #include <map>
 #include <queue>
 #include <set>
@@ -126,6 +127,7 @@ class pipeline::priv
     static bool is_addr_on(process::name_t const& name, process::port_addr_t const& addr);
     static bool is_connection_with(process::name_t const& name, connection_t const& connection);
     static bool is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection);
+    static bool is_group_connection_for(connection_t const& connection, group_connection_t const& gconnection);
 
     class propogation_exception
       : public pipeline_exception
@@ -328,7 +330,27 @@ pipeline
                                               downstream_name, downstream_port);
   }
 
-  /// \todo Implement.
+  process::port_addr_t const upstream_addr = process::port_addr_t(upstream_name, upstream_port);
+  process::port_addr_t const downstream_addr = process::port_addr_t(downstream_name, downstream_port);
+  priv::connection_t const conn = priv::connection_t(upstream_addr, downstream_addr);
+
+  boost::function<bool (priv::connection_t const&)> const eq = boost::bind(std::equal_to<priv::connection_t>(), conn, _1);
+  boost::function<bool (priv::group_connection_t const&)> const group_eq = boost::bind(&priv::is_group_connection_for, conn, _1);
+
+#define FORGET_CONNECTION(T, f, conns)                                   \
+  do                                                                     \
+  {                                                                      \
+    T::iterator const i = std::remove_if(conns.begin(), conns.end(), f); \
+    conns.erase(i, conns.end());                                         \
+  } while (false)
+
+  FORGET_CONNECTION(priv::connections_t, eq, d->planned_connections);
+  FORGET_CONNECTION(priv::connections_t, eq, d->connections);
+  FORGET_CONNECTION(priv::connections_t, eq, d->data_dep_connections);
+  FORGET_CONNECTION(priv::connections_t, eq, d->untyped_connections);
+  FORGET_CONNECTION(priv::group_connections_t, group_eq, d->group_connections);
+
+#undef FORGET_CONNECTION
 }
 
 void
@@ -2016,6 +2038,15 @@ pipeline::priv
   connection_t const& connection = gconnection.first;
 
   return is_connection_with(name, connection);
+}
+
+bool
+pipeline::priv
+::is_group_connection_for(connection_t const& connection, group_connection_t const& gconnection)
+{
+  connection_t const& group_connection = gconnection.first;
+
+  return (connection == group_connection);
 }
 
 pipeline::priv::propogation_exception
