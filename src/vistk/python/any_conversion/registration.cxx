@@ -15,7 +15,6 @@
 #include <boost/thread/once.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/any.hpp>
-#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
