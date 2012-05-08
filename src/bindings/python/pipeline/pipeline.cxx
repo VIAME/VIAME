@@ -30,15 +30,30 @@ BOOST_PYTHON_MODULE(pipeline)
     .def("add_group", &vistk::pipeline::add_group
       , (arg("group"))
       , "Create a group within the pipeline.")
+    .def("remove_process", &vistk::pipeline::remove_process
+      , (arg("name"))
+      , "Remove a process from the pipeline.")
+    .def("remove_group", &vistk::pipeline::remove_group
+      , (arg("group"))
+      , "Remove a group from the pipeline.")
     .def("connect", &vistk::pipeline::connect
       , (arg("upstream"), arg("upstream_port"), arg("downstream"), arg("downstream_port"))
       , "Connect two ports within the pipeline together.")
+    .def("disconnect", &vistk::pipeline::disconnect
+      , (arg("upstream"), arg("upstream_port"), arg("downstream"), arg("downstream_port"))
+      , "Disconnect two ports from each other in the pipeline.")
     .def("map_input_port", &vistk::pipeline::map_input_port
       , (arg("group"), arg("group_port"), arg("process"), arg("process_port"), arg("flags"))
       , "Maps a group input port to an input port on a process.")
     .def("map_output_port", &vistk::pipeline::map_output_port
       , (arg("group"), arg("group_port"), arg("process"), arg("process_port"), arg("flags"))
       , "Maps a group output port to an output port on a process.")
+    .def("unmap_input_port", &vistk::pipeline::unmap_input_port
+      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"))
+      , "Unmaps a group input port from an input port on a process.")
+    .def("unmap_output_port", &vistk::pipeline::unmap_output_port
+      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"))
+      , "Unmaps a group output port from an output port on a process.")
     .def("setup_pipeline", &vistk::pipeline::setup_pipeline
       , "Prepares the pipeline for execution.")
     .def("is_setup", &vistk::pipeline::is_setup
@@ -56,6 +71,12 @@ BOOST_PYTHON_MODULE(pipeline)
     .def("process_by_name", &vistk::pipeline::process_by_name
       , (arg("name"))
       , "Get a process by name.")
+    .def("connections_from_addr", &vistk::pipeline::connections_from_addr
+      , (arg("name"), arg("port"))
+      , "Return the addresses of ports that are connected downstream of a port.")
+    .def("connection_to_addr", &vistk::pipeline::connection_to_addr
+      , (arg("name"), arg("port"))
+      , "Return the address for the port that is connected upstream of a port.")
     .def("upstream_for_process", &vistk::pipeline::upstream_for_process
       , (arg("name"))
       , "Return all processes upstream of the given process.")
