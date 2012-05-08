@@ -13,7 +13,9 @@
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/function.hpp>
 #include <boost/make_shared.hpp>
 
 #include <map>
@@ -40,6 +42,7 @@ class pipeline::priv
     ~priv();
 
     void check_duplicate_name(process::name_t const& name);
+    void remove_from_pipeline(process::name_t const& name);
     void propogate(process::name_t const& root);
 
     typedef std::map<process::name_t, process_t> process_map_t;
@@ -119,6 +122,10 @@ class pipeline::priv
     bool setup_in_progress;
     bool setup_successful;
     bool running;
+
+    static bool is_addr_on(process::name_t const& name, process::port_addr_t const& addr);
+    static bool is_connection_with(process::name_t const& name, connection_t const& connection);
+    static bool is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection);
 
     class propogation_exception
       : public pipeline_exception
@@ -200,7 +207,16 @@ pipeline
     throw remove_after_setup_exception(name, true);
   }
 
-  /// \todo Implement.
+  priv::process_map_t::const_iterator const i = d->process_map.find(name);
+
+  if (i == d->process_map.end())
+  {
+    throw no_such_process_exception(name);
+  }
+
+  d->process_map.erase(name);
+
+  d->remove_from_pipeline(name);
 }
 
 void
@@ -212,7 +228,16 @@ pipeline
     throw remove_after_setup_exception(name, false);
   }
 
-  /// \todo Implement.
+  priv::group_map_t::const_iterator const i = d->groups.find(name);
+
+  if (i == d->groups.end())
+  {
+    throw no_such_process_exception(name);
+  }
+
+  d->groups.erase(name);
+
+  d->remove_from_pipeline(name);
 }
 
 void
@@ -1130,6 +1155,82 @@ pipeline::priv
   }
 }
 
+void
+pipeline::priv
+::remove_from_pipeline(process::name_t const& name)
+{
+  boost::function<bool (connection_t const&)> const is = boost::bind(&is_connection_with, name, _1);
+  boost::function<bool (group_connection_t const&)> const group_is = boost::bind(&is_group_connection_with, name, _1);
+
+#define FORGET_CONNECTIONS(T, f, conns)                                  \
+  do                                                                     \
+  {                                                                      \
+    T::iterator const i = std::remove_if(conns.begin(), conns.end(), f); \
+    conns.erase(i, conns.end());                                         \
+  } while (false)
+
+  FORGET_CONNECTIONS(connections_t, is, planned_connections);
+  FORGET_CONNECTIONS(connections_t, is, connections);
+  FORGET_CONNECTIONS(connections_t, is, data_dep_connections);
+  FORGET_CONNECTIONS(connections_t, is, untyped_connections);
+  FORGET_CONNECTIONS(group_connections_t, group_is, group_connections);
+
+#undef FORGET_CONNECTIONS
+
+  BOOST_FOREACH (group_map_t::value_type& group, groups)
+  {
+    port_mapping_t& port_mapping = group.second;
+
+    input_port_mapping_t& input_mappings = port_mapping.first;
+    input_port_mapping_t::iterator in = input_mappings.begin();
+    input_port_mapping_t::iterator const in_end = input_mappings.end();
+
+    while (in != in_end)
+    {
+      input_port_mapping_t::value_type& input_mapping = *in;
+
+      input_mapping_info_t& info = input_mapping.second;
+
+      process::port_addrs_t& mappings = info.get<1>();
+
+      process::port_addrs_t::iterator const i = std::remove_if(mappings.begin(), mappings.end(),
+                                                               boost::bind(is_addr_on, name, _1));
+      mappings.erase(i, mappings.end());
+
+      if (!mappings.size())
+      {
+        input_mappings.erase(in++);
+      }
+      else
+      {
+        ++in;
+      }
+    }
+
+    output_port_mapping_t& output_mappings = port_mapping.second;
+    output_port_mapping_t::iterator out = output_mappings.begin();
+    output_port_mapping_t::iterator const out_end = output_mappings.end();
+
+    while (out != out_end)
+    {
+      output_port_mapping_t::value_type& output_mapping = *out;
+
+      output_mapping_info_t& info = output_mapping.second;
+
+      process::port_addr_t& mapping = info.get<1>();
+
+      if (!is_addr_on(name, mapping))
+      {
+        output_mappings.erase(out++);
+      }
+      else
+      {
+        ++out;
+      }
+    }
+  }
+}
+
 pipeline::priv::port_type_status
 pipeline::priv
 ::check_connection_types(connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type)
@@ -1887,6 +1988,34 @@ pipeline::priv
   {
     throw pipeline_not_ready_exception();
   }
+}
+
+bool
+pipeline::priv
+::is_addr_on(process::name_t const& name, process::port_addr_t const& addr)
+{
+  process::name_t const& proc_name = addr.first;
+
+  return (name == proc_name);
+}
+
+bool
+pipeline::priv
+::is_connection_with(process::name_t const& name, connection_t const& connection)
+{
+  process::port_addr_t const& upstream_addr = connection.first;
+  process::port_addr_t const& downstream_addr = connection.second;
+
+  return (is_addr_on(name, upstream_addr) || is_addr_on(name, downstream_addr));
+}
+
+bool
+pipeline::priv
+::is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection)
+{
+  connection_t const& connection = gconnection.first;
+
+  return is_connection_with(name, connection);
 }
 
 pipeline::priv::propogation_exception
