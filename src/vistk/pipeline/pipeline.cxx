@@ -44,6 +44,8 @@ class pipeline::priv
 
     void check_duplicate_name(process::name_t const& name);
     void remove_from_pipeline(process::name_t const& name);
+    void remove_group_input_port(process::name_t const& name, process::port_t const& port);
+    void remove_group_output_port(process::name_t const& name, process::port_t const& port);
     void propogate(process::name_t const& root);
 
     typedef std::map<process::name_t, process_t> process_map_t;
@@ -124,6 +126,10 @@ class pipeline::priv
     bool setup_successful;
     bool running;
 
+    static bool is_upstream_for(process::port_addr_t const& addr, connection_t const& connection);
+    static bool is_downstream_for(process::port_addr_t const& addr, connection_t const& connection);
+    static bool is_group_upstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection);
+    static bool is_group_downstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection);
     static bool is_addr_on(process::name_t const& name, process::port_addr_t const& addr);
     static bool is_connection_with(process::name_t const& name, connection_t const& connection);
     static bool is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection);
@@ -440,7 +446,38 @@ pipeline
                                               mapped_name, mapped_port);
   }
 
-  /// \todo Implement.
+  priv::group_map_t::iterator const group_it = d->groups.find(group);
+
+  if (group_it == d->groups.end())
+  {
+    throw no_such_group_exception(group);
+  }
+
+  priv::port_mapping_t& port_mapping = group_it->second;
+  priv::input_port_mapping_t& imapping = port_mapping.first;
+
+  priv::input_port_mapping_t::iterator const map_i = imapping.find(port);
+
+  if (map_i == imapping.end())
+  {
+    throw no_such_group_port_exception(group, port);
+  }
+
+  priv::input_mapping_info_t& mapping_info = map_i->second;
+  process::port_addrs_t& mappings = mapping_info.get<1>();
+
+  process::port_addr_t const mapped_addr = process::port_addr_t(mapped_name, mapped_port);
+
+  process::port_addrs_t::iterator const i = std::remove(mappings.begin(), mappings.end(),
+                                                        mapped_addr);
+  mappings.erase(i, mappings.end());
+
+  if (!mappings.size())
+  {
+    imapping.erase(port);
+
+    d->remove_group_input_port(group, port);
+  }
 }
 
 void
@@ -456,7 +493,34 @@ pipeline
                                               group, port);
   }
 
-  /// \todo Implement.
+  priv::group_map_t::iterator const group_it = d->groups.find(group);
+
+  if (group_it == d->groups.end())
+  {
+    throw no_such_group_exception(group);
+  }
+
+  priv::port_mapping_t& port_mapping = group_it->second;
+  priv::output_port_mapping_t& omapping = port_mapping.second;
+
+  priv::output_port_mapping_t::const_iterator const map_i = omapping.find(port);
+
+  if (map_i == omapping.end())
+  {
+    throw no_such_group_port_exception(group, port);
+  }
+
+  priv::output_mapping_info_t const& mapping_info = map_i->second;
+  process::port_addr_t const& mapping = mapping_info.get<1>();
+
+  process::port_addr_t const mapped_addr = process::port_addr_t(mapped_name, mapped_port);
+
+  if (mapping == mapped_addr)
+  {
+    omapping.erase(port);
+
+    d->remove_group_output_port(group, port);
+  }
 }
 
 void
@@ -1253,6 +1317,56 @@ pipeline::priv
   }
 }
 
+void
+pipeline::priv
+::remove_group_input_port(process::name_t const& name, process::port_t const& port)
+{
+  process::port_addr_t const addr = process::port_addr_t(name, port);
+
+  boost::function<bool (connection_t const&)> const down = boost::bind(&is_downstream_for, addr, _1);
+  boost::function<bool (group_connection_t const&)> const group_down = boost::bind(&is_group_downstream_for, addr, _1);
+
+#define FORGET_PORT(T, f, conns)                                         \
+  do                                                                     \
+  {                                                                      \
+    T::iterator const i = std::remove_if(conns.begin(), conns.end(), f); \
+    conns.erase(i, conns.end());                                         \
+  } while (false)
+
+    FORGET_PORT(priv::connections_t, down, planned_connections);
+    FORGET_PORT(priv::connections_t, down, connections);
+    FORGET_PORT(priv::connections_t, down, data_dep_connections);
+    FORGET_PORT(priv::connections_t, down, untyped_connections);
+    FORGET_PORT(priv::group_connections_t, group_down, group_connections);
+
+#undef FORGET_PORT
+}
+
+void
+pipeline::priv
+::remove_group_output_port(process::name_t const& name, process::port_t const& port)
+{
+  process::port_addr_t const addr = process::port_addr_t(name, port);
+
+  boost::function<bool (connection_t const&)> const up = boost::bind(&is_upstream_for, addr, _1);
+  boost::function<bool (group_connection_t const&)> const group_up = boost::bind(&is_group_upstream_for, addr, _1);
+
+#define FORGET_PORT(T, f, conns)                                         \
+  do                                                                     \
+  {                                                                      \
+    T::iterator const i = std::remove_if(conns.begin(), conns.end(), f); \
+    conns.erase(i, conns.end());                                         \
+  } while (false)
+
+    FORGET_PORT(priv::connections_t, up, planned_connections);
+    FORGET_PORT(priv::connections_t, up, connections);
+    FORGET_PORT(priv::connections_t, up, data_dep_connections);
+    FORGET_PORT(priv::connections_t, up, untyped_connections);
+    FORGET_PORT(priv::group_connections_t, group_up, group_connections);
+
+#undef FORGET_PORT
+}
+
 pipeline::priv::port_type_status
 pipeline::priv
 ::check_connection_types(connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type)
@@ -2010,6 +2124,42 @@ pipeline::priv
   {
     throw pipeline_not_ready_exception();
   }
+}
+
+bool
+pipeline::priv
+::is_upstream_for(process::port_addr_t const& addr, connection_t const& connection)
+{
+  process::port_addr_t const up_addr = connection.first;
+
+  return (addr == up_addr);
+}
+
+bool
+pipeline::priv
+::is_downstream_for(process::port_addr_t const& addr, connection_t const& connection)
+{
+  process::port_addr_t const down_addr = connection.second;
+
+  return (addr == down_addr);
+}
+
+bool
+pipeline::priv
+::is_group_upstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection)
+{
+  connection_t const connection = gconnection.first;
+
+  return is_upstream_for(addr, connection);
+}
+
+bool
+pipeline::priv
+::is_group_downstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection)
+{
+  connection_t const connection = gconnection.first;
+
+  return is_downstream_for(addr, connection);
 }
 
 bool
