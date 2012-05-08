@@ -5,16 +5,11 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def log(msg):
-    import sys
-    sys.stderr.write("%s\n" % msg)
-
-
 def test_import():
     try:
         import vistk.pipeline_util.load
     except:
-        log("Error: Failed to import the load module")
+        test_error("Failed to import the load module")
 
 
 def test_create():
@@ -148,7 +143,7 @@ def main(testname, path):
     elif testname == 'simple_pipeline':
         test_simple_pipeline(path)
     else:
-        log("Error: No such test '%s'" % testname)
+        test_error("No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
@@ -156,7 +151,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 5:
-        log("Error: Expected four arguments")
+        test_error("Expected four arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
@@ -169,7 +164,9 @@ if __name__ == '__main__':
 
     path = os.path.join(pipeline_dir, '%s.pipe' % testname)
 
+    from vistk.test.test import *
+
     try:
         main(testname, path)
     except BaseException as e:
-        log("Error: Unexpected exception: %s" % str(e))
+        test_error("Unexpected exception: %s" % str(e))

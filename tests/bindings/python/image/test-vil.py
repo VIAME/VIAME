@@ -5,28 +5,11 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def log(msg):
-    import sys
-    sys.stderr.write("%s\n" % msg)
-
-
-def ensure_exception(action, func, *args):
-    got_exception = False
-
-    try:
-        func(*args)
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get exception when %s" % action)
-
-
 def test_import():
     try:
         import vistk.image.vil
     except:
-        log("Error: Failed to import the vil module")
+        test_error("Failed to import the vil module")
 
 
 def test_create():
@@ -35,7 +18,7 @@ def test_create():
     try:
         config.empty_config()
     except:
-        log("Error: Failed to create an empty configuration")
+        test_error("Failed to create an empty configuration")
 
     config.ConfigKey()
     config.ConfigKeys()
@@ -63,13 +46,13 @@ def test_vil_to_numpy():
         i = f(width, height, planes)
 
         if not i.dtype == t:
-            log("Error: Wrong type returned: got: '%s' expected: '%s'" % (i.dtype, t))
+            test_error("Wrong type returned: got: '%s' expected: '%s'" % (i.dtype, t))
 
         if not i.ndim == 3:
-            log("Error: Did not get a 3-dimensional array: got: '%d' expected: '%d'" % (i.dim, 3))
+            test_error("Did not get a 3-dimensional array: got: '%d' expected: '%d'" % (i.dim, 3))
 
         if not i.shape == shape:
-            log("Error: Did not get expected array sizes: got '%s' expected: '%s'" % (str(i.shape), str(shape)))
+            test_error("Did not get expected array sizes: got '%s' expected: '%s'" % (str(i.shape), str(shape)))
 
 
 def test_numpy_to_vil():
@@ -97,7 +80,7 @@ def test_numpy_to_vil():
         sz = f(i)
 
         if not sz == size:
-            log("Error: Wrong size calculated: got: '%d' expected: '%d'" % (sz, size))
+            test_error("Wrong size calculated: got: '%d' expected: '%d'" % (sz, size))
 
 
 def create_verify_process(c, shape, dtype):
@@ -139,11 +122,11 @@ def create_verify_process(c, shape, dtype):
 
         def check(self):
             if not self.got_image:
-                log("Error: Could not grab an image from the datum")
+                test_error("Could not grab an image from the datum")
             if not self.same_image_type:
-                log("Error: Input image was not of the expected type")
+                test_error("Input image was not of the expected type")
             if not self.same_image_size:
-                log("Error: Input image was not of the expected size")
+                test_error("Input image was not of the expected size")
 
     return VerifyProcess(c)
 
@@ -185,7 +168,7 @@ def test_datum():
         fname = 'test-python-vil-datum-%s.tiff' % pt
 
         if not f(a, fname):
-            log("Error: Failed to save '%s' image" % pt)
+            test_error("Failed to save '%s' image" % pt)
             continue
 
         with open(lname, 'w+') as f:
@@ -223,7 +206,7 @@ def test_datum():
         try:
             p.setup_pipeline()
         except BaseException as e:
-            log("Error: Could not initialize pipeline: '%s'" % str(e))
+            test_error("Could not initialize pipeline: '%s'" % str(e))
             continue
 
         s = sreg.create_schedule(sched_type, c, p)
@@ -232,7 +215,7 @@ def test_datum():
             s.start()
             s.wait()
         except BaseException as e:
-            log("Error: Could not execute pipeline: '%s'" % str(e))
+            test_error("Could not execute pipeline: '%s'" % str(e))
 
         v.check()
 
@@ -283,7 +266,7 @@ def main(testname):
     elif testname == 'memory':
         test_memory()
     else:
-        log("Error: No such test '%s'" % testname)
+        test_error("No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
@@ -291,7 +274,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 4:
-        log("Error: Expected three arguments")
+        test_error("Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
@@ -300,7 +283,9 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    from vistk.test.test import *
+
     try:
         main(testname)
     except BaseException as e:
-        log("Error: Unexpected exception: %s" % str(e))
+        test_error("Unexpected exception: %s" % str(e))

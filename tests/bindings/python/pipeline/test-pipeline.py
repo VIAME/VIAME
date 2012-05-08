@@ -5,16 +5,11 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def log(msg):
-    import sys
-    sys.stderr.write("%s\n" % msg)
-
-
 def test_import():
     try:
         import vistk.pipeline.pipeline
     except:
-        log("Error: Failed to import the pipeline module")
+        test_error("Failed to import the pipeline module")
 
 
 def test_create():
@@ -116,7 +111,7 @@ def main(testname):
     elif testname == 'api_calls':
         test_api_calls()
     else:
-        log("Error: No such test '%s'" % testname)
+        test_error("No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
@@ -124,7 +119,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 4:
-        log("Error: Expected three arguments")
+        test_error("Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
@@ -133,7 +128,9 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    from vistk.test.test import *
+
     try:
         main(testname)
     except BaseException as e:
-        log("Error: Unexpected exception: %s" % str(e))
+        test_error("Unexpected exception: %s" % str(e))

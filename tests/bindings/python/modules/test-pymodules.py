@@ -5,28 +5,11 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def log(msg):
-    import sys
-    sys.stderr.write("%s\n" % msg)
-
-
-def ensure_exception(action, func, *args):
-    got_exception = False
-
-    try:
-        func(*args)
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get exception when %s" % action)
-
-
 def test_import():
     try:
         import vistk.modules.modules
     except:
-        log("Error: Failed to import the modules module")
+        test_error("Failed to import the modules module")
 
 
 def test_load():
@@ -40,7 +23,7 @@ def test_load():
     types = reg.types()
 
     if 'test_python_process' not in types:
-        log("Error: Failed to load Python processes")
+        test_error("Failed to load Python processes")
 
 
 def test_masking():
@@ -54,7 +37,7 @@ def test_masking():
     types = reg.types()
 
     if 'test_python_process' in types:
-        log("Error: Failed to mask out Python processes")
+        test_error("Failed to mask out Python processes")
 
 
 def test_extra_modules():
@@ -68,7 +51,7 @@ def test_extra_modules():
     types = reg.types()
 
     if 'extra_test_python_process' not in types:
-        log("Error: Failed to load extra Python processes")
+        test_error("Failed to load extra Python processes")
 
 
 def main(testname):
@@ -81,7 +64,7 @@ def main(testname):
     elif testname == 'extra_modules':
         test_extra_modules()
     else:
-        log("Error: No such test '%s'" % testname)
+        test_error("No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
@@ -89,7 +72,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 4:
-        log("Error: Expected three arguments")
+        test_error("Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
@@ -98,8 +81,10 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    from vistk.test.test import *
+
     main(testname)
     #try:
         #main(testname)
     #except BaseException as e:
-        #log("Error: Unexpected exception: %s" % str(e))
+        #test_error("Unexpected exception: %s" % str(e))
