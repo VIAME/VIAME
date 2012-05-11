@@ -33,6 +33,9 @@ process scoring
 
 process aggregate
   :: score_aggregation
+
+process writer
+  :: score_writer
   :path[ro]{CONF} mask_scoring:output
 
 # Computed mask
@@ -65,3 +68,7 @@ connect from source.out/computed_mask
 # Aggregate the scores
 connect from scoring.result
         to   aggregate.score
+
+# Write out the scores
+connect from aggregate.aggregate
+        to   writer.score
