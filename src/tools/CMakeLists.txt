@@ -12,27 +12,33 @@ endif (WIN32)
 
 add_subdirectory(helpers)
 
-add_executable(pipe_to_dot
-  pipe_to_dot.cxx)
-target_link_libraries(pipe_to_dot
+function (add_tool name)
+  add_executable(${name}
+    ${name}.cxx)
+  target_link_libraries(${name}
+    ${ARGN})
+
+  install(
+    TARGETS     ${name}
+    DESTINATION "${EXECUTABLE_INSTALL_PATH}"
+    COMPONENT   tools)
+endfunction (add_tool)
+
+add_tool(pipe_to_dot
   vistk_pipeline_util
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
-add_executable(pipeline_runner
-  pipeline_runner.cxx)
-target_link_libraries(pipeline_runner
+add_tool(pipeline_runner
   vistk_pipeline_util
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
-add_executable(processopedia
-  processopedia.cxx)
-target_link_libraries(processopedia
+add_tool(processopedia
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
