@@ -39,14 +39,14 @@ function (add_python_tool name)
 endfunction (add_python_tool)
 
 add_tool(pipe_to_dot
-  vistk_pipeline_util
+  pipeline_builder
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
 add_tool(pipeline_runner
-  vistk_pipeline_util
+  pipeline_builder
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
