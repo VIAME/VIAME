@@ -24,6 +24,20 @@ function (add_tool name)
     COMPONENT   tools)
 endfunction (add_tool)
 
+function (add_python_tool name)
+  if (VISTK_ENABLE_PYTHON)
+    configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/${name}.py"
+      "${EXECUTABLE_OUTPUT_PATH}/${name}"
+      @ONLY)
+
+    install(
+      PROGRAMS    "${EXECUTABLE_OUTPUT_PATH}/${name}"
+      DESTINATION "${EXECUTABLE_INSTALL_PATH}"
+      COMPONENT   tools)
+  endif (VISTK_ENABLE_PYTHON)
+endfunction (add_python_tool)
+
 add_tool(pipe_to_dot
   vistk_pipeline_util
   vistk_pipeline
