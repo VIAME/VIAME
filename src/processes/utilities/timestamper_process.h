@@ -59,9 +59,9 @@ class VISTK_PROCESSES_UTILITIES_NO_EXPORT timestamper_process
     ~timestamper_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
+     * \brief Configure the process.
      */
-    void _init();
+    void _configure();
 
     /**
      * \brief Pushes a new timestamp through the output port.

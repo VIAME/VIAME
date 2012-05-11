@@ -48,7 +48,7 @@ if (VALGRIND_EXECUTABLE)
   if (VISTK_VALGRIND_USE_SUPPRESSIONS)
     set(vistk_valgrind_arguments
       ${vistk_valgrind_arguments}
-      "--suppressions=${CMAKE_SOURCE_DIR}/tests/valgrind/glibc.supp")
+      "--suppressions=${CMAKE_SOURCE_DIR}/tests/data/valgrind/glibc.supp")
   endif (VISTK_VALGRIND_USE_SUPPRESSIONS)
 
   add_custom_target(tests)
@@ -151,7 +151,7 @@ function (vistk_make_test testname instance)
   set_tests_properties(test-${testname}-${instance}
     PROPERTIES
       WORKING_DIRECTORY       "${EXECUTABLE_OUTPUT_PATH}"
-      FAIL_REGULAR_EXPRESSION "^Error: ")
+      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
   if (test_environment)
     set_tests_properties(test-${testname}-${instance}
       PROPERTIES

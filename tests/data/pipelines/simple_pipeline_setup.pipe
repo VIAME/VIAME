@@ -1,0 +1,14 @@
+process src1
+  :: numbers
+
+process src2
+  :: numbers
+
+process end
+  :: multiplication
+
+connect from src1.number
+        to   end.factor1
+
+connect from src2.number
+        to   end.factor2

@@ -32,9 +32,9 @@ class wrap_schedule
     wrap_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipe);
     ~wrap_schedule();
 
-    void start();
-    void wait();
-    void stop();
+    void _start();
+    void _wait();
+    void _stop();
 
     vistk::pipeline_t _pipeline() const;
 
@@ -47,14 +47,20 @@ BOOST_PYTHON_MODULE(schedule)
     , "The base class for Python schedules."
     , no_init)
     .def(init<vistk::config_t, vistk::pipeline_t>())
-    .def("start", pure_virtual(&vistk::schedule::start)
+    .def("start", &vistk::schedule::start
       , "Start the execution of the pipeline.")
-    .def("wait", pure_virtual(&vistk::schedule::wait)
+    .def("wait", &vistk::schedule::wait
       , "Wait until the pipeline execution is complete.")
-    .def("stop", pure_virtual(&vistk::schedule::stop)
+    .def("stop", &vistk::schedule::stop
       , "Stop the execution of the pipeline.")
     .def("pipeline", &wrap_schedule::_pipeline
       , "The pipeline the schedule is to run.")
+    .def("_start", pure_virtual(&wrap_schedule::_start)
+      , "Implementation of starting the pipeline.")
+    .def("_wait", pure_virtual(&wrap_schedule::_wait)
+      , "Implementation of waiting until execution is complete.")
+    .def("_stop", pure_virtual(&wrap_schedule::_stop)
+      , "Implementation of stopping the pipeline.")
   ;
 }
 
@@ -71,35 +77,35 @@ wrap_schedule
 
 void
 wrap_schedule
-::start()
+::_start()
 {
   vistk::python::python_gil gil;
 
   (void)gil;
 
-  get_pure_override("start")();
+  get_pure_override("_start")();
 }
 
 void
 wrap_schedule
-::wait()
+::_wait()
 {
   vistk::python::python_gil gil;
 
   (void)gil;
 
-  get_pure_override("wait")();
+  get_pure_override("_wait")();
 }
 
 void
 wrap_schedule
-::stop()
+::_stop()
 {
   vistk::python::python_gil gil;
 
   (void)gil;
 
-  get_pure_override("stop")();
+  get_pure_override("_stop")();
 }
 
 vistk::pipeline_t

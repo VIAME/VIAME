@@ -45,10 +45,6 @@ class video_reader_process::priv
     istream_read_func_t const read;
     bool const verify;
 
-    bool has_color;
-
-    stamp_t output_stamp;
-
     static config::key_t const config_pixtype;
     static config::key_t const config_pixfmt;
     static config::key_t const config_path;
@@ -58,7 +54,6 @@ class video_reader_process::priv
     static config::value_t const default_pixfmt;
     static config::value_t const default_verify;
     static config::value_t const default_impl;
-    static port_t const port_color;
     static port_t const port_output;
 };
 
@@ -71,7 +66,6 @@ config::value_t const video_reader_process::priv::default_pixtype = config::valu
 config::value_t const video_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const video_reader_process::priv::default_verify = config::value_t("false");
 config::value_t const video_reader_process::priv::default_impl = config::value_t(default_istream_impl());
-process::port_t const video_reader_process::priv::port_color = process::port_t("color");
 process::port_t const video_reader_process::priv::port_output = process::port_t("image");
 
 static std::string const impl_sep = ", ";
@@ -108,10 +102,6 @@ video_reader_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_color, boost::make_shared<port_info>(
-    type_none,
-    port_flags_t(),
-    port_description_t("If connected, uses the stamp's color for the output.")));
   declare_output_port(priv::port_output, boost::make_shared<port_info>(
     port_type_output,
     required,
@@ -125,7 +115,7 @@ video_reader_process
 
 void
 video_reader_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {
@@ -165,7 +155,7 @@ video_reader_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  vistk::path_t::string_type const path = d->path.native();
+  path_t::string_type const path = d->path.native();
 
   if (path.empty())
   {
@@ -174,7 +164,12 @@ video_reader_process
 
     throw invalid_configuration_value_exception(name(), priv::config_path, file_path, reason);
   }
+}
 
+void
+video_reader_process
+::_init()
+{
   if (d->verify)
   {
     if (d->istream->is_seekable())
@@ -193,6 +188,7 @@ video_reader_process
             /// \todo Log that there's a frame that could not be read.
           case datum::data:
             break;
+          case datum::flush:
           case datum::complete:
             done = true;
             break;
@@ -230,14 +226,16 @@ video_reader_process
     }
   }
 
-  if (input_port_edge(priv::port_color))
-  {
-    d->has_color = true;
-  }
-
-  d->output_stamp = heartbeat_stamp();
-
   process::_init();
+}
+
+void
+video_reader_process
+::_reset()
+{
+  d->istream->close();
+
+  process::_reset();
 }
 
 void
@@ -245,55 +243,15 @@ video_reader_process
 ::_step()
 {
   datum_t dat;
-  bool complete = false;
 
   dat = d->read(d->istream);
 
+  push_datum_to_port(priv::port_output, dat);
+
   if (dat->type() == datum::complete)
   {
-    complete = true;
-  }
-
-  d->output_stamp = stamp::incremented_stamp(d->output_stamp);
-
-  if (d->has_color)
-  {
-    edge_datum_t const color_dat = grab_from_port(priv::port_color);
-
-    switch (color_dat.get<0>()->type())
-    {
-      case datum::complete:
-        complete = true;
-      case datum::data:
-      case datum::empty:
-        break;
-      case datum::error:
-      {
-        static datum::error_t const err_string = datum::error_t("Error on the color edge.");
-
-        dat = datum::error_datum(err_string);
-      }
-      case datum::invalid:
-      default:
-      {
-        static datum::error_t const err_string = datum::error_t("Unrecognized datum type on the color edge.");
-
-        dat = datum::error_datum(err_string);
-      }
-    }
-
-    d->output_stamp = stamp::recolored_stamp(d->output_stamp, color_dat.get<1>());
-  }
-
-  if (complete)
-  {
     mark_process_as_complete();
-    dat = datum::complete_datum();
   }
-
-  edge_datum_t const edat = edge_datum_t(dat, d->output_stamp);
-
-  push_to_port(priv::port_output, edat);
 
   process::_step();
 }
@@ -304,7 +262,6 @@ video_reader_process::priv
   , istream(istr)
   , read(func)
   , verify(ver)
-  , has_color(false)
 {
 }
 

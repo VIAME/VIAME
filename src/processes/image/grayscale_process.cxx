@@ -87,7 +87,7 @@ grayscale_process
 
 void
 grayscale_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {

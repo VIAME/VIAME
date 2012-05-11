@@ -32,7 +32,7 @@ namespace vistk
  * \configs
  *
  * \config{reject} Whether to reject the set type or not.
- * \config{set_on_init} Whether to set the type on initialization or not.
+ * \config{set_on_configure} Whether to set the type on configure or not.
  *
  * \oports
  *
@@ -54,13 +54,17 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
     ~data_dependent_process();
   protected:
     /**
-     * \brief Initializes the process.
+     * \brief Configure the process.
      */
-    void _init();
+    void _configure();
     /**
      * \brief Pushes a new number through the output edge.
      */
     void _step();
+    /**
+     * \brief Resets the process.
+     */
+    void _reset();
     /**
      * \brief Sets the type for an output port.
      *
@@ -71,6 +75,8 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
      */
     bool _set_output_port_type(port_t const& port, port_type_t const& new_type);
   private:
+    void make_ports();
+
     class priv;
     boost::scoped_ptr<priv> d;
 };

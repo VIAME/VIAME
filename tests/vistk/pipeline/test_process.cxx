@@ -52,7 +52,10 @@ main(int argc, char* argv[])
 static void test_null_input_edge();
 static void test_null_output_edge();
 static void test_connect_after_init();
+static void test_reconfigure();
 static void test_reinit();
+static void test_reset();
+static void test_step_before_configure();
 static void test_step_before_init();
 static void test_set_static_input_type();
 static void test_set_static_output_type();
@@ -65,6 +68,12 @@ static void test_set_tagged_flow_dependent_port_cascade();
 static void test_add_input_port_after_type_pin();
 static void test_add_output_port_after_type_pin();
 static void test_set_untagged_flow_dependent_port();
+static void test_remove_input_port();
+static void test_remove_output_port();
+static void test_remove_non_exist_input_port();
+static void test_remove_non_exist_output_port();
+static void test_remove_only_tagged_flow_dependent_port();
+static void test_remove_tagged_flow_dependent_port();
 static void test_null_config();
 static void test_null_input_port_info();
 static void test_null_output_port_info();
@@ -85,9 +94,21 @@ run_test(std::string const& test_name)
   {
     test_connect_after_init();
   }
+  else if (test_name == "reconfigure")
+  {
+    test_reconfigure();
+  }
   else if (test_name == "reinit")
   {
     test_reinit();
+  }
+  else if (test_name == "reset")
+  {
+    test_reset();
+  }
+  else if (test_name == "step_before_configure")
+  {
+    test_step_before_configure();
   }
   else if (test_name == "step_before_init")
   {
@@ -137,6 +158,30 @@ run_test(std::string const& test_name)
   {
     test_set_untagged_flow_dependent_port();
   }
+  else if (test_name == "remove_input_port")
+  {
+    test_remove_input_port();
+  }
+  else if (test_name == "remove_output_port")
+  {
+    test_remove_output_port();
+  }
+  else if (test_name == "remove_non_exist_input_port")
+  {
+    test_remove_non_exist_input_port();
+  }
+  else if (test_name == "remove_non_exist_output_port")
+  {
+    test_remove_non_exist_output_port();
+  }
+  else if (test_name == "remove_only_tagged_flow_dependent_port")
+  {
+    test_remove_only_tagged_flow_dependent_port();
+  }
+  else if (test_name == "remove_tagged_flow_dependent_port")
+  {
+    test_remove_tagged_flow_dependent_port();
+  }
   else if (test_name == "null_config")
   {
     test_null_config();
@@ -161,10 +206,55 @@ run_test(std::string const& test_name)
 
 static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t());
 static vistk::edge_t create_edge();
-static vistk::process_t create_null_config_process(vistk::config_t const& config);
-static vistk::process_t create_null_input_port_info_process(vistk::config_t const& config);
-static vistk::process_t create_null_output_port_info_process(vistk::config_t const& config);
-static vistk::process_t create_null_conf_info_process(vistk::config_t const& config);
+
+class remove_ports_process
+  : public vistk::process
+{
+  public:
+    remove_ports_process(port_type_t const& port_type);
+    ~remove_ports_process();
+
+    void create_input_port(port_t const& port, port_type_t const& port_type);
+    void create_output_port(port_t const& port, port_type_t const& port_type);
+
+    void _remove_input_port(port_t const& port);
+    void _remove_output_port(port_t const& port);
+
+    static port_type_t const input_port;
+    static port_type_t const output_port;
+};
+
+class null_config_process
+  : public vistk::process
+{
+  public:
+    null_config_process(vistk::config_t const& config);
+    ~null_config_process();
+};
+
+class null_input_info_process
+  : public vistk::process
+{
+  public:
+    null_input_info_process(vistk::config_t const& config);
+    ~null_input_info_process();
+};
+
+class null_output_info_process
+  : public vistk::process
+{
+  public:
+    null_output_info_process(vistk::config_t const& config);
+    ~null_output_info_process();
+};
+
+class null_conf_info_process
+  : public vistk::process
+{
+  public:
+    null_conf_info_process(vistk::config_t const& config);
+    ~null_conf_info_process();
+};
 
 void
 test_null_input_edge()
@@ -205,11 +295,26 @@ test_connect_after_init()
 
   vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
+  process->configure();
   process->init();
 
   EXPECT_EXCEPTION(vistk::connect_to_initialized_process_exception,
                    process->connect_input_port(vistk::process::port_t(), edge),
                    "connecting an input edge after initialization");
+}
+
+void
+test_reconfigure()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type);
+
+  process->configure();
+
+  EXPECT_EXCEPTION(vistk::reconfigured_exception,
+                   process->configure(),
+                   "reconfiguring a process");
 }
 
 void
@@ -219,6 +324,7 @@ test_reinit()
 
   vistk::process_t const process = create_process(proc_type);
 
+  process->configure();
   process->init();
 
   EXPECT_EXCEPTION(vistk::reinitialization_exception,
@@ -227,11 +333,45 @@ test_reinit()
 }
 
 void
+test_reset()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type);
+
+  process->configure();
+
+  process->reset();
+
+  process->configure();
+  process->init();
+
+  process->reset();
+
+  process->configure();
+  process->init();
+}
+
+void
+test_step_before_configure()
+{
+  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+
+  vistk::process_t const process = create_process(proc_type);
+
+  EXPECT_EXCEPTION(vistk::unconfigured_exception,
+                   process->step(),
+                   "stepping before configuring");
+}
+
+void
 test_step_before_init()
 {
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
+
+  process->configure();
 
   EXPECT_EXCEPTION(vistk::uninitialized_exception,
                    process->step(),
@@ -328,6 +468,7 @@ test_set_input_type_after_init()
 
   vistk::process_t const process = create_process(proc_type);
 
+  process->configure();
   process->init();
 
   EXPECT_EXCEPTION(vistk::set_type_on_initialized_process_exception,
@@ -345,6 +486,7 @@ test_set_output_type_after_init()
 
   vistk::process_t const process = create_process(proc_type);
 
+  process->configure();
   process->init();
 
   EXPECT_EXCEPTION(vistk::set_type_on_initialized_process_exception,
@@ -562,6 +704,100 @@ test_set_untagged_flow_dependent_port()
   }
 }
 
+vistk::process::port_type_t const remove_ports_process::input_port = vistk::process::port_type_t("input");
+vistk::process::port_type_t const remove_ports_process::output_port = vistk::process::port_type_t("output");
+
+void
+test_remove_input_port()
+{
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+
+  proc->_remove_input_port(remove_ports_process::input_port);
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   proc->input_port_info(remove_ports_process::input_port),
+                   "after removing an input port");
+}
+
+void
+test_remove_output_port()
+{
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+
+  proc->_remove_output_port(remove_ports_process::output_port);
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   proc->output_port_info(remove_ports_process::output_port),
+                   "after removing an output port");
+}
+
+void
+test_remove_non_exist_input_port()
+{
+  vistk::process::port_t const port = vistk::process::port_t("port");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   proc->_remove_input_port(port),
+                   "after removing a non-existent input port");
+}
+
+void
+test_remove_non_exist_output_port()
+{
+  vistk::process::port_t const port = vistk::process::port_t("port");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   proc->_remove_output_port(port),
+                   "after removing a non-existent output port");
+}
+
+void
+test_remove_only_tagged_flow_dependent_port()
+{
+  vistk::process::port_t const port = vistk::process::port_t("port");
+  vistk::process::port_type_t const flow_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("tag");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
+
+  proc->_remove_input_port(remove_ports_process::input_port);
+  proc->set_output_port_type(remove_ports_process::output_port, type);
+  proc->_remove_output_port(remove_ports_process::output_port);
+  proc->create_input_port(port, flow_type);
+
+  vistk::process::port_info_t const info = proc->input_port_info(port);
+  vistk::process::port_type_t const& new_type = info->type;
+
+  if (new_type != flow_type)
+  {
+    TEST_ERROR("The flow type was not reset after all tagged ports were removed.");
+  }
+}
+
+void
+test_remove_tagged_flow_dependent_port()
+{
+  vistk::process::port_type_t const flow_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("tag");
+  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
+
+  proc->set_output_port_type(remove_ports_process::output_port, type);
+  proc->_remove_output_port(remove_ports_process::output_port);
+
+  vistk::process::port_info_t const info = proc->input_port_info(remove_ports_process::input_port);
+  vistk::process::port_type_t const& new_type = info->type;
+
+  if (new_type != type)
+  {
+    TEST_ERROR("The flow type was reset even when more were left.");
+  }
+}
+
 void
 test_null_config()
 {
@@ -569,7 +805,7 @@ test_null_config()
 
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_config");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_config_process);
+  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_config_process>);
 
   vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
 
@@ -585,7 +821,7 @@ test_null_input_port_info()
 
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_input_port");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_input_port_info_process);
+  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_input_info_process>);
 
   vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
 
@@ -601,7 +837,7 @@ test_null_output_port_info()
 
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_output_port");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_output_port_info_process);
+  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_output_info_process>);
 
   vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
 
@@ -617,7 +853,7 @@ test_null_conf_info()
 
   vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_conf");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), create_null_conf_info_process);
+  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_conf_info_process>);
 
   vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
 
@@ -648,62 +884,6 @@ create_edge()
   vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   return edge;
-}
-
-class null_config_process
-  : public vistk::process
-{
-  public:
-    null_config_process(vistk::config_t const& config);
-    ~null_config_process();
-};
-
-class null_input_info_process
-  : public vistk::process
-{
-  public:
-    null_input_info_process(vistk::config_t const& config);
-    ~null_input_info_process();
-};
-
-class null_output_info_process
-  : public vistk::process
-{
-  public:
-    null_output_info_process(vistk::config_t const& config);
-    ~null_output_info_process();
-};
-
-class null_conf_info_process
-  : public vistk::process
-{
-  public:
-    null_conf_info_process(vistk::config_t const& config);
-    ~null_conf_info_process();
-};
-
-vistk::process_t
-create_null_config_process(vistk::config_t const& config)
-{
-  return boost::make_shared<null_config_process>(config);
-}
-
-vistk::process_t
-create_null_input_port_info_process(vistk::config_t const& config)
-{
-  return boost::make_shared<null_input_info_process>(config);
-}
-
-vistk::process_t
-create_null_output_port_info_process(vistk::config_t const& config)
-{
-  return boost::make_shared<null_output_info_process>(config);
-}
-
-vistk::process_t
-create_null_conf_info_process(vistk::config_t const& config)
-{
-  return boost::make_shared<null_conf_info_process>(config);
 }
 
 null_config_process
@@ -757,4 +937,51 @@ null_conf_info_process
 null_conf_info_process
 ::~null_conf_info_process()
 {
+}
+
+remove_ports_process
+::remove_ports_process(port_type_t const& port_type)
+  : vistk::process(vistk::config::empty_config())
+{
+  create_input_port(input_port, port_type);
+  create_output_port(output_port, port_type);
+}
+
+remove_ports_process
+::~remove_ports_process()
+{
+}
+
+void
+remove_ports_process
+::create_input_port(port_t const& port, port_type_t const& port_type)
+{
+  declare_input_port(port, boost::make_shared<port_info>(
+    port_type,
+    port_flags_t(),
+    port_description_t("input port")));
+}
+
+void
+remove_ports_process
+::create_output_port(port_t const& port, port_type_t const& port_type)
+{
+  declare_output_port(port, boost::make_shared<port_info>(
+    port_type,
+    port_flags_t(),
+    port_description_t("output port")));
+}
+
+void
+remove_ports_process
+::_remove_input_port(port_t const& port)
+{
+  remove_input_port(port);
+}
+
+void
+remove_ports_process
+::_remove_output_port(port_t const& port)
+{
+  remove_output_port(port);
 }

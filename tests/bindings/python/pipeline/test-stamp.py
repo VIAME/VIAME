@@ -5,16 +5,11 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def log(msg):
-    import sys
-    sys.stderr.write("%s\n" % msg)
-
-
 def test_import():
     try:
         import vistk.pipeline.stamp
     except:
-        log("Error: Failed to import the stamp module")
+        test_error("Failed to import the stamp module")
 
 
 def test_create():
@@ -33,19 +28,19 @@ def test_api_calls():
     sr = stamp.recolored_stamp(s, t)
 
     if s.is_same_color(t):
-        log("Error: New stamps have the same color")
+        test_error("New stamps have the same color")
 
     if not s.is_same_color(sc):
-        log("Error: Copied stamps do not have the same color")
+        test_error("Copied stamps do not have the same color")
 
     if s > si:
-        log("Error: A stamp is greater than its increment")
+        test_error("A stamp is greater than its increment")
 
     if si < s:
-        log("Error: A stamp is greater than its increment")
+        test_error("A stamp is greater than its increment")
 
     if s < t or t < s:
-        log("Error: Different colored stamps return True for comparison")
+        test_error("Different colored stamps return True for comparison")
 
 
 def main(testname):
@@ -56,7 +51,7 @@ def main(testname):
     elif testname == 'api_calls':
         test_api_calls()
     else:
-        log("Error: No such test '%s'" % testname)
+        test_error("No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
@@ -64,7 +59,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 4:
-        log("Error: Expected three arguments")
+        test_error("Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
@@ -73,7 +68,9 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    from vistk.test.test import *
+
     try:
         main(testname)
     except BaseException as e:
-        log("Error: Unexpected exception: %s" % str(e))
+        test_error("Unexpected exception: %s" % str(e))

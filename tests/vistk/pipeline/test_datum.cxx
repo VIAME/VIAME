@@ -43,6 +43,7 @@ main(int argc, char* argv[])
 }
 
 static void test_empty();
+static void test_flush();
 static void test_complete();
 static void test_error();
 static void test_new();
@@ -53,6 +54,10 @@ run_test(std::string const& test_name)
   if (test_name == "empty")
   {
     test_empty();
+  }
+  else if (test_name == "flush")
+  {
+    test_flush();
   }
   else if (test_name == "complete")
   {
@@ -90,6 +95,26 @@ test_empty()
   EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
                    dat->get_datum<int>(),
                    "retrieving a value from an empty datum");
+}
+
+void
+test_flush()
+{
+  vistk::datum_t dat = vistk::datum::flush_datum();
+
+  if (dat->type() != vistk::datum::flush)
+  {
+    TEST_ERROR("Datum type mismatch");
+  }
+
+  if (!dat->get_error().empty())
+  {
+    TEST_ERROR("A flush datum has an error string");
+  }
+
+  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+                   dat->get_datum<int>(),
+                   "retrieving a value from an flush datum");
 }
 
 void

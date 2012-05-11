@@ -30,22 +30,53 @@ BOOST_PYTHON_MODULE(pipeline)
     .def("add_group", &vistk::pipeline::add_group
       , (arg("group"))
       , "Create a group within the pipeline.")
+    .def("remove_process", &vistk::pipeline::remove_process
+      , (arg("name"))
+      , "Remove a process from the pipeline.")
+    .def("remove_group", &vistk::pipeline::remove_group
+      , (arg("group"))
+      , "Remove a group from the pipeline.")
     .def("connect", &vistk::pipeline::connect
       , (arg("upstream"), arg("upstream_port"), arg("downstream"), arg("downstream_port"))
       , "Connect two ports within the pipeline together.")
+    .def("disconnect", &vistk::pipeline::disconnect
+      , (arg("upstream"), arg("upstream_port"), arg("downstream"), arg("downstream_port"))
+      , "Disconnect two ports from each other in the pipeline.")
     .def("map_input_port", &vistk::pipeline::map_input_port
-      , (arg("group"), arg("group_port"), arg("process"), arg("process_port"), arg("flags"))
+      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"), arg("flags"))
       , "Maps a group input port to an input port on a process.")
     .def("map_output_port", &vistk::pipeline::map_output_port
-      , (arg("group"), arg("group_port"), arg("process"), arg("process_port"), arg("flags"))
+      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"), arg("flags"))
       , "Maps a group output port to an output port on a process.")
+    .def("unmap_input_port", &vistk::pipeline::unmap_input_port
+      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"))
+      , "Unmaps a group input port from an input port on a process.")
+    .def("unmap_output_port", &vistk::pipeline::unmap_output_port
+      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"))
+      , "Unmaps a group output port from an output port on a process.")
     .def("setup_pipeline", &vistk::pipeline::setup_pipeline
       , "Prepares the pipeline for execution.")
+    .def("is_setup", &vistk::pipeline::is_setup
+      , "Returns True if the pipeline has been setup, False otherwise.")
+    .def("setup_successful", &vistk::pipeline::setup_successful
+      , "Returns True if the pipeline has been successfully setup, False otherwise.")
+    .def("reset", &vistk::pipeline::reset
+      , "Resets connections within the pipeline.")
+    .def("start", &vistk::pipeline::start
+      , "Notify the pipeline that its execution has started.")
+    .def("stop", &vistk::pipeline::stop
+      , "Notify the pipeline that its execution has ended.")
     .def("process_names", &vistk::pipeline::process_names
       , "Returns a list of all process names in the pipeline.")
     .def("process_by_name", &vistk::pipeline::process_by_name
       , (arg("name"))
       , "Get a process by name.")
+    .def("connections_from_addr", &vistk::pipeline::connections_from_addr
+      , (arg("name"), arg("port"))
+      , "Return the addresses of ports that are connected downstream of a port.")
+    .def("connection_to_addr", &vistk::pipeline::connection_to_addr
+      , (arg("name"), arg("port"))
+      , "Return the address for the port that is connected upstream of a port.")
     .def("upstream_for_process", &vistk::pipeline::upstream_for_process
       , (arg("name"))
       , "Return all processes upstream of the given process.")
@@ -63,7 +94,7 @@ BOOST_PYTHON_MODULE(pipeline)
       , "Return the port that is sending to the given port.")
     .def("receivers_for_port", &vistk::pipeline::receivers_for_port
       , (arg("name"), arg("port"))
-      , "Return the port that is receiving from the given port.")
+      , "Return the ports that are receiving from the given port.")
     .def("edge_for_connection", &vistk::pipeline::edge_for_connection
       , (arg("upstream_name"), arg("upstream_port"), arg("downstream_name"), arg("downstream_port"))
       , "Returns the edge for the connection.")

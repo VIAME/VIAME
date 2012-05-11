@@ -11,22 +11,6 @@ set(image_srcs
   video_reader_process.cxx
   warp_image_process.cxx)
 
-set_source_files_properties(image_reader_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${image_reader_process_build_options}")
-
-set_source_files_properties(image_writer_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${image_writer_process_build_options}")
-
-set_source_files_properties(layered_image_reader_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${layered_image_reader_process_build_options}")
-
-set_source_files_properties(video_reader_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${video_reader_process_build_options}")
-
 add_vistk_plugin(processes_image
   MAKE_VISTK_PROCESSES_IMAGE_LIB
   ${image_srcs})

@@ -27,14 +27,21 @@ datum_t
 datum
 ::empty_datum()
 {
-  return datum_t(new datum(false));
+  return datum_t(new datum(empty));
+}
+
+datum_t
+datum
+::flush_datum()
+{
+  return datum_t(new datum(flush));
 }
 
 datum_t
 datum
 ::complete_datum()
 {
-  return datum_t(new datum(true));
+  return datum_t(new datum(complete));
 }
 
 datum_t
@@ -59,8 +66,8 @@ datum
 }
 
 datum
-::datum(bool is_complete)
-  : m_type(is_complete ? complete : empty)
+::datum(type_t ty)
+  : m_type(ty)
 {
 }
 

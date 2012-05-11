@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_EXAMPLES_PRINT_STRING_PROCESS_H
-#define VISTK_PROCESSES_EXAMPLES_PRINT_STRING_PROCESS_H
+#ifndef VISTK_PROCESSES_EXAMPLES_TAKE_STRING_PROCESS_H
+#define VISTK_PROCESSES_EXAMPLES_TAKE_STRING_PROCESS_H
 
 #include "examples-config.h"
 
@@ -14,24 +14,24 @@
 #include <boost/scoped_ptr.hpp>
 
 /**
- * \file print_string_process.h
+ * \file take_string_process.h
  *
- * \brief Declaration of the string printing process.
+ * \brief Declaration of the string taking process.
  */
 
 namespace vistk
 {
 
 /**
- * \class print_string_process
+ * \class take_string_process
  *
- * \brief A process which prints incoming strings.
+ * \brief A process which accepts incoming strings.
  *
- * \process A process for printing strings.
+ * \process A process for taking strings.
  *
  * \iports
  *
- * \iport{string} The source of strings to print.
+ * \iport{string} The source of strings to take.
  *
  * \configs
  *
@@ -41,7 +41,7 @@ namespace vistk
  *
  * \req The \port{string} port must be connected.
  */
-class VISTK_PROCESSES_EXAMPLES_NO_EXPORT print_string_process
+class VISTK_PROCESSES_EXAMPLES_NO_EXPORT take_string_process
   : public process
 {
   public:
@@ -50,19 +50,14 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT print_string_process
      *
      * \param config Contains config for the process.
      */
-    print_string_process(config_t const& config);
+    take_string_process(config_t const& config);
     /**
      * \brief Destructor.
      */
-    ~print_string_process();
+    ~take_string_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
-     */
-    void _init();
-
-    /**
-     * \brief Prints numbers to the output stream.
+     * \brief Takes strings from the input port.
      */
     void _step();
   private:
@@ -72,4 +67,4 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT print_string_process
 
 }
 
-#endif // VISTK_PROCESSES_EXAMPLES_PRINT_STRING_PROCESS_H
+#endif // VISTK_PROCESSES_EXAMPLES_TAKE_STRING_PROCESS_H

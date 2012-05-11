@@ -6,20 +6,16 @@
 
 #include "score_aggregation_process.h"
 
-#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/process_exception.h>
 
 #include <vistk/scoring/scoring_result.h>
 
-#include <vistk/utilities/path.h>
+#include <boost/make_shared.hpp>
 
-#include <fstream>
 #include <numeric>
-#include <string>
 
 /**
- * \file score_aggregation_process.h
+ * \file score_aggregation_process.cxx
  *
  * \brief Implementation of the score aggregation process.
  */
@@ -30,34 +26,25 @@ namespace vistk
 class score_aggregation_process::priv
 {
   public:
-    priv(path_t const& output_path);
+    priv();
     ~priv();
-
-    path_t const path;
 
     scoring_results_t results;
 
-    std::ofstream fout;
-
-    static config::key_t const config_path;
-    static config::value_t const default_path;
     static port_t const port_score;
+    static port_t const port_aggregate;
 };
 
-config::key_t const score_aggregation_process::priv::config_path = config::key_t("path");
-config::value_t const score_aggregation_process::priv::default_path = config::key_t("scoring-results.txt");
 process::port_t const score_aggregation_process::priv::port_score = process::port_t("score");
+process::port_t const score_aggregation_process::priv::port_aggregate = process::port_t("aggregate");
 
 score_aggregation_process
 ::score_aggregation_process(config_t const& config)
   : process(config)
+  , d(new priv)
 {
   // We only calculate on 'complete' datum.
   ensure_inputs_are_valid(false);
-
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
-    priv::default_path,
-    config::description_t("The file to write the results to.")));
 
   port_flags_t required;
 
@@ -67,6 +54,11 @@ score_aggregation_process
     "score",
     required,
     port_description_t("The scores to aggregate.")));
+
+  declare_output_port(priv::port_aggregate, boost::make_shared<port_info>(
+    "score",
+    required,
+    port_description_t("The aggregate scores.")));
 }
 
 score_aggregation_process
@@ -76,59 +68,22 @@ score_aggregation_process
 
 void
 score_aggregation_process
-::_init()
-{
-  // Configure the process.
-  {
-    path_t const path = config_value<path_t>(priv::config_path);
-
-    d.reset(new priv(path));
-  }
-
-  vistk::path_t::string_type const path = d->path.native();
-
-  if (path.empty())
-  {
-    static std::string const reason = "The path given was empty";
-    config::value_t const value = config::value_t(path.begin(), path.end());
-
-    throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
-  }
-
-  d->fout.open(path.c_str());
-
-  if (!d->fout.good())
-  {
-    std::string const file_path(path.begin(), path.end());
-    std::string const reason = "Failed to open the path: " + file_path;
-
-    throw invalid_configuration_exception(name(), reason);
-  }
-
-  process::_init();
-}
-
-void
-score_aggregation_process
 ::_step()
 {
   datum_t const dat = grab_datum_from_port(priv::port_score);
 
+  bool complete = false;
+
   switch (dat->type())
   {
     case datum::complete:
+      complete = true;
+    case datum::flush:
     {
       scoring_result_t const base = boost::make_shared<scoring_result>(0, 0, 0);
       scoring_result_t const overall = std::accumulate(d->results.begin(), d->results.end(), base);
 
-      /// \todo What format to use?
-      d->fout << overall->hit_count << " "
-              << overall->miss_count << " "
-              << overall->truth_count << " "
-              << overall->percent_detection() << " "
-              << overall->precision() << std::endl;
-
-      mark_process_as_complete();
+      push_to_port_as<scoring_result_t>(priv::port_aggregate, overall);
 
       break;
     }
@@ -147,12 +102,16 @@ score_aggregation_process
       break;
   }
 
+  if (complete)
+  {
+    mark_process_as_complete();
+  }
+
   process::_step();
 }
 
 score_aggregation_process::priv
-::priv(path_t const& output_path)
-  : path(output_path)
+::priv()
 {
 }
 

@@ -57,6 +57,10 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT flow_dependent_process
     ~flow_dependent_process();
   protected:
     /**
+     * \brief Resets the process.
+     */
+    void _reset();
+    /**
      * \brief Pushes a new number through the output edge.
      */
     void _step();
@@ -79,6 +83,8 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT flow_dependent_process
      */
     bool _set_output_port_type(port_t const& port, port_type_t const& new_type);
   private:
+    void make_ports();
+
     class priv;
     boost::scoped_ptr<priv> d;
 };

@@ -6,9 +6,6 @@ config warp_image
   :input_homography input-homog.txt
   :output output.txt
 
-process source
-  :: source
-
 process read
   :: image_reader
   :input[ro]{CONF} warp_image:input
@@ -19,6 +16,9 @@ process read_trans
   :: homography_reader
   :input[ro]{CONF} warp_image:input_homography
   :homography_type[ro]{CONF} warp_image:homography_type
+
+process source
+  :: source
 
 !include warp.pipe
 
@@ -32,16 +32,16 @@ process write
   :pixtype[ro]{CONF} warp_image:pixtype
   :pixfmt[ro]{CONF} warp_image:pixfmt
 
-connect from source.color
-        to   read.color
-
-connect from source.color
-        to   read_trans.color
-
 connect from read.image
-        to   warp.image
+        to   source.src/image
 
 connect from read_trans.homography
+        to   source.src/homography
+
+connect from source.out/image
+        to   warp.image
+
+connect from source.out/homography
         to   warp.transform
 
 connect from warp.warped_image

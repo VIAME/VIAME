@@ -15,8 +15,9 @@
 #include "number_process.h"
 #include "orphan_process.h"
 #include "print_number_process.h"
-#include "print_string_process.h"
 #include "tagged_flow_dependent_process.h"
+#include "take_number_process.h"
+#include "take_string_process.h"
 
 #include <vistk/pipeline/process_registry.h>
 
@@ -49,8 +50,9 @@ register_processes()
   registry->register_process("numbers", "Outputs numbers within a range", create_process<number_process>);
   registry->register_process("orphan", "A dummy process", create_process<orphan_process>);
   registry->register_process("print_number", "Print numbers to a file", create_process<print_number_process>);
-  registry->register_process("print_string", "Print strings to a file", create_process<print_string_process>);
   registry->register_process("tagged_flow_dependent", "A process with a tagged flow dependent types", create_process<tagged_flow_dependent_process>);
+  registry->register_process("take_number", "Print numbers to a file", create_process<take_number_process>);
+  registry->register_process("take_string", "Print strings to a file", create_process<take_string_process>);
 
   registry->mark_module_as_loaded(module_name);
 }

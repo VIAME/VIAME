@@ -5,23 +5,6 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def log(msg):
-    import sys
-    sys.stderr.write("%s\n" % msg)
-
-
-def ensure_exception(action, func, *args):
-    got_exception = False
-
-    try:
-        func(*args)
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get exception when %s" % action)
-
-
 def make_source(conf):
     from vistk.pipeline import process
 
@@ -154,7 +137,7 @@ def check_file(fname, expect):
         num_expect = len(expect)
 
         if not num_ints == num_expect:
-            log("Error: Got %d results when %d were expected." % (num_ints, num_expect))
+            test_error("Got %d results when %d were expected." % (num_ints, num_expect))
 
         res = list(zip(ints, expect))
 
@@ -162,7 +145,7 @@ def check_file(fname, expect):
 
         for i, e in res:
             if not i == e:
-                log("Error: Result %d is %d, where %d was expected" % (line, i, e))
+                test_error("Result %d is %d, where %d was expected" % (line, i, e))
             line += 1
 
 
@@ -400,7 +383,7 @@ def main(testname, sched_type):
     elif testname == 'python_via_cpp':
         test_python_via_cpp(sched_type)
     else:
-        log("Error: No such test '%s'" % testname)
+        test_error("No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
@@ -408,7 +391,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 4:
-        log("Error: Expected three arguments")
+        test_error("Expected three arguments")
         sys.exit(1)
 
     (testname, sched_type) = tuple(sys.argv[1].split('-', 1))
@@ -417,7 +400,9 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    from vistk.test.test import *
+
     try:
         main(testname, sched_type)
     except BaseException as e:
-        log("Error: Unexpected exception: %s" % str(e))
+        test_error("Unexpected exception: %s" % str(e))

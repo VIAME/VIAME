@@ -60,7 +60,12 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT combine_masks_process
     ~combine_masks_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
+     * \brief Configure the process.
+     */
+    void _configure();
+
+    /**
+     * \brief Initialize the process.
      */
     void _init();
 

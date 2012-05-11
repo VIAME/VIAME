@@ -36,7 +36,11 @@ class wrap_process
     wrap_process(vistk::config_t const& config);
     ~wrap_process();
 
+    void _base_configure();
+
     void _base_init();
+
+    void _base_reset();
 
     void _base_step();
 
@@ -58,7 +62,11 @@ class wrap_process
 
     conf_info_t _base_config_info(vistk::config::key_t const& key);
 
+    void _configure();
+
     void _init();
+
+    void _reset();
 
     void _step();
 
@@ -82,6 +90,9 @@ class wrap_process
 
     void _declare_input_port(port_t const& port, port_info_t const& info);
     void _declare_output_port(port_t const& port, port_info_t const& info);
+
+    void _remove_input_port(port_t const& port);
+    void _remove_output_port(port_t const& port);
 
     void _declare_configuration_key(vistk::config::key_t const& key, conf_info_t const& info);
 
@@ -180,8 +191,12 @@ BOOST_PYTHON_MODULE(process)
     , "The base class for Python processes."
     , no_init)
     .def(init<vistk::config_t>())
+    .def("configure", &vistk::process::configure
+      , "Configure the process.")
     .def("init", &vistk::process::init
       , "Initializes the process.")
+    .def("reset", &vistk::process::reset
+      , "Resets the process.")
     .def("step", &vistk::process::step
       , "Steps the process for one iteration.")
     .def("constraints", &vistk::process::constraints
@@ -233,8 +248,12 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
     .def_readonly("flag_input_nodep", &vistk::process::flag_input_nodep)
     .def_readonly("flag_required", &vistk::process::flag_required)
+    .def("_base_configure", &wrap_process::_base_configure
+      , "Base class configure.")
     .def("_base_init", &wrap_process::_base_init
       , "Base class initialization.")
+    .def("_base_reset", &wrap_process::_base_reset
+      , "Base class reset.")
     .def("_base_step", &wrap_process::_base_step
       , "Base class step.")
     .def("_base_constraints", &wrap_process::_base_constraints
@@ -266,8 +285,12 @@ BOOST_PYTHON_MODULE(process)
     .def("_base_config_info", &wrap_process::_base_config_info
       , (arg("config"))
       , "Base class configuration information.")
+    .def("_configure", &wrap_process::_configure, &wrap_process::_base_configure
+      , "Configures the process subclass.")
     .def("_init", &wrap_process::_init, &wrap_process::_base_init
       , "Initializes the process subclass.")
+    .def("_reset", &wrap_process::_reset, &wrap_process::_base_reset
+      , "Resets the process subclass.")
     .def("_step", &wrap_process::_step, &wrap_process::_base_step
       , "Step the process subclass for one iteration.")
     .def("_constraints", &wrap_process::_constraints, &wrap_process::_base_constraints
@@ -305,6 +328,12 @@ BOOST_PYTHON_MODULE(process)
     .def("declare_output_port", &wrap_process::_declare_output_port
       , (arg("port"), arg("info"))
       , "Declare an output port on the process.")
+    .def("remove_input_port", &wrap_process::_remove_input_port
+      , (arg("port"))
+      , "Remove an input port from the process.")
+    .def("remove_output_port", &wrap_process::_remove_output_port
+      , (arg("port"))
+      , "Remove an output port from the process.")
     .def("declare_configuration_key", &wrap_process::_declare_configuration_key
       , (arg("key"), arg("info"))
       , "Declare a configuration key for the process.")
@@ -360,9 +389,23 @@ wrap_process
 
 void
 wrap_process
+::_base_configure()
+{
+  process::_configure();
+}
+
+void
+wrap_process
 ::_base_init()
 {
   process::_init();
+}
+
+void
+wrap_process
+::_base_reset()
+{
+  process::_reset();
 }
 
 void
@@ -455,6 +498,28 @@ wrap_process
 
 void
 wrap_process
+::_configure()
+{
+  {
+    vistk::python::python_gil gil;
+
+    (void)gil;
+
+    override const f = get_override("_configure");
+
+    if (f)
+    {
+      f();
+
+      return;
+    }
+  }
+
+  _base_configure();
+}
+
+void
+wrap_process
 ::_init()
 {
   {
@@ -473,6 +538,28 @@ wrap_process
   }
 
   _base_init();
+}
+
+void
+wrap_process
+::_reset()
+{
+  {
+    vistk::python::python_gil gil;
+
+    (void)gil;
+
+    override const f = get_override("_reset");
+
+    if (f)
+    {
+      f();
+
+      return;
+    }
+  }
+
+  _base_reset();
 }
 
 void
@@ -733,6 +820,20 @@ wrap_process
 ::_declare_output_port(port_t const& port, port_info_t const& info)
 {
   declare_output_port(port, info);
+}
+
+void
+wrap_process
+::_remove_input_port(port_t const& port)
+{
+  remove_input_port(port);
+}
+
+void
+wrap_process
+::_remove_output_port(port_t const& port)
+{
+  remove_output_port(port);
 }
 
 void

@@ -76,7 +76,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \param process The process to add to the pipeline.
      */
-    void add_process(process_t process);
+    void add_process(process_t const& process);
     /**
      * \brief Declares a logical group of processes in the pipeline.
      *
@@ -91,13 +91,58 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \postconds
      *
-     * \postcond{A group with the name \p name is available within the pipeline.}
+     * \postcond{A group with the name \p name is available within the pipeline}
      *
      * \endpostconds
      *
      * \param name The name of the group.
      */
     void add_group(process::name_t const& name);
+
+    /**
+     * \brief Removes a process to the pipeline.
+     *
+     * \preconds
+     *
+     * \precond{A process named \c name already exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws remove_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_process_exception Thrown when there is no process named \p name in the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{The process named \p name is no longer owned by \c this}
+     * \postcond{All connections and mappings to the \p name process are removed}
+     *
+     * \endpostconds
+     *
+     * \param name The process to add to the pipeline.
+     */
+    void remove_process(process::name_t const& name);
+    /**
+     * \brief Removes a logical group of processes from the pipeline.
+     *
+     * \preconds
+     *
+     * \precond{A group named \p name already exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws remove_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_group_exception Thrown when \p name is not a group in the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{The group with the name \p name is no longer available available within the pipeline}
+     * \postcond{All mapped ports on the group \p name are disconnected and unmapped}
+     *
+     * \endpostconds
+     *
+     * \param name The name of the group.
+     */
+    void remove_group(process::name_t const& name);
 
     /**
      * \brief Connect two ports in the pipeline together with an edge.
@@ -129,15 +174,44 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \endpostconds
      *
-     * \param upstream_process The upstream process name.
+     * \param upstream_name The upstream process name.
      * \param upstream_port The upstream process port.
-     * \param downstream_process The downstream process name.
+     * \param downstream_name The downstream process name.
      * \param downstream_port The downstream process port.
      */
-    void connect(process::name_t const& upstream_process,
+    void connect(process::name_t const& upstream_name,
                  process::port_t const& upstream_port,
-                 process::name_t const& downstream_process,
+                 process::name_t const& downstream_name,
                  process::port_t const& downstream_port);
+
+    /**
+     * \brief Disconnect two ports in the pipeline together with an edge.
+     *
+     * \preconds
+     *
+     * \precond{A connection from \p upstream_process\ \c .\ \p upstream_port to \p downstream_process\ \c .\ \p downstream_port exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws disconnection_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_connection_exception Thrown when the connection does not exist within the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{The ports \port{upstream_process.upstream_port} and
+     *           \port{downstream_process.downstream_port} are disconnected}
+     *
+     * \endpostconds
+     *
+     * \param upstream_name The upstream process name.
+     * \param upstream_port The upstream process port.
+     * \param downstream_name The downstream process name.
+     * \param downstream_port The downstream process port.
+     */
+    void disconnect(process::name_t const& upstream_name,
+                    process::port_t const& upstream_port,
+                    process::name_t const& downstream_name,
+                    process::port_t const& downstream_port);
 
     /**
      * \brief Map a group input port to a process input port.
@@ -164,13 +238,13 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \param group The group name.
      * \param port The group port.
-     * \param mapped_process The mapped process name.
+     * \param mapped_name The mapped process name.
      * \param mapped_port The mapped process port.
      * \param flags A list of flags for the port.
      */
     void map_input_port(process::name_t const& group,
                         process::port_t const& port,
-                        process::name_t const& mapped_process,
+                        process::name_t const& mapped_name,
                         process::port_t const& mapped_port,
                         process::port_flags_t const& flags);
     /**
@@ -200,15 +274,72 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \param group The group name.
      * \param port The group port.
-     * \param mapped_process The mapped process name.
+     * \param mapped_name The mapped process name.
      * \param mapped_port The mapped process port.
      * \param flags A list of flags for the port.
      */
     void map_output_port(process::name_t const& group,
                          process::port_t const& port,
-                         process::name_t const& mapped_process,
+                         process::name_t const& mapped_name,
                          process::port_t const& mapped_port,
                          process::port_flags_t const& flags);
+
+    /**
+     * \brief Unmap a group input port to a process input port.
+     *
+     * \preconds
+     *
+     * \precond{A mapping from \p group\ \c .\ \p port to \p mapped_process\ \c .\ \p mapped_port exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws disconnection_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_connection_exception Thrown when the mapping does not exist within the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{Connections to \port{group.port} are no longer mapped to a connection to
+     *           \port{mapped_process.mapped_port}}
+     *
+     * \endpostconds
+     *
+     * \param group The group name.
+     * \param port The group port.
+     * \param mapped_name The mapped process name.
+     * \param mapped_port The mapped process port.
+     */
+    void unmap_input_port(process::name_t const& group,
+                          process::port_t const& port,
+                          process::name_t const& mapped_name,
+                          process::port_t const& mapped_port);
+    /**
+     * \brief Unmap a group output port to a process output port.
+     *
+     * \preconds
+     *
+     * \precond{A mapping from \p mapped_process\ \c .\ \p mapped_port to \p group\ \c .\ \p port exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws disconnection_after_setup_exception Thrown if called after the pipeline has been setup.
+     * \throws no_such_connection_exception Thrown when the mapping does not exist within the pipeline.
+     *
+     * \postconds
+     *
+     * \postcond{Connections to \port{group.port} are no longer mapped to a connection to
+     *           \port{mapped_process.mapped_port}}
+     *
+     * \endpostconds
+     *
+     * \param group The group name.
+     * \param port The group port.
+     * \param mapped_name The mapped process name.
+     * \param mapped_port The mapped process port.
+     */
+    void unmap_output_port(process::name_t const& group,
+                           process::port_t const& port,
+                           process::name_t const& mapped_name,
+                           process::port_t const& mapped_port);
 
     /**
      * \brief Sets the pipeline up for execution.
@@ -229,10 +360,45 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \throws missing_connection_exception Thrown when there is a required port that is not connected in the pipeline.
      * \throws orphaned_processes_exception Thrown when there is a subgraph which is not connected to another subgraph.
      * \throws untyped_data_dependent_exception Thrown when a data-dependent port type is not set after initialization.
+     * \throws connection_dependent_type_exception Thrown when a connection creates a port type problem in the pipeline.
      * \throws connection_dependent_type_cascade_exception Thrown when a data-dependent port type creates a problem in the pipeline.
      * \throws untyped_data_dependent_exception Thrown when there are untyped connections left in the pipeline.
      */
     void setup_pipeline();
+
+    /**
+     * \brief Query whether the pipeline has been setup.
+     *
+     * \returns True if the pipeline has been setup, false otherwise.
+     */
+    bool is_setup() const;
+    /**
+     * \brief Query whether the pipeline has been setup successfully.
+     *
+     * \returns True if the pipeline has been setup successfully, false otherwise.
+     */
+    bool setup_successful() const;
+
+    /**
+     * \brief Resets the pipeline.
+     *
+     * \throws reset_running_pipeline_exception Thrown when the pipeline is running.
+     */
+    void reset();
+
+    /**
+     * \brief Notify the pipeline that its execution has started.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     */
+    void start();
+    /**
+     * \brief Notify the pipeline that its execution has ended.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been started yet.
+     */
+    void stop();
 
     /**
      * \brief Get a list of processes in the pipeline.
@@ -258,7 +424,29 @@ class VISTK_PIPELINE_EXPORT pipeline
     process_t process_by_name(process::name_t const& name) const;
 
     /**
+     * \brief Find the ports requested to receive data from a port.
+     *
+     * \param name The name to lookup.
+     * \param port The port to lookup.
+     *
+     * \returns The port address that sends data from \p name's \p port.
+     */
+    process::port_addrs_t connections_from_addr(process::name_t const& name, process::port_t const& port) const;
+    /**
+     * \brief Find the port requested to send data to a port.
+     *
+     * \param name The name to lookup.
+     * \param port The port to lookup.
+     *
+     * \returns All port addresses that receive data from \p name's \p port.
+     */
+    process::port_addr_t connection_to_addr(process::name_t const& name, process::port_t const& port) const;
+
+    /**
      * \brief Find processes that are feeding data directly into a process.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      *
@@ -267,6 +455,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     processes_t upstream_for_process(process::name_t const& name) const;
     /**
      * \brief Find the process that is sending data directly to a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
@@ -277,6 +468,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find processes that are siphoning data directly from a process.
      *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     *
      * \param name The name of the process to lookup.
      *
      * \returns All processes that receive data from \p name.
@@ -284,6 +478,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     processes_t downstream_for_process(process::name_t const& name) const;
     /**
      * \brief Find processes that are siphoning data directly from a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
@@ -294,6 +491,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find the port that is sending data directly to a port.
      *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
      *
@@ -302,6 +502,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     process::port_addr_t sender_for_port(process::name_t const& name, process::port_t const& port) const;
     /**
      * \brief Find ports that are siphoning data directly from a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
@@ -312,6 +515,9 @@ class VISTK_PIPELINE_EXPORT pipeline
 
     /**
      * \brief Find the edge that represents a connection.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param upstream_name The upstream process name.
      * \param upstream_port The upstream process port.
@@ -328,6 +534,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find edges that are feeding data directly into a process.
      *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     *
      * \param name The name of the process to lookup.
      *
      * \returns All edges that carry data into \p name.
@@ -335,6 +544,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     edges_t input_edges_for_process(process::name_t const& name) const;
     /**
      * \brief Find the edge that is sending data directly to a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.
@@ -345,6 +557,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     /**
      * \brief Find edges that are siphoning data directly from a process.
      *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
+     *
      * \param name The name of the process to lookup.
      *
      * \returns All edges that carry data from \p name.
@@ -352,6 +567,9 @@ class VISTK_PIPELINE_EXPORT pipeline
     edges_t output_edges_for_process(process::name_t const& name) const;
     /**
      * \brief Find edges that are siphoning data directly from a port.
+     *
+     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
+     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
      *
      * \param name The name of the process to lookup.
      * \param port The name of the port on the process.

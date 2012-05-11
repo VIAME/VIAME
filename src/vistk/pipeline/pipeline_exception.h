@@ -55,7 +55,7 @@ class VISTK_PIPELINE_EXPORT null_pipeline_config_exception
 };
 
 /**
- * \class add_process_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class add_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a process or group is added to a pipeline after setup.
  *
@@ -131,6 +131,47 @@ class VISTK_PIPELINE_EXPORT duplicate_process_name_exception
 };
 
 /**
+ * \class pipeline_removal_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief The base exception thrown when removing processes to the pipeline.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT pipeline_removal_exception
+  : public pipeline_exception
+{
+};
+
+/**
+ * \class remove_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a process or group is removed from a pipeline after setup.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT remove_after_setup_exception
+  : public pipeline_removal_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     * \param is_process True if the addition is a process, false if it was a group.
+     */
+    remove_after_setup_exception(process::name_t const& name, bool is_process) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~remove_after_setup_exception() throw();
+
+    /// The name of the process.
+    process::name_t const m_name;
+    /// True if the addition is a process, false if it was a group.
+    bool const m_is_process;
+};
+
+/**
  * \class pipeline_connection_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref pipeline due to connections.
@@ -169,6 +210,44 @@ class VISTK_PIPELINE_EXPORT connection_after_setup_exception
      * \brief Destructor.
      */
     ~connection_after_setup_exception() throw();
+
+    /// The name of the upstream process requested.
+    process::name_t const m_upstream_name;
+    /// The name of the upstream port requested.
+    process::port_t const m_upstream_port;
+    /// The name of the downstream process requested.
+    process::name_t const m_downstream_name;
+    /// The name of the downstream port requested.
+    process::port_t const m_downstream_port;
+};
+
+/**
+ * \class disconnection_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a disconnection is requested after setup.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT disconnection_after_setup_exception
+  : public pipeline_connection_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param upstream_name The name of the upstream process requested.
+     * \param upstream_port The port on the upstream process requested.
+     * \param downstream_name The name of the downstream process requested.
+     * \param downstream_port The port on the downstream process requested.
+     */
+    disconnection_after_setup_exception(process::name_t const& upstream_name,
+                                        process::port_t const& upstream_port,
+                                        process::name_t const& downstream_name,
+                                        process::port_t const& downstream_port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~disconnection_after_setup_exception() throw();
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
@@ -269,6 +348,11 @@ class VISTK_PIPELINE_EXPORT connection_dependent_type_cascade_exception
      * \param name The name of the process which had a type set.
      * \param port The port on the process.
      * \param type The type that was attempted to be set.
+     * \param upstream_name The upstream process.
+     * \param upstream_port The port on upstream process that was attempted to be set to a type.
+     * \param downstream_name The downstream process.
+     * \param downstream_port The port on downstream process that was attempted to be set to a type.
+     * \param cascade_type The type that was cascaded through the pipeline.
      * \param push_upstream True if upstream rejected the type.
      */
     connection_dependent_type_cascade_exception(process::name_t const& name,
@@ -634,6 +718,90 @@ class VISTK_PIPELINE_EXPORT group_output_already_mapped_exception
     process::name_t const m_new_process;
     /// The name of the new port requested.
     process::port_t const m_new_port;
+};
+
+/**
+ * \class reset_running_pipeline_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a pipeline is reset while it is running.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT reset_running_pipeline_exception
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    reset_running_pipeline_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~reset_running_pipeline_exception() throw();
+};
+
+/**
+ * \class pipeline_not_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a pipeline that has not been setup is started.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT pipeline_not_setup_exception
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    pipeline_not_setup_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~pipeline_not_setup_exception() throw();
+};
+
+/**
+ * \class pipeline_not_ready_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a pipeline that did not succeed in setting up is started.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT pipeline_not_ready_exception
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    pipeline_not_ready_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~pipeline_not_ready_exception() throw();
+};
+
+/**
+ * \class pipeline_not_running_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a pipeline that is not running is stopped.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT pipeline_not_running_exception
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    pipeline_not_running_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~pipeline_not_running_exception() throw();
 };
 
 }

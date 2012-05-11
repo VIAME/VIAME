@@ -29,7 +29,7 @@
  * Processes receive their configuration when constructed. This is to ensure
  * that a process is consistent throughout its entire existence. This also means
  * that constructors should not throw exceptions for invalid configurations
- * during construction. Instead, the \ref vistk::process::_init() function
+ * during construction. Instead, the \ref vistk::process::_configure() function
  * should be used to check that a process is ready to run. If there are problems
  * with configurations at this time, exceptions should be thrown from there.
  *
@@ -95,21 +95,25 @@
  * an input is modified within the process and that other receivers of the data
  * may see the changes if the data is not handled carefully.
  * \pflag{\link vistk::process::flag_required required\endlink} Marks that the
- * port must be connected for the process to run. This is currently only useful
- * for process groups as processes should check in the reimplementation of the
- * \ref vistk::process::_init() method.
+ * port must be connected for the process to run.
  *
  * A "const" output port may \em not be connected to a "mutable" input port.
  * Attempting to connect them causes an exception to be thrown when the
  * connection is attempted.
  *
+ * \subsection process_configuration Configuration
+ *
+ * Configuration is where a process is asked to ensure that its configuration
+ * makes sense. Any data-dependent port types must be set in this step. After
+ * this is called, the process will be have connections made and initialized.
+ *
  * \subsection process_initialization Initialization
  *
- * Initialization is where a process is asked if it is ready to run. This is
- * where processes should ensure that required ports are connected, the
- * configuration is valid, files are ready, and so on. After this is called, the
- * process will be stepped until it is either complete or the schedule is
- * stopped.
+ * Initialization is the final step before a process is stepped. This is
+ * where processes should have a chance to get a first look at the edges that
+ * are connected to a port and change behavior based on them. After this is
+ * called, the process will be stepped until it is either complete or the
+ * schedule is stopped.
  *
  * \subsection process_reentrant Reentrant
  *

@@ -48,7 +48,7 @@ class PyThreadPerProcessSchedule(schedule.PythonSchedule):
         self.event = threading.Event()
         self._make_monitor_edge_config()
 
-    def start(self):
+    def _start(self):
         p = self.pipeline()
         names = p.process_names()
 
@@ -62,11 +62,11 @@ class PyThreadPerProcessSchedule(schedule.PythonSchedule):
         for thread in self.threads:
             thread.start()
 
-    def wait(self):
+    def _wait(self):
         for thread in self.threads:
             thread.join()
 
-    def stop(self):
+    def _stop(self):
         self.event.set()
 
     def _run_process(self, proc):

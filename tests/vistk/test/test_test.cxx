@@ -6,6 +6,7 @@
 
 #include <test_common.h>
 
+#include <stdexcept>
 #include <iostream>
 #include <string>
 
@@ -39,6 +40,23 @@ main(int argc, char* argv[])
   else if (test_name == "error_string_stdout")
   {
     std::cout << "Error: an error" << std::endl;
+  }
+  else if (test_name == "error_string_second_line")
+  {
+    std::cerr << "Not an error" << std::endl;
+    TEST_ERROR("an error");
+  }
+  else if (test_name == "expected_exception")
+  {
+    EXPECT_EXCEPTION(std::logic_error,
+                     throw std::logic_error("reason"),
+                     "when throwing an exception");
+  }
+  else if (test_name == "unexpected_exception")
+  {
+    EXPECT_EXCEPTION(std::runtime_error,
+                     throw std::logic_error("reason"),
+                     "when throwing an unexpected exception");
   }
   else
   {

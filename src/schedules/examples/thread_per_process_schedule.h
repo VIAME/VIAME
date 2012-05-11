@@ -44,19 +44,19 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_per_process_schedule
      * \brief Destructor.
      */
     virtual ~thread_per_process_schedule();
-
+  protected:
     /**
      * \brief Starts execution.
      */
-    virtual void start();
+    virtual void _start();
     /**
      * \brief Waits until execution is finished.
      */
-    virtual void wait();
+    virtual void _wait();
     /**
      * \brief Stop execution of the pipeline.
      */
-    virtual void stop();
+    virtual void _stop();
   private:
     class priv;
     boost::scoped_ptr<priv> d;

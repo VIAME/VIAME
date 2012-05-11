@@ -62,6 +62,11 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT source_process
     void _init();
 
     /**
+     * \brief Resets the process.
+     */
+    void _reset();
+
+    /**
      * \brief Ignores data on the incoming edge.
      */
     void _step();

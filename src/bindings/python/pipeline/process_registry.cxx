@@ -47,8 +47,12 @@ BOOST_PYTHON_MODULE(process_registry)
   class_<vistk::process, vistk::process_t, boost::noncopyable>("Process"
     , "The base class of processes."
     , no_init)
+    .def("configure", &vistk::process::configure
+      , "Configures the process.")
     .def("init", &vistk::process::init
       , "Initializes the process.")
+    .def("reset", &vistk::process::reset
+      , "Resets the process.")
     .def("step", &vistk::process::step
       , "Steps the process for one iteration.")
     .def("constraints", &vistk::process::constraints

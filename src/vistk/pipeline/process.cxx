@@ -120,6 +120,11 @@ class process::priv
 
     typedef std::map<tag_t, ports_t> flow_tag_port_map_t;
 
+    typedef std::map<port_t, tag_t> port_tag_map_t;
+
+    tag_t port_flow_tag_name(port_type_t const& port_type) const;
+    void check_tag(tag_t const& tag);
+
     port_map_t input_ports;
     port_map_t output_ports;
 
@@ -137,6 +142,10 @@ class process::priv
     flow_tag_port_map_t input_flow_tag_ports;
     flow_tag_port_map_t output_flow_tag_ports;
 
+    port_tag_map_t input_port_tags;
+    port_tag_map_t output_port_tags;
+
+    bool configured;
     bool initialized;
     bool is_complete;
 
@@ -154,8 +163,32 @@ config::value_t const process::priv::default_name = "(unnamed)";
 
 void
 process
+::configure()
+{
+  if (d->initialized)
+  {
+    throw already_initialized_exception(d->name);
+  }
+
+  if (d->configured)
+  {
+    throw reconfigured_exception(d->name);
+  }
+
+  _configure();
+
+  d->configured = true;
+}
+
+void
+process
 ::init()
 {
+  if (!d->configured)
+  {
+    throw unconfigured_exception(d->name);
+  }
+
   if (d->initialized)
   {
     throw reinitialization_exception(d->name);
@@ -168,8 +201,20 @@ process
 
 void
 process
+::reset()
+{
+  _reset();
+}
+
+void
+process
 ::step()
 {
+  if (!d->configured)
+  {
+    throw unconfigured_exception(d->name);
+  }
+
   if (!d->initialized)
   {
     throw uninitialized_exception(d->name);
@@ -263,7 +308,9 @@ process
 
   BOOST_FOREACH (priv::port_map_t::value_type const& port, d->input_ports)
   {
-    ports.push_back(port.first);
+    port_t const& port_name = port.first;
+
+    ports.push_back(port_name);
   }
 
   return ports;
@@ -277,7 +324,9 @@ process
 
   BOOST_FOREACH (priv::port_map_t::value_type const& port, d->output_ports)
   {
-    ports.push_back(port.first);
+    port_t const& port_name = port.first;
+
+    ports.push_back(port_name);
   }
 
   return ports;
@@ -329,7 +378,9 @@ process
 
   BOOST_FOREACH (priv::conf_map_t::value_type const& conf, d->config_keys)
   {
-    keys.push_back(conf.first);
+    config::key_t const& key = conf.first;
+
+    keys.push_back(key);
   }
 
   return keys;
@@ -388,8 +439,25 @@ process
 
 void
 process
+::_configure()
+{
+}
+
+void
+process
 ::_init()
 {
+}
+
+void
+process
+::_reset()
+{
+  d->input_edges.clear();
+  d->output_edges.clear();
+
+  d->configured = false;
+  d->initialized = false;
 }
 
 void
@@ -447,7 +515,7 @@ process::port_info_t
 process
 ::_input_port_info(port_t const& port)
 {
-  priv::port_map_t::iterator i = d->input_ports.find(port);
+  priv::port_map_t::const_iterator const i = d->input_ports.find(port);
 
   if (i != d->input_ports.end())
   {
@@ -461,7 +529,7 @@ process::port_info_t
 process
 ::_output_port_info(port_t const& port)
 {
-  priv::port_map_t::iterator i = d->output_ports.find(port);
+  priv::port_map_t::const_iterator const i = d->output_ports.find(port);
 
   if (i != d->output_ports.end())
   {
@@ -492,7 +560,7 @@ process
 
   if (is_flow_dependent)
   {
-    priv::tag_t const tag = old_type.substr(type_flow_dependent.size());
+    priv::tag_t const tag = d->port_flow_tag_name(old_type);
 
     if (!tag.empty())
     {
@@ -551,7 +619,7 @@ process
 
   if (is_flow_dependent)
   {
-    priv::tag_t const tag = old_type.substr(type_flow_dependent.size());
+    priv::tag_t const tag = d->port_flow_tag_name(old_type);
 
     if (!tag.empty())
     {
@@ -621,25 +689,24 @@ process
 
   port_type_t const& port_type = info->type;
 
-  if (boost::starts_with(port_type, type_flow_dependent))
+  priv::tag_t const tag = d->port_flow_tag_name(port_type);
+
+  if (!tag.empty())
   {
-    priv::tag_t const tag = port_type.substr(type_flow_dependent.size());
+    d->input_flow_tag_ports[tag].push_back(port);
 
-    if (!tag.empty())
+    d->input_port_tags[port] = tag;
+
+    if (d->flow_tag_port_types[tag])
     {
-      d->input_flow_tag_ports[tag].push_back(port);
+      port_type_t const& tag_type = *d->flow_tag_port_types[tag];
 
-      if (d->flow_tag_port_types[tag])
-      {
-        port_type_t const& tag_type = *d->flow_tag_port_types[tag];
+      declare_input_port(port, boost::make_shared<port_info>(
+        tag_type,
+        info->flags,
+        info->description));
 
-        declare_input_port(port, boost::make_shared<port_info>(
-          tag_type,
-          info->flags,
-          info->description));
-
-        return;
-      }
+      return;
     }
   }
 
@@ -665,25 +732,24 @@ process
 
   port_type_t const& port_type = info->type;
 
-  if (boost::starts_with(port_type, type_flow_dependent))
+  priv::tag_t const tag = d->port_flow_tag_name(port_type);
+
+  if (!tag.empty())
   {
-    priv::tag_t const tag = port_type.substr(type_flow_dependent.size());
+    d->output_flow_tag_ports[tag].push_back(port);
 
-    if (!tag.empty())
+    d->output_port_tags[port] = tag;
+
+    if (d->flow_tag_port_types[tag])
     {
-      d->output_flow_tag_ports[tag].push_back(port);
+      port_type_t const& tag_type = *d->flow_tag_port_types[tag];
 
-      if (d->flow_tag_port_types[tag])
-      {
-        port_type_t const& tag_type = *d->flow_tag_port_types[tag];
+      declare_output_port(port, boost::make_shared<port_info>(
+        tag_type,
+        info->flags,
+        info->description));
 
-        declare_output_port(port, boost::make_shared<port_info>(
-          tag_type,
-          info->flags,
-          info->description));
-
-        return;
-      }
+      return;
     }
   }
 
@@ -695,6 +761,86 @@ process
   if (i != flags.end())
   {
     d->required_outputs.push_back(port);
+  }
+}
+
+void
+process
+::remove_input_port(port_t const& port)
+{
+  // Ensure the port exists.
+  priv::port_map_t::const_iterator const p = d->input_ports.find(port);
+
+  if (p == d->input_ports.end())
+  {
+    throw no_such_port_exception(d->name, port);
+  }
+
+  // Remove from known ports.
+  d->input_ports.erase(port);
+
+  // Remove all connected edges.
+  d->input_edges.erase(port);
+
+  // Remove from bookkeeping structures.
+  ports_t::iterator const ri = std::remove(d->required_inputs.begin(), d->required_inputs.end(), port);
+  d->required_inputs.erase(ri, d->required_inputs.end());
+
+  priv::port_tag_map_t::const_iterator const t = d->input_port_tags.find(port);
+
+  if (t != d->input_port_tags.end())
+  {
+    priv::tag_t const& tag = t->second;
+    ports_t& ports = d->input_flow_tag_ports[tag];
+    ports_t::iterator const i = std::remove(ports.begin(), ports.end(), port);
+    ports.erase(i, ports.end());
+
+    if (!ports.size())
+    {
+      d->check_tag(tag);
+    }
+
+    d->input_port_tags.erase(port);
+  }
+}
+
+void
+process
+::remove_output_port(port_t const& port)
+{
+  // Ensure the port exists.
+  priv::port_map_t::const_iterator const p = d->output_ports.find(port);
+
+  if (p == d->output_ports.end())
+  {
+    throw no_such_port_exception(d->name, port);
+  }
+
+  // Remove from known ports.
+  d->output_ports.erase(port);
+
+  // Remove all connected edges.
+  d->output_edges.erase(port);
+
+  // Remove from bookkeeping structures.
+  ports_t::iterator const ri = std::remove(d->required_outputs.begin(), d->required_outputs.end(), port);
+  d->required_outputs.erase(ri, d->required_outputs.end());
+
+  priv::port_tag_map_t::const_iterator const t = d->output_port_tags.find(port);
+
+  if (t != d->output_port_tags.end())
+  {
+    priv::tag_t const& tag = t->second;
+    ports_t& ports = d->output_flow_tag_ports[tag];
+    ports_t::iterator const i = std::remove(ports.begin(), ports.end(), port);
+    ports.erase(i, ports.end());
+
+    if (!ports.size())
+    {
+      d->check_tag(tag);
+    }
+
+    d->output_port_tags.erase(port);
   }
 }
 
@@ -946,6 +1092,7 @@ process
 process::priv
 ::priv(config_t c)
   : conf(c)
+  , configured(false)
   , initialized(false)
   , is_complete(false)
   , input_same_color(true)
@@ -1076,6 +1223,9 @@ process::priv
       break;
     case datum::empty:
       return edge_datum_t(datum::empty_datum(), stamp_for_inputs);
+    case datum::flush:
+      stamp_for_inputs = stamp::new_stamp();
+      return edge_datum_t(datum::flush_datum(), stamp_for_inputs);
     case datum::complete:
       proc->mark_process_as_complete();
       return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
@@ -1166,6 +1316,31 @@ process::priv
   }
 
   return true;
+}
+
+process::priv::tag_t
+process::priv
+::port_flow_tag_name(port_type_t const& port_type) const
+{
+  if (boost::starts_with(port_type, type_flow_dependent))
+  {
+    return port_type.substr(type_flow_dependent.size());
+  }
+
+  return tag_t();
+}
+
+void
+process::priv
+::check_tag(tag_t const& tag)
+{
+  ports_t const iports = input_flow_tag_ports[tag];
+  ports_t const oports = output_flow_tag_ports[tag];
+
+  if (!iports.size() && !oports.size())
+  {
+    flow_tag_port_types.erase(tag);
+  }
 }
 
 }

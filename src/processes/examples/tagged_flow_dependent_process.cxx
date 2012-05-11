@@ -43,6 +43,42 @@ tagged_flow_dependent_process
   : process(config)
   , d(new priv)
 {
+  make_ports();
+}
+
+tagged_flow_dependent_process
+::~tagged_flow_dependent_process()
+{
+}
+
+void
+tagged_flow_dependent_process
+::_reset()
+{
+  remove_input_port(priv::port_untagged_input);
+  remove_input_port(priv::port_tagged_input);
+  remove_output_port(priv::port_untagged_output);
+  remove_output_port(priv::port_tagged_output);
+
+  make_ports();
+
+  process::_reset();
+}
+
+void
+tagged_flow_dependent_process
+::_step()
+{
+  push_datum_to_port(priv::port_untagged_output, grab_datum_from_port(priv::port_untagged_input));
+  push_datum_to_port(priv::port_tagged_output, grab_datum_from_port(priv::port_tagged_input));
+
+  process::_step();
+}
+
+void
+tagged_flow_dependent_process
+::make_ports()
+{
   priv::tag_t const tag = "tag";
 
   declare_input_port(priv::port_untagged_input, boost::make_shared<port_info>(
@@ -62,21 +98,6 @@ tagged_flow_dependent_process
     type_flow_dependent + tag,
     port_flags_t(),
     port_description_t("A tagged output port with a flow dependent type")));
-}
-
-tagged_flow_dependent_process
-::~tagged_flow_dependent_process()
-{
-}
-
-void
-tagged_flow_dependent_process
-::_step()
-{
-  push_datum_to_port(priv::port_untagged_output, grab_datum_from_port(priv::port_untagged_input));
-  push_datum_to_port(priv::port_tagged_output, grab_datum_from_port(priv::port_tagged_input));
-
-  process::_step();
 }
 
 tagged_flow_dependent_process::priv

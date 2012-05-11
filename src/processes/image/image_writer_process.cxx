@@ -108,7 +108,7 @@ image_writer_process
 
 void
 image_writer_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {
@@ -139,7 +139,7 @@ image_writer_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  vistk::path_t::string_type const path = d->path.native();
+  path_t::string_type const path = d->path.native();
 
   if (path.empty())
   {
@@ -161,6 +161,17 @@ image_writer_process
   }
 
   process::_init();
+}
+
+void
+image_writer_process
+::_reset()
+{
+  d->count = 0;
+  d->has_output = false;
+  d->fout.close();
+
+  process::_reset();
 }
 
 void

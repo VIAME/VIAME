@@ -190,8 +190,22 @@ class VISTK_PIPELINE_EXPORT process
     typedef boost::shared_ptr<data_info const> data_info_t;
 
     /**
+     * \brief Pre-connection initialization.
+     *
+     * \throws reconfigured_exception Thrown if called multiple times.
+     *
+     * \postconds
+     *
+     * \postcond{\c this is ready to be initialized}
+     *
+     * \endpostconds
+     */
+    void configure();
+
+    /**
      * \brief Post-connection initialization.
      *
+     * \throws unconfigured_exception Thrown if called before \ref configure.
      * \throws reinitialization_exception Thrown if called multiple times.
      *
      * \postconds
@@ -203,6 +217,13 @@ class VISTK_PIPELINE_EXPORT process
     void init();
 
     /**
+     * \brief Resets the process.
+     *
+     * Calling this removes all edges from the process.
+     */
+    void reset();
+
+    /**
      * \brief Steps through one iteration of the process.
      *
      * \preconds
@@ -211,6 +232,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \endpreconds
      *
+     * \throws unconfigured_exception Thrown if called before \ref configure.
      * \throws uninitialized_exception Thrown if called before \ref init.
      */
     void step();
@@ -319,7 +341,7 @@ class VISTK_PIPELINE_EXPORT process
      * \throws set_type_on_initialized_process_exception Thrown when the \p port's type is set after initialization.
      *
      * \param port The name of the port.
-     * \param type The type of the connected port.
+     * \param new_type The type of the connected port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -332,7 +354,7 @@ class VISTK_PIPELINE_EXPORT process
      * \throws set_type_on_initialized_process_exception Thrown when the port type is set after initialization.
      *
      * \param port The name of the port.
-     * \param type The type of the connected port.
+     * \param new_type The type of the connected port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -416,9 +438,19 @@ class VISTK_PIPELINE_EXPORT process
     virtual ~process();
 
     /**
+     * \brief Configuration checks for subclasses.
+     */
+    virtual void _configure();
+
+    /**
      * \brief Initialization checks for subclasses.
      */
     virtual void _init();
+
+    /**
+     * \brief Reset logic for subclasses.
+     */
+    virtual void _reset();
 
     /**
      * \brief Method where subclass data processing occurs.
@@ -481,7 +513,7 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Subclass input port type setting.
      *
      * \param port The name of the port.
-     * \param type The type of the connected port.
+     * \param new_type The type of the connected port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -490,7 +522,7 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Subclass output port type setting.
      *
      * \param port The name of the port.
-     * \param type The type of the connected port.
+     * \param new_type The type of the connected port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -530,6 +562,19 @@ class VISTK_PIPELINE_EXPORT process
      * \param info Information about the port.
      */
     void declare_output_port(port_t const& port, port_info_t const& info);
+
+    /**
+     * \brief Remove an input port from the process.
+     *
+     * \param port The input port to remove.
+     */
+    void remove_input_port(port_t const& port);
+    /**
+     * \brief Remove an output port from the process.
+     *
+     * \param port The output port to remove.
+     */
+    void remove_output_port(port_t const& port);
 
     /**
      * \brief Declares a configuration value for the process.

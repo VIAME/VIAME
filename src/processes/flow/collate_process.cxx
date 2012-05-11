@@ -141,6 +141,32 @@ collate_process
 
 void
 collate_process
+::_reset()
+{
+  BOOST_FOREACH (priv::tag_data_t::value_type const& tag_data, d->tag_data)
+  {
+    priv::tag_t const& tag = tag_data.first;
+    port_t const output_port = priv::port_res_prefix + tag;
+    port_t const color_port = priv::port_color_prefix + tag;
+    priv::tag_info const& info = tag_data.second;
+    ports_t const& ports = info.ports;
+
+    BOOST_FOREACH (port_t const& port, ports)
+    {
+      remove_input_port(port);
+    }
+
+    remove_input_port(color_port);
+    remove_output_port(output_port);
+  }
+
+  d->tag_data.clear();
+
+  process::_reset();
+}
+
+void
+collate_process
 ::_step()
 {
   ports_t complete_ports;
@@ -174,7 +200,7 @@ collate_process
     {
       push_to_port(output_port, edge_datum_t(datum::complete_datum(), color_stamp));
 
-      complete_ports.push_back(tag_data.first);
+      complete_ports.push_back(tag);
 
       continue;
     }

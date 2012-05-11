@@ -44,19 +44,19 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT sync_schedule
      * \brief Destructor.
      */
     virtual ~sync_schedule();
-
+  protected:
     /**
      * \brief Starts execution.
      */
-    void start();
+    void _start();
     /**
      * \brief Waits until execution is finished.
      */
-    void wait();
+    void _wait();
     /**
      * \brief Stop execution of the pipeline.
      */
-    void stop();
+    void _stop();
   private:
     class priv;
     boost::scoped_ptr<priv> d;

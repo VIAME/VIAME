@@ -5,28 +5,11 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def log(msg):
-    import sys
-    sys.stderr.write("%s\n" % msg)
-
-
-def ensure_exception(action, func, *args):
-    got_exception = False
-
-    try:
-        func(*args)
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get exception when %s" % action)
-
-
 def test_import():
     try:
         import vistk.pipeline.config
     except:
-        log("Error: Failed to import the config module")
+        test_error("Failed to import the config module")
 
 
 def test_create():
@@ -35,7 +18,7 @@ def test_create():
     try:
         config.empty_config()
     except:
-        log("Error: Failed to create an empty configuration")
+        test_error("Failed to create an empty configuration")
 
     config.ConfigKey()
     config.ConfigKeys()
@@ -62,10 +45,10 @@ def test_has_value():
     c.set_value(keya, valuea)
 
     if not c.has_value(keya):
-        log("Error: Block does not have value which was set")
+        test_error("Block does not have value which was set")
 
     if c.has_value(keyb):
-        log("Error: Block has value which was not set")
+        test_error("Block has value which was not set")
 
 
 def test_get_value():
@@ -82,7 +65,7 @@ def test_get_value():
     get_valuea = c.get_value(keya)
 
     if not valuea == get_valuea:
-        log("Error: Did not retrieve value that was set")
+        test_error("Did not retrieve value that was set")
 
 
 def test_get_value_no_exist():
@@ -95,13 +78,13 @@ def test_get_value_no_exist():
 
     valueb = 'value_b'
 
-    ensure_exception("retrieving an unset value",
+    expect_exception('retrieving an unset value', BaseException,
                      c.get_value, keya)
 
     get_valueb = c.get_value(keyb, valueb)
 
     if not valueb == get_valueb:
-        log("Error: Did not retrieve default when requesting unset value")
+        test_error("Did not retrieve default when requesting unset value")
 
 
 def test_unset_value():
@@ -120,13 +103,13 @@ def test_unset_value():
 
     c.unset_value(keya)
 
-    ensure_exception("retrieving an unset value",
+    expect_exception('retrieving an unset value', BaseException,
                      c.get_value, keya)
 
     get_valueb = c.get_value(keyb)
 
     if not valueb == get_valueb:
-        log("Error: Did not retrieve value when requesting after an unrelated unset")
+        test_error("Did not retrieve value when requesting after an unrelated unset")
 
 
 def test_available_values():
@@ -146,13 +129,13 @@ def test_available_values():
     avail = c.available_values()
 
     if not len(avail) == 2:
-        log("Error: Did not retrieve correct number of keys")
+        test_error("Did not retrieve correct number of keys")
 
     try:
         for val in avail:
             pass
     except:
-        log("Error: Available values is not iterable")
+        test_error("Available values is not iterable")
 
 
 def test_read_only():
@@ -169,13 +152,13 @@ def test_read_only():
 
     c.mark_read_only(keya)
 
-    ensure_exception("setting a read only value",
+    expect_exception('setting a read only value', BaseException,
                      c.set_value, keya, valueb)
 
     get_valuea = c.get_value(keya)
 
     if not valuea == get_valuea:
-        log("Error: Read only value changed")
+        test_error("Read only value changed")
 
 
 def test_read_only_unset():
@@ -191,13 +174,13 @@ def test_read_only_unset():
 
     c.mark_read_only(keya)
 
-    ensure_exception("unsetting a read only value",
+    expect_exception('unsetting a read only value', BaseException,
                      c.unset_value, keya)
 
     get_valuea = c.get_value(keya)
 
     if not valuea == get_valuea:
-        log("Error: Read only value was unset")
+        test_error("Read only value was unset")
 
 
 def test_subblock():
@@ -225,15 +208,15 @@ def test_subblock():
     get_valuea = d.get_value(keya)
 
     if not valuea == get_valuea:
-        log("Error: Subblock does not inherit expected keys")
+        test_error("Subblock does not inherit expected keys")
 
     get_valueb = d.get_value(keyb)
 
     if not valueb == get_valueb:
-        log("Error: Subblock does not inherit expected keys")
+        test_error("Subblock does not inherit expected keys")
 
     if d.has_value(keyc):
-        log("Error: Subblock inherited unrelated key")
+        test_error("Subblock inherited unrelated key")
 
 
 def test_subblock_view():
@@ -258,24 +241,24 @@ def test_subblock_view():
     d = c.subblock_view(block1)
 
     if not d.has_value(keya):
-        log("Error: Subblock does not inherit expected keys")
+        test_error("Subblock does not inherit expected keys")
 
     if d.has_value(keyb):
-        log("Error: Subblock inherited unrelated key")
+        test_error("Subblock inherited unrelated key")
 
     c.set_value(block1 + config.Config.block_sep + keya, valueb)
 
     get_valuea1 = d.get_value(keya)
 
     if not valueb == get_valuea1:
-        log("Error: Subblock view persisted a changed value")
+        test_error("Subblock view persisted a changed value")
 
     d.set_value(keya, valuea)
 
     get_valuea2 = d.get_value(keya)
 
     if not valuea == get_valuea2:
-        log("Error: Subblock view set value was not changed in parent")
+        test_error("Subblock view set value was not changed in parent")
 
 
 def test_merge_config():
@@ -303,17 +286,17 @@ def test_merge_config():
     get_valuea = c.get_value(keya)
 
     if not valuea == get_valuea:
-        log("Error: Unmerged key changed")
+        test_error("Unmerged key changed")
 
     get_valueb = c.get_value(keyb)
 
     if not valueb == get_valueb:
-        log("Error: Conflicting key was not overwritten")
+        test_error("Conflicting key was not overwritten")
 
     get_valuec = c.get_value(keyc)
 
     if not valuec == get_valuec:
-        log("Error: New key did not appear")
+        test_error("New key did not appear")
 
 
 def test_dict():
@@ -325,24 +308,24 @@ def test_dict():
     value = 'oldvalue'
 
     if key in c:
-        log("Error: '%s' is in an empty config" % key)
+        test_error("'%s' is in an empty config" % key)
 
     if c:
-        log("Error: An empty config is not falsy")
+        test_error("An empty config is not falsy")
 
     c[key] = value
 
     if not c[key] == value:
-        log("Error: Value was not set")
+        test_error("Value was not set")
 
     if key not in c:
-        log("Error: '%s' is not in config after insertion" % key)
+        test_error("'%s' is not in config after insertion" % key)
 
     if not len(c) == 1:
-        log("Error: The len() operator is incorrect")
+        test_error("The len() operator is incorrect")
 
     if not c:
-        log("Error: A non-empty config is not truthy")
+        test_error("A non-empty config is not truthy")
 
     value = 'newvalue'
     origvalue = 'newvalue'
@@ -352,14 +335,14 @@ def test_dict():
     value = 'replacedvalue'
 
     if not c[key] == origvalue:
-        log("Error: Value was overwritten")
+        test_error("Value was overwritten")
 
     del c[key]
 
-    ensure_exception("getting an unset value",
+    expect_exception('getting an unset value', BaseException,
                      c.__getitem__, key)
 
-    ensure_exception("deleting an unset value",
+    expect_exception('deleting an unset value', BaseException,
                      c.__delitem__, key)
 
     value = 10
@@ -367,7 +350,7 @@ def test_dict():
     c[key] = value
 
     if not c[key] == str(value):
-        log("Error: Value was not converted to a string")
+        test_error("Value was not converted to a string")
 
 
 def main(testname):
@@ -400,7 +383,7 @@ def main(testname):
     elif testname == 'dict':
         test_dict()
     else:
-        log("Error: No such test '%s'" % testname)
+        test_error("No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
@@ -408,7 +391,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 4:
-        log("Error: Expected three arguments")
+        test_error("Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
@@ -417,7 +400,9 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    from vistk.test.test import *
+
     try:
         main(testname)
     except BaseException as e:
-        log("Error: Unexpected exception: %s" % str(e))
+        test_error("Unexpected exception: %s" % str(e))

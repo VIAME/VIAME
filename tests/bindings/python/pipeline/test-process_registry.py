@@ -5,28 +5,11 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def log(msg):
-    import sys
-    sys.stderr.write("%s\n" % msg)
-
-
-def ensure_exception(action, func, *args):
-    got_exception = False
-
-    try:
-        func(*args)
-    except:
-        got_exception = True
-
-    if not got_exception:
-        log("Error: Did not get exception when %s" % action)
-
-
 def test_import():
     try:
         import vistk.pipeline.process_registry
     except:
-        log("Error: Failed to import the process_registry module")
+        test_error("Failed to import the process_registry module")
 
 
 def test_create():
@@ -78,7 +61,9 @@ def example_process():
         def __init__(self, conf):
             process.PythonProcess.__init__(self, conf)
 
+            self.ran_configure = False
             self.ran_init = False
+            self.ran_reset = False
             self.ran_step = False
             self.ran_constraints = False
             self.ran_connect_input_port = False
@@ -92,10 +77,20 @@ def example_process():
             self.ran_available_config = False
             self.ran_conf_info = False
 
+        def _configure(self):
+            self.ran_configure = True
+
+            self._base_configure()
+
         def _init(self):
             self.ran_init = True
 
             self._base_init()
+
+        def _reset(self):
+            self.ran_reset = True
+
+            self._base_reset()
 
         def _step(self):
             self.ran_step = True
@@ -158,32 +153,36 @@ def example_process():
             return self._base_conf_info(key)
 
         def check(self):
+            if not self.ran_configure:
+                test_error("_configure override was not called")
             if not self.ran_init:
-                log("Error: _init override was not called")
+                test_error("_init override was not called")
+            if not self.ran_reset:
+                test_error("_reset override was not called")
             if not self.ran_step:
-                log("Error: _step override was not called")
+                test_error("_step override was not called")
             if not self.ran_constraints:
-                log("Error: _constraints override was not called")
+                test_error("_constraints override was not called")
             if not self.ran_connect_input_port:
-                log("Error: _connect_input_port override was not called")
+                test_error("_connect_input_port override was not called")
             if not self.ran_connect_output_port:
-                log("Error: _connect_output_port override was not called")
+                test_error("_connect_output_port override was not called")
             if not self.ran_input_ports:
-                log("Error: _input_ports override was not called")
+                test_error("_input_ports override was not called")
             if not self.ran_output_ports:
-                log("Error: _output_ports override was not called")
+                test_error("_output_ports override was not called")
             if not self.ran_input_port_info:
-                log("Error: _input_port_info override was not called")
+                test_error("_input_port_info override was not called")
             if not self.ran_output_port_info:
-                log("Error: _output_port_info override was not called")
+                test_error("_output_port_info override was not called")
             if not self.ran_set_input_port_type:
-                log("Error: _set_input_port_type override was not called")
+                test_error("_set_input_port_type override was not called")
             if not self.ran_set_output_port_type:
-                log("Error: _set_output_port_type override was not called")
+                test_error("_set_output_port_type override was not called")
             if not self.ran_available_config:
-                log("Error: _available_config override was not called")
+                test_error("_available_config override was not called")
             if not self.ran_conf_info:
-                log("Error: _conf_info override was not called")
+                test_error("_conf_info override was not called")
 
     return PythonExample
 
@@ -214,7 +213,7 @@ def test_register():
     reg.register_process(proc_type, proc_desc, example_process())
 
     if not proc_desc == reg.description(proc_type):
-        log("Error: Description was not preserved when registering")
+        test_error("Description was not preserved when registering")
 
     c = config.empty_config()
 
@@ -223,7 +222,7 @@ def test_register():
         if p is None:
             raise Exception()
     except:
-        log("Error: Could not create newly registered process type")
+        test_error("Could not create newly registered process type")
 
 
 def test_wrapper_api():
@@ -252,34 +251,37 @@ def test_wrapper_api():
 
     def check_process(p):
         if p is None:
-            log("Error: Got a 'None' process")
+            test_error("Got a 'None' process")
             return
 
         p.constraints()
 
         p.input_ports()
         p.output_ports()
-        ensure_exception("asking for info on a non-existant input port",
+        expect_exception("asking for info on a non-existant input port", BaseException,
                          p.input_port_info, iport)
-        ensure_exception("asking for info on a non-existant output port",
+        expect_exception("asking for info on a non-existant output port", BaseException,
                          p.output_port_info, oport)
 
         e = edge.Edge(c)
 
-        ensure_exception("connecting to a non-existant input port",
+        expect_exception("connecting to a non-existant input port", BaseException,
                          p.connect_input_port, iport, e)
-        ensure_exception("connecting to a non-existant output port",
+        expect_exception("connecting to a non-existant output port", BaseException,
                          p.connect_output_port, oport, e)
 
         p.available_config()
-        ensure_exception("asking for info on a non-existant config key",
+        expect_exception("asking for info on a non-existant config key", BaseException,
                          p.config_info, key)
 
-        ensure_exception("setting a type on a non-existent input port",
+        expect_exception("setting a type on a non-existent input port", BaseException,
                          p.set_input_port_type, iport, ptype)
-        ensure_exception("setting a type on a non-existent output port",
+        expect_exception("setting a type on a non-existent output port", BaseException,
                          p.set_output_port_type, oport, ptype)
 
+        p.reset()
+
+        p.configure()
         p.init()
         p.step()
 
@@ -304,7 +306,7 @@ def main(testname):
     elif testname == 'wrapper_api':
         test_wrapper_api()
     else:
-        log("Error: No such test '%s'" % testname)
+        test_error("No such test '%s'" % testname)
 
 
 if __name__ == '__main__':
@@ -312,7 +314,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 4:
-        log("Error: Expected three arguments")
+        test_error("Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
@@ -321,7 +323,9 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    from vistk.test.test import *
+
     try:
         main(testname)
     except BaseException as e:
-        log("Error: Unexpected exception: %s" % str(e))
+        test_error("Unexpected exception: %s" % str(e))

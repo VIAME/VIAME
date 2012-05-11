@@ -99,7 +99,7 @@ image_reader_process
 
 void
 image_reader_process
-::_init()
+::_configure()
 {
   // Configure the process.
   {
@@ -120,7 +120,7 @@ image_reader_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  vistk::path_t::string_type const path = d->path.native();
+  path_t::string_type const path = d->path.native();
 
   if (path.empty())
   {
@@ -139,7 +139,12 @@ image_reader_process
 
     throw invalid_configuration_exception(name(), reason);
   }
+}
 
+void
+image_reader_process
+::_init()
+{
   if (d->verify)
   {
     while (d->fin.good())

@@ -118,9 +118,9 @@ class null_schedule
     null_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipe);
     ~null_schedule();
 
-    void start();
-    void wait();
-    void stop();
+    void _start();
+    void _wait();
+    void _stop();
 };
 
 class null_config_schedule
@@ -164,19 +164,19 @@ null_schedule
 
 void
 null_schedule
-::start()
+::_start()
 {
 }
 
 void
 null_schedule
-::wait()
+::_wait()
 {
 }
 
 void
 null_schedule
-::stop()
+::_stop()
 {
 }
 

@@ -46,6 +46,8 @@ class VISTK_PIPELINE_EXPORT datum
       data,
       /// No data was computed for the computation.
       empty,
+      /// The current data stream is complete and a new one will follow.
+      flush,
       /// The process is complete and no more data will be available on this edge.
       complete,
       /// An error occurred when computing the data.
@@ -78,6 +80,12 @@ class VISTK_PIPELINE_EXPORT datum
      * \returns A new datum which indicates that a result could not be computed.
      */
     static datum_t empty_datum();
+    /**
+     * \brief Create a datum with the #flush type.
+     *
+     * \returns A new datum which indicates that the current data stream is complete.
+     */
+    static datum_t flush_datum();
     /**
      * \brief Create a datum with the #complete type.
      *
@@ -117,7 +125,7 @@ class VISTK_PIPELINE_EXPORT datum
     template <typename T>
     T get_datum() const;
   private:
-    datum(bool is_complete);
+    datum(type_t ty);
     datum(error_t const& err);
     datum(boost::any const& dat);
 

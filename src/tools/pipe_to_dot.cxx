@@ -13,6 +13,7 @@
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
+#include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/types.h>
 
 #include <vistk/config.h>
@@ -214,7 +215,16 @@ int main(int argc, char* argv[])
 
   std::string const graph_name = vm["name"].as<std::string>();
 
-  vistk::export_dot(ostr, pipe, graph_name);
+  if (vm.count("setup"))
+  {
+    pipe->setup_pipeline();
+
+    vistk::export_dot_setup(ostr, pipe, graph_name);
+  }
+  else
+  {
+    vistk::export_dot(ostr, pipe, graph_name);
+  }
 
   return EXIT_SUCCESS;
 }
@@ -230,6 +240,7 @@ make_options()
     ("output,o", po::value_desc<vistk::path_t>()->metavar("FILE")->default_value("-"), "output path")
     ("config,c", po::value_desc<vistk::paths_t>()->metavar("FILE"), "supplemental configuration file")
     ("setting,s", po::value_desc<std::vector<std::string> >()->metavar("VAR=VALUE"), "additional configuration")
+    ("setup,S", "setup the pipeline before exporting")
     ("include,I", po::value_desc<vistk::paths_t>()->metavar("DIR"), "configuration include path")
     ("name,n", po::value_desc<std::string>()->metavar("NAME")->default_value("unnamed"), "name of the graph")
   ;

@@ -91,6 +91,27 @@ duplicate_process_name_exception
 {
 }
 
+remove_after_setup_exception
+::remove_after_setup_exception(process::name_t const& name, bool is_process) throw()
+  : pipeline_removal_exception()
+  , m_name(name)
+  , m_is_process(is_process)
+{
+  std::ostringstream sstr;
+
+  std::string const& type = (m_is_process ? "process" : "group");
+
+  sstr << "The " << type << " named \'" << m_name << "\' "
+          "was removed from the pipeline after it was setup.";
+
+  m_what = sstr.str();
+}
+
+remove_after_setup_exception
+::~remove_after_setup_exception() throw()
+{
+}
+
 connection_after_setup_exception
 ::connection_after_setup_exception(process::name_t const& upstream_name,
                                    process::port_t const& upstream_port,
@@ -114,6 +135,32 @@ connection_after_setup_exception
 
 connection_after_setup_exception
 ::~connection_after_setup_exception() throw()
+{
+}
+
+disconnection_after_setup_exception
+::disconnection_after_setup_exception(process::name_t const& upstream_name,
+                                      process::port_t const& upstream_port,
+                                      process::name_t const& downstream_name,
+                                      process::port_t const& downstream_port) throw()
+  : pipeline_connection_exception()
+  , m_upstream_name(upstream_name)
+  , m_upstream_port(upstream_port)
+  , m_downstream_name(downstream_name)
+  , m_downstream_port(downstream_port)
+{
+  std::ostringstream sstr;
+
+  sstr << "The connection from "
+          "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
+          "\'" << m_downstream_name << "." << m_downstream_port << "\', "
+          "was requested to be disconnected after the pipeline was setup.";
+
+  m_what = sstr.str();
+}
+
+disconnection_after_setup_exception
+::~disconnection_after_setup_exception() throw()
 {
 }
 
@@ -159,7 +206,7 @@ connection_dependent_type_exception
           "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
           "\'" << m_downstream_name << "." << m_downstream_port << "\', "
           "the process \'" << error_name << "\' rejected the type "
-          "\'" << m_type << ".";
+          "\'" << m_type << "\'.";
 
   m_what = sstr.str();
 }
@@ -325,7 +372,7 @@ not_a_dag_exception
 
   sstr << "The pipeline contains a cycle in it. Backwards "
           "edges should only be connected to input ports "
-          "which have the process::flag_nodep flag on them.";
+          "which have the process::flag_input_nodep flag on them.";
 
   m_what = sstr.str();
 }
@@ -343,7 +390,7 @@ untyped_data_dependent_exception
 {
   std::ostringstream sstr;
 
-  sstr << "After initialization, the \'" << m_port << "\' "
+  sstr << "After configure, the \'" << m_port << "\' "
           "port on the \'" << m_name << "\' process "
           "was still marked as data-dependent.";
 
@@ -401,7 +448,7 @@ no_such_group_port_exception
 
   sstr << "The \'" << m_port << "\' on the group "
           "named \'" << m_name << "\' was "
-          "requested it does not exist.";
+          "requested when it does not exist.";
 
   m_what = sstr.str();
 }
@@ -441,6 +488,69 @@ group_output_already_mapped_exception
 
 group_output_already_mapped_exception
 ::~group_output_already_mapped_exception() throw()
+{
+}
+
+reset_running_pipeline_exception
+::reset_running_pipeline_exception() throw()
+{
+  std::ostringstream sstr;
+
+  sstr << "A pipeline was running when a reset was attempted.";
+
+  m_what = sstr.str();
+}
+
+reset_running_pipeline_exception
+::~reset_running_pipeline_exception() throw()
+{
+}
+
+pipeline_not_setup_exception
+::pipeline_not_setup_exception() throw()
+  : pipeline_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "The pipeline has not been setup.";
+
+  m_what = sstr.str();
+}
+
+pipeline_not_setup_exception
+::~pipeline_not_setup_exception() throw()
+{
+}
+
+pipeline_not_ready_exception
+::pipeline_not_ready_exception() throw()
+  : pipeline_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "The pipeline has not been successfully setup.";
+
+  m_what = sstr.str();
+}
+
+pipeline_not_ready_exception
+::~pipeline_not_ready_exception() throw()
+{
+}
+
+pipeline_not_running_exception
+::pipeline_not_running_exception() throw()
+  : pipeline_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A pipeline was stopped before it was started.";
+
+  m_what = sstr.str();
+}
+
+pipeline_not_running_exception
+::~pipeline_not_running_exception() throw()
 {
 }
 

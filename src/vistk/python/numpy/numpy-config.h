@@ -10,7 +10,7 @@
 #include <vistk/config.h>
 
 /**
- * \file numpy
+ * \file numpy-config.h
  *
  * \brief Defines for symbol visibility in numpy.
  */

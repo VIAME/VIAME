@@ -10,17 +10,10 @@ set(examples_srcs
   number_process.cxx
   orphan_process.cxx
   print_number_process.cxx
-  print_string_process.cxx
   registration.cxx
-  tagged_flow_dependent_process.cxx)
-
-set_source_files_properties(print_number_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${print_number_process_build_options}")
-
-set_source_files_properties(print_string_process.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${print_string_process_build_options}")
+  tagged_flow_dependent_process.cxx
+  take_number_process.cxx
+  take_string_process.cxx)
 
 set(no_install_plugin TRUE)
 

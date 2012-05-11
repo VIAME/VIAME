@@ -78,6 +78,11 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT distribute_process
     void _init();
 
     /**
+     * \brief Resets the process.
+     */
+    void _reset();
+
+    /**
      * \brief Distribute data between the output edges.
      */
     void _step();

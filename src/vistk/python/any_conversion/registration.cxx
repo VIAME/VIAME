@@ -15,7 +15,6 @@
 #include <boost/thread/once.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/any.hpp>
-#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
@@ -145,9 +144,11 @@ any_converter
 
     BOOST_FOREACH (to_map_t::value_type const& to, m_to)
     {
+      to_any_func_t const& func = to.second;
+
       try
       {
-        opt_pyobject_t const opt = to.second(any);
+        opt_pyobject_t const opt = func(any);
 
         if (opt)
         {
@@ -183,7 +184,9 @@ any_converter
 
     BOOST_FOREACH (from_map_t::value_type const& from, m_from)
     {
-      if (from.second(obj, storage))
+      from_any_func_t const& func = from.second;
+
+      if (func(obj, storage))
       {
         data->convertible = storage;
         return;
