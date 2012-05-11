@@ -139,7 +139,7 @@ image_writer_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  vistk::path_t::string_type const path = d->path.native();
+  path_t::string_type const path = d->path.native();
 
   if (path.empty())
   {
