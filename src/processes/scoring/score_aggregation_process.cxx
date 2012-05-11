@@ -6,18 +6,16 @@
 
 #include "score_aggregation_process.h"
 
-#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/process_exception.h>
 
 #include <vistk/scoring/scoring_result.h>
 
-#include <fstream>
+#include <boost/make_shared.hpp>
+
 #include <numeric>
-#include <string>
 
 /**
- * \file score_aggregation_process.h
+ * \file score_aggregation_process.cxx
  *
  * \brief Implementation of the score aggregation process.
  */
@@ -32,8 +30,6 @@ class score_aggregation_process::priv
     ~priv();
 
     scoring_results_t results;
-
-    std::ofstream fout;
 
     static port_t const port_score;
     static port_t const port_aggregate;
