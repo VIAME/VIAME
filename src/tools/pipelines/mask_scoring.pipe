@@ -2,7 +2,7 @@ config mask_scoring
   :input       image_list.txt
   :truth_input video.mask.%2$04d.%1%.png
   :output      output.txt
-  :ts_source   file
+  :ts_source   list
   :verify      true
 
 process timestamp
