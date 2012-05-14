@@ -27,6 +27,7 @@ static vistk::scoring_result::count_t result_get_miss(vistk::scoring_result_t co
 static vistk::scoring_result::count_t result_get_truth(vistk::scoring_result_t const& self);
 static vistk::scoring_result::result_t result_get_percent_detection(vistk::scoring_result_t const& self);
 static vistk::scoring_result::result_t result_get_precision(vistk::scoring_result_t const& self);
+static vistk::scoring_result_t result_add(vistk::scoring_result_t const& lhs, vistk::scoring_result_t const& rhs);
 
 BOOST_PYTHON_MODULE(scoring_result)
 {
@@ -41,6 +42,8 @@ BOOST_PYTHON_MODULE(scoring_result)
     .def("truth_count", &result_get_truth)
     .def("percent_detection", &result_get_percent_detection)
     .def("precision", &result_get_precision)
+    .def("__add__", &result_add
+      , (arg("lhs"), arg("rhs")))
   ;
 
   vistk::python::register_type<vistk::scoring_result_t>(20);
@@ -80,4 +83,10 @@ vistk::scoring_result::result_t
 result_get_precision(vistk::scoring_result_t const& self)
 {
   return self->precision();
+}
+
+vistk::scoring_result_t
+result_add(vistk::scoring_result_t const& lhs, vistk::scoring_result_t const& rhs)
+{
+  return (lhs + rhs);
 }
