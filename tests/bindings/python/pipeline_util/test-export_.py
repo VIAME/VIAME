@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!@PYTHON_EXECUTABLE@
 #ckwg +5
 # Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
@@ -28,6 +28,10 @@ def test_simple_pipeline(path):
     name = 'graph'
 
     export_.export_dot(w, p, name)
+
+    pipe.setup_pipeline()
+
+    export_.export_dot_setup(w, p, name)
 
     os.close(r)
     os.close(w)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!@PYTHON_EXECUTABLE@
 #ckwg +5
 # Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
@@ -32,8 +32,6 @@ def make_source(conf):
             self.declare_output_port(self.port_output, info)
 
         def _init(self):
-            from vistk.pipeline import edge
-
             self.counter = int(self.config_value(self.conf_start))
             self.end = int(self.config_value(self.conf_end))
 
@@ -41,9 +39,6 @@ def make_source(conf):
 
         def _step(self):
             from vistk.pipeline import datum
-            from vistk.pipeline import edge
-
-            complete = False
 
             if self.counter >= self.end:
                 self.mark_process_as_complete()

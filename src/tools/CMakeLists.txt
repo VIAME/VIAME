@@ -12,27 +12,47 @@ endif (WIN32)
 
 add_subdirectory(helpers)
 
-add_executable(pipe_to_dot
-  pipe_to_dot.cxx)
-target_link_libraries(pipe_to_dot
-  vistk_pipeline_util
+function (add_tool name)
+  add_executable(${name}
+    ${name}.cxx)
+  target_link_libraries(${name}
+    ${ARGN})
+
+  install(
+    TARGETS     ${name}
+    DESTINATION "${EXECUTABLE_INSTALL_PATH}"
+    COMPONENT   tools)
+endfunction (add_tool)
+
+function (add_python_tool name)
+  if (VISTK_ENABLE_PYTHON)
+    configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/${name}.py"
+      "${EXECUTABLE_OUTPUT_PATH}/${name}"
+      @ONLY)
+
+    install(
+      PROGRAMS    "${EXECUTABLE_OUTPUT_PATH}/${name}"
+      DESTINATION "${EXECUTABLE_INSTALL_PATH}"
+      COMPONENT   tools)
+  endif (VISTK_ENABLE_PYTHON)
+endfunction (add_python_tool)
+
+add_tool(pipe_to_dot
+  pipeline_builder
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
-add_executable(pipeline_runner
-  pipeline_runner.cxx)
-target_link_libraries(pipeline_runner
-  vistk_pipeline_util
+add_tool(pipeline_runner
+  pipeline_builder
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
-add_executable(processopedia
-  processopedia.cxx)
-target_link_libraries(processopedia
+add_tool(processopedia
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}

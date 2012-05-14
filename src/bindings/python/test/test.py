@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #ckwg +5
 # Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,

@@ -167,6 +167,7 @@ function (add_python_module path modpath module)
 endfunction (add_python_module path modpath module)
 
 add_subdirectory(image)
+add_subdirectory(scoring)
 add_subdirectory(modules)
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)

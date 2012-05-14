@@ -4,6 +4,7 @@ add_subdirectory(include)
 
 set(pipelines
   grayscale.pipe
+  mask_scoring.pipe
   warp_image.pipe)
 
 install(

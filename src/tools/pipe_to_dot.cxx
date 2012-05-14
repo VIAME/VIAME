@@ -4,10 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include "helpers/pipeline_builder.h"
+
 #include <vistk/pipeline_util/export_dot.h>
-#include <vistk/pipeline_util/load_pipe.h>
-#include <vistk/pipeline_util/pipe_bakery.h>
-#include <vistk/pipeline_util/pipe_declaration_types.h>
 
 #include <vistk/utilities/path.h>
 
@@ -20,10 +19,7 @@
 
 #include <tools/helpers/typed_value_desc.h>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 #include <boost/program_options.hpp>
 
 #include <fstream>
@@ -35,8 +31,6 @@
 #include <cstdlib>
 
 namespace po = boost::program_options;
-
-static std::string const split_str = "=";
 
 static po::options_description make_options();
 static void VISTK_NO_RETURN usage(po::options_description const& options);
@@ -102,19 +96,16 @@ int main(int argc, char* argv[])
 
     /// \todo Include paths?
 
-    vistk::pipe_blocks blocks = vistk::load_pipe_blocks(istr, boost::filesystem::current_path());
+    pipeline_builder builder;
+
+    builder.load_pipeline(istr);
 
     // Load supplemental configuration files.
     if (vm.count("config"))
     {
       vistk::paths_t const configs = vm["config"].as<vistk::paths_t>();
 
-      BOOST_FOREACH (vistk::path_t const& config, configs)
-      {
-        vistk::pipe_blocks const config_blocks = vistk::load_pipe_blocks_from_file(config);
-
-        blocks.insert(blocks.end(), config_blocks.begin(), config_blocks.end());
-      }
+      std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, builder, _1));
     }
 
     // Insert lone setting variables from the command line.
@@ -122,63 +113,10 @@ int main(int argc, char* argv[])
     {
       std::vector<std::string> const settings = vm["setting"].as<std::vector<std::string> >();
 
-      BOOST_FOREACH (std::string const& setting, settings)
-      {
-        vistk::config_pipe_block block;
-
-        vistk::config_value_t value;
-
-        size_t const split_pos = setting.find(split_str);
-
-        if (split_pos == std::string::npos)
-        {
-          std::cerr << "Error: The setting on the command line "
-                       "\'" << setting << "\' does not contain "
-                       "the \'" << split_str << "\' string which "
-                       "separates the key from the value" << std::endl;
-
-          return EXIT_FAILURE;
-        }
-
-        vistk::config::key_t setting_key = setting.substr(0, split_pos);
-        vistk::config::value_t setting_value = setting.substr(split_pos + split_str.size());
-
-        vistk::config::keys_t keys;
-
-        if (vistk::config::block_sep.size() != 1)
-        {
-          std::cerr << "Error: The block separator is longer than "
-                       "one character and does not work here" << std::endl;
-
-          return EXIT_FAILURE;
-        }
-
-        /// \bug Does not work if (vistk::config::block_sep.size() != 1).
-        boost::split(keys, setting_key, boost::is_any_of(vistk::config::block_sep));
-
-        if (keys.size() < 2)
-        {
-          std::cerr << "Error: The key in the command line setting "
-                       "\'" << setting << "\' does not contain "
-                       "at least two keys in its keypath which is "
-                       "invalid" << std::endl;
-
-          return EXIT_FAILURE;
-        }
-
-        value.key.key_path.push_back(keys.back());
-        value.value = setting_value;
-
-        keys.pop_back();
-
-        block.key = keys;
-        block.values.push_back(value);
-
-        blocks.push_back(block);
-      }
+      std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, builder, _1));
     }
 
-    pipe = vistk::bake_pipe_blocks(blocks);
+    pipe = builder.pipeline();
   }
 
   if (!pipe)

@@ -12,29 +12,25 @@ def test_import():
         test_error("Failed to import the bake module")
 
 
-def test_simple_pipeline(path):
-    from vistk.pipeline import config
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import modules
-    from vistk.pipeline_util import bake
-    from vistk.pipeline_util import load
+def test_api_calls(path):
+    from vistk.scoring import scoring_result
 
-    blocks = load.load_pipe_file(path)
+    result = scoring_result.ScoringResult(1, 1, 1)
 
-    modules.load_known_modules()
+    result.hit_count
+    result.miss_count
+    result.truth_count
+    result.percent_detection()
+    result.precision()
 
-    bake.bake_pipe_file(path)
-    with open(path, 'r') as fin:
-        bake.bake_pipe(fin)
-    bake.bake_pipe_blocks(blocks)
-    bake.extract_configuration(blocks)
+    result + result
 
 
-def main(testname, path):
+def main(testname):
     if testname == 'import':
         test_import()
-    elif testname == 'simple_pipeline':
-        test_simple_pipeline(path)
+    elif testname == 'api_calls':
+        test_api_calls()
     else:
         test_error("No such test '%s'" % testname)
 
@@ -53,13 +49,9 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
-    pipeline_dir = sys.argv[4]
-
-    path = os.path.join(pipeline_dir, '%s.pipe' % testname)
-
     from vistk.test.test import *
 
     try:
-        main(testname, path)
+        main(testname)
     except BaseException as e:
         test_error("Unexpected exception: %s" % str(e))
