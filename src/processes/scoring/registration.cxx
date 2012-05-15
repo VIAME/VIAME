@@ -6,6 +6,7 @@
 
 #include "registration.h"
 
+#include "component_score_json_writer_process.h"
 #include "mask_scoring_process.h"
 #include "score_aggregation_process.h"
 #include "score_writer_process.h"
@@ -32,6 +33,7 @@ register_processes()
     return;
   }
 
+  registry->register_process("component_score_json_writer", "Write component-ized scores in JSON.", create_process<component_score_json_writer_process>);
   registry->register_process("mask_scoring", "A process which scores masks.", create_process<mask_scoring_process>);
   registry->register_process("score_aggregation", "A process which aggregates scores.", create_process<score_aggregation_process>);
   registry->register_process("score_writer", "A process which writes out scores.", create_process<score_writer_process>);

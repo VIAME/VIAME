@@ -1,6 +1,7 @@
 project(vistk_processes_scoring)
 
 set(scoring_srcs
+  component_score_json_writer_process.cxx
   mask_scoring_process.cxx
   registration.cxx
   score_aggregation_process.cxx
