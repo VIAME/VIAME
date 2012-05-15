@@ -39,8 +39,8 @@ if __name__ == '__main__':
     import os
     import sys
 
-    if not len(sys.argv) == 5:
-        test_error("Expected four arguments")
+    if not len(sys.argv) == 4:
+        test_error("Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]
