@@ -35,7 +35,8 @@ namespace po = boost::program_options;
 static po::options_description make_options();
 static void VISTK_NO_RETURN usage(po::options_description const& options);
 
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
