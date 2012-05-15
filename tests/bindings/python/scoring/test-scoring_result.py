@@ -12,7 +12,7 @@ def test_import():
         test_error("Failed to import the bake module")
 
 
-def test_api_calls(path):
+def test_api_calls():
     from vistk.scoring import scoring_result
 
     result = scoring_result.ScoringResult(1, 1, 1)
