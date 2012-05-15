@@ -110,8 +110,10 @@ score_writer_process
   d->fout << result->hit_count << " "
           << result->miss_count << " "
           << result->truth_count << " "
+          << result->possible_count.get_value_or(0) << " "
           << result->percent_detection() << " "
-          << result->precision() << std::endl;
+          << result->precision() << " "
+          << result->specificity() << std::endl;
 
   process::_step();
 }
