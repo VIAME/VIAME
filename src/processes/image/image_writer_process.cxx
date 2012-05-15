@@ -160,7 +160,7 @@ image_writer_process
     }
   }
 
-  process::_init();
+  process::_configure();
 }
 
 void
