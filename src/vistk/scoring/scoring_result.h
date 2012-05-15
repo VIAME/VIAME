@@ -10,6 +10,7 @@
 #include "scoring-config.h"
 
 #include <boost/cstdint.hpp>
+#include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <vector>
@@ -39,6 +40,15 @@ class VISTK_SCORING_EXPORT scoring_result
      */
     scoring_result(count_t hit, count_t miss, count_t truth);
     /**
+     * \brief Constructor.
+     *
+     * \param hit The number of computed result that match the truth.
+     * \param miss The number of computed result that do not match the truth.
+     * \param truth The number of truth instances.
+     * \param possible The number of possible detections.
+     */
+    scoring_result(count_t hit, count_t miss, count_t truth, count_t possible);
+    /**
      * \brief Destructor.
      */
     ~scoring_result();
@@ -55,6 +65,12 @@ class VISTK_SCORING_EXPORT scoring_result
      * \returns The precision of the results.
      */
     result_t precision() const;
+    /**
+     * \brief
+     *
+     * \returns The specificity of the results.
+     */
+    result_t specificity() const;
 
     /// The number of computed result that match the truth.
     count_t const hit_count;
@@ -62,6 +78,8 @@ class VISTK_SCORING_EXPORT scoring_result
     count_t const miss_count;
     /// The total number of truth instances.
     count_t const truth_count;
+    /// The total number of possible detections.
+    boost::optional<count_t> const possible_count;
 };
 
 /// A handle to a scoring result.
