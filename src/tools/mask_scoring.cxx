@@ -80,14 +80,11 @@ main(int argc, char* argv[])
 
     sstr << base_pipeline();
 
-    if (vm.count("layer"))
-    {
-      std::vector<std::string> const layers = vm["layer"].as<std::vector<std::string> >();
+    std::vector<std::string> const layers = vm["layer"].as<std::vector<std::string> >();
 
-      BOOST_FOREACH (std::string const& layer, layers)
-      {
-        sstr << layer_connection(layer);
-      }
+    BOOST_FOREACH (std::string const& layer, layers)
+    {
+      sstr << layer_connection(layer);
     }
 
     if (vm.count("dump"))
