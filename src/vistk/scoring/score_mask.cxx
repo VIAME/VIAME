@@ -76,7 +76,9 @@ score_mask(mask_t const& truth_mask, mask_t const& computed_mask)
     }
   }
 
-  return boost::make_shared<scoring_result>(hit, miss, truth);
+  scoring_result::count_t const possible = ni * nj * np;
+
+  return boost::make_shared<scoring_result>(hit, miss, truth, possible);
 }
 
 }
