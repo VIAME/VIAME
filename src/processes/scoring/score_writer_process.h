@@ -59,7 +59,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_writer_process
     /**
      * \brief Configure the subclass.
      */
-    void _config();
+    void _configure();
 
     /**
      * \brief Step the subclass.

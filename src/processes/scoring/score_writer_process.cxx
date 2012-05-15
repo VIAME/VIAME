@@ -69,7 +69,7 @@ score_writer_process
 
 void
 score_writer_process
-::_config()
+::_configure()
 {
   // Configure the process.
   {
@@ -97,6 +97,8 @@ score_writer_process
 
     throw invalid_configuration_exception(name(), reason);
   }
+
+  process::_configure();
 }
 
 void
