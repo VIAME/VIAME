@@ -211,11 +211,19 @@ std::string
 base_pipeline()
 {
   return
+    CONFIG_GROUP("mask_scoring")
+      CONFIG("input", "image_list.txt")
+      CONFIG("truth_format", "video.mask.%2$04d.%1%.png")
+      CONFIG("timestamp_input", "timestamp.txt")
+      CONFIG("output", "output.txt")
     PROCESS("timestamp_reader", "timestamp")
+      CONFIG_FULL("path", "ro", "CONF", "mask_scoring:timestamp_input")
     PROCESS("layered_image_reader", "truth_reader")
+      CONFIG_FULL("format", "ro", "CONF", "mask_scoring:truth_format")
       CONFIG_FLAGS("pixfmt", "ro", "mask")
       CONFIG_FLAGS("pixtype", "ro", "byte")
     PROCESS("image_reader", "reader")
+      CONFIG_FULL("input", "ro", "CONF", "mask_scoring:input")
       CONFIG_FLAGS("verify", "ro", "true")
       CONFIG_FLAGS("pixfmt", "ro", "mask")
       CONFIG_FLAGS("pixtype", "ro", "byte")
@@ -224,6 +232,7 @@ base_pipeline()
     PROCESS("mask_scoring", "scoring")
     PROCESS("score_aggregation", "aggregate")
     PROCESS("component_score_json_writer", "writer")
+      CONFIG_FULL("path", "ro", "CONF", "mask_scoring:output")
 
     CONNECT("reader", "image",
             "source", "src/computed_mask")
