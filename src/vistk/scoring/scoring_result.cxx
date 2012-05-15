@@ -28,20 +28,31 @@ scoring_result::result_t
 scoring_result
 ::percent_detection() const
 {
-  result_t const hit = hit_count;
-  result_t const truth = truth_count;
+  count_t const hit = hit_count;
+  count_t const truth = truth_count;
 
-  return (hit / truth);
+  if (!truth)
+  {
+    return result_t(0);
+  }
+
+  return (result_t(hit) / result_t(truth));
 }
 
 scoring_result::result_t
 scoring_result
 ::precision() const
 {
-  result_t const hit = hit_count;
-  result_t const miss = miss_count;
+  count_t const hit = hit_count;
+  count_t const miss = miss_count;
+  count_t const total = hit + miss;
 
-  return (hit / (hit + miss));
+  if (!total)
+  {
+    return result_t(0);
+  }
+
+  return (result_t(hit) / result_t(total));
 }
 
 scoring_result_t
