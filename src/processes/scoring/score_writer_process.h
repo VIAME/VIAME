@@ -62,6 +62,11 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_writer_process
     void _configure();
 
     /**
+     * \brief Reset the subclass.
+     */
+    void _reset();
+
+    /**
      * \brief Step the subclass.
      */
     void _step();

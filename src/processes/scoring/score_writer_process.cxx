@@ -103,6 +103,15 @@ score_writer_process
 
 void
 score_writer_process
+::_reset()
+{
+  d->fout.close();
+
+  process::_reset();
+}
+
+void
+score_writer_process
 ::_step()
 {
   scoring_result_t const result = grab_from_port_as<scoring_result_t>(priv::port_score);
