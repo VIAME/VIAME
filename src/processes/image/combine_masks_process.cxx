@@ -158,6 +158,11 @@ combine_masks_process
     dat = std::accumulate(data.begin(), data.end(), datum_t(), d->combine);
   }
 
+  if (!dat)
+  {
+    dat = datum::empty_datum();
+  }
+
   push_datum_to_port(priv::port_mask, dat);
 
   process::_step();
