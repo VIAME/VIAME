@@ -251,7 +251,7 @@ base_pipeline()
             "aggregate", "score")
 
     CONNECT("aggregate", "aggregate",
-            "writer", "score")
+            "writer", "score/ALL")
   ;
 }
 
