@@ -24,6 +24,17 @@ score_mask(mask_t const& truth_mask, mask_t const& computed_mask)
   size_t const nj = truth_mask.nj();
   size_t const np = truth_mask.nplanes();
 
+  size_t const cni = computed_mask.ni();
+  size_t const cnj = computed_mask.nj();
+  size_t const cnp = computed_mask.nplanes();
+
+  if ((ni != cni) ||
+      (nj != cnj) ||
+      (np != cnp))
+  {
+    return scoring_result_t();
+  }
+
   ptrdiff_t const tsi = truth_mask.istep();
   ptrdiff_t const tsj = truth_mask.jstep();
   ptrdiff_t const tsp = truth_mask.planestep();
