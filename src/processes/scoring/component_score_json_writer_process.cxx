@@ -132,20 +132,30 @@ component_score_json_writer_process
 
   d->fout << JSON_OBJECT_BEGIN;
 
-  d->fout << JSON_ATTR("name", "");
+  /// \todo Name runs.
+  d->fout << JSON_ATTR("name", "\"(unnamed)\"");
   d->fout << JSON_SEP;
-  d->fout << JSON_ATTR("date", "");
+  /// \todo Insert date.
+  d->fout << JSON_ATTR("date", "\"\"");
   d->fout << JSON_SEP;
-  d->fout << JSON_ATTR("hash", "");
+  /// \todo Get git hash.
+  d->fout << JSON_ATTR("hash", "\"\"");
   d->fout << JSON_SEP;
   d->fout << JSON_ATTR("config", "{}");
   d->fout << JSON_SEP;
   d->fout << JSON_KEY("results") << JSON_OBJECT_BEGIN;
 
-  bool first = false;
+  bool first = true;
 
   BOOST_FOREACH (priv::tag_t const& tag, d->tags)
   {
+    if (!first)
+    {
+      d->fout << JSON_SEP;
+    }
+
+    first = false;
+
     d->fout << JSON_KEY(+ tag +);
 
     d->fout << JSON_OBJECT_BEGIN;
@@ -167,15 +177,11 @@ component_score_json_writer_process
     d->fout << JSON_ATTR("specificity", result->specificity());
 
     d->fout << JSON_OBJECT_END;
-    if (!first)
-    {
-      d->fout << JSON_SEP;
-      first = true;
-    }
-
-    d->fout << std::endl;
   }
 
+  d->fout << std::endl;
+  d->fout << JSON_OBJECT_END;
+  d->fout << std::endl;
   d->fout << JSON_OBJECT_END;
   d->fout << std::endl;
 
