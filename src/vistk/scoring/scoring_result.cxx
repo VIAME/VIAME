@@ -12,19 +12,11 @@ namespace vistk
 {
 
 scoring_result
-::scoring_result(count_t hit, count_t miss, count_t truth)
-  : hit_count(hit)
-  , miss_count(miss)
-  , truth_count(truth)
-{
-}
-
-scoring_result
-::scoring_result(count_t hit, count_t miss, count_t truth, count_t possible)
-  : hit_count(hit)
-  , miss_count(miss)
-  , truth_count(truth)
-  , possible_count(possible)
+::scoring_result(count_t true_positive, count_t false_positive, count_t total_true, count_t possible)
+  : true_positives(true_positive)
+  , false_positives(false_positive)
+  , total_trues(total_true)
+  , total_possible(possible)
 {
 }
 
@@ -37,48 +29,39 @@ scoring_result::result_t
 scoring_result
 ::percent_detection() const
 {
-  count_t const hit = hit_count;
-  count_t const truth = truth_count;
-
-  if (!truth)
+  if (!total_trues)
   {
     return result_t(0);
   }
 
-  return (result_t(hit) / result_t(truth));
+  return (result_t(true_positives) / result_t(total_trues));
 }
 
 scoring_result::result_t
 scoring_result
 ::precision() const
 {
-  count_t const hit = hit_count;
-  count_t const miss = miss_count;
-  count_t const total = hit + miss;
+  count_t const total = true_positives + false_positives;
 
   if (!total)
   {
     return result_t(0);
   }
 
-  return (result_t(hit) / result_t(total));
+  return (result_t(true_positives) / result_t(total));
 }
 
 scoring_result::result_t
 scoring_result
 ::specificity() const
 {
-  if (!possible_count)
+  if (!total_possible)
   {
     return result_t(0);
   }
 
-  count_t const hit = hit_count;
-  count_t const miss = miss_count;
-  count_t const truth = truth_count;
-  count_t const possible = *possible_count;
-  count_t const truth_negative = possible - truth;
-  count_t const true_negative = true_negative - miss;
+  count_t const truth_negative = total_possible - true_positives;
+  count_t const true_negative = truth_negative - false_positives;
 
   if (!truth_negative)
   {
@@ -91,19 +74,19 @@ scoring_result
 scoring_result_t
 operator + (scoring_result_t const& lhs, scoring_result_t const& rhs)
 {
-  if (lhs->possible_count && rhs->possible_count)
+  if (lhs->total_possible && rhs->total_possible)
   {
     return boost::make_shared<scoring_result>(
-      lhs->hit_count + rhs->hit_count,
-      lhs->miss_count + rhs->miss_count,
-      lhs->truth_count + rhs->truth_count,
-      *lhs->possible_count + *rhs->possible_count);
+      lhs->true_positives + rhs->true_positives,
+      lhs->false_positives + rhs->false_positives,
+      lhs->total_trues + rhs->total_trues,
+      lhs->total_possible + rhs->total_possible);
   }
 
   return boost::make_shared<scoring_result>(
-    lhs->hit_count + rhs->hit_count,
-    lhs->miss_count + rhs->miss_count,
-    lhs->truth_count + rhs->truth_count);
+    lhs->true_positives + rhs->true_positives,
+    lhs->false_positives + rhs->false_positives,
+    lhs->total_trues + rhs->total_trues);
 }
 
 }
