@@ -7,8 +7,14 @@ process src2
 process end
   :: multiplication
 
+process sink
+  :: sink
+
 connect from src1.number
         to   end.factor1
 
 connect from src2.number
         to   end.factor2
+
+connect from end.product
+        to   sink.sink

@@ -80,7 +80,7 @@ score_aggregation_process
       complete = true;
     case datum::flush:
     {
-      scoring_result_t const base = boost::make_shared<scoring_result>(0, 0, 0);
+      scoring_result_t const base = boost::make_shared<scoring_result>(0, 0, 0, 0);
       scoring_result_t const overall = std::accumulate(d->results.begin(), d->results.end(), base);
 
       push_to_port_as<scoring_result_t>(priv::port_aggregate, overall);
@@ -104,6 +104,8 @@ score_aggregation_process
 
   if (complete)
   {
+    push_datum_to_port(priv::port_aggregate, datum::complete_datum());
+
     mark_process_as_complete();
   }
 

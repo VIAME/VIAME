@@ -9,6 +9,8 @@
 #include <processes/helpers/image/format.h>
 #include <processes/helpers/image/pixtypes.h>
 
+#include <vistk/pipeline/datum.h>
+
 #include <vistk/scoring/score_mask.h>
 #include <vistk/scoring/scoring_result.h>
 
@@ -78,7 +80,17 @@ mask_scoring_process
 
   scoring_result_t const score = score_mask(truth, computed);
 
-  push_to_port_as(priv::port_result, score);
+  if (score)
+  {
+    push_to_port_as(priv::port_result, score);
+  }
+  else
+  {
+    static datum::error_t const reason = datum::error_t("The scoring failed");
+    datum_t const err = datum::error_datum(reason);
+
+    push_datum_to_port(priv::port_result, err);
+  }
 
   process::_step();
 }

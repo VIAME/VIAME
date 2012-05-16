@@ -35,7 +35,8 @@ namespace po = boost::program_options;
 static po::options_description make_options();
 static void VISTK_NO_RETURN usage(po::options_description const& options);
 
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
     {
       vistk::paths_t const configs = vm["config"].as<vistk::paths_t>();
 
-      std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, builder, _1));
+      std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, &builder, _1));
     }
 
     // Insert lone setting variables from the command line.
@@ -113,7 +114,7 @@ int main(int argc, char* argv[])
     {
       std::vector<std::string> const settings = vm["setting"].as<std::vector<std::string> >();
 
-      std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, builder, _1));
+      std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, &builder, _1));
     }
 
     pipe = builder.pipeline();

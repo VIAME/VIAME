@@ -12,16 +12,18 @@ def test_import():
         test_error("Failed to import the bake module")
 
 
-def test_api_calls(path):
+def test_api_calls():
     from vistk.scoring import scoring_result
 
     result = scoring_result.ScoringResult(1, 1, 1)
 
-    result.hit_count
-    result.miss_count
-    result.truth_count
+    result.true_positives
+    result.false_positives
+    result.total_trues
+    result.total_possible
     result.percent_detection()
     result.precision()
+    result.specificity()
 
     result + result
 
@@ -39,8 +41,8 @@ if __name__ == '__main__':
     import os
     import sys
 
-    if not len(sys.argv) == 5:
-        test_error("Expected four arguments")
+    if not len(sys.argv) == 4:
+        test_error("Expected three arguments")
         sys.exit(1)
 
     testname = sys.argv[1]

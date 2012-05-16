@@ -4,6 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#ifndef VISTK_TOOLS_HELPERS_PIPELINE_BUILDER_H
+#define VISTK_TOOLS_HELPERS_PIPELINE_BUILDER_H
+
 #include <vistk/pipeline_util/pipe_bakery.h>
 
 #include <vistk/pipeline/types.h>
@@ -28,3 +31,5 @@ class pipeline_builder
   private:
     vistk::pipe_blocks m_blocks;
 };
+
+#endif // VISTK_TOOLS_HELPERS_PIPELINE_BUILDER_H

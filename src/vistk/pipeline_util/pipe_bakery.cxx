@@ -166,7 +166,13 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider_sorter
 
     config::keys_t sorted() const;
   private:
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, config::key_t> config_graph_t;
+    struct node_t
+    {
+      bool deref;
+      config::key_t name;
+    };
+
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, node_t> config_graph_t;
     typedef boost::graph_traits<config_graph_t>::vertex_descriptor vertex_t;
     typedef std::vector<vertex_t> vertices_t;
     typedef std::map<config::key_t, vertex_t> vertex_map_t;
@@ -692,7 +698,12 @@ config_provider_sorter
 
   BOOST_FOREACH (vertex_t const& vertex, vertices)
   {
-    keys.push_back(m_graph[vertex]);
+    node_t const& node = m_graph[vertex];
+
+    if (node.deref)
+    {
+      keys.push_back(node.name);
+    }
   }
 
   return keys;
@@ -735,14 +746,17 @@ config_provider_sorter
   if (from_inserted)
   {
     from_vertex = boost::add_vertex(m_graph);
-    m_graph[from_vertex] = key;
+    m_graph[from_vertex].name = key;
   }
 
   if (to_inserted)
   {
     to_vertex = boost::add_vertex(m_graph);
-    m_graph[to_vertex] = target_key;
+    m_graph[to_vertex].name = target_key;
+    m_graph[from_vertex].deref = false;
   }
+
+  m_graph[from_vertex].deref = true;
 
   boost::add_edge(from_vertex, to_vertex, m_graph);
 }

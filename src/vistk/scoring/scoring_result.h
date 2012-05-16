@@ -33,11 +33,12 @@ class VISTK_SCORING_EXPORT scoring_result
     /**
      * \brief Constructor.
      *
-     * \param hit The number of computed result that match the truth.
-     * \param miss The number of computed result that do not match the truth.
-     * \param truth The number of truth instances.
+     * \param true_positive The number of computed result that match the truth.
+     * \param false_positive The number of computed result that do not match the truth.
+     * \param total_true The number of truth instances.
+     * \param possible The number of possible detections.
      */
-    scoring_result(count_t hit, count_t miss, count_t truth);
+    scoring_result(count_t true_positive, count_t false_positive, count_t total_true, count_t possible = 0);
     /**
      * \brief Destructor.
      */
@@ -55,13 +56,21 @@ class VISTK_SCORING_EXPORT scoring_result
      * \returns The precision of the results.
      */
     result_t precision() const;
+    /**
+     * \brief
+     *
+     * \returns The specificity of the results.
+     */
+    result_t specificity() const;
 
     /// The number of computed result that match the truth.
-    count_t const hit_count;
+    count_t const true_positives;
     /// The number of computed result that do not match the truth.
-    count_t const miss_count;
+    count_t const false_positives;
     /// The total number of truth instances.
-    count_t const truth_count;
+    count_t const total_trues;
+    /// The total number of possible detections.
+    count_t const total_possible;
 };
 
 /// A handle to a scoring result.

@@ -69,7 +69,7 @@ score_writer_process
 
 void
 score_writer_process
-::_config()
+::_configure()
 {
   // Configure the process.
   {
@@ -97,6 +97,17 @@ score_writer_process
 
     throw invalid_configuration_exception(name(), reason);
   }
+
+  process::_configure();
+}
+
+void
+score_writer_process
+::_reset()
+{
+  d->fout.close();
+
+  process::_reset();
 }
 
 void
@@ -105,11 +116,13 @@ score_writer_process
 {
   scoring_result_t const result = grab_from_port_as<scoring_result_t>(priv::port_score);
 
-  d->fout << result->hit_count << " "
-          << result->miss_count << " "
-          << result->truth_count << " "
+  d->fout << result->true_positives << " "
+          << result->false_positives << " "
+          << result->total_trues << " "
+          << result->total_possible << " "
           << result->percent_detection() << " "
-          << result->precision() << std::endl;
+          << result->precision() << " "
+          << result->specificity() << std::endl;
 
   process::_step();
 }

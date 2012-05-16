@@ -5,6 +5,7 @@
  */
 
 #include "helpers/pipeline_builder.h"
+#include "helpers/literal_pipeline.h"
 
 #include <vistk/utilities/path.h>
 
@@ -19,6 +20,7 @@
 #include <tools/helpers/typed_value_desc.h>
 
 #include <boost/bind.hpp>
+#include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
 
 #include <fstream>
@@ -34,6 +36,9 @@ static vistk::config::key_t const schedule_block = vistk::config::key_t("_schedu
 
 static po::options_description make_options();
 static void VISTK_NO_RETURN usage(po::options_description const& options);
+
+static std::string base_pipeline();
+static std::string layer_connection(std::string const& layer);
 
 int
 main(int argc, char* argv[])
@@ -60,9 +65,9 @@ main(int argc, char* argv[])
     usage(desc);
   }
 
-  if (!vm.count("pipeline"))
+  if (!vm.count("layer"))
   {
-    std::cerr << "Error: pipeline not set" << std::endl;
+    std::cerr << "Error: there must be at least one layer to read" << std::endl;
     usage(desc);
   }
 
@@ -71,36 +76,54 @@ main(int argc, char* argv[])
   vistk::config_t conf;
 
   {
-    std::istream* pistr;
-    std::ifstream fin;
+    std::stringstream sstr;
 
-    vistk::path_t const ipath = vm["pipeline"].as<vistk::path_t>();
+    sstr << base_pipeline();
 
-    if (ipath.native() == vistk::path_t("-"))
+    std::vector<std::string> const layers = vm["layer"].as<std::vector<std::string> >();
+
+    BOOST_FOREACH (std::string const& layer, layers)
     {
-      pistr = &std::cin;
+      sstr << layer_connection(layer);
     }
-    else
+
+    if (vm.count("dump"))
     {
-      fin.open(ipath.native().c_str());
+      std::ostream* postr;
+      std::ofstream fout;
 
-      if (!fin.good())
+      vistk::path_t const opath = vm["dump"].as<vistk::path_t>();
+
+      if (opath.native() == vistk::path_t("-"))
       {
-        std::cerr << "Error: Unable to open input file" << std::endl;
+        postr = &std::cout;
+      }
+      else
+      {
+        fout.open(opath.native().c_str());
 
-        return EXIT_FAILURE;
+        if (fout.bad())
+        {
+          std::cerr << "Error: Unable to open output file" << std::endl;
+
+          return EXIT_FAILURE;
+        }
+
+        postr = &fout;
       }
 
-      pistr = &fin;
-    }
+      std::ostream& ostr = *postr;
 
-    std::istream& istr = *pistr;
+      ostr << sstr.str();
+
+      return EXIT_SUCCESS;
+    }
 
     /// \todo Include paths?
 
     pipeline_builder builder;
 
-    builder.load_pipeline(istr);
+    builder.load_pipeline(sstr);
 
     // Load supplemental configuration files.
     if (vm.count("config"))
@@ -165,11 +188,12 @@ make_options()
 
   desc.add_options()
     ("help,h", "output help message and quit")
-    ("pipeline,p", po::value_desc<vistk::path_t>()->metavar("FILE"), "pipeline")
     ("config,c", po::value_desc<vistk::paths_t>()->metavar("FILE"), "supplemental configuration file")
     ("setting,s", po::value_desc<std::vector<std::string> >()->metavar("VAR=VALUE"), "additional configuration")
     ("include,I", po::value_desc<vistk::paths_t>()->metavar("DIR"), "configuration include path")
     ("schedule,S", po::value_desc<vistk::schedule_registry::type_t>()->metavar("TYPE"), "schedule type")
+    ("dump,d", po::value_desc<vistk::path_t>()->metavar("FILE"), "output the generated pipeline")
+    ("layer,l", po::value_desc<std::vector<std::string> >()->metavar("LAYER"), "layer name")
   ;
 
   return desc;
@@ -181,4 +205,72 @@ usage(po::options_description const& options)
   std::cerr << options << std::endl;
 
   exit(EXIT_FAILURE);
+}
+
+std::string
+base_pipeline()
+{
+  return
+    CONFIG_GROUP("mask_scoring")
+      CONFIG("input", "image_list.txt")
+      CONFIG("truth_format", "video.mask.%2$04d.%1%.png")
+      CONFIG("timestamp_input", "timestamp.txt")
+      CONFIG("output", "output.txt")
+    PROCESS("timestamp_reader", "timestamp")
+      CONFIG_FULL("path", "ro", "CONF", "mask_scoring:timestamp_input")
+    PROCESS("layered_image_reader", "truth_reader")
+      CONFIG_FULL("format", "ro", "CONF", "mask_scoring:truth_format")
+      CONFIG_FLAGS("pixfmt", "ro", "mask")
+      CONFIG_FLAGS("pixtype", "ro", "byte")
+    PROCESS("image_reader", "reader")
+      CONFIG_FULL("input", "ro", "CONF", "mask_scoring:input")
+      CONFIG_FLAGS("verify", "ro", "true")
+      CONFIG_FLAGS("pixfmt", "ro", "mask")
+      CONFIG_FLAGS("pixtype", "ro", "byte")
+    PROCESS("source", "source")
+    PROCESS("combine_masks", "combine")
+    PROCESS("mask_scoring", "scoring")
+    PROCESS("score_aggregation", "aggregate")
+    PROCESS("component_score_json_writer", "writer")
+      CONFIG_FULL("path", "ro", "CONF", "mask_scoring:output")
+
+    CONNECT("reader", "image",
+            "source", "src/computed_mask")
+    CONNECT("timestamp", "timestamp",
+            "source", "src/timestamp")
+
+    CONNECT("source", "out/timestamp",
+            "truth_reader", "timestamp")
+
+    CONNECT("combine", "mask",
+            "scoring", "truth_mask")
+    CONNECT("source", "out/computed_mask",
+            "scoring", "computed_mask")
+
+    CONNECT("scoring", "result",
+            "aggregate", "score")
+
+    CONNECT("aggregate", "aggregate",
+            "writer", "score/ALL")
+  ;
+}
+
+std::string
+layer_connection(std::string const& layer)
+{
+  return
+    CONNECT("truth_reader", "image/" + layer +,
+            "combine", "mask/" + layer +)
+    PROCESS("mask_scoring", "scoring_" + layer +)
+    PROCESS("score_aggregation", "aggregate_" + layer +)
+
+    CONNECT("truth_reader", "image/" + layer +,
+            "scoring_" + layer +, "truth_mask")
+    CONNECT("source", "out/computed_mask",
+            "scoring_" + layer +, "computed_mask")
+    CONNECT("scoring_" + layer +, "result",
+            "aggregate_" + layer +, "score")
+    CONNECT("aggregate_" + layer +, "aggregate",
+            "writer", "score/" + layer +)
+  ;
 }
