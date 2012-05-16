@@ -32,11 +32,12 @@ namespace vistk
 class component_score_json_writer_process::priv
 {
   public:
-    priv(path_t const& output_path);
-    ~priv();
-
     typedef port_t tag_t;
     typedef std::vector<tag_t> tags_t;
+
+    priv();
+    priv(path_t const& output_path, tags_t const& tags_);
+    ~priv();
 
     path_t const path;
 
@@ -54,6 +55,7 @@ process::port_t const component_score_json_writer_process::priv::port_score_pref
 component_score_json_writer_process
 ::component_score_json_writer_process(config_t const& config)
   : process(config)
+  , d(new priv)
 {
   declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
     config::value_t(),
@@ -73,7 +75,7 @@ component_score_json_writer_process
   {
     path_t const path = config_value<path_t>(priv::config_path);
 
-    d.reset(new priv(path));
+    d.reset(new priv(path, d->tags));
   }
 
   path_t::string_type const path = d->path.native();
@@ -215,8 +217,14 @@ component_score_json_writer_process
 }
 
 component_score_json_writer_process::priv
-::priv(path_t const& output_path)
+::priv()
+{
+}
+
+component_score_json_writer_process::priv
+::priv(path_t const& output_path, tags_t const& tags_)
   : path(output_path)
+  , tags(tags_)
 {
 }
 
