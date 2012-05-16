@@ -21,12 +21,17 @@
 
 using namespace boost::python;
 
-static vistk::scoring_result_t new_result(vistk::scoring_result::count_t hit, vistk::scoring_result::count_t miss, vistk::scoring_result::count_t truth);
-static vistk::scoring_result::count_t result_get_hit(vistk::scoring_result_t const& self);
-static vistk::scoring_result::count_t result_get_miss(vistk::scoring_result_t const& self);
-static vistk::scoring_result::count_t result_get_truth(vistk::scoring_result_t const& self);
+static vistk::scoring_result_t new_result(vistk::scoring_result::count_t true_positive,
+                                          vistk::scoring_result::count_t false_positive,
+                                          vistk::scoring_result::count_t total_true,
+                                          vistk::scoring_result::count_t possible);
+static vistk::scoring_result::count_t result_get_true_positives(vistk::scoring_result_t const& self);
+static vistk::scoring_result::count_t result_get_false_positives(vistk::scoring_result_t const& self);
+static vistk::scoring_result::count_t result_get_total_trues(vistk::scoring_result_t const& self);
+static vistk::scoring_result::count_t result_get_total_possible(vistk::scoring_result_t const& self);
 static vistk::scoring_result::result_t result_get_percent_detection(vistk::scoring_result_t const& self);
 static vistk::scoring_result::result_t result_get_precision(vistk::scoring_result_t const& self);
+static vistk::scoring_result::result_t result_get_specificity(vistk::scoring_result_t const& self);
 static vistk::scoring_result_t result_add(vistk::scoring_result_t const& lhs, vistk::scoring_result_t const& rhs);
 
 BOOST_PYTHON_MODULE(scoring_result)
@@ -35,13 +40,15 @@ BOOST_PYTHON_MODULE(scoring_result)
     , "A result from a scoring algorithm."
     , no_init)
     .def("__init__", &new_result
-      , (arg("hit"), arg("miss"), arg("truth"))
+      , (arg("true_positive"), arg("false_positive"), arg("total_true"), arg("possible") = 0)
       , "Constructor.")
-    .def("hit_count", &result_get_hit)
-    .def("miss_count", &result_get_miss)
-    .def("truth_count", &result_get_truth)
+    .def("true_positives", &result_get_true_positives)
+    .def("false_positives", &result_get_false_positives)
+    .def("total_trues", &result_get_total_trues)
+    .def("total_possible", &result_get_total_possible)
     .def("percent_detection", &result_get_percent_detection)
     .def("precision", &result_get_precision)
+    .def("specificity", &result_get_specificity)
     .def("__add__", &result_add
       , (arg("lhs"), arg("rhs")))
   ;
@@ -50,27 +57,36 @@ BOOST_PYTHON_MODULE(scoring_result)
 }
 
 vistk::scoring_result_t
-new_result(vistk::scoring_result::count_t hit, vistk::scoring_result::count_t miss, vistk::scoring_result::count_t truth)
+new_result(vistk::scoring_result::count_t true_positive,
+           vistk::scoring_result::count_t false_positive,
+           vistk::scoring_result::count_t total_true,
+           vistk::scoring_result::count_t possible)
 {
-  return boost::make_shared<vistk::scoring_result>(hit, miss, truth);
+  return boost::make_shared<vistk::scoring_result>(true_positive, false_positive, total_true, possible);
 }
 
 vistk::scoring_result::count_t
-result_get_hit(vistk::scoring_result_t const& self)
+result_get_true_positives(vistk::scoring_result_t const& self)
 {
-  return self->hit_count;
+  return self->true_positives;
 }
 
 vistk::scoring_result::count_t
-result_get_miss(vistk::scoring_result_t const& self)
+result_get_false_positives(vistk::scoring_result_t const& self)
 {
-  return self->miss_count;
+  return self->false_positives;
 }
 
 vistk::scoring_result::count_t
-result_get_truth(vistk::scoring_result_t const& self)
+result_get_total_trues(vistk::scoring_result_t const& self)
 {
-  return self->truth_count;
+  return self->total_trues;
+}
+
+vistk::scoring_result::count_t
+result_get_total_possible(vistk::scoring_result_t const& self)
+{
+  return self->total_possible;
 }
 
 vistk::scoring_result::result_t
@@ -83,6 +99,12 @@ vistk::scoring_result::result_t
 result_get_precision(vistk::scoring_result_t const& self)
 {
   return self->precision();
+}
+
+vistk::scoring_result::result_t
+result_get_specificity(vistk::scoring_result_t const& self)
+{
+  return self->specificity();
 }
 
 vistk::scoring_result_t
