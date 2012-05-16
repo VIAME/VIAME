@@ -116,10 +116,10 @@ score_writer_process
 {
   scoring_result_t const result = grab_from_port_as<scoring_result_t>(priv::port_score);
 
-  d->fout << result->hit_count << " "
-          << result->miss_count << " "
-          << result->truth_count << " "
-          << result->possible_count.get_value_or(0) << " "
+  d->fout << result->true_positives << " "
+          << result->false_positives << " "
+          << result->total_trues << " "
+          << result->total_possible << " "
           << result->percent_detection() << " "
           << result->precision() << " "
           << result->specificity() << std::endl;

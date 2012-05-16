@@ -150,15 +150,15 @@ component_score_json_writer_process
 
     scoring_result_t const result = grab_from_port_as<scoring_result_t>(priv::port_score_prefix + tag);
 
-    d->fout << JSON_ATTR("hit", result->hit_count);
+    d->fout << JSON_ATTR("true-positive", result->true_positives);
     d->fout << JSON_SEP;
-    d->fout << JSON_ATTR("miss", result->miss_count);
+    d->fout << JSON_ATTR("false-positive", result->false_positives);
     d->fout << JSON_SEP;
-    d->fout << JSON_ATTR("truth", result->truth_count);
+    d->fout << JSON_ATTR("total-true", result->total_trues);
     d->fout << JSON_SEP;
-    d->fout << JSON_ATTR("possible", result->possible_count.get_value_or(0));
+    d->fout << JSON_ATTR("total-possible", result->total_possible);
     d->fout << JSON_SEP;
-    d->fout << JSON_ATTR("pd", result->percent_detection());
+    d->fout << JSON_ATTR("percent-detection", result->percent_detection());
     d->fout << JSON_SEP;
     d->fout << JSON_ATTR("precision", result->precision());
     d->fout << JSON_SEP;
