@@ -74,19 +74,11 @@ scoring_result
 scoring_result_t
 operator + (scoring_result_t const& lhs, scoring_result_t const& rhs)
 {
-  if (lhs->total_possible && rhs->total_possible)
-  {
-    return boost::make_shared<scoring_result>(
-      lhs->true_positives + rhs->true_positives,
-      lhs->false_positives + rhs->false_positives,
-      lhs->total_trues + rhs->total_trues,
-      lhs->total_possible + rhs->total_possible);
-  }
-
   return boost::make_shared<scoring_result>(
     lhs->true_positives + rhs->true_positives,
     lhs->false_positives + rhs->false_positives,
-    lhs->total_trues + rhs->total_trues);
+    lhs->total_trues + rhs->total_trues,
+    lhs->total_possible + rhs->total_possible);
 }
 
 }
