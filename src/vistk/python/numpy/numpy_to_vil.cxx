@@ -40,7 +40,7 @@ numpy_to_vil(PyObject* obj)
 {
   vistk::python::python_gil gil;
 
-  (void) gil;
+  (void)gil;
 
   numpy_to_vil_check(obj);
 
