@@ -107,7 +107,7 @@ main(int argc, char* argv[])
     {
       vistk::paths_t const configs = vm["config"].as<vistk::paths_t>();
 
-      std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, builder, _1));
+      std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, &builder, _1));
     }
 
     // Insert lone setting variables from the command line.
@@ -115,7 +115,7 @@ main(int argc, char* argv[])
     {
       std::vector<std::string> const settings = vm["setting"].as<std::vector<std::string> >();
 
-      std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, builder, _1));
+      std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, &builder, _1));
     }
 
     pipe = builder.pipeline();
