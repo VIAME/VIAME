@@ -77,9 +77,8 @@ scoring_result
   count_t const miss = miss_count;
   count_t const truth = truth_count;
   count_t const possible = *possible_count;
-  count_t const total = hit + miss;
   count_t const truth_negative = possible - truth;
-  count_t const true_negative = possible - total;
+  count_t const true_negative = true_negative - miss;
 
   if (!truth_negative)
   {
