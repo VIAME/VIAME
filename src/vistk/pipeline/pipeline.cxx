@@ -46,7 +46,7 @@ class pipeline::priv
     void remove_from_pipeline(process::name_t const& name);
     void remove_group_input_port(process::name_t const& name, process::port_t const& port);
     void remove_group_output_port(process::name_t const& name, process::port_t const& port);
-    void propogate(process::name_t const& root);
+    void propagate(process::name_t const& root);
 
     typedef std::map<process::name_t, process_t> process_map_t;
     typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
@@ -94,7 +94,7 @@ class pipeline::priv
     void map_group_connections();
     void configure_processes();
     void check_for_data_dep_ports() const;
-    void propogate_pinned_types();
+    void propagate_pinned_types();
     void check_for_untyped_ports() const;
     void make_connections();
     void check_for_required_ports() const;
@@ -135,17 +135,17 @@ class pipeline::priv
     static bool is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection);
     static bool is_group_connection_for(connection_t const& connection, group_connection_t const& gconnection);
 
-    class propogation_exception
+    class propagation_exception
       : public pipeline_exception
     {
       public:
-        propogation_exception(process::name_t const& upstream_name,
+        propagation_exception(process::name_t const& upstream_name,
                               process::port_t const& upstream_port,
                               process::name_t const& downstream_name,
                               process::port_t const& downstream_port,
                               process::port_type_t const& type,
                               bool push_upstream) throw();
-        ~propogation_exception() throw();
+        ~propagation_exception() throw();
 
         process::name_t const m_upstream_name;
         process::port_t const m_upstream_port;
@@ -545,7 +545,7 @@ pipeline
     d->map_group_connections();
     d->configure_processes();
     d->check_for_data_dep_ports();
-    d->propogate_pinned_types();
+    d->propagate_pinned_types();
     d->check_for_untyped_ports();
     d->make_connections();
     d->check_for_required_ports();
@@ -1445,7 +1445,7 @@ pipeline::priv
 
 void
 pipeline::priv
-::propogate(process::name_t const& root)
+::propagate(process::name_t const& root)
 {
   std::queue<process::name_t> kyu;
 
@@ -1486,7 +1486,7 @@ pipeline::priv
 
           if (!up_proc->set_output_port_type(upstream_port, type))
           {
-            throw propogation_exception(upstream_name, upstream_port,
+            throw propagation_exception(upstream_name, upstream_port,
                                         downstream_name, downstream_port,
                                         type, true);
           }
@@ -1513,7 +1513,7 @@ pipeline::priv
 
           if (!down_proc->set_input_port_type(downstream_port, type))
           {
-            throw propogation_exception(upstream_name, upstream_port,
+            throw propagation_exception(upstream_name, upstream_port,
                                         downstream_name, downstream_port,
                                         type, false);
           }
@@ -1721,7 +1721,7 @@ pipeline::priv
 
 void
 pipeline::priv
-::propogate_pinned_types()
+::propagate_pinned_types()
 {
   type_pinnings_t const pinnings = type_pinnings;
   type_pinnings.clear();
@@ -1786,9 +1786,9 @@ pipeline::priv
 
     try
     {
-      propogate(name);
+      propagate(name);
     }
-    catch (propogation_exception& e)
+    catch (propagation_exception& e)
     {
       throw connection_dependent_type_cascade_exception(name, port, type,
                                                         e.m_upstream_name, e.m_upstream_port,
@@ -1803,7 +1803,7 @@ pipeline::priv
 
   if (type_pinnings.size())
   {
-    propogate_pinned_types();
+    propagate_pinned_types();
   }
 }
 
@@ -2210,8 +2210,8 @@ pipeline::priv
   return (connection == group_connection);
 }
 
-pipeline::priv::propogation_exception
-::propogation_exception(process::name_t const& upstream_name,
+pipeline::priv::propagation_exception
+::propagation_exception(process::name_t const& upstream_name,
                         process::port_t const& upstream_port,
                         process::name_t const& downstream_name,
                         process::port_t const& downstream_port,
@@ -2227,8 +2227,8 @@ pipeline::priv::propogation_exception
   m_what = "<internal>";
 }
 
-pipeline::priv::propogation_exception
-::~propogation_exception() throw()
+pipeline::priv::propagation_exception
+::~propagation_exception() throw()
 {
 }
 

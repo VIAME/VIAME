@@ -334,7 +334,7 @@ class VISTK_PIPELINE_EXPORT connection_dependent_type_exception
 /**
  * \class connection_dependent_type_cascade_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
- * \brief Thrown when a connection sets a type on a port that is rejected due to propogation of the type.
+ * \brief Thrown when a connection sets a type on a port that is rejected due to propagation of the type.
  *
  * \ingroup exceptions
  */

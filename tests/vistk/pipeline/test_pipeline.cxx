@@ -968,7 +968,7 @@ test_setup_pipeline_type_force_cascade_up()
 
   if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
-    TEST_ERROR("Dependent types were not propogated properly up the pipeline");
+    TEST_ERROR("Dependent types were not propagated properly up the pipeline");
   }
 }
 
@@ -1007,7 +1007,7 @@ test_setup_pipeline_type_force_cascade_down()
 
   if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
-    TEST_ERROR("Dependent types were not propogated properly down the pipeline");
+    TEST_ERROR("Dependent types were not propagated properly down the pipeline");
   }
 }
 
@@ -1053,14 +1053,14 @@ test_setup_pipeline_type_force_cascade_both()
 
   if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
-    TEST_ERROR("Dependent types were not propogated properly within the pipeline");
+    TEST_ERROR("Dependent types were not propagated properly within the pipeline");
   }
 
   info = process3->input_port_info(port_name2);
 
   if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
-    TEST_ERROR("Dependent types were not propogated properly within the pipeline");
+    TEST_ERROR("Dependent types were not propagated properly within the pipeline");
   }
 }
 
@@ -1155,7 +1155,7 @@ test_setup_pipeline_data_dependent_set()
 
   if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
-    TEST_ERROR("Dependent types were not propogated properly down the pipeline after initialization");
+    TEST_ERROR("Dependent types were not propagated properly down the pipeline after initialization");
   }
 }
 
@@ -1188,7 +1188,7 @@ test_setup_pipeline_data_dependent_set_reject()
 
   EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
                    pipeline->setup_pipeline(),
-                   "a data dependent type propogation gets rejected");
+                   "a data dependent type propagation gets rejected");
 }
 
 void
@@ -1227,14 +1227,14 @@ test_setup_pipeline_data_dependent_set_cascade()
 
   if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
-    TEST_ERROR("Dependent types were not propogated properly down the pipeline after initialization");
+    TEST_ERROR("Dependent types were not propagated properly down the pipeline after initialization");
   }
 
   info = process3->input_port_info(port_name2);
 
   if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
   {
-    TEST_ERROR("Dependent types were not propogated properly down the pipeline after initialization");
+    TEST_ERROR("Dependent types were not propagated properly down the pipeline after initialization");
   }
 }
 
@@ -1272,7 +1272,7 @@ test_setup_pipeline_data_dependent_set_cascade_reject()
 
   EXPECT_EXCEPTION(vistk::connection_dependent_type_cascade_exception,
                    pipeline->setup_pipeline(),
-                   "a data dependent type propogation gets rejected");
+                   "a data dependent type propagation gets rejected");
 }
 
 void
