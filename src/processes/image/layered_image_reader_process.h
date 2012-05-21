@@ -37,7 +37,7 @@ namespace vistk
  *
  * \config{pixtype} The pixel type of the images.
  * \config{pixfmt} The pixel format of the images.
- * \config{format} The format for the input file names.
+ * \config{path} The file to read image format strings from.
  *
  * \reqs
  *
