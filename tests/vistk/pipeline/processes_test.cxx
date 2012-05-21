@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -38,8 +38,6 @@ void VISTK_EXPORT register_processes();
 
 }
 
-static process_t create_test_process(config_t const& config);
-
 void
 register_processes()
 {
@@ -52,13 +50,7 @@ register_processes()
     return;
   }
 
-  registry->register_process("test", "A test process", create_test_process);
+  registry->register_process("test", "A test process", create_process<test_process>);
 
   registry->mark_module_as_loaded(module_name);
-}
-
-process_t
-create_test_process(config_t const& config)
-{
-  return boost::make_shared<test_process>(config);
 }
