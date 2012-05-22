@@ -7,9 +7,9 @@
 
 def test_import():
     try:
-        import vistk.pipeline_util.bake
+        import vistk.scoring.scoring_result
     except:
-        test_error("Failed to import the bake module")
+        test_error("Failed to import the scoring_result module")
 
 
 def test_api_calls():
