@@ -22,12 +22,21 @@
 
 using namespace boost::python;
 
+static double transform_get(vistk::homography_base::transform_t const& self, unsigned row, unsigned col);
+static void transform_set(vistk::homography_base::transform_t& self, unsigned row, unsigned col, double val);
+
 BOOST_PYTHON_MODULE(homography)
 {
-  /// \todo Bind transform_t.
+  /// \todo Use NumPy instead.
   class_<vistk::homography_base::transform_t>("HomographyTransform"
     , "A transformation matrix for a homography."
     , no_init)
+    .def("get", &transform_get
+      , (arg("row"), arg("column"))
+      , "Get a value from the transformation.")
+    .def("set", &transform_set
+      , (arg("row"), arg("column"), arg("value"))
+      , "Set a value in the transformation.")
   ;
 
   class_<vistk::homography_base>("HomographyBase"
@@ -81,4 +90,16 @@ BOOST_PYTHON_MODULE(homography)
   /// \todo Wrap up other plane ref types.
 
 #undef HOMOGRAPHY_CLASS
+}
+
+double
+transform_get(vistk::homography_base::transform_t const& self, unsigned row, unsigned col)
+{
+  return self.get(row, col);
+}
+
+void
+transform_set(vistk::homography_base::transform_t& self, unsigned row, unsigned col, double val)
+{
+  self.set(row, col, val);
 }

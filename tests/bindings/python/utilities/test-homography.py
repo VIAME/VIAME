@@ -26,6 +26,9 @@ def test_api_calls():
     homog.set_valid(False)
     homog.set_new_reference(False)
 
+    t.get(0, 0)
+    t.set(0, 0, 1)
+
     homog == homog
 
     s = timestamp.Timestamp()
