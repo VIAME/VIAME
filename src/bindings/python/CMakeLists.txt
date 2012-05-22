@@ -135,6 +135,7 @@ function (make_python_plugin_init_file modpath)
     __init__)
 endfunction (make_python_plugin_init_file modpath)
 
+add_subdirectory(utilities)
 add_subdirectory(image)
 add_subdirectory(scoring)
 add_subdirectory(modules)
