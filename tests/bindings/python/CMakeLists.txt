@@ -33,6 +33,7 @@ endfunction (vistk_make_python_test)
 
 add_subdirectory(test)
 
+add_subdirectory(utilities)
 add_subdirectory(image)
 add_subdirectory(scoring)
 add_subdirectory(modules)
