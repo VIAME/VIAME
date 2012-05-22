@@ -112,6 +112,15 @@ class VISTK_UTILITIES_EXPORT timestamp
     void set_frame(frame_t f);
 
     /**
+     * \brief Unsets the time for the timestamp.
+     */
+    void clear_time();
+    /**
+     * \brief Unsets the frame number for the timestamp.
+     */
+    void clear_frame();
+
+    /**
      * \brief Queries whether the timestamp has any valid data in it.
      *
      * \returns True if the timestamp has valid data, false otherwise.

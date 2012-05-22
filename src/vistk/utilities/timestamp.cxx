@@ -88,6 +88,20 @@ timestamp
   m_frame = f;
 }
 
+void
+timestamp
+::clear_time()
+{
+  m_time = boost::none_t();
+}
+
+void
+timestamp
+::clear_frame()
+{
+  m_frame = boost::none_t();
+}
+
 bool
 timestamp
 ::is_valid() const
