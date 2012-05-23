@@ -168,6 +168,8 @@ component_score_json_writer_process
 
   BOOST_FOREACH (priv::tag_t const& tag, d->tags)
   {
+    port_t const port_score = priv::port_score_prefix + tag;
+
     if (!first)
     {
       d->fout << JSON_SEP;
@@ -179,7 +181,7 @@ component_score_json_writer_process
 
     d->fout << JSON_OBJECT_BEGIN;
 
-    scoring_result_t const result = grab_from_port_as<scoring_result_t>(priv::port_score_prefix + tag);
+    scoring_result_t const result = grab_from_port_as<scoring_result_t>(port_score);
 
     d->fout << JSON_ATTR("true-positive", result->true_positives);
     d->fout << JSON_SEP;
