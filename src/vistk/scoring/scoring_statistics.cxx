@@ -15,9 +15,9 @@ class scoring_statistics::priv
     priv();
     ~priv();
 
-    statistics percent_detection;
-    statistics precision;
-    statistics specificity;
+    statistics_t percent_detection;
+    statistics_t precision;
+    statistics_t specificity;
 };
 
 scoring_statistics
@@ -35,30 +35,43 @@ void
 scoring_statistics
 ::add_score(scoring_result_t const& score)
 {
-  d->percent_detection.add_point(score->percent_detection());
-  d->precision.add_point(score->precision());
-  d->specificity.add_point(score->specificity());
+  d->percent_detection->add_point(score->percent_detection());
+  d->precision->add_point(score->precision());
+  d->specificity->add_point(score->specificity());
 }
 
-statistics const&
+statistics_t
 scoring_statistics
 ::percent_detection_stats() const
 {
   return d->percent_detection;
 }
 
-statistics const&
+statistics_t
 scoring_statistics
 ::precision_stats() const
 {
   return d->precision;
 }
 
-statistics const&
+statistics_t
 scoring_statistics
 ::specificity_stats() const
 {
   return d->specificity;
+}
+
+scoring_statistics::priv
+::priv()
+  : percent_detection(new statistics)
+  , precision(new statistics)
+  , specificity(new statistics)
+{
+}
+
+scoring_statistics::priv
+::~priv()
+{
 }
 
 }

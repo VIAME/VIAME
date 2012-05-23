@@ -25,9 +25,9 @@ class VISTK_SCORING_EXPORT scoring_statistics
 
     void add_score(scoring_result_t const& score);
 
-    statistics const& percent_detection_stats() const;
-    statistics const& precision_stats() const;
-    statistics const& specificity_stats() const;
+    statistics_t percent_detection_stats() const;
+    statistics_t precision_stats() const;
+    statistics_t specificity_stats() const;
   private:
     class priv;
     boost::scoped_ptr<priv> d;

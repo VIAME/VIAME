@@ -10,6 +10,7 @@
 #include "scoring-config.h"
 
 #include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <vector>
 
@@ -43,6 +44,8 @@ class VISTK_SCORING_EXPORT statistics
     class priv;
     boost::scoped_ptr<priv> d;
 };
+
+typedef boost::shared_ptr<statistics> statistics_t;
 
 }
 
