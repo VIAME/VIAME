@@ -29,6 +29,8 @@ class score_aggregation_process::priv
     priv();
     ~priv();
 
+    void reset();
+
     scoring_results_t results;
 
     static port_t const port_score;
@@ -85,6 +87,8 @@ score_aggregation_process
 
       push_to_port_as<scoring_result_t>(priv::port_aggregate, overall);
 
+      d->reset();
+
       break;
     }
     case datum::data:
@@ -120,6 +124,13 @@ score_aggregation_process::priv
 score_aggregation_process::priv
 ::~priv()
 {
+}
+
+void
+score_aggregation_process::priv
+::reset()
+{
+  results.clear();
 }
 
 }
