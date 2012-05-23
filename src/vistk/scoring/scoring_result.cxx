@@ -8,6 +8,12 @@
 
 #include <boost/make_shared.hpp>
 
+/**
+ * \file scoring_result.cxx
+ *
+ * \brief Implementation of a scoring result class.
+ */
+
 namespace vistk
 {
 
