@@ -9,6 +9,7 @@
 #include <vistk/pipeline/datum.h>
 
 #include <vistk/scoring/scoring_result.h>
+#include <vistk/scoring/scoring_statistics.h>
 
 #include <boost/make_shared.hpp>
 
@@ -32,13 +33,16 @@ class score_aggregation_process::priv
     void reset();
 
     scoring_results_t results;
+    scoring_statistics_t statistics;
 
     static port_t const port_score;
     static port_t const port_aggregate;
+    static port_t const port_statistics;
 };
 
 process::port_t const score_aggregation_process::priv::port_score = process::port_t("score");
 process::port_t const score_aggregation_process::priv::port_aggregate = process::port_t("aggregate");
+process::port_t const score_aggregation_process::priv::port_statistics = process::port_t("statistics");
 
 score_aggregation_process
 ::score_aggregation_process(config_t const& config)
@@ -61,6 +65,10 @@ score_aggregation_process
     "score",
     required,
     port_description_t("The aggregate scores.")));
+  declare_output_port(priv::port_statistics, boost::make_shared<port_info>(
+    "statistics/score",
+    port_flags_t(),
+    port_description_t("Statistics on the aggregate scores.")));
 }
 
 score_aggregation_process
@@ -86,6 +94,7 @@ score_aggregation_process
       scoring_result_t const overall = std::accumulate(d->results.begin(), d->results.end(), base);
 
       push_to_port_as<scoring_result_t>(priv::port_aggregate, overall);
+      push_to_port_as<scoring_statistics_t>(priv::port_aggregate, d->statistics);
 
       d->reset();
 
@@ -96,6 +105,7 @@ score_aggregation_process
       scoring_result_t const result = dat->get_datum<scoring_result_t>();
 
       d->results.push_back(result);
+      d->statistics->add_score(result);
 
       break;
     }
@@ -119,6 +129,7 @@ score_aggregation_process
 score_aggregation_process::priv
 ::priv()
 {
+  reset();
 }
 
 score_aggregation_process::priv
@@ -131,6 +142,7 @@ score_aggregation_process::priv
 ::reset()
 {
   results.clear();
+  statistics = scoring_statistics_t(new scoring_statistics);
 }
 
 }
