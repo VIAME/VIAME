@@ -13,6 +13,7 @@
 #include "statistics.h"
 
 #include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace vistk
 {
@@ -32,6 +33,8 @@ class VISTK_SCORING_EXPORT scoring_statistics
     class priv;
     boost::scoped_ptr<priv> d;
 };
+
+typedef boost::shared_ptr<scoring_statistics> scoring_statistics_t;
 
 }
 
