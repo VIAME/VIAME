@@ -244,6 +244,8 @@ base_pipeline()
 
     CONNECT("aggregate", "aggregate",
             "writer", "score/ALL")
+    CONNECT("aggregate", "statistics",
+            "writer", "stats/ALL")
   ;
 }
 
@@ -266,5 +268,7 @@ layer_connection(std::string const& layer)
             "aggregate_" + layer +, "score")
     CONNECT("aggregate_" + layer +, "aggregate",
             "writer", "score/" + layer +)
+    CONNECT("aggregate_" + layer +, "statistics",
+            "writer", "stats/" + layer +)
   ;
 }
