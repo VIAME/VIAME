@@ -3,12 +3,14 @@ project(vistk_scoring)
 set(scoring_srcs
   score_mask.cxx
   scoring_result.cxx
+  scoring_statistics.cxx
   statistics.cxx)
 
 set(scoring_headers
   score_mask.h
   scoring-config.h
   scoring_result.h
+  scoring_statistics.h
   statistics.h)
 
 add_library(vistk_scoring
