@@ -94,7 +94,7 @@ score_aggregation_process
       scoring_result_t const overall = std::accumulate(d->results.begin(), d->results.end(), base);
 
       push_to_port_as<scoring_result_t>(priv::port_aggregate, overall);
-      push_to_port_as<scoring_statistics_t>(priv::port_aggregate, d->statistics);
+      push_to_port_as<scoring_statistics_t>(priv::port_statistics, d->statistics);
 
       d->reset();
 
