@@ -119,6 +119,7 @@ score_aggregation_process
   if (complete)
   {
     push_datum_to_port(priv::port_aggregate, datum::complete_datum());
+    push_datum_to_port(priv::port_statistics, datum::complete_datum());
 
     mark_process_as_complete();
   }
