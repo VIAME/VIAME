@@ -18,3 +18,123 @@ function (add_vistk_plugin name define)
       DESTINATION bin
     COMPONENT     runtime)
 endfunction (add_vistk_plugin name define)
+
+if (VISTK_ENABLE_PYTHON)
+  function (add_vistk_python_library name modpath)
+    string(REPLACE "/" "." safe_modpath ${modpath})
+
+    add_library(python-${safe_modpath}-${name}
+      ${ARGN})
+
+    if (WIN32)
+      set(module_output RUNTIME_OUTPUT_DIRECTORY)
+    else (WIN32)
+      set(module_output LIBRARY_OUTPUT_DIRECTORY)
+    endif (WIN32)
+
+    set_target_properties(python-${safe_modpath}-${name}
+      PROPERTIES
+        OUTPUT_NAME      ${name}
+        ${module_output} "${PYTHON_OUTPUT_PATH}/${modpath}"
+        PREFIX           "")
+
+    if (WIN32)
+      set_target_properties(python-${safe_modpath}-${name}
+        PROPERTIES
+          SUFFIX ".pyd")
+    endif (WIN32)
+
+    foreach (config ${CMAKE_CONFIGURATION_TYPES})
+      if (WIN32)
+        set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
+      endif (WIN32)
+
+      string(TOUPPER "${config}" upper_config)
+
+      set_target_properties(python-${safe_modpath}-${name}
+        PROPERTIES
+          "${module_output}_${upper_config}" "${output_path}/${modpath}")
+    endforeach (config)
+
+    if (NOT ${no_install_plugin})
+      install(
+        TARGETS     python-${safe_modpath}-${name}
+        DESTINATION "@PYTHON_INSTALL_PATH@/${modpath}"
+        COMPONENT   runtime)
+    endif (NOT ${no_install_plugin})
+  endfunction (add_vistk_python_library name modpath)
+
+  function (_add_python_module path modpath module)
+    string(REPLACE "/" "." safe_modpath ${modpath})
+
+    configure_file(
+      "${path}"
+      "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
+      @ONLY)
+    set_directory_properties(PROPERTIES
+      ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py")
+
+    foreach (config ${CMAKE_CONFIGURATION_TYPES})
+      if (WIN32)
+        set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
+      endif (WIN32)
+
+      string(TOUPPER "${config}" upper_config)
+
+      configure_file(
+        "${path}"
+        "${output_path}/${modpath}/${module}.py"
+        @ONLY)
+      set_directory_properties(PROPERTIES
+        ADDITIONAL_MAKE_CLEAN_FILES "${output_path}/${modpath}/${module}.py")
+    endforeach (config)
+
+    if (NOT ${suppress_install})
+      install(
+        FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
+        DESTINATION "@PYTHON_INSTALL_PATH@/${modpath}"
+        COMPONENT   runtime)
+    endif (NOT ${suppress_install})
+  endfunction (_add_python_module path modpath module)
+
+  function (add_python_module path modpath module)
+    _add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/${path}"
+      ${modpath}
+      __init__)
+  endfunction (add_python_module path modpath module)
+
+  function (make_python_init_file modpath)
+    string(REPLACE "/" "." safe_modpath ${modpath})
+
+    set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
+
+    file(WRITE "${init_template}"
+      "${copyright_header}\n\n")
+
+    foreach (module ${ARGN})
+      file(APPEND "${init_template}"
+        "from ${module} import *\n")
+    endforeach (module)
+
+    _add_python_module("${init_template}"
+      ${modpath}
+      __init__)
+  endfunction (make_python_init_file modpath)
+
+  function (make_python_plugin_init_file modpath)
+    string(REPLACE "/" "." safe_modpath ${modpath})
+
+    set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
+
+    file(WRITE "${init_template}"
+      "${copyright_header}\n\n")
+    file(APPEND "${init_template}"
+      "from pkgutil import extend_path\n")
+    file(APPEND "${init_template}"
+      "__path__ = extend_path(__path__, __name__)\n")
+
+    _add_python_module("${init_template}"
+      ${modpath}
+      __init__)
+  endfunction (make_python_plugin_init_file modpath)
+endif (VISTK_ENABLE_PYTHON)
