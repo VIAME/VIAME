@@ -36,6 +36,7 @@ namespace vistk
  * \oports
  *
  * \oport{aggregate} The aggregate score.
+ * \oport{statistics} The aggregate score statistics.
  *
  * \reqs
  *

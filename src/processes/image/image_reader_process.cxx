@@ -139,6 +139,8 @@ image_reader_process
 
     throw invalid_configuration_exception(name(), reason);
   }
+
+  process::_configure();
 }
 
 void

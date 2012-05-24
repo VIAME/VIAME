@@ -10,6 +10,8 @@
 #include <vistk/pipeline/process_exception.h>
 
 #include <vistk/scoring/scoring_result.h>
+#include <vistk/scoring/scoring_statistics.h>
+#include <vistk/scoring/statistics.h>
 
 #include <vistk/utilities/path.h>
 
@@ -35,6 +37,8 @@ class component_score_json_writer_process::priv
     typedef port_t tag_t;
     typedef std::vector<tag_t> tags_t;
 
+    typedef std::map<tag_t, bool> tag_stat_map_t;
+
     priv();
     priv(path_t const& output_path, tags_t const& tags_);
     ~priv();
@@ -44,13 +48,16 @@ class component_score_json_writer_process::priv
     std::ofstream fout;
 
     tags_t tags;
+    tag_stat_map_t tag_stats;
 
     static config::key_t const config_path;
     static port_t const port_score_prefix;
+    static port_t const port_stats_prefix;
 };
 
 config::key_t const component_score_json_writer_process::priv::config_path = "path";
 process::port_t const component_score_json_writer_process::priv::port_score_prefix = process::port_t("score/");
+process::port_t const component_score_json_writer_process::priv::port_stats_prefix = process::port_t("stats/");
 
 component_score_json_writer_process
 ::component_score_json_writer_process(config_t const& config)
@@ -112,6 +119,18 @@ component_score_json_writer_process
     throw invalid_configuration_exception(name(), reason);
   }
 
+  BOOST_FOREACH (priv::tag_t const& tag, d->tags)
+  {
+    port_t const port_stat = priv::port_stats_prefix + tag;
+
+    d->tag_stats[tag] = false;
+
+    if (input_port_edge(port_stat))
+    {
+      d->tag_stats[tag] = true;
+    }
+  }
+
   process::_init();
 }
 
@@ -149,6 +168,8 @@ component_score_json_writer_process
 
   BOOST_FOREACH (priv::tag_t const& tag, d->tags)
   {
+    port_t const port_score = priv::port_score_prefix + tag;
+
     if (!first)
     {
       d->fout << JSON_SEP;
@@ -160,7 +181,7 @@ component_score_json_writer_process
 
     d->fout << JSON_OBJECT_BEGIN;
 
-    scoring_result_t const result = grab_from_port_as<scoring_result_t>(priv::port_score_prefix + tag);
+    scoring_result_t const result = grab_from_port_as<scoring_result_t>(port_score);
 
     d->fout << JSON_ATTR("true-positive", result->true_positives);
     d->fout << JSON_SEP;
@@ -175,6 +196,49 @@ component_score_json_writer_process
     d->fout << JSON_ATTR("precision", result->precision());
     d->fout << JSON_SEP;
     d->fout << JSON_ATTR("specificity", result->specificity());
+
+    if (d->tag_stats[tag])
+    {
+      port_t const port_stats = priv::port_stats_prefix + tag;
+
+      d->fout << JSON_SEP;
+
+#define OUTPUT_STATISTICS(key, stats)                                        \
+  do                                                                         \
+  {                                                                          \
+    d->fout << JSON_KEY(key);                                                \
+    d->fout << JSON_OBJECT_BEGIN;                                            \
+    d->fout << JSON_ATTR("count", stats->count());                           \
+    d->fout << JSON_SEP;                                                     \
+    d->fout << JSON_ATTR("min", stats->minimum());                           \
+    d->fout << JSON_SEP;                                                     \
+    d->fout << JSON_ATTR("max", stats->maximum());                           \
+    d->fout << JSON_SEP;                                                     \
+    d->fout << JSON_ATTR("mean", stats->mean());                             \
+    d->fout << JSON_SEP;                                                     \
+    d->fout << JSON_ATTR("median", stats->median());                         \
+    d->fout << JSON_SEP;                                                     \
+    d->fout << JSON_ATTR("standard-deviation", stats->standard_deviation()); \
+    d->fout << JSON_OBJECT_END;                                              \
+  } while (false)
+
+      scoring_statistics_t const sc_stats = grab_from_port_as<scoring_statistics_t>(port_stats);
+
+      statistics_t const pd_stats = sc_stats->percent_detection_stats();
+      statistics_t const precision_stats = sc_stats->precision_stats();
+      statistics_t const specificity_stats = sc_stats->specificity_stats();
+
+      d->fout << JSON_KEY("statistics");
+      d->fout << JSON_OBJECT_BEGIN;
+      OUTPUT_STATISTICS("percent-detection", pd_stats);
+      d->fout << JSON_SEP;
+      OUTPUT_STATISTICS("precision", precision_stats);
+      d->fout << JSON_SEP;
+      OUTPUT_STATISTICS("specificity", specificity_stats);
+      d->fout << JSON_OBJECT_END;
+
+#undef OUTPUT_STATISTICS
+    }
 
     d->fout << JSON_OBJECT_END;
   }
@@ -206,16 +270,23 @@ component_score_json_writer_process
 
     if (i == d->tags.end())
     {
+      port_t const port_score = priv::port_score_prefix + tag;
+      port_t const port_stats = priv::port_stats_prefix + tag;
+
       d->tags.push_back(tag);
 
       port_flags_t required;
 
       required.insert(flag_required);
 
-      declare_input_port(port, boost::make_shared<port_info>(
+      declare_input_port(port_score, boost::make_shared<port_info>(
         "score",
         required,
         port_description_t("The \'" + tag + "\' score component.")));
+      declare_input_port(port_stats, boost::make_shared<port_info>(
+        "statistics/score",
+        port_flags_t(),
+        port_description_t("The \'" + tag + "\' score statistics component.")));
     }
   }
 

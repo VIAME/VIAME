@@ -32,6 +32,7 @@ namespace vistk
  * \iports
  *
  * \iport{score/\portvar{component}} The score for the \portvar{component} score.
+ * \iport{stats/\portvar{component}} The statistics for the \portvar{component} score.
  *
  * \configs
  *

@@ -14,6 +14,12 @@
 
 #include <vector>
 
+/**
+ * \file scoring_result.h
+ *
+ * \brief Declaration of a scoring result class.
+ */
+
 namespace vistk
 {
 
