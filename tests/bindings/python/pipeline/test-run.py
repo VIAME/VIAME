@@ -31,11 +31,11 @@ def make_source(conf):
 
             self.declare_output_port(self.port_output, info)
 
-        def _init(self):
+        def _configure(self):
             self.counter = int(self.config_value(self.conf_start))
             self.end = int(self.config_value(self.conf_end))
 
-            self._base_init()
+            self._base_configure()
 
         def _step(self):
             from vistk.pipeline import datum
@@ -75,12 +75,12 @@ def make_sink(conf):
 
             self.declare_input_port(self.port_input, info)
 
-        def _init(self):
+        def _configure(self):
             output = self.config_value(self.conf_output)
 
             self.fout = open(output, 'w+')
 
-            self._base_init()
+            self._base_configure()
 
         def _step(self):
             from vistk.pipeline import datum
