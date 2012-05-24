@@ -213,13 +213,10 @@ base_pipeline()
   return
     CONFIG_GROUP("mask_scoring")
       CONFIG("input", "image_list.txt")
-      CONFIG("truth_format", "video.mask.%2$04d.%1%.png")
-      CONFIG("timestamp_input", "timestamp.txt")
+      CONFIG("truth_input", "truth_list.txt")
       CONFIG("output", "output.txt")
-    PROCESS("timestamp_reader", "timestamp")
-      CONFIG_FULL("path", "ro", "CONF", "mask_scoring:timestamp_input")
     PROCESS("layered_image_reader", "truth_reader")
-      CONFIG_FULL("format", "ro", "CONF", "mask_scoring:truth_format")
+      CONFIG_FULL("path", "ro", "CONF", "mask_scoring:truth_input")
       CONFIG_FLAGS("pixfmt", "ro", "mask")
       CONFIG_FLAGS("pixtype", "ro", "byte")
     PROCESS("image_reader", "reader")
@@ -236,11 +233,6 @@ base_pipeline()
 
     CONNECT("reader", "image",
             "source", "src/computed_mask")
-    CONNECT("timestamp", "timestamp",
-            "source", "src/timestamp")
-
-    CONNECT("source", "out/timestamp",
-            "truth_reader", "timestamp")
 
     CONNECT("combine", "mask",
             "scoring", "truth_mask")
@@ -260,11 +252,13 @@ layer_connection(std::string const& layer)
 {
   return
     CONNECT("truth_reader", "image/" + layer +,
+            "source", "src/truth_" + layer +)
+    CONNECT("source", "out/truth_" + layer +,
             "combine", "mask/" + layer +)
     PROCESS("mask_scoring", "scoring_" + layer +)
     PROCESS("score_aggregation", "aggregate_" + layer +)
 
-    CONNECT("truth_reader", "image/" + layer +,
+    CONNECT("source", "out/truth_" + layer +,
             "scoring_" + layer +, "truth_mask")
     CONNECT("source", "out/computed_mask",
             "scoring_" + layer +, "computed_mask")
