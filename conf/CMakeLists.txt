@@ -27,15 +27,21 @@ vistk_configure_file(vistk-macros.cmake
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-macros.cmake.in"
   "${vistk_macros_file}")
 
+if (WIN32)
+  set(cmakedir cmake)
+else (WIN32)
+  set(cmakedir lib${LIB_SUFFIX}/cmake/vistk)
+endif (WIN32)
+
 # Configure the CMake EXPORT file during installation
 install(
   FILES       "${vistk_config_install_file}"
               "${vistk_macros_file}"
-  DESTINATION "${LIBRARY_INSTALL_PATH}/cmake"
+  DESTINATION "${cmakedir}"
   COMPONENT   development)
 install(
   EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}/cmake"
+  DESTINATION "${cmakedir}"
   FILE        vistk-config-targets.cmake
   COMPONENT   development)
 
