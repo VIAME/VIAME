@@ -17,6 +17,9 @@ function (add_tool name)
     ${name}.cxx)
   target_link_libraries(${name}
     ${ARGN})
+  set_target_properties(${name}
+    PROPERTIES
+      RUNTIME_OUTPUT_PATH "${vistk_binary_dir}/bin")
 
   install(
     TARGETS     ${name}
@@ -28,11 +31,11 @@ function (add_python_tool name)
   if (VISTK_ENABLE_PYTHON)
     vistk_configure_file(tool-python-${name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${name}.py"
-      "${EXECUTABLE_OUTPUT_PATH}/${name}"
+      "${vistk_binary_dir}/bin/${name}"
       PYTHON_EXECUTABLE)
 
     install(
-      PROGRAMS    "${EXECUTABLE_OUTPUT_PATH}/${name}"
+      PROGRAMS    "${vistk_binary_dir}/bin/${name}"
       DESTINATION "${EXECUTABLE_INSTALL_PATH}"
       COMPONENT   tools)
   endif (VISTK_ENABLE_PYTHON)

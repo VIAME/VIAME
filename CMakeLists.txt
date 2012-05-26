@@ -17,7 +17,6 @@ set(CMAKE_MODULE_PATH
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
-set(EXECUTABLE_OUTPUT_PATH    ${CMAKE_BINARY_DIR}/bin)
 if (WIN32)
   set(LIBRARY_OUTPUT_PATH       ${CMAKE_BINARY_DIR}/bin)
 else (WIN32)
