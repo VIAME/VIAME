@@ -50,10 +50,10 @@ set(vistk_default_module_paths
 
 if (WIN32)
   set(vistk_default_module_paths
-    "${vistk_default_module_paths};${MODULE_OUTPUT_PATH}")
+    "${vistk_default_module_paths};${module_output_path}/$<CONFIGURATION>")
 else (WIN32)
   set(vistk_default_module_paths
-    "${vistk_default_module_paths}:${MODULE_OUTPUT_PATH}")
+    "${vistk_default_module_paths}:${module_output_path}")
 endif (WIN32)
 
 set(vistk_path_prefix)

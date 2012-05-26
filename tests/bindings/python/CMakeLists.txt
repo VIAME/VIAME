@@ -16,7 +16,7 @@ endfunction (vistk_build_python_test)
 
 function (vistk_make_python_test group instance)
   set(python_module_path
-    "${PYTHON_OUTPUT_PATH}")
+    "${python_output_path}")
   set(python_chdir
     ".")
 

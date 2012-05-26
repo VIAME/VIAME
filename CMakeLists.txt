@@ -18,12 +18,12 @@ set(CMAKE_MODULE_PATH
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 if (WIN32)
-  set(LIBRARY_OUTPUT_PATH       ${CMAKE_BINARY_DIR}/bin)
+  set(module_output_path ${vistk_binary_dir}/bin/vistk)
+  set(python_output_path ${vistk_binary_dir}/bin/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
 else (WIN32)
-  set(LIBRARY_OUTPUT_PATH       ${CMAKE_BINARY_DIR}/lib)
+  set(module_output_path ${vistk_binary_dir}/lib/vistk)
+  set(python_output_path ${vistk_binary_dir}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
 endif (WIN32)
-set(MODULE_OUTPUT_PATH        ${LIBRARY_OUTPUT_PATH}/vistk)
-set(PYTHON_OUTPUT_PATH        ${LIBRARY_OUTPUT_PATH}/python)
 
 set(PYTHON_VERSION "2.7"
   CACHE STRING "The version of python to use for bindings")

@@ -38,7 +38,7 @@ add_custom_target(python)
 function (add_vistk_python_library name modpath)
   string(REPLACE "/" "." safe_modpath ${modpath})
 
-  set(library_subdir /python/${modpath})
+  set(library_subdir /python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath})
   set(component runtime)
 
   vistk_add_library(python-${safe_modpath}-${name}
@@ -77,14 +77,14 @@ function (make_python_init_file modpath)
       "from ${module} import *\n")
   endforeach (module)
 
-  set(init_file "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py")
+  set(init_file "${python_output_path}/${modpath}/__init__.py")
 
   vistk_configure_file(python-init-${safe_modpath}
     "${init_template}"
     "${init_file}")
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    set(init_file_config "${PYTHON_OUTPUT_PATH}/${config}/${modpath}/__init__.py")
+    set(init_file_config "${python_output_path}/${config}/${modpath}/__init__.py")
 
     vistk_configure_file(python-init-${safe_modpath}-${config}
       "${init_template}"
@@ -92,7 +92,7 @@ function (make_python_init_file modpath)
   endforeach (config)
 
   vistk_install(
-    FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py"
+    FILES       "${python_output_path}/${modpath}/__init__.py"
     DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
     COMPONENT   runtime)
 
@@ -105,18 +105,18 @@ function (add_python_module path modpath module)
 
   vistk_configure_file(python-module-${module}
     "${CMAKE_CURRENT_SOURCE_DIR}/${path}"
-    "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
+    "${python_output_path}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
     vistk_configure_file(python-module-${module}-${config}
       "${CMAKE_CURRENT_SOURCE_DIR}/${path}"
-      "${PYTHON_OUTPUT_PATH}/${config}/${modpath}/${module}.py"
+      "${python_output_path}/${config}/${modpath}/${module}.py"
       PYTHON_EXECUTABLE)
   endforeach (config)
 
   vistk_install(
-    FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
+    FILES       "${python_output_path}/${modpath}/${module}.py"
     DESTINATION "${outdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath}"
     COMPONENT   runtime)
 endfunction (add_python_module path modpath module)
