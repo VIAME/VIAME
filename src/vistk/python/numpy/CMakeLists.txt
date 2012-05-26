@@ -33,14 +33,11 @@ set_target_properties(vistk_python_numpy
     DEFINE_SYMBOL MAKE_VISTK_PYTHON_NUMPY_LIB)
 
 install(
-  FILES       ${python_numpy_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/python/numpy"
-  COMPONENT   development)
-install(
   TARGETS     vistk_python_numpy
   EXPORT      vistk_exports
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
+vistk_install_headers(vistk/python/numpy ${python_numpy_headers})
 
 vistk_configure_pkgconfig(vistk-python_numpy
   PYTHON_VERSION)

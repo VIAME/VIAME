@@ -32,13 +32,10 @@ if (VISTK_ENABLE_DOCUMENTATION)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
 install(
-  FILES       ${scoring_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/scoring"
-  COMPONENT   development)
-install(
   TARGETS     vistk_scoring
   EXPORT      vistk_exports
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
+vistk_install_headers(vistk/scoring ${scoring_headers})
 
 vistk_configure_pkgconfig(vistk-scoring)

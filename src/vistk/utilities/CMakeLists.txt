@@ -42,13 +42,10 @@ if (VISTK_ENABLE_DOCUMENTATION)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
 install(
-  FILES       ${utilities_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/utilities"
-  COMPONENT   development)
-install(
   TARGETS     vistk_utilities
   EXPORT      vistk_exports
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
+vistk_install_headers(vistk/utilities ${utilities_headers})
 
 vistk_configure_pkgconfig(vistk-utilities)

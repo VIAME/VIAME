@@ -29,13 +29,10 @@ if (VISTK_ENABLE_DOCUMENTATION)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
 install(
-  FILES       ${image_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/image"
-  COMPONENT   development)
-install(
   TARGETS     vistk_image
   EXPORT      vistk_exports
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
+vistk_install_headers(vistk/image ${image_headers})
 
 vistk_configure_pkgconfig(vistk-image)

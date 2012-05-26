@@ -73,13 +73,10 @@ if (VISTK_ENABLE_DOCUMENTATION)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
 install(
-  FILES       ${pipeline_util_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/pipeline_util"
-  COMPONENT   development)
-install(
   TARGETS     vistk_pipeline_util
   EXPORT      vistk_exports
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
+vistk_install_headers(vistk/pipeline_util ${pipeline_util_headers})
 
 vistk_configure_pkgconfig(vistk-pipeline_util)

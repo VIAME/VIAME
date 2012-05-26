@@ -22,14 +22,11 @@ set_target_properties(vistk_python_util
     DEFINE_SYMBOL MAKE_VISTK_PYTHON_UTIL_LIB)
 
 install(
-  FILES       ${python_util_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/python/util"
-  COMPONENT   development)
-install(
   TARGETS     vistk_python_util
   EXPORT      vistk_exports
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
+vistk_install_headers(vistk/python/util ${python_util_headers})
 
 vistk_configure_pkgconfig(vistk-python_util
   PYTHON_VERSION)

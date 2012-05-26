@@ -26,14 +26,11 @@ set_target_properties(vistk_python_any_conversion
     DEFINE_SYMBOL MAKE_VISTK_PYTHON_ANY_CONVERSION_LIB)
 
 install(
-  FILES       ${python_any_conversion_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/python/any_conversion"
-  COMPONENT   development)
-install(
   TARGETS     vistk_python_any_conversion
   EXPORT      vistk_exports
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
+vistk_install_headers(vistk/python/any_conversion ${python_any_conversion_headers})
 
 vistk_configure_pkgconfig(vistk-python_any_conversion
   PYTHON_VERSION)
