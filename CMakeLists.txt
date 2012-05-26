@@ -25,7 +25,6 @@ else (WIN32)
 endif (WIN32)
 set(MODULE_OUTPUT_PATH        ${LIBRARY_OUTPUT_PATH}/vistk)
 set(PYTHON_OUTPUT_PATH        ${LIBRARY_OUTPUT_PATH}/python)
-set(DOCUMENTATION_OUTPUT_PATH ${CMAKE_BINARY_DIR}/doc)
 
 set(PYTHON_VERSION "2.7"
   CACHE STRING "The version of python to use for bindings")
