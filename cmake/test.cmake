@@ -83,12 +83,12 @@ if (GPROF_EXECUTABLE)
     gprof)
 endif (GPROF_EXECUTABLE)
 
-set(TEST_WORKING_DIRECTORY
-  "${EXECUTABLE_OUTPUT_PATH}")
+set(test_working_directory
+  "${vistk_binary_dir}/tests")
 
 if (WIN32)
-  set(TEST_WORKING_DIRECTORY
-    "${TEST_WORKING_DIRECTORY}/$<CONFIGURATION>")
+  set(test_working_directory
+    "${test_working_directory}/$<CONFIGURATION>")
 endif (WIN32)
 
 set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
@@ -137,6 +137,9 @@ endfunction (vistk_declare_test)
 
 macro (vistk_build_test testname libraries)
   add_executable(test-${testname} ${ARGN})
+  set_target_properties(test-${testname}
+    PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${test_working_directory}")
   target_link_libraries(test-${testname}
     ${${libraries}})
   vistk_declare_test(${testname})
@@ -145,12 +148,12 @@ endmacro (vistk_build_test)
 function (vistk_make_test testname instance)
   add_test(NAME test-${testname}-${instance}
     COMMAND ${test_runner}
-            "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+            "${test_working_directory}/test-${testname}"
             ${instance}
             ${ARGN})
   set_tests_properties(test-${testname}-${instance}
     PROPERTIES
-      WORKING_DIRECTORY       "${EXECUTABLE_OUTPUT_PATH}"
+      WORKING_DIRECTORY       "${test_working_directory}"
       FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
   if (test_environment)
     set_tests_properties(test-${testname}-${instance}
@@ -163,11 +166,11 @@ function (vistk_make_test testname instance)
       TARGET  test-${testname}-${instance}
       COMMAND ${test_environment}
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${EXECUTABLE_OUTPUT_PATH}"
+              "${test_working_directory}"
       COMMENT "Running test \"${testname}\" instance \"${instance}\"")
     add_dependencies(tests-${testname}
       test-${testname}-${instance})
@@ -182,14 +185,14 @@ function (vistk_make_test testname instance)
               --show-reachable=yes
               --track-fds=yes
               --track-origins=yes
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/valgrind.log.${testname}.${instance}"
+              --log-file="${test_working_directory}/valgrind.log.${testname}.${instance}"
               ${vistk_valgrind_arguments}
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running valgrind on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(valgrind-${testname}
       valgrind-${testname}-${instance})
@@ -199,14 +202,14 @@ function (vistk_make_test testname instance)
       COMMAND ${test_environment}
               "${VALGRIND_EXECUTABLE}"
               --tool=cachegrind
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/cachegrind.log.${testname}.${instance}"
-              --cachegrind-out-file="${EXECUTABLE_OUTPUT_PATH}/cachegrind.out.${testname}.${instance}"
+              --log-file="${test_working_directory}/cachegrind.log.${testname}.${instance}"
+              --cachegrind-out-file="${test_working_directory}/cachegrind.out.${testname}.${instance}"
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running cachegrind on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(cachegrind-${testname}
       cachegrind-${testname}-${instance})
@@ -217,14 +220,14 @@ function (vistk_make_test testname instance)
               "${VALGRIND_EXECUTABLE}"
               --tool=callgrind
               --dump-instr=yes
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/callgrind.log.${testname}.${instance}"
-              --callgrind-out-file="${EXECUTABLE_OUTPUT_PATH}/callgrind.out.${testname}.${instance}"
+              --log-file="${test_working_directory}/callgrind.log.${testname}.${instance}"
+              --callgrind-out-file="${test_working_directory}/callgrind.out.${testname}.${instance}"
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running callgrind on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(callgrind-${testname}
       callgrind-${testname}-${instance})
@@ -234,13 +237,13 @@ function (vistk_make_test testname instance)
       COMMAND ${test_environment}
               "${VALGRIND_EXECUTABLE}"
               --tool=helgrind
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/helgrind.log.${testname}.${instance}"
+              --log-file="${test_working_directory}/helgrind.log.${testname}.${instance}"
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running helgrind on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(helgrind-${testname}
       helgrind-${testname}-${instance})
@@ -250,13 +253,13 @@ function (vistk_make_test testname instance)
       COMMAND ${test_environment}
               "${VALGRIND_EXECUTABLE}"
               --tool=drd
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/drd.log.${testname}.${instance}"
+              --log-file="${test_working_directory}/drd.log.${testname}.${instance}"
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running drd on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(drd-${testname}
       drd-${testname}-${instance})
@@ -267,14 +270,14 @@ function (vistk_make_test testname instance)
               "${VALGRIND_EXECUTABLE}"
               --tool=massif
               --stacks=yes
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/massif.log.${testname}.${instance}"
-              --massif-out-file="${EXECUTABLE_OUTPUT_PATH}/massif.out.${testname}.${instance}"
+              --log-file="${test_working_directory}/massif.log.${testname}.${instance}"
+              --massif-out-file="${test_working_directory}/massif.out.${testname}.${instance}"
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running massif on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(massif-${testname}
       massif-${testname}-${instance})
@@ -284,13 +287,13 @@ function (vistk_make_test testname instance)
       COMMAND ${test_environment}
               "${VALGRIND_EXECUTABLE}"
               --tool=exp-dhat
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/dhat.log.${testname}.${instance}"
+              --log-file="${test_working_directory}/dhat.log.${testname}.${instance}"
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running dhat on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(dhat-${testname}
       dhat-${testname}-${instance})
@@ -300,13 +303,13 @@ function (vistk_make_test testname instance)
       COMMAND ${test_environment}
               "${VALGRIND_EXECUTABLE}"
               --tool=exp-ptrcheck
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/sgcheck.log.${testname}.${instance}"
+              --log-file="${test_working_directory}/sgcheck.log.${testname}.${instance}"
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running sgcheck on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(sgcheck-${testname}
       sgcheck-${testname}-${instance})
@@ -316,22 +319,22 @@ function (vistk_make_test testname instance)
       COMMAND ${test_environment}
               "${VALGRIND_EXECUTABLE}"
               --tool=exp-bbv
-              --log-file="${EXECUTABLE_OUTPUT_PATH}/bbv.log.${testname}.${instance}"
-              --bb-out-file="${EXECUTABLE_OUTPUT_PATH}/bbv.bb.out.${testname}.${instance}"
-              --pc-out-file="${EXECUTABLE_OUTPUT_PATH}/bbv.pc.log.${testname}.${instance}"
+              --log-file="${test_working_directory}/bbv.log.${testname}.${instance}"
+              --bb-out-file="${test_working_directory}/bbv.bb.out.${testname}.${instance}"
+              --pc-out-file="${test_working_directory}/bbv.pc.log.${testname}.${instance}"
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running bbv on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(bbv-${testname}
       bbv-${testname}-${instance})
   endif (VALGRIND_EXECUTABLE)
   if (GPROF_EXECUTABLE)
     set(real_command
-      "${EXECUTABLE_OUTPUT_PATH}/test-${testname}")
+      "${test_working_directory}/test-${testname}")
     if (test_runner)
       set(real_command
         ${test_runner})
@@ -342,15 +345,15 @@ function (vistk_make_test testname instance)
       TARGET  gprof-${testname}-${instance}
       COMMAND ${test_environment}
               ${test_runner}
-              "${EXECUTABLE_OUTPUT_PATH}/test-${testname}"
+              "${test_working_directory}/test-${testname}"
               ${instance}
               ${ARGN}
       COMMAND "${GPROF_EXECUTABLE}"
               "${real_command}"
-              "${EXECUTABLE_OUTPUT_PATH}/gmon.out"
-              > "${EXECUTABLE_OUTPUT_PATH}/gprof.log.${testname}.${instance}"
+              "${test_working_directory}/gmon.out"
+              > "${test_working_directory}/gprof.log.${testname}.${instance}"
       WORKING_DIRECTORY
-              "${TEST_WORKING_DIRECTORY}"
+              "${test_working_directory}"
       COMMENT "Running gprof on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(gprof-${testname}
       gprof-${testname}-${instance})
