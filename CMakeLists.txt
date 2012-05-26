@@ -199,6 +199,7 @@ link_directories(${VXL_LIBRARY_DIR})
 include("${vistk_source_dir}/cmake/vxl_tests.cmake")
 
 include("${vistk_source_dir}/cmake/configure.cmake")
+include("${vistk_source_dir}/cmake/targets.cmake")
 
 add_subdirectory(conf)
 add_subdirectory(src)
