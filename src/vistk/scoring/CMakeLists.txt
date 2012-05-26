@@ -41,17 +41,4 @@ install(
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
 
-if (UNIX)
-  set(vistk_scoring_pkgconfig_file "${vistk_binary_dir}/vistk-scoring.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk-scoring.pc.in"
-    "${vistk_scoring_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_scoring_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_scoring_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk-scoring)

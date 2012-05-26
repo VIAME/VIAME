@@ -46,17 +46,4 @@ install(
   FILE        vistk-config-targets.cmake
   COMPONENT   development)
 
-if (UNIX)
-  set(vistk_pkgconfig_file "${vistk_binary_dir}/vistk.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk.pc.in"
-    "${vistk_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk)

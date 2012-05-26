@@ -122,17 +122,4 @@ install(
   DESTINATION "${LIBRARY_INSTALL_PATH}"
   COMPONENT   runtime)
 
-if (UNIX)
-  set(vistk_pipeline_pkgconfig_file "${vistk_binary_dir}/vistk-pipeline.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk-pipeline.pc.in"
-    "${vistk_pipeline_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_pipeline_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_pipeline_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk-pipeline)
