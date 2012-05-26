@@ -8,7 +8,7 @@ set(python_any_conversion_headers
   prototypes.h
   registration.h)
 
-add_library(vistk_python_any_conversion
+vistk_add_library(vistk_python_any_conversion
   ${python_any_conversion_srcs})
 target_link_libraries(vistk_python_any_conversion
   vistk_python_util
@@ -25,11 +25,6 @@ set_target_properties(vistk_python_any_conversion
     SOVERSION     0
     DEFINE_SYMBOL MAKE_VISTK_PYTHON_ANY_CONVERSION_LIB)
 
-install(
-  TARGETS     vistk_python_any_conversion
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
 vistk_install_headers(vistk/python/any_conversion ${python_any_conversion_headers})
 
 vistk_configure_pkgconfig(vistk-python_any_conversion

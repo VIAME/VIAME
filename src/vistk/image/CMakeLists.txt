@@ -7,7 +7,7 @@ set(image_headers
   image-config.h
   warp_image.h)
 
-add_library(vistk_image
+vistk_add_library(vistk_image
   ${image_srcs})
 target_link_libraries(vistk_image
   vistk_utilities
@@ -28,11 +28,6 @@ if (VISTK_ENABLE_DOCUMENTATION)
     image)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
-install(
-  TARGETS     vistk_image
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
 vistk_install_headers(vistk/image ${image_headers})
 
 vistk_configure_pkgconfig(vistk-image)

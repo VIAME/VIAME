@@ -8,27 +8,15 @@ if (VISTK_ENABLE_TOOLS)
 endif (VISTK_ENABLE_TOOLS)
 
 function (add_vistk_plugin name define)
-  add_library(${name} SHARED
-    ${ARGN})
+  set(library_subdir /vistk)
 
-  if (WIN32)
-    set(module_output RUNTIME_OUTPUT_DIRECTORY)
-  else (WIN32)
-    set(module_output LIBRARY_OUTPUT_DIRECTORY)
-  endif (WIN32)
+  vistk_add_library(${name} SHARED
+    ${ARGN})
 
   set_target_properties(${name}
     PROPERTIES
       DEFINE_SYMBOL    ${define}
-      ${module_output} "${MODULE_OUTPUT_PATH}"
       PREFIX           "")
-
-  if (NOT ${no_install_plugin})
-    install(
-      TARGETS     ${name}
-      DESTINATION "${MODULE_INSTALL_PATH}"
-      COMPONENT   runtime)
-  endif (NOT ${no_install_plugin})
 endfunction (add_vistk_plugin name define)
 
 add_subdirectory(bindings)

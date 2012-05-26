@@ -71,7 +71,7 @@ function (create_doxygen inputdir name)
     doxygen-${name})
 
   if (VISTK_INSTALL_DOCUMENTATION)
-    install(
+    vistk_install(
       DIRECTORY   "${vistk_binary_dir}/doc/${name}"
       DESTINATION "${DOCUMENTATION_INSTALL_PATH}/${name}"
       COMPONENT   documentation)

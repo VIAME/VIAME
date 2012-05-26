@@ -23,7 +23,7 @@ set(utilities_headers
   utm.h
   utm_debug.h)
 
-add_library(vistk_utilities
+vistk_add_library(vistk_utilities
   ${utilities_srcs})
 target_link_libraries(vistk_utilities
   vgl_algo)
@@ -41,11 +41,6 @@ if (VISTK_ENABLE_DOCUMENTATION)
     utilities)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
-install(
-  TARGETS     vistk_utilities
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
 vistk_install_headers(vistk/utilities ${utilities_headers})
 
 vistk_configure_pkgconfig(vistk-utilities)

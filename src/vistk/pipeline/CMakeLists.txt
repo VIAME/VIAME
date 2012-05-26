@@ -88,7 +88,7 @@ set_source_files_properties(utils.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${utils_build_options}")
 
-add_library(vistk_pipeline
+vistk_add_library(vistk_pipeline
   ${pipeline_srcs})
 target_link_libraries(vistk_pipeline
   ${Boost_DATE_TIME_LIBRARY}
@@ -112,11 +112,6 @@ if (VISTK_ENABLE_DOCUMENTATION)
     pipeline)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
-install(
-  TARGETS     vistk_pipeline
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
 vistk_install_headers(vistk/pipeline ${pipeline_headers})
 
 vistk_configure_pkgconfig(vistk-pipeline)

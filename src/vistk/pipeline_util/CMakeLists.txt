@@ -48,7 +48,7 @@ set_source_files_properties(load_pipe.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${load_pipe_build_options}")
 
-add_library(vistk_pipeline_util
+vistk_add_library(vistk_pipeline_util
   ${pipeline_util_srcs})
 target_link_libraries(vistk_pipeline_util
   vistk_pipeline
@@ -72,11 +72,6 @@ if (VISTK_ENABLE_DOCUMENTATION)
     pipeline)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
-install(
-  TARGETS     vistk_pipeline_util
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
 vistk_install_headers(vistk/pipeline_util ${pipeline_util_headers})
 
 vistk_configure_pkgconfig(vistk-pipeline_util)

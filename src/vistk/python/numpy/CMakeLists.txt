@@ -14,7 +14,7 @@ set(python_numpy_headers
   registration.h
   vil_to_numpy.h)
 
-add_library(vistk_python_numpy
+vistk_add_library(vistk_python_numpy
   ${python_numpy_srcs})
 target_link_libraries(vistk_python_numpy
   vil
@@ -32,11 +32,6 @@ set_target_properties(vistk_python_numpy
     SOVERSION     0
     DEFINE_SYMBOL MAKE_VISTK_PYTHON_NUMPY_LIB)
 
-install(
-  TARGETS     vistk_python_numpy
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
 vistk_install_headers(vistk/python/numpy ${python_numpy_headers})
 
 vistk_configure_pkgconfig(vistk-python_numpy

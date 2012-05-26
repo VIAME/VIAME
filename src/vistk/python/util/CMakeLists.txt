@@ -9,7 +9,7 @@ set(python_util_headers
   python_allow_threads.h
   python_gil.h)
 
-add_library(vistk_python_util
+vistk_add_library(vistk_python_util
   ${python_util_srcs})
 target_link_libraries(vistk_python_util
   ${PYTHON_LIBRARIES})
@@ -21,11 +21,6 @@ set_target_properties(vistk_python_util
     SOVERSION     0
     DEFINE_SYMBOL MAKE_VISTK_PYTHON_UTIL_LIB)
 
-install(
-  TARGETS     vistk_python_util
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
 vistk_install_headers(vistk/python/util ${python_util_headers})
 
 vistk_configure_pkgconfig(vistk-python_util

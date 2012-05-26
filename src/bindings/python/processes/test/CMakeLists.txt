@@ -1,6 +1,6 @@
 project(vistk_python_processes_test)
 
-set(no_install_plugin TRUE)
+set(suppress_install TRUE)
 
 add_python_module(examples.py
   vistk/processes/test

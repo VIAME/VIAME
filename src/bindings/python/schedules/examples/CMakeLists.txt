@@ -1,6 +1,6 @@
 project(vistk_python_schedules_examples)
 
-set(no_install_plugin TRUE)
+set(suppress_install TRUE)
 
 add_python_module(pythread_per_process_schedule.py
   vistk/schedules/examples

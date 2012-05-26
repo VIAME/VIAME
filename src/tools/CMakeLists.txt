@@ -13,18 +13,12 @@ endif (WIN32)
 add_subdirectory(helpers)
 
 function (add_tool name)
-  add_executable(${name}
+  set(component tool)
+
+  vistk_add_executable(${name}
     ${name}.cxx)
   target_link_libraries(${name}
     ${ARGN})
-  set_target_properties(${name}
-    PROPERTIES
-      RUNTIME_OUTPUT_PATH "${vistk_binary_dir}/bin")
-
-  install(
-    TARGETS     ${name}
-    DESTINATION "${EXECUTABLE_INSTALL_PATH}"
-    COMPONENT   tools)
 endfunction (add_tool)
 
 function (add_python_tool name)
@@ -34,7 +28,7 @@ function (add_python_tool name)
       "${vistk_binary_dir}/bin/${name}"
       PYTHON_EXECUTABLE)
 
-    install(
+    vistk_install(
       PROGRAMS    "${vistk_binary_dir}/bin/${name}"
       DESTINATION "${EXECUTABLE_INSTALL_PATH}"
       COMPONENT   tools)

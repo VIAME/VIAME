@@ -15,7 +15,7 @@ set(examples_srcs
   take_number_process.cxx
   take_string_process.cxx)
 
-set(no_install_plugin TRUE)
+set(suppress_install TRUE)
 
 add_vistk_plugin(processes_examples
   MAKE_VISTK_PROCESSES_EXAMPLES_LIB
