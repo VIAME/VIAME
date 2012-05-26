@@ -91,9 +91,15 @@ function (make_python_init_file modpath)
       "${init_file_config}")
   endforeach (config)
 
+  if (WIN32)
+    set(outdir bin)
+  else (WIN32)
+    set(outdir lib${LIB_SUFFIX})
+  endif (WIN32)
+
   vistk_install(
     FILES       "${python_output_path}/${modpath}/__init__.py"
-    DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
+    DESTINATION "${outdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath}"
     COMPONENT   runtime)
 
   add_dependencies(python
@@ -114,6 +120,12 @@ function (add_python_module path modpath module)
       "${python_output_path}/${config}/${modpath}/${module}.py"
       PYTHON_EXECUTABLE)
   endforeach (config)
+
+  if (WIN32)
+    set(outdir bin)
+  else (WIN32)
+    set(outdir lib${LIB_SUFFIX})
+  endif (WIN32)
 
   vistk_install(
     FILES       "${python_output_path}/${modpath}/${module}.py"

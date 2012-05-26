@@ -45,8 +45,14 @@ set(pipeline_headers
   types.h
   utils.h)
 
+if (WIN32)
+  set(libdir bin)
+else (WIN32)
+  set(libdir lib${LIB_SUFFIX})
+endif (WIN32)
+
 set(vistk_default_module_paths
-  "${MODULE_INSTALL_PATH}")
+  "${CMAKE_INSTALL_PREFIX}/${libdir}/vistk")
 
 if (WIN32)
   set(vistk_default_module_paths

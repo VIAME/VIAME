@@ -73,7 +73,7 @@ function (create_doxygen inputdir name)
   if (VISTK_INSTALL_DOCUMENTATION)
     vistk_install(
       DIRECTORY   "${vistk_binary_dir}/doc/${name}"
-      DESTINATION "${DOCUMENTATION_INSTALL_PATH}/${name}"
+      DESTINATION "share/doc/vistk-${vistk_version}/${name}"
       COMPONENT   documentation)
   endif (VISTK_INSTALL_DOCUMENTATION)
 endfunction (create_doxygen)
