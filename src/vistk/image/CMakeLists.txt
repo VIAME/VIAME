@@ -39,7 +39,7 @@ install(
   COMPONENT   runtime)
 
 if (UNIX)
-  set(vistk_image_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-image.pc")
+  set(vistk_image_pkgconfig_file "${vistk_binary_dir}/vistk-image.pc")
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk-image.pc.in"
     "${vistk_image_pkgconfig_file}"

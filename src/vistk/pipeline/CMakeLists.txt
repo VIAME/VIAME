@@ -123,7 +123,7 @@ install(
   COMPONENT   runtime)
 
 if (UNIX)
-  set(vistk_pipeline_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-pipeline.pc")
+  set(vistk_pipeline_pkgconfig_file "${vistk_binary_dir}/vistk-pipeline.pc")
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk-pipeline.pc.in"
     "${vistk_pipeline_pkgconfig_file}"

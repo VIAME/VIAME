@@ -42,7 +42,7 @@ install(
   COMPONENT   runtime)
 
 if (UNIX)
-  set(vistk_scoring_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-scoring.pc")
+  set(vistk_scoring_pkgconfig_file "${vistk_binary_dir}/vistk-scoring.pc")
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk-scoring.pc.in"
     "${vistk_scoring_pkgconfig_file}"

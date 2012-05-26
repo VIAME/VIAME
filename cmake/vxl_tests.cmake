@@ -1,5 +1,5 @@
 set(cmakefiles_dir
-  "${CMAKE_BINARY_DIR}/CMakeFiles")
+  "${vistk_binary_dir}/CMakeFiles")
 
 if (VISTK_ENABLE_PEDANTIC)
   if (CMAKE_CROSSCOMPILING)
@@ -24,7 +24,7 @@ main()
 ")
 
     try_compile(VXL_HAS_FLOAT_DECLS_COMPILE
-      ${CMAKE_BINARY_DIR}
+      "${vistk_binary_dir}"
       "${vxl_has_float_decls_path}"
       CMAKE_FLAGS
         "-DINCLUDE_DIRECTORIES=${VXL_VCL_INCLUDE_DIR}")

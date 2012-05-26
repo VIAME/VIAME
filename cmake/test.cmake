@@ -48,7 +48,7 @@ if (VALGRIND_EXECUTABLE)
   if (VISTK_VALGRIND_USE_SUPPRESSIONS)
     set(vistk_valgrind_arguments
       ${vistk_valgrind_arguments}
-      "--suppressions=${CMAKE_SOURCE_DIR}/tests/data/valgrind/glibc.supp")
+      "--suppressions=${vistk_source_dir}/tests/data/valgrind/glibc.supp")
   endif (VISTK_VALGRIND_USE_SUPPRESSIONS)
 
   add_custom_target(tests)

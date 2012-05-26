@@ -28,12 +28,12 @@ if (WIN32)
   set(vistk_default_pipe_include_paths
     "${vistk_default_pipe_include_paths};${PIPE_INCLUDE_INSTALL_PATH}")
   set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths};${CMAKE_SOURCE_DIR}/src/tools/pipelines/include")
+    "${vistk_default_pipe_include_paths};${vistk_source_dir}/src/tools/pipelines/include")
 else (WIN32)
   set(vistk_default_pipe_include_paths
     "${vistk_default_pipe_include_paths}:${PIPE_INCLUDE_INSTALL_PATH}")
   set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths}:${CMAKE_SOURCE_DIR}/src/tools/pipelines/include")
+    "${vistk_default_pipe_include_paths}:${vistk_source_dir}/src/tools/pipelines/include")
 endif (WIN32)
 
 set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
@@ -83,7 +83,7 @@ install(
   COMPONENT   runtime)
 
 if (UNIX)
-  set(vistk_pipeline_util_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-pipeline_util.pc")
+  set(vistk_pipeline_util_pkgconfig_file "${vistk_binary_dir}/vistk-pipeline_util.pc")
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk-pipeline_util.pc.in"
     "${vistk_pipeline_util_pkgconfig_file}"

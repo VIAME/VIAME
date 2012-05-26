@@ -12,7 +12,7 @@ set(vistk_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Add the cmake directory for CMake modules.
 set(CMAKE_MODULE_PATH
-  "${CMAKE_SOURCE_DIR}/cmake/modules"
+  "${vistk_source_dir}/cmake/modules"
   ${CMAKE_MODULE_PATH})
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
@@ -167,7 +167,7 @@ endif (VISTK_ENABLE_EXTRAS)
 
 option(VISTK_ENABLE_DOCUMENTATION "Build documentation" OFF)
 if (VISTK_ENABLE_DOCUMENTATION)
-  include(${CMAKE_SOURCE_DIR}/cmake/doxygen.cmake)
+  include("${vistk_source_dir}/cmake/doxygen.cmake")
 endif (VISTK_ENABLE_DOCUMENTATION)
 
 option(VISTK_ENABLE_TOOLS "Build tools" ON)
@@ -196,14 +196,14 @@ include_directories(SYSTEM ${VXL_CORE_INCLUDE_DIR})
 include_directories(SYSTEM ${VXL_VCL_INCLUDE_DIR})
 link_directories(${VXL_LIBRARY_DIR})
 
-include(${CMAKE_SOURCE_DIR}/cmake/vxl_tests.cmake)
+include("${vistk_source_dir}/cmake/vxl_tests.cmake")
 
 add_subdirectory(conf)
 add_subdirectory(src)
 
 option(VISTK_ENABLE_TESTING "Build tests" OFF)
 if (VISTK_ENABLE_TESTING)
-  include(${CMAKE_SOURCE_DIR}/cmake/test.cmake)
+  include("${vistk_source_dir}/cmake/test.cmake")
 
   add_subdirectory(tests)
 endif (VISTK_ENABLE_TESTING)

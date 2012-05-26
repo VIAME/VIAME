@@ -38,13 +38,13 @@ function (create_doxygen inputdir name)
   add_custom_command(
     TARGET  doxygen-${name}-doxyfile
     COMMAND "${CMAKE_COMMAND}"
-            -D "DOXYGEN_TEMPLATE=${CMAKE_SOURCE_DIR}/cmake/Doxyfile.in"
+            -D "DOXYGEN_TEMPLATE=${vistk_source_dir}/cmake/Doxyfile.in"
             -D "DOXY_PROJECT_SOURCE_DIR=${inputdir}"
             -D "DOXY_DOCUMENTATION_OUTPUT_PATH=${DOCUMENTATION_OUTPUT_PATH}"
             -D "DOXY_PROJECT_NAME=${name}"
             -D "DOXY_TAG_FILES=\"${tag_files}\""
             -D "DOXY_EXCLUDE_PATTERNS=${DOXY_EXCLUDE_PATTERNS}"
-            -P "${CMAKE_SOURCE_DIR}/cmake/doxygen-script.cmake"
+            -P "${vistk_source_dir}/cmake/doxygen-script.cmake"
     WORKING_DIRECTORY
             "${DOCUMENTATION_OUTPUT_PATH}/${name}"
     COMMENT "Generating Doxyfile for ${name}")

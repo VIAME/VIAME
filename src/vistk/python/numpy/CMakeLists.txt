@@ -43,7 +43,7 @@ install(
   COMPONENT   runtime)
 
 if (UNIX)
-  set(vistk_python_numpy_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-python_numpy.pc")
+  set(vistk_python_numpy_pkgconfig_file "${vistk_binary_dir}/vistk-python_numpy.pc")
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk-python_numpy.pc.in"
     "${vistk_python_numpy_pkgconfig_file}"

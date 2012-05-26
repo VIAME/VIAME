@@ -4,13 +4,13 @@ if (VISTK_ENABLE_TESTING)
   # Configure the warning and code coverage suppression file
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in"
-    "${CMAKE_BINARY_DIR}/CTestCustom.cmake"
+    "${vistk_binary_dir}/CTestCustom.cmake"
     COPYONLY)
   set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${CMAKE_BINARY_DIR}/CTestCustom.cmake")
+    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_binary_dir}/CTestCustom.cmake")
 endif (VISTK_ENABLE_TESTING)
 
-set(vistk_config_file "${CMAKE_BINARY_DIR}/vistk-config.cmake")
+set(vistk_config_file "${vistk_binary_dir}/vistk-config.cmake")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config.cmake.in"
   "${vistk_config_file}"
@@ -18,7 +18,7 @@ configure_file(
 set_directory_properties(PROPERTIES
   ADDITIONAL_MAKE_CLEAN_FILES "${vistk_config_file}")
 
-set(vistk_config_install_file "${CMAKE_BINARY_DIR}/vistk-config-install.cmake")
+set(vistk_config_install_file "${vistk_binary_dir}/vistk-config-install.cmake")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config-install.cmake.in"
   "${vistk_config_install_file}"
@@ -26,7 +26,7 @@ configure_file(
 set_directory_properties(PROPERTIES
   ADDITIONAL_MAKE_CLEAN_FILES "${vistk_config_install_file}")
 
-set(vistk_macros_file "${CMAKE_BINARY_DIR}/vistk-macros.cmake")
+set(vistk_macros_file "${vistk_binary_dir}/vistk-macros.cmake")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-macros.cmake.in"
   "${vistk_macros_file}"
@@ -47,7 +47,7 @@ install(
   COMPONENT   development)
 
 if (UNIX)
-  set(vistk_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk.pc")
+  set(vistk_pkgconfig_file "${vistk_binary_dir}/vistk.pc")
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/vistk.pc.in"
     "${vistk_pkgconfig_file}"
