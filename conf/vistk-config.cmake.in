@@ -2,9 +2,14 @@
 set(VISTK_INCLUDE_DIR
   "@vistk_source_dir@/src"
   "@vistk_binary_dir@/src")
-set(VISTK_LIBRARY_DIR
-  "@LIBRARY_OUTPUT_PATH@")
+if (WIN32)
+  set(VISTK_LIBRARY_DIR
+    "@vistk_binary_dir@/bin")
+else (WIN32)
+  set(VISTK_LIBRARY_DIR
+    "@vistk_binary_dir@/lib")
+endif (WIN32)
 set(VISTK_MODULE_DIR
-  "@MODULE_OUTPUT_PATH@")
+  "${VISTK_LIBRARY_DIR}/vistk")
 set(VISTK_DOCUMENTATION_DIR
-  "@DOCUMENTATION_OUTPUT_PATH@")
+  "@vistk_binary_dir@/doc")

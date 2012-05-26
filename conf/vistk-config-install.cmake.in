@@ -1,17 +1,22 @@
 # Include the library targets
-include(@LIBRARY_INSTALL_PATH@/cmake/vistk-config-targets.cmake)
+include("${CMAKE_CURRENT_LIST_DIR}/vistk-config-targets.cmake")
 
 # vistk include directory
 set(VISTK_INCLUDE_DIR
-  "@INCLUDE_INSTALL_PATH@")
-set(VISTK_LIBRARY_DIR
-  "@LIBRARY_INSTALL_PATH@")
+  "@CMAKE_INSTALL_PREFIX@/include")
+if (WIN32)
+  set(VISTK_LIBRARY_DIR
+    "@CMAKE_INSTALL_PREFIX@/bin")
+else (WIN32)
+  set(VISTK_LIBRARY_DIR
+    "@CMAKE_INSTALL_PREFIX@/lib@LIB_SUFFIX@")
+endif (WIN32)
 set(VISTK_MODULE_DIR
-  "@MODULE_INSTALL_PATH@")
+  "${VISTK_LIBRARY_DIR}/vistk")
 set(VISTK_DOCUMENTATION_DIR
-  "@DOCUMENTATION_INSTALL_PATH@")
+  "@CMAKE_INSTALL_PREFIX@/share/doc/vistk-@vistk_version@")
 
 set(VISTK_PIPE_INSTALL_PATH
-  "@PIPE_INSTALL_PATH@")
+  "@CMAKE_INSTALL_PREFIX@/share/vistk")
 set(VISTK_PIPE_INCLUDE_INSTALL_PATH
-  "@PIPE_INCLUDE_INSTALL_PATH@")
+  "${VISTK_PIPE_INSTALL_PATH}/include")

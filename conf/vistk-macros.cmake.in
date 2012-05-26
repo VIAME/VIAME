@@ -2,20 +2,19 @@ function (add_vistk_plugin name define)
   add_library(${name} SHARED
     ${ARGN})
 
-  if (WIN32)
-    set(module_output RUNTIME_OUTPUT_DIRECTORY)
-  else (WIN32)
-    set(module_output LIBRARY_OUTPUT_DIRECTORY)
-  endif (WIN32)
-
+  # TODO: The usage of CMAKE_BINARY_DIR needs to be fixed.
   set_target_properties(${name}
     PROPERTIES
-      DEFINE_SYMBOL    ${define}
-      ${module_output} "${MODULE_OUTPUT_PATH}"
-      PREFIX           "")
+      DEFINE_SYMBOL            ${define}
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/vistk"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/vistk"
+      PREFIX                   "")
 
   install(
-    TARGETS     ${name}
-    DESTINATION "@MODULE_INSTALL_PATH@"
-    COMPONENT   runtime)
+    TARGETS       ${name}
+    LIBRARY
+      DESTINATION "lib${LIB_SUFFIX}/vistk"
+    RUNTIME
+      DESTINATION bin
+    COMPONENT     runtime)
 endfunction (add_vistk_plugin name define)
