@@ -12,6 +12,5 @@ add_python_module(extras.py
 
 make_python_init_file(vistk/processes/test)
 #  examples)
-make_python_init_file(vistk/test)
 make_python_init_file(vistk/test/python)
 make_python_init_file(vistk/test/python/modules)

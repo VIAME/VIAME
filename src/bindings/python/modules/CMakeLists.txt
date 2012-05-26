@@ -18,4 +18,5 @@ add_python_module(modules.py
 
 make_python_init_file(vistk/modules)
 #  modules)
+make_python_init_file(vistk/processes)
 make_python_init_file(vistk/schedules)
