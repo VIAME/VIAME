@@ -137,7 +137,7 @@ function (add_python_module path modpath module)
   string(REPLACE "/" "." safe_modpath ${modpath})
 
   vistk_configure_file(python-module-${module}
-    "${path}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${path}"
     "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
@@ -149,7 +149,7 @@ function (add_python_module path modpath module)
     string(TOUPPER "${config}" upper_config)
 
     vistk_configure_file(python-module-${module}-${config}
-      "${path}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/${path}"
       "${output_path}/${modpath}/${module}.py"
       PYTHON_EXECUTABLE)
   endforeach (config)
