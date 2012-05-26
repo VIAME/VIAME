@@ -26,10 +26,10 @@ endfunction (add_tool)
 
 function (add_python_tool name)
   if (VISTK_ENABLE_PYTHON)
-    configure_file(
+    vistk_configure_file(tool-python-${name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${name}.py"
       "${EXECUTABLE_OUTPUT_PATH}/${name}"
-      @ONLY)
+      PYTHON_EXECUTABLE)
 
     install(
       PROGRAMS    "${EXECUTABLE_OUTPUT_PATH}/${name}"

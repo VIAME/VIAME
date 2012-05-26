@@ -136,12 +136,10 @@ endfunction (make_python_init_file modpath)
 function (add_python_module path modpath module)
   string(REPLACE "/" "." safe_modpath ${modpath})
 
-  configure_file(
+  vistk_configure_file(python-module-${module}
     "${path}"
     "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py")
+    PYTHON_EXECUTABLE)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
     if (WIN32)
@@ -150,12 +148,10 @@ function (add_python_module path modpath module)
 
     string(TOUPPER "${config}" upper_config)
 
-    configure_file(
+    vistk_configure_file(python-module-${module}-${config}
       "${path}"
       "${output_path}/${modpath}/${module}.py"
-      @ONLY)
-    set_directory_properties(PROPERTIES
-      ADDITIONAL_MAKE_CLEAN_FILES "${output_path}/${modpath}/${module}.py")
+      PYTHON_EXECUTABLE)
   endforeach (config)
 
   if (NOT ${no_install_plugin})

@@ -6,12 +6,10 @@ set(test_runner
   "${PYTHON_EXECUTABLE}")
 
 function (vistk_build_python_test group input)
-  configure_file(
+  vistk_configure_file(test-python-${group}
     "${CMAKE_CURRENT_SOURCE_DIR}/${input}"
     "${vistk_binary_dir}/tests/test-python-${group}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${EXECUTABLE_OUTPUT_PATH}/test-python-${group}")
+    PYTHON_EXECUTABLE)
 
   vistk_declare_test(python-${group})
 endfunction (vistk_build_python_test)

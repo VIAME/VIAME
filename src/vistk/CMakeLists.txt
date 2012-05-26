@@ -1,9 +1,9 @@
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-fvisibility=hidden __VISTK_HAVE_GCC_VISIBILITY)
-configure_file(config.h.in
-  "${CMAKE_CURRENT_BINARY_DIR}/config.h")
-set_directory_properties(PROPERTIES
-  ADDITIONAL_MAKE_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/config.h")
+vistk_configure_file(config.h
+  "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/config.h"
+  __VISTK_HAVE_GCC_VISIBILITY)
 
 add_subdirectory(pipeline)
 add_subdirectory(utilities)
