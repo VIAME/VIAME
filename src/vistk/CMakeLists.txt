@@ -18,4 +18,4 @@ endif (VISTK_ENABLE_PYTHON)
 install(
   FILES       "${CMAKE_CURRENT_BINARY_DIR}/config.h"
   DESTINATION "${INCLUDE_INSTALL_PATH}/vistk"
-  COMPONENT   runtime)
+  COMPONENT   development)
