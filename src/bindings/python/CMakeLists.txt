@@ -60,12 +60,9 @@ function (add_vistk_python_library name modpath)
 endfunction (add_vistk_python_library name modpath)
 
 function (make_python_init_file modpath)
-  set(import_lines)
+  string(REPLACE "/" "." safe_modpath ${modpath})
 
-  foreach (module ${ARGN})
-    set(import_lines
-      "${import_lines}\nfrom ${module} import *")
-  endforeach (module)
+  set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.init.in")
 
   set(copyright_header
 "# ckwg +5
@@ -73,32 +70,31 @@ function (make_python_init_file modpath)
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.")
 
-  file(WRITE "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py"
-"${copyright_header}
-${import_lines}
-")
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py")
+  file(WRITE "${init_template}" "${copyright_header}\n\n")
+
+  foreach (module ${ARGN})
+    file(APPEND "${init_template}"
+      "from ${module} import *\n")
+  endforeach (module)
+
+  set(init_file "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py")
+
+  vistk_configure_file(python-init-${safe_modpath}
+    "${init_template}"
+    "${init_file}")
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    if (WIN32)
-      set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
-    endif (WIN32)
+    set(init_file_config "${PYTHON_OUTPUT_PATH}/${config}/${modpath}/__init__.py")
 
-    file(WRITE "${output_path}/${modpath}/__init__.py"
-"${copyright_header}
-${import_lines}
-")
-    set_directory_properties(PROPERTIES
-      ADDITIONAL_MAKE_CLEAN_FILES "${output_path}/${modpath}/__init__.py")
+    vistk_configure_file(python-init-${safe_modpath}-${config}
+      "${init_template}"
+      "${init_file_config}")
   endforeach (config)
 
-  if (NOT ${no_install_plugin})
-    install(
-      FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py"
-      DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
-      COMPONENT   runtime)
-  endif (NOT ${no_install_plugin})
+  vistk_install(
+    FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py"
+    DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
+    COMPONENT   runtime)
 
   add_dependencies(python
     python-init-${name})
@@ -113,20 +109,14 @@ function (add_python_module path modpath module)
     PYTHON_EXECUTABLE)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    if (WIN32)
-      set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
-    endif (WIN32)
-
-    string(TOUPPER "${config}" upper_config)
-
     vistk_configure_file(python-module-${module}-${config}
       "${CMAKE_CURRENT_SOURCE_DIR}/${path}"
-      "${output_path}/${modpath}/${module}.py"
+      "${PYTHON_OUTPUT_PATH}/${config}/${modpath}/${module}.py"
       PYTHON_EXECUTABLE)
   endforeach (config)
 
   vistk_install(
-    FILES       "${python_module_path}/${modpath}/${module}.py"
+    FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
     DESTINATION "${outdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath}"
     COMPONENT   runtime)
 endfunction (add_python_module path modpath module)
