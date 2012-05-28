@@ -8,5 +8,5 @@ set(pipelines
 
 install(
   FILES       ${pipelines}
-  DESTINATION "${PIPE_INSTALL_PATH}"
+  DESTINATION share/vistk/pipelines
   COMPONENT   pipelines)

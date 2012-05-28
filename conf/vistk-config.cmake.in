@@ -1,10 +1,15 @@
 # vistk include directory
 set(VISTK_INCLUDE_DIR
-  "@CMAKE_SOURCE_DIR@/src"
-  "@CMAKE_BINARY_DIR@/src")
-set(VISTK_LIBRARY_DIR
-  "@LIBRARY_OUTPUT_PATH@")
+  "@vistk_source_dir@/src"
+  "@vistk_binary_dir@/src")
+if (WIN32)
+  set(VISTK_LIBRARY_DIR
+    "@vistk_binary_dir@/bin")
+else (WIN32)
+  set(VISTK_LIBRARY_DIR
+    "@vistk_binary_dir@/lib")
+endif (WIN32)
 set(VISTK_MODULE_DIR
-  "@MODULE_OUTPUT_PATH@")
+  "${VISTK_LIBRARY_DIR}/vistk")
 set(VISTK_DOCUMENTATION_DIR
-  "@DOCUMENTATION_OUTPUT_PATH@")
+  "@vistk_binary_dir@/doc")

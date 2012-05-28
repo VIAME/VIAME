@@ -8,7 +8,7 @@ set(python_any_conversion_headers
   prototypes.h
   registration.h)
 
-add_library(vistk_python_any_conversion
+vistk_add_library(vistk_python_any_conversion
   ${python_any_conversion_srcs})
 target_link_libraries(vistk_python_any_conversion
   vistk_python_util
@@ -25,27 +25,7 @@ set_target_properties(vistk_python_any_conversion
     SOVERSION     0
     DEFINE_SYMBOL MAKE_VISTK_PYTHON_ANY_CONVERSION_LIB)
 
-install(
-  FILES       ${python_any_conversion_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/python/any_conversion"
-  COMPONENT   development)
-install(
-  TARGETS     vistk_python_any_conversion
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
+vistk_install_headers(vistk/python/any_conversion ${python_any_conversion_headers})
 
-if (UNIX)
-  set(vistk_python_any_conversion_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-python_any_conversion.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk-python_any_conversion.pc.in"
-    "${vistk_python_any_conversion_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_python_any_conversion_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_python_any_conversion_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk-python_any_conversion
+  PYTHON_VERSION)

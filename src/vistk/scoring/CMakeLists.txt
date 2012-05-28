@@ -13,7 +13,7 @@ set(scoring_headers
   scoring_statistics.h
   statistics.h)
 
-add_library(vistk_scoring
+vistk_add_library(vistk_scoring
   ${scoring_srcs})
 target_link_libraries(vistk_scoring
   vil)
@@ -31,27 +31,6 @@ if (VISTK_ENABLE_DOCUMENTATION)
     scoring)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
-install(
-  FILES       ${scoring_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/scoring"
-  COMPONENT   development)
-install(
-  TARGETS     vistk_scoring
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
+vistk_install_headers(vistk/scoring ${scoring_headers})
 
-if (UNIX)
-  set(vistk_scoring_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-scoring.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk-scoring.pc.in"
-    "${vistk_scoring_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_scoring_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_scoring_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk-scoring)

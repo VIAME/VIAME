@@ -22,18 +22,18 @@ set(pipeline_util_headers
   pipeline_util-config.h)
 
 set(vistk_default_pipe_include_paths
-  "${PIPE_INSTALL_PATH}")
+  "${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines")
 
 if (WIN32)
   set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths};${PIPE_INCLUDE_INSTALL_PATH}")
+    "${vistk_default_pipe_include_paths};${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
   set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths};${CMAKE_SOURCE_DIR}/src/tools/pipelines/include")
+    "${vistk_default_pipe_include_paths};${vistk_source_dir}/src/tools/pipelines/include")
 else (WIN32)
   set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths}:${PIPE_INCLUDE_INSTALL_PATH}")
+    "${vistk_default_pipe_include_paths}:${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
   set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths}:${CMAKE_SOURCE_DIR}/src/tools/pipelines/include")
+    "${vistk_default_pipe_include_paths}:${vistk_source_dir}/src/tools/pipelines/include")
 endif (WIN32)
 
 set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
@@ -48,7 +48,7 @@ set_source_files_properties(load_pipe.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${load_pipe_build_options}")
 
-add_library(vistk_pipeline_util
+vistk_add_library(vistk_pipeline_util
   ${pipeline_util_srcs})
 target_link_libraries(vistk_pipeline_util
   vistk_pipeline
@@ -72,27 +72,6 @@ if (VISTK_ENABLE_DOCUMENTATION)
     pipeline)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
-install(
-  FILES       ${pipeline_util_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/pipeline_util"
-  COMPONENT   development)
-install(
-  TARGETS     vistk_pipeline_util
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
+vistk_install_headers(vistk/pipeline_util ${pipeline_util_headers})
 
-if (UNIX)
-  set(vistk_pipeline_util_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-pipeline_util.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk-pipeline_util.pc.in"
-    "${vistk_pipeline_util_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_pipeline_util_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_pipeline_util_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk-pipeline_util)

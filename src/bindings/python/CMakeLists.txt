@@ -38,20 +38,16 @@ add_custom_target(python)
 function (add_vistk_python_library name modpath)
   string(REPLACE "/" "." safe_modpath ${modpath})
 
-  add_library(python-${safe_modpath}-${name}
-    ${ARGN})
+  set(library_subdir /python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath})
+  set(component runtime)
 
-  if (WIN32)
-    set(module_output RUNTIME_OUTPUT_DIRECTORY)
-  else (WIN32)
-    set(module_output LIBRARY_OUTPUT_DIRECTORY)
-  endif (WIN32)
+  vistk_add_library(python-${safe_modpath}-${name}
+    ${ARGN})
 
   set_target_properties(python-${safe_modpath}-${name}
     PROPERTIES
-      OUTPUT_NAME      ${name}
-      ${module_output} "${PYTHON_OUTPUT_PATH}/${modpath}"
-      PREFIX           "")
+      OUTPUT_NAME ${name}
+      PREFIX      "")
 
   if (WIN32)
     set_target_properties(python-${safe_modpath}-${name}
@@ -59,112 +55,85 @@ function (add_vistk_python_library name modpath)
         SUFFIX ".pyd")
   endif (WIN32)
 
-  foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    if (WIN32)
-      set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
-    endif (WIN32)
-
-    string(TOUPPER "${config}" upper_config)
-
-    set_target_properties(python-${safe_modpath}-${name}
-      PROPERTIES
-        "${module_output}_${upper_config}" "${output_path}/${modpath}")
-  endforeach (config)
-
-  if (NOT ${no_install_plugin})
-    install(
-      TARGETS     python-${safe_modpath}-${name}
-      DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
-      COMPONENT   runtime)
-  endif (NOT ${no_install_plugin})
-
   add_dependencies(python
     python-${safe_modpath}-${name})
 endfunction (add_vistk_python_library name modpath)
 
-function (make_python_init_file modpath)
+function (_add_python_module path modpath module)
+  string(REPLACE "/" "." safe_modpath ${modpath})
+
+  vistk_configure_file(python-module-${safe_modpath}-${module}
+    "${path}"
+    "${python_output_path}/${modpath}/${module}.py"
+    PYTHON_EXECUTABLE)
+
+  foreach (config ${CMAKE_CONFIGURATION_TYPES})
+    vistk_configure_file(python-module-${safe_modpath}-${module}-${config}
+      "${path}"
+      "${python_output_path}/${config}/${modpath}/${module}.py"
+      PYTHON_EXECUTABLE)
+
+    add_dependencies(python
+      python-module-${safe_modpath}-${module}-${config})
+  endforeach (config)
+
   if (WIN32)
-    set(module_output RUNTIME_OUTPUT_DIRECTORY)
+    set(outdir bin)
   else (WIN32)
-    set(module_output LIBRARY_OUTPUT_DIRECTORY)
+    set(outdir lib${LIB_SUFFIX})
   endif (WIN32)
 
-  set(import_lines)
+  vistk_install(
+    FILES       "${python_output_path}/${modpath}/${module}.py"
+    DESTINATION "${outdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath}"
+    COMPONENT   runtime)
 
-  foreach (module ${ARGN})
-    set(import_lines
-      "${import_lines}\nfrom ${module} import *")
-  endforeach (module)
+  add_dependencies(python
+    python-module-${safe_modpath}-${module})
+endfunction (_add_python_module path modpath module)
 
-  set(copyright_header
+function (add_python_module path modpath module)
+  _add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/${path}"
+    ${modpath}
+    ${module})
+endfunction (add_python_module path modpath module)
+
+set(copyright_header
 "# ckwg +5
 # Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.")
 
-  file(WRITE "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py"
-"${copyright_header}
-${import_lines}
-")
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py")
-
-  foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    if (WIN32)
-      set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
-    endif (WIN32)
-
-    file(WRITE "${output_path}/${modpath}/__init__.py"
-"${copyright_header}
-${import_lines}
-")
-    set_directory_properties(PROPERTIES
-      ADDITIONAL_MAKE_CLEAN_FILES "${output_path}/${modpath}/__init__.py")
-  endforeach (config)
-
-  if (NOT ${no_install_plugin})
-    install(
-      FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/__init__.py"
-      DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
-      COMPONENT   runtime)
-  endif (NOT ${no_install_plugin})
-
-  add_dependencies(python
-    python-init-${name})
-endfunction (make_python_init_file modpath)
-
-function (add_python_module path modpath module)
+function (make_python_init_file modpath)
   string(REPLACE "/" "." safe_modpath ${modpath})
 
-  configure_file(
-    "${path}"
-    "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py")
+  set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
 
-  foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    if (WIN32)
-      set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
-    endif (WIN32)
+  file(WRITE "${init_template}" "${copyright_header}\n\n")
 
-    string(TOUPPER "${config}" upper_config)
+  foreach (module ${ARGN})
+    file(APPEND "${init_template}"
+      "from ${module} import *\n")
+  endforeach (module)
 
-    configure_file(
-      "${path}"
-      "${output_path}/${modpath}/${module}.py"
-      @ONLY)
-    set_directory_properties(PROPERTIES
-      ADDITIONAL_MAKE_CLEAN_FILES "${output_path}/${modpath}/${module}.py")
-  endforeach (config)
+  _add_python_module("${init_template}"
+    ${modpath}
+    __init__)
+endfunction (make_python_init_file modpath)
 
-  if (NOT ${no_install_plugin})
-    install(
-      FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
-      DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
-      COMPONENT   runtime)
-  endif (NOT ${no_install_plugin})
-endfunction (add_python_module path modpath module)
+function (make_python_plugin_init_file modpath)
+  string(REPLACE "/" "." safe_modpath ${modpath})
+
+  set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
+
+  file(WRITE "${init_template}" "${copyright_header}\n\n")
+  file(APPEND "${init_template}" "from pkgutil import extend_path\n")
+  file(APPEND "${init_template}" "__path__ = extend_path(__path__, __name__)")
+
+  _add_python_module("${init_template}"
+    ${modpath}
+    __init__)
+endfunction (make_python_plugin_init_file modpath)
 
 add_subdirectory(image)
 add_subdirectory(scoring)

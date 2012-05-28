@@ -2,61 +2,47 @@ project(vistk_conf)
 
 if (VISTK_ENABLE_TESTING)
   # Configure the warning and code coverage suppression file
-  configure_file(
+  vistk_configure_file(CTestCustom.cmake
     "${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in"
-    "${CMAKE_BINARY_DIR}/CTestCustom.cmake"
-    COPYONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${CMAKE_BINARY_DIR}/CTestCustom.cmake")
+    "${vistk_binary_dir}/CTestCustom.cmake")
 endif (VISTK_ENABLE_TESTING)
 
-set(vistk_config_file "${CMAKE_BINARY_DIR}/vistk-config.cmake")
-configure_file(
+set(vistk_config_file "${vistk_binary_dir}/vistk-config.cmake")
+vistk_configure_file(vistk-config.cmake
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config.cmake.in"
   "${vistk_config_file}"
-  @ONLY)
-set_directory_properties(PROPERTIES
-  ADDITIONAL_MAKE_CLEAN_FILES "${vistk_config_file}")
+  vistk_source_dir
+  vistk_binary_dir)
 
-set(vistk_config_install_file "${CMAKE_BINARY_DIR}/vistk-config-install.cmake")
-configure_file(
+set(vistk_config_install_file "${vistk_binary_dir}/vistk-config-install.cmake")
+vistk_configure_file(vistk-config-install.cmake
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config-install.cmake.in"
   "${vistk_config_install_file}"
-  @ONLY)
-set_directory_properties(PROPERTIES
-  ADDITIONAL_MAKE_CLEAN_FILES "${vistk_config_install_file}")
+  CMAKE_INSTALL_PREFIX
+  LIB_SUFFIX
+  vistk_version)
 
-set(vistk_macros_file "${CMAKE_BINARY_DIR}/vistk-macros.cmake")
-configure_file(
+set(vistk_macros_file "${vistk_binary_dir}/vistk-macros.cmake")
+vistk_configure_file(vistk-macros.cmake
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-macros.cmake.in"
-  "${vistk_macros_file}"
-  @ONLY)
-set_directory_properties(PROPERTIES
-  ADDITIONAL_MAKE_CLEAN_FILES "${vistk_macros_file}")
+  "${vistk_macros_file}")
+
+if (WIN32)
+  set(cmakedir cmake)
+else (WIN32)
+  set(cmakedir lib${LIB_SUFFIX}/cmake/vistk)
+endif (WIN32)
 
 # Configure the CMake EXPORT file during installation
 install(
   FILES       "${vistk_config_install_file}"
               "${vistk_macros_file}"
-  DESTINATION "${LIBRARY_INSTALL_PATH}/cmake"
+  DESTINATION "${cmakedir}"
   COMPONENT   development)
 install(
   EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}/cmake"
+  DESTINATION "${cmakedir}"
   FILE        vistk-config-targets.cmake
   COMPONENT   development)
 
-if (UNIX)
-  set(vistk_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk.pc.in"
-    "${vistk_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk)

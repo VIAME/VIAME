@@ -1,8 +1,8 @@
 prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
-includedir=@INCLUDE_INSTALL_PATH@
-libdir=@LIBRARY_INSTALL_PATH@
-vistkplugindir=@MODULE_INSTALL_PATH@
+includedir=${prefix}/include
+libdir=${prefix}/lib@LIB_SUFFIX@
+vistkplugindir=${libdir}/vistk
 
 Name: vistk-pipeline
 Description: The vistk-pipeline library

@@ -7,7 +7,7 @@ set(image_headers
   image-config.h
   warp_image.h)
 
-add_library(vistk_image
+vistk_add_library(vistk_image
   ${image_srcs})
 target_link_libraries(vistk_image
   vistk_utilities
@@ -28,27 +28,6 @@ if (VISTK_ENABLE_DOCUMENTATION)
     image)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
-install(
-  FILES       ${image_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/image"
-  COMPONENT   development)
-install(
-  TARGETS     vistk_image
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
+vistk_install_headers(vistk/image ${image_headers})
 
-if (UNIX)
-  set(vistk_image_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-image.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk-image.pc.in"
-    "${vistk_image_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_image_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_image_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk-image)

@@ -13,27 +13,24 @@ endif (WIN32)
 add_subdirectory(helpers)
 
 function (add_tool name)
-  add_executable(${name}
+  set(component tool)
+
+  vistk_add_executable(${name}
     ${name}.cxx)
   target_link_libraries(${name}
     ${ARGN})
-
-  install(
-    TARGETS     ${name}
-    DESTINATION "${EXECUTABLE_INSTALL_PATH}"
-    COMPONENT   tools)
 endfunction (add_tool)
 
 function (add_python_tool name)
   if (VISTK_ENABLE_PYTHON)
-    configure_file(
+    vistk_configure_file(tool-python-${name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${name}.py"
-      "${EXECUTABLE_OUTPUT_PATH}/${name}"
-      @ONLY)
+      "${vistk_binary_dir}/bin/${name}"
+      PYTHON_EXECUTABLE)
 
-    install(
-      PROGRAMS    "${EXECUTABLE_OUTPUT_PATH}/${name}"
-      DESTINATION "${EXECUTABLE_INSTALL_PATH}"
+    vistk_install(
+      PROGRAMS    "${vistk_binary_dir}/bin/${name}"
+      DESTINATION bin
       COMPONENT   tools)
   endif (VISTK_ENABLE_PYTHON)
 endfunction (add_python_tool)

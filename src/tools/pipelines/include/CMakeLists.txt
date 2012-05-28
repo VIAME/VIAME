@@ -13,5 +13,5 @@ set(pipeline_includes
 
 install(
   FILES       ${pipeline_includes}
-  DESTINATION "${PIPE_INCLUDE_INSTALL_PATH}"
+  DESTINATION share/vistk/pipelines/include
   COMPONENT   pipelines)

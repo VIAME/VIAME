@@ -272,7 +272,7 @@ endif (VISTK_ENABLE_PYTHON)
 
 if (VISTK_ENABLE_PYTHON)
   set(python_module_path
-    "${PYTHON_OUTPUT_PATH}")
+    "${python_output_path}")
 
   if (WIN32)
     set(python_module_path

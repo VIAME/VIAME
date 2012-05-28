@@ -1,5 +1,5 @@
-include_directories("${CMAKE_SOURCE_DIR}/src")
-include_directories("${CMAKE_BINARY_DIR}/src")
+include_directories("${vistk_source_dir}/src")
+include_directories("${vistk_binary_dir}/src")
 
 add_subdirectory(test)
 

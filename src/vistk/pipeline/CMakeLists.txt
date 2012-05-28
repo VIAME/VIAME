@@ -45,15 +45,21 @@ set(pipeline_headers
   types.h
   utils.h)
 
+if (WIN32)
+  set(libdir bin)
+else (WIN32)
+  set(libdir lib${LIB_SUFFIX})
+endif (WIN32)
+
 set(vistk_default_module_paths
-  "${MODULE_INSTALL_PATH}")
+  "${CMAKE_INSTALL_PREFIX}/${libdir}/vistk")
 
 if (WIN32)
   set(vistk_default_module_paths
-    "${vistk_default_module_paths};${MODULE_OUTPUT_PATH}")
+    "${vistk_default_module_paths};${module_output_path}/$<CONFIGURATION>")
 else (WIN32)
   set(vistk_default_module_paths
-    "${vistk_default_module_paths}:${MODULE_OUTPUT_PATH}")
+    "${vistk_default_module_paths}:${module_output_path}")
 endif (WIN32)
 
 set(vistk_path_prefix)
@@ -88,7 +94,7 @@ set_source_files_properties(utils.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${utils_build_options}")
 
-add_library(vistk_pipeline
+vistk_add_library(vistk_pipeline
   ${pipeline_srcs})
 target_link_libraries(vistk_pipeline
   ${Boost_DATE_TIME_LIBRARY}
@@ -112,27 +118,6 @@ if (VISTK_ENABLE_DOCUMENTATION)
     pipeline)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
-install(
-  FILES       ${pipeline_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/pipeline"
-  COMPONENT   development)
-install(
-  TARGETS     vistk_pipeline
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
+vistk_install_headers(vistk/pipeline ${pipeline_headers})
 
-if (UNIX)
-  set(vistk_pipeline_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-pipeline.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk-pipeline.pc.in"
-    "${vistk_pipeline_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_pipeline_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_pipeline_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk-pipeline)

@@ -23,7 +23,7 @@ set(utilities_headers
   utm.h
   utm_debug.h)
 
-add_library(vistk_utilities
+vistk_add_library(vistk_utilities
   ${utilities_srcs})
 target_link_libraries(vistk_utilities
   vgl_algo)
@@ -41,27 +41,6 @@ if (VISTK_ENABLE_DOCUMENTATION)
     utilities)
 endif (VISTK_ENABLE_DOCUMENTATION)
 
-install(
-  FILES       ${utilities_headers}
-  DESTINATION "${INCLUDE_INSTALL_PATH}/vistk/utilities"
-  COMPONENT   development)
-install(
-  TARGETS     vistk_utilities
-  EXPORT      vistk_exports
-  DESTINATION "${LIBRARY_INSTALL_PATH}"
-  COMPONENT   runtime)
+vistk_install_headers(vistk/utilities ${utilities_headers})
 
-if (UNIX)
-  set(vistk_utilities_pkgconfig_file "${CMAKE_BINARY_DIR}/vistk-utilities.pc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/vistk-utilities.pc.in"
-    "${vistk_utilities_pkgconfig_file}"
-    @ONLY)
-  set_directory_properties(PROPERTIES
-    ADDITIONAL_MAKE_CLEAN_FILES "${vistk_utilities_pkgconfig_file}")
-
-  install(
-    FILES       "${vistk_utilities_pkgconfig_file}"
-    DESTINATION "${LIBRARY_INSTALL_PATH}/pkgconfig"
-    COMPONENT   development)
-endif (UNIX)
+vistk_configure_pkgconfig(vistk-utilities)

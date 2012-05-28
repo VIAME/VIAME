@@ -7,43 +7,28 @@ set(vistk_version_minor 1)
 set(vistk_version_patch 0)
 set(vistk_version "${vistk_version_major}.${vistk_version_minor}.${vistk_version_patch}")
 
+set(vistk_source_dir "${CMAKE_CURRENT_SOURCE_DIR}")
+set(vistk_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
+
 # Add the cmake directory for CMake modules.
 set(CMAKE_MODULE_PATH
-  "${CMAKE_SOURCE_DIR}/cmake/modules"
+  "${vistk_source_dir}/cmake/modules"
   ${CMAKE_MODULE_PATH})
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
-set(EXECUTABLE_OUTPUT_PATH    ${CMAKE_BINARY_DIR}/bin)
 if (WIN32)
-  set(LIBRARY_OUTPUT_PATH       ${CMAKE_BINARY_DIR}/bin)
+  set(module_output_path ${vistk_binary_dir}/bin/vistk)
+  set(python_output_path ${vistk_binary_dir}/bin/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
 else (WIN32)
-  set(LIBRARY_OUTPUT_PATH       ${CMAKE_BINARY_DIR}/lib)
+  set(module_output_path ${vistk_binary_dir}/lib/vistk)
+  set(python_output_path ${vistk_binary_dir}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
 endif (WIN32)
-set(MODULE_OUTPUT_PATH        ${LIBRARY_OUTPUT_PATH}/vistk)
-set(PYTHON_OUTPUT_PATH        ${LIBRARY_OUTPUT_PATH}/python)
-set(DOCUMENTATION_OUTPUT_PATH ${CMAKE_BINARY_DIR}/doc)
 
 set(PYTHON_VERSION "2.7"
   CACHE STRING "The version of python to use for bindings")
 set(PYTHON_ABIFLAGS ""
   CACHE STRING "The ABI flags for the version of Python being used")
-
-if (WIN32)
-  set(EXECUTABLE_INSTALL_PATH    ${CMAKE_INSTALL_PREFIX}${PREFIX}/bin)
-  set(LIBRARY_INSTALL_PATH       ${CMAKE_INSTALL_PREFIX}${PREFIX}/bin)
-  set(MODULE_INSTALL_PATH        ${CMAKE_INSTALL_PREFIX}${PREFIX}/bin/${CMAKE_PROJECT_NAME})
-  set(PYTHON_INSTALL_PATH        ${CMAKE_INSTALL_PREFIX}${PREFIX}/bin/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
-else (WIN32)
-  set(EXECUTABLE_INSTALL_PATH    ${CMAKE_INSTALL_PREFIX}${PREFIX}/bin)
-  set(LIBRARY_INSTALL_PATH       ${CMAKE_INSTALL_PREFIX}${PREFIX}/lib${LIB_SUFFIX})
-  set(MODULE_INSTALL_PATH        ${CMAKE_INSTALL_PREFIX}${PREFIX}/lib${LIB_SUFFIX}/${CMAKE_PROJECT_NAME})
-  set(PYTHON_INSTALL_PATH        ${CMAKE_INSTALL_PREFIX}${PREFIX}/lib${LIB_SUFFIX}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
-endif (WIN32)
-set(INCLUDE_INSTALL_PATH       ${CMAKE_INSTALL_PREFIX}${PREFIX}/include)
-set(PIPE_INSTALL_PATH          ${CMAKE_INSTALL_PREFIX}${PREFIX}/share/${CMAKE_PROJECT_NAME})
-set(PIPE_INCLUDE_INSTALL_PATH  ${CMAKE_INSTALL_PREFIX}${PREFIX}/share/${CMAKE_PROJECT_NAME}/include)
-set(DOCUMENTATION_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}${PREFIX}/share/doc/${CMAKE_PROJECT_NAME}-${vistk_version})
 
 set(vistk_warnings
   "")
@@ -164,7 +149,7 @@ endif (VISTK_ENABLE_EXTRAS)
 
 option(VISTK_ENABLE_DOCUMENTATION "Build documentation" OFF)
 if (VISTK_ENABLE_DOCUMENTATION)
-  include(${CMAKE_SOURCE_DIR}/cmake/doxygen.cmake)
+  include("${vistk_source_dir}/cmake/doxygen.cmake")
 endif (VISTK_ENABLE_DOCUMENTATION)
 
 option(VISTK_ENABLE_TOOLS "Build tools" ON)
@@ -193,14 +178,17 @@ include_directories(SYSTEM ${VXL_CORE_INCLUDE_DIR})
 include_directories(SYSTEM ${VXL_VCL_INCLUDE_DIR})
 link_directories(${VXL_LIBRARY_DIR})
 
-include(${CMAKE_SOURCE_DIR}/cmake/vxl_tests.cmake)
+include("${vistk_source_dir}/cmake/vxl_tests.cmake")
+
+include("${vistk_source_dir}/cmake/configure.cmake")
+include("${vistk_source_dir}/cmake/targets.cmake")
 
 add_subdirectory(conf)
 add_subdirectory(src)
 
 option(VISTK_ENABLE_TESTING "Build tests" OFF)
 if (VISTK_ENABLE_TESTING)
-  include(${CMAKE_SOURCE_DIR}/cmake/test.cmake)
+  include("${vistk_source_dir}/cmake/test.cmake")
 
   add_subdirectory(tests)
 endif (VISTK_ENABLE_TESTING)
