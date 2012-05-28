@@ -14,6 +14,7 @@ except:
 def log(msg):
     import sys
     sys.stderr.write("%s\n" % msg)
+    sys.stderr.flush()
 
 
 def load_python_module(mod):
