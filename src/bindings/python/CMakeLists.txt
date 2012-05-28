@@ -59,66 +59,22 @@ function (add_vistk_python_library name modpath)
     python-${safe_modpath}-${name})
 endfunction (add_vistk_python_library name modpath)
 
-function (make_python_init_file modpath)
+function (_add_python_module path modpath module)
   string(REPLACE "/" "." safe_modpath ${modpath})
 
-  set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.init.in")
-
-  set(copyright_header
-"# ckwg +5
-# Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
-# KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
-# Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.")
-
-  file(WRITE "${init_template}" "${copyright_header}\n\n")
-
-  foreach (module ${ARGN})
-    file(APPEND "${init_template}"
-      "from ${module} import *\n")
-  endforeach (module)
-
-  set(init_file "${python_output_path}/${modpath}/__init__.py")
-
-  vistk_configure_file(python-init-${safe_modpath}
-    "${init_template}"
-    "${init_file}")
-
-  foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    set(init_file_config "${python_output_path}/${config}/${modpath}/__init__.py")
-
-    vistk_configure_file(python-init-${safe_modpath}-${config}
-      "${init_template}"
-      "${init_file_config}")
-  endforeach (config)
-
-  if (WIN32)
-    set(outdir bin)
-  else (WIN32)
-    set(outdir lib${LIB_SUFFIX})
-  endif (WIN32)
-
-  vistk_install(
-    FILES       "${python_output_path}/${modpath}/__init__.py"
-    DESTINATION "${outdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath}"
-    COMPONENT   runtime)
-
-  add_dependencies(python
-    python-init-${name})
-endfunction (make_python_init_file modpath)
-
-function (add_python_module path modpath module)
-  string(REPLACE "/" "." safe_modpath ${modpath})
-
-  vistk_configure_file(python-module-${module}
-    "${CMAKE_CURRENT_SOURCE_DIR}/${path}"
+  vistk_configure_file(python-module-${safe_modpath}-${module}
+    "${path}"
     "${python_output_path}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    vistk_configure_file(python-module-${module}-${config}
-      "${CMAKE_CURRENT_SOURCE_DIR}/${path}"
+    vistk_configure_file(python-module-${safe_modpath}-${module}-${config}
+      "${path}"
       "${python_output_path}/${config}/${modpath}/${module}.py"
       PYTHON_EXECUTABLE)
+
+    add_dependencies(python
+      python-module-${safe_modpath}-${module}-${config})
   endforeach (config)
 
   if (WIN32)
@@ -131,7 +87,39 @@ function (add_python_module path modpath module)
     FILES       "${python_output_path}/${modpath}/${module}.py"
     DESTINATION "${outdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath}"
     COMPONENT   runtime)
+
+  add_dependencies(python
+    python-module-${safe_modpath}-${module})
+endfunction (_add_python_module path modpath module)
+
+function (add_python_module path modpath module)
+  _add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/${path}"
+    ${modpath}
+    ${module})
 endfunction (add_python_module path modpath module)
+
+set(copyright_header
+"# ckwg +5
+# Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+# KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
+# Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.")
+
+function (make_python_init_file modpath)
+  string(REPLACE "/" "." safe_modpath ${modpath})
+
+  set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
+
+  file(WRITE "${init_template}" "${copyright_header}\n\n")
+
+  foreach (module ${ARGN})
+    file(APPEND "${init_template}"
+      "from ${module} import *\n")
+  endforeach (module)
+
+  _add_python_module("${init_template}"
+    ${modpath}
+    __init__)
+endfunction (make_python_init_file modpath)
 
 add_subdirectory(image)
 add_subdirectory(scoring)
