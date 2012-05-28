@@ -4,5 +4,4 @@ add_python_module(extras.py
   vistk/test/python/modules
   extras)
 
-make_python_init_file(vistk/test/python/modules)
-#  extras)
+make_python_plugin_init_file(vistk/test/python/modules)
