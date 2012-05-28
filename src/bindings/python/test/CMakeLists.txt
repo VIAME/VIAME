@@ -1,5 +1,7 @@
 project(vistk_python_test)
 
+add_subdirectory(python)
+
 set(suppress_install TRUE)
 
 add_vistk_python_library(test_image
