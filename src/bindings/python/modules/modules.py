@@ -5,17 +5,18 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
+try:
+    from straight.plugin import loaders
+except:
+    from . import loaders
+
+
 def log(msg):
     import sys
     sys.stderr.write("%s\n" % msg)
 
 
-def load_python_module(mname):
-    mod = __import__(mname)
-
-    import sys
-    mod = sys.modules[mname]
-
+def load_python_module(mod):
     if hasattr(mod, '__vistk_register__'):
         import collections
 
@@ -36,31 +37,15 @@ def load_python_modules():
         extra_modules = os.environ[envvar]
         packages += extra_modules.split(os.pathsep)
 
-    modules = []
+    loader = loaders.ModuleLoader()
+    all_modules = []
 
-    while packages:
-        import pkgutil
+    for package in packages:
+        modules = loader.load(package)
 
-        pname = packages.pop()
-        try:
-            pkg = __import__(pname)
-        except BaseException as e:
-            log("Failed to import '%s': '%s'" % (pname, str(e)))
-            continue
+        all_modules += modules
 
-        modules.append(pname)
-
-        import sys
-        pkg = sys.modules[pname]
-
-        prefix = pkg.__name__ + "."
-        for _, modname, ispkg in pkgutil.iter_modules(pkg.__path__, prefix):
-            if ispkg:
-                packages.append(modname)
-            else:
-                modules.append(modname)
-
-    for module in modules:
+    for module in all_modules:
         try:
             load_python_module(module)
         except BaseException as e:

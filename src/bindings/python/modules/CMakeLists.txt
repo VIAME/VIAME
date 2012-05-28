@@ -16,7 +16,11 @@ add_python_module(modules.py
   vistk/modules
   modules)
 
+add_python_module(loaders.py
+  vistk/modules
+  loaders)
+
 make_python_init_file(vistk/modules)
 #  modules)
-make_python_init_file(vistk/processes)
-make_python_init_file(vistk/schedules)
+make_python_plugin_init_file(vistk/processes)
+make_python_plugin_init_file(vistk/schedules)
