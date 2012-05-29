@@ -73,12 +73,15 @@ if (VISTK_ENABLE_PYTHON)
       set(python_sitepath /site-packages)
     endif (python_noarch)
 
+    set(output_module_path
+      "${PYTHON_OUTPUT_PATH}${sitepath}/${modpath}/${module}.py")
+
     configure_file(
       "${path}"
-      "${PYTHON_OUTPUT_PATH}${python_sitepath}/${modpath}/${module}.py"
+      "${output_module_path}"
       @ONLY)
     set_directory_properties(PROPERTIES
-      ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}${python_sitepath}/${modpath}/${module}.py")
+      ADDITIONAL_MAKE_CLEAN_FILES "${output_module_path}")
 
     foreach (config ${CMAKE_CONFIGURATION_TYPES})
       if (WIN32)
@@ -87,17 +90,20 @@ if (VISTK_ENABLE_PYTHON)
 
       string(TOUPPER "${config}" upper_config)
 
+      set(output_module_path
+        "${output_path}${sitepath}/${modpath}/${module}.py")
+
       configure_file(
         "${path}"
-        "${output_path}${python_sitepath}/${modpath}/${module}.py"
+        "${output_module_path}"
         @ONLY)
       set_directory_properties(PROPERTIES
-        ADDITIONAL_MAKE_CLEAN_FILES "${output_path}${python_sitepath}/${modpath}/${module}.py")
+        ADDITIONAL_MAKE_CLEAN_FILES "${output_module_path}")
     endforeach (config)
 
     if (NOT ${suppress_install})
       install(
-        FILES       "${PYTHON_OUTPUT_PATH}${python_sitepath}/${modpath}/${module}.py"
+        FILES       "${PYTHON_OUTPUT_PATH}${sitepath}/${modpath}/${module}.py"
         DESTINATION "${PYTHON_INSTALL_PATH}${python_sitepath}/${modpath}"
         COMPONENT   runtime)
     endif (NOT ${suppress_install})
@@ -106,7 +112,7 @@ if (VISTK_ENABLE_PYTHON)
   function (add_python_module path modpath module)
     _add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/${path}"
       ${modpath}
-      __init__)
+      ${module})
   endfunction (add_python_module path modpath module)
 
   function (make_python_init_file modpath)
