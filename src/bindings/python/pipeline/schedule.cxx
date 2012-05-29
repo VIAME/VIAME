@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <python/helpers/exceptions.h>
+
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/schedule.h>
 #include <vistk/pipeline/schedule_exception.h>
@@ -83,7 +85,7 @@ wrap_schedule
 
   (void)gil;
 
-  get_pure_override("_start")();
+  HANDLE_PYTHON_EXCEPTION(get_pure_override("_start")())
 }
 
 void
@@ -94,7 +96,7 @@ wrap_schedule
 
   (void)gil;
 
-  get_pure_override("_wait")();
+  HANDLE_PYTHON_EXCEPTION(get_pure_override("_wait")())
 }
 
 void
@@ -105,7 +107,7 @@ wrap_schedule
 
   (void)gil;
 
-  get_pure_override("_stop")();
+  HANDLE_PYTHON_EXCEPTION(get_pure_override("_stop")())
 }
 
 vistk::pipeline_t

@@ -4,6 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <python/helpers/exceptions.h>
 #include <python/helpers/python_wrap_const_shared_ptr.h>
 #include <python/helpers/set_indexing_suite.h>
 
@@ -509,7 +510,7 @@ wrap_process
 
     if (f)
     {
-      f();
+      HANDLE_PYTHON_EXCEPTION(f())
 
       return;
     }
@@ -531,7 +532,7 @@ wrap_process
 
     if (f)
     {
-      f();
+      HANDLE_PYTHON_EXCEPTION(f())
 
       return;
     }
@@ -553,7 +554,7 @@ wrap_process
 
     if (f)
     {
-      f();
+      HANDLE_PYTHON_EXCEPTION(f())
 
       return;
     }
@@ -575,7 +576,7 @@ wrap_process
 
     if (f)
     {
-      f();
+      HANDLE_PYTHON_EXCEPTION(f())
 
       return;
     }
@@ -597,7 +598,7 @@ wrap_process
 
     if (f)
     {
-      return f();
+      HANDLE_PYTHON_EXCEPTION(return f())
     }
   }
 
@@ -617,7 +618,7 @@ wrap_process
 
     if (f)
     {
-      f(port, edge);
+      HANDLE_PYTHON_EXCEPTION(f(port, edge))
 
       return;
     }
@@ -639,7 +640,7 @@ wrap_process
 
     if (f)
     {
-      f(port, edge);
+      HANDLE_PYTHON_EXCEPTION(f(port, edge))
 
       return;
     }
@@ -661,7 +662,7 @@ wrap_process
 
     if (f)
     {
-      return f();
+      HANDLE_PYTHON_EXCEPTION(return f())
     }
   }
 
@@ -681,7 +682,7 @@ wrap_process
 
     if (f)
     {
-      return f();
+      HANDLE_PYTHON_EXCEPTION(return f())
     }
   }
 
@@ -701,7 +702,7 @@ wrap_process
 
     if (f)
     {
-      return f(port);
+      HANDLE_PYTHON_EXCEPTION(return f(port))
     }
   }
 
@@ -721,7 +722,7 @@ wrap_process
 
     if (f)
     {
-      return f(port);
+      HANDLE_PYTHON_EXCEPTION(return f(port))
     }
   }
 
@@ -741,7 +742,7 @@ wrap_process
 
     if (f)
     {
-      return f(port, new_type);
+      HANDLE_PYTHON_EXCEPTION(return f(port, new_type))
     }
   }
 
@@ -761,7 +762,7 @@ wrap_process
 
     if (f)
     {
-      return f(port, new_type);
+      HANDLE_PYTHON_EXCEPTION(return f(port, new_type))
     }
   }
 
@@ -781,7 +782,7 @@ wrap_process
 
     if (f)
     {
-      return f();
+      HANDLE_PYTHON_EXCEPTION(return f())
     }
   }
 
@@ -801,7 +802,7 @@ wrap_process
 
     if (f)
     {
-      return f(key);
+      HANDLE_PYTHON_EXCEPTION(return f(key))
     }
   }
 

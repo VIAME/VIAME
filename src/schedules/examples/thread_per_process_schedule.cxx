@@ -78,7 +78,7 @@ thread_per_process_schedule
 
   BOOST_FOREACH (process::name_t const& name, names)
   {
-    process_t process = pipeline()->process_by_name(name);
+    process_t const process = pipeline()->process_by_name(name);
 
     d->process_threads.create_thread(boost::bind(run_process, process));
   }
