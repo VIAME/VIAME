@@ -79,13 +79,13 @@ function (_add_python_module path modpath module)
 
   vistk_configure_file(python-module-${python_arch}-${safe_modpath}-${module}
     "${path}"
-    "${python_output_path}${python_sitepath}/${modpath}/${module}.py"
+    "${python_output_path}${sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
     vistk_configure_file(python-module-${python_arch}-${safe_modpath}-${module}-${config}
       "${path}"
-      "${python_output_path}/${config}${python_sitepath}/${modpath}/${module}.py"
+      "${python_output_path}/${config}${sitepath}/${modpath}/${module}.py"
       PYTHON_EXECUTABLE)
 
     add_dependencies(python
@@ -93,7 +93,7 @@ function (_add_python_module path modpath module)
   endforeach (config)
 
   vistk_install(
-    FILES       "${python_output_path}${python_sitepath}/${modpath}/${module}.py"
+    FILES       "${python_output_path}${sitepath}/${modpath}/${module}.py"
     DESTINATION "${python_install_path}/python${PYTHON_VERSION}${python_sitepath}/${modpath}"
     COMPONENT   runtime)
 
@@ -103,6 +103,7 @@ function (_add_python_module path modpath module)
   if (python_both_arch)
     set(python_both_arch)
     set(python_noarch TRUE)
+    set(sitepath /site-packages)
 
     if (NOT WIN32)
       _add_python_module(
@@ -120,7 +121,7 @@ function (add_python_module path modpath module)
 endfunction (add_python_module path modpath module)
 
 set(copyright_header
-"# ckwg +5
+"#ckwg +4
 # Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.")
