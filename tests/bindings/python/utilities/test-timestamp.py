@@ -7,25 +7,32 @@
 
 def test_import():
     try:
-        import vistk.scoring.scoring_result
+        import vistk.utilities.timestamp
     except:
-        test_error("Failed to import the scoring_result module")
+        test_error("Failed to import the timestamp module")
 
 
 def test_api_calls():
-    from vistk.scoring import scoring_result
+    from vistk.utilities import timestamp
 
-    result = scoring_result.ScoringResult(1, 1, 1)
+    # TODO Check to make sure the correct ctor is called.
 
-    result.true_positives
-    result.false_positives
-    result.total_trues
-    result.total_possible
-    result.percent_detection()
-    result.precision()
-    result.specificity()
+    t = timestamp.Timestamp()
+    t = timestamp.Timestamp(1)
+    t = timestamp.Timestamp(1.0)
+    t = timestamp.Timestamp(1.0, 0)
 
-    result + result
+    t.has_time()
+    t.has_frame()
+    t.set_time(1.0)
+    t.set_frame(1)
+    t.clear_time()
+    t.clear_frame()
+    t.is_valid()
+
+    t == t
+    t <  t
+    t >  t
 
 
 def main(testname):

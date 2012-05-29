@@ -7,25 +7,38 @@
 
 def test_import():
     try:
-        import vistk.scoring.scoring_result
+        import vistk.utilities.homography
     except:
-        test_error("Failed to import the scoring_result module")
+        test_error("Failed to import the homography module")
 
 
 def test_api_calls():
-    from vistk.scoring import scoring_result
+    from vistk.utilities import homography
+    from vistk.utilities import timestamp
 
-    result = scoring_result.ScoringResult(1, 1, 1)
+    homog = homography.ImageToImageHomography()
 
-    result.true_positives
-    result.false_positives
-    result.total_trues
-    result.total_possible
-    result.percent_detection()
-    result.precision()
-    result.specificity()
+    t = homog.transform()
+    homog.is_valid()
+    homog.is_new_reference()
+    homog.set_transform(t)
+    homog.set_identity()
+    homog.set_valid(False)
+    homog.set_new_reference(False)
 
-    result + result
+    t.get(0, 0)
+    t.set(0, 0, 1)
+
+    homog == homog
+
+    s = timestamp.Timestamp()
+    d = timestamp.Timestamp()
+
+    homog.inverse()
+    homog.set_source(s)
+    homog.set_destination(d)
+    homog.source()
+    homog.destination()
 
 
 def main(testname):

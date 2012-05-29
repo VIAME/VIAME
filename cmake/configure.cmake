@@ -30,8 +30,7 @@ function (vistk_configure_file name source dest)
 configure_file(
   \"${source}\"
   \"${dest}\"
-  @ONLY)
-")
+  @ONLY)\n")
 
   add_custom_command(
     OUTPUT  "${dest}"

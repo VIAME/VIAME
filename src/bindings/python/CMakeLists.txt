@@ -109,7 +109,8 @@ function (make_python_init_file modpath)
 
   set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
 
-  file(WRITE "${init_template}" "${copyright_header}\n\n")
+  file(WRITE "${init_template}"
+    "${copyright_header}\n\n")
 
   foreach (module ${ARGN})
     file(APPEND "${init_template}"
@@ -126,15 +127,19 @@ function (make_python_plugin_init_file modpath)
 
   set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
 
-  file(WRITE "${init_template}" "${copyright_header}\n\n")
-  file(APPEND "${init_template}" "from pkgutil import extend_path\n")
-  file(APPEND "${init_template}" "__path__ = extend_path(__path__, __name__)")
+  file(WRITE "${init_template}"
+    "${copyright_header}\n\n")
+  file(APPEND "${init_template}"
+    "from pkgutil import extend_path\n")
+  file(APPEND "${init_template}"
+    "__path__ = extend_path(__path__, __name__)\n")
 
   _add_python_module("${init_template}"
     ${modpath}
     __init__)
 endfunction (make_python_plugin_init_file modpath)
 
+add_subdirectory(utilities)
 add_subdirectory(image)
 add_subdirectory(scoring)
 add_subdirectory(modules)
