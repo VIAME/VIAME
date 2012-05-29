@@ -31,7 +31,7 @@ function (add_python_tool name)
     vistk_install(
       PROGRAMS    "${vistk_binary_dir}/bin/${name}"
       DESTINATION bin
-      COMPONENT   tools)
+      COMPONENT   tool)
   endif (VISTK_ENABLE_PYTHON)
 endfunction (add_python_tool)
 
