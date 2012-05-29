@@ -13,6 +13,7 @@ vistk_configure_file(vistk-config.cmake
   "${vistk_config_file}"
   vistk_source_dir
   vistk_binary_dir
+  vistk_version
   VISTK_ENABLE_PYTHON
   VISTK_ENABLE_PYTHON3
   PYTHON_EXECUTABLE)

@@ -1,3 +1,6 @@
+set(VISTK_VERSION
+  "@vistk_version@")
+
 # vistk include directory
 set(VISTK_INCLUDE_DIR
   "@vistk_source_dir@/src"
