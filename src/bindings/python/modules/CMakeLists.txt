@@ -17,7 +17,6 @@ add_python_module(modules.py
   modules)
 
 option(VISTK_ASSUME_STRAIGHT_PLUGIN "Assume the straight.plugin Python module exists" OFF)
-
 if (NOT VISTK_ASSUME_STRAIGHT_PLUGIN)
   add_python_module(loaders.py
     vistk/modules
@@ -26,5 +25,8 @@ endif (NOT VISTK_ASSUME_STRAIGHT_PLUGIN)
 
 make_python_init_file(vistk/modules)
 #  modules)
+
+set (python_both_arch TRUE)
+
 make_python_plugin_init_file(vistk/processes)
 make_python_plugin_init_file(vistk/schedules)
