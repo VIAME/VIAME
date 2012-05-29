@@ -54,6 +54,28 @@ def test_extra_modules():
         test_error("Failed to load extra Python processes")
 
 
+def test_pythonpath():
+    from vistk.pipeline import modules
+    from vistk.pipeline import process_registry
+    from vistk.pipeline import schedule_registry
+
+    modules.load_known_modules()
+
+    reg = process_registry.ProcessRegistry.self()
+
+    types = reg.types()
+
+    if 'pythonpath_test_process' not in types:
+        test_error("Failed to load extra Python processes accessible from PYTHONPATH")
+
+    reg = schedule_registry.ScheduleRegistry.self()
+
+    types = reg.types()
+
+    if 'pythonpath_test_schedule' not in types:
+        test_error("Failed to load extra Python schedules accessible from PYTHONPATH")
+
+
 def main(testname):
     if testname == 'import':
         test_import()
@@ -63,6 +85,8 @@ def main(testname):
         test_masking()
     elif testname == 'extra_modules':
         test_extra_modules()
+    elif testname == 'pythonpath':
+        test_pythonpath()
     else:
         test_error("No such test '%s'" % testname)
 
