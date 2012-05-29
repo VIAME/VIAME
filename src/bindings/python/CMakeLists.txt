@@ -99,6 +99,18 @@ function (_add_python_module path modpath module)
 
   add_dependencies(python
     python-module-${python_arch}-${safe_modpath}-${module})
+
+  if (python_both_arch)
+    set(python_both_arch)
+    set(python_noarch TRUE)
+
+    if (NOT WIN32)
+      _add_python_module(
+        "${path}"
+        ${modpath}
+        ${module})
+    endif (NOT WIN32)
+  endif (python_both_arch)
 endfunction (_add_python_module path modpath module)
 
 function (add_python_module path modpath module)
