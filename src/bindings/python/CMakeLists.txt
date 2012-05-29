@@ -173,7 +173,6 @@ if (VISTK_ENABLE_TESTING)
   add_subdirectory(test)
 endif (VISTK_ENABLE_TESTING)
 
+set (python_both_arch TRUE)
+
 make_python_init_file(vistk)
-#  image
-#  pipeline
-#  pipeline_util)
