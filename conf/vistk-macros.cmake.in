@@ -59,7 +59,7 @@ if (VISTK_ENABLE_PYTHON)
     if (NOT ${no_install_plugin})
       install(
         TARGETS     python-${safe_modpath}-${name}
-        DESTINATION "@PYTHON_INSTALL_PATH@/${modpath}"
+        DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
         COMPONENT   runtime)
     endif (NOT ${no_install_plugin})
   endfunction (add_vistk_python_library name modpath)
@@ -67,12 +67,18 @@ if (VISTK_ENABLE_PYTHON)
   function (_add_python_module path modpath module)
     string(REPLACE "/" "." safe_modpath ${modpath})
 
+    set(python_sitepath)
+
+    if (python_noarch)
+      set(python_sitepath /site-packages)
+    endif (python_noarch)
+
     configure_file(
       "${path}"
-      "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
+      "${PYTHON_OUTPUT_PATH}${python_sitepath}/${modpath}/${module}.py"
       @ONLY)
     set_directory_properties(PROPERTIES
-      ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py")
+      ADDITIONAL_MAKE_CLEAN_FILES "${PYTHON_OUTPUT_PATH}${python_sitepath}/${modpath}/${module}.py")
 
     foreach (config ${CMAKE_CONFIGURATION_TYPES})
       if (WIN32)
@@ -83,16 +89,16 @@ if (VISTK_ENABLE_PYTHON)
 
       configure_file(
         "${path}"
-        "${output_path}/${modpath}/${module}.py"
+        "${output_path}${python_sitepath}/${modpath}/${module}.py"
         @ONLY)
       set_directory_properties(PROPERTIES
-        ADDITIONAL_MAKE_CLEAN_FILES "${output_path}/${modpath}/${module}.py")
+        ADDITIONAL_MAKE_CLEAN_FILES "${output_path}${python_sitepath}/${modpath}/${module}.py")
     endforeach (config)
 
     if (NOT ${suppress_install})
       install(
-        FILES       "${PYTHON_OUTPUT_PATH}/${modpath}/${module}.py"
-        DESTINATION "@PYTHON_INSTALL_PATH@/${modpath}"
+        FILES       "${PYTHON_OUTPUT_PATH}${python_sitepath}/${modpath}/${module}.py"
+        DESTINATION "${PYTHON_INSTALL_PATH}${python_sitepath}/${modpath}"
         COMPONENT   runtime)
     endif (NOT ${suppress_install})
   endfunction (_add_python_module path modpath module)
