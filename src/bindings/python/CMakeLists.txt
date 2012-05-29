@@ -62,34 +62,43 @@ endfunction (add_vistk_python_library name modpath)
 function (_add_python_module path modpath module)
   string(REPLACE "/" "." safe_modpath ${modpath})
 
-  vistk_configure_file(python-module-${safe_modpath}-${module}
+  set(python_sitepath)
+  set(python_arch arch)
+
+  if (WIN32)
+    set(python_install_path bin)
+  else (WIN32)
+    if (python_noarch)
+      set(python_install_path lib)
+      set(python_sitepath /site-packages)
+      set(python_arch noarch)
+    else (python_noarch)
+      set(python_install_path lib${LIB_SUFFIX})
+    endif (python_noarch)
+  endif (WIN32)
+
+  vistk_configure_file(python-module-${python_arch}-${safe_modpath}-${module}
     "${path}"
-    "${python_output_path}/${modpath}/${module}.py"
+    "${python_output_path}${python_sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    vistk_configure_file(python-module-${safe_modpath}-${module}-${config}
+    vistk_configure_file(python-module-${python_arch}-${safe_modpath}-${module}-${config}
       "${path}"
-      "${python_output_path}/${config}/${modpath}/${module}.py"
+      "${python_output_path}/${config}${python_sitepath}/${modpath}/${module}.py"
       PYTHON_EXECUTABLE)
 
     add_dependencies(python
-      python-module-${safe_modpath}-${module}-${config})
+      python-module-${python_arch}-${safe_modpath}-${module}-${config})
   endforeach (config)
 
-  if (WIN32)
-    set(outdir bin)
-  else (WIN32)
-    set(outdir lib${LIB_SUFFIX})
-  endif (WIN32)
-
   vistk_install(
-    FILES       "${python_output_path}/${modpath}/${module}.py"
-    DESTINATION "${outdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath}"
+    FILES       "${python_output_path}${python_sitepath}/${modpath}/${module}.py"
+    DESTINATION "${python_install_path}/python${PYTHON_VERSION}${python_sitepath}/${modpath}"
     COMPONENT   runtime)
 
   add_dependencies(python
-    python-module-${safe_modpath}-${module})
+    python-module-${python_arch}-${safe_modpath}-${module})
 endfunction (_add_python_module path modpath module)
 
 function (add_python_module path modpath module)
