@@ -6,6 +6,8 @@
 
 #include "registration.h"
 
+#include <python/helpers/exceptions.h>
+
 #include <vistk/pipeline/utils.h>
 
 #include <vistk/python/util/python_gil.h>
@@ -19,6 +21,7 @@ using namespace vistk;
 
 static envvar_name_t const python_suppress_envvar = envvar_name_t("VISTK_NO_PYTHON_MODULES");
 
+static void load();
 static bool is_suppressed();
 
 void
@@ -31,21 +34,20 @@ register_processes()
 
   Py_Initialize();
 
-  try
-  {
-    vistk::python::python_gil const gil;
+  HANDLE_PYTHON_EXCEPTION(load())
+}
 
-    (void)gil;
+void
+load()
+{
+  vistk::python::python_gil const gil;
 
-    object const modules = import("vistk.modules.modules");
-    object const loader = modules.attr("load_python_modules");
+  (void)gil;
 
-    loader();
-  }
-  catch (error_already_set& /*e*/)
-  {
-    /// \todo Implement.
-  }
+  object const modules = import("vistk.modules.modules");
+  object const loader = modules.attr("load_python_modules");
+
+  loader();
 }
 
 bool
