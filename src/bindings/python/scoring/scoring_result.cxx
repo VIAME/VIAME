@@ -36,6 +36,7 @@ static vistk::scoring_result_t result_add(vistk::scoring_result_t const& lhs, vi
 
 BOOST_PYTHON_MODULE(scoring_result)
 {
+  /// \todo For some reason these bindings are busted.
   class_<vistk::scoring_result_t>("ScoringResult"
     , "A result from a scoring algorithm."
     , no_init)
