@@ -274,6 +274,6 @@ import_numpy()
   import_array();
 
 #if PY_VERSION_HEX >= 0x03000000
-  return NULL;
+  return pyimport_return_t();
 #endif
 }
