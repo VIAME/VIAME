@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -40,7 +40,7 @@ typedef boost::function<opt_pyobject_t (boost::any const&)> to_any_func_t;
 typedef uint64_t priority_t;
 
 /**
- * \brief Registers functions for conversions between boost::any and Python.
+ * \brief Register functions for conversions between boost::any and Python.
  *
  * \param priority The priority for the type conversion.
  * \param from The function for converting from Python.

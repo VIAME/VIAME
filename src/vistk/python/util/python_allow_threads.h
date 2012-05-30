@@ -26,6 +26,8 @@ namespace python
 {
 
 /**
+ * \class python_allow_threads python_allow_threads.h <vistk/python/util/python_allow_threads.h>
+ *
  * \brief RAII class for calling into non-Python code.
  */
 class VISTK_PYTHON_UTIL_EXPORT python_allow_threads

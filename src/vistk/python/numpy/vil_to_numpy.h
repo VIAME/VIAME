@@ -14,14 +14,30 @@
 
 #include <Python.h>
 
+/**
+ * \file vil_to_numpy.h
+ *
+ * \brief Implementation of a vil-to-NumPy converter function.
+ */
+
 namespace vistk
 {
 
 namespace python
 {
 
+/**
+ * \brief Convert a \c vil_image_view_base into a NumPy image.
+ *
+ * \returns A NumPy image, or \c None on failure.
+ */
 VISTK_PYTHON_NUMPY_EXPORT PyObject* vil_to_numpy(vil_image_view_base_sptr const& img);
 
+/**
+ * \brief Convert a \c vil_image_view instantation into a NumPy image.
+ *
+ * \returns A NumPy image, or \c None on failure.
+ */
 template <typename T>
 VISTK_PYTHON_NUMPY_EXPORT PyObject* vil_to_numpy(vil_image_view<T> const& img);
 

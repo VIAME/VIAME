@@ -14,6 +14,12 @@
 
 #include <numpy/arrayobject.h>
 
+/**
+ * \file numpy_memory_chunk.cxx
+ *
+ * \brief Implementation of a NumPy-managed memory chunk for vil.
+ */
+
 static vil_pixel_format convert_format(int numpy_format);
 
 numpy_memory_chunk

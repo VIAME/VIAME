@@ -12,6 +12,12 @@
 
 #include <numpy/arrayobject.h>
 
+/**
+ * \file import.cxx
+ *
+ * \brief Implementation of functions for importing the NumPy module.
+ */
+
 namespace vistk
 {
 

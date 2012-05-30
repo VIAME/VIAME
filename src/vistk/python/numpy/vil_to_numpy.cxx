@@ -20,6 +20,12 @@
 
 #include <numpy/arrayobject.h>
 
+/**
+ * \file vil_to_numpy.cxx
+ *
+ * \brief Implementation of a vil-to-NumPy converter function.
+ */
+
 using namespace boost::python;
 
 namespace vistk

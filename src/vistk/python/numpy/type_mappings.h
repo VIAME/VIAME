@@ -9,6 +9,12 @@
 
 #include <vil/vil_pixel_format.h>
 
+/**
+ * \file type_mappings.h
+ *
+ * \brief Macros to assist in converting between NumPy and vil images.
+ */
+
 /// \todo Is there a define for C++11?
 #if 0
 #include <complex>
