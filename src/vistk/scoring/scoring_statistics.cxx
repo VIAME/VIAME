@@ -6,6 +6,12 @@
 
 #include "scoring_statistics.h"
 
+/**
+ * \file scoring_statistics.cxx
+ *
+ * \brief Implementation of a scoring result statistics class.
+ */
+
 namespace vistk
 {
 

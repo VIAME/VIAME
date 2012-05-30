@@ -17,6 +17,12 @@
 
 #include <limits>
 
+/**
+ * \file statistics.cxx
+ *
+ * \brief Implementation of a statistics class.
+ */
+
 namespace ba = boost::accumulators;
 
 namespace vistk

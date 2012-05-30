@@ -26,7 +26,7 @@ namespace vistk
 /**
  * \class scoring_result scoring_result.h <vistk/scoring/scoring_result.h>
  *
- * \brief A class which represents the result of a scoring operation.
+ * \brief The result of a scoring operation.
  */
 class VISTK_SCORING_EXPORT scoring_result
 {
