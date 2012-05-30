@@ -7,6 +7,8 @@
 #ifndef VISTK_PYTHON_HELPERS_EXCEPTIONS_H
 #define VISTK_PYTHON_HELPERS_EXCEPTIONS_H
 
+/// \todo More useful output?
+
 #define HANDLE_PYTHON_EXCEPTION(call)       \
   try                                       \
   {                                         \
