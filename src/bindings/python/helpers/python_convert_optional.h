@@ -132,18 +132,19 @@ register_optional_converter(char const* name, char const* desc)
 {
   typedef boost_optional_converter<T> converter_t;
   typedef typename converter_t::optional_t optional_t;
+  typedef boost_optional_operations<T> operations_t;
 
   boost::python::class_<optional_t>(name
     , desc
     , boost::python::no_init)
     .def(boost::python::init<>())
     .def(boost::python::init<T>())
-    .def("empty", &boost_optional_operations<T>::not_
+    .def("empty", &operations_t::not_
       , "True if there is no value, False otherwise.")
-    .def("get", &boost_optional_operations<T>::get
+    .def("get", &operations_t::get
       , "Returns the contained value, or None if there isn\'t one."
       , boost::python::return_internal_reference<>())
-    .def("get", &boost_optional_operations<T>::get_default
+    .def("get", &operations_t::get_default
       , (boost::python::arg("default"))
       , "Returns the contained value, or default if there isn\'t one."
       , boost::python::return_internal_reference<>())
