@@ -542,13 +542,13 @@ CLASS_NAME(name)                                                      \
                                                                       \
 void                                                                  \
 CLASS_NAME(name)                                                      \
-::_init()                                                             \
+::_configure()                                                        \
 {                                                                     \
   conf(GRAB_CONFIG_VALUE, LINES)                                      \
                                                                       \
   d.reset(new priv(conf(CONF_ARGS, ARGS)));                           \
                                                                       \
-  process::_init();                                                   \
+  process::_configure();                                              \
 }                                                                     \
                                                                       \
 void                                                                  \
