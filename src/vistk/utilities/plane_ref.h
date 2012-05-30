@@ -28,7 +28,7 @@ namespace vistk
  * \brief An arbitrary reference plane.
  */
 class VISTK_UTILITIES_EXPORT plane_ref
-  : boost::equality_comparable<vistk::plane_ref>
+  : public boost::equality_comparable<vistk::plane_ref>
 {
   public:
     /// The type of the reference.
