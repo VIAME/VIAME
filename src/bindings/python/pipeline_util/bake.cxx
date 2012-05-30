@@ -32,13 +32,8 @@ using namespace boost::python;
 static vistk::pipeline_t bake_pipe_file(std::string const& path);
 static vistk::pipeline_t bake_pipe(object stream, std::string const& inc_root);
 
-static void translator(vistk::pipe_bakery_exception const& e);
-
 BOOST_PYTHON_MODULE(bake)
 {
-  register_exception_translator<
-    vistk::pipe_bakery_exception>(translator);
-
   def("bake_pipe_file", &bake_pipe_file
     , (arg("path"))
     , "Build a pipeline from a file.");
@@ -69,14 +64,4 @@ bake_pipe(object stream, std::string const& inc_root)
   pyistream istr(stream);
 
   return vistk::bake_pipe(istr, vistk::path_t(inc_root));
-}
-
-void
-translator(vistk::pipe_bakery_exception const& e)
-{
-  vistk::python::python_gil const gil;
-
-  (void)gil;
-
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }

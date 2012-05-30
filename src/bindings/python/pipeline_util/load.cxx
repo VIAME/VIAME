@@ -50,13 +50,8 @@ static void pipe_block_group_set(vistk::pipe_block& block, vistk::group_pipe_blo
 static vistk::pipe_blocks load_pipe_file(std::string const& path);
 static vistk::pipe_blocks load_pipe(object const& stream, std::string const& inc_root);
 
-static void translator(vistk::load_pipe_exception const& e);
-
 BOOST_PYTHON_MODULE(load)
 {
-  register_exception_translator<
-    vistk::load_pipe_exception>(translator);
-
   register_optional_converter<vistk::config_flags_t>("ConfigFlagsOpt", "An optional config flags.");
   register_optional_converter<vistk::config_provider_t>("ConfigProviderOpt", "An optional config provider.");
   register_optional_converter<vistk::process::port_flags_t>("PortFlagsOpt", "An optional port flags.");
@@ -158,12 +153,6 @@ BOOST_PYTHON_MODULE(load)
   def("load_pipe", &load_pipe
     , (arg("stream"), arg("inc_root") = std::string())
     , "Load pipe blocks from a stream.");
-}
-
-void
-translator(vistk::load_pipe_exception const& e)
-{
-  PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
 class group_subblock_visitor
