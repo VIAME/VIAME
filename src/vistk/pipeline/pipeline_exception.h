@@ -36,7 +36,7 @@ class VISTK_PIPELINE_EXPORT pipeline_addition_exception
 /**
  * \class null_pipeline_config_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
- * \brief Thrown when \c NULL \ref config is passed to a pipeline.
+ * \brief Thrown when a \c NULL \ref config is passed to a pipeline.
  *
  * \ingroup exceptions
  */
@@ -425,13 +425,13 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch_exception
     process::name_t const m_upstream_name;
     /// The name of the upstream port requested.
     process::port_t const m_upstream_port;
-    /// The name of the type available on the upstream port.
+    /// The type available on the upstream port.
     process::port_type_t const m_upstream_type;
     /// The name of the downstream process requested.
     process::name_t const m_downstream_name;
     /// The name of the downstream port requested.
     process::port_t const m_downstream_port;
-    /// The name of the type available on the downstream port.
+    /// The type available on the downstream port.
     process::port_type_t const m_downstream_type;
 };
 

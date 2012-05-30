@@ -24,7 +24,7 @@ null_pipeline_config_exception
 {
   std::ostringstream sstr;
 
-  sstr << "A NULL configuration was passed to a pipeline.";
+  sstr << "A NULL configuration was passed to a pipeline";
 
   m_what = sstr.str();
 }
@@ -45,7 +45,7 @@ add_after_setup_exception
   std::string const& type = (m_is_process ? "process" : "group");
 
   sstr << "The " << type << " named \'" << m_name << "\' "
-          "was added to the pipeline after it was setup.";
+          "was added to the pipeline after it was setup";
 
   m_what = sstr.str();
 }
@@ -62,7 +62,7 @@ null_process_addition_exception
   std::ostringstream sstr;
 
   sstr << "A pipeline was given NULL as a process "
-          "to add to the pipeline.";
+          "to add to the pipeline";
 
   m_what = sstr.str();
 }
@@ -81,7 +81,7 @@ duplicate_process_name_exception
 
   sstr << "A pipeline was given a process named "
           "\'" << m_name << "\' when one already "
-          "exists by that name.";
+          "exists by that name";
 
   m_what = sstr.str();
 }
@@ -102,7 +102,7 @@ remove_after_setup_exception
   std::string const& type = (m_is_process ? "process" : "group");
 
   sstr << "The " << type << " named \'" << m_name << "\' "
-          "was removed from the pipeline after it was setup.";
+          "was removed from the pipeline after it was setup";
 
   m_what = sstr.str();
 }
@@ -128,7 +128,7 @@ connection_after_setup_exception
   sstr << "The connection from "
           "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
           "\'" << m_downstream_name << "." << m_downstream_port << "\', "
-          "was requested after the pipeline was setup.";
+          "was requested after the pipeline was setup";
 
   m_what = sstr.str();
 }
@@ -154,7 +154,7 @@ disconnection_after_setup_exception
   sstr << "The connection from "
           "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
           "\'" << m_downstream_name << "." << m_downstream_port << "\', "
-          "was requested to be disconnected after the pipeline was setup.";
+          "was requested to be disconnected after the pipeline was setup";
 
   m_what = sstr.str();
 }
@@ -173,7 +173,7 @@ no_such_process_exception
 
   sstr << "A process named \'" << m_name << "\' "
           "was requested for a connection but "
-          "it does not exist in the pipeline.";
+          "it does not exist in the pipeline";
 
   m_what = sstr.str();
 }
@@ -206,7 +206,7 @@ connection_dependent_type_exception
           "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
           "\'" << m_downstream_name << "." << m_downstream_port << "\', "
           "the process \'" << error_name << "\' rejected the type "
-          "\'" << m_type << "\'.";
+          "\'" << m_type << "\'";
 
   m_what = sstr.str();
 }
@@ -247,7 +247,7 @@ connection_dependent_type_cascade_exception
           "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
           "\'" << m_downstream_name << "." << m_downstream_port << "\' "
           "was set to the type \'" << m_cascade_type << "\' which was "
-          "rejected by the \'" << error_name << "\' process.";
+          "rejected by the \'" << error_name << "\' process";
 
   m_what = sstr.str();
 }
@@ -279,7 +279,7 @@ connection_type_mismatch_exception
           "and the \'" << m_downstream_port << "\' on the "
           "\'" << m_downstream_name << "\' connection mismatching "
           "types: up: \'" << m_upstream_type << "\' down: "
-          "\'" << m_downstream_type << "\'.";
+          "\'" << m_downstream_type << "\'";
 
   m_what = sstr.str();
 }
@@ -305,8 +305,8 @@ connection_flag_mismatch_exception
   sstr << "The connection between the \'" <<m_upstream_port << "\' "
           "port on the \'" << m_upstream_name << "\' upstream "
           "and the \'" << m_downstream_port << "\' on the "
-          "\'" << m_downstream_name << "\' connection mismatching "
-          "flags.";
+          "\'" << m_downstream_name << "\' connection have "
+          "mismatching flags";
 
   m_what = sstr.str();
 }
@@ -322,7 +322,7 @@ pipeline_duplicate_setup_exception
 {
   std::ostringstream sstr;
 
-  sstr << "The pipeline was setup a second time.";
+  sstr << "The pipeline was setup a second time";
 
   m_what = sstr.str();
 }
@@ -338,7 +338,7 @@ no_processes_exception
 {
   std::ostringstream sstr;
 
-  sstr << "The pipeline was setup without any processes in it.";
+  sstr << "The pipeline was setup without any processes in it";
 
   m_what = sstr.str();
 }
@@ -354,7 +354,7 @@ orphaned_processes_exception
 {
   std::ostringstream sstr;
 
-  sstr << "There are unconnected processes in the pipeline.";
+  sstr << "There are unconnected processes in the pipeline";
 
   m_what = sstr.str();
 }
@@ -372,7 +372,7 @@ not_a_dag_exception
 
   sstr << "The pipeline contains a cycle in it. Backwards "
           "edges should only be connected to input ports "
-          "which have the process::flag_input_nodep flag on them.";
+          "which have the process::flag_input_nodep flag on them";
 
   m_what = sstr.str();
 }
@@ -392,7 +392,7 @@ untyped_data_dependent_exception
 
   sstr << "After configure, the \'" << m_port << "\' "
           "port on the \'" << m_name << "\' process "
-          "was still marked as data-dependent.";
+          "was still marked as data-dependent";
 
   m_what = sstr.str();
 }
@@ -409,7 +409,7 @@ untyped_connection_exception
   std::ostringstream sstr;
 
   sstr << "After all of the processes have been initialized, "
-          "there are still untyped connections in the pipeline.";
+          "there are still untyped connections in the pipeline";
 
   m_what = sstr.str();
 }
@@ -427,8 +427,8 @@ no_such_group_exception
   std::ostringstream sstr;
 
   sstr << "A group named \'" << m_name << "\' "
-          "was requested it does not exist in "
-          "the pipeline.";
+          "was requested but it does not exist in "
+          "the pipeline";
 
   m_what = sstr.str();
 }
@@ -448,7 +448,7 @@ no_such_group_port_exception
 
   sstr << "The \'" << m_port << "\' on the group "
           "named \'" << m_name << "\' was "
-          "requested when it does not exist.";
+          "requested when it does not exist";
 
   m_what = sstr.str();
 }
@@ -481,7 +481,7 @@ group_output_already_mapped_exception
           "\'" << m_current_process << "\' process, but "
           "was attempted to be connected to the "
           "\'" << m_new_port << "\' port of the "
-          "\'" << m_new_process << "\' process.";
+          "\'" << m_new_process << "\' process";
 
   m_what = sstr.str();
 }
@@ -496,7 +496,7 @@ reset_running_pipeline_exception
 {
   std::ostringstream sstr;
 
-  sstr << "A pipeline was running when a reset was attempted.";
+  sstr << "A pipeline was running when a reset was attempted";
 
   m_what = sstr.str();
 }
@@ -512,7 +512,7 @@ pipeline_not_setup_exception
 {
   std::ostringstream sstr;
 
-  sstr << "The pipeline has not been setup.";
+  sstr << "The pipeline has not been setup";
 
   m_what = sstr.str();
 }
@@ -528,7 +528,7 @@ pipeline_not_ready_exception
 {
   std::ostringstream sstr;
 
-  sstr << "The pipeline has not been successfully setup.";
+  sstr << "The pipeline has not been successfully setup";
 
   m_what = sstr.str();
 }
@@ -544,7 +544,7 @@ pipeline_not_running_exception
 {
   std::ostringstream sstr;
 
-  sstr << "A pipeline was stopped before it was started.";
+  sstr << "A pipeline was stopped before it was started";
 
   m_what = sstr.str();
 }

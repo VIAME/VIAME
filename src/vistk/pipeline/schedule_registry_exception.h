@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -62,7 +62,7 @@ class VISTK_PIPELINE_EXPORT null_schedule_ctor_exception
 /**
  * \class null_schedule_registry_config_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
  *
- * \brief Thrown when \c NULL \ref config is passed to a schedule.
+ * \brief Thrown when a \c NULL \ref config is passed to a schedule.
  *
  * \ingroup exceptions
  */
@@ -83,7 +83,7 @@ class VISTK_PIPELINE_EXPORT null_schedule_registry_config_exception
 /**
  * \class null_schedule_registry_pipeline_exception schedule_registry_exception.h <vistk/pipeline/schedule_registry_exception.h>
  *
- * \brief Thrown when \c NULL \link vistk::pipeline\endlink is passed to a schedule.
+ * \brief Thrown when a \c NULL \link vistk::pipeline\endlink is passed to a schedule.
  *
  * \ingroup exceptions
  */

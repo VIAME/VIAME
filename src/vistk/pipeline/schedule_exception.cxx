@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -40,7 +40,7 @@ null_schedule_config_exception
 {
   std::ostringstream sstr;
 
-  sstr << "A NULL configuration was passed to a schedule.";
+  sstr << "A NULL configuration was passed to a schedule";
 
   m_what = sstr.str();
 }
@@ -56,7 +56,7 @@ null_schedule_pipeline_exception
 {
   std::ostringstream sstr;
 
-  sstr << "A NULL pipeline was passed to a schedule.";
+  sstr << "A NULL pipeline was passed to a schedule";
 
   m_what = sstr.str();
 }

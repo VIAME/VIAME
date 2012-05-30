@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -61,7 +61,7 @@ class VISTK_PIPELINE_EXPORT incompatible_pipeline_exception
 /**
  * \class null_schedule_config_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
- * \brief Thrown when \c NULL \ref config is passed to a schedule.
+ * \brief Thrown when a \c NULL \ref config is passed to a schedule.
  *
  * \ingroup exceptions
  */

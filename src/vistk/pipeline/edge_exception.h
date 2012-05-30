@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -124,20 +124,20 @@ class VISTK_PIPELINE_EXPORT duplicate_edge_connection_exception
     /**
      * \brief Constructor.
      *
-     * \param process The name of the process that was already connected.
-     * \param new_process The name of the process which was attemted to be connected.
+     * \param name The name of the process that was already connected.
+     * \param new_name The name of the process which was attemted to be connected.
      * \param type The type of connection.
      */
-    duplicate_edge_connection_exception(process::name_t const& process, process::name_t const& new_process, std::string const& type) throw();
+    duplicate_edge_connection_exception(process::name_t const& name, process::name_t const& new_name, std::string const& type) throw();
     /**
      * \brief Destructor.
      */
     virtual ~duplicate_edge_connection_exception() throw();
 
     /// The name of the process which was already connected.
-    process::name_t const m_process;
+    process::name_t const m_name;
     /// The name of the process which was attempted to be connected.
-    process::name_t const m_new_process;
+    process::name_t const m_new_name;
 };
 
 /**
@@ -157,7 +157,7 @@ class VISTK_PIPELINE_EXPORT input_already_connected_exception
      * \param process The name of the process that was already connected.
      * \param new_process The name of the process which was attemted to be connected.
      */
-    input_already_connected_exception(process::name_t const& process, process::name_t const& new_process) throw();
+    input_already_connected_exception(process::name_t const& name, process::name_t const& new_name) throw();
     /**
      * \brief Destructor.
      */
@@ -178,10 +178,10 @@ class VISTK_PIPELINE_EXPORT output_already_connected_exception
     /**
      * \brief Constructor.
      *
-     * \param process The name of the process that was already connected.
-     * \param new_process The name of the process which was attemted to be connected.
+     * \param name The name of the process that was already connected.
+     * \param new_name The name of the process which was attemted to be connected.
      */
-    output_already_connected_exception(process::name_t const& process, process::name_t const& new_process) throw();
+    output_already_connected_exception(process::name_t const& name, process::name_t const& new_name) throw();
     /**
      * \brief Destructor.
      */
