@@ -1,3 +1,38 @@
+# Macros to assist with creation of vistk plugins.
+# The following functions are defined:
+#   add_vistk_plugin
+# If Python support is enabled in vistk, the following functions are available:
+#   add_vistk_python_library
+#   _add_python_module
+#   add_python_module
+#   make_python_init_file
+#   make_python_plugin_init_file
+# Their syntax is:
+#   add_vistk_plugin(name define [source ...])
+#     Creates a vistk plugin and installs it to the proper location.
+#   _add_python_module(path modpath module)
+#     Creates a python module by configuring the given path into the correct
+#     directory given the modpath and the module's name (e.g., a module meant to
+#     be available as foo.bar.baz would have foo/bar as the modpath and baz as
+#     the module name).
+#   add_python_module(path modpath module)
+#     A wrapper around _add_python_module which takes a relative path.
+#   make_python_init_file(modpath [module ...])
+#     Create an __init__ module to make modpath into a Python package. Any
+#     package modules which are meant to be automatically imported may be given
+#     as remaining arguments.
+#   make_python_plugin_init_file(modpath)
+#     Create an __init__ module compatible with being an additional
+#     VISTK_PYTHON_MODULES value.
+#
+# Values expected to be set for functions include:
+#   copyright_header: A copyright header to put at the top of generated Python
+#     scripts.
+#   PYTHON_OUTPUT_PATH: An absolute path to output Python modules under.
+#   python_noarch: If truthy, Python modules will be installed to the
+#     architecture-independent directory. All modules are put into one namespace
+#     in the build directory.
+
 function (add_vistk_plugin name define)
   add_library(${name} SHARED
     ${ARGN})
