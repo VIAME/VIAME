@@ -88,7 +88,10 @@ dtor_registry
     return reg_self;
   }
 
-  boost::unique_lock<boost::mutex> const lock(mut);
+  boost::mutex::scoped_lock const lock(mut);
+
+  (void)lock;
+
   if (!reg_self)
   {
     reg_self = dtor_registry_t(new dtor_registry);

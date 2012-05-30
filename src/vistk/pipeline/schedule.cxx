@@ -57,7 +57,7 @@ schedule
 ::start()
 {
   {
-    boost::unique_lock<boost::mutex> const lock(d->mut);
+    boost::mutex::scoped_lock const lock(d->mut);
 
     (void)lock;
 
@@ -73,7 +73,7 @@ schedule
 ::wait()
 {
   {
-    boost::unique_lock<boost::mutex> const lock(d->mut);
+    boost::mutex::scoped_lock const lock(d->mut);
 
     (void)lock;
 
@@ -92,7 +92,7 @@ void
 schedule
 ::stop()
 {
-  boost::unique_lock<boost::mutex> const lock(d->mut);
+  boost::mutex::scoped_lock const lock(d->mut);
 
   (void)lock;
 

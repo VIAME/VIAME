@@ -26,7 +26,9 @@ stamp
 {
   static boost::mutex mut;
 
-  boost::lock_guard<boost::mutex> const lock(mut);
+  boost::mutex::scoped_lock const lock(mut);
+
+  (void)lock;
 
   stamp_t st(new stamp(m_new_color, 0));
   ++m_new_color;
