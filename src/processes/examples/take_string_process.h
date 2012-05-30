@@ -40,6 +40,8 @@ namespace vistk
  * \reqs
  *
  * \req The \port{string} port must be connected.
+ *
+ * \ingroup examples
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT take_string_process
   : public process

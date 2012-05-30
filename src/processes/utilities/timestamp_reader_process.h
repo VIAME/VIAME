@@ -40,6 +40,8 @@ namespace vistk
  * \reqs
  *
  * \req The \port{timestamp} output must be connected.
+ *
+ * \ingroup process_utilities
  */
 class VISTK_PROCESSES_UTILITIES_NO_EXPORT timestamp_reader_process
   : public process

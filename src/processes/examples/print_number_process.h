@@ -40,6 +40,8 @@ namespace vistk
  * \reqs
  *
  * \req The \port{number} port must be connected.
+ *
+ * \ingroup examples
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT print_number_process
   : public process

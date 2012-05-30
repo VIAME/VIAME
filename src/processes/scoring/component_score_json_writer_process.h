@@ -41,6 +41,8 @@ namespace vistk
  * \reqs
  *
  * \req At least one \port{score/\portvar{component}} port must be connected.
+ *
+ * \ingroup process_scoring
  */
 class VISTK_PROCESSES_SCORING_NO_EXPORT component_score_json_writer_process
   : public process

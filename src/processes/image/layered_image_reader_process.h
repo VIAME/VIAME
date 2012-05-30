@@ -42,6 +42,8 @@ namespace vistk
  * \reqs
  *
  * \req The output ports \port{image/\portvar{layer}} must be connected.
+ *
+ * \ingroup process_image
  */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT layered_image_reader_process
   : public process

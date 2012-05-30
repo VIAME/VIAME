@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -46,6 +46,8 @@ namespace vistk
  *
  * \req \key{start} must be less than \key{end}.
  * \req The \port{number} output must be connected to at least one edge.
+ *
+ * \ingroup examples
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
   : public process

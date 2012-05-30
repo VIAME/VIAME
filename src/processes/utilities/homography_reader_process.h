@@ -41,6 +41,8 @@ namespace vistk
  *
  * \req The \port{homography} output must be connected.
  * \req The \key{input} configuration must be a valid filepath.
+ *
+ * \ingroup process_utilities
  */
 class VISTK_PROCESSES_UTILITIES_NO_EXPORT homography_reader_process
   : public process

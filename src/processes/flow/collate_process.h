@@ -54,6 +54,8 @@ namespace vistk
  *
  * \todo Add configuration to allow forcing a number of inputs for a result.
  * \todo Add configuration to allow same number of sources for all results.
+ *
+ * \ingroup process_flow
  */
 class VISTK_PROCESSES_FLOW_NO_EXPORT collate_process
   : public process

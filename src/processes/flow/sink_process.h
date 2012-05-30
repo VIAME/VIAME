@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -36,6 +36,8 @@ namespace vistk
  * \reqs
  *
  * \req The \port{sink} port must be connected.
+ *
+ * \ingroup process_flow
  */
 class VISTK_PROCESSES_FLOW_NO_EXPORT sink_process
   : public process

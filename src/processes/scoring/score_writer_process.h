@@ -40,6 +40,8 @@ namespace vistk
  * \reqs
  *
  * \req The port \port{score} must be connected.
+ *
+ * \ingroup process_scoring
  */
 class VISTK_PROCESSES_SCORING_NO_EXPORT score_writer_process
   : public process

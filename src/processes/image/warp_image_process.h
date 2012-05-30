@@ -46,6 +46,8 @@ namespace vistk
  * \reqs
  *
  * \req The \port{image}, \port{transform}, and \port{warped_image} ports must be connected.
+ *
+ * \ingroup process_image
  */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT warp_image_process
   : public process

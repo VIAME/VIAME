@@ -42,6 +42,8 @@ namespace vistk
  *
  * \req The input ports \port{computed_mask} and \port{truth_mask} must be connected.
  * \req The output port \port{result} must be connected.
+ *
+ * \ingroup process_scoring
  */
 class VISTK_PROCESSES_SCORING_NO_EXPORT mask_scoring_process
   : public process

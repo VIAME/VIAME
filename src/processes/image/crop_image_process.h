@@ -51,6 +51,8 @@ namespace vistk
  * \req The \port{image} and \port{cropimage} ports must be connected.
  * \req The \key{x_offset}, \key{y_offset}, \key{width}, and \key{height}
  *      configurations must be set.
+ *
+ * \ingroup process_image
  */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT crop_image_process
   : public process

@@ -45,6 +45,8 @@ namespace vistk
  * \reqs
  *
  * \req The \port{rgbimage} and \port{grayimage} ports must be connected.
+ *
+ * \ingroup process_image
  */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT grayscale_process
   : public process

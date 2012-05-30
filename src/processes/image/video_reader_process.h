@@ -49,6 +49,8 @@ namespace vistk
  *
  * \req The \port{image} output must be connected.
  * \req The \key{input} configuration must be a valid filepath.
+ *
+ * \ingroup process_image
  */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT video_reader_process
   : public process

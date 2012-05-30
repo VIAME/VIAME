@@ -43,6 +43,8 @@ namespace vistk
  * \req At least two input masks must be provided.
  *
  * \todo Add support for \c and and \c xor combinations.
+ *
+ * \ingroup process_image
  */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT combine_masks_process
   : public process

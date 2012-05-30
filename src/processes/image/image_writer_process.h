@@ -44,6 +44,8 @@ namespace vistk
  *
  * \req The \port{image} port must be connected.
  * \req The \key{format} configuration must generate valid filepaths.
+ *
+ * \ingroup process_image
  */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT image_writer_process
   : public process

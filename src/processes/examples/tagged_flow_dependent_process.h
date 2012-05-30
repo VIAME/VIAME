@@ -38,6 +38,8 @@ namespace vistk
  *
  * \oport{untagged_output} An untagged flow dependent output port.
  * \oport{tagged_output} A tagged flow dependent output port.
+ *
+ * \ingroup examples
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT tagged_flow_dependent_process
   : public process

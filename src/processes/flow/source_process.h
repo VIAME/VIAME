@@ -40,6 +40,8 @@ namespace vistk
  * \reqs
  *
  * \req All \port{src/\portvar{tag}} and \port{out/\portvar{tag}} ports must be connected.
+ *
+ * \ingroup process_flow
  */
 class VISTK_PROCESSES_FLOW_NO_EXPORT source_process
   : public process

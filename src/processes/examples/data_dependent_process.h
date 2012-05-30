@@ -37,6 +37,8 @@ namespace vistk
  * \oports
  *
  * \oport{output} A data dependent output port.
+ *
+ * \ingroup examples
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
   : public process

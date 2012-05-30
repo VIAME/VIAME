@@ -41,6 +41,8 @@ namespace vistk
  * \reqs
  *
  * \req The ports \port{score} and \port{aggregate} must be connected.
+ *
+ * \ingroup process_scoring
  */
 class VISTK_PROCESSES_SCORING_NO_EXPORT score_aggregation_process
   : public process

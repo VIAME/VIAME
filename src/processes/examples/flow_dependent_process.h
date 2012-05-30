@@ -40,6 +40,8 @@ namespace vistk
  * \oports
  *
  * \oport{output} A flow dependent output port.
+ *
+ * \ingroup examples
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT flow_dependent_process
   : public process

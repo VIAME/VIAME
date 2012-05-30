@@ -40,6 +40,8 @@ namespace vistk
  * \reqs
  *
  * \req The ports \port{input} and \port{output} must be connected to at least one edge.
+ *
+ * \ingroup examples
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT feedback_process
   : public process
