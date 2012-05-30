@@ -21,4 +21,14 @@
     throw;                                  \
   }
 
+#define HANDLE_PYTHON_EXCEPTION_IGNORE(call) \
+  try                                        \
+  {                                          \
+    call;                                    \
+  }                                          \
+  catch (boost::python::error_already_set&)  \
+  {                                          \
+    PyErr_Print();                           \
+  }
+
 #endif // VISTK_PYTHON_HELPERS_EXCEPTIONS_H

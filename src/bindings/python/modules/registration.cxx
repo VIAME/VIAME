@@ -34,7 +34,7 @@ register_processes()
 
   Py_Initialize();
 
-  HANDLE_PYTHON_EXCEPTION(load())
+  HANDLE_PYTHON_EXCEPTION_IGNORE(load())
 }
 
 void
