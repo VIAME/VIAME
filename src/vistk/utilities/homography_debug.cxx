@@ -9,7 +9,6 @@
 #include <boost/io/ios_state.hpp>
 
 #include <iomanip>
-#include <ostream>
 
 /**
  * \file homography_debug.cxx
@@ -54,16 +53,6 @@ debug_homography_base_write(std::ostream& ostr, homography_base const& homog)
           "New ref: " << homog.is_new_reference() << "\n";
 
   debug_transform_write(ostr, transform);
-}
-
-template <typename Source, typename Dest>
-void
-debug_homography_write(std::ostream& ostr, homography<Source, Dest> const& homog)
-{
-  ostr << "Source: " << homog.source() << "\n"
-          "Dest:   " << homog.dest() << "\n";
-
-  debug_homography_base_write(ostr, homog);
 }
 
 }
