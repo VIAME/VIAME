@@ -7,6 +7,8 @@
 #ifndef VISTK_PYTHON_NUMPY_VIL_TO_NUMPY_H
 #define VISTK_PYTHON_NUMPY_VIL_TO_NUMPY_H
 
+#include "numpy-config.h"
+
 #include <vil/vil_image_view.h>
 #include <vil/vil_image_view_base.h>
 
@@ -18,10 +20,10 @@ namespace vistk
 namespace python
 {
 
-PyObject* vil_to_numpy(vil_image_view_base_sptr const& img);
+VISTK_PYTHON_NUMPY_EXPORT PyObject* vil_to_numpy(vil_image_view_base_sptr const& img);
 
 template <typename T>
-PyObject* vil_to_numpy(vil_image_view<T> const& img);
+VISTK_PYTHON_NUMPY_EXPORT PyObject* vil_to_numpy(vil_image_view<T> const& img);
 
 }
 
