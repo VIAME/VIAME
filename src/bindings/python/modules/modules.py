@@ -10,13 +10,13 @@ except:
     from . import loaders
 
 
-def log(msg):
+def _log(msg):
     import sys
     sys.stderr.write("%s\n" % msg)
     sys.stderr.flush()
 
 
-def load_python_module(mod):
+def _load_python_module(mod):
     if hasattr(mod, '__vistk_register__'):
         import collections
 
@@ -47,6 +47,6 @@ def load_python_modules():
 
     for module in all_modules:
         try:
-            load_python_module(module)
+            _load_python_module(module)
         except BaseException as e:
-            log("Failed to load '%s': %s" % (module, str(e)))
+            _log("Failed to load '%s': %s" % (module, str(e)))
