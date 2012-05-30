@@ -53,7 +53,8 @@ class vil_image_converter
     {
     }
 
-    static void* convertible(PyObject* obj)
+    static void*
+    convertible(PyObject* obj)
     {
       if (obj == Py_None)
       {
@@ -84,7 +85,8 @@ class vil_image_converter
       return NULL;
     }
 
-    static PyObject* convert(image_t const& img)
+    static PyObject*
+    convert(image_t const& img)
     {
       NPY_TYPES const arr_type = python_pixel_type<pixel_t>();
       int const nd = 3;
@@ -145,7 +147,8 @@ class vil_image_converter
       return arr;
     }
 
-    static void construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
+    static void
+    construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
     {
       void* const storage = reinterpret_cast<boost::python::converter::rvalue_from_python_storage<image_t>*>(data)->storage.bytes;
 

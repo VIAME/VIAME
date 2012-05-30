@@ -128,7 +128,7 @@ class set_indexing_suite
         .def("symmetric_difference_update", &symmetric_difference_update)
         .def("union", &union_)
         .def("update", &update)
-        ;
+      ;
     }
   private:
     typedef typename Container::iterator iterator_type;
