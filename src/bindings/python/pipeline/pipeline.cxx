@@ -61,7 +61,7 @@ BOOST_PYTHON_MODULE(pipeline)
     .def("setup_successful", &vistk::pipeline::setup_successful
       , "Returns True if the pipeline has been successfully setup, False otherwise.")
     .def("reset", &vistk::pipeline::reset
-      , "Resets connections within the pipeline.")
+      , "Resets connections and mappings within the pipeline.")
     .def("start", &vistk::pipeline::start
       , "Notify the pipeline that its execution has started.")
     .def("stop", &vistk::pipeline::stop
@@ -126,9 +126,9 @@ BOOST_PYTHON_MODULE(pipeline)
       , "Return the flags on a group\'s output port.")
     .def("mapped_group_input_ports", &vistk::pipeline::mapped_group_input_ports
       , (arg("name"), arg("port"))
-      , "Return the ports that are mapped to the group's input port.")
+      , "Return the ports that are mapped to the group\'s input port.")
     .def("mapped_group_output_port", &vistk::pipeline::mapped_group_output_port
       , (arg("name"), arg("port"))
-      , "Return the ports that are mapped to the group's output port.")
+      , "Return the ports that are mapped to the group\'s output port.")
   ;
 }
