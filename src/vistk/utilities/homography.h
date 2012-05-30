@@ -52,13 +52,13 @@ class VISTK_UTILITIES_EXPORT homography_base
      */
     transform_t const& transform() const;
     /**
-     * \brief Queries if the homography is valid.
+     * \brief Query if the homography is valid.
      *
      * \returns True if the homography is valid, false otherwise.
      */
     virtual bool is_valid() const;
     /**
-     * \brief Queries if the homography is a new reference.
+     * \brief Query if the homography is a new reference.
      *
      * \returns True if the homography is a new reference, false otherwise.
      */
@@ -141,26 +141,26 @@ class VISTK_UTILITIES_EXPORT homography
     virtual ~homography();
 
     /**
-     * \brief Queries for the source plane data.
+     * \brief Query for the source plane data.
      *
      * \returns The source plane data.
      */
     source_t source() const;
     /**
-     * \brief Queries for the destination plane data.
+     * \brief Query for the destination plane data.
      *
      * \returns The destination plane data.
      */
     dest_t destination() const;
 
     /**
-     * \brief Sets the source plane data.
+     * \brief Set the source plane data.
      *
      * \param src The source plane data.
      */
     void set_source(source_t const& src);
     /**
-     * \brief Sets the destination plane data.
+     * \brief Set the destination plane data.
      *
      * \param dest The destination plane data.
      */

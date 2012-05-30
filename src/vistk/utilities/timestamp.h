@@ -73,55 +73,55 @@ class VISTK_UTILITIES_EXPORT timestamp
     ~timestamp();
 
     /**
-     * \brief Queries if the timestamp has a valid time.
+     * \brief Query if the timestamp has a valid time.
      *
      * \returns True if the timestamp has a valid time, false otherwise.
      */
     bool has_time() const;
     /**
-     * \brief Queries if the timestamp has a valid frame number.
+     * \brief Query if the timestamp has a valid frame number.
      *
      * \returns True if the timestamp has a valid frame number, false otherwise.
      */
     bool has_frame() const;
 
     /**
-     * \brief Queries for the time of the timestamp.
+     * \brief Query for the time of the timestamp.
      *
      * \returns The time of the timestamp.
      */
     time_t time() const;
     /**
-     * \brief Queries for the frame number of the timestamp.
+     * \brief Query for the frame number of the timestamp.
      *
      * \returns The frame number of the timestamp.
      */
     frame_t frame() const;
 
     /**
-     * \brief Sets the time for the timestamp.
+     * \brief Set the time for the timestamp.
      *
      * \param t The time for the timestamp.
      */
     void set_time(time_t t);
     /**
-     * \brief Sets the frame number for the timestamp.
+     * \brief Set the frame number for the timestamp.
      *
      * \param f The frame number for the timestamp.
      */
     void set_frame(frame_t f);
 
     /**
-     * \brief Unsets the time for the timestamp.
+     * \brief Unset the time for the timestamp.
      */
     void clear_time();
     /**
-     * \brief Unsets the frame number for the timestamp.
+     * \brief Unset the frame number for the timestamp.
      */
     void clear_frame();
 
     /**
-     * \brief Queries whether the timestamp has any valid data in it.
+     * \brief Query whether the timestamp has any valid data in it.
      *
      * \returns True if the timestamp has valid data, false otherwise.
      */

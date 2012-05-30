@@ -50,14 +50,14 @@ class VISTK_UTILITIES_EXPORT plane_ref
     ~plane_ref();
 
     /**
-     * \brief Queries whether the plane is valid or not.
+     * \brief Query whether the plane is valid or not.
      *
      * \returns True if the plane is valid, false otherwise.
      */
     bool is_valid() const;
 
     /**
-     * \brief Queries the reference of the plane.
+     * \brief Query the reference of the plane.
      *
      * \returns The reference for the plane.
      */
