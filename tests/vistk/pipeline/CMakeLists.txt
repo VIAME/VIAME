@@ -226,6 +226,27 @@ vistk_make_test(pipeline unmap_output_after_setup)
 ##############################
 vistk_build_test(process_introspection libraries test_process_introspection.cxx)
 
+if (VISTK_ENABLE_PYTHON)
+  set(python_module_path
+    "${python_output_path}")
+
+  if (WIN32)
+    set(python_module_path
+      "${python_module_path}/$<CONFIGURATION>")
+  endif (WIN32)
+
+  set(cur_python_path
+    "$ENV{PYTHONPATH}")
+
+  if (cur_python_path)
+    set(cur_python_path
+      ":${cur_python_path}")
+  endif (cur_python_path)
+
+  # TODO C++ exceptions get lost in the Python glue code.
+  #set(test_environment "PYTHONPATH=${python_module_path}${cur_python_path}")
+endif (VISTK_ENABLE_PYTHON)
+
 vistk_make_test(process_introspection all)
 
 ##############################
@@ -268,24 +289,6 @@ if (VISTK_ENABLE_PYTHON)
   set(schedules
     ${schedules}
     pythread_per_process)
-endif (VISTK_ENABLE_PYTHON)
-
-if (VISTK_ENABLE_PYTHON)
-  set(python_module_path
-    "${python_output_path}")
-
-  if (WIN32)
-    set(python_module_path
-      "${python_module_path}/$<CONFIGURATION>")
-  endif (WIN32)
-
-  set(cur_python_path
-    "$ENV{PYTHONPATH}")
-
-  if (cur_python_path)
-    set(cur_python_path
-      ":${cur_python_path}")
-  endif (cur_python_path)
 endif (VISTK_ENABLE_PYTHON)
 
 function (vistk_make_run_test group instance)
