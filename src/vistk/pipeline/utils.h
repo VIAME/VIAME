@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -33,7 +33,7 @@ typedef char const* envvar_value_t;
 #endif
 
 /**
- * \brief Names the thread that the function was called from.
+ * \brief Name the thread that the function was called from.
  *
  * \note On Linux, the process name is limited to 16 characters by default.
  * Recompiling the kernel can expand this space. The \p name given is truncated
@@ -49,7 +49,7 @@ typedef char const* envvar_value_t;
 bool VISTK_PIPELINE_EXPORT name_thread(thread_name_t const& name);
 
 /**
- * \brief Retrieves the value of an environment variable.
+ * \brief Retrieve the value of an environment variable.
  *
  * \param name The variable to retrieve from the environement.
  *
@@ -57,7 +57,7 @@ bool VISTK_PIPELINE_EXPORT name_thread(thread_name_t const& name);
  */
 envvar_value_t VISTK_PIPELINE_EXPORT get_envvar(envvar_name_t const& name);
 /**
- * \brief Releases memory used by an environment variable.
+ * \brief Release memory used by an environment variable.
  *
  * \param value The value to free.
  */

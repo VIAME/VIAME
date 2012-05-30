@@ -109,7 +109,7 @@ class VISTK_PIPELINE_EXPORT datum
     type_t type() const;
 
     /**
-     * \brief Queries for the error that occurred.
+     * \brief Query for the error that occurred.
      *
      * \returns The error that occurred.
      */

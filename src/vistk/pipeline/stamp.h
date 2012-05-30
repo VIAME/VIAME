@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -46,7 +46,7 @@ class VISTK_PIPELINE_EXPORT stamp
 {
   public:
     /**
-     * \brief Creates a new stamp.
+     * \brief Create a new stamp.
      *
      * All stamps created with this call have a unique color.
      *
@@ -54,7 +54,7 @@ class VISTK_PIPELINE_EXPORT stamp
      */
     static stamp_t new_stamp();
     /**
-     * \brief Copies a stamp.
+     * \brief Copy a stamp.
      *
      * Since stamps are not implicitly copyable, this is provided to copy them.
      *
@@ -64,7 +64,7 @@ class VISTK_PIPELINE_EXPORT stamp
      */
     static stamp_t copied_stamp(stamp_t const& st);
     /**
-     * \brief Creates a new stamp that is has an incremented index.
+     * \brief Create a new stamp that is has an incremented index.
      *
      * \param st The stamp to increment.
      *
@@ -72,7 +72,7 @@ class VISTK_PIPELINE_EXPORT stamp
      */
     static stamp_t incremented_stamp(stamp_t const& st);
     /**
-     * \brief Creates a recolored stamp.
+     * \brief Create a recolored stamp.
      *
      * \param st The original stamp.
      * \param st2 The stamp to obtain the new color from.
@@ -82,7 +82,7 @@ class VISTK_PIPELINE_EXPORT stamp
     static stamp_t recolored_stamp(stamp_t const& st, stamp_t const& st2);
 
     /**
-     * \brief Tests if a given stamp has the same color another stamp.
+     * \brief Test if a given stamp has the same color another stamp.
      *
      * \param st The stamp to compare to.
      *
@@ -91,7 +91,7 @@ class VISTK_PIPELINE_EXPORT stamp
     bool is_same_color(stamp_t const& st) const;
 
     /**
-     * \brief Compares two stamps for equality.
+     * \brief Compare two stamps for equality.
      *
      * \param st The stamp to compare to.
      *
@@ -99,7 +99,7 @@ class VISTK_PIPELINE_EXPORT stamp
      */
     bool operator == (stamp const& st) const;
     /**
-     * \brief Compares two stamps for an order.
+     * \brief Compare two stamps for an order.
      *
      * \note Stamps of different colors will \em always return false with this
      * function.

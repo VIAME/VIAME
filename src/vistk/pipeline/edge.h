@@ -64,26 +64,26 @@ class VISTK_PIPELINE_EXPORT edge
     ~edge();
 
     /**
-     * \brief Whether the edge represents a dependency from upstream to downstream.
+     * \brief Query whether the edge represents a dependency from upstream to downstream.
      *
      * \returns True if the edge expresses that upstream must be executed before downstream, false otherwise.
      */
     bool makes_dependency() const;
 
     /**
-     * \brief Whether the edge has any data in it or not.
+     * \brief Query whether the edge has any data in it or not.
      *
      * \returns True if there is data available within the edge, false otherwise.
      */
     bool has_data() const;
     /**
-     * \brief Whether the edge can accept more data or not.
+     * \brief Query whether the edge can accept more data or not.
      *
      * \returns True if the edge can hold no more data, false otherwise.
      */
     bool full_of_data() const;
     /**
-     * \brief How many results are in the edge.
+     * \brief Query how many results are in the edge.
      *
      * \returns The number of data items the edge holds.
      */
@@ -153,7 +153,7 @@ class VISTK_PIPELINE_EXPORT edge
      */
     edge_datum_t peek_datum();
     /**
-     * \brief Removes a datum from the edge.
+     * \brief Remove a datum from the edge.
      *
      * \preconds
      *
@@ -173,7 +173,7 @@ class VISTK_PIPELINE_EXPORT edge
     void pop_datum();
 
     /**
-     * \brief Triggers the edge to flush all data and not accept any more data.
+     * \brief Trigger the edge to flush all data and not accept any more data.
      *
      * \postconds
      *
@@ -184,7 +184,7 @@ class VISTK_PIPELINE_EXPORT edge
      */
     void mark_downstream_as_complete();
     /**
-     * \brief Triggers the edge to flush all data and not accept any more data.
+     * \brief Trigger the edge to flush all data and not accept any more data.
      *
      * \returns True if the downstream process indicated that no more data is required, false otherwise.
      */

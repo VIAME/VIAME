@@ -55,7 +55,7 @@ class VISTK_PIPELINE_EXPORT process_registry
     ~process_registry();
 
     /**
-     * \brief Adds a process type to the registry.
+     * \brief Add a process type to the registry.
      *
      * \throws null_process_ctor_exception Thrown if \p ctor is \c NULL.
      * \throws process_type_already_exists_exception Thrown if the type already exists.
@@ -66,7 +66,7 @@ class VISTK_PIPELINE_EXPORT process_registry
      */
     void register_process(type_t const& type, description_t const& desc, process_ctor_t ctor);
     /**
-     * \brief Creates process of a specific type.
+     * \brief Create process of a specific type.
      *
      * \throws no_such_process_type_exception Thrown if the type is not known.
      *
@@ -93,13 +93,13 @@ class VISTK_PIPELINE_EXPORT process_registry
     description_t description(type_t const& type) const;
 
     /**
-     * \brief Marks a module as loaded.
+     * \brief Mark a module as loaded.
      *
      * \param module The module to mark as loaded.
      */
     void mark_module_as_loaded(module_t const& module);
     /**
-     * \brief Queries if a module has already been loaded.
+     * \brief Query if a module has already been loaded.
      *
      * \param module The module to query.
      *

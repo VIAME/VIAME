@@ -40,11 +40,11 @@ class VISTK_PIPELINE_EXPORT schedule
     virtual ~schedule();
 
     /**
-     * \brief Starts execution.
+     * \brief Start execution.
      */
     void start();
     /**
-     * \brief Waits until execution is finished.
+     * \brief Wait until execution is finished.
      */
     void wait();
     /**
@@ -61,14 +61,14 @@ class VISTK_PIPELINE_EXPORT schedule
     schedule(config_t const& config, pipeline_t const& pipe);
 
     /**
-     * \brief Starts execution.
+     * \brief Start execution.
      *
      * \warning Implementations should *not* return if this fails to start the
      * pipeline. Exceptions should be thrown instead.
      */
     virtual void _start() = 0;
     /**
-     * \brief Waits until execution is finished.
+     * \brief Wait until execution is finished.
      */
     virtual void _wait() = 0;
     /**

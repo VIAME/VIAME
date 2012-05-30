@@ -78,7 +78,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     void add_process(process_t const& process);
     /**
-     * \brief Declares a logical group of processes in the pipeline.
+     * \brief Declare a logical group of processes in the pipeline.
      *
      * \preconds
      *
@@ -100,7 +100,7 @@ class VISTK_PIPELINE_EXPORT pipeline
     void add_group(process::name_t const& name);
 
     /**
-     * \brief Removes a process to the pipeline.
+     * \brief Remove a process to the pipeline.
      *
      * \preconds
      *
@@ -122,7 +122,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     void remove_process(process::name_t const& name);
     /**
-     * \brief Removes a logical group of processes from the pipeline.
+     * \brief Remove a logical group of processes from the pipeline.
      *
      * \preconds
      *
@@ -342,7 +342,7 @@ class VISTK_PIPELINE_EXPORT pipeline
                            process::port_t const& mapped_port);
 
     /**
-     * \brief Sets the pipeline up for execution.
+     * \brief Set the pipeline up for execution.
      *
      * This method ensures that all ports with the flag \ref
      * process::flag_required are connected to an edge. It also ensures that the
@@ -617,7 +617,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     process::ports_t output_ports_for_group(process::name_t const& name) const;
     /**
-     * \brief Flags on an input port on a group.
+     * \brief Query for the flags on an input port on a group.
      *
      * \preconds
      *
@@ -636,7 +636,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     process::port_flags_t mapped_group_input_port_flags(process::name_t const& name, process::port_t const& port) const;
     /**
-     * \brief Flags on an output port on a group.
+     * \brief Query for the flags on an output port on a group.
      *
      * \preconds
      *
@@ -655,7 +655,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     process::port_flags_t mapped_group_output_port_flags(process::name_t const& name, process::port_t const& port) const;
     /**
-     * \brief Ports that are mapped to the group input port.
+     * \brief Query for the ports that are mapped to the group input port.
      *
      * \preconds
      *
@@ -674,7 +674,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     process::port_addrs_t mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const;
     /**
-     * \brief The port that is mapped to the group output port.
+     * \brief Query for the port that is mapped to the group output port.
      *
      * \preconds
      *

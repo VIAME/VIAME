@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -55,7 +55,7 @@ class VISTK_PIPELINE_EXPORT schedule_registry
     ~schedule_registry();
 
     /**
-     * \brief Adds a schedule type to the registry.
+     * \brief Add a schedule type to the registry.
      *
      * \throws null_schedule_ctor_exception Thrown if \p ctor is \c NULL.
      * \throws schedule_type_already_exists_exception Thrown if the type already exists.
@@ -66,7 +66,7 @@ class VISTK_PIPELINE_EXPORT schedule_registry
      */
     void register_schedule(type_t const& type, description_t const& desc, schedule_ctor_t ctor);
     /**
-     * \brief Creates schedule of a specific type.
+     * \brief Create schedule of a specific type.
      *
      * \throws no_such_schedule_type_exception Thrown if the type is not known.
      *
@@ -94,13 +94,13 @@ class VISTK_PIPELINE_EXPORT schedule_registry
     description_t description(type_t const& type) const;
 
     /**
-     * \brief Marks a module as loaded.
+     * \brief Mark a module as loaded.
      *
      * \param module The module to mark as loaded.
      */
     void mark_module_as_loaded(module_t const& module);
     /**
-     * \brief Queries if a module has already been loaded.
+     * \brief Query if a module has already been loaded.
      *
      * \param module The module to query.
      *
