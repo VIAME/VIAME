@@ -4,6 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#ifndef VISTK_PYTHON_NUMPY_TYPE_MAPPINGS_H
+#define VISTK_PYTHON_NUMPY_TYPE_MAPPINGS_H
+
 #include <vil/vil_pixel_format.h>
 
 /// \todo Is there a define for C++11?
@@ -62,3 +65,5 @@
   SEP(sep) call(NPY_DOUBLE, double)                \
            COMPLEX_CALLS(call, sep)                \
   END(sep)
+
+#endif // VISTK_PYTHON_NUMPY_TYPE_MAPPINGS_H
