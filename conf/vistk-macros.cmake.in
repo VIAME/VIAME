@@ -61,17 +61,12 @@ if (VISTK_ENABLE_PYTHON)
     add_library(python-${safe_modpath}-${name}
       ${ARGN})
 
-    if (WIN32)
-      set(module_output RUNTIME_OUTPUT_DIRECTORY)
-    else (WIN32)
-      set(module_output LIBRARY_OUTPUT_DIRECTORY)
-    endif (WIN32)
-
     set_target_properties(python-${safe_modpath}-${name}
       PROPERTIES
-        OUTPUT_NAME      ${name}
-        ${module_output} "${PYTHON_OUTPUT_PATH}/${modpath}"
-        PREFIX           "")
+        OUTPUT_NAME              ${name}
+        RUNTIME_OUTPUT_DIRECTORY "${PYTHON_OUTPUT_PATH}/${modpath}"
+        LIBRARY_OUTPUT_DIRECTORY "${PYTHON_OUTPUT_PATH}/${modpath}"
+        PREFIX                   "")
 
     if (WIN32)
       set_target_properties(python-${safe_modpath}-${name}
