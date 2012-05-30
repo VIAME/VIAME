@@ -27,23 +27,19 @@ namespace vistk
  *
  * \brief A process for reading frames from a file.
  *
- * \process A process for reading video frames from a file.
- *
- * \iports
- *
- * \iport{color} The color to use for the output stamps.
+ * \process Reads image frames from a video.
  *
  * \oports
  *
- * \oport{image} The next frame read from the file.
+ * \oport{image} The frame.
  *
  * \configs
  *
  * \config{pixtype} The pixel type of the input images.
  * \config{pixfmt} The pixel format of the input images.
- * \config{input} The file to read the video from.
+ * \config{input} The video file to read.
  * \config{verify} Verify frames during initialization.
- * \config{impl} The implementation of readers to support.
+ * \config{impl} The implementation of readers to use.
  *
  * \reqs
  *
@@ -59,7 +55,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT video_reader_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     video_reader_process(config_t const& config);
     /**
@@ -78,12 +74,12 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT video_reader_process
     void _init();
 
     /**
-     * \brief Resets the process.
+     * \brief Reset the process.
      */
     void _reset();
 
     /**
-     * \brief Pushes the next video through the output port.
+     * \brief Step the process.
      */
     void _step();
   private:

@@ -51,7 +51,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_aggregation_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     score_aggregation_process(config_t const& config);
     /**
@@ -60,7 +60,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_aggregation_process
     ~score_aggregation_process();
   protected:
     /**
-     * \brief Step the subclass.
+     * \brief Step the process.
      */
     void _step();
   private:

@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class multiplication_process
  *
- * \brief A process which multiplies incoming numbers.
+ * \brief A process which multiplies numbers.
  *
- * \process A process for multiplying numbers.
+ * \process Multiplies numbers.
  *
  * \iports
  *
@@ -36,7 +36,7 @@ namespace vistk
  *
  * \oports
  *
- * \oport{product} The number generated for the step.
+ * \oport{product} The product.
  *
  * \reqs
  *
@@ -51,7 +51,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT multiplication_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     multiplication_process(config_t const& config);
     /**
@@ -60,7 +60,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT multiplication_process
     ~multiplication_process();
   protected:
     /**
-     * \brief Multiplies numbers and outputs the result.
+     * \brief Step the process.
      */
     void _step();
   private:

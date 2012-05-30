@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class crop_image_process
  *
- * \brief A process which crops an image to a specific size.
+ * \brief A process for croping an image to a specific size.
  *
- * \process A process for cropping images.
+ * \process Crop images.
  *
  * \iports
  *
@@ -61,7 +61,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT crop_image_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     crop_image_process(config_t const& config);
     /**
@@ -75,7 +75,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT crop_image_process
     void _configure();
 
     /**
-     * \brief Crops an image.
+     * \brief Step the process.
      */
     void _step();
   private:

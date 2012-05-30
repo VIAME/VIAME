@@ -25,27 +25,23 @@ namespace vistk
 /**
  * \class number_process
  *
- * \brief A process which generates increasing numbers within a range.
+ * \brief Generates numbers.
  *
- * \process A process for generating numbers.
- *
- * \iports
- *
- * \iport{color} The color to use for the output stamps.
+ * \process Generates numbers.
  *
  * \oports
  *
- * \oport{number} The number generated for the step.
+ * \oport{number} The generated number.
  *
  * \configs
  *
- * \config{start} The start of the range.
- * \config{end} The end of the range.
+ * \config{start} The first number to use.
+ * \config{end} The last number to use.
  *
  * \reqs
  *
  * \req \key{start} must be less than \key{end}.
- * \req The \port{number} output must be connected to at least one edge.
+ * \req The \port{number} output must be connected.
  *
  * \ingroup examples
  */
@@ -56,7 +52,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     number_process(config_t const& config);
     /**
@@ -65,12 +61,12 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT number_process
     ~number_process();
   protected:
     /**
-     * \brief Checks the configuration.
+     * \brief Configure the process.
      */
     void _configure();
 
     /**
-     * \brief Pushes a new number through the output edge.
+     * \brief Step the process.
      */
     void _step();
   private:

@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class source_process
  *
- * \brief A process which provides a consistent stamp color.
+ * \brief A process for normalizing streams of data into a single stream.
  *
- * \process A process which provides a consistent stamp color.
+ * \process Normalizes streams of data into a single stream.
  *
  * \iports
  *
@@ -50,7 +50,7 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT source_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     source_process(config_t const& config);
     /**
@@ -59,22 +59,22 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT source_process
     ~source_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
+     * \brief Initialize the process.
      */
     void _init();
 
     /**
-     * \brief Resets the process.
+     * \brief Reset the process.
      */
     void _reset();
 
     /**
-     * \brief Ignores data on the incoming edge.
+     * \brief Step the process.
      */
     void _step();
 
     /**
-     * \brief Subclass input port information.
+     * \brief Input port information.
      *
      * \param port The port to get information about.
      *

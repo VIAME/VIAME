@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class image_reader_process
  *
- * \brief A process which reads in a list of images from a file.
+ * \brief A process for reading in a list of images from a file.
  *
- * \process A process for reading images from files.
+ * \process Reads images given a file with a list of image paths.
  *
  * \oports
  *
@@ -54,7 +54,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT image_reader_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     image_reader_process(config_t const& config);
     /**
@@ -73,7 +73,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT image_reader_process
     void _init();
 
     /**
-     * \brief Reads the next image.
+     * \brief Step the process.
      */
     void _step();
   private:

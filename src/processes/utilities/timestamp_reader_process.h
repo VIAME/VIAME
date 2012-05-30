@@ -50,7 +50,7 @@ class VISTK_PROCESSES_UTILITIES_NO_EXPORT timestamp_reader_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     timestamp_reader_process(config_t const& config);
     /**
@@ -59,12 +59,12 @@ class VISTK_PROCESSES_UTILITIES_NO_EXPORT timestamp_reader_process
     ~timestamp_reader_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
+     * \brief Initialize the process.
      */
     void _init();
 
     /**
-     * \brief Pushes a new timestamp through the output port.
+     * \brief Step the process.
      */
     void _step();
   private:

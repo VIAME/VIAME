@@ -27,7 +27,7 @@ namespace vistk
  *
  * \brief A process for reading homographies from a file.
  *
- * \process A process for reading homographies from a file.
+ * \process Read homographies from a file.
  *
  * \oports
  *
@@ -51,7 +51,7 @@ class VISTK_PROCESSES_UTILITIES_NO_EXPORT homography_reader_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     homography_reader_process(config_t const& config);
     /**
@@ -65,7 +65,7 @@ class VISTK_PROCESSES_UTILITIES_NO_EXPORT homography_reader_process
     void _configure();
 
     /**
-     * \brief Pushes the next homography through the output port.
+     * \brief Step the process.
      */
     void _step();
   private:

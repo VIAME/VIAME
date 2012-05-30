@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class warp_image_process
  *
- * \brief A process which warps images.
+ * \brief A process for warping images.
  *
- * \process A process for warping images.
+ * \process Warp images.
  *
  * \iports
  *
@@ -36,7 +36,7 @@ namespace vistk
  *
  * \oports
  *
- * \oport{warped_image}
+ * \oport{warped_image} The warped image.
  *
  * \configs
  *
@@ -56,7 +56,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT warp_image_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     warp_image_process(config_t const& config);
     /**
@@ -70,7 +70,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT warp_image_process
     void _configure();
 
     /**
-     * \brief Writes the next image.
+     * \brief Step the process.
      */
     void _step();
   private:

@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class feedback_process
  *
- * \brief A process which feeds data into itself.
+ * \brief A process with its own backwards edge.
  *
- * \process A process which feeds data into itself.
+ * \process A process with its own backwards edge.
  *
  * \iports
  *
@@ -39,7 +39,7 @@ namespace vistk
  *
  * \reqs
  *
- * \req The ports \port{input} and \port{output} must be connected to at least one edge.
+ * \req The ports \port{input} and \port{output} must be connected.
  *
  * \ingroup examples
  */
@@ -50,7 +50,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT feedback_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     feedback_process(config_t const& config);
     /**
@@ -59,7 +59,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT feedback_process
     ~feedback_process();
   protected:
     /**
-     * \brief Pushes a new number through the output edge.
+     * \brief Step the process.
      */
     void _step();
   private:

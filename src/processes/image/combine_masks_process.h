@@ -25,7 +25,7 @@ namespace vistk
 /**
  * \class combine_masks_process
  *
- * \brief A process which combines multiple masks into one.
+ * \brief A process for combining multiple masks into one.
  *
  * \process Combine multiple masks into one mask.
  *
@@ -53,7 +53,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT combine_masks_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     combine_masks_process(config_t const& config);
     /**

@@ -25,17 +25,17 @@ namespace vistk
 /**
  * \class const_process
  *
- * \brief A process which has a const output port.
+ * \brief A process with a const output port.
  *
  * \process A process with a const output port.
  *
  * \oports
  *
- * \oport{const} The datum generated for the step.
+ * \oport{const} A constant datum.
  *
  * \reqs
  *
- * \req The \port{const} output must be connected to at least one edge.
+ * \req The \port{const} output must be connected.
  *
  * \ingroup examples
  */
@@ -46,7 +46,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT const_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     const_process(config_t const& config);
     /**
@@ -55,7 +55,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT const_process
     ~const_process();
   protected:
     /**
-     * \brief Pushes a new number through the output edge.
+     * \brief Step the process.
      */
     void _step();
   private:

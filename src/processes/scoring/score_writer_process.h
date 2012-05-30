@@ -50,7 +50,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_writer_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     score_writer_process(config_t const& config);
     /**
@@ -59,17 +59,17 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_writer_process
     ~score_writer_process();
   protected:
     /**
-     * \brief Configure the subclass.
+     * \brief Configure the process.
      */
     void _configure();
 
     /**
-     * \brief Reset the subclass.
+     * \brief Reset the process.
      */
     void _reset();
 
     /**
-     * \brief Step the subclass.
+     * \brief Step the process.
      */
     void _step();
   private:

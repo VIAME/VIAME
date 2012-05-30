@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class print_number_process
  *
- * \brief A process which prints incoming numbers.
+ * \brief A process for printing numbers to a file.
  *
- * \process A process for printing numbers.
+ * \process Prints numbers to a file.
  *
  * \iports
  *
@@ -50,7 +50,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT print_number_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     print_number_process(config_t const& config);
     /**
@@ -59,17 +59,17 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT print_number_process
     ~print_number_process();
   protected:
     /**
-     * \brief Checks the configuration.
+     * \brief Configure the process.
      */
     void _configure();
 
     /**
-     * \brief Resets the process.
+     * \brief Reset the process.
      */
     void _reset();
 
     /**
-     * \brief Prints numbers to the output stream.
+     * \brief Step the process.
      */
     void _step();
   private:

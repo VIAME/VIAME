@@ -25,17 +25,13 @@ namespace vistk
 /**
  * \class take_string_process
  *
- * \brief A process which accepts incoming strings.
+ * \brief A process which takes strings.
  *
- * \process A process for taking strings.
+ * \process Takes strings.
  *
  * \iports
  *
  * \iport{string} The source of strings to take.
- *
- * \configs
- *
- * \config{output} Where to output the strings.
  *
  * \reqs
  *
@@ -50,7 +46,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT take_string_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     take_string_process(config_t const& config);
     /**
@@ -59,7 +55,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT take_string_process
     ~take_string_process();
   protected:
     /**
-     * \brief Takes strings from the input port.
+     * \brief Step the process.
      */
     void _step();
   private:

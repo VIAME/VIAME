@@ -25,7 +25,7 @@ namespace vistk
 /**
  * \class data_dependent_process
  *
- * \brief A process which has a data dependent port.
+ * \brief A process with a data dependent port.
  *
  * \process A process with a data dependent port.
  *
@@ -47,7 +47,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     data_dependent_process(config_t const& config);
     /**
@@ -60,15 +60,15 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
      */
     void _configure();
     /**
-     * \brief Pushes a new number through the output edge.
+     * \brief Step the process.
      */
     void _step();
     /**
-     * \brief Resets the process.
+     * \brief Reset the process.
      */
     void _reset();
     /**
-     * \brief Sets the type for an output port.
+     * \brief Set the type for an output port.
      *
      * \param port The name of the port.
      * \param type The type of the connected port.

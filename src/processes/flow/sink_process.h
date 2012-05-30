@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class sink_process
  *
- * \brief A process which does nothing with incoming data.
+ * \brief A process for doing nothing with a data stream.
  *
- * \process A process which does nothing with incoming data.
+ * \process Ignores incoming data.
  *
  * \iports
  *
@@ -46,7 +46,7 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT sink_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     sink_process(config_t const& config);
     /**
@@ -55,7 +55,7 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT sink_process
     ~sink_process();
   protected:
     /**
-     * \brief Ignores data on the incoming edge.
+     * \brief Step the process.
      */
     void _step();
   private:

@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class mutate_process
  *
- * \brief A process which has an input port with the mutate flag.
+ * \brief A process with a mutate input port.
  *
- * \process A process for testing mutation flags.
+ * \process A process with a mutate input port.
  *
  * \iports
  *
@@ -46,7 +46,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT mutate_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     mutate_process(config_t const& config);
     /**
@@ -55,7 +55,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT mutate_process
     ~mutate_process();
   protected:
     /**
-     * \brief Eats data from the input edge.
+     * \brief Step the process.
      */
     void _step();
   private:

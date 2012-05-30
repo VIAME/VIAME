@@ -52,7 +52,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT mask_scoring_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     mask_scoring_process(config_t const& config);
     /**
@@ -61,7 +61,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT mask_scoring_process
     ~mask_scoring_process();
   protected:
     /**
-     * \brief Collate data from the input edges.
+     * \brief Step the process.
      */
     void _step();
   private:

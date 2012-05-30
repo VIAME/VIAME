@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class image_writer_process
  *
- * \brief A process which writes images to files.
+ * \brief A process for writing images to files.
  *
- * \process A process for writing images to files.
+ * \process Writes images to files.
  *
  * \iports
  *
@@ -54,7 +54,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT image_writer_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     image_writer_process(config_t const& config);
     /**
@@ -68,12 +68,12 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT image_writer_process
     void _configure();
 
     /**
-     * \brief Resets the process.
+     * \brief Reset the process.
      */
     void _reset();
 
     /**
-     * \brief Writes the next image.
+     * \brief Step the process.
      */
     void _step();
   private:

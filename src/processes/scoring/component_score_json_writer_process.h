@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class component_score_json_writer_process
  *
- * \brief A process which writes out component scores to a file in JSON.
+ * \brief A process for writing out component scores to a file in JSON.
  *
- * \process Writes component scores from a scoring process in JSON format.
+ * \process Write component scores from a scoring process in JSON format.
  *
  * \iports
  *
@@ -51,7 +51,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT component_score_json_writer_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     component_score_json_writer_process(config_t const& config);
     /**
@@ -60,7 +60,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT component_score_json_writer_process
     ~component_score_json_writer_process();
   protected:
     /**
-     * \brief Configure the subclass.
+     * \brief Configure the process.
      */
     void _configure();
 
@@ -70,12 +70,12 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT component_score_json_writer_process
     void _init();
 
     /**
-     * \brief Step the subclass.
+     * \brief Step the process.
      */
     void _step();
 
     /**
-     * \brief Subclass input port information.
+     * \brief Input port information.
      *
      * \param port The port to get information about.
      *

@@ -23,9 +23,9 @@ namespace vistk
 /**
  * \class orphan_process
  *
- * \brief A process which does approximately nothing.
+ * \brief A no-op process.
  *
- * \process An orphan process.
+ * \process A no-op process.
  *
  * \ingroup examples
  */
@@ -36,7 +36,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT orphan_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     orphan_process(config_t const& config);
     /**
