@@ -78,7 +78,8 @@ pipeline_builder
   if (vistk::config::block_sep.size() != 1)
   {
     static std::string const reason = "Error: The block separator is longer than "
-                                      "one character and does not work here";
+                                      "one character and does not work here (this "
+                                      "is a vistk limitation)";
 
     throw std::runtime_error(reason);
   }
