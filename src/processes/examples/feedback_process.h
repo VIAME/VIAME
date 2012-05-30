@@ -59,6 +59,10 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT feedback_process
     ~feedback_process();
   protected:
     /**
+     * \brief Flush the process.
+     */
+    void _flush();
+    /**
      * \brief Step the process.
      */
     void _step();

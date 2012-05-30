@@ -25,6 +25,8 @@ class feedback_process::priv
     priv();
     ~priv();
 
+    bool first;
+
     static port_t const port_input;
     static port_t const port_output;
     static port_type_t const type_custom_feedback;
@@ -63,15 +65,32 @@ feedback_process
 
 void
 feedback_process
+::_flush()
+{
+  d->first = true;
+}
+
+void
+feedback_process
 ::_step()
 {
-  push_datum_to_port(priv::port_output, grab_datum_from_port(priv::port_input));
+  if (d->first)
+  {
+    push_datum_to_port(priv::port_output, datum::empty_datum());
+
+    d->first = false;
+  }
+  else
+  {
+    push_datum_to_port(priv::port_output, grab_datum_from_port(priv::port_input));
+  }
 
   process::_step();
 }
 
 feedback_process::priv
 ::priv()
+  : first(true)
 {
 }
 
