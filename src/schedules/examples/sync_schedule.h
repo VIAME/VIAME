@@ -27,7 +27,7 @@ namespace vistk
  *
  * \brief A schedule which runs the entire pipeline in one thread.
  *
- * \schedule Runs the pipeline in one thread.
+ * \schedule Run the pipeline in one thread.
  */
 class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT sync_schedule
   : public schedule
