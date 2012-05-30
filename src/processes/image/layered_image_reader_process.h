@@ -16,7 +16,7 @@
 /**
  * \file layered_image_reader_process.h
  *
- * \brief A process which reads layered image files.
+ * \brief Declaration of the layered image reader process.
  */
 
 namespace vistk

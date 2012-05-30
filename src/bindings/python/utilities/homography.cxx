@@ -17,7 +17,7 @@
 /**
  * \file homography.cxx
  *
- * \brief Python bindings for homography.
+ * \brief Python bindings for \link vistk::homography\endlink.
  */
 
 using namespace boost::python;

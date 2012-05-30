@@ -16,7 +16,7 @@
 /**
  * \file mask_scoring_process.h
  *
- * \brief A process which scores a mask against another.
+ * \brief Declaration of the mask scoring process.
  */
 
 namespace vistk

@@ -16,7 +16,7 @@
 /**
  * \file print_number_process.h
  *
- * \brief Declaration of the number printing process.
+ * \brief Declaration of the number printer process.
  */
 
 namespace vistk

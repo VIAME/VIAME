@@ -21,7 +21,7 @@
 /**
  * \file collate_process.cxx
  *
- * \brief Implementation of the collating process.
+ * \brief Implementation of the collate process.
  */
 
 namespace vistk

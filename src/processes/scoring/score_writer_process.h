@@ -16,7 +16,7 @@
 /**
  * \file score_writer_process.h
  *
- * \brief A process which writes out scores to a file.
+ * \brief Declaration of the score writer process.
  */
 
 namespace vistk

@@ -30,7 +30,7 @@
 /**
  * \file component_score_json_writer_process.cxx
  *
- * \brief Implementation of a process which writes out component scores to a file in JSON.
+ * \brief Implementation of the JSON component score writer process.
  */
 
 using namespace boost::local_time;

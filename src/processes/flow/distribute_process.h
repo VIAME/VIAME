@@ -16,7 +16,7 @@
 /**
  * \file distribute_process.h
  *
- * \brief Declaration of the distribution process.
+ * \brief Declaration of the distribute process.
  */
 
 namespace vistk

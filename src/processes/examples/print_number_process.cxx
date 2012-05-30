@@ -20,7 +20,7 @@
 /**
  * \file print_number_process.cxx
  *
- * \brief Implementation of the number printing process.
+ * \brief Implementation of the number printer process.
  */
 
 namespace vistk

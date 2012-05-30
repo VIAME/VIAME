@@ -18,7 +18,7 @@
 /**
  * \file timestamp.cxx
  *
- * \brief Python bindings for timestamp.
+ * \brief Python bindings for \link vistk::timestamp\endlink.
  */
 
 using namespace boost::python;

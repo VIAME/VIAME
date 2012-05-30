@@ -16,7 +16,7 @@
 /**
  * \file scoring_result.cxx
  *
- * \brief Python bindings for scoring_result.
+ * \brief Python bindings for \link vistk::scoring_result\endlink.
  */
 
 using namespace boost::python;

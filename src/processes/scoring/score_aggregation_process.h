@@ -16,7 +16,7 @@
 /**
  * \file score_aggregation_process.h
  *
- * \brief A process which generates an aggregate score.
+ * \brief Declaration of the score aggregation process.
  */
 
 namespace vistk

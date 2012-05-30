@@ -16,7 +16,7 @@
 /**
  * \file collate_process.h
  *
- * \brief Declaration of the collating process.
+ * \brief Declaration of the collate process.
  */
 
 namespace vistk

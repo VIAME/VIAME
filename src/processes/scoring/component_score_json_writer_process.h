@@ -16,7 +16,7 @@
 /**
  * \file component_score_json_writer_process.h
  *
- * \brief A process which writes out component scores to a file in JSON.
+ * \brief Declaration of the JSON component score writer process.
  */
 
 namespace vistk

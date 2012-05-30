@@ -16,7 +16,7 @@
 /**
  * \file combine_masks_process.h
  *
- * \brief A process which combines multiple masks into one.
+ * \brief Declaration of the combine masks process.
  */
 
 namespace vistk

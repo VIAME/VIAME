@@ -16,7 +16,7 @@
 /**
  * \file timestamp.h
  *
- * \brief A timestamp for a frame.
+ * \brief Declaration of the timestamp class
  */
 
 namespace vistk
