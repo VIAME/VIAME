@@ -90,7 +90,7 @@ BOOST_PYTHON_MODULE(datum)
 vistk::datum_t
 new_datum(object const& obj)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -114,7 +114,7 @@ datum_get_error(vistk::datum_t const& self)
 object
 datum_get_datum(vistk::datum_t const& self)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 

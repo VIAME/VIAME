@@ -43,7 +43,7 @@ class boost_optional_converter
 
     static void* convertible(PyObject* obj)
     {
-      vistk::python::python_gil gil;
+      vistk::python::python_gil const gil;
 
       (void)gil;
 
@@ -67,7 +67,7 @@ class boost_optional_converter
 
     static PyObject* convert(optional_t const& opt)
     {
-      vistk::python::python_gil gil;
+      vistk::python::python_gil const gil;
 
       (void)gil;
 
@@ -83,7 +83,7 @@ class boost_optional_converter
 
     static void construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
     {
-      vistk::python::python_gil gil;
+      vistk::python::python_gil const gil;
 
       (void)gil;
 
@@ -103,7 +103,7 @@ class boost_optional_converter
       }
       else
       {
-        type_t* t = reinterpret_cast<type_t*>(data->convertible);
+        type_t* const t = reinterpret_cast<type_t*>(data->convertible);
         CONSTRUCT((*t));
       }
 

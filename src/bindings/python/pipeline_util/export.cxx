@@ -47,7 +47,7 @@ BOOST_PYTHON_MODULE(export_)
 void
 dot_translator(vistk::export_dot_exception const& e)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -57,7 +57,7 @@ dot_translator(vistk::export_dot_exception const& e)
 void
 export_dot(object const& stream, vistk::pipeline_t const pipe, std::string const& graph_name)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 

@@ -214,7 +214,7 @@ class set_indexing_suite
     {
       if (container.empty())
       {
-        vistk::python::python_gil gil;
+        vistk::python::python_gil const gil;
 
         (void)gil;
 
@@ -238,7 +238,7 @@ class set_indexing_suite
 
       if (i == container.end())
       {
-        vistk::python::python_gil gil;
+        vistk::python::python_gil const gil;
 
         (void)gil;
 
@@ -291,7 +291,7 @@ class set_indexing_suite
     static void
     index_error()
     {
-      vistk::python::python_gil gil;
+      vistk::python::python_gil const gil;
 
       (void)gil;
 

@@ -323,7 +323,7 @@ object
 group_subblock_visitor
 ::operator () (vistk::config_value_t const& config) const
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -339,7 +339,7 @@ object
 group_subblock_visitor
 ::operator () (vistk::input_map_t const& input) const
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -355,7 +355,7 @@ object
 group_subblock_visitor
 ::operator () (vistk::output_map_t const& output) const
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -382,7 +382,7 @@ object
 pipe_block_visitor
 ::operator () (vistk::config_pipe_block const& config_block) const
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -400,7 +400,7 @@ object
 pipe_block_visitor
 ::operator () (vistk::process_pipe_block const& process_block) const
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -418,7 +418,7 @@ object
 pipe_block_visitor
 ::operator () (vistk::connect_pipe_block const& connect_block) const
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -436,7 +436,7 @@ object
 pipe_block_visitor
 ::operator () (vistk::group_pipe_block const& group_block) const
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 

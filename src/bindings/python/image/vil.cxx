@@ -147,7 +147,7 @@ class vil_image_converter
 
     static void construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
     {
-      void* storage = reinterpret_cast<boost::python::converter::rvalue_from_python_storage<image_t>*>(data)->storage.bytes;
+      void* const storage = reinterpret_cast<boost::python::converter::rvalue_from_python_storage<image_t>*>(data)->storage.bytes;
 
       PyArrayObject* const arr = reinterpret_cast<PyArrayObject*>(obj);
       npy_intp const* const dims = PyArray_DIMS(arr);

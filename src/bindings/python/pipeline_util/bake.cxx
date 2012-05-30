@@ -62,7 +62,7 @@ bake_pipe_file(std::string const& path)
 vistk::pipeline_t
 bake_pipe(object stream, std::string const& inc_root)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -74,7 +74,7 @@ bake_pipe(object stream, std::string const& inc_root)
 void
 translator(vistk::pipe_bakery_exception const& e)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 

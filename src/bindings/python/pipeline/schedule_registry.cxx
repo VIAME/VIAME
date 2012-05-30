@@ -101,11 +101,11 @@ register_schedule(vistk::schedule_registry_t reg,
                   vistk::schedule_registry::description_t const& desc,
                   object obj)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
-  python_schedule_wrapper wrap(obj);
+  python_schedule_wrapper const wrap(obj);
 
   reg->register_schedule(type, desc, wrap);
 }
@@ -125,7 +125,7 @@ vistk::schedule_t
 python_schedule_wrapper
 ::operator () (vistk::config_t const& config, vistk::pipeline_t const& pipeline)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 

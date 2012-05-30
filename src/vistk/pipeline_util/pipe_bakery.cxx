@@ -219,7 +219,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
       process_registry::type_t const& proc_type = decl.second;
       config_t const proc_conf = global_conf->subblock_view(proc_name);
 
-      process_t proc = reg->create_process(proc_type, proc_conf);
+      process_t const proc = reg->create_process(proc_type, proc_conf);
 
       pipe->add_process(proc);
     }

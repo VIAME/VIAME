@@ -40,7 +40,7 @@ template <typename T>
 bool
 from_prototype(PyObject* obj, void* storage)
 {
-  python_gil gil;
+  python_gil const gil;
 
   (void)gil;
 
@@ -81,7 +81,7 @@ template <typename T>
 opt_pyobject_t
 to_prototype(boost::any const& any)
 {
-  python_gil gil;
+  python_gil const gil;
 
   (void)gil;
 

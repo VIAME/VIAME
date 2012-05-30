@@ -33,12 +33,12 @@ register_processes()
 
   try
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
-    object modules = import("vistk.modules.modules");
-    object loader = modules.attr("load_python_modules");
+    object const modules = import("vistk.modules.modules");
+    object const loader = modules.attr("load_python_modules");
 
     loader();
   }

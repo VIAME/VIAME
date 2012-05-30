@@ -123,7 +123,7 @@ config_getitem(vistk::config_t self, vistk::config::key_t const& key)
   }
   catch (vistk::no_such_configuration_value_exception&)
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -141,7 +141,7 @@ config_getitem(vistk::config_t self, vistk::config::key_t const& key)
 void
 config_setitem(vistk::config_t self, vistk::config::key_t const& key, object const& value)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -157,7 +157,7 @@ config_delitem(vistk::config_t self, vistk::config::key_t const& key)
   }
   catch (vistk::no_such_configuration_value_exception&)
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 

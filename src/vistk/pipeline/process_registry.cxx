@@ -145,7 +145,7 @@ process_registry
     return reg_self;
   }
 
-  boost::unique_lock<boost::mutex> lock(mut);
+  boost::unique_lock<boost::mutex> const lock(mut);
   if (!reg_self)
   {
     reg_self = process_registry_t(new process_registry);

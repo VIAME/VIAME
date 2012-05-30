@@ -21,7 +21,7 @@ numpy_memory_chunk
   : vil_memory_chunk()
   , m_arr(arr)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -68,7 +68,7 @@ numpy_memory_chunk
     return vil_memory_chunk::const_data();
   }
 
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -95,7 +95,7 @@ numpy_memory_chunk
 {
   if (m_arr)
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 

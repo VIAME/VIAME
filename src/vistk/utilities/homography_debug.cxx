@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -27,7 +27,7 @@ debug_transform_write(std::ostream& ostr, homography_base::transform_t const& tr
 
   homography_base::transform_t const& t = transform;
 
-  boost::io::ios_flags_saver ifs(ostr);
+  boost::io::ios_flags_saver const ifs(ostr);
 
   (void)ifs;
 
@@ -44,7 +44,7 @@ debug_homography_base_write(std::ostream& ostr, homography_base const& homog)
 {
   homography_base::transform_t const& transform = homog.transform();
 
-  boost::io::ios_flags_saver ifs(ostr);
+  boost::io::ios_flags_saver const ifs(ostr);
 
   (void)ifs;
 

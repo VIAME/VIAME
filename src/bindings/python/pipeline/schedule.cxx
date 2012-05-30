@@ -81,7 +81,7 @@ void
 wrap_schedule
 ::_start()
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -92,7 +92,7 @@ void
 wrap_schedule
 ::_wait()
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -103,7 +103,7 @@ void
 wrap_schedule
 ::_stop()
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 

@@ -502,7 +502,7 @@ wrap_process
 ::_configure()
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -524,7 +524,7 @@ wrap_process
 ::_init()
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -546,7 +546,7 @@ wrap_process
 ::_reset()
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -568,7 +568,7 @@ wrap_process
 ::_step()
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -590,7 +590,7 @@ wrap_process
 ::_constraints() const
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -610,7 +610,7 @@ wrap_process
 ::_connect_input_port(port_t const& port, vistk::edge_t edge)
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -632,7 +632,7 @@ wrap_process
 ::_connect_output_port(port_t const& port, vistk::edge_t edge)
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -654,7 +654,7 @@ wrap_process
 ::_input_ports() const
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -674,7 +674,7 @@ wrap_process
 ::_output_ports() const
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -694,7 +694,7 @@ wrap_process
 ::_input_port_info(port_t const& port)
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -714,7 +714,7 @@ wrap_process
 ::_output_port_info(port_t const& port)
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -734,7 +734,7 @@ wrap_process
 ::_set_input_port_type(port_t const& port, port_type_t const& new_type)
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -754,7 +754,7 @@ wrap_process
 ::_set_output_port_type(port_t const& port, port_type_t const& new_type)
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -774,7 +774,7 @@ wrap_process
 ::_available_config() const
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 
@@ -794,7 +794,7 @@ wrap_process
 ::_config_info(vistk::config::key_t const& key)
 {
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 

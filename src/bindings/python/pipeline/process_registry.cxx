@@ -153,11 +153,11 @@ register_process(vistk::process_registry_t reg,
                  vistk::process_registry::description_t const& desc,
                  object obj)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
-  python_process_wrapper wrap(obj);
+  python_process_wrapper const wrap(obj);
 
   reg->register_process(type, desc, wrap);
 }
@@ -177,7 +177,7 @@ vistk::process_t
 python_process_wrapper
 ::operator () (vistk::config_t const& config)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 

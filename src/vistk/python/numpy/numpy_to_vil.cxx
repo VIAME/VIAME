@@ -38,7 +38,7 @@ static vil_image_view_base_sptr convert_image(PyArrayObject* arr);
 vil_image_view_base_sptr
 numpy_to_vil(PyObject* obj)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 

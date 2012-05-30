@@ -31,7 +31,7 @@ namespace python
 PyObject*
 vil_to_numpy(vil_image_view_base_sptr const& img)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void) gil;
 
@@ -124,7 +124,7 @@ template <typename T>
 PyObject*
 vil_to_numpy(vil_image_view<T> const& img)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void) gil;
 
