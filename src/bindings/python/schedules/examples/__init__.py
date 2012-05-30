@@ -17,6 +17,6 @@ def __vistk_register__():
     if reg.is_module_loaded(module_name):
         return
 
-    reg.register_schedule('pythread_per_process', 'Runs each procss in its own Python thread', pythread_per_process_schedule.PyThreadPerProcessSchedule)
+    reg.register_schedule('pythread_per_process', 'Run each process in its own Python thread', pythread_per_process_schedule.PyThreadPerProcessSchedule)
 
     reg.mark_module_as_loaded(module_name)

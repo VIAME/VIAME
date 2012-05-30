@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -33,10 +33,10 @@ register_processes()
     return;
   }
 
-  registry->register_process("collate", "A process which collates data from multiple worker processes.", create_process<collate_process>);
-  registry->register_process("distribute", "A process which distributes data to multiple worker processes.", create_process<distribute_process>);
-  registry->register_process("sink", "A process which ignores incoming data.", create_process<sink_process>);
-  registry->register_process("source", "A process which outputs a consistent color to help color all data within the pipeline.", create_process<source_process>);
+  registry->register_process("collate", "Collates data from multiple worker processes", create_process<collate_process>);
+  registry->register_process("distribute", "Distributes data to multiple worker processes", create_process<distribute_process>);
+  registry->register_process("sink", "Ignores incoming data", create_process<sink_process>);
+  registry->register_process("source", "Normalizes a set of data to be considered part of the same stream", create_process<source_process>);
 
   registry->mark_module_as_loaded(module_name);
 }

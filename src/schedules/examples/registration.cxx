@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -32,9 +32,9 @@ register_schedules()
     return;
   }
 
-  registry->register_schedule("sync", "Runs the pipeline synchronously", create_schedule<sync_schedule>);
-  registry->register_schedule("thread_per_process", "Runs each process in its own thread", create_schedule<thread_per_process_schedule>);
-  registry->register_schedule("thread_pool", "Uses a pool of threads to step processes", create_schedule<thread_pool_schedule>);
+  registry->register_schedule("sync", "Run the pipeline synchronously", create_schedule<sync_schedule>);
+  registry->register_schedule("thread_per_process", "Run each process in its own thread", create_schedule<thread_per_process_schedule>);
+  registry->register_schedule("thread_pool", "Use a pool of threads to step processes", create_schedule<thread_pool_schedule>);
 
   registry->mark_module_as_loaded(module_name);
 }
