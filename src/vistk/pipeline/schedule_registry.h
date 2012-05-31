@@ -60,6 +60,8 @@ class VISTK_PIPELINE_EXPORT schedule_registry
      * \throws null_schedule_ctor_exception Thrown if \p ctor is \c NULL.
      * \throws schedule_type_already_exists_exception Thrown if the type already exists.
      *
+     * \see vistk::create_schedule
+     *
      * \param type The name of the \ref schedule type.
      * \param desc A description of the type.
      * \param ctor The function which creates the schedule of the \p type.

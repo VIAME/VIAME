@@ -60,6 +60,8 @@ class VISTK_PIPELINE_EXPORT process_registry
      * \throws null_process_ctor_exception Thrown if \p ctor is \c NULL.
      * \throws process_type_already_exists_exception Thrown if the type already exists.
      *
+     * \see vistk::create_process
+     *
      * \param type The name of the \ref process type.
      * \param desc A description of the type.
      * \param ctor The function which creates the process of the \p type.

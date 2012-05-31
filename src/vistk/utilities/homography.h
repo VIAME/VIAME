@@ -189,6 +189,8 @@ class VISTK_UTILITIES_EXPORT homography
 /**
  * \brief Multiplication for matrices.
  *
+ * \relates vistk::homography
+ *
  * \param l The left side of the multiply.
  * \param r The right side of the multiply.
  *
