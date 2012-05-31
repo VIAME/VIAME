@@ -105,8 +105,10 @@ class wrap_process
 
     vistk::edge_datum_t _grab_from_port(port_t const& port) const;
     vistk::datum_t _grab_datum_from_port(port_t const& port) const;
+    object _grab_value_from_port(port_t const& port) const;
     void _push_to_port(port_t const& port, vistk::edge_datum_t const& dat) const;
     void _push_datum_to_port(port_t const& port, vistk::datum_t const& dat) const;
+    void _push_value_to_port(port_t const& port, object const& obj) const;
 
     vistk::config_t _get_config() const;
     vistk::config::value_t _config_value(vistk::config::key_t const& key) const;
@@ -357,12 +359,18 @@ BOOST_PYTHON_MODULE(process)
     .def("grab_from_port", &wrap_process::_grab_from_port
       , (arg("port"))
       , "Grab a datum packet from a port.")
+    .def("grab_value_from_port", &wrap_process::_grab_value_from_port
+      , (arg("port"))
+      , "Grab a value from a port.")
     .def("grab_datum_from_port", &wrap_process::_grab_datum_from_port
       , (arg("port"))
       , "Grab a datum from a port.")
     .def("push_to_port", &wrap_process::_push_to_port
       , (arg("port"), arg("datum"))
       , "Push a datum packet to a port.")
+    .def("push_value_to_port", &wrap_process::_push_value_to_port
+      , (arg("port"), arg("value"))
+      , "Push a value to a port.")
     .def("push_datum_to_port", &wrap_process::_push_datum_to_port
       , (arg("port"), arg("datum"))
       , "Push a datum to a port.")
@@ -892,6 +900,20 @@ wrap_process
   return grab_datum_from_port(port);
 }
 
+object
+wrap_process
+::_grab_value_from_port(port_t const& port) const
+{
+  vistk::python::python_gil const gil;
+
+  (void)gil;
+
+  vistk::datum_t const dat = grab_datum_from_port(port);
+  boost::any const any = dat->get_datum<boost::any>();
+
+  return object(any);
+}
+
 void
 wrap_process
 ::_push_to_port(port_t const& port, vistk::edge_datum_t const& dat) const
@@ -903,6 +925,20 @@ void
 wrap_process
 ::_push_datum_to_port(port_t const& port, vistk::datum_t const& dat) const
 {
+  return push_datum_to_port(port, dat);
+}
+
+void
+wrap_process
+::_push_value_to_port(port_t const& port, object const& obj) const
+{
+  vistk::python::python_gil const gil;
+
+  (void)gil;
+
+  boost::any const any = extract<boost::any>(obj);
+  vistk::datum_t const dat = vistk::datum::new_datum(any);
+
   return push_datum_to_port(port, dat);
 }
 
