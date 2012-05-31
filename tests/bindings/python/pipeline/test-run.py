@@ -85,8 +85,7 @@ def make_sink(conf):
         def _step(self):
             from vistk.pipeline import datum
 
-            dat = self.grab_datum_from_port(self.port_input)
-            num = dat.get_datum()
+            num = self.grab_value_from_port(self.port_input)
 
             self.fout.write('%d\n' % num)
             self.fout.flush()
