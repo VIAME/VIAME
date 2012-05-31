@@ -130,10 +130,9 @@ create_schedule(vistk::schedule_registry::type_t const& type)
 {
   static vistk::schedule_registry_t const reg = vistk::schedule_registry::self();
 
-  vistk::config_t const config = vistk::config::empty_config();
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>();
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(config);
-  return reg->create_schedule(type, pipeline, config);
+  return reg->create_schedule(type, pipeline);
 }
 
 null_schedule

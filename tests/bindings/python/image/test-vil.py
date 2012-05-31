@@ -133,6 +133,7 @@ def create_verify_process(c, shape, dtype):
 
 def test_datum():
     from vistk.image import vil
+    from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import process_registry
     from vistk.pipeline import schedule_registry
@@ -174,12 +175,12 @@ def test_datum():
         with open(lname, 'w+') as f:
             f.write('%s\n' % fname)
 
-        c = config.empty_config()
-
-        p = pipeline.Pipeline(c)
+        p = pipeline.Pipeline()
 
         read_name = 'read'
         verify_name = 'verify'
+
+        c = config.empty_config()
 
         c['input'] = lname
         c['pixtype'] = pt
@@ -209,7 +210,7 @@ def test_datum():
             test_error("Could not initialize pipeline: '%s'" % str(e))
             continue
 
-        s = sreg.create_schedule(sched_type, p, c)
+        s = sreg.create_schedule(sched_type, p)
 
         try:
             s.start()

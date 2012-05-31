@@ -2206,7 +2206,5 @@ create_process(vistk::process::type_t const& type, vistk::process::name_t const&
 vistk::pipeline_t
 create_pipeline()
 {
-  static vistk::config_t const config = vistk::config::empty_config();
-
-  return boost::make_shared<vistk::pipeline>(config);
+  return boost::make_shared<vistk::pipeline>();
 }

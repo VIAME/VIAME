@@ -219,7 +219,7 @@ def test_cpp_to_python(sched_type):
 
     t = make_sink(c)
 
-    p = pipeline.Pipeline(c)
+    p = pipeline.Pipeline()
 
     p.add_process(s)
     p.add_process(t)
@@ -264,7 +264,7 @@ def test_python_to_cpp(sched_type):
 
     t = create_process('print_number', c)
 
-    p = pipeline.Pipeline(c)
+    p = pipeline.Pipeline()
 
     p.add_process(s)
     p.add_process(t)
@@ -341,7 +341,7 @@ def test_python_via_cpp(sched_type):
 
     t = make_sink(c)
 
-    p = pipeline.Pipeline(c)
+    p = pipeline.Pipeline()
 
     p.add_process(s)
     p.add_process(s1)

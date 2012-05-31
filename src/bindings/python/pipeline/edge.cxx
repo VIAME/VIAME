@@ -49,6 +49,7 @@ BOOST_PYTHON_MODULE(edge)
   class_<vistk::edge, vistk::edge_t, boost::noncopyable>("Edge"
     , "A communication channel between processes."
     , no_init)
+    .def(init<>())
     .def(init<vistk::config_t>())
     .def("makes_dependency", &vistk::edge::makes_dependency
       , "Returns True if the edge implies a dependency from downstream on upstream.")

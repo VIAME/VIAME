@@ -48,7 +48,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \param config Contains configuration for the pipeline.
      */
-    pipeline(config_t const& config);
+    pipeline(config_t const& config = config::empty_config());
     /**
      * \brief Destructor.
      */

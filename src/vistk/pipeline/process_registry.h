@@ -9,6 +9,7 @@
 
 #include "pipeline-config.h"
 
+#include "config.h"
 #include "process.h"
 #include "types.h"
 
@@ -74,7 +75,7 @@ class VISTK_PIPELINE_EXPORT process_registry
      *
      * \returns A new process of type \p type.
      */
-    process_t create_process(process::type_t const& type, config_t const& config) const;
+    process_t create_process(process::type_t const& type, config_t const& config = config::empty_config()) const;
 
     /**
      * \brief Query for all available types.

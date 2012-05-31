@@ -76,8 +76,6 @@ main(int argc, char* argv[])
     return EXIT_SUCCESS;
   }
 
-  vistk::config_t const conf = vistk::config::empty_config();
-
   BOOST_FOREACH (vistk::process::type_t const& proc_type, types)
   {
     if (!vm.count("detail"))
@@ -101,7 +99,7 @@ main(int argc, char* argv[])
 
     try
     {
-      proc_m = reg->create_process(proc_type, conf);
+      proc_m = reg->create_process(proc_type);
     }
     catch (vistk::no_such_process_type_exception& e)
     {

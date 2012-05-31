@@ -113,7 +113,7 @@ BOOST_PYTHON_MODULE(process_registry)
       , (arg("type"), arg("description"), arg("ctor"))
       , "Registers a function which creates a process of the given type.")
     .def("create_process", &vistk::process_registry::create_process
-      , (arg("type"), arg("config"))
+      , (arg("type"), arg("config") = vistk::config::empty_config())
       , "Creates a new process of the given type.")
     .def("types", &vistk::process_registry::types
       , "A list of known process types.")

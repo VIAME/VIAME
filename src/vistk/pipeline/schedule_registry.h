@@ -9,6 +9,7 @@
 
 #include "pipeline-config.h"
 
+#include "config.h"
 #include "types.h"
 
 #include <boost/function.hpp>
@@ -78,7 +79,7 @@ class VISTK_PIPELINE_EXPORT schedule_registry
      *
      * \returns A new schedule of type \p type.
      */
-    schedule_t create_schedule(type_t const& type, pipeline_t const& pipe, config_t const& config) const;
+    schedule_t create_schedule(type_t const& type, pipeline_t const& pipe, config_t const& config = config::empty_config()) const;
 
     /**
      * \brief Query for all available types.

@@ -126,15 +126,13 @@ test_load_processes()
 
   vistk::process::types_t const types = reg->types();
 
-  vistk::config_t config = vistk::config::empty_config();
-
   BOOST_FOREACH (vistk::process::type_t const& type, types)
   {
     vistk::process_t process;
 
     try
     {
-      process = reg->create_process(type, config);
+      process = reg->create_process(type);
     }
     catch (vistk::no_such_process_type_exception& e)
     {
@@ -197,10 +195,8 @@ test_unknown_types()
 
   vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
 
-  vistk::config_t config = vistk::config::empty_config();
-
   EXPECT_EXCEPTION(vistk::no_such_process_type_exception,
-                   reg->create_process(non_existent_process, config),
+                   reg->create_process(non_existent_process),
                    "requesting an non-existent process type");
 
   EXPECT_EXCEPTION(vistk::no_such_process_type_exception,

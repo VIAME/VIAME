@@ -141,9 +141,7 @@ test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
     vistk::schedule_registry_t const reg = vistk::schedule_registry::self();
 
-    vistk::config_t const schedule_config = vistk::config::empty_config();
-
-    vistk::schedule_t schedule = reg->create_schedule(schedule_type, pipeline, schedule_config);
+    vistk::schedule_t schedule = reg->create_schedule(schedule_type, pipeline);
 
     schedule->start();
     schedule->wait();
@@ -271,9 +269,7 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
     vistk::schedule_registry_t const reg = vistk::schedule_registry::self();
 
-    vistk::config_t const schedule_config = vistk::config::empty_config();
-
-    vistk::schedule_t schedule = reg->create_schedule(schedule_type, pipeline, schedule_config);
+    vistk::schedule_t schedule = reg->create_schedule(schedule_type, pipeline);
 
     schedule->start();
     schedule->wait();
@@ -330,7 +326,5 @@ create_process(vistk::process::type_t const& type, vistk::process::name_t const&
 vistk::pipeline_t
 create_pipeline()
 {
-  static vistk::config_t const config = vistk::config::empty_config();
-
-  return boost::make_shared<vistk::pipeline>(config);
+  return boost::make_shared<vistk::pipeline>();
 }

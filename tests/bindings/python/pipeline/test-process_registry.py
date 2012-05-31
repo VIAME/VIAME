@@ -7,12 +7,14 @@
 
 def test_import():
     try:
+        from vistk.pipeline import config
         import vistk.pipeline.process_registry
     except:
         test_error("Failed to import the process_registry module")
 
 
 def test_create():
+    from vistk.pipeline import config
     from vistk.pipeline import process_registry
 
     process_registry.ProcessRegistry.self()
@@ -31,6 +33,7 @@ def test_api_calls():
     proc_type = 'orphan'
     c = config.empty_config()
 
+    reg.create_process(proc_type)
     reg.create_process(proc_type, c)
     reg.types()
     reg.description(proc_type)
@@ -213,10 +216,8 @@ def test_register():
     if not proc_desc == reg.description(proc_type):
         test_error("Description was not preserved when registering")
 
-    c = config.empty_config()
-
     try:
-        p = reg.create_process(proc_type, c)
+        p = reg.create_process(proc_type)
         if p is None:
             raise Exception()
     except:
@@ -245,8 +246,6 @@ def test_wrapper_api():
     reg.register_process(proc_type, proc_desc, example_process())
     reg.register_process(proc_base_type, proc_base_desc, base_example_process())
 
-    c = config.empty_config()
-
     def check_process(p):
         if p is None:
             test_error("Got a 'None' process")
@@ -261,7 +260,7 @@ def test_wrapper_api():
         expect_exception("asking for info on a non-existant output port", BaseException,
                          p.output_port_info, oport)
 
-        e = edge.Edge(c)
+        e = edge.Edge()
 
         expect_exception("connecting to a non-existant input port", BaseException,
                          p.connect_input_port, iport, e)
@@ -285,10 +284,10 @@ def test_wrapper_api():
 
         p.check()
 
-    p = reg.create_process(proc_type, c)
+    p = reg.create_process(proc_type)
     check_process(p)
 
-    p = reg.create_process(proc_base_type, c)
+    p = reg.create_process(proc_base_type)
     check_process(p)
 
 

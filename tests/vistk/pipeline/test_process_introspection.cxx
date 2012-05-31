@@ -91,7 +91,7 @@ test_process(vistk::process::type_t const& type)
     TEST_ERROR("The description is empty");
   }
 
-  vistk::process_t const process = reg->create_process(type, config);
+  vistk::process_t const process = reg->create_process(type);
 
   if (!process)
   {

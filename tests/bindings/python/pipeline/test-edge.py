@@ -18,6 +18,7 @@ def test_create():
 
     c = config.empty_config()
 
+    edge.Edge()
     edge.Edge(c)
     edge.Edges()
 
@@ -39,12 +40,11 @@ def test_api_calls():
     from vistk.pipeline import datum
     from vistk.pipeline import edge
     from vistk.pipeline import modules
+    from vistk.pipeline import process
     from vistk.pipeline import process_registry
     from vistk.pipeline import stamp
 
-    c = config.empty_config()
-
-    e = edge.Edge(c)
+    e = edge.Edge()
 
     e.makes_dependency()
     e.has_data()
@@ -67,7 +67,7 @@ def test_api_calls():
 
     reg = process_registry.ProcessRegistry.self()
 
-    p = reg.create_process('orphan', c)
+    p = reg.create_process('orphan')
 
     e.set_upstream_process(p)
     e.set_downstream_process(p)

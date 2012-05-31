@@ -23,6 +23,7 @@ BOOST_PYTHON_MODULE(pipeline)
   class_<vistk::pipeline, vistk::pipeline_t, boost::noncopyable>("Pipeline"
     , "A data structure for a collection of connected processes."
     , no_init)
+    .def(init<>())
     .def(init<vistk::config_t>())
     .def("add_process", &vistk::pipeline::add_process
       , (arg("process"))

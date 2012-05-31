@@ -65,7 +65,7 @@ BOOST_PYTHON_MODULE(schedule_registry)
       , (arg("type"), arg("description"), arg("ctor"))
       , "Registers a function which creates a schedule of the given type.")
     .def("create_schedule", &vistk::schedule_registry::create_schedule
-      , (arg("type"), arg("pipeline"), arg("config"))
+      , (arg("type"), arg("pipeline"), arg("config") = vistk::config::empty_config())
       , "Creates a new schedule of the given type.")
     .def("types", &vistk::schedule_registry::types
       , "A list of known schedule types.")

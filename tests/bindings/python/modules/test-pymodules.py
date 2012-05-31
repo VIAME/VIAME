@@ -13,6 +13,7 @@ def test_import():
 
 
 def test_load():
+    from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import process_registry
 
@@ -27,6 +28,7 @@ def test_load():
 
 
 def test_masking():
+    from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import process_registry
 
@@ -41,6 +43,7 @@ def test_masking():
 
 
 def test_extra_modules():
+    from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import process_registry
 
@@ -55,6 +58,7 @@ def test_extra_modules():
 
 
 def test_pythonpath():
+    from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import process_registry
     from vistk.pipeline import schedule_registry

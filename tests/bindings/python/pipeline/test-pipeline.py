@@ -18,6 +18,7 @@ def test_create():
 
     c = config.empty_config()
 
+    pipeline.Pipeline()
     pipeline.Pipeline(c)
 
 
@@ -29,9 +30,7 @@ def test_api_calls():
     from vistk.pipeline import process
     from vistk.pipeline import process_registry
 
-    c = config.empty_config()
-
-    p = pipeline.Pipeline(c)
+    p = pipeline.Pipeline()
 
     proc_type1 = 'numbers'
     proc_type2 = 'print_number'
@@ -49,6 +48,8 @@ def test_api_calls():
     modules.load_known_modules()
 
     reg = process_registry.ProcessRegistry.self()
+
+    c = config.empty_config()
 
     c.set_value(process_registry.Process.config_name, proc_name1)
     proc1 = reg.create_process(proc_type1, c)

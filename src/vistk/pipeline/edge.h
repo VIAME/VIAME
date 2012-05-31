@@ -57,7 +57,7 @@ class VISTK_PIPELINE_EXPORT edge
      *
      * \param config Contains configuration for the edge.
      */
-    edge(config_t const& config);
+    edge(config_t const& config = config::empty_config());
     /**
      * \brief Destructor.
      */

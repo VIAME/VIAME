@@ -7,12 +7,14 @@
 
 def test_import():
     try:
+        from vistk.pipeline import config
         import vistk.pipeline.schedule_registry
     except:
         test_error("Failed to import the schedule_registry module")
 
 
 def test_create():
+    from vistk.pipeline import config
     from vistk.pipeline import schedule_registry
 
     schedule_registry.ScheduleRegistry.self()
@@ -33,8 +35,9 @@ def test_api_calls():
 
     sched_type = 'thread_per_process'
     c = config.empty_config()
-    p = pipeline.Pipeline(c)
+    p = pipeline.Pipeline()
 
+    reg.create_schedule(sched_type, p)
     reg.create_schedule(sched_type, p, c)
     reg.types()
     reg.description(sched_type)
@@ -90,11 +93,10 @@ def test_register():
     if not sched_desc == reg.description(sched_type):
         test_error("Description was not preserved when registering")
 
-    c = config.empty_config()
-    p = pipeline.Pipeline(c)
+    p = pipeline.Pipeline()
 
     try:
-        s = reg.create_schedule(sched_type, p, c)
+        s = reg.create_schedule(sched_type, p)
         if s is None:
             raise Exception()
     except:
@@ -114,8 +116,7 @@ def test_wrapper_api():
 
     reg.register_schedule(sched_type, sched_desc, example_schedule())
 
-    c = config.empty_config()
-    p = pipeline.Pipeline(c)
+    p = pipeline.Pipeline()
 
     def check_schedule(s):
         if s is None:
@@ -128,7 +129,7 @@ def test_wrapper_api():
 
         s.check()
 
-    s = reg.create_schedule(sched_type, p, c)
+    s = reg.create_schedule(sched_type, p)
     check_schedule(s)
 
 

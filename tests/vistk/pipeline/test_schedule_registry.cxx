@@ -135,6 +135,10 @@ test_null_pipeline()
   vistk::pipeline_t pipe;
 
   EXPECT_EXCEPTION(vistk::null_schedule_registry_pipeline_exception,
+                   reg->create_schedule(vistk::schedule_registry::type_t(), pipe),
+                   "requesting a NULL pipeline to a schedule with default arguments");
+
+  EXPECT_EXCEPTION(vistk::null_schedule_registry_pipeline_exception,
                    reg->create_schedule(vistk::schedule_registry::type_t(), pipe, config),
                    "requesting a NULL pipeline to a schedule");
 }
@@ -148,8 +152,7 @@ test_load_schedules()
 
   vistk::schedule_registry::types_t const types = reg->types();
 
-  vistk::config_t config = vistk::config::empty_config();
-  vistk::pipeline_t pipe = boost::make_shared<vistk::pipeline>(config);
+  vistk::pipeline_t pipe = boost::make_shared<vistk::pipeline>();
 
   BOOST_FOREACH (vistk::schedule_registry::type_t const& type, types)
   {
@@ -157,7 +160,7 @@ test_load_schedules()
 
     try
     {
-      schedule = reg->create_schedule(type, pipe, config);
+      schedule = reg->create_schedule(type, pipe);
     }
     catch (vistk::no_such_schedule_type_exception& e)
     {
@@ -220,11 +223,10 @@ test_unknown_types()
 
   vistk::schedule_registry::type_t const non_existent_schedule = vistk::schedule_registry::type_t("no_such_schedule");
 
-  vistk::config_t config = vistk::config::empty_config();
-  vistk::pipeline_t pipe = boost::make_shared<vistk::pipeline>(config);
+  vistk::pipeline_t pipe = boost::make_shared<vistk::pipeline>();
 
   EXPECT_EXCEPTION(vistk::no_such_schedule_type_exception,
-                   reg->create_schedule(non_existent_schedule, pipe, config),
+                   reg->create_schedule(non_existent_schedule, pipe),
                    "requesting an non-existent schedule type");
 
   EXPECT_EXCEPTION(vistk::no_such_schedule_type_exception,
