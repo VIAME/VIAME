@@ -114,12 +114,6 @@ compare_string_process::priv
 {
 }
 
-process_t
-create_compare_string_process(config_t const& config)
-{
-  return boost::make_shared<compare_string_process>(config);
-}
-
 void
 register_processes()
 {
@@ -132,5 +126,5 @@ register_processes()
     return;
   }
 
-  registry->register_process("compare_string", "Compares strings", create_compare_string_process);
+  registry->register_process("compare_string", "Compare strings", create_process<compare_string_process>);
 }

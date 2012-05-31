@@ -2,7 +2,7 @@
  * \page porting Porting
  *
  * This page outlines some steps that may be involved when porting a process
- * from the old process framework into a new pipeline process.
+ * from the vidtk process framework into a vistk pipeline process.
  *
  * \section porting_splitting Splitting the process
  *
@@ -66,23 +66,50 @@
  *
  * Input ports are ports where data will be received from other processes in the
  * pipeline. Typically, there should be only one edge connected to an input
- * port, but there may be a case for multiples that has not yet arisen.
+ * port (which is enforced by the base class), but there may be a case for
+ * multiples that has not yet arisen.
  *
  * Output ports are ports where data will be available for other processes in
  * the pipeline. There may be many edges connected to a single port, and the
  * same data should be pushed to each edge connected to the port. The
- * \ref vistk::process::push_to_edges() method should be used to push data to
- * multiple output edges.
+ * \ref vistk::process::push_to_edges() method may be used to push data to
+ * multiple output edges, but the recommended methods are \ref
+ * vistk::process::push_to_port() and \ref vistk::process::push_datum_to_port().
  *
  * \subsubsection process_port_types Types
  *
- * Ports must declare a type for its ports. There are currently two special
- * types:
+ * Ports must declare a type for its ports. There are currently four special
+ * types. The first two are static:
  *
  * \ptype{\link vistk::process::type_any any\endlink} The process does not try
- * to extract information from an edge connected to the port.
+ * to extract information from the port.
  * \ptype{\link vistk::process::type_none none\endlink} There is never any
  * information to extract from the port.
+ *
+ * The other two are "delayed" types.
+ *
+ * \ptype{\link vistk::process::type_flow_dependent flow_dependent\endlink} The
+ * process does not try to extract information from the port. If a tag is
+ * appended to the type, then when any of the ports gets a type set for it, all
+ * of the similarly tagged ports are given the same type.
+ * \ptype{\link vistk::process::type_data_dependent data_dependent\endlink} The
+ * process can determine the type, but it must be configured before the type can
+ * be pinned down. The is usually for processes which read data from a file
+ * which it may not know about until after the configuration has been read.
+ *
+ * The tags on a flow-dependent port type can be used to propagate the types
+ * within a pipeline through a process which otherwise does not care about the
+ * type of data that it is handling. As an example, a process which just passes
+ * data through it can set its input and output ports to have a
+ * \code vistk::process::type_flow_dependent + "tag"\endcode type and the
+ * \ref vistk::pipeline will call \ref vistk::process::set_input_port_type() (or
+ * \ref vistk::process::set_output_port_type()) which the base class will, by
+ * default, also set the output port to have the same type. This allows the
+ * pipeline to check types on ports even when a process which does not care what
+ * types it has exists between two processes. A subclass may reimplement the
+ * \ref vistk::process::_set_input_port_type() and \ref
+ * vistk::process::_set_output_port_type() methods in order to inspect or reject
+ * a port type assignment based on what the type of the connected port is.
  *
  * \subsubsection process_port_flags Flags
  *
@@ -94,6 +121,10 @@
  * \pflag{\link vistk::process::flag_input_mutable mutable\endlink} Marks that
  * an input is modified within the process and that other receivers of the data
  * may see the changes if the data is not handled carefully.
+ * \pflag{\link vistk::process::flag_input_nodep nodep\endlink} Indicates that
+ * the port is expected to be a backwards edge within the pipeline so that when
+ * the pipeline is topologically sorted (either for initialization or execution
+ * order by a schedule), the edge can be ignored for such purposes.
  * \pflag{\link vistk::process::flag_required required\endlink} Marks that the
  * port must be connected for the process to run.
  *
@@ -124,14 +155,15 @@
  * \li Reads data from input edges first.
  * \li Writes data to the output edges first.
  *
- * If this is not adhered to, downstream process may get confused and start
- * dropping data in order to sync the edges up.
+ * If this is not adhered to, downstream processes may get confused and start
+ * dropping data because the stamps on the streams are not sychronized.
  *
- * \warning The base class is not yet reentrant, so this will not work yet.
+ * \warning The base class is not yet reentrant, so this will not work yet. The
+ * base class will likely, in the future, handle reentrant logic itself.
  *
  * \subsection process_stepping Step
  *
- * In general, a process' \link vistk::process::_step() _step\endlink method
+ * In general, a process' \link vistk::process::_step _step\endlink method
  * will involve:
  *
  * \li Obtaining data from the input edges.
@@ -144,9 +176,9 @@
  * \subsection process_destruction Destruction
  *
  * The destructor must be ready to run at any time. The schedule may be asked to
- * stop processing at which time no processes will be run any more. Any
- * resources used should be released in the destructor since this is the only
- * place it will happen.
+ * stop processing at which time no processes will be run any more (though any
+ * step calls are likely to finish first). Any resources used should be released
+ * in the destructor since this is the only place it will happen.
  *
  * \subsection process_documentation Documentation
  *
@@ -161,19 +193,19 @@
  *   \term{\doxdir{configs}}
  *     \termdef{Creates a section for configuration values.}
  *   \term{\doxdir{configs{key name} \<description\>}}
- *     \termdef{ocuments a configuration value.}
+ *     \termdef{Documents a configuration value.}
  *   \term{\doxdir{iports}}
- *     \termdef{reates a section for input ports.}
+ *     \termdef{Creates a section for input ports.}
  *   \term{\doxdir{iport{port name} \<description\>}}
- *     \termdef{ocuments an input port.}
+ *     \termdef{Documents an input port.}
  *   \term{\doxdir{oports}}
- *     \termdef{reates a section for output ports.}
+ *     \termdef{Creates a section for output ports.}
  *   \term{\doxdir{oport{port name} \<description\>}}
- *     \termdef{ocuments an output port.}
+ *     \termdef{Documents an output port.}
  *   \term{\doxdir{reqs}}
- *     \termdef{reates a section for requirements.}
+ *     \termdef{Creates a section for requirements.}
  *   \term{\doxdir{req \<requirement\>}}
- *     \termdef{ists a requirement for the process to be valid.}
+ *     \termdef{Lists a requirement for the process to be valid.}
  * </dl>
  *
  * These directives help to keep the documentation consistent and will help make
@@ -187,9 +219,11 @@
  * types of processes available. In order to register a process, a few things
  * are needed. First, there needs to be a function which returns a
  * \ref vistk::process_t pointing to the new process given a
- * \ref vistk::config_t block. This function must then be added to the registry
- * with a type name. This type name must be globally unique (exceptions will be
- * thrown at a program's start if this is not adhered to). A single process
- * class may be registered under multiple names or be instantiated differently
- * for slightly different behaviors under different names.
+ * \ref vistk::config_t block. The \ref vistk::create_process() function handles
+ * the common case. This function must then be added to the registry with a type
+ * name. This type name must be globally unique (exceptions will be thrown at a
+ * program's start if this is not adhered to). A single process class may be
+ * registered under multiple names or be instantiated differently for slightly
+ * different behaviors under different names. In this case, a custom function is
+ * probably necessary.
  */

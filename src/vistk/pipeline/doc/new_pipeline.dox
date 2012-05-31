@@ -1,10 +1,10 @@
 /**
- * \mainpage Pipeline 2.0 API Documentation
+ * \mainpage The vistk Pipeline API Documentation
  *
  * \section introduction Introduction
  *
- * This is a new pipeline API that addresses issues that have arisen in the
- * original pipeline.
+ * This is the vistk pipeline API that addresses issues that have arisen in the
+ * vidtk pipeline.
  *
  * \todo Write introduction.
  */
