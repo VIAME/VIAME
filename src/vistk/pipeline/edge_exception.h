@@ -154,8 +154,8 @@ class VISTK_PIPELINE_EXPORT input_already_connected_exception
     /**
      * \brief Constructor.
      *
-     * \param process The name of the process that was already connected.
-     * \param new_process The name of the process which was attemted to be connected.
+     * \param name The name of the process that was already connected.
+     * \param new_name The name of the process which was attemted to be connected.
      */
     input_already_connected_exception(process::name_t const& name, process::name_t const& new_name) throw();
     /**
