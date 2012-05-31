@@ -186,11 +186,10 @@ def test_datum():
         c['pixtype'] = pt
         c['pixfmt'] = 'grayscale'
         c['verify'] = 'true'
-        c[process.PythonProcess.config_name] = read_name
 
         proc_type = 'image_reader'
 
-        r = reg.create_process(proc_type, c)
+        r = reg.create_process(proc_type, read_name, c)
 
         c[process.PythonProcess.config_name] = verify_name
 

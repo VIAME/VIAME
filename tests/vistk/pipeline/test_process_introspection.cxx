@@ -81,9 +81,6 @@ test_process(vistk::process::type_t const& type)
 {
   static vistk::process::name_t const expected_name = vistk::process::name_t("expected_name");
 
-  vistk::config_t config = vistk::config::empty_config();
-  config->set_value(vistk::process::config_name, expected_name);
-
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
   if (reg->description(type).empty())
@@ -91,7 +88,7 @@ test_process(vistk::process::type_t const& type)
     TEST_ERROR("The description is empty");
   }
 
-  vistk::process_t const process = reg->create_process(type);
+  vistk::process_t const process = reg->create_process(type, expected_name);
 
   if (!process)
   {

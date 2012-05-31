@@ -219,7 +219,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
       process::type_t const& proc_type = decl.second;
       config_t const proc_conf = global_conf->subblock_view(proc_name);
 
-      process_t const proc = reg->create_process(proc_type, proc_conf);
+      process_t const proc = reg->create_process(proc_type, proc_name, proc_conf);
 
       pipe->add_process(proc);
     }
@@ -444,15 +444,6 @@ pipe_bakery
 ::operator () (process_pipe_block const& process_block)
 {
   config_values_t const& values = process_block.config_values;
-
-  // Build the configuration value for the name of the process.
-  config_value_t name_value;
-  name_value.key.key_path.push_back(process::config_name);
-  name_value.key.options.flags = config_flags_t();
-  (*name_value.key.options.flags).push_back(flag_read_only);
-  name_value.value = process_block.name;
-
-  register_config_value(process_block.name, name_value);
 
   BOOST_FOREACH (config_value_t const& value, values)
   {

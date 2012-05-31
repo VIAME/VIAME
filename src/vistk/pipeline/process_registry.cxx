@@ -69,7 +69,7 @@ process_registry
 
 process_t
 process_registry
-::create_process(process::type_t const& type, config_t const& config) const
+::create_process(process::type_t const& type, process::name_t const& name, config_t const& config) const
 {
   if (!config)
   {
@@ -84,6 +84,7 @@ process_registry
   }
 
   config->set_value(process::config_type, config::value_t(type));
+  config->set_value(process::config_name, config::value_t(name));
 
   return i->second.get<1>()(config);
 }

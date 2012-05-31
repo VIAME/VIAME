@@ -24,6 +24,7 @@ def test_create():
 def test_api_calls():
     from vistk.pipeline import config
     from vistk.pipeline import modules
+    from vistk.pipeline import process
     from vistk.pipeline import process_registry
 
     modules.load_known_modules()
@@ -33,8 +34,8 @@ def test_api_calls():
     proc_type = 'orphan'
     c = config.empty_config()
 
-    reg.create_process(proc_type)
-    reg.create_process(proc_type, c)
+    reg.create_process(proc_type, process.ProcessName())
+    reg.create_process(proc_type, process.ProcessName(), c)
     reg.types()
     reg.description(proc_type)
 
@@ -217,7 +218,7 @@ def test_register():
         test_error("Description was not preserved when registering")
 
     try:
-        p = reg.create_process(proc_type)
+        p = reg.create_process(proc_type, process.ProcessName())
         if p is None:
             raise Exception()
     except:
@@ -284,10 +285,10 @@ def test_wrapper_api():
 
         p.check()
 
-    p = reg.create_process(proc_type)
+    p = reg.create_process(proc_type, process.ProcessName())
     check_process(p)
 
-    p = reg.create_process(proc_base_type)
+    p = reg.create_process(proc_base_type, process.ProcessName())
     check_process(p)
 
 

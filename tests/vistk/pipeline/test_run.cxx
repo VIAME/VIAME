@@ -318,9 +318,7 @@ create_process(vistk::process::type_t const& type, vistk::process::name_t const&
 
   (void)modules_loaded;
 
-  config->set_value(vistk::process::config_name, vistk::config::value_t(name));
-
-  return reg->create_process(type, config);
+  return reg->create_process(type, name, config);
 }
 
 vistk::pipeline_t

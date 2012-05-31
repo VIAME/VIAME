@@ -132,7 +132,7 @@ test_load_processes()
 
     try
     {
-      process = reg->create_process(type);
+      process = reg->create_process(type, vistk::process::name_t());
     }
     catch (vistk::no_such_process_type_exception& e)
     {
@@ -196,7 +196,7 @@ test_unknown_types()
   vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
 
   EXPECT_EXCEPTION(vistk::no_such_process_type_exception,
-                   reg->create_process(non_existent_process),
+                   reg->create_process(non_existent_process, vistk::process::name_t()),
                    "requesting an non-existent process type");
 
   EXPECT_EXCEPTION(vistk::no_such_process_type_exception,

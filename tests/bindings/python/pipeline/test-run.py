@@ -96,7 +96,7 @@ def make_sink(conf):
     return Sink(conf)
 
 
-def create_process(type, conf):
+def create_process(type, name, conf):
     from vistk.pipeline import modules
     from vistk.pipeline import process_registry
 
@@ -104,7 +104,7 @@ def create_process(type, conf):
 
     reg = process_registry.ProcessRegistry.self()
 
-    p = reg.create_process(type, conf)
+    p = reg.create_process(type, name, conf)
 
     return p
 
@@ -206,11 +206,10 @@ def test_cpp_to_python(sched_type):
 
     c = config.empty_config()
 
-    c.set_value(process.PythonProcess.config_name, name_source)
     c.set_value('start', str(min))
     c.set_value('end', str(max))
 
-    s = create_process('numbers', c)
+    s = create_process('numbers', name_source, c)
 
     c = config.empty_config()
 
@@ -259,10 +258,9 @@ def test_python_to_cpp(sched_type):
 
     c = config.empty_config()
 
-    c.set_value(process.PythonProcess.config_name, name_sink)
     c.set_value('output', output_file)
 
-    t = create_process('print_number', c)
+    t = create_process('print_number', name_sink, c)
 
     p = pipeline.Pipeline()
 
@@ -308,9 +306,7 @@ def test_python_via_cpp(sched_type):
 
     c = config.empty_config()
 
-    c.set_value(process.PythonProcess.config_name, name_source)
-
-    s = create_process('source', c)
+    s = create_process('source', name_source, c)
 
     c = config.empty_config()
 
@@ -330,9 +326,7 @@ def test_python_via_cpp(sched_type):
 
     c = config.empty_config()
 
-    c.set_value(process.PythonProcess.config_name, name_mult)
-
-    m = create_process('multiplication', c)
+    m = create_process('multiplication', name_mult, c)
 
     c = config.empty_config()
 

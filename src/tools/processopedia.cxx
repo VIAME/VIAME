@@ -99,7 +99,7 @@ main(int argc, char* argv[])
 
     try
     {
-      proc_m = reg->create_process(proc_type);
+      proc_m = reg->create_process(proc_type, vistk::process::name_t());
     }
     catch (vistk::no_such_process_type_exception& e)
     {

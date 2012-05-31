@@ -870,9 +870,7 @@ create_process(vistk::process::type_t const& type, vistk::process::name_t const&
 
   (void)modules_loaded;
 
-  config->set_value(vistk::process::config_name, vistk::config::value_t(name));
-
-  return reg->create_process(type);
+  return reg->create_process(type, name);
 }
 
 vistk::edge_t

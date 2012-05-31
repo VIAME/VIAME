@@ -92,5 +92,5 @@ test_envvar()
 
   vistk::process::type_t const proc_type = vistk::process::type_t("test");
 
-  reg->create_process(proc_type);
+  reg->create_process(proc_type, vistk::process::name_t());
 }

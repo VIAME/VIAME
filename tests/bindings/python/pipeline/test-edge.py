@@ -67,7 +67,7 @@ def test_api_calls():
 
     reg = process_registry.ProcessRegistry.self()
 
-    p = reg.create_process('orphan')
+    p = reg.create_process('orphan', process.ProcessName())
 
     e.set_upstream_process(p)
     e.set_downstream_process(p)

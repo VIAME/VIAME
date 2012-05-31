@@ -110,7 +110,7 @@ BOOST_PYTHON_MODULE(process_registry)
       , "Returns an instance of the process registry.")
     .staticmethod("self")
     .def("register_process", &register_process
-      , (arg("type"), arg("description"), arg("ctor"))
+      , (arg("type"), arg("name"), arg("description"), arg("ctor"))
       , "Registers a function which creates a process of the given type.")
     .def("create_process", &vistk::process_registry::create_process
       , (arg("type"), arg("config") = vistk::config::empty_config())

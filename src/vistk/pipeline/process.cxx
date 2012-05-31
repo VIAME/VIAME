@@ -417,7 +417,7 @@ process
   }
 
   declare_configuration_key(config_name, boost::make_shared<conf_info>(
-    priv::default_name,
+    config::value_t(),
     config::description_t("The name of the process.")));
   declare_configuration_key(config_type, boost::make_shared<conf_info>(
     config::value_t(),

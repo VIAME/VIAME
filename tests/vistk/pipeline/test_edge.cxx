@@ -346,7 +346,7 @@ test_set_upstream_process()
   vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
-  vistk::process_t const process = reg->create_process(proc_type);
+  vistk::process_t const process = reg->create_process(proc_type, vistk::process::name_t());
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>();
 
@@ -365,7 +365,7 @@ test_set_downstream_process()
   vistk::process_registry_t const reg = vistk::process_registry::self();
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
-  vistk::process_t const process = reg->create_process(proc_type);
+  vistk::process_t const process = reg->create_process(proc_type, vistk::process::name_t());
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>();
 

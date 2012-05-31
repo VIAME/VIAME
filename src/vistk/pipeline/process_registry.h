@@ -71,11 +71,12 @@ class VISTK_PIPELINE_EXPORT process_registry
      * \throws no_such_process_type_exception Thrown if the type is not known.
      *
      * \param type The type of \ref process to create.
+     * \param name The name of the \ref process to create.
      * \param config The configuration to pass the \ref process.
      *
      * \returns A new process of type \p type.
      */
-    process_t create_process(process::type_t const& type, config_t const& config = config::empty_config()) const;
+    process_t create_process(process::type_t const& type, process::name_t const& name, config_t const& config = config::empty_config()) const;
 
     /**
      * \brief Query for all available types.
