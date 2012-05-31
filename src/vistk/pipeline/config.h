@@ -11,6 +11,7 @@
 
 #include "types.h"
 
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/optional/optional.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/lexical_cast.hpp>
@@ -438,11 +439,13 @@ config_cast_inner(config::value_t const& value)
   static config::value_t const true_string = config::value_t("true");
   static config::value_t const false_string = config::value_t("false");
 
-  if (value == true_string)
+  config::value_t const value_lower = boost::to_lower_copy(value);
+
+  if (value_lower == true_string)
   {
     return true;
   }
-  else if (value == false_string)
+  else if (value_lower == false_string)
   {
     return false;
   }
