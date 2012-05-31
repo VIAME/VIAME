@@ -124,6 +124,12 @@ BOOST_PYTHON_MODULE(process)
     , "A collection of process names.")
     .def(vector_indexing_suite<vistk::process::names_t>())
   ;
+  class_<vistk::process::type_t>("ProcessType"
+    , "The type for a type of process.");
+  class_<vistk::process::types_t>("ProcessTypes"
+    , "A collection of process types.")
+    .def(vector_indexing_suite<vistk::process::types_t>())
+  ;
   class_<vistk::process::constraint_t>("ProcessConstraint"
     , "A constraint on a process.");
   class_<vistk::process::constraints_t>("ProcessConstraints"

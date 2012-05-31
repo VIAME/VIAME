@@ -91,7 +91,7 @@ def test_api_calls():
     o.type
     o.config_values
     o.name = process.ProcessName()
-    o.type = process_registry.ProcessType()
+    o.type = process.ProcessType()
     o.config_values = load.ConfigValues()
 
     o = load.ConnectBlock()

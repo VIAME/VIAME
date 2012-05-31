@@ -18,7 +18,7 @@ namespace vistk
 {
 
 null_process_ctor_exception
-::null_process_ctor_exception(process_registry::type_t const& type) throw()
+::null_process_ctor_exception(process::type_t const& type) throw()
   : process_registry_exception()
   , m_type(type)
 {
@@ -52,7 +52,7 @@ null_process_registry_config_exception
 }
 
 no_such_process_type_exception
-::no_such_process_type_exception(process_registry::type_t const& type) throw()
+::no_such_process_type_exception(process::type_t const& type) throw()
   : process_registry_exception()
   , m_type(type)
 {
@@ -70,7 +70,7 @@ no_such_process_type_exception
 }
 
 process_type_already_exists_exception
-::process_type_already_exists_exception(process_registry::type_t const& type) throw()
+::process_type_already_exists_exception(process::type_t const& type) throw()
   : process_registry_exception()
   , m_type(type)
 {

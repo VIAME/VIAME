@@ -94,7 +94,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
     typedef std::pair<config::key_t, config_info_t> config_decl_t;
     typedef std::vector<config_decl_t> config_decls_t;
 
-    typedef std::pair<process::name_t, process_registry::type_t> process_decl_t;
+    typedef std::pair<process::name_t, process::type_t> process_decl_t;
     typedef std::vector<process_decl_t> process_decls_t;
 
     typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
@@ -216,7 +216,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
     BOOST_FOREACH (pipe_bakery::process_decl_t const& decl, bakery.m_processes)
     {
       process::name_t const& proc_name = decl.first;
-      process_registry::type_t const& proc_type = decl.second;
+      process::type_t const& proc_type = decl.second;
       config_t const proc_conf = global_conf->subblock_view(proc_name);
 
       process_t const proc = reg->create_process(proc_type, proc_conf);

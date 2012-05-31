@@ -204,7 +204,7 @@ run_test(std::string const& test_name)
   }
 }
 
-static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t());
+static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t());
 static vistk::edge_t create_edge();
 
 class remove_ports_process
@@ -259,7 +259,7 @@ class null_conf_info_process
 void
 test_null_input_edge()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
 
@@ -273,7 +273,7 @@ test_null_input_edge()
 void
 test_null_output_edge()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
 
@@ -287,7 +287,7 @@ test_null_output_edge()
 void
 test_connect_after_init()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
 
@@ -306,7 +306,7 @@ test_connect_after_init()
 void
 test_reconfigure()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
 
@@ -320,7 +320,7 @@ test_reconfigure()
 void
 test_reinit()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
 
@@ -335,7 +335,7 @@ test_reinit()
 void
 test_reset()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
 
@@ -355,7 +355,7 @@ test_reset()
 void
 test_step_before_configure()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
 
@@ -367,7 +367,7 @@ test_step_before_configure()
 void
 test_step_before_init()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process_t const process = create_process(proc_type);
 
@@ -381,7 +381,7 @@ test_step_before_init()
 void
 test_set_static_input_type()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("multiplication");
+  vistk::process::type_t const proc_type = vistk::process::type_t("multiplication");
 
   vistk::process::port_t const port_name = vistk::process::port_t("factor1");
   vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
@@ -396,7 +396,7 @@ test_set_static_input_type()
 void
 test_set_static_output_type()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("multiplication");
+  vistk::process::type_t const proc_type = vistk::process::type_t("multiplication");
 
   vistk::process::port_t const port_name = vistk::process::port_t("product");
   vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
@@ -411,7 +411,7 @@ test_set_static_output_type()
 void
 test_set_input_type_duplicate()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
   vistk::process::port_t const port_name = vistk::process::port_t("input");
   vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
@@ -436,7 +436,7 @@ test_set_input_type_duplicate()
 void
 test_set_output_type_duplicate()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
   vistk::process::port_t const port_name = vistk::process::port_t("output");
   vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
@@ -461,7 +461,7 @@ test_set_output_type_duplicate()
 void
 test_set_input_type_after_init()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
   vistk::process::port_t const port_name = vistk::process::port_t("input");
   vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
@@ -479,7 +479,7 @@ test_set_input_type_after_init()
 void
 test_set_output_type_after_init()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
   vistk::process::port_t const port_name = vistk::process::port_t("output");
   vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
@@ -497,7 +497,7 @@ test_set_output_type_after_init()
 void
 test_set_tagged_flow_dependent_port()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("tagged_flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
 
   vistk::process::port_t const iport_name = vistk::process::port_t("tagged_input");
   vistk::process::port_t const oport_name = vistk::process::port_t("tagged_output");
@@ -548,7 +548,7 @@ test_set_tagged_flow_dependent_port()
 void
 test_set_tagged_flow_dependent_port_cascade()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("tagged_flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
 
   vistk::process::port_t const iport_name = vistk::process::port_t("tagged_input");
   vistk::process::port_t const oport_name = vistk::process::port_t("tagged_output");
@@ -585,7 +585,7 @@ test_set_tagged_flow_dependent_port_cascade()
 void
 test_add_input_port_after_type_pin()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("collate");
+  vistk::process::type_t const proc_type = vistk::process::type_t("collate");
 
   vistk::process::port_t const color = vistk::process::port_t("color/");
   vistk::process::port_t const res = vistk::process::port_t("res/");
@@ -621,7 +621,7 @@ test_add_input_port_after_type_pin()
 void
 test_add_output_port_after_type_pin()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("distribute");
+  vistk::process::type_t const proc_type = vistk::process::type_t("distribute");
 
   vistk::process::port_t const color = vistk::process::port_t("color/");
   vistk::process::port_t const src = vistk::process::port_t("src/");
@@ -657,7 +657,7 @@ test_add_output_port_after_type_pin()
 void
 test_set_untagged_flow_dependent_port()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("tagged_flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
 
   vistk::process::port_t const iport_name = vistk::process::port_t("untagged_input");
   vistk::process::port_t const oport_name = vistk::process::port_t("untagged_output");
@@ -803,7 +803,7 @@ test_null_config()
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_config");
+  vistk::process::type_t const proc_type = vistk::process::type_t("null_config");
 
   reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_config_process>);
 
@@ -819,7 +819,7 @@ test_null_input_port_info()
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_input_port");
+  vistk::process::type_t const proc_type = vistk::process::type_t("null_input_port");
 
   reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_input_info_process>);
 
@@ -835,7 +835,7 @@ test_null_output_port_info()
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_output_port");
+  vistk::process::type_t const proc_type = vistk::process::type_t("null_output_port");
 
   reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_output_info_process>);
 
@@ -851,7 +851,7 @@ test_null_conf_info()
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("null_conf");
+  vistk::process::type_t const proc_type = vistk::process::type_t("null_conf");
 
   reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_conf_info_process>);
 
@@ -863,7 +863,7 @@ test_null_conf_info()
 }
 
 vistk::process_t
-create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name)
+create_process(vistk::process::type_t const& type, vistk::process::name_t const& name)
 {
   static bool const modules_loaded = (vistk::load_known_modules(), true);
   static vistk::process_registry_t const reg = vistk::process_registry::self();

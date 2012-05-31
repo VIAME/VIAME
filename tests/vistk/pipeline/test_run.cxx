@@ -88,14 +88,14 @@ run_test(std::string const& test_name, vistk::schedule_registry::type_t const& s
   }
 }
 
-static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
+static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
 static vistk::pipeline_t create_pipeline();
 
 void
 test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
@@ -186,10 +186,10 @@ test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 void
 test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_types = vistk::process_registry::type_t("source");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_types = vistk::process::type_t("source");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
+  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
 
   vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
   vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
@@ -315,7 +315,7 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 }
 
 vistk::process_t
-create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
+create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
 {
   static bool const modules_loaded = (vistk::load_known_modules(), true);
   static vistk::process_registry_t const reg = vistk::process_registry::self();

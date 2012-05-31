@@ -105,7 +105,7 @@ class process::priv
     bool required_outputs_done() const;
 
     name_t name;
-    process_registry::type_t type;
+    type_t type;
 
     typedef std::map<port_t, port_info_t> port_map_t;
     typedef std::map<config::key_t, conf_info_t> conf_map_t;
@@ -400,7 +400,7 @@ process
   return d->name;
 }
 
-process_registry::type_t
+process::type_t
 process
 ::type() const
 {
@@ -424,7 +424,7 @@ process
     config::description_t("The type of the process.")));
 
   d->name = config_value<name_t>(config_name);
-  d->type = config_value<process_registry::type_t>(config_type);
+  d->type = config_value<type_t>(config_type);
 
   declare_output_port(port_heartbeat, boost::make_shared<port_info>(
     type_none,

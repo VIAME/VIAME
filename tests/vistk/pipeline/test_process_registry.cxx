@@ -113,7 +113,7 @@ test_null_config()
   vistk::config_t config;
 
   EXPECT_EXCEPTION(vistk::null_process_registry_config_exception,
-                   reg->create_process(vistk::process_registry::type_t(), config),
+                   reg->create_process(vistk::process::type_t(), vistk::process::name_t(), config),
                    "requesting a NULL config to a process");
 }
 
@@ -124,11 +124,11 @@ test_load_processes()
 
   vistk::process_registry_t reg = vistk::process_registry::self();
 
-  vistk::process_registry::types_t const types = reg->types();
+  vistk::process::types_t const types = reg->types();
 
   vistk::config_t config = vistk::config::empty_config();
 
-  BOOST_FOREACH (vistk::process_registry::type_t const& type, types)
+  BOOST_FOREACH (vistk::process::type_t const& type, types)
   {
     vistk::process_t process;
 
@@ -170,7 +170,7 @@ test_null_ctor()
   vistk::process_registry_t reg = vistk::process_registry::self();
 
   EXPECT_EXCEPTION(vistk::null_process_ctor_exception,
-                   reg->register_process(vistk::process_registry::type_t(), vistk::process_registry::description_t(), vistk::process_ctor_t()),
+                   reg->register_process(vistk::process::type_t(), vistk::process_registry::description_t(), vistk::process_ctor_t()),
                    "requesting an non-existent process type");
 }
 
@@ -181,7 +181,7 @@ test_duplicate_types()
 {
   vistk::process_registry_t reg = vistk::process_registry::self();
 
-  vistk::process_registry::type_t const non_existent_process = vistk::process_registry::type_t("no_such_process");
+  vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
 
   reg->register_process(non_existent_process, vistk::process_registry::description_t(), null_process);
 
@@ -195,7 +195,7 @@ test_unknown_types()
 {
   vistk::process_registry_t reg = vistk::process_registry::self();
 
-  vistk::process_registry::type_t const non_existent_process = vistk::process_registry::type_t("no_such_process");
+  vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
 
   vistk::config_t config = vistk::config::empty_config();
 

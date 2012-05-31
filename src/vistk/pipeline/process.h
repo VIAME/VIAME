@@ -12,7 +12,6 @@
 #include "edge.h"
 #include "config.h"
 #include "datum.h"
-#include "process_registry.h"
 #include "types.h"
 
 #include <boost/noncopyable.hpp>
@@ -69,6 +68,10 @@ class VISTK_PIPELINE_EXPORT process
   : boost::noncopyable
 {
   public:
+    /// The type for the type of a process.
+    typedef std::string type_t;
+    /// A group of types.
+    typedef std::vector<type_t> types_t;
     /// The type for the name of a process.
     typedef std::string name_t;
     /// The type for a group of process names.
@@ -389,7 +392,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns A name for the type of the process.
      */
-    process_registry::type_t type() const;
+    type_t type() const;
 
     /// A constraint which indicates that the process cannot be run in a thread of its own.
     static constraint_t const constraint_no_threads;

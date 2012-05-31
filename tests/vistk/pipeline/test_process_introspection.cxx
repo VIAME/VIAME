@@ -23,7 +23,7 @@
 
 #include <cstdlib>
 
-static void test_process(vistk::process_registry::type_t const& type);
+static void test_process(vistk::process::type_t const& type);
 
 int
 main()
@@ -49,9 +49,9 @@ main()
 
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
-  vistk::process_registry::types_t const types = reg->types();
+  vistk::process::types_t const types = reg->types();
 
-  BOOST_FOREACH (vistk::process_registry::type_t const& type, types)
+  BOOST_FOREACH (vistk::process::type_t const& type, types)
   {
     try
     {
@@ -77,7 +77,7 @@ static void test_process_invalid_input_port(vistk::process_t const process);
 static void test_process_invalid_output_port(vistk::process_t const process);
 
 void
-test_process(vistk::process_registry::type_t const& type)
+test_process(vistk::process::type_t const& type)
 {
   static vistk::process::name_t const expected_name = vistk::process::name_t("expected_name");
 

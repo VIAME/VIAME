@@ -55,11 +55,11 @@ main(int argc, char* argv[])
 
   vistk::process_registry_t reg = vistk::process_registry::self();
 
-  vistk::process_registry::types_t types;
+  vistk::process::types_t types;
 
   if (vm.count("type"))
   {
-    types = vm["type"].as<vistk::process_registry::types_t>();
+    types = vm["type"].as<vistk::process::types_t>();
   }
   else
   {
@@ -68,7 +68,7 @@ main(int argc, char* argv[])
 
   if (vm.count("list"))
   {
-    BOOST_FOREACH (vistk::process_registry::type_t const& type, types)
+    BOOST_FOREACH (vistk::process::type_t const& type, types)
     {
       std::cout << type << std::endl;
     }
@@ -78,7 +78,7 @@ main(int argc, char* argv[])
 
   vistk::config_t const conf = vistk::config::empty_config();
 
-  BOOST_FOREACH (vistk::process_registry::type_t const& proc_type, types)
+  BOOST_FOREACH (vistk::process::type_t const& proc_type, types)
   {
     if (!vm.count("detail"))
     {
@@ -190,7 +190,7 @@ make_options()
 
   desc.add_options()
     ("help,h", "output help message and quit")
-    ("type,t", po::value_desc<vistk::process_registry::types_t>()->metavar("TYPE"), "type to describe")
+    ("type,t", po::value_desc<vistk::process::types_t>()->metavar("TYPE"), "type to describe")
     ("list,l", "simply list types")
     ("detail,d", "output detailed information")
   ;

@@ -90,7 +90,7 @@ test_envvar()
 
   vistk::process_registry_t reg = vistk::process_registry::self();
 
-  vistk::process::name_t const proc_type = vistk::process::name_t("test");
+  vistk::process::type_t const proc_type = vistk::process::type_t("test");
   vistk::config_t const conf = vistk::config::empty_config();
 
   reg->create_process(proc_type, conf);

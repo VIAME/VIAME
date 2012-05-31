@@ -16,8 +16,6 @@ def test_create():
     from vistk.pipeline import process_registry
 
     process_registry.ProcessRegistry.self()
-    process_registry.ProcessType()
-    process_registry.ProcessTypes()
     process_registry.ProcessDescription()
 
 

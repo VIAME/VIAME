@@ -27,20 +27,14 @@
 using namespace boost::python;
 
 static void register_process(vistk::process_registry_t reg,
-                             vistk::process_registry::type_t const& type,
+                             vistk::process::type_t const& type,
                              vistk::process_registry::description_t const& desc,
                              object obj);
 
 BOOST_PYTHON_MODULE(process_registry)
 {
-  class_<vistk::process_registry::type_t>("ProcessType"
-    , "The type for a type of process.");
   class_<vistk::process_registry::description_t>("ProcessDescription"
     , "The type for a description of a process type.");
-  class_<vistk::process_registry::types_t>("ProcessTypes"
-    , "A collection of process types.")
-    .def(vector_indexing_suite<vistk::process_registry::types_t>())
-  ;
   class_<vistk::process_registry::module_t>("ProcessModule"
     , "The type for a process module name.");
 
@@ -149,7 +143,7 @@ class python_process_wrapper
 
 void
 register_process(vistk::process_registry_t reg,
-                 vistk::process_registry::type_t const& type,
+                 vistk::process::type_t const& type,
                  vistk::process_registry::description_t const& desc,
                  object obj)
 {

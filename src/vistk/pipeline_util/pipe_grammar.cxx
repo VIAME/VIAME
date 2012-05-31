@@ -58,7 +58,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
   vistk::process_pipe_block,
   (vistk::process::name_t, name)
-  (vistk::process_registry::type_t, type)
+  (vistk::process::type_t, type)
   (vistk::config_values_t, config_values)
 )
 
@@ -155,8 +155,8 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
 
     qi::rule<Iterator, config_pipe_block()> config_block;
 
-    qi::rule<Iterator, process_registry::type_t()> type_name;
-    qi::rule<Iterator, process_registry::type_t()> type_decl;
+    qi::rule<Iterator, process::type_t()> type_name;
+    qi::rule<Iterator, process::type_t()> type_decl;
 
     qi::rule<Iterator, process::name_t()> process_name;
 

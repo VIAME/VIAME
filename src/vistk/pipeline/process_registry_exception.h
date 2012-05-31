@@ -9,7 +9,7 @@
 
 #include "pipeline-config.h"
 
-#include "process_registry.h"
+#include "process.h"
 #include "types.h"
 
 /**
@@ -49,14 +49,14 @@ class VISTK_PIPELINE_EXPORT null_process_ctor_exception
      *
      * \param type The type the ctor is for.
      */
-    null_process_ctor_exception(process_registry::type_t const& type) throw();
+    null_process_ctor_exception(process::type_t const& type) throw();
     /**
      * \brief Destructor.
      */
     ~null_process_ctor_exception() throw();
 
     /// The type that was passed a \c NULL constructor.
-    process_registry::type_t const m_type;
+    process::type_t const m_type;
 };
 
 /**
@@ -96,14 +96,14 @@ class VISTK_PIPELINE_EXPORT no_such_process_type_exception
      *
      * \param type The type requested.
      */
-    no_such_process_type_exception(process_registry::type_t const& type) throw();
+    no_such_process_type_exception(process::type_t const& type) throw();
     /**
      * \brief Destructor.
      */
     ~no_such_process_type_exception() throw();
 
     /// The type that was requested from the \link process_registry process registry\endlink.
-    process_registry::type_t const m_type;
+    process::type_t const m_type;
 };
 
 /**
@@ -122,14 +122,14 @@ class VISTK_PIPELINE_EXPORT process_type_already_exists_exception
      *
      * \param type The type requested.
      */
-    process_type_already_exists_exception(process_registry::type_t const& type) throw();
+    process_type_already_exists_exception(process::type_t const& type) throw();
     /**
      * \brief Destructor.
      */
     ~process_type_already_exists_exception() throw();
 
     /// The type that was requested from the \link process_registry process registry\endlink.
-    process_registry::type_t const m_type;
+    process::type_t const m_type;
 };
 
 }

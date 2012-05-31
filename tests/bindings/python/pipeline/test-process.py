@@ -16,6 +16,8 @@ def test_create():
     from vistk.pipeline import datum
     from vistk.pipeline import process
 
+    process.ProcessType()
+    process.ProcessTypes()
     process.ProcessName()
     process.ProcessNames()
     process.ProcessConstraint()
