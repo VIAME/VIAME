@@ -35,7 +35,7 @@ namespace vistk
  * \note Ports sharing the same \port{\portvar{group}} string will use the same
  * stream coloring.
  *
- * \process Distributes input data among many output processes.
+ * \process Distribute input data among many output processes.
  *
  * \iports
  *

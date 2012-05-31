@@ -27,7 +27,7 @@ namespace vistk
  *
  * \brief A process which writes out scores to a file.
  *
- * \process Writes scores from a scoring process.
+ * \process Write scores from a scoring process.
  *
  * \iports
  *

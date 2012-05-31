@@ -32,7 +32,7 @@ namespace vistk
  * the other ports to not exist and will cause errors. In short: The first
  * connection for any \portvar{tag} must be \port{color/\portvar{tag}}.
  *
- * \process Collates incoming data into a single stream.
+ * \process Collate incoming data into a single stream.
  *
  * \iports
  *
@@ -44,7 +44,7 @@ namespace vistk
  *
  * \oports
  *
- * \oport{res_\portvar{tag}} The collated result \portvar{tag}.
+ * \oport{res/\portvar{tag}} The collated result \portvar{tag}.
  *
  * \reqs
  *

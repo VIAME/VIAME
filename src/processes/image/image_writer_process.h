@@ -27,7 +27,7 @@ namespace vistk
  *
  * \brief A process for writing images to files.
  *
- * \process Writes images to files.
+ * \process Write images to files.
  *
  * \iports
  *

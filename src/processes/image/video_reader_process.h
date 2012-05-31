@@ -27,7 +27,7 @@ namespace vistk
  *
  * \brief A process for reading frames from a file.
  *
- * \process Reads image frames from a video.
+ * \process Read image frames from a video.
  *
  * \oports
  *

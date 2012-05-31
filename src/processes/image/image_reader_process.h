@@ -27,7 +27,7 @@ namespace vistk
  *
  * \brief A process for reading in a list of images from a file.
  *
- * \process Reads images given a file with a list of image paths.
+ * \process Read images given a file with a list of image paths.
  *
  * \oports
  *

@@ -27,7 +27,7 @@ namespace vistk
  *
  * \brief A process for normalizing streams of data into a single stream.
  *
- * \process Normalizes streams of data into a single stream.
+ * \process Normalize streams of data into a single stream.
  *
  * \iports
  *
