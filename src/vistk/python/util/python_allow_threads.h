@@ -31,7 +31,7 @@ namespace python
  * \brief RAII class for calling into non-Python code.
  */
 class VISTK_PYTHON_UTIL_EXPORT python_allow_threads
-  : public boost::noncopyable
+  : boost::noncopyable
 {
   public:
     /**

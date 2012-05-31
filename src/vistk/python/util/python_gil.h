@@ -31,7 +31,7 @@ namespace python
  * \brief Grabs the Python GIL and uses RAII to ensure it is released.
  */
 class VISTK_PYTHON_UTIL_EXPORT python_gil
-  : public boost::noncopyable
+  : boost::noncopyable
 {
   public:
     /**
