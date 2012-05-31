@@ -62,7 +62,7 @@ class VISTK_PIPELINE_EXPORT config
      *
      * \returns An empty configuration block.
      */
-    static config_t empty_config(key_t const& name = "");
+    static config_t empty_config(key_t const& name = key_t());
 
     /**
      * \brief Destructor.
