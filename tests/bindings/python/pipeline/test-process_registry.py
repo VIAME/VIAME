@@ -19,6 +19,7 @@ def test_create():
 
     process_registry.ProcessRegistry.self()
     process_registry.ProcessDescription()
+    process_registry.ProcessModule()
 
 
 def test_api_calls():

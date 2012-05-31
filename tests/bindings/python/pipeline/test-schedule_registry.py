@@ -21,6 +21,7 @@ def test_create():
     schedule_registry.ScheduleType()
     schedule_registry.ScheduleTypes()
     schedule_registry.ScheduleDescription()
+    schedule_registry.ScheduleModule()
 
 
 def test_api_calls():
