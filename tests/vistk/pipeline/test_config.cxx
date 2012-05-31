@@ -209,6 +209,8 @@ test_bool_conversion()
 
   vistk::config::value_t const lit_true = vistk::config::value_t("true");
   vistk::config::value_t const lit_false = vistk::config::value_t("false");
+  vistk::config::value_t const lit_True = vistk::config::value_t("True");
+  vistk::config::value_t const lit_False = vistk::config::value_t("False");
   vistk::config::value_t const lit_1 = vistk::config::value_t("1");
   vistk::config::value_t const lit_0 = vistk::config::value_t("0");
 
@@ -228,6 +230,22 @@ test_bool_conversion()
   if (val)
   {
     TEST_ERROR("The value \'false\' did not get converted to false when read as a boolean");
+  }
+
+  config->set_value(key, lit_True);
+  val = config->get_value<bool>(key);
+
+  if (!val)
+  {
+    TEST_ERROR("The value \'True\' did not get converted to true when read as a boolean");
+  }
+
+  config->set_value(key, lit_False);
+  val = config->get_value<bool>(key);
+
+  if (val)
+  {
+    TEST_ERROR("The value \'False\' did not get converted to false when read as a boolean");
   }
 
   config->set_value(key, lit_1);
