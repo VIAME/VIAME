@@ -173,7 +173,7 @@ main(int argc, char* argv[])
 
   vistk::schedule_registry_t reg = vistk::schedule_registry::self();
 
-  vistk::schedule_t schedule = reg->create_schedule(schedule_type, schedule_config, pipe);
+  vistk::schedule_t schedule = reg->create_schedule(schedule_type, pipe, schedule_config);
 
   if (!schedule)
   {

@@ -68,7 +68,7 @@ schedule_registry
 
 schedule_t
 schedule_registry
-::create_schedule(type_t const& type, config_t const& config, pipeline_t const& pipe) const
+::create_schedule(type_t const& type, pipeline_t const& pipe, config_t const& config) const
 {
   if (!config)
   {
@@ -87,7 +87,7 @@ schedule_registry
     throw no_such_schedule_type_exception(type);
   }
 
-  return i->second.get<1>()(config, pipe);
+  return i->second.get<1>()(pipe, config);
 }
 
 schedule_registry::types_t

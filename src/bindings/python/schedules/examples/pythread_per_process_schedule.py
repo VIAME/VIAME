@@ -28,8 +28,8 @@ class PyThreadPerProcessSchedule(schedule.PythonSchedule):
     """ Runs each process in a pipeline in its own thread.
     """
 
-    def __init__(self, conf, pipe):
-        schedule.PythonSchedule.__init__(self, conf, pipe)
+    def __init__(self, pipe, conf):
+        schedule.PythonSchedule.__init__(self, pipe, conf)
 
         p = self.pipeline()
         names = p.process_names()

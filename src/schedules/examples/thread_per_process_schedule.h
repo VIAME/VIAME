@@ -39,7 +39,7 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_per_process_schedule
      * \param config Contains config for the edge.
      * \param pipe The pipeline to schedule.
      */
-    thread_per_process_schedule(config_t const& config, pipeline_t const& pipe);
+    thread_per_process_schedule(pipeline_t const& pipe, config_t const& config);
     /**
      * \brief Destructor.
      */

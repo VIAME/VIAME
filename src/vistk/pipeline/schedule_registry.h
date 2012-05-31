@@ -28,7 +28,7 @@ namespace vistk
 {
 
 /// A function which returns a \ref schedule.
-typedef boost::function<schedule_t (config_t const& config, pipeline_t const& pipe)> schedule_ctor_t;
+typedef boost::function<schedule_t (pipeline_t const& pipe, config_t const& config)> schedule_ctor_t;
 
 /**
  * \class schedule_registry schedule_registry.h <vistk/pipeline/schedule_registry.h>
@@ -73,12 +73,12 @@ class VISTK_PIPELINE_EXPORT schedule_registry
      * \throws no_such_schedule_type_exception Thrown if the type is not known.
      *
      * \param type The name of the type of \ref schedule to create.
-     * \param config The configuration to pass the \ref schedule.
      * \param pipe The \ref pipeline to pass the \ref schedule.
+     * \param config The configuration to pass the \ref schedule.
      *
      * \returns A new schedule of type \p type.
      */
-    schedule_t create_schedule(type_t const& type, config_t const& config, pipeline_t const& pipe) const;
+    schedule_t create_schedule(type_t const& type, pipeline_t const& pipe, config_t const& config) const;
 
     /**
      * \brief Query for all available types.
@@ -138,9 +138,9 @@ class VISTK_PIPELINE_EXPORT schedule_registry
  */
 template <typename T>
 schedule_t
-create_schedule(config_t const& conf, pipeline_t const& pipe)
+create_schedule(pipeline_t const& pipe, config_t const& conf)
 {
-  return boost::make_shared<T>(conf, pipe);
+  return boost::make_shared<T>(pipe, conf);
 }
 
 }

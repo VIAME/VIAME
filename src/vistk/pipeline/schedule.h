@@ -55,10 +55,10 @@ class VISTK_PIPELINE_EXPORT schedule
     /**
      * \brief Constructor.
      *
-     * \param config Contains configuration for the edge.
      * \param pipe The pipeline to run.
+     * \param config Contains configuration for the edge.
      */
-    schedule(config_t const& config, pipeline_t const& pipe);
+    schedule(pipeline_t const& pipe, config_t const& config);
 
     /**
      * \brief Start execution.

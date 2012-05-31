@@ -38,8 +38,8 @@ class thread_per_process_schedule::priv
 };
 
 thread_per_process_schedule
-::thread_per_process_schedule(config_t const& config, pipeline_t const& pipe)
-  : schedule(config, pipe)
+::thread_per_process_schedule(pipeline_t const& pipe, config_t const& config)
+  : schedule(pipe, config)
   , d(new priv)
 {
   pipeline_t const p = pipeline();

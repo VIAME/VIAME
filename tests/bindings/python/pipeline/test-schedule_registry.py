@@ -35,7 +35,7 @@ def test_api_calls():
     c = config.empty_config()
     p = pipeline.Pipeline(c)
 
-    reg.create_schedule(sched_type, c, p)
+    reg.create_schedule(sched_type, p, c)
     reg.types()
     reg.description(sched_type)
     reg.default_type
@@ -45,8 +45,8 @@ def example_schedule():
     from vistk.pipeline import schedule
 
     class PythonExample(schedule.PythonSchedule):
-        def __init__(self, conf, pipe):
-            schedule.PythonSchedule.__init__(self, conf, pipe)
+        def __init__(self, pipe, conf):
+            schedule.PythonSchedule.__init__(self, pipe, conf)
 
             self.ran_start = False
             self.ran_wait = False
@@ -94,7 +94,7 @@ def test_register():
     p = pipeline.Pipeline(c)
 
     try:
-        s = reg.create_schedule(sched_type, c, p)
+        s = reg.create_schedule(sched_type, p, c)
         if s is None:
             raise Exception()
     except:
@@ -128,7 +128,7 @@ def test_wrapper_api():
 
         s.check()
 
-    s = reg.create_schedule(sched_type, c, p)
+    s = reg.create_schedule(sched_type, p, c)
     check_schedule(s)
 
 

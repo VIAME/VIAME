@@ -47,8 +47,8 @@ class sync_schedule::priv
 };
 
 sync_schedule
-::sync_schedule(config_t const& config, pipeline_t const& pipe)
-  : schedule(config, pipe)
+::sync_schedule(pipeline_t const& pipe, config_t const& config)
+  : schedule(pipe, config)
   , d(new priv)
 {
   pipeline_t const p = pipeline();

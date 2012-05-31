@@ -209,7 +209,7 @@ def test_datum():
             test_error("Could not initialize pipeline: '%s'" % str(e))
             continue
 
-        s = sreg.create_schedule(sched_type, c, p)
+        s = sreg.create_schedule(sched_type, p, c)
 
         try:
             s.start()

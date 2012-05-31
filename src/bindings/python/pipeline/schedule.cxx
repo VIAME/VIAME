@@ -31,7 +31,7 @@ class wrap_schedule
   , public wrapper<vistk::schedule>
 {
   public:
-    wrap_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipe);
+    wrap_schedule(vistk::pipeline_t const& pipe, vistk::config_t const& config);
     ~wrap_schedule();
 
     void _start();
@@ -48,7 +48,7 @@ BOOST_PYTHON_MODULE(schedule)
   class_<wrap_schedule, boost::noncopyable>("PythonSchedule"
     , "The base class for Python schedules."
     , no_init)
-    .def(init<vistk::config_t, vistk::pipeline_t>())
+    .def(init<vistk::pipeline_t, vistk::config_t>())
     .def("start", &vistk::schedule::start
       , "Start the execution of the pipeline.")
     .def("wait", &vistk::schedule::wait
@@ -67,8 +67,8 @@ BOOST_PYTHON_MODULE(schedule)
 }
 
 wrap_schedule
-::wrap_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipe)
-  : vistk::schedule(config, pipe)
+::wrap_schedule(vistk::pipeline_t const& pipe, vistk::config_t const& config)
+  : vistk::schedule(pipe, config)
 {
 }
 

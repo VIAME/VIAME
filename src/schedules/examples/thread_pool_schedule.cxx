@@ -37,8 +37,8 @@ class thread_pool_schedule::priv
 config::key_t const thread_pool_schedule::priv::config_num_threads = config::key_t("num_threads");
 
 thread_pool_schedule
-::thread_pool_schedule(config_t const& config, pipeline_t const& pipe)
-  : schedule(config, pipe)
+::thread_pool_schedule(pipeline_t const& pipe, config_t const& config)
+  : schedule(pipe, config)
 {
   unsigned const hardware_concurrency = boost::thread::hardware_concurrency();
   size_t const num_threads = config->get_value<size_t>(priv::config_num_threads, hardware_concurrency - 1);

@@ -38,7 +38,7 @@ schedule
 }
 
 schedule
-::schedule(config_t const& config, pipeline_t const& pipe)
+::schedule(pipeline_t const& pipe, config_t const& config)
   : d(new priv(pipe))
 {
   if (!config)

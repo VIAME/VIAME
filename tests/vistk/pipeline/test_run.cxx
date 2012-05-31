@@ -143,7 +143,7 @@ test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
     vistk::config_t const schedule_config = vistk::config::empty_config();
 
-    vistk::schedule_t schedule = reg->create_schedule(schedule_type, schedule_config, pipeline);
+    vistk::schedule_t schedule = reg->create_schedule(schedule_type, pipeline, schedule_config);
 
     schedule->start();
     schedule->wait();
@@ -273,7 +273,7 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
     vistk::config_t const schedule_config = vistk::config::empty_config();
 
-    vistk::schedule_t schedule = reg->create_schedule(schedule_type, schedule_config, pipeline);
+    vistk::schedule_t schedule = reg->create_schedule(schedule_type, pipeline, schedule_config);
 
     schedule->start();
     schedule->wait();

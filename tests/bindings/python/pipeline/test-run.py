@@ -109,7 +109,7 @@ def create_process(type, conf):
     return p
 
 
-def run_pipeline(sched_type, conf, pipe):
+def run_pipeline(sched_type, pipe, conf):
     from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import schedule_registry
@@ -118,7 +118,7 @@ def run_pipeline(sched_type, conf, pipe):
 
     reg = schedule_registry.ScheduleRegistry.self()
 
-    s = reg.create_schedule(sched_type, conf, pipe)
+    s = reg.create_schedule(sched_type, pipe, conf)
 
     s.start()
     s.wait()
@@ -184,7 +184,7 @@ def test_python_to_python(sched_type):
 
     p.setup_pipeline()
 
-    run_pipeline(sched_type, c, p)
+    run_pipeline(sched_type, p, c)
 
     check_file(output_file, list(range(min, max)))
 
@@ -229,7 +229,7 @@ def test_cpp_to_python(sched_type):
 
     p.setup_pipeline()
 
-    run_pipeline(sched_type, c, p)
+    run_pipeline(sched_type, p, c)
 
     check_file(output_file, list(range(min, max)))
 
@@ -274,7 +274,7 @@ def test_python_to_cpp(sched_type):
 
     p.setup_pipeline()
 
-    run_pipeline(sched_type, c, p)
+    run_pipeline(sched_type, p, c)
 
     check_file(output_file, list(range(min, max)))
 
@@ -363,7 +363,7 @@ def test_python_via_cpp(sched_type):
 
     p.setup_pipeline()
 
-    run_pipeline(sched_type, c, p)
+    run_pipeline(sched_type, p, c)
 
     check_file(output_file, [a * b for a, b in zip(list(range(min1, max1)), list(range(min2, max2)))])
 

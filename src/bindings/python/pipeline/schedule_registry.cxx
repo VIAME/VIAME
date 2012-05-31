@@ -65,7 +65,7 @@ BOOST_PYTHON_MODULE(schedule_registry)
       , (arg("type"), arg("description"), arg("ctor"))
       , "Registers a function which creates a schedule of the given type.")
     .def("create_schedule", &vistk::schedule_registry::create_schedule
-      , (arg("type"), arg("config"), arg("pipeline"))
+      , (arg("type"), arg("pipeline"), arg("config"))
       , "Creates a new schedule of the given type.")
     .def("types", &vistk::schedule_registry::types
       , "A list of known schedule types.")
@@ -90,7 +90,7 @@ class python_schedule_wrapper
     python_schedule_wrapper(object obj);
     ~python_schedule_wrapper();
 
-    vistk::schedule_t operator () (vistk::config_t const& config, vistk::pipeline_t const& pipeline);
+    vistk::schedule_t operator () (vistk::pipeline_t const& pipeline, vistk::config_t const& config);
   private:
     object const m_obj;
 };
@@ -123,11 +123,11 @@ python_schedule_wrapper
 
 vistk::schedule_t
 python_schedule_wrapper
-::operator () (vistk::config_t const& config, vistk::pipeline_t const& pipeline)
+::operator () (vistk::pipeline_t const& pipeline, vistk::config_t const& config)
 {
   vistk::python::python_gil const gil;
 
   (void)gil;
 
-  return extract<vistk::schedule_t>(m_obj(config, pipeline));
+  return extract<vistk::schedule_t>(m_obj(pipeline, config));
 }

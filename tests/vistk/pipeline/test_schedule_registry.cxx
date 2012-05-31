@@ -122,7 +122,7 @@ test_null_config()
   vistk::pipeline_t pipe;
 
   EXPECT_EXCEPTION(vistk::null_schedule_registry_config_exception,
-                   reg->create_schedule(vistk::schedule_registry::type_t(), config, pipe),
+                   reg->create_schedule(vistk::schedule_registry::type_t(), pipe, config),
                    "requesting a NULL config to a schedule");
 }
 
@@ -135,7 +135,7 @@ test_null_pipeline()
   vistk::pipeline_t pipe;
 
   EXPECT_EXCEPTION(vistk::null_schedule_registry_pipeline_exception,
-                   reg->create_schedule(vistk::schedule_registry::type_t(), config, pipe),
+                   reg->create_schedule(vistk::schedule_registry::type_t(), pipe, config),
                    "requesting a NULL pipeline to a schedule");
 }
 
@@ -157,7 +157,7 @@ test_load_schedules()
 
     try
     {
-      schedule = reg->create_schedule(type, config, pipe);
+      schedule = reg->create_schedule(type, pipe, config);
     }
     catch (vistk::no_such_schedule_type_exception& e)
     {
@@ -197,7 +197,7 @@ test_null_ctor()
                    "requesting an non-existent schedule type");
 }
 
-static vistk::schedule_t null_schedule(vistk::config_t const& config, vistk::pipeline_t const& pipeline);
+static vistk::schedule_t null_schedule(vistk::pipeline_t const& pipeline, vistk::config_t const& config);
 
 void
 test_duplicate_types()
@@ -224,7 +224,7 @@ test_unknown_types()
   vistk::pipeline_t pipe = boost::make_shared<vistk::pipeline>(config);
 
   EXPECT_EXCEPTION(vistk::no_such_schedule_type_exception,
-                   reg->create_schedule(non_existent_schedule, config, pipe),
+                   reg->create_schedule(non_existent_schedule, pipe, config),
                    "requesting an non-existent schedule type");
 
   EXPECT_EXCEPTION(vistk::no_such_schedule_type_exception,
@@ -255,7 +255,7 @@ test_module_marking()
 }
 
 vistk::schedule_t
-null_schedule(vistk::config_t const& /*config*/, vistk::pipeline_t const& /*pipeline*/)
+null_schedule(vistk::pipeline_t const& /*pipeline*/, vistk::config_t const& /*config*/)
 {
   return vistk::schedule_t();
 }

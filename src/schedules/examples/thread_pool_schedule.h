@@ -45,7 +45,7 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_pool_schedule
      * \param config Contains config for the edge.
      * \param pipe The pipeline to schedule.
      */
-    thread_pool_schedule(config_t const& config, pipeline_t const& pipe);
+    thread_pool_schedule(pipeline_t const& pipe, config_t const& config);
     /**
      * \brief Destructor.
      */
