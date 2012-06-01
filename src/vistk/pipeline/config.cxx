@@ -6,6 +6,7 @@
 
 #include "config.h"
 
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -320,6 +321,27 @@ unset_on_read_only_value_exception
 unset_on_read_only_value_exception
 ::~unset_on_read_only_value_exception() throw()
 {
+}
+
+template <>
+bool
+config_cast_inner(config::value_t const& value)
+{
+  static config::value_t const true_string = config::value_t("true");
+  static config::value_t const false_string = config::value_t("false");
+
+  config::value_t const value_lower = boost::to_lower_copy(value);
+
+  if (value_lower == true_string)
+  {
+    return true;
+  }
+  else if (value_lower == false_string)
+  {
+    return false;
+  }
+
+  return config_cast_default<bool>(value);
 }
 
 bool
