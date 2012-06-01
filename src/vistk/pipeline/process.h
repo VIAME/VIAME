@@ -41,7 +41,7 @@ typedef std::vector<process_t> processes_t;
  *
  * \oports
  *
- * \oport{heartbeat} Carries the status of the process.
+ * \oport{_heartbeat} Carries the status of the process.
  *
  * \section initialization Initialization Routine
  *
