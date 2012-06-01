@@ -235,23 +235,26 @@ component_score_json_writer_process
 
       d->fout << JSON_SEP;
 
-#define OUTPUT_STATISTICS(key, stats)                                               \
-  do                                                                                \
-  {                                                                                 \
-    d->fout << JSON_KEY(key);                                                       \
-    d->fout << JSON_OBJECT_BEGIN;                                                   \
-    d->fout << JSON_ATTR("count", stats->count());                                  \
-    d->fout << JSON_SEP;                                                            \
-    d->fout << JSON_ATTR("min", stats->minimum());                                  \
-    d->fout << JSON_SEP;                                                            \
-    d->fout << JSON_ATTR("max", stats->maximum());                                  \
-    d->fout << JSON_SEP;                                                            \
-    d->fout << JSON_ATTR_DOUBLE("mean", stats->mean());                             \
-    d->fout << JSON_SEP;                                                            \
-    d->fout << JSON_ATTR_DOUBLE("median", stats->median());                         \
-    d->fout << JSON_SEP;                                                            \
-    d->fout << JSON_ATTR_DOUBLE("standard-deviation", stats->standard_deviation()); \
-    d->fout << JSON_OBJECT_END;                                                     \
+#define OUTPUT_STATISTICS(key, stats)                                                 \
+  do                                                                                  \
+  {                                                                                   \
+    if (stats->count())                                                               \
+    {                                                                                 \
+      d->fout << JSON_KEY(key);                                                       \
+      d->fout << JSON_OBJECT_BEGIN;                                                   \
+      d->fout << JSON_ATTR("count", stats->count());                                  \
+      d->fout << JSON_SEP;                                                            \
+      d->fout << JSON_ATTR("min", stats->minimum());                                  \
+      d->fout << JSON_SEP;                                                            \
+      d->fout << JSON_ATTR("max", stats->maximum());                                  \
+      d->fout << JSON_SEP;                                                            \
+      d->fout << JSON_ATTR_DOUBLE("mean", stats->mean());                             \
+      d->fout << JSON_SEP;                                                            \
+      d->fout << JSON_ATTR_DOUBLE("median", stats->median());                         \
+      d->fout << JSON_SEP;                                                            \
+      d->fout << JSON_ATTR_DOUBLE("standard-deviation", stats->standard_deviation()); \
+      d->fout << JSON_OBJECT_END;                                                     \
+    }                                                                                 \
   } while (false)
 
       scoring_statistics_t const sc_stats = grab_from_port_as<scoring_statistics_t>(port_stats);
