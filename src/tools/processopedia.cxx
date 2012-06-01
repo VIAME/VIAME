@@ -15,6 +15,7 @@
 #include <tools/helpers/typed_value_desc.h>
 
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
 
@@ -24,6 +25,8 @@
 #include <cstdlib>
 
 namespace po = boost::program_options;
+
+static std::string const hidden_prefix = "_";
 
 static po::options_description make_options();
 static void VISTK_NO_RETURN usage(po::options_description const& options);
@@ -76,6 +79,8 @@ main(int argc, char* argv[])
     return EXIT_SUCCESS;
   }
 
+  bool const hidden = vm.count("hidden");
+
   BOOST_FOREACH (vistk::process::type_t const& proc_type, types)
   {
     if (!vm.count("detail"))
@@ -121,6 +126,11 @@ main(int argc, char* argv[])
 
     BOOST_FOREACH (vistk::config::key_t const& key, keys)
     {
+      if (!hidden && boost::starts_with(key, hidden_prefix))
+      {
+        continue;
+      }
+
       vistk::process::conf_info_t const info = proc->config_info(key);
 
       vistk::config::value_t const& def = info->def;
@@ -138,6 +148,11 @@ main(int argc, char* argv[])
 
     BOOST_FOREACH (vistk::process::port_t const& port, iports)
     {
+      if (!hidden && boost::starts_with(port, hidden_prefix))
+      {
+        continue;
+      }
+
       vistk::process::port_info_t const info = proc->input_port_info(port);
 
       vistk::process::port_type_t const& type = info->type;
@@ -159,6 +174,11 @@ main(int argc, char* argv[])
 
     BOOST_FOREACH (vistk::process::port_t const& port, oports)
     {
+      if (!hidden && boost::starts_with(port, hidden_prefix))
+      {
+        continue;
+      }
+
       vistk::process::port_info_t const info = proc->output_port_info(port);
 
       vistk::process::port_type_t const& type = info->type;
@@ -190,6 +210,7 @@ make_options()
     ("help,h", "output help message and quit")
     ("type,t", po::value_desc<vistk::process::types_t>()->metavar("TYPE"), "type to describe")
     ("list,l", "simply list types")
+    ("hidden,H", "show hidden properties")
     ("detail,d", "output detailed information")
   ;
 
