@@ -1,4 +1,4 @@
-project(vistk_python_utilities)
+project(vistk_python_vistk_utilities)
 
 add_vistk_python_library(homography
   vistk/utilities

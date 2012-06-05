@@ -1,4 +1,4 @@
-project(vistk_python_pipeline_util)
+project(vistk_python_vistk_pipeline_util)
 
 add_vistk_python_library(bake
   vistk/pipeline_util

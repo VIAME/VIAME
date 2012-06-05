@@ -161,12 +161,8 @@ function (make_python_plugin_init_file modpath)
     __init__)
 endfunction (make_python_plugin_init_file modpath)
 
-add_subdirectory(utilities)
-add_subdirectory(image)
-add_subdirectory(scoring)
+add_subdirectory(vistk)
 add_subdirectory(modules)
-add_subdirectory(pipeline)
-add_subdirectory(pipeline_util)
 add_subdirectory(processes)
 add_subdirectory(schedules)
 

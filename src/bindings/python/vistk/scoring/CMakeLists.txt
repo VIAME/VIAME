@@ -1,4 +1,4 @@
-project(vistk_python_scoring)
+project(vistk_python_vistk_scoring)
 
 add_vistk_python_library(scoring_result
   vistk/scoring

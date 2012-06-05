@@ -1,4 +1,4 @@
-project(vistk_python_pipeline)
+project(vistk_python_vistk_pipeline)
 
 add_vistk_python_library(config
   vistk/pipeline
