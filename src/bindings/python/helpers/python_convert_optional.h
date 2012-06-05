@@ -13,6 +13,7 @@
 #include <boost/python/class.hpp>
 #include <boost/python/default_call_policies.hpp>
 #include <boost/python/implicit.hpp>
+#include <boost/python/to_python_converter.hpp>
 #include <boost/optional.hpp>
 
 #include <Python.h>
