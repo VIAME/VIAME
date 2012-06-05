@@ -17,6 +17,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
 
 #include <fstream>
@@ -153,6 +154,8 @@ component_score_json_writer_process
   ("\"" key "\": ")
 #define JSON_ATTR(key, value) \
   JSON_KEY(key) << value
+#define JSON_ATTR_DOUBLE(key, value) \
+  JSON_ATTR(key, (isnan(value) ? "\"nan\"" : boost::lexical_cast<std::string>(value)))
 #define JSON_SEP \
   "," << std::endl
 #define JSON_OBJECT_BEGIN \
@@ -201,11 +204,11 @@ component_score_json_writer_process
     d->fout << JSON_SEP;
     d->fout << JSON_ATTR("total-possible", result->total_possible);
     d->fout << JSON_SEP;
-    d->fout << JSON_ATTR("percent-detection", result->percent_detection());
+    d->fout << JSON_ATTR_DOUBLE("percent-detection", result->percent_detection());
     d->fout << JSON_SEP;
-    d->fout << JSON_ATTR("precision", result->precision());
+    d->fout << JSON_ATTR_DOUBLE("precision", result->precision());
     d->fout << JSON_SEP;
-    d->fout << JSON_ATTR("specificity", result->specificity());
+    d->fout << JSON_ATTR_DOUBLE("specificity", result->specificity());
 
     if (d->tag_stats[tag])
     {
@@ -213,23 +216,23 @@ component_score_json_writer_process
 
       d->fout << JSON_SEP;
 
-#define OUTPUT_STATISTICS(key, stats)                                        \
-  do                                                                         \
-  {                                                                          \
-    d->fout << JSON_KEY(key);                                                \
-    d->fout << JSON_OBJECT_BEGIN;                                            \
-    d->fout << JSON_ATTR("count", stats->count());                           \
-    d->fout << JSON_SEP;                                                     \
-    d->fout << JSON_ATTR("min", stats->minimum());                           \
-    d->fout << JSON_SEP;                                                     \
-    d->fout << JSON_ATTR("max", stats->maximum());                           \
-    d->fout << JSON_SEP;                                                     \
-    d->fout << JSON_ATTR("mean", stats->mean());                             \
-    d->fout << JSON_SEP;                                                     \
-    d->fout << JSON_ATTR("median", stats->median());                         \
-    d->fout << JSON_SEP;                                                     \
-    d->fout << JSON_ATTR("standard-deviation", stats->standard_deviation()); \
-    d->fout << JSON_OBJECT_END;                                              \
+#define OUTPUT_STATISTICS(key, stats)                                               \
+  do                                                                                \
+  {                                                                                 \
+    d->fout << JSON_KEY(key);                                                       \
+    d->fout << JSON_OBJECT_BEGIN;                                                   \
+    d->fout << JSON_ATTR("count", stats->count());                                  \
+    d->fout << JSON_SEP;                                                            \
+    d->fout << JSON_ATTR("min", stats->minimum());                                  \
+    d->fout << JSON_SEP;                                                            \
+    d->fout << JSON_ATTR("max", stats->maximum());                                  \
+    d->fout << JSON_SEP;                                                            \
+    d->fout << JSON_ATTR_DOUBLE("mean", stats->mean());                             \
+    d->fout << JSON_SEP;                                                            \
+    d->fout << JSON_ATTR_DOUBLE("median", stats->median());                         \
+    d->fout << JSON_SEP;                                                            \
+    d->fout << JSON_ATTR_DOUBLE("standard-deviation", stats->standard_deviation()); \
+    d->fout << JSON_OBJECT_END;                                                     \
   } while (false)
 
       scoring_statistics_t const sc_stats = grab_from_port_as<scoring_statistics_t>(port_stats);
