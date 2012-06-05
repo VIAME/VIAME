@@ -16,6 +16,8 @@
 #include <vistk/utilities/path.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/date_time.hpp>
+#include <boost/date_time/local_time/local_time.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
@@ -29,8 +31,20 @@
  * \brief Implementation of a process which writes out component scores to a file in JSON.
  */
 
+using namespace boost::local_time;
+
 namespace vistk
 {
+
+namespace
+{
+
+typedef char char_type;
+
+// Use an ISO-formatted date.
+static char_type const* const date_format = boost::date_time::time_formats<char_type>::iso_time_format_specifier;
+
+}
 
 class component_score_json_writer_process::priv
 {
@@ -46,8 +60,11 @@ class component_score_json_writer_process::priv
     priv(name_t const& name_, path_t const& output_path, tags_t const& tags_);
     ~priv();
 
+    void initialize_date();
+
     name_t const name;
     path_t const path;
+    local_date_time const ldt;
 
     std::ofstream fout;
 
@@ -117,6 +134,8 @@ component_score_json_writer_process
     throw invalid_configuration_exception(name(), reason);
   }
 
+  d->initialize_date();
+
   process::_configure();
 }
 
@@ -167,8 +186,7 @@ component_score_json_writer_process
 
   d->fout << JSON_ATTR("name", "\"" + d->name + "\"");
   d->fout << JSON_SEP;
-  /// \todo Insert date.
-  d->fout << JSON_ATTR("date", "\"\"");
+  d->fout << JSON_ATTR("date", "\"" << d->ldt << "\"");
   d->fout << JSON_SEP;
   /// \todo Get git hash.
   d->fout << JSON_ATTR("hash", "\"\"");
@@ -308,6 +326,7 @@ component_score_json_writer_process
 
 component_score_json_writer_process::priv
 ::priv()
+  : ldt(local_microsec_clock::local_time(time_zone_ptr()))
 {
 }
 
@@ -315,6 +334,7 @@ component_score_json_writer_process::priv
 ::priv(name_t const& name_, path_t const& output_path, tags_t const& tags_)
   : name(name_)
   , path(output_path)
+  , ldt(local_microsec_clock::local_time(time_zone_ptr()))
   , tags(tags_)
 {
 }
@@ -322,6 +342,16 @@ component_score_json_writer_process::priv
 component_score_json_writer_process::priv
 ::~priv()
 {
+}
+
+void
+component_score_json_writer_process::priv
+::initialize_date()
+{
+  local_time_facet* facet = new local_time_facet;
+
+  facet->format(date_format);
+  fout.imbue(std::locale(fout.getloc(), facet));
 }
 
 }

@@ -14,4 +14,5 @@ target_link_libraries(processes_scoring
   vistk_pipeline
   vistk_scoring
   image_helper
+  ${Boost_DATE_TIME_LIBRARY}
   vil)
