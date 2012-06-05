@@ -257,25 +257,25 @@ def test_wrapper_api():
 
         p.input_ports()
         p.output_ports()
-        expect_exception("asking for info on a non-existant input port", BaseException,
+        expect_exception("asking for info on a non-existant input port", RuntimeError,
                          p.input_port_info, iport)
-        expect_exception("asking for info on a non-existant output port", BaseException,
+        expect_exception("asking for info on a non-existant output port", RuntimeError,
                          p.output_port_info, oport)
 
         e = edge.Edge()
 
-        expect_exception("connecting to a non-existant input port", BaseException,
+        expect_exception("connecting to a non-existant input port", RuntimeError,
                          p.connect_input_port, iport, e)
-        expect_exception("connecting to a non-existant output port", BaseException,
+        expect_exception("connecting to a non-existant output port", RuntimeError,
                          p.connect_output_port, oport, e)
 
         p.available_config()
-        expect_exception("asking for info on a non-existant config key", BaseException,
+        expect_exception("asking for info on a non-existant config key", RuntimeError,
                          p.config_info, key)
 
-        expect_exception("setting a type on a non-existent input port", BaseException,
+        expect_exception("setting a type on a non-existent input port", RuntimeError,
                          p.set_input_port_type, iport, ptype)
-        expect_exception("setting a type on a non-existent output port", BaseException,
+        expect_exception("setting a type on a non-existent output port", RuntimeError,
                          p.set_output_port_type, oport, ptype)
 
         p.reset()
