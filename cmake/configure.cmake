@@ -17,6 +17,8 @@ add_custom_target(configure ALL)
 function (vistk_configure_file name source dest)
   set(configure_script
     "${CMAKE_CURRENT_BINARY_DIR}/configure.${name}.cmake")
+  set(configured_path
+    "${configure_script}.output")
 
   file(WRITE "${configure_script}"
     "# Configure script for \"${source}\" -> \"${dest}\"\n")
@@ -29,8 +31,15 @@ function (vistk_configure_file name source dest)
   file(APPEND "${configure_script}" "
 configure_file(
   \"${source}\"
-  \"${dest}\"
+  \"${configured_path}\"
   @ONLY)\n")
+
+  file(APPEND "${configure_script}" "
+execute_process(
+  COMMAND \"${CMAKE_COMMAND}\"
+          -E copy_if_different
+          \"${configured_path}\"
+          \"${dest}\")\n")
 
   add_custom_command(
     OUTPUT  "${dest}"
