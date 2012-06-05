@@ -141,6 +141,13 @@ main(int argc, char* argv[])
       std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, &builder, _1));
     }
 
+    if (vm.count("name"))
+    {
+      std::string const name = vm["name"].as<std::string>();
+
+      builder.add_setting("mask_scoring:name=" + name);
+    }
+
     pipe = builder.pipeline();
 
     conf = builder.config();
@@ -193,6 +200,7 @@ make_options()
     ("include,I", po::value_desc<vistk::paths_t>()->metavar("DIR"), "configuration include path")
     ("schedule,S", po::value_desc<vistk::schedule_registry::type_t>()->metavar("TYPE"), "schedule type")
     ("dump,d", po::value_desc<vistk::path_t>()->metavar("FILE"), "output the generated pipeline")
+    ("name,n", po::value_desc<std::string>()->metavar("NAME"), "the name of the run")
     ("layer,l", po::value_desc<std::vector<std::string> >()->metavar("LAYER"), "layer name")
   ;
 
@@ -215,6 +223,7 @@ base_pipeline()
       CONFIG("input", "image_list.txt")
       CONFIG("truth_input", "truth_list.txt")
       CONFIG("output", "output.txt")
+      CONFIG("name", "(unnamed)")
     PROCESS("layered_image_reader", "truth_reader")
       CONFIG_FULL("path", "ro", "CONF", "mask_scoring:truth_input")
       CONFIG_FLAGS("pixfmt", "ro", "mask")
@@ -230,6 +239,7 @@ base_pipeline()
     PROCESS("score_aggregation", "aggregate")
     PROCESS("component_score_json_writer", "writer")
       CONFIG_FULL("path", "ro", "CONF", "mask_scoring:output")
+      CONFIG_FULL("name", "ro", "CONF", "mask_scoring:name")
 
     CONNECT("reader", "image",
             "source", "src/computed_mask")
