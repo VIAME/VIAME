@@ -10,7 +10,7 @@
 #include <vistk/python/any_conversion/registration.h>
 #include <vistk/python/util/python_gil.h>
 
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/enum.hpp>
 #include <boost/python/extract.hpp>

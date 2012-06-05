@@ -12,7 +12,6 @@
 
 #include <vistk/python/util/python_gil.h>
 
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/override.hpp>
