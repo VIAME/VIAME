@@ -14,10 +14,7 @@
 
 add_custom_target(configure ALL)
 
-function (vistk_configure_file name source dest)
-  set(configure_script
-    "${CMAKE_CURRENT_BINARY_DIR}/configure.${name}.cmake")
-
+function (_vistk_configure_file name source dest)
   file(WRITE "${configure_script}"
     "# Configure script for \"${source}\" -> \"${dest}\"\n")
 
@@ -26,14 +23,42 @@ function (vistk_configure_file name source dest)
       "set(${arg} \"${${arg}}\")\n")
   endforeach (arg)
 
+  file(APPEND "${configure_script}" "${configure_code}")
+
   file(APPEND "${configure_script}" "
 configure_file(
   \"${source}\"
-  \"${dest}\"
+  \"${configured_path}\"
   @ONLY)\n")
+
+  file(APPEND "${configure_script}" "
+execute_process(
+  COMMAND \"${CMAKE_COMMAND}\"
+          -E copy_if_different
+          \"${configured_path}\"
+          \"${dest}\")\n")
+
+  set(clean_files
+    "${dest}"
+    "${configured_path}"
+    "${configure_script}")
+
+  set_directory_properties(
+    PROPERTIES
+      ADDITIONAL_MAKE_CLEAN_FILES "${clean_files}")
+endfunction (_vistk_configure_file)
+
+function (vistk_configure_file name source dest)
+  set(configure_script
+    "${CMAKE_CURRENT_BINARY_DIR}/configure.${name}.cmake")
+  set(configured_path
+    "${configure_script}.output")
+
+  _vistk_configure_file(${name} "${source}" "${dest}" ${ARGN})
 
   add_custom_command(
     OUTPUT  "${dest}"
+            ${extra_output}
     COMMAND "${CMAKE_COMMAND}"
             -P "${configure_script}"
     MAIN_DEPENDENCY
@@ -43,20 +68,19 @@ configure_file(
     WORKING_DIRECTORY
             "${CMAKE_CURRENT_BINARY_DIR}"
     COMMENT "Configuring ${name} file \"${source}\" -> \"${dest}\"")
-  add_custom_target(configure-${name}
+  add_custom_target(configure-${name} ${all}
     DEPENDS
       "${dest}")
   add_dependencies(configure
     configure-${name})
-
-  set(clean_files
-    "${dest}"
-    "${configure_script}")
-
-  set_directory_properties(
-    PROPERTIES
-      ADDITIONAL_MAKE_CLEAN_FILES "${clean_files}")
 endfunction (vistk_configure_file)
+
+function (vistk_configure_file_always name source dest)
+  set(extra_output
+    "${dest}.noexist")
+
+  vistk_configure_file(${name} "${source}" "${dest}" ${ARGN})
+endfunction (vistk_configure_file_always)
 
 function (vistk_configure_pkgconfig module)
   if (UNIX)

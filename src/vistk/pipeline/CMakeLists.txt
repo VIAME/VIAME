@@ -20,7 +20,8 @@ set(pipeline_srcs
   schedule_registry_exception.cxx
   stamp.cxx
   types.cxx
-  utils.cxx)
+  utils.cxx
+  version.cxx)
 
 set(pipeline_headers
   config.h
@@ -43,7 +44,8 @@ set(pipeline_headers
   schedule_registry_exception.h
   stamp.h
   types.h
-  utils.h)
+  utils.h
+  version.h)
 
 if (WIN32)
   set(libdir bin)

@@ -5,6 +5,61 @@ vistk_configure_file(config.h
   "${CMAKE_CURRENT_BINARY_DIR}/config.h"
   __VISTK_HAVE_GCC_VISIBILITY)
 
+find_package(Git)
+
+set(VISTK_BUILT_FROM_GIT)
+
+if (GIT_FOUND)
+  set(configure_code "
+if (IS_DIRECTORY \"${vistk_source_dir}/.git\")
+  set(VISTK_BUILT_FROM_GIT TRUE)
+
+  execute_process(
+    COMMAND           \"${GIT_EXECUTABLE}\"
+                      rev-parse
+                      HEAD
+    WORKING_DIRECTORY \"${vistk_source_dir}\"
+    RESULT_VARIABLE   git_return
+    OUTPUT_VARIABLE   vistk_git_hash)
+  execute_process(
+    COMMAND           \"${GIT_EXECUTABLE}\"
+                      rev-parse
+                      --short
+                      HEAD
+    WORKING_DIRECTORY \"${vistk_source_dir}\"
+    RESULT_VARIABLE   git_return
+    OUTPUT_VARIABLE   vistk_git_hash_short)
+  execute_process(
+    COMMAND           \"${GIT_EXECUTABLE}\"
+                      diff
+                      --no-ext-diff
+                      --quiet
+                      --exit-code
+    WORKING_DIRECTORY \"${vistk_source_dir}\"
+    RESULT_VARIABLE   git_return)
+
+  string(STRIP \"\${vistk_git_hash}\" vistk_git_hash)
+  string(STRIP \"\${vistk_git_hash_short}\" vistk_git_hash_short)
+
+  if (git_return)
+    set(vistk_git_dirty \"dirty\")
+  endif (git_return)
+endif (IS_DIRECTORY \"${vistk_source_dir}/.git\")
+")
+endif (GIT_FOUND)
+
+vistk_configure_file_always(version.h
+  "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+  vistk_version_major
+  vistk_version_minor
+  vistk_version_patch
+  vistk_version
+  VISTK_BUILT_FROM_GIT
+  vistk_git_hash
+  vistk_git_hash_short
+  vistk_git_dirty)
+
 add_subdirectory(pipeline)
 add_subdirectory(utilities)
 add_subdirectory(pipeline_util)
@@ -17,5 +72,6 @@ endif (VISTK_ENABLE_PYTHON)
 
 install(
   FILES       "${CMAKE_CURRENT_BINARY_DIR}/config.h"
+              "${CMAKE_CURRENT_BINARY_DIR}/version.h"
   DESTINATION include/vistk
   COMPONENT   development)
