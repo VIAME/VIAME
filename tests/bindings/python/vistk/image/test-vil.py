@@ -12,19 +12,6 @@ def test_import():
         test_error("Failed to import the vil module")
 
 
-def test_create():
-    from vistk.image import vil
-
-    try:
-        config.empty_config()
-    except:
-        test_error("Failed to create an empty configuration")
-
-    config.ConfigKey()
-    config.ConfigKeys()
-    config.ConfigValue()
-
-
 def test_vil_to_numpy():
     from vistk.image import vil
     from vistk.test import test_image
