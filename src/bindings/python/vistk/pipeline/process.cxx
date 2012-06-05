@@ -289,6 +289,12 @@ BOOST_PYTHON_MODULE(process)
     .def("_base_output_port_info", &wrap_process::_base_output_port_info
       , (arg("port"), arg("new_type"))
       , "Base class output port type setting.")
+    .def("_base_set_input_port_type", &wrap_process::_base_set_input_port_type
+      , (arg("port"), arg("new_type"))
+      , "Base class input port type setting.")
+    .def("_base_set_output_port_type", &wrap_process::_base_set_output_port_type
+      , (arg("port"), arg("new_type"))
+      , "Base class output port type setting.")
     .def("_base_available_config", &wrap_process::_base_available_config
       , "Base class available configuration information.")
     .def("_base_config_info", &wrap_process::_base_config_info
