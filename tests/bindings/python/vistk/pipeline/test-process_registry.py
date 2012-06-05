@@ -153,7 +153,7 @@ def example_process():
         def _config_info(self, key):
             self.ran_conf_info = True
 
-            return self._base_conf_info(key)
+            return self._base_config_info(key)
 
         def check(self):
             if not self.ran_configure:
