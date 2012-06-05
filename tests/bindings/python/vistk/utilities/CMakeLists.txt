@@ -1,4 +1,4 @@
-project(vistk_test_python_utilities)
+project(vistk_test_python_vistk_utilities)
 
 ##############################
 # Homography tests

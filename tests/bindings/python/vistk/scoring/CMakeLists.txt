@@ -1,4 +1,4 @@
-project(vistk_test_python_scoring)
+project(vistk_test_python_vistk_scoring)
 
 ##############################
 # Scoring result tests

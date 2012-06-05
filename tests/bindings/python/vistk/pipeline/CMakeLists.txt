@@ -1,4 +1,4 @@
-project(vistk_test_python_pipeline)
+project(vistk_test_python_vistk_pipeline)
 
 ##############################
 # Config tests

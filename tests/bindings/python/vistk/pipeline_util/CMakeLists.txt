@@ -1,4 +1,4 @@
-project(vistk_test_python_pipeline_util)
+project(vistk_test_python_vistk_pipeline_util)
 
 set(vistk_test_pipelines_directory
   ${vistk_test_data_directory}/pipelines)

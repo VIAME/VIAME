@@ -1,4 +1,4 @@
-project(vistk_test_python_image)
+project(vistk_test_python_vistk_image)
 
 find_package(NumPy)
 
