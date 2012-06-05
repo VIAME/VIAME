@@ -39,10 +39,13 @@ class component_score_json_writer_process::priv
 
     typedef std::map<tag_t, bool> tag_stat_map_t;
 
+    typedef std::string name_t;
+
     priv();
-    priv(path_t const& output_path, tags_t const& tags_);
+    priv(name_t const& name_, path_t const& output_path, tags_t const& tags_);
     ~priv();
 
+    name_t const name;
     path_t const path;
 
     std::ofstream fout;
@@ -51,11 +54,15 @@ class component_score_json_writer_process::priv
     tag_stat_map_t tag_stats;
 
     static config::key_t const config_path;
+    static config::key_t const config_name;
+    static config::value_t const default_name;
     static port_t const port_score_prefix;
     static port_t const port_stats_prefix;
 };
 
 config::key_t const component_score_json_writer_process::priv::config_path = "path";
+config::key_t const component_score_json_writer_process::priv::config_name = "name";
+config::value_t const component_score_json_writer_process::priv::default_name = "(unnamed)";
 process::port_t const component_score_json_writer_process::priv::port_score_prefix = process::port_t("score/");
 process::port_t const component_score_json_writer_process::priv::port_stats_prefix = process::port_t("stats/");
 
@@ -67,6 +74,9 @@ component_score_json_writer_process
   declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
     config::value_t(),
     config::description_t("The path to output scores to.")));
+  declare_configuration_key(priv::config_name, boost::make_shared<conf_info>(
+    priv::default_name,
+    config::description_t("The name of the results.")));
 }
 
 component_score_json_writer_process
@@ -80,9 +90,10 @@ component_score_json_writer_process
 {
   // Configure the process.
   {
+    priv::name_t const run_name = config_value<priv::name_t>(priv::config_name);
     path_t const path = config_value<path_t>(priv::config_path);
 
-    d.reset(new priv(path, d->tags));
+    d.reset(new priv(run_name, path, d->tags));
   }
 
   path_t::string_type const path = d->path.native();
@@ -151,8 +162,7 @@ component_score_json_writer_process
 
   d->fout << JSON_OBJECT_BEGIN;
 
-  /// \todo Name runs.
-  d->fout << JSON_ATTR("name", "\"(unnamed)\"");
+  d->fout << JSON_ATTR("name", "\"" + d->name + "\"");
   d->fout << JSON_SEP;
   /// \todo Insert date.
   d->fout << JSON_ATTR("date", "\"\"");
@@ -299,8 +309,9 @@ component_score_json_writer_process::priv
 }
 
 component_score_json_writer_process::priv
-::priv(path_t const& output_path, tags_t const& tags_)
-  : path(output_path)
+::priv(name_t const& name_, path_t const& output_path, tags_t const& tags_)
+  : name(name_)
+  , path(output_path)
   , tags(tags_)
 {
 }
