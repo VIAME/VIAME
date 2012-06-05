@@ -15,6 +15,8 @@
 
 #include <vistk/utilities/path.h>
 
+#include <vistk/version.h>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/date_time.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
@@ -188,8 +190,7 @@ component_score_json_writer_process
   d->fout << JSON_SEP;
   d->fout << JSON_ATTR("date", "\"" << d->ldt << "\"");
   d->fout << JSON_SEP;
-  /// \todo Get git hash.
-  d->fout << JSON_ATTR("hash", "\"\"");
+  d->fout << JSON_ATTR("hash", "\"" VISTK_GIT_VERSION "\"");
   d->fout << JSON_SEP;
   d->fout << JSON_ATTR("config", "{}");
   d->fout << JSON_SEP;
