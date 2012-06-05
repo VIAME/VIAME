@@ -91,7 +91,7 @@ class boost_optional_converter
 
       (void)gil;
 
-      void* storage = reinterpret_cast<boost::python::converter::rvalue_from_python_storage<optional_t>*>(data)->storage.bytes;
+      void* const storage = reinterpret_cast<boost::python::converter::rvalue_from_python_storage<optional_t>*>(data)->storage.bytes;
 
 #define CONSTRUCT(args)            \
   do                               \
