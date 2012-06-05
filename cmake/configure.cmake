@@ -28,6 +28,8 @@ function (vistk_configure_file name source dest)
       "set(${arg} \"${${arg}}\")\n")
   endforeach (arg)
 
+  file(APPEND "${configure_script}" "${configure_code}")
+
   file(APPEND "${configure_script}" "
 configure_file(
   \"${source}\"
