@@ -29,6 +29,11 @@ if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
     # Override Boost's invoke.hpp
     include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/threading")
   #endif (${Boost_VERSION} LESS 10XX00)
+  # Not fixed yet.
+  #if (${Boost_VERSION} LESS 10XX00)
+    # Override Boost's override.hpp
+    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/exceptions_in_override")
+  #endif (${Boost_VERSION} LESS 10XX00)
 endif (VISTK_ENABLE_BOOST_PYTHON_FIXES)
 
 add_subdirectory(helpers)
