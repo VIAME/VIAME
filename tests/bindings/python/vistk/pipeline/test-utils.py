@@ -9,7 +9,7 @@ def test_import():
     try:
         import vistk.pipeline.utils
     except:
-        test_error("Failed to import the modules module")
+        test_error("Failed to import the utils module")
 
 
 def test_create():
