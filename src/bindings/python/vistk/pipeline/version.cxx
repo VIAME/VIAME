@@ -52,7 +52,7 @@ BOOST_PYTHON_MODULE(version)
     .def_readonly("git_hash_short", VISTK_GIT_HASH_SHORT)
     .def_readonly("git_dirty", VISTK_GIT_DIRTY)
     .def("check", &compile::check
-      , ((arg("major")), (arg("minor")), (arg("patch")))
+      , (arg("major"), arg("minor"), arg("patch"))
       , "Check for a vistk of at least the given version.")
     .staticmethod("check")
   ;
@@ -69,7 +69,7 @@ BOOST_PYTHON_MODULE(version)
     .def_readonly("git_hash_short", vistk::version::git_hash_short)
     .def_readonly("git_dirty", vistk::version::git_dirty)
     .def("check", &vistk::version::check
-      , ((arg("major")), (arg("minor")), (arg("patch")))
+      , (arg("major"), arg("minor"), arg("patch"))
       , "Check for a vistk of at least the given version.")
     .staticmethod("check")
   ;
