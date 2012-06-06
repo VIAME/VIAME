@@ -124,4 +124,5 @@ make_python_init_file(vistk/pipeline)
 #  schedule
 #  schedule_registry
 #  stamp
+#  utils
 #  version)
