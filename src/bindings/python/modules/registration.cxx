@@ -34,16 +34,16 @@ register_processes()
 
   Py_Initialize();
 
+  vistk::python::python_gil const gil;
+
+  (void)gil;
+
   HANDLE_PYTHON_EXCEPTION_IGNORE(load())
 }
 
 void
 load()
 {
-  vistk::python::python_gil const gil;
-
-  (void)gil;
-
   object const modules = import("vistk.modules.modules");
   object const loader = modules.attr("load_python_modules");
 
