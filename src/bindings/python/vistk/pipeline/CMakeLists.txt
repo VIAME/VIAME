@@ -104,6 +104,15 @@ target_link_libraries(python-vistk.pipeline-utils
   ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
+add_vistk_python_library(version
+  vistk/pipeline
+  version.cxx)
+target_link_libraries(python-vistk.pipeline-version
+  vistk_pipeline
+  vistk_python_util
+  ${${boost_python_library_var}}
+  ${PYTHON_LIBRARIES})
+
 make_python_init_file(vistk/pipeline)
 #  config
 #  datum
@@ -114,4 +123,5 @@ make_python_init_file(vistk/pipeline)
 #  process_registry
 #  schedule
 #  schedule_registry
-#  stamp)
+#  stamp
+#  version)
