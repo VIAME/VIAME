@@ -117,6 +117,14 @@ vistk_make_python_test(utils create)
 vistk_make_python_test(utils name_thread)
 
 ##############################
+# Version tests
+##############################
+vistk_build_python_test(version test-version.py)
+
+vistk_make_python_test(version import)
+vistk_make_python_test(version api_calls)
+
+##############################
 # Run tests
 ##############################
 vistk_build_python_test(run test-run.py)
