@@ -412,28 +412,28 @@ void
 wrap_process
 ::_base_configure()
 {
-  process::_configure();
+  TRANSLATE_PYTHON_EXCEPTION(process::_configure())
 }
 
 void
 wrap_process
 ::_base_init()
 {
-  process::_init();
+  TRANSLATE_PYTHON_EXCEPTION(process::_init())
 }
 
 void
 wrap_process
 ::_base_reset()
 {
-  process::_reset();
+  TRANSLATE_PYTHON_EXCEPTION(process::_reset())
 }
 
 void
 wrap_process
 ::_base_step()
 {
-  process::_step();
+  TRANSLATE_PYTHON_EXCEPTION(process::_step())
 }
 
 vistk::process::constraints_t
@@ -451,14 +451,14 @@ void
 wrap_process
 ::_base_connect_input_port(port_t const& port, vistk::edge_t edge)
 {
-  process::_connect_input_port(port, edge);
+  TRANSLATE_PYTHON_EXCEPTION(process::_connect_input_port(port, edge))
 }
 
 void
 wrap_process
 ::_base_connect_output_port(port_t const& port, vistk::edge_t edge)
 {
-  process::_connect_output_port(port, edge);
+  TRANSLATE_PYTHON_EXCEPTION(process::_connect_output_port(port, edge))
 }
 
 vistk::process::ports_t
@@ -479,42 +479,42 @@ vistk::process::port_info_t
 wrap_process
 ::_base_input_port_info(port_t const& port)
 {
-  return process::_input_port_info(port);
+  TRANSLATE_PYTHON_EXCEPTION(return process::_input_port_info(port))
 }
 
 vistk::process::port_info_t
 wrap_process
 ::_base_output_port_info(port_t const& port)
 {
-  return process::_output_port_info(port);
+  TRANSLATE_PYTHON_EXCEPTION(return process::_output_port_info(port))
 }
 
 bool
 wrap_process
 ::_base_set_input_port_type(port_t const& port, port_type_t const& new_type)
 {
-  return process::_set_input_port_type(port, new_type);
+  TRANSLATE_PYTHON_EXCEPTION(return process::_set_input_port_type(port, new_type))
 }
 
 bool
 wrap_process
 ::_base_set_output_port_type(port_t const& port, port_type_t const& new_type)
 {
-  return process::_set_input_port_type(port, new_type);
+  TRANSLATE_PYTHON_EXCEPTION(return process::_set_input_port_type(port, new_type))
 }
 
 vistk::config::keys_t
 wrap_process
 ::_base_available_config() const
 {
-  return process::_available_config();
+  TRANSLATE_PYTHON_EXCEPTION(return process::_available_config())
 }
 
 vistk::process::conf_info_t
 wrap_process
 ::_base_config_info(vistk::config::key_t const& key)
 {
-  return process::_config_info(key);
+  TRANSLATE_PYTHON_EXCEPTION(return process::_config_info(key))
 }
 
 void

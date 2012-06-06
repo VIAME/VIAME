@@ -31,6 +31,22 @@
     python_print_exception();                \
   }
 
+#define TRANSLATE_PYTHON_EXCEPTION(call)           \
+  try                                              \
+  {                                                \
+    call;                                          \
+  }                                                \
+  catch (std::exception& e)                        \
+  {                                                \
+    vistk::python::python_gil const gil;           \
+                                                   \
+    (void)gil;                                     \
+                                                   \
+    PyErr_SetString(PyExc_RuntimeError, e.what()); \
+                                                   \
+    throw;                                         \
+  }
+
 void python_print_exception();
 
 #endif // VISTK_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H
