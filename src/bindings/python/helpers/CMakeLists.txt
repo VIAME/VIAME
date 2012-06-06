@@ -19,6 +19,17 @@ if (NUMPY_FOUND)
   endif (NOT WIN32)
 endif (NUMPY_FOUND)
 
+add_library(python_exceptions STATIC
+  python_exceptions.cxx)
+target_link_libraries(python_exceptions
+  ${PYTHON_LIBRARIES})
+
+if (NOT WIN32)
+  set_target_properties(python_exceptions
+    PROPERTIES
+      COMPILE_FLAGS "-fPIC")
+endif (NOT WIN32)
+
 add_library(pystream STATIC
   pystream.cxx)
 target_link_libraries(pystream

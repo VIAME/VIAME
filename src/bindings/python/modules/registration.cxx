@@ -6,7 +6,7 @@
 
 #include "registration.h"
 
-#include <python/helpers/exceptions.h>
+#include <python/helpers/python_exceptions.h>
 
 #include <vistk/pipeline/utils.h>
 

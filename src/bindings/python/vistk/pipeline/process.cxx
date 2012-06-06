@@ -4,7 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/exceptions.h>
+#include <python/helpers/python_exceptions.h>
 #include <python/helpers/python_wrap_const_shared_ptr.h>
 #include <python/helpers/set_indexing_suite.h>
 

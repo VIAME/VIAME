@@ -52,6 +52,7 @@ add_vistk_python_library(process
 target_link_libraries(python-vistk.pipeline-process
   vistk_pipeline
   vistk_python_util
+  python_exceptions
   ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
@@ -71,6 +72,7 @@ add_vistk_python_library(schedule
 target_link_libraries(python-vistk.pipeline-schedule
   vistk_pipeline
   vistk_python_util
+  python_exceptions
   ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
