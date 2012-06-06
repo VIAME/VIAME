@@ -36,13 +36,14 @@ static vistk::scoring_result_t result_add(vistk::scoring_result_t const& lhs, vi
 
 BOOST_PYTHON_MODULE(scoring_result)
 {
-  /// \todo For some reason these bindings are busted.
+  /// \todo Get the constructor working.
   class_<vistk::scoring_result_t>("ScoringResult"
     , "A result from a scoring algorithm."
     , no_init)
-    .def("__init__", &new_result
+    .def("new", &new_result
       , (arg("true_positive"), arg("false_positive"), arg("total_true"), arg("possible") = 0)
       , "Constructor.")
+    .staticmethod("new")
     .def("true_positives", &result_get_true_positives)
     .def("false_positives", &result_get_false_positives)
     .def("total_trues", &result_get_total_trues)
