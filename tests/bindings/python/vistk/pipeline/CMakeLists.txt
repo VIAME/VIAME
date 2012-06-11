@@ -81,22 +81,22 @@ vistk_make_python_test(process_registry register)
 vistk_make_python_test(process_registry wrapper_api)
 
 ##############################
-# Schedule tests
+# Scheduler tests
 ##############################
-vistk_build_python_test(schedule test-schedule.py)
+vistk_build_python_test(scheduler test-scheduler.py)
 
-vistk_make_python_test(schedule import)
+vistk_make_python_test(scheduler import)
 
 ##############################
-# Schedule registry tests
+# Scheduler registry tests
 ##############################
-vistk_build_python_test(schedule_registry test-schedule_registry.py)
+vistk_build_python_test(scheduler_registry test-scheduler_registry.py)
 
-vistk_make_python_test(schedule_registry import)
-vistk_make_python_test(schedule_registry create)
-vistk_make_python_test(schedule_registry api_calls)
-vistk_make_python_test(schedule_registry register)
-vistk_make_python_test(schedule_registry wrapper_api)
+vistk_make_python_test(scheduler_registry import)
+vistk_make_python_test(scheduler_registry create)
+vistk_make_python_test(scheduler_registry api_calls)
+vistk_make_python_test(scheduler_registry register)
+vistk_make_python_test(scheduler_registry wrapper_api)
 
 ##############################
 # Stamp tests
@@ -129,15 +129,15 @@ vistk_make_python_test(version api_calls)
 ##############################
 vistk_build_python_test(run test-run.py)
 
-set(schedules
+set(schedulers
   pythread_per_process
   sync
   thread_per_process)
 
 function (vistk_make_python_run_test group instance)
-  foreach (schedule ${schedules})
-    vistk_make_python_test(${group} ${instance}-${schedule})
-  endforeach (schedule ${schedules})
+  foreach (scheduler ${schedulers})
+    vistk_make_python_test(${group} ${instance}-${scheduler})
+  endforeach (scheduler ${schedulers})
 endfunction (vistk_make_python_run_test group instance)
 
 vistk_make_python_run_test(run python_to_python)

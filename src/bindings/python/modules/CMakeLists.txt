@@ -30,4 +30,4 @@ make_python_init_file(vistk/modules)
 set (python_both_arch TRUE)
 
 make_python_plugin_init_file(vistk/processes)
-make_python_plugin_init_file(vistk/schedules)
+make_python_plugin_init_file(vistk/schedulers)

@@ -140,12 +140,12 @@ vistk_make_test(process null_output_port_info)
 vistk_make_test(process null_conf_info)
 
 ##############################
-# Schedule tests
+# Scheduler tests
 ##############################
-vistk_build_test(schedule libraries test_schedule.cxx)
+vistk_build_test(scheduler libraries test_scheduler.cxx)
 
-vistk_make_test(schedule null_config)
-vistk_make_test(schedule null_pipeline)
+vistk_make_test(scheduler null_config)
+vistk_make_test(scheduler null_pipeline)
 
 ##############################
 # Pipeline tests
@@ -263,46 +263,46 @@ vistk_make_test(process_registry unknown_types)
 vistk_make_test(process_registry module_marking)
 
 ##############################
-# Schedule registry tests
+# Scheduler registry tests
 ##############################
-vistk_build_test(schedule_registry libraries test_schedule_registry.cxx)
+vistk_build_test(scheduler_registry libraries test_scheduler_registry.cxx)
 
-vistk_make_test(schedule_registry get_twice)
-vistk_make_test(schedule_registry null_config)
-vistk_make_test(schedule_registry null_pipeline)
-vistk_make_test(schedule_registry load_schedules)
-vistk_make_test(schedule_registry null_ctor)
-vistk_make_test(schedule_registry duplicate_types)
-vistk_make_test(schedule_registry unknown_types)
-vistk_make_test(schedule_registry module_marking)
+vistk_make_test(scheduler_registry get_twice)
+vistk_make_test(scheduler_registry null_config)
+vistk_make_test(scheduler_registry null_pipeline)
+vistk_make_test(scheduler_registry load_schedulers)
+vistk_make_test(scheduler_registry null_ctor)
+vistk_make_test(scheduler_registry duplicate_types)
+vistk_make_test(scheduler_registry unknown_types)
+vistk_make_test(scheduler_registry module_marking)
 
 ##############################
 # Running tests
 ##############################
 vistk_build_test(run libraries test_run.cxx)
 
-set(schedules
+set(schedulers
   sync
   thread_per_process)
 
 if (VISTK_ENABLE_PYTHON)
-  set(schedules
-    ${schedules}
+  set(schedulers
+    ${schedulers}
     pythread_per_process)
 endif (VISTK_ENABLE_PYTHON)
 
 function (vistk_make_run_test group instance)
-  foreach (schedule ${schedules})
+  foreach (scheduler ${schedulers})
     if (VISTK_ENABLE_PYTHON)
-      if (${schedule} STREQUAL "pythread_per_process")
+      if (${scheduler} STREQUAL "pythread_per_process")
         set(test_environment "PYTHONPATH=${python_module_path}${cur_python_path}")
-      endif (${schedule} STREQUAL "pythread_per_process")
+      endif (${scheduler} STREQUAL "pythread_per_process")
     endif (VISTK_ENABLE_PYTHON)
 
-    vistk_make_test(${group} ${instance}-${schedule})
+    vistk_make_test(${group} ${instance}-${scheduler})
 
     unset(test_environment)
-  endforeach (schedule ${schedules})
+  endforeach (scheduler ${schedulers})
 endfunction (vistk_make_run_test group instance)
 
 vistk_make_run_test(run simple_pipeline)

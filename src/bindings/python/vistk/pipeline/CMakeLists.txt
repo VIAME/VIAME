@@ -66,20 +66,20 @@ target_link_libraries(python-vistk.pipeline-process_registry
   ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(schedule
+add_vistk_python_library(scheduler
   vistk/pipeline
-  schedule.cxx)
-target_link_libraries(python-vistk.pipeline-schedule
+  scheduler.cxx)
+target_link_libraries(python-vistk.pipeline-scheduler
   vistk_pipeline
   vistk_python_util
   python_exceptions
   ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(schedule_registry
+add_vistk_python_library(scheduler_registry
   vistk/pipeline
-  schedule_registry.cxx)
-target_link_libraries(python-vistk.pipeline-schedule_registry
+  scheduler_registry.cxx)
+target_link_libraries(python-vistk.pipeline-scheduler_registry
   vistk_pipeline
   vistk_python_util
   python_threading
@@ -121,8 +121,8 @@ make_python_init_file(vistk/pipeline)
 #  pipeline
 #  process
 #  process_registry
-#  schedule
-#  schedule_registry
+#  scheduler
+#  scheduler_registry
 #  stamp
 #  utils
 #  version)

@@ -28,7 +28,7 @@ def load_python_modules():
     import os
 
     packages = [ 'vistk.processes'
-               , 'vistk.schedules'
+               , 'vistk.schedulers'
                ]
 
     envvar = 'VISTK_PYTHON_MODULES'

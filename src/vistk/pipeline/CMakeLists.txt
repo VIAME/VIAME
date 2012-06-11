@@ -14,10 +14,10 @@ set(pipeline_srcs
   process_exception.cxx
   process_registry.cxx
   process_registry_exception.cxx
-  schedule.cxx
-  schedule_exception.cxx
-  schedule_registry.cxx
-  schedule_registry_exception.cxx
+  scheduler.cxx
+  scheduler_exception.cxx
+  scheduler_registry.cxx
+  scheduler_registry_exception.cxx
   stamp.cxx
   types.cxx
   utils.cxx
@@ -38,10 +38,10 @@ set(pipeline_headers
   process_exception.h
   process_registry.h
   process_registry_exception.h
-  schedule.h
-  schedule_exception.h
-  schedule_registry.h
-  schedule_registry_exception.h
+  scheduler.h
+  scheduler_exception.h
+  scheduler_registry.h
+  scheduler_registry_exception.h
   stamp.h
   types.h
   utils.h

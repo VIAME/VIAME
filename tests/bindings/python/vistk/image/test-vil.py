@@ -123,7 +123,7 @@ def test_datum():
     from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import process_registry
-    from vistk.pipeline import schedule_registry
+    from vistk.pipeline import scheduler_registry
     from vistk.test import test_image
     import numpy as np
 
@@ -141,7 +141,7 @@ def test_datum():
 
     modules.load_known_modules()
     reg = process_registry.ProcessRegistry.self()
-    sreg = schedule_registry.ScheduleRegistry.self()
+    sreg = scheduler_registry.SchedulerRegistry.self()
 
     sched_type = 'sync'
 
@@ -196,7 +196,7 @@ def test_datum():
             test_error("Could not initialize pipeline: '%s'" % str(e))
             continue
 
-        s = sreg.create_schedule(sched_type, p)
+        s = sreg.create_scheduler(sched_type, p)
 
         try:
             s.start()

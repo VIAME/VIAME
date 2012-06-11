@@ -61,7 +61,7 @@ def test_pythonpath():
     from vistk.pipeline import config
     from vistk.pipeline import modules
     from vistk.pipeline import process_registry
-    from vistk.pipeline import schedule_registry
+    from vistk.pipeline import scheduler_registry
 
     modules.load_known_modules()
 
@@ -72,12 +72,12 @@ def test_pythonpath():
     if 'pythonpath_test_process' not in types:
         test_error("Failed to load extra Python processes accessible from PYTHONPATH")
 
-    reg = schedule_registry.ScheduleRegistry.self()
+    reg = scheduler_registry.SchedulerRegistry.self()
 
     types = reg.types()
 
-    if 'pythonpath_test_schedule' not in types:
-        test_error("Failed to load extra Python schedules accessible from PYTHONPATH")
+    if 'pythonpath_test_scheduler' not in types:
+        test_error("Failed to load extra Python schedulers accessible from PYTHONPATH")
 
 
 def main(testname):

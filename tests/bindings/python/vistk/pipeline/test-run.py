@@ -111,13 +111,13 @@ def create_process(type, name, conf):
 def run_pipeline(sched_type, pipe, conf):
     from vistk.pipeline import config
     from vistk.pipeline import modules
-    from vistk.pipeline import schedule_registry
+    from vistk.pipeline import scheduler_registry
 
     modules.load_known_modules()
 
-    reg = schedule_registry.ScheduleRegistry.self()
+    reg = scheduler_registry.SchedulerRegistry.self()
 
-    s = reg.create_schedule(sched_type, pipe, conf)
+    s = reg.create_scheduler(sched_type, pipe, conf)
 
     s.start()
     s.wait()

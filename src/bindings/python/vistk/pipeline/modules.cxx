@@ -20,5 +20,5 @@ using namespace boost::python;
 BOOST_PYTHON_MODULE(modules)
 {
   def("load_known_modules", &vistk::load_known_modules
-    , "Loads vistk modules to populate the process and schedule registries.");
+    , "Loads vistk modules to populate the process and scheduler registries.");
 }

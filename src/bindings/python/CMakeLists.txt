@@ -169,7 +169,7 @@ endfunction (make_python_plugin_init_file modpath)
 add_subdirectory(vistk)
 add_subdirectory(modules)
 add_subdirectory(processes)
-add_subdirectory(schedules)
+add_subdirectory(schedulers)
 
 if (VISTK_ENABLE_TESTING)
   add_subdirectory(test)

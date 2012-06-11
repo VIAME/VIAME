@@ -124,7 +124,7 @@
  * \pflag{\link vistk::process::flag_input_nodep nodep\endlink} Indicates that
  * the port is expected to be a backwards edge within the pipeline so that when
  * the pipeline is topologically sorted (either for initialization or execution
- * order by a schedule), the edge can be ignored for such purposes.
+ * order by a scheduler), the edge can be ignored for such purposes.
  * \pflag{\link vistk::process::flag_required required\endlink} Marks that the
  * port must be connected for the process to run.
  *
@@ -144,11 +144,11 @@
  * where processes should have a chance to get a first look at the edges that
  * are connected to a port and change behavior based on them. After this is
  * called, the process will be stepped until it is either complete or the
- * schedule is stopped.
+ * scheduler is stopped.
  *
  * \subsection process_reentrant Reentrant
  *
- * Processes may declare that they are reentrant for the schedule to run a
+ * Processes may declare that they are reentrant for the scheduler to run a
  * process concurrently with itself. If this is declared, a process \em must
  * ensure that the first one called does the following:
  *
@@ -171,11 +171,11 @@
  * \li Pushing data out via the output edges.
  *
  * \link vistk::edge Edges\endlink will block if there is no data or they are
- * full. Schedules should try to ensure that these conditions do not occur.
+ * full. Schedulers should try to ensure that these conditions do not occur.
  *
  * \subsection process_destruction Destruction
  *
- * The destructor must be ready to run at any time. The schedule may be asked to
+ * The destructor must be ready to run at any time. The scheduler may be asked to
  * stop processing at which time no processes will be run any more (though any
  * step calls are likely to finish first). Any resources used should be released
  * in the destructor since this is the only place it will happen.
