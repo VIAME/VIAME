@@ -42,9 +42,11 @@ process::port_type_t const process::type_none = port_type_t("_none");
 process::port_type_t const process::type_data_dependent = port_type_t("_data_dependent");
 process::port_type_t const process::type_flow_dependent = port_type_t("_flow_dependent/");
 process::port_flag_t const process::flag_output_const = port_flag_t("_const");
+process::port_flag_t const process::flag_input_static = port_flag_t("_static");
 process::port_flag_t const process::flag_input_mutable = port_flag_t("_mutable");
 process::port_flag_t const process::flag_input_nodep = port_flag_t("_nodep");
 process::port_flag_t const process::flag_required = port_flag_t("_required");
+config::key_t const process::static_input_prefix = config::key_t("static/");
 
 process::port_info
 ::port_info(port_type_t const& type_,
@@ -135,6 +137,7 @@ class process::priv
 
     config_t const conf;
 
+    ports_t static_inputs;
     ports_t required_inputs;
     ports_t required_outputs;
 
@@ -710,15 +713,35 @@ process
     }
   }
 
-  d->input_ports[port] = info;
-
   port_flags_t const& flags = info->flags;
-  port_flags_t::const_iterator const i = flags.find(flag_required);
+  port_flags_t::const_iterator i;
 
-  if (i != flags.end())
+  i = flags.find(flag_required);
+  bool const required = (i != flags.end());
+
+  i = flags.find(flag_input_static);
+  bool const static_ = (i != flags.end());
+
+  if (required && static_)
+  {
+    /// \todo Throw an exception.
+  }
+
+  if (static_)
+  {
+    declare_configuration_key(static_input_prefix + port, boost::make_shared<conf_info>(
+      config::value_t(),
+      config::description_t("A default value to use for the \'" + port + "\' port if it is not connected.")));
+
+    d->static_inputs.push_back(port);
+  }
+
+  if (required)
   {
     d->required_inputs.push_back(port);
   }
+
+  d->input_ports[port] = info;
 }
 
 void

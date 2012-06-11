@@ -420,6 +420,8 @@ class VISTK_PIPELINE_EXPORT process
     static port_type_t const type_flow_dependent;
     /// A flag which indicates that the output cannot be modified.
     static port_flag_t const flag_output_const;
+    /// A flag which indicates that the input may be defined as a configuration value.
+    static port_flag_t const flag_input_static;
     /// A flag which indicates that the input may be modified.
     static port_flag_t const flag_input_mutable;
     /// A flag which indicates that a connection to the port does not imply a dependency.
@@ -770,6 +772,8 @@ class VISTK_PIPELINE_EXPORT process
     static edge_datum_t peek_at_edge(edge_t const& edge);
   private:
     config::value_t config_value_raw(config::key_t const& key) const;
+
+    static config::key_t const static_input_prefix;
 
     class priv;
     boost::scoped_ptr<priv> d;
