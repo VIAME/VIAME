@@ -645,6 +645,15 @@ class VISTK_PIPELINE_EXPORT process
     template <typename T>
     T grab_from_port_as(port_t const& port) const;
     /**
+     * \brief Grab an input as a certain type.
+     *
+     * \param port The port to get data from.
+     *
+     * \returns The input datum.
+     */
+    template <typename T>
+    T grab_input_as(port_t const& port) const;
+    /**
      * \brief Output an edge datum packet on a port.
      *
      * \param port The port to push to.
@@ -773,6 +782,7 @@ class VISTK_PIPELINE_EXPORT process
   private:
     config::value_t config_value_raw(config::key_t const& key) const;
 
+    bool is_static_input(port_t const& port) const;
     static config::key_t const static_input_prefix;
 
     class priv;
@@ -793,6 +803,19 @@ process
 ::grab_from_port_as(port_t const& port) const
 {
   return grab_datum_from_port(port)->get_datum<T>();
+}
+
+template <typename T>
+T
+process
+::grab_input_as(port_t const& port) const
+{
+  if (is_static_input(port) && !input_port_edge(port))
+  {
+    return config_value<T>(static_input_prefix + port);
+  }
+
+  return grab_from_port_as<T>(port);
 }
 
 template <typename T>

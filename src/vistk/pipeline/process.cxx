@@ -1112,6 +1112,15 @@ process
   return i->second->def;
 }
 
+bool
+process
+::is_static_input(port_t const& port) const
+{
+  ports_t::const_iterator const i = std::find(d->static_inputs.begin(), d->static_inputs.end(), port);
+
+  return (i != d->static_inputs.end());
+}
+
 process::priv
 ::priv(config_t c)
   : conf(c)
