@@ -36,7 +36,7 @@ class process_registry::priv
     ~priv();
 
     typedef boost::tuple<description_t, process_ctor_t> process_typeinfo_t;
-    typedef std::map<type_t, process_typeinfo_t> process_store_t;
+    typedef std::map<process::type_t, process_typeinfo_t> process_store_t;
     process_store_t registry;
 
     typedef std::set<module_t> loaded_modules_t;
@@ -52,7 +52,7 @@ process_registry
 
 void
 process_registry
-::register_process(type_t const& type, description_t const& desc, process_ctor_t ctor)
+::register_process(process::type_t const& type, description_t const& desc, process_ctor_t ctor)
 {
   if (!ctor)
   {
@@ -69,7 +69,7 @@ process_registry
 
 process_t
 process_registry
-::create_process(type_t const& type, config_t const& config) const
+::create_process(process::type_t const& type, process::name_t const& name, config_t const& config) const
 {
   if (!config)
   {
@@ -84,19 +84,20 @@ process_registry
   }
 
   config->set_value(process::config_type, config::value_t(type));
+  config->set_value(process::config_name, config::value_t(name));
 
   return i->second.get<1>()(config);
 }
 
-process_registry::types_t
+process::types_t
 process_registry
 ::types() const
 {
-  types_t ts;
+  process::types_t ts;
 
   BOOST_FOREACH (priv::process_store_t::value_type const& entry, d->registry)
   {
-    type_t const& type = entry.first;
+    process::type_t const& type = entry.first;
 
     ts.push_back(type);
   }
@@ -106,7 +107,7 @@ process_registry
 
 process_registry::description_t
 process_registry
-::description(type_t const& type) const
+::description(process::type_t const& type) const
 {
   priv::process_store_t::const_iterator const i = d->registry.find(type);
 
@@ -145,7 +146,10 @@ process_registry
     return reg_self;
   }
 
-  boost::unique_lock<boost::mutex> lock(mut);
+  boost::mutex::scoped_lock const lock(mut);
+
+  (void)lock;
+
   if (!reg_self)
   {
     reg_self = process_registry_t(new process_registry);

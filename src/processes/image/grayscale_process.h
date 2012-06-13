@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class grayscale_process
  *
- * \brief A process which converts an image to grayscale.
+ * \brief A process for converting an image to grayscale.
  *
- * \process A process for converting an image into grayscale.
+ * \process Convert an image into grayscale.
  *
  * \iports
  *
@@ -45,6 +45,8 @@ namespace vistk
  * \reqs
  *
  * \req The \port{rgbimage} and \port{grayimage} ports must be connected.
+ *
+ * \ingroup process_image
  */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT grayscale_process
   : public process
@@ -53,7 +55,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT grayscale_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     grayscale_process(config_t const& config);
     /**
@@ -67,7 +69,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT grayscale_process
     void _configure();
 
     /**
-     * \brief Turns an image into grayscale.
+     * \brief Step the process.
      */
     void _step();
   private:

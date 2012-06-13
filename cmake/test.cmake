@@ -48,7 +48,9 @@ if (VALGRIND_EXECUTABLE)
   if (VISTK_VALGRIND_USE_SUPPRESSIONS)
     set(vistk_valgrind_arguments
       ${vistk_valgrind_arguments}
-      "--suppressions=${vistk_source_dir}/tests/data/valgrind/glibc.supp")
+      "--suppressions=${vistk_source_dir}/tests/data/valgrind/boost.supp"
+      "--suppressions=${vistk_source_dir}/tests/data/valgrind/glibc.supp"
+      "--suppressions=${vistk_source_dir}/tests/data/valgrind/python2.7.supp")
   endif (VISTK_VALGRIND_USE_SUPPRESSIONS)
 
   add_custom_target(tests)

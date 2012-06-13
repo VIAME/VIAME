@@ -16,7 +16,7 @@
 /**
  * \file collate_process.h
  *
- * \brief Declaration of the collating process.
+ * \brief Declaration of the collate process.
  */
 
 namespace vistk
@@ -25,14 +25,14 @@ namespace vistk
 /**
  * \class collate_process
  *
- * \brief A process which collating input data from multiple input edges.
+ * \brief A process for collating input data from multiple input edges.
  *
  * \note Edges for a \portvar{tag} may \em only be connected after the
  * \port{color/\portvar{tag}} is connected to. Before this connection happens,
  * the other ports to not exist and will cause errors. In short: The first
  * connection for any \portvar{tag} must be \port{color/\portvar{tag}}.
  *
- * \process A process for collating data from multiple sources.
+ * \process Collate incoming data into a single stream.
  *
  * \iports
  *
@@ -44,7 +44,7 @@ namespace vistk
  *
  * \oports
  *
- * \oport{res_\portvar{tag}} The collated result \portvar{tag}.
+ * \oport{res/\portvar{tag}} The collated result \portvar{tag}.
  *
  * \reqs
  *
@@ -54,6 +54,8 @@ namespace vistk
  *
  * \todo Add configuration to allow forcing a number of inputs for a result.
  * \todo Add configuration to allow same number of sources for all results.
+ *
+ * \ingroup process_flow
  */
 class VISTK_PROCESSES_FLOW_NO_EXPORT collate_process
   : public process
@@ -62,7 +64,7 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT collate_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     collate_process(config_t const& config);
     /**
@@ -71,27 +73,27 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT collate_process
     ~collate_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
+     * \brief Initialize the process.
      */
     void _init();
 
     /**
-     * \brief Resets the process.
+     * \brief Reset the process.
      */
     void _reset();
 
     /**
-     * \brief Collate data from the input edges.
+     * \brief Step the process.
      */
     void _step();
 
     /**
-     * \brief Set constraints on the process.
+     * \brief The constraints on the process.
      */
     constraints_t _constraints() const;
 
     /**
-     * \brief Subclass input port information.
+     * \brief Input port information.
      *
      * \param port The port to get information about.
      *

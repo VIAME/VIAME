@@ -25,7 +25,7 @@ namespace vistk
 /**
  * \class tagged_flow_dependent_process
  *
- * \brief A process which has tagged flow dependent ports.
+ * \brief A process with tagged flow dependent ports.
  *
  * \process A process with flow dependent ports.
  *
@@ -38,6 +38,8 @@ namespace vistk
  *
  * \oport{untagged_output} An untagged flow dependent output port.
  * \oport{tagged_output} A tagged flow dependent output port.
+ *
+ * \ingroup examples
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT tagged_flow_dependent_process
   : public process
@@ -46,7 +48,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT tagged_flow_dependent_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     tagged_flow_dependent_process(config_t const& config);
     /**
@@ -55,12 +57,12 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT tagged_flow_dependent_process
     ~tagged_flow_dependent_process();
   protected:
     /**
-     * \brief Resets the process.
+     * \brief Reset the process.
      */
     void _reset();
 
     /**
-     * \brief Pushes a new number through the output edge.
+     * \brief Step the process.
      */
     void _step();
   private:

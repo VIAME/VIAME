@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -64,7 +64,7 @@ circular_config_provide_exception
 {
   std::stringstream sstr;
 
-  sstr << "There is a circular config provide request in the configuration";
+  sstr << "There is a circular CONF provider request in the configuration";
 
   m_what = sstr.str();
 }
@@ -82,7 +82,7 @@ unrecognized_system_index_exception
   std::stringstream sstr;
 
   sstr << "The \'" << m_index << "\' index "
-          "does not exist for the system provider";
+          "does not exist for the SYS provider";
 
   m_what = sstr.str();
 }

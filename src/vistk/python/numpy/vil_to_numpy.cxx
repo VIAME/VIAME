@@ -20,6 +20,12 @@
 
 #include <numpy/arrayobject.h>
 
+/**
+ * \file vil_to_numpy.cxx
+ *
+ * \brief Implementation of a vil-to-NumPy converter function.
+ */
+
 using namespace boost::python;
 
 namespace vistk
@@ -31,7 +37,7 @@ namespace python
 PyObject*
 vil_to_numpy(vil_image_view_base_sptr const& img)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void) gil;
 
@@ -49,7 +55,6 @@ vil_to_numpy(vil_image_view_base_sptr const& img)
 #define CONVERT_FORMAT(vil_type)                                            \
   case vil_type:                                                            \
   {                                                                         \
-    typedef vil_pixel_format_type_of<vil_type>::type pixel_t;               \
     typedef vil_pixel_format_type_of<vil_type>::component_type component_t; \
                                                                             \
     vil_image_view<component_t> const i = img;                              \
@@ -124,7 +129,7 @@ template <typename T>
 PyObject*
 vil_to_numpy(vil_image_view<T> const& img)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void) gil;
 

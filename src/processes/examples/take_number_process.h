@@ -25,21 +25,19 @@ namespace vistk
 /**
  * \class take_number_process
  *
- * \brief A process which takes incoming numbers.
+ * \brief A process which takes numbers.
  *
- * \process A process for taking numbers.
+ * \process Takes numbers.
  *
  * \iports
  *
  * \iport{number} The source of numbers to take.
  *
- * \configs
- *
- * \config{output} Where to output the numbers.
- *
  * \reqs
  *
  * \req The \port{number} port must be connected.
+ *
+ * \ingroup examples
  */
 class VISTK_PROCESSES_EXAMPLES_NO_EXPORT take_number_process
   : public process
@@ -48,7 +46,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT take_number_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     take_number_process(config_t const& config);
     /**
@@ -57,7 +55,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT take_number_process
     ~take_number_process();
   protected:
     /**
-     * \brief Takes numbers from the input port.
+     * \brief Step the process.
      */
     void _step();
   private:

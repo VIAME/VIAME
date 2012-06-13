@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -65,26 +65,26 @@ class VISTK_UTILITIES_EXPORT utm_zone_t
     ~utm_zone_t();
 
     /**
-     * \brief Queries for the zone.
+     * \brief Query for the zone.
      *
      * \returns The zone.
      */
     zone_t zone() const;
     /**
-     * \brief Queries for the hemisphere.
+     * \brief Query for the hemisphere.
      *
      * \returns The hemisphere of the zone.
      */
     hemisphere_t hemisphere() const;
 
     /**
-     * \brief Sets the utm zone.
+     * \brief Set the utm zone.
      *
      * \param z The zone.
      */
     void set_zone(zone_t z);
     /**
-     * \brief Sets the hemisphere of the zone.
+     * \brief Set the hemisphere of the zone.
      *
      * \param h The hemisphere.
      */

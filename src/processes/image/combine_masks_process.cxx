@@ -23,7 +23,7 @@
 /**
  * \file combine_masks_process.cxx
  *
- * \brief Implementation of the mask combination process.
+ * \brief Implementation of the combine masks process.
  */
 
 namespace vistk

@@ -9,12 +9,21 @@
 
 #include "numpy-config.h"
 
+/**
+ * \file import.h
+ *
+ * \brief Declarations of functions for importing the NumPy module.
+ */
+
 namespace vistk
 {
 
 namespace python
 {
 
+/**
+ * \brief Import the NumPy module.
+ */
 void VISTK_PYTHON_NUMPY_EXPORT import_numpy();
 
 }

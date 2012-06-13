@@ -16,7 +16,7 @@
 /**
  * \file distribute_process.h
  *
- * \brief Declaration of the distribution process.
+ * \brief Declaration of the distribute process.
  */
 
 namespace vistk
@@ -25,7 +25,7 @@ namespace vistk
 /**
  * \class distribute_process
  *
- * \brief A process which distributes input data along multiple output edges.
+ * \brief A process for distributing input data to multiple output edges.
  *
  * \note Edges for a \portvar{tag} may \em only be connected after the
  * \port{color/\portvar{tag}} is connected to. Before this connection happens,
@@ -33,9 +33,9 @@ namespace vistk
  * connection for any \portvar{tag} must be \port{color/\portvar{tag}}.
  *
  * \note Ports sharing the same \port{\portvar{group}} string will use the same
- * coloring.
+ * stream coloring.
  *
- * \process A process for generating numbers.
+ * \process Distribute input data among many output processes.
  *
  * \iports
  *
@@ -56,6 +56,8 @@ namespace vistk
  *
  * \todo Add configuration to allow forcing a number of outputs for a source.
  * \todo Add configuration to allow same number of outputs for all sources.
+ *
+ * \ingroup process_flow
  */
 class VISTK_PROCESSES_FLOW_NO_EXPORT distribute_process
   : public process
@@ -64,7 +66,7 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT distribute_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     distribute_process(config_t const& config);
     /**
@@ -73,27 +75,27 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT distribute_process
     ~distribute_process();
   protected:
     /**
-     * \brief Checks the output port connections and the configuration.
+     * \brief Initialize the process.
      */
     void _init();
 
     /**
-     * \brief Resets the process.
+     * \brief Reset the process.
      */
     void _reset();
 
     /**
-     * \brief Distribute data between the output edges.
+     * \brief Step the process.
      */
     void _step();
 
     /**
-     * \brief Set constraints on the process.
+     * \brief The constraints on the process.
      */
     constraints_t _constraints() const;
 
     /**
-     * \brief Subclass output port information.
+     * \brief Output port information.
      *
      * \param port The port to get information about.
      *

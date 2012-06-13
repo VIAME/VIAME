@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -26,7 +26,9 @@ stamp
 {
   static boost::mutex mut;
 
-  boost::lock_guard<boost::mutex> lock(mut);
+  boost::mutex::scoped_lock const lock(mut);
+
+  (void)lock;
 
   stamp_t st(new stamp(m_new_color, 0));
   ++m_new_color;

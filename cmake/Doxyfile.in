@@ -65,7 +65,7 @@ ALIASES               += mflag{1}="\li \flag{\1} —"
 ALIASES               += pflag{1}="\li \flag{\1} —"
 ALIASES               += ptype{1}="\li \type{\1} —"
 ALIASES               += process="\xrefitem processes \"Process description\" \"Process listing\""
-ALIASES               += schedule="\xrefitem schedules \"Schedule description\" \"Schedule listing\""
+ALIASES               += scheduler="\xrefitem schedulers \"Scheduler description\" \"Scheduler listing\""
 OPTIMIZE_OUTPUT_FOR_C  = NO
 OPTIMIZE_OUTPUT_JAVA   = NO
 OPTIMIZE_FOR_FORTRAN   = NO

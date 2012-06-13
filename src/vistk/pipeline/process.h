@@ -12,7 +12,6 @@
 #include "edge.h"
 #include "config.h"
 #include "datum.h"
-#include "process_registry.h"
 #include "types.h"
 
 #include <boost/noncopyable.hpp>
@@ -42,7 +41,7 @@ typedef std::vector<process_t> processes_t;
  *
  * \oports
  *
- * \oport{heartbeat} Carries the status of the process.
+ * \oport{_heartbeat} Carries the status of the process.
  *
  * \section initialization Initialization Routine
  *
@@ -69,6 +68,10 @@ class VISTK_PIPELINE_EXPORT process
   : boost::noncopyable
 {
   public:
+    /// The type for the type of a process.
+    typedef std::string type_t;
+    /// A group of types.
+    typedef std::vector<type_t> types_t;
     /// The type for the name of a process.
     typedef std::string name_t;
     /// The type for a group of process names.
@@ -217,14 +220,14 @@ class VISTK_PIPELINE_EXPORT process
     void init();
 
     /**
-     * \brief Resets the process.
+     * \brief Reset the process.
      *
      * Calling this removes all edges from the process.
      */
     void reset();
 
     /**
-     * \brief Steps through one iteration of the process.
+     * \brief Step through one iteration of the process.
      *
      * \preconds
      *
@@ -245,7 +248,7 @@ class VISTK_PIPELINE_EXPORT process
     virtual constraints_t constraints() const;
 
     /**
-     * \brief Connects an edge to an input port on the process.
+     * \brief Connect an edge to an input port on the process.
      *
      * \preconds
      *
@@ -270,7 +273,7 @@ class VISTK_PIPELINE_EXPORT process
      */
     void connect_input_port(port_t const& port, edge_t edge);
     /**
-     * \brief Connects an edge to an output port on the process.
+     * \brief Connect an edge to an output port on the process.
      *
      * \preconds
      *
@@ -294,20 +297,20 @@ class VISTK_PIPELINE_EXPORT process
     void connect_output_port(port_t const& port, edge_t edge);
 
     /**
-     * \brief A list of input ports available on the process.
+     * \brief Query for a list of input ports available on the process.
      *
      * \returns The names of all input ports available.
      */
     ports_t input_ports() const;
     /**
-     * \brief A list of output ports available on the process.
+     * \brief Query for a list of output ports available on the process.
      *
      * \returns The names of all output ports available.
      */
     ports_t output_ports() const;
 
     /**
-     * \brief Information about an input port on the process.
+     * \brief Query for information about an input port on the process.
      *
      * \warning The returned pointer is not updated if the information for a
      * port changes.
@@ -320,7 +323,7 @@ class VISTK_PIPELINE_EXPORT process
      */
     port_info_t input_port_info(port_t const& port);
     /**
-     * \brief Information about an output port on the process.
+     * \brief Query for information about an output port on the process.
      *
      * \warning The returned pointer is not updated if the information for a
      * port changes.
@@ -334,7 +337,7 @@ class VISTK_PIPELINE_EXPORT process
     port_info_t output_port_info(port_t const& port);
 
     /**
-     * \brief Sets the type of a flow-dependent input port type.
+     * \brief Set the type of a flow-dependent input port type.
      *
      * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
@@ -347,7 +350,7 @@ class VISTK_PIPELINE_EXPORT process
      */
     bool set_input_port_type(port_t const& port, port_type_t const& new_type);
     /**
-     * \brief Sets the type of a flow-dependent output port type.
+     * \brief Set the type of a flow-dependent output port type.
      *
      * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
@@ -389,7 +392,7 @@ class VISTK_PIPELINE_EXPORT process
      *
      * \returns A name for the type of the process.
      */
-    process_registry::type_t type() const;
+    type_t type() const;
 
     /// A constraint which indicates that the process cannot be run in a thread of its own.
     static constraint_t const constraint_no_threads;
@@ -417,6 +420,8 @@ class VISTK_PIPELINE_EXPORT process
     static port_type_t const type_flow_dependent;
     /// A flag which indicates that the output cannot be modified.
     static port_flag_t const flag_output_const;
+    /// A flag which indicates that the input may be defined as a configuration value.
+    static port_flag_t const flag_input_static;
     /// A flag which indicates that the input may be modified.
     static port_flag_t const flag_input_mutable;
     /// A flag which indicates that a connection to the port does not imply a dependency.
@@ -438,12 +443,12 @@ class VISTK_PIPELINE_EXPORT process
     virtual ~process();
 
     /**
-     * \brief Configuration checks for subclasses.
+     * \brief Pre-connection initialization for subclasses.
      */
     virtual void _configure();
 
     /**
-     * \brief Initialization checks for subclasses.
+     * \brief Post-connection initialization for subclasses.
      */
     virtual void _init();
 
@@ -545,7 +550,7 @@ class VISTK_PIPELINE_EXPORT process
     virtual conf_info_t _config_info(config::key_t const& key);
 
     /**
-     * \brief Declares an input port for the process.
+     * \brief Declare an input port for the process.
      *
      * \throws null_input_port_info_exception Thrown if \p info is \c NULL.
      *
@@ -554,7 +559,7 @@ class VISTK_PIPELINE_EXPORT process
      */
     void declare_input_port(port_t const& port, port_info_t const& info);
     /**
-     * \brief Declares an output port for the process.
+     * \brief Declare an output port for the process.
      *
      * \throws null_output_port_info_exception Thrown if \p info is \c NULL.
      *
@@ -577,7 +582,7 @@ class VISTK_PIPELINE_EXPORT process
     void remove_output_port(port_t const& port);
 
     /**
-     * \brief Declares a configuration value for the process.
+     * \brief Declare a configuration value for the process.
      *
      * \throws null_conf_info_exception Thrown if \p info is \c NULL.
      *
@@ -587,7 +592,7 @@ class VISTK_PIPELINE_EXPORT process
     void declare_configuration_key(config::key_t const& key, conf_info_t const& info);
 
     /**
-     * \brief Marks the process as complete.
+     * \brief Mark the process as complete.
      */
     void mark_process_as_complete();
     /**
@@ -615,7 +620,7 @@ class VISTK_PIPELINE_EXPORT process
     edges_t output_port_edges(port_t const& port) const;
 
     /**
-     * \brief Grabs an edge datum packet from a port.
+     * \brief Grab an edge datum packet from a port.
      *
      * \param port The port to get data from.
      *
@@ -623,7 +628,7 @@ class VISTK_PIPELINE_EXPORT process
      */
     edge_datum_t grab_from_port(port_t const& port) const;
     /**
-     * \brief Grabs a datum packet from a port.
+     * \brief Grab a datum packet from a port.
      *
      * \param port The port to get data from.
      *
@@ -631,7 +636,7 @@ class VISTK_PIPELINE_EXPORT process
      */
     datum_t grab_datum_from_port(port_t const& port) const;
     /**
-     * \brief Grabs a datum from a port as a certain type.
+     * \brief Grab a datum from a port as a certain type.
      *
      * \param port The port to get data from.
      *
@@ -640,21 +645,30 @@ class VISTK_PIPELINE_EXPORT process
     template <typename T>
     T grab_from_port_as(port_t const& port) const;
     /**
-     * \brief Outputs an edge datum packet on a port.
+     * \brief Grab an input as a certain type.
+     *
+     * \param port The port to get data from.
+     *
+     * \returns The input datum.
+     */
+    template <typename T>
+    T grab_input_as(port_t const& port) const;
+    /**
+     * \brief Output an edge datum packet on a port.
      *
      * \param port The port to push to.
      * \param dat The edge datum to push.
      */
     void push_to_port(port_t const& port, edge_datum_t const& dat) const;
     /**
-     * \brief Outputs a datum packet on a port.
+     * \brief Output a datum packet on a port.
      *
      * \param port The port to push to.
      * \param dat The datum to push.
      */
     void push_datum_to_port(port_t const& port, datum_t const& dat) const;
     /**
-     * \brief Outputs a result on a port.
+     * \brief Output a result on a port.
      *
      * \param port The port to push to.
      * \param dat The result to push.
@@ -663,7 +677,7 @@ class VISTK_PIPELINE_EXPORT process
     void push_to_port_as(port_t const& port, T const& dat) const;
 
     /**
-     * \brief Returns the stamp for this step.
+     * \brief Return the stamp for this step.
      *
      * This is only valid if the base class is ensuring that the input stamps
      * are \em both all the same color and synchronized. If either one is not
@@ -681,7 +695,7 @@ class VISTK_PIPELINE_EXPORT process
      */
     config_t get_config() const;
     /**
-     * \brief Retrieves a configuration key
+     * \brief Retrieve a configuration key
      *
      * \throws no_such_configuration_key_exception Thrown if \p key was not declared for the process.
      *
@@ -750,7 +764,7 @@ class VISTK_PIPELINE_EXPORT process
      */
     static void push_to_edges(edges_t const& edges, edge_datum_t const& dat);
     /**
-     * \brief Grabs a data from an edge.
+     * \brief Grab a data from an edge.
      *
      * \param edge The edge to grab data from.
      *
@@ -758,7 +772,7 @@ class VISTK_PIPELINE_EXPORT process
      */
     static edge_datum_t grab_from_edge(edge_t const& edge);
     /**
-     * \brief Peeks at the next datum on an edge.
+     * \brief Peek at the next datum on an edge.
      *
      * \param edge The edge to peek at.
      *
@@ -767,6 +781,9 @@ class VISTK_PIPELINE_EXPORT process
     static edge_datum_t peek_at_edge(edge_t const& edge);
   private:
     config::value_t config_value_raw(config::key_t const& key) const;
+
+    bool is_static_input(port_t const& port) const;
+    static config::key_t const static_input_prefix;
 
     class priv;
     boost::scoped_ptr<priv> d;
@@ -786,6 +803,19 @@ process
 ::grab_from_port_as(port_t const& port) const
 {
   return grab_datum_from_port(port)->get_datum<T>();
+}
+
+template <typename T>
+T
+process
+::grab_input_as(port_t const& port) const
+{
+  if (is_static_input(port) && !input_port_edge(port))
+  {
+    return config_value<T>(static_input_prefix + port);
+  }
+
+  return grab_from_port_as<T>(port);
 }
 
 template <typename T>

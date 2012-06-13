@@ -123,7 +123,7 @@ PyObject*
 any_converter
 ::convert(boost::any const& any)
 {
-  python_gil gil;
+  python_gil const gil;
 
   (void)gil;
 
@@ -170,7 +170,7 @@ void
 any_converter
 ::construct(PyObject* obj, converter::rvalue_from_python_stage1_data* data)
 {
-  python_gil gil;
+  python_gil const gil;
 
   (void)gil;
 
@@ -203,7 +203,7 @@ any_converter
 void
 register_to_python()
 {
-  python_gil gil;
+  python_gil const gil;
 
   (void)gil;
 

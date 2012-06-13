@@ -9,7 +9,7 @@
  * \li \b compute — Uses input data to perform some computation or
  *     transformation on the data and then outputs it.
  * \li \b sink — Accepts data and writes it to a file, verifies it, or some
- *     other task which does not have any output.
+ *     other task which does not have any (pipeline) output.
  *
  * This page will go through the steps of creating a compute process and will
  * include notes for each of the general types where things may differ. In this
@@ -29,10 +29,6 @@
  *
  * The process needs to reimplement the \ref vistk::process::_step method to be
  * able to do useful transformations.
- *
- * \note Source processes will usually also have at least one input port. This
- * is used to "color" the output data stamps the same as some other source. An
- * example will be given below.
  *
  * \note Sink processes will usually not have any output ports and can ignore
  * those methods.
@@ -54,7 +50,7 @@
  * helps to reduce spelling errors (although there are test cases to ensure that
  * introspection on processes is valid).
  *
- * \warning In general, naming things with a leading underscore is highly
+ * \note In general, naming things with a leading underscore is highly
  * discouraged. A leading underscore is used for names used internally to help
  * avoid future conflicts.
  *
@@ -109,6 +105,9 @@
  *
  * \li \ref vistk::datum::invalid — An invalid type. This should never occur.
  * \li \ref vistk::datum::error — An error occurred computing the expected data.
+ * \li \ref vistk::datum::flush — Indicates that the data stream is being
+ *     "reset" and any internal state within the process should be cleared. This
+ *     should only affect processes which keep state in between steps.
  * \li \ref vistk::datum::complete — Indicates that no more data will be
  *     available on the port. This should be used for the end of a file, data
  *     stream, or that required ports are complete as well and nothing more can
@@ -221,12 +220,9 @@
  * \tt{register_processes} which is called to register process types.
  *
  * In \tt{register_processes}, a function is given to the registry along with a
- * typename for the process and a short description.
- *
- * \until }
- *
- * This function creates a new \tt{compare_string_process} given a
- * configuration.
+ * typename for the process and a short description. There is a template
+ * function which does the default creation of a process, \ref
+ * vistk::create_process.
  *
  * \until }
  * \until }

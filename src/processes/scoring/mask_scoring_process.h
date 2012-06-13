@@ -16,7 +16,7 @@
 /**
  * \file mask_scoring_process.h
  *
- * \brief A process which scores a mask against another.
+ * \brief Declaration of the mask scoring process.
  */
 
 namespace vistk
@@ -42,6 +42,8 @@ namespace vistk
  *
  * \req The input ports \port{computed_mask} and \port{truth_mask} must be connected.
  * \req The output port \port{result} must be connected.
+ *
+ * \ingroup process_scoring
  */
 class VISTK_PROCESSES_SCORING_NO_EXPORT mask_scoring_process
   : public process
@@ -50,7 +52,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT mask_scoring_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     mask_scoring_process(config_t const& config);
     /**
@@ -59,7 +61,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT mask_scoring_process
     ~mask_scoring_process();
   protected:
     /**
-     * \brief Collate data from the input edges.
+     * \brief Step the process.
      */
     void _step();
   private:

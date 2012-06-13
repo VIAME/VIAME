@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -9,7 +9,6 @@
 #include <boost/io/ios_state.hpp>
 
 #include <iomanip>
-#include <ostream>
 
 /**
  * \file homography_debug.cxx
@@ -27,7 +26,7 @@ debug_transform_write(std::ostream& ostr, homography_base::transform_t const& tr
 
   homography_base::transform_t const& t = transform;
 
-  boost::io::ios_flags_saver ifs(ostr);
+  boost::io::ios_flags_saver const ifs(ostr);
 
   (void)ifs;
 
@@ -44,7 +43,7 @@ debug_homography_base_write(std::ostream& ostr, homography_base const& homog)
 {
   homography_base::transform_t const& transform = homog.transform();
 
-  boost::io::ios_flags_saver ifs(ostr);
+  boost::io::ios_flags_saver const ifs(ostr);
 
   (void)ifs;
 
@@ -54,16 +53,6 @@ debug_homography_base_write(std::ostream& ostr, homography_base const& homog)
           "New ref: " << homog.is_new_reference() << "\n";
 
   debug_transform_write(ostr, transform);
-}
-
-template <typename Source, typename Dest>
-void
-debug_homography_write(std::ostream& ostr, homography<Source, Dest> const& homog)
-{
-  ostr << "Source: " << homog.source() << "\n"
-          "Dest:   " << homog.dest() << "\n";
-
-  debug_homography_base_write(ostr, homog);
 }
 
 }

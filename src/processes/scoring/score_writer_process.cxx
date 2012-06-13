@@ -20,7 +20,7 @@
 /**
  * \file score_writer_process.cxx
  *
- * \brief Implementation of the process which writes out scores to a file.
+ * \brief Implementation of the score writer process.
  */
 
 namespace vistk

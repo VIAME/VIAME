@@ -5,6 +5,7 @@
  */
 
 #include <vistk/pipeline/process.h>
+#include <vistk/pipeline/process_registry.h>
 
 #include <vistk/config.h>
 

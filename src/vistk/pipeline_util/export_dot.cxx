@@ -273,7 +273,7 @@ void
 output_process(std::ostream& ostr, process_t const& process)
 {
   process::name_t const& name = process->name();
-  process_registry::type_t const& type = process->type();
+  process::type_t const& type = process->type();
 
   ostr << "subgraph \"cluster_" << name << "\" {" << std::endl;
 

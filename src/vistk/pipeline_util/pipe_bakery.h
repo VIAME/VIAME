@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -46,7 +46,7 @@ pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe_from_file(path_t const& fname);
 pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe(std::istream& istr, path_t const& inc_root = "");
 
 /**
- * \brief Extracts a configuration from a collection of blocks.
+ * \brief Extract a configuration from a collection of blocks.
  *
  * \param blocks The blocks to use for baking the pipeline.
  *
@@ -55,7 +55,7 @@ pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe(std::istream& istr, path_t const
 pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe_blocks(pipe_blocks const& blocks);
 
 /**
- * \brief Extracts a configuration from a collection of blocks.
+ * \brief Extract a configuration from a collection of blocks.
  *
  * \param blocks The blocks to use for baking the pipeline.
  *

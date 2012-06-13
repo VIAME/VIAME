@@ -1,0 +1,29 @@
+{
+   boost -- boost::call_once leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_ZN5boost6detail25get_once_per_thread_epochEv
+   fun:_ZN5boost9call_onceIPFvvEEEvRNS_9once_flagET_
+}
+
+{
+   boost -- boost::python::objects::function_object leak
+   Memcheck:Leak
+   fun:_Znwm
+   fun:_ZN5boost6python7objects15function_objectERKNS1_11py_functionERKSt4pairIPKNS0_6detail7keywordES9_E
+}
+
+{
+   boost -- boost::python::make_instance_reduce_function leak
+   Memcheck:Leak
+   fun:_Znwm
+   fun:_ZN5boost6python7objects20function_handle_implERKNS1_11py_functionE
+   fun:_ZN5boost6python29make_instance_reduce_functionEv
+}
+
+{
+   boost -- boost::python::make_instance_reduce_function
+   Memcheck:Leak
+   fun:_Znwm
+   fun:_ZN5boost6python29make_instance_reduce_functionEv
+}

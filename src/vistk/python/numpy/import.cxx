@@ -12,6 +12,12 @@
 
 #include <numpy/arrayobject.h>
 
+/**
+ * \file import.cxx
+ *
+ * \brief Implementation of functions for importing the NumPy module.
+ */
+
 namespace vistk
 {
 
@@ -47,7 +53,7 @@ import_numpy_module()
   import_array();
 
 #if PY_VERSION_HEX >= 0x03000000
-  return NULL;
+  return pyimport_return_t();
 #endif
 }
 

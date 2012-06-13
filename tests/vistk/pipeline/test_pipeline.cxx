@@ -401,7 +401,7 @@ run_test(std::string const& test_name)
   }
 }
 
-static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
+static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
 static vistk::pipeline_t create_pipeline();
 
 void
@@ -429,7 +429,7 @@ test_null_process()
 void
 test_add_process()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
   vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
@@ -451,7 +451,7 @@ test_add_group()
 void
 test_duplicate_process_process()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
@@ -470,7 +470,7 @@ test_duplicate_process_process()
 void
 test_duplicate_process_group()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
@@ -488,7 +488,7 @@ test_duplicate_process_group()
 void
 test_duplicate_group_process()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
@@ -576,7 +576,7 @@ test_map_output_no_process()
 void
 test_map_input()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
   vistk::process::name_t const group_name = vistk::process::name_t("group");
   vistk::process::name_t const proc_name = vistk::process::name_t("name");
@@ -596,7 +596,7 @@ test_map_input()
 void
 test_map_output()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
   vistk::process::name_t const group_name = vistk::process::name_t("group");
   vistk::process::name_t const proc_name = vistk::process::name_t("name");
@@ -624,7 +624,7 @@ test_map_output()
 void
 test_connect_no_upstream()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
@@ -645,7 +645,7 @@ test_connect_no_upstream()
 void
 test_connect_no_downstream()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("name");
 
@@ -666,8 +666,8 @@ test_connect_no_downstream()
 void
 test_connect_untyped_data_connection()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("sink");
@@ -690,7 +690,7 @@ test_connect_untyped_data_connection()
 void
 test_connect_untyped_flow_connection()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("up");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("down");
@@ -713,8 +713,8 @@ test_connect_untyped_flow_connection()
 void
 test_connect_type_mismatch()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("take_string");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("take_string");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
@@ -739,8 +739,8 @@ test_connect_type_mismatch()
 void
 test_connect_flag_mismatch()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("const");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("mutate");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("const");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("mutate");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
@@ -765,8 +765,8 @@ test_connect_flag_mismatch()
 void
 test_connect()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
@@ -789,8 +789,8 @@ test_connect()
 void
 test_connect_input_map()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
@@ -821,8 +821,8 @@ test_connect_input_map()
 void
 test_connect_output_map()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
@@ -863,7 +863,7 @@ test_setup_pipeline_no_processes()
 void
 test_setup_pipeline_orphaned_process()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process::name_t const proc_name1 = vistk::process::name_t("orphan1");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("orphan2");
@@ -884,8 +884,8 @@ test_setup_pipeline_orphaned_process()
 void
 test_setup_pipeline_type_force_flow_upstream()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("take_string");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("flow");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("take");
@@ -910,8 +910,8 @@ test_setup_pipeline_type_force_flow_upstream()
 void
 test_setup_pipeline_type_force_flow_downstream()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
@@ -936,8 +936,8 @@ test_setup_pipeline_type_force_flow_downstream()
 void
 test_setup_pipeline_type_force_cascade_up()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("take_string");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("flow");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
@@ -975,8 +975,8 @@ test_setup_pipeline_type_force_cascade_up()
 void
 test_setup_pipeline_type_force_cascade_down()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
@@ -1014,8 +1014,8 @@ test_setup_pipeline_type_force_cascade_down()
 void
 test_setup_pipeline_type_force_cascade_both()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("take_string");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("flow");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
@@ -1067,7 +1067,7 @@ test_setup_pipeline_type_force_cascade_both()
 void
 test_setup_pipeline_backwards_edge()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("feedback");
+  vistk::process::type_t const proc_type = vistk::process::type_t("feedback");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("feedback");
 
@@ -1089,8 +1089,8 @@ test_setup_pipeline_backwards_edge()
 void
 test_setup_pipeline_not_a_dag()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("multiplication");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("multiplication");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("flow");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
@@ -1129,8 +1129,8 @@ test_setup_pipeline_not_a_dag()
 void
 test_setup_pipeline_data_dependent_set()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("sink");
@@ -1162,8 +1162,8 @@ test_setup_pipeline_data_dependent_set()
 void
 test_setup_pipeline_data_dependent_set_reject()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("sink");
@@ -1194,8 +1194,8 @@ test_setup_pipeline_data_dependent_set_reject()
 void
 test_setup_pipeline_data_dependent_set_cascade()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
@@ -1241,8 +1241,8 @@ test_setup_pipeline_data_dependent_set_cascade()
 void
 test_setup_pipeline_data_dependent_set_cascade_reject()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
@@ -1278,8 +1278,8 @@ test_setup_pipeline_data_dependent_set_cascade_reject()
 void
 test_setup_pipeline_type_force_flow_upstream_reject()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("take_string");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("flow");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("take");
@@ -1310,8 +1310,8 @@ test_setup_pipeline_type_force_flow_upstream_reject()
 void
 test_setup_pipeline_type_force_flow_downstream_reject()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
@@ -1342,8 +1342,8 @@ test_setup_pipeline_type_force_flow_downstream_reject()
 void
 test_setup_pipeline_type_force_cascade_reject()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
@@ -1381,8 +1381,8 @@ test_setup_pipeline_type_force_cascade_reject()
 void
 test_setup_pipeline_untyped_data_dependent()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("data_dependent");
-  vistk::process_registry::type_t const proc_type2 = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
+  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("data");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
@@ -1413,7 +1413,7 @@ test_setup_pipeline_untyped_data_dependent()
 void
 test_setup_pipeline_untyped_connection()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("flow_dependent");
+  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("up");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("down");
@@ -1440,7 +1440,7 @@ test_setup_pipeline_untyped_connection()
 void
 test_setup_pipeline_missing_required_input_connection()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("take_string");
+  vistk::process::type_t const proc_type = vistk::process::type_t("take_string");
 
   vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
@@ -1456,7 +1456,7 @@ test_setup_pipeline_missing_required_input_connection()
 void
 test_setup_pipeline_missing_required_output_connection()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("numbers");
+  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
   vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
@@ -1472,8 +1472,8 @@ test_setup_pipeline_missing_required_output_connection()
 void
 test_setup_pipeline_missing_required_group_input_connection()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("take_number");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typet = vistk::process::type_t("take_number");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
@@ -1511,8 +1511,8 @@ test_setup_pipeline_missing_required_group_input_connection()
 void
 test_setup_pipeline_missing_required_group_output_connection()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("take_number");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typet = vistk::process::type_t("take_number");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
@@ -1550,7 +1550,7 @@ test_setup_pipeline_missing_required_group_output_connection()
 void
 test_setup_pipeline_duplicate()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
 
@@ -1570,7 +1570,7 @@ test_setup_pipeline_duplicate()
 void
 test_setup_pipeline_add_process()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
 
@@ -1590,7 +1590,7 @@ test_setup_pipeline_add_process()
 void
 test_setup_pipeline_add_group()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
   vistk::process::name_t const group_name = vistk::process::name_t("group");
@@ -1611,8 +1611,8 @@ test_setup_pipeline_add_group()
 void
 test_setup_pipeline_connect()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("sink");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("number");
   vistk::process::name_t const proc_named = vistk::process::name_t("sink");
@@ -1645,8 +1645,8 @@ test_setup_pipeline_connect()
 void
 test_setup_pipeline_map_input()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("sink");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("number");
   vistk::process::name_t const proc_named = vistk::process::name_t("sink");
@@ -1681,7 +1681,7 @@ test_setup_pipeline_map_input()
 void
 test_setup_pipeline_map_output()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
   vistk::process::name_t const group_name = vistk::process::name_t("group");
@@ -1707,9 +1707,9 @@ test_setup_pipeline_map_output()
 void
 test_setup_pipeline()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
+  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
 
   vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
   vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
@@ -1764,7 +1764,7 @@ test_start_before_setup()
 void
 test_start_unsuccessful_setup()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
   vistk::process::name_t const proc_name2 = vistk::process::name_t("orphan2");
@@ -1803,7 +1803,7 @@ test_stop_before_start()
 void
 test_start_and_stop()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
 
@@ -1822,7 +1822,7 @@ test_start_and_stop()
 void
 test_reset_while_running()
 {
-  vistk::process_registry::type_t const proc_type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
   vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
 
@@ -1844,9 +1844,9 @@ test_reset_while_running()
 void
 test_reset()
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
+  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
 
   vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
   vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
@@ -1895,8 +1895,8 @@ test_reset()
 void
 test_remove_process()
 {
-  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
-  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
+  vistk::process::type_t const typed = vistk::process::type_t("sink");
   vistk::process::name_t const nameu = vistk::process::name_t("up");
   vistk::process::name_t const named = vistk::process::name_t("down");
   vistk::process::name_t const group = vistk::process::name_t("group");
@@ -1947,7 +1947,7 @@ test_remove_process()
 void
 test_remove_process_after_setup()
 {
-  vistk::process_registry::type_t const type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const type = vistk::process::type_t("orphan");
   vistk::process::name_t const name = vistk::process::name_t("name");
 
   vistk::pipeline_t pipe = create_pipeline();
@@ -1965,7 +1965,7 @@ test_remove_process_after_setup()
 void
 test_remove_group()
 {
-  vistk::process_registry::type_t const type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const type = vistk::process::type_t("orphan");
   vistk::process::name_t const name = vistk::process::name_t("name");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
@@ -1991,7 +1991,7 @@ test_remove_group()
 void
 test_remove_group_after_setup()
 {
-  vistk::process_registry::type_t const type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const type = vistk::process::type_t("orphan");
   vistk::process::name_t const name = vistk::process::name_t("name");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
@@ -2011,8 +2011,8 @@ test_remove_group_after_setup()
 void
 test_disconnect()
 {
-  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
-  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
+  vistk::process::type_t const typed = vistk::process::type_t("sink");
   vistk::process::name_t const nameu = vistk::process::name_t("up");
   vistk::process::name_t const named = vistk::process::name_t("down");
 
@@ -2040,8 +2040,8 @@ test_disconnect()
 void
 test_disconnect_after_setup()
 {
-  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
-  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
+  vistk::process::type_t const typed = vistk::process::type_t("sink");
   vistk::process::name_t const nameu = vistk::process::name_t("up");
   vistk::process::name_t const named = vistk::process::name_t("down");
 
@@ -2069,7 +2069,7 @@ test_disconnect_after_setup()
 void
 test_unmap_input()
 {
-  vistk::process_registry::type_t const type = vistk::process_registry::type_t("sink");
+  vistk::process::type_t const type = vistk::process::type_t("sink");
   vistk::process::name_t const name = vistk::process::name_t("down");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
@@ -2096,8 +2096,8 @@ test_unmap_input()
 void
 test_unmap_input_after_setup()
 {
-  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
-  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
+  vistk::process::type_t const typed = vistk::process::type_t("sink");
   vistk::process::name_t const nameu = vistk::process::name_t("up");
   vistk::process::name_t const named = vistk::process::name_t("down");
   vistk::process::name_t const group = vistk::process::name_t("group");
@@ -2131,7 +2131,7 @@ test_unmap_input_after_setup()
 void
 test_unmap_output()
 {
-  vistk::process_registry::type_t const type = vistk::process_registry::type_t("orphan");
+  vistk::process::type_t const type = vistk::process::type_t("orphan");
   vistk::process::name_t const name = vistk::process::name_t("up");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
@@ -2158,8 +2158,8 @@ test_unmap_output()
 void
 test_unmap_output_after_setup()
 {
-  vistk::process_registry::type_t const typeu = vistk::process_registry::type_t("orphan");
-  vistk::process_registry::type_t const typed = vistk::process_registry::type_t("sink");
+  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
+  vistk::process::type_t const typed = vistk::process::type_t("sink");
   vistk::process::name_t const nameu = vistk::process::name_t("up");
   vistk::process::name_t const named = vistk::process::name_t("down");
   vistk::process::name_t const group = vistk::process::name_t("group");
@@ -2191,22 +2191,18 @@ test_unmap_output_after_setup()
 }
 
 vistk::process_t
-create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
+create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
 {
   static bool const modules_loaded = (vistk::load_known_modules(), true);
   static vistk::process_registry_t const reg = vistk::process_registry::self();
 
   (void)modules_loaded;
 
-  config->set_value(vistk::process::config_name, vistk::config::value_t(name));
-
-  return reg->create_process(type, config);
+  return reg->create_process(type, name, config);
 }
 
 vistk::pipeline_t
 create_pipeline()
 {
-  static vistk::config_t const config = vistk::config::empty_config();
-
-  return boost::make_shared<vistk::pipeline>(config);
+  return boost::make_shared<vistk::pipeline>();
 }

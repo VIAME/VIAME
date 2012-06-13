@@ -149,3 +149,78 @@
   fun:dlopen_doit
   fun:_dl_catch_error
 }
+
+{
+   glibc -- dlerror leak
+   Memcheck:Leak
+   fun:calloc
+   fun:do_lookup_x
+   fun:_dl_lookup_symbol_x
+   fun:_dl_relocate_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+}
+
+{
+   glibc -- dlerror leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_lookup_symbol_x
+   fun:_dl_relocate_object
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+}
+
+{
+   glibc -- dlerror leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_map_object
+   fun:openaux
+   fun:_dl_catch_error
+   fun:_dl_map_object_deps
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+}
+
+{
+   glibc -- dlerror leak
+   Memcheck:Leak
+   fun:malloc
+   fun:add_to_global
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+}
+
+{
+   glibc -- dlerror leak
+   Memcheck:Leak
+   fun:malloc
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC_2.2.5
+}

@@ -39,7 +39,7 @@ class VISTK_PIPELINE_EXPORT process_exception
 /**
  * \class null_process_config_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
- * \brief Thrown when \c NULL \ref config is passed to a process.
+ * \brief Thrown when a \c NULL \ref config is passed to a process.
  *
  * \ingroup exceptions
  */
@@ -495,7 +495,7 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
 /**
  * \class missing_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
- * \brief Thrown when a connection to a port that is necessary is missing.
+ * \brief Thrown when a connection to a port that is marked as required is missing.
  *
  * \ingroup exceptions
  */

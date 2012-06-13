@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -11,7 +11,7 @@
 
 #include "homography.h"
 
-#include <iosfwd>
+#include <ostream>
 
 /**
  * \file homography_debug.h
@@ -45,7 +45,14 @@ void VISTK_UTILITIES_EXPORT debug_homography_base_write(std::ostream& ostr, homo
  * \param homog The homography to output.
  */
 template <typename Source, typename Dest>
-void VISTK_UTILITIES_EXPORT debug_homography_write(std::ostream& ostr, homography<Source, Dest> const& homog);
+void
+debug_homography_write(std::ostream& ostr, homography<Source, Dest> const& homog)
+{
+  ostr << "Source: " << homog.source() << "\n"
+          "Dest:   " << homog.dest() << "\n";
+
+  debug_homography_base_write(ostr, homog);
+}
 
 }
 

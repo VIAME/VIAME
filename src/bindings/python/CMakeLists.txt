@@ -29,6 +29,11 @@ if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
     # Override Boost's invoke.hpp
     include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/threading")
   #endif (${Boost_VERSION} LESS 10XX00)
+  # Not fixed yet.
+  #if (${Boost_VERSION} LESS 10XX00)
+    # Override Boost's override.hpp
+    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/exceptions_in_override")
+  #endif (${Boost_VERSION} LESS 10XX00)
 endif (VISTK_ENABLE_BOOST_PYTHON_FIXES)
 
 add_subdirectory(helpers)
@@ -161,14 +166,10 @@ function (make_python_plugin_init_file modpath)
     __init__)
 endfunction (make_python_plugin_init_file modpath)
 
-add_subdirectory(utilities)
-add_subdirectory(image)
-add_subdirectory(scoring)
+add_subdirectory(vistk)
 add_subdirectory(modules)
-add_subdirectory(pipeline)
-add_subdirectory(pipeline_util)
 add_subdirectory(processes)
-add_subdirectory(schedules)
+add_subdirectory(schedulers)
 
 if (VISTK_ENABLE_TESTING)
   add_subdirectory(test)

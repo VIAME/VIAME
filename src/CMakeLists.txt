@@ -21,4 +21,4 @@ endfunction (add_vistk_plugin name define)
 
 add_subdirectory(bindings)
 add_subdirectory(processes)
-add_subdirectory(schedules)
+add_subdirectory(schedulers)

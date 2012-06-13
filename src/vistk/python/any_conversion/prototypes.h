@@ -29,7 +29,7 @@ namespace python
 {
 
 /**
- * \brief Converts a Python object into a boost::any.
+ * \brief Convert a Python object into a boost::any.
  *
  * \param obj The object to convert.
  * \param storage The memory location to construct the object.
@@ -40,7 +40,7 @@ template <typename T>
 bool
 from_prototype(PyObject* obj, void* storage)
 {
-  python_gil gil;
+  python_gil const gil;
 
   (void)gil;
 
@@ -71,7 +71,7 @@ from_prototype(PyObject* obj, void* storage)
 }
 
 /**
- * \brief Converts a boost::any into a Python object.
+ * \brief Convert a boost::any into a Python object.
  *
  * \param any The object to convert.
  *
@@ -81,7 +81,7 @@ template <typename T>
 opt_pyobject_t
 to_prototype(boost::any const& any)
 {
-  python_gil gil;
+  python_gil const gil;
 
   (void)gil;
 
@@ -101,7 +101,7 @@ to_prototype(boost::any const& any)
 }
 
 /**
- * \brief Registers a type for conversion between Python and boost::any.
+ * \brief Register a type for conversion between Python and boost::any.
  *
  * \param priority The priority for the type conversion.
  */

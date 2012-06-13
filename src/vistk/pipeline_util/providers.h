@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -44,7 +44,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT provider
     virtual ~provider();
 
     /**
-     * \brief Processes a request from the configuration for a value.
+     * \brief Process a request from the configuration for a value.
      *
      * \param index The value requested from the provider.
      *
@@ -74,7 +74,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider
     ~config_provider();
 
     /**
-     * \brief Processes a request from the configuration for a value.
+     * \brief Process a request from the configuration for a value.
      *
      * \param index The value requested from the provider.
      *
@@ -104,7 +104,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT system_provider
     ~system_provider();
 
     /**
-     * \brief Processes a request from the configuration for a value.
+     * \brief Process a request from the configuration for a value.
      *
      * \param index The value requested from the provider.
      *
@@ -132,7 +132,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT environment_provider
     ~environment_provider();
 
     /**
-     * \brief Processes a request from the configuration for a value.
+     * \brief Process a request from the configuration for a value.
      *
      * \param index The value requested from the provider.
      *

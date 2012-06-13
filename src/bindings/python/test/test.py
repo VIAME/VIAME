@@ -16,8 +16,14 @@ def expect_exception(action, kind, func, *args):
         func(*args)
     except kind:
         got_exception = True
+    except BaseException as e:
+        test_error('Got unexpected exception: %s' % str(e))
+
+        got_exception = True
     except:
-        pass
+        test_error('Got non-standard exception')
+
+        got_exception = True
 
     if not got_exception:
         test_error('Did not get exception when %s' % action)

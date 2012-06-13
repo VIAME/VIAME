@@ -60,7 +60,7 @@ class VISTK_IMAGE_EXPORT warp_image
     ~warp_image();
 
     /**
-     * \brief Resets the mask.
+     * \brief Reset the mask.
      */
     void clear_mask();
 
@@ -72,7 +72,7 @@ class VISTK_IMAGE_EXPORT warp_image
     mask_t mask() const;
 
     /**
-     * \brief Warps an image to the destination image.
+     * \brief Warp an image to the destination image.
      *
      * \param image The image to warp.
      * \param transform The transform to use to warp.

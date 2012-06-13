@@ -12,6 +12,12 @@
 
 #include <vil/vil_smart_ptr.h>
 
+/**
+ * \file python_wrap_vil_smart_ptr.h
+ *
+ * \brief Allow \c boost::python to access \c vil_smart_ptr.
+ */
+
 namespace boost
 {
 

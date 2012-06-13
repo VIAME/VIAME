@@ -55,13 +55,13 @@ class VISTK_PIPELINE_EXPORT config
     typedef std::string value_t;
 
     /**
-     * \brief Creates an empty configuration.
+     * \brief Create an empty configuration.
      *
      * \param name The name of the configuration block.
      *
      * \returns An empty configuration block.
      */
-    static config_t empty_config(key_t const& name = "");
+    static config_t empty_config(key_t const& name = key_t());
 
     /**
      * \brief Destructor.
@@ -93,7 +93,7 @@ class VISTK_PIPELINE_EXPORT config
     config_t subblock_view(key_t const& key);
 
     /**
-     * \brief Internally casts the value.
+     * \brief Internally cast the value.
      *
      * \throws no_such_configuration_value_exception Thrown if the requested index does not exist.
      * \throws bad_configuration_cast_exception Thrown if the cast fails.
@@ -105,7 +105,7 @@ class VISTK_PIPELINE_EXPORT config
     template <typename T>
     T get_value(key_t const& key) const;
     /**
-     * \brief Casts the value, returning a default value in case of an error.
+     * \brief Cast the value, returning a default value in case of an error.
      *
      * \param key The index of the configuration value to retrieve.
      * \param def The value \p key does not exist or the cast fails.
@@ -116,7 +116,7 @@ class VISTK_PIPELINE_EXPORT config
     T get_value(key_t const& key, T const& def) const throw();
 
     /**
-     * \brief Sets a value within the configuration.
+     * \brief Set a value within the configuration.
      *
      * \throws set_on_read_only_value_exception Thrown if \p key is marked as read-only.
      *
@@ -132,7 +132,7 @@ class VISTK_PIPELINE_EXPORT config
     void set_value(key_t const& key, value_t const& value);
 
     /**
-     * \brief Removes a value from the configuration.
+     * \brief Remove a value from the configuration.
      *
      * \throws unset_on_read_only_value_exception Thrown if \p key is marked as read-only.
      * \throws no_such_configuration_value_exception Thrown if the requested index does not exist.
@@ -148,7 +148,7 @@ class VISTK_PIPELINE_EXPORT config
     void unset_value(key_t const& key);
 
     /**
-     * \brief Queries if a value is read-only.
+     * \brief Query if a value is read-only.
      *
      * \param key The key of the value query.
      *
@@ -156,7 +156,7 @@ class VISTK_PIPELINE_EXPORT config
      */
     bool is_read_only(key_t const& key) const;
     /**
-     * \brief Sets the value within the configuration as read-only.
+     * \brief Set the value within the configuration as read-only.
      *
      * \postconds
      *
@@ -169,7 +169,7 @@ class VISTK_PIPELINE_EXPORT config
     void mark_read_only(key_t const& key);
 
     /**
-     * \brief Merges the values in \p config into the current config.
+     * \brief Merge the values in \p config into the current config.
      *
      * \note Any values currently set within \c *this will be overwritten if conficts occur.
      *
@@ -186,7 +186,7 @@ class VISTK_PIPELINE_EXPORT config
     void merge_config(config_t config);
 
     /**
-     * \brief Returns the values available in the configuration.
+     * \brief Return the values available in the configuration.
      *
      * \returns All of the keys available within the block.
      */
@@ -431,27 +431,10 @@ config_cast_inner(config::value_t const& value)
  * \returns The value of \p value in the requested type.
  */
 template <>
-inline
-bool
-config_cast_inner(config::value_t const& value)
-{
-  static config::value_t const true_string = config::value_t("true");
-  static config::value_t const false_string = config::value_t("false");
-
-  if (value == true_string)
-  {
-    return true;
-  }
-  else if (value == false_string)
-  {
-    return false;
-  }
-
-  return config_cast_default<bool>(value);
-}
+bool VISTK_PIPELINE_EXPORT config_cast_inner(config::value_t const& value);
 
 /**
- * \brief Casts a configuration value to the requested type.
+ * \brief Cast a configuration value to the requested type.
  *
  * \throws bad_configuration_cast Thrown when the conversion fails.
  *

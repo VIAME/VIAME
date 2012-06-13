@@ -9,6 +9,7 @@ add_vistk_plugin(modules_python
 target_link_libraries(modules_python
   vistk_pipeline
   vistk_python_util
+  python_exceptions
   ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
@@ -29,4 +30,4 @@ make_python_init_file(vistk/modules)
 set (python_both_arch TRUE)
 
 make_python_plugin_init_file(vistk/processes)
-make_python_plugin_init_file(vistk/schedules)
+make_python_plugin_init_file(vistk/schedulers)

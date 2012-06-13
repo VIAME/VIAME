@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -45,7 +45,7 @@ class VISTK_NO_EXPORT CLASS_NAME(name)               \
     CLASS_NAME(name)(vistk::config_t const& config); \
     CLASS_DTOR(name)();                              \
   protected:                                         \
-    void _init();                                    \
+    void _configure();                               \
     void _step();                                    \
   private:                                           \
     class priv;                                      \

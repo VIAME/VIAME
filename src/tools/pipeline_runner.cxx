@@ -10,8 +10,8 @@
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/schedule.h>
-#include <vistk/pipeline/schedule_registry.h>
+#include <vistk/pipeline/scheduler.h>
+#include <vistk/pipeline/scheduler_registry.h>
 #include <vistk/pipeline/pipeline.h>
 
 #include <vistk/config.h>
@@ -30,7 +30,7 @@
 
 namespace po = boost::program_options;
 
-static vistk::config::key_t const schedule_block = vistk::config::key_t("_schedule");
+static vistk::config::key_t const scheduler_block = vistk::config::key_t("_scheduler");
 
 static po::options_description make_options();
 static void VISTK_NO_RETURN usage(po::options_description const& options);
@@ -132,28 +132,28 @@ main(int argc, char* argv[])
 
   pipe->setup_pipeline();
 
-  vistk::schedule_registry::type_t schedule_type = vistk::schedule_registry::default_type;
+  vistk::scheduler_registry::type_t scheduler_type = vistk::scheduler_registry::default_type;
 
-  if (vm.count("schedule"))
+  if (vm.count("scheduler"))
   {
-    schedule_type = vm["schedule"].as<vistk::schedule_registry::type_t>();
+    scheduler_type = vm["scheduler"].as<vistk::scheduler_registry::type_t>();
   }
 
-  vistk::config_t const schedule_config = conf->subblock(schedule_block + vistk::config::block_sep + schedule_type);
+  vistk::config_t const scheduler_config = conf->subblock(scheduler_block + vistk::config::block_sep + scheduler_type);
 
-  vistk::schedule_registry_t reg = vistk::schedule_registry::self();
+  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
 
-  vistk::schedule_t schedule = reg->create_schedule(schedule_type, schedule_config, pipe);
+  vistk::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipe, scheduler_config);
 
-  if (!schedule)
+  if (!scheduler)
   {
-    std::cerr << "Error: Unable to create schedule" << std::endl;
+    std::cerr << "Error: Unable to create scheduler" << std::endl;
 
     return EXIT_FAILURE;
   }
 
-  schedule->start();
-  schedule->wait();
+  scheduler->start();
+  scheduler->wait();
 
   return EXIT_SUCCESS;
 }
@@ -169,7 +169,7 @@ make_options()
     ("config,c", po::value_desc<vistk::paths_t>()->metavar("FILE"), "supplemental configuration file")
     ("setting,s", po::value_desc<std::vector<std::string> >()->metavar("VAR=VALUE"), "additional configuration")
     ("include,I", po::value_desc<vistk::paths_t>()->metavar("DIR"), "configuration include path")
-    ("schedule,S", po::value_desc<vistk::schedule_registry::type_t>()->metavar("TYPE"), "schedule type")
+    ("scheduler,S", po::value_desc<vistk::scheduler_registry::type_t>()->metavar("TYPE"), "scheduler type")
   ;
 
   return desc;

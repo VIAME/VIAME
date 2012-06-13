@@ -26,7 +26,7 @@ namespace vistk
 /**
  * \class scoring_result scoring_result.h <vistk/scoring/scoring_result.h>
  *
- * \brief A class which represents the result of a scoring operation.
+ * \brief The result of a scoring operation.
  */
 class VISTK_SCORING_EXPORT scoring_result
 {
@@ -87,6 +87,8 @@ typedef std::vector<scoring_result_t> scoring_results_t;
 
 /**
  * \brief An addition operator for \ref scoring_result.
+ *
+ * \relates vistk::scoring_result
  *
  * \param lhs The left hand side of the operation.
  * \param rhs The right hand side of the operation.

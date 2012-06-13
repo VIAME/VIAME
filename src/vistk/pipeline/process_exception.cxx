@@ -23,7 +23,7 @@ null_process_config_exception
 {
   std::ostringstream sstr;
 
-  sstr << "A NULL configuration was passed to a process.";
+  sstr << "A NULL configuration was passed to a process";
 
   m_what = sstr.str();
 }
@@ -40,8 +40,8 @@ already_initialized_exception
 {
   std::ostringstream sstr;
 
-  sstr << "The process \"" << m_name << "\' "
-          "has already been initialized.";
+  sstr << "The process \'" << m_name << "\' "
+          "has already been initialized";
 
   m_what = sstr.str();
 }
@@ -59,7 +59,7 @@ unconfigured_exception
   std::ostringstream sstr;
 
   sstr << "The process \'" << m_name << "\' "
-          "hasn\'t been configured yet.";
+          "hasn\'t been configured yet";
 
   m_what = sstr.str();
 }
@@ -77,7 +77,7 @@ reconfigured_exception
   std::ostringstream sstr;
 
   sstr << "The process \'" << m_name << "\' "
-          "was configured a second time.";
+          "was configured a second time";
 
   m_what = sstr.str();
 }
@@ -95,7 +95,7 @@ reinitialization_exception
   std::ostringstream sstr;
 
   sstr << "The process \'" << m_name << "\' "
-          "was initialized a second time.";
+          "was initialized a second time";
 
   m_what = sstr.str();
 }
@@ -115,7 +115,7 @@ null_conf_info_exception
 
   sstr << "The process \'" << m_name << "\' "
           "gave NULL for the information about the "
-          "configuration \'" << m_key << "\'.";
+          "configuration \'" << m_key << "\'";
 
   m_what = sstr.str();
 }
@@ -136,7 +136,7 @@ null_port_info_exception
   sstr << "The process \'" << m_name << "\' "
           "gave NULL for the information about "
           "the " << type << " port "
-          "\'" << m_port << "\'.";
+          "\'" << m_port << "\'";
 
   m_what = sstr.str();
 }
@@ -179,7 +179,7 @@ set_type_on_initialized_process_exception
 
   sstr << "The type of the port \'" << m_port << "\' "
           "on the process \'" << m_name << "\' was "
-          "attempted to be set to \'" << m_type << "\'.";
+          "attempted to be set to \'" << m_type << "\'";
 
   m_what = sstr.str();
 }
@@ -197,7 +197,7 @@ uninitialized_exception
   std::ostringstream sstr;
 
   sstr << "The process \'" << m_name << "\' "
-          "was stepped before initialization.";
+          "was stepped before initialization";
 
   m_what = sstr.str();
 }
@@ -229,7 +229,7 @@ connect_to_initialized_process_exception
   sstr << "The port \'" << m_port << "\' "
           "on process \'" << m_name << "\' "
           "was requested for a connection after "
-          "initialization.";
+          "initialization";
 
   m_what = sstr.str();
 }
@@ -247,7 +247,7 @@ no_such_port_exception
 
   sstr << "The port \'" << m_port << "\' "
           "on process \'" << m_name << "\' "
-          "does not exist.";
+          "does not exist";
 
   m_what = sstr.str();
 }
@@ -265,7 +265,7 @@ null_edge_port_connection_exception
 
   sstr << "The connection to \'" << m_port << "\' "
           "on process \'" << m_name << "\' "
-          "was given a NULL edge.";
+          "was given a NULL edge";
 
   m_what = sstr.str();
 }
@@ -287,7 +287,7 @@ static_type_reset_exception
           "on process \'" << m_name << "\' "
           "has the type \'" << m_orig_type << "\' "
           "and has was attempted to be set to have "
-          "a type of \'" << m_new_type << "\'.";
+          "a type of \'" << m_new_type << "\'";
 
   m_what = sstr.str();
 }
@@ -305,7 +305,7 @@ port_reconnect_exception
 
   sstr << "The port \'" << m_port << "\' "
           "on process \'" << m_name << "\' "
-          "has already been connected to.";
+          "has already been connected to";
 
   m_what = sstr.str();
 }
@@ -324,7 +324,7 @@ missing_connection_exception
 
   sstr << "The port \'" << m_port << "\' "
           "on process \'" << m_name << "\' "
-          "is not connected: " << m_reason << ".";
+          "is not connected: " << m_reason << "";
 
   m_what = sstr.str();
 }
@@ -344,7 +344,7 @@ unknown_configuration_value_exception
 
   sstr << "The configuration value \'" << m_key << "\' "
           "on process \'" << m_name << "\' "
-          "does not exist.";
+          "does not exist";
 
   m_what = sstr.str();
 }
@@ -367,7 +367,7 @@ invalid_configuration_value_exception
   sstr << "The configuration value \'" << m_key << "\' "
           "on process \'" << m_name << "\' "
           "was set to an invalid value \'" << m_value << "\'. "
-          "A description of the value is: " << m_desc << ".";
+          "A description of the value is: " << m_desc << "";
 
   m_what = sstr.str();
 }
@@ -386,7 +386,7 @@ invalid_configuration_exception
   std::ostringstream sstr;
 
   sstr << "The process \'" << m_name << "\' "
-          "has a configuration issue: " << m_reason << ".";
+          "has a configuration issue: " << m_reason;
 
   m_what = sstr.str();
 }

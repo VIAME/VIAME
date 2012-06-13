@@ -16,7 +16,7 @@
 /**
  * \file layered_image_reader_process.h
  *
- * \brief A process which reads layered image files.
+ * \brief Declaration of the layered image reader process.
  */
 
 namespace vistk
@@ -25,9 +25,9 @@ namespace vistk
 /**
  * \class layered_image_reader_process
  *
- * \brief A process which reads layered image files.
+ * \brief A process for reading layered image files.
  *
- * \process A process which reads layered image files.
+ * \process Read layered image files given a file with a list of image format string paths.
  *
  * \oports
  *
@@ -42,6 +42,8 @@ namespace vistk
  * \reqs
  *
  * \req The output ports \port{image/\portvar{layer}} must be connected.
+ *
+ * \ingroup process_image
  */
 class VISTK_PROCESSES_IMAGE_NO_EXPORT layered_image_reader_process
   : public process
@@ -50,7 +52,7 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT layered_image_reader_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     layered_image_reader_process(config_t const& config);
     /**
@@ -64,12 +66,12 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT layered_image_reader_process
     void _configure();
 
     /**
-     * \brief Collate data from the input edges.
+     * \brief Step the process.
      */
     void _step();
 
     /**
-     * \brief Subclass output port information.
+     * \brief Output port information.
      *
      * \param port The port to get information about.
      *

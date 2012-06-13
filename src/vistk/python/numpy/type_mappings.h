@@ -4,7 +4,16 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#ifndef VISTK_PYTHON_NUMPY_TYPE_MAPPINGS_H
+#define VISTK_PYTHON_NUMPY_TYPE_MAPPINGS_H
+
 #include <vil/vil_pixel_format.h>
+
+/**
+ * \file type_mappings.h
+ *
+ * \brief Macros to assist in converting between NumPy and vil images.
+ */
 
 /// \todo Is there a define for C++11?
 #if 0
@@ -62,3 +71,5 @@
   SEP(sep) call(NPY_DOUBLE, double)                \
            COMPLEX_CALLS(call, sep)                \
   END(sep)
+
+#endif // VISTK_PYTHON_NUMPY_TYPE_MAPPINGS_H

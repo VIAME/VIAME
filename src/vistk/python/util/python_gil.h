@@ -26,10 +26,12 @@ namespace python
 {
 
 /**
+ * \class python_gil python_gil.h <vistk/python/util/python_gil.h>
+ *
  * \brief Grabs the Python GIL and uses RAII to ensure it is released.
  */
 class VISTK_PYTHON_UTIL_EXPORT python_gil
-  : public boost::noncopyable
+  : boost::noncopyable
 {
   public:
     /**

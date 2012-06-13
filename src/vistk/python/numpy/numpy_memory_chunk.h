@@ -11,6 +11,12 @@
 
 #include <vil/vil_memory_chunk.h>
 
+/**
+ * \file numpy_memory_chunk.h
+ *
+ * \brief Declaration of a NumPy-managed memory chunk for vxl.
+ */
+
 struct PyArrayObject;
 
 /**
@@ -47,7 +53,7 @@ class VISTK_PYTHON_NUMPY_NO_EXPORT numpy_memory_chunk
     void* const_data() const;
 
     /**
-     * \brief Sets the size of the data pointed to by the chunk.
+     * \brief Set the size of the data pointed to by the chunk.
      *
      * \note After this is called, the NumPy memory is dropped and vil manages
      * the memory instead.

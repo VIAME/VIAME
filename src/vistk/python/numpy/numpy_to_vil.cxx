@@ -23,6 +23,12 @@
 
 #include <numpy/arrayobject.h>
 
+/**
+ * \file numpy_to_vil.cxx
+ *
+ * \brief Implementation of a NumPy-to-vil converter function.
+ */
+
 using namespace boost::python;
 
 namespace vistk
@@ -38,7 +44,7 @@ static vil_image_view_base_sptr convert_image(PyArrayObject* arr);
 vil_image_view_base_sptr
 numpy_to_vil(PyObject* obj)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 

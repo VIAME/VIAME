@@ -61,7 +61,7 @@ static void load_from_module(module_path_t const path);
 static bool is_separator(char ch);
 
 static function_name_t const process_function_name = function_name_t("register_processes");
-static function_name_t const schedule_function_name = function_name_t("register_schedules");
+static function_name_t const scheduler_function_name = function_name_t("register_schedulers");
 static module_path_t const default_module_dirs = module_path_t(VISTK_DEFAULT_MODULE_PATHS);
 static envvar_name_t const vistk_module_envvar = envvar_name_t("VISTK_MODULE_PATH");
 static lib_suffix_t const library_suffix = lib_suffix_t(
@@ -156,14 +156,14 @@ void load_from_module(module_path_t const path)
   }
 
   function_t process_function = NULL;
-  function_t schedule_function = NULL;
+  function_t scheduler_function = NULL;
 
 #if defined(_WIN32) || defined(_WIN64)
   process_function = GetProcAddress(library, process_function_name.c_str());
-  schedule_function = GetProcAddress(library, schedule_function_name.c_str());
+  scheduler_function = GetProcAddress(library, scheduler_function_name.c_str());
 #else
   process_function = dlsym(library, process_function_name.c_str());
-  schedule_function = dlsym(library, schedule_function_name.c_str());
+  scheduler_function = dlsym(library, scheduler_function_name.c_str());
 #endif
 
 #ifdef __GNUC__
@@ -175,7 +175,7 @@ void load_from_module(module_path_t const path)
   // See https://trac.osgeo.org/qgis/ticket/234#comment:17
   __extension__
 #endif
-  load_module_t const schedule_registrar = reinterpret_cast<load_module_t>(schedule_function);
+  load_module_t const scheduler_registrar = reinterpret_cast<load_module_t>(scheduler_function);
 
   bool functions_found = false;
 
@@ -186,11 +186,11 @@ void load_from_module(module_path_t const path)
     (*process_registrar)();
     functions_found = true;
   }
-  if (schedule_registrar)
+  if (scheduler_registrar)
   {
-    /// \todo Log info that we have loaded schedules.
+    /// \todo Log info that we have loaded schedulers.
 
-    (*schedule_registrar)();
+    (*scheduler_registrar)();
     functions_found = true;
   }
 

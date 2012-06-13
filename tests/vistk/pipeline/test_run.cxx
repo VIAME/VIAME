@@ -11,8 +11,8 @@
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/schedule.h>
-#include <vistk/pipeline/schedule_registry.h>
+#include <vistk/pipeline/scheduler.h>
+#include <vistk/pipeline/scheduler_registry.h>
 
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
@@ -28,7 +28,7 @@
 
 static std::string const test_sep = "-";
 
-static void run_test(std::string const& test_name, vistk::schedule_registry::type_t const& schedule_type);
+static void run_test(std::string const& test_name, vistk::scheduler_registry::type_t const& scheduler_type);
 
 int
 main(int argc, char* argv[])
@@ -52,11 +52,11 @@ main(int argc, char* argv[])
   }
 
   std::string const test_name = full_test_name.substr(0, sep_pos);
-  std::string const schedule_type = full_test_name.substr(sep_pos + test_sep.length());
+  std::string const scheduler_type = full_test_name.substr(sep_pos + test_sep.length());
 
   try
   {
-    run_test(test_name, schedule_type);
+    run_test(test_name, scheduler_type);
   }
   catch (std::exception& e)
   {
@@ -68,19 +68,19 @@ main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-static void test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type);
-static void test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type);
+static void test_simple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type);
+static void test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type);
 
 void
-run_test(std::string const& test_name, vistk::schedule_registry::type_t const& schedule_type)
+run_test(std::string const& test_name, vistk::scheduler_registry::type_t const& scheduler_type)
 {
   if (test_name == "simple_pipeline")
   {
-    test_simple_pipeline(schedule_type);
+    test_simple_pipeline(scheduler_type);
   }
   else if (test_name == "multiplier_pipeline")
   {
-    test_multiplier_pipeline(schedule_type);
+    test_multiplier_pipeline(scheduler_type);
   }
   else
   {
@@ -88,19 +88,19 @@ run_test(std::string const& test_name, vistk::schedule_registry::type_t const& s
   }
 }
 
-static vistk::process_t create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
+static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
 static vistk::pipeline_t create_pipeline();
 
 void
-test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
+test_simple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
 
   vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
 
-  std::string const output_path = "test-run-simple_pipeline-" + schedule_type + "-print_number.txt";
+  std::string const output_path = "test-run-simple_pipeline-" + scheduler_type + "-print_number.txt";
 
   int32_t const start_value = 10;
   int32_t const end_value = 20;
@@ -139,14 +139,12 @@ test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
     pipeline->setup_pipeline();
 
-    vistk::schedule_registry_t const reg = vistk::schedule_registry::self();
+    vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
-    vistk::config_t const schedule_config = vistk::config::empty_config();
+    vistk::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipeline);
 
-    vistk::schedule_t schedule = reg->create_schedule(schedule_type, schedule_config, pipeline);
-
-    schedule->start();
-    schedule->wait();
+    scheduler->start();
+    scheduler->wait();
   }
 
   std::ifstream fin(output_path.c_str());
@@ -184,12 +182,12 @@ test_simple_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 }
 
 void
-test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
+test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
 {
-  vistk::process_registry::type_t const proc_typeu = vistk::process_registry::type_t("numbers");
-  vistk::process_registry::type_t const proc_types = vistk::process_registry::type_t("source");
-  vistk::process_registry::type_t const proc_typed = vistk::process_registry::type_t("multiplication");
-  vistk::process_registry::type_t const proc_typet = vistk::process_registry::type_t("print_number");
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_types = vistk::process::type_t("source");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
+  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
 
   vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
   vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
@@ -197,7 +195,7 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
 
-  std::string const output_path = "test-run-multiplier_pipeline-" + schedule_type + "-print_number.txt";
+  std::string const output_path = "test-run-multiplier_pipeline-" + scheduler_type + "-print_number.txt";
 
   int32_t const start_value1 = 10;
   int32_t const end_value1 = 20;
@@ -269,14 +267,12 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 
     pipeline->setup_pipeline();
 
-    vistk::schedule_registry_t const reg = vistk::schedule_registry::self();
+    vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
-    vistk::config_t const schedule_config = vistk::config::empty_config();
+    vistk::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipeline);
 
-    vistk::schedule_t schedule = reg->create_schedule(schedule_type, schedule_config, pipeline);
-
-    schedule->start();
-    schedule->wait();
+    scheduler->start();
+    scheduler->wait();
   }
 
   std::ifstream fin(output_path.c_str());
@@ -315,22 +311,18 @@ test_multiplier_pipeline(vistk::schedule_registry::type_t const& schedule_type)
 }
 
 vistk::process_t
-create_process(vistk::process_registry::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
+create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
 {
   static bool const modules_loaded = (vistk::load_known_modules(), true);
   static vistk::process_registry_t const reg = vistk::process_registry::self();
 
   (void)modules_loaded;
 
-  config->set_value(vistk::process::config_name, vistk::config::value_t(name));
-
-  return reg->create_process(type, config);
+  return reg->create_process(type, name, config);
 }
 
 vistk::pipeline_t
 create_pipeline()
 {
-  static vistk::config_t const config = vistk::config::empty_config();
-
-  return boost::make_shared<vistk::pipeline>(config);
+  return boost::make_shared<vistk::pipeline>();
 }

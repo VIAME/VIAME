@@ -22,6 +22,6 @@ def __vistk_register__():
     if reg.is_module_loaded(module_name):
         return
 
-    reg.register_process('extra_test_python_process', 'An extra test Python process.', TestPythonProcess)
+    reg.register_process('extra_test_python_process', 'An extra test Python process', TestPythonProcess)
 
     reg.mark_module_as_loaded(module_name)

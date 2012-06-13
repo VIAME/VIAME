@@ -16,7 +16,7 @@
 /**
  * \file score_writer_process.h
  *
- * \brief A process which writes out scores to a file.
+ * \brief Declaration of the score writer process.
  */
 
 namespace vistk
@@ -27,7 +27,7 @@ namespace vistk
  *
  * \brief A process which writes out scores to a file.
  *
- * \process Writes scores from a scoring process.
+ * \process Write scores from a scoring process.
  *
  * \iports
  *
@@ -40,6 +40,8 @@ namespace vistk
  * \reqs
  *
  * \req The port \port{score} must be connected.
+ *
+ * \ingroup process_scoring
  */
 class VISTK_PROCESSES_SCORING_NO_EXPORT score_writer_process
   : public process
@@ -48,7 +50,7 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_writer_process
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the process.
+     * \param config The configuration for the process.
      */
     score_writer_process(config_t const& config);
     /**
@@ -57,17 +59,17 @@ class VISTK_PROCESSES_SCORING_NO_EXPORT score_writer_process
     ~score_writer_process();
   protected:
     /**
-     * \brief Configure the subclass.
+     * \brief Configure the process.
      */
     void _configure();
 
     /**
-     * \brief Reset the subclass.
+     * \brief Reset the process.
      */
     void _reset();
 
     /**
-     * \brief Step the subclass.
+     * \brief Step the process.
      */
     void _step();
   private:

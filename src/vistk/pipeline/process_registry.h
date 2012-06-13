@@ -9,6 +9,8 @@
 
 #include "pipeline-config.h"
 
+#include "config.h"
+#include "process.h"
 #include "types.h"
 
 #include <boost/function.hpp>
@@ -40,12 +42,8 @@ typedef boost::function<process_t (config_t const& config)> process_ctor_t;
 class VISTK_PIPELINE_EXPORT process_registry
 {
   public:
-    /// The type of registry keys.
-    typedef std::string type_t;
     /// The type for a description of the pipeline.
     typedef std::string description_t;
-    /// A group of types.
-    typedef std::vector<type_t> types_t;
     /// The type of a module name.
     typedef std::string module_t;
 
@@ -55,34 +53,37 @@ class VISTK_PIPELINE_EXPORT process_registry
     ~process_registry();
 
     /**
-     * \brief Adds a process type to the registry.
+     * \brief Add a process type to the registry.
      *
      * \throws null_process_ctor_exception Thrown if \p ctor is \c NULL.
      * \throws process_type_already_exists_exception Thrown if the type already exists.
+     *
+     * \see vistk::create_process
      *
      * \param type The name of the \ref process type.
      * \param desc A description of the type.
      * \param ctor The function which creates the process of the \p type.
      */
-    void register_process(type_t const& type, description_t const& desc, process_ctor_t ctor);
+    void register_process(process::type_t const& type, description_t const& desc, process_ctor_t ctor);
     /**
-     * \brief Creates process of a specific type.
+     * \brief Create process of a specific type.
      *
      * \throws no_such_process_type_exception Thrown if the type is not known.
      *
-     * \param type The name of the type of \ref process to create.
+     * \param type The type of \ref process to create.
+     * \param name The name of the \ref process to create.
      * \param config The configuration to pass the \ref process.
      *
      * \returns A new process of type \p type.
      */
-    process_t create_process(type_t const& type, config_t const& config) const;
+    process_t create_process(process::type_t const& type, process::name_t const& name, config_t const& config = config::empty_config()) const;
 
     /**
      * \brief Query for all available types.
      *
      * \returns All available types in the registry.
      */
-    types_t types() const;
+    process::types_t types() const;
     /**
      * \brief Query for a description of a type.
      *
@@ -90,16 +91,16 @@ class VISTK_PIPELINE_EXPORT process_registry
      *
      * \returns The description for the type \p type.
      */
-    description_t description(type_t const& type) const;
+    description_t description(process::type_t const& type) const;
 
     /**
-     * \brief Marks a module as loaded.
+     * \brief Mark a module as loaded.
      *
      * \param module The module to mark as loaded.
      */
     void mark_module_as_loaded(module_t const& module);
     /**
-     * \brief Queries if a module has already been loaded.
+     * \brief Query if a module has already been loaded.
      *
      * \param module The module to query.
      *

@@ -17,6 +17,12 @@
 
 #include <typeinfo>
 
+/**
+ * \file numpy/registration.cxx
+ *
+ * \brief Implementation of functions to register vil types to \c boost::python.
+ */
+
 using namespace boost::python;
 
 namespace vistk

@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -48,7 +48,7 @@ class VISTK_PIPELINE_EXPORT dtor_registry
     ~dtor_registry();
 
     /**
-     * \brief Adds a dtor to the registry.
+     * \brief Add a dtor to the registry.
      *
      * \throws null_dtor_exception Thrown if \p dtor is \c NULL.
      *
@@ -57,13 +57,13 @@ class VISTK_PIPELINE_EXPORT dtor_registry
     void register_dtor(dtor_t dtor);
 
     /**
-     * \brief Marks a module as loaded.
+     * \brief Mark a module as loaded.
      *
      * \param module The module to mark as loaded.
      */
     void mark_module_as_loaded(module_t const& module);
     /**
-     * \brief Queries if a module has already been loaded.
+     * \brief Query if a module has already been loaded.
      *
      * \param module The module to query.
      *

@@ -14,6 +14,12 @@
 
 #include <numpy/arrayobject.h>
 
+/**
+ * \file numpy_memory_chunk.cxx
+ *
+ * \brief Implementation of a NumPy-managed memory chunk for vil.
+ */
+
 static vil_pixel_format convert_format(int numpy_format);
 
 numpy_memory_chunk
@@ -21,7 +27,7 @@ numpy_memory_chunk
   : vil_memory_chunk()
   , m_arr(arr)
 {
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -68,7 +74,7 @@ numpy_memory_chunk
     return vil_memory_chunk::const_data();
   }
 
-  vistk::python::python_gil gil;
+  vistk::python::python_gil const gil;
 
   (void)gil;
 
@@ -95,7 +101,7 @@ numpy_memory_chunk
 {
   if (m_arr)
   {
-    vistk::python::python_gil gil;
+    vistk::python::python_gil const gil;
 
     (void)gil;
 

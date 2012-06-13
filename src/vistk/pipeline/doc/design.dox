@@ -157,8 +157,8 @@
  * \section design_pipeline_execution Pipeline Execution
  *
  * The execution of a pipeline is separate from the construction and
- * verification. This allows specialized schedules to be used in situations
- * where some resource is constrained (one schedule to keep memory usage low,
+ * verification. This allows specialized schedulers to be used in situations
+ * where some resource is constrained (one scheduler to keep memory usage low,
  * another to minimize CPU contention, another for an I/O-heavy pipeline, and
  * others).
  */

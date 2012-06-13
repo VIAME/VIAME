@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -16,7 +16,7 @@
 /**
  * \file plane_ref.h
  *
- * \brief A reference plane.
+ * \brief Declaration of a reference plane.
  */
 
 namespace vistk
@@ -28,7 +28,7 @@ namespace vistk
  * \brief An arbitrary reference plane.
  */
 class VISTK_UTILITIES_EXPORT plane_ref
-  : boost::equality_comparable<vistk::plane_ref>
+  : public boost::equality_comparable<vistk::plane_ref>
 {
   public:
     /// The type of the reference.
@@ -50,14 +50,14 @@ class VISTK_UTILITIES_EXPORT plane_ref
     ~plane_ref();
 
     /**
-     * \brief Queries whether the plane is valid or not.
+     * \brief Query whether the plane is valid or not.
      *
      * \returns True if the plane is valid, false otherwise.
      */
     bool is_valid() const;
 
     /**
-     * \brief Queries the reference of the plane.
+     * \brief Query the reference of the plane.
      *
      * \returns The reference for the plane.
      */
