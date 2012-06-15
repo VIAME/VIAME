@@ -46,6 +46,16 @@ if (IS_DIRECTORY \"${vistk_source_dir}/.git\")
   endif (git_return)
 endif (IS_DIRECTORY \"${vistk_source_dir}/.git\")
 ")
+else (GIT_FOUND)
+  if ("$Format:$" STREQUAL "")
+    set(vistk_git_hash       "$Format:%H$")
+    set(vistk_git_hash_short "$Format:%h$")
+
+    option(VISTK_IS_PATCHED "Set to ON if patches are applied on top of a released tarball" OFF)
+    if (VISTK_IS_PATCHED)
+      set(vistk_git_dirty "dirty")
+    endif (VISTK_IS_PATCHED)
+  endif ("$Format:$" STREQUAL "")
 endif (GIT_FOUND)
 
 vistk_configure_file_always(version.h
