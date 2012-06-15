@@ -52,6 +52,7 @@ def test_api_calls():
     process_registry.Process.type_data_dependent
     process_registry.Process.type_flow_dependent
     process_registry.Process.flag_output_const
+    process_registry.Process.flag_input_static
     process_registry.Process.flag_input_mutable
     process_registry.Process.flag_input_nodep
     process_registry.Process.flag_required

@@ -114,6 +114,9 @@ set_target_properties(vistk_pipeline
     SOVERSION     0
     DEFINE_SYMBOL MAKE_VISTK_PIPELINE_LIB)
 
+add_dependencies(vistk_pipeline
+  configure-version.h)
+
 if (VISTK_ENABLE_DOCUMENTATION)
   create_doxygen(
     "${CMAKE_CURRENT_SOURCE_DIR}"
