@@ -5,8 +5,6 @@ vistk_configure_file(config.h
   "${CMAKE_CURRENT_BINARY_DIR}/config.h"
   __VISTK_HAVE_GCC_VISIBILITY)
 
-find_package(Git)
-
 set(VISTK_BUILT_FROM_GIT)
 
 if (GIT_FOUND)

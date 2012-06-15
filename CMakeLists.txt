@@ -178,9 +178,16 @@ include_directories(SYSTEM ${VXL_CORE_INCLUDE_DIR})
 include_directories(SYSTEM ${VXL_VCL_INCLUDE_DIR})
 link_directories(${VXL_LIBRARY_DIR})
 
+find_package(Git)
+
 include("${vistk_source_dir}/cmake/vxl_tests.cmake")
 
 include("${vistk_source_dir}/cmake/configure.cmake")
+if (GIT_FOUND)
+  if (IS_DIRECTORY "${vistk_source_dir}/.git")
+    include("${vistk_source_dir}/cmake/dist.cmake")
+  endif (IS_DIRECTORY "${vistk_source_dir}/.git")
+endif (GIT_FOUND)
 include("${vistk_source_dir}/cmake/targets.cmake")
 
 add_subdirectory(conf)
