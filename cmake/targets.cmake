@@ -57,6 +57,9 @@ function (vistk_add_library name)
       LIBRARY_OUTPUT_DIRECTORY "${vistk_binary_dir}/lib${library_subdir}"
       RUNTIME_OUTPUT_DIRECTORY "${vistk_binary_dir}/bin${library_subdir}")
 
+  add_dependencies(${name}
+    configure-config.h)
+
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
     set(subdir ${library_subdir})
 
