@@ -10,6 +10,7 @@
 #include <vistk/python/any_conversion/registration.h>
 
 #include <boost/python/class.hpp>
+#include <boost/python/make_constructor.hpp>
 #include <boost/python/module.hpp>
 #include <boost/make_shared.hpp>
 
@@ -25,6 +26,9 @@ static vistk::scoring_result_t new_result(vistk::scoring_result::count_t true_po
                                           vistk::scoring_result::count_t false_positive,
                                           vistk::scoring_result::count_t total_true,
                                           vistk::scoring_result::count_t possible);
+static vistk::scoring_result_t new_result_def(vistk::scoring_result::count_t true_positive,
+                                              vistk::scoring_result::count_t false_positive,
+                                              vistk::scoring_result::count_t total_true);
 static vistk::scoring_result::count_t result_get_true_positives(vistk::scoring_result_t const& self);
 static vistk::scoring_result::count_t result_get_false_positives(vistk::scoring_result_t const& self);
 static vistk::scoring_result::count_t result_get_total_trues(vistk::scoring_result_t const& self);
@@ -36,14 +40,11 @@ static vistk::scoring_result_t result_add(vistk::scoring_result_t const& lhs, vi
 
 BOOST_PYTHON_MODULE(scoring_result)
 {
-  /// \todo Get the constructor working.
   class_<vistk::scoring_result_t>("ScoringResult"
     , "A result from a scoring algorithm."
     , no_init)
-    .def("new", &new_result
-      , (arg("true_positive"), arg("false_positive"), arg("total_true"), arg("possible") = 0)
-      , "Constructor.")
-    .staticmethod("new")
+    .def("__init__", make_constructor(new_result))
+    .def("__init__", make_constructor(new_result_def))
     .def("true_positives", &result_get_true_positives)
     .def("false_positives", &result_get_false_positives)
     .def("total_trues", &result_get_total_trues)
@@ -65,6 +66,14 @@ new_result(vistk::scoring_result::count_t true_positive,
            vistk::scoring_result::count_t possible)
 {
   return boost::make_shared<vistk::scoring_result>(true_positive, false_positive, total_true, possible);
+}
+
+vistk::scoring_result_t
+new_result_def(vistk::scoring_result::count_t true_positive,
+               vistk::scoring_result::count_t false_positive,
+               vistk::scoring_result::count_t total_true)
+{
+  return boost::make_shared<vistk::scoring_result>(true_positive, false_positive, total_true);
 }
 
 vistk::scoring_result::count_t
