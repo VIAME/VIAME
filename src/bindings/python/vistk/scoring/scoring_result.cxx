@@ -45,6 +45,7 @@ BOOST_PYTHON_MODULE(scoring_result)
     , no_init)
     .def("__init__", make_constructor(new_result))
     .def("__init__", make_constructor(new_result_def))
+    /// \todo Why do these not work?
     .def("true_positives", &result_get_true_positives)
     .def("false_positives", &result_get_false_positives)
     .def("total_trues", &result_get_total_trues)
