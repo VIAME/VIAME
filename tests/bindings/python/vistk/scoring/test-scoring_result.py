@@ -15,12 +15,13 @@ def test_import():
 def test_api_calls():
     from vistk.scoring import scoring_result
 
-    result = scoring_result.ScoringResult.new(1, 1, 1)
+    result = scoring_result.ScoringResult(1, 1, 1)
+    result = scoring_result.ScoringResult(1, 1, 1, 1)
 
-    result.true_positives
-    result.false_positives
-    result.total_trues
-    result.total_possible
+    result.true_positives()
+    result.false_positives()
+    result.total_trues()
+    result.total_possible()
     result.percent_detection()
     result.precision()
     result.specificity()
