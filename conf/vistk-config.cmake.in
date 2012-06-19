@@ -3,6 +3,9 @@ include ("@vistk_binary_dir@/conf/CMakeFiles/@cmakedir@/vistk-config-targets.cma
 set(VISTK_VERSION
   "@vistk_version@")
 
+set(VISTK_BUILT_SHARED
+  "@BUILD_SHARED_LIBS@")
+
 # vistk include directory
 set(VISTK_INCLUDE_DIR
   "@vistk_source_dir@/src"

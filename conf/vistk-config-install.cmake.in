@@ -4,6 +4,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/vistk-config-targets.cmake")
 set(VISTK_VERSION
   "@vistk_version@")
 
+set(VISTK_BUILT_SHARED
+  "@BUILD_SHARED_LIBS@")
+
 # vistk include directory
 set(VISTK_INCLUDE_DIR
   "@CMAKE_INSTALL_PREFIX@/include")
