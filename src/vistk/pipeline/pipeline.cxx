@@ -1857,6 +1857,7 @@ pipeline::priv
       bool const has_nodep = (it != down_flags.end());
 
       edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
+      edge_config->mark_read_only(edge::config_dependency);
 
       edge_config->merge_config(config->subblock(priv::config_edge));
     }
