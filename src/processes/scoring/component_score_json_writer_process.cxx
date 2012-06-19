@@ -27,6 +27,8 @@
 #include <fstream>
 #include <string>
 
+#include <cmath>
+
 /**
  * \file component_score_json_writer_process.cxx
  *

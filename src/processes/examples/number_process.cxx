@@ -10,6 +10,7 @@
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 
+#include <boost/cstdint.hpp>
 #include <boost/make_shared.hpp>
 
 #include <string>
