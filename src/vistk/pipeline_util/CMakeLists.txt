@@ -37,12 +37,19 @@ else (WIN32)
 endif (WIN32)
 
 set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
-  CACHE PATH "The default paths to search for pipe includes in")
+  CACHE STRING "The default paths to search for pipe includes in")
 set(vistk_pipe_include_options
   "VISTK_DEFAULT_PIPE_INCLUDE_PATHS=\"${VISTK_DEFAULT_PIPE_INCLUDE_PATHS}\"")
 
-set(load_pipe_build_options
-  ${vistk_pipe_include_options})
+if (WIN32)
+  vistk_configure_file(include-paths.h
+    "${CMAKE_CURRENT_SOURCE_DIR}/include-paths.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/include-paths.h"
+    VISTK_DEFAULT_PIPE_INCLUDE_PATHS)
+else (WIN32)
+  set(load_pipe_build_options
+    ${vistk_pipe_include_options})
+endif (WIN32)
 
 set_source_files_properties(load_pipe.cxx
   PROPERTIES
@@ -64,6 +71,11 @@ set_target_properties(vistk_pipeline_util
     VERSION       ${vistk_version}
     SOVERSION     0
     DEFINE_SYMBOL MAKE_VISTK_PIPELINE_UTIL_LIB)
+
+if (WIN32)
+  add_dependencies(vistk_pipeline_util
+    configure-include-paths.h)
+endif (WIN32)
 
 if (VISTK_ENABLE_DOCUMENTATION)
   create_doxygen(

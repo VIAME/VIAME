@@ -9,6 +9,7 @@
 #include "utm.h"
 
 #include <ostream>
+#include <string>
 
 /**
  * \file utm_debug.cxx

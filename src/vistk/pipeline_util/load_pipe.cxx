@@ -7,6 +7,9 @@
 #include "load_pipe.h"
 #include "load_pipe_exception.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <vistk/pipeline_util/include-paths.h>
+#endif
 #include "pipe_grammar.h"
 
 #include <vistk/pipeline/pipeline.h>
