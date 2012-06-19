@@ -225,6 +225,8 @@ class VISTK_PIPELINE_EXPORT edge
 
     /// Configuration key that indicates the edge implies an execution dependency between upstream and downstream.
     static config::key_t const config_dependency;
+    /// Configuration for the maximum capacity of an edge.
+    static config::key_t const config_capacity;
   private:
     class priv;
     boost::scoped_ptr<priv> d;
