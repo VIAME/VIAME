@@ -37,6 +37,10 @@
 
 using namespace boost::local_time;
 
+#if defined(_WIN32) || defined(_WIN64)
+static bool isnan(double v);
+#endif
+
 namespace vistk
 {
 
@@ -361,3 +365,11 @@ component_score_json_writer_process::priv
 }
 
 }
+
+#if defined(_WIN32) || defined(_WIN64)
+bool
+isnan(double v)
+{
+  return (v != v);
+}
+#endif
