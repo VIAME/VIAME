@@ -71,7 +71,7 @@ if (WIN32)
 endif (WIN32)
 
 set(VISTK_DEFAULT_MODULE_PATHS "${vistk_default_module_paths}"
-  CACHE PATH "The default paths to search for modules in")
+  CACHE STRING "The default paths to search for modules in")
 set(vistk_library_options
   "VISTK_DEFAULT_MODULE_PATHS=${vistk_path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
 

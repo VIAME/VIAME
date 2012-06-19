@@ -37,7 +37,7 @@ else (WIN32)
 endif (WIN32)
 
 set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
-  CACHE PATH "The default paths to search for pipe includes in")
+  CACHE STRING "The default paths to search for pipe includes in")
 set(vistk_pipe_include_options
   "VISTK_DEFAULT_PIPE_INCLUDE_PATHS=\"${VISTK_DEFAULT_PIPE_INCLUDE_PATHS}\"")
 
