@@ -15,4 +15,6 @@ target_link_libraries(processes_scoring
   vistk_scoring
   image_helper
   ${Boost_DATE_TIME_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
   vil)
