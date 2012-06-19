@@ -88,11 +88,6 @@ endif (GPROF_EXECUTABLE)
 set(test_working_directory
   "${vistk_binary_dir}/tests")
 
-if (WIN32)
-  set(test_working_directory
-    "${test_working_directory}/$<CONFIGURATION>")
-endif (WIN32)
-
 set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
 
 function (vistk_declare_test testname)
