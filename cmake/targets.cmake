@@ -96,7 +96,7 @@ function (vistk_add_library name)
     LIBRARY
       DESTINATION "lib${LIB_SUFFIX}${library_subdir}"
     RUNTIME
-      DESTINATION bin
+      DESTINATION "bin${library_subdir}"
     COMPONENT     ${component})
 endfunction (vistk_add_library)
 
