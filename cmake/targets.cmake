@@ -23,6 +23,12 @@
 #   vistk_install_headers(subdir [headers ...])
 #     Installs the headers stored in the variable under a subdirectory.
 
+set(vistk_export_file
+  "${vistk_binary_dir}/vistk-config-targets.cmake")
+export(
+  TARGETS
+  FILE    "${vistk_export_file}")
+
 function (vistk_install)
   if (NOT suppress_install)
     install(${ARGN})
@@ -87,6 +93,11 @@ function (vistk_add_library name)
     set(exports
       EXPORT vistk_exports)
   endif ("${library_subdir}" STREQUAL "")
+
+  export(
+    TARGETS ${name}
+    APPEND
+    FILE    "${vistk_export_file}")
 
   vistk_install(
     TARGETS       ${name}
