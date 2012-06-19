@@ -6,6 +6,9 @@
 
 #include "modules.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <vistk/pipeline/module-paths.h>
+#endif
 #include "utils.h"
 
 #include <vistk/utilities/path.h>

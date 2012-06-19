@@ -75,8 +75,16 @@ set(VISTK_DEFAULT_MODULE_PATHS "${vistk_default_module_paths}"
 set(vistk_library_options
   "VISTK_DEFAULT_MODULE_PATHS=${vistk_path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
 
-set(module_build_options
-  ${vistk_library_options})
+if (WIN32)
+  vistk_configure_file(module-paths.h
+    "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
+    VISTK_DEFAULT_MODULE_PATHS
+    vistk_path_prefix)
+else (WIN32)
+  set(module_build_options
+    ${vistk_library_options})
+endif (WIN32)
 
 set_source_files_properties(modules.cxx
   PROPERTIES
@@ -116,6 +124,11 @@ set_target_properties(vistk_pipeline
 
 add_dependencies(vistk_pipeline
   configure-version.h)
+
+if (WIN32)
+  add_dependencies(vistk_pipeline
+    configure-module-paths.h)
+endif (WIN32)
 
 if (VISTK_ENABLE_DOCUMENTATION)
   create_doxygen(
