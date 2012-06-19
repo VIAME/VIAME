@@ -7,12 +7,6 @@ if (VISTK_ENABLE_TESTING)
     "${vistk_binary_dir}/CTestCustom.cmake")
 endif (VISTK_ENABLE_TESTING)
 
-if (WIN32)
-  set(cmakedir cmake)
-else (WIN32)
-  set(cmakedir lib${LIB_SUFFIX}/cmake/vistk)
-endif (WIN32)
-
 set(vistk_config_file "${vistk_binary_dir}/vistk-config.cmake")
 vistk_configure_file(vistk-config.cmake
   "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config.cmake.in"
@@ -34,6 +28,12 @@ vistk_configure_file(vistk-config-install.cmake
   VISTK_ENABLE_PYTHON
   VISTK_ENABLE_PYTHON3
   PYTHON_EXECUTABLE)
+
+if (WIN32)
+  set(cmakedir cmake)
+else (WIN32)
+  set(cmakedir lib${LIB_SUFFIX}/cmake/vistk)
+endif (WIN32)
 
 set(vistk_macros_file "${vistk_binary_dir}/vistk-macros.cmake")
 vistk_configure_file(vistk-macros.cmake
