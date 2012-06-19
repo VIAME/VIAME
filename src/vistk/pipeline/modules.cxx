@@ -61,7 +61,7 @@ typedef std::string function_name_t;
 }
 
 static void load_from_module(module_path_t const path);
-static bool is_separator(char ch);
+static bool is_separator(module_path_t::value_type ch);
 
 static function_name_t const process_function_name = function_name_t("register_processes");
 static function_name_t const scheduler_function_name = function_name_t("register_schedulers");
@@ -217,9 +217,9 @@ void load_from_module(module_path_t const path)
   }
 }
 
-bool is_separator(char ch)
+bool is_separator(module_path_t::value_type ch)
 {
-  char const separator =
+  module_path_t::value_type const separator =
 #if defined(_WIN32) || defined(_WIN64)
     ';';
 #else
