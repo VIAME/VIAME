@@ -193,14 +193,16 @@ edge
 {
   d->complete_check();
 
-  boost::mutex::scoped_lock lock(d->mutex);
-
-  while (!d->has_data())
   {
-    d->cond_have_data.wait(lock);
-  }
+    boost::mutex::scoped_lock lock(d->mutex);
 
-  d->q.pop();
+    while (!d->has_data())
+    {
+      d->cond_have_data.wait(lock);
+    }
+
+    d->q.pop();
+  }
 
   d->cond_have_space.notify_one();
 }
