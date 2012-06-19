@@ -1848,7 +1848,7 @@ pipeline::priv
     process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
     process::port_flags_t const& down_flags = down_info->flags;
 
-    config_t edge_config = config::empty_config();
+    config_t edge_config = config->subblock(priv::config_edge);
 
     // Configure the edge.
     {
@@ -1858,8 +1858,6 @@ pipeline::priv
 
       edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
       edge_config->mark_read_only(edge::config_dependency);
-
-      edge_config->merge_config(config->subblock(priv::config_edge));
     }
 
     edge_t e = boost::make_shared<edge>(edge_config);
