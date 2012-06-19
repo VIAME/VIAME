@@ -225,6 +225,8 @@ edge
   {
     d->q.pop();
   }
+
+  d->cond_have_space.notify_one();
 }
 
 bool
