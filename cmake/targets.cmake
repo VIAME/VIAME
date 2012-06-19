@@ -64,7 +64,7 @@ function (vistk_add_library name)
     set(subdir ${library_subdir})
 
     if (WIN32)
-      set(subdir "/${config}${subdir}")
+      set(subdir "${subdir}/${config}")
     endif (WIN32)
 
     string(TOUPPER "${config}" upper_config)
