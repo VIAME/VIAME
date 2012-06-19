@@ -68,6 +68,26 @@ def test_get_value():
         test_error("Did not retrieve value that was set")
 
 
+def test_get_value_nested():
+    from vistk.pipeline import config
+
+    c = config.empty_config()
+
+    keya = 'keya'
+    keyb = 'keyb'
+
+    valuea = 'value_a'
+
+    c.set_value(keya + config.Config.block_sep + keyb, valuea)
+
+    nc = c.subblock(keya)
+
+    get_valuea = nc.get_value(keyb)
+
+    if not valuea == get_valuea:
+        test_error("Did not retrieve value that was set")
+
+
 def test_get_value_no_exist():
     from vistk.pipeline import config
 
@@ -364,6 +384,8 @@ def main(testname):
         test_has_value()
     elif testname == 'get_value':
         test_get_value()
+    elif testname == 'get_value_nested':
+        test_get_value_nested()
     elif testname == 'get_value_no_exist':
         test_get_value_no_exist()
     elif testname == 'unset_value':
