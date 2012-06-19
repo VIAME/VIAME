@@ -1,3 +1,5 @@
+include ("@vistk_binary_dir@/conf/CMakeFiles/@cmakedir@/vistk-config-targets.cmake")
+
 set(VISTK_VERSION
   "@vistk_version@")
 
