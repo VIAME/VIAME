@@ -8,7 +8,7 @@ set(test_runner
 function (vistk_build_python_test group input)
   vistk_configure_file(test-python-${group}
     "${CMAKE_CURRENT_SOURCE_DIR}/${input}"
-    "${vistk_binary_dir}/tests/test-python-${group}"
+    "${test_output_path}/test-python-${group}"
     PYTHON_EXECUTABLE)
 
   vistk_declare_test(python-${group})
