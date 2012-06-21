@@ -12,10 +12,9 @@
 
 #include <vistk/config.h>
 
-#include <tools/helpers/typed_value_desc.h>
-
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/program_options/value_semantic.hpp>
 #include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
 
@@ -209,7 +208,7 @@ make_options()
 
   desc.add_options()
     ("help,h", "output help message and quit")
-    ("type,t", po::value_desc<vistk::process::types_t>()->metavar("TYPE"), "type to describe")
+    ("type,t", po::value<vistk::process::types_t>()->value_name("TYPE"), "type to describe")
     ("list,l", "simply list types")
     ("hidden,H", "show hidden properties")
     ("detail,d", "output detailed information")
