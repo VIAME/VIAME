@@ -79,7 +79,8 @@ main(int argc, char* argv[])
     return EXIT_SUCCESS;
   }
 
-  bool const hidden = vm.count("hidden");
+  po::variables_map::const_iterator const i = vm.find("hidden");
+  bool const hidden = (i != vm.end());
 
   BOOST_FOREACH (vistk::process::type_t const& proc_type, types)
   {
