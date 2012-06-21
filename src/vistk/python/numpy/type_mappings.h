@@ -23,7 +23,7 @@
 
 #include <numpy/arrayobject.h>
 
-#if VXL_HAS_INT_64
+#if VXL_HAS_INT_64 && 0
 #define INT64_CALLS(call, sep)             \
     SEP(sep) call(NPY_LONGLONG, long long) \
     SEP(sep) call(NPY_ULONGLONG, unsigned long long)
@@ -32,8 +32,8 @@
 #endif
 
 #if __cplusplus >= 201103L
-/// \todo This is only guaranteed by C++11.
-/// <http://stackoverflow.com/questions/5020076>
+// This is only guaranteed by C++11.
+// <http://stackoverflow.com/questions/5020076>
 #define COMPLEX_CALLS(call, sep)                   \
     SEP(sep) call(NPY_CFLOAT, std::complex<float>) \
     SEP(sep) call(NPY_CDOUBLE, std::complex<double>)
