@@ -733,6 +733,9 @@ process
   i = flags.find(flag_input_static);
   bool const static_ = (i != flags.end());
 
+  i = flags.find(flag_input_nodep);
+  bool const no_dep = (i != flags.end());
+
   if (required && static_)
   {
     /// \todo Throw an exception.
@@ -748,7 +751,7 @@ process
     d->static_inputs.push_back(port);
   }
 
-  if (required)
+  if (required && !no_dep)
   {
     d->required_inputs.push_back(port);
   }
