@@ -160,17 +160,23 @@ class VISTK_PIPELINE_EXPORT bad_datum_cast_exception
     /**
      * \brief Constructor.
      *
-     * \param type The type that was requested.
+     * \param typeid_ The type that was requested.
+     * \param type The type of the datum.
+     * \param error The type that was requested.
      * \param reason The reason for the bad cast.
      */
-    bad_datum_cast_exception(datum::type_t const& type, char const* reason) throw();
+    bad_datum_cast_exception(char const* typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw();
     /**
      * \brief Destructor.
      */
     ~bad_datum_cast_exception() throw();
 
     /// The datum type.
+    char const* const m_typeid;
+    /// The datum type.
     datum::type_t const m_type;
+    /// The error string from the datum.
+    datum::error_t const m_error;
     /// The reason for the failed cast.
     std::string const m_reason;
 };
@@ -192,7 +198,7 @@ datum::get_datum() const
   }
   catch (boost::bad_any_cast const& e)
   {
-    throw bad_datum_cast_exception(m_type, e.what());
+    throw bad_datum_cast_exception(typeid(T).name(), m_type, m_error, e.what());
   }
 }
 
