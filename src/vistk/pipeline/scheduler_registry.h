@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_SCHEDULE_REGISTRY_H
-#define VISTK_PIPELINE_SCHEDULE_REGISTRY_H
+#ifndef VISTK_PIPELINE_SCHEDULER_REGISTRY_H
+#define VISTK_PIPELINE_SCHEDULER_REGISTRY_H
 
 #include "pipeline-config.h"
 
@@ -146,4 +146,4 @@ create_scheduler(pipeline_t const& pipe, config_t const& conf)
 
 }
 
-#endif // VISTK_PIPELINE_SCHEDULE_REGISTRY_H
+#endif // VISTK_PIPELINE_SCHEDULER_REGISTRY_H

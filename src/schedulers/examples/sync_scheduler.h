@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_SCHEDULES_EXAMPLES_SYNC_SCHEDULE_H
-#define VISTK_SCHEDULES_EXAMPLES_SYNC_SCHEDULE_H
+#ifndef VISTK_SCHEDULERS_EXAMPLES_SYNC_SCHEDULER_H
+#define VISTK_SCHEDULERS_EXAMPLES_SYNC_SCHEDULER_H
 
 #include "examples-config.h"
 
@@ -29,7 +29,7 @@ namespace vistk
  *
  * \scheduler Run the pipeline in one thread.
  */
-class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT sync_scheduler
+class VISTK_SCHEDULERS_EXAMPLES_NO_EXPORT sync_scheduler
   : public scheduler
 {
   public:
@@ -64,4 +64,4 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT sync_scheduler
 
 }
 
-#endif // VISTK_SCHEDULES_EXAMPLES_SYNC_SCHEDULE_H
+#endif // VISTK_SCHEDULERS_EXAMPLES_SYNC_SCHEDULER_H
