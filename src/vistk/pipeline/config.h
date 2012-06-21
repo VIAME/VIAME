@@ -395,7 +395,7 @@ config_cast_default(config::value_t const& value)
   {
     return boost::lexical_cast<T>(value);
   }
-  catch (boost::bad_lexical_cast& e)
+  catch (boost::bad_lexical_cast const& e)
   {
     throw bad_configuration_cast(e.what());
   }
@@ -466,7 +466,7 @@ config
   {
     return config_cast<T>(*value);
   }
-  catch (bad_configuration_cast& e)
+  catch (bad_configuration_cast const& e)
   {
     throw bad_configuration_cast_exception(key, *value, typeid(T).name(), e.what());
   }

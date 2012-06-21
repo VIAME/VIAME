@@ -214,7 +214,7 @@ parse_pipe_blocks_from_string(std::string const& str)
   {
     qi::parse(i, i_end, grammar, blocks);
   }
-  catch (qi::expectation_failure<std::string::const_iterator>& e)
+  catch (qi::expectation_failure<std::string::const_iterator> const& e)
   {
     std::string::const_iterator const& begin = e.first;
     std::string::const_iterator const& end = e.last;

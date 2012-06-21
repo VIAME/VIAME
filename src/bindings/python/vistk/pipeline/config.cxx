@@ -121,7 +121,7 @@ config_getitem(vistk::config_t self, vistk::config::key_t const& key)
   {
     val = config_get_value(self, key);
   }
-  catch (vistk::no_such_configuration_value_exception&)
+  catch (vistk::no_such_configuration_value_exception const&)
   {
     vistk::python::python_gil const gil;
 
@@ -155,7 +155,7 @@ config_delitem(vistk::config_t self, vistk::config::key_t const& key)
   {
     self->unset_value(key);
   }
-  catch (vistk::no_such_configuration_value_exception&)
+  catch (vistk::no_such_configuration_value_exception const&)
   {
     vistk::python::python_gil const gil;
 

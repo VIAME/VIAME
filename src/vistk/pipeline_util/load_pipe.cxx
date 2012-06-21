@@ -76,7 +76,7 @@ load_pipe_blocks(std::istream& istr, path_t const& inc_root)
   {
     flatten_pipe_declaration(sstr, istr, inc_root);
   }
-  catch (std::ios_base::failure& e)
+  catch (std::ios_base::failure const& e)
   {
     throw stream_failure_exception(e.what());
   }

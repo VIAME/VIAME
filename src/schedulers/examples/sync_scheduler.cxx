@@ -256,7 +256,7 @@ sorted_names(pipeline_t const& pipe)
   {
     boost::topological_sort(graph, std::front_inserter(vertices));
   }
-  catch (boost::not_a_dag&)
+  catch (boost::not_a_dag const&)
   {
     /// \todo Throw an exception.
   }

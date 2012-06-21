@@ -122,7 +122,7 @@ image_writer_process
     {
       path = boost::str(priv::format_t(path_fmt) % name());
     }
-    catch (boost::io::format_error&)
+    catch (boost::io::format_error const&)
     {
     }
 
@@ -187,7 +187,7 @@ image_writer_process
     d->format % name();
     d->format % d->count;
   }
-  catch (boost::io::format_error&)
+  catch (boost::io::format_error const&)
   {
   }
 

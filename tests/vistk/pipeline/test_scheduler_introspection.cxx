@@ -30,15 +30,15 @@ main()
   {
     vistk::load_known_modules();
   }
-  catch (vistk::scheduler_type_already_exists_exception& e)
+  catch (vistk::scheduler_type_already_exists_exception const& e)
   {
     TEST_ERROR("Duplicate scheduler names: " << e.what());
   }
-  catch (vistk::pipeline_exception& e)
+  catch (vistk::pipeline_exception const& e)
   {
     TEST_ERROR("Failed to load modules: " << e.what());
   }
-  catch (std::exception& e)
+  catch (std::exception const& e)
   {
     TEST_ERROR("Unexpected exception when loading modules: " << e.what());
 
@@ -59,13 +59,13 @@ main()
     {
       scheduler = reg->create_scheduler(type, config, pipe);
     }
-    catch (vistk::no_such_scheduler_type_exception& e)
+    catch (vistk::no_such_scheduler_type_exception const& e)
     {
       TEST_ERROR("Failed to create scheduler: " << e.what());
 
       continue;
     }
-    catch (std::exception& e)
+    catch (std::exception const& e)
     {
       TEST_ERROR("Unexpected exception when creating scheduler: " << e.what());
     }

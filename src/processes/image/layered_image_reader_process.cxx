@@ -194,7 +194,7 @@ layered_image_reader_process
       {
         fmt % layer;
       }
-      catch (boost::io::format_error&)
+      catch (boost::io::format_error const&)
       {
       }
 

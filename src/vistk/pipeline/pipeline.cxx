@@ -1789,7 +1789,7 @@ pipeline::priv
     {
       propagate(name);
     }
-    catch (propagation_exception& e)
+    catch (propagation_exception const& e)
     {
       throw connection_dependent_type_cascade_exception(name, port, type,
                                                         e.m_upstream_name, e.m_upstream_port,
@@ -2102,7 +2102,7 @@ pipeline::priv
   {
     boost::topological_sort(graph, std::front_inserter(vertices));
   }
-  catch (boost::not_a_dag&)
+  catch (boost::not_a_dag const&)
   {
     throw not_a_dag_exception();
   }
