@@ -71,6 +71,12 @@ set(VISTK_DEFAULT_MODULE_PATHS "${vistk_default_module_paths}"
 set(vistk_library_options
   "VISTK_DEFAULT_MODULE_PATHS=${vistk_path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
 
+if (WIN32 OR APPLE)
+  set(default ON)
+else (WIN32 OR APPLE)
+  set(default OFF)
+endif (WIN32 OR APPLE)
+
 if (WIN32)
   vistk_configure_file(module-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
@@ -81,6 +87,13 @@ else (WIN32)
   set(module_build_options
     ${vistk_library_options})
 endif (WIN32)
+
+option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
+if (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
+  set(module_build_options
+    "${module_build_options}"
+    VISTK_USE_CONFIGURATION_SUBDIRECTORY)
+endif (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
 
 set_source_files_properties(modules.cxx
   PROPERTIES

@@ -60,7 +60,8 @@ typedef std::string function_name_t;
 
 }
 
-static void load_from_module(module_path_t const path);
+static void look_in_directory(module_path_t const& directory);
+static void load_from_module(module_path_t const& path);
 static bool is_separator(module_path_t::value_type ch);
 
 static function_name_t const process_function_name = function_name_t("register_processes");
@@ -99,45 +100,63 @@ void load_known_modules()
 
   BOOST_FOREACH (module_path_t const& module_dir, module_dirs)
   {
-    if (module_dir.empty())
+    look_in_directory(module_dir);
+
+#ifdef VISTK_USE_CONFIGURATION_SUBDIRECTORY
+    module_path_t const subdir = module_dir +
+#if defined(_WIN32) || defined(_WIN64)
+      L"/" VISTK_CONFIGURATION_L;
+#else
+      "/" VISTK_CONFIGURATION;
+#endif
+    ;
+
+    look_in_directory(subdir);
+#endif
+  }
+}
+
+void
+look_in_directory(module_path_t const& directory)
+{
+  if (directory.empty())
+  {
+    return;
+  }
+
+  if (!boost::filesystem::exists(directory))
+  {
+    /// \todo Log error that path doesn't exist.
+    return;
+  }
+
+  if (!boost::filesystem::is_directory(directory))
+  {
+    /// \todo Log error that path isn't a directory.
+    return;
+  }
+
+  boost::system::error_code ec;
+  boost::filesystem::directory_iterator module_dir_iter(directory, ec);
+
+  while (module_dir_iter != boost::filesystem::directory_iterator())
+  {
+    boost::filesystem::directory_entry const ent = *module_dir_iter;
+
+    ++module_dir_iter;
+
+    if (!boost::ends_with(ent.path().native(), library_suffix))
     {
       continue;
     }
 
-    if (!boost::filesystem::exists(module_dir))
+    if (ent.status().type() != boost::filesystem::regular_file)
     {
-      /// \todo Log error that path doesn't exist.
+      /// \todo Log warning that we found a non-file matching path.
       continue;
     }
 
-    if (!boost::filesystem::is_directory(module_dir))
-    {
-      /// \todo Log error that path isn't a directory.
-      continue;
-    }
-
-    boost::system::error_code ec;
-    boost::filesystem::directory_iterator module_dir_iter(module_dir, ec);
-
-    while (module_dir_iter != boost::filesystem::directory_iterator())
-    {
-      boost::filesystem::directory_entry const ent = *module_dir_iter;
-
-      ++module_dir_iter;
-
-      if (!boost::ends_with(ent.path().native(), library_suffix))
-      {
-        continue;
-      }
-
-      if (ent.status().type() != boost::filesystem::regular_file)
-      {
-        /// \todo Log warning that we found a non-file matching path.
-        continue;
-      }
-
-      load_from_module(ent.path().native());
-    }
+    load_from_module(ent.path().native());
   }
 }
 
