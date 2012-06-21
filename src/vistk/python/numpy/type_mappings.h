@@ -15,8 +15,7 @@
  * \brief Macros to assist in converting between NumPy and vil images.
  */
 
-/// \todo Is there a define for C++11?
-#if 0
+#if __cplusplus >= 199711L
 #include <complex>
 #endif
 
@@ -24,7 +23,7 @@
 
 #include <numpy/arrayobject.h>
 
-#if VXL_HAS_INT_64 && 0
+#if VXL_HAS_INT_64
 #define INT64_CALLS(call, sep)             \
     SEP(sep) call(NPY_LONGLONG, long long) \
     SEP(sep) call(NPY_ULONGLONG, unsigned long long)
@@ -32,8 +31,7 @@
 #define INT64_CALLS(call, sep)
 #endif
 
-/// \todo Is there a define for C++11?
-#if 0
+#if __cplusplus >= 199711L
 /// \todo This is only guaranteed by C++11.
 /// <http://stackoverflow.com/questions/5020076>
 #define COMPLEX_CALLS(call, sep)                   \

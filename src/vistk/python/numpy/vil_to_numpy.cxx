@@ -102,8 +102,7 @@ vil_to_numpy(vil_image_view_base_sptr const& img)
     CONVERT_FORMAT(VIL_PIXEL_FORMAT_RGBA_FLOAT)
     CONVERT_FORMAT(VIL_PIXEL_FORMAT_RGBA_DOUBLE)
 
-/// \todo Is there a define for C++11?
-#if 0
+#if __cplusplus >= 199711L
     CONVERT_FORMAT(VIL_PIXEL_FORMAT_COMPLEX_FLOAT)
     CONVERT_FORMAT(VIL_PIXEL_FORMAT_COMPLEX_DOUBLE)
 #else
