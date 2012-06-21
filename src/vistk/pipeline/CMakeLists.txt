@@ -106,11 +106,8 @@ target_link_libraries(vistk_pipeline
   ${Boost_DATE_TIME_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
-  ${Boost_THREAD_LIBRARY})
-if (NOT WIN32)
-  target_link_libraries(vistk_pipeline
-    ${CMAKE_DL_LIBS})
-endif (NOT WIN32)
+  ${Boost_THREAD_LIBRARY}
+  ${CMAKE_DL_LIBS})
 target_link_libraries(vistk_pipeline LINK_INTERFACE_LIBRARIES)
 set_target_properties(vistk_pipeline
   PROPERTIES

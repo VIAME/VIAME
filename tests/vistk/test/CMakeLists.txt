@@ -31,3 +31,15 @@ set_tests_properties(test-test-error_string_second_line
 set_tests_properties(test-test-unexpected_exception
   PROPERTIES
     WILL_FAIL TRUE)
+
+set(libraries
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${CMAKE_DL_LIBS})
+
+vistk_build_test(dlopen libraries test_dlopen.cxx)
+
+foreach (library ${vistk_libraries})
+  vistk_make_test(dlopen ${library}
+    "$<TARGET_FILE:${library}>")
+endforeach (library)

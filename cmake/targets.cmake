@@ -23,6 +23,8 @@
 #   vistk_install_headers(subdir [headers ...])
 #     Installs the headers stored in the variable under a subdirectory.
 
+set(vistk_libraries CACHE INTERNAL "Libraries built as part of vistk")
+
 set(vistk_export_file
   "${vistk_binary_dir}/vistk-config-targets.cmake")
 export(
@@ -98,6 +100,11 @@ function (vistk_add_library name)
     TARGETS ${name}
     APPEND
     FILE    "${vistk_export_file}")
+
+  set(vistk_libraries
+    ${vistk_libraries}
+    ${name}
+    CACHE INTERNAL "Libraries built as part of vistk")
 
   vistk_install(
     TARGETS       ${name}
