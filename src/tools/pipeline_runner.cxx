@@ -16,8 +16,7 @@
 
 #include <vistk/config.h>
 
-#include <tools/helpers/typed_value_desc.h>
-
+#include <boost/program_options/value_semantic.hpp>
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
 
@@ -165,11 +164,11 @@ make_options()
 
   desc.add_options()
     ("help,h", "output help message and quit")
-    ("pipeline,p", po::value_desc<vistk::path_t>()->metavar("FILE"), "pipeline")
-    ("config,c", po::value_desc<vistk::paths_t>()->metavar("FILE"), "supplemental configuration file")
-    ("setting,s", po::value_desc<std::vector<std::string> >()->metavar("VAR=VALUE"), "additional configuration")
-    ("include,I", po::value_desc<vistk::paths_t>()->metavar("DIR"), "configuration include path")
-    ("scheduler,S", po::value_desc<vistk::scheduler_registry::type_t>()->metavar("TYPE"), "scheduler type")
+    ("pipeline,p", po::value<vistk::path_t>()->value_name("FILE"), "pipeline")
+    ("config,c", po::value<vistk::paths_t>()->value_name("FILE"), "supplemental configuration file")
+    ("setting,s", po::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
+    ("include,I", po::value<vistk::paths_t>()->value_name("DIR"), "configuration include path")
+    ("scheduler,S", po::value<vistk::scheduler_registry::type_t>()->value_name("TYPE"), "scheduler type")
   ;
 
   return desc;
