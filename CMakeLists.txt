@@ -161,6 +161,7 @@ if (VISTK_ENABLE_PYTHON)
 endif (VISTK_ENABLE_PYTHON)
 
 set(BOOST_ROOT "" CACHE PATH "The root path to Boost")
+option(Boost_USE_STATIC_LIBS "Use a statically-linked Boost" OFF)
 find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
     date_time
