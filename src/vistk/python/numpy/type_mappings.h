@@ -15,7 +15,7 @@
  * \brief Macros to assist in converting between NumPy and vil images.
  */
 
-#if __cplusplus >= 199711L
+#if __cplusplus >= 201103L
 #include <complex>
 #endif
 
@@ -31,7 +31,7 @@
 #define INT64_CALLS(call, sep)
 #endif
 
-#if __cplusplus >= 199711L
+#if __cplusplus >= 201103L
 /// \todo This is only guaranteed by C++11.
 /// <http://stackoverflow.com/questions/5020076>
 #define COMPLEX_CALLS(call, sep)                   \
