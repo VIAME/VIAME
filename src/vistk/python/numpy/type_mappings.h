@@ -32,8 +32,8 @@
 #endif
 
 #if __cplusplus >= 201103L
-/// \todo This is only guaranteed by C++11.
-/// <http://stackoverflow.com/questions/5020076>
+// This is only guaranteed by C++11.
+// <http://stackoverflow.com/questions/5020076>
 #define COMPLEX_CALLS(call, sep)                   \
     SEP(sep) call(NPY_CFLOAT, std::complex<float>) \
     SEP(sep) call(NPY_CDOUBLE, std::complex<double>)
