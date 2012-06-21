@@ -236,8 +236,9 @@ process
     d->stamp_for_inputs = d->hb_stamp;
 
     edge_datum_t const edat = d->check_required_input(this);
+    datum_t const& dat = edat.get<0>();
 
-    if (edat.get<0>())
+    if (dat)
     {
       d->grab_from_input_edges();
       d->push_to_output_edges(edat);
@@ -963,14 +964,18 @@ process
     throw missing_connection_exception(d->name, port, reason);
   }
 
-  return grab_from_edge(e->second);
+  edge_t const& edge = e->second;
+
+  return grab_from_edge(edge);
 }
 
 datum_t
 process
 ::grab_datum_from_port(port_t const& port) const
 {
-  return grab_from_port(port).get<0>();
+  edge_datum_t const edat = grab_from_port(port);
+
+  return edat.get<0>();
 }
 
 void
@@ -984,11 +989,13 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
-  priv::output_edge_map_t::iterator e = d->output_edges.find(port);
+  priv::output_edge_map_t::const_iterator const e = d->output_edges.find(port);
 
   if (e != d->output_edges.end())
   {
-    push_to_edges(e->second, dat);
+    edges_t const& edges = e->second;
+
+    push_to_edges(edges, dat);
   }
 }
 
@@ -1045,16 +1052,17 @@ process
   edge_datum_t const& fst = data[0];
   stamp_t const& st = fst.get<1>();
 
-  BOOST_FOREACH (edge_datum_t const& dat, data)
+  BOOST_FOREACH (edge_datum_t const& edat, data)
   {
-    datum::type_t const type = dat.get<0>()->type();
+    datum_t const& dat = edat.get<0>();
+    stamp_t const& st2 = edat.get<1>();
+
+    datum::type_t const type = dat->type();
 
     if (max_type < type)
     {
       max_type = type;
     }
-
-    stamp_t const& st2 = dat.get<1>();
 
     if (!st->is_same_color(st2))
     {
@@ -1109,7 +1117,9 @@ process
     return d->conf->get_value<config::value_t>(key);
   }
 
-  return i->second->def;
+  conf_info_t const& info = i->second;
+
+  return info->def;
 }
 
 bool
@@ -1219,7 +1229,9 @@ process::priv
       continue;
     }
 
-    data.push_back(peek_at_edge(i->second));
+    edge_t const& iedge = i->second;
+
+    data.push_back(peek_at_edge(iedge));
   }
 
   data_info_t const info = edge_data_info(data);
