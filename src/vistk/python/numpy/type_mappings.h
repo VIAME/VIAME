@@ -15,8 +15,7 @@
  * \brief Macros to assist in converting between NumPy and vil images.
  */
 
-/// \todo Is there a define for C++11?
-#if 0
+#if __cplusplus >= 199711L
 #include <complex>
 #endif
 
@@ -32,8 +31,7 @@
 #define INT64_CALLS(call, sep)
 #endif
 
-/// \todo Is there a define for C++11?
-#if 0
+#if __cplusplus >= 199711L
 /// \todo This is only guaranteed by C++11.
 /// <http://stackoverflow.com/questions/5020076>
 #define COMPLEX_CALLS(call, sep)                   \
