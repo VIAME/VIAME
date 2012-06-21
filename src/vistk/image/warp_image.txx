@@ -140,10 +140,10 @@ warp_image<PixType>
   box_t const dest_bounds(0, dni - 1, 0, dnj - 1);
   box_t const intersection = vgl_intersection(mapped_bbox, dest_bounds);
 
-  size_t const begin_i = std::floor(intersection.min_x());
-  size_t const begin_j = std::floor(intersection.min_y());
-  size_t const end_i = std::floor(intersection.max_x());
-  size_t const end_j = std::floor(intersection.max_y());
+  size_t const begin_i = static_cast<size_t>(std::floor(intersection.min_x()));
+  size_t const begin_j = static_cast<size_t>(std::floor(intersection.min_y()));
+  size_t const end_i = static_cast<size_t>(std::floor(intersection.max_x()));
+  size_t const end_j = static_cast<size_t>(std::floor(intersection.max_y()));
 
   ptrdiff_t const dis = d->dest.istep();
   ptrdiff_t const djs = d->dest.jstep();

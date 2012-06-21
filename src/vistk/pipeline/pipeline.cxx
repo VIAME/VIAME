@@ -158,8 +158,9 @@ class pipeline::priv
 
 pipeline
 ::pipeline(config_t const& config)
-  : d(new priv(this))
 {
+  d.reset(new priv(this));
+
   if (!config)
   {
     throw null_pipeline_config_exception();

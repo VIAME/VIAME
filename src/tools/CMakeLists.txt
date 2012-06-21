@@ -6,10 +6,6 @@ find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
     program_options)
 
-if (WIN32)
-  add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
-endif (WIN32)
-
 add_subdirectory(helpers)
 
 function (add_tool name)
