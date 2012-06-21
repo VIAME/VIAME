@@ -19,6 +19,17 @@
 
 #include <cstdlib>
 
+#if defined(_WIN32) || defined(_WIN64)
+namespace
+{
+
+typedef std::basic_string<TCHAR> tstring;
+
+}
+
+static tstring last_windows_error();
+#endif
+
 int
 main(int argc, char* argv[])
 {
@@ -51,35 +62,10 @@ main(int argc, char* argv[])
 
   if (!handle)
   {
-    std::string error;
-
 #if defined(_WIN32) || defined(_WIN64)
-    {
-      DWORD const err_code = GetLastError();
-      LPTSTR* str;
-
-      DWORD const ret = FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL,
-        err_code,
-        0,
-        static_cast<LPTSTR>(&str),
-        0,
-        NULL);
-
-      if (!ret)
-      {
-        TEST_ERROR("Could not get error string from system");
-
-        return EXIT_FAILURE;
-      }
-
-      error = str;
-
-      LocalFree(str);
-    }
+    tstring const error = last_windows_error();
 #else
-    error = dlerror();
+    std::string const error = dlerror();
 #endif
 
     TEST_ERROR("Failed to open library " << library << ": " << error);
@@ -91,46 +77,49 @@ main(int argc, char* argv[])
 
     if (!ret)
     {
-      std::string error;
-
-      {
-        DWORD const err_code = GetLastError();
-        LPTSTR* str;
-
-        DWORD const ret = FormatMessage(
-          FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-          NULL,
-          err_code,
-          0,
-          static_cast<LPTSTR>(&str),
-          0,
-          NULL);
-
-        if (!ret)
-        {
-          TEST_ERROR("Could not get error string from system");
-
-          return EXIT_FAILURE;
-        }
-
-        error = str;
-
-        LocalFree(str);
-      }
-
-      TEST_ERROR("Failed to close library " << library << ": " << error);
-    }
+      tstring const error = last_windows_error();
 #else
     int const ret = dlclose(handle);
 
     if (ret)
     {
       std::string const error = dlerror();
+#endif
 
       TEST_ERROR("Failed to close library " << library << ": " << error);
     }
-#endif
   }
 
   return EXIT_SUCCESS;
 }
+
+#if defined(_WIN32) || defined(_WIN64)
+tstring
+last_windows_error()
+{
+  DWORD const err_code = GetLastError();
+  LPTSTR str;
+
+  DWORD const ret = FormatMessage(
+    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+    NULL,
+    err_code,
+    0,
+    reinterpret_cast<LPTSTR>(&str),
+    0,
+    NULL);
+
+  if (!ret)
+  {
+    TEST_ERROR("Could not get error string from system");
+
+    exit(EXIT_FAILURE);
+  }
+
+  tstring const error = str;
+
+  LocalFree(str);
+
+  return error;
+}
+#endif
