@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_SCHEDULES_EXAMPLES_SCHEDULES_THREAD_POOL_SCHEDULE_H
-#define VISTK_SCHEDULES_EXAMPLES_SCHEDULES_THREAD_POOL_SCHEDULE_H
+#ifndef VISTK_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_POOL_SCHEDULER_H
+#define VISTK_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_POOL_SCHEDULER_H
 
 #include "examples-config.h"
 
@@ -35,7 +35,7 @@ namespace vistk
  *
  * \config{num_threads} The number of threads to run. A setting of \c 0 means "auto".
  */
-class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_pool_scheduler
+class VISTK_SCHEDULERS_EXAMPLES_NO_EXPORT thread_pool_scheduler
   : public scheduler
 {
   public:
@@ -70,4 +70,4 @@ class VISTK_SCHEDULES_EXAMPLES_NO_EXPORT thread_pool_scheduler
 
 }
 
-#endif // VISTK_SCHEDULES_EXAMPLES_SCHEDULES_THREAD_POOL_SCHEDULE_H
+#endif // VISTK_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_POOL_SCHEDULER_H

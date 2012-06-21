@@ -7,7 +7,7 @@ set(examples_srcs
   thread_pool_scheduler.cxx)
 
 add_vistk_plugin(schedulers_examples
-  MAKE_VISTK_SCHEDULES_EXAMPLES_LIB
+  MAKE_VISTK_SCHEDULERS_EXAMPLES_LIB
   ${examples_srcs})
 target_link_libraries(schedulers_examples
   vistk_pipeline
