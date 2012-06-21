@@ -6,6 +6,8 @@
 
 #include <test_common.h>
 
+#include <vistk/utilities/path.h>
+
 #include <iostream>
 #include <string>
 
@@ -36,7 +38,8 @@ main(int argc, char* argv[])
 #endif
 
   std::string const library = argv[1];
-  module_path_t const library_path = argv[2];
+  vistk::path_t const path = argv[2];
+  module_path_t const library_path = path.native();
 
   library_t handle = NULL;
 

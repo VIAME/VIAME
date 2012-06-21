@@ -33,6 +33,8 @@ set_tests_properties(test-test-unexpected_exception
     WILL_FAIL TRUE)
 
 set(libraries
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
   ${CMAKE_DL_LIBS})
 
 vistk_build_test(dlopen libraries test_dlopen.cxx)
