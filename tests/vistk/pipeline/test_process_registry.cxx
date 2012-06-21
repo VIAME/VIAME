@@ -38,7 +38,7 @@ main(int argc, char* argv[])
   {
     run_test(test_name);
   }
-  catch (std::exception& e)
+  catch (std::exception const& e)
   {
     TEST_ERROR("Unexpected exception: " << e.what());
 
@@ -134,13 +134,13 @@ test_load_processes()
     {
       process = reg->create_process(type, vistk::process::name_t());
     }
-    catch (vistk::no_such_process_type_exception& e)
+    catch (vistk::no_such_process_type_exception const& e)
     {
       TEST_ERROR("Failed to create process: " << e.what());
 
       continue;
     }
-    catch (std::exception& e)
+    catch (std::exception const& e)
     {
       TEST_ERROR("Unexpected exception when creating process: " << e.what());
 

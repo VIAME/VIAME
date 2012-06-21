@@ -32,15 +32,15 @@ main()
   {
     vistk::load_known_modules();
   }
-  catch (vistk::process_type_already_exists_exception& e)
+  catch (vistk::process_type_already_exists_exception const& e)
   {
     TEST_ERROR("Duplicate process names: " << e.what());
   }
-  catch (vistk::pipeline_exception& e)
+  catch (vistk::pipeline_exception const& e)
   {
     TEST_ERROR("Failed to load modules: " << e.what());
   }
-  catch (std::exception& e)
+  catch (std::exception const& e)
   {
     TEST_ERROR("Unexpected exception when loading modules: " << e.what());
 
@@ -57,7 +57,7 @@ main()
     {
       test_process(type);
     }
-    catch (std::exception& e)
+    catch (std::exception const& e)
     {
       TEST_ERROR("Unexpected exception when testing "
                  "type \'" << type << "\': " << e.what());
@@ -139,13 +139,13 @@ test_process_configuration(vistk::process_t const process)
     {
       process->config_info(key);
     }
-    catch (vistk::unknown_configuration_value_exception& e)
+    catch (vistk::unknown_configuration_value_exception const& e)
     {
       TEST_ERROR("Failed to get a default for "
                  << process->type() << vistk::config::block_sep << key
                  << ": " << e.what());
     }
-    catch (std::exception& e)
+    catch (std::exception const& e)
     {
       TEST_ERROR("Unexpected exception when querying for default "
                  "(" << process->type() << vistk::config::block_sep
@@ -169,12 +169,12 @@ test_process_input_ports(vistk::process_t const process)
     {
       info = process->input_port_info(port);
     }
-    catch (vistk::no_such_port_exception& e)
+    catch (vistk::no_such_port_exception const& e)
     {
       TEST_ERROR("Failed to get a info for input port "
                  << process->type() << "." << port << ": " << e.what());
     }
-    catch (std::exception& e)
+    catch (std::exception const& e)
     {
       TEST_ERROR("Unexpected exception when querying for input port info "
                  "(" << process->type() << "." << port << "): " << e.what());
@@ -233,12 +233,12 @@ test_process_output_ports(vistk::process_t const process)
     {
       info = process->output_port_info(port);
     }
-    catch (vistk::no_such_port_exception& e)
+    catch (vistk::no_such_port_exception const& e)
     {
       TEST_ERROR("Failed to get a info for output port "
                  << process->type() << "." << port << ": " << e.what());
     }
-    catch (std::exception& e)
+    catch (std::exception const& e)
     {
       TEST_ERROR("Unexpected exception when querying for output port info "
                  "(" << process->type() << "." << port << "): " << e.what());

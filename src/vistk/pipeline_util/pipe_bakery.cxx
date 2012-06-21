@@ -392,7 +392,7 @@ extract_configuration(pipe_bakery& bakery)
     {
       val = boost::apply_visitor(ensure_provided(), ref);
     }
-    catch (unrecognized_provider_exception& e)
+    catch (unrecognized_provider_exception const& e)
     {
       throw unrecognized_provider_exception(key, e.m_provider, e.m_index);
     }
@@ -680,7 +680,7 @@ config_provider_sorter
   {
     boost::topological_sort(m_graph, std::back_inserter(vertices));
   }
-  catch (boost::not_a_dag&)
+  catch (boost::not_a_dag const&)
   {
     throw circular_config_provide_exception();
   }

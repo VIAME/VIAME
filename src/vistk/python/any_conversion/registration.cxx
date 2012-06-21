@@ -155,7 +155,7 @@ any_converter
           return *opt;
         }
       }
-      catch (error_already_set&)
+      catch (error_already_set const&)
       {
       }
     }

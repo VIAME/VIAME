@@ -93,7 +93,7 @@ to_prototype(boost::any const& any)
     object const o(t);
     return incref(o.ptr());
   }
-  catch (boost::bad_any_cast&)
+  catch (boost::bad_any_cast const&)
   {
   }
 

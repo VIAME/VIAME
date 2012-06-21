@@ -46,7 +46,7 @@ main(int argc, char* argv[])
   {
     run_test(test_name, pipe_file);
   }
-  catch (std::exception& e)
+  catch (std::exception const& e)
   {
     TEST_ERROR("Unexpected exception: " << e.what());
 
@@ -181,7 +181,7 @@ test_pipeline_setup_no_success(vistk::path_t const& pipe_file)
   {
     pipeline->setup_pipeline();
   }
-  catch (vistk::pipeline_exception&)
+  catch (vistk::pipeline_exception const&)
   {
   }
 

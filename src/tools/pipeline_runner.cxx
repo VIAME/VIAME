@@ -46,7 +46,7 @@ main(int argc, char* argv[])
   {
     po::store(po::parse_command_line(argc, argv, desc), vm);
   }
-  catch (po::unknown_option& e)
+  catch (po::unknown_option const& e)
   {
     std::cerr << "Error: unknown option " << e.get_option_name() << std::endl;
 

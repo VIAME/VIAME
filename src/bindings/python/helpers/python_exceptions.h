@@ -9,26 +9,26 @@
 
 /// \todo More useful output?
 
-#define HANDLE_PYTHON_EXCEPTION(call)       \
-  try                                       \
-  {                                         \
-    call;                                   \
-  }                                         \
-  catch (boost::python::error_already_set&) \
-  {                                         \
-    python_print_exception();               \
-                                            \
-    throw;                                  \
+#define HANDLE_PYTHON_EXCEPTION(call)             \
+  try                                             \
+  {                                               \
+    call;                                         \
+  }                                               \
+  catch (boost::python::error_already_set const&) \
+  {                                               \
+    python_print_exception();                     \
+                                                  \
+    throw;                                        \
   }
 
-#define HANDLE_PYTHON_EXCEPTION_IGNORE(call) \
-  try                                        \
-  {                                          \
-    call;                                    \
-  }                                          \
-  catch (boost::python::error_already_set&)  \
-  {                                          \
-    python_print_exception();                \
+#define HANDLE_PYTHON_EXCEPTION_IGNORE(call)       \
+  try                                              \
+  {                                                \
+    call;                                          \
+  }                                                \
+  catch (boost::python::error_already_set const&)  \
+  {                                                \
+    python_print_exception();                      \
   }
 
 #define TRANSLATE_PYTHON_EXCEPTION(call)           \
@@ -36,7 +36,7 @@
   {                                                \
     call;                                          \
   }                                                \
-  catch (std::exception& e)                        \
+  catch (std::exception const& e)                  \
   {                                                \
     vistk::python::python_gil const gil;           \
                                                    \

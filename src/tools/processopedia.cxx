@@ -42,7 +42,7 @@ main(int argc, char* argv[])
   {
     po::store(po::parse_command_line(argc, argv, desc), vm);
   }
-  catch (po::unknown_option& e)
+  catch (po::unknown_option const& e)
   {
     std::cerr << "Error: unknown option " << e.get_option_name() << std::endl;
 
@@ -89,7 +89,7 @@ main(int argc, char* argv[])
       {
         std::cout << proc_type << ": " << reg->description(proc_type) << std::endl;
       }
-      catch (vistk::no_such_process_type_exception& e)
+      catch (vistk::no_such_process_type_exception const& e)
       {
         std::cerr << "Error: " << e.what() << std::endl;
       }
@@ -106,7 +106,7 @@ main(int argc, char* argv[])
     {
       proc_m = reg->create_process(proc_type, vistk::process::name_t());
     }
-    catch (vistk::no_such_process_type_exception& e)
+    catch (vistk::no_such_process_type_exception const& e)
     {
       std::cerr << "Error: " << e.what() << std::endl;
 

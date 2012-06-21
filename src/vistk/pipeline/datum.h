@@ -190,7 +190,7 @@ datum::get_datum() const
   {
     return boost::any_cast<T>(m_datum);
   }
-  catch (boost::bad_any_cast& e)
+  catch (boost::bad_any_cast const& e)
   {
     throw bad_datum_cast_exception(m_type, e.what());
   }

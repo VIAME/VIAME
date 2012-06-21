@@ -22,13 +22,13 @@
     {                                       \
       code;                                 \
     }                                       \
-    catch (ex& e)                           \
+    catch (ex const& e)                     \
     {                                       \
       got_exception = true;                 \
                                             \
       (void)e.what();                       \
     }                                       \
-    catch (std::exception& e)               \
+    catch (std::exception const& e)         \
     {                                       \
       TEST_ERROR("Unexpected exception: "   \
                  << e.what());              \

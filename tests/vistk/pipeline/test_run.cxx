@@ -58,7 +58,7 @@ main(int argc, char* argv[])
   {
     run_test(test_name, scheduler_type);
   }
-  catch (std::exception& e)
+  catch (std::exception const& e)
   {
     TEST_ERROR("Unexpected exception: " << e.what());
 
