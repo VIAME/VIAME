@@ -152,7 +152,8 @@ macro (vistk_build_test testname libraries)
 endmacro (vistk_build_test)
 
 function (vistk_make_test testname instance)
-  add_test(NAME test-${testname}-${instance}
+  add_test(
+    NAME    test-${testname}-${instance}
     COMMAND ${test_runner}
             "${test_output_path}/test-${testname}"
             ${instance}
