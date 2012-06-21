@@ -23,7 +23,7 @@
 
 #include <numpy/arrayobject.h>
 
-#if VXL_HAS_INT_64 && 0
+#if VXL_HAS_INT_64
 #define INT64_CALLS(call, sep)             \
     SEP(sep) call(NPY_LONGLONG, long long) \
     SEP(sep) call(NPY_ULONGLONG, unsigned long long)
