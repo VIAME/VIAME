@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include "helpers/tool_main.h"
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/process.h>
@@ -31,7 +33,7 @@ static po::options_description make_options();
 static void VISTK_NO_RETURN usage(po::options_description const& options);
 
 int
-main(int argc, char* argv[])
+tool_main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
