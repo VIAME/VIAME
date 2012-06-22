@@ -94,7 +94,7 @@ set(test_working_path
 
 if (WIN32)
   set(test_output_path
-    "${test_output_path}/$<CONFIGURATION>")
+    "${test_output_path}/${CMAKE_CFG_INTDIR}")
 endif (WIN32)
 
 set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
