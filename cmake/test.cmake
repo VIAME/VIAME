@@ -161,7 +161,8 @@ function (vistk_make_test testname instance)
   set_tests_properties(test-${testname}-${instance}
     PROPERTIES
       WORKING_DIRECTORY       "${test_working_path}"
-      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
+      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: "
+      REQUIRED_FILES          "${test_output_path}/test-${testname}")
   if (test_environment)
     set_tests_properties(test-${testname}-${instance}
       PROPERTIES
