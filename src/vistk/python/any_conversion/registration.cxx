@@ -132,7 +132,7 @@ any_converter
     Py_RETURN_NONE;
   }
 
-  type_info const info(any.type());
+  boost::python::type_info const info(any.type());
 
   converter::registration const* const reg = converter::registry::query(info);
 
