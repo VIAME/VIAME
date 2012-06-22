@@ -73,8 +73,6 @@ BOOST_PYTHON_MODULE(version)
       , "Check for a vistk of at least the given version.")
     .staticmethod("check")
   ;
-
-
 }
 
 bool
