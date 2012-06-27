@@ -44,6 +44,7 @@ main(int argc, char* argv[])
 
 static void test_has_value();
 static void test_get_value();
+static void test_get_value_nested();
 static void test_get_value_no_exist();
 static void test_get_value_type_mismatch();
 static void test_bool_conversion();
@@ -65,6 +66,10 @@ run_test(std::string const& test_name)
   else if (test_name == "get_value")
   {
     test_get_value();
+  }
+  else if (test_name == "get_value_nested")
+  {
+    test_get_value_nested();
   }
   else if (test_name == "get_value_no_exist")
   {
@@ -147,6 +152,28 @@ test_get_value()
   config->set_value(keya, valuea);
 
   vistk::config::value_t const get_valuea = config->get_value<vistk::config::value_t>(keya);
+
+  if (valuea != get_valuea)
+  {
+    TEST_ERROR("Did not retrieve value that was set");
+  }
+}
+
+void
+test_get_value_nested()
+{
+  vistk::config_t config = vistk::config::empty_config();
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+
+  config->set_value(keya + vistk::config::block_sep + keyb, valuea);
+
+  vistk::config_t const nested_config = config->subblock(keya);
+
+  vistk::config::value_t const get_valuea = nested_config->get_value<vistk::config::value_t>(keyb);
 
   if (valuea != get_valuea)
   {

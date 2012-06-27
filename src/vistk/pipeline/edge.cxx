@@ -27,19 +27,22 @@ namespace vistk
 {
 
 config::key_t const edge::config_dependency = config::key_t("_dependency");
+config::key_t const edge::config_capacity = config::key_t("capacity");
 
 class edge::priv
 {
   public:
-    priv(bool depends_);
+    priv(bool depends_, size_t capacity_);
     ~priv();
 
     typedef boost::weak_ptr<process> process_ref_t;
 
     bool has_data() const;
+    bool full_of_data() const;
     void complete_check() const;
 
     bool const depends;
+    size_t const capacity;
     bool downstream_complete;
 
     process_ref_t upstream;
@@ -48,6 +51,7 @@ class edge::priv
     std::queue<edge_datum_t> q;
 
     boost::condition_variable cond_have_data;
+    boost::condition_variable cond_have_space;
 
     mutable boost::mutex mutex;
     mutable boost::mutex complete_mutex;
@@ -61,9 +65,10 @@ edge
     throw null_edge_config_exception();
   }
 
-  bool const depends = config->get_value<bool>(config_dependency, "true");
+  bool const depends = config->get_value<bool>(config_dependency, true);
+  size_t const capacity = config->get_value<size_t>(config_capacity, 0);
 
-  d.reset(new priv(depends));
+  d.reset(new priv(depends, capacity));
 }
 
 edge
@@ -93,7 +98,11 @@ bool
 edge
 ::full_of_data() const
 {
-  return false;
+  boost::mutex::scoped_lock const lock(d->mutex);
+
+  (void)lock;
+
+  return d->full_of_data();
 }
 
 size_t
@@ -123,9 +132,12 @@ edge
   }
 
   {
-    boost::mutex::scoped_lock const lock(d->mutex);
+    boost::mutex::scoped_lock lock(d->mutex);
 
-    (void)lock;
+    while (d->full_of_data())
+    {
+      d->cond_have_space.wait(lock);
+    }
 
     d->q.push(datum);
   }
@@ -139,16 +151,22 @@ edge
 {
   d->complete_check();
 
-  boost::mutex::scoped_lock lock(d->mutex);
+  edge_datum_t dat;
 
-  while (!d->has_data())
   {
-    d->cond_have_data.wait(lock);
+    boost::mutex::scoped_lock lock(d->mutex);
+
+    while (!d->has_data())
+    {
+      d->cond_have_data.wait(lock);
+    }
+
+    dat = d->q.front();
+
+    d->q.pop();
   }
 
-  edge_datum_t const dat = d->q.front();
-
-  d->q.pop();
+  d->cond_have_space.notify_one();
 
   return dat;
 }
@@ -175,14 +193,18 @@ edge
 {
   d->complete_check();
 
-  boost::mutex::scoped_lock lock(d->mutex);
-
-  while (!d->has_data())
   {
-    d->cond_have_data.wait(lock);
+    boost::mutex::scoped_lock lock(d->mutex);
+
+    while (!d->has_data())
+    {
+      d->cond_have_data.wait(lock);
+    }
+
+    d->q.pop();
   }
 
-  d->q.pop();
+  d->cond_have_space.notify_one();
 }
 
 void
@@ -203,6 +225,8 @@ edge
   {
     d->q.pop();
   }
+
+  d->cond_have_space.notify_one();
 }
 
 bool
@@ -262,8 +286,9 @@ operator == (edge_datum_t const& a, edge_datum_t const& b)
 }
 
 edge::priv
-::priv(bool depends_)
+::priv(bool depends_, size_t capacity_)
   : depends(depends_)
+  , capacity(capacity_)
   , downstream_complete(false)
 {
 }
@@ -278,6 +303,18 @@ edge::priv
 ::has_data() const
 {
   return (q.size() != 0);
+}
+
+bool
+edge::priv
+::full_of_data() const
+{
+  if (!capacity)
+  {
+    return false;
+  }
+
+  return (q.size() == capacity);
 }
 
 void

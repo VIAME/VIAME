@@ -13,6 +13,7 @@
 #include <boost/none.hpp>
 
 #include <algorithm>
+#include <iterator>
 #include <sstream>
 
 /**
@@ -156,13 +157,13 @@ config
 
   if (m_parent)
   {
-    keys = m_parent->available_values();
+    keys_t parent_keys = m_parent->available_values();
 
-    keys_t::iterator const i = std::remove_if(keys.begin(), keys.end(), boost::bind(does_not_begin_with, _1, m_name));
+    keys_t::iterator const i = std::remove_if(parent_keys.begin(), parent_keys.end(), boost::bind(does_not_begin_with, _1, m_name));
 
-    keys.erase(i, keys.end());
+    parent_keys.erase(i, parent_keys.end());
 
-    std::for_each(keys.begin(), keys.end(), strip_block_name);
+    std::transform(parent_keys.begin(), parent_keys.end(), std::back_inserter(keys), strip_block_name);
   }
   else
   {

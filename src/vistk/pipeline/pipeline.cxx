@@ -39,7 +39,7 @@ namespace vistk
 class pipeline::priv
 {
   public:
-    priv(pipeline* pipe);
+    priv(pipeline* pipe, config_t conf);
     ~priv();
 
     void check_duplicate_name(process::name_t const& name);
@@ -104,6 +104,7 @@ class pipeline::priv
     void ensure_setup() const;
 
     pipeline* const q;
+    config_t const config;
 
     connections_t planned_connections;
     connections_t connections;
@@ -135,6 +136,8 @@ class pipeline::priv
     static bool is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection);
     static bool is_group_connection_for(connection_t const& connection, group_connection_t const& gconnection);
 
+    static config::key_t const config_edge;
+
     class propagation_exception
       : public pipeline_exception
     {
@@ -156,10 +159,12 @@ class pipeline::priv
     };
 };
 
+config::key_t const pipeline::priv::config_edge = config::key_t("_edge");
+
 pipeline
 ::pipeline(config_t const& config)
 {
-  d.reset(new priv(this));
+  d.reset(new priv(this, config));
 
   if (!config)
   {
@@ -1214,8 +1219,9 @@ pipeline
 }
 
 pipeline::priv
-::priv(pipeline* pipe)
+::priv(pipeline* pipe, config_t conf)
   : q(pipe)
+  , config(conf)
   , setup(false)
   , setup_in_progress(false)
   , setup_successful(false)
@@ -1842,7 +1848,7 @@ pipeline::priv
     process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
     process::port_flags_t const& down_flags = down_info->flags;
 
-    config_t edge_config = config::empty_config();
+    config_t edge_config = config->subblock(priv::config_edge);
 
     // Configure the edge.
     {
@@ -1851,6 +1857,7 @@ pipeline::priv
       bool const has_nodep = (it != down_flags.end());
 
       edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
+      edge_config->mark_read_only(edge::config_dependency);
     }
 
     edge_t e = boost::make_shared<edge>(edge_config);

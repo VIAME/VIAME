@@ -10,6 +10,7 @@ vistk_build_test(config libraries test_config.cxx)
 
 vistk_make_test(config has_value)
 vistk_make_test(config get_value)
+vistk_make_test(config get_value_nested)
 vistk_make_test(config get_value_no_exist)
 vistk_make_test(config get_value_type_mismatch)
 vistk_make_test(config bool_conversion)

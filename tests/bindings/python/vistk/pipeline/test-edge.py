@@ -76,6 +76,7 @@ def test_api_calls():
     e.is_downstream_complete()
 
     e.config_dependency
+    e.config_capacity
 
 
 def test_datum_api_calls():
