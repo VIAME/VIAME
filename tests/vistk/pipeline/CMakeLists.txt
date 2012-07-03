@@ -218,7 +218,7 @@ if (VISTK_ENABLE_PYTHON)
 
   if (WIN32)
     set(python_module_path
-      "${python_module_path}/$<CONFIGURATION>")
+      "${python_module_path}/${CMAKE_CFG_INTDIR}")
   endif (WIN32)
 
   set(cur_python_path

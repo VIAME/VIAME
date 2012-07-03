@@ -94,7 +94,7 @@ set(test_working_path
 
 if (WIN32)
   set(test_output_path
-    "${test_output_path}/$<CONFIGURATION>")
+    "${test_output_path}/${CMAKE_CFG_INTDIR}")
 endif (WIN32)
 
 set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
@@ -161,12 +161,8 @@ function (vistk_make_test testname instance)
   set_tests_properties(test-${testname}-${instance}
     PROPERTIES
       WORKING_DIRECTORY       "${test_working_path}"
-      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
-  if (NOT WIN32)
-    set_tests_properties(test-${testname}-${instance}
-      PROPERTIES
-        REQUIRED_FILES "${test_output_path}/test-${testname}")
-  endif (NOT WIN32)
+      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: "
+      REQUIRED_FILES          "${test_output_path}/test-${testname}")
   if (test_environment)
     set_tests_properties(test-${testname}-${instance}
       PROPERTIES
