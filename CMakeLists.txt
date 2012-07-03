@@ -137,6 +137,16 @@ if (VISTK_ENABLE_PYTHON)
       ${PYTHON_VERSION})
   endif (VISTK_ENABLE_PYTHON3)
 
+  if (WIN32)
+    # This is to avoid Boost.Python's headers to have __declspec(dllimport) in
+    # the headers which confuses Visual Studio's linker.
+    option(VISTK_HACK_LINK_BOOST_PYTHON_STATIC "Link Boost.Python statically" ON)
+    mark_as_advanced(VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
+    if (VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
+      add_definitions(-DBOOST_PYTHON_STATIC_LIB)
+    endif (VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
+  endif (WIN32)
+
   if (CMAKE_VERSION VERSION_LESS "2.8.8")
     message(WARNING "Python 3 support may not work with CMake versions older than 2.8.8")
   endif (CMAKE_VERSION VERSION_LESS "2.8.8")
