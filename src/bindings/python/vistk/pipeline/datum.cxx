@@ -94,7 +94,7 @@ new_datum(object const& obj)
 
   (void)gil;
 
-  boost::any const any = extract<boost::any>(obj);
+  boost::any const any = extract<boost::any>(obj)();
 
   return vistk::datum::new_datum(any);
 }
