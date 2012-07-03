@@ -23,10 +23,16 @@
 
 #include <numpy/arrayobject.h>
 
-#if VXL_HAS_INT_64 && 0
-#define INT64_CALLS(call, sep)             \
+#if VXL_HAS_INT_64
+#if VXL_INT_64_IS_LONG
+#define LONG_CALLS(call, sep)     \
+    SEP(sep) call(NPY_LONG, long) \
+    SEP(sep) call(NPY_ULONG, unsigned long)
+#else
+#define LONG_CALLS(call, sep)              \
     SEP(sep) call(NPY_LONGLONG, long long) \
     SEP(sep) call(NPY_ULONGLONG, unsigned long long)
+#endif
 #else
 #define INT64_CALLS(call, sep)
 #endif
@@ -54,20 +60,18 @@
 #define SEP_NONE
 #define END_NONE
 
-#define FORMAT_CONVERSION(call, sep)               \
-  BEG(sep) call(NPY_BOOL, bool)                    \
-  SEP(sep) call(NPY_BYTE, signed char)             \
-  SEP(sep) call(NPY_UBYTE, unsigned char)          \
-  SEP(sep) call(NPY_SHORT, short)                  \
-  SEP(sep) call(NPY_USHORT, unsigned short)        \
-  SEP(sep) call(NPY_INT, int)                      \
-  SEP(sep) call(NPY_UINT, unsigned int)            \
-  SEP(sep) call(NPY_LONG, long)                    \
-  SEP(sep) call(NPY_ULONG, unsigned long)          \
-           INT64_CALLS(call, sep)                  \
-  SEP(sep) call(NPY_FLOAT, float)                  \
-  SEP(sep) call(NPY_DOUBLE, double)                \
-           COMPLEX_CALLS(call, sep)                \
+#define FORMAT_CONVERSION(call, sep)        \
+  BEG(sep) call(NPY_BOOL, bool)             \
+  SEP(sep) call(NPY_BYTE, signed char)      \
+  SEP(sep) call(NPY_UBYTE, unsigned char)   \
+  SEP(sep) call(NPY_SHORT, short)           \
+  SEP(sep) call(NPY_USHORT, unsigned short) \
+  SEP(sep) call(NPY_INT, int)               \
+  SEP(sep) call(NPY_UINT, unsigned int)     \
+           LONG_CALLS(call, sep)            \
+  SEP(sep) call(NPY_FLOAT, float)           \
+  SEP(sep) call(NPY_DOUBLE, double)         \
+           COMPLEX_CALLS(call, sep)         \
   END(sep)
 
 #endif // VISTK_PYTHON_NUMPY_TYPE_MAPPINGS_H
