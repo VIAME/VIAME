@@ -5,9 +5,9 @@
 
 
 try:
-    from straight.plugin import loaders
-except:
     from . import loaders
+except:
+    from straight.plugin import loaders
 
 
 def _log(msg):
