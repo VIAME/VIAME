@@ -164,7 +164,7 @@ endif (VISTK_ENABLE_DOCUMENTATION)
 
 option(VISTK_ENABLE_TOOLS "Build tools" ON)
 
-set(vistk_boost_version 1.46)
+set(vistk_boost_version 1.47)
 
 if (VISTK_ENABLE_PYTHON)
   set(vistk_boost_version 1.48)
@@ -174,6 +174,7 @@ set(BOOST_ROOT "" CACHE PATH "The root path to Boost")
 option(Boost_USE_STATIC_LIBS "Use a statically-linked Boost" OFF)
 find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
+    chrono
     date_time
     filesystem
     system

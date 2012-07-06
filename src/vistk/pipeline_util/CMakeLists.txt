@@ -59,6 +59,7 @@ vistk_add_library(vistk_pipeline_util
   ${pipeline_util_srcs})
 target_link_libraries(vistk_pipeline_util
   vistk_pipeline
+  ${Boost_CHRONO_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_THREAD_LIBRARY})
