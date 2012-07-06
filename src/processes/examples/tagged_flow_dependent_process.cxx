@@ -8,8 +8,6 @@
 
 #include <vistk/pipeline/datum.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file tagged_flow_dependent_process.cxx
  *
@@ -81,23 +79,23 @@ tagged_flow_dependent_process
 {
   priv::tag_t const tag = "tag";
 
-  declare_input_port(priv::port_untagged_input, boost::make_shared<port_info>(
+  declare_input_port(priv::port_untagged_input,
     type_flow_dependent,
     port_flags_t(),
-    port_description_t("An untagged input port with a flow dependent type.")));
-  declare_input_port(priv::port_tagged_input, boost::make_shared<port_info>(
+    port_description_t("An untagged input port with a flow dependent type."));
+  declare_input_port(priv::port_tagged_input,
     type_flow_dependent + tag,
     port_flags_t(),
-    port_description_t("A tagged input port with a flow dependent type.")));
+    port_description_t("A tagged input port with a flow dependent type."));
 
-  declare_output_port(priv::port_untagged_output, boost::make_shared<port_info>(
+  declare_output_port(priv::port_untagged_output,
     type_flow_dependent,
     port_flags_t(),
-    port_description_t("An untagged output port with a flow dependent type")));
-  declare_output_port(priv::port_tagged_output, boost::make_shared<port_info>(
+    port_description_t("An untagged output port with a flow dependent type"));
+  declare_output_port(priv::port_tagged_output,
     type_flow_dependent + tag,
     port_flags_t(),
-    port_description_t("A tagged output port with a flow dependent type")));
+    port_description_t("A tagged output port with a flow dependent type"));
 }
 
 tagged_flow_dependent_process::priv

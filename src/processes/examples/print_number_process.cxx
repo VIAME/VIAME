@@ -12,7 +12,6 @@
 #include <vistk/pipeline/process_exception.h>
 
 #include <boost/cstdint.hpp>
-#include <boost/make_shared.hpp>
 
 #include <fstream>
 #include <string>
@@ -49,18 +48,20 @@ print_number_process
 ::print_number_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_path,
     config::value_t(),
-    config::description_t("The path of the file to output to.")));
+    config::description_t("The path of the file to output to."));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_input, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_input,
     "integer",
     required,
-    port_description_t("Where numbers are read from.")));
+    port_description_t("Where numbers are read from."));
 }
 
 print_number_process

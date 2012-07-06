@@ -9,8 +9,6 @@
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/edge.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file sink_process.cxx
  *
@@ -40,10 +38,11 @@ sink_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_input, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_input,
     type_any,
     required,
-    port_description_t("The data to ignore.")));
+    port_description_t("The data to ignore."));
 }
 
 sink_process

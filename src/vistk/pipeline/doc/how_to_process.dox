@@ -69,7 +69,7 @@
  * Here, the configuration name and defaults are defined. The key is wrapped in
  * the \ref vistk::config::key_t constructor to future-proof the code.
  *
- * \until )));
+ * \until ));
  *
  * Processes also need to offer introspection for the configuration values. In
  * order to do this, the \ref vistk::process::_available_config and \ref

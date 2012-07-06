@@ -952,20 +952,22 @@ void
 remove_ports_process
 ::create_input_port(port_t const& port, port_type_t const& port_type)
 {
-  declare_input_port(port, boost::make_shared<port_info>(
+  declare_input_port(
+    port,
     port_type,
     port_flags_t(),
-    port_description_t("input port")));
+    port_description_t("input port"));
 }
 
 void
 remove_ports_process
 ::create_output_port(port_t const& port, port_type_t const& port_type)
 {
-  declare_output_port(port, boost::make_shared<port_info>(
+  declare_output_port(
+    port,
     port_type,
     port_flags_t(),
-    port_description_t("output port")));
+    port_description_t("output port"));
 }
 
 void

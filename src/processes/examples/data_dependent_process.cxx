@@ -8,8 +8,6 @@
 
 #include <vistk/pipeline/datum.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file data_dependent_process.cxx
  *
@@ -47,12 +45,14 @@ data_dependent_process
 ::data_dependent_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_reject, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_reject,
     priv::default_reject,
-    config::description_t("Whether to reject type setting requests or not.")));
-  declare_configuration_key(priv::config_set_on_configure, boost::make_shared<conf_info>(
+    config::description_t("Whether to reject type setting requests or not."));
+  declare_configuration_key(
+    priv::config_set_on_configure,
     priv::default_set_on_configure,
-    config::description_t("Whether to set the type on configure or not.")));
+    config::description_t("Whether to set the type on configure or not."));
 
   bool const reject = config_value<bool>(priv::config_reject);
   bool const set_on_configure = config_value<bool>(priv::config_set_on_configure);
@@ -123,10 +123,11 @@ void
 data_dependent_process
 ::make_ports()
 {
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_output,
     type_data_dependent,
     port_flags_t(),
-    port_description_t("An output port with a data dependent type")));
+    port_description_t("An output port with a data dependent type"));
 }
 
 data_dependent_process::priv

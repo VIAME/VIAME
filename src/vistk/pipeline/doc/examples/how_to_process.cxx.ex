@@ -43,26 +43,30 @@ compare_string_process
 ::compare_string_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_icase, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_icase,
     priv::default_icase,
-    config::description_t("If set to \'true\', compares strings case insensitively.")));
+    config::description_t("If set to \'true\', compares strings case insensitively."));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_string1, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_string1,
     "string",
     required,
-    port_description_t("The first string to compare.")));
-  declare_input_port(priv::port_string2, boost::make_shared<port_info>(
+    port_description_t("The first string to compare."));
+  declare_input_port(
+    priv::port_string2,
     "string",
     required,
-    port_description_t("The second string to compare.")));
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+    port_description_t("The second string to compare."));
+  declare_output_port(
+    priv::port_output,
     "bool",
     required,
-    port_description_t("Sends \'true\' if the strings were the same.")));
+    port_description_t("Sends \'true\' if the strings were the same."));
 }
 
 compare_string_process::priv

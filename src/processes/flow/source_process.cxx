@@ -13,7 +13,6 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
 
 #include <algorithm>
 #include <string>
@@ -154,14 +153,16 @@ source_process
 
       required.insert(flag_required);
 
-      declare_input_port(port, boost::make_shared<port_info>(
+      declare_input_port(
+        port,
         type_flow_dependent + tag,
         required,
-        port_description_t("The original data stream for " + tag + ".")));
-      declare_output_port(priv::port_out_prefix + tag, boost::make_shared<port_info>(
+        port_description_t("The original data stream for " + tag + "."));
+      declare_output_port(
+        priv::port_out_prefix + tag,
         type_flow_dependent + tag,
         required,
-        port_description_t("The recolored data stream for " + tag + ".")));
+        port_description_t("The recolored data stream for " + tag + "."));
     }
   }
 

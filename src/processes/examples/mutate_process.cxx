@@ -8,8 +8,6 @@
 
 #include <vistk/pipeline/datum.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file mutate_process.cxx
  *
@@ -40,10 +38,11 @@ mutate_process
   mutate_required.insert(flag_required);
   mutate_required.insert(flag_input_mutable);
 
-  declare_input_port(priv::port_input, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_input,
     type_any,
     mutate_required,
-    port_description_t("The port with the mutate flag set.")));
+    port_description_t("The port with the mutate flag set."));
 }
 
 mutate_process

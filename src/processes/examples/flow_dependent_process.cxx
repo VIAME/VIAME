@@ -8,8 +8,6 @@
 
 #include <vistk/pipeline/datum.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file flow_dependent_process.cxx
  *
@@ -44,9 +42,10 @@ flow_dependent_process
 ::flow_dependent_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_reject, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_reject,
     priv::default_reject,
-    config::description_t("Whether to reject type setting requests or not.")));
+    config::description_t("Whether to reject type setting requests or not."));
 
   bool const reject = config_value<bool>(priv::config_reject);
 
@@ -111,15 +110,17 @@ flow_dependent_process
 {
   priv::tag_t const tag = priv::tag_t("tag");
 
-  declare_input_port(priv::port_input, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_input,
     type_flow_dependent + tag,
     port_flags_t(),
-    port_description_t("An input port with a flow dependent type.")));
+    port_description_t("An input port with a flow dependent type."));
 
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_output,
     type_flow_dependent + tag,
     port_flags_t(),
-    port_description_t("An output port with a flow dependent type")));
+    port_description_t("An output port with a flow dependent type"));
 }
 
 flow_dependent_process::priv

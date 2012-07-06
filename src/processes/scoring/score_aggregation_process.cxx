@@ -56,19 +56,22 @@ score_aggregation_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_score, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_score,
     "score",
     required,
-    port_description_t("The scores to aggregate.")));
+    port_description_t("The scores to aggregate."));
 
-  declare_output_port(priv::port_aggregate, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_aggregate,
     "score",
     required,
-    port_description_t("The aggregate scores.")));
-  declare_output_port(priv::port_statistics, boost::make_shared<port_info>(
+    port_description_t("The aggregate scores."));
+  declare_output_port(
+    priv::port_statistics,
     "statistics/score",
     port_flags_t(),
-    port_description_t("Statistics on the aggregate scores.")));
+    port_description_t("Statistics on the aggregate scores."));
 }
 
 score_aggregation_process

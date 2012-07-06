@@ -22,7 +22,6 @@
 #include <boost/date_time/local_time/local_time.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/make_shared.hpp>
 
 #include <fstream>
 #include <string>
@@ -97,12 +96,14 @@ component_score_json_writer_process
   : process(config)
   , d(new priv)
 {
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_path,
     config::value_t(),
-    config::description_t("The path to output scores to.")));
-  declare_configuration_key(priv::config_name, boost::make_shared<conf_info>(
+    config::description_t("The path to output scores to."));
+  declare_configuration_key(
+    priv::config_name,
     priv::default_name,
-    config::description_t("The name of the results.")));
+    config::description_t("The name of the results."));
 }
 
 component_score_json_writer_process
@@ -320,14 +321,16 @@ component_score_json_writer_process
 
       required.insert(flag_required);
 
-      declare_input_port(port_score, boost::make_shared<port_info>(
+      declare_input_port(
+        port_score,
         "score",
         required,
-        port_description_t("The \'" + tag + "\' score component.")));
-      declare_input_port(port_stats, boost::make_shared<port_info>(
+        port_description_t("The \'" + tag + "\' score component."));
+      declare_input_port(
+        port_stats,
         "statistics/score",
         port_flags_t(),
-        port_description_t("The \'" + tag + "\' score statistics component.")));
+        port_description_t("The \'" + tag + "\' score statistics component."));
     }
   }
 

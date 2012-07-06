@@ -11,7 +11,6 @@
 #include <vistk/pipeline/process_exception.h>
 
 #include <boost/cstdint.hpp>
-#include <boost/make_shared.hpp>
 
 #include <string>
 
@@ -54,21 +53,24 @@ number_process
 ::number_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_start, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_start,
     priv::default_start,
-    config::description_t("The value to start counting at.")));
-  declare_configuration_key(priv::config_end, boost::make_shared<conf_info>(
+    config::description_t("The value to start counting at."));
+  declare_configuration_key(
+    priv::config_end,
     priv::default_end,
-    config::description_t("The value to stop counting at.")));
+    config::description_t("The value to stop counting at."));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_output,
     "integer",
     required,
-    port_description_t("Where the numbers will be available.")));
+    port_description_t("Where the numbers will be available."));
 }
 
 number_process

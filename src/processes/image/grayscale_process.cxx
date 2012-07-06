@@ -13,8 +13,6 @@
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 
-#include <boost/make_shared.hpp>
-
 #include <string>
 
 /**
@@ -53,12 +51,14 @@ grayscale_process
 ::grayscale_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_pixtype,
     priv::default_pixtype,
-    config::description_t("The pixel type of the input images.")));
-  declare_configuration_key(priv::config_pixfmt, boost::make_shared<conf_info>(
+    config::description_t("The pixel type of the input images."));
+  declare_configuration_key(
+    priv::config_pixfmt,
     priv::default_pixfmt,
-    config::description_t("The pixel format of the input images.")));
+    config::description_t("The pixel format of the input images."));
 
   pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
   pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
@@ -70,14 +70,16 @@ grayscale_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_input, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_input,
     port_type_input,
     required,
-    port_description_t("The image to turn into grayscale.")));
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+    port_description_t("The image to turn into grayscale."));
+  declare_input_port(
+    priv::port_output,
     port_type_output,
     required,
-    port_description_t("The resulting grayscale image.")));
+    port_description_t("The resulting grayscale image."));
 }
 
 grayscale_process
