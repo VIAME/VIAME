@@ -74,34 +74,6 @@ timestamp
   return *m_frame;
 }
 
-void
-timestamp
-::set_time(time_t t)
-{
-  m_time = t;
-}
-
-void
-timestamp
-::set_frame(frame_t f)
-{
-  m_frame = f;
-}
-
-void
-timestamp
-::clear_time()
-{
-  m_time = boost::none_t();
-}
-
-void
-timestamp
-::clear_frame()
-{
-  m_frame = boost::none_t();
-}
-
 bool
 timestamp
 ::is_valid() const
