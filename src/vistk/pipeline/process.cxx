@@ -747,6 +747,19 @@ process
 
 void
 process
+::declare_input_port(port_t const& port,
+                     port_type_t const& type_,
+                     port_flags_t const& flags_,
+                     port_description_t const& description_)
+{
+  declare_input_port(port, boost::make_shared<port_info>(
+    type_,
+    flags_,
+    description_));
+}
+
+void
+process
 ::declare_output_port(port_t const& port, port_info_t const& info)
 {
   if (!info)
@@ -786,6 +799,19 @@ process
   {
     d->required_outputs.push_back(port);
   }
+}
+
+void
+process
+::declare_output_port(port_t const& port,
+                      port_type_t const& type_,
+                      port_flags_t const& flags_,
+                      port_description_t const& description_)
+{
+  declare_output_port(port, boost::make_shared<port_info>(
+    type_,
+    flags_,
+    description_));
 }
 
 void
@@ -870,7 +896,7 @@ process
 
 void
 process
-::declare_configuration_key(config::key_t const& key,conf_info_t const& info)
+::declare_configuration_key(config::key_t const& key, conf_info_t const& info)
 {
   if (!info)
   {
@@ -878,6 +904,17 @@ process
   }
 
   d->config_keys[key] = info;
+}
+
+void
+process
+::declare_configuration_key(config::key_t const& key,
+                            config::value_t const& def_,
+                            config::description_t const& description_)
+{
+  declare_configuration_key(key, boost::make_shared<conf_info>(
+    def_,
+    description_));
 }
 
 void

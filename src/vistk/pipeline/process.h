@@ -569,6 +569,31 @@ class VISTK_PIPELINE_EXPORT process
     void declare_output_port(port_t const& port, port_info_t const& info);
 
     /**
+     * \brief Declare an input port for the process.
+     *
+     * \param port The port name.
+     * \param type_ The type of the port.
+     * \param flags_ Flags for the port.
+     * \param description_ A description of the port.
+     */
+    void declare_input_port(port_t const& port,
+                            port_type_t const& type_,
+                            port_flags_t const& flags_,
+                            port_description_t const& description_);
+    /**
+     * \brief Declare an output port for the process.
+     *
+     * \param port The port name.
+     * \param type_ The type of the port.
+     * \param flags_ Flags for the port.
+     * \param description_ A description of the port.
+     */
+    void declare_output_port(port_t const& port,
+                             port_type_t const& type_,
+                             port_flags_t const& flags_,
+                             port_description_t const& description_);
+
+    /**
      * \brief Remove an input port from the process.
      *
      * \param port The input port to remove.
@@ -590,6 +615,17 @@ class VISTK_PIPELINE_EXPORT process
      * \param info Information about the port.
      */
     void declare_configuration_key(config::key_t const& key, conf_info_t const& info);
+
+    /**
+     * \brief Declare a configuration value for the process.
+     *
+     * \param key The configuration key.
+     * \param def_ The default value for the parameter.
+     * \param description_ A description of the value.
+     */
+    void declare_configuration_key(config::key_t const& key,
+                                   config::value_t const& def_,
+                                   config::description_t const& description_);
 
     /**
      * \brief Mark the process as complete.
