@@ -17,7 +17,7 @@ add_python_module(modules.py
   vistk/modules
   modules)
 
-option(VISTK_ASSUME_STRAIGHT_PLUGIN "Assume the straight.plugin Python module exists" OFF)
+option(VISTK_ASSUME_STRAIGHT_PLUGIN "Assume the straight.plugin Python module exists (needs >= 1.3.1)" OFF)
 if (NOT VISTK_ASSUME_STRAIGHT_PLUGIN)
   add_python_module(loaders.py
     vistk/modules
