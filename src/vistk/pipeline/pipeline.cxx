@@ -136,7 +136,10 @@ class pipeline::priv
     static bool is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection);
     static bool is_group_connection_for(connection_t const& connection, group_connection_t const& gconnection);
 
+    static process::port_t const port_sep;
     static config::key_t const config_edge;
+    static config::key_t const config_edge_type;
+    static config::key_t const config_edge_conn;
 
     class propagation_exception
       : public pipeline_exception
@@ -159,7 +162,10 @@ class pipeline::priv
     };
 };
 
+process::port_t const pipeline::priv::port_sep = config::key_t(".");
 config::key_t const pipeline::priv::config_edge = config::key_t("_edge");
+config::key_t const pipeline::priv::config_edge_type = config::key_t("_edge_by_type");
+config::key_t const pipeline::priv::config_edge_conn = config::key_t("_edge_by_conn");
 
 pipeline
 ::pipeline(config_t const& config)
@@ -1849,6 +1855,30 @@ pipeline::priv
     process::port_flags_t const& down_flags = down_info->flags;
 
     config_t edge_config = config->subblock(priv::config_edge);
+
+    // Configure the edge based on its type.
+    {
+      process::port_type_t const& down_type = down_info->type;
+      config_t const type_config = config->subblock(priv::config_edge_type);
+      config_t const edge_type_config = type_config->subblock(down_type);
+
+      edge_config->merge_config(edge_type_config);
+    }
+
+    // Configure the edge based on what it is mapped to.
+    {
+      /// \todo Remember mappings.
+    }
+
+    // Configure the edge based on the connected ports.
+    {
+      config_t const conn_config = config->subblock(priv::config_edge_conn);
+      config_t const up_config = conn_config->subblock(upstream_name + priv::port_sep + upstream_port);
+      config_t const down_config = conn_config->subblock(downstream_name + priv::port_sep + downstream_port);
+
+      edge_config->merge_config(up_config);
+      edge_config->merge_config(down_config);
+    }
 
     // Configure the edge.
     {
