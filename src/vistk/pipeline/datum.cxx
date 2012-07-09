@@ -86,15 +86,28 @@ datum
 }
 
 bad_datum_cast_exception
-::bad_datum_cast_exception(datum::type_t const& type, char const* reason) throw()
+::bad_datum_cast_exception(char const* typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw()
   : datum_exception()
+  , m_typeid(typeid_)
   , m_type(type)
+  , m_error(error)
   , m_reason(reason)
 {
   std::ostringstream sstr;
 
-  sstr << "Failed to cast key datum of type "
-          "\'" << m_type << "\': " << m_reason << ".";
+  if (m_type == datum::error)
+  {
+    sstr << "Failed to cast datum of type "
+            "\'" << m_type << "\' (" << m_error << ") into "
+         << m_typeid << ": "
+         << m_reason << ".";
+  }
+  else
+  {
+    sstr << "Failed to cast datum of type "
+            "\'" << m_type << "\' into " << m_typeid << ": "
+         << m_reason << ".";
+  }
 
   m_what = sstr.str();
 }

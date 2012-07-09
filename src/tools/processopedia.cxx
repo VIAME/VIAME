@@ -4,6 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include "helpers/tool_main.h"
+
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/process.h>
@@ -31,7 +33,7 @@ static po::options_description make_options();
 static void VISTK_NO_RETURN usage(po::options_description const& options);
 
 int
-main(int argc, char* argv[])
+tool_main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
@@ -83,28 +85,17 @@ main(int argc, char* argv[])
 
   BOOST_FOREACH (vistk::process::type_t const& proc_type, types)
   {
-    if (!vm.count("detail"))
-    {
-      try
-      {
-        std::cout << proc_type << ": " << reg->description(proc_type) << std::endl;
-      }
-      catch (vistk::no_such_process_type_exception const& e)
-      {
-        std::cerr << "Error: " << e.what() << std::endl;
-      }
-
-      continue;
-    }
-
-    std::cout << "Process type: " << proc_type << std::endl;
-    std::cout << "  Description: " << reg->description(proc_type) << std::endl;
-
-    vistk::process_t proc_m;
-
     try
     {
-      proc_m = reg->create_process(proc_type, vistk::process::name_t());
+      if (!vm.count("detail"))
+      {
+        std::cout << proc_type << ": " << reg->description(proc_type) << std::endl;
+
+        continue;
+      }
+
+      std::cout << "Process type: " << proc_type << std::endl;
+      std::cout << "  Description: " << reg->description(proc_type) << std::endl;
     }
     catch (vistk::no_such_process_type_exception const& e)
     {
@@ -113,7 +104,7 @@ main(int argc, char* argv[])
       continue;
     }
 
-    vistk::process_t const proc = proc_m;
+    vistk::process_t const proc = reg->create_process(proc_type, vistk::process::name_t());
 
     vistk::process::constraints_t const constraints = proc->constraints();
     std::string const constraints_str = boost::join(constraints, ", ");

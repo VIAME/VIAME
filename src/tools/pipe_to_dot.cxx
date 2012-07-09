@@ -5,6 +5,7 @@
  */
 
 #include "helpers/pipeline_builder.h"
+#include "helpers/tool_main.h"
 
 #include <vistk/pipeline_util/export_dot.h>
 
@@ -35,7 +36,7 @@ static po::options_description make_options();
 static void VISTK_NO_RETURN usage(po::options_description const& options);
 
 int
-main(int argc, char* argv[])
+tool_main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 

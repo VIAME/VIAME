@@ -6,6 +6,7 @@
 
 #include "helpers/pipeline_builder.h"
 #include "helpers/literal_pipeline.h"
+#include "helpers/tool_main.h"
 
 #include <vistk/utilities/path.h>
 
@@ -40,7 +41,7 @@ static std::string base_pipeline();
 static std::string layer_connection(std::string const& layer);
 
 int
-main(int argc, char* argv[])
+tool_main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
