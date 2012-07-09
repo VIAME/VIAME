@@ -15,21 +15,15 @@ def make_source(conf):
             self.conf_start = 'start'
             self.conf_end = 'end'
 
-            info = process.ConfInfo(str(0), 'Starting number')
-
-            self.declare_configuration_key(self.conf_start, info)
-
-            info = process.ConfInfo(str(10), 'Ending number')
-
-            self.declare_configuration_key(self.conf_end, info)
+            self.declare_configuration_key(self.conf_start, str(0), 'Starting number')
+            self.declare_configuration_key(self.conf_end, str(10), 'Ending number')
 
             self.port_output = 'number'
 
             required = process.PortFlags()
             required.add(self.flag_required)
-            info = process.PortInfo('integer', required, 'output port')
 
-            self.declare_output_port(self.port_output, info)
+            self.declare_output_port(self.port_output, 'integer', required, 'output port')
 
         def _configure(self):
             self.counter = int(self.config_value(self.conf_start))
@@ -63,17 +57,14 @@ def make_sink(conf):
 
             self.conf_output = 'output'
 
-            info = process.ConfInfo('output.txt', 'Output file name')
-
-            self.declare_configuration_key(self.conf_output, info)
+            self.declare_configuration_key(self.conf_output, 'output.txt', 'Output file name')
 
             self.port_input = 'number'
 
             required = process.PortFlags()
             required.add(self.flag_required)
-            info = process.PortInfo('integer', required, 'input port')
 
-            self.declare_input_port(self.port_input, info)
+            self.declare_input_port(self.port_input, 'integer', required, 'input port')
 
         def _configure(self):
             output = self.config_value(self.conf_output)

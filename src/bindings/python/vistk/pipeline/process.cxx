@@ -90,12 +90,23 @@ class wrap_process
     conf_info_t _config_info(vistk::config::key_t const& key);
 
     void _declare_input_port(port_t const& port, port_info_t const& info);
+    void _declare_input_port_1(port_t const& port,
+                               port_type_t const& type_,
+                               port_flags_t const& flags_,
+                               port_description_t const& description_);
     void _declare_output_port(port_t const& port, port_info_t const& info);
+    void _declare_output_port_1(port_t const& port,
+                                port_type_t const& type_,
+                                port_flags_t const& flags_,
+                                port_description_t const& description_);
 
     void _remove_input_port(port_t const& port);
     void _remove_output_port(port_t const& port);
 
     void _declare_configuration_key(vistk::config::key_t const& key, conf_info_t const& info);
+    void _declare_configuration_key_1(vistk::config::key_t const& key,
+                                      vistk::config::value_t const& def_,
+                                      vistk::config::description_t const& description_);
 
     void _mark_process_as_complete();
     vistk::stamp_t _heartbeat_stamp() const;
@@ -341,8 +352,14 @@ BOOST_PYTHON_MODULE(process)
     .def("declare_input_port", &wrap_process::_declare_input_port
       , (arg("port"), arg("info"))
       , "Declare an input port on the process.")
+    .def("declare_input_port", &wrap_process::_declare_input_port_1
+      , (arg("port"), arg("type"), arg("flags"), arg("description"))
+      , "Declare an input port on the process.")
     .def("declare_output_port", &wrap_process::_declare_output_port
       , (arg("port"), arg("info"))
+      , "Declare an output port on the process.")
+    .def("declare_output_port", &wrap_process::_declare_output_port_1
+      , (arg("port"), arg("type"), arg("flags"), arg("description"))
       , "Declare an output port on the process.")
     .def("remove_input_port", &wrap_process::_remove_input_port
       , (arg("port"))
@@ -352,6 +369,9 @@ BOOST_PYTHON_MODULE(process)
       , "Remove an output port from the process.")
     .def("declare_configuration_key", &wrap_process::_declare_configuration_key
       , (arg("key"), arg("info"))
+      , "Declare a configuration key for the process.")
+    .def("declare_configuration_key", &wrap_process::_declare_configuration_key_1
+      , (arg("key"), arg("default"), arg("description"))
       , "Declare a configuration key for the process.")
     .def("mark_process_as_complete", &wrap_process::_mark_process_as_complete
       , "Tags the process as complete.")
@@ -839,9 +859,29 @@ wrap_process
 
 void
 wrap_process
+::_declare_input_port_1(port_t const& port,
+                        port_type_t const& type_,
+                        port_flags_t const& flags_,
+                        port_description_t const& description_)
+{
+  declare_input_port(port, type_, flags_, description_);
+}
+
+void
+wrap_process
 ::_declare_output_port(port_t const& port, port_info_t const& info)
 {
   declare_output_port(port, info);
+}
+
+void
+wrap_process
+::_declare_output_port_1(port_t const& port,
+                         port_type_t const& type_,
+                         port_flags_t const& flags_,
+                         port_description_t const& description_)
+{
+  declare_output_port(port, type_, flags_, description_);
 }
 
 void
@@ -863,6 +903,15 @@ wrap_process
 ::_declare_configuration_key(vistk::config::key_t const& key, conf_info_t const& info)
 {
   declare_configuration_key(key, info);
+}
+
+void
+wrap_process
+::_declare_configuration_key_1(vistk::config::key_t const& key,
+                               vistk::config::value_t const& def_,
+                               vistk::config::description_t const& description_)
+{
+  declare_configuration_key(key, def_, description_);
 }
 
 void
