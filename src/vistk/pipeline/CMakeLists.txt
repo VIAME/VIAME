@@ -121,7 +121,8 @@ target_link_libraries(vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_THREAD_LIBRARY}
-  ${CMAKE_DL_LIBS})
+  ${CMAKE_DL_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(vistk_pipeline LINK_INTERFACE_LIBRARIES)
 set_target_properties(vistk_pipeline
   PROPERTIES

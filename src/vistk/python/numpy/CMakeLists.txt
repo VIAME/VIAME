@@ -21,7 +21,8 @@ target_link_libraries(vistk_python_numpy
   vistk_python_util
   ${Boost_THREAD_LIBRARY}
   ${${boost_python_library_var}}
-  ${PYTHON_LIBRARIES})
+  ${PYTHON_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(vistk_python_numpy LINK_INTERFACE_LIBRARIES
   vil
   ${${boost_python_library_var}}

@@ -62,7 +62,8 @@ target_link_libraries(vistk_pipeline_util
   ${Boost_CHRONO_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
-  ${Boost_THREAD_LIBRARY})
+  ${Boost_THREAD_LIBRARY}
+  ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(vistk_pipeline_util LINK_INTERFACE_LIBRARIES
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
