@@ -116,11 +116,13 @@ set_source_files_properties(utils.cxx
 vistk_add_library(vistk_pipeline
   ${pipeline_srcs})
 target_link_libraries(vistk_pipeline
+  ${Boost_CHRONO_LIBRARY}
   ${Boost_DATE_TIME_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_THREAD_LIBRARY}
-  ${CMAKE_DL_LIBS})
+  ${CMAKE_DL_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(vistk_pipeline LINK_INTERFACE_LIBRARIES)
 set_target_properties(vistk_pipeline
   PROPERTIES
