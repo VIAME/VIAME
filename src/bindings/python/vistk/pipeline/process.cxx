@@ -943,7 +943,7 @@ wrap_process
 
   (void)gil;
 
-  boost::any const any = extract<boost::any>(obj);
+  boost::any const any = extract<boost::any>(obj)();
   vistk::datum_t const dat = vistk::datum::new_datum(any);
 
   return push_datum_to_port(port, dat);

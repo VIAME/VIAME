@@ -25,6 +25,8 @@ add_subdirectory(util)
 add_subdirectory(any_conversion)
 
 if (NUMPY_FOUND)
+  include_directories(SYSTEM ${NUMPY_INCLUDE_DIR})
+
   add_subdirectory(numpy)
 endif (NUMPY_FOUND)
 
