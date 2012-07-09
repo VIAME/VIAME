@@ -78,7 +78,8 @@ static lib_suffix_t const library_suffix = lib_suffix_t(
 #endif
   );
 
-void load_known_modules()
+void
+load_known_modules()
 {
   module_paths_t module_dirs;
 
@@ -160,7 +161,8 @@ look_in_directory(module_path_t const& directory)
   }
 }
 
-void load_from_module(module_path_t const path)
+void
+load_from_module(module_path_t const& path)
 {
   library_t library = NULL;
 
@@ -236,7 +238,8 @@ void load_from_module(module_path_t const path)
   }
 }
 
-bool is_separator(module_path_t::value_type ch)
+bool
+is_separator(module_path_t::value_type ch)
 {
   module_path_t::value_type const separator =
 #if defined(_WIN32) || defined(_WIN64)

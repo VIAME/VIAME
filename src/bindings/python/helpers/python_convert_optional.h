@@ -31,67 +31,86 @@ class boost_optional_converter
     typedef T type_t;
     typedef boost::optional<T> optional_t;
 
-    boost_optional_converter()
-    {
-      boost::python::converter::registry::push_back(
-        &convertible,
-        &construct,
-        boost::python::type_id<optional_t>());
-    }
-    ~boost_optional_converter()
-    {
-    }
+    boost_optional_converter();
+    ~boost_optional_converter();
 
-    static void*
-    convertible(PyObject* obj)
-    {
-      vistk::python::python_gil const gil;
+    static void* convertible(PyObject* obj);
+    static PyObject* convert(optional_t const& opt);
+    static void construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data);
+};
 
-      (void)gil;
+template <typename T>
+boost_optional_converter<T>
+::boost_optional_converter()
+{
+  boost::python::converter::registry::push_back(
+    &convertible,
+    &construct,
+    boost::python::type_id<optional_t>());
+}
 
-      if (obj == Py_None)
-      {
-        return obj;
-      }
+template <typename T>
+boost_optional_converter<T>
+::~boost_optional_converter()
+{
+}
 
-      using namespace boost::python::converter;
+template <typename T>
+void*
+boost_optional_converter<T>
+::convertible(PyObject* obj)
+{
+  vistk::python::python_gil const gil;
 
-      registration const& converters(registered<type_t>::converters);
+  (void)gil;
 
-      if (implicit_rvalue_convertible_from_python(obj, converters))
-      {
-        rvalue_from_python_stage1_data data = rvalue_from_python_stage1(obj, converters);
-        return rvalue_from_python_stage2(obj, data, converters);
-      }
+  if (obj == Py_None)
+  {
+    return obj;
+  }
 
-      return NULL;
-    }
+  using namespace boost::python::converter;
 
-    static PyObject*
-    convert(optional_t const& opt)
-    {
-      vistk::python::python_gil const gil;
+  registration const& converters(registered<type_t>::converters);
 
-      (void)gil;
+  if (implicit_rvalue_convertible_from_python(obj, converters))
+  {
+    rvalue_from_python_stage1_data data = rvalue_from_python_stage1(obj, converters);
+    return rvalue_from_python_stage2(obj, data, converters);
+  }
 
-      if (opt)
-      {
-        return boost::python::to_python_value<T>()(*opt);
-      }
-      else
-      {
-        Py_RETURN_NONE;
-      }
-    }
+  return NULL;
+}
 
-    static void
-    construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
-    {
-      vistk::python::python_gil const gil;
+template <typename T>
+PyObject*
+boost_optional_converter<T>
+::convert(optional_t const& opt)
+{
+  vistk::python::python_gil const gil;
 
-      (void)gil;
+  (void)gil;
 
-      void* const storage = reinterpret_cast<boost::python::converter::rvalue_from_python_storage<optional_t>*>(data)->storage.bytes;
+  if (opt)
+  {
+    return boost::python::to_python_value<T>()(*opt);
+  }
+  else
+  {
+    Py_RETURN_NONE;
+  }
+}
+
+template <typename T>
+void
+boost_optional_converter<T>
+::construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
+{
+  vistk::python::python_gil const gil;
+
+  (void)gil;
+
+  void* const storage = reinterpret_cast<boost::python::converter::rvalue_from_python_storage<optional_t>*>(data)->storage.bytes;
 
 #define CONSTRUCT(args)            \
   do                               \
@@ -101,19 +120,18 @@ class boost_optional_converter
     return;                        \
   } while (false)
 
-      if (obj == Py_None)
-      {
-        CONSTRUCT(());
-      }
-      else
-      {
-        type_t* const t = reinterpret_cast<type_t*>(data->convertible);
-        CONSTRUCT((*t));
-      }
+  if (obj == Py_None)
+  {
+    CONSTRUCT(());
+  }
+  else
+  {
+    type_t* const t = reinterpret_cast<type_t*>(data->convertible);
+    CONSTRUCT((*t));
+  }
 
 #undef CONSTRUCT
-    }
-};
+}
 
 template <typename T>
 void register_optional_converter(char const* name, char const* desc);
