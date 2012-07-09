@@ -11,8 +11,6 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_exception.h>
 
-#include <boost/make_shared.hpp>
-
 #include <string>
 
 /**
@@ -45,10 +43,11 @@ take_string_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_input, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_input,
     "string",
     required,
-    port_description_t("Where strings are read from.")));
+    port_description_t("Where strings are read from."));
 }
 
 take_string_process

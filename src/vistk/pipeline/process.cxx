@@ -420,20 +420,23 @@ process
     throw null_process_config_exception();
   }
 
-  declare_configuration_key(config_name, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    config_name,
     config::value_t(),
-    config::description_t("The name of the process.")));
-  declare_configuration_key(config_type, boost::make_shared<conf_info>(
+    config::description_t("The name of the process."));
+  declare_configuration_key(
+    config_type,
     config::value_t(),
-    config::description_t("The type of the process.")));
+    config::description_t("The type of the process."));
 
   d->name = config_value<name_t>(config_name);
   d->type = config_value<type_t>(config_type);
 
-  declare_output_port(port_heartbeat, boost::make_shared<port_info>(
+  declare_output_port(
+    port_heartbeat,
     type_none,
     port_flags_t(),
-    port_description_t("Outputs the heartbeat stamp with an empty datum.")));
+    port_description_t("Outputs the heartbeat stamp with an empty datum."));
 }
 
 process
@@ -572,20 +575,22 @@ process
 
       BOOST_FOREACH (port_t const& iport, iports)
       {
-        declare_input_port(iport, boost::make_shared<port_info>(
+        declare_input_port(
+          iport,
           new_type,
           info->flags,
-          info->description));
+          info->description);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
 
       BOOST_FOREACH (port_t const& oport, oports)
       {
-        declare_output_port(oport, boost::make_shared<port_info>(
+        declare_output_port(
+          oport,
           new_type,
           info->flags,
-          info->description));
+          info->description);
       }
 
       d->flow_tag_port_types[tag] = new_type;
@@ -594,10 +599,11 @@ process
     }
   }
 
-  declare_input_port(port, boost::make_shared<port_info>(
+  declare_input_port(
+    port,
     new_type,
     info->flags,
-    info->description));
+    info->description);
 
   return true;
 }
@@ -631,20 +637,22 @@ process
 
       BOOST_FOREACH (port_t const& iport, iports)
       {
-        declare_input_port(iport, boost::make_shared<port_info>(
+        declare_input_port(
+          iport,
           new_type,
           info->flags,
-          info->description));
+          info->description);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
 
       BOOST_FOREACH (port_t const& oport, oports)
       {
-        declare_output_port(oport, boost::make_shared<port_info>(
+        declare_output_port(
+          oport,
           new_type,
           info->flags,
-          info->description));
+          info->description);
       }
 
       d->flow_tag_port_types[tag] = new_type;
@@ -653,10 +661,11 @@ process
     }
   }
 
-  declare_output_port(port, boost::make_shared<port_info>(
+  declare_output_port(
+    port,
     new_type,
     info->flags,
-    info->description));
+    info->description);
 
   return true;
 }
@@ -705,10 +714,11 @@ process
     {
       port_type_t const& tag_type = *d->flow_tag_port_types[tag];
 
-      declare_input_port(port, boost::make_shared<port_info>(
+      declare_input_port(
+        port,
         tag_type,
         info->flags,
-        info->description));
+        info->description);
 
       return;
     }
@@ -730,9 +740,10 @@ process
 
   if (static_)
   {
-    declare_configuration_key(static_input_prefix + port, boost::make_shared<conf_info>(
+    declare_configuration_key(
+      static_input_prefix + port,
       config::value_t(),
-      config::description_t("A default value to use for the \'" + port + "\' port if it is not connected.")));
+      config::description_t("A default value to use for the \'" + port + "\' port if it is not connected."));
 
     d->static_inputs.push_back(port);
   }
@@ -743,6 +754,19 @@ process
   }
 
   d->input_ports[port] = info;
+}
+
+void
+process
+::declare_input_port(port_t const& port,
+                     port_type_t const& type_,
+                     port_flags_t const& flags_,
+                     port_description_t const& description_)
+{
+  declare_input_port(port, boost::make_shared<port_info>(
+    type_,
+    flags_,
+    description_));
 }
 
 void
@@ -768,10 +792,11 @@ process
     {
       port_type_t const& tag_type = *d->flow_tag_port_types[tag];
 
-      declare_output_port(port, boost::make_shared<port_info>(
+      declare_output_port(
+        port,
         tag_type,
         info->flags,
-        info->description));
+        info->description);
 
       return;
     }
@@ -786,6 +811,19 @@ process
   {
     d->required_outputs.push_back(port);
   }
+}
+
+void
+process
+::declare_output_port(port_t const& port,
+                      port_type_t const& type_,
+                      port_flags_t const& flags_,
+                      port_description_t const& description_)
+{
+  declare_output_port(port, boost::make_shared<port_info>(
+    type_,
+    flags_,
+    description_));
 }
 
 void
@@ -870,7 +908,7 @@ process
 
 void
 process
-::declare_configuration_key(config::key_t const& key,conf_info_t const& info)
+::declare_configuration_key(config::key_t const& key, conf_info_t const& info)
 {
   if (!info)
   {
@@ -878,6 +916,17 @@ process
   }
 
   d->config_keys[key] = info;
+}
+
+void
+process
+::declare_configuration_key(config::key_t const& key,
+                            config::value_t const& def_,
+                            config::description_t const& description_)
+{
+  declare_configuration_key(key, boost::make_shared<conf_info>(
+    def_,
+    description_));
 }
 
 void

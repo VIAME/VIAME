@@ -18,7 +18,6 @@
 #include <vistk/pipeline/stamp.h>
 
 #include <boost/algorithm/string/join.hpp>
-#include <boost/make_shared.hpp>
 
 #include <vidl/vidl_istream.h>
 
@@ -77,21 +76,26 @@ video_reader_process
   istream_impls_t const impls = known_istream_impls();
   std::string impls_str = boost::join(impls, impl_sep);
 
-  declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_pixtype,
     priv::default_pixtype,
-    config::description_t("The pixel type of the input images.")));
-  declare_configuration_key(priv::config_pixfmt, boost::make_shared<conf_info>(
+    config::description_t("The pixel type of the input images."));
+  declare_configuration_key(
+    priv::config_pixfmt,
     priv::default_pixfmt,
-    config::description_t("The pixel format of the input images.")));
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+    config::description_t("The pixel format of the input images."));
+  declare_configuration_key(
+    priv::config_path,
     config::value_t(),
-    config::description_t("The input file with a list of images to read.")));
-  declare_configuration_key(priv::config_verify, boost::make_shared<conf_info>(
+    config::description_t("The input file with a list of images to read."));
+  declare_configuration_key(
+    priv::config_verify,
     priv::default_verify,
-    config::description_t("If \'true\', the paths in the input file will checked that they can be read.")));
-  declare_configuration_key(priv::config_impl, boost::make_shared<conf_info>(
+    config::description_t("If \'true\', the paths in the input file will checked that they can be read."));
+  declare_configuration_key(
+    priv::config_impl,
     priv::default_impl,
-    config::description_t("The implementation to use for reading the input. Known: " + impls_str)));
+    config::description_t("The implementation to use for reading the input. Known: " + impls_str));
 
   pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
   pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
@@ -102,10 +106,11 @@ video_reader_process
 
   required.insert(flag_required);
 
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_output,
     port_type_output,
     required,
-    port_description_t("The images that are read in.")));
+    port_description_t("The images that are read in."));
 }
 
 video_reader_process

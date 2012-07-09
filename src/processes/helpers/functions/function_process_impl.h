@@ -9,7 +9,6 @@
 
 #include "function_process.h"
 
-#include <boost/make_shared.hpp>
 #include <boost/tuple/tuple.hpp>
 
 /**
@@ -206,11 +205,12 @@
  * \param flags Flags for the port.
  * \param desc A description of the port.
  */
-#define DECLARE_IPORT(cls, name, type, port_type, flags, desc)             \
-  declare_input_port(priv::IPORT_VAR(name), boost::make_shared<port_info>( \
-    port_type,                                                             \
-    flags,                                                                 \
-    port_description_t(desc)))
+#define DECLARE_IPORT(cls, name, type, port_type, flags, desc) \
+  declare_input_port(                                          \
+    priv::IPORT_VAR(name),                                     \
+    port_type,                                                 \
+    flags,                                                     \
+    port_description_t(desc))
 /**
  * \def DECLARE_OPORT
  *
@@ -223,11 +223,12 @@
  * \param flags Flags for the port.
  * \param desc A description of the port.
  */
-#define DECLARE_OPORT(cls, name, type, port_type, flags, desc)              \
-  declare_output_port(priv::OPORT_VAR(name), boost::make_shared<port_info>( \
-    port_type,                                                              \
-    flags,                                                                  \
-    port_description_t(desc)))
+#define DECLARE_OPORT(cls, name, type, port_type, flags, desc) \
+  declare_output_port(                                         \
+    priv::OPORT_VAR(name),                                     \
+    port_type,                                                 \
+    flags,                                                     \
+    port_description_t(desc))
 /**
  * \def DECLARE_CONFIG
  *
@@ -239,10 +240,11 @@
  * \param default The default value of the configuration.
  * \param desc A description of the configuration.
  */
-#define DECLARE_CONFIG(cls, name, type, default, desc)                           \
-  declare_configuration_key(priv::CONF_VAR(name), boost::make_shared<conf_info>( \
-    priv::CONF_DEF_VAR(name),                                                    \
-    vistk::config::description_t(desc)))
+#define DECLARE_CONFIG(cls, name, type, default, desc) \
+  declare_configuration_key(                           \
+    priv::CONF_VAR(name),                              \
+    priv::CONF_DEF_VAR(name),                          \
+    vistk::config::description_t(desc))
 
 /**
  * \def GRAB_CONFIG_VALUE

@@ -12,7 +12,6 @@
 #include <vistk/pipeline/process_exception.h>
 
 #include <boost/cstdint.hpp>
-#include <boost/make_shared.hpp>
 
 #include <string>
 
@@ -46,10 +45,11 @@ take_number_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_input, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_input,
     "integer",
     required,
-    port_description_t("Where numbers are read from.")));
+    port_description_t("Where numbers are read from."));
 }
 
 take_number_process

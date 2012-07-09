@@ -13,8 +13,6 @@
 
 #include <vistk/utilities/timestamp.h>
 
-#include <boost/make_shared.hpp>
-
 #include <string>
 
 /**
@@ -64,27 +62,32 @@ timestamper_process
 ::timestamper_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_start_frame, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_start_frame,
     priv::default_start_frame,
-    config::description_t("")));
-  declare_configuration_key(priv::config_start_time, boost::make_shared<conf_info>(
+    config::description_t(""));
+  declare_configuration_key(
+    priv::config_start_time,
     priv::default_start_time,
-    config::description_t("")));
-  declare_configuration_key(priv::config_frame_rate, boost::make_shared<conf_info>(
+    config::description_t(""));
+  declare_configuration_key(
+    priv::config_frame_rate,
     priv::default_frame_rate,
-    config::description_t("")));
-  declare_configuration_key(priv::config_end_frame, boost::make_shared<conf_info>(
+    config::description_t(""));
+  declare_configuration_key(
+    priv::config_end_frame,
     priv::default_end_frame,
-    config::description_t("")));
+    config::description_t(""));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_output,
     "timestamp",
     required,
-    port_description_t("Where the timestamps will be available.")));
+    port_description_t("Where the timestamps will be available."));
 }
 
 timestamper_process

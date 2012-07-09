@@ -15,7 +15,6 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
 
 #include <numeric>
 #include <string>
@@ -61,10 +60,11 @@ combine_masks_process
 
   required.insert(flag_required);
 
-  declare_output_port(priv::port_mask, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_mask,
     d->port_type,
     required,
-    port_description_t("The combined mask.")));
+    port_description_t("The combined mask."));
 }
 
 combine_masks_process
@@ -186,10 +186,11 @@ combine_masks_process
 
       required.insert(flag_required);
 
-      declare_input_port(port, boost::make_shared<port_info>(
+      declare_input_port(
+        port,
         d->port_type,
         required,
-        port_description_t("The \'" + tag + "\' mask.")));
+        port_description_t("The \'" + tag + "\' mask."));
     }
   }
 

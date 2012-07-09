@@ -13,8 +13,6 @@
 
 #include <vistk/utilities/path.h>
 
-#include <boost/make_shared.hpp>
-
 #include <fstream>
 
 /**
@@ -47,18 +45,20 @@ score_writer_process
 ::score_writer_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_path,
     config::key_t(),
-    config::description_t("The path to write results to.")));
+    config::description_t("The path to write results to."));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_score, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_score,
     "score",
     required,
-    port_description_t("The scores to write.")));
+    port_description_t("The scores to write."));
 
 }
 

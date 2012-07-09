@@ -7,7 +7,6 @@
 #include "multiplication_process.h"
 
 #include <boost/cstdint.hpp>
-#include <boost/make_shared.hpp>
 
 /**
  * \file multiplication_process.cxx
@@ -44,18 +43,21 @@ multiplication_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_factor1, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_factor1,
     "integer",
     required,
-    port_description_t("The first factor to multiply.")));
-  declare_input_port(priv::port_factor2, boost::make_shared<port_info>(
+    port_description_t("The first factor to multiply."));
+  declare_input_port(
+    priv::port_factor2,
     "integer",
     required,
-    port_description_t("The second factor to multiply.")));
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+    port_description_t("The second factor to multiply."));
+  declare_output_port(
+    priv::port_output,
     "integer",
     required,
-    port_description_t("Where the product will be available.")));
+    port_description_t("Where the product will be available."));
 }
 
 multiplication_process

@@ -86,9 +86,7 @@ def create_verify_process(c, shape, dtype):
             required = process.PortFlags()
             required.add(self.flag_required)
 
-            info = process.PortInfo(self.type_any, required, 'image port')
-
-            self.declare_input_port(self.input_port, info)
+            self.declare_input_port(self.input_port, self.type_any, required, 'image port')
 
         def _step(self):
             from vistk.pipeline import datum

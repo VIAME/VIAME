@@ -13,7 +13,6 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
-#include <boost/make_shared.hpp>
 
 #include <map>
 #include <string>
@@ -270,14 +269,16 @@ distribute_process
 
       required.insert(flag_required);
 
-      declare_input_port(priv::port_src_prefix + tag, boost::make_shared<port_info>(
+      declare_input_port(
+        priv::port_src_prefix + tag,
         type_flow_dependent + tag,
         required,
-        port_description_t("The input port for " + tag + ".")));
-      declare_output_port(port, boost::make_shared<port_info>(
+        port_description_t("The input port for " + tag + "."));
+      declare_output_port(
+        port,
         type_none,
         required,
-        port_description_t("The original color for the input " + tag + ".")));
+        port_description_t("The original color for the input " + tag + "."));
     }
   }
 
@@ -294,10 +295,11 @@ distribute_process
 
     required.insert(flag_required);
 
-    declare_output_port(port, boost::make_shared<port_info>(
+    declare_output_port(
+      port,
       type_flow_dependent + tag,
       required,
-      port_description_t("An output for the " + tag + " data.")));
+      port_description_t("An output for the " + tag + " data."));
   }
 
   return process::_output_port_info(port);

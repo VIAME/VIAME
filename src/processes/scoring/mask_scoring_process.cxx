@@ -14,8 +14,6 @@
 #include <vistk/scoring/score_mask.h>
 #include <vistk/scoring/scoring_result.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file mask_scoring_process.cxx
  *
@@ -51,19 +49,22 @@ mask_scoring_process
 
   port_type_t const mask_port_type = port_type_for_pixtype(pixtypes::pixtype_byte(), pixfmts::pixfmt_mask());
 
-  declare_input_port(priv::port_computed_mask, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_computed_mask,
     mask_port_type,
     required,
-    port_description_t("The computed mask.")));
-  declare_input_port(priv::port_truth_mask, boost::make_shared<port_info>(
+    port_description_t("The computed mask."));
+  declare_input_port(
+    priv::port_truth_mask,
     mask_port_type,
     required,
-    port_description_t("The truth mask.")));
+    port_description_t("The truth mask."));
 
-  declare_output_port(priv::port_result, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_result,
     "score",
     required,
-    port_description_t("The result of the scoring.")));
+    port_description_t("The result of the scoring."));
 }
 
 mask_scoring_process

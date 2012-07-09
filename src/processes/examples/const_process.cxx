@@ -8,8 +8,6 @@
 
 #include <vistk/pipeline/datum.h>
 
-#include <boost/make_shared.hpp>
-
 /**
  * \file const_process.cxx
  *
@@ -40,10 +38,11 @@ const_process
   const_required.insert(flag_required);
   const_required.insert(flag_output_const);
 
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_output,
     type_none,
     const_required,
-    port_description_t("The port with the const flag set.")));
+    port_description_t("The port with the const flag set."));
 }
 
 const_process

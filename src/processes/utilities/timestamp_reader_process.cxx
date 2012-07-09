@@ -14,7 +14,6 @@
 #include <vistk/utilities/timestamp.h>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/make_shared.hpp>
 
 #include <fstream>
 #include <string>
@@ -49,18 +48,20 @@ timestamp_reader_process
 ::timestamp_reader_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_path,
     config::value_t(),
-    config::description_t("The path to the file to read")));
+    config::description_t("The path to the file to read"));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_output,
     "timestamp",
     required,
-    port_description_t("Where the timestamps will be available.")));
+    port_description_t("Where the timestamps will be available."));
 }
 
 timestamp_reader_process
@@ -142,8 +143,11 @@ timestamp_reader_process
     {
       static std::string const undefined_string = "-";
 
-      boost::optional<timestamp::time_t> time;
-      boost::optional<timestamp::frame_t> frame;
+      typedef boost::optional<timestamp::time_t> opt_time_t;
+      typedef boost::optional<timestamp::frame_t> opt_frame_t;
+
+      opt_time_t time = boost::none;
+      opt_frame_t frame = boost::none;
 
       if (time_str != undefined_string)
       {

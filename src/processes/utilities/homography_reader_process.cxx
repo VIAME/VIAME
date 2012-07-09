@@ -14,8 +14,6 @@
 #include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 
-#include <boost/make_shared.hpp>
-
 #include <vnl/vnl_double_3x3.h>
 
 #include <fstream>
@@ -51,18 +49,20 @@ homography_reader_process
 ::homography_reader_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_path,
     config::value_t(),
-    config::description_t("The input file with homographies to read.")));
+    config::description_t("The input file with homographies to read."));
 
   port_flags_t required;
 
   required.insert(flag_required);
 
-  declare_output_port(priv::port_output, boost::make_shared<port_info>(
+  declare_output_port(
+    priv::port_output,
     "transform",
     required,
-    port_description_t("The homographies that are read in.")));
+    port_description_t("The homographies that are read in."));
 }
 
 homography_reader_process

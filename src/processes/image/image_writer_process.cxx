@@ -16,7 +16,6 @@
 
 #include <boost/cstdint.hpp>
 #include <boost/format.hpp>
-#include <boost/make_shared.hpp>
 
 #include <fstream>
 #include <string>
@@ -73,18 +72,22 @@ image_writer_process
 ::image_writer_process(config_t const& config)
   : process(config)
 {
-  declare_configuration_key(priv::config_pixtype, boost::make_shared<conf_info>(
+  declare_configuration_key(
+    priv::config_pixtype,
     priv::default_pixtype,
-    config::description_t("The pixel type of the input images.")));
-  declare_configuration_key(priv::config_pixfmt, boost::make_shared<conf_info>(
+    config::description_t("The pixel type of the input images."));
+  declare_configuration_key(
+    priv::config_pixfmt,
     priv::default_pixfmt,
-    config::description_t("The pixel format of the input images.")));
-  declare_configuration_key(priv::config_format, boost::make_shared<conf_info>(
+    config::description_t("The pixel format of the input images."));
+  declare_configuration_key(
+    priv::config_format,
     priv::default_format,
-    config::description_t("The format for output filenames.")));
-  declare_configuration_key(priv::config_path, boost::make_shared<conf_info>(
+    config::description_t("The format for output filenames."));
+  declare_configuration_key(
+    priv::config_path,
     config::value_t(),
-    config::description_t("The input file with a list of images to read.")));
+    config::description_t("The input file with a list of images to read."));
 
   pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
   pixfmt_t const pixfmt = config_value<pixfmt_t>(priv::config_pixfmt);
@@ -95,10 +98,11 @@ image_writer_process
 
   required.insert(flag_required);
 
-  declare_input_port(priv::port_input, boost::make_shared<port_info>(
+  declare_input_port(
+    priv::port_input,
     port_type_input,
     required,
-    port_description_t("The images that are to be written.")));
+    port_description_t("The images that are to be written."));
 }
 
 image_writer_process
