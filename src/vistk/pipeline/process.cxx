@@ -102,8 +102,8 @@ class process::priv
     ~priv();
 
     void run_heartbeat();
-    bool connect_input_port(port_t const& port, edge_t edge);
-    bool connect_output_port(port_t const& port, edge_t edge);
+    bool connect_input_port(port_t const& port, edge_t const& edge);
+    bool connect_output_port(port_t const& port, edge_t const& edge);
 
     edge_datum_t check_required_input(process* proc);
     void grab_from_input_edges();
@@ -1001,7 +1001,7 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
-  priv::output_edge_map_t::iterator e = d->output_edges.find(port);
+  priv::output_edge_map_t::const_iterator const e = d->output_edges.find(port);
 
   if (e == d->output_edges.end())
   {
@@ -1267,9 +1267,9 @@ process::priv
 
 bool
 process::priv
-::connect_input_port(port_t const& port, edge_t edge)
+::connect_input_port(port_t const& port, edge_t const& edge)
 {
-  port_map_t::iterator i = input_ports.find(port);
+  port_map_t::const_iterator const i = input_ports.find(port);
 
   if (i != input_ports.end())
   {
@@ -1288,9 +1288,9 @@ process::priv
 
 bool
 process::priv
-::connect_output_port(port_t const& port, edge_t edge)
+::connect_output_port(port_t const& port, edge_t const& edge)
 {
-  port_map_t::iterator i = output_ports.find(port);
+  port_map_t::const_iterator const i = output_ports.find(port);
 
   if (i != output_ports.end())
   {
