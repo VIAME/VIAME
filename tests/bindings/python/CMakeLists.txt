@@ -22,9 +22,9 @@ function (vistk_make_python_test group instance)
 
   if (WIN32)
     set(python_module_path
-      "${python_module_path}/$<CONFIGURATION>")
+      "${python_module_path}/${CMAKE_CFG_INTDIR}")
     set(python_chdir
-      "$<CONFIGURATION>")
+      "${CMAKE_CFG_INTDIR}")
   endif (WIN32)
 
   vistk_make_test(python-${group} ${instance}
