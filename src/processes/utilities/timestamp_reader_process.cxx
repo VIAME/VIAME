@@ -155,22 +155,26 @@ timestamp_reader_process
         frame = boost::lexical_cast<timestamp::frame_t>(frame_str);
       }
 
+      timestamp ts;
+
       if (time && frame)
       {
-        dat = datum::new_datum(timestamp(*time, *frame));
+        ts = timestamp(*time, *frame);
       }
       else if (time)
       {
-        dat = datum::new_datum(timestamp(*time));
+        ts = timestamp(*time);
       }
       else if (frame)
       {
-        dat = datum::new_datum(timestamp(*frame));
+        ts = timestamp(*frame);
       }
       else
       {
-        dat = datum::new_datum(timestamp());
+        ts = timestamp();
       }
+
+      dat = datum::new_datum(ts);
     }
   }
 

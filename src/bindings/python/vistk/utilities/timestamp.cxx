@@ -40,14 +40,6 @@ BOOST_PYTHON_MODULE(timestamp)
       , "The time of the timestamp.")
     .def("frame", &vistk::timestamp::frame
       , "The frame of the timestamp.")
-    .def("set_time", &vistk::timestamp::set_time
-      , "Set the time of the timestamp.")
-    .def("set_frame", &vistk::timestamp::set_frame
-      , "Set the frame of the timestamp.")
-    .def("clear_time", &vistk::timestamp::clear_time
-      , "Unset the time of the timestamp.")
-    .def("clear_frame", &vistk::timestamp::clear_frame
-      , "Unset the frame of the timestamp.")
     .def("is_valid", &vistk::timestamp::is_valid
       , "Returns True if the timestamp if valid, False otherwise.")
     .def(self == self)

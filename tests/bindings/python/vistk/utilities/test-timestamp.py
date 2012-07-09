@@ -24,10 +24,6 @@ def test_api_calls():
 
     t.has_time()
     t.has_frame()
-    t.set_time(1.0)
-    t.set_frame(1)
-    t.clear_time()
-    t.clear_frame()
     t.is_valid()
 
     t == t

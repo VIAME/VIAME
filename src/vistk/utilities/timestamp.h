@@ -99,28 +99,6 @@ class VISTK_UTILITIES_EXPORT timestamp
     frame_t frame() const;
 
     /**
-     * \brief Set the time for the timestamp.
-     *
-     * \param t The time for the timestamp.
-     */
-    void set_time(time_t t);
-    /**
-     * \brief Set the frame number for the timestamp.
-     *
-     * \param f The frame number for the timestamp.
-     */
-    void set_frame(frame_t f);
-
-    /**
-     * \brief Unset the time for the timestamp.
-     */
-    void clear_time();
-    /**
-     * \brief Unset the frame number for the timestamp.
-     */
-    void clear_frame();
-
-    /**
      * \brief Query whether the timestamp has any valid data in it.
      *
      * \returns True if the timestamp has valid data, false otherwise.
