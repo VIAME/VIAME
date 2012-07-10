@@ -15,7 +15,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
@@ -116,7 +116,11 @@ class process::priv
     typedef std::map<port_t, port_info_t> port_map_t;
     typedef std::map<config::key_t, conf_info_t> conf_map_t;
 
-    typedef boost::tuple<boost::mutex, edges_t> output_port_info;
+    typedef boost::shared_mutex mutex_t;
+    typedef boost::shared_lock<mutex_t> shared_lock_t;
+    typedef boost::unique_lock<mutex_t> unique_lock_t;
+
+    typedef boost::tuple<mutex_t, edges_t> output_port_info;
     typedef boost::shared_ptr<output_port_info> output_port_info_t;
 
     typedef std::map<port_t, edge_t> input_edge_map_t;
@@ -1009,9 +1013,9 @@ process
   }
 
   priv::output_port_info_t const& info = e->second;
-  boost::mutex& mut = info->get<0>();
+  priv::mutex_t& mut = info->get<0>();
 
-  boost::mutex::scoped_lock const lock(mut);
+  priv::shared_lock_t const lock(mut);
 
   (void)lock;
 
@@ -1070,9 +1074,9 @@ process
   if (e != d->output_edges.end())
   {
     priv::output_port_info_t const& info = e->second;
-    boost::mutex& mut = info->get<0>();
+    priv::mutex_t& mut = info->get<0>();
 
-    boost::mutex::scoped_lock const lock(mut);
+    priv::shared_lock_t const lock(mut);
 
     (void)lock;
 
@@ -1251,9 +1255,9 @@ process::priv
 
   {
     output_port_info_t const& info = output_edges[port_heartbeat];
+    priv::mutex_t& mut = info->get<0>();
 
-    boost::mutex& mut = info->get<0>();
-    boost::mutex::scoped_lock const lock(mut);
+    priv::shared_lock_t const lock(mut);
 
     (void)lock;
 
@@ -1296,9 +1300,9 @@ process::priv
   {
     {
       output_port_info_t const& info = output_edges[port];
-      boost::mutex& mut = info->get<0>();
+      priv::mutex_t& mut = info->get<0>();
 
-      boost::mutex::scoped_lock const lock(mut);
+      priv::unique_lock_t const lock(mut);
 
       (void)lock;
 
@@ -1426,9 +1430,9 @@ process::priv
     }
 
     output_port_info_t const& info = edges_for_port.second;
-    boost::mutex& mut = info->get<0>();
+    priv::mutex_t& mut = info->get<0>();
 
-    boost::mutex::scoped_lock const lock(mut);
+    priv::shared_lock_t const lock(mut);
 
     (void)lock;
 
@@ -1460,9 +1464,9 @@ process::priv
     }
 
     output_port_info_t const& info = i->second;
-    boost::mutex& mut = info->get<0>();
+    priv::mutex_t& mut = info->get<0>();
 
-    boost::mutex::scoped_lock const lock(mut);
+    priv::shared_lock_t const lock(mut);
 
     (void)lock;
 
