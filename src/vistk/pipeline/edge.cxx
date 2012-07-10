@@ -12,7 +12,7 @@
 
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <boost/weak_ptr.hpp>
 
 #include <queue>
@@ -50,11 +50,17 @@ class edge::priv
 
     std::queue<edge_datum_t> q;
 
-    boost::condition_variable cond_have_data;
-    boost::condition_variable cond_have_space;
+    boost::condition_variable_any cond_have_data;
+    boost::condition_variable_any cond_have_space;
 
-    mutable boost::mutex mutex;
-    mutable boost::mutex complete_mutex;
+    typedef boost::shared_mutex mutex_t;
+    typedef boost::shared_lock<mutex_t> shared_lock_t;
+    typedef boost::upgrade_lock<mutex_t> upgrade_lock_t;
+    typedef boost::unique_lock<mutex_t> unique_lock_t;
+    typedef boost::upgrade_to_unique_lock<mutex_t> upgrade_to_unique_lock_t;
+
+    mutable mutex_t mutex;
+    mutable mutex_t complete_mutex;
 };
 
 edge
@@ -87,7 +93,7 @@ bool
 edge
 ::has_data() const
 {
-  boost::mutex::scoped_lock const lock(d->mutex);
+  priv::shared_lock_t const lock(d->mutex);
 
   (void)lock;
 
@@ -98,7 +104,7 @@ bool
 edge
 ::full_of_data() const
 {
-  boost::mutex::scoped_lock const lock(d->mutex);
+  priv::shared_lock_t const lock(d->mutex);
 
   (void)lock;
 
@@ -109,7 +115,7 @@ size_t
 edge
 ::datum_count() const
 {
-  boost::mutex::scoped_lock const lock(d->mutex);
+  priv::shared_lock_t const lock(d->mutex);
 
   (void)lock;
 
@@ -121,7 +127,7 @@ edge
 ::push_datum(edge_datum_t const& datum)
 {
   {
-    boost::mutex::scoped_lock const lock(d->complete_mutex);
+    priv::shared_lock_t const lock(d->complete_mutex);
 
     (void)lock;
 
@@ -132,14 +138,20 @@ edge
   }
 
   {
-    boost::mutex::scoped_lock lock(d->mutex);
+    priv::upgrade_lock_t lock(d->mutex);
 
     while (d->full_of_data())
     {
       d->cond_have_space.wait(lock);
     }
 
-    d->q.push(datum);
+    {
+      priv::upgrade_to_unique_lock_t const write_lock(lock);
+
+      (void)write_lock;
+
+      d->q.push(datum);
+    }
   }
 
   d->cond_have_data.notify_one();
@@ -154,7 +166,7 @@ edge
   edge_datum_t dat;
 
   {
-    boost::mutex::scoped_lock lock(d->mutex);
+    priv::upgrade_lock_t lock(d->mutex);
 
     while (!d->has_data())
     {
@@ -163,7 +175,13 @@ edge
 
     dat = d->q.front();
 
-    d->q.pop();
+    {
+      priv::upgrade_to_unique_lock_t const write_lock(lock);
+
+      (void)write_lock;
+
+      d->q.pop();
+    }
   }
 
   d->cond_have_space.notify_one();
@@ -177,7 +195,7 @@ edge
 {
   d->complete_check();
 
-  boost::mutex::scoped_lock lock(d->mutex);
+  priv::shared_lock_t lock(d->mutex);
 
   while (!d->has_data())
   {
@@ -194,14 +212,20 @@ edge
   d->complete_check();
 
   {
-    boost::mutex::scoped_lock lock(d->mutex);
+    priv::upgrade_lock_t lock(d->mutex);
 
     while (!d->has_data())
     {
       d->cond_have_data.wait(lock);
     }
 
-    d->q.pop();
+    {
+      priv::upgrade_to_unique_lock_t const write_lock(lock);
+
+      (void)write_lock;
+
+      d->q.pop();
+    }
   }
 
   d->cond_have_space.notify_one();
@@ -211,15 +235,13 @@ void
 edge
 ::mark_downstream_as_complete()
 {
-  boost::mutex::scoped_lock complete_lock(d->complete_mutex);
+  priv::unique_lock_t const complete_lock(d->complete_mutex);
+  priv::unique_lock_t const lock(d->mutex);
 
   (void)complete_lock;
+  (void)lock;
 
   d->downstream_complete = true;
-
-  boost::mutex::scoped_lock const lock(d->mutex);
-
-  (void)lock;
 
   while (d->q.size())
   {
@@ -233,7 +255,7 @@ bool
 edge
 ::is_downstream_complete() const
 {
-  boost::mutex::scoped_lock const lock(d->complete_mutex);
+  priv::shared_lock_t const lock(d->complete_mutex);
 
   (void)lock;
 
@@ -321,7 +343,7 @@ void
 edge::priv
 ::complete_check() const
 {
-  boost::mutex::scoped_lock const lock(complete_mutex);
+  shared_lock_t const lock(complete_mutex);
 
   (void)lock;
 
