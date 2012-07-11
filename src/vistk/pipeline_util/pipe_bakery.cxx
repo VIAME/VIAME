@@ -176,6 +176,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider_sorter
     typedef boost::graph_traits<config_graph_t>::vertex_descriptor vertex_t;
     typedef std::vector<vertex_t> vertices_t;
     typedef std::map<config::key_t, vertex_t> vertex_map_t;
+    typedef vertex_map_t::value_type vertex_entry_t;
 
     vertex_map_t m_vertex_map;
     config_graph_t m_graph;
@@ -722,8 +723,8 @@ config_provider_sorter
 
   typedef std::pair<vertex_map_t::iterator, bool> insertion_t;
 
-  insertion_t from_iter = m_vertex_map.insert(std::make_pair(key, vertex_t()));
-  insertion_t to_iter = m_vertex_map.insert(std::make_pair(target_key, vertex_t()));
+  insertion_t from_iter = m_vertex_map.insert(vertex_entry_t(key, vertex_t()));
+  insertion_t to_iter = m_vertex_map.insert(vertex_entry_t(target_key, vertex_t()));
 
   bool const& from_inserted = from_iter.second;
   bool const& to_inserted = to_iter.second;

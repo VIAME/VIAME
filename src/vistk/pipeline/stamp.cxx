@@ -26,12 +26,16 @@ stamp
 {
   static boost::mutex mut;
 
-  boost::mutex::scoped_lock const lock(mut);
+  stamp_t st;
 
-  (void)lock;
+  {
+    boost::mutex::scoped_lock const lock(mut);
 
-  stamp_t st(new stamp(m_new_color, 0));
-  ++m_new_color;
+    (void)lock;
+
+    st = stamp_t(new stamp(m_new_color, 0));
+    ++m_new_color;
+  }
 
   return st;
 }
@@ -40,6 +44,8 @@ stamp_t
 stamp
 ::copied_stamp(stamp_t const& st)
 {
+  /// \todo Check \p st for \c NULL?
+
   return stamp_t(new stamp(st->m_color, st->m_index));
 }
 
@@ -47,6 +53,8 @@ stamp_t
 stamp
 ::incremented_stamp(stamp_t const& st)
 {
+  /// \todo Check \p st for \c NULL?
+
   return stamp_t(new stamp(st->m_color, st->m_index + 1));
 }
 
@@ -54,6 +62,8 @@ stamp_t
 stamp
 ::recolored_stamp(stamp_t const& st, stamp_t const& st2)
 {
+  /// \todo Check \p st for \c NULL?
+
   return stamp_t(new stamp(st2->m_color, st->m_index));
 }
 
@@ -61,6 +71,8 @@ bool
 stamp
 ::is_same_color(stamp_t const& st) const
 {
+  /// \todo Check \p st for \c NULL?
+
   return (m_color == st->m_color);
 }
 
@@ -68,6 +80,8 @@ bool
 stamp
 ::operator == (stamp const& st) const
 {
+  /// \todo Check \p st for \c NULL?
+
   return ((m_color == st.m_color) && (m_index == st.m_index));
 }
 
@@ -75,6 +89,8 @@ bool
 stamp
 ::operator <  (stamp const& st) const
 {
+  /// \todo Check \p st for \c NULL?
+
   return ((m_color == st.m_color) && (m_index < st.m_index));
 }
 

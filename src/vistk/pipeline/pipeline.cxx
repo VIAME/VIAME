@@ -2093,7 +2093,7 @@ pipeline::priv
 
     BOOST_FOREACH (process::name_t const& name, names)
     {
-      vertex_t s = boost::add_vertex(graph);
+      vertex_t const s = boost::add_vertex(graph);
       graph[s] = name;
       vertex_map[name] = s;
     }

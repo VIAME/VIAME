@@ -147,13 +147,15 @@ scheduler_registry
     return reg_self;
   }
 
-  boost::mutex::scoped_lock const lock(mut);
-
-  (void)lock;
-
-  if (!reg_self)
   {
-    reg_self = scheduler_registry_t(new scheduler_registry);
+    boost::mutex::scoped_lock const lock(mut);
+
+    (void)lock;
+
+    if (!reg_self)
+    {
+      reg_self = scheduler_registry_t(new scheduler_registry);
+    }
   }
 
   return reg_self;
