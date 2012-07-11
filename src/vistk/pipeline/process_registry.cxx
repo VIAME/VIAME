@@ -146,13 +146,15 @@ process_registry
     return reg_self;
   }
 
-  boost::mutex::scoped_lock const lock(mut);
-
-  (void)lock;
-
-  if (!reg_self)
   {
-    reg_self = process_registry_t(new process_registry);
+    boost::mutex::scoped_lock const lock(mut);
+
+    (void)lock;
+
+    if (!reg_self)
+    {
+      reg_self = process_registry_t(new process_registry);
+    }
   }
 
   return reg_self;

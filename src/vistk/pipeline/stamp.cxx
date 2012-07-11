@@ -26,12 +26,16 @@ stamp
 {
   static boost::mutex mut;
 
-  boost::mutex::scoped_lock const lock(mut);
+  stamp_t st;
 
-  (void)lock;
+  {
+    boost::mutex::scoped_lock const lock(mut);
 
-  stamp_t st(new stamp(m_new_color, 0));
-  ++m_new_color;
+    (void)lock;
+
+    st = stamp_t(new stamp(m_new_color, 0));
+    ++m_new_color;
+  }
 
   return st;
 }
