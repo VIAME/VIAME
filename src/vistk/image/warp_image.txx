@@ -240,7 +240,7 @@ warp_image<PixType>::priv
 }
 
 template <typename T>
-static bool fuzzy_cmp(T const& a, T const& b, T const epsilon = std::numeric_limits<T>::epsilon());
+static bool fuzzy_cmp(T const& a, T const& b, T const& epsilon = std::numeric_limits<T>::epsilon());
 
 bool
 is_identity(vistk::homography_base::transform_t const& transform)
@@ -278,7 +278,7 @@ safe_cast(U const& value)
 
 template <typename T>
 bool
-fuzzy_cmp(T const& a, T const& b, T const epsilon)
+fuzzy_cmp(T const& a, T const& b, T const& epsilon)
 {
   T const diff = std::fabs(a - b);
   return (diff <= epsilon);
