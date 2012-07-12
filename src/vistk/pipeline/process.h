@@ -14,7 +14,9 @@
 #include "datum.h"
 #include "types.h"
 
+#include <boost/cstdint.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/rational.hpp>
 #include <boost/scoped_ptr.hpp>
 
 #include <set>
@@ -88,6 +90,10 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::vector<port_t> ports_t;
     /// The type for the type of data on a port.
     typedef std::string port_type_t;
+    /// The type for the component of a frequency.
+    typedef uint64_t frequency_component_t;
+    /// The type for the frequency of data on a port.
+    typedef boost::rational<frequency_component_t> port_frequency_t;
     /// The type for a flag on a port.
     typedef std::string port_flag_t;
     /// The type for a group of port flags.
@@ -111,10 +117,12 @@ class VISTK_PIPELINE_EXPORT process
          * \param type_ The type of the port.
          * \param flags_ Flags for the port.
          * \param description_ A description of the port.
+         * \param frequency_ The frequency of the port relative to the step.
          */
         port_info(port_type_t const& type_,
                   port_flags_t const& flags_,
-                  port_description_t const& description_);
+                  port_description_t const& description_,
+                  port_frequency_t const& frequency_);
         /**
          * \brief Destructor.
          */
@@ -126,6 +134,8 @@ class VISTK_PIPELINE_EXPORT process
         port_flags_t const flags;
         /// A description of the port.
         port_description_t const description;
+        /// The port's frequency.
+        port_frequency_t const frequency;
     };
     /// Type for information about a port.
     typedef boost::shared_ptr<port_info const> port_info_t;
@@ -575,11 +585,13 @@ class VISTK_PIPELINE_EXPORT process
      * \param type_ The type of the port.
      * \param flags_ Flags for the port.
      * \param description_ A description of the port.
+     * \param frequency_ The frequency of the port relative to the step.
      */
     void declare_input_port(port_t const& port,
                             port_type_t const& type_,
                             port_flags_t const& flags_,
-                            port_description_t const& description_);
+                            port_description_t const& description_,
+                            port_frequency_t const& frequency_ = port_frequency_t(1));
     /**
      * \brief Declare an output port for the process.
      *
@@ -587,11 +599,13 @@ class VISTK_PIPELINE_EXPORT process
      * \param type_ The type of the port.
      * \param flags_ Flags for the port.
      * \param description_ A description of the port.
+     * \param frequency_ The frequency of the port relative to the step.
      */
     void declare_output_port(port_t const& port,
                              port_type_t const& type_,
                              port_flags_t const& flags_,
-                             port_description_t const& description_);
+                             port_description_t const& description_,
+                             port_frequency_t const& frequency_ = port_frequency_t(1));
 
     /**
      * \brief Remove an input port from the process.

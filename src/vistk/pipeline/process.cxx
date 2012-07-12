@@ -55,10 +55,12 @@ config::key_t const process::static_input_prefix = config::key_t("static/");
 process::port_info
 ::port_info(port_type_t const& type_,
             port_flags_t const& flags_,
-            port_description_t const& description_)
+            port_description_t const& description_,
+            port_frequency_t const& frequency_)
   : type(type_)
   , flags(flags_)
   , description(description_)
+  , frequency(frequency_)
 {
 }
 
@@ -447,7 +449,8 @@ process
     port_heartbeat,
     type_none,
     port_flags_t(),
-    port_description_t("Outputs the heartbeat stamp with an empty datum."));
+    port_description_t("Outputs the heartbeat stamp with an empty datum."),
+    port_frequency_t(1));
 }
 
 process
@@ -597,7 +600,8 @@ process
           iport,
           new_type,
           info->flags,
-          info->description);
+          info->description,
+          info->frequency);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
@@ -608,7 +612,8 @@ process
           oport,
           new_type,
           info->flags,
-          info->description);
+          info->description,
+          info->frequency);
       }
 
       d->flow_tag_port_types[tag] = new_type;
@@ -621,7 +626,8 @@ process
     port,
     new_type,
     info->flags,
-    info->description);
+    info->description,
+    info->frequency);
 
   return true;
 }
@@ -659,7 +665,8 @@ process
           iport,
           new_type,
           info->flags,
-          info->description);
+          info->description,
+          info->frequency);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
@@ -670,7 +677,8 @@ process
           oport,
           new_type,
           info->flags,
-          info->description);
+          info->description,
+          info->frequency);
       }
 
       d->flow_tag_port_types[tag] = new_type;
@@ -683,7 +691,8 @@ process
     port,
     new_type,
     info->flags,
-    info->description);
+    info->description,
+    info->frequency);
 
   return true;
 }
@@ -736,7 +745,8 @@ process
         port,
         tag_type,
         info->flags,
-        info->description);
+        info->description,
+        info->frequency);
 
       return;
     }
@@ -782,12 +792,14 @@ process
 ::declare_input_port(port_t const& port,
                      port_type_t const& type_,
                      port_flags_t const& flags_,
-                     port_description_t const& description_)
+                     port_description_t const& description_,
+                     port_frequency_t const& frequency_)
 {
   declare_input_port(port, boost::make_shared<port_info>(
     type_,
     flags_,
-    description_));
+    description_,
+    frequency_));
 }
 
 void
@@ -817,7 +829,8 @@ process
         port,
         tag_type,
         info->flags,
-        info->description);
+        info->description,
+        info->frequency);
 
       return;
     }
@@ -840,12 +853,14 @@ process
 ::declare_output_port(port_t const& port,
                       port_type_t const& type_,
                       port_flags_t const& flags_,
-                      port_description_t const& description_)
+                      port_description_t const& description_,
+                      port_frequency_t const& frequency_)
 {
   declare_output_port(port, boost::make_shared<port_info>(
     type_,
     flags_,
-    description_));
+    description_,
+    frequency_));
 }
 
 void

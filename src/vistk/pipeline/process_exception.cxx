@@ -189,6 +189,27 @@ set_type_on_initialized_process_exception
 {
 }
 
+set_frequency_on_initialized_process_exception
+::set_frequency_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_frequency_t const& frequency) throw()
+  : process_exception()
+  , m_name(name)
+  , m_port(port)
+  , m_frequency(frequency)
+{
+  std::ostringstream sstr;
+
+  sstr << "The frequency of the port \'" << m_port << "\' "
+          "on the process \'" << m_name << "\' was "
+          "attempted to be set to \'" << m_frequency << "\'";
+
+  m_what = sstr.str();
+}
+
+set_frequency_on_initialized_process_exception
+::~set_frequency_on_initialized_process_exception() throw()
+{
+}
+
 uninitialized_exception
 ::uninitialized_exception(process::name_t const& name) throw()
   : process_exception()
