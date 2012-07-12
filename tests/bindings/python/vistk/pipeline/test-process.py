@@ -49,6 +49,7 @@ def test_api_calls():
     a.type
     a.flags
     a.description
+    a.frequency
 
     a = process.ConfInfo('default', 'desc')
     a.default

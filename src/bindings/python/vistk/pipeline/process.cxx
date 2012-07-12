@@ -20,6 +20,7 @@
 #include <boost/python/class.hpp>
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
+#include <boost/python/operators.hpp>
 
 /**
  * \file process.cxx
@@ -93,12 +94,14 @@ class wrap_process
     void _declare_input_port_1(port_t const& port,
                                port_type_t const& type_,
                                port_flags_t const& flags_,
-                               port_description_t const& description_);
+                               port_description_t const& description_,
+                               port_frequency_t const& frequency_);
     void _declare_output_port(port_t const& port, port_info_t const& info);
     void _declare_output_port_1(port_t const& port,
                                 port_type_t const& type_,
                                 port_flags_t const& flags_,
-                                port_description_t const& description_);
+                                port_description_t const& description_,
+                                port_frequency_t const& frequency_);
 
     void _remove_input_port(port_t const& port);
     void _remove_output_port(port_t const& port);
@@ -165,6 +168,26 @@ BOOST_PYTHON_MODULE(process)
     , "A collection of port flags.")
     .def(set_indexing_suite<vistk::process::port_flags_t>())
   ;
+  class_<vistk::process::port_frequency_t>("PortFrequency"
+    , "A frequency for a port."
+    , no_init)
+    .def(init<vistk::process::frequency_component_t>())
+    .def(init<vistk::process::frequency_component_t, vistk::process::frequency_component_t>())
+    .def("numerator", &vistk::process::port_frequency_t::numerator
+      , "The numerator of the frequency.")
+    .def("denominator", &vistk::process::port_frequency_t::denominator
+      , "The denominator of the frequency.")
+    .def(self <  self)
+    .def(self <= self)
+    .def(self == self)
+    .def(self >= self)
+    .def(self >  self)
+    .def(self + self)
+    .def(self - self)
+    .def(self * self)
+    .def(self / self)
+    .def(!self)
+  ;
   class_<vistk::process::port_addr_t>("PortAddr"
     , "An address for a port within a pipeline.")
     .def_readwrite("process", &vistk::process::port_addr_t::first)
@@ -178,10 +201,11 @@ BOOST_PYTHON_MODULE(process)
   class_<vistk::process::port_info, vistk::process::port_info_t>("PortInfo"
     , "Information about a port on a process."
     , no_init)
-    .def(init<vistk::process::port_type_t, vistk::process::port_flags_t, vistk::process::port_description_t>())
+    .def(init<vistk::process::port_type_t, vistk::process::port_flags_t, vistk::process::port_description_t, vistk::process::port_frequency_t>())
     .def_readonly("type", &vistk::process::port_info::type)
     .def_readonly("flags", &vistk::process::port_info::flags)
     .def_readonly("description", &vistk::process::port_info::description)
+    .def_readonly("frequency", &vistk::process::port_info::frequency)
   ;
 
   implicitly_convertible<boost::shared_ptr<vistk::process::port_info>, vistk::process::port_info_t>();
@@ -353,13 +377,13 @@ BOOST_PYTHON_MODULE(process)
       , (arg("port"), arg("info"))
       , "Declare an input port on the process.")
     .def("declare_input_port", &wrap_process::_declare_input_port_1
-      , (arg("port"), arg("type"), arg("flags"), arg("description"))
+      , (arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = vistk::process::port_frequency_t(1))
       , "Declare an input port on the process.")
     .def("declare_output_port", &wrap_process::_declare_output_port
       , (arg("port"), arg("info"))
       , "Declare an output port on the process.")
     .def("declare_output_port", &wrap_process::_declare_output_port_1
-      , (arg("port"), arg("type"), arg("flags"), arg("description"))
+      , (arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = vistk::process::port_frequency_t(1))
       , "Declare an output port on the process.")
     .def("remove_input_port", &wrap_process::_remove_input_port
       , (arg("port"))
@@ -862,9 +886,10 @@ wrap_process
 ::_declare_input_port_1(port_t const& port,
                         port_type_t const& type_,
                         port_flags_t const& flags_,
-                        port_description_t const& description_)
+                        port_description_t const& description_,
+                        port_frequency_t const& frequency_)
 {
-  declare_input_port(port, type_, flags_, description_);
+  declare_input_port(port, type_, flags_, description_, frequency_);
 }
 
 void
@@ -879,9 +904,10 @@ wrap_process
 ::_declare_output_port_1(port_t const& port,
                          port_type_t const& type_,
                          port_flags_t const& flags_,
-                         port_description_t const& description_)
+                         port_description_t const& description_,
+                         port_frequency_t const& frequency_)
 {
-  declare_output_port(port, type_, flags_, description_);
+  declare_output_port(port, type_, flags_, description_, frequency_);
 }
 
 void
