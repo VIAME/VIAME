@@ -112,8 +112,7 @@ distribute_process
   : process(config)
   , d(new priv)
 {
-  // This process manages its own colors and inputs.
-  ensure_inputs_are_same_color(false);
+  // This process manages its own inputs.
   ensure_inputs_are_valid(false);
 }
 

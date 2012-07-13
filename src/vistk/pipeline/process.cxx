@@ -83,11 +83,9 @@ process::conf_info
 }
 
 process::data_info
-::data_info(bool same_color_,
-            bool in_sync_,
+::data_info(bool in_sync_,
             datum::type_t max_status_)
-  : same_color(same_color_)
-  , in_sync(in_sync_)
+  : in_sync(in_sync_)
   , max_status(max_status_)
 {
 }
@@ -170,7 +168,6 @@ class process::priv
     bool initialized;
     bool is_complete;
 
-    bool input_same_color;
     bool input_sync;
     bool input_valid;
 
@@ -1181,13 +1178,6 @@ process
 
 void
 process
-::ensure_inputs_are_same_color(bool ensure)
-{
-  d->input_same_color = ensure;
-}
-
-void
-process
 ::ensure_inputs_are_in_sync(bool ensure)
 {
   d->input_sync = ensure;
@@ -1204,7 +1194,6 @@ process::data_info_t
 process
 ::edge_data_info(edge_data_t const& data)
 {
-  bool same_color = true;
   bool in_sync = true;
   datum::type_t max_type = datum::invalid;
 
@@ -1223,17 +1212,13 @@ process
       max_type = type;
     }
 
-    if (!st->is_same_color(st2))
-    {
-      same_color = false;
-    }
     if (*st != *st2)
     {
       in_sync = false;
     }
   }
 
-  return boost::make_shared<data_info>(same_color, in_sync, max_type);
+  return boost::make_shared<data_info>(in_sync, max_type);
 }
 
 void
@@ -1318,7 +1303,6 @@ process::priv
   , configured(false)
   , initialized(false)
   , is_complete(false)
-  , input_same_color(true)
   , input_sync(true)
   , input_valid(true)
   , hb_stamp(stamp::new_stamp())
@@ -1415,7 +1399,7 @@ edge_datum_t
 process::priv
 ::check_required_input()
 {
-  if ((!input_same_color && !input_valid) ||
+  if ((!input_sync && !input_valid) ||
       required_inputs.empty())
   {
     return edge_datum_t(datum_t(), stamp_t());
@@ -1439,14 +1423,7 @@ process::priv
 
   data_info_t const info = edge_data_info(data);
 
-  if (input_same_color && !info->same_color)
-  {
-    static datum::error_t const err_string = datum::error_t("Required input edges are not the same color.");
-
-    return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
-  }
-
-  if (input_same_color && input_sync && !info->in_sync)
+  if (input_sync && !info->in_sync)
   {
     static datum::error_t const err_string = datum::error_t("Required input edges are not synchronized.");
 
@@ -1454,7 +1431,7 @@ process::priv
   }
 
   // Save the stamp for the inputs.
-  if (input_same_color && input_sync)
+  if (input_sync)
   {
     stamp_for_inputs = data[0].get<1>();
   }

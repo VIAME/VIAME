@@ -180,20 +180,16 @@ class VISTK_PIPELINE_EXPORT process
         /**
          * \brief Constructor.
          *
-         * \param same_color_ Whether the data is the same color.
          * \param in_sync_ Whether the data is synchonized.
          * \param max_status_ The highest priority status of the data.
          */
-        data_info(bool same_color_,
-                  bool in_sync_,
+        data_info(bool in_sync_,
                   datum::type_t max_status_);
         /**
          * \brief Destructor.
          */
         ~data_info();
 
-        /// True if the data is all the same color.
-        bool const same_color;
         /// True if the data is synchonized.
         bool const in_sync;
         /// The highest priority status in the set.
@@ -778,18 +774,6 @@ class VISTK_PIPELINE_EXPORT process
     T config_value(config::key_t const& key) const;
 
     /**
-     * \brief Set whether color checking is enabled before stepping.
-     *
-     * If enabled, the input ports which are marked as \flag{required} are
-     * guaranteed to be the same color. When the inputs are not the same color,
-     * an error datum is pushed to all output edges and all input edges will be
-     * grabbed from. If this behavior is not wanted, it must be manually
-     * handled. The default is that it is enabled.
-     *
-     * \param ensure If true, ensure required inputs are the same color.
-     */
-    void ensure_inputs_are_same_color(bool ensure);
-    /**
      * \brief Set whether synchronization checking is enabled before stepping.
      *
      * If enabled, the input ports which are marked as \flag{required} are
@@ -797,10 +781,6 @@ class VISTK_PIPELINE_EXPORT process
      * error datum is pushed to all output edges and all input edges will be
      * grabbed from. If this behavior is not wanted, it must be manually
      * handled. The default is that it is enabled.
-     *
-     * \note The inputs can only be ensured to be synchonized if they are also
-     * the same color, so if the colors are not verified, the synchonization
-     * cannot be either.
      *
      * \param ensure If true, ensure required inputs are synchonized.
      */

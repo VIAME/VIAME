@@ -34,7 +34,7 @@ def test_create():
     process.PortAddrs()
     process.PortInfo('type', process.PortFlags(), 'desc', process.PortFrequency(1, 1))
     process.ConfInfo('default', 'desc')
-    process.DataInfo(True, True, datum.DatumType.invalid)
+    process.DataInfo(True, datum.DatumType.invalid)
 
 
 def test_api_calls():
@@ -59,8 +59,7 @@ def test_api_calls():
     a.default
     a.description
 
-    a = process.DataInfo(True, True, datum.DatumType.invalid)
-    a.same_color
+    a = process.DataInfo(True, datum.DatumType.invalid)
     a.in_sync
     a.max_status
 
