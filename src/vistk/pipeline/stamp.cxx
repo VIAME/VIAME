@@ -6,9 +6,6 @@
 
 #include "stamp.h"
 
-#include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
-
 /**
  * \file stamp.cxx
  *
@@ -18,26 +15,11 @@
 namespace vistk
 {
 
-stamp::color_t stamp::m_new_color = color_t(0);
-
 stamp_t
 stamp
-::new_stamp()
+::new_stamp(increment_t increment)
 {
-  static boost::mutex mut;
-
-  stamp_t st;
-
-  {
-    boost::mutex::scoped_lock const lock(mut);
-
-    (void)lock;
-
-    st = stamp_t(new stamp(m_new_color, 0));
-    ++m_new_color;
-  }
-
-  return st;
+  return stamp_t(new stamp(increment, 0));
 }
 
 stamp_t
@@ -46,25 +28,7 @@ stamp
 {
   /// \todo Check \p st for \c NULL?
 
-  return stamp_t(new stamp(st->m_color, st->m_index + 1));
-}
-
-stamp_t
-stamp
-::recolored_stamp(stamp_t const& st, stamp_t const& st2)
-{
-  /// \todo Check \p st for \c NULL?
-
-  return stamp_t(new stamp(st2->m_color, st->m_index));
-}
-
-bool
-stamp
-::is_same_color(stamp_t const& st) const
-{
-  /// \todo Check \p st for \c NULL?
-
-  return (m_color == st->m_color);
+  return stamp_t(new stamp(st->m_increment, st->m_index + st->m_increment));
 }
 
 bool
@@ -73,7 +37,7 @@ stamp
 {
   /// \todo Check \p st for \c NULL?
 
-  return ((m_color == st.m_color) && (m_index == st.m_index));
+  return (m_index == st.m_index);
 }
 
 bool
@@ -82,12 +46,12 @@ stamp
 {
   /// \todo Check \p st for \c NULL?
 
-  return ((m_color == st.m_color) && (m_index < st.m_index));
+  return (m_index < st.m_index);
 }
 
 stamp
-::stamp(color_t color, index_t index)
-  : m_color(color)
+::stamp(increment_t increment, index_t index)
+  : m_increment(increment)
   , m_index(index)
 {
 }
