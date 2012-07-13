@@ -112,7 +112,6 @@ class wrap_process
                                       vistk::config::description_t const& description_);
 
     void _mark_process_as_complete();
-    vistk::stamp_t _heartbeat_stamp() const;
 
     vistk::edge_t _input_port_edge(port_t const& port) const;
     vistk::edges_t _output_port_edges(port_t const& port) const;
@@ -398,8 +397,6 @@ BOOST_PYTHON_MODULE(process)
       , "Declare a configuration key for the process.")
     .def("mark_process_as_complete", &wrap_process::_mark_process_as_complete
       , "Tags the process as complete.")
-    .def("heartbeat_stamp", &wrap_process::_heartbeat_stamp
-      , "The heartbeat stamp for the process.")
     .def("input_port_edge", &wrap_process::_input_port_edge
       , (arg("port"))
       , "The edge that is connected to an input port.")
@@ -944,13 +941,6 @@ wrap_process
 ::_mark_process_as_complete()
 {
   mark_process_as_complete();
-}
-
-vistk::stamp_t
-wrap_process
-::_heartbeat_stamp() const
-{
-  return heartbeat_stamp();
 }
 
 vistk::edge_t

@@ -662,12 +662,6 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Mark the process as complete.
      */
     void mark_process_as_complete();
-    /**
-     * \brief The \ref stamp that the hearbeat is based off of.
-     *
-     * \returns The stamp that the heartbeat uses.
-     */
-    stamp_t heartbeat_stamp() const;
 
     /**
      * \brief Get the edge for an input port.

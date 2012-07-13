@@ -171,7 +171,6 @@ class process::priv
     bool input_sync;
     bool input_valid;
 
-    stamp_t hb_stamp;
     stamp_t stamp_for_inputs;
 
     static config::value_t const default_name;
@@ -248,8 +247,6 @@ process
   }
   else
   {
-    d->stamp_for_inputs = d->hb_stamp;
-
     edge_datum_t const edat = d->check_required_input();
     datum_t const& dat = edat.get<0>();
 
@@ -1035,13 +1032,6 @@ process
   }
 }
 
-stamp_t
-process
-::heartbeat_stamp() const
-{
-  return d->hb_stamp;
-}
-
 edge_t
 process
 ::input_port_edge(port_t const& port) const
@@ -1305,7 +1295,6 @@ process::priv
   , is_complete(false)
   , input_sync(true)
   , input_valid(true)
-  , hb_stamp(stamp::new_stamp())
 {
 }
 
@@ -1329,22 +1318,7 @@ process::priv
     dat = datum::empty_datum();
   }
 
-  edge_datum_t const edge_dat(dat, hb_stamp);
-
-  {
-    output_port_info_t const& info = output_edges[port_heartbeat];
-    priv::mutex_t& mut = info->get<0>();
-
-    priv::shared_lock_t const lock(mut);
-
-    (void)lock;
-
-    edges_t const& edges = info->get<1>();
-
-    push_to_edges(edges, edge_dat);
-  }
-
-  hb_stamp = stamp::incremented_stamp(hb_stamp);
+  q->push_to_port(port_heartbeat, dat);
 }
 
 bool
