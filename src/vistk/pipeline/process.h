@@ -354,7 +354,7 @@ class VISTK_PIPELINE_EXPORT process
      * \throws set_type_on_initialized_process_exception Thrown when the \p port's type is set after initialization.
      *
      * \param port The name of the port.
-     * \param new_type The type of the connected port.
+     * \param new_type The type of the port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -367,7 +367,7 @@ class VISTK_PIPELINE_EXPORT process
      * \throws set_type_on_initialized_process_exception Thrown when the port type is set after initialization.
      *
      * \param port The name of the port.
-     * \param new_type The type of the connected port.
+     * \param new_type The type of the port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -815,7 +815,7 @@ class VISTK_PIPELINE_EXPORT process
      * this behavior is not wanted, it must be manually handled. The default is
      * that it is enabled.
      *
-     * \param ensure If true, ensure required inputs are the same color.
+     * \param ensure If true, ensure required inputs are all valid.
      */
     void ensure_inputs_are_valid(bool ensure);
 
