@@ -120,18 +120,13 @@
  * data stream (e.g., metadata on a video frame) does not have to create invalid
  * objects nor indicate failure to other, unrelated, ports.
  *
- * A stamp consists of a step count and a "color". If two stamps are of the same
- * color, then they are considered to be from the same source and if the step
- * count is also the same then they can be paired together. A stamp's step count
- * is incremented at the source for each new data element. Step counts are
- * unitless and should only be used for ordering information. In fact, the \ref
- * vistk::stamp interface enforces this and only provides a comparison operator
- * between stamps. The color for a stamp should only change when data is added
- * or removed from the stream. Since step counts are unitless and discrete,
- * inserting elements into the stream requires that the step counts change.
- * Processes which do this should change the color of the stamps that are tied
- * to the new data stream so that it cannot be confused with a different data
- * stream.
+ * A stamp consists of a step count and an increment. If two stamps have the
+ * same step count. A stamp's step count is incremented at the source for each
+ * new data element. Step counts are unitless and should only be used for
+ * ordering information. In fact, the \ref vistk::stamp interface enforces this
+ * and only provides a comparison operator between stamps. Since step counts
+ * are unitless and discrete, inserting elements into the stream requires that
+ * the step counts change.
  *
  * The base \ref vistk::process class handles the common case for incoming and
  * outgoing data. The default behavior is that if an input port is marked as
@@ -147,12 +142,11 @@
  *     computation is considered empty (the computation is missing data and
  *     cannot be completed).
  * \li Then, since all of the required inputs are available, the stamps are
- *     checked to ensure that they are the same color and the same step count.
+ *     checked to ensure that they are on the same step count.
  *
  * If custom logic is required to manage ports or data, this control flow can be
  * disabled piecemeal and handled manually. The status can check can be disabled
- * individually, but step synchronization can only be verified if the inputs are
- * also the same color.
+ * on a per-process basis so that it can be managed in a special way.
  *
  * \section design_pipeline_execution Pipeline Execution
  *

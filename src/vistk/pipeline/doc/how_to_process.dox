@@ -93,10 +93,8 @@
  *
  * Stamps can be managed manually by a process (those that upsample or
  * downsample would need to do this, input processes will also generally use
- * their own stamping logic), but most will just use the same stamp that was
- * passed in. Every process instance has a uniquely colored stamp available via
- * the \ref vistk::process::heartbeat_stamp method. It is incremented once per
- * step, so it may not be useful for non-1:1 processes.
+ * their own stamping logic), but most can reply on the step-counting
+ * management of the base class.
  *
  * Data packets can indicate a few status messages for the upstream port (\em
  * not necessarily the process, as the status message is per port). In order
@@ -146,7 +144,7 @@
  *     joining should use this type on its ports.
  * \li \ref vistk::process::type_none — Indicates that the data on the port is
  *     never created with \ref vistk::datum::new_datum and is only useful for
- *     triggers, colorings, and status messages.
+ *     triggers and status messages.
  *
  * \until }
  *
@@ -174,11 +172,11 @@
  * \section how_to_process_run Running
  *
  * The base \ref vistk::process class will do checking for input ports that have
- * the \flag{required} flag to ensure that they are the same color,
- * synchronized and all have data available on them. The default behavior is
- * meant to handle the common case for processes that receive inputs and compute
- * a single result based on it. The default behavior can be enabled or disabled
- * for each case using the \c ensure_* methods on the \ref vistk::process class.
+ * the \flag{required} flag to ensure that they are synchronized and all have
+ * data available on them. The default behavior is meant to handle the common
+ * case for processes that receive inputs and compute a single result based on
+ * it. The default behavior can be enabled or disabled for each case using the
+ * \c ensure_* methods on the \ref vistk::process class.
  *
  * \until include
  *
