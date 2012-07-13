@@ -22,16 +22,12 @@ def test_api_calls():
     from vistk.pipeline import stamp
 
     s = stamp.new_stamp()
-    sc = stamp.copied_stamp(s)
     si = stamp.incremented_stamp(s)
     t = stamp.new_stamp()
     sr = stamp.recolored_stamp(s, t)
 
     if s.is_same_color(t):
         test_error("New stamps have the same color")
-
-    if not s.is_same_color(sc):
-        test_error("Copied stamps do not have the same color")
 
     if s > si:
         test_error("A stamp is greater than its increment")

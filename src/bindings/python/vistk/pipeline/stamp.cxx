@@ -26,9 +26,6 @@ BOOST_PYTHON_MODULE(stamp)
 {
   def("new_stamp", &vistk::stamp::new_stamp
     , "Creates a new stamp.");
-  def("copied_stamp", &vistk::stamp::copied_stamp
-    , (arg("stamp"))
-    , "Creates an equivalent stamp to the one given.");
   def("incremented_stamp", &vistk::stamp::incremented_stamp
     , (arg("stamp"))
     , "Creates a stamp that is greater than the given stamp.");

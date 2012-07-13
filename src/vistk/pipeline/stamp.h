@@ -54,16 +54,6 @@ class VISTK_PIPELINE_EXPORT stamp
      */
     static stamp_t new_stamp();
     /**
-     * \brief Copy a stamp.
-     *
-     * Since stamps are not implicitly copyable, this is provided to copy them.
-     *
-     * \param st The stamp to copy.
-     *
-     * \returns A stamp that is equivalent to \p st.
-     */
-    static stamp_t copied_stamp(stamp_t const& st);
-    /**
      * \brief Create a new stamp that is has an incremented index.
      *
      * \param st The stamp to increment.

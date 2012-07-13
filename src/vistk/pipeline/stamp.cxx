@@ -42,15 +42,6 @@ stamp
 
 stamp_t
 stamp
-::copied_stamp(stamp_t const& st)
-{
-  /// \todo Check \p st for \c NULL?
-
-  return stamp_t(new stamp(st->m_color, st->m_index));
-}
-
-stamp_t
-stamp
 ::incremented_stamp(stamp_t const& st)
 {
   /// \todo Check \p st for \c NULL?

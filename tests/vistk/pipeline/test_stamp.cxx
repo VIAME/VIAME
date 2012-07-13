@@ -96,13 +96,6 @@ test_equality()
     TEST_ERROR("New stamps are equal");
   }
 
-  vistk::stamp_t const stampc = vistk::stamp::copied_stamp(stampa);
-
-  if (*stampa != *stampc)
-  {
-    TEST_ERROR("A copied stamp is not the same");
-  }
-
   vistk::stamp_t const stampd = vistk::stamp::recolored_stamp(stampb, stampa);
 
   if (*stampa != *stampd)
