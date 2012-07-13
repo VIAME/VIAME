@@ -15,19 +15,15 @@ def test_import():
 def test_create():
     from vistk.pipeline import stamp
 
-    stamp.new_stamp()
+    stamp.new_stamp(1)
 
 
 def test_api_calls():
     from vistk.pipeline import stamp
 
-    s = stamp.new_stamp()
+    s = stamp.new_stamp(1)
     si = stamp.incremented_stamp(s)
-    t = stamp.new_stamp()
-    sr = stamp.recolored_stamp(s, t)
-
-    if s.is_same_color(t):
-        test_error("New stamps have the same color")
+    t = stamp.new_stamp(2)
 
     if s > si:
         test_error("A stamp is greater than its increment")
@@ -35,8 +31,11 @@ def test_api_calls():
     if si < s:
         test_error("A stamp is greater than its increment")
 
-    if s < t or t < s:
-        test_error("Different colored stamps return True for comparison")
+    si2 = stamp.incremented_stamp(si)
+    ti = stamp.incremented_stamp(t)
+
+    if not si2 == ti:
+        test_error("Stamps with different rates do not compare as equal")
 
 
 def main(testname):
