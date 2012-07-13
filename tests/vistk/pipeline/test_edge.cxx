@@ -214,8 +214,10 @@ test_push_datum()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 
@@ -241,8 +243,10 @@ test_peek_datum()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 
@@ -268,8 +272,10 @@ test_pop_datum()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 
@@ -290,8 +296,10 @@ test_get_datum()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 
@@ -383,8 +391,10 @@ test_push_data_into_complete()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 
