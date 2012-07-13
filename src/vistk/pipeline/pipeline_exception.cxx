@@ -419,6 +419,37 @@ untyped_connection_exception
 {
 }
 
+frequency_mismatch_exception
+::frequency_mismatch_exception(process::name_t const& upstream_name,
+                               process::port_t const& upstream_port,
+                               process::port_frequency_t const& upstream_frequency,
+                               process::name_t const& downstream_name,
+                               process::port_t const& downstream_port,
+                               process::port_frequency_t const& downstream_frequency) throw()
+  : m_upstream_name(upstream_name)
+  , m_upstream_port(upstream_port)
+  , m_upstream_frequency(upstream_frequency)
+  , m_downstream_name(downstream_name)
+  , m_downstream_port(downstream_port)
+  , m_downstream_frequency(downstream_frequency)
+{
+  std::ostringstream sstr;
+
+  sstr << "The connection from "
+          "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
+          "\'" << m_downstream_name << "." << m_downstream_port << "\', "
+          "has a frequency mismatch where upstream is at "
+       << m_upstream_frequency << " and downstream is at "
+       << m_downstream_frequency;
+
+  m_what = sstr.str();
+}
+
+frequency_mismatch_exception
+::~frequency_mismatch_exception() throw()
+{
+}
+
 no_such_group_exception
 ::no_such_group_exception(process::name_t const& name) throw()
   : pipeline_exception()
