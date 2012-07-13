@@ -587,7 +587,7 @@ test_add_input_port_after_type_pin()
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("collate");
 
-  vistk::process::port_t const color = vistk::process::port_t("color/");
+  vistk::process::port_t const status = vistk::process::port_t("status/");
   vistk::process::port_t const res = vistk::process::port_t("res/");
   vistk::process::port_t const coll = vistk::process::port_t("coll/");
 
@@ -599,7 +599,7 @@ test_add_input_port_after_type_pin()
   vistk::process_t const process = create_process(proc_type);
   vistk::edge_t const edge = create_edge();
 
-  (void)process->input_port_info(color + tag);
+  (void)process->input_port_info(status + tag);
 
   EXPECT_EXCEPTION(vistk::no_such_port_exception,
                    process->connect_input_port(coll + tag + group, edge),
@@ -623,7 +623,7 @@ test_add_output_port_after_type_pin()
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("distribute");
 
-  vistk::process::port_t const color = vistk::process::port_t("color/");
+  vistk::process::port_t const status = vistk::process::port_t("status/");
   vistk::process::port_t const src = vistk::process::port_t("src/");
   vistk::process::port_t const dist = vistk::process::port_t("dist/");
 
@@ -635,7 +635,7 @@ test_add_output_port_after_type_pin()
   vistk::process_t const process = create_process(proc_type);
   vistk::edge_t const edge = create_edge();
 
-  (void)process->output_port_info(color + tag);
+  (void)process->output_port_info(status + tag);
 
   EXPECT_EXCEPTION(vistk::no_such_port_exception,
                    process->connect_output_port(dist + tag + group, edge),

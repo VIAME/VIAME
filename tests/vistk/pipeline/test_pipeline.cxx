@@ -1633,7 +1633,7 @@ test_setup_pipeline_connect()
 
   pipeline->setup_pipeline();
 
-  vistk::process::port_t const iport_name = vistk::process::port_t("color");
+  vistk::process::port_t const iport_name = vistk::process::port_t("status");
   vistk::process::port_t const oport_name = vistk::process::port_heartbeat;
 
   EXPECT_EXCEPTION(vistk::connection_after_setup_exception,
@@ -1669,7 +1669,7 @@ test_setup_pipeline_map_input()
 
   pipeline->setup_pipeline();
 
-  vistk::process::port_t const iport_name = vistk::process::port_t("color");
+  vistk::process::port_t const iport_name = vistk::process::port_t("status");
 
   EXPECT_EXCEPTION(vistk::connection_after_setup_exception,
                    pipeline->map_input_port(group_name, iport_name,
