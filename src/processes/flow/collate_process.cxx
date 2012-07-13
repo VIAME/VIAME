@@ -47,13 +47,13 @@ class collate_process::priv
 
     static port_t const res_sep;
     static port_t const port_res_prefix;
-    static port_t const port_color_prefix;
+    static port_t const port_status_prefix;
     static port_t const port_coll_prefix;
 };
 
 process::port_t const collate_process::priv::res_sep = port_t("/");
 process::port_t const collate_process::priv::port_res_prefix = port_t("res") + res_sep;
-process::port_t const collate_process::priv::port_color_prefix = port_t("color") + res_sep;
+process::port_t const collate_process::priv::port_status_prefix = port_t("status") + res_sep;
 process::port_t const collate_process::priv::port_coll_prefix = port_t("coll") + res_sep;
 
 /**
@@ -68,7 +68,7 @@ process::port_t const collate_process::priv::port_coll_prefix = port_t("coll") +
  * <dl>
  * \term{\portvar{type}}
  *   \termdef{The type of the port. This must be one of \type{res},
- *   \type{color}, or \type{coll}.}
+ *   \type{status}, or \type{coll}.}
  * \term{\portvar{tag}}
  *   \termdef{The name of the stream the port is associated with.}
  * \term{\portvar{group}}
@@ -80,22 +80,19 @@ process::port_t const collate_process::priv::port_coll_prefix = port_t("coll") +
  * The available port types are:
  *
  * <dl>
- * \term{\type{color}}
+ * \term{\type{status}}
  *   \termdef{This is the trigger port for the associated tagged stream. When
  *   this port for the given tag is connected to, the \type{res} and \type{coll}
- *   ports for the tag will not cause errors. The stamp received on the port
- *   represents will be applied to the data leaving the \type{res} port for the
- *   tag.}
+ *   ports for the tag will not cause errors.}
  * \term{\type{res}}
  *   \termdef{This port for the given tag is where the data for a stream leaves
- *   the process. The stamp from the \type{color} port for the \portvar{tag} is
+ *   the process. The stamp from the \type{status} port for the \portvar{tag} is
  *   applied.}
  * \term{\type{coll}}
  *   \termdef{These ports for a given \portvar{tag} receive data from a set of
  *   sources, likely made by the \ref distribute_process. Data is collected in
- *   sorted ordef of the \type{group} name, combined with the next value from
- *   the \type{color} port and sent out the \type{res} port for the
- *   \portvar{tag}.}
+ *   sorted ordef of the \type{group} name and sent out the \type{res} port for
+ *   the \portvar{tag}.}
  * </dl>
  */
 
@@ -153,7 +150,7 @@ collate_process
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const output_port = priv::port_res_prefix + tag;
-    port_t const color_port = priv::port_color_prefix + tag;
+    port_t const status_port = priv::port_status_prefix + tag;
     priv::tag_info const& info = tag_data.second;
     ports_t const& ports = info.ports;
 
@@ -162,7 +159,7 @@ collate_process
       remove_input_port(port);
     }
 
-    remove_input_port(color_port);
+    remove_input_port(status_port);
     remove_output_port(output_port);
   }
 
@@ -181,11 +178,38 @@ collate_process
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const output_port = priv::port_res_prefix + tag;
-    port_t const color_port = priv::port_color_prefix + tag;
+    port_t const status_port = priv::port_status_prefix + tag;
     priv::tag_info& info = tag_data.second;
 
-    edge_datum_t const coll_dat = grab_from_port(*info.cur_port);
-    stamp_t const coll_stamp = coll_dat.get<1>();
+    edge_datum_t const status_edat = grab_from_port(status_port);
+    datum_t const& status_dat = status_edat.get<0>();
+
+    datum::type_t const status_type = status_dat->type();
+
+    bool const is_complete = (status_type == datum::complete);
+
+    if (is_complete || (status_type == datum::flush))
+    {
+      push_to_port(output_port, status_edat);
+
+      BOOST_FOREACH (port_t const& port, info.ports)
+      {
+        (void)grab_from_port(port);
+      }
+
+      if (is_complete)
+      {
+        complete_ports.push_back(tag);
+
+        continue;
+      }
+    }
+    else
+    {
+      edge_datum_t const coll_dat = grab_from_port(*info.cur_port);
+
+      push_to_port(output_port, coll_dat);
+    }
 
     ++info.cur_port;
 
@@ -193,28 +217,6 @@ collate_process
     {
       info.cur_port = info.ports.begin();
     }
-
-    edge_datum_t const color_dat = grab_from_port(color_port);
-    stamp_t const color_stamp = color_dat.get<1>();
-
-    edge_data_t data;
-
-    data.push_back(coll_dat);
-    data.push_back(color_dat);
-
-    if (edge_data_info(data)->max_status == datum::complete)
-    {
-      push_to_port(output_port, edge_datum_t(datum::complete_datum(), color_stamp));
-
-      complete_ports.push_back(tag);
-
-      continue;
-    }
-
-    edge_datum_t res_dat = coll_dat;
-    boost::get<1>(res_dat) = stamp::recolored_stamp(coll_stamp, color_stamp);
-
-    push_to_port(output_port, res_dat);
   }
 
   BOOST_FOREACH (port_t const& port, complete_ports)
@@ -245,9 +247,9 @@ process::port_info_t
 collate_process
 ::_input_port_info(port_t const& port)
 {
-  if (boost::starts_with(port, priv::port_color_prefix))
+  if (boost::starts_with(port, priv::port_status_prefix))
   {
-    priv::tag_t const tag = port.substr(priv::port_color_prefix.size());
+    priv::tag_t const tag = port.substr(priv::port_status_prefix.size());
 
     priv::tag_data_t::const_iterator const i = d->tag_data.find(tag);
 
@@ -265,7 +267,7 @@ collate_process
         port,
         type_none,
         required,
-        port_description_t("The original color for the result " + tag + "."));
+        port_description_t("The original status for the result " + tag + "."));
       declare_output_port(
         priv::port_res_prefix + tag,
         type_flow_dependent + tag,

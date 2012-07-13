@@ -28,15 +28,15 @@ namespace vistk
  * \brief A process for collating input data from multiple input edges.
  *
  * \note Edges for a \portvar{tag} may \em only be connected after the
- * \port{color/\portvar{tag}} is connected to. Before this connection happens,
+ * \port{status/\portvar{tag}} is connected to. Before this connection happens,
  * the other ports to not exist and will cause errors. In short: The first
- * connection for any \portvar{tag} must be \port{color/\portvar{tag}}.
+ * connection for any \portvar{tag} must be \port{status/\portvar{tag}}.
  *
  * \process Collate incoming data into a single stream.
  *
  * \iports
  *
- * \iport{color/\portvar{tag}} The color of the result \portvar{tag}.
+ * \iport{status/\portvar{tag}} The status of the result \portvar{tag}.
  * \iport{coll/\portvar{tag}/\portvar{group}} A port to collate data for
  *                                            \portvar{tag} from. Data is
  *                                            collated from ports in
@@ -48,7 +48,7 @@ namespace vistk
  *
  * \reqs
  *
- * \req Each input port \port{color/\portvar{tag}} must be connected.
+ * \req Each input port \port{status/\portvar{tag}} must be connected.
  * \req Each \portvar{tag} must have at least two inputs to collate.
  * \req Each output port \port{res/\portvar{tag}} must be connected.
  *

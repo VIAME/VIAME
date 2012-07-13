@@ -35,33 +35,28 @@ class distribute_process::priv
     typedef port_t group_t;
     typedef port_t tag_t;
 
-    typedef std::map<group_t, stamp_t> group_colors_t;
-    typedef std::map<port_t, stamp_t> tag_ports_t;
     struct tag_info
     {
-      tag_ports_t ports;
-      tag_ports_t::const_iterator cur_port;
+      ports_t ports;
+      ports_t::const_iterator cur_port;
     };
     typedef std::map<tag_t, tag_info> tag_data_t;
 
     tag_data_t tag_data;
-    group_colors_t group_colors;
 
     // Port name break down.
     tag_t tag_for_dist_port(port_t const& port) const;
     group_t group_for_dist_port(port_t const& port) const;
 
-    stamp_t color_for_group(group_t const& group);
-
     static port_t const src_sep;
     static port_t const port_src_prefix;
-    static port_t const port_color_prefix;
+    static port_t const port_status_prefix;
     static port_t const port_dist_prefix;
 };
 
 process::port_t const distribute_process::priv::src_sep = port_t("/");
 process::port_t const distribute_process::priv::port_src_prefix = port_t("src") + src_sep;
-process::port_t const distribute_process::priv::port_color_prefix = port_t("color") + src_sep;
+process::port_t const distribute_process::priv::port_status_prefix = port_t("status") + src_sep;
 process::port_t const distribute_process::priv::port_dist_prefix = port_t("dist") + src_sep;
 
 /**
@@ -76,30 +71,27 @@ process::port_t const distribute_process::priv::port_dist_prefix = port_t("dist"
  * <dl>
  * \term{\portvar{type}}
  *   \termdef{The type of the port. This must be one of \type{src},
- *   \type{color}, or \type{dist}.}
+ *   \type{status}, or \type{dist}.}
  * \term{\portvar{tag}}
  *   \termdef{The name of the stream the port is associated with.}
  * \term{\portvar{group}}
  *   \termdef{Only required for \type{dist}-type ports. Data from the same
  *   \portvar{tag} stream from its \type{src} port is distributed in sorted
- *   order over all of the \type{dist} ports. Ports which share the same
- *   \portvar{group} name will share a common stamp stream. Each \portvar{group}
- *   will receive different colorings on the stamps to avoid mixing data.}
+ *   order over all of the \type{dist} ports.}
  * </dl>
  *
  * The available port types are:
  *
  * <dl>
- * \term{\type{color}}
+ * \term{\type{status}}
  *   \termdef{This is the trigger port for the associated tagged stream. When
  *   this port for the given tag is connected to, the \type{src} and \type{dist}
  *   ports for the tag will not cause errors. The stamp on the port represents
- *   the original stamps coming in the \type{src} port for the tag.}
+ *   the status of the original stream coming in the \type{src} port for the
+ *   tag.}
  * \term{\type{src}}
  *   \termdef{This port for the given tag is where the original stream comes
- *   into the process. The stamp is stripped off and sent down the corresponding
- *   \type{color} port while the data is distributed among the \type{dist}
- *   ports in distinct colored streams.}
+ *   into the process.}
  * \term{\type{dist}}
  *   \termdef{These ports for a given \portvar{tag} receive a subset of the data
  *   from the corresponding \type{src} port. They are used in sorted order of
@@ -129,7 +121,7 @@ distribute_process
   {
     priv::tag_t const& tag = tag_data.first;
     priv::tag_info& info = tag_data.second;
-    priv::tag_ports_t const& ports = info.ports;
+    ports_t const& ports = info.ports;
 
     // Ensure that the extra process is actually doing work.
     if (ports.size() < 2)
@@ -143,10 +135,8 @@ distribute_process
     frequency_component_t const ratio = ports.size();
     port_frequency_t const freq = port_frequency_t(1, ratio);
 
-    BOOST_FOREACH (priv::tag_ports_t::value_type const& tport, ports)
+    BOOST_FOREACH (port_t const& port, ports)
     {
-      port_t const& port = tport.first;
-
       set_output_port_frequency(port, freq);
     }
 
@@ -164,23 +154,20 @@ distribute_process
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const input_port = priv::port_src_prefix + tag;
-    port_t const color_port = priv::port_color_prefix + tag;
+    port_t const status_port = priv::port_status_prefix + tag;
     priv::tag_info const& info = tag_data.second;
-    priv::tag_ports_t const& ports = info.ports;
+    ports_t const& ports = info.ports;
 
-    BOOST_FOREACH (priv::tag_ports_t::value_type const& port, ports)
+    BOOST_FOREACH (port_t const& port, ports)
     {
-      port_t const& port_name = port.first;
-
-      remove_output_port(port_name);
+      remove_output_port(port);
     }
 
-    remove_output_port(color_port);
+    remove_output_port(status_port);
     remove_input_port(input_port);
   }
 
   d->tag_data.clear();
-  d->group_colors.clear();
 
   process::_reset();
 }
@@ -195,36 +182,40 @@ distribute_process
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const input_port = priv::port_src_prefix + tag;
-    port_t const color_port = priv::port_color_prefix + tag;
+    port_t const status_port = priv::port_status_prefix + tag;
     priv::tag_info& info = tag_data.second;
 
-    edge_datum_t const src_dat = grab_from_port(input_port);
-    stamp_t const src_stamp = src_dat.get<1>();
+    edge_datum_t const src_edat = grab_from_port(input_port);
+    datum_t const& src_dat = src_edat.get<0>();
+    stamp_t const& src_stamp = src_edat.get<1>();
 
-    if (src_dat.get<0>()->type() == datum::complete)
+    datum::type_t const src_type = src_dat->type();
+
+    bool const is_complete = (src_type == datum::complete);
+
+    if (is_complete || (src_type == datum::flush))
     {
-      push_to_port(color_port, edge_datum_t(datum::complete_datum(), src_stamp));
+      push_to_port(status_port, src_edat);
 
-      BOOST_FOREACH (priv::tag_ports_t::value_type const& tag_port, info.ports)
+      BOOST_FOREACH (port_t const& port, info.ports)
       {
-        port_t const& dist_port = tag_port.first;
-        stamp_t const& group_stamp = tag_port.second;
-        stamp_t const dist_stamp = stamp::recolored_stamp(src_stamp, group_stamp);
-
-        push_to_port(dist_port, edge_datum_t(datum::complete_datum(), dist_stamp));
+        push_to_port(port, src_edat);
       }
 
-      complete_ports.push_back(tag);
+      if (is_complete)
+      {
+        complete_ports.push_back(tag);
 
-      continue;
+        continue;
+      }
     }
+    else
+    {
+      edge_datum_t const status_edat = edge_datum_t(datum::empty_datum(), src_stamp);
 
-    push_to_port(color_port, edge_datum_t(datum::empty_datum(), src_dat.get<1>()));
-
-    edge_datum_t dist_dat = src_dat;
-    boost::get<1>(dist_dat) = stamp::recolored_stamp(src_stamp, info.cur_port->second);
-
-    push_to_port(info.cur_port->first, dist_dat);
+      push_to_port(status_port, status_edat);
+      push_to_port(*info.cur_port, src_dat);
+    }
 
     ++info.cur_port;
 
@@ -262,9 +253,9 @@ process::port_info_t
 distribute_process
 ::_output_port_info(port_t const& port)
 {
-  if (boost::starts_with(port, priv::port_color_prefix))
+  if (boost::starts_with(port, priv::port_status_prefix))
   {
-    priv::tag_t const tag = port.substr(priv::port_color_prefix.size());
+    priv::tag_t const tag = port.substr(priv::port_status_prefix.size());
 
     priv::tag_data_t::const_iterator const i = d->tag_data.find(tag);
 
@@ -287,7 +278,7 @@ distribute_process
         port,
         type_none,
         required,
-        port_description_t("The original color for the input " + tag + "."));
+        port_description_t("The status for the input " + tag + "."));
     }
   }
 
@@ -298,7 +289,7 @@ distribute_process
     port_t const group = d->group_for_dist_port(port);
     priv::tag_info& info = d->tag_data[tag];
 
-    info.ports[port] = d->color_for_group(group);
+    info.ports.push_back(port);
 
     port_flags_t required;
 
@@ -370,20 +361,6 @@ distribute_process::priv
   }
 
   return group_t();
-}
-
-stamp_t
-distribute_process::priv
-::color_for_group(group_t const& group)
-{
-  group_colors_t::const_iterator const i = group_colors.find(group);
-
-  if (i == group_colors.end())
-  {
-    group_colors[group] = stamp::new_stamp();
-  }
-
-  return group_colors[group];
 }
 
 }
