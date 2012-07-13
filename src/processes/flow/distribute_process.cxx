@@ -141,6 +141,16 @@ distribute_process
       throw invalid_configuration_exception(name(), reason);
     }
 
+    frequency_component_t const ratio = ports.size();
+    port_frequency_t const freq = port_frequency_t(1, ratio);
+
+    BOOST_FOREACH (priv::tag_ports_t::value_type const& tport, ports)
+    {
+      port_t const& port = tport.first;
+
+      set_output_port_frequency(port, freq);
+    }
+
     info.cur_port = ports.begin();
   }
 

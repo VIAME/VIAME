@@ -132,6 +132,14 @@ collate_process
       throw invalid_configuration_exception(name(), reason);
     }
 
+    frequency_component_t const ratio = ports.size();
+    port_frequency_t const freq = port_frequency_t(1, ratio);
+
+    BOOST_FOREACH (port_t const& port, ports)
+    {
+      set_input_port_frequency(port, freq);
+    }
+
     info.cur_port = ports.begin();
   }
 
