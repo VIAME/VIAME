@@ -100,14 +100,14 @@ process::data_info
 class process::priv
 {
   public:
-    priv(config_t c);
+    priv(process* proc, config_t const& c);
     ~priv();
 
     void run_heartbeat();
     bool connect_input_port(port_t const& port, edge_t const& edge);
     bool connect_output_port(port_t const& port, edge_t const& edge);
 
-    edge_datum_t check_required_input(process* proc);
+    edge_datum_t check_required_input();
     void grab_from_input_edges();
     void push_to_output_edges(edge_datum_t const& edat) const;
     bool required_outputs_done() const;
@@ -150,6 +150,7 @@ class process::priv
     input_edge_map_t input_edges;
     output_edge_map_t output_edges;
 
+    process* const q;
     config_t const conf;
 
     ports_t static_inputs;
@@ -252,7 +253,7 @@ process
   {
     d->stamp_for_inputs = d->hb_stamp;
 
-    edge_datum_t const edat = d->check_required_input(this);
+    edge_datum_t const edat = d->check_required_input();
     datum_t const& dat = edat.get<0>();
 
     if (dat)
@@ -430,12 +431,13 @@ process
 
 process
 ::process(config_t const& config)
-  : d(new priv(config))
 {
   if (!config)
   {
     throw null_process_config_exception();
   }
+
+  d.reset(new priv(this, config));
 
   declare_configuration_key(
     config_name,
@@ -1310,8 +1312,9 @@ process
 }
 
 process::priv
-::priv(config_t c)
-  : conf(c)
+::priv(process* proc, config_t const& c)
+  : q(proc)
+  , conf(c)
   , configured(false)
   , initialized(false)
   , is_complete(false)
@@ -1410,7 +1413,7 @@ process::priv
 
 edge_datum_t
 process::priv
-::check_required_input(process* proc)
+::check_required_input()
 {
   if ((!input_same_color && !input_valid) ||
       required_inputs.empty())
@@ -1471,7 +1474,7 @@ process::priv
       stamp_for_inputs = stamp::new_stamp();
       return edge_datum_t(datum::flush_datum(), stamp_for_inputs);
     case datum::complete:
-      proc->mark_process_as_complete();
+      q->mark_process_as_complete();
       return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
     case datum::error:
     {
