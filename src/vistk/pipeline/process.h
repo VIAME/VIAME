@@ -608,6 +608,27 @@ class VISTK_PIPELINE_EXPORT process
                              port_frequency_t const& frequency_ = port_frequency_t(1));
 
     /**
+     * \brief Set the frequency of an input port.
+     *
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws set_frequency_on_initialized_process_exception Thrown when the \p port's frequency is set after initialization.
+     *
+     * \param port The name of the port.
+     * \param new_frequency The frequency of the port.
+     */
+    void set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency);
+    /**
+     * \brief Set the frequency of an output port.
+     *
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws set_frequency_on_initialized_process_exception Thrown when the \p port's frequency is set after initialization.
+     *
+     * \param port The name of the port.
+     * \param new_frequency The frequency of the port.
+     */
+    void set_output_port_frequency(port_t const& port, port_frequency_t const& new_frequency);
+
+    /**
      * \brief Remove an input port from the process.
      *
      * \param port The input port to remove.

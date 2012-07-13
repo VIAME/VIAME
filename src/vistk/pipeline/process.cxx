@@ -865,6 +865,56 @@ process
 
 void
 process
+::set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
+{
+  if (d->initialized)
+  {
+    throw set_frequency_on_initialized_process_exception(d->name, port, new_frequency);
+  }
+
+  port_info_t const info = input_port_info(port);
+  port_frequency_t const& old_frequency = info->frequency;
+
+  if (old_frequency == new_frequency)
+  {
+    return;
+  }
+
+  declare_input_port(
+    port,
+    info->type,
+    info->flags,
+    info->description,
+    new_frequency);
+}
+
+void
+process
+::set_output_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
+{
+  if (d->initialized)
+  {
+    throw set_frequency_on_initialized_process_exception(d->name, port, new_frequency);
+  }
+
+  port_info_t const info = output_port_info(port);
+  port_frequency_t const& old_frequency = info->frequency;
+
+  if (old_frequency == new_frequency)
+  {
+    return;
+  }
+
+  declare_output_port(
+    port,
+    info->type,
+    info->flags,
+    info->description,
+    new_frequency);
+}
+
+void
+process
 ::remove_input_port(port_t const& port)
 {
   // Ensure the port exists.
