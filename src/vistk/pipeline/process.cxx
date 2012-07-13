@@ -137,6 +137,8 @@ class process::priv
 
     typedef std::map<port_t, tag_t> port_tag_map_t;
 
+    typedef boost::optional<port_frequency_t> core_frequency_t;
+
     tag_t port_flow_tag_name(port_type_t const& port_type) const;
     void check_tag(tag_t const& tag);
 
@@ -160,6 +162,8 @@ class process::priv
 
     port_tag_map_t input_port_tags;
     port_tag_map_t output_port_tags;
+
+    core_frequency_t core_frequency;
 
     bool configured;
     bool initialized;
@@ -231,7 +235,7 @@ process
     throw unconfigured_exception(d->name);
   }
 
-  if (!d->initialized)
+  if (!d->core_frequency)
   {
     throw uninitialized_exception(d->name);
   }
@@ -486,6 +490,7 @@ process
 
   d->configured = false;
   d->initialized = false;
+  d->core_frequency.reset();
 }
 
 void
@@ -1281,6 +1286,27 @@ process
   ports_t::const_iterator const i = std::find(d->static_inputs.begin(), d->static_inputs.end(), port);
 
   return (i != d->static_inputs.end());
+}
+
+void
+process
+::set_core_frequency(port_frequency_t const& frequency)
+{
+  if (!d->initialized)
+  {
+    static std::string const reason = "A process' frequency was set before it was initialized";
+
+    throw std::runtime_error(reason);
+  }
+
+  if (d->core_frequency)
+  {
+    static std::string const reason = "A process' frequency was set a second time";
+
+    throw std::runtime_error(reason);
+  }
+
+  d->core_frequency = frequency;
 }
 
 process::priv

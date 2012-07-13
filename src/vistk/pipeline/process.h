@@ -856,6 +856,9 @@ class VISTK_PIPELINE_EXPORT process
     bool is_static_input(port_t const& port) const;
     static config::key_t const static_input_prefix;
 
+    friend class pipeline;
+    void set_core_frequency(port_frequency_t const& frequency);
+
     class priv;
     boost::scoped_ptr<priv> d;
 };

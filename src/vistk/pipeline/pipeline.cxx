@@ -10,9 +10,10 @@
 #include "edge.h"
 #include "process_exception.h"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
-#include <boost/algorithm/string/predicate.hpp>
+#include <boost/math/common_factor_rt.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/function.hpp>
@@ -2275,6 +2276,28 @@ pipeline::priv
     {
       unchecked_connections.push(connection);
     }
+  }
+
+  process::frequency_component_t freq_gcd = process::frequency_component_t(1);
+
+  BOOST_FOREACH (process_frequency_map_t::value_type const& proc_freq, freq_map)
+  {
+    process::port_frequency_t const& freq = proc_freq.second;
+    process::frequency_component_t const denom = freq.denominator();
+
+    freq_gcd = boost::math::lcm(freq_gcd, denom);
+  }
+
+  BOOST_FOREACH (process_frequency_map_t::value_type const& proc_freq, freq_map)
+  {
+    process::name_t const& name = proc_freq.first;
+    process::port_frequency_t const& freq = proc_freq.second;
+
+    process::port_frequency_t const core_freq = freq_gcd * freq;
+
+    process_t const proc = q->process_by_name(name);
+
+    proc->set_core_frequency(core_freq);
   }
 }
 
