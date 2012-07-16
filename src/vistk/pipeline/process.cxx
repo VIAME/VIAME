@@ -107,7 +107,7 @@ class process::priv
 
     edge_datum_t check_required_input();
     void grab_from_input_edges();
-    void push_to_output_edges(edge_datum_t const& edat) const;
+    void push_to_output_edges(datum_t const& dat) const;
     bool required_outputs_done() const;
 
     name_t name;
@@ -255,7 +255,7 @@ process
     if (dat)
     {
       d->grab_from_input_edges();
-      d->push_to_output_edges(edat);
+      d->push_to_output_edges(dat);
     }
     else
     {
@@ -1557,30 +1557,29 @@ process::priv
 
 void
 process::priv
-::push_to_output_edges(edge_datum_t const& edat) const
+::push_to_output_edges(datum_t const& dat) const
 {
-  BOOST_FOREACH (output_edge_map_t::value_type const& edges_for_port, output_edges)
+  BOOST_FOREACH (port_map_t::value_type const& oport, output_ports)
   {
-    port_t const& port = edges_for_port.first;
+    port_t const& port = oport.first;
+    port_info_t const& info = oport.second;
 
-    // The heartbeat port is handled elsewhere.
-    if (port == port_heartbeat)
+    port_frequency_t const& freq = info->frequency;
+
+    if (!freq || (freq.denominator() != 1))
     {
-      continue;
+      static std::string const reason = "Cannot automatically push to "
+                                        "an output port with 0 or non-integer "
+                                        "frequency";
+
+      throw std::runtime_error(reason);
     }
 
-    output_port_info_t const& info = edges_for_port.second;
-    priv::mutex_t& mut = info->get<0>();
+    frequency_component_t const count = freq.numerator();
 
-    priv::shared_lock_t const lock(mut);
-
-    (void)lock;
-
-    edges_t const& edges = info->get<1>();
-
-    BOOST_FOREACH (edge_t const& edge, edges)
+    for (frequency_component_t j = 0; j < count; ++j)
     {
-      edge->push_datum(edat);
+      q->push_datum_to_port(port, dat);
     }
   }
 }
