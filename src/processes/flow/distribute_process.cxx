@@ -186,8 +186,8 @@ distribute_process
     priv::tag_info& info = tag_data.second;
 
     edge_datum_t const src_edat = grab_from_port(input_port);
-    datum_t const& src_dat = src_edat.get<0>();
-    stamp_t const& src_stamp = src_edat.get<1>();
+    datum_t const& src_dat = src_edat.datum;
+    stamp_t const& src_stamp = src_edat.stamp;
 
     datum::type_t const src_type = src_dat->type();
 
@@ -214,7 +214,7 @@ distribute_process
       edge_datum_t const status_edat = edge_datum_t(datum::empty_datum(), src_stamp);
 
       push_to_port(status_port, status_edat);
-      push_to_port(*info.cur_port, src_dat);
+      push_to_port(*info.cur_port, src_edat);
     }
 
     ++info.cur_port;

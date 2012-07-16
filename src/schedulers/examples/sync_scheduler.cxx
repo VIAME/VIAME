@@ -162,7 +162,7 @@ run_sync(pipeline_t const& pipe)
     while (monitor_edge->has_data())
     {
       edge_datum_t const edat = monitor_edge->get_datum();
-      datum_t const dat = edat.get<0>();
+      datum_t const dat = edat.datum;
 
       if (dat->type() == datum::complete)
       {

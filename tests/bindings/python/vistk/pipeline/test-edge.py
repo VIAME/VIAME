@@ -31,6 +31,7 @@ def test_datum_create():
     d = datum.complete()
     s = stamp.new_stamp(1)
 
+    edge.EdgeDatum()
     edge.EdgeDatum(d, s)
     edge.EdgeData()
 

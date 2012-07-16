@@ -182,7 +182,7 @@ collate_process
     priv::tag_info& info = tag_data.second;
 
     edge_datum_t const status_edat = grab_from_port(status_port);
-    datum_t const& status_dat = status_edat.get<0>();
+    datum_t const& status_dat = status_edat.datum;
 
     datum::type_t const status_type = status_dat->type();
 

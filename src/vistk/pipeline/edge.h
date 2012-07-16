@@ -12,7 +12,6 @@
 #include "config.h"
 #include "types.h"
 
-#include <boost/tuple/tuple.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/operators.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -28,8 +27,45 @@
 namespace vistk
 {
 
-/// A typedef for a single packet which goes through an \ref edge.
-typedef boost::tuple<datum_t, stamp_t> edge_datum_t;
+/**
+ * \class edge_datum_t <vistk/pipeline/edge.h>
+ *
+ * \brief The packet of data that actually exists within edges.
+ */
+class VISTK_PIPELINE_EXPORT edge_datum_t
+  : boost::equality_comparable<edge_datum_t>
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    edge_datum_t();
+    /**
+     * \brief Constructor.
+     *
+     * \param datum_ The datum on the edge.
+     * \param stamp_ The stamp for the datum.
+     */
+    edge_datum_t(datum_t const& datum_, stamp_t const& stamp_);
+    /**
+     * \brief Destructor.
+     */
+    ~edge_datum_t();
+
+    /**
+     * \brief Compare two \ref edge_datum_t packets.
+     *
+     * \param b The second packet.
+     *
+     * \returns True if \p a and \p b are the same, false otherwise.
+     */
+    bool operator == (edge_datum_t const& rhs);
+
+    /// The datum on the edge.
+    datum_t datum;
+    /// The stamp for the datum.
+    stamp_t stamp;
+};
 /// A typedef for a multiple packets which go through an \ref edge.
 typedef std::vector<edge_datum_t> edge_data_t;
 /// A group of \link edge edges\endlink.
@@ -231,16 +267,6 @@ class VISTK_PIPELINE_EXPORT edge
     class priv;
     boost::scoped_ptr<priv> d;
 };
-
-/**
- * \brief Compare two \ref edge_datum_t packets.
- *
- * \param a The first packet.
- * \param b The second packet.
- *
- * \returns True if \p a and \p b are the same, false otherwise.
- */
-bool VISTK_PIPELINE_EXPORT operator == (edge_datum_t const& a, edge_datum_t const& b);
 
 }
 

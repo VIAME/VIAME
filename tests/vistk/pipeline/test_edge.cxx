@@ -259,7 +259,9 @@ test_peek_datum()
     TEST_ERROR("An edge removed a datum on an peek");
   }
 
-  if (*get_edat.get<1>() != *stamp)
+  vistk::stamp_t const& estamp = get_edat.stamp;
+
+  if (*estamp != *stamp)
   {
     TEST_ERROR("The edge modified a stamp on a peek");
   }
@@ -312,7 +314,9 @@ test_get_datum()
     TEST_ERROR("An edge did not remove a datum on a get");
   }
 
-  if (*get_edat.get<1>() != *stamp)
+  vistk::stamp_t const& estamp = get_edat.stamp;
+
+  if (*estamp != *stamp)
   {
     TEST_ERROR("The edge modified a stamp on a get");
   }

@@ -1114,7 +1114,7 @@ process
 {
   edge_datum_t const edat = grab_from_port(port);
 
-  return edat.get<0>();
+  return edat.datum;
 }
 
 void
@@ -1188,12 +1188,12 @@ process
   datum::type_t max_type = datum::invalid;
 
   edge_datum_t const& fst = data[0];
-  stamp_t const& st = fst.get<1>();
+  stamp_t const& st = fst.stamp;
 
   BOOST_FOREACH (edge_datum_t const& edat, data)
   {
-    datum_t const& dat = edat.get<0>();
-    stamp_t const& st2 = edat.get<1>();
+    datum_t const& dat = edat.datum;
+    stamp_t const& st2 = edat.stamp;
 
     datum::type_t const type = dat->type();
 
@@ -1318,7 +1318,7 @@ process::priv
     dat = datum::empty_datum();
   }
 
-  q->push_to_port(port_heartbeat, dat);
+  q->push_datum_to_port(port_heartbeat, dat);
 }
 
 bool
@@ -1407,7 +1407,7 @@ process::priv
   // Save the stamp for the inputs.
   if (input_sync)
   {
-    stamp_for_inputs = data[0].get<1>();
+    stamp_for_inputs = data[0].stamp;
   }
 
   if (!input_valid)
