@@ -1460,6 +1460,7 @@ process::priv
     return datum_t();
   }
 
+  edge_data_t first_data;
   edge_data_t data;
 
   BOOST_FOREACH (port_t const& port, required_inputs)
@@ -1473,14 +1474,25 @@ process::priv
 
     edge_t const& iedge = i->second;
 
-    data.push_back(peek_at_edge(iedge));
+    edge_datum_t const first_edat = peek_at_edge(iedge);
+    datum_t const& first_dat = first_edat.datum;
+    datum::type_t const first_type = first_dat->type();
+
+    first_data.push_back(first_edat);
+    data.push_back(first_edat);
+
+    if ((first_type == datum::flush) ||
+        (first_type == datum::complete))
+    {
+      continue;
+    }
 
     /// \todo Peek N times.
   }
 
-  data_info_t const info = edge_data_info(data);
+  data_info_t const first_info = edge_data_info(first_data);
 
-  if (input_sync && !info->in_sync)
+  if (input_sync && !first_info->in_sync)
   {
     static datum::error_t const err_string = datum::error_t("Required input edges are not synchronized.");
 
@@ -1490,13 +1502,15 @@ process::priv
   // Save the stamp for the inputs.
   if (input_sync)
   {
-    stamp_for_inputs = data[0].stamp;
+    stamp_for_inputs = first_data[0].stamp;
   }
 
   if (!input_valid)
   {
     return datum_t();
   }
+
+  data_info_t const info = edge_data_info(data);
 
   switch (info->max_status)
   {
