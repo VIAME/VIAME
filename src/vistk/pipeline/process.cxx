@@ -1152,13 +1152,6 @@ process
   push_to_port(port, edge_datum_t(dat, stamp_for_inputs()));
 }
 
-stamp_t
-process
-::stamp_for_inputs() const
-{
-  return d->stamp_for_inputs;
-}
-
 config_t
 process
 ::get_config() const

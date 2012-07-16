@@ -738,18 +738,6 @@ class VISTK_PIPELINE_EXPORT process
     void push_to_port_as(port_t const& port, T const& dat) const;
 
     /**
-     * \brief Return the stamp for this step.
-     *
-     * This is only valid if the base class is ensuring that the input stamps
-     * are \em both all the same color and synchronized. If either one is not
-     * verified, it will be the heartbeat stamp. If called outside of the \ref
-     * _step method, it will be \c NULL.
-     *
-     * \returns The stamp that was shared for all inputs.
-     */
-    stamp_t stamp_for_inputs() const;
-
-    /**
      * \brief The configuration for the process.
      *
      * \returns The configuration for the process.
