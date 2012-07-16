@@ -1358,6 +1358,13 @@ process
     throw std::runtime_error(reason);
   }
 
+  if (frequency.denominator() != 1)
+  {
+    static std::string const reason = "A process' frequency is not a whole number";
+
+    throw std::runtime_error(reason);
+  }
+
   d->core_frequency = frequency;
 }
 
