@@ -105,7 +105,7 @@ class process::priv
     bool connect_input_port(port_t const& port, edge_t const& edge);
     bool connect_output_port(port_t const& port, edge_t const& edge);
 
-    edge_datum_t check_required_input();
+    datum_t check_required_input();
     void grab_from_input_edges();
     void push_to_output_edges(datum_t const& dat) const;
     bool required_outputs_done() const;
@@ -249,8 +249,7 @@ process
   }
   else
   {
-    edge_datum_t const edat = d->check_required_input();
-    datum_t const& dat = edat.get<0>();
+    datum_t const dat = d->check_required_input();
 
     if (dat)
     {
@@ -1451,14 +1450,14 @@ process::priv
   return false;
 }
 
-edge_datum_t
+datum_t
 process::priv
 ::check_required_input()
 {
   if ((!input_sync && !input_valid) ||
       required_inputs.empty())
   {
-    return edge_datum_t(datum_t(), stamp_t());
+    return datum_t();
   }
 
   edge_data_t data;
@@ -1475,6 +1474,8 @@ process::priv
     edge_t const& iedge = i->second;
 
     data.push_back(peek_at_edge(iedge));
+
+    /// \todo Peek N times.
   }
 
   data_info_t const info = edge_data_info(data);
@@ -1483,7 +1484,7 @@ process::priv
   {
     static datum::error_t const err_string = datum::error_t("Required input edges are not synchronized.");
 
-    return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+    return datum::error_datum(err_string);
   }
 
   // Save the stamp for the inputs.
@@ -1494,7 +1495,7 @@ process::priv
 
   if (!input_valid)
   {
-    return edge_datum_t(datum_t(), stamp_t());
+    return datum_t();
   }
 
   switch (info->max_status)
@@ -1502,28 +1503,28 @@ process::priv
     case datum::data:
       break;
     case datum::empty:
-      return edge_datum_t(datum::empty_datum(), stamp_for_inputs);
+      return datum::empty_datum();
     case datum::flush:
-      return edge_datum_t(datum::flush_datum(), stamp_for_inputs);
+      return datum::flush_datum();
     case datum::complete:
       q->mark_process_as_complete();
-      return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
+      return datum::complete_datum();
     case datum::error:
     {
       static datum::error_t const err_string = datum::error_t("Error in a required input edge.");
 
-      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+      return datum::error_datum(err_string);
     }
     case datum::invalid:
     default:
     {
       static datum::error_t const err_string = datum::error_t("Unrecognized datum type in a required input edge.");
 
-      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+      return datum::error_datum(err_string);
     }
   }
 
-  return edge_datum_t(datum_t(), stamp_t());
+  return datum_t();
 }
 
 void
