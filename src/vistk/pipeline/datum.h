@@ -40,18 +40,18 @@ class VISTK_PIPELINE_EXPORT datum
     /// The type of the datum being passed through the edge.
     typedef enum
     {
-      /// An invalid type.
-      invalid,
       /// Data is included in the edge.
       data,
       /// No data was computed for the computation.
       empty,
+      /// An error occurred when computing the data.
+      error,
+      /// An invalid type.
+      invalid,
       /// The current data stream is complete and a new one will follow.
       flush,
       /// The process is complete and no more data will be available on this edge.
-      complete,
-      /// An error occurred when computing the data.
-      error
+      complete
     } type_t;
 
     /**

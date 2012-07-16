@@ -1185,7 +1185,7 @@ process
 ::edge_data_info(edge_data_t const& data)
 {
   bool in_sync = true;
-  datum::type_t max_type = datum::invalid;
+  datum::type_t max_type = datum::data;
 
   edge_datum_t const& fst = data[0];
   stamp_t const& st = fst.stamp;
