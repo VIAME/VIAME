@@ -1531,13 +1531,27 @@ void
 process::priv
 ::grab_from_input_edges()
 {
-  BOOST_FOREACH (input_edge_map_t::value_type const& edge_for_port, input_edges)
+  BOOST_FOREACH (port_map_t::value_type const& iport, input_ports)
   {
-    edge_t const& edge = edge_for_port.second;
+    port_t const& port = iport.first;
+    port_info_t const& info = iport.second;
 
-    if (edge->has_data())
+    port_frequency_t const& freq = info->frequency;
+
+    if (!freq || (freq.denominator() != 1))
     {
-      edge->pop_datum();
+      static std::string const reason = "Cannot automatically pull from "
+                                        "an input port with 0 or non-integer "
+                                        "frequency";
+
+      throw std::runtime_error(reason);
+    }
+
+    frequency_component_t const count = freq.numerator();
+
+    for (frequency_component_t j = 0; j < count; ++j)
+    {
+      (void)q->grab_datum_from_port(port);
     }
   }
 }
