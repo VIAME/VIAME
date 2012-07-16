@@ -245,6 +245,7 @@ process
 
   if (d->is_complete)
   {
+    /// \todo Log a warning that a process is being stepped after completion.
     /// \todo What exactly should be done here?
   }
   else
