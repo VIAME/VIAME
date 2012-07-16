@@ -22,11 +22,9 @@ set_target_properties(vistk_image
     SOVERSION     0
     DEFINE_SYMBOL MAKE_VISTK_IMAGE_LIB)
 
-if (VISTK_ENABLE_DOCUMENTATION)
-  create_doxygen(
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    image)
-endif (VISTK_ENABLE_DOCUMENTATION)
+create_doxygen(
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  image)
 
 vistk_install_headers(vistk/image ${image_headers})
 

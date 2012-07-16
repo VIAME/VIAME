@@ -35,11 +35,9 @@ set_target_properties(vistk_utilities
     SOVERSION     0
     DEFINE_SYMBOL MAKE_VISTK_UTILITIES_LIB)
 
-if (VISTK_ENABLE_DOCUMENTATION)
-  create_doxygen(
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    utilities)
-endif (VISTK_ENABLE_DOCUMENTATION)
+create_doxygen(
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  utilities)
 
 vistk_install_headers(vistk/utilities ${utilities_headers})
 

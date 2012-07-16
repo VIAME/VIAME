@@ -157,11 +157,6 @@ if (VISTK_ENABLE_EXTRAS)
   add_subdirectory(extra)
 endif (VISTK_ENABLE_EXTRAS)
 
-option(VISTK_ENABLE_DOCUMENTATION "Build documentation" OFF)
-if (VISTK_ENABLE_DOCUMENTATION)
-  include("${vistk_source_dir}/cmake/doxygen.cmake")
-endif (VISTK_ENABLE_DOCUMENTATION)
-
 option(VISTK_ENABLE_TOOLS "Build tools" ON)
 
 set(vistk_boost_version 1.47)
@@ -206,6 +201,7 @@ if (GIT_FOUND)
     include("${vistk_source_dir}/cmake/dist.cmake")
   endif (IS_DIRECTORY "${vistk_source_dir}/.git")
 endif (GIT_FOUND)
+include("${vistk_source_dir}/cmake/doxygen.cmake")
 include("${vistk_source_dir}/cmake/targets.cmake")
 
 add_subdirectory(conf)
