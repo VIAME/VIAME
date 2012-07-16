@@ -216,13 +216,13 @@ edge
 
 edge_datum_t
 edge
-::peek_datum()
+::peek_datum(size_t idx) const
 {
   d->complete_check();
 
   priv::shared_lock_t lock(d->mutex);
 
-  while (!d->has_data())
+  while (d->q.size() <= idx)
   {
     d->cond_have_data.wait(lock);
   }

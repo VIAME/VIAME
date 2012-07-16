@@ -185,9 +185,11 @@ class VISTK_PIPELINE_EXPORT edge
      *
      * \endpostconds
      *
+     * \param idx The element in the queue to look at.
+     *
      * \returns The next datum available from the edge.
      */
-    edge_datum_t peek_datum();
+    edge_datum_t peek_datum(size_t idx = 0) const;
     /**
      * \brief Remove a datum from the edge.
      *
