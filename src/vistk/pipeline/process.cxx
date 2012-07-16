@@ -118,9 +118,11 @@ class process::priv
 
     typedef boost::shared_mutex mutex_t;
     typedef boost::shared_lock<mutex_t> shared_lock_t;
+    typedef boost::upgrade_lock<mutex_t> upgrade_lock_t;
     typedef boost::unique_lock<mutex_t> unique_lock_t;
+    typedef boost::upgrade_to_unique_lock<mutex_t> upgrade_to_unique_lock_t;
 
-    typedef boost::tuple<mutex_t, edges_t> output_port_info;
+    typedef boost::tuple<mutex_t, edges_t, stamp_t> output_port_info;
     typedef boost::shared_ptr<output_port_info> output_port_info_t;
 
     typedef std::map<port_t, edge_t> input_edge_map_t;
@@ -468,6 +470,44 @@ void
 process
 ::_init()
 {
+  BOOST_FOREACH (priv::output_edge_map_t::value_type& oport, d->output_edges)
+  {
+    port_t const& port_name = oport.first;
+
+    port_info_t const info = output_port_info(port_name);
+    port_frequency_t const& port_frequency = info->frequency;
+
+    // Skip ports with an unknown port frequency.
+    if (!port_frequency)
+    {
+      continue;
+    }
+
+    port_frequency_t const port_run_frequency = (*d->core_frequency) * port_frequency;
+
+    if (port_run_frequency.denominator() != 1)
+    {
+      static std::string const reason = "A port has a runtime frequency "
+                                        "that is not a whole number";
+
+      throw std::runtime_error(reason);
+    }
+
+    stamp::increment_t const port_increment = port_run_frequency.numerator();
+
+    {
+      priv::output_port_info_t& oinfo = oport.second;
+      priv::mutex_t& mut = oinfo->get<0>();
+
+      priv::unique_lock_t const lock(mut);
+
+      (void)lock;
+
+      stamp_t& stamp = oinfo->get<2>();
+
+      stamp = stamp::new_stamp(port_increment);
+    }
+  }
 }
 
 void
@@ -479,9 +519,17 @@ process
   BOOST_FOREACH (priv::output_edge_map_t::value_type& oport, d->output_edges)
   {
     priv::output_port_info_t& info = oport.second;
+    priv::mutex_t& mut = info->get<0>();
+
+    priv::unique_lock_t const lock(mut);
+
+    (void)lock;
+
     edges_t& edges = info->get<1>();
+    stamp_t& stamp = info->get<2>();
 
     edges.clear();
+    stamp.reset();
   }
 
   d->configured = false;
@@ -1149,7 +1197,41 @@ void
 process
 ::push_datum_to_port(port_t const& port, datum_t const& dat) const
 {
-  push_to_port(port, edge_datum_t(dat, stamp_for_inputs()));
+  stamp_t push_stamp;
+
+  {
+    priv::output_edge_map_t::iterator const e = d->output_edges.find(port);
+
+    if (e == d->output_edges.end())
+    {
+      throw no_such_port_exception(d->name, port);
+    }
+
+    priv::output_port_info_t& info = e->second;
+    priv::mutex_t& mut = info->get<0>();
+
+    priv::upgrade_lock_t lock(mut);
+
+    stamp_t& port_stamp = info->get<2>();
+
+    if (!port_stamp)
+    {
+      static std::string const reason = "The stamp for an output port was not initialized";
+
+      throw std::runtime_error(reason);
+    }
+
+    {
+      priv::upgrade_to_unique_lock_t const write_lock(lock);
+
+      (void)write_lock;
+
+      push_stamp = port_stamp;
+      port_stamp = stamp::incremented_stamp(port_stamp);
+    }
+  }
+
+  push_to_port(port, edge_datum_t(dat, push_stamp));
 }
 
 config_t
