@@ -102,8 +102,8 @@ class process::priv
     ~priv();
 
     void run_heartbeat();
-    bool connect_input_port(port_t const& port, edge_t const& edge);
-    bool connect_output_port(port_t const& port, edge_t const& edge);
+    void connect_input_port(port_t const& port, edge_t const& edge);
+    void connect_output_port(port_t const& port, edge_t const& edge);
 
     datum_t check_required_input();
     void grab_from_input_edges();
@@ -300,10 +300,7 @@ process
     throw connect_to_initialized_process_exception(d->name, port);
   }
 
-  if (!d->connect_input_port(port, edge))
-  {
-    _connect_input_port(port, edge);
-  }
+  d->connect_input_port(port, edge);
 }
 
 void
@@ -315,10 +312,7 @@ process
     throw null_edge_port_connection_exception(d->name, port);
   }
 
-  if (!d->connect_output_port(port, edge))
-  {
-    _connect_output_port(port, edge);
-  }
+  d->connect_output_port(port, edge);
 }
 
 process::ports_t
@@ -1371,52 +1365,46 @@ process::priv
   q->push_datum_to_port(port_heartbeat, dat);
 }
 
-bool
+void
 process::priv
 ::connect_input_port(port_t const& port, edge_t const& edge)
 {
   port_map_t::const_iterator const i = input_ports.find(port);
 
-  if (i != input_ports.end())
+  if (i == input_ports.end())
   {
-    if (input_edges[port])
-    {
-      throw port_reconnect_exception(name, port);
-    }
-
-    input_edges[port] = edge;
-
-    return true;
+    throw no_such_port_exception(name, port);
   }
 
-  return false;
+  if (input_edges[port])
+  {
+    throw port_reconnect_exception(name, port);
+  }
+
+  input_edges[port] = edge;
 }
 
-bool
+void
 process::priv
 ::connect_output_port(port_t const& port, edge_t const& edge)
 {
   port_map_t::const_iterator const i = output_ports.find(port);
 
-  if (i != output_ports.end())
+  if (i == output_ports.end())
   {
-    {
-      output_port_info_t const& info = output_edges[port];
-      priv::mutex_t& mut = info->get<0>();
-
-      priv::unique_lock_t const lock(mut);
-
-      (void)lock;
-
-      edges_t& edges = info->get<1>();
-
-      edges.push_back(edge);
-    }
-
-    return true;
+    throw no_such_port_exception(name, port);
   }
 
-  return false;
+  output_port_info_t const& info = output_edges[port];
+  priv::mutex_t& mut = info->get<0>();
+
+  priv::unique_lock_t const lock(mut);
+
+  (void)lock;
+
+  edges_t& edges = info->get<1>();
+
+  edges.push_back(edge);
 }
 
 datum_t
