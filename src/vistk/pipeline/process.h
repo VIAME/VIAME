@@ -649,21 +649,21 @@ class VISTK_PIPELINE_EXPORT process
     void mark_process_as_complete();
 
     /**
-     * \brief Get the edge for an input port.
+     * \brief Get whether there is an edge connected to an input port.
      *
      * \param port The port to get the edge for.
      *
-     * \return The edge connected to an input port, or \c NULL if there is none.
+     * \return True if there is an edge connected to the \p port, or false if there is none.
      */
-    edge_t input_port_edge(port_t const& port) const;
+    bool has_input_port_edge(port_t const& port) const;
     /**
-     * \brief Get the edges for an output port.
+     * \brief Get the number of connected edges for an output port.
      *
-     * \param port The port to get the edges for.
+     * \param port The port to get the count for.
      *
-     * \returns The edges connected to an output port.
+     * \returns The number of edges connected to the \p port.
      */
-    edges_t output_port_edges(port_t const& port) const;
+    size_t count_output_port_edges(port_t const& port) const;
 
     /**
      * \brief Grab an edge datum packet from a port.
@@ -774,29 +774,6 @@ class VISTK_PIPELINE_EXPORT process
      * \returns Information about the data given.
      */
     static data_info_t edge_data_info(edge_data_t const& data);
-    /**
-     * \brief Pushes data to all given edges.
-     *
-     * \param edges The edges to push to.
-     * \param dat The data to push.
-     */
-    static void push_to_edges(edges_t const& edges, edge_datum_t const& dat);
-    /**
-     * \brief Grab a data from an edge.
-     *
-     * \param edge The edge to grab data from.
-     *
-     * \returns The next datum from the edge.
-     */
-    static edge_datum_t grab_from_edge(edge_t const& edge);
-    /**
-     * \brief Peek at the next datum on an edge.
-     *
-     * \param edge The edge to peek at.
-     *
-     * \returns The next datum on the edge.
-     */
-    static edge_datum_t peek_at_edge(edge_t const& edge);
   private:
     config::value_t config_value_raw(config::key_t const& key) const;
 
@@ -831,7 +808,7 @@ T
 process
 ::grab_input_as(port_t const& port) const
 {
-  if (is_static_input(port) && !input_port_edge(port))
+  if (is_static_input(port) && !has_input_port_edge(port))
   {
     return config_value<T>(static_input_prefix + port);
   }

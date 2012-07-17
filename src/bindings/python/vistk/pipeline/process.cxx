@@ -107,8 +107,8 @@ class wrap_process
 
     void _mark_process_as_complete();
 
-    vistk::edge_t _input_port_edge(port_t const& port) const;
-    vistk::edges_t _output_port_edges(port_t const& port) const;
+    bool _has_input_port_edge(port_t const& port) const;
+    size_t _count_output_port_edges(port_t const& port) const;
 
     vistk::edge_datum_t _grab_from_port(port_t const& port) const;
     vistk::datum_t _grab_datum_from_port(port_t const& port) const;
@@ -121,8 +121,6 @@ class wrap_process
     vistk::config::value_t _config_value(vistk::config::key_t const& key) const;
 
     vistk::process::data_info_t _edge_data_info(vistk::edge_data_t const& data);
-    void _push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat);
-    vistk::edge_datum_t _grab_from_edge(vistk::edge_t const& edge);
 };
 
 BOOST_PYTHON_MODULE(process)
@@ -379,12 +377,12 @@ BOOST_PYTHON_MODULE(process)
       , "Declare a configuration key for the process.")
     .def("mark_process_as_complete", &wrap_process::_mark_process_as_complete
       , "Tags the process as complete.")
-    .def("input_port_edge", &wrap_process::_input_port_edge
+    .def("has_input_port_edge", &wrap_process::_has_input_port_edge
       , (arg("port"))
-      , "The edge that is connected to an input port.")
-    .def("output_port_edges", &wrap_process::_output_port_edges
+      , "True if there is an edge that is connected to the port, False otherwise.")
+    .def("count_output_port_edges", &wrap_process::_count_output_port_edges
       , (arg("port"))
-      , "The edges that are connected to an output port.")
+      , "The number of edges that are connected to the port.")
     .def("grab_from_port", &wrap_process::_grab_from_port
       , (arg("port"))
       , "Grab a datum packet from a port.")
@@ -411,12 +409,6 @@ BOOST_PYTHON_MODULE(process)
     .def("edge_data_info", &wrap_process::_edge_data_info
       , (arg("data"))
       , "Returns information about the given data.")
-    .def("push_to_edges", &wrap_process::_push_to_edges
-      , (arg("edges"), arg("datum"))
-      , "Pushes the given datum packet to the edges.")
-    .def("grab_from_edge", &wrap_process::_grab_from_edge
-      , (arg("edge"))
-      , "Extracts a datum packet from the edge.")
   ;
 }
 
@@ -867,18 +859,18 @@ wrap_process
   mark_process_as_complete();
 }
 
-vistk::edge_t
+bool
 wrap_process
-::_input_port_edge(port_t const& port) const
+::_has_input_port_edge(port_t const& port) const
 {
-  return input_port_edge(port);
+  return has_input_port_edge(port);
 }
 
-vistk::edges_t
+size_t
 wrap_process
-::_output_port_edges(port_t const& port) const
+::_count_output_port_edges(port_t const& port) const
 {
-  return output_port_edges(port);
+  return count_output_port_edges(port);
 }
 
 vistk::edge_datum_t
@@ -956,18 +948,4 @@ wrap_process
 ::_edge_data_info(vistk::edge_data_t const& data)
 {
   return edge_data_info(data);
-}
-
-void
-wrap_process
-::_push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat)
-{
-  push_to_edges(edges, dat);
-}
-
-vistk::edge_datum_t
-wrap_process
-::_grab_from_edge(vistk::edge_t const& edge)
-{
-  return grab_from_edge(edge);
 }

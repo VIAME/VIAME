@@ -165,7 +165,7 @@ component_score_json_writer_process
 
     d->tag_stats[tag] = false;
 
-    if (input_port_edge(port_stat))
+    if (has_input_port_edge(port_stat))
     {
       d->tag_stats[tag] = true;
     }

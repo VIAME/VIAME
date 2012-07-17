@@ -59,6 +59,7 @@ BOOST_PYTHON_MODULE(edge)
     .def("get_datum", &vistk::edge::get_datum
       , "Returns the next datum packet from the edge, removing it in the process.")
     .def("peek_datum", &vistk::edge::peek_datum
+      , (arg("index") = 0)
       , "Returns the next datum packet from the edge.")
     .def("pop_datum", &vistk::edge::pop_datum
       , "Remove the next datum packet from the edge.")

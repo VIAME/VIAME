@@ -1019,9 +1019,9 @@ process
   }
 }
 
-edge_t
+bool
 process
-::input_port_edge(port_t const& port) const
+::has_input_port_edge(port_t const& port) const
 {
   priv::port_map_t::iterator i = d->input_ports.find(port);
 
@@ -1030,19 +1030,14 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
-  priv::input_edge_map_t::iterator e = d->input_edges.find(port);
+  priv::input_edge_map_t::const_iterator const e = d->input_edges.find(port);
 
-  if (e == d->input_edges.end())
-  {
-    return edge_t();
-  }
-
-  return e->second;
+  return (e != d->input_edges.end());
 }
 
-edges_t
+size_t
 process
-::output_port_edges(port_t const& port) const
+::count_output_port_edges(port_t const& port) const
 {
   priv::port_map_t::iterator i = d->output_ports.find(port);
 
@@ -1055,7 +1050,7 @@ process
 
   if (e == d->output_edges.end())
   {
-    return edges_t();
+    return size_t(0);
   }
 
   priv::output_port_info_t const& info = e->second;
@@ -1067,7 +1062,7 @@ process
 
   edges_t const& edges = info->get<1>();
 
-  return edges;
+  return edges.size();
 }
 
 edge_datum_t
@@ -1092,7 +1087,7 @@ process
 
   edge_t const& edge = e->second;
 
-  return grab_from_edge(edge);
+  return edge->get_datum();
 }
 
 datum_t
@@ -1128,7 +1123,10 @@ process
 
     edges_t const& edges = info->get<1>();
 
-    push_to_edges(edges, dat);
+    BOOST_FOREACH (edge_t const& edge, edges)
+    {
+      edge->push_datum(dat);
+    }
   }
 }
 
@@ -1223,30 +1221,6 @@ process
   }
 
   return boost::make_shared<data_info>(in_sync, max_type);
-}
-
-void
-process
-::push_to_edges(edges_t const& edges, edge_datum_t const& dat)
-{
-  BOOST_FOREACH (edge_t const& edge, edges)
-  {
-    edge->push_datum(dat);
-  }
-}
-
-edge_datum_t
-process
-::grab_from_edge(edge_t const& edge)
-{
-  return edge->get_datum();
-}
-
-edge_datum_t
-process
-::peek_at_edge(edge_t const& edge)
-{
-  return edge->peek_datum();
 }
 
 config::value_t
@@ -1411,7 +1385,7 @@ process::priv
 
     edge_t const& iedge = i->second;
 
-    edge_datum_t const first_edat = peek_at_edge(iedge);
+    edge_datum_t const first_edat = iedge->peek_datum();
     datum_t const& first_dat = first_edat.datum;
     datum::type_t const first_type = first_dat->type();
 
