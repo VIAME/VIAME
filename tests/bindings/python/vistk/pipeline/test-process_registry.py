@@ -40,10 +40,10 @@ def test_api_calls():
     reg.types()
     reg.description(proc_type)
 
-    process_registry.Process.constraint_no_threads
-    process_registry.Process.constraint_no_reentrancy
-    process_registry.Process.constraint_unsync_input
-    process_registry.Process.constraint_unsync_output
+    process_registry.Process.property_no_threads
+    process_registry.Process.property_no_reentrancy
+    process_registry.Process.property_unsync_input
+    process_registry.Process.property_unsync_output
     process_registry.Process.port_heartbeat
     process_registry.Process.config_name
     process_registry.Process.config_type
@@ -69,7 +69,7 @@ def example_process():
             self.ran_init = False
             self.ran_reset = False
             self.ran_step = False
-            self.ran_constraints = False
+            self.ran_properties = False
             self.ran_input_ports = False
             self.ran_output_ports = False
             self.ran_input_port_info = False
@@ -99,10 +99,10 @@ def example_process():
 
             self._base_step()
 
-        def _constraints(self):
-            self.ran_constraints = True
+        def _properties(self):
+            self.ran_properties = True
 
-            return self._base_constraints()
+            return self._base_properties()
 
         def _input_ports(self):
             self.ran_input_ports = True
@@ -154,8 +154,8 @@ def example_process():
             # TODO: See TODO below.
             #if not self.ran_step:
             #    test_error("_step override was not called")
-            if not self.ran_constraints:
-                test_error("_constraints override was not called")
+            if not self.ran_properties:
+                test_error("_properties override was not called")
             if not self.ran_input_ports:
                 test_error("_input_ports override was not called")
             if not self.ran_output_ports:
@@ -239,7 +239,7 @@ def test_wrapper_api():
             test_error("Got a 'None' process")
             return
 
-        p.constraints()
+        p.properties()
 
         p.input_ports()
         p.output_ports()

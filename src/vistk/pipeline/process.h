@@ -78,10 +78,10 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::string name_t;
     /// The type for a group of process names.
     typedef std::vector<name_t> names_t;
-    /// The type for a constraint on a process.
-    typedef std::string constraint_t;
-    /// The type for a set of constraints on a process.
-    typedef std::set<constraint_t> constraints_t;
+    /// The type for a property on a process.
+    typedef std::string property_t;
+    /// The type for a set of properties on a process.
+    typedef std::set<property_t> properties_t;
     /// The type for a description of a port.
     typedef std::string port_description_t;
     /// The type for the name of a port on a process.
@@ -264,11 +264,11 @@ class VISTK_PIPELINE_EXPORT process
     void step();
 
     /**
-     * \brief Query for the constraints on the process.
+     * \brief Query for the properties on the process.
      *
-     * \returns The set of constraints on the process.
+     * \returns The set of properties on the process.
      */
-    virtual constraints_t constraints() const;
+    virtual properties_t properties() const;
 
     /**
      * \brief Connect an edge to an input port on the process.
@@ -417,16 +417,14 @@ class VISTK_PIPELINE_EXPORT process
      */
     type_t type() const;
 
-    /// A constraint which indicates that the process cannot be run in a thread of its own.
-    static constraint_t const constraint_no_threads;
-    /// A constraint which indicates that the process is used through the Python bindings.
-    static constraint_t const constraint_python;
-    /// A constraint which indicates that the process is not reentrant.
-    static constraint_t const constraint_no_reentrancy;
-    /// A constraint which indicates that the input of the process is not synchronized.
-    static constraint_t const constraint_unsync_input;
-    /// A constraint which indicates that the output of the process is not synchronized.
-    static constraint_t const constraint_unsync_output;
+    /// A property which indicates that the process cannot be run in a thread of its own.
+    static property_t const property_no_threads;
+    /// A property which indicates that the process is not reentrant.
+    static property_t const property_no_reentrancy;
+    /// A property which indicates that the input of the process is not synchronized.
+    static property_t const property_unsync_input;
+    /// A property which indicates that the output of the process is not synchronized.
+    static property_t const property_unsync_output;
     /// The name of the heartbeat port.
     static port_t const port_heartbeat;
     /// The name of the configuration value for the name.
@@ -486,11 +484,11 @@ class VISTK_PIPELINE_EXPORT process
     virtual void _step();
 
     /**
-     * \brief Subclass constraint query method.
+     * \brief Subclass property query method.
      *
-     * \returns Constraints on the subclass.
+     * \returns Properties on the subclass.
      */
-    virtual constraints_t _constraints() const;
+    virtual properties_t _properties() const;
 
     /**
      * \brief Subclass input ports.

@@ -87,9 +87,9 @@ class VISTK_PROCESSES_FLOW_NO_EXPORT distribute_process
     void _step();
 
     /**
-     * \brief The constraints on the process.
+     * \brief The properties on the process.
      */
-    constraints_t _constraints() const;
+    properties_t _properties() const;
 
     /**
      * \brief Output port information.

@@ -232,13 +232,13 @@ collate_process
   process::_step();
 }
 
-process::constraints_t
+process::properties_t
 collate_process
-::_constraints() const
+::_properties() const
 {
-  constraints_t consts = process::_constraints();
+  properties_t consts = process::_properties();
 
-  consts.insert(constraint_unsync_input);
+  consts.insert(property_unsync_input);
 
   return consts;
 }

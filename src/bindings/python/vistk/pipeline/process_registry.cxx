@@ -49,8 +49,8 @@ BOOST_PYTHON_MODULE(process_registry)
       , "Resets the process.")
     .def("step", &vistk::process::step
       , "Steps the process for one iteration.")
-    .def("constraints", &vistk::process::constraints
-      , "Returns the constraints on the process.")
+    .def("properties", &vistk::process::properties
+      , "Returns the properties on the process.")
     .def("connect_input_port", &vistk::process::connect_input_port
       , (arg("port"), arg("edge"))
       , "Connects the given edge to the input port.")
@@ -82,10 +82,10 @@ BOOST_PYTHON_MODULE(process_registry)
       , "Returns the name of the process.")
     .def("type", &vistk::process::type
       , "Returns the type of the process.")
-    .def_readonly("constraint_no_threads", &vistk::process::constraint_no_threads)
-    .def_readonly("constraint_no_reentrancy", &vistk::process::constraint_no_reentrancy)
-    .def_readonly("constraint_unsync_input", &vistk::process::constraint_unsync_input)
-    .def_readonly("constraint_unsync_output", &vistk::process::constraint_unsync_output)
+    .def_readonly("property_no_threads", &vistk::process::property_no_threads)
+    .def_readonly("property_no_reentrancy", &vistk::process::property_no_reentrancy)
+    .def_readonly("property_unsync_input", &vistk::process::property_unsync_input)
+    .def_readonly("property_unsync_output", &vistk::process::property_unsync_output)
     .def_readonly("port_heartbeat", &vistk::process::port_heartbeat)
     .def_readonly("config_name", &vistk::process::config_name)
     .def_readonly("config_type", &vistk::process::config_type)
