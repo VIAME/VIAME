@@ -167,10 +167,14 @@ timestamp_reader_process
       }
       else if (time)
       {
+        /// \bug A -Wmaybe-uninitialized bug here is related to
+        ///      http://gcc.gnu.org/bugzilla/show_bug.cgi?id=47679.
         ts = timestamp(*time);
       }
       else if (frame)
       {
+        /// \bug A -Wmaybe-uninitialized bug here is related to
+        ///      http://gcc.gnu.org/bugzilla/show_bug.cgi?id=47679.
         ts = timestamp(*frame);
       }
       else

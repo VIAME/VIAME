@@ -1,7 +1,7 @@
 process _warp_dist
   :: distribute
 
-process _warp_trans_color_sink
+process _warp_trans_status_sink
   :: sink
 
 process _warp1
@@ -17,11 +17,11 @@ process _warp2
 process _warp_coll
   :: collate
 
-connect from _warp_dist.color/image
-        to   _warp_coll.color/image
+connect from _warp_dist.status/image
+        to   _warp_coll.status/image
 
-connect from _warp_dist.color/transform
-        to   _warp_trans_color_sink.sink
+connect from _warp_dist.status/transform
+        to   _warp_trans_status_sink.sink
 
 connect from _warp_dist.dist/image/1
         to   _warp1.image

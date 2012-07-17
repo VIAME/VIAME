@@ -28,12 +28,9 @@ namespace vistk
  * \brief A process for distributing input data to multiple output edges.
  *
  * \note Edges for a \portvar{tag} may \em only be connected after the
- * \port{color/\portvar{tag}} is connected to. Before this connection happens,
+ * \port{status/\portvar{tag}} is connected to. Before this connection happens,
  * the other ports to not exist and will cause errors. In short: The first
- * connection for any \portvar{tag} must be \port{color/\portvar{tag}}.
- *
- * \note Ports sharing the same \port{\portvar{group}} string will use the same
- * stream coloring.
+ * connection for any \portvar{tag} must be \port{status/\portvar{tag}}.
  *
  * \process Distribute input data among many output processes.
  *
@@ -43,7 +40,7 @@ namespace vistk
  *
  * \oports
  *
- * \oport{color/\portvar{tag}} The color of the input \portvar{tag}.
+ * \oport{status/\portvar{tag}} The status of the input \portvar{tag}.
  * \oport{dist/\portvar{tag}/\portvar{group}} A port to distribute the input
  *                                            \portvar{tag} to. Data is
  *                                            distributed in ASCII-betical order.
@@ -51,7 +48,7 @@ namespace vistk
  * \reqs
  *
  * \req Each input port \port{src/\portvar{tag}} must be connected.
- * \req Each output port \port{color/\portvar{res}} must be connected.
+ * \req Each output port \port{status/\portvar{res}} must be connected.
  * \req Each \portvar{res} must have at least two outputs to distribute to.
  *
  * \todo Add configuration to allow forcing a number of outputs for a source.

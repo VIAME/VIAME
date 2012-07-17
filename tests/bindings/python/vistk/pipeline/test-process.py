@@ -23,6 +23,8 @@ def test_create():
     process.ProcessConstraint()
     process.ProcessConstraints()
     process.PortDescription()
+    process.PortFrequency(1)
+    process.PortFrequency(1, 1)
     process.Port()
     process.Ports()
     process.PortType()
@@ -30,9 +32,12 @@ def test_create():
     process.PortFlags()
     process.PortAddr()
     process.PortAddrs()
-    process.PortInfo('type', process.PortFlags(), 'desc')
+    process.PortInfo('type', process.PortFlags(), 'desc', process.PortFrequency(1, 1))
     process.ConfInfo('default', 'desc')
-    process.DataInfo(True, True, datum.DatumType.invalid)
+    process.DataInfo(True, datum.DatumType.invalid)
+    process.DataCheck.none
+    process.DataCheck.sync
+    process.DataCheck.valid
 
 
 def test_api_calls():
@@ -45,17 +50,19 @@ def test_api_calls():
     a.process = ''
     a.port = ''
 
-    a = process.PortInfo('type', process.PortFlags(), 'desc')
+    f = process.PortFrequency(1, 1)
+
+    a = process.PortInfo('type', process.PortFlags(), 'desc', f)
     a.type
     a.flags
     a.description
+    a.frequency
 
     a = process.ConfInfo('default', 'desc')
     a.default
     a.description
 
-    a = process.DataInfo(True, True, datum.DatumType.invalid)
-    a.same_color
+    a = process.DataInfo(True, datum.DatumType.invalid)
     a.in_sync
     a.max_status
 

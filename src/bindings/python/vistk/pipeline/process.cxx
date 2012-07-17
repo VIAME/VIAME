@@ -15,11 +15,13 @@
 
 #include <vistk/python/util/python_gil.h>
 
-#include <boost/python/args.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/args.hpp>
 #include <boost/python/class.hpp>
+#include <boost/python/enum.hpp>
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
+#include <boost/python/operators.hpp>
 
 /**
  * \file process.cxx
@@ -47,9 +49,6 @@ class wrap_process
 
     constraints_t _base_constraints() const;
 
-    void _base_connect_input_port(port_t const& port, vistk::edge_t edge);
-    void _base_connect_output_port(port_t const& port, vistk::edge_t edge);
-
     ports_t _base_input_ports() const;
     ports_t _base_output_ports() const;
 
@@ -73,9 +72,6 @@ class wrap_process
 
     constraints_t _constraints() const;
 
-    void _connect_input_port(port_t const& port, vistk::edge_t edge);
-    void _connect_output_port(port_t const& port, vistk::edge_t edge);
-
     ports_t _input_ports() const;
     ports_t _output_ports() const;
 
@@ -93,12 +89,14 @@ class wrap_process
     void _declare_input_port_1(port_t const& port,
                                port_type_t const& type_,
                                port_flags_t const& flags_,
-                               port_description_t const& description_);
+                               port_description_t const& description_,
+                               port_frequency_t const& frequency_);
     void _declare_output_port(port_t const& port, port_info_t const& info);
     void _declare_output_port_1(port_t const& port,
                                 port_type_t const& type_,
                                 port_flags_t const& flags_,
-                                port_description_t const& description_);
+                                port_description_t const& description_,
+                                port_frequency_t const& frequency_);
 
     void _remove_input_port(port_t const& port);
     void _remove_output_port(port_t const& port);
@@ -109,10 +107,9 @@ class wrap_process
                                       vistk::config::description_t const& description_);
 
     void _mark_process_as_complete();
-    vistk::stamp_t _heartbeat_stamp() const;
 
-    vistk::edge_t _input_port_edge(port_t const& port) const;
-    vistk::edges_t _output_port_edges(port_t const& port) const;
+    bool _has_input_port_edge(port_t const& port) const;
+    size_t _count_output_port_edges(port_t const& port) const;
 
     vistk::edge_datum_t _grab_from_port(port_t const& port) const;
     vistk::datum_t _grab_datum_from_port(port_t const& port) const;
@@ -124,9 +121,9 @@ class wrap_process
     vistk::config_t _get_config() const;
     vistk::config::value_t _config_value(vistk::config::key_t const& key) const;
 
-    vistk::process::data_info_t _edge_data_info(vistk::edge_data_t const& data);
-    void _push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat);
-    vistk::edge_datum_t _grab_from_edge(vistk::edge_t const& edge);
+    void _set_data_checking_level(data_check_t check);
+
+    data_info_t _edge_data_info(vistk::edge_data_t const& data);
 };
 
 BOOST_PYTHON_MODULE(process)
@@ -165,6 +162,26 @@ BOOST_PYTHON_MODULE(process)
     , "A collection of port flags.")
     .def(set_indexing_suite<vistk::process::port_flags_t>())
   ;
+  class_<vistk::process::port_frequency_t>("PortFrequency"
+    , "A frequency for a port."
+    , no_init)
+    .def(init<vistk::process::frequency_component_t>())
+    .def(init<vistk::process::frequency_component_t, vistk::process::frequency_component_t>())
+    .def("numerator", &vistk::process::port_frequency_t::numerator
+      , "The numerator of the frequency.")
+    .def("denominator", &vistk::process::port_frequency_t::denominator
+      , "The denominator of the frequency.")
+    .def(self <  self)
+    .def(self <= self)
+    .def(self == self)
+    .def(self >= self)
+    .def(self >  self)
+    .def(self + self)
+    .def(self - self)
+    .def(self * self)
+    .def(self / self)
+    .def(!self)
+  ;
   class_<vistk::process::port_addr_t>("PortAddr"
     , "An address for a port within a pipeline.")
     .def_readwrite("process", &vistk::process::port_addr_t::first)
@@ -178,10 +195,11 @@ BOOST_PYTHON_MODULE(process)
   class_<vistk::process::port_info, vistk::process::port_info_t>("PortInfo"
     , "Information about a port on a process."
     , no_init)
-    .def(init<vistk::process::port_type_t, vistk::process::port_flags_t, vistk::process::port_description_t>())
+    .def(init<vistk::process::port_type_t, vistk::process::port_flags_t, vistk::process::port_description_t, vistk::process::port_frequency_t>())
     .def_readonly("type", &vistk::process::port_info::type)
     .def_readonly("flags", &vistk::process::port_info::flags)
     .def_readonly("description", &vistk::process::port_info::description)
+    .def_readonly("frequency", &vistk::process::port_info::frequency)
   ;
 
   implicitly_convertible<boost::shared_ptr<vistk::process::port_info>, vistk::process::port_info_t>();
@@ -199,10 +217,16 @@ BOOST_PYTHON_MODULE(process)
   class_<vistk::process::data_info, vistk::process::data_info_t>("DataInfo"
     , "Information about a set of data packets from edges."
     , no_init)
-    .def(init<bool, bool, vistk::datum::type_t>())
-    .def_readonly("same_color", &vistk::process::data_info::same_color)
+    .def(init<bool, vistk::datum::type_t>())
     .def_readonly("in_sync", &vistk::process::data_info::in_sync)
     .def_readonly("max_status", &vistk::process::data_info::max_status)
+  ;
+
+  enum_<vistk::process::data_check_t>("DataCheck"
+    , "Levels of input validation")
+    .value("none", vistk::process::check_none)
+    .value("sync", vistk::process::check_sync)
+    .value("valid", vistk::process::check_valid)
   ;
 
   implicitly_convertible<boost::shared_ptr<vistk::process::data_info>, vistk::process::data_info_t>();
@@ -279,12 +303,6 @@ BOOST_PYTHON_MODULE(process)
       , "Base class step.")
     .def("_base_constraints", &wrap_process::_base_constraints
       , "Base class constraints.")
-    .def("_base_connect_input_port", &wrap_process::_base_connect_input_port
-      , (arg("port"), arg("edge"))
-      , "Base class input port connection.")
-    .def("_base_connect_output_port", &wrap_process::_base_connect_output_port
-      , (arg("port"), arg("edge"))
-      , "Base class output port connection.")
     .def("_base_input_ports", &wrap_process::_base_input_ports
       , "Base class input ports.")
     .def("_base_output_ports", &wrap_process::_base_output_ports
@@ -322,12 +340,6 @@ BOOST_PYTHON_MODULE(process)
       , "Step the process subclass for one iteration.")
     .def("_constraints", &wrap_process::_constraints, &wrap_process::_base_constraints
       , "The constraints on the subclass.")
-    .def("_connect_input_port", &wrap_process::_connect_input_port, &wrap_process::_base_connect_input_port
-      , (arg("port"), arg("edge"))
-      , "Connects the given edge to the subclass input port.")
-    .def("_connect_output_port", &wrap_process::_connect_output_port, &wrap_process::_base_connect_output_port
-      , (arg("port"), arg("edge"))
-      , "Connects the given edge to the subclass output port.")
     .def("_input_ports", &wrap_process::_input_ports, &wrap_process::_base_input_ports
       , "Returns a list on input ports on the subclass process.")
     .def("_output_ports", &wrap_process::_output_ports, &wrap_process::_base_output_ports
@@ -353,13 +365,13 @@ BOOST_PYTHON_MODULE(process)
       , (arg("port"), arg("info"))
       , "Declare an input port on the process.")
     .def("declare_input_port", &wrap_process::_declare_input_port_1
-      , (arg("port"), arg("type"), arg("flags"), arg("description"))
+      , (arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = vistk::process::port_frequency_t(1))
       , "Declare an input port on the process.")
     .def("declare_output_port", &wrap_process::_declare_output_port
       , (arg("port"), arg("info"))
       , "Declare an output port on the process.")
     .def("declare_output_port", &wrap_process::_declare_output_port_1
-      , (arg("port"), arg("type"), arg("flags"), arg("description"))
+      , (arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = vistk::process::port_frequency_t(1))
       , "Declare an output port on the process.")
     .def("remove_input_port", &wrap_process::_remove_input_port
       , (arg("port"))
@@ -375,14 +387,12 @@ BOOST_PYTHON_MODULE(process)
       , "Declare a configuration key for the process.")
     .def("mark_process_as_complete", &wrap_process::_mark_process_as_complete
       , "Tags the process as complete.")
-    .def("heartbeat_stamp", &wrap_process::_heartbeat_stamp
-      , "The heartbeat stamp for the process.")
-    .def("input_port_edge", &wrap_process::_input_port_edge
+    .def("has_input_port_edge", &wrap_process::_has_input_port_edge
       , (arg("port"))
-      , "The edge that is connected to an input port.")
-    .def("output_port_edges", &wrap_process::_output_port_edges
+      , "True if there is an edge that is connected to the port, False otherwise.")
+    .def("count_output_port_edges", &wrap_process::_count_output_port_edges
       , (arg("port"))
-      , "The edges that are connected to an output port.")
+      , "The number of edges that are connected to the port.")
     .def("grab_from_port", &wrap_process::_grab_from_port
       , (arg("port"))
       , "Grab a datum packet from a port.")
@@ -406,15 +416,12 @@ BOOST_PYTHON_MODULE(process)
     .def("config_value", &wrap_process::_config_value
       , (arg("key"))
       , "Gets a value from the configuration for the process.")
+    .def("set_data_checking_level", &wrap_process::_set_data_checking_level
+      , (arg("check"))
+      , "Set the level to which the inputs are automatically checked.")
     .def("edge_data_info", &wrap_process::_edge_data_info
       , (arg("data"))
       , "Returns information about the given data.")
-    .def("push_to_edges", &wrap_process::_push_to_edges
-      , (arg("edges"), arg("datum"))
-      , "Pushes the given datum packet to the edges.")
-    .def("grab_from_edge", &wrap_process::_grab_from_edge
-      , (arg("edge"))
-      , "Extracts a datum packet from the edge.")
   ;
 }
 
@@ -466,20 +473,6 @@ wrap_process
   consts.insert(constraint_python);
 
   return consts;
-}
-
-void
-wrap_process
-::_base_connect_input_port(port_t const& port, vistk::edge_t edge)
-{
-  TRANSLATE_PYTHON_EXCEPTION(process::_connect_input_port(port, edge))
-}
-
-void
-wrap_process
-::_base_connect_output_port(port_t const& port, vistk::edge_t edge)
-{
-  TRANSLATE_PYTHON_EXCEPTION(process::_connect_output_port(port, edge))
 }
 
 vistk::process::ports_t
@@ -644,50 +637,6 @@ wrap_process
   }
 
   return _base_constraints();
-}
-
-void
-wrap_process
-::_connect_input_port(port_t const& port, vistk::edge_t edge)
-{
-  {
-    vistk::python::python_gil const gil;
-
-    (void)gil;
-
-    override const f = get_override("_connect_input_port");
-
-    if (f)
-    {
-      HANDLE_PYTHON_EXCEPTION(f(port, edge))
-
-      return;
-    }
-  }
-
-  _base_connect_input_port(port, edge);
-}
-
-void
-wrap_process
-::_connect_output_port(port_t const& port, vistk::edge_t edge)
-{
-  {
-    vistk::python::python_gil const gil;
-
-    (void)gil;
-
-    override const f = get_override("_connect_output_port");
-
-    if (f)
-    {
-      HANDLE_PYTHON_EXCEPTION(f(port, edge))
-
-      return;
-    }
-  }
-
-  _base_connect_output_port(port, edge);
 }
 
 vistk::process::ports_t
@@ -862,9 +811,10 @@ wrap_process
 ::_declare_input_port_1(port_t const& port,
                         port_type_t const& type_,
                         port_flags_t const& flags_,
-                        port_description_t const& description_)
+                        port_description_t const& description_,
+                        port_frequency_t const& frequency_)
 {
-  declare_input_port(port, type_, flags_, description_);
+  declare_input_port(port, type_, flags_, description_, frequency_);
 }
 
 void
@@ -879,9 +829,10 @@ wrap_process
 ::_declare_output_port_1(port_t const& port,
                          port_type_t const& type_,
                          port_flags_t const& flags_,
-                         port_description_t const& description_)
+                         port_description_t const& description_,
+                         port_frequency_t const& frequency_)
 {
-  declare_output_port(port, type_, flags_, description_);
+  declare_output_port(port, type_, flags_, description_, frequency_);
 }
 
 void
@@ -921,25 +872,18 @@ wrap_process
   mark_process_as_complete();
 }
 
-vistk::stamp_t
+bool
 wrap_process
-::_heartbeat_stamp() const
+::_has_input_port_edge(port_t const& port) const
 {
-  return heartbeat_stamp();
+  return has_input_port_edge(port);
 }
 
-vistk::edge_t
+size_t
 wrap_process
-::_input_port_edge(port_t const& port) const
+::_count_output_port_edges(port_t const& port) const
 {
-  return input_port_edge(port);
-}
-
-vistk::edges_t
-wrap_process
-::_output_port_edges(port_t const& port) const
-{
-  return output_port_edges(port);
+  return count_output_port_edges(port);
 }
 
 vistk::edge_datum_t
@@ -1012,23 +956,16 @@ wrap_process
   return config_value<vistk::config::value_t>(key);
 }
 
+void
+wrap_process
+::_set_data_checking_level(data_check_t check)
+{
+  set_data_checking_level(check);
+}
+
 vistk::process::data_info_t
 wrap_process
 ::_edge_data_info(vistk::edge_data_t const& data)
 {
   return edge_data_info(data);
-}
-
-void
-wrap_process
-::_push_to_edges(vistk::edges_t const& edges, vistk::edge_datum_t const& dat)
-{
-  push_to_edges(edges, dat);
-}
-
-vistk::edge_datum_t
-wrap_process
-::_grab_from_edge(vistk::edge_t const& edge)
-{
-  return grab_from_edge(edge);
 }

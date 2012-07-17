@@ -30,39 +30,23 @@ namespace vistk
  * \brief A class to timestamp data in a \ref pipeline.
  *
  * \ingroup base_classes
- *
- * Stamps have a color and an index. Stamps that are not the same color are
- * considered distinct and cannot be compared. This can be used to implement a
- * system where some data is being processed at a different frequency than other
- * data to keep them from being conflated. Stamps can be recolored given a stamp
- * of the desired color, so the separate data streams can eventually be
- * reconciled.
  */
 class VISTK_PIPELINE_EXPORT stamp
   : boost::equality_comparable<vistk::stamp
-  , boost::partially_ordered1<vistk::stamp
+  , boost::less_than_comparable1<vistk::stamp
   , boost::noncopyable
     > >
 {
   public:
+    /// The type for an increment size.
+    typedef uint64_t increment_t;
+
     /**
      * \brief Create a new stamp.
      *
-     * All stamps created with this call have a unique color.
-     *
-     * \returns A new stamp with a unique coloring.
+     * \returns A new stamp with a specific step increment.
      */
-    static stamp_t new_stamp();
-    /**
-     * \brief Copy a stamp.
-     *
-     * Since stamps are not implicitly copyable, this is provided to copy them.
-     *
-     * \param st The stamp to copy.
-     *
-     * \returns A stamp that is equivalent to \p st.
-     */
-    static stamp_t copied_stamp(stamp_t const& st);
+    static stamp_t new_stamp(increment_t increment);
     /**
      * \brief Create a new stamp that is has an incremented index.
      *
@@ -71,54 +55,30 @@ class VISTK_PIPELINE_EXPORT stamp
      * \returns A stamp that is greater than \p st.
      */
     static stamp_t incremented_stamp(stamp_t const& st);
-    /**
-     * \brief Create a recolored stamp.
-     *
-     * \param st The original stamp.
-     * \param st2 The stamp to obtain the new color from.
-     *
-     * \returns A new stamp with the color of \p st2 and value of \p st.
-     */
-    static stamp_t recolored_stamp(stamp_t const& st, stamp_t const& st2);
-
-    /**
-     * \brief Test if a given stamp has the same color another stamp.
-     *
-     * \param st The stamp to compare to.
-     *
-     * \returns True if \p st is the same color as \c *this, false otherwise.
-     */
-    bool is_same_color(stamp_t const& st) const;
 
     /**
      * \brief Compare two stamps for equality.
      *
      * \param st The stamp to compare to.
      *
-     * \returns True if \p st and \c *this have the same color and value, false otherwise.
+     * \returns True if \p st and \c *this have the same value, false otherwise.
      */
     bool operator == (stamp const& st) const;
     /**
      * \brief Compare two stamps for an order.
      *
-     * \note Stamps of different colors will \em always return false with this
-     * function.
-     *
      * \param st The stamp to compare to.
      *
-     * \returns True if \p st and \c *this are the same color and \p st has a higher value, false otherwise.
+     * \returns True if \p st has a higher value than \c *this, false otherwise.
      */
     bool operator <  (stamp const& st) const;
   private:
-    typedef uint64_t color_t;
     typedef uint64_t index_t;
 
-    stamp(color_t color, index_t index);
+    stamp(increment_t increment, index_t index);
 
-    color_t const m_color;
+    increment_t const m_increment;
     index_t const m_index;
-
-    static color_t m_new_color;
 };
 
 }

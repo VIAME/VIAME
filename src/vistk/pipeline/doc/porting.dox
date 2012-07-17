@@ -72,9 +72,9 @@
  * Output ports are ports where data will be available for other processes in
  * the pipeline. There may be many edges connected to a single port, and the
  * same data should be pushed to each edge connected to the port. The
- * \ref vistk::process::push_to_edges() method may be used to push data to
- * multiple output edges, but the recommended methods are \ref
- * vistk::process::push_to_port() and \ref vistk::process::push_datum_to_port().
+ * \ref vistk::process::push_to_port() and \ref
+ * vistk::process::push_datum_to_port() methods may be used to push data to the
+ * output ports.
  *
  * \subsubsection process_port_types Types
  *

@@ -281,7 +281,7 @@ class VISTK_PIPELINE_EXPORT null_output_port_info_exception
 /**
  * \class set_type_on_initialized_process_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
- * \brief Thrown when \c NULL is passed as information for an output port.
+ * \brief Thrown when the type on a port is attempted to be set after initialization.
  *
  * \ingroup exceptions
  */
@@ -308,6 +308,38 @@ class VISTK_PIPELINE_EXPORT set_type_on_initialized_process_exception
     process::port_t const m_port;
     /// The type that was attempted to be set.
     process::port_type_t const m_type;
+};
+
+/**
+ * \class set_frequency_on_initialized_process_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when the frequency on a port is attempted to be set after initialization.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT set_frequency_on_initialized_process_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the \ref process.
+     * \param port The name of the port on the \ref process.
+     * \param frequency The frequency that was attempted to be set.
+     */
+    set_frequency_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_frequency_t const& frequency) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~set_frequency_on_initialized_process_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_name;
+    /// The name of the port.
+    process::port_t const m_port;
+    /// The frequency that was attempted to be set.
+    process::port_frequency_t const m_frequency;
 };
 
 /**

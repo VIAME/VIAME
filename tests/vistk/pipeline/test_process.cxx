@@ -9,6 +9,7 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/modules.h>
+#include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/process_registry.h>
@@ -295,8 +296,11 @@ test_connect_after_init()
 
   vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
-  process->configure();
-  process->init();
+  vistk::pipeline_t const pipe = boost::make_shared<vistk::pipeline>(config);
+
+  // Only the pipeline can properly initialize a process.
+  pipe->add_process(process);
+  pipe->setup_pipeline();
 
   EXPECT_EXCEPTION(vistk::connect_to_initialized_process_exception,
                    process->connect_input_port(vistk::process::port_t(), edge),
@@ -587,7 +591,7 @@ test_add_input_port_after_type_pin()
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("collate");
 
-  vistk::process::port_t const color = vistk::process::port_t("color/");
+  vistk::process::port_t const status = vistk::process::port_t("status/");
   vistk::process::port_t const res = vistk::process::port_t("res/");
   vistk::process::port_t const coll = vistk::process::port_t("coll/");
 
@@ -599,7 +603,7 @@ test_add_input_port_after_type_pin()
   vistk::process_t const process = create_process(proc_type);
   vistk::edge_t const edge = create_edge();
 
-  (void)process->input_port_info(color + tag);
+  (void)process->input_port_info(status + tag);
 
   EXPECT_EXCEPTION(vistk::no_such_port_exception,
                    process->connect_input_port(coll + tag + group, edge),
@@ -623,7 +627,7 @@ test_add_output_port_after_type_pin()
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("distribute");
 
-  vistk::process::port_t const color = vistk::process::port_t("color/");
+  vistk::process::port_t const status = vistk::process::port_t("status/");
   vistk::process::port_t const src = vistk::process::port_t("src/");
   vistk::process::port_t const dist = vistk::process::port_t("dist/");
 
@@ -635,7 +639,7 @@ test_add_output_port_after_type_pin()
   vistk::process_t const process = create_process(proc_type);
   vistk::edge_t const edge = create_edge();
 
-  (void)process->output_port_info(color + tag);
+  (void)process->output_port_info(status + tag);
 
   EXPECT_EXCEPTION(vistk::no_such_port_exception,
                    process->connect_output_port(dist + tag + group, edge),

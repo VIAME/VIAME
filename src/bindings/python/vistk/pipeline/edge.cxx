@@ -22,20 +22,14 @@
 
 using namespace boost::python;
 
-static vistk::datum_t edge_datum_datum(vistk::edge_datum_t const& edatum);
-static void edge_datum_datum_set(vistk::edge_datum_t& edatum, vistk::datum_t const& dat);
-static vistk::stamp_t edge_datum_stamp(vistk::edge_datum_t const& edatum);
-static void edge_datum_stamp_set(vistk::edge_datum_t& edatum, vistk::stamp_t const& st);
-
 BOOST_PYTHON_MODULE(edge)
 {
   class_<vistk::edge_datum_t>("EdgeDatum"
     , no_init)
+    .def(init<>())
     .def(init<vistk::datum_t, vistk::stamp_t>())
-    .add_property("datum", &edge_datum_datum, &edge_datum_datum_set
-      , "The datum in the packet.")
-    .add_property("stamp", &edge_datum_stamp, &edge_datum_stamp_set
-      , "The stamp of the packet.")
+    .def_readwrite("datum", &vistk::edge_datum_t::datum)
+    .def_readwrite("stamp", &vistk::edge_datum_t::stamp)
   ;
   class_<vistk::edge_data_t>("EdgeData"
     , "A collection of data packets that may be passed through an edge.")
@@ -65,6 +59,7 @@ BOOST_PYTHON_MODULE(edge)
     .def("get_datum", &vistk::edge::get_datum
       , "Returns the next datum packet from the edge, removing it in the process.")
     .def("peek_datum", &vistk::edge::peek_datum
+      , (arg("index") = 0)
       , "Returns the next datum packet from the edge.")
     .def("pop_datum", &vistk::edge::pop_datum
       , "Remove the next datum packet from the edge.")
@@ -81,28 +76,4 @@ BOOST_PYTHON_MODULE(edge)
     .def_readonly("config_dependency", &vistk::edge::config_dependency)
     .def_readonly("config_capacity", &vistk::edge::config_capacity)
   ;
-}
-
-vistk::datum_t
-edge_datum_datum(vistk::edge_datum_t const& edatum)
-{
-  return edatum.get<0>();
-}
-
-void
-edge_datum_datum_set(vistk::edge_datum_t& edatum, vistk::datum_t const& dat)
-{
-  boost::get<0>(edatum) = dat;
-}
-
-vistk::stamp_t
-edge_datum_stamp(vistk::edge_datum_t const& edatum)
-{
-  return edatum.get<1>();
-}
-
-void
-edge_datum_stamp_set(vistk::edge_datum_t& edatum, vistk::stamp_t const& st)
-{
-  boost::get<1>(edatum) = st;
 }

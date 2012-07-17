@@ -55,10 +55,12 @@ config::key_t const process::static_input_prefix = config::key_t("static/");
 process::port_info
 ::port_info(port_type_t const& type_,
             port_flags_t const& flags_,
-            port_description_t const& description_)
+            port_description_t const& description_,
+            port_frequency_t const& frequency_)
   : type(type_)
   , flags(flags_)
   , description(description_)
+  , frequency(frequency_)
 {
 }
 
@@ -81,11 +83,9 @@ process::conf_info
 }
 
 process::data_info
-::data_info(bool same_color_,
-            bool in_sync_,
+::data_info(bool in_sync_,
             datum::type_t max_status_)
-  : same_color(same_color_)
-  , in_sync(in_sync_)
+  : in_sync(in_sync_)
   , max_status(max_status_)
 {
 }
@@ -98,16 +98,16 @@ process::data_info
 class process::priv
 {
   public:
-    priv(config_t c);
+    priv(process* proc, config_t const& c);
     ~priv();
 
     void run_heartbeat();
-    bool connect_input_port(port_t const& port, edge_t const& edge);
-    bool connect_output_port(port_t const& port, edge_t const& edge);
+    void connect_input_port(port_t const& port, edge_t const& edge);
+    void connect_output_port(port_t const& port, edge_t const& edge);
 
-    edge_datum_t check_required_input(process* proc);
+    datum_t check_required_input();
     void grab_from_input_edges();
-    void push_to_output_edges(edge_datum_t const& edat) const;
+    void push_to_output_edges(datum_t const& dat) const;
     bool required_outputs_done() const;
 
     name_t name;
@@ -118,9 +118,11 @@ class process::priv
 
     typedef boost::shared_mutex mutex_t;
     typedef boost::shared_lock<mutex_t> shared_lock_t;
+    typedef boost::upgrade_lock<mutex_t> upgrade_lock_t;
     typedef boost::unique_lock<mutex_t> unique_lock_t;
+    typedef boost::upgrade_to_unique_lock<mutex_t> upgrade_to_unique_lock_t;
 
-    typedef boost::tuple<mutex_t, edges_t> output_port_info;
+    typedef boost::tuple<mutex_t, edges_t, stamp_t> output_port_info;
     typedef boost::shared_ptr<output_port_info> output_port_info_t;
 
     typedef std::map<port_t, edge_t> input_edge_map_t;
@@ -135,8 +137,12 @@ class process::priv
 
     typedef std::map<port_t, tag_t> port_tag_map_t;
 
+    typedef boost::optional<port_frequency_t> core_frequency_t;
+
     tag_t port_flow_tag_name(port_type_t const& port_type) const;
     void check_tag(tag_t const& tag);
+
+    void make_output_stamps();
 
     port_map_t input_ports;
     port_map_t output_ports;
@@ -146,6 +152,7 @@ class process::priv
     input_edge_map_t input_edges;
     output_edge_map_t output_edges;
 
+    process* const q;
     config_t const conf;
 
     ports_t static_inputs;
@@ -159,15 +166,15 @@ class process::priv
     port_tag_map_t input_port_tags;
     port_tag_map_t output_port_tags;
 
+    core_frequency_t core_frequency;
+
     bool configured;
     bool initialized;
+    bool output_stamps_made;
     bool is_complete;
 
-    bool input_same_color;
-    bool input_sync;
-    bool input_valid;
+    data_check_t check_input_level;
 
-    stamp_t hb_stamp;
     stamp_t stamp_for_inputs;
 
     static config::value_t const default_name;
@@ -229,7 +236,7 @@ process
     throw unconfigured_exception(d->name);
   }
 
-  if (!d->initialized)
+  if (!d->initialized || !d->output_stamps_made)
   {
     throw uninitialized_exception(d->name);
   }
@@ -238,21 +245,23 @@ process
 
   /// \todo Are there any pre-_step actions?
 
+  bool complete = false;
+
   if (d->is_complete)
   {
+    /// \todo Log a warning that a process is being stepped after completion.
     /// \todo What exactly should be done here?
   }
   else
   {
-    d->stamp_for_inputs = d->hb_stamp;
-
-    edge_datum_t const edat = d->check_required_input(this);
-    datum_t const& dat = edat.get<0>();
+    datum_t const dat = d->check_required_input();
 
     if (dat)
     {
       d->grab_from_input_edges();
-      d->push_to_output_edges(edat);
+      d->push_to_output_edges(dat);
+
+      complete = (dat->type() == datum::complete);
     }
     else
     {
@@ -267,7 +276,7 @@ process
   d->run_heartbeat();
 
   /// \todo Should this really be done here?
-  if (d->required_outputs_done())
+  if (complete || d->required_outputs_done())
   {
     mark_process_as_complete();
   }
@@ -294,10 +303,7 @@ process
     throw connect_to_initialized_process_exception(d->name, port);
   }
 
-  if (!d->connect_input_port(port, edge))
-  {
-    _connect_input_port(port, edge);
-  }
+  d->connect_input_port(port, edge);
 }
 
 void
@@ -309,10 +315,7 @@ process
     throw null_edge_port_connection_exception(d->name, port);
   }
 
-  if (!d->connect_output_port(port, edge))
-  {
-    _connect_output_port(port, edge);
-  }
+  d->connect_output_port(port, edge);
 }
 
 process::ports_t
@@ -424,12 +427,13 @@ process
 
 process
 ::process(config_t const& config)
-  : d(new priv(config))
 {
   if (!config)
   {
     throw null_process_config_exception();
   }
+
+  d.reset(new priv(this, config));
 
   declare_configuration_key(
     config_name,
@@ -447,7 +451,8 @@ process
     port_heartbeat,
     type_none,
     port_flags_t(),
-    port_description_t("Outputs the heartbeat stamp with an empty datum."));
+    port_description_t("Outputs the heartbeat stamp with an empty datum."),
+    port_frequency_t(1));
 }
 
 process
@@ -476,13 +481,22 @@ process
   BOOST_FOREACH (priv::output_edge_map_t::value_type& oport, d->output_edges)
   {
     priv::output_port_info_t& info = oport.second;
+    priv::mutex_t& mut = info->get<0>();
+
+    priv::unique_lock_t const lock(mut);
+
+    (void)lock;
+
     edges_t& edges = info->get<1>();
+    stamp_t& stamp = info->get<2>();
 
     edges.clear();
+    stamp.reset();
   }
 
   d->configured = false;
   d->initialized = false;
+  d->core_frequency.reset();
 }
 
 void
@@ -500,26 +514,6 @@ process
   consts.insert(constraint_no_reentrancy);
 
   return consts;
-}
-
-void
-process
-::_connect_input_port(port_t const& port, edge_t edge)
-{
-  if (!d->connect_input_port(port, edge))
-  {
-    throw no_such_port_exception(d->name, port);
-  }
-}
-
-void
-process
-::_connect_output_port(port_t const& port, edge_t edge)
-{
-  if (!d->connect_output_port(port, edge))
-  {
-    throw no_such_port_exception(d->name, port);
-  }
 }
 
 process::ports_t
@@ -597,7 +591,8 @@ process
           iport,
           new_type,
           info->flags,
-          info->description);
+          info->description,
+          info->frequency);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
@@ -608,7 +603,8 @@ process
           oport,
           new_type,
           info->flags,
-          info->description);
+          info->description,
+          info->frequency);
       }
 
       d->flow_tag_port_types[tag] = new_type;
@@ -621,7 +617,8 @@ process
     port,
     new_type,
     info->flags,
-    info->description);
+    info->description,
+    info->frequency);
 
   return true;
 }
@@ -659,7 +656,8 @@ process
           iport,
           new_type,
           info->flags,
-          info->description);
+          info->description,
+          info->frequency);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
@@ -670,7 +668,8 @@ process
           oport,
           new_type,
           info->flags,
-          info->description);
+          info->description,
+          info->frequency);
       }
 
       d->flow_tag_port_types[tag] = new_type;
@@ -683,7 +682,8 @@ process
     port,
     new_type,
     info->flags,
-    info->description);
+    info->description,
+    info->frequency);
 
   return true;
 }
@@ -736,7 +736,8 @@ process
         port,
         tag_type,
         info->flags,
-        info->description);
+        info->description,
+        info->frequency);
 
       return;
     }
@@ -782,12 +783,14 @@ process
 ::declare_input_port(port_t const& port,
                      port_type_t const& type_,
                      port_flags_t const& flags_,
-                     port_description_t const& description_)
+                     port_description_t const& description_,
+                     port_frequency_t const& frequency_)
 {
   declare_input_port(port, boost::make_shared<port_info>(
     type_,
     flags_,
-    description_));
+    description_,
+    frequency_));
 }
 
 void
@@ -817,7 +820,8 @@ process
         port,
         tag_type,
         info->flags,
-        info->description);
+        info->description,
+        info->frequency);
 
       return;
     }
@@ -840,12 +844,64 @@ process
 ::declare_output_port(port_t const& port,
                       port_type_t const& type_,
                       port_flags_t const& flags_,
-                      port_description_t const& description_)
+                      port_description_t const& description_,
+                      port_frequency_t const& frequency_)
 {
   declare_output_port(port, boost::make_shared<port_info>(
     type_,
     flags_,
-    description_));
+    description_,
+    frequency_));
+}
+
+void
+process
+::set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
+{
+  if (d->initialized)
+  {
+    throw set_frequency_on_initialized_process_exception(d->name, port, new_frequency);
+  }
+
+  port_info_t const info = input_port_info(port);
+  port_frequency_t const& old_frequency = info->frequency;
+
+  if (old_frequency == new_frequency)
+  {
+    return;
+  }
+
+  declare_input_port(
+    port,
+    info->type,
+    info->flags,
+    info->description,
+    new_frequency);
+}
+
+void
+process
+::set_output_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
+{
+  if (d->initialized)
+  {
+    throw set_frequency_on_initialized_process_exception(d->name, port, new_frequency);
+  }
+
+  port_info_t const info = output_port_info(port);
+  port_frequency_t const& old_frequency = info->frequency;
+
+  if (old_frequency == new_frequency)
+  {
+    return;
+  }
+
+  declare_output_port(
+    port,
+    info->type,
+    info->flags,
+    info->description,
+    new_frequency);
 }
 
 void
@@ -966,16 +1022,9 @@ process
   }
 }
 
-stamp_t
+bool
 process
-::heartbeat_stamp() const
-{
-  return d->hb_stamp;
-}
-
-edge_t
-process
-::input_port_edge(port_t const& port) const
+::has_input_port_edge(port_t const& port) const
 {
   priv::port_map_t::iterator i = d->input_ports.find(port);
 
@@ -984,19 +1033,14 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
-  priv::input_edge_map_t::iterator e = d->input_edges.find(port);
+  priv::input_edge_map_t::const_iterator const e = d->input_edges.find(port);
 
-  if (e == d->input_edges.end())
-  {
-    return edge_t();
-  }
-
-  return e->second;
+  return (e != d->input_edges.end());
 }
 
-edges_t
+size_t
 process
-::output_port_edges(port_t const& port) const
+::count_output_port_edges(port_t const& port) const
 {
   priv::port_map_t::iterator i = d->output_ports.find(port);
 
@@ -1009,7 +1053,7 @@ process
 
   if (e == d->output_edges.end())
   {
-    return edges_t();
+    return size_t(0);
   }
 
   priv::output_port_info_t const& info = e->second;
@@ -1021,7 +1065,7 @@ process
 
   edges_t const& edges = info->get<1>();
 
-  return edges;
+  return edges.size();
 }
 
 edge_datum_t
@@ -1035,7 +1079,7 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
-  priv::input_edge_map_t::iterator e = d->input_edges.find(port);
+  priv::input_edge_map_t::const_iterator const e = d->input_edges.find(port);
 
   if (e == d->input_edges.end())
   {
@@ -1046,7 +1090,7 @@ process
 
   edge_t const& edge = e->second;
 
-  return grab_from_edge(edge);
+  return edge->get_datum();
 }
 
 datum_t
@@ -1055,7 +1099,7 @@ process
 {
   edge_datum_t const edat = grab_from_port(port);
 
-  return edat.get<0>();
+  return edat.datum;
 }
 
 void
@@ -1082,7 +1126,10 @@ process
 
     edges_t const& edges = info->get<1>();
 
-    push_to_edges(edges, dat);
+    BOOST_FOREACH (edge_t const& edge, edges)
+    {
+      edge->push_datum(dat);
+    }
   }
 }
 
@@ -1090,14 +1137,41 @@ void
 process
 ::push_datum_to_port(port_t const& port, datum_t const& dat) const
 {
-  push_to_port(port, edge_datum_t(dat, stamp_for_inputs()));
-}
+  stamp_t push_stamp;
 
-stamp_t
-process
-::stamp_for_inputs() const
-{
-  return d->stamp_for_inputs;
+  {
+    priv::output_edge_map_t::iterator const e = d->output_edges.find(port);
+
+    if (e == d->output_edges.end())
+    {
+      throw no_such_port_exception(d->name, port);
+    }
+
+    priv::output_port_info_t& info = e->second;
+    priv::mutex_t& mut = info->get<0>();
+
+    priv::upgrade_lock_t lock(mut);
+
+    stamp_t& port_stamp = info->get<2>();
+
+    if (!port_stamp)
+    {
+      static std::string const reason = "The stamp for an output port was not initialized";
+
+      throw std::runtime_error(reason);
+    }
+
+    {
+      priv::upgrade_to_unique_lock_t const write_lock(lock);
+
+      (void)write_lock;
+
+      push_stamp = port_stamp;
+      port_stamp = stamp::incremented_stamp(port_stamp);
+    }
+  }
+
+  push_to_port(port, edge_datum_t(dat, push_stamp));
 }
 
 config_t
@@ -1109,40 +1183,25 @@ process
 
 void
 process
-::ensure_inputs_are_same_color(bool ensure)
+::set_data_checking_level(data_check_t check)
 {
-  d->input_same_color = ensure;
-}
-
-void
-process
-::ensure_inputs_are_in_sync(bool ensure)
-{
-  d->input_sync = ensure;
-}
-
-void
-process
-::ensure_inputs_are_valid(bool ensure)
-{
-  d->input_valid = ensure;
+  d->check_input_level = check;
 }
 
 process::data_info_t
 process
 ::edge_data_info(edge_data_t const& data)
 {
-  bool same_color = true;
   bool in_sync = true;
-  datum::type_t max_type = datum::invalid;
+  datum::type_t max_type = datum::data;
 
   edge_datum_t const& fst = data[0];
-  stamp_t const& st = fst.get<1>();
+  stamp_t const& st = fst.stamp;
 
   BOOST_FOREACH (edge_datum_t const& edat, data)
   {
-    datum_t const& dat = edat.get<0>();
-    stamp_t const& st2 = edat.get<1>();
+    datum_t const& dat = edat.datum;
+    stamp_t const& st2 = edat.stamp;
 
     datum::type_t const type = dat->type();
 
@@ -1151,41 +1210,13 @@ process
       max_type = type;
     }
 
-    if (!st->is_same_color(st2))
-    {
-      same_color = false;
-    }
     if (*st != *st2)
     {
       in_sync = false;
     }
   }
 
-  return boost::make_shared<data_info>(same_color, in_sync, max_type);
-}
-
-void
-process
-::push_to_edges(edges_t const& edges, edge_datum_t const& dat)
-{
-  BOOST_FOREACH (edge_t const& edge, edges)
-  {
-    edge->push_datum(dat);
-  }
-}
-
-edge_datum_t
-process
-::grab_from_edge(edge_t const& edge)
-{
-  return edge->get_datum();
-}
-
-edge_datum_t
-process
-::peek_at_edge(edge_t const& edge)
-{
-  return edge->peek_datum();
+  return boost::make_shared<data_info>(in_sync, max_type);
 }
 
 config::value_t
@@ -1218,16 +1249,45 @@ process
   return (i != d->static_inputs.end());
 }
 
+void
+process
+::set_core_frequency(port_frequency_t const& frequency)
+{
+  if (!d->initialized)
+  {
+    static std::string const reason = "A process' frequency was set before it was initialized";
+
+    throw std::runtime_error(reason);
+  }
+
+  if (d->core_frequency)
+  {
+    static std::string const reason = "A process' frequency was set a second time";
+
+    throw std::runtime_error(reason);
+  }
+
+  if (frequency.denominator() != 1)
+  {
+    static std::string const reason = "A process' frequency is not a whole number";
+
+    throw std::runtime_error(reason);
+  }
+
+  d->core_frequency = frequency;
+
+  d->make_output_stamps();
+}
+
 process::priv
-::priv(config_t c)
-  : conf(c)
+::priv(process* proc, config_t const& c)
+  : q(proc)
+  , conf(c)
   , configured(false)
   , initialized(false)
+  , output_stamps_made(false)
   , is_complete(false)
-  , input_same_color(true)
-  , input_sync(true)
-  , input_valid(true)
-  , hb_stamp(stamp::new_stamp())
+  , check_input_level(check_valid)
 {
 }
 
@@ -1251,82 +1311,62 @@ process::priv
     dat = datum::empty_datum();
   }
 
-  edge_datum_t const edge_dat(dat, hb_stamp);
-
-  {
-    output_port_info_t const& info = output_edges[port_heartbeat];
-    priv::mutex_t& mut = info->get<0>();
-
-    priv::shared_lock_t const lock(mut);
-
-    (void)lock;
-
-    edges_t const& edges = info->get<1>();
-
-    push_to_edges(edges, edge_dat);
-  }
-
-  hb_stamp = stamp::incremented_stamp(hb_stamp);
+  q->push_datum_to_port(port_heartbeat, dat);
 }
 
-bool
+void
 process::priv
 ::connect_input_port(port_t const& port, edge_t const& edge)
 {
   port_map_t::const_iterator const i = input_ports.find(port);
 
-  if (i != input_ports.end())
+  if (i == input_ports.end())
   {
-    if (input_edges[port])
-    {
-      throw port_reconnect_exception(name, port);
-    }
-
-    input_edges[port] = edge;
-
-    return true;
+    throw no_such_port_exception(name, port);
   }
 
-  return false;
+  if (input_edges[port])
+  {
+    throw port_reconnect_exception(name, port);
+  }
+
+  input_edges[port] = edge;
 }
 
-bool
+void
 process::priv
 ::connect_output_port(port_t const& port, edge_t const& edge)
 {
   port_map_t::const_iterator const i = output_ports.find(port);
 
-  if (i != output_ports.end())
+  if (i == output_ports.end())
   {
-    {
-      output_port_info_t const& info = output_edges[port];
-      priv::mutex_t& mut = info->get<0>();
-
-      priv::unique_lock_t const lock(mut);
-
-      (void)lock;
-
-      edges_t& edges = info->get<1>();
-
-      edges.push_back(edge);
-    }
-
-    return true;
+    throw no_such_port_exception(name, port);
   }
 
-  return false;
+  output_port_info_t const& info = output_edges[port];
+  priv::mutex_t& mut = info->get<0>();
+
+  priv::unique_lock_t const lock(mut);
+
+  (void)lock;
+
+  edges_t& edges = info->get<1>();
+
+  edges.push_back(edge);
 }
 
-edge_datum_t
+datum_t
 process::priv
-::check_required_input(process* proc)
+::check_required_input()
 {
-  if ((!input_same_color && !input_valid) ||
+  if ((check_input_level == check_none) ||
       required_inputs.empty())
   {
-    return edge_datum_t(datum_t(), stamp_t());
+    return datum_t();
   }
 
+  edge_data_t first_data;
   edge_data_t data;
 
   BOOST_FOREACH (port_t const& port, required_inputs)
@@ -1340,107 +1380,155 @@ process::priv
 
     edge_t const& iedge = i->second;
 
-    data.push_back(peek_at_edge(iedge));
+    edge_datum_t const first_edat = iedge->peek_datum();
+    datum_t const& first_dat = first_edat.datum;
+    datum::type_t const first_type = first_dat->type();
+
+    first_data.push_back(first_edat);
+    data.push_back(first_edat);
+
+    if ((first_type == datum::flush) ||
+        (first_type == datum::complete))
+    {
+      continue;
+    }
+
+    port_info_t const& info = q->input_port_info(port);
+    port_frequency_t const& freq = info->frequency;
+
+    frequency_component_t const rel_count = freq.numerator();
+
+    for (frequency_component_t j = 1; j < rel_count; ++j)
+    {
+      edge_datum_t const edat = iedge->peek_datum(j);
+
+      data.push_back(edat);
+    }
+  }
+
+  data_info_t const first_info = edge_data_info(first_data);
+
+  if (check_sync <= check_input_level)
+  {
+    if (!first_info->in_sync)
+    {
+      static datum::error_t const err_string = datum::error_t("Required input edges are not synchronized.");
+
+      return datum::error_datum(err_string);
+    }
+
+    // Save the stamp for the inputs.
+    edge_datum_t const& edat = first_data[0];
+    stamp_for_inputs = edat.stamp;
+  }
+
+  if (check_input_level < check_valid)
+  {
+    return datum_t();
   }
 
   data_info_t const info = edge_data_info(data);
-
-  if (input_same_color && !info->same_color)
-  {
-    static datum::error_t const err_string = datum::error_t("Required input edges are not the same color.");
-
-    return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
-  }
-
-  if (input_same_color && input_sync && !info->in_sync)
-  {
-    static datum::error_t const err_string = datum::error_t("Required input edges are not synchronized.");
-
-    return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
-  }
-
-  // Save the stamp for the inputs.
-  if (input_same_color && input_sync)
-  {
-    stamp_for_inputs = data[0].get<1>();
-  }
-
-  if (!input_valid)
-  {
-    return edge_datum_t(datum_t(), stamp_t());
-  }
 
   switch (info->max_status)
   {
     case datum::data:
       break;
     case datum::empty:
-      return edge_datum_t(datum::empty_datum(), stamp_for_inputs);
+      return datum::empty_datum();
     case datum::flush:
-      stamp_for_inputs = stamp::new_stamp();
-      return edge_datum_t(datum::flush_datum(), stamp_for_inputs);
+      return datum::flush_datum();
     case datum::complete:
-      proc->mark_process_as_complete();
-      return edge_datum_t(datum::complete_datum(), stamp_for_inputs);
+      return datum::complete_datum();
     case datum::error:
     {
       static datum::error_t const err_string = datum::error_t("Error in a required input edge.");
 
-      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+      return datum::error_datum(err_string);
     }
     case datum::invalid:
     default:
     {
       static datum::error_t const err_string = datum::error_t("Unrecognized datum type in a required input edge.");
 
-      return edge_datum_t(datum::error_datum(err_string), stamp_for_inputs);
+      return datum::error_datum(err_string);
     }
   }
 
-  return edge_datum_t(datum_t(), stamp_t());
+  return datum_t();
 }
 
 void
 process::priv
 ::grab_from_input_edges()
 {
-  BOOST_FOREACH (input_edge_map_t::value_type const& edge_for_port, input_edges)
+  BOOST_FOREACH (port_map_t::value_type const& iport, input_ports)
   {
-    edge_t const& edge = edge_for_port.second;
+    port_t const& port = iport.first;
+    port_info_t const& info = iport.second;
 
-    if (edge->has_data())
+    port_frequency_t const& freq = info->frequency;
+
+    if (!freq || (freq.denominator() != 1))
     {
-      edge->pop_datum();
+      static std::string const reason = "Cannot automatically pull from "
+                                        "an input port with 0 or non-integer "
+                                        "frequency";
+
+      throw std::runtime_error(reason);
+    }
+
+    frequency_component_t const count = freq.numerator();
+
+    for (frequency_component_t j = 0; j < count; ++j)
+    {
+      datum_t const dat = q->grab_datum_from_port(port);
+      datum::type_t const dat_type = dat->type();
+
+      // If the first datum is a flush or above, don't grab any more.
+      if (!j && (datum::flush <= dat_type))
+      {
+        break;
+      }
     }
   }
 }
 
 void
 process::priv
-::push_to_output_edges(edge_datum_t const& edat) const
+::push_to_output_edges(datum_t const& dat) const
 {
-  BOOST_FOREACH (output_edge_map_t::value_type const& edges_for_port, output_edges)
-  {
-    port_t const& port = edges_for_port.first;
+  datum::type_t const dat_type = dat->type();
 
-    // The heartbeat port is handled elsewhere.
-    if (port == port_heartbeat)
+  BOOST_FOREACH (port_map_t::value_type const& oport, output_ports)
+  {
+    port_t const& port = oport.first;
+
+    // Don't duplicate flush or above data types.
+    if (datum::flush <= dat_type)
     {
+      q->push_datum_to_port(port, dat);
+
       continue;
     }
 
-    output_port_info_t const& info = edges_for_port.second;
-    priv::mutex_t& mut = info->get<0>();
+    port_info_t const& info = oport.second;
 
-    priv::shared_lock_t const lock(mut);
+    port_frequency_t const& freq = info->frequency;
 
-    (void)lock;
-
-    edges_t const& edges = info->get<1>();
-
-    BOOST_FOREACH (edge_t const& edge, edges)
+    if (!freq || (freq.denominator() != 1))
     {
-      edge->push_datum(edat);
+      static std::string const reason = "Cannot automatically push to "
+                                        "an output port with 0 or non-integer "
+                                        "frequency";
+
+      throw std::runtime_error(reason);
+    }
+
+    frequency_component_t const count = freq.numerator();
+
+    for (frequency_component_t j = 0; j < count; ++j)
+    {
+      q->push_datum_to_port(port, dat);
     }
   }
 }
@@ -1508,6 +1596,52 @@ process::priv
   {
     flow_tag_port_types.erase(tag);
   }
+}
+
+void
+process::priv
+::make_output_stamps()
+{
+  BOOST_FOREACH (output_edge_map_t::value_type& oport, output_edges)
+  {
+    port_t const& port_name = oport.first;
+
+    port_info_t const info = q->output_port_info(port_name);
+    port_frequency_t const& port_frequency = info->frequency;
+
+    // Skip ports with an unknown port frequency.
+    if (!port_frequency)
+    {
+      continue;
+    }
+
+    port_frequency_t const port_run_frequency = (*core_frequency) * port_frequency;
+
+    if (port_run_frequency.denominator() != 1)
+    {
+      static std::string const reason = "A port has a runtime frequency "
+                                        "that is not a whole number";
+
+      throw std::runtime_error(reason);
+    }
+
+    stamp::increment_t const port_increment = port_run_frequency.numerator();
+
+    {
+      output_port_info_t& oinfo = oport.second;
+      mutex_t& mut = oinfo->get<0>();
+
+      unique_lock_t const lock(mut);
+
+      (void)lock;
+
+      stamp_t& stamp = oinfo->get<2>();
+
+      stamp = stamp::new_stamp(port_increment);
+    }
+  }
+
+  output_stamps_made = true;
 }
 
 }

@@ -29,8 +29,9 @@ def test_datum_create():
     from vistk.pipeline import stamp
 
     d = datum.complete()
-    s = stamp.new_stamp()
+    s = stamp.new_stamp(1)
 
+    edge.EdgeDatum()
     edge.EdgeDatum(d, s)
     edge.EdgeData()
 
@@ -52,7 +53,7 @@ def test_api_calls():
     e.datum_count()
 
     d = datum.complete()
-    s = stamp.new_stamp()
+    s = stamp.new_stamp(1)
 
     ed = edge.EdgeDatum(d, s)
 
@@ -85,7 +86,7 @@ def test_datum_api_calls():
     from vistk.pipeline import stamp
 
     d = datum.complete()
-    s = stamp.new_stamp()
+    s = stamp.new_stamp(1)
 
     ed = edge.EdgeDatum(d, s)
 

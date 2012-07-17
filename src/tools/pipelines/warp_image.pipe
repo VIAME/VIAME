@@ -17,9 +17,6 @@ process read_trans
   :input[ro]{CONF} warp_image:input_homography
   :homography_type[ro]{CONF} warp_image:homography_type
 
-process source
-  :: source
-
 !include warp.pipe
 
 config warp
@@ -33,15 +30,9 @@ process write
   :pixfmt[ro]{CONF} warp_image:pixfmt
 
 connect from read.image
-        to   source.src/image
-
-connect from read_trans.homography
-        to   source.src/homography
-
-connect from source.out/image
         to   warp.image
 
-connect from source.out/homography
+connect from read_trans.homography
         to   warp.transform
 
 connect from warp.warped_image

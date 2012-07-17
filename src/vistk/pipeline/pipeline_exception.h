@@ -620,6 +620,52 @@ class VISTK_PIPELINE_EXPORT untyped_connection_exception
 };
 
 /**
+ * \class frequency_mismatch_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when the frequencies within the pipeline cannot be resolved.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT frequency_mismatch_exception
+  : public pipeline_setup_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param upstream_name The name of the upstream process requested.
+     * \param upstream_port The port on the upstream process requested.
+     * \param upstream_frequency The frequency of the upstream process.
+     * \param downstream_name The name of the downstream process requested.
+     * \param downstream_port The port on the downstream process requested.
+     * \param downstream_frequency The frequency of the downstream process.
+     */
+    frequency_mismatch_exception(process::name_t const& upstream_name,
+                                 process::port_t const& upstream_port,
+                                 process::port_frequency_t const& upstream_frequency,
+                                 process::name_t const& downstream_name,
+                                 process::port_t const& downstream_port,
+                                 process::port_frequency_t const& downstream_frequency) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~frequency_mismatch_exception() throw();
+
+    /// The name of the upstream process requested.
+    process::name_t const m_upstream_name;
+    /// The port on the upstream process requested.
+    process::port_t const m_upstream_port;
+    /// The frequency of the upstream process.
+    process::port_frequency_t const m_upstream_frequency;
+    /// The name of the downstream process requested.
+    process::name_t const m_downstream_name;
+    /// The port on the downstream process requested.
+    process::port_t const m_downstream_port;
+    /// The frequency of the downstream process.
+    process::port_frequency_t const m_downstream_frequency;
+};
+
+/**
  * \class no_such_group_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a group is requested that does not exist in a \ref pipeline.

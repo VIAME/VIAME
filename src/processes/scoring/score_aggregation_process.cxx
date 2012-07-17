@@ -50,7 +50,7 @@ score_aggregation_process
   , d(new priv)
 {
   // We only calculate on 'complete' datum.
-  ensure_inputs_are_valid(false);
+  set_data_checking_level(check_sync);
 
   port_flags_t required;
 
@@ -66,12 +66,14 @@ score_aggregation_process
     priv::port_aggregate,
     "score",
     required,
-    port_description_t("The aggregate scores."));
+    port_description_t("The aggregate scores."),
+    port_frequency_t(0, 1));
   declare_output_port(
     priv::port_statistics,
     "statistics/score",
     port_flags_t(),
-    port_description_t("Statistics on the aggregate scores."));
+    port_description_t("Statistics on the aggregate scores."),
+    port_frequency_t(0, 1));
 }
 
 score_aggregation_process

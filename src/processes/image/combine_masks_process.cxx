@@ -54,7 +54,7 @@ combine_masks_process
   : process(config)
   , d(new priv)
 {
-  ensure_inputs_are_valid(false);
+  set_data_checking_level(check_sync);
 
   port_flags_t required;
 

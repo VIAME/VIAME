@@ -26,6 +26,31 @@
 namespace vistk
 {
 
+edge_datum_t
+::edge_datum_t()
+{
+}
+
+edge_datum_t
+::edge_datum_t(datum_t const& datum_, stamp_t const& stamp_)
+  : datum(datum_)
+  , stamp(stamp_)
+{
+}
+
+edge_datum_t
+::~edge_datum_t()
+{
+}
+
+bool
+edge_datum_t
+::operator == (edge_datum_t const& rhs)
+{
+  return (( datum ==  rhs.datum) &&
+          (*stamp == *rhs.stamp));
+}
+
 config::key_t const edge::config_dependency = config::key_t("_dependency");
 config::key_t const edge::config_capacity = config::key_t("capacity");
 
@@ -191,13 +216,13 @@ edge
 
 edge_datum_t
 edge
-::peek_datum()
+::peek_datum(size_t idx) const
 {
   d->complete_check();
 
   priv::shared_lock_t lock(d->mutex);
 
-  while (!d->has_data())
+  while (d->q.size() <= idx)
   {
     d->cond_have_data.wait(lock);
   }
@@ -298,13 +323,6 @@ edge
   }
 
   d->downstream = process;
-}
-
-bool
-operator == (edge_datum_t const& a, edge_datum_t const& b)
-{
-  return (( a.get<0>() ==  b.get<0>()) &&
-          (*a.get<1>() == *b.get<1>()));
 }
 
 edge::priv

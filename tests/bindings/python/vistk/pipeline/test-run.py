@@ -272,7 +272,6 @@ def test_python_via_cpp(sched_type):
     from vistk.pipeline import pipeline
     from vistk.pipeline import process
 
-    name_source = 'source'
     name_source1 = 'source1'
     name_source2 = 'source2'
     name_mult = 'mult'
@@ -293,10 +292,6 @@ def test_python_via_cpp(sched_type):
     min2 = 10
     max2 = 15
     output_file = 'test-python-run-python_via_cpp.txt'
-
-    c = config.empty_config()
-
-    s = create_process('source', name_source, c)
 
     c = config.empty_config()
 
@@ -327,20 +322,14 @@ def test_python_via_cpp(sched_type):
 
     p = pipeline.Pipeline()
 
-    p.add_process(s)
     p.add_process(s1)
     p.add_process(s2)
     p.add_process(m)
     p.add_process(t)
 
     p.connect(name_source1, port_output,
-              name_source, port_input1)
-    p.connect(name_source2, port_output,
-              name_source, port_input2)
-
-    p.connect(name_source, port_output1,
               name_mult, port_factor1)
-    p.connect(name_source, port_output2,
+    p.connect(name_source2, port_output,
               name_mult, port_factor2)
     p.connect(name_mult, port_product,
               name_sink, port_input)

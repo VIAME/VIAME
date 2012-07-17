@@ -214,8 +214,10 @@ test_push_datum()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 
@@ -241,8 +243,10 @@ test_peek_datum()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 
@@ -255,7 +259,9 @@ test_peek_datum()
     TEST_ERROR("An edge removed a datum on an peek");
   }
 
-  if (*get_edat.get<1>() != *stamp)
+  vistk::stamp_t const& estamp = get_edat.stamp;
+
+  if (*estamp != *stamp)
   {
     TEST_ERROR("The edge modified a stamp on a peek");
   }
@@ -268,8 +274,10 @@ test_pop_datum()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 
@@ -290,8 +298,10 @@ test_get_datum()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 
@@ -304,7 +314,9 @@ test_get_datum()
     TEST_ERROR("An edge did not remove a datum on a get");
   }
 
-  if (*get_edat.get<1>() != *stamp)
+  vistk::stamp_t const& estamp = get_edat.stamp;
+
+  if (*estamp != *stamp)
   {
     TEST_ERROR("The edge modified a stamp on a get");
   }
@@ -383,8 +395,10 @@ test_push_data_into_complete()
 
   vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
 
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
   vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp();
+  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
 
   vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
 

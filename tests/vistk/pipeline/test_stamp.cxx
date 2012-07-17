@@ -42,18 +42,13 @@ main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-static void test_coloring();
 static void test_equality();
 static void test_ordering();
 
 void
 run_test(std::string const& test_name)
 {
-  if (test_name == "coloring")
-  {
-    return test_coloring();
-  }
-  else if (test_name == "equality")
+  if (test_name == "equality")
   {
     return test_equality();
   }
@@ -68,61 +63,42 @@ run_test(std::string const& test_name)
 }
 
 void
-test_coloring()
-{
-  vistk::stamp_t const stampa = vistk::stamp::new_stamp();
-  vistk::stamp_t const stampb = vistk::stamp::new_stamp();
-  vistk::stamp_t const stampc = vistk::stamp::incremented_stamp(stampa);
-
-  if (stampa->is_same_color(stampb))
-  {
-    TEST_ERROR("New stamps have the same color");
-  }
-
-  if (!stampa->is_same_color(stampc))
-  {
-    TEST_ERROR("An incremented stamp changed color");
-  }
-}
-
-void
 test_equality()
 {
-  vistk::stamp_t const stampa = vistk::stamp::new_stamp();
-  vistk::stamp_t const stampb = vistk::stamp::new_stamp();
+  vistk::stamp::increment_t const inca = vistk::stamp::increment_t(1);
+  vistk::stamp::increment_t const incb = 2 * inca;
 
-  if (*stampa == *stampb)
+  vistk::stamp_t const stampa = vistk::stamp::new_stamp(inca);
+  vistk::stamp_t const stampb = vistk::stamp::new_stamp(incb);
+
+  if (*stampa != *stampb)
   {
-    TEST_ERROR("New stamps are equal");
+    TEST_ERROR("New stamps are not equal");
   }
 
-  vistk::stamp_t const stampc = vistk::stamp::copied_stamp(stampa);
+  vistk::stamp_t const stampc = vistk::stamp::incremented_stamp(stampa);
 
-  if (*stampa != *stampc)
-  {
-    TEST_ERROR("A copied stamp is not the same");
-  }
-
-  vistk::stamp_t const stampd = vistk::stamp::recolored_stamp(stampb, stampa);
-
-  if (*stampa != *stampd)
-  {
-    TEST_ERROR("A recolored new stamp does not equal a new stamp");
-  }
-
-  vistk::stamp_t const stampe = vistk::stamp::incremented_stamp(stampa);
-
-  if (*stampa == *stampe)
+  if (*stampa == *stampc)
   {
     TEST_ERROR("An incremented stamp equals the original stamp");
+  }
+
+  vistk::stamp_t const stampd = vistk::stamp::incremented_stamp(stampc);
+  vistk::stamp_t const stampe = vistk::stamp::incremented_stamp(stampb);
+
+  if (*stampd != *stampe)
+  {
+    TEST_ERROR("Stamps with different rates do not compare as equal");
   }
 }
 
 void
 test_ordering()
 {
-  vistk::stamp_t const stampa = vistk::stamp::new_stamp();
-  vistk::stamp_t const stampb = vistk::stamp::new_stamp();
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
+  vistk::stamp_t const stampa = vistk::stamp::new_stamp(inc);
+  vistk::stamp_t const stampb = vistk::stamp::new_stamp(inc);
 
   if ((*stampa < *stampb) ||
       (*stampb < *stampa))

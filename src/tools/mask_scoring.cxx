@@ -233,7 +233,6 @@ base_pipeline()
       CONFIG_FLAGS("verify", "ro", "true")
       CONFIG_FLAGS("pixfmt", "ro", "mask")
       CONFIG_FLAGS("pixtype", "ro", "byte")
-    PROCESS("source", "source")
     PROCESS("combine_masks", "combine")
     PROCESS("mask_scoring", "scoring")
     PROCESS("score_aggregation", "aggregate")
@@ -241,12 +240,9 @@ base_pipeline()
       CONFIG_FULL("path", "ro", "CONF", "mask_scoring:output")
       CONFIG_FULL("name", "ro", "CONF", "mask_scoring:name")
 
-    CONNECT("reader", "image",
-            "source", "src/computed_mask")
-
     CONNECT("combine", "mask",
             "scoring", "truth_mask")
-    CONNECT("source", "out/computed_mask",
+    CONNECT("reader", "image",
             "scoring", "computed_mask")
 
     CONNECT("scoring", "result",
@@ -264,15 +260,13 @@ layer_connection(std::string const& layer)
 {
   return
     CONNECT("truth_reader", "image/" + layer +,
-            "source", "src/truth_" + layer +)
-    CONNECT("source", "out/truth_" + layer +,
             "combine", "mask/" + layer +)
     PROCESS("mask_scoring", "scoring_" + layer +)
     PROCESS("score_aggregation", "aggregate_" + layer +)
 
-    CONNECT("source", "out/truth_" + layer +,
+    CONNECT("truth_reader", "image/" + layer +,
             "scoring_" + layer +, "truth_mask")
-    CONNECT("source", "out/computed_mask",
+    CONNECT("reader", "image",
             "scoring_" + layer +, "computed_mask")
     CONNECT("scoring_" + layer +, "result",
             "aggregate_" + layer +, "score")

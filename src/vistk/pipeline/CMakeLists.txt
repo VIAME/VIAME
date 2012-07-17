@@ -138,11 +138,9 @@ if (WIN32)
     configure-module-paths.h)
 endif (WIN32)
 
-if (VISTK_ENABLE_DOCUMENTATION)
-  create_doxygen(
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    pipeline)
-endif (VISTK_ENABLE_DOCUMENTATION)
+create_doxygen(
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  pipeline)
 
 vistk_install_headers(vistk/pipeline ${pipeline_headers})
 

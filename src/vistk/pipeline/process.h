@@ -14,7 +14,9 @@
 #include "datum.h"
 #include "types.h"
 
+#include <boost/cstdint.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/rational.hpp>
 #include <boost/scoped_ptr.hpp>
 
 #include <set>
@@ -88,6 +90,10 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::vector<port_t> ports_t;
     /// The type for the type of data on a port.
     typedef std::string port_type_t;
+    /// The type for the component of a frequency.
+    typedef uint64_t frequency_component_t;
+    /// The type for the frequency of data on a port.
+    typedef boost::rational<frequency_component_t> port_frequency_t;
     /// The type for a flag on a port.
     typedef std::string port_flag_t;
     /// The type for a group of port flags.
@@ -111,10 +117,12 @@ class VISTK_PIPELINE_EXPORT process
          * \param type_ The type of the port.
          * \param flags_ Flags for the port.
          * \param description_ A description of the port.
+         * \param frequency_ The frequency of the port relative to the step.
          */
         port_info(port_type_t const& type_,
                   port_flags_t const& flags_,
-                  port_description_t const& description_);
+                  port_description_t const& description_,
+                  port_frequency_t const& frequency_);
         /**
          * \brief Destructor.
          */
@@ -126,6 +134,8 @@ class VISTK_PIPELINE_EXPORT process
         port_flags_t const flags;
         /// A description of the port.
         port_description_t const description;
+        /// The port's frequency.
+        port_frequency_t const frequency;
     };
     /// Type for information about a port.
     typedef boost::shared_ptr<port_info const> port_info_t;
@@ -170,20 +180,16 @@ class VISTK_PIPELINE_EXPORT process
         /**
          * \brief Constructor.
          *
-         * \param same_color_ Whether the data is the same color.
          * \param in_sync_ Whether the data is synchonized.
          * \param max_status_ The highest priority status of the data.
          */
-        data_info(bool same_color_,
-                  bool in_sync_,
+        data_info(bool in_sync_,
                   datum::type_t max_status_);
         /**
          * \brief Destructor.
          */
         ~data_info();
 
-        /// True if the data is all the same color.
-        bool const same_color;
         /// True if the data is synchonized.
         bool const in_sync;
         /// The highest priority status in the set.
@@ -191,6 +197,23 @@ class VISTK_PIPELINE_EXPORT process
     };
     /// Type for information about a set of data.
     typedef boost::shared_ptr<data_info const> data_info_t;
+
+    /**
+     * \brief Data checking levels. All levels include lower levels.
+     *
+     * \note This is only exposed for easier access from bindings.
+     *
+     * All levels include lower levels.
+     */
+    typedef enum
+    {
+      /// Check nothing about incoming data.
+      check_none,
+      /// Check to ensure incoming data is synchronized.
+      check_sync,
+      /// Check to ensure incoming data is valid.
+      check_valid
+    } data_check_t;
 
     /**
      * \brief Pre-connection initialization.
@@ -344,7 +367,7 @@ class VISTK_PIPELINE_EXPORT process
      * \throws set_type_on_initialized_process_exception Thrown when the \p port's type is set after initialization.
      *
      * \param port The name of the port.
-     * \param new_type The type of the connected port.
+     * \param new_type The type of the port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -357,7 +380,7 @@ class VISTK_PIPELINE_EXPORT process
      * \throws set_type_on_initialized_process_exception Thrown when the port type is set after initialization.
      *
      * \param port The name of the port.
-     * \param new_type The type of the connected port.
+     * \param new_type The type of the port.
      *
      * \returns True if the type can work, false otherwise.
      */
@@ -470,21 +493,6 @@ class VISTK_PIPELINE_EXPORT process
     virtual constraints_t _constraints() const;
 
     /**
-     * \brief Subclass input connection method.
-     *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
-     */
-    virtual void _connect_input_port(port_t const& port, edge_t edge);
-    /**
-     * \brief Subclass output connection method.
-     *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
-     */
-    virtual void _connect_output_port(port_t const& port, edge_t edge);
-
-    /**
      * \brief Subclass input ports.
      *
      * \returns The names of all input ports available in the subclass.
@@ -575,11 +583,13 @@ class VISTK_PIPELINE_EXPORT process
      * \param type_ The type of the port.
      * \param flags_ Flags for the port.
      * \param description_ A description of the port.
+     * \param frequency_ The frequency of the port relative to the step.
      */
     void declare_input_port(port_t const& port,
                             port_type_t const& type_,
                             port_flags_t const& flags_,
-                            port_description_t const& description_);
+                            port_description_t const& description_,
+                            port_frequency_t const& frequency_ = port_frequency_t(1));
     /**
      * \brief Declare an output port for the process.
      *
@@ -587,11 +597,34 @@ class VISTK_PIPELINE_EXPORT process
      * \param type_ The type of the port.
      * \param flags_ Flags for the port.
      * \param description_ A description of the port.
+     * \param frequency_ The frequency of the port relative to the step.
      */
     void declare_output_port(port_t const& port,
                              port_type_t const& type_,
                              port_flags_t const& flags_,
-                             port_description_t const& description_);
+                             port_description_t const& description_,
+                             port_frequency_t const& frequency_ = port_frequency_t(1));
+
+    /**
+     * \brief Set the frequency of an input port.
+     *
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws set_frequency_on_initialized_process_exception Thrown when the \p port's frequency is set after initialization.
+     *
+     * \param port The name of the port.
+     * \param new_frequency The frequency of the port.
+     */
+    void set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency);
+    /**
+     * \brief Set the frequency of an output port.
+     *
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws set_frequency_on_initialized_process_exception Thrown when the \p port's frequency is set after initialization.
+     *
+     * \param port The name of the port.
+     * \param new_frequency The frequency of the port.
+     */
+    void set_output_port_frequency(port_t const& port, port_frequency_t const& new_frequency);
 
     /**
      * \brief Remove an input port from the process.
@@ -631,29 +664,23 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Mark the process as complete.
      */
     void mark_process_as_complete();
-    /**
-     * \brief The \ref stamp that the hearbeat is based off of.
-     *
-     * \returns The stamp that the heartbeat uses.
-     */
-    stamp_t heartbeat_stamp() const;
 
     /**
-     * \brief Get the edge for an input port.
+     * \brief Get whether there is an edge connected to an input port.
      *
      * \param port The port to get the edge for.
      *
-     * \return The edge connected to an input port, or \c NULL if there is none.
+     * \return True if there is an edge connected to the \p port, or false if there is none.
      */
-    edge_t input_port_edge(port_t const& port) const;
+    bool has_input_port_edge(port_t const& port) const;
     /**
-     * \brief Get the edges for an output port.
+     * \brief Get the number of connected edges for an output port.
      *
-     * \param port The port to get the edges for.
+     * \param port The port to get the count for.
      *
-     * \returns The edges connected to an output port.
+     * \returns The number of edges connected to the \p port.
      */
-    edges_t output_port_edges(port_t const& port) const;
+    size_t count_output_port_edges(port_t const& port) const;
 
     /**
      * \brief Grab an edge datum packet from a port.
@@ -713,18 +740,6 @@ class VISTK_PIPELINE_EXPORT process
     void push_to_port_as(port_t const& port, T const& dat) const;
 
     /**
-     * \brief Return the stamp for this step.
-     *
-     * This is only valid if the base class is ensuring that the input stamps
-     * are \em both all the same color and synchronized. If either one is not
-     * verified, it will be the heartbeat stamp. If called outside of the \ref
-     * _step method, it will be \c NULL.
-     *
-     * \returns The stamp that was shared for all inputs.
-     */
-    stamp_t stamp_for_inputs() const;
-
-    /**
      * \brief The configuration for the process.
      *
      * \returns The configuration for the process.
@@ -743,83 +758,45 @@ class VISTK_PIPELINE_EXPORT process
     T config_value(config::key_t const& key) const;
 
     /**
-     * \brief Set whether color checking is enabled before stepping.
-     *
-     * If enabled, the input ports which are marked as \flag{required} are
-     * guaranteed to be the same color. When the inputs are not the same color,
-     * an error datum is pushed to all output edges and all input edges will be
-     * grabbed from. If this behavior is not wanted, it must be manually
-     * handled. The default is that it is enabled.
-     *
-     * \param ensure If true, ensure required inputs are the same color.
-     */
-    void ensure_inputs_are_same_color(bool ensure);
-    /**
      * \brief Set whether synchronization checking is enabled before stepping.
      *
-     * If enabled, the input ports which are marked as \flag{required} are
-     * guaranteed to be synchronized. When the inputs are not synchonized, an
-     * error datum is pushed to all output edges and all input edges will be
-     * grabbed from. If this behavior is not wanted, it must be manually
-     * handled. The default is that it is enabled.
+     * If set to \ref check_none, no checks on incoming data is performed.
      *
-     * \note The inputs can only be ensured to be synchonized if they are also
-     * the same color, so if the colors are not verified, the synchonization
-     * cannot be either.
+     * If set to \ref check_sync, the input ports which are marked as
+     * \flag{required} are guaranteed to be synchronized. When the inputs are
+     * not synchronized, an error datum is pushed to all output ports and all
+     * input ports will be grabbed from based on the relative frequency of the
+     * ports. If this behavior is not wanted, it must be manually handled. The
+     * default is that it is enabled.
      *
-     * \param ensure If true, ensure required inputs are synchonized.
+     * If set to \ref check_valid, the input ports which are marked as
+     * \flag{required} are guaranteed to have valid data available. When the
+     * inputs are not available, a default corresponding datum packet is
+     * generated and pushed to all of the output edges and all input edges will
+     * be grabbed from. This implies the \ref check_sync behavior as well.
+     *
+     * The default is \ref check_valid.
+     *
+     * \param check The level of validity to check incoming data for.
      */
-    void ensure_inputs_are_in_sync(bool ensure);
-    /**
-     * \brief Set whether input validity is enabled before stepping.
-     *
-     * If enabled, the input ports which are marked as \flag{required} are
-     * guaranteed to have valid data available. When the inputs are not
-     * available, a default corresponding datum packet is generated and pushed
-     * to all of the output edges and all input edges will be grabbed from. If
-     * this behavior is not wanted, it must be manually handled. The default is
-     * that it is enabled.
-     *
-     * \param ensure If true, ensure required inputs are the same color.
-     */
-    void ensure_inputs_are_valid(bool ensure);
+    void set_data_checking_level(data_check_t check);
 
     /**
-     * \brief Check a set of edge data for certain properites.
+     * \brief Check a set of edge data for certain properties.
      *
      * \param data The data to inspect.
      *
      * \returns Information about the data given.
      */
     static data_info_t edge_data_info(edge_data_t const& data);
-    /**
-     * \brief Pushes data to all given edges.
-     *
-     * \param edges The edges to push to.
-     * \param dat The data to push.
-     */
-    static void push_to_edges(edges_t const& edges, edge_datum_t const& dat);
-    /**
-     * \brief Grab a data from an edge.
-     *
-     * \param edge The edge to grab data from.
-     *
-     * \returns The next datum from the edge.
-     */
-    static edge_datum_t grab_from_edge(edge_t const& edge);
-    /**
-     * \brief Peek at the next datum on an edge.
-     *
-     * \param edge The edge to peek at.
-     *
-     * \returns The next datum on the edge.
-     */
-    static edge_datum_t peek_at_edge(edge_t const& edge);
   private:
     config::value_t config_value_raw(config::key_t const& key) const;
 
     bool is_static_input(port_t const& port) const;
     static config::key_t const static_input_prefix;
+
+    friend class pipeline;
+    void set_core_frequency(port_frequency_t const& frequency);
 
     class priv;
     boost::scoped_ptr<priv> d;
@@ -846,7 +823,7 @@ T
 process
 ::grab_input_as(port_t const& port) const
 {
-  if (is_static_input(port) && !input_port_edge(port))
+  if (is_static_input(port) && !has_input_port_edge(port))
   {
     return config_value<T>(static_input_prefix + port);
   }
