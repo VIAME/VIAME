@@ -48,6 +48,14 @@ class VISTK_PIPELINE_EXPORT scheduler
      */
     void wait();
     /**
+     * \brief Pause execution.
+     */
+    void pause();
+    /**
+     * \brief Resume execution.
+     */
+    void resume();
+    /**
      * \brief Stop execution of the pipeline.
      */
     void stop();
@@ -71,6 +79,14 @@ class VISTK_PIPELINE_EXPORT scheduler
      * \brief Wait until execution is finished.
      */
     virtual void _wait() = 0;
+    /**
+     * \brief Pause execution.
+     */
+    virtual void _pause() = 0;
+    /**
+     * \brief Resume execution.
+     */
+    virtual void _resume() = 0;
     /**
      * \brief Stop execution of the pipeline.
      *

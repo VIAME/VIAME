@@ -32,6 +32,7 @@ class scheduler::priv
 
     scheduler* const q;
     pipeline_t const p;
+    bool paused;
     bool running;
 
     typedef boost::shared_mutex mutex_t;
@@ -116,6 +117,51 @@ scheduler
 
 void
 scheduler
+::pause()
+{
+  priv::upgrade_lock_t lock(d->mut);
+
+  if (!d->running)
+  {
+    /// \todo Throw an exception.
+  }
+
+  if (!d->paused)
+  {
+    /// \todo Throw an exception.
+  }
+
+  priv::upgrade_to_unique_lock_t const write_lock(lock);
+
+  (void)write_lock;
+
+  _pause();
+
+  d->paused = true;
+}
+
+void
+scheduler
+::resume()
+{
+  priv::upgrade_lock_t lock(d->mut);
+
+  if (d->paused)
+  {
+    /// \todo Throw an exception.
+  }
+
+  priv::upgrade_to_unique_lock_t const write_lock(lock);
+
+  (void)write_lock;
+
+  _resume();
+
+  d->paused = false;
+}
+
+void
+scheduler
 ::stop()
 {
   priv::upgrade_lock_t lock(d->mut);
@@ -143,6 +189,7 @@ scheduler::priv
 ::priv(scheduler* sched, pipeline_t const& pipe)
   : q(sched)
   , p(pipe)
+  , paused(false)
   , running(false)
 {
 }
@@ -158,6 +205,14 @@ scheduler::priv
 {
   // Tell the subclass that we want to stop.
   q->_stop();
+
+  // Unpause the pipeline.
+  if (paused)
+  {
+    q->_resume();
+
+    paused = false;
+  }
 
   p->stop();
   running = false;
