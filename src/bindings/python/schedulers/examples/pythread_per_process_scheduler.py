@@ -34,13 +34,13 @@ class PyThreadPerProcessScheduler(scheduler.PythonScheduler):
         p = self.pipeline()
         names = p.process_names()
 
-        no_threads = process.PythonProcess.constraint_no_threads
+        no_threads = process.PythonProcess.property_no_threads
 
         for name in names:
             proc = p.process_by_name(name)
-            constraints = proc.constraints()
+            properties = proc.properties()
 
-            if no_threads in constraints:
+            if no_threads in properties:
                 raise UnsupportedProcess(name)
 
         self._threads = []

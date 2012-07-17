@@ -20,8 +20,8 @@ def test_create():
     process.ProcessTypes()
     process.ProcessName()
     process.ProcessNames()
-    process.ProcessConstraint()
-    process.ProcessConstraints()
+    process.ProcessProperty()
+    process.ProcessProperties()
     process.PortDescription()
     process.PortFrequency(1)
     process.PortFrequency(1, 1)
@@ -66,11 +66,11 @@ def test_api_calls():
     a.in_sync
     a.max_status
 
-    process.PythonProcess.constraint_no_threads
-    process.PythonProcess.constraint_python
-    process.PythonProcess.constraint_no_reentrancy
-    process.PythonProcess.constraint_unsync_input
-    process.PythonProcess.constraint_unsync_output
+    process.PythonProcess.property_no_threads
+    process.PythonProcess.property_python
+    process.PythonProcess.property_no_reentrancy
+    process.PythonProcess.property_unsync_input
+    process.PythonProcess.property_unsync_output
     process.PythonProcess.port_heartbeat
     process.PythonProcess.config_name
     process.PythonProcess.config_type

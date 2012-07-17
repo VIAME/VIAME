@@ -55,11 +55,11 @@ thread_per_process_scheduler
   BOOST_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = p->process_by_name(name);
-    process::constraints_t const consts = proc->constraints();
+    process::properties_t const consts = proc->properties();
 
-    process::constraints_t::const_iterator i;
+    process::properties_t::const_iterator i;
 
-    i = consts.find(process::constraint_no_threads);
+    i = consts.find(process::property_no_threads);
 
     if (i != consts.end())
     {

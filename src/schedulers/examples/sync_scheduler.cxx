@@ -66,10 +66,10 @@ sync_scheduler
   BOOST_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = p->process_by_name(name);
-    process::constraints_t const consts = proc->constraints();
+    process::properties_t const consts = proc->properties();
 
     {
-      process::constraints_t::const_iterator const i = consts.find(process::constraint_unsync_output);
+      process::properties_t::const_iterator const i = consts.find(process::property_unsync_output);
 
       if (i != consts.end())
       {
@@ -81,7 +81,7 @@ sync_scheduler
     }
 
     {
-      process::constraints_t::const_iterator const i = consts.find(process::constraint_unsync_input);
+      process::properties_t::const_iterator const i = consts.find(process::property_unsync_input);
 
       if (i != consts.end())
       {

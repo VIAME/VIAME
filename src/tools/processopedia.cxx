@@ -106,10 +106,10 @@ tool_main(int argc, char* argv[])
 
     vistk::process_t const proc = reg->create_process(proc_type, vistk::process::name_t());
 
-    vistk::process::constraints_t const constraints = proc->constraints();
-    std::string const constraints_str = boost::join(constraints, ", ");
+    vistk::process::properties_t const properties = proc->properties();
+    std::string const properties_str = boost::join(properties, ", ");
 
-    std::cout << "  Constraints: " << constraints_str << std::endl;
+    std::cout << "  Properties: " << properties_str << std::endl;
 
     std::cout << "  Configuration:" << std::endl;
 

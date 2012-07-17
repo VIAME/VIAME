@@ -47,7 +47,7 @@ class wrap_process
 
     void _base_step();
 
-    constraints_t _base_constraints() const;
+    properties_t _base_properties() const;
 
     ports_t _base_input_ports() const;
     ports_t _base_output_ports() const;
@@ -70,7 +70,7 @@ class wrap_process
 
     void _step();
 
-    constraints_t _constraints() const;
+    properties_t _properties() const;
 
     ports_t _input_ports() const;
     ports_t _output_ports() const;
@@ -140,11 +140,11 @@ BOOST_PYTHON_MODULE(process)
     , "A collection of process types.")
     .def(vector_indexing_suite<vistk::process::types_t>())
   ;
-  class_<vistk::process::constraint_t>("ProcessConstraint"
-    , "A constraint on a process.");
-  class_<vistk::process::constraints_t>("ProcessConstraints"
-    , "A collection of constraints on a process.")
-    .def(set_indexing_suite<vistk::process::constraints_t>())
+  class_<vistk::process::property_t>("ProcessProperty"
+    , "A property on a process.");
+  class_<vistk::process::properties_t>("ProcessProperties"
+    , "A collection of properties on a process.")
+    .def(set_indexing_suite<vistk::process::properties_t>())
   ;
   class_<vistk::process::port_description_t>("PortDescription"
     , "A description for a port.");
@@ -243,8 +243,8 @@ BOOST_PYTHON_MODULE(process)
       , "Resets the process.")
     .def("step", &vistk::process::step
       , "Steps the process for one iteration.")
-    .def("constraints", &vistk::process::constraints
-      , "Returns the constraints on the process.")
+    .def("properties", &vistk::process::properties
+      , "Returns the properties on the process.")
     .def("connect_input_port", &vistk::process::connect_input_port
       , (arg("port"), arg("edge"))
       , "Connects the given edge to the input port.")
@@ -276,11 +276,11 @@ BOOST_PYTHON_MODULE(process)
       , "Returns the name of the process.")
     .def("type", &vistk::process::type
       , "Returns the type of the process.")
-    .def_readonly("constraint_no_threads", &vistk::process::constraint_no_threads)
-    .def_readonly("constraint_no_reentrancy", &vistk::process::constraint_no_reentrancy)
-    .def_readonly("constraint_python", &vistk::process::constraint_python)
-    .def_readonly("constraint_unsync_input", &vistk::process::constraint_unsync_input)
-    .def_readonly("constraint_unsync_output", &vistk::process::constraint_unsync_output)
+    .def_readonly("property_no_threads", &vistk::process::property_no_threads)
+    .def_readonly("property_no_reentrancy", &vistk::process::property_no_reentrancy)
+    .def_readonly("property_python", &vistk::process::property_python)
+    .def_readonly("property_unsync_input", &vistk::process::property_unsync_input)
+    .def_readonly("property_unsync_output", &vistk::process::property_unsync_output)
     .def_readonly("port_heartbeat", &vistk::process::port_heartbeat)
     .def_readonly("config_name", &vistk::process::config_name)
     .def_readonly("config_type", &vistk::process::config_type)
@@ -301,8 +301,8 @@ BOOST_PYTHON_MODULE(process)
       , "Base class reset.")
     .def("_base_step", &wrap_process::_base_step
       , "Base class step.")
-    .def("_base_constraints", &wrap_process::_base_constraints
-      , "Base class constraints.")
+    .def("_base_properties", &wrap_process::_base_properties
+      , "Base class properties.")
     .def("_base_input_ports", &wrap_process::_base_input_ports
       , "Base class input ports.")
     .def("_base_output_ports", &wrap_process::_base_output_ports
@@ -338,8 +338,8 @@ BOOST_PYTHON_MODULE(process)
       , "Resets the process subclass.")
     .def("_step", &wrap_process::_step, &wrap_process::_base_step
       , "Step the process subclass for one iteration.")
-    .def("_constraints", &wrap_process::_constraints, &wrap_process::_base_constraints
-      , "The constraints on the subclass.")
+    .def("_properties", &wrap_process::_properties, &wrap_process::_base_properties
+      , "The properties on the subclass.")
     .def("_input_ports", &wrap_process::_input_ports, &wrap_process::_base_input_ports
       , "Returns a list on input ports on the subclass process.")
     .def("_output_ports", &wrap_process::_output_ports, &wrap_process::_base_output_ports
@@ -464,13 +464,13 @@ wrap_process
   TRANSLATE_PYTHON_EXCEPTION(process::_step())
 }
 
-vistk::process::constraints_t
+vistk::process::properties_t
 wrap_process
-::_base_constraints() const
+::_base_properties() const
 {
-  constraints_t consts = process::_constraints();
+  properties_t consts = process::_properties();
 
-  consts.insert(constraint_python);
+  consts.insert(property_python);
 
   return consts;
 }
@@ -619,16 +619,16 @@ wrap_process
   _base_step();
 }
 
-vistk::process::constraints_t
+vistk::process::properties_t
 wrap_process
-::_constraints() const
+::_properties() const
 {
   {
     vistk::python::python_gil const gil;
 
     (void)gil;
 
-    override const f = get_override("_constraints");
+    override const f = get_override("_properties");
 
     if (f)
     {
@@ -636,7 +636,7 @@ wrap_process
     }
   }
 
-  return _base_constraints();
+  return _base_properties();
 }
 
 vistk::process::ports_t

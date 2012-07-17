@@ -33,11 +33,11 @@
 namespace vistk
 {
 
-process::constraint_t const process::constraint_no_threads = constraint_t("_no_thread");
-process::constraint_t const process::constraint_python = constraint_t("_python");
-process::constraint_t const process::constraint_no_reentrancy = constraint_t("_no_reentrant");
-process::constraint_t const process::constraint_unsync_input = constraint_t("_unsync_input");
-process::constraint_t const process::constraint_unsync_output = constraint_t("_unsync_output");
+process::property_t const process::property_no_threads = property_t("_no_thread");
+process::property_t const process::property_python = property_t("_python");
+process::property_t const process::property_no_reentrancy = property_t("_no_reentrant");
+process::property_t const process::property_unsync_input = property_t("_unsync_input");
+process::property_t const process::property_unsync_output = property_t("_unsync_output");
 process::port_t const process::port_heartbeat = port_t("_heartbeat");
 config::key_t const process::config_name = config::key_t("_name");
 config::key_t const process::config_type = config::key_t("_type");
@@ -282,11 +282,11 @@ process
   }
 }
 
-process::constraints_t
+process::properties_t
 process
-::constraints() const
+::properties() const
 {
-  return _constraints();
+  return _properties();
 }
 
 void
@@ -505,13 +505,13 @@ process
 {
 }
 
-process::constraints_t
+process::properties_t
 process
-::_constraints() const
+::_properties() const
 {
-  constraints_t consts;
+  properties_t consts;
 
-  consts.insert(constraint_no_reentrancy);
+  consts.insert(property_no_reentrancy);
 
   return consts;
 }
