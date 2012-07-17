@@ -9,6 +9,7 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/modules.h>
+#include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/process_registry.h>
@@ -295,8 +296,11 @@ test_connect_after_init()
 
   vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
-  process->configure();
-  process->init();
+  vistk::pipeline_t const pipe = boost::make_shared<vistk::pipeline>(config);
+
+  // Only the pipeline can properly initialize a process.
+  pipe->add_process(process);
+  pipe->setup_pipeline();
 
   EXPECT_EXCEPTION(vistk::connect_to_initialized_process_exception,
                    process->connect_input_port(vistk::process::port_t(), edge),
