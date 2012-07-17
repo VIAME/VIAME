@@ -44,6 +44,7 @@ class PyThreadPerProcessScheduler(scheduler.PythonScheduler):
                 raise UnsupportedProcess(name)
 
         self._threads = []
+        self._pause_event = threading.Event()
         self._event = threading.Event()
         self._make_monitor_edge_config()
 
@@ -65,6 +66,12 @@ class PyThreadPerProcessScheduler(scheduler.PythonScheduler):
         for thread in self._threads:
             thread.join()
 
+    def _pause(self):
+        self._pause_event.set()
+
+    def _resume(self):
+        self._pause_event.clear()
+
     def _stop(self):
         self._event.set()
 
@@ -78,6 +85,9 @@ class PyThreadPerProcessScheduler(scheduler.PythonScheduler):
         complete = False
 
         while not complete and not self._event.is_set():
+            while self._pause_event.is_set():
+                self._pause_event.wait()
+
             proc.step()
 
             while monitor.has_data():
