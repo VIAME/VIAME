@@ -43,8 +43,8 @@ class PyThreadPerProcessScheduler(scheduler.PythonScheduler):
             if no_threads in constraints:
                 raise UnsupportedProcess(name)
 
-        self.threads = []
-        self.event = threading.Event()
+        self._threads = []
+        self._event = threading.Event()
         self._make_monitor_edge_config()
 
     def _start(self):
@@ -56,28 +56,28 @@ class PyThreadPerProcessScheduler(scheduler.PythonScheduler):
 
             thread = threading.Thread(target=self._run_process, name=name, args=(proc,))
 
-            self.threads.append(thread)
+            self._threads.append(thread)
 
-        for thread in self.threads:
+        for thread in self._threads:
             thread.start()
 
     def _wait(self):
-        for thread in self.threads:
+        for thread in self._threads:
             thread.join()
 
     def _stop(self):
-        self.event.set()
+        self._event.set()
 
     def _run_process(self, proc):
         utils.name_thread(proc.name())
 
-        monitor = edge.Edge(self.edge_conf)
+        monitor = edge.Edge(self._edge_conf)
 
         proc.connect_output_port(process.PythonProcess.port_heartbeat, monitor)
 
         complete = False
 
-        while not complete and not self.event.is_set():
+        while not complete and not self._event.is_set():
             proc.step()
 
             while monitor.has_data():
@@ -88,4 +88,4 @@ class PyThreadPerProcessScheduler(scheduler.PythonScheduler):
                     complete = True
 
     def _make_monitor_edge_config(self):
-        self.edge_conf = config.empty_config()
+        self._edge_conf = config.empty_config()
