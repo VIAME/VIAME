@@ -142,6 +142,8 @@ class process::priv
     tag_t port_flow_tag_name(port_type_t const& port_type) const;
     void check_tag(tag_t const& tag);
 
+    void make_output_stamps();
+
     port_map_t input_ports;
     port_map_t output_ports;
 
@@ -168,6 +170,7 @@ class process::priv
 
     bool configured;
     bool initialized;
+    bool output_stamps_made;
     bool is_complete;
 
     bool input_sync;
@@ -234,7 +237,7 @@ process
     throw unconfigured_exception(d->name);
   }
 
-  if (!d->core_frequency)
+  if (!d->initialized || !d->output_stamps_made)
   {
     throw uninitialized_exception(d->name);
   }
@@ -470,44 +473,6 @@ void
 process
 ::_init()
 {
-  BOOST_FOREACH (priv::output_edge_map_t::value_type& oport, d->output_edges)
-  {
-    port_t const& port_name = oport.first;
-
-    port_info_t const info = output_port_info(port_name);
-    port_frequency_t const& port_frequency = info->frequency;
-
-    // Skip ports with an unknown port frequency.
-    if (!port_frequency)
-    {
-      continue;
-    }
-
-    port_frequency_t const port_run_frequency = (*d->core_frequency) * port_frequency;
-
-    if (port_run_frequency.denominator() != 1)
-    {
-      static std::string const reason = "A port has a runtime frequency "
-                                        "that is not a whole number";
-
-      throw std::runtime_error(reason);
-    }
-
-    stamp::increment_t const port_increment = port_run_frequency.numerator();
-
-    {
-      priv::output_port_info_t& oinfo = oport.second;
-      priv::mutex_t& mut = oinfo->get<0>();
-
-      priv::unique_lock_t const lock(mut);
-
-      (void)lock;
-
-      stamp_t& stamp = oinfo->get<2>();
-
-      stamp = stamp::new_stamp(port_increment);
-    }
-  }
 }
 
 void
@@ -1366,6 +1331,8 @@ process
   }
 
   d->core_frequency = frequency;
+
+  d->make_output_stamps();
 }
 
 process::priv
@@ -1374,6 +1341,7 @@ process::priv
   , conf(c)
   , configured(false)
   , initialized(false)
+  , output_stamps_made(false)
   , is_complete(false)
   , input_sync(true)
   , input_valid(true)
@@ -1663,6 +1631,52 @@ process::priv
   {
     flow_tag_port_types.erase(tag);
   }
+}
+
+void
+process::priv
+::make_output_stamps()
+{
+  BOOST_FOREACH (output_edge_map_t::value_type& oport, output_edges)
+  {
+    port_t const& port_name = oport.first;
+
+    port_info_t const info = q->output_port_info(port_name);
+    port_frequency_t const& port_frequency = info->frequency;
+
+    // Skip ports with an unknown port frequency.
+    if (!port_frequency)
+    {
+      continue;
+    }
+
+    port_frequency_t const port_run_frequency = (*core_frequency) * port_frequency;
+
+    if (port_run_frequency.denominator() != 1)
+    {
+      static std::string const reason = "A port has a runtime frequency "
+                                        "that is not a whole number";
+
+      throw std::runtime_error(reason);
+    }
+
+    stamp::increment_t const port_increment = port_run_frequency.numerator();
+
+    {
+      output_port_info_t& oinfo = oport.second;
+      mutex_t& mut = oinfo->get<0>();
+
+      unique_lock_t const lock(mut);
+
+      (void)lock;
+
+      stamp_t& stamp = oinfo->get<2>();
+
+      stamp = stamp::new_stamp(port_increment);
+    }
+  }
+
+  output_stamps_made = true;
 }
 
 }
