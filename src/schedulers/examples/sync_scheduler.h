@@ -43,7 +43,7 @@ class VISTK_SCHEDULERS_EXAMPLES_NO_EXPORT sync_scheduler
     /**
      * \brief Destructor.
      */
-    virtual ~sync_scheduler();
+    ~sync_scheduler();
   protected:
     /**
      * \brief Starts execution.
@@ -53,6 +53,14 @@ class VISTK_SCHEDULERS_EXAMPLES_NO_EXPORT sync_scheduler
      * \brief Waits until execution is finished.
      */
     void _wait();
+    /**
+     * \brief Pauses execution.
+     */
+    void _pause();
+    /**
+     * \brief Resumes execution.
+     */
+    void _resume();
     /**
      * \brief Stop execution of the pipeline.
      */

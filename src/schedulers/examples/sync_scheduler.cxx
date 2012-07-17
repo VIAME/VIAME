@@ -16,6 +16,8 @@
 
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -43,7 +45,14 @@ class sync_scheduler::priv
     priv();
     ~priv();
 
+    void run(pipeline_t const& pipe);
+
     boost::thread thread;
+
+    typedef boost::shared_mutex mutex_t;
+    typedef boost::shared_lock<mutex_t> shared_lock_t;
+
+    mutable mutex_t mut;
 };
 
 sync_scheduler
@@ -90,13 +99,11 @@ sync_scheduler
 {
 }
 
-static void run_sync(pipeline_t const& pipe);
-
 void
 sync_scheduler
 ::_start()
 {
-  d->thread = boost::thread(boost::bind(run_sync, pipeline()));
+  d->thread = boost::thread(boost::bind(&priv::run, d.get(), pipeline()));
 }
 
 void
@@ -104,6 +111,20 @@ sync_scheduler
 ::_wait()
 {
   d->thread.join();
+}
+
+void
+sync_scheduler
+::_pause()
+{
+  d->mut.lock();
+}
+
+void
+sync_scheduler
+::_resume()
+{
+  d->mut.unlock();
 }
 
 void
@@ -127,7 +148,8 @@ static process::names_t sorted_names(pipeline_t const& pipe);
 static config_t monitor_edge_config();
 
 void
-run_sync(pipeline_t const& pipe)
+sync_scheduler::priv
+::run(pipeline_t const& pipe)
 {
   name_thread(thread_name);
 
@@ -150,6 +172,12 @@ run_sync(pipeline_t const& pipe)
 
   while (!processes.empty())
   {
+    shared_lock_t const lock(mut);
+
+    (void)lock;
+
+    boost::this_thread::interruption_point();
+
     process_t proc = processes.front();
     processes.pop();
 
@@ -178,8 +206,6 @@ run_sync(pipeline_t const& pipe)
     {
       processes.push(proc);
     }
-
-    boost::this_thread::interruption_point();
   }
 }
 

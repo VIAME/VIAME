@@ -35,6 +35,8 @@ class wrap_scheduler
 
     void _start();
     void _wait();
+    void _pause();
+    void _resume();
     void _stop();
 
     vistk::pipeline_t _pipeline() const;
@@ -52,6 +54,10 @@ BOOST_PYTHON_MODULE(scheduler)
       , "Start the execution of the pipeline.")
     .def("wait", &vistk::scheduler::wait
       , "Wait until the pipeline execution is complete.")
+    .def("pause", &vistk::scheduler::pause
+      , "Pause execution.")
+    .def("resume", &vistk::scheduler::resume
+      , "Resume execution.")
     .def("stop", &vistk::scheduler::stop
       , "Stop the execution of the pipeline.")
     .def("pipeline", &wrap_scheduler::_pipeline
@@ -60,6 +66,10 @@ BOOST_PYTHON_MODULE(scheduler)
       , "Implementation of starting the pipeline.")
     .def("_wait", pure_virtual(&wrap_scheduler::_wait)
       , "Implementation of waiting until execution is complete.")
+    .def("_pause", pure_virtual(&wrap_scheduler::_pause)
+      , "Implementation of pausing execution.")
+    .def("_resume", pure_virtual(&wrap_scheduler::_resume)
+      , "Implementation of resuming execution.")
     .def("_stop", pure_virtual(&wrap_scheduler::_stop)
       , "Implementation of stopping the pipeline.")
   ;
@@ -96,6 +106,28 @@ wrap_scheduler
   (void)gil;
 
   HANDLE_PYTHON_EXCEPTION(get_pure_override("_wait")())
+}
+
+void
+wrap_scheduler
+::_pause()
+{
+  vistk::python::python_gil const gil;
+
+  (void)gil;
+
+  HANDLE_PYTHON_EXCEPTION(get_pure_override("_pause")())
+}
+
+void
+wrap_scheduler
+::_resume()
+{
+  vistk::python::python_gil const gil;
+
+  (void)gil;
+
+  HANDLE_PYTHON_EXCEPTION(get_pure_override("_resume")())
 }
 
 void

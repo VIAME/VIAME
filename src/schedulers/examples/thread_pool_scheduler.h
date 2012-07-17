@@ -49,20 +49,28 @@ class VISTK_SCHEDULERS_EXAMPLES_NO_EXPORT thread_pool_scheduler
     /**
      * \brief Destructor.
      */
-    virtual ~thread_pool_scheduler();
+    ~thread_pool_scheduler();
   protected:
     /**
      * \brief Starts execution.
      */
-    virtual void _start();
+    void _start();
     /**
      * \brief Waits until execution is finished.
      */
-    virtual void _wait();
+    void _wait();
+    /**
+     * \brief Pauses execution.
+     */
+    void _pause();
+    /**
+     * \brief Resumes execution.
+     */
+    void _resume();
     /**
      * \brief Stop execution of the pipeline.
      */
-    virtual void _stop();
+    void _stop();
   private:
     class priv;
     boost::scoped_ptr<priv> d;

@@ -77,6 +77,8 @@ class null_scheduler
 
     void _start();
     void _wait();
+    void _pause();
+    void _resume();
     void _stop();
 };
 
@@ -111,6 +113,7 @@ test_null_config()
                    create_scheduler(sched_type),
                    "passing NULL as the configuration for a scheduler");
 }
+
 void
 test_null_pipeline()
 {
@@ -155,6 +158,18 @@ null_scheduler
 void
 null_scheduler
 ::_wait()
+{
+}
+
+void
+null_scheduler
+::_pause()
+{
+}
+
+void
+null_scheduler
+::_resume()
 {
 }
 
