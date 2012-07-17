@@ -123,7 +123,7 @@ class wrap_process
 
     void _set_data_checking_level(data_check_t check);
 
-    vistk::process::data_info_t _edge_data_info(vistk::edge_data_t const& data);
+    data_info_t _edge_data_info(vistk::edge_data_t const& data);
 };
 
 BOOST_PYTHON_MODULE(process)
