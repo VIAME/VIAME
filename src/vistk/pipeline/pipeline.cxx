@@ -2167,6 +2167,8 @@ void
 pipeline::priv
 ::check_port_frequencies() const
 {
+  static process::port_frequency_t const base_freq = process::port_frequency_t(1, 1);
+
   process::names_t const names = q->process_names();
 
   typedef std::map<process::name_t, process::port_frequency_t> process_frequency_map_t;
@@ -2221,7 +2223,7 @@ pipeline::priv
       if (!freq_map.size())
       {
         // Seed the frequency map at 1-to-1 based on the upstream process.
-        freq_map[upstream_name] = process::port_frequency_t(1, 1);
+        freq_map[upstream_name] = base_freq;
         have_upstream = true;
       }
     }
