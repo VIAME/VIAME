@@ -1481,7 +1481,14 @@ process::priv
 
     for (frequency_component_t j = 0; j < count; ++j)
     {
-      (void)q->grab_datum_from_port(port);
+      datum_t const dat = q->grab_datum_from_port(port);
+      datum::type_t const dat_type = dat->type();
+
+      // If the first datum is a flush or above, don't grab any more.
+      if (!j && (datum::flush <= dat_type))
+      {
+        break;
+      }
     }
   }
 }
@@ -1490,9 +1497,20 @@ void
 process::priv
 ::push_to_output_edges(datum_t const& dat) const
 {
+  datum::type_t const dat_type = dat->type();
+
   BOOST_FOREACH (port_map_t::value_type const& oport, output_ports)
   {
     port_t const& port = oport.first;
+
+    // Don't duplicate flush or above data types.
+    if (datum::flush <= dat_type)
+    {
+      q->push_datum_to_port(port, dat);
+
+      continue;
+    }
+
     port_info_t const& info = oport.second;
 
     port_frequency_t const& freq = info->frequency;
