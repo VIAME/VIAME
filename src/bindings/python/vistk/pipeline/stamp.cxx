@@ -29,6 +29,7 @@ BOOST_PYTHON_MODULE(stamp)
     , (arg("stamp"))
     , "Creates a stamp that is greater than the given stamp.");
 
+  /// \todo Wrap with @total_ordering decorator.
   class_<vistk::stamp_t>("Stamp"
     , "An identifier to help synchronize data within the pipeline."
     , no_init)
