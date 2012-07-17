@@ -1076,7 +1076,7 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
-  priv::input_edge_map_t::iterator e = d->input_edges.find(port);
+  priv::input_edge_map_t::const_iterator const e = d->input_edges.find(port);
 
   if (e == d->input_edges.end())
   {
