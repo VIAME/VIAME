@@ -15,9 +15,10 @@
 
 #include <vistk/python/util/python_gil.h>
 
-#include <boost/python/args.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/args.hpp>
 #include <boost/python/class.hpp>
+#include <boost/python/enum.hpp>
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/operators.hpp>
@@ -120,6 +121,8 @@ class wrap_process
     vistk::config_t _get_config() const;
     vistk::config::value_t _config_value(vistk::config::key_t const& key) const;
 
+    void _set_data_checking_level(data_check_t check);
+
     vistk::process::data_info_t _edge_data_info(vistk::edge_data_t const& data);
 };
 
@@ -217,6 +220,13 @@ BOOST_PYTHON_MODULE(process)
     .def(init<bool, vistk::datum::type_t>())
     .def_readonly("in_sync", &vistk::process::data_info::in_sync)
     .def_readonly("max_status", &vistk::process::data_info::max_status)
+  ;
+
+  enum_<vistk::process::data_check_t>("DataCheck"
+    , "Levels of input validation")
+    .value("none", vistk::process::check_none)
+    .value("sync", vistk::process::check_sync)
+    .value("valid", vistk::process::check_valid)
   ;
 
   implicitly_convertible<boost::shared_ptr<vistk::process::data_info>, vistk::process::data_info_t>();
@@ -406,6 +416,9 @@ BOOST_PYTHON_MODULE(process)
     .def("config_value", &wrap_process::_config_value
       , (arg("key"))
       , "Gets a value from the configuration for the process.")
+    .def("set_data_checking_level", &wrap_process::_set_data_checking_level
+      , (arg("check"))
+      , "Set the level to which the inputs are automatically checked.")
     .def("edge_data_info", &wrap_process::_edge_data_info
       , (arg("data"))
       , "Returns information about the given data.")
@@ -941,6 +954,13 @@ wrap_process
 ::_config_value(vistk::config::key_t const& key) const
 {
   return config_value<vistk::config::value_t>(key);
+}
+
+void
+wrap_process
+::_set_data_checking_level(data_check_t check)
+{
+  set_data_checking_level(check);
 }
 
 vistk::process::data_info_t

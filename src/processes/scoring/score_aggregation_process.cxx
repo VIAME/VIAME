@@ -50,7 +50,7 @@ score_aggregation_process
   , d(new priv)
 {
   // We only calculate on 'complete' datum.
-  ensure_inputs_are_valid(false);
+  set_data_checking_level(check_sync);
 
   port_flags_t required;
 

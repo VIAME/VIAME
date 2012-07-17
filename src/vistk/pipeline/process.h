@@ -199,6 +199,23 @@ class VISTK_PIPELINE_EXPORT process
     typedef boost::shared_ptr<data_info const> data_info_t;
 
     /**
+     * \brief Data checking levels. All levels include lower levels.
+     *
+     * \note This is only exposed for easier access from bindings.
+     *
+     * All levels include lower levels.
+     */
+    typedef enum
+    {
+      /// Check nothing about incoming data.
+      check_none,
+      /// Check to ensure incoming data is synchronized.
+      check_sync,
+      /// Check to ensure incoming data is valid.
+      check_valid
+    } data_check_t;
+
+    /**
      * \brief Pre-connection initialization.
      *
      * \throws reconfigured_exception Thrown if called multiple times.
@@ -743,31 +760,29 @@ class VISTK_PIPELINE_EXPORT process
     /**
      * \brief Set whether synchronization checking is enabled before stepping.
      *
-     * If enabled, the input ports which are marked as \flag{required} are
-     * guaranteed to be synchronized. When the inputs are not synchonized, an
-     * error datum is pushed to all output edges and all input edges will be
-     * grabbed from. If this behavior is not wanted, it must be manually
-     * handled. The default is that it is enabled.
+     * If set to \ref check_none, no checks on incoming data is performed.
      *
-     * \param ensure If true, ensure required inputs are synchonized.
+     * If set to \ref check_sync, the input ports which are marked as
+     * \flag{required} are guaranteed to be synchronized. When the inputs are
+     * not synchronized, an error datum is pushed to all output ports and all
+     * input ports will be grabbed from based on the relative frequency of the
+     * ports. If this behavior is not wanted, it must be manually handled. The
+     * default is that it is enabled.
+     *
+     * If set to \ref check_valid, the input ports which are marked as
+     * \flag{required} are guaranteed to have valid data available. When the
+     * inputs are not available, a default corresponding datum packet is
+     * generated and pushed to all of the output edges and all input edges will
+     * be grabbed from. This implies the \ref check_sync behavior as well.
+     *
+     * The default is \ref check_valid.
+     *
+     * \param check The level of validity to check incoming data for.
      */
-    void ensure_inputs_are_in_sync(bool ensure);
-    /**
-     * \brief Set whether input validity is enabled before stepping.
-     *
-     * If enabled, the input ports which are marked as \flag{required} are
-     * guaranteed to have valid data available. When the inputs are not
-     * available, a default corresponding datum packet is generated and pushed
-     * to all of the output edges and all input edges will be grabbed from. If
-     * this behavior is not wanted, it must be manually handled. The default is
-     * that it is enabled.
-     *
-     * \param ensure If true, ensure required inputs are all valid.
-     */
-    void ensure_inputs_are_valid(bool ensure);
+    void set_data_checking_level(data_check_t check);
 
     /**
-     * \brief Check a set of edge data for certain properites.
+     * \brief Check a set of edge data for certain properties.
      *
      * \param data The data to inspect.
      *

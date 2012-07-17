@@ -173,8 +173,7 @@ class process::priv
     bool output_stamps_made;
     bool is_complete;
 
-    bool input_sync;
-    bool input_valid;
+    data_check_t check_input_level;
 
     stamp_t stamp_for_inputs;
 
@@ -1184,16 +1183,9 @@ process
 
 void
 process
-::ensure_inputs_are_in_sync(bool ensure)
+::set_data_checking_level(data_check_t check)
 {
-  d->input_sync = ensure;
-}
-
-void
-process
-::ensure_inputs_are_valid(bool ensure)
-{
-  d->input_valid = ensure;
+  d->check_input_level = check;
 }
 
 process::data_info_t
@@ -1295,8 +1287,7 @@ process::priv
   , initialized(false)
   , output_stamps_made(false)
   , is_complete(false)
-  , input_sync(true)
-  , input_valid(true)
+  , check_input_level(check_valid)
 {
 }
 
@@ -1369,7 +1360,7 @@ datum_t
 process::priv
 ::check_required_input()
 {
-  if ((!input_sync && !input_valid) ||
+  if ((check_input_level == check_none) ||
       required_inputs.empty())
   {
     return datum_t();
@@ -1417,20 +1408,21 @@ process::priv
 
   data_info_t const first_info = edge_data_info(first_data);
 
-  if (input_sync && !first_info->in_sync)
+  if (check_sync <= check_input_level)
   {
-    static datum::error_t const err_string = datum::error_t("Required input edges are not synchronized.");
+    if (!first_info->in_sync)
+    {
+      static datum::error_t const err_string = datum::error_t("Required input edges are not synchronized.");
 
-    return datum::error_datum(err_string);
+      return datum::error_datum(err_string);
+    }
+
+    // Save the stamp for the inputs.
+    edge_datum_t const& edat = first_data[0];
+    stamp_for_inputs = edat.stamp;
   }
 
-  // Save the stamp for the inputs.
-  if (input_sync)
-  {
-    stamp_for_inputs = first_data[0].stamp;
-  }
-
-  if (!input_valid)
+  if (check_input_level < check_valid)
   {
     return datum_t();
   }

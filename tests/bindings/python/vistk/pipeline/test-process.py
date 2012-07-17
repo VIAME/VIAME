@@ -35,6 +35,9 @@ def test_create():
     process.PortInfo('type', process.PortFlags(), 'desc', process.PortFrequency(1, 1))
     process.ConfInfo('default', 'desc')
     process.DataInfo(True, datum.DatumType.invalid)
+    process.DataCheck.none
+    process.DataCheck.sync
+    process.DataCheck.valid
 
 
 def test_api_calls():

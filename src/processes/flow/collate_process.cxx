@@ -102,7 +102,7 @@ collate_process
   , d(new priv)
 {
   // This process manages its own inputs.
-  ensure_inputs_are_valid(false);
+  set_data_checking_level(check_none);
 }
 
 collate_process
