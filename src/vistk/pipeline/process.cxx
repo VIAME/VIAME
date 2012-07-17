@@ -513,26 +513,6 @@ process
   return consts;
 }
 
-void
-process
-::_connect_input_port(port_t const& port, edge_t edge)
-{
-  if (!d->connect_input_port(port, edge))
-  {
-    throw no_such_port_exception(d->name, port);
-  }
-}
-
-void
-process
-::_connect_output_port(port_t const& port, edge_t edge)
-{
-  if (!d->connect_output_port(port, edge))
-  {
-    throw no_such_port_exception(d->name, port);
-  }
-}
-
 process::ports_t
 process
 ::_input_ports() const

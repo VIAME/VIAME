@@ -476,21 +476,6 @@ class VISTK_PIPELINE_EXPORT process
     virtual constraints_t _constraints() const;
 
     /**
-     * \brief Subclass input connection method.
-     *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
-     */
-    virtual void _connect_input_port(port_t const& port, edge_t edge);
-    /**
-     * \brief Subclass output connection method.
-     *
-     * \param port The port to connect to.
-     * \param edge The edge to connect to the port.
-     */
-    virtual void _connect_output_port(port_t const& port, edge_t edge);
-
-    /**
      * \brief Subclass input ports.
      *
      * \returns The names of all input ports available in the subclass.

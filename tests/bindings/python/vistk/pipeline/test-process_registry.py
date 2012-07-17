@@ -70,8 +70,6 @@ def example_process():
             self.ran_reset = False
             self.ran_step = False
             self.ran_constraints = False
-            self.ran_connect_input_port = False
-            self.ran_connect_output_port = False
             self.ran_input_ports = False
             self.ran_output_ports = False
             self.ran_input_port_info = False
@@ -105,16 +103,6 @@ def example_process():
             self.ran_constraints = True
 
             return self._base_constraints()
-
-        def _connect_input_port(self, port, edge):
-            self.ran_connect_input_port = True
-
-            self._base_connect_input_port(port, edge)
-
-        def _connect_output_port(self, port, edge):
-            self.ran_connect_output_port = True
-
-            self._base_connect_output_port(port, edge)
 
         def _input_ports(self):
             self.ran_input_ports = True
@@ -168,10 +156,6 @@ def example_process():
             #    test_error("_step override was not called")
             if not self.ran_constraints:
                 test_error("_constraints override was not called")
-            if not self.ran_connect_input_port:
-                test_error("_connect_input_port override was not called")
-            if not self.ran_connect_output_port:
-                test_error("_connect_output_port override was not called")
             if not self.ran_input_ports:
                 test_error("_input_ports override was not called")
             if not self.ran_output_ports:

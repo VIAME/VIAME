@@ -48,9 +48,6 @@ class wrap_process
 
     constraints_t _base_constraints() const;
 
-    void _base_connect_input_port(port_t const& port, vistk::edge_t edge);
-    void _base_connect_output_port(port_t const& port, vistk::edge_t edge);
-
     ports_t _base_input_ports() const;
     ports_t _base_output_ports() const;
 
@@ -73,9 +70,6 @@ class wrap_process
     void _step();
 
     constraints_t _constraints() const;
-
-    void _connect_input_port(port_t const& port, vistk::edge_t edge);
-    void _connect_output_port(port_t const& port, vistk::edge_t edge);
 
     ports_t _input_ports() const;
     ports_t _output_ports() const;
@@ -301,12 +295,6 @@ BOOST_PYTHON_MODULE(process)
       , "Base class step.")
     .def("_base_constraints", &wrap_process::_base_constraints
       , "Base class constraints.")
-    .def("_base_connect_input_port", &wrap_process::_base_connect_input_port
-      , (arg("port"), arg("edge"))
-      , "Base class input port connection.")
-    .def("_base_connect_output_port", &wrap_process::_base_connect_output_port
-      , (arg("port"), arg("edge"))
-      , "Base class output port connection.")
     .def("_base_input_ports", &wrap_process::_base_input_ports
       , "Base class input ports.")
     .def("_base_output_ports", &wrap_process::_base_output_ports
@@ -344,12 +332,6 @@ BOOST_PYTHON_MODULE(process)
       , "Step the process subclass for one iteration.")
     .def("_constraints", &wrap_process::_constraints, &wrap_process::_base_constraints
       , "The constraints on the subclass.")
-    .def("_connect_input_port", &wrap_process::_connect_input_port, &wrap_process::_base_connect_input_port
-      , (arg("port"), arg("edge"))
-      , "Connects the given edge to the subclass input port.")
-    .def("_connect_output_port", &wrap_process::_connect_output_port, &wrap_process::_base_connect_output_port
-      , (arg("port"), arg("edge"))
-      , "Connects the given edge to the subclass output port.")
     .def("_input_ports", &wrap_process::_input_ports, &wrap_process::_base_input_ports
       , "Returns a list on input ports on the subclass process.")
     .def("_output_ports", &wrap_process::_output_ports, &wrap_process::_base_output_ports
@@ -486,20 +468,6 @@ wrap_process
   consts.insert(constraint_python);
 
   return consts;
-}
-
-void
-wrap_process
-::_base_connect_input_port(port_t const& port, vistk::edge_t edge)
-{
-  TRANSLATE_PYTHON_EXCEPTION(process::_connect_input_port(port, edge))
-}
-
-void
-wrap_process
-::_base_connect_output_port(port_t const& port, vistk::edge_t edge)
-{
-  TRANSLATE_PYTHON_EXCEPTION(process::_connect_output_port(port, edge))
 }
 
 vistk::process::ports_t
@@ -664,50 +632,6 @@ wrap_process
   }
 
   return _base_constraints();
-}
-
-void
-wrap_process
-::_connect_input_port(port_t const& port, vistk::edge_t edge)
-{
-  {
-    vistk::python::python_gil const gil;
-
-    (void)gil;
-
-    override const f = get_override("_connect_input_port");
-
-    if (f)
-    {
-      HANDLE_PYTHON_EXCEPTION(f(port, edge))
-
-      return;
-    }
-  }
-
-  _base_connect_input_port(port, edge);
-}
-
-void
-wrap_process
-::_connect_output_port(port_t const& port, vistk::edge_t edge)
-{
-  {
-    vistk::python::python_gil const gil;
-
-    (void)gil;
-
-    override const f = get_override("_connect_output_port");
-
-    if (f)
-    {
-      HANDLE_PYTHON_EXCEPTION(f(port, edge))
-
-      return;
-    }
-  }
-
-  _base_connect_output_port(port, edge);
 }
 
 vistk::process::ports_t
