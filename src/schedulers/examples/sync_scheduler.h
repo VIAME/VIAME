@@ -43,7 +43,7 @@ class VISTK_SCHEDULERS_EXAMPLES_NO_EXPORT sync_scheduler
     /**
      * \brief Destructor.
      */
-    virtual ~sync_scheduler();
+    ~sync_scheduler();
   protected:
     /**
      * \brief Starts execution.
