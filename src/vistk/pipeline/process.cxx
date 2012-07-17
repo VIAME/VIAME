@@ -34,7 +34,6 @@ namespace vistk
 {
 
 process::property_t const process::property_no_threads = property_t("_no_thread");
-process::property_t const process::property_python = property_t("_python");
 process::property_t const process::property_no_reentrancy = property_t("_no_reentrant");
 process::property_t const process::property_unsync_input = property_t("_unsync_input");
 process::property_t const process::property_unsync_output = property_t("_unsync_output");

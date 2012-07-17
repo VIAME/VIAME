@@ -31,6 +31,8 @@
 
 using namespace boost::python;
 
+static vistk::process::property_t const property_python = vistk::process::property_t("_python");
+
 class wrap_process
   : public vistk::process
   , public wrapper<vistk::process>
@@ -278,7 +280,6 @@ BOOST_PYTHON_MODULE(process)
       , "Returns the type of the process.")
     .def_readonly("property_no_threads", &vistk::process::property_no_threads)
     .def_readonly("property_no_reentrancy", &vistk::process::property_no_reentrancy)
-    .def_readonly("property_python", &vistk::process::property_python)
     .def_readonly("property_unsync_input", &vistk::process::property_unsync_input)
     .def_readonly("property_unsync_output", &vistk::process::property_unsync_output)
     .def_readonly("port_heartbeat", &vistk::process::port_heartbeat)

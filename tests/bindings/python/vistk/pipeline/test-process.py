@@ -67,7 +67,6 @@ def test_api_calls():
     a.max_status
 
     process.PythonProcess.property_no_threads
-    process.PythonProcess.property_python
     process.PythonProcess.property_no_reentrancy
     process.PythonProcess.property_unsync_input
     process.PythonProcess.property_unsync_output

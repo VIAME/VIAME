@@ -419,8 +419,6 @@ class VISTK_PIPELINE_EXPORT process
 
     /// A property which indicates that the process cannot be run in a thread of its own.
     static property_t const property_no_threads;
-    /// A property which indicates that the process is used through the Python bindings.
-    static property_t const property_python;
     /// A property which indicates that the process is not reentrant.
     static property_t const property_no_reentrancy;
     /// A property which indicates that the input of the process is not synchronized.
