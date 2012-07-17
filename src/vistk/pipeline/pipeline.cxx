@@ -2169,6 +2169,16 @@ pipeline::priv
 {
   static process::port_frequency_t const base_freq = process::port_frequency_t(1, 1);
 
+  if (process_map.size() == 1)
+  {
+    process_map_t::const_iterator const i = process_map.begin();
+    process_t const only_proc = i->second;
+
+    only_proc->set_core_frequency(base_freq);
+
+    return;
+  }
+
   process::names_t const names = q->process_names();
 
   typedef std::map<process::name_t, process::port_frequency_t> process_frequency_map_t;
