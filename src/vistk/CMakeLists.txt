@@ -68,6 +68,17 @@ vistk_configure_file_always(version.h
   vistk_git_hash_short
   vistk_git_dirty)
 
+option(VISTK_ENABLE_BOOST_THREAD_FIXES "Enables fixes for boost thread features (recommended)" ON)
+mark_as_advanced(VISTK_ENABLE_BOOST_THREAD_FIXES)
+
+if (VISTK_ENABLE_BOOST_THREAD_FIXES)
+  # In 1.50.0.
+  if (${Boost_VERSION} LESS 105000)
+    # Add reverse_lock.hpp.
+    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/reverse_lock")
+  endif (${Boost_VERSION} LESS 105000)
+endif (VISTK_ENABLE_BOOST_THREAD_FIXES)
+
 add_subdirectory(pipeline)
 add_subdirectory(utilities)
 add_subdirectory(pipeline_util)
