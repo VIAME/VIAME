@@ -246,6 +246,8 @@ process
 
   /// \todo Are there any pre-_step actions?
 
+  bool complete = false;
+
   if (d->is_complete)
   {
     /// \todo Log a warning that a process is being stepped after completion.
@@ -259,6 +261,8 @@ process
     {
       d->grab_from_input_edges();
       d->push_to_output_edges(dat);
+
+      complete = (dat->type() == datum::complete);
     }
     else
     {
@@ -273,7 +277,7 @@ process
   d->run_heartbeat();
 
   /// \todo Should this really be done here?
-  if (d->required_outputs_done())
+  if (complete || d->required_outputs_done())
   {
     mark_process_as_complete();
   }
@@ -1442,7 +1446,6 @@ process::priv
     case datum::flush:
       return datum::flush_datum();
     case datum::complete:
-      q->mark_process_as_complete();
       return datum::complete_datum();
     case datum::error:
     {
