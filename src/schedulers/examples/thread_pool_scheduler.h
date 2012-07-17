@@ -60,6 +60,14 @@ class VISTK_SCHEDULERS_EXAMPLES_NO_EXPORT thread_pool_scheduler
      */
     void _wait();
     /**
+     * \brief Pauses execution.
+     */
+    void _pause();
+    /**
+     * \brief Resumes execution.
+     */
+    void _resume();
+    /**
      * \brief Stop execution of the pipeline.
      */
     void _stop();

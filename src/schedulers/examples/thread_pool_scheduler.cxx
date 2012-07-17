@@ -74,6 +74,20 @@ thread_pool_scheduler
 
 void
 thread_pool_scheduler
+::_pause()
+{
+  /// \todo Implement.
+}
+
+void
+thread_pool_scheduler
+::_resume()
+{
+  /// \todo Implement.
+}
+
+void
+thread_pool_scheduler
 ::_stop()
 {
   d->complete = true;
