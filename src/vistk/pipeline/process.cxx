@@ -1398,7 +1398,17 @@ process::priv
       continue;
     }
 
-    /// \todo Peek N times.
+    port_info_t const& info = q->input_port_info(port);
+    port_frequency_t const& freq = info->frequency;
+
+    frequency_component_t const rel_count = freq.numerator();
+
+    for (frequency_component_t j = 1; j < rel_count; ++j)
+    {
+      edge_datum_t const edat = iedge->peek_datum(j);
+
+      data.push_back(edat);
+    }
   }
 
   data_info_t const first_info = edge_data_info(first_data);
