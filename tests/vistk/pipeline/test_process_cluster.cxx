@@ -80,11 +80,6 @@ class empty_cluster
   public:
     empty_cluster();
     ~empty_cluster();
-
-    vistk::processes_t processes() const;
-    connections_t input_mappings() const;
-    connections_t output_mappings() const;
-    connections_t internal_connections() const;
 };
 
 void
@@ -121,32 +116,4 @@ empty_cluster
 empty_cluster
 ::~empty_cluster()
 {
-}
-
-vistk::processes_t
-empty_cluster
-::processes() const
-{
-  return vistk::processes_t();
-}
-
-vistk::process::connections_t
-empty_cluster
-::input_mappings() const
-{
-  return connections_t();
-}
-
-vistk::process::connections_t
-empty_cluster
-::output_mappings() const
-{
-  return connections_t();
-}
-
-vistk::process::connections_t
-empty_cluster
-::internal_connections() const
-{
-  return connections_t();
 }

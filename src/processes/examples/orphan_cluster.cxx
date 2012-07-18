@@ -26,32 +26,4 @@ orphan_cluster
 {
 }
 
-processes_t
-orphan_cluster
-::processes() const
-{
-  return processes_t();
-}
-
-process::connections_t
-orphan_cluster
-::input_mappings() const
-{
-  return connections_t();
-}
-
-process::connections_t
-orphan_cluster
-::output_mappings() const
-{
-  return connections_t();
-}
-
-process::connections_t
-orphan_cluster
-::internal_connections() const
-{
-  return connections_t();
-}
-
 }

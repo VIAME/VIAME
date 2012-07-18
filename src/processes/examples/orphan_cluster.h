@@ -43,31 +43,6 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT orphan_cluster
      * \brief Destructor.
      */
     ~orphan_cluster();
-
-    /**
-     * \brief The processes in the cluster.
-     *
-     * \returns The processes in the cluster.
-     */
-    vistk::processes_t processes() const;
-    /**
-     * \brief Input mappings for the cluster.
-     *
-     * \returns The input mappings for the cluster.
-     */
-    connections_t input_mappings() const;
-    /**
-     * \brief Output mappings for the cluster.
-     *
-     * \returns The output mappings for the cluster.
-     */
-    connections_t output_mappings() const;
-    /**
-     * \brief Internal connections between processes in the cluster.
-     *
-     * \returns The internal connections between processes in the cluster.
-     */
-    connections_t internal_connections() const;
 };
 
 }
