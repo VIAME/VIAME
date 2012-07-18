@@ -56,6 +56,16 @@ target_link_libraries(python-vistk.pipeline-process
   ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
+add_vistk_python_library(process_cluster
+  vistk/pipeline
+  process_cluster.cxx)
+target_link_libraries(python-vistk.pipeline-process_cluster
+  vistk_pipeline
+  vistk_python_util
+  python_exceptions
+  ${${boost_python_library_var}}
+  ${PYTHON_LIBRARIES})
+
 add_vistk_python_library(process_registry
   vistk/pipeline
   process_registry.cxx)

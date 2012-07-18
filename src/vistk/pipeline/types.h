@@ -56,6 +56,10 @@ class process;
 /// A typedef used to handle \link process processes\endlink.
 typedef boost::shared_ptr<process> process_t;
 
+class process_cluster;
+/// A typedef used to handle \link process_cluster process clusters\endlink.
+typedef boost::shared_ptr<process_cluster> process_cluster_t;
+
 class process_registry;
 /// A typedef used to handle \link process_registry process registries\endlink.
 typedef boost::shared_ptr<process_registry> process_registry_t;
