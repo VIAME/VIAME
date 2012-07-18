@@ -54,6 +54,7 @@ main(int argc, char* argv[])
 static void test_null_config();
 static void test_null_process();
 static void test_add_process();
+static void test_add_cluster();
 static void test_add_group();
 static void test_duplicate_process_process();
 static void test_duplicate_process_group();
@@ -134,6 +135,10 @@ run_test(std::string const& test_name)
   else if (test_name == "add_process")
   {
     test_add_process();
+  }
+  else if (test_name == "add_cluster")
+  {
+    test_add_cluster();
   }
   else if (test_name == "add_group")
   {
@@ -436,6 +441,25 @@ test_add_process()
   vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
+}
+
+void
+test_add_cluster()
+{
+  vistk::process::type_t const proc_type = vistk::process::type_t("multiplier_cluster");
+
+  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+
+  vistk::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+
+  vistk::process::names_t const names = pipeline->process_names();
+
+  if (names.size() != 2)
+  {
+    TEST_ERROR("Improperly adding clusters to the pipeline");
+  }
 }
 
 void
