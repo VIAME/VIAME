@@ -14,6 +14,7 @@
 #include <boost/python/args.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
+#include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/override.hpp>
 #include <boost/python/pure_virtual.hpp>
@@ -120,6 +121,8 @@ BOOST_PYTHON_MODULE(process_cluster)
   def("cluster_from_process", cluster_from_process
     , (arg("process"))
     , "Returns the process as a cluster or None if the process is not a cluster.");
+
+  implicitly_convertible<vistk::process_cluster_t, vistk::process_t>();
 }
 
 wrap_process_cluster
