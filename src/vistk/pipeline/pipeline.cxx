@@ -1893,7 +1893,7 @@ pipeline::priv
       edge_config->mark_read_only(edge::config_dependency);
     }
 
-    edge_t e = boost::make_shared<edge>(edge_config);
+    edge_t const e = boost::make_shared<edge>(edge_config);
 
     edge_map[i] = e;
 

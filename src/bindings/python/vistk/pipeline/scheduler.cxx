@@ -41,7 +41,7 @@ class wrap_scheduler
 
     vistk::pipeline_t _pipeline() const;
 
-    override get_pure_override(char const* name);
+    override get_pure_override(char const* name) const;
 };
 
 BOOST_PYTHON_MODULE(scheduler)
@@ -150,14 +150,16 @@ wrap_scheduler
 
 override
 wrap_scheduler
-::get_pure_override(char const* name)
+::get_pure_override(char const* method) const
 {
-  override const o = get_override(name);
+  override const o = get_override(method);
 
   if (!o)
   {
     std::ostringstream sstr;
-    sstr << name << " is not implemented";
+
+    sstr << method << " is not implemented";
+
     throw std::runtime_error(sstr.str().c_str());
   }
 
