@@ -2,6 +2,7 @@ project(vistk_processes_examples)
 
 set(examples_srcs
   const_process.cxx
+  const_number_process.cxx
   data_dependent_process.cxx
   feedback_process.cxx
   flow_dependent_process.cxx
