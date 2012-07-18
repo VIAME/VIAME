@@ -71,6 +71,14 @@ vistk_make_python_test(process create)
 vistk_make_python_test(process api_calls)
 
 ##############################
+# Process cluster tests
+##############################
+vistk_build_python_test(process_cluster test-process_cluster.py)
+
+vistk_make_python_test(process_cluster import)
+vistk_make_python_test(process_cluster api_calls)
+
+##############################
 # Process registry tests
 ##############################
 vistk_build_python_test(process_registry test-process_registry.py)
@@ -79,6 +87,7 @@ vistk_make_python_test(process_registry import)
 vistk_make_python_test(process_registry create)
 vistk_make_python_test(process_registry api_calls)
 vistk_make_python_test(process_registry register)
+vistk_make_python_test(process_registry register_cluster)
 vistk_make_python_test(process_registry wrapper_api)
 
 ##############################

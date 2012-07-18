@@ -13,6 +13,7 @@
 #include "multiplication_process.h"
 #include "mutate_process.h"
 #include "number_process.h"
+#include "orphan_cluster.h"
 #include "orphan_process.h"
 #include "print_number_process.h"
 #include "tagged_flow_dependent_process.h"
@@ -48,6 +49,7 @@ register_processes()
   registry->register_process("multiplication", "Multiplies numbers", create_process<multiplication_process>);
   registry->register_process("mutate", "A process with a mutable flag", create_process<mutate_process>);
   registry->register_process("numbers", "Outputs numbers within a range", create_process<number_process>);
+  registry->register_process("orphan_cluster", "A dummy cluster", create_process<orphan_cluster>);
   registry->register_process("orphan", "A dummy process", create_process<orphan_process>);
   registry->register_process("print_number", "Print numbers to a file", create_process<print_number_process>);
   registry->register_process("tagged_flow_dependent", "A process with a tagged flow dependent types", create_process<tagged_flow_dependent_process>);

@@ -125,6 +125,15 @@ vistk_make_test(process null_output_port_info)
 vistk_make_test(process null_conf_info)
 
 ##############################
+# Process cluster tests
+##############################
+vistk_build_test(process_cluster libraries test_process_cluster.cxx)
+
+vistk_make_test(process_cluster configure)
+vistk_make_test(process_cluster init)
+vistk_make_test(process_cluster step)
+
+##############################
 # Scheduler tests
 ##############################
 vistk_build_test(scheduler libraries test_scheduler.cxx)
@@ -246,6 +255,7 @@ vistk_make_test(process_registry null_ctor)
 vistk_make_test(process_registry duplicate_types)
 vistk_make_test(process_registry unknown_types)
 vistk_make_test(process_registry module_marking)
+vistk_make_test(process_registry register_cluster)
 
 ##############################
 # Scheduler registry tests
