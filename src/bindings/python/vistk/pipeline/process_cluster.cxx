@@ -6,6 +6,7 @@
 
 #include <python/helpers/python_exceptions.h>
 
+#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_cluster.h>
 
@@ -17,7 +18,6 @@
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/override.hpp>
-#include <boost/python/pure_virtual.hpp>
 
 /**
  * \file process_cluster.cxx
@@ -42,6 +42,13 @@ class wrap_process_cluster
     connections_t output_mappings() const;
     connections_t internal_connections() const;
 
+    void _map_config(vistk::config::key_t const& key, name_t const& name_, vistk::config::key_t const& mapped_key);
+    void _add_process(name_t const& name_, type_t const& type_, vistk::config_t const& config);
+    void _input_map(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void _output_map(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void _connect(name_t const& upstream_name, port_t const& upstream_port,
+                  name_t const& downstream_name, port_t const& downstream_port);
+
     properties_t _properties() const;
 
     void _declare_input_port(port_t const& port, port_info_t const& info);
@@ -61,8 +68,6 @@ class wrap_process_cluster
     void _declare_configuration_key_1(vistk::config::key_t const& key,
                                       vistk::config::value_t const& def_,
                                       vistk::config::description_t const& description_);
-
-    override get_pure_override(char const* name) const;
 };
 
 static object cluster_from_process(vistk::process_t const& process);
@@ -88,6 +93,21 @@ BOOST_PYTHON_MODULE(process_cluster)
     .def_readonly("flag_required", &vistk::process::flag_required)
     .def("_base_properties", &wrap_process_cluster::_base_properties
       , "Base class properties.")
+    .def("map_config", &wrap_process_cluster::_map_config
+      , (arg("key"), arg("name"), arg("mapped_key"))
+      , "Map a configuration value to a process.")
+    .def("add_process", &wrap_process_cluster::_add_process
+      , (arg("name"), arg("type"), arg("config") = vistk::config::empty_config())
+      , "Add a process to the cluster.")
+    .def("input_map", &wrap_process_cluster::_input_map
+      , (arg("port"), arg("name"), arg("mapped_port"))
+      , "Map a port on the cluster to an input port.")
+    .def("output_map", &wrap_process_cluster::_output_map
+      , (arg("port"), arg("name"), arg("mapped_port"))
+      , "Map an output port to a port on the cluster.")
+    .def("connect", &wrap_process_cluster::_connect
+      , (arg("upstream_name"), arg("upstream_port"), arg("downstream_name"), arg("downstream_port"))
+      , "Connect two ports within the cluster.")
     .def("_properties", &wrap_process_cluster::_properties, &wrap_process_cluster::_base_properties
       , "The properties on the subclass.")
     .def("declare_input_port", &wrap_process_cluster::_declare_input_port
@@ -108,13 +128,13 @@ BOOST_PYTHON_MODULE(process_cluster)
     .def("declare_configuration_key", &wrap_process_cluster::_declare_configuration_key_1
       , (arg("key"), arg("default"), arg("description"))
       , "Declare a configuration key for the process.")
-    .def("processes", pure_virtual(&wrap_process_cluster::processes)
+    .def("processes", &vistk::process_cluster::processes
       , "Processes in the cluster.")
-    .def("input_mappings", pure_virtual(&wrap_process_cluster::input_mappings)
+    .def("input_mappings", &vistk::process_cluster::input_mappings
       , "Input mappings for the cluster.")
-    .def("output_mappings", pure_virtual(&wrap_process_cluster::output_mappings)
+    .def("output_mappings", &vistk::process_cluster::output_mappings
       , "Output mappings for the cluster.")
-    .def("internal_connections", pure_virtual(&wrap_process_cluster::internal_connections)
+    .def("internal_connections", &vistk::process_cluster::internal_connections
       , "Connections internal to the cluster.")
   ;
 
@@ -143,48 +163,41 @@ wrap_process_cluster
   return process_cluster::properties();
 }
 
-vistk::processes_t
+void
 wrap_process_cluster
-::processes() const
+::_map_config(vistk::config::key_t const& key, name_t const& name_, vistk::config::key_t const& mapped_key)
 {
-  vistk::python::python_gil const gil;
-
-  (void)gil;
-
-  HANDLE_PYTHON_EXCEPTION(return get_pure_override("processes")())
+  map_config(key, name_, mapped_key);
 }
 
-vistk::process::connections_t
+void
 wrap_process_cluster
-::input_mappings() const
+::_add_process(name_t const& name_, type_t const& type_, vistk::config_t const& conf)
 {
-  vistk::python::python_gil const gil;
-
-  (void)gil;
-
-  HANDLE_PYTHON_EXCEPTION(return get_pure_override("input_mappings")())
+  add_process(name_, type_, conf);
 }
 
-vistk::process::connections_t
+void
 wrap_process_cluster
-::output_mappings() const
+::_input_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
-  vistk::python::python_gil const gil;
-
-  (void)gil;
-
-  HANDLE_PYTHON_EXCEPTION(return get_pure_override("output_mappings")())
+  input_map(port, name_, mapped_port);
 }
 
-vistk::process::connections_t
+void
 wrap_process_cluster
-::internal_connections() const
+::_output_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
-  vistk::python::python_gil const gil;
+  output_map(port, name_, mapped_port);
+}
 
-  (void)gil;
-
-  HANDLE_PYTHON_EXCEPTION(return get_pure_override("internal_connections")())
+void
+wrap_process_cluster
+::_connect(name_t const& upstream_name, port_t const& upstream_port,
+           name_t const& downstream_name, port_t const& downstream_port)
+{
+  connect(upstream_name, upstream_port,
+          downstream_name, downstream_port);
 }
 
 vistk::process::properties_t
@@ -270,22 +283,4 @@ cluster_from_process(vistk::process_t const& process)
   }
 
   return object(cluster);
-}
-
-override
-wrap_process_cluster
-::get_pure_override(char const* method) const
-{
-  override const o = get_override(method);
-
-  if (!o)
-  {
-    std::ostringstream sstr;
-
-    sstr << method << " is not implemented";
-
-    throw std::runtime_error(sstr.str().c_str());
-  }
-
-  return o;
 }
