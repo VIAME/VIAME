@@ -303,3 +303,4 @@ endfunction (vistk_make_run_test group instance)
 
 vistk_make_run_test(run simple_pipeline)
 vistk_make_run_test(run multiplier_pipeline)
+vistk_make_run_test(run multiplier_cluster_pipeline)
