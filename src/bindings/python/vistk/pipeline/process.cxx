@@ -193,6 +193,15 @@ BOOST_PYTHON_MODULE(process)
     , "A collection of port addresses.")
     .def(vector_indexing_suite<vistk::process::port_addrs_t>())
   ;
+  class_<vistk::process::connection_t>("Connection"
+    , "A connection between two ports.")
+    .def_readwrite("upstream", &vistk::process::connection_t::first)
+    .def_readwrite("downstream", &vistk::process::connection_t::second)
+  ;
+  class_<vistk::process::connections_t>("Connections"
+    , "A collection of connections.")
+    .def(vector_indexing_suite<vistk::process::connections_t>())
+  ;
 
   class_<vistk::process::port_info, vistk::process::port_info_t>("PortInfo"
     , "Information about a port on a process."
