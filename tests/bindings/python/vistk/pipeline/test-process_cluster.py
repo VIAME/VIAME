@@ -7,6 +7,7 @@
 
 def test_import():
     try:
+        import vistk.pipeline.config
         import vistk.pipeline.process
         import vistk.pipeline.process_cluster
     except:
