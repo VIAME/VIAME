@@ -42,7 +42,7 @@ class print_number_process::priv
 };
 
 config::key_t const print_number_process::priv::config_path = config::key_t("output");
-process::port_t const print_number_process::priv::port_input = process::port_t("number");
+process::port_t const print_number_process::priv::port_input = port_t("number");
 
 print_number_process
 ::print_number_process(config_t const& config)

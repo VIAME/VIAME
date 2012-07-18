@@ -33,7 +33,7 @@ class take_string_process::priv
     static port_t const port_input;
 };
 
-process::port_t const take_string_process::priv::port_input = process::port_t("string");
+process::port_t const take_string_process::priv::port_input = port_t("string");
 
 take_string_process
 ::take_string_process(config_t const& config)

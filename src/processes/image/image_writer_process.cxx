@@ -66,7 +66,7 @@ config::value_t const image_writer_process::priv::default_pixtype = config::valu
 config::value_t const image_writer_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const image_writer_process::priv::default_format = config::value_t("image-%1%-%2%.png");
 config::value_t const image_writer_process::priv::default_path = config::value_t("image-%1%.txt");
-process::port_t const image_writer_process::priv::port_input = process::port_t("image");
+process::port_t const image_writer_process::priv::port_input = port_t("image");
 
 image_writer_process
 ::image_writer_process(config_t const& config)

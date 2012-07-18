@@ -31,10 +31,10 @@ class tagged_flow_dependent_process::priv
     static port_t const port_tagged_output;
 };
 
-process::port_t const tagged_flow_dependent_process::priv::port_untagged_input = process::port_t("untagged_input");
-process::port_t const tagged_flow_dependent_process::priv::port_tagged_input = process::port_t("tagged_input");
-process::port_t const tagged_flow_dependent_process::priv::port_untagged_output = process::port_t("untagged_output");
-process::port_t const tagged_flow_dependent_process::priv::port_tagged_output = process::port_t("tagged_output");
+process::port_t const tagged_flow_dependent_process::priv::port_untagged_input = port_t("untagged_input");
+process::port_t const tagged_flow_dependent_process::priv::port_tagged_input = port_t("tagged_input");
+process::port_t const tagged_flow_dependent_process::priv::port_untagged_output = port_t("untagged_output");
+process::port_t const tagged_flow_dependent_process::priv::port_tagged_output = port_t("tagged_output");
 
 tagged_flow_dependent_process
 ::tagged_flow_dependent_process(config_t const& config)

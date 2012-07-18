@@ -56,7 +56,7 @@ config::key_t const image_reader_process::priv::config_verify = config::key_t("v
 config::value_t const image_reader_process::priv::default_pixtype = config::value_t(pixtypes::pixtype_byte());
 config::value_t const image_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const image_reader_process::priv::default_verify = config::value_t("false");
-process::port_t const image_reader_process::priv::port_output = process::port_t("image");
+process::port_t const image_reader_process::priv::port_output = port_t("image");
 
 image_reader_process
 ::image_reader_process(config_t const& config)

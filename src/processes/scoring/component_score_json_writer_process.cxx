@@ -88,8 +88,8 @@ class component_score_json_writer_process::priv
 config::key_t const component_score_json_writer_process::priv::config_path = "path";
 config::key_t const component_score_json_writer_process::priv::config_name = "name";
 config::value_t const component_score_json_writer_process::priv::default_name = "(unnamed)";
-process::port_t const component_score_json_writer_process::priv::port_score_prefix = process::port_t("score/");
-process::port_t const component_score_json_writer_process::priv::port_stats_prefix = process::port_t("stats/");
+process::port_t const component_score_json_writer_process::priv::port_score_prefix = port_t("score/");
+process::port_t const component_score_json_writer_process::priv::port_stats_prefix = port_t("stats/");
 
 component_score_json_writer_process
 ::component_score_json_writer_process(config_t const& config)

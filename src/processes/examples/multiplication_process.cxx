@@ -30,9 +30,9 @@ class multiplication_process::priv
     static port_t const port_output;
 };
 
-process::port_t const multiplication_process::priv::port_factor1 = process::port_t("factor1");
-process::port_t const multiplication_process::priv::port_factor2 = process::port_t("factor2");
-process::port_t const multiplication_process::priv::port_output = process::port_t("product");
+process::port_t const multiplication_process::priv::port_factor1 = port_t("factor1");
+process::port_t const multiplication_process::priv::port_factor2 = port_t("factor2");
+process::port_t const multiplication_process::priv::port_output = port_t("product");
 
 multiplication_process
 ::multiplication_process(config_t const& config)

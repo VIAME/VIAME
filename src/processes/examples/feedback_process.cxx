@@ -30,9 +30,9 @@ class feedback_process::priv
     static port_type_t const type_custom_feedback;
 };
 
-process::port_t const feedback_process::priv::port_input = process::port_t("input");
-process::port_t const feedback_process::priv::port_output = process::port_t("output");
-process::port_type_t const feedback_process::priv::type_custom_feedback = process::port_type_t("__feedback");
+process::port_t const feedback_process::priv::port_input = port_t("input");
+process::port_t const feedback_process::priv::port_output = port_t("output");
+process::port_type_t const feedback_process::priv::type_custom_feedback = port_type_t("__feedback");
 
 feedback_process
 ::feedback_process(config_t const& config)

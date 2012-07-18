@@ -39,7 +39,7 @@ class score_writer_process::priv
 };
 
 config::key_t const score_writer_process::priv::config_path = config::key_t("path");
-process::port_t const score_writer_process::priv::port_score = process::port_t("score");
+process::port_t const score_writer_process::priv::port_score = port_t("score");
 
 score_writer_process
 ::score_writer_process(config_t const& config)

@@ -39,7 +39,7 @@ config::key_t const data_dependent_process::priv::config_reject = config::key_t(
 config::key_t const data_dependent_process::priv::config_set_on_configure = config::key_t("set_on_configure");
 config::value_t const data_dependent_process::priv::default_reject = config::value_t("false");
 config::value_t const data_dependent_process::priv::default_set_on_configure = config::value_t("true");
-process::port_t const data_dependent_process::priv::port_output = process::port_t("output");
+process::port_t const data_dependent_process::priv::port_output = port_t("output");
 
 data_dependent_process
 ::data_dependent_process(config_t const& config)
