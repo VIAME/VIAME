@@ -7,6 +7,7 @@ set(examples_srcs
   feedback_process.cxx
   flow_dependent_process.cxx
   multiplication_process.cxx
+  multiplier_cluster.cxx
   mutate_process.cxx
   number_process.cxx
   orphan_cluster.cxx
