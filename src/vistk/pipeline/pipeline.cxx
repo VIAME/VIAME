@@ -9,6 +9,7 @@
 
 #include "edge.h"
 #include "process_exception.h"
+#include "process_cluster.h"
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>
@@ -50,6 +51,7 @@ class pipeline::priv
     void propagate(process::name_t const& root);
 
     typedef std::map<process::name_t, process_t> process_map_t;
+    typedef std::map<process::name_t, process_cluster_t> cluster_map_t;
     typedef std::map<size_t, edge_t> edge_map_t;
 
     typedef boost::tuple<process::port_flags_t, process::port_addrs_t> input_mapping_info_t;
@@ -110,6 +112,7 @@ class pipeline::priv
     process::connections_t connections;
 
     process_map_t process_map;
+    cluster_map_t cluster_map;
     edge_map_t edge_map;
 
     group_map_t groups;
@@ -201,6 +204,74 @@ pipeline
 
   d->check_duplicate_name(name);
 
+  process_cluster_t const cluster = boost::dynamic_pointer_cast<process_cluster>(process);
+
+  if (cluster)
+  {
+    d->cluster_map[name] = cluster;
+
+    /// \todo Should failure to add a cluster be able to be rolled back?
+
+    processes_t const cluster_procs = cluster->processes();
+
+    BOOST_FOREACH (process_t const& cluster_proc, cluster_procs)
+    {
+      add_process(cluster_proc);
+    }
+
+    process::connections_t const& connections = cluster->internal_connections();
+
+    BOOST_FOREACH (process::connection_t const& connection, connections)
+    {
+      process::port_addr_t const& upstream_addr = connection.first;
+      process::port_addr_t const& downstream_addr = connection.second;
+
+      process::name_t const& upstream_name = upstream_addr.first;
+      process::port_t const& upstream_port = upstream_addr.second;
+      process::name_t const& downstream_name = downstream_addr.first;
+      process::port_t const& downstream_port = downstream_addr.second;
+
+      connect(upstream_name, upstream_port,
+              downstream_name, downstream_port);
+    }
+
+    add_group(name);
+
+    process::connections_t const& imappings = cluster->input_mappings();
+
+    BOOST_FOREACH (process::connection_t const& mapping, imappings)
+    {
+      process::port_addr_t const& upstream_addr = mapping.first;
+      process::port_addr_t const& downstream_addr = mapping.second;
+
+      process::port_t const& upstream_port = upstream_addr.second;
+      process::name_t const& downstream_name = downstream_addr.first;
+      process::port_t const& downstream_port = downstream_addr.second;
+
+      map_input_port(name, upstream_port,
+                     downstream_name, downstream_port,
+                     process::port_flags_t());
+    }
+
+    process::connections_t const& omappings = cluster->output_mappings();
+
+    BOOST_FOREACH (process::connection_t const& mapping, omappings)
+    {
+      process::port_addr_t const& upstream_addr = mapping.first;
+      process::port_addr_t const& downstream_addr = mapping.second;
+
+      process::name_t const& upstream_name = upstream_addr.first;
+      process::port_t const& upstream_port = upstream_addr.second;
+      process::port_t const& downstream_port = downstream_addr.second;
+
+      map_output_port(name, downstream_port,
+                      upstream_name, upstream_port,
+                      process::port_flags_t());
+    }
+
+    return;
+  }
+
   d->process_map[name] = process;
 }
 
@@ -227,9 +298,29 @@ pipeline
     throw remove_after_setup_exception(name, true);
   }
 
-  priv::process_map_t::const_iterator const i = d->process_map.find(name);
+  priv::cluster_map_t::const_iterator const i = d->cluster_map.find(name);
 
-  if (i == d->process_map.end())
+  if (i != d->cluster_map.end())
+  {
+    process_cluster_t const& cluster = i->second;
+
+    remove_group(name);
+
+    processes_t const cluster_procs = cluster->processes();
+
+    BOOST_FOREACH (process_t const& cluster_proc, cluster_procs)
+    {
+      process::name_t const& cluster_proc_name = cluster_proc->name();
+
+      remove_process(cluster_proc_name);
+    }
+
+    return;
+  }
+
+  priv::process_map_t::const_iterator const j = d->process_map.find(name);
+
+  if (j == d->process_map.end())
   {
     throw no_such_process_exception(name);
   }
