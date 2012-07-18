@@ -106,7 +106,7 @@ test_simple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
   int32_t const end_value = 20;
 
   {
-    vistk::config_t configu = vistk::config::empty_config();
+    vistk::config_t const configu = vistk::config::empty_config();
 
     vistk::config::key_t const start_key = vistk::config::key_t("start");
     vistk::config::value_t const start_num = boost::lexical_cast<vistk::config::value_t>(start_value);
@@ -116,7 +116,7 @@ test_simple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    vistk::config_t configt = vistk::config::empty_config();
+    vistk::config_t const configt = vistk::config::empty_config();
 
     vistk::config::key_t const output_key = vistk::config::key_t("output");
     vistk::config::value_t const output_value = vistk::config::value_t(output_path);
@@ -126,7 +126,7 @@ test_simple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
     vistk::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
     vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-    vistk::pipeline_t pipeline = create_pipeline();
+    vistk::pipeline_t const pipeline = create_pipeline();
 
     pipeline->add_process(processu);
     pipeline->add_process(processt);
@@ -141,7 +141,7 @@ test_simple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
 
     vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
-    vistk::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    vistk::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -202,7 +202,7 @@ test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type
   int32_t const end_value2= 30;
 
   {
-    vistk::config_t configu1 = vistk::config::empty_config();
+    vistk::config_t const configu1 = vistk::config::empty_config();
 
     vistk::config::key_t const start_key = vistk::config::key_t("start");
     vistk::config::key_t const end_key = vistk::config::key_t("end");
@@ -213,7 +213,7 @@ test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type
     configu1->set_value(start_key, start_num1);
     configu1->set_value(end_key, end_num1);
 
-    vistk::config_t configu2 = vistk::config::empty_config();
+    vistk::config_t const configu2 = vistk::config::empty_config();
 
     vistk::config::value_t const start_num2 = boost::lexical_cast<vistk::config::value_t>(start_value2);
     vistk::config::value_t const end_num2 = boost::lexical_cast<vistk::config::value_t>(end_value2);
@@ -221,7 +221,7 @@ test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type
     configu2->set_value(start_key, start_num2);
     configu2->set_value(end_key, end_num2);
 
-    vistk::config_t configt = vistk::config::empty_config();
+    vistk::config_t const configt = vistk::config::empty_config();
 
     vistk::config::key_t const output_key = vistk::config::key_t("output");
     vistk::config::value_t const output_value = vistk::config::value_t(output_path);
@@ -233,7 +233,7 @@ test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type
     vistk::process_t const processd = create_process(proc_typed, proc_named);
     vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-    vistk::pipeline_t pipeline = create_pipeline();
+    vistk::pipeline_t const pipeline = create_pipeline();
 
     pipeline->add_process(processu1);
     pipeline->add_process(processu2);
@@ -257,7 +257,7 @@ test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type
 
     vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
-    vistk::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    vistk::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();

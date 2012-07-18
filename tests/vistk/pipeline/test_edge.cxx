@@ -150,7 +150,7 @@ test_makes_dependency()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   if (!edge->makes_dependency())
   {
@@ -159,9 +159,9 @@ test_makes_dependency()
 
   config->set_value(vistk::edge::config_dependency, "false");
 
-  edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge2 = boost::make_shared<vistk::edge>(config);
 
-  if (edge->makes_dependency())
+  if (edge2->makes_dependency())
   {
     TEST_ERROR("Setting the dependency config to \'false\' "
                "was not reflected in the result");
@@ -173,7 +173,7 @@ test_new_has_no_data()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   if (edge->has_data())
   {
@@ -186,7 +186,7 @@ test_new_is_not_full()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   if (edge->full_of_data())
   {
@@ -199,7 +199,7 @@ test_new_has_count_zero()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   if (edge->datum_count())
   {
@@ -212,7 +212,7 @@ test_push_datum()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
 
@@ -241,7 +241,7 @@ test_peek_datum()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
 
@@ -272,7 +272,7 @@ test_pop_datum()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
 
@@ -296,7 +296,7 @@ test_get_datum()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
 
@@ -327,7 +327,7 @@ test_null_upstream_process()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   vistk::process_t const process;
 
@@ -341,7 +341,7 @@ test_null_downstream_process()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   vistk::process_t const process;
 
@@ -360,7 +360,7 @@ test_set_upstream_process()
 
   vistk::process_t const process = reg->create_process(proc_type, vistk::process::name_t());
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>();
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>();
 
   edge->set_upstream_process(process);
 
@@ -379,7 +379,7 @@ test_set_downstream_process()
 
   vistk::process_t const process = reg->create_process(proc_type, vistk::process::name_t());
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>();
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>();
 
   edge->set_downstream_process(process);
 
@@ -393,7 +393,7 @@ test_push_data_into_complete()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
 
@@ -424,7 +424,7 @@ test_get_data_from_complete()
 {
   vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
 
   edge->mark_downstream_as_complete();
 

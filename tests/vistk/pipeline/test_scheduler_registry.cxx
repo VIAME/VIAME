@@ -104,8 +104,8 @@ run_test(std::string const& test_name)
 void
 test_get_twice()
 {
-  vistk::scheduler_registry_t reg1 = vistk::scheduler_registry::self();
-  vistk::scheduler_registry_t reg2 = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg1 = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg2 = vistk::scheduler_registry::self();
 
   if (reg1 != reg2)
   {
@@ -116,10 +116,10 @@ test_get_twice()
 void
 test_null_config()
 {
-  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
-  vistk::config_t config;
-  vistk::pipeline_t pipe;
+  vistk::config_t const config;
+  vistk::pipeline_t const pipe;
 
   EXPECT_EXCEPTION(vistk::null_scheduler_registry_config_exception,
                    reg->create_scheduler(vistk::scheduler_registry::type_t(), pipe, config),
@@ -129,10 +129,10 @@ test_null_config()
 void
 test_null_pipeline()
 {
-  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
-  vistk::config_t config = vistk::config::empty_config();
-  vistk::pipeline_t pipe;
+  vistk::config_t const config = vistk::config::empty_config();
+  vistk::pipeline_t const pipe;
 
   EXPECT_EXCEPTION(vistk::null_scheduler_registry_pipeline_exception,
                    reg->create_scheduler(vistk::scheduler_registry::type_t(), pipe),
@@ -148,11 +148,11 @@ test_load_schedulers()
 {
   vistk::load_known_modules();
 
-  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
   vistk::scheduler_registry::types_t const types = reg->types();
 
-  vistk::pipeline_t pipe = boost::make_shared<vistk::pipeline>();
+  vistk::pipeline_t const pipe = boost::make_shared<vistk::pipeline>();
 
   BOOST_FOREACH (vistk::scheduler_registry::type_t const& type, types)
   {
@@ -193,7 +193,7 @@ test_load_schedulers()
 void
 test_null_ctor()
 {
-  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
   EXPECT_EXCEPTION(vistk::null_scheduler_ctor_exception,
                    reg->register_scheduler(vistk::scheduler_registry::type_t(), vistk::scheduler_registry::description_t(), vistk::scheduler_ctor_t()),
@@ -205,7 +205,7 @@ static vistk::scheduler_t null_scheduler(vistk::pipeline_t const& pipeline, vist
 void
 test_duplicate_types()
 {
-  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
   vistk::scheduler_registry::type_t const non_existent_scheduler = vistk::scheduler_registry::type_t("no_such_scheduler");
 
@@ -219,11 +219,11 @@ test_duplicate_types()
 void
 test_unknown_types()
 {
-  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
   vistk::scheduler_registry::type_t const non_existent_scheduler = vistk::scheduler_registry::type_t("no_such_scheduler");
 
-  vistk::pipeline_t pipe = boost::make_shared<vistk::pipeline>();
+  vistk::pipeline_t const pipe = boost::make_shared<vistk::pipeline>();
 
   EXPECT_EXCEPTION(vistk::no_such_scheduler_type_exception,
                    reg->create_scheduler(non_existent_scheduler, pipe),
@@ -237,7 +237,7 @@ test_unknown_types()
 void
 test_module_marking()
 {
-  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
   vistk::scheduler_registry::module_t const module = vistk::scheduler_registry::module_t("module");
 

@@ -102,8 +102,8 @@ run_test(std::string const& test_name)
 void
 test_get_twice()
 {
-  vistk::process_registry_t reg1 = vistk::process_registry::self();
-  vistk::process_registry_t reg2 = vistk::process_registry::self();
+  vistk::process_registry_t const reg1 = vistk::process_registry::self();
+  vistk::process_registry_t const reg2 = vistk::process_registry::self();
 
   if (reg1 != reg2)
   {
@@ -114,9 +114,9 @@ test_get_twice()
 void
 test_null_config()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
-  vistk::config_t config;
+  vistk::config_t const config;
 
   EXPECT_EXCEPTION(vistk::null_process_registry_config_exception,
                    reg->create_process(vistk::process::type_t(), vistk::process::name_t(), config),
@@ -128,7 +128,7 @@ test_load_processes()
 {
   vistk::load_known_modules();
 
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process::types_t const types = reg->types();
 
@@ -171,7 +171,7 @@ test_load_processes()
 void
 test_null_ctor()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   EXPECT_EXCEPTION(vistk::null_process_ctor_exception,
                    reg->register_process(vistk::process::type_t(), vistk::process_registry::description_t(), vistk::process_ctor_t()),
@@ -183,7 +183,7 @@ static vistk::process_t null_process(vistk::config_t const& config);
 void
 test_duplicate_types()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
 
@@ -197,7 +197,7 @@ test_duplicate_types()
 void
 test_unknown_types()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
 
@@ -213,7 +213,7 @@ test_unknown_types()
 void
 test_module_marking()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process_registry::module_t const module = vistk::process_registry::module_t("module");
 

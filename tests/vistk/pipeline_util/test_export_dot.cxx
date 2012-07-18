@@ -109,7 +109,7 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
 void
 test_pipeline_null(vistk::path_t const& /*pipe_file*/)
 {
-  vistk::pipeline_t pipeline;
+  vistk::pipeline_t const pipeline;
 
   std::ostringstream sstr;
 
@@ -145,7 +145,7 @@ test_simple_group_pipeline(vistk::path_t const& pipe_file)
 void
 test_pipeline_setup_null(vistk::path_t const& /*pipe_file*/)
 {
-  vistk::pipeline_t pipeline;
+  vistk::pipeline_t const pipeline;
 
   std::ostringstream sstr;
 

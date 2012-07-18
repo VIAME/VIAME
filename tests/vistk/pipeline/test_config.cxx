@@ -120,7 +120,7 @@ run_test(std::string const& test_name)
 void
 test_has_value()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
@@ -143,7 +143,7 @@ test_has_value()
 void
 test_get_value()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
 
@@ -162,7 +162,7 @@ test_get_value()
 void
 test_get_value_nested()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
@@ -184,7 +184,7 @@ test_get_value_nested()
 void
 test_get_value_no_exist()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
@@ -206,7 +206,7 @@ test_get_value_no_exist()
 void
 test_get_value_type_mismatch()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
 
@@ -230,7 +230,7 @@ test_get_value_type_mismatch()
 void
 test_bool_conversion()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const key = vistk::config::key_t("key");
 
@@ -295,7 +295,7 @@ test_bool_conversion()
 void
 test_unset_value()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
@@ -323,7 +323,7 @@ test_unset_value()
 void
 test_available_values()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
@@ -350,7 +350,7 @@ test_available_values()
 void
 test_read_only()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
 
@@ -376,7 +376,7 @@ test_read_only()
 void
 test_read_only_unset()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
 
@@ -401,7 +401,7 @@ test_read_only_unset()
 void
 test_subblock()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const block_name = vistk::config::key_t("block");
   vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
@@ -443,7 +443,7 @@ test_subblock()
 void
 test_subblock_view()
 {
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
   vistk::config::key_t const block_name = vistk::config::key_t("block");
   vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
@@ -460,7 +460,7 @@ test_subblock_view()
   config->set_value(block_name + vistk::config::block_sep + keyb, valueb);
   config->set_value(other_block_name + vistk::config::block_sep + keyc, valuec);
 
-  vistk::config_t subblock = config->subblock_view(block_name);
+  vistk::config_t const subblock = config->subblock_view(block_name);
 
   if (!subblock->has_value(keya))
   {
@@ -515,8 +515,8 @@ test_subblock_view()
 void
 test_merge_config()
 {
-  vistk::config_t configa = vistk::config::empty_config();
-  vistk::config_t configb = vistk::config::empty_config();
+  vistk::config_t const configa = vistk::config::empty_config();
+  vistk::config_t const configb = vistk::config::empty_config();
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");

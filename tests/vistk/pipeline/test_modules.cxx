@@ -88,7 +88,7 @@ test_envvar()
 {
   vistk::load_known_modules();
 
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process::type_t const proc_type = vistk::process::type_t("test");
 

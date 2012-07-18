@@ -419,7 +419,7 @@ test_null_process()
 {
   vistk::process_t const process;
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   EXPECT_EXCEPTION(vistk::null_process_addition_exception,
                    pipeline->add_process(process),
@@ -433,7 +433,7 @@ test_add_process()
 
   vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 }
@@ -443,7 +443,7 @@ test_add_group()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 }
@@ -458,7 +458,7 @@ test_duplicate_process_process()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const dup_process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -476,7 +476,7 @@ test_duplicate_process_group()
 
   vistk::process_t const dup_process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 
@@ -494,7 +494,7 @@ test_duplicate_group_process()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -508,7 +508,7 @@ test_duplicate_group_group()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 
@@ -522,7 +522,7 @@ test_map_input_no_group()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   EXPECT_EXCEPTION(vistk::no_such_group_exception,
                    pipeline->map_input_port(proc_name, vistk::process::port_t(),
@@ -536,7 +536,7 @@ test_map_output_no_group()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   EXPECT_EXCEPTION(vistk::no_such_group_exception,
                    pipeline->map_output_port(proc_name, vistk::process::port_t(),
@@ -550,7 +550,7 @@ test_map_input_no_process()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 
@@ -564,7 +564,7 @@ test_map_output_no_process()
 {
   vistk::config::value_t const proc_name = vistk::process::name_t("name");
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_group(proc_name);
 
@@ -583,7 +583,7 @@ test_map_input()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_group(group_name);
   pipeline->add_process(process);
@@ -603,7 +603,7 @@ test_map_output()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   vistk::process::port_t const port_name = vistk::process::port_t("port");
 
@@ -630,7 +630,7 @@ test_connect_no_upstream()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   vistk::process::name_t const proc_name2 = vistk::process::name_t("othername");
 
@@ -651,7 +651,7 @@ test_connect_no_downstream()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   vistk::process::name_t const proc_name2 = vistk::process::name_t("othername");
 
@@ -675,7 +675,7 @@ test_connect_untyped_data_connection()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -698,7 +698,7 @@ test_connect_untyped_flow_connection()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const process2 = create_process(proc_type, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -722,7 +722,7 @@ test_connect_type_mismatch()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
@@ -748,7 +748,7 @@ test_connect_flag_mismatch()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
@@ -774,7 +774,7 @@ test_connect()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
@@ -798,7 +798,7 @@ test_connect_input_map()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
@@ -830,7 +830,7 @@ test_connect_output_map()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
@@ -853,7 +853,7 @@ test_connect_output_map()
 void
 test_setup_pipeline_no_processes()
 {
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   EXPECT_EXCEPTION(vistk::no_processes_exception,
                    pipeline->setup_pipeline(),
@@ -871,7 +871,7 @@ test_setup_pipeline_orphaned_process()
   vistk::process_t const process1 = create_process(proc_type, proc_name1);
   vistk::process_t const process2 = create_process(proc_type, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process1);
   pipeline->add_process(process2);
@@ -893,7 +893,7 @@ test_setup_pipeline_type_force_flow_upstream()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -919,7 +919,7 @@ test_setup_pipeline_type_force_flow_downstream()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -947,7 +947,7 @@ test_setup_pipeline_type_force_cascade_up()
   vistk::process_t const process2 = create_process(proc_type, proc_name2);
   vistk::process_t const process3 = create_process(proc_type2, proc_name3);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -986,7 +986,7 @@ test_setup_pipeline_type_force_cascade_down()
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
   vistk::process_t const process3 = create_process(proc_type2, proc_name3);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1027,7 +1027,7 @@ test_setup_pipeline_type_force_cascade_both()
   vistk::process_t const process3 = create_process(proc_type, proc_name3);
   vistk::process_t const process4 = create_process(proc_type2, proc_name4);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1073,7 +1073,7 @@ test_setup_pipeline_backwards_edge()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -1100,7 +1100,7 @@ test_setup_pipeline_not_a_dag()
   vistk::process_t const process2 = create_process(proc_type, proc_name2);
   vistk::process_t const process3 = create_process(proc_type2, proc_name3);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1138,7 +1138,7 @@ test_setup_pipeline_data_dependent_set()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1175,7 +1175,7 @@ test_setup_pipeline_data_dependent_set_reject()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const process2 = create_process(proc_type2, proc_name2, conf);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1205,7 +1205,7 @@ test_setup_pipeline_data_dependent_set_cascade()
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
   vistk::process_t const process3 = create_process(proc_type2, proc_name3);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1256,7 +1256,7 @@ test_setup_pipeline_data_dependent_set_cascade_reject()
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
   vistk::process_t const process3 = create_process(proc_type2, proc_name3, conf);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1291,7 +1291,7 @@ test_setup_pipeline_type_force_flow_upstream_reject()
   vistk::process_t const process = create_process(proc_type, proc_name, conf);
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1323,7 +1323,7 @@ test_setup_pipeline_type_force_flow_downstream_reject()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const process2 = create_process(proc_type2, proc_name2, conf);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1357,7 +1357,7 @@ test_setup_pipeline_type_force_cascade_reject()
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
   vistk::process_t const process3 = create_process(proc_type2, proc_name3, conf);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1394,7 +1394,7 @@ test_setup_pipeline_untyped_data_dependent()
   vistk::process_t const process = create_process(proc_type, proc_name, conf);
   vistk::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1421,7 +1421,7 @@ test_setup_pipeline_untyped_connection()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const process2 = create_process(proc_type, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1444,7 +1444,7 @@ test_setup_pipeline_missing_required_input_connection()
 
   vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -1460,7 +1460,7 @@ test_setup_pipeline_missing_required_output_connection()
 
   vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -1482,7 +1482,7 @@ test_setup_pipeline_missing_required_group_input_connection()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processt = create_process(proc_typet, proc_namet);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processt);
@@ -1521,7 +1521,7 @@ test_setup_pipeline_missing_required_group_output_connection()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processt = create_process(proc_typet, proc_namet);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processt);
@@ -1556,7 +1556,7 @@ test_setup_pipeline_duplicate()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -1576,7 +1576,7 @@ test_setup_pipeline_add_process()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -1597,7 +1597,7 @@ test_setup_pipeline_add_group()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -1620,7 +1620,7 @@ test_setup_pipeline_connect()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
@@ -1655,7 +1655,7 @@ test_setup_pipeline_map_input()
   vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
   vistk::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
@@ -1688,7 +1688,7 @@ test_setup_pipeline_map_output()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_group(group_name);
@@ -1716,7 +1716,7 @@ test_setup_pipeline()
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
 
-  vistk::config_t configt = vistk::config::empty_config();
+  vistk::config_t const configt = vistk::config::empty_config();
 
   vistk::config::key_t const output_key = vistk::config::key_t("output");
   vistk::config::value_t const output_path = vistk::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
@@ -1728,7 +1728,7 @@ test_setup_pipeline()
   vistk::process_t const processd = create_process(proc_typed, proc_named);
   vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu1);
   pipeline->add_process(processu2);
@@ -1754,7 +1754,7 @@ test_setup_pipeline()
 void
 test_start_before_setup()
 {
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   EXPECT_EXCEPTION(vistk::pipeline_not_setup_exception,
                    pipeline->start(),
@@ -1772,7 +1772,7 @@ test_start_unsuccessful_setup()
   vistk::process_t const process = create_process(proc_type, proc_name);
   vistk::process_t const process2 = create_process(proc_type, proc_name2);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1793,7 +1793,7 @@ test_start_unsuccessful_setup()
 void
 test_stop_before_start()
 {
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   EXPECT_EXCEPTION(vistk::pipeline_not_running_exception,
                    pipeline->stop(),
@@ -1809,7 +1809,7 @@ test_start_and_stop()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -1828,7 +1828,7 @@ test_reset_while_running()
 
   vistk::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
@@ -1853,7 +1853,7 @@ test_reset()
   vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
   vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
 
-  vistk::config_t configt = vistk::config::empty_config();
+  vistk::config_t const configt = vistk::config::empty_config();
 
   vistk::config::key_t const output_key = vistk::config::key_t("output");
   vistk::config::value_t const output_path = vistk::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
@@ -1865,7 +1865,7 @@ test_reset()
   vistk::process_t const processd = create_process(proc_typed, proc_named);
   vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-  vistk::pipeline_t pipeline = create_pipeline();
+  vistk::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu1);
   pipeline->add_process(processu2);
@@ -1901,9 +1901,9 @@ test_remove_process()
   vistk::process::name_t const named = vistk::process::name_t("down");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t procu = create_process(typeu, nameu);
-  vistk::process_t procd = create_process(typed, named);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const procu = create_process(typeu, nameu);
+  vistk::process_t const procd = create_process(typed, named);
 
   pipe->add_process(procu);
   pipe->add_process(procd);
@@ -1950,8 +1950,8 @@ test_remove_process_after_setup()
   vistk::process::type_t const type = vistk::process::type_t("orphan");
   vistk::process::name_t const name = vistk::process::name_t("name");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t proc = create_process(type, name);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const proc = create_process(type, name);
 
   pipe->add_process(proc);
 
@@ -1969,8 +1969,8 @@ test_remove_group()
   vistk::process::name_t const name = vistk::process::name_t("name");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t proc = create_process(type, name);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const proc = create_process(type, name);
 
   pipe->add_process(proc);
   pipe->add_group(group);
@@ -1995,8 +1995,8 @@ test_remove_group_after_setup()
   vistk::process::name_t const name = vistk::process::name_t("name");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t proc = create_process(type, name);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const proc = create_process(type, name);
 
   pipe->add_process(proc);
   pipe->add_group(group);
@@ -2016,9 +2016,9 @@ test_disconnect()
   vistk::process::name_t const nameu = vistk::process::name_t("up");
   vistk::process::name_t const named = vistk::process::name_t("down");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t procu = create_process(typeu, nameu);
-  vistk::process_t procd = create_process(typed, named);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const procu = create_process(typeu, nameu);
+  vistk::process_t const procd = create_process(typed, named);
 
   pipe->add_process(procu);
   pipe->add_process(procd);
@@ -2045,9 +2045,9 @@ test_disconnect_after_setup()
   vistk::process::name_t const nameu = vistk::process::name_t("up");
   vistk::process::name_t const named = vistk::process::name_t("down");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t procu = create_process(typeu, nameu);
-  vistk::process_t procd = create_process(typed, named);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const procu = create_process(typeu, nameu);
+  vistk::process_t const procd = create_process(typed, named);
 
   pipe->add_process(procu);
   pipe->add_process(procd);
@@ -2073,8 +2073,8 @@ test_unmap_input()
   vistk::process::name_t const name = vistk::process::name_t("down");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t proc = create_process(type, name);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const proc = create_process(type, name);
 
   pipe->add_process(proc);
   pipe->add_group(group);
@@ -2102,9 +2102,9 @@ test_unmap_input_after_setup()
   vistk::process::name_t const named = vistk::process::name_t("down");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t procu = create_process(typeu, nameu);
-  vistk::process_t procd = create_process(typed, named);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const procu = create_process(typeu, nameu);
+  vistk::process_t const procd = create_process(typed, named);
 
   pipe->add_process(procu);
   pipe->add_process(procd);
@@ -2135,8 +2135,8 @@ test_unmap_output()
   vistk::process::name_t const name = vistk::process::name_t("up");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t proc = create_process(type, name);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const proc = create_process(type, name);
 
   pipe->add_process(proc);
   pipe->add_group(group);
@@ -2164,9 +2164,9 @@ test_unmap_output_after_setup()
   vistk::process::name_t const named = vistk::process::name_t("down");
   vistk::process::name_t const group = vistk::process::name_t("group");
 
-  vistk::pipeline_t pipe = create_pipeline();
-  vistk::process_t procu = create_process(typeu, nameu);
-  vistk::process_t procd = create_process(typed, named);
+  vistk::pipeline_t const pipe = create_pipeline();
+  vistk::process_t const procu = create_process(typeu, nameu);
+  vistk::process_t const procd = create_process(typed, named);
 
   pipe->add_process(procu);
   pipe->add_process(procd);
