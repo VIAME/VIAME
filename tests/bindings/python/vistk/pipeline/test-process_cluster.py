@@ -7,6 +7,7 @@
 
 def test_import():
     try:
+        import vistk.pipeline.process
         import vistk.pipeline.process_cluster
     except:
         test_error("Failed to import the process_cluster module")

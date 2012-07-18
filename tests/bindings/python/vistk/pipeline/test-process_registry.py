@@ -190,6 +190,7 @@ def base_example_process():
 
 
 def base_example_process_cluster():
+    from vistk.pipeline import process
     from vistk.pipeline import process_cluster
 
     class PythonBaseClusterExample(process_cluster.PythonProcessCluster):
