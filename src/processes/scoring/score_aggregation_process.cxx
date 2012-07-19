@@ -40,9 +40,9 @@ class score_aggregation_process::priv
     static port_t const port_statistics;
 };
 
-process::port_t const score_aggregation_process::priv::port_score = process::port_t("score");
-process::port_t const score_aggregation_process::priv::port_aggregate = process::port_t("aggregate");
-process::port_t const score_aggregation_process::priv::port_statistics = process::port_t("statistics");
+process::port_t const score_aggregation_process::priv::port_score = port_t("score");
+process::port_t const score_aggregation_process::priv::port_aggregate = port_t("aggregate");
+process::port_t const score_aggregation_process::priv::port_statistics = port_t("statistics");
 
 score_aggregation_process
 ::score_aggregation_process(config_t const& config)

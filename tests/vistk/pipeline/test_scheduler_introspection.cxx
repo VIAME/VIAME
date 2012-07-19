@@ -47,9 +47,9 @@ main()
 
   vistk::scheduler_registry::types_t const types = reg->types();
 
-  vistk::config_t config = vistk::config::empty_config();
+  vistk::config_t const config = vistk::config::empty_config();
 
-  vistk::pipeline_t pipe = vistk::pipeline_t(new vistk::pipeline(config));
+  vistk::pipeline_t const pipe = vistk::pipeline_t(new vistk::pipeline(config));
 
   BOOST_FOREACH (vistk::scheduler_registry::type_t const& type, types)
   {

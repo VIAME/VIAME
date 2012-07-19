@@ -102,6 +102,10 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::pair<name_t, port_t> port_addr_t;
     /// The type for a group of port addresses.
     typedef std::vector<port_addr_t> port_addrs_t;
+    /// The type for a connection within the pipeline.
+    typedef std::pair<port_addr_t, port_addr_t> connection_t;
+    /// The type for a group of connections.
+    typedef std::vector<connection_t> connections_t;
 
     /**
      * \class port_info process.h <vistk/pipeline/process.h>

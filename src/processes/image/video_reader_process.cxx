@@ -65,7 +65,7 @@ config::value_t const video_reader_process::priv::default_pixtype = config::valu
 config::value_t const video_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const video_reader_process::priv::default_verify = config::value_t("false");
 config::value_t const video_reader_process::priv::default_impl = config::value_t(default_istream_impl());
-process::port_t const video_reader_process::priv::port_output = process::port_t("image");
+process::port_t const video_reader_process::priv::port_output = port_t("image");
 
 static std::string const impl_sep = ", ";
 

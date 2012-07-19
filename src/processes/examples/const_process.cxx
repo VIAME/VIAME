@@ -26,7 +26,7 @@ class const_process::priv
     static port_t const port_output;
 };
 
-process::port_t const const_process::priv::port_output = process::port_t("const");
+process::port_t const const_process::priv::port_output = port_t("const");
 
 const_process
 ::const_process(config_t const& config)

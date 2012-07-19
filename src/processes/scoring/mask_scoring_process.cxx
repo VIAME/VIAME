@@ -34,9 +34,9 @@ class mask_scoring_process::priv
     static port_t const port_result;
 };
 
-process::port_t const mask_scoring_process::priv::port_computed_mask = process::port_t("computed_mask");
-process::port_t const mask_scoring_process::priv::port_truth_mask = process::port_t("truth_mask");
-process::port_t const mask_scoring_process::priv::port_result = process::port_t("result");
+process::port_t const mask_scoring_process::priv::port_computed_mask = port_t("computed_mask");
+process::port_t const mask_scoring_process::priv::port_truth_mask = port_t("truth_mask");
+process::port_t const mask_scoring_process::priv::port_result = port_t("result");
 
 mask_scoring_process
 ::mask_scoring_process(config_t const& config)

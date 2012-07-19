@@ -43,7 +43,7 @@ class homography_reader_process::priv
 };
 
 config::key_t const homography_reader_process::priv::config_path = config::key_t("input");
-process::port_t const homography_reader_process::priv::port_output = process::port_t("homography");
+process::port_t const homography_reader_process::priv::port_output = port_t("homography");
 
 homography_reader_process
 ::homography_reader_process(config_t const& config)

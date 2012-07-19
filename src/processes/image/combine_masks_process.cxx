@@ -46,8 +46,8 @@ class combine_masks_process::priv
     static port_t const port_mask;
 };
 
-process::port_t const combine_masks_process::priv::port_mask_prefix = process::port_t("mask/");
-process::port_t const combine_masks_process::priv::port_mask = process::port_t("mask");
+process::port_t const combine_masks_process::priv::port_mask_prefix = port_t("mask/");
+process::port_t const combine_masks_process::priv::port_mask = port_t("mask");
 
 combine_masks_process
 ::combine_masks_process(config_t const& config)

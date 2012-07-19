@@ -80,7 +80,7 @@ run_test(std::string const& test_name)
 void
 test_empty()
 {
-  vistk::datum_t dat = vistk::datum::empty_datum();
+  vistk::datum_t const dat = vistk::datum::empty_datum();
 
   if (dat->type() != vistk::datum::empty)
   {
@@ -100,7 +100,7 @@ test_empty()
 void
 test_flush()
 {
-  vistk::datum_t dat = vistk::datum::flush_datum();
+  vistk::datum_t const dat = vistk::datum::flush_datum();
 
   if (dat->type() != vistk::datum::flush)
   {
@@ -120,7 +120,7 @@ test_flush()
 void
 test_complete()
 {
-  vistk::datum_t dat = vistk::datum::complete_datum();
+  vistk::datum_t const dat = vistk::datum::complete_datum();
 
   if (dat->type() != vistk::datum::complete)
   {
@@ -141,7 +141,7 @@ void
 test_error()
 {
   vistk::datum::error_t const error = vistk::datum::error_t("An error");
-  vistk::datum_t dat = vistk::datum::error_datum(error);
+  vistk::datum_t const dat = vistk::datum::error_datum(error);
 
   if (dat->type() != vistk::datum::error)
   {
@@ -162,7 +162,7 @@ void
 test_new()
 {
   int const datum = 100;
-  vistk::datum_t dat = vistk::datum::new_datum(100);
+  vistk::datum_t const dat = vistk::datum::new_datum(100);
 
   if (dat->type() != vistk::datum::data)
   {

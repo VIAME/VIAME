@@ -149,10 +149,10 @@ class VISTK_PIPELINE_EXPORT pipeline
      *
      * \preconds
      *
-     * \precond{\p upstream_process is the name of a process or group in the pipeline}
-     * \precond{\p upstream_port is an output port on \p upstream_process}
-     * \precond{\p downstream_process is the name of a process or group in the pipeline}
-     * \precond{\p downstream_port is an input port on \p downstream_process}
+     * \precond{\p upstream_name is the name of a process or group in the pipeline}
+     * \precond{\p upstream_port is an output port on \p upstream_name}
+     * \precond{\p downstream_name is the name of a process or group in the pipeline}
+     * \precond{\p downstream_port is an input port on \p downstream_name}
      * \precond{The types of the ports are compatible\, or at least one is \ref process::type_any}
      * \precond{The flags of the ports are compatible (a \ref
      *          process::flag_output_const output may not be connected to a \ref
@@ -165,7 +165,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \throws connection_dependent_type_cascade_exception Thrown when an indirect dependent type is rejected.
      * \throws connection_type_mismatch_exception Thrown when the types of the ports are incompatible.
      * \throws connection_flag_mismatch_exception Thrown when the flags of the ports are incompatible.
-     * \throws no_such_process_exception Thrown when either \p upstream_process or \p downstream_process do not exist in the pipeline.
+     * \throws no_such_process_exception Thrown when either \p upstream_name or \p downstream_name do not exist in the pipeline.
      *
      * \postconds
      *

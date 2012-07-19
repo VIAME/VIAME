@@ -32,6 +32,8 @@ def test_create():
     process.PortFlags()
     process.PortAddr()
     process.PortAddrs()
+    process.Connection()
+    process.Connections()
     process.PortInfo('type', process.PortFlags(), 'desc', process.PortFrequency(1, 1))
     process.ConfInfo('default', 'desc')
     process.DataInfo(True, datum.DatumType.invalid)

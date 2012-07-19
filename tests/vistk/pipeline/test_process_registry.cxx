@@ -8,6 +8,7 @@
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
+#include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/process_registry_exception.h>
 #include <vistk/pipeline/types.h>
@@ -55,6 +56,7 @@ static void test_null_ctor();
 static void test_duplicate_types();
 static void test_unknown_types();
 static void test_module_marking();
+static void test_register_cluster();
 
 void
 run_test(std::string const& test_name)
@@ -87,6 +89,10 @@ run_test(std::string const& test_name)
   {
     test_module_marking();
   }
+  else if (test_name == "register_cluster")
+  {
+    test_register_cluster();
+  }
   else
   {
     TEST_ERROR("Unknown test: " << test_name);
@@ -96,8 +102,8 @@ run_test(std::string const& test_name)
 void
 test_get_twice()
 {
-  vistk::process_registry_t reg1 = vistk::process_registry::self();
-  vistk::process_registry_t reg2 = vistk::process_registry::self();
+  vistk::process_registry_t const reg1 = vistk::process_registry::self();
+  vistk::process_registry_t const reg2 = vistk::process_registry::self();
 
   if (reg1 != reg2)
   {
@@ -108,9 +114,9 @@ test_get_twice()
 void
 test_null_config()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
-  vistk::config_t config;
+  vistk::config_t const config;
 
   EXPECT_EXCEPTION(vistk::null_process_registry_config_exception,
                    reg->create_process(vistk::process::type_t(), vistk::process::name_t(), config),
@@ -122,7 +128,7 @@ test_load_processes()
 {
   vistk::load_known_modules();
 
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process::types_t const types = reg->types();
 
@@ -165,7 +171,7 @@ test_load_processes()
 void
 test_null_ctor()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   EXPECT_EXCEPTION(vistk::null_process_ctor_exception,
                    reg->register_process(vistk::process::type_t(), vistk::process_registry::description_t(), vistk::process_ctor_t()),
@@ -177,7 +183,7 @@ static vistk::process_t null_process(vistk::config_t const& config);
 void
 test_duplicate_types()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
 
@@ -191,7 +197,7 @@ test_duplicate_types()
 void
 test_unknown_types()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
 
@@ -207,7 +213,7 @@ test_unknown_types()
 void
 test_module_marking()
 {
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process_registry::module_t const module = vistk::process_registry::module_t("module");
 
@@ -223,6 +229,37 @@ test_module_marking()
   {
     TEST_ERROR("The module \'" << module << "\' is "
                "not marked as loaded");
+  }
+}
+
+void
+test_register_cluster()
+{
+  vistk::load_known_modules();
+
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+
+  vistk::process::type_t const cluster_type = vistk::process::type_t("orphan_cluster");
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::process_t const cluster_from_reg = reg->create_process(cluster_type, vistk::process::name_t(), config);
+
+  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(cluster_from_reg);
+
+  if (!cluster)
+  {
+    TEST_ERROR("Failed to turn a process back into a cluster");
+  }
+
+  vistk::process::type_t const type = vistk::process::type_t("orphan");
+
+  vistk::process_t const not_a_cluster_from_reg = reg->create_process(type, vistk::process::name_t(), config);
+
+  vistk::process_cluster_t const not_a_cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(not_a_cluster_from_reg);
+
+  if (not_a_cluster)
+  {
+    TEST_ERROR("Turned a non-cluster into a cluster");
   }
 }
 

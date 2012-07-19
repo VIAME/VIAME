@@ -2,12 +2,15 @@ project(vistk_processes_examples)
 
 set(examples_srcs
   const_process.cxx
+  const_number_process.cxx
   data_dependent_process.cxx
   feedback_process.cxx
   flow_dependent_process.cxx
   multiplication_process.cxx
+  multiplier_cluster.cxx
   mutate_process.cxx
   number_process.cxx
+  orphan_cluster.cxx
   orphan_process.cxx
   print_number_process.cxx
   registration.cxx

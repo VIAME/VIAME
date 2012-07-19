@@ -47,7 +47,7 @@ config::key_t const number_process::priv::config_start = config::key_t("start");
 config::key_t const number_process::priv::config_end = config::key_t("end");
 config::value_t const number_process::priv::default_start = config::value_t("0");
 config::value_t const number_process::priv::default_end = config::value_t("100");
-process::port_t const number_process::priv::port_output = process::port_t("number");
+process::port_t const number_process::priv::port_output = port_t("number");
 
 number_process
 ::number_process(config_t const& config)
@@ -84,8 +84,8 @@ number_process
 {
   // Configure the process.
   {
-    priv::number_t start = config_value<priv::number_t>(priv::config_start);
-    priv::number_t end = config_value<priv::number_t>(priv::config_end);
+    priv::number_t const start = config_value<priv::number_t>(priv::config_start);
+    priv::number_t const end = config_value<priv::number_t>(priv::config_end);
 
     d.reset(new priv(start, end));
   }

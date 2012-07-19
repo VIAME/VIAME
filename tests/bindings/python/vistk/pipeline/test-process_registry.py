@@ -189,6 +189,20 @@ def base_example_process():
     return PythonBaseExample
 
 
+def base_example_process_cluster():
+    from vistk.pipeline import process
+    from vistk.pipeline import process_cluster
+
+    class PythonBaseClusterExample(process_cluster.PythonProcessCluster):
+        def __init__(self, conf):
+            process_cluster.PythonProcessCluster.__init__(self, conf)
+
+        def check(self):
+            pass
+
+    return PythonBaseClusterExample
+
+
 def test_register():
     from vistk.pipeline import config
     from vistk.pipeline import process
@@ -210,6 +224,33 @@ def test_register():
             raise Exception()
     except:
         test_error("Could not create newly registered process type")
+
+
+def test_register_cluster():
+    from vistk.pipeline import config
+    from vistk.pipeline import process
+    from vistk.pipeline import process_cluster
+    from vistk.pipeline import process_registry
+
+    proc_type = 'python_example'
+    proc_desc = 'simple description'
+
+    reg = process_registry.ProcessRegistry.self()
+
+    reg.register_process(proc_type, proc_desc, base_example_process_cluster())
+
+    if not proc_desc == reg.description(proc_type):
+        test_error("Description was not preserved when registering")
+
+    try:
+        p = reg.create_process(proc_type, process.ProcessName())
+        if p is None:
+            raise Exception()
+    except BaseException as e:
+        test_error("Could not create newly registered process cluster type: %s" % str(e))
+
+    if process_cluster.cluster_from_process(p) is None:
+        test_error("A cluster process from the registry was not detected as a cluster process")
 
 
 def test_wrapper_api():
@@ -291,6 +332,8 @@ def main(testname):
         test_api_calls()
     elif testname == 'register':
         test_register()
+    elif testname == 'register_cluster':
+        test_register_cluster()
     elif testname == 'wrapper_api':
         test_wrapper_api()
     else:

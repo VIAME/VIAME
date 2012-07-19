@@ -35,8 +35,8 @@ class flow_dependent_process::priv
 
 config::key_t const flow_dependent_process::priv::config_reject = config::key_t("reject");
 config::value_t const flow_dependent_process::priv::default_reject = config::value_t("false");
-process::port_t const flow_dependent_process::priv::port_input = process::port_t("input");
-process::port_t const flow_dependent_process::priv::port_output = process::port_t("output");
+process::port_t const flow_dependent_process::priv::port_input = port_t("input");
+process::port_t const flow_dependent_process::priv::port_output = port_t("output");
 
 flow_dependent_process
 ::flow_dependent_process(config_t const& config)

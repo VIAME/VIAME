@@ -68,7 +68,7 @@ config::key_t const layered_image_reader_process::priv::config_format = config::
 config::value_t const layered_image_reader_process::priv::default_pixtype = config::value_t(pixtypes::pixtype_byte());
 config::value_t const layered_image_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const layered_image_reader_process::priv::default_format = config::value_t("image-%1%-%2%.png");
-process::port_t const layered_image_reader_process::priv::port_image_prefix = process::port_t("image/");
+process::port_t const layered_image_reader_process::priv::port_image_prefix = port_t("image/");
 
 layered_image_reader_process
 ::layered_image_reader_process(config_t const& config)

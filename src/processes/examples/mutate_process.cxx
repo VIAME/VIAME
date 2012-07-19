@@ -26,7 +26,7 @@ class mutate_process::priv
     static port_t const port_input;
 };
 
-process::port_t const mutate_process::priv::port_input = process::port_t("mutate");
+process::port_t const mutate_process::priv::port_input = port_t("mutate");
 
 mutate_process
 ::mutate_process(config_t const& config)
