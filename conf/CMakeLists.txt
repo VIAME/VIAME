@@ -16,7 +16,8 @@ vistk_configure_file(vistk-config.cmake
   vistk_version
   VISTK_ENABLE_PYTHON
   VISTK_ENABLE_PYTHON3
-  PYTHON_EXECUTABLE)
+  PYTHON_EXECUTABLE
+  BUILD_SHARED_LIBS)
 
 set(vistk_config_install_file "${vistk_binary_dir}/vistk-config-install.cmake")
 vistk_configure_file(vistk-config-install.cmake
@@ -27,7 +28,8 @@ vistk_configure_file(vistk-config-install.cmake
   vistk_version
   VISTK_ENABLE_PYTHON
   VISTK_ENABLE_PYTHON3
-  PYTHON_EXECUTABLE)
+  PYTHON_EXECUTABLE
+  BUILD_SHARED_LIBS)
 
 if (WIN32)
   set(cmakedir cmake)
