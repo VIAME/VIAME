@@ -44,10 +44,14 @@ vistk_configure_file(vistk-macros.cmake
 
 # Configure the CMake EXPORT file during installation
 install(
-  FILES       "${vistk_config_install_file}"
-              "${vistk_macros_file}"
+  FILES       "${vistk_macros_file}"
   DESTINATION "${cmakedir}"
   COMPONENT   development)
+install(
+  FILES       "${vistk_config_install_file}"
+  DESTINATION "${cmakedir}"
+  COMPONENT   development
+  RENAME      vistk-config.cmake)
 install(
   EXPORT      vistk_exports
   DESTINATION "${cmakedir}"
