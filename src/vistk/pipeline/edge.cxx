@@ -45,7 +45,7 @@ edge_datum_t
 
 bool
 edge_datum_t
-::operator == (edge_datum_t const& rhs)
+::operator == (edge_datum_t const& rhs) const
 {
   return (( datum ==  rhs.datum) &&
           (*stamp == *rhs.stamp));

@@ -59,7 +59,7 @@ class VISTK_PIPELINE_EXPORT edge_datum_t
      *
      * \returns True if \p a and \p b are the same, false otherwise.
      */
-    bool operator == (edge_datum_t const& rhs);
+    bool operator == (edge_datum_t const& rhs) const;
 
     /// The datum on the edge.
     datum_t datum;
