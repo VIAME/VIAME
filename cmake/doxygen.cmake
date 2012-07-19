@@ -38,7 +38,8 @@ function (create_doxygen inputdir name)
     add_custom_target(doxygen-${name}-dir)
     add_custom_command(
       TARGET  doxygen-${name}-dir
-      COMMAND cmake -E make_directory "${vistk_binary_dir}/doc/${name}"
+      COMMAND "${CMAKE_COMMAND}" -E make_directory
+              "${vistk_binary_dir}/doc/${name}"
       COMMENT "Creating documentation directory for ${name}")
     add_custom_target(doxygen-${name}-doxyfile)
     add_dependencies(doxygen-${name}-doxyfile
