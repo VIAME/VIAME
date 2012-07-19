@@ -115,6 +115,17 @@ set_source_files_properties(utils.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${utils_build_options}")
 
+set(scheduler_build_options)
+
+if (${Boost_VERSION} LESS 105000)
+  set(scheduler_build_options
+    "BOOST_NO_HAVE_REVERSE_LOCK")
+endif (${Boost_VERSION} LESS 105000)
+
+set_source_files_properties(scheduler.cxx
+  PROPERTIES
+    COMPILE_DEFINITIONS "${scheduler_build_options}")
+
 vistk_add_library(vistk_pipeline
   ${pipeline_srcs})
 target_link_libraries(vistk_pipeline

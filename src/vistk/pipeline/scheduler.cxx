@@ -10,7 +10,9 @@
 #include "pipeline.h"
 
 #include <boost/thread/locks.hpp>
+#ifndef BOOST_NO_HAVE_REVERSE_LOCK
 #include <boost/thread/reverse_lock.hpp>
+#endif
 #include <boost/thread/shared_mutex.hpp>
 
 /**
@@ -38,7 +40,9 @@ class scheduler::priv
     typedef boost::shared_mutex mutex_t;
     typedef boost::upgrade_lock<mutex_t> upgrade_lock_t;
     typedef boost::unique_lock<mutex_t> unique_lock_t;
+#ifndef BOOST_NO_HAVE_REVERSE_LOCK
     typedef boost::reverse_lock<unique_lock_t> reverse_unique_lock_t;
+#endif
     typedef boost::upgrade_to_unique_lock<mutex_t> upgrade_to_unique_lock_t;
 
     mutex_t mut;
@@ -100,11 +104,19 @@ scheduler
 
   // Allow many threads to wait on the scheduler.
   {
+#ifndef BOOST_NO_HAVE_REVERSE_LOCK
     priv::reverse_unique_lock_t const rev_lock(lock);
 
     (void)rev_lock;
+#else
+    lock.unlock();
+#endif
 
     _wait();
+
+#ifdef BOOST_NO_HAVE_REVERSE_LOCK
+    lock.lock();
+#endif
   }
 
   // After each thread, only one should call stop. Let threads through
