@@ -10,7 +10,7 @@
 #include <vistk/python/any_conversion/registration.h>
 
 #include <boost/python/class.hpp>
-#include <boost/python/make_constructor.hpp>
+#include <boost/python/def.hpp>
 #include <boost/python/module.hpp>
 #include <boost/make_shared.hpp>
 
@@ -40,12 +40,12 @@ static vistk::scoring_result_t result_add(vistk::scoring_result_t const& lhs, vi
 
 BOOST_PYTHON_MODULE(scoring_result)
 {
+  def("new_result", &new_result);
+  def("new_result", &new_result_def);
+
   class_<vistk::scoring_result_t>("ScoringResult"
     , "A result from a scoring algorithm."
     , no_init)
-    .def("__init__", make_constructor(new_result))
-    .def("__init__", make_constructor(new_result_def))
-    /// \todo Why do these not work?
     .def("true_positives", &result_true_positives)
     .def("false_positives", &result_false_positives)
     .def("total_trues", &result_total_trues)
