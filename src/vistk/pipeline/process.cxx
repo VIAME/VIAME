@@ -500,6 +500,12 @@ process
 
 void
 process
+::_flush()
+{
+}
+
+void
+process
 ::_step()
 {
 }
@@ -1435,6 +1441,7 @@ process::priv
     case datum::empty:
       return datum::empty_datum();
     case datum::flush:
+      q->_flush();
       return datum::flush_datum();
     case datum::complete:
       return datum::complete_datum();

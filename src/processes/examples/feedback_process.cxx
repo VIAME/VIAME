@@ -68,6 +68,8 @@ feedback_process
 ::_flush()
 {
   d->first = true;
+
+  process::_flush();
 }
 
 void
