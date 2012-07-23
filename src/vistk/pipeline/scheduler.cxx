@@ -73,7 +73,7 @@ scheduler
 
   if (d->running)
   {
-    /// \todo Throw exception.
+    throw restart_scheduler_exception();
   }
 
   priv::upgrade_to_unique_lock_t const write_lock(lock);
@@ -95,7 +95,7 @@ scheduler
 
   if (!d->running)
   {
-    /// \todo Throw an exception.
+    throw wait_before_start_exception();
   }
 
   // Allow many threads to wait on the scheduler.
@@ -123,7 +123,7 @@ scheduler
 
   if (!d->running)
   {
-    /// \todo Throw an exception.
+    throw pause_before_start_exception();
   }
 
   if (!d->paused)
@@ -148,7 +148,7 @@ scheduler
 
   if (d->paused)
   {
-    /// \todo Throw an exception.
+    throw resume_unpaused_scheduler_exception();
   }
 
   priv::upgrade_to_unique_lock_t const write_lock(lock);
@@ -168,7 +168,7 @@ scheduler
 
   if (!d->running)
   {
-    /// \todo Throw an exception.
+    throw stop_before_start_exception();
   }
 
   priv::upgrade_to_unique_lock_t const write_lock(lock);
