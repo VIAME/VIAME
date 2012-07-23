@@ -72,6 +72,7 @@ add_vistk_python_library(process_registry
 target_link_libraries(python-vistk.pipeline-process_registry
   vistk_pipeline
   vistk_python_util
+  python_exceptions
   python_threading
   ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
