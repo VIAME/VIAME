@@ -290,9 +290,11 @@ endif (VISTK_ENABLE_PYTHON)
 function (vistk_make_run_test group instance)
   foreach (scheduler ${schedulers})
     if (VISTK_ENABLE_PYTHON)
-      if (${scheduler} STREQUAL "pythread_per_process")
+      if (${scheduler} STREQUAL "pythread_per_process" OR
+          ${instance} STREQUAL "pysimple_pipeline")
         set(test_environment "PYTHONPATH=${python_module_path}${cur_python_path}")
-      endif (${scheduler} STREQUAL "pythread_per_process")
+      endif (${scheduler} STREQUAL "pythread_per_process" OR
+             ${instance} STREQUAL "pysimple_pipeline")
     endif (VISTK_ENABLE_PYTHON)
 
     vistk_make_test(${group} ${instance}-${scheduler})
@@ -302,5 +304,8 @@ function (vistk_make_run_test group instance)
 endfunction (vistk_make_run_test group instance)
 
 vistk_make_run_test(run simple_pipeline)
+if (VISTK_ENABLE_PYTHON)
+  vistk_make_run_test(run pysimple_pipeline)
+endif (VISTK_ENABLE_PYTHON)
 vistk_make_run_test(run multiplier_pipeline)
 vistk_make_run_test(run multiplier_cluster_pipeline)
