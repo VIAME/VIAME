@@ -75,7 +75,7 @@ class VISTK_PIPELINE_EXPORT stamp
   private:
     typedef uint64_t index_t;
 
-    stamp(increment_t increment, index_t index);
+    VISTK_PIPELINE_NO_EXPORT stamp(increment_t increment, index_t index);
 
     increment_t const m_increment;
     index_t const m_index;
