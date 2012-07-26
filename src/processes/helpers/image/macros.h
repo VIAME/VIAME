@@ -22,11 +22,11 @@
   }
 
 #define SPECIFY_INT_FUNCTION(function)     \
-  TYPE_CHECK(bool, bool, function)         \
+       TYPE_CHECK(bool, bool, function)    \
   else TYPE_CHECK(uint8_t, byte, function)
 
 #define SPECIFY_FUNCTION(function)         \
-  SPECIFY_INT_FUNCTION(function)           \
+       SPECIFY_INT_FUNCTION(function)      \
   else TYPE_CHECK(float, float, function)  \
   else TYPE_CHECK(double, double, function)
 
