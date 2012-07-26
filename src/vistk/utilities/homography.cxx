@@ -177,20 +177,22 @@ homography<Source, Dest>
           (m_dest == h.m_dest));
 }
 
+}
+
 // Keep in sync with homography_types.h
-template class homography<timestamp, timestamp>;
-template class homography<timestamp, plane_ref_t>;
-template class homography<plane_ref_t, timestamp>;
-template class homography<timestamp, utm_zone_t>;
-template class homography<utm_zone_t, timestamp>;
-template class homography<plane_ref_t, utm_zone_t>;
-template class homography<utm_zone_t, plane_ref_t>;
+template class vistk::homography<vistk::timestamp, vistk::timestamp>;
+template class vistk::homography<vistk::timestamp, vistk::plane_ref_t>;
+template class vistk::homography<vistk::plane_ref_t, vistk::timestamp>;
+template class vistk::homography<vistk::timestamp, vistk::utm_zone_t>;
+template class vistk::homography<vistk::utm_zone_t, vistk::timestamp>;
+template class vistk::homography<vistk::plane_ref_t, vistk::utm_zone_t>;
+template class vistk::homography<vistk::utm_zone_t, vistk::plane_ref_t>;
 
 template <typename Source, typename Shared, typename Dest>
-homography<Source, Dest>
-operator * (homography<Shared, Dest> const& l, homography<Source, Shared> const& r)
+vistk::homography<Source, Dest>
+vistk::operator * (vistk::homography<Shared, Dest> const& l, vistk::homography<Source, Shared> const& r)
 {
-  homography<Source, Dest> result;
+  vistk::homography<Source, Dest> result;
 
   result.set_transform(l.transform() * r.transform());
   result.set_source(r.source());
@@ -270,16 +272,21 @@ operator * (homography<Shared, Dest> const& l, homography<Source, Shared> const&
   INSTANTIATE_MULT_RAW(Z, X, Y);      \
   INSTANTIATE_MULT_RAW(Z, Y, X)
 
+namespace vistk
+{
+
 // Instantiate all allowable types
-INSTANTIATE_SELF_MULT(timestamp);
-INSTANTIATE_SELF_MULT(plane_ref_t);
-INSTANTIATE_SELF_MULT(utm_zone_t);
+INSTANTIATE_SELF_MULT(vistk::timestamp);
+INSTANTIATE_SELF_MULT(vistk::plane_ref_t);
+INSTANTIATE_SELF_MULT(vistk::utm_zone_t);
 
-INSTANTIATE_DUAL_MULT(timestamp,   plane_ref_t);
-INSTANTIATE_DUAL_MULT(timestamp,   utm_zone_t);
-INSTANTIATE_DUAL_MULT(plane_ref_t, utm_zone_t);
+INSTANTIATE_DUAL_MULT(vistk::timestamp,   vistk::plane_ref_t);
+INSTANTIATE_DUAL_MULT(vistk::timestamp,   vistk::utm_zone_t);
+INSTANTIATE_DUAL_MULT(vistk::plane_ref_t, vistk::utm_zone_t);
 
-INSTANTIATE_TRIP_MULT(timestamp,   plane_ref_t, utm_zone_t);
+INSTANTIATE_TRIP_MULT(vistk::timestamp,   vistk::plane_ref_t, vistk::utm_zone_t);
+
+}
 
 #undef INSTANTIATE_MULT_RAW
 #undef INSTANTIATE_SELF_MULT
@@ -288,5 +295,3 @@ INSTANTIATE_TRIP_MULT(timestamp,   plane_ref_t, utm_zone_t);
 #undef INSTANTIATE_TRIP_MULT
 
 #endif // DOXYGEN_IGNORE
-
-}
