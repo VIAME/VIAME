@@ -266,7 +266,7 @@ operator * (homography<Shared, Dest> const& l, homography<Source, Shared> const&
   INSTANTIATE_MULT_RAW(X, Y, Z);      \
   INSTANTIATE_MULT_RAW(X, Z, Y);      \
   INSTANTIATE_MULT_RAW(Y, X, Z);      \
-  INSTANTIATE_MULT_RAW(Y, Z, Y);      \
+  INSTANTIATE_MULT_RAW(Y, Z, X);      \
   INSTANTIATE_MULT_RAW(Z, X, Y);      \
   INSTANTIATE_MULT_RAW(Z, Y, X)
 
