@@ -196,7 +196,7 @@ vistk::operator * (vistk::homography<Shared, Dest> const& l, vistk::homography<S
 
   result.set_transform(l.transform() * r.transform());
   result.set_source(r.source());
-  result.set_destination(l.dest());
+  result.set_destination(l.destination());
   result.set_valid(l.is_valid() && r.is_valid());
 
   return result;
