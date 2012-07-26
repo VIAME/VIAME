@@ -214,7 +214,7 @@ vistk::operator * (vistk::homography<Shared, Dest> const& l, vistk::homography<S
  * \param Z The destination type in the multiplication.
  */
 #define INSTANTIATE_MULT_RAW(X, Y, Z) \
-  template <> homography<X, Z> operator * <X, Y, Z>(homography<Y, Z> const&, homography<X, Y> const&)
+  template homography<X, Z> operator * <X, Y, Z>(homography<Y, Z> const&, homography<X, Y> const&)
 
 /**
  * \def INSTANTIATE_SELF_MULT
