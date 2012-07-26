@@ -4,10 +4,27 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#ifndef VISTK_IMAGE_INSTANTIATE_H
+#define VISTK_IMAGE_INSTANTIATE_H
+
 #include <boost/cstdint.hpp>
 
-#define VISTK_IMAGE_INSTANTIATE(cls) \
-  template class cls<bool>;          \
-  template class cls<uint8_t>;       \
-  template class cls<float>;         \
+/**
+ * \file image/instantiate.h
+ *
+ * \brief Types for instantiation of image library templates.
+ */
+
+#define VISTK_IMAGE_INSTANTIATE_INT(cls) \
+  template class cls<bool>;              \
+  template class cls<uint8_t>
+
+#define VISTK_IMAGE_INSTANTIATE_FLOAT(cls) \
+  template class cls<float>;               \
   template class cls<double>
+
+#define VISTK_IMAGE_INSTANTIATE(cls) \
+  VISTK_IMAGE_INSTANTIATE_INT(cls);  \
+  VISTK_IMAGE_INSTANTIATE_FLOAT(cls)
+
+#endif // VISTK_IMAGE_INSTANTIATE_H
