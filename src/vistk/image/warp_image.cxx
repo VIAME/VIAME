@@ -9,4 +9,10 @@
 
 #include "instantiate.h"
 
+/**
+ * \file warp_image.cxx
+ *
+ * \brief Instantiations of the function to warp images.
+ */
+
 VISTK_IMAGE_INSTANTIATE(vistk::warp_image);

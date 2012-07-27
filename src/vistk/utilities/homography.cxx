@@ -177,30 +177,44 @@ homography<Source, Dest>
           (m_dest == h.m_dest));
 }
 
+}
+
 // Keep in sync with homography_types.h
-template class homography<timestamp, timestamp>;
-template class homography<timestamp, plane_ref_t>;
-template class homography<plane_ref_t, timestamp>;
-template class homography<timestamp, utm_zone_t>;
-template class homography<utm_zone_t, timestamp>;
-template class homography<plane_ref_t, utm_zone_t>;
-template class homography<utm_zone_t, plane_ref_t>;
+template class vistk::homography<vistk::timestamp, vistk::timestamp>;
+template class vistk::homography<vistk::timestamp, vistk::plane_ref_t>;
+template class vistk::homography<vistk::plane_ref_t, vistk::timestamp>;
+template class vistk::homography<vistk::timestamp, vistk::utm_zone_t>;
+template class vistk::homography<vistk::utm_zone_t, vistk::timestamp>;
+template class vistk::homography<vistk::plane_ref_t, vistk::utm_zone_t>;
+template class vistk::homography<vistk::utm_zone_t, vistk::plane_ref_t>;
 
 template <typename Source, typename Shared, typename Dest>
-homography<Source, Dest>
-operator * (homography<Shared, Dest> const& l, homography<Source, Shared> const& r)
+vistk::homography<Source, Dest>
+vistk::operator * (vistk::homography<Shared, Dest> const& l, vistk::homography<Source, Shared> const& r)
 {
-  homography<Source, Dest> result;
+  vistk::homography<Source, Dest> result;
 
   result.set_transform(l.transform() * r.transform());
   result.set_source(r.source());
-  result.set_destination(l.dest());
+  result.set_destination(l.destination());
   result.set_valid(l.is_valid() && r.is_valid());
 
   return result;
 }
 
 #ifndef DOXYGEN_IGNORE
+
+/**
+ * \def INSTANTIATE_MULT_RAW
+ *
+ * \brief Instantiates multiplication with three distinct types.
+ *
+ * \param X The source type in the multiplication.
+ * \param Y The shared type in the multiplication.
+ * \param Z The destination type in the multiplication.
+ */
+#define INSTANTIATE_MULT_RAW(X, Y, Z) \
+  template homography<X, Z> operator * <X, Y, Z>(homography<Y, Z> const&, homography<X, Y> const&)
 
 /**
  * \def INSTANTIATE_SELF_MULT
@@ -210,7 +224,7 @@ operator * (homography<Shared, Dest> const& l, homography<Source, Shared> const&
  * \param X The reference plane for the multiplication.
  */
 #define INSTANTIATE_SELF_MULT(X) \
-  template <> homography<X, X> operator * <X, X, X>(homography<X, X> const&, homography<X, X> const&)
+  INSTANTIATE_MULT_RAW(X, X, X)
 
 /**
  * \def INSTANTIATE_DUAL_MULT_RAW
@@ -221,9 +235,9 @@ operator * (homography<Shared, Dest> const& l, homography<Source, Shared> const&
  * \param Y The second type in the multiplication.
  */
 #define INSTANTIATE_DUAL_MULT_RAW(X, Y) \
-  template <> homography<X, X> operator * <X, Y, X>(homography<Y, X> const&, homography<X, Y> const&); \
-  template <> homography<X, Y> operator * <X, X, Y>(homography<X, Y> const&, homography<X, X> const&); \
-  template <> homography<X, Y> operator * <X, Y, Y>(homography<Y, Y> const&, homography<X, Y> const&)
+  INSTANTIATE_MULT_RAW(X, Y, X);        \
+  INSTANTIATE_MULT_RAW(X, X, Y);        \
+  INSTANTIATE_MULT_RAW(X, Y, Y)
 
 /**
  * \def INSTANTIATE_DUAL_MULT
@@ -240,18 +254,6 @@ operator * (homography<Shared, Dest> const& l, homography<Source, Shared> const&
   INSTANTIATE_DUAL_MULT_RAW(Y, X)
 
 /**
- * \def INSTANTIATE_TRIP_MULT_RAW
- *
- * \brief Instantiates multiplication with three distinct types.
- *
- * \param X The source type in the multiplication.
- * \param Y The shared type in the multiplication.
- * \param Z The destination type in the multiplication.
- */
-#define INSTANTIATE_TRIP_MULT_RAW(X,Y,Z) \
-  template <> homography<X, Z> operator * <X, Y, Z>(homography<Y, Z> const&, homography<X, Y> const&)
-
-/**
  * \def INSTANTIATE_TRIP_MULT
  *
  * \brief Instantiates multiplication with three distinct types.
@@ -263,30 +265,33 @@ operator * (homography<Shared, Dest> const& l, homography<Source, Shared> const&
  * \param Z The third type in the multiplication.
  */
 #define INSTANTIATE_TRIP_MULT(X,Y,Z)  \
-  INSTANTIATE_TRIP_MULT_RAW(X, Y, Z); \
-  INSTANTIATE_TRIP_MULT_RAW(X, Z, Y); \
-  INSTANTIATE_TRIP_MULT_RAW(Y, X, Z); \
-  INSTANTIATE_TRIP_MULT_RAW(Y, Z, Y); \
-  INSTANTIATE_TRIP_MULT_RAW(Z, X, Y); \
-  INSTANTIATE_TRIP_MULT_RAW(Z, Y, X)
+  INSTANTIATE_MULT_RAW(X, Y, Z);      \
+  INSTANTIATE_MULT_RAW(X, Z, Y);      \
+  INSTANTIATE_MULT_RAW(Y, X, Z);      \
+  INSTANTIATE_MULT_RAW(Y, Z, X);      \
+  INSTANTIATE_MULT_RAW(Z, X, Y);      \
+  INSTANTIATE_MULT_RAW(Z, Y, X)
+
+namespace vistk
+{
 
 // Instantiate all allowable types
-INSTANTIATE_SELF_MULT(timestamp);
-INSTANTIATE_SELF_MULT(plane_ref_t);
-INSTANTIATE_SELF_MULT(utm_zone_t);
+INSTANTIATE_SELF_MULT(vistk::timestamp);
+INSTANTIATE_SELF_MULT(vistk::plane_ref_t);
+INSTANTIATE_SELF_MULT(vistk::utm_zone_t);
 
-INSTANTIATE_DUAL_MULT(timestamp,   plane_ref_t);
-INSTANTIATE_DUAL_MULT(timestamp,   utm_zone_t);
-INSTANTIATE_DUAL_MULT(plane_ref_t, utm_zone_t);
+INSTANTIATE_DUAL_MULT(vistk::timestamp,   vistk::plane_ref_t);
+INSTANTIATE_DUAL_MULT(vistk::timestamp,   vistk::utm_zone_t);
+INSTANTIATE_DUAL_MULT(vistk::plane_ref_t, vistk::utm_zone_t);
 
-INSTANTIATE_TRIP_MULT(timestamp,   plane_ref_t, utm_zone_t);
+INSTANTIATE_TRIP_MULT(vistk::timestamp,   vistk::plane_ref_t, vistk::utm_zone_t);
 
+}
+
+#undef INSTANTIATE_MULT_RAW
 #undef INSTANTIATE_SELF_MULT
 #undef INSTANTIATE_DUAL_MULT_RAW
 #undef INSTANTIATE_DUAL_MULT
-#undef INSTANTIATE_TRIP_MULT_RAW
 #undef INSTANTIATE_TRIP_MULT
 
 #endif // DOXYGEN_IGNORE
-
-}
