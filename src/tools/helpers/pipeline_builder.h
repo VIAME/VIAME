@@ -28,6 +28,7 @@ class pipeline_builder
 
     vistk::pipeline_t pipeline() const;
     vistk::config_t config() const;
+    vistk::pipe_blocks blocks() const;
   private:
     vistk::pipe_blocks m_blocks;
 };

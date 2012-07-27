@@ -121,3 +121,10 @@ pipeline_builder
 {
   return vistk::extract_configuration(m_blocks);
 }
+
+vistk::pipe_blocks
+pipeline_builder
+::blocks() const
+{
+  return m_blocks;
+}
