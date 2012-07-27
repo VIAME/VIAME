@@ -8,13 +8,13 @@
 #include "helpers/literal_pipeline.h"
 #include "helpers/tool_main.h"
 
-#include <vistk/utilities/path.h>
-
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/scheduler.h>
 #include <vistk/pipeline/scheduler_registry.h>
 #include <vistk/pipeline/pipeline.h>
+
+#include <vistk/utilities/path.h>
 
 #include <vistk/config.h>
 

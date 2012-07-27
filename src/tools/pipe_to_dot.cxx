@@ -9,12 +9,12 @@
 
 #include <vistk/pipeline_util/export_dot.h>
 
-#include <vistk/utilities/path.h>
-
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/types.h>
+
+#include <vistk/utilities/path.h>
 
 #include <vistk/config.h>
 

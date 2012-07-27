@@ -41,6 +41,13 @@ function (add_python_tool name)
   endif (VISTK_ENABLE_PYTHON)
 endfunction (add_python_tool)
 
+add_tool(pipe_config
+  pipeline_builder
+  vistk_pipeline
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
+
 add_tool(pipe_to_dot
   pipeline_builder
   vistk_pipeline
