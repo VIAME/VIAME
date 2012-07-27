@@ -18,5 +18,6 @@ def __vistk_register__():
         return
 
     reg.register_process('test_python_process', 'A test Python process', examples.TestPythonProcess)
+    reg.register_process('pyprint_number', 'A Python process which prints numbers', examples.PythonPrintNumberProcess)
 
     reg.mark_module_as_loaded(module_name)

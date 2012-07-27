@@ -8,7 +8,13 @@
 
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
+#if PY_VERSION_HEX >= 0x02070000
+#include <boost/python/import.hpp>
+#endif
 #include <boost/python/module.hpp>
+#if PY_VERSION_HEX >= 0x02070000
+#include <boost/python/scope.hpp>
+#endif
 
 /**
  * \file stamp.cxx
@@ -29,13 +35,25 @@ BOOST_PYTHON_MODULE(stamp)
     , (arg("stamp"))
     , "Creates a stamp that is greater than the given stamp.");
 
-  /// \todo Wrap with @total_ordering decorator.
   class_<vistk::stamp_t>("Stamp"
     , "An identifier to help synchronize data within the pipeline."
     , no_init)
     .def("__eq__", stamp_eq)
     .def("__lt__", stamp_lt)
   ;
+
+  // Equivalent to:
+  //   @total_ordering
+  //   class Stamp(object):
+  //       ...
+#if PY_VERSION_HEX >= 0x02070000
+  object const functools = import("functools");
+  object const total_ordering = functools.attr("total_ordering");
+
+  object const stamp = scope().attr("Stamp");
+
+  scope().attr("Stamp") = total_ordering(stamp);
+#endif
 }
 
 bool

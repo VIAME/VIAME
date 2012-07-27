@@ -33,6 +33,8 @@ using namespace boost::python;
 
 static vistk::process::property_t const property_python = vistk::process::property_t("_python");
 
+/// \todo How to do grab_input_as<>?
+
 class wrap_process
   : public vistk::process
   , public wrapper<vistk::process>

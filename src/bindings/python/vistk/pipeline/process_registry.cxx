@@ -4,6 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <python/helpers/python_exceptions.h>
 #include <python/helpers/python_threading.h>
 
 #include <vistk/pipeline/process.h>
@@ -176,5 +177,9 @@ python_process_wrapper
 
   (void)gil;
 
-  return extract<vistk::process_t>(m_obj(config));
+  object proc;
+
+  HANDLE_PYTHON_EXCEPTION(proc = m_obj(config))
+
+  return extract<vistk::process_t>(proc);
 }
