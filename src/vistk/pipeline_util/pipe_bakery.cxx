@@ -58,7 +58,7 @@ static config_provider_t const provider_system = config_provider_t("SYS");
 class pipe_bakery;
 static config_t extract_configuration(pipe_bakery& bakery);
 
-class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
+class pipe_bakery
   : public boost::static_visitor<>
 {
   public:
@@ -115,7 +115,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_bakery
     group_decls_t m_groups;
 };
 
-class VISTK_PIPELINE_UTIL_NO_EXPORT group_splitter
+class group_splitter
   : public boost::static_visitor<>
 {
   public:
@@ -134,7 +134,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT group_splitter
     output_maps_t m_outputs;
 };
 
-class VISTK_PIPELINE_UTIL_NO_EXPORT provider_dereferencer
+class provider_dereferencer
   : public boost::static_visitor<pipe_bakery::config_reference_t>
 {
   public:
@@ -149,7 +149,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT provider_dereferencer
     provider_map_t m_providers;
 };
 
-class VISTK_PIPELINE_UTIL_NO_EXPORT ensure_provided
+class ensure_provided
   : public boost::static_visitor<config::value_t>
 {
   public:
@@ -157,7 +157,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT ensure_provided
     config::value_t operator () (pipe_bakery::provider_request_t const& request) const;
 };
 
-class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider_sorter
+class config_provider_sorter
   : public boost::static_visitor<>
 {
   public:

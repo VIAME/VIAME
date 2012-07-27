@@ -125,9 +125,9 @@ class VISTK_PIPELINE_EXPORT datum
     template <typename T>
     T get_datum() const;
   private:
-    datum(type_t ty);
-    datum(error_t const& err);
-    datum(boost::any const& dat);
+    VISTK_PIPELINE_NO_EXPORT datum(type_t ty);
+    VISTK_PIPELINE_NO_EXPORT datum(error_t const& err);
+    VISTK_PIPELINE_NO_EXPORT datum(boost::any const& dat);
 
     type_t const m_type;
     error_t const m_error;

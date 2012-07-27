@@ -40,10 +40,6 @@ class datum;
 /// A typedef used to handle \link datum edge data\endlink.
 typedef boost::shared_ptr<datum const> datum_t;
 
-class dtor_registry;
-/// A typedef used to handle \link dtor_registry dtor registries\endlink.
-typedef boost::shared_ptr<dtor_registry> dtor_registry_t;
-
 class edge;
 /// A typedef used to handle \link edge edges\endlink.
 typedef boost::shared_ptr<edge> edge_t;

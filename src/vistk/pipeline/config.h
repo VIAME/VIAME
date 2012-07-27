@@ -206,10 +206,10 @@ class VISTK_PIPELINE_EXPORT config
     /// The magic group for global parameters.
     static key_t const global_value;
   private:
-    config(key_t const& name, config_t parent);
+    VISTK_PIPELINE_NO_EXPORT config(key_t const& name, config_t parent);
 
     boost::optional<value_t> find_value(key_t const& key) const;
-    value_t get_value(key_t const& key) const;
+    VISTK_PIPELINE_NO_EXPORT value_t get_value(key_t const& key) const;
 
     typedef std::map<key_t, value_t> store_t;
     typedef std::set<key_t> ro_list_t;
