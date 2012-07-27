@@ -41,22 +41,32 @@ class VISTK_PIPELINE_EXPORT scheduler
 
     /**
      * \brief Start execution.
+     *
+     * \throws restart_scheduler_exception Thrown when the scheduler was already started.
      */
     void start();
     /**
      * \brief Wait until execution is finished.
+     *
+     * \throws restart_scheduler_exception Thrown when the scheduler has not been started.
      */
     void wait();
     /**
      * \brief Pause execution.
+     *
+     * \throws pause_before_start_exception Thrown when the scheduler has not been started.
      */
     void pause();
     /**
      * \brief Resume execution.
+     *
+     * \throws resume_unpaused_scheduler_exception Thrown when the scheduler is not paused.
      */
     void resume();
     /**
      * \brief Stop execution of the pipeline.
+     *
+     * \throws stop_before_start_exception Thrown when the scheduler has not been started.
      */
     void stop();
   protected:

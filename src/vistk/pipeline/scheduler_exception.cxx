@@ -66,4 +66,100 @@ null_scheduler_pipeline_exception
 {
 }
 
+restart_scheduler_exception
+::restart_scheduler_exception() throw()
+  : scheduler_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A scheduler was restarted";
+
+  m_what = sstr.str();
+}
+
+restart_scheduler_exception
+::~restart_scheduler_exception() throw()
+{
+}
+
+wait_before_start_exception
+::wait_before_start_exception() throw()
+  : scheduler_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A scheduler was waited on before it was started";
+
+  m_what = sstr.str();
+}
+
+wait_before_start_exception
+::~wait_before_start_exception() throw()
+{
+}
+
+pause_before_start_exception
+::pause_before_start_exception() throw()
+  : scheduler_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A scheduler was paused before it was started";
+
+  m_what = sstr.str();
+}
+
+pause_before_start_exception
+::~pause_before_start_exception() throw()
+{
+}
+
+repause_scheduler_exception
+::repause_scheduler_exception() throw()
+  : scheduler_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A paused scheduler was paused";
+
+  m_what = sstr.str();
+}
+
+repause_scheduler_exception
+::~repause_scheduler_exception() throw()
+{
+}
+
+resume_unpaused_scheduler_exception
+::resume_unpaused_scheduler_exception() throw()
+  : scheduler_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "An unpaused scheduler was resumed";
+
+  m_what = sstr.str();
+}
+
+resume_unpaused_scheduler_exception
+::~resume_unpaused_scheduler_exception() throw()
+{
+}
+
+stop_before_start_exception
+::stop_before_start_exception() throw()
+  : scheduler_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A scheduler was stopped before it was started";
+
+  m_what = sstr.str();
+}
+
+stop_before_start_exception
+::~stop_before_start_exception() throw()
+{
+}
+
 }

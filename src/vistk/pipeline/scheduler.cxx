@@ -73,16 +73,14 @@ void
 scheduler
 ::start()
 {
-  priv::upgrade_lock_t lock(d->mut);
+  priv::unique_lock_t const lock(d->mut);
+
+  (void)lock;
 
   if (d->running)
   {
-    /// \todo Throw exception.
+    throw restart_scheduler_exception();
   }
-
-  priv::upgrade_to_unique_lock_t const write_lock(lock);
-
-  (void)write_lock;
 
   d->p->start();
 
@@ -99,7 +97,7 @@ scheduler
 
   if (!d->running)
   {
-    /// \todo Throw an exception.
+    throw wait_before_start_exception();
   }
 
   // Allow many threads to wait on the scheduler.
@@ -135,17 +133,17 @@ scheduler
 
   if (!d->running)
   {
-    /// \todo Throw an exception.
-  }
-
-  if (!d->paused)
-  {
-    /// \todo Throw an exception.
+    throw pause_before_start_exception();
   }
 
   priv::upgrade_to_unique_lock_t const write_lock(lock);
 
   (void)write_lock;
+
+  if (!d->paused)
+  {
+    throw repause_scheduler_exception();
+  }
 
   _pause();
 
@@ -156,16 +154,14 @@ void
 scheduler
 ::resume()
 {
-  priv::upgrade_lock_t lock(d->mut);
+  priv::unique_lock_t const lock(d->mut);
+
+  (void)lock;
 
   if (d->paused)
   {
-    /// \todo Throw an exception.
+    throw resume_unpaused_scheduler_exception();
   }
-
-  priv::upgrade_to_unique_lock_t const write_lock(lock);
-
-  (void)write_lock;
 
   _resume();
 
@@ -176,16 +172,14 @@ void
 scheduler
 ::stop()
 {
-  priv::upgrade_lock_t lock(d->mut);
+  priv::unique_lock_t const lock(d->mut);
+
+  (void)lock;
 
   if (!d->running)
   {
-    /// \todo Throw an exception.
+    throw stop_before_start_exception();
   }
-
-  priv::upgrade_to_unique_lock_t const write_lock(lock);
-
-  (void)write_lock;
 
   d->stop();
 }
