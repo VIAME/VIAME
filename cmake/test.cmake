@@ -85,17 +85,12 @@ if (GPROF_EXECUTABLE)
     gprof)
 endif (GPROF_EXECUTABLE)
 
-set(test_output_path
-  "${vistk_binary_dir}/bin")
 set(test_base_output_path
-  "${test_output_path}")
+  "${vistk_binary_dir}/bin")
+set(test_output_path
+  "${test_base_output_path}/${CMAKE_CFG_INTDIR}")
 set(test_working_path
   "${vistk_binary_dir}/tests")
-
-if (WIN32)
-  set(test_output_path
-    "${test_output_path}/${CMAKE_CFG_INTDIR}")
-endif (WIN32)
 
 set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
 
