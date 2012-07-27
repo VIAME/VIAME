@@ -20,6 +20,7 @@
 #include <boost/any.hpp>
 #include <boost/cstdint.hpp>
 
+#include <limits>
 #include <string>
 
 /**
@@ -81,7 +82,7 @@ BOOST_PYTHON_MODULE(datum)
   vistk::python::register_type<double>(4);
 
   // At worst, pass the object itself through.
-  vistk::python::register_type<object>(100);
+  vistk::python::register_type<object>(std::numeric_limits<vistk::python::priority_t>::max());
 
   implicitly_convertible<boost::any, object>();
   implicitly_convertible<object, boost::any>();
