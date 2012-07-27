@@ -483,6 +483,11 @@ class VISTK_PIPELINE_EXPORT process
     virtual void _reset();
 
     /**
+     * \brief Flush logic for subclasses.
+     */
+    virtual void _flush();
+
+    /**
      * \brief Method where subclass data processing occurs.
      */
     virtual void _step();
