@@ -22,18 +22,24 @@ endif (DOXYGEN_FOUND)
 
 function (create_doxygen inputdir name)
   if (VISTK_ENABLE_DOCUMENTATION)
-    set(tag_files)
+    set(doxy_project_source_dir
+      "${inputdir}")
+    set(doxy_documentation_output_path
+      "${vistk_binary_dir}/doc")
+    set(doxy_project_name
+      "${name}")
+    set(doxy_tag_files)
     set(tag_targets)
 
     foreach (tag ${ARGN})
-      set(tag_files
-        ${tag_files} "${vistk_binary_dir}/doc/${tag}.tag=../${tag}")
+      set(doxy_tag_files
+        ${doxy_tag_files} "${vistk_binary_dir}/doc/${tag}.tag=../${tag}")
       set(tag_targets
         ${tag_targets}
         doxygen-${tag}-tag)
     endforeach (tag)
 
-    string(REPLACE ";" " " tag_files "${tag_files}")
+    string(REPLACE ";" " " doxy_tag_files "${doxy_tag_files}")
 
     add_custom_target(doxygen-${name}-dir)
     add_custom_command(
@@ -41,38 +47,47 @@ function (create_doxygen inputdir name)
       COMMAND "${CMAKE_COMMAND}" -E make_directory
               "${vistk_binary_dir}/doc/${name}"
       COMMENT "Creating documentation directory for ${name}")
-    add_custom_target(doxygen-${name}-doxyfile)
-    add_dependencies(doxygen-${name}-doxyfile
-      doxygen-${name}-dir)
-    add_custom_command(
-      TARGET  doxygen-${name}-doxyfile
-      COMMAND "${CMAKE_COMMAND}"
-              -D "DOXYGEN_TEMPLATE=${vistk_source_dir}/cmake/Doxyfile.in"
-              -D "DOXY_PROJECT_SOURCE_DIR=${inputdir}"
-              -D "DOXY_DOCUMENTATION_OUTPUT_PATH=${vistk_binary_dir}/doc"
-              -D "DOXY_PROJECT_NAME=${name}"
-              -D "DOXY_TAG_FILES=\"${tag_files}\""
-              -D "DOXY_EXCLUDE_PATTERNS=${DOXY_EXCLUDE_PATTERNS}"
-              -P "${vistk_source_dir}/cmake/doxygen-script.cmake"
-      WORKING_DIRECTORY
-              "${vistk_binary_dir}/doc/${name}"
-      COMMENT "Generating Doxyfile for ${name}")
+    vistk_configure_file(${name}-doxyfile.common
+      "${vistk_source_dir}/cmake/Doxyfile.common.in"
+      "${vistk_binary_dir}/doc/${name}/Doxyfile.common"
+      doxy_project_source_dir
+      doxy_documentation_output_path
+      doxy_project_name
+      doxy_tag_files
+      doxy_exclude_patterns)
+    vistk_configure_file(${name}-doxyfile.tag
+      "${vistk_source_dir}/cmake/Doxyfile.tag.in"
+      "${vistk_binary_dir}/doc/${name}/Doxyfile.tag"
+      doxy_documentation_output_path
+      doxy_project_name)
+    add_dependencies(configure-${name}-doxyfile.tag
+      configure-${name}-doxyfile.common)
+    vistk_configure_file(${name}-doxyfile
+      "${vistk_source_dir}/cmake/Doxyfile.in"
+      "${vistk_binary_dir}/doc/${name}/Doxyfile"
+      doxy_documentation_output_path
+      doxy_project_name)
+    add_dependencies(configure-${name}-doxyfile
+      configure-${name}-doxyfile.common)
     add_custom_target(doxygen-${name}-tag)
     add_dependencies(doxygen-${name}-tag
-      doxygen-${name}-doxyfile)
+      configure-${name}-doxyfile.tag)
     add_custom_command(
       TARGET  doxygen-${name}-tag
       COMMAND "${DOXYGEN_EXECUTABLE}"
+              "${vistk_binary_dir}/doc/${name}/Doxyfile.tag"
       WORKING_DIRECTORY
               "${vistk_binary_dir}/doc/${name}"
       COMMENT "Creating tag for ${name}")
     add_custom_target(doxygen-${name})
     add_dependencies(doxygen-${name}
+      configure-${name}-doxyfile
       doxygen-${name}-tag
       ${tag_targets})
     add_custom_command(
       TARGET  doxygen-${name}
       COMMAND "${DOXYGEN_EXECUTABLE}"
+              "${vistk_binary_dir}/doc/${name}/Doxyfile"
       WORKING_DIRECTORY
               "${vistk_binary_dir}/doc/${name}"
       COMMENT "Creating documentation for ${name}")
