@@ -47,6 +47,8 @@ class wrap_process
 
     void _base_reset();
 
+    void _base_flush();
+
     void _base_step();
 
     properties_t _base_properties() const;
@@ -69,6 +71,8 @@ class wrap_process
     void _init();
 
     void _reset();
+
+    void _flush();
 
     void _step();
 
@@ -309,6 +313,8 @@ BOOST_PYTHON_MODULE(process)
       , "Base class initialization.")
     .def("_base_reset", &wrap_process::_base_reset
       , "Base class reset.")
+    .def("_base_flush", &wrap_process::_base_flush
+      , "Base class flush.")
     .def("_base_step", &wrap_process::_base_step
       , "Base class step.")
     .def("_base_properties", &wrap_process::_base_properties
@@ -346,6 +352,8 @@ BOOST_PYTHON_MODULE(process)
       , "Initializes the process subclass.")
     .def("_reset", &wrap_process::_reset, &wrap_process::_base_reset
       , "Resets the process subclass.")
+    .def("_flush", &wrap_process::_flush, &wrap_process::_base_flush
+      , "Flushes the process subclass.")
     .def("_step", &wrap_process::_step, &wrap_process::_base_step
       , "Step the process subclass for one iteration.")
     .def("_properties", &wrap_process::_properties, &wrap_process::_base_properties
@@ -465,6 +473,13 @@ wrap_process
 ::_base_reset()
 {
   TRANSLATE_PYTHON_EXCEPTION(process::_reset())
+}
+
+void
+wrap_process
+::_base_flush()
+{
+  TRANSLATE_PYTHON_EXCEPTION(process::_flush())
 }
 
 void
@@ -605,6 +620,28 @@ wrap_process
   }
 
   _base_reset();
+}
+
+void
+wrap_process
+::_flush()
+{
+  {
+    vistk::python::python_gil const gil;
+
+    (void)gil;
+
+    override const f = get_override("_flush");
+
+    if (f)
+    {
+      HANDLE_PYTHON_EXCEPTION(f())
+
+      return;
+    }
+  }
+
+  _base_flush();
 }
 
 void
