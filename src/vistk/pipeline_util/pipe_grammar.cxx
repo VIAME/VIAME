@@ -123,7 +123,7 @@ static token_t const provider_close = token_t("}");
 }
 
 template<typename Iterator>
-class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
+class pipe_grammar
   : public qi::grammar<Iterator, pipe_blocks()>
 {
   public:
@@ -181,7 +181,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT pipe_grammar
     qi::rule<Iterator, pipe_blocks()> block_set;
 };
 
-class VISTK_PIPELINE_UTIL_NO_EXPORT printer
+class printer
 {
   public:
     typedef utf8_string string;
