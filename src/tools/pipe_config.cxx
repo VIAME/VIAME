@@ -6,6 +6,7 @@
 
 #include "helpers/pipeline_builder.h"
 #include "helpers/tool_main.h"
+#include "helpers/tool_usage.h"
 
 #include <vistk/pipeline_util/pipe_declaration_types.h>
 
@@ -15,8 +16,6 @@
 #include <vistk/pipeline/types.h>
 
 #include <vistk/utilities/path.h>
-
-#include <vistk/config.h>
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -38,7 +37,6 @@
 namespace po = boost::program_options;
 
 static po::options_description make_options();
-static void VISTK_NO_RETURN usage(po::options_description const& options);
 
 class config_printer
   : public boost::static_visitor<>
@@ -75,20 +73,20 @@ tool_main(int argc, char* argv[])
   {
     std::cerr << "Error: unknown option " << e.get_option_name() << std::endl;
 
-    usage(desc);
+    tool_usage(EXIT_FAILURE, desc);
   }
   po::notify(vm);
 
   if (vm.count("help"))
   {
-    usage(desc);
+    tool_usage(EXIT_SUCCESS, desc);
   }
 
   if (!vm.count("input"))
   {
     std::cerr << "Error: input not set" << std::endl;
 
-    usage(desc);
+    tool_usage(EXIT_FAILURE, desc);
   }
 
   vistk::pipeline_t pipe;
@@ -202,14 +200,6 @@ make_options()
   ;
 
   return desc;
-}
-
-void
-usage(po::options_description const& options)
-{
-  std::cerr << options << std::endl;
-
-  exit(EXIT_FAILURE);
 }
 
 config_printer

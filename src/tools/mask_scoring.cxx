@@ -7,6 +7,7 @@
 #include "helpers/pipeline_builder.h"
 #include "helpers/literal_pipeline.h"
 #include "helpers/tool_main.h"
+#include "helpers/tool_usage.h"
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
@@ -15,8 +16,6 @@
 #include <vistk/pipeline/pipeline.h>
 
 #include <vistk/utilities/path.h>
-
-#include <vistk/config.h>
 
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/bind.hpp>
@@ -35,7 +34,6 @@ namespace po = boost::program_options;
 static vistk::config::key_t const scheduler_block = vistk::config::key_t("_scheduler");
 
 static po::options_description make_options();
-static void VISTK_NO_RETURN usage(po::options_description const& options);
 
 static std::string base_pipeline();
 static std::string layer_connection(std::string const& layer);
@@ -56,19 +54,20 @@ tool_main(int argc, char* argv[])
   {
     std::cerr << "Error: unknown option " << e.get_option_name() << std::endl;
 
-    usage(desc);
+    tool_usage(EXIT_FAILURE, desc);
   }
   po::notify(vm);
 
   if (vm.count("help"))
   {
-    usage(desc);
+    tool_usage(EXIT_SUCCESS, desc);
   }
 
   if (!vm.count("layer"))
   {
     std::cerr << "Error: there must be at least one layer to read" << std::endl;
-    usage(desc);
+
+    tool_usage(EXIT_FAILURE, desc);
   }
 
   vistk::pipeline_t pipe;
@@ -205,14 +204,6 @@ make_options()
   ;
 
   return desc;
-}
-
-void
-usage(po::options_description const& options)
-{
-  std::cerr << options << std::endl;
-
-  exit(EXIT_FAILURE);
 }
 
 std::string
