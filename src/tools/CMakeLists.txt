@@ -43,6 +43,7 @@ endfunction ()
 
 add_tool(pipe_config
   pipeline_builder
+  tool_usage
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
@@ -50,6 +51,7 @@ add_tool(pipe_config
 
 add_tool(pipe_to_dot
   pipeline_builder
+  tool_usage
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
@@ -57,12 +59,14 @@ add_tool(pipe_to_dot
 
 add_tool(pipeline_runner
   pipeline_builder
+  tool_usage
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
 add_tool(processopedia
+  tool_usage
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
@@ -70,6 +74,7 @@ add_tool(processopedia
 
 add_tool(mask_scoring
   pipeline_builder
+  tool_usage
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}

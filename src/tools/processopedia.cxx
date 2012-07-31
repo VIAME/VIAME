@@ -5,6 +5,7 @@
  */
 
 #include "helpers/tool_main.h"
+#include "helpers/tool_usage.h"
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
@@ -12,52 +13,34 @@
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/process_registry_exception.h>
 
-#include <vistk/config.h>
-
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/program_options/value_semantic.hpp>
+#include <boost/program_options/variables_map.hpp>
 #include <boost/foreach.hpp>
-#include <boost/program_options.hpp>
 
 #include <iostream>
 #include <string>
 
 #include <cstdlib>
 
-namespace po = boost::program_options;
-
 static std::string const hidden_prefix = "_";
 
-static po::options_description make_options();
-static void VISTK_NO_RETURN usage(po::options_description const& options);
+static boost::program_options::options_description processopedia_options();
 
 int
 tool_main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
-  po::options_description const desc = make_options();
+  boost::program_options::options_description desc;
+  desc
+    .add(tool_common_options())
+    .add(processopedia_options());
 
-  po::variables_map vm;
-  try
-  {
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-  }
-  catch (po::unknown_option const& e)
-  {
-    std::cerr << "Error: unknown option " << e.get_option_name() << std::endl;
+  boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
 
-    usage(desc);
-  }
-  po::notify(vm);
-
-  if (vm.count("help"))
-  {
-    usage(desc);
-  }
-
-  vistk::process_registry_t reg = vistk::process_registry::self();
+  vistk::process_registry_t const reg = vistk::process_registry::self();
 
   vistk::process::types_t types;
 
@@ -80,7 +63,7 @@ tool_main(int argc, char* argv[])
     return EXIT_SUCCESS;
   }
 
-  po::variables_map::const_iterator const i = vm.find("hidden");
+  boost::program_options::variables_map::const_iterator const i = vm.find("hidden");
   bool const hidden = (i != vm.end());
 
   BOOST_FOREACH (vistk::process::type_t const& proc_type, types)
@@ -192,26 +175,17 @@ tool_main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-po::options_description
-make_options()
+boost::program_options::options_description
+processopedia_options()
 {
-  po::options_description desc;
+  boost::program_options::options_description desc;
 
   desc.add_options()
-    ("help,h", "output help message and quit")
-    ("type,t", po::value<vistk::process::types_t>()->value_name("TYPE"), "type to describe")
+    ("type,t", boost::program_options::value<vistk::process::types_t>()->value_name("TYPE"), "type to describe")
     ("list,l", "simply list types")
     ("hidden,H", "show hidden properties")
     ("detail,d", "output detailed information")
   ;
 
   return desc;
-}
-
-void
-usage(po::options_description const& options)
-{
-  std::cerr << options << std::endl;
-
-  exit(EXIT_FAILURE);
 }

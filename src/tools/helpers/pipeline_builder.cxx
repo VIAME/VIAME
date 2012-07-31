@@ -12,16 +12,67 @@
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/scheduler_registry.h>
+
+#include <vistk/utilities/path.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/value_semantic.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <boost/bind.hpp>
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace
 {
 
 static std::string const split_str = "=";
 
+}
+
+pipeline_builder
+::pipeline_builder(boost::program_options::variables_map const& vm)
+{
+  {
+    std::istream* pistr;
+    std::ifstream fin;
+
+    vistk::path_t const ipath = vm["pipeline"].as<vistk::path_t>();
+
+    if (ipath.native() == vistk::path_t("-"))
+    {
+      pistr = &std::cin;
+    }
+    else
+    {
+      fin.open(ipath.native().c_str());
+
+      if (!fin.good())
+      {
+        static std::string const reason = "Unable to open input file";
+
+        throw std::runtime_error(reason);
+      }
+
+      pistr = &fin;
+    }
+
+    std::istream& istr = *pistr;
+
+    /// \todo Include paths?
+
+    load_pipeline(istr);
+  }
+
+  load_from_options(vm);
 }
 
 pipeline_builder
@@ -39,6 +90,27 @@ pipeline_builder
 ::load_pipeline(std::istream& istr)
 {
   m_blocks = vistk::load_pipe_blocks(istr, boost::filesystem::current_path());
+}
+
+void
+pipeline_builder
+::load_from_options(boost::program_options::variables_map const& vm)
+{
+  // Load supplemental configuration files.
+  if (vm.count("config"))
+  {
+    vistk::paths_t const configs = vm["config"].as<vistk::paths_t>();
+
+    std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, this, _1));
+  }
+
+  // Insert lone setting variables from the command line.
+  if (vm.count("setting"))
+  {
+    std::vector<std::string> const settings = vm["setting"].as<std::vector<std::string> >();
+
+    std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, this, _1));
+  }
 }
 
 void
@@ -127,4 +199,54 @@ pipeline_builder
 ::blocks() const
 {
   return m_blocks;
+}
+
+boost::program_options::options_description
+pipeline_common_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("config,c", boost::program_options::value<vistk::paths_t>()->value_name("FILE"), "supplemental configuration file")
+    ("setting,s", boost::program_options::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
+    ("include,I", boost::program_options::value<vistk::paths_t>()->value_name("DIR"), "configuration include path")
+  ;
+
+  return desc;
+}
+
+boost::program_options::options_description
+pipeline_input_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("pipeline,p", boost::program_options::value<vistk::path_t>()->value_name("FILE"), "pipeline")
+  ;
+
+  return desc;
+}
+
+boost::program_options::options_description
+pipeline_output_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("output,o", boost::program_options::value<vistk::path_t>()->value_name("FILE")->default_value("-"), "output path")
+  ;
+
+  return desc;
+}
+
+boost::program_options::options_description
+pipeline_run_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("scheduler,S", boost::program_options::value<vistk::scheduler_registry::type_t>()->value_name("TYPE"), "scheduler type")
+  ;
+
+  return desc;
 }

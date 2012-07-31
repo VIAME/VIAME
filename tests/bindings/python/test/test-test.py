@@ -12,18 +12,22 @@ def raise_exception():
 def main(testname):
     if testname == 'return_code':
         import sys
+
         sys.exit(1)
     elif testname == 'error_string':
         test_error("an error")
     elif testname == 'error_string_mid':
         import sys
+
         sys.stderr.write('Test')
         test_error("an error")
     elif testname == 'error_string_stdout':
         import sys
+
         sys.stdout.write("Error: an error\n")
     elif testname == 'error_string_second_line':
         import sys
+
         sys.stderr.write('Not an error\n')
         test_error("an error")
     elif testname == 'expected_exception':

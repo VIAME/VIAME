@@ -6,6 +6,7 @@
 
 #include "helpers/pipeline_builder.h"
 #include "helpers/tool_main.h"
+#include "helpers/tool_usage.h"
 
 #include <vistk/pipeline_util/pipe_declaration_types.h>
 
@@ -16,29 +17,17 @@
 
 #include <vistk/utilities/path.h>
 
-#include <vistk/config.h>
-
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/program_options/value_semantic.hpp>
-#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
-#include <boost/program_options.hpp>
 #include <boost/variant.hpp>
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <vector>
 
 #include <cstdlib>
-
-namespace po = boost::program_options;
-
-static po::options_description make_options();
-static void VISTK_NO_RETURN usage(po::options_description const& options);
 
 class config_printer
   : public boost::static_visitor<>
@@ -64,89 +53,27 @@ tool_main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
-  po::options_description const desc = make_options();
+  boost::program_options::options_description desc;
+  desc
+    .add(tool_common_options())
+    .add(pipeline_common_options())
+    .add(pipeline_input_options())
+    .add(pipeline_output_options());
 
-  po::variables_map vm;
-  try
-  {
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-  }
-  catch (po::unknown_option const& e)
-  {
-    std::cerr << "Error: unknown option " << e.get_option_name() << std::endl;
+  boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
 
-    usage(desc);
-  }
-  po::notify(vm);
-
-  if (vm.count("help"))
+  if (!vm.count("pipeline"))
   {
-    usage(desc);
+    std::cerr << "Error: pipeline not set" << std::endl;
+
+    tool_usage(EXIT_FAILURE, desc);
   }
 
-  if (!vm.count("input"))
-  {
-    std::cerr << "Error: input not set" << std::endl;
+  pipeline_builder const builder(vm);
 
-    usage(desc);
-  }
-
-  vistk::pipeline_t pipe;
-  vistk::config_t config;
-  vistk::pipe_blocks blocks;
-
-  {
-    std::istream* pistr;
-    std::ifstream fin;
-
-    vistk::path_t const ipath = vm["input"].as<vistk::path_t>();
-
-    if (ipath.native() == vistk::path_t("-"))
-    {
-      pistr = &std::cin;
-    }
-    else
-    {
-      fin.open(ipath.native().c_str());
-
-      if (!fin.good())
-      {
-        std::cerr << "Error: Unable to open input file" << std::endl;
-
-        return EXIT_FAILURE;
-      }
-
-      pistr = &fin;
-    }
-
-    std::istream& istr = *pistr;
-
-    /// \todo Include paths?
-
-    pipeline_builder builder;
-
-    builder.load_pipeline(istr);
-
-    // Load supplemental configuration files.
-    if (vm.count("config"))
-    {
-      vistk::paths_t const configs = vm["config"].as<vistk::paths_t>();
-
-      std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, &builder, _1));
-    }
-
-    // Insert lone setting variables from the command line.
-    if (vm.count("setting"))
-    {
-      std::vector<std::string> const settings = vm["setting"].as<std::vector<std::string> >();
-
-      std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, &builder, _1));
-    }
-
-    pipe = builder.pipeline();
-    config = builder.config();
-    blocks = builder.blocks();
-  }
+  vistk::pipeline_t const pipe = builder.pipeline();
+  vistk::config_t const config = builder.config();
+  vistk::pipe_blocks const blocks = builder.blocks();
 
   if (!pipe)
   {
@@ -185,31 +112,6 @@ tool_main(int argc, char* argv[])
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(printer));
 
   return EXIT_SUCCESS;
-}
-
-po::options_description
-make_options()
-{
-  po::options_description desc;
-
-  desc.add_options()
-    ("help,h", "output help message and quit")
-    ("input,i", po::value<vistk::path_t>()->value_name("FILE"), "input path")
-    ("output,o", po::value<vistk::path_t>()->value_name("FILE")->default_value("-"), "output path")
-    ("config,c", po::value<vistk::paths_t>()->value_name("FILE"), "supplemental configuration file")
-    ("setting,s", po::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
-    ("include,I", po::value<vistk::paths_t>()->value_name("DIR"), "configuration include path")
-  ;
-
-  return desc;
-}
-
-void
-usage(po::options_description const& options)
-{
-  std::cerr << options << std::endl;
-
-  exit(EXIT_FAILURE);
 }
 
 config_printer
