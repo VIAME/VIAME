@@ -22,7 +22,6 @@
 #     group targets based on `testname'. The test instance is automatically
 #     passed as the first argument to the test.
 
-enable_testing()
 include(CTest)
 
 add_custom_target(tooling)
