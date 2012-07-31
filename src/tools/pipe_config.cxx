@@ -21,15 +21,11 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/program_options/value_semantic.hpp>
-#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <vector>
 
 #include <cstdlib>
 
@@ -73,62 +69,11 @@ tool_main(int argc, char* argv[])
     tool_usage(EXIT_FAILURE, desc);
   }
 
-  vistk::pipeline_t pipe;
-  vistk::config_t config;
-  vistk::pipe_blocks blocks;
+  pipeline_builder const builder(vm);
 
-  {
-    std::istream* pistr;
-    std::ifstream fin;
-
-    vistk::path_t const ipath = vm["input"].as<vistk::path_t>();
-
-    if (ipath.native() == vistk::path_t("-"))
-    {
-      pistr = &std::cin;
-    }
-    else
-    {
-      fin.open(ipath.native().c_str());
-
-      if (!fin.good())
-      {
-        std::cerr << "Error: Unable to open input file" << std::endl;
-
-        return EXIT_FAILURE;
-      }
-
-      pistr = &fin;
-    }
-
-    std::istream& istr = *pistr;
-
-    /// \todo Include paths?
-
-    pipeline_builder builder;
-
-    builder.load_pipeline(istr);
-
-    // Load supplemental configuration files.
-    if (vm.count("config"))
-    {
-      vistk::paths_t const configs = vm["config"].as<vistk::paths_t>();
-
-      std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, &builder, _1));
-    }
-
-    // Insert lone setting variables from the command line.
-    if (vm.count("setting"))
-    {
-      std::vector<std::string> const settings = vm["setting"].as<std::vector<std::string> >();
-
-      std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, &builder, _1));
-    }
-
-    pipe = builder.pipeline();
-    config = builder.config();
-    blocks = builder.blocks();
-  }
+  vistk::pipeline_t const pipe = builder.pipeline();
+  vistk::config_t const config = builder.config();
+  vistk::pipe_blocks const blocks = builder.blocks();
 
   if (!pipe)
   {

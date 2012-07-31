@@ -17,7 +17,6 @@
 
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
-#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 
 #include <fstream>
@@ -103,27 +102,10 @@ tool_main(int argc, char* argv[])
       return EXIT_SUCCESS;
     }
 
-    /// \todo Include paths?
-
     pipeline_builder builder;
 
     builder.load_pipeline(sstr);
-
-    // Load supplemental configuration files.
-    if (vm.count("config"))
-    {
-      vistk::paths_t const configs = vm["config"].as<vistk::paths_t>();
-
-      std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, &builder, _1));
-    }
-
-    // Insert lone setting variables from the command line.
-    if (vm.count("setting"))
-    {
-      std::vector<std::string> const settings = vm["setting"].as<std::vector<std::string> >();
-
-      std::for_each(settings.begin(), settings.end(), boost::bind(&pipeline_builder::add_setting, &builder, _1));
-    }
+    builder.load_from_options(vm);
 
     if (vm.count("name"))
     {

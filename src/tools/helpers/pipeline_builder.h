@@ -14,6 +14,7 @@
 #include <vistk/utilities/path.h>
 
 #include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
 
 #include <istream>
 #include <string>
@@ -21,10 +22,14 @@
 class pipeline_builder
 {
   public:
+    pipeline_builder(boost::program_options::variables_map const& vm);
     pipeline_builder();
     ~pipeline_builder();
 
     void load_pipeline(std::istream& istr);
+
+    void load_from_options(boost::program_options::variables_map const& vm);
+
     void load_supplement(vistk::path_t const& path);
     void add_setting(std::string const& setting);
 
