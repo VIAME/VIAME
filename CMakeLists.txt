@@ -2,6 +2,9 @@ project(vistk)
 
 cmake_minimum_required(VERSION 2.8)
 
+option(VISTK_USE_BUILD_TREE "Whether the build tree should be used for default paths" ON)
+mark_as_advanced(VISTK_USE_BUILD_TREE)
+
 set(vistk_version_major 0)
 set(vistk_version_minor 1)
 set(vistk_version_patch 0)

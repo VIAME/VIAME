@@ -29,8 +29,13 @@ endif ()
 
 set(vistk_default_pipe_include_paths
   "${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
-set(vistk_default_pipe_include_paths
-  "${vistk_default_pipe_include_paths}${path_sep}${vistk_source_dir}/src/tools/pipelines/include")
+
+option(VISTK_USE_BUILD_INCLUDE_PATHS "Whether to use the build tree for the default include path" ${VISTK_USE_BUILD_TREE})
+mark_as_advanced(VISTK_USE_BUILD_INCLUDE_PATHS)
+if (VISTK_USE_BUILD_INCLUDE_PATHS)
+  set(vistk_default_pipe_include_paths
+    "${vistk_default_pipe_include_paths}${path_sep}${vistk_source_dir}/src/tools/pipelines/include")
+endif ()
 
 set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
   CACHE STRING "The default paths to search for pipe includes in")

@@ -60,8 +60,12 @@ else ()
   set(path_sep ":")
 endif ()
 
-set(vistk_default_module_paths
-  "${vistk_default_module_paths}${path_sep}${module_output_path}")
+option(VISTK_USE_BUILD_MODULE_PATHS "Whether to use the build tree for the default module path" ${VISTK_USE_BUILD_TREE})
+mark_as_advanced(VISTK_USE_BUILD_MODULE_PATHS)
+if (VISTK_USE_BUILD_MODULE_PATHS)
+  set(vistk_default_module_paths
+    "${vistk_default_module_paths}${path_sep}${module_output_path}")
+endif ()
 
 set(vistk_path_prefix)
 
