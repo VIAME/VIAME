@@ -12,10 +12,18 @@
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/scheduler_registry.h>
+
+#include <vistk/utilities/path.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/value_semantic.hpp>
+
+#include <string>
+#include <vector>
 
 namespace
 {
@@ -127,4 +135,54 @@ pipeline_builder
 ::blocks() const
 {
   return m_blocks;
+}
+
+boost::program_options::options_description
+pipeline_common_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("config,c", boost::program_options::value<vistk::paths_t>()->value_name("FILE"), "supplemental configuration file")
+    ("setting,s", boost::program_options::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
+    ("include,I", boost::program_options::value<vistk::paths_t>()->value_name("DIR"), "configuration include path")
+  ;
+
+  return desc;
+}
+
+boost::program_options::options_description
+pipeline_input_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("pipeline,p", boost::program_options::value<vistk::path_t>()->value_name("FILE"), "pipeline")
+  ;
+
+  return desc;
+}
+
+boost::program_options::options_description
+pipeline_output_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("output,o", boost::program_options::value<vistk::path_t>()->value_name("FILE")->default_value("-"), "output path")
+  ;
+
+  return desc;
+}
+
+boost::program_options::options_description
+pipeline_run_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("scheduler,S", boost::program_options::value<vistk::scheduler_registry::type_t>()->value_name("TYPE"), "scheduler type")
+  ;
+
+  return desc;
 }

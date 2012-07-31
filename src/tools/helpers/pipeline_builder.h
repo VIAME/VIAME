@@ -13,6 +13,8 @@
 
 #include <vistk/utilities/path.h>
 
+#include <boost/program_options/options_description.hpp>
+
 #include <istream>
 #include <string>
 
@@ -32,5 +34,10 @@ class pipeline_builder
   private:
     vistk::pipe_blocks m_blocks;
 };
+
+boost::program_options::options_description pipeline_common_options();
+boost::program_options::options_description pipeline_input_options();
+boost::program_options::options_description pipeline_output_options();
+boost::program_options::options_description pipeline_run_options();
 
 #endif // VISTK_TOOLS_HELPERS_PIPELINE_BUILDER_H

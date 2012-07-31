@@ -20,6 +20,18 @@ tool_usage(int ret, boost::program_options::options_description const& options)
   exit(ret);
 }
 
+boost::program_options::options_description
+tool_common_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("help,h", "output help message and quit")
+  ;
+
+  return desc;
+}
+
 boost::program_options::variables_map
 tool_parse(int argc, char* argv[], boost::program_options::options_description const& desc)
 {
