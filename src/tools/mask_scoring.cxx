@@ -15,12 +15,10 @@
 #include <vistk/pipeline/scheduler_registry.h>
 #include <vistk/pipeline/pipeline.h>
 
-#include <vistk/utilities/path.h>
-
 #include <boost/program_options/value_semantic.hpp>
+#include <boost/program_options/variables_map.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
-#include <boost/program_options.hpp>
 
 #include <fstream>
 #include <iostream>
@@ -29,11 +27,9 @@
 
 #include <cstdlib>
 
-namespace po = boost::program_options;
-
 static vistk::config::key_t const scheduler_block = vistk::config::key_t("_scheduler");
 
-static po::options_description make_options();
+static boost::program_options::options_description mask_scoring_options();
 
 static std::string base_pipeline();
 static std::string layer_connection(std::string const& layer);
@@ -43,9 +39,14 @@ tool_main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
-  po::options_description const desc = make_options();
+  boost::program_options::options_description desc;
+  desc
+    .add(tool_common_options())
+    .add(pipeline_common_options())
+    .add(pipeline_run_options())
+    .add(mask_scoring_options());
 
-  po::variables_map const vm = tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
 
   if (!vm.count("layer"))
   {
@@ -171,20 +172,15 @@ tool_main(int argc, char* argv[])
   return EXIT_SUCCESS;
 }
 
-po::options_description
-make_options()
+boost::program_options::options_description
+mask_scoring_options()
 {
-  po::options_description desc;
+  boost::program_options::options_description desc;
 
   desc.add_options()
-    ("help,h", "output help message and quit")
-    ("config,c", po::value<vistk::paths_t>()->value_name("FILE"), "supplemental configuration file")
-    ("setting,s", po::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
-    ("include,I", po::value<vistk::paths_t>()->value_name("DIR"), "configuration include path")
-    ("scheduler,S", po::value<vistk::scheduler_registry::type_t>()->value_name("TYPE"), "scheduler type")
-    ("dump,d", po::value<vistk::path_t>()->value_name("FILE"), "output the generated pipeline")
-    ("name,n", po::value<std::string>()->value_name("NAME"), "the name of the run")
-    ("layer,l", po::value<std::vector<std::string> >()->value_name("LAYER"), "layer name")
+    ("dump,d", boost::program_options::value<vistk::path_t>()->value_name("FILE"), "output the generated pipeline")
+    ("name,n", boost::program_options::value<std::string>()->value_name("NAME"), "the name of the run")
+    ("layer,l", boost::program_options::value<std::vector<std::string> >()->value_name("LAYER"), "layer name")
   ;
 
   return desc;

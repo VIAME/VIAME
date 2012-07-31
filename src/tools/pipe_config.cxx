@@ -23,7 +23,6 @@
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
-#include <boost/program_options.hpp>
 #include <boost/variant.hpp>
 
 #include <algorithm>
@@ -33,10 +32,6 @@
 #include <vector>
 
 #include <cstdlib>
-
-namespace po = boost::program_options;
-
-static po::options_description make_options();
 
 class config_printer
   : public boost::static_visitor<>
@@ -62,13 +57,18 @@ tool_main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
-  po::options_description const desc = make_options();
+  boost::program_options::options_description desc;
+  desc
+    .add(tool_common_options())
+    .add(pipeline_common_options())
+    .add(pipeline_input_options())
+    .add(pipeline_output_options());
 
-  po::variables_map const vm = tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
 
-  if (!vm.count("input"))
+  if (!vm.count("pipeline"))
   {
-    std::cerr << "Error: input not set" << std::endl;
+    std::cerr << "Error: pipeline not set" << std::endl;
 
     tool_usage(EXIT_FAILURE, desc);
   }
@@ -167,23 +167,6 @@ tool_main(int argc, char* argv[])
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(printer));
 
   return EXIT_SUCCESS;
-}
-
-po::options_description
-make_options()
-{
-  po::options_description desc;
-
-  desc.add_options()
-    ("help,h", "output help message and quit")
-    ("input,i", po::value<vistk::path_t>()->value_name("FILE"), "input path")
-    ("output,o", po::value<vistk::path_t>()->value_name("FILE")->default_value("-"), "output path")
-    ("config,c", po::value<vistk::paths_t>()->value_name("FILE"), "supplemental configuration file")
-    ("setting,s", po::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
-    ("include,I", po::value<vistk::paths_t>()->value_name("DIR"), "configuration include path")
-  ;
-
-  return desc;
 }
 
 config_printer

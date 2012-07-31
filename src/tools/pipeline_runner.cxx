@@ -16,9 +16,8 @@
 
 #include <vistk/utilities/path.h>
 
-#include <boost/program_options/value_semantic.hpp>
+#include <boost/program_options/variables_map.hpp>
 #include <boost/bind.hpp>
-#include <boost/program_options.hpp>
 
 #include <fstream>
 #include <iostream>
@@ -31,16 +30,19 @@ namespace po = boost::program_options;
 
 static vistk::config::key_t const scheduler_block = vistk::config::key_t("_scheduler");
 
-static po::options_description make_options();
-
 int
 tool_main(int argc, char* argv[])
 {
   vistk::load_known_modules();
 
-  po::options_description const desc = make_options();
+  boost::program_options::options_description desc;
+  desc
+    .add(tool_common_options())
+    .add(pipeline_common_options())
+    .add(pipeline_input_options())
+    .add(pipeline_run_options());
 
-  po::variables_map const vm = tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
 
   if (!vm.count("pipeline"))
   {
@@ -139,21 +141,4 @@ tool_main(int argc, char* argv[])
   scheduler->wait();
 
   return EXIT_SUCCESS;
-}
-
-po::options_description
-make_options()
-{
-  po::options_description desc;
-
-  desc.add_options()
-    ("help,h", "output help message and quit")
-    ("pipeline,p", po::value<vistk::path_t>()->value_name("FILE"), "pipeline")
-    ("config,c", po::value<vistk::paths_t>()->value_name("FILE"), "supplemental configuration file")
-    ("setting,s", po::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
-    ("include,I", po::value<vistk::paths_t>()->value_name("DIR"), "configuration include path")
-    ("scheduler,S", po::value<vistk::scheduler_registry::type_t>()->value_name("TYPE"), "scheduler type")
-  ;
-
-  return desc;
 }
