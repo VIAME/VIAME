@@ -42,7 +42,7 @@ main(int argc, char* argv[])
 
   std::string const full_test_name = argv[1];
 
-  size_t sep_pos = full_test_name.find(test_sep);
+  size_t const sep_pos = full_test_name.find(test_sep);
 
   if (sep_pos == std::string::npos)
   {
