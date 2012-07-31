@@ -147,8 +147,8 @@ set(schedulers
 function (vistk_make_python_run_test group instance)
   foreach (scheduler ${schedulers})
     vistk_make_python_test(${group} ${instance}-${scheduler})
-  endforeach (scheduler ${schedulers})
-endfunction (vistk_make_python_run_test group instance)
+  endforeach ()
+endfunction ()
 
 vistk_make_python_run_test(run python_to_python)
 vistk_make_python_run_test(run cpp_to_python)

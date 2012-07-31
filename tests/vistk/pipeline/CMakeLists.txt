@@ -72,9 +72,9 @@ target_link_libraries(processes_test
 
 if (WIN32)
   set(module_output RUNTIME_OUTPUT_DIRECTORY)
-else (WIN32)
+else ()
   set(module_output LIBRARY_OUTPUT_DIRECTORY)
-endif (WIN32)
+endif ()
 
 set_target_properties(processes_test
   PROPERTIES
@@ -228,7 +228,7 @@ if (VISTK_ENABLE_PYTHON)
   if (WIN32)
     set(python_module_path
       "${python_module_path}/${CMAKE_CFG_INTDIR}")
-  endif (WIN32)
+  endif ()
 
   set(cur_python_path
     "$ENV{PYTHONPATH}")
@@ -236,11 +236,11 @@ if (VISTK_ENABLE_PYTHON)
   if (cur_python_path)
     set(cur_python_path
       ":${cur_python_path}")
-  endif (cur_python_path)
+  endif ()
 
   # TODO C++ exceptions get lost in the Python glue code.
   #set(test_environment "PYTHONPATH=${python_module_path}${cur_python_path}")
-endif (VISTK_ENABLE_PYTHON)
+endif ()
 
 vistk_make_test(process_introspection all)
 
@@ -285,7 +285,7 @@ if (VISTK_ENABLE_PYTHON)
   set(schedulers
     ${schedulers}
     pythread_per_process)
-endif (VISTK_ENABLE_PYTHON)
+endif ()
 
 function (vistk_make_run_test group instance)
   foreach (scheduler ${schedulers})
@@ -293,9 +293,8 @@ function (vistk_make_run_test group instance)
       if (${scheduler} STREQUAL "pythread_per_process" OR
           ${instance} STREQUAL "pysimple_pipeline")
         set(test_environment "PYTHONPATH=${python_module_path}${cur_python_path}")
-      endif (${scheduler} STREQUAL "pythread_per_process" OR
-             ${instance} STREQUAL "pysimple_pipeline")
-    endif (VISTK_ENABLE_PYTHON)
+      endif ()
+    endif ()
 
     vistk_make_test(${group} ${instance}-${scheduler})
 
@@ -304,12 +303,12 @@ function (vistk_make_run_test group instance)
         TIMEOUT 60)
 
     unset(test_environment)
-  endforeach (scheduler ${schedulers})
-endfunction (vistk_make_run_test group instance)
+  endforeach ()
+endfunction ()
 
 vistk_make_run_test(run simple_pipeline)
 if (VISTK_ENABLE_PYTHON)
   vistk_make_run_test(run pysimple_pipeline)
-endif (VISTK_ENABLE_PYTHON)
+endif ()
 vistk_make_run_test(run multiplier_pipeline)
 vistk_make_run_test(run multiplier_cluster_pipeline)

@@ -16,8 +16,8 @@ if (NUMPY_FOUND)
     set_target_properties(numpy_memory_chunk
       PROPERTIES
         COMPILE_FLAGS "-fPIC")
-  endif (NOT WIN32)
-endif (NUMPY_FOUND)
+  endif ()
+endif ()
 
 add_library(python_exceptions STATIC
   python_exceptions.cxx)
@@ -28,7 +28,7 @@ if (NOT WIN32)
   set_target_properties(python_exceptions
     PROPERTIES
       COMPILE_FLAGS "-fPIC")
-endif (NOT WIN32)
+endif ()
 
 add_library(pystream STATIC
   pystream.cxx)
@@ -43,7 +43,7 @@ if (NOT WIN32)
   set_target_properties(pystream
     PROPERTIES
       COMPILE_FLAGS "-fPIC")
-endif (NOT WIN32)
+endif ()
 
 add_library(python_threading STATIC
   python_threading.cxx)
@@ -54,4 +54,4 @@ if (NOT WIN32)
   set_target_properties(python_threading
     PROPERTIES
       COMPILE_FLAGS "-fPIC")
-endif (NOT WIN32)
+endif ()

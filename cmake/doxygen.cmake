@@ -17,8 +17,8 @@ if (DOXYGEN_FOUND)
 
   if (VISTK_ENABLE_DOCUMENTATION)
     option(VISTK_INSTALL_DOCUMENTATION "Install documentation" OFF)
-  endif (VISTK_ENABLE_DOCUMENTATION)
-endif (DOXYGEN_FOUND)
+  endif ()
+endif ()
 
 function (create_doxygen inputdir name)
   if (VISTK_ENABLE_DOCUMENTATION)
@@ -37,7 +37,7 @@ function (create_doxygen inputdir name)
       set(tag_targets
         ${tag_targets}
         doxygen-${tag}-tag)
-    endforeach (tag)
+    endforeach ()
 
     string(REPLACE ";" " " doxy_tag_files "${doxy_tag_files}")
 
@@ -99,6 +99,6 @@ function (create_doxygen inputdir name)
         DIRECTORY   "${vistk_binary_dir}/doc/${name}"
         DESTINATION "share/doc/vistk-${vistk_version}/${name}"
         COMPONENT   documentation)
-    endif (VISTK_INSTALL_DOCUMENTATION)
-  endif (VISTK_ENABLE_DOCUMENTATION)
-endfunction (create_doxygen)
+    endif ()
+  endif ()
+endfunction ()

@@ -34,8 +34,8 @@ export(
 function (vistk_install)
   if (NOT suppress_install)
     install(${ARGN})
-  endif (NOT suppress_install)
-endfunction (vistk_install)
+  endif ()
+endfunction ()
 
 function (vistk_add_executable name)
   add_executable(${name}
@@ -47,14 +47,14 @@ function (vistk_add_executable name)
   if ("${component}" STREQUAL "")
     set(component
       runtime)
-  endif ("${component}" STREQUAL "")
+  endif ()
 
   vistk_install(
     TARGETS     ${name}
     EXPORT      vistk_exports
     DESTINATION bin
     COMPONENT   ${component})
-endfunction (vistk_add_executable)
+endfunction ()
 
 function (vistk_add_library name)
   add_library(${name}
@@ -73,7 +73,7 @@ function (vistk_add_library name)
 
     if (WIN32)
       set(subdir "${subdir}/${config}")
-    endif (WIN32)
+    endif ()
 
     string(TOUPPER "${config}" upper_config)
 
@@ -82,19 +82,19 @@ function (vistk_add_library name)
         "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${vistk_binary_dir}/lib${subdir}"
         "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${vistk_binary_dir}/lib${subdir}"
         "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${vistk_binary_dir}/bin${subdir}")
-  endforeach (config)
+  endforeach ()
 
   if ("${component}" STREQUAL "")
     set(component
       runtime)
-  endif ("${component}" STREQUAL "")
+  endif ()
 
   set(exports)
 
   if ("${library_subdir}" STREQUAL "")
     set(exports
       EXPORT vistk_exports)
-  endif ("${library_subdir}" STREQUAL "")
+  endif ()
 
   export(
     TARGETS ${name}
@@ -116,11 +116,11 @@ function (vistk_add_library name)
     RUNTIME
       DESTINATION "bin${library_subdir}"
     COMPONENT     ${component})
-endfunction (vistk_add_library)
+endfunction ()
 
 function (vistk_install_headers subdir)
   vistk_install(
     FILES       ${ARGN}
     DESTINATION "include/${subdir}"
     COMPONENT   development)
-endfunction (vistk_install_headers)
+endfunction ()

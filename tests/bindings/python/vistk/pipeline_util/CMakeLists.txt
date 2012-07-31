@@ -6,7 +6,7 @@ set(vistk_test_pipelines_directory
 function (vistk_make_python_load_test name instance)
   vistk_make_python_test(${name} ${instance}
     "${vistk_test_pipelines_directory}")
-endfunction (vistk_make_python_load_test name instance)
+endfunction ()
 
 ##############################
 # Bake tests

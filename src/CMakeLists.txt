@@ -5,7 +5,7 @@ add_subdirectory(vistk)
 
 if (VISTK_ENABLE_TOOLS)
   add_subdirectory(tools)
-endif (VISTK_ENABLE_TOOLS)
+endif ()
 
 function (add_vistk_plugin name define)
   set(library_subdir /vistk)
@@ -17,7 +17,7 @@ function (add_vistk_plugin name define)
     PROPERTIES
       DEFINE_SYMBOL    ${define}
       PREFIX           "")
-endfunction (add_vistk_plugin name define)
+endfunction ()
 
 add_subdirectory(bindings)
 add_subdirectory(processes)

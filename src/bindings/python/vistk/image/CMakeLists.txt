@@ -15,7 +15,7 @@ if (NUMPY_FOUND)
     vistk_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
-endif (NUMPY_FOUND)
+endif ()
 
 make_python_init_file(vistk/image)
 #  vil)

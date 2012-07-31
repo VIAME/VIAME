@@ -4,7 +4,7 @@ set(boost_python_library
 if (VISTK_ENABLE_PYTHON3)
   set(boost_python_library
     python3)
-endif (VISTK_ENABLE_PYTHON3)
+endif ()
 
 string(TOUPPER ${boost_python_library} boost_python_library_upper)
 set(boost_python_library_var
@@ -28,7 +28,7 @@ if (NUMPY_FOUND)
   include_directories(SYSTEM ${NUMPY_INCLUDE_DIR})
 
   add_subdirectory(numpy)
-endif (NUMPY_FOUND)
+endif ()
 
 create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"

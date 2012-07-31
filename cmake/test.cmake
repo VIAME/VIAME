@@ -39,19 +39,19 @@ if (VALGRIND_EXECUTABLE)
     set(vistk_valgrind_arguments
         ${vistk_valgrind_arguments}
         "--gen-suppressions=all")
-  endif (VISTK_VALGRIND_GENERATE_SUPPRESSIONS)
+  endif ()
   if (VISTK_VALGRIND_VERBOSE)
     set(vistk_valgrind_arguments
       ${vistk_valgrind_arguments}
       "--verbose")
-  endif (VISTK_VALGRIND_VERBOSE)
+  endif ()
   if (VISTK_VALGRIND_USE_SUPPRESSIONS)
     set(vistk_valgrind_arguments
       ${vistk_valgrind_arguments}
       "--suppressions=${vistk_source_dir}/tests/data/valgrind/boost.supp"
       "--suppressions=${vistk_source_dir}/tests/data/valgrind/glibc.supp"
       "--suppressions=${vistk_source_dir}/tests/data/valgrind/python2.7.supp")
-  endif (VISTK_VALGRIND_USE_SUPPRESSIONS)
+  endif ()
 
   add_custom_target(tests)
   add_custom_target(valgrind)
@@ -74,7 +74,7 @@ if (VALGRIND_EXECUTABLE)
     dhat
     sgcheck
     bbv)
-endif (VALGRIND_EXECUTABLE)
+endif ()
 
 find_program(GPROF_EXECUTABLE gprof)
 
@@ -83,7 +83,7 @@ if (GPROF_EXECUTABLE)
 
   add_dependencies(tooling
     gprof)
-endif (GPROF_EXECUTABLE)
+endif ()
 
 set(test_output_path
   "${vistk_binary_dir}/bin")
@@ -95,7 +95,7 @@ set(test_working_path
 if (WIN32)
   set(test_output_path
     "${test_output_path}/${CMAKE_CFG_INTDIR}")
-endif (WIN32)
+endif ()
 
 set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
 
@@ -104,7 +104,7 @@ function (vistk_declare_test testname)
     add_custom_target(tests-${testname})
     add_dependencies(tests
       tests-${testname})
-  endif (NOT WIN32)
+  endif ()
   if (VALGRIND_EXECUTABLE)
     add_custom_target(valgrind-${testname})
     add_custom_target(cachegrind-${testname})
@@ -133,13 +133,13 @@ function (vistk_declare_test testname)
       sgcheck-${testname})
     add_dependencies(bbv
       bbv-${testname})
-  endif (VALGRIND_EXECUTABLE)
+  endif ()
   if (GPROF_EXECUTABLE)
     add_custom_target(gprof-${testname})
     add_dependencies(gprof
       gprof-${testname})
-  endif (GPROF_EXECUTABLE)
-endfunction (vistk_declare_test)
+  endif ()
+endfunction ()
 
 macro (vistk_build_test testname libraries)
   add_executable(test-${testname} ${ARGN})
@@ -149,7 +149,7 @@ macro (vistk_build_test testname libraries)
   target_link_libraries(test-${testname}
     ${${libraries}})
   vistk_declare_test(${testname})
-endmacro (vistk_build_test)
+endmacro ()
 
 function (vistk_make_test testname instance)
   add_test(
@@ -167,7 +167,7 @@ function (vistk_make_test testname instance)
     set_tests_properties(test-${testname}-${instance}
       PROPERTIES
         ENVIRONMENT ${test_environment})
-  endif (test_environment)
+  endif ()
   if (NOT WIN32)
     add_custom_target(test-${testname}-${instance})
     add_custom_command(
@@ -182,7 +182,7 @@ function (vistk_make_test testname instance)
       COMMENT "Running test \"${testname}\" instance \"${instance}\"")
     add_dependencies(tests-${testname}
       test-${testname}-${instance})
-  endif (NOT WIN32)
+  endif ()
   if (VALGRIND_EXECUTABLE)
     add_custom_target(valgrind-${testname}-${instance})
     add_custom_command(
@@ -339,14 +339,14 @@ function (vistk_make_test testname instance)
       COMMENT "Running bbv on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(bbv-${testname}
       bbv-${testname}-${instance})
-  endif (VALGRIND_EXECUTABLE)
+  endif ()
   if (GPROF_EXECUTABLE)
     set(real_command
       "${test_working_path}/test-${testname}")
     if (test_runner)
       set(real_command
         ${test_runner})
-    endif (test_runner)
+    endif ()
 
     add_custom_target(gprof-${testname}-${instance})
     add_custom_command(
@@ -365,5 +365,5 @@ function (vistk_make_test testname instance)
       COMMENT "Running gprof on test \"${testname}\" instance \"${instance}\"")
     add_dependencies(gprof-${testname}
       gprof-${testname}-${instance})
-  endif (GPROF_EXECUTABLE)
-endfunction (vistk_make_test)
+  endif ()
+endfunction ()

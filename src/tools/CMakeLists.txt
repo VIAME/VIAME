@@ -13,8 +13,8 @@ if (VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
   if (${Boost_VERSION} LESS 105000)
     # Override Boost's value_semantic.hpp
     include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/value_name")
-  endif (${Boost_VERSION} LESS 105000)
-endif (VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
+  endif ()
+endif ()
 
 add_subdirectory(helpers)
 
@@ -25,7 +25,7 @@ function (add_tool name)
     ${name}.cxx)
   target_link_libraries(${name}
     ${ARGN})
-endfunction (add_tool)
+endfunction ()
 
 function (add_python_tool name)
   if (VISTK_ENABLE_PYTHON)
@@ -38,8 +38,8 @@ function (add_python_tool name)
       PROGRAMS    "${vistk_binary_dir}/bin/${name}"
       DESTINATION bin
       COMPONENT   tool)
-  endif (VISTK_ENABLE_PYTHON)
-endfunction (add_python_tool)
+  endif ()
+endfunction ()
 
 add_tool(pipe_config
   pipeline_builder

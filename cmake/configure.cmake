@@ -21,7 +21,7 @@ function (_vistk_configure_file name source dest)
   foreach (arg ${ARGN})
     file(APPEND "${configure_script}"
       "set(${arg} \"${${arg}}\")\n")
-  endforeach (arg)
+  endforeach ()
 
   file(APPEND "${configure_script}" "${configure_code}")
 
@@ -46,7 +46,7 @@ execute_process(
   set_directory_properties(
     PROPERTIES
       ADDITIONAL_MAKE_CLEAN_FILES "${clean_files}")
-endfunction (_vistk_configure_file)
+endfunction ()
 
 function (vistk_configure_file name source dest)
   set(configure_script
@@ -73,14 +73,14 @@ function (vistk_configure_file name source dest)
       "${dest}")
   add_dependencies(configure
     configure-${name})
-endfunction (vistk_configure_file)
+endfunction ()
 
 function (vistk_configure_file_always name source dest)
   set(extra_output
     "${dest}.noexist")
 
   vistk_configure_file(${name} "${source}" "${dest}" ${ARGN})
-endfunction (vistk_configure_file_always)
+endfunction ()
 
 function (vistk_configure_pkgconfig module)
   if (UNIX)
@@ -98,5 +98,5 @@ function (vistk_configure_pkgconfig module)
       FILES       "${pkgconfig_file}"
       DESTINATION "lib${LIB_SUFFIX}/pkgconfig"
       COMPONENT   development)
-  endif (UNIX)
-endfunction (vistk_configure_pkgconfig module)
+  endif ()
+endfunction ()

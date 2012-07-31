@@ -21,4 +21,4 @@ if (NOT WIN32)
   set_target_properties(image_helper
     PROPERTIES
       COMPILE_FLAGS "-fPIC")
-endif (NOT WIN32)
+endif ()

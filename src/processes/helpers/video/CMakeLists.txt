@@ -13,4 +13,4 @@ if (NOT WIN32)
   set_target_properties(video_helper
     PROPERTIES
       COMPILE_FLAGS "-fPIC")
-endif (NOT WIN32)
+endif ()

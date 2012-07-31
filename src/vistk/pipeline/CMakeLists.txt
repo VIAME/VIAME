@@ -47,9 +47,9 @@ set(pipeline_headers
 
 if (WIN32)
   set(libdir bin)
-else (WIN32)
+else ()
   set(libdir lib${LIB_SUFFIX})
-endif (WIN32)
+endif ()
 
 set(vistk_default_module_paths
   "${CMAKE_INSTALL_PREFIX}/${libdir}/vistk")
@@ -57,16 +57,16 @@ set(vistk_default_module_paths
 if (WIN32)
   set(vistk_default_module_paths
     "${vistk_default_module_paths};${module_output_path}")
-else (WIN32)
+else ()
   set(vistk_default_module_paths
     "${vistk_default_module_paths}:${module_output_path}")
-endif (WIN32)
+endif ()
 
 set(vistk_path_prefix)
 
 if (WIN32)
   set(vistk_path_prefix "L")
-endif (WIN32)
+endif ()
 
 set(VISTK_DEFAULT_MODULE_PATHS "${vistk_default_module_paths}"
   CACHE STRING "The default paths to search for modules in")
@@ -75,9 +75,9 @@ set(vistk_library_options
 
 if (WIN32 OR APPLE)
   set(default ON)
-else (WIN32 OR APPLE)
+else ()
   set(default OFF)
-endif (WIN32 OR APPLE)
+endif ()
 
 if (WIN32)
   vistk_configure_file(module-paths.h
@@ -85,17 +85,17 @@ if (WIN32)
     "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
     VISTK_DEFAULT_MODULE_PATHS
     vistk_path_prefix)
-else (WIN32)
+else ()
   set(module_build_options
     ${vistk_library_options})
-endif (WIN32)
+endif ()
 
 option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
 if (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
   set(module_build_options
     "${module_build_options}"
     VISTK_USE_CONFIGURATION_SUBDIRECTORY)
-endif (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
+endif ()
 
 set_source_files_properties(modules.cxx
   PROPERTIES
@@ -109,7 +109,7 @@ check_function_exists(setproctitle HAVE_SETPROCTITLE)
 if (HAVE_SETPROCTITLE)
   set(utils_build_options
     "HAVE_SETPROCTITLE")
-endif (HAVE_SETPROCTITLE)
+endif ()
 
 set_source_files_properties(utils.cxx
   PROPERTIES
@@ -120,7 +120,7 @@ set(scheduler_build_options)
 if (${Boost_VERSION} LESS 105000)
   set(scheduler_build_options
     "BOOST_NO_HAVE_REVERSE_LOCK")
-endif (${Boost_VERSION} LESS 105000)
+endif ()
 
 set_source_files_properties(scheduler.cxx
   PROPERTIES
@@ -149,7 +149,7 @@ add_dependencies(vistk_pipeline
 if (WIN32)
   add_dependencies(vistk_pipeline
     configure-module-paths.h)
-endif (WIN32)
+endif ()
 
 create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"

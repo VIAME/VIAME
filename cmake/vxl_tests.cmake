@@ -5,7 +5,7 @@ if (VISTK_ENABLE_PEDANTIC)
   if (CMAKE_CROSSCOMPILING)
     message(WARNING "The `-pedantic` flag is not recommended when "
       "cross-compiling.")
-  else (CMAKE_CROSSCOMPILING)
+  else ()
     set(vxl_has_float_decls_path
       "${cmakefiles_dir}/vxl_has_float_decls.cxx")
     file(WRITE "${vxl_has_float_decls_path}"
@@ -33,6 +33,6 @@ main()
       message(WARNING "VXL was compiled such that float declarations are in "
         "header files, but the `-pedantic` flag does not allow this, please "
         "continue at your own risk.")
-    endif (NOT VXL_HAS_FLOAT_DECLS_COMPILE)
-  endif (CMAKE_CROSSCOMPILING)
-endif (VISTK_ENABLE_PEDANTIC)
+    endif ()
+  endif ()
+endif ()

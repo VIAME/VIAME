@@ -22,7 +22,7 @@ if (NOT VISTK_ASSUME_STRAIGHT_PLUGIN)
   add_python_module(loaders.py
     vistk/modules
     loaders)
-endif (NOT VISTK_ASSUME_STRAIGHT_PLUGIN)
+endif ()
 
 make_python_init_file(vistk/modules)
 #  modules)

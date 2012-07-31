@@ -12,4 +12,4 @@ if (NOT WIN32)
   set_target_properties(pipeline_builder
     PROPERTIES
       COMPILE_FLAGS "-fPIC")
-endif (NOT WIN32)
+endif ()

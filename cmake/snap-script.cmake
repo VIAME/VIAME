@@ -54,4 +54,4 @@ if (git_return)
             "${vistk_binary_dir}/vistk-${vistk_version}${snap_suffix}${dirty_suffix}.patch"
     WORKING_DIRECTORY
             "${vistk_source_dir}")
-endif (git_return)
+endif ()

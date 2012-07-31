@@ -6,7 +6,7 @@ set(boost_python_library
 if (VISTK_ENABLE_PYTHON3)
   set(boost_python_library
     python3)
-endif (VISTK_ENABLE_PYTHON3)
+endif ()
 
 string(TOUPPER ${boost_python_library} boost_python_library_upper)
 set(boost_python_library_var
@@ -28,13 +28,13 @@ if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
   #if (${Boost_VERSION} LESS 10XX00)
     # Override Boost's invoke.hpp
     include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/threading")
-  #endif (${Boost_VERSION} LESS 10XX00)
+  #endif ()
   # Not fixed yet.
   #if (${Boost_VERSION} LESS 10XX00)
     # Override Boost's override.hpp
     include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/exceptions_in_override")
-  #endif (${Boost_VERSION} LESS 10XX00)
-endif (VISTK_ENABLE_BOOST_PYTHON_FIXES)
+  #endif ()
+endif ()
 
 add_subdirectory(helpers)
 
@@ -58,11 +58,11 @@ function (add_vistk_python_library name modpath)
     set_target_properties(python-${safe_modpath}-${name}
       PROPERTIES
         SUFFIX ".pyd")
-  endif (WIN32)
+  endif ()
 
   add_dependencies(python
     python-${safe_modpath}-${name})
-endfunction (add_vistk_python_library name modpath)
+endfunction ()
 
 function (_add_python_module path modpath module)
   string(REPLACE "/" "." safe_modpath ${modpath})
@@ -72,15 +72,15 @@ function (_add_python_module path modpath module)
 
   if (WIN32)
     set(python_install_path bin)
-  else (WIN32)
+  else ()
     if (python_noarch)
       set(python_install_path lib)
       set(python_sitepath /site-packages)
       set(python_arch noarch)
-    else (python_noarch)
+    else ()
       set(python_install_path lib${LIB_SUFFIX})
-    endif (python_noarch)
-  endif (WIN32)
+    endif ()
+  endif ()
 
   vistk_configure_file(python-module-${python_arch}-${safe_modpath}-${module}
     "${path}"
@@ -95,7 +95,7 @@ function (_add_python_module path modpath module)
 
     add_dependencies(python
       python-module-${python_arch}-${safe_modpath}-${module}-${config})
-  endforeach (config)
+  endforeach ()
 
   vistk_install(
     FILES       "${python_output_path}${sitepath}/${modpath}/${module}.py"
@@ -115,15 +115,15 @@ function (_add_python_module path modpath module)
         "${path}"
         ${modpath}
         ${module})
-    endif (NOT WIN32)
-  endif (python_both_arch)
-endfunction (_add_python_module path modpath module)
+    endif ()
+  endif ()
+endfunction ()
 
 function (add_python_module path modpath module)
   _add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/${path}"
     ${modpath}
     ${module})
-endfunction (add_python_module path modpath module)
+endfunction ()
 
 set(copyright_header
 "#ckwg +4
@@ -142,12 +142,12 @@ function (make_python_init_file modpath)
   foreach (module ${ARGN})
     file(APPEND "${init_template}"
       "from ${module} import *\n")
-  endforeach (module)
+  endforeach ()
 
   _add_python_module("${init_template}"
     ${modpath}
     __init__)
-endfunction (make_python_init_file modpath)
+endfunction ()
 
 function (make_python_plugin_init_file modpath)
   string(REPLACE "/" "." safe_modpath ${modpath})
@@ -164,7 +164,7 @@ function (make_python_plugin_init_file modpath)
   _add_python_module("${init_template}"
     ${modpath}
     __init__)
-endfunction (make_python_plugin_init_file modpath)
+endfunction ()
 
 add_subdirectory(vistk)
 add_subdirectory(modules)
@@ -173,7 +173,7 @@ add_subdirectory(schedulers)
 
 if (VISTK_ENABLE_TESTING)
   add_subdirectory(test)
-endif (VISTK_ENABLE_TESTING)
+endif ()
 
 set (python_both_arch TRUE)
 
