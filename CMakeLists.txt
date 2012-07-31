@@ -70,9 +70,14 @@ else ()
     set(vistk_using_clang TRUE)
   endif ()
 
-  # Hide symbols by default
-  set(vistk_warnings
-    "${vistk_warnings} -fvisibility=hidden")
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag(-fvisibility=hidden VISTK_HAVE_GCC_VISIBILITY)
+
+  if (VISTK_HAVE_GCC_VISIBILITY)
+    # Hide symbols by default
+    set(vistk_warnings
+      "${vistk_warnings} -fvisibility=hidden")
+  endif ()
   # General warnings
   set(vistk_warnings
     "${vistk_warnings} -Wextra -Wall")

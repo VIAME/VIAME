@@ -1,9 +1,7 @@
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-fvisibility=hidden __VISTK_HAVE_GCC_VISIBILITY)
 vistk_configure_file(config.h
   "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/config.h"
-  __VISTK_HAVE_GCC_VISIBILITY)
+  VISTK_HAVE_GCC_VISIBILITY)
 
 set(VISTK_BUILT_FROM_GIT)
 

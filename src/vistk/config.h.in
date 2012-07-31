@@ -25,8 +25,8 @@
 #define VISTK_MUST_USE_RESULT
 #endif
 
-#cmakedefine __VISTK_HAVE_GCC_VISIBILITY
-#ifdef __VISTK_HAVE_GCC_VISIBILITY
+#cmakedefine VISTK_HAVE_GCC_VISIBILITY
+#ifdef VISTK_HAVE_GCC_VISIBILITY
 #define VISTK_EXPORT __attribute__ ((visibility("default")))
 #define VISTK_IMPORT __attribute__ ((visibility("default")))
 #define VISTK_NO_EXPORT __attribute__ ((visibility("hidden")))
