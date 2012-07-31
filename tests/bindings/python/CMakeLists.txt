@@ -12,24 +12,17 @@ function (vistk_build_python_test group input)
     PYTHON_EXECUTABLE)
 
   vistk_declare_test(python-${group})
-endfunction (vistk_build_python_test)
+endfunction ()
 
 function (vistk_make_python_test group instance)
   set(python_module_path
-    "${python_output_path}")
+    "${python_output_path}/${CMAKE_CFG_INTDIR}")
   set(python_chdir
-    ".")
-
-  if (WIN32)
-    set(python_module_path
-      "${python_module_path}/${CMAKE_CFG_INTDIR}")
-    set(python_chdir
-      "${CMAKE_CFG_INTDIR}")
-  endif (WIN32)
+    "${CMAKE_CFG_INTDIR}")
 
   vistk_make_test(python-${group} ${instance}
     "${python_chdir}" "${python_module_path}" ${ARGN})
-endfunction (vistk_make_python_test)
+endfunction ()
 
 add_subdirectory(test)
 

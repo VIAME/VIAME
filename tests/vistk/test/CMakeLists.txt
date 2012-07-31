@@ -42,4 +42,4 @@ vistk_build_test(dlopen libraries test_dlopen.cxx)
 foreach (library ${vistk_libraries})
   vistk_make_test(dlopen ${library}
     "$<TARGET_FILE:${library}>")
-endforeach (library)
+endforeach ()

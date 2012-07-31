@@ -52,7 +52,7 @@ function (add_vistk_plugin name define)
     RUNTIME
       DESTINATION bin
     COMPONENT     runtime)
-endfunction (add_vistk_plugin name define)
+endfunction ()
 
 if (VISTK_ENABLE_PYTHON)
   function (add_vistk_python_library name modpath)
@@ -72,27 +72,27 @@ if (VISTK_ENABLE_PYTHON)
       set_target_properties(python-${safe_modpath}-${name}
         PROPERTIES
           SUFFIX ".pyd")
-    endif (WIN32)
+    endif ()
 
     foreach (config ${CMAKE_CONFIGURATION_TYPES})
-      if (WIN32)
+      if (vistk_use_config_subdir)
         set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
-      endif (WIN32)
+      endif ()
 
       string(TOUPPER "${config}" upper_config)
 
       set_target_properties(python-${safe_modpath}-${name}
         PROPERTIES
           "${module_output}_${upper_config}" "${output_path}/${modpath}")
-    endforeach (config)
+    endforeach ()
 
     if (NOT ${no_install_plugin})
       install(
         TARGETS     python-${safe_modpath}-${name}
         DESTINATION "${PYTHON_INSTALL_PATH}/${modpath}"
         COMPONENT   runtime)
-    endif (NOT ${no_install_plugin})
-  endfunction (add_vistk_python_library name modpath)
+    endif ()
+  endfunction ()
 
   function (_add_python_module path modpath module)
     string(REPLACE "/" "." safe_modpath ${modpath})
@@ -101,7 +101,7 @@ if (VISTK_ENABLE_PYTHON)
 
     if (python_noarch)
       set(python_sitepath /site-packages)
-    endif (python_noarch)
+    endif ()
 
     set(output_module_path
       "${PYTHON_OUTPUT_PATH}${sitepath}/${modpath}/${module}.py")
@@ -114,9 +114,9 @@ if (VISTK_ENABLE_PYTHON)
       ADDITIONAL_MAKE_CLEAN_FILES "${output_module_path}")
 
     foreach (config ${CMAKE_CONFIGURATION_TYPES})
-      if (WIN32)
+      if (vistk_use_config_subdir)
         set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
-      endif (WIN32)
+      endif ()
 
       string(TOUPPER "${config}" upper_config)
 
@@ -129,21 +129,21 @@ if (VISTK_ENABLE_PYTHON)
         @ONLY)
       set_directory_properties(PROPERTIES
         ADDITIONAL_MAKE_CLEAN_FILES "${output_module_path}")
-    endforeach (config)
+    endforeach ()
 
     if (NOT ${suppress_install})
       install(
         FILES       "${PYTHON_OUTPUT_PATH}${sitepath}/${modpath}/${module}.py"
         DESTINATION "${PYTHON_INSTALL_PATH}${python_sitepath}/${modpath}"
         COMPONENT   runtime)
-    endif (NOT ${suppress_install})
-  endfunction (_add_python_module path modpath module)
+    endif ()
+  endfunction ()
 
   function (add_python_module path modpath module)
     _add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/${path}"
       ${modpath}
       ${module})
-  endfunction (add_python_module path modpath module)
+  endfunction ()
 
   function (make_python_init_file modpath)
     string(REPLACE "/" "." safe_modpath ${modpath})
@@ -156,12 +156,12 @@ if (VISTK_ENABLE_PYTHON)
     foreach (module ${ARGN})
       file(APPEND "${init_template}"
         "from ${module} import *\n")
-    endforeach (module)
+    endforeach ()
 
     _add_python_module("${init_template}"
       ${modpath}
       __init__)
-  endfunction (make_python_init_file modpath)
+  endfunction ()
 
   function (make_python_plugin_init_file modpath)
     string(REPLACE "/" "." safe_modpath ${modpath})
@@ -178,5 +178,5 @@ if (VISTK_ENABLE_PYTHON)
     _add_python_module("${init_template}"
       ${modpath}
       __init__)
-  endfunction (make_python_plugin_init_file modpath)
-endif (VISTK_ENABLE_PYTHON)
+  endfunction ()
+endif ()

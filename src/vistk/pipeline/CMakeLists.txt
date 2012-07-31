@@ -47,55 +47,58 @@ set(pipeline_headers
 
 if (WIN32)
   set(libdir bin)
-else (WIN32)
+else ()
   set(libdir lib${LIB_SUFFIX})
-endif (WIN32)
+endif ()
 
 set(vistk_default_module_paths
   "${CMAKE_INSTALL_PREFIX}/${libdir}/vistk")
 
 if (WIN32)
-  set(vistk_default_module_paths
-    "${vistk_default_module_paths};${module_output_path}")
-else (WIN32)
-  set(vistk_default_module_paths
-    "${vistk_default_module_paths}:${module_output_path}")
-endif (WIN32)
+  set(path_sep ";")
+else ()
+  set(path_sep ":")
+endif ()
 
-set(vistk_path_prefix)
+option(VISTK_USE_BUILD_MODULE_PATHS "Whether to use the build tree for the default module path" ${VISTK_USE_BUILD_TREE})
+mark_as_advanced(VISTK_USE_BUILD_MODULE_PATHS)
+if (VISTK_USE_BUILD_MODULE_PATHS)
+  set(vistk_default_module_paths
+    "${vistk_default_module_paths}${path_sep}${module_output_path}")
+endif ()
+
+set(path_prefix)
 
 if (WIN32)
-  set(vistk_path_prefix "L")
-endif (WIN32)
+  set(path_prefix "L")
+endif ()
 
 set(VISTK_DEFAULT_MODULE_PATHS "${vistk_default_module_paths}"
   CACHE STRING "The default paths to search for modules in")
 set(vistk_library_options
-  "VISTK_DEFAULT_MODULE_PATHS=${vistk_path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
+  "DEFAULT_MODULE_PATHS=${path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
 
-if (WIN32 OR APPLE)
-  set(default ON)
-else (WIN32 OR APPLE)
-  set(default OFF)
-endif (WIN32 OR APPLE)
+set(module_build_options
+  "LIBRARY_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
 
 if (WIN32)
   vistk_configure_file(module-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
-    VISTK_DEFAULT_MODULE_PATHS
-    vistk_path_prefix)
-else (WIN32)
+    DEFAULT_MODULE_PATHS
+    path_prefix)
+else ()
   set(module_build_options
+    ${module_build_options}
     ${vistk_library_options})
-endif (WIN32)
+endif ()
 
-option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
+option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${vistk_use_config_subdir})
 if (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
   set(module_build_options
-    "${module_build_options}"
-    VISTK_USE_CONFIGURATION_SUBDIRECTORY)
-endif (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
+    ${module_build_options}
+    USE_CONFIGURATION_SUBDIRECTORY)
+endif ()
 
 set_source_files_properties(modules.cxx
   PROPERTIES
@@ -108,8 +111,8 @@ check_function_exists(setproctitle HAVE_SETPROCTITLE)
 
 if (HAVE_SETPROCTITLE)
   set(utils_build_options
-    "HAVE_SETPROCTITLE")
-endif (HAVE_SETPROCTITLE)
+    HAVE_SETPROCTITLE)
+endif ()
 
 set_source_files_properties(utils.cxx
   PROPERTIES
@@ -119,8 +122,8 @@ set(scheduler_build_options)
 
 if (${Boost_VERSION} LESS 105000)
   set(scheduler_build_options
-    "BOOST_NO_HAVE_REVERSE_LOCK")
-endif (${Boost_VERSION} LESS 105000)
+    BOOST_NO_HAVE_REVERSE_LOCK)
+endif ()
 
 set_source_files_properties(scheduler.cxx
   PROPERTIES
@@ -146,10 +149,10 @@ set_target_properties(vistk_pipeline
 add_dependencies(vistk_pipeline
   configure-version.h)
 
-if (WIN32)
+if (vistk_use_config_subdir)
   add_dependencies(vistk_pipeline
     configure-module-paths.h)
-endif (WIN32)
+endif ()
 
 create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"

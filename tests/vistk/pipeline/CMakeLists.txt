@@ -70,16 +70,12 @@ add_library(processes_test SHARED
 target_link_libraries(processes_test
   vistk_pipeline)
 
-if (WIN32)
-  set(module_output RUNTIME_OUTPUT_DIRECTORY)
-else (WIN32)
-  set(module_output LIBRARY_OUTPUT_DIRECTORY)
-endif (WIN32)
-
 set_target_properties(processes_test
   PROPERTIES
-    ${module_output} "${CMAKE_CURRENT_BINARY_DIR}"
-    PREFIX           "")
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    PREFIX                   "")
 
 vistk_build_test(modules libraries test_modules.cxx)
 
@@ -223,12 +219,7 @@ vistk_build_test(process_introspection libraries test_process_introspection.cxx)
 
 if (VISTK_ENABLE_PYTHON)
   set(python_module_path
-    "${python_output_path}")
-
-  if (WIN32)
-    set(python_module_path
-      "${python_module_path}/${CMAKE_CFG_INTDIR}")
-  endif (WIN32)
+    "${python_output_path}/${CMAKE_CFG_INTDIR}")
 
   set(cur_python_path
     "$ENV{PYTHONPATH}")
@@ -236,11 +227,11 @@ if (VISTK_ENABLE_PYTHON)
   if (cur_python_path)
     set(cur_python_path
       ":${cur_python_path}")
-  endif (cur_python_path)
+  endif ()
 
   # TODO C++ exceptions get lost in the Python glue code.
   #set(test_environment "PYTHONPATH=${python_module_path}${cur_python_path}")
-endif (VISTK_ENABLE_PYTHON)
+endif ()
 
 vistk_make_test(process_introspection all)
 
@@ -285,7 +276,7 @@ if (VISTK_ENABLE_PYTHON)
   set(schedulers
     ${schedulers}
     pythread_per_process)
-endif (VISTK_ENABLE_PYTHON)
+endif ()
 
 function (vistk_make_run_test group instance)
   foreach (scheduler ${schedulers})
@@ -293,9 +284,8 @@ function (vistk_make_run_test group instance)
       if (${scheduler} STREQUAL "pythread_per_process" OR
           ${instance} STREQUAL "pysimple_pipeline")
         set(test_environment "PYTHONPATH=${python_module_path}${cur_python_path}")
-      endif (${scheduler} STREQUAL "pythread_per_process" OR
-             ${instance} STREQUAL "pysimple_pipeline")
-    endif (VISTK_ENABLE_PYTHON)
+      endif ()
+    endif ()
 
     vistk_make_test(${group} ${instance}-${scheduler})
 
@@ -304,12 +294,12 @@ function (vistk_make_run_test group instance)
         TIMEOUT 60)
 
     unset(test_environment)
-  endforeach (scheduler ${schedulers})
-endfunction (vistk_make_run_test group instance)
+  endforeach ()
+endfunction ()
 
 vistk_make_run_test(run simple_pipeline)
 if (VISTK_ENABLE_PYTHON)
   vistk_make_run_test(run pysimple_pipeline)
-endif (VISTK_ENABLE_PYTHON)
+endif ()
 vistk_make_run_test(run multiplier_pipeline)
 vistk_make_run_test(run multiplier_cluster_pipeline)

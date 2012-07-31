@@ -18,8 +18,8 @@ if (PYTHON_EXECUTABLE)
 
   if (${__numpy_include_dir_res} EQUAL 0)
     set(NUMPY_INCLUDE_DIR "${__numpy_include_dir}")
-  endif (${__numpy_include_dir_res} EQUAL 0)
-endif (PYTHON_EXECUTABLE)
+  endif ()
+endif ()
 
 # handle the QUIETLY and REQUIRED arguments and set NUMPY_FOUND to TRUE if
 # all listed variables are TRUE

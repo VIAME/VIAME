@@ -1,9 +1,7 @@
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-fvisibility=hidden __VISTK_HAVE_GCC_VISIBILITY)
 vistk_configure_file(config.h
   "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/config.h"
-  __VISTK_HAVE_GCC_VISIBILITY)
+  VISTK_HAVE_GCC_VISIBILITY)
 
 set(VISTK_BUILT_FROM_GIT)
 
@@ -41,10 +39,10 @@ if (IS_DIRECTORY \"${vistk_source_dir}/.git\")
 
   if (git_return)
     set(vistk_git_dirty \"dirty\")
-  endif (git_return)
-endif (IS_DIRECTORY \"${vistk_source_dir}/.git\")
+  endif ()
+endif ()
 ")
-else (GIT_FOUND)
+else ()
   if ("$Format:$" STREQUAL "")
     set(vistk_git_hash       "$Format:%H$")
     set(vistk_git_hash_short "$Format:%h$")
@@ -52,9 +50,9 @@ else (GIT_FOUND)
     option(VISTK_IS_PATCHED "Set to ON if patches are applied on top of a released tarball" OFF)
     if (VISTK_IS_PATCHED)
       set(vistk_git_dirty "dirty")
-    endif (VISTK_IS_PATCHED)
-  endif ("$Format:$" STREQUAL "")
-endif (GIT_FOUND)
+    endif ()
+  endif ()
+endif ()
 
 vistk_configure_file_always(version.h
   "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
@@ -76,7 +74,7 @@ add_subdirectory(scoring)
 
 if (VISTK_ENABLE_PYTHON)
   add_subdirectory(python)
-endif (VISTK_ENABLE_PYTHON)
+endif ()
 
 install(
   FILES       "${CMAKE_CURRENT_BINARY_DIR}/config.h"

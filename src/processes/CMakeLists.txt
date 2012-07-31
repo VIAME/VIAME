@@ -8,7 +8,7 @@ add_subdirectory(utilities)
 
 if (VISTK_ENABLE_TESTING)
   add_subdirectory(examples)
-endif (VISTK_ENABLE_TESTING)
+endif ()
 
 set(DOXY_EXCLUDE_PATTERNS
   "*/examples/* */helpers/*")

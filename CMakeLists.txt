@@ -2,6 +2,9 @@ project(vistk)
 
 cmake_minimum_required(VERSION 2.8)
 
+option(VISTK_USE_BUILD_TREE "Whether the build tree should be used for default paths" ON)
+mark_as_advanced(VISTK_USE_BUILD_TREE)
+
 set(vistk_version_major 0)
 set(vistk_version_minor 1)
 set(vistk_version_patch 0)
@@ -18,12 +21,13 @@ set(CMAKE_MODULE_PATH
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 if (WIN32)
-  set(module_output_path ${vistk_binary_dir}/bin/vistk)
-  set(python_output_path ${vistk_binary_dir}/bin/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
-else (WIN32)
-  set(module_output_path ${vistk_binary_dir}/lib/vistk)
-  set(python_output_path ${vistk_binary_dir}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
-endif (WIN32)
+  set(destdir bin)
+else ()
+  set(destdir lib)
+endif ()
+
+set(module_output_path "${vistk_binary_dir}/${destdir}/vistk")
+set(python_output_path "${vistk_binary_dir}/${destdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
 
 set(PYTHON_VERSION "2.7"
   CACHE STRING "The version of python to use for bindings")
@@ -33,14 +37,20 @@ set(PYTHON_ABIFLAGS ""
 set(vistk_warnings
   "")
 
-if (WIN32)
+set(vistk_use_config_subdir FALSE)
+
+if (NOT CMAKE_CFG_INTDIR STREQUAL ".")
+  set(vistk_use_config_subdir TRUE)
+endif ()
+
+if (MSVC)
   option(VISTK_ENABLE_DLLHELL_WARNINGS "Enables warnings about DLL visibility" OFF)
   if (NOT VISTK_ENABLE_DLLHELL_WARNINGS)
     # C4251: STL interface warnings
     # C4275: Inheritance warnings
     set(vistk_warnings
       "${vistk_warnings} /wd4251 /wd4275")
-  endif (NOT VISTK_ENABLE_DLLHELL_WARNINGS)
+  endif ()
 
   # -----------------------------------------------------------------------------
   # Disable deprecation warnings for standard C and STL functions in VS2005 and
@@ -50,64 +60,97 @@ if (WIN32)
     add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-D_SCL_SECURE_NO_DEPRECATE)
-  endif (MSVC_VERSION EQUAL 1400 OR MSVC_VERSION GREATER 1400)
-else (WIN32)
-  set(vistk_warnings
-    "${vistk_warnings} -fvisibility=hidden")
+  endif ()
+# Assume GCC-compatible
+else ()
+  set(vistk_using_clang FALSE)
+
+  # Check for clang
+  if (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
+    set(vistk_using_clang TRUE)
+  endif ()
+
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag(-fvisibility=hidden VISTK_HAVE_GCC_VISIBILITY)
+
+  if (VISTK_HAVE_GCC_VISIBILITY)
+    # Hide symbols by default
+    set(vistk_warnings
+      "${vistk_warnings} -fvisibility=hidden")
+  endif ()
+  # General warnings
   set(vistk_warnings
     "${vistk_warnings} -Wextra -Wall")
+  # Class warnings
   set(vistk_warnings
-    "${vistk_warnings} -Wctor-dtor-privacy -Wpointer-arith -Wwrite-strings -Wformat-security -Woverloaded-virtual -Wformat=2 -Wshadow -Winit-self -Wswitch-enum -Wstrict-overflow=5 -Wcast-align -Wcast-qual -Wfloat-equal -Wabi -Wswitch-default")
+    "${vistk_warnings} -Wctor-dtor-privacy -Woverloaded-virtual -Winit-self -Wabi")
+  # Pointer warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wpointer-arith -Wstrict-null-sentinel")
+  # Enumeration warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wswitch-enum -Wswitch-default")
+  # Formatting warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wformat-security -Wformat=2")
+  # Casting warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wstrict-overflow=5 -Wcast-align -Wcast-qual -Wfloat-equal -Wdouble-promotion")
+  # TODO: Python triggers warnings with this
+  #set(vistk_warnings
+  #  "${vistk_warnings} -Wold-style-cast")
+  # Variable naming warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wshadow")
+  # C++ 11 compatibility warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wnarrowing")
+  # Exception warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wnoexcept")
+  # Miscellaneous warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wmissing-braces")
 
   option(VISTK_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
   if (VISTK_ENABLE_NITPICK)
-    set(vistk_warnings "-Wunsafe-loop-optimizations -Wsign-promo -Winline -Weffc++ ${vistk_warnings}")
-  endif (VISTK_ENABLE_NITPICK)
+    set(vistk_warnings "${vistk_warnings} -Wunsafe-loop-optimizations -Wsign-promo -Winline -Weffc++")
+  endif ()
 
   option(VISTK_ENABLE_PEDANTIC "Be pedantic" OFF)
   if (VISTK_ENABLE_PEDANTIC)
     option(VISTK_ENABLE_PEDANTIC_ERRORS "Be REALLY pedantic" OFF)
     if (VISTK_ENABLE_PEDANTIC_ERRORS)
-      set(vistk_warnings "-pedantic-errors ${vistk_warnings}")
-    else (VISTK_ENABLE_PEDANTIC_ERRORS)
-      set(vistk_warnings "-pedantic ${vistk_warnings}")
-    endif (VISTK_ENABLE_PEDANTIC_ERRORS)
-  endif (VISTK_ENABLE_PEDANTIC)
+      set(vistk_warnings "${vistk_warnings} -pedantic-errors")
+    else ()
+      set(vistk_warnings "${vistk_warnings} -pedantic")
+    endif ()
+  endif ()
 
   option(VISTK_ENABLE_WERROR "Treat all warnings as errors" OFF)
   if (VISTK_ENABLE_WERROR)
-    set(vistk_warnings "-Werror ${vistk_warnings}")
-  endif (VISTK_ENABLE_WERROR)
+    set(vistk_warnings "${vistk_warnings} -Werror")
+  endif ()
 
-  option(VISTK_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
-  if (VISTK_ENABLE_NITPICK)
-    set(vistk_warnings "-Wunsafe-loop-optimizations -Wsign-promo -Winline -Weffc++ ${vistk_warnings}")
-  endif (VISTK_ENABLE_NITPICK)
-
-  option(VISTK_ENABLE_WERROR "Treat all warnings as errors" OFF)
-  if (VISTK_ENABLE_WERROR)
-    set(vistk_warnings "-Werror ${vistk_warnings}")
-  endif (VISTK_ENABLE_WERROR)
-
-  if (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
+  if (vistk_using_clang)
     option(VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR "Use clang to flag undefined behavior")
     if (VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
       set(CMAKE_CXX_FLAGS_DEBUG
         "${CMAKE_CXX_FLAGS_DEBUG} -fcatch-undefined-behavior")
-    endif (VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
-  elseif (CMAKE_CXX_COMPILER MATCHES "g\\+\\+")
+    endif ()
+  elseif ()
     # GCC-specific warnings
     set(vistk_warnings
       "${vistk_warnings} -std=c++03 -Wlogical-op")
-  endif (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
+  endif ()
 
   option(VISTK_ENABLE_COVERAGE "Build with coverage testing" OFF)
   if (VISTK_ENABLE_COVERAGE)
     set(vistk_coverage
       "-O0 -pg -fprofile-arcs -ftest-coverage")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${vistk_coverage}")
-  endif (VISTK_ENABLE_COVERAGE)
-endif (WIN32)
+  endif ()
+endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${vistk_warnings}")
 
@@ -115,18 +158,13 @@ foreach (config ${CMAKE_CONFIGURATION_TYPES})
   string(TOUPPER "${config}" upper_config)
 
   set(config_defines
-    "VISTK_CONFIGURATION=\"${config}\"")
-
-  if (WIN32)
-    set(config_defines
-      ${config_defines}
-      "VISTK_CONFIGURATION_L=L\"${config}\"")
-  endif (WIN32)
+    "VISTK_CONFIGURATION=\"${config}\""
+    "VISTK_CONFIGURATION_L=L\"${config}\"")
 
   set_directory_properties(
     PROPERTIES
       COMPILE_DEFINITIONS_${upper_config} "${config_defines}")
-endforeach (config)
+endforeach ()
 
 option(VISTK_ENABLE_PYTHON "Enable Python bindings" OFF)
 if (VISTK_ENABLE_PYTHON)
@@ -135,7 +173,7 @@ if (VISTK_ENABLE_PYTHON)
     set(Python_ADDITIONAL_VERSIONS
       3
       ${PYTHON_VERSION})
-  endif (VISTK_ENABLE_PYTHON3)
+  endif ()
 
   if (WIN32)
     # This is to avoid Boost.Python's headers to have __declspec(dllimport) in
@@ -144,18 +182,18 @@ if (VISTK_ENABLE_PYTHON)
     mark_as_advanced(VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
     if (VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
       add_definitions(-DBOOST_PYTHON_STATIC_LIB)
-    endif (VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
-  endif (WIN32)
+    endif ()
+  endif ()
 
   if (CMAKE_VERSION VERSION_LESS "2.8.8")
     message(WARNING "Python 3 support may not work with CMake versions older than 2.8.8")
-  endif (CMAKE_VERSION VERSION_LESS "2.8.8")
-endif (VISTK_ENABLE_PYTHON)
+  endif ()
+endif ()
 
 option(VISTK_ENABLE_EXTRAS "Enable extra files to help with tooling" OFF)
 if (VISTK_ENABLE_EXTRAS)
   add_subdirectory(extra)
-endif (VISTK_ENABLE_EXTRAS)
+endif ()
 
 option(VISTK_ENABLE_TOOLS "Build tools" ON)
 
@@ -163,7 +201,7 @@ set(vistk_boost_version 1.47)
 
 if (VISTK_ENABLE_PYTHON)
   set(vistk_boost_version 1.48)
-endif (VISTK_ENABLE_PYTHON)
+endif ()
 
 find_package(Threads REQUIRED)
 
@@ -185,7 +223,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 if (WIN32)
   add_definitions(-DBOOST_ALL_NO_LIB)
-endif (WIN32)
+endif ()
 
 include_directories(SYSTEM ${VXL_CORE_INCLUDE_DIR})
 include_directories(SYSTEM ${VXL_VCL_INCLUDE_DIR})
@@ -199,8 +237,8 @@ include("${vistk_source_dir}/cmake/configure.cmake")
 if (GIT_FOUND)
   if (IS_DIRECTORY "${vistk_source_dir}/.git")
     include("${vistk_source_dir}/cmake/dist.cmake")
-  endif (IS_DIRECTORY "${vistk_source_dir}/.git")
-endif (GIT_FOUND)
+  endif ()
+endif ()
 include("${vistk_source_dir}/cmake/doxygen.cmake")
 include("${vistk_source_dir}/cmake/targets.cmake")
 
@@ -212,4 +250,4 @@ if (VISTK_ENABLE_TESTING)
   include("${vistk_source_dir}/cmake/test.cmake")
 
   add_subdirectory(tests)
-endif (VISTK_ENABLE_TESTING)
+endif ()

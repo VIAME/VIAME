@@ -21,35 +21,36 @@ set(pipeline_util_headers
   pipe_grammar.h
   pipeline_util-config.h)
 
-set(vistk_default_pipe_include_paths
-  "${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines")
-
 if (WIN32)
+  set(path_sep ";")
+else ()
+  set(path_sep ":")
+endif ()
+
+set(vistk_default_pipe_include_paths
+  "${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
+
+option(VISTK_USE_BUILD_INCLUDE_PATHS "Whether to use the build tree for the default include path" ${VISTK_USE_BUILD_TREE})
+mark_as_advanced(VISTK_USE_BUILD_INCLUDE_PATHS)
+if (VISTK_USE_BUILD_INCLUDE_PATHS)
   set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths};${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
-  set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths};${vistk_source_dir}/src/tools/pipelines/include")
-else (WIN32)
-  set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths}:${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
-  set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths}:${vistk_source_dir}/src/tools/pipelines/include")
-endif (WIN32)
+    "${vistk_default_pipe_include_paths}${path_sep}${vistk_source_dir}/src/tools/pipelines/include")
+endif ()
 
 set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
   CACHE STRING "The default paths to search for pipe includes in")
 set(vistk_pipe_include_options
-  "VISTK_DEFAULT_PIPE_INCLUDE_PATHS=\"${VISTK_DEFAULT_PIPE_INCLUDE_PATHS}\"")
+  "DEFAULT_PIPE_INCLUDE_PATHS=\"${VISTK_DEFAULT_PIPE_INCLUDE_PATHS}\"")
 
 if (WIN32)
   vistk_configure_file(include-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/include-paths.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include-paths.h"
-    VISTK_DEFAULT_PIPE_INCLUDE_PATHS)
-else (WIN32)
+    DEFAULT_PIPE_INCLUDE_PATHS)
+else ()
   set(load_pipe_build_options
     ${vistk_pipe_include_options})
-endif (WIN32)
+endif ()
 
 set_source_files_properties(load_pipe.cxx
   PROPERTIES
@@ -77,7 +78,7 @@ set_target_properties(vistk_pipeline_util
 if (WIN32)
   add_dependencies(vistk_pipeline_util
     configure-include-paths.h)
-endif (WIN32)
+endif ()
 
 create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"

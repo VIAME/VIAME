@@ -10,7 +10,7 @@ set(vistk_test_pipelines_directory
 function (vistk_make_load_test name instance)
   vistk_make_test(${name} ${instance}
     "${vistk_test_pipelines_directory}")
-endfunction (vistk_make_load_test name instance)
+endfunction ()
 
 ##############################
 # Pipeline loading tests

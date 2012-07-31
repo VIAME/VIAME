@@ -3,14 +3,6 @@ project(vistk_processes_helpers_video)
 set(video_helper_srcs
   istream.cxx)
 
-add_library(video_helper STATIC
-  ${video_helper_srcs})
-target_link_libraries(video_helper
+vistk_add_helper_library_sources(video_helper video_helper_srcs
   image_helper
   vidl)
-
-if (NOT WIN32)
-  set_target_properties(video_helper
-    PROPERTIES
-      COMPILE_FLAGS "-fPIC")
-endif (NOT WIN32)

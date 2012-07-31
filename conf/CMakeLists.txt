@@ -5,7 +5,7 @@ if (VISTK_ENABLE_TESTING)
   vistk_configure_file(CTestCustom.cmake
     "${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in"
     "${vistk_binary_dir}/CTestCustom.cmake")
-endif (VISTK_ENABLE_TESTING)
+endif ()
 
 set(vistk_config_file "${vistk_binary_dir}/vistk-config.cmake")
 vistk_configure_file(vistk-config.cmake
@@ -33,9 +33,9 @@ vistk_configure_file(vistk-config-install.cmake
 
 if (WIN32)
   set(cmakedir cmake)
-else (WIN32)
+else ()
   set(cmakedir lib${LIB_SUFFIX}/cmake/vistk)
-endif (WIN32)
+endif ()
 
 set(vistk_macros_file "${vistk_binary_dir}/vistk-macros.cmake")
 vistk_configure_file(vistk-macros.cmake
