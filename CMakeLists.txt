@@ -58,45 +58,73 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-D_SCL_SECURE_NO_DEPRECATE)
   endif ()
+# Assume GCC-compatible
 else ()
+  set(vistk_using_clang FALSE)
+
+  # Check for clang
+  if (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
+    set(vistk_using_clang TRUE)
+  endif ()
+
+  # Hide symbols by default
   set(vistk_warnings
     "${vistk_warnings} -fvisibility=hidden")
+  # General warnings
   set(vistk_warnings
     "${vistk_warnings} -Wextra -Wall")
+  # Class warnings
   set(vistk_warnings
-    "${vistk_warnings} -Wctor-dtor-privacy -Wpointer-arith -Wwrite-strings -Wformat-security -Woverloaded-virtual -Wformat=2 -Wshadow -Winit-self -Wswitch-enum -Wstrict-overflow=5 -Wcast-align -Wcast-qual -Wfloat-equal -Wabi -Wswitch-default")
+    "${vistk_warnings} -Wctor-dtor-privacy -Woverloaded-virtual -Winit-self -Wabi")
+  # Pointer warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wpointer-arith -Wstrict-null-sentinel")
+  # Enumeration warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wswitch-enum -Wswitch-default")
+  # Formatting warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wformat-security -Wformat=2")
+  # Casting warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wstrict-overflow=5 -Wcast-align -Wcast-qual -Wfloat-equal -Wdouble-promotion")
+  # TODO: Python triggers warnings with this
+  #set(vistk_warnings
+  #  "${vistk_warnings} -Wold-style-cast")
+  # Variable naming warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wshadow")
+  # C++ 11 compatibility warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wnarrowing")
+  # Exception warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wnoexcept")
+  # Miscellaneous warnings
+  set(vistk_warnings
+    "${vistk_warnings} -Wmissing-braces")
 
   option(VISTK_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
   if (VISTK_ENABLE_NITPICK)
-    set(vistk_warnings "-Wunsafe-loop-optimizations -Wsign-promo -Winline -Weffc++ ${vistk_warnings}")
+    set(vistk_warnings "${vistk_warnings} -Wunsafe-loop-optimizations -Wsign-promo -Winline -Weffc++")
   endif ()
 
   option(VISTK_ENABLE_PEDANTIC "Be pedantic" OFF)
   if (VISTK_ENABLE_PEDANTIC)
     option(VISTK_ENABLE_PEDANTIC_ERRORS "Be REALLY pedantic" OFF)
     if (VISTK_ENABLE_PEDANTIC_ERRORS)
-      set(vistk_warnings "-pedantic-errors ${vistk_warnings}")
+      set(vistk_warnings "${vistk_warnings} -pedantic-errors")
     else ()
-      set(vistk_warnings "-pedantic ${vistk_warnings}")
+      set(vistk_warnings "${vistk_warnings} -pedantic")
     endif ()
   endif ()
 
   option(VISTK_ENABLE_WERROR "Treat all warnings as errors" OFF)
   if (VISTK_ENABLE_WERROR)
-    set(vistk_warnings "-Werror ${vistk_warnings}")
+    set(vistk_warnings "${vistk_warnings} -Werror")
   endif ()
 
-  option(VISTK_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
-  if (VISTK_ENABLE_NITPICK)
-    set(vistk_warnings "-Wunsafe-loop-optimizations -Wsign-promo -Winline -Weffc++ ${vistk_warnings}")
-  endif ()
-
-  option(VISTK_ENABLE_WERROR "Treat all warnings as errors" OFF)
-  if (VISTK_ENABLE_WERROR)
-    set(vistk_warnings "-Werror ${vistk_warnings}")
-  endif ()
-
-  if (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
+  if (vistk_using_clang)
     option(VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR "Use clang to flag undefined behavior")
     if (VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
       set(CMAKE_CXX_FLAGS_DEBUG
