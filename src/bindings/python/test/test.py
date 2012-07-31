@@ -6,7 +6,8 @@
 
 def test_error(msg):
     import sys
-    sys.stderr.write('Error: %s\n' % msg)
+
+    sys.stderr.write("Error: %s\n" % msg)
 
 
 def expect_exception(action, kind, func, *args):
@@ -17,13 +18,13 @@ def expect_exception(action, kind, func, *args):
     except kind:
         got_exception = True
     except BaseException as e:
-        test_error('Got unexpected exception: %s' % str(e))
+        test_error("Got unexpected exception: %s" % str(e))
 
         got_exception = True
     except:
-        test_error('Got non-standard exception')
+        test_error("Got non-standard exception")
 
         got_exception = True
 
     if not got_exception:
-        test_error('Did not get exception when %s' % action)
+        test_error("Did not get exception when %s" % action)
