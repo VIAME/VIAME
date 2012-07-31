@@ -29,6 +29,12 @@ add_custom_target(tooling)
 
 find_program(VALGRIND_EXECUTABLE valgrind)
 
+option(VISTK_ADD_TEST_TARGETS "Add targets for tests to the build system" OFF)
+mark_as_advanced(VISTK_ADD_TEST_TARGETS)
+if (VISTK_ADD_TEST_TARGETS)
+  add_custom_target(tests)
+endif ()
+
 if (VALGRIND_EXECUTABLE)
   option(VISTK_VALGRIND_GENERATE_SUPPRESSIONS "Output suppression rules for valgrind leak detections" OFF)
   option(VISTK_VALGRIND_VERBOSE "Make valgrind verbose" OFF)
@@ -53,7 +59,6 @@ if (VALGRIND_EXECUTABLE)
       "--suppressions=${vistk_source_dir}/tests/data/valgrind/python2.7.supp")
   endif ()
 
-  add_custom_target(tests)
   add_custom_target(valgrind)
   add_custom_target(cachegrind)
   add_custom_target(callgrind)
@@ -95,7 +100,7 @@ set(test_working_path
 set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
 
 function (vistk_declare_test testname)
-  if (NOT WIN32)
+  if (VISTK_ADD_TEST_TARGETS)
     add_custom_target(tests-${testname})
     add_dependencies(tests
       tests-${testname})
@@ -163,7 +168,7 @@ function (vistk_make_test testname instance)
       PROPERTIES
         ENVIRONMENT ${test_environment})
   endif ()
-  if (NOT WIN32)
+  if (VISTK_ADD_TEST_TARGETS)
     add_custom_target(test-${testname}-${instance})
     add_custom_command(
       TARGET  test-${testname}-${instance}
