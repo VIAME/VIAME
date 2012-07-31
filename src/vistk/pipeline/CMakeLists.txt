@@ -67,16 +67,16 @@ if (VISTK_USE_BUILD_MODULE_PATHS)
     "${vistk_default_module_paths}${path_sep}${module_output_path}")
 endif ()
 
-set(vistk_path_prefix)
+set(path_prefix)
 
 if (WIN32)
-  set(vistk_path_prefix "L")
+  set(path_prefix "L")
 endif ()
 
 set(VISTK_DEFAULT_MODULE_PATHS "${vistk_default_module_paths}"
   CACHE STRING "The default paths to search for modules in")
 set(vistk_library_options
-  "VISTK_DEFAULT_MODULE_PATHS=${vistk_path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
+  "DEFAULT_MODULE_PATHS=${path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
 
 set(module_build_options
   "LIBRARY_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
@@ -85,8 +85,8 @@ if (WIN32)
   vistk_configure_file(module-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
-    VISTK_DEFAULT_MODULE_PATHS
-    vistk_path_prefix)
+    DEFAULT_MODULE_PATHS
+    path_prefix)
 else ()
   set(module_build_options
     ${module_build_options}
@@ -97,7 +97,7 @@ option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuratio
 if (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
   set(module_build_options
     ${module_build_options}
-    VISTK_USE_CONFIGURATION_SUBDIRECTORY)
+    USE_CONFIGURATION_SUBDIRECTORY)
 endif ()
 
 set_source_files_properties(modules.cxx
@@ -111,7 +111,7 @@ check_function_exists(setproctitle HAVE_SETPROCTITLE)
 
 if (HAVE_SETPROCTITLE)
   set(utils_build_options
-    "HAVE_SETPROCTITLE")
+    HAVE_SETPROCTITLE)
 endif ()
 
 set_source_files_properties(utils.cxx
@@ -122,7 +122,7 @@ set(scheduler_build_options)
 
 if (${Boost_VERSION} LESS 105000)
   set(scheduler_build_options
-    "BOOST_NO_HAVE_REVERSE_LOCK")
+    BOOST_NO_HAVE_REVERSE_LOCK)
 endif ()
 
 set_source_files_properties(scheduler.cxx

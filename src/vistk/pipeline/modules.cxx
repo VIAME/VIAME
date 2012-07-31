@@ -66,7 +66,7 @@ static bool is_separator(module_path_t::value_type ch);
 
 static function_name_t const process_function_name = function_name_t("register_processes");
 static function_name_t const scheduler_function_name = function_name_t("register_schedulers");
-static module_path_t const default_module_dirs = module_path_t(VISTK_DEFAULT_MODULE_PATHS);
+static module_path_t const default_module_dirs = module_path_t(DEFAULT_MODULE_PATHS);
 static envvar_name_t const vistk_module_envvar = envvar_name_t("VISTK_MODULE_PATH");
 static lib_suffix_t const library_suffix = lib_suffix_t(LIBRARY_SUFFIX);
 
@@ -95,7 +95,7 @@ load_known_modules()
   {
     look_in_directory(module_dir);
 
-#ifdef VISTK_USE_CONFIGURATION_SUBDIRECTORY
+#ifdef USE_CONFIGURATION_SUBDIRECTORY
     module_path_t const subdir = module_dir +
 #if defined(_WIN32) || defined(_WIN64)
       L"/" VISTK_CONFIGURATION_L;

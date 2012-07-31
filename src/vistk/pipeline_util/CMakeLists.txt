@@ -40,13 +40,13 @@ endif ()
 set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
   CACHE STRING "The default paths to search for pipe includes in")
 set(vistk_pipe_include_options
-  "VISTK_DEFAULT_PIPE_INCLUDE_PATHS=\"${VISTK_DEFAULT_PIPE_INCLUDE_PATHS}\"")
+  "DEFAULT_PIPE_INCLUDE_PATHS=\"${VISTK_DEFAULT_PIPE_INCLUDE_PATHS}\"")
 
 if (WIN32)
   vistk_configure_file(include-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/include-paths.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include-paths.h"
-    VISTK_DEFAULT_PIPE_INCLUDE_PATHS)
+    DEFAULT_PIPE_INCLUDE_PATHS)
 else ()
   set(load_pipe_build_options
     ${vistk_pipe_include_options})
