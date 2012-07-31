@@ -40,18 +40,7 @@ tool_main(int argc, char* argv[])
 
   po::options_description const desc = make_options();
 
-  po::variables_map vm;
-  try
-  {
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-  }
-  catch (po::unknown_option const& e)
-  {
-    std::cerr << "Error: unknown option " << e.get_option_name() << std::endl;
-
-    tool_usage(EXIT_FAILURE, desc);
-  }
-  po::notify(vm);
+  po::variables_map const vm = tool_parse(argc, argv, desc);
 
   if (vm.count("help"))
   {
@@ -61,6 +50,7 @@ tool_main(int argc, char* argv[])
   if (!vm.count("pipeline"))
   {
     std::cerr << "Error: pipeline not set" << std::endl;
+
     tool_usage(EXIT_FAILURE, desc);
   }
 
