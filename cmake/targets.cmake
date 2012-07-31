@@ -124,3 +124,29 @@ function (vistk_install_headers subdir)
     DESTINATION "include/${subdir}"
     COMPONENT   development)
 endfunction ()
+
+function (vistk_add_helper_library_sources name sources)
+  add_library(${name} STATIC
+    ${${sources}})
+  target_link_libraries(${name}
+    ${ARGN})
+
+  # TODO: Bump minimum CMake version to 2.8.9
+  if (CMAKE_VERSION VERSION_GREATER "2.8.9")
+    set_target_properties(${name}
+      PROPERTIES
+        POSITION_INDEPENDENT_CODE TRUE)
+  elseif (NOT MSVC)
+    set_target_properties(${name}
+      PROPERTIES
+      COMPILE_FLAGS "-fPIC")
+  endif ()
+endfunction ()
+
+function (vistk_add_helper_library name)
+  set(helper_sources
+    ${name}.cxx)
+
+  vistk_add_helper_library_sources(${name} helper_sources
+    ${ARGN})
+endfunction ()

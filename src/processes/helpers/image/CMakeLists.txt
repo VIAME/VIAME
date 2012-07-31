@@ -10,15 +10,7 @@ set(image_helper_srcs
   warp.cxx
   write.cxx)
 
-add_library(image_helper STATIC
-  ${image_helper_srcs})
-target_link_libraries(image_helper
+vistk_add_helper_library_sources(image_helper image_helper_srcs
   vistk_image
   vistk_pipeline
   vil)
-
-if (NOT WIN32)
-  set_target_properties(image_helper
-    PROPERTIES
-      COMPILE_FLAGS "-fPIC")
-endif ()
