@@ -21,20 +21,16 @@ set(pipeline_util_headers
   pipe_grammar.h
   pipeline_util-config.h)
 
-set(vistk_default_pipe_include_paths
-  "${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines")
-
 if (WIN32)
-  set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths};${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
-  set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths};${vistk_source_dir}/src/tools/pipelines/include")
+  set(path_sep ";")
 else ()
-  set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths}:${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
-  set(vistk_default_pipe_include_paths
-    "${vistk_default_pipe_include_paths}:${vistk_source_dir}/src/tools/pipelines/include")
+  set(path_sep ":")
 endif ()
+
+set(vistk_default_pipe_include_paths
+  "${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
+set(vistk_default_pipe_include_paths
+  "${vistk_default_pipe_include_paths}${path_sep}${vistk_source_dir}/src/tools/pipelines/include")
 
 set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
   CACHE STRING "The default paths to search for pipe includes in")

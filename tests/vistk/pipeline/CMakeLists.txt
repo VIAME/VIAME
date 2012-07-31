@@ -70,16 +70,12 @@ add_library(processes_test SHARED
 target_link_libraries(processes_test
   vistk_pipeline)
 
-if (WIN32)
-  set(module_output RUNTIME_OUTPUT_DIRECTORY)
-else ()
-  set(module_output LIBRARY_OUTPUT_DIRECTORY)
-endif ()
-
 set_target_properties(processes_test
   PROPERTIES
-    ${module_output} "${CMAKE_CURRENT_BINARY_DIR}"
-    PREFIX           "")
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    PREFIX                   "")
 
 vistk_build_test(modules libraries test_modules.cxx)
 
@@ -223,12 +219,7 @@ vistk_build_test(process_introspection libraries test_process_introspection.cxx)
 
 if (VISTK_ENABLE_PYTHON)
   set(python_module_path
-    "${python_output_path}")
-
-  if (WIN32)
-    set(python_module_path
-      "${python_module_path}/${CMAKE_CFG_INTDIR}")
-  endif ()
+    "${python_output_path}/${CMAKE_CFG_INTDIR}")
 
   set(cur_python_path
     "$ENV{PYTHONPATH}")

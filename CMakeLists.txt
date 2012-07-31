@@ -18,12 +18,13 @@ set(CMAKE_MODULE_PATH
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 if (WIN32)
-  set(module_output_path ${vistk_binary_dir}/bin/vistk)
-  set(python_output_path ${vistk_binary_dir}/bin/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
+  set(destdir bin)
 else ()
-  set(module_output_path ${vistk_binary_dir}/lib/vistk)
-  set(python_output_path ${vistk_binary_dir}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS})
+  set(destdir lib)
 endif ()
+
+set(module_output_path "${vistk_binary_dir}/${destdir}/vistk")
+set(python_output_path "${vistk_binary_dir}/${destdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
 
 set(PYTHON_VERSION "2.7"
   CACHE STRING "The version of python to use for bindings")
@@ -33,7 +34,7 @@ set(PYTHON_ABIFLAGS ""
 set(vistk_warnings
   "")
 
-if (WIN32)
+if (MSVC)
   option(VISTK_ENABLE_DLLHELL_WARNINGS "Enables warnings about DLL visibility" OFF)
   if (NOT VISTK_ENABLE_DLLHELL_WARNINGS)
     # C4251: STL interface warnings
@@ -115,13 +116,8 @@ foreach (config ${CMAKE_CONFIGURATION_TYPES})
   string(TOUPPER "${config}" upper_config)
 
   set(config_defines
-    "VISTK_CONFIGURATION=\"${config}\"")
-
-  if (WIN32)
-    set(config_defines
-      ${config_defines}
-      "VISTK_CONFIGURATION_L=L\"${config}\"")
-  endif ()
+    "VISTK_CONFIGURATION=\"${config}\""
+    "VISTK_CONFIGURATION_L=L\"${config}\"")
 
   set_directory_properties(
     PROPERTIES

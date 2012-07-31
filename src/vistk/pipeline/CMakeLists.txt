@@ -55,12 +55,13 @@ set(vistk_default_module_paths
   "${CMAKE_INSTALL_PREFIX}/${libdir}/vistk")
 
 if (WIN32)
-  set(vistk_default_module_paths
-    "${vistk_default_module_paths};${module_output_path}")
+  set(path_sep ";")
 else ()
-  set(vistk_default_module_paths
-    "${vistk_default_module_paths}:${module_output_path}")
+  set(path_sep ":")
 endif ()
+
+set(vistk_default_module_paths
+  "${vistk_default_module_paths}${path_sep}${module_output_path}")
 
 set(vistk_path_prefix)
 
@@ -72,6 +73,9 @@ set(VISTK_DEFAULT_MODULE_PATHS "${vistk_default_module_paths}"
   CACHE STRING "The default paths to search for modules in")
 set(vistk_library_options
   "VISTK_DEFAULT_MODULE_PATHS=${vistk_path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
+
+set(module_build_options
+  "LIBRARY_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
 
 if (WIN32 OR APPLE)
   set(default ON)
@@ -87,13 +91,14 @@ if (WIN32)
     vistk_path_prefix)
 else ()
   set(module_build_options
+    ${module_build_options}
     ${vistk_library_options})
 endif ()
 
 option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
 if (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
   set(module_build_options
-    "${module_build_options}"
+    ${module_build_options}
     VISTK_USE_CONFIGURATION_SUBDIRECTORY)
 endif ()
 
