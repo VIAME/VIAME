@@ -47,11 +47,6 @@ tool_main(int argc, char* argv[])
 
   po::variables_map const vm = tool_parse(argc, argv, desc);
 
-  if (vm.count("help"))
-  {
-    tool_usage(EXIT_SUCCESS, desc);
-  }
-
   if (!vm.count("layer"))
   {
     std::cerr << "Error: there must be at least one layer to read" << std::endl;

@@ -42,11 +42,6 @@ tool_main(int argc, char* argv[])
 
   po::variables_map const vm = tool_parse(argc, argv, desc);
 
-  if (vm.count("help"))
-  {
-    tool_usage(EXIT_SUCCESS, desc);
-  }
-
   if (!vm.count("pipeline"))
   {
     std::cerr << "Error: pipeline not set" << std::endl;

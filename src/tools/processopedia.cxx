@@ -39,11 +39,6 @@ tool_main(int argc, char* argv[])
 
   po::variables_map const vm = tool_parse(argc, argv, desc);
 
-  if (vm.count("help"))
-  {
-    tool_usage(EXIT_SUCCESS, desc);
-  }
-
   vistk::process_registry_t reg = vistk::process_registry::self();
 
   vistk::process::types_t types;

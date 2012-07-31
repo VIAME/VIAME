@@ -38,5 +38,10 @@ tool_parse(int argc, char* argv[], boost::program_options::options_description c
 
   boost::program_options::notify(vm);
 
+  if (vm.count("help"))
+  {
+    tool_usage(EXIT_SUCCESS, desc);
+  }
+
   return vm;
 }
