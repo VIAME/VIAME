@@ -77,12 +77,6 @@ set(vistk_library_options
 set(module_build_options
   "LIBRARY_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
 
-if (WIN32 OR APPLE)
-  set(default ON)
-else ()
-  set(default OFF)
-endif ()
-
 if (WIN32)
   vistk_configure_file(module-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
@@ -95,7 +89,7 @@ else ()
     ${vistk_library_options})
 endif ()
 
-option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
+option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${vistk_use_config_subdir})
 if (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
   set(module_build_options
     ${module_build_options}
@@ -151,7 +145,7 @@ set_target_properties(vistk_pipeline
 add_dependencies(vistk_pipeline
   configure-version.h)
 
-if (WIN32)
+if (vistk_use_config_subdir)
   add_dependencies(vistk_pipeline
     configure-module-paths.h)
 endif ()
