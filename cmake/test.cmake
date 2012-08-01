@@ -154,7 +154,7 @@ function (vistk_make_test testname instance)
   add_test(
     NAME    test-${testname}-${instance}
     COMMAND ${test_runner}
-            "${test_output_path}/test-${testname}"
+            "${test_base_output_path}/test-${testname}"
             ${instance}
             ${ARGN})
   set_tests_properties(test-${testname}-${instance}
