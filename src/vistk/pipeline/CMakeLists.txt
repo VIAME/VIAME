@@ -85,7 +85,7 @@ if (WIN32)
   vistk_configure_file(module-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
-    DEFAULT_MODULE_PATHS
+    VISTK_DEFAULT_MODULE_PATHS
     path_prefix)
 else ()
   set(module_build_options
@@ -93,7 +93,13 @@ else ()
     ${vistk_library_options})
 endif ()
 
-option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${vistk_use_config_subdir})
+set(default OFF)
+
+if (CMAKE_CONFIGURATION_TYPES)
+  set(default ON)
+endif ()
+
+option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
 if (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
   set(module_build_options
     ${module_build_options}
@@ -149,7 +155,7 @@ set_target_properties(vistk_pipeline
 add_dependencies(vistk_pipeline
   configure-version.h)
 
-if (vistk_use_config_subdir)
+if (WIN32)
   add_dependencies(vistk_pipeline
     configure-module-paths.h)
 endif ()

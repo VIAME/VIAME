@@ -151,17 +151,31 @@ macro (vistk_build_test testname libraries)
 endmacro ()
 
 function (vistk_make_test testname instance)
+  if (TARGET test-${testname})
+    set(test_path "$<TARGET_FILE:test-${testname}>")
+  elseif (CMAKE_CONFIGURATION_TYPES)
+    set(test_path "${test_base_output_path}/$<CONFIGURATION>/test-${testname}")
+  else ()
+    set(test_path "${test_base_output_path}/test-${testname}")
+  endif ()
+
   add_test(
     NAME    test-${testname}-${instance}
     COMMAND ${test_runner}
-            "${test_output_path}/test-${testname}"
+            "${test_path}"
             ${instance}
             ${ARGN})
   set_tests_properties(test-${testname}-${instance}
     PROPERTIES
       WORKING_DIRECTORY       "${test_working_path}"
-      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: "
-      REQUIRED_FILES          "${test_output_path}/test-${testname}")
+      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
+
+  # TODO: How to get CTest the full path to the test with config subdir?
+  if (NOT CMAKE_CONFIGURATION_TYPES)
+    set_tests_properties(test-${testname}-${instance}
+      PROPERTIES
+        REQUIRED_FILES "${test_output_path}/test-${testname}")
+  endif ()
   if (test_environment)
     set_tests_properties(test-${testname}-${instance}
       PROPERTIES

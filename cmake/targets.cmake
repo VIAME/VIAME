@@ -71,7 +71,7 @@ function (vistk_add_library name)
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
     set(subdir ${library_subdir})
 
-    if (vistk_use_config_subdir)
+    if (CMAKE_CONFIGURATION_TYPES)
       set(subdir "${subdir}/${config}")
     endif ()
 

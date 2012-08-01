@@ -32,11 +32,10 @@ configure_file(
   @ONLY)\n")
 
   file(APPEND "${configure_script}" "
-execute_process(
-  COMMAND \"${CMAKE_COMMAND}\"
-          -E copy_if_different
-          \"${configured_path}\"
-          \"${dest}\")\n")
+configure_file(
+  \"${configured_path}\"
+  \"${dest}\"
+  COPYONLY)\n")
 
   set(clean_files
     "${dest}"
