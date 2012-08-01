@@ -85,7 +85,7 @@ if (WIN32)
   vistk_configure_file(module-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
-    DEFAULT_MODULE_PATHS
+    VISTK_DEFAULT_MODULE_PATHS
     path_prefix)
 else ()
   set(module_build_options
