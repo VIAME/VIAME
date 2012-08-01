@@ -37,12 +37,6 @@ set(PYTHON_ABIFLAGS ""
 set(vistk_warnings
   "")
 
-set(vistk_use_config_subdir FALSE)
-
-if (NOT CMAKE_CFG_INTDIR STREQUAL ".")
-  set(vistk_use_config_subdir TRUE)
-endif ()
-
 if (MSVC)
   option(VISTK_ENABLE_DLLHELL_WARNINGS "Enables warnings about DLL visibility" OFF)
   if (NOT VISTK_ENABLE_DLLHELL_WARNINGS)

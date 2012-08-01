@@ -75,7 +75,7 @@ if (VISTK_ENABLE_PYTHON)
     endif ()
 
     foreach (config ${CMAKE_CONFIGURATION_TYPES})
-      if (vistk_use_config_subdir)
+      if (CMAKE_CONFIGURATION_TYPES)
         set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
       endif ()
 
@@ -114,7 +114,7 @@ if (VISTK_ENABLE_PYTHON)
       ADDITIONAL_MAKE_CLEAN_FILES "${output_module_path}")
 
     foreach (config ${CMAKE_CONFIGURATION_TYPES})
-      if (vistk_use_config_subdir)
+      if (CMAKE_CONFIGURATION_TYPES)
         set(output_path "${PYTHON_OUTPUT_PATH}/${config}")
       endif ()
 

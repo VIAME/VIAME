@@ -161,7 +161,9 @@ function (vistk_make_test testname instance)
     PROPERTIES
       WORKING_DIRECTORY       "${test_working_path}"
       FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
-  if (NOT vistk_use_config_subdir)
+
+  # TODO: How to get CTest the full path to the test with config subdir?
+  if (NOT CMAKE_CONFIGURATION_TYPES)
     set_tests_properties(test-${testname}-${instance}
       PROPERTIES
         REQUIRED_FILES "${test_output_path}/test-${testname}")
