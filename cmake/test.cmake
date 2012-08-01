@@ -151,10 +151,18 @@ macro (vistk_build_test testname libraries)
 endmacro ()
 
 function (vistk_make_test testname instance)
+  if (TARGET test-${testname})
+    set(test_path "$<TARGET_FILE:test-${testname}>")
+  elseif (CMAKE_CONFIGURATION_TYPES)
+    set(test_path "${test_base_output_path}/$<CONFIGURATION>/test-${testname}")
+  else ()
+    set(test_path "${test_base_output_path}/test-${testname}")
+  endif ()
+
   add_test(
     NAME    test-${testname}-${instance}
     COMMAND ${test_runner}
-            "${test_base_output_path}/test-${testname}"
+            "${test_path}"
             ${instance}
             ${ARGN})
   set_tests_properties(test-${testname}-${instance}
