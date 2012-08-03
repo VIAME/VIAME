@@ -6,6 +6,8 @@
 
 #include "tool_usage.h"
 
+#include <vistk/version.h>
+
 #include <boost/program_options/parsers.hpp>
 
 #include <iostream>
@@ -20,6 +22,22 @@ tool_usage(int ret, boost::program_options::options_description const& options)
   exit(ret);
 }
 
+void
+tool_version_message()
+{
+  std::cout << "vistk " VISTK_VERSION_FULL << std::endl;
+  std::cout << "Built with vistk: " VISTK_VERSION << std::endl;
+  std::cout << "Built from git:   "
+#ifdef VISTK_BUILT_FROM_GIT
+    "yes"
+#else
+    "no"
+#endif
+    << std::endl;
+  std::cout << "Git hash:         " VISTK_GIT_HASH << std::endl;
+  std::cout << "Pristine?:        " VISTK_GIT_DIRTY << std::endl;
+}
+
 boost::program_options::options_description
 tool_common_options()
 {
@@ -27,6 +45,7 @@ tool_common_options()
 
   desc.add_options()
     ("help,h", "output help message and quit")
+    ("version,V", "output version information")
   ;
 
   return desc;
@@ -52,7 +71,16 @@ tool_parse(int argc, char* argv[], boost::program_options::options_description c
 
   if (vm.count("help"))
   {
+    tool_version_message();
+
     tool_usage(EXIT_SUCCESS, desc);
+  }
+
+  if (vm.count("version"))
+  {
+    tool_version_message();
+
+    exit(EXIT_SUCCESS);
   }
 
   return vm;

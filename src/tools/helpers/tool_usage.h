@@ -10,6 +10,7 @@
 #include <boost/program_options/variables_map.hpp>
 
 void VISTK_NO_RETURN tool_usage(int ret, boost::program_options::options_description const& options);
+void tool_version_message();
 
 boost::program_options::options_description tool_common_options();
 
