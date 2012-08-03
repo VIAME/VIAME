@@ -34,6 +34,8 @@ set(PYTHON_VERSION "2.7"
 set(PYTHON_ABIFLAGS ""
   CACHE STRING "The ABI flags for the version of Python being used")
 
+include("${vistk_source_dir}/cmake/flags.cmake")
+
 set(vistk_warnings
   "")
 
@@ -41,9 +43,9 @@ if (MSVC)
   option(VISTK_ENABLE_DLLHELL_WARNINGS "Enables warnings about DLL visibility" OFF)
   if (NOT VISTK_ENABLE_DLLHELL_WARNINGS)
     # C4251: STL interface warnings
+    vistk_check_compiler_flag(vistk_warnings /wd4251)
     # C4275: Inheritance warnings
-    set(vistk_warnings
-      "${vistk_warnings} /wd4251 /wd4275")
+    vistk_check_compiler_flag(vistk_warnings /wd4275)
   endif ()
 
   # -----------------------------------------------------------------------------
@@ -64,84 +66,91 @@ else ()
     set(vistk_using_clang TRUE)
   endif ()
 
+  # Check for GCC-compatible visibility settings
   include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag(-fvisibility=hidden VISTK_HAVE_GCC_VISIBILITY)
 
-  if (VISTK_HAVE_GCC_VISIBILITY)
-    # Hide symbols by default
-    set(vistk_warnings
-      "${vistk_warnings} -fvisibility=hidden")
-  endif ()
+  # Hide symbols by default
+  vistk_check_compiler_flag(vistk_warnings -fvisibility=hidden)
+  # Set the standard to C++98
+  vistk_check_compiler_flag(vistk_warnings -std=c++98)
   # General warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wextra -Wall")
+  vistk_check_compiler_flag(vistk_warnings -Wall)
+  vistk_check_compiler_flag(vistk_warnings -Wextra)
   # Class warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wctor-dtor-privacy -Woverloaded-virtual -Winit-self -Wabi")
+  vistk_check_compiler_flag(vistk_warnings -Wabi)
+  vistk_check_compiler_flag(vistk_warnings -Wctor-dtor-privacy)
+  vistk_check_compiler_flag(vistk_warnings -Winit-self)
+  vistk_check_compiler_flag(vistk_warnings -Woverloaded-virtual)
   # Pointer warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wpointer-arith -Wstrict-null-sentinel")
+  vistk_check_compiler_flag(vistk_warnings -Wpointer-arith)
+  vistk_check_compiler_flag(vistk_warnings -Wstrict-null-sentinel)
   # Enumeration warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wswitch-enum -Wswitch-default")
+  vistk_check_compiler_flag(vistk_warnings -Wswitch-default)
+  vistk_check_compiler_flag(vistk_warnings -Wswitch-enum)
   # Formatting warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wformat-security -Wformat=2")
+  vistk_check_compiler_flag(vistk_warnings -Wformat-security)
+  vistk_check_compiler_flag(vistk_warnings -Wformat=2)
   # Casting warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wstrict-overflow=5 -Wcast-align -Wcast-qual -Wfloat-equal -Wdouble-promotion")
+  vistk_check_compiler_flag(vistk_warnings -Wcast-align)
+  vistk_check_compiler_flag(vistk_warnings -Wcast-qual)
+  vistk_check_compiler_flag(vistk_warnings -Wdouble-promotion)
+  vistk_check_compiler_flag(vistk_warnings -Wfloat-equal)
+  vistk_check_compiler_flag(vistk_warnings -Wstrict-overflow=5)
   # TODO: Python triggers warnings with this
-  #set(vistk_warnings
-  #  "${vistk_warnings} -Wold-style-cast")
+  #vistk_check_compiler_flag(vistk_warnings -Wold-style-cast)
   # Variable naming warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wshadow")
+  vistk_check_compiler_flag(vistk_warnings -Wshadow)
   # C++ 11 compatibility warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wnarrowing")
+  vistk_check_compiler_flag(vistk_warnings -Wnarrowing)
   # Exception warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wnoexcept")
+  vistk_check_compiler_flag(vistk_warnings -Wnoexcept)
   # Miscellaneous warnings
-  set(vistk_warnings
-    "${vistk_warnings} -Wmissing-braces")
+  vistk_check_compiler_flag(vistk_warnings -Wlogical-op)
+  vistk_check_compiler_flag(vistk_warnings -Wmissing-braces)
 
   option(VISTK_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
   if (VISTK_ENABLE_NITPICK)
-    set(vistk_warnings "${vistk_warnings} -Wunsafe-loop-optimizations -Wsign-promo -Winline -Weffc++")
+    vistk_check_compiler_flag(vistk_warnings -Wunsafe-loop-optimizations)
+    vistk_check_compiler_flag(vistk_warnings -Wsign-promo)
+    vistk_check_compiler_flag(vistk_warnings -Winline)
+    vistk_check_compiler_flag(vistk_warnings -Weffc++)
   endif ()
 
   option(VISTK_ENABLE_PEDANTIC "Be pedantic" OFF)
   if (VISTK_ENABLE_PEDANTIC)
     option(VISTK_ENABLE_PEDANTIC_ERRORS "Be REALLY pedantic" OFF)
     if (VISTK_ENABLE_PEDANTIC_ERRORS)
-      set(vistk_warnings "${vistk_warnings} -pedantic-errors")
+      vistk_check_compiler_flag(vistk_warnings -pedantic-errors)
     else ()
-      set(vistk_warnings "${vistk_warnings} -pedantic")
+      vistk_check_compiler_flag(vistk_warnings -pedantic)
     endif ()
   endif ()
 
   option(VISTK_ENABLE_WERROR "Treat all warnings as errors" OFF)
   if (VISTK_ENABLE_WERROR)
-    set(vistk_warnings "${vistk_warnings} -Werror")
+    vistk_check_compiler_flag(vistk_warnings -Werror)
   endif ()
 
   if (vistk_using_clang)
     option(VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR "Use clang to flag undefined behavior")
     if (VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
-      set(CMAKE_CXX_FLAGS_DEBUG
-        "${CMAKE_CXX_FLAGS_DEBUG} -fcatch-undefined-behavior")
+      vistk_check_compiler_flag(vistk_warnings -fcatch-undefined-behavior)
     endif ()
   elseif ()
     # GCC-specific warnings
-    set(vistk_warnings
-      "${vistk_warnings} -std=c++03 -Wlogical-op")
   endif ()
 
   option(VISTK_ENABLE_COVERAGE "Build with coverage testing" OFF)
   if (VISTK_ENABLE_COVERAGE)
     set(vistk_coverage
-      "-O0 -pg -fprofile-arcs -ftest-coverage")
+      "")
+
+    vistk_check_compiler_flag(vistk_coverage -O0)
+    vistk_check_compiler_flag(vistk_coverage -pg)
+    vistk_check_compiler_flag(vistk_coverage -fprofile-arcs)
+    vistk_check_compiler_flag(vistk_coverage -ftest-coverage)
+
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${vistk_coverage}")
   endif ()
 endif ()

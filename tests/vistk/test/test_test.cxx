@@ -6,6 +6,8 @@
 
 #include <test_common.h>
 
+#include <vistk/pipeline/utils.h>
+
 #include <stdexcept>
 #include <iostream>
 #include <string>
@@ -57,6 +59,31 @@ main(int argc, char* argv[])
     EXPECT_EXCEPTION(std::runtime_error,
                      throw std::logic_error("reason"),
                      "when throwing an unexpected exception");
+  }
+  else if (test_name == "environment")
+  {
+    vistk::envvar_name_t const envvar = "TEST_ENVVAR";
+
+    vistk::envvar_value_t envvalue = vistk::get_envvar(envvar);
+
+    if (!envvalue)
+    {
+      TEST_ERROR("failed to get environment from CTest");
+    }
+    else
+    {
+      char const* const expected = "test_value";
+
+      if (strcmp(envvalue, expected))
+      {
+        TEST_ERROR("Did not get expected value: "
+                   "Expected: " << expected << " "
+                   "Received: " << envvalue);
+      }
+    }
+
+    vistk::free_envvar(envvalue);
+    envvalue = NULL;
   }
   else
   {
