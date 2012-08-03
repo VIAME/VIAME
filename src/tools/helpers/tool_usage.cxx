@@ -35,7 +35,20 @@ tool_version_message()
 #endif
     << std::endl;
   std::cout << "Git hash:         " VISTK_GIT_HASH << std::endl;
-  std::cout << "Pristine?:        " VISTK_GIT_DIRTY << std::endl;
+
+  char const* const dirty = VISTK_GIT_DIRTY;
+  bool const dirty_is_empty = (*dirty == '\0');
+
+  std::cout << "Dirty:            ";
+
+  if (dirty_is_empty)
+  {
+    std::cout << "no" << std::endl;
+  }
+  else
+  {
+    std::cout << "yes" << std::endl;
+  }
 }
 
 boost::program_options::options_description
