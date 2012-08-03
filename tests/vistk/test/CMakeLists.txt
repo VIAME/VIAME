@@ -1,6 +1,7 @@
 project(vistk_tests_test)
 
-set(libraries)
+set(libraries
+  vistk_pipeline)
 
 vistk_build_test(test libraries test_test.cxx)
 
@@ -11,6 +12,10 @@ vistk_make_test(test error_string_stdout)
 vistk_make_test(test error_string_second_line)
 vistk_make_test(test expected_exception)
 vistk_make_test(test unexpected_exception)
+set(test_environment
+  TEST_ENVVAR=test_value)
+vistk_make_test(test environment)
+set(test_environment)
 
 set_tests_properties(test-test-return_code
   PROPERTIES
