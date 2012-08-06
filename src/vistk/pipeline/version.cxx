@@ -33,22 +33,21 @@ std::string const version::git_hash = VISTK_GIT_HASH;
 std::string const version::git_hash_short = VISTK_GIT_HASH_SHORT;
 std::string const version::git_dirty = VISTK_GIT_DIRTY;
 
-bool
-version
-::check(version_t major_, version_t minor_, version_t patch_)
-{
-  // If any of the version components are 0, we get compare warnings. Turn
-  // them off here.
+// If any of the version components are 0, we get compare warnings. Turn
+// them off here.
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
 
+bool
+version
+::check(version_t major_, version_t minor_, version_t patch_)
+{
   return VISTK_VERSION_CHECK(major_, minor_, patch_);
+}
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
-}
-
 }
