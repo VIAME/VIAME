@@ -23,7 +23,7 @@ add_custom_command(
   COMMAND "${GIT_EXECUTABLE}"
           fetch
           origin
-          hooks
+          remotes/origin/hooks
   COMMAND "${GIT_EXECUTABLE}"
           merge
           FETCH_HEAD
