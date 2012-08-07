@@ -44,10 +44,10 @@ if [ -e "$gerrit_dir" ]; then
 fi
 
 mkdir -p "$gerrit_dir"
-pushd "$gerrit_dir"
+cd "$gerrit_dir"
 git init
 git pull ../.. remotes/origin/gerrit
-popd
+cd "$source_dir"
 
 git config hooks.GerritId false
 
