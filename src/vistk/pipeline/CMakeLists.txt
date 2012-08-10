@@ -60,7 +60,8 @@ else ()
   set(path_sep ":")
 endif ()
 
-option(VISTK_USE_BUILD_MODULE_PATHS "Whether to use the build tree for the default module path" ${VISTK_USE_BUILD_TREE})
+cmake_dependent_option(VISTK_USE_BUILD_MODULE_PATHS "Whether to use the build tree for the default module path" ON
+  VISTK_USE_BUILD_TREE OFF)
 mark_as_advanced(VISTK_USE_BUILD_MODULE_PATHS)
 if (VISTK_USE_BUILD_MODULE_PATHS)
   set(vistk_default_module_paths

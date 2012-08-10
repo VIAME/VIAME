@@ -30,7 +30,8 @@ endif ()
 set(vistk_default_pipe_include_paths
   "${CMAKE_INSTALL_PREFIX}/share/vistk/pipelines/include")
 
-option(VISTK_USE_BUILD_INCLUDE_PATHS "Whether to use the build tree for the default include path" ${VISTK_USE_BUILD_TREE})
+cmake_dependent_option(VISTK_USE_BUILD_INCLUDE_PATHS "Whether to use the build tree for the default include path" ON
+  VISTK_USE_BUILD_TREE OFF)
 mark_as_advanced(VISTK_USE_BUILD_INCLUDE_PATHS)
 if (VISTK_USE_BUILD_INCLUDE_PATHS)
   set(vistk_default_pipe_include_paths
