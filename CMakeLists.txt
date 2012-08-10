@@ -61,9 +61,34 @@ if (MSVC)
 else ()
   set(vistk_using_clang FALSE)
 
+  check_cxx_compiler_flag(-std=c++11 has_cxx11_flags)
+
+  if (has_cxx11_flags)
+    option(VISTK_ENABLE_CXX11 "Enable compilation with C++11 support" OFF)
+  endif ()
+
   # Check for clang
   if (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
     set(vistk_using_clang TRUE)
+  else ()
+    execute_process(
+      COMMAND "${CMAKE_CXX_COMPILER}"
+              -dumpversion
+      WORKING_DIRECTORY
+              "${vistk_source_dir}"
+      RESULT_VARIABLE
+              gcc_return
+      OUTPUT_VARIABLE
+              gcc_version)
+
+    if (gcc_version VERSION_GREATER "4.7.0" AND
+        gcc_version VERSION_LESS "4.7.2")
+      if (VISTK_ENABLE_CXX11)
+        message(ERROR
+          "C++11 ABI is broken with GCC 4.7.0 and 4.7.1."
+          "Refusing to enable C++11 support.")
+      endif ()
+    endif ()
   endif ()
 
   # Check for GCC-compatible visibility settings
@@ -73,7 +98,11 @@ else ()
   # Hide symbols by default
   vistk_check_compiler_flag(vistk_warnings -fvisibility=hidden)
   # Set the standard to C++98
-  vistk_check_compiler_flag(vistk_warnings -std=c++98)
+  if (VISTK_ENABLE_CXX11)
+    vistk_check_compiler_flag(vistk_warnings -std=c++11)
+  else ()
+    vistk_check_compiler_flag(vistk_warnings -std=c++98)
+  endif ()
   # General warnings
   vistk_check_compiler_flag(vistk_warnings -Wall)
   vistk_check_compiler_flag(vistk_warnings -Wextra)
