@@ -245,6 +245,11 @@ endif ()
 include("${vistk_source_dir}/cmake/doxygen.cmake")
 include("${vistk_source_dir}/cmake/targets.cmake")
 
+source_group("Configured Files"
+  REGULAR_EXPRESSION ".*\\.in$")
+source_group("Template Files"
+  REGULAR_EXPRESSION ".*\\.txx$")
+
 add_subdirectory(conf)
 add_subdirectory(src)
 

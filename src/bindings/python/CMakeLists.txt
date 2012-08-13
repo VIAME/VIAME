@@ -166,6 +166,11 @@ function (make_python_plugin_init_file modpath)
     __init__)
 endfunction ()
 
+source_group("Python Files"
+  REGULAR_EXPRESSION ".*\\.py\\.in$")
+source_group("Python Files"
+  REGULAR_EXPRESSION ".*\\.py$")
+
 add_subdirectory(vistk)
 add_subdirectory(modules)
 add_subdirectory(processes)
