@@ -68,8 +68,8 @@ function (vistk_configure_file name source dest)
             "${CMAKE_CURRENT_BINARY_DIR}"
     COMMENT "Configuring ${name} file \"${source}\" -> \"${dest}\"")
   add_custom_target(configure-${name} ${all}
-    DEPENDS
-      "${dest}")
+    DEPENDS "${dest}"
+    SOURCES "${source}")
   add_dependencies(configure
     configure-${name})
 endfunction ()
