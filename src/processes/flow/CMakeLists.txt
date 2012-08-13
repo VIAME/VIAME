@@ -13,6 +13,7 @@ set(flow_private_headers
   registration.h
   sink_process.h)
 
+vistk_private_header_group(${flow_private_headers})
 add_vistk_plugin(processes_flow
   MAKE_VISTK_PROCESSES_FLOW_LIB
   ${flow_srcs}

@@ -63,6 +63,7 @@ set_source_files_properties(load_pipe.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${load_pipe_build_options}")
 
+vistk_private_header_group(${pipeline_util_private_headers})
 vistk_add_library(vistk_pipeline_util
   ${pipeline_util_srcs}
   ${pipeline_util_headers}

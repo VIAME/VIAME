@@ -15,6 +15,7 @@ set(scoring_private_headers
   score_writer_process.h
   scoring-config.h)
 
+vistk_private_header_group(${scoring_private_headers})
 add_vistk_plugin(processes_scoring
   MAKE_VISTK_PROCESSES_SCORING_LIB
   ${scoring_srcs}

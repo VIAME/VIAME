@@ -118,6 +118,11 @@ function (vistk_add_library name)
     COMPONENT     ${component})
 endfunction ()
 
+function (vistk_private_header_group)
+  source_group("Header Files\\Private"
+    FILES ${ARGN})
+endfunction ()
+
 function (vistk_install_headers subdir)
   vistk_install(
     FILES       ${ARGN}

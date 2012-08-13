@@ -13,6 +13,7 @@ set(examples_private_headers
   thread_per_process_scheduler.h
   thread_pool_scheduler.h)
 
+vistk_private_header_group(${examples_private_headers})
 add_vistk_plugin(schedulers_examples
   MAKE_VISTK_SCHEDULERS_EXAMPLES_LIB
   ${examples_srcs}

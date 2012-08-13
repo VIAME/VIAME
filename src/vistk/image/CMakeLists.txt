@@ -13,6 +13,7 @@ set(image_headers
 set(image_private_headers
   instantiate.h)
 
+vistk_private_header_group(${image_private_headers})
 vistk_add_library(vistk_image
   ${image_srcs}
   ${image_templates}

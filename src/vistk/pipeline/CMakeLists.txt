@@ -141,6 +141,7 @@ set_source_files_properties(scheduler.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${scheduler_build_options}")
 
+vistk_private_header_group(${pipeline_private_headers})
 vistk_add_library(vistk_pipeline
   ${pipeline_srcs}
   ${pipeline_headers}

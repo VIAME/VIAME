@@ -13,6 +13,7 @@ set(utilities_private_headers
   timestamper_process.h
   utilities-config.h)
 
+vistk_private_header_group(${utilities_private_headers})
 add_vistk_plugin(processes_utilities
   MAKE_VISTK_PROCESSES_UTILITIES_LIB
   ${utilities_srcs}

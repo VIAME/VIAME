@@ -7,6 +7,7 @@ set(modules_python_private_headers
   modules-config.h
   registration.h)
 
+vistk_private_header_group(${modules_python_private_headers})
 add_vistk_plugin(modules_python
   MAKE_VISTK_MODULES_PYTHON_LIB
   ${modules_python_srcs}

@@ -23,6 +23,7 @@ set(image_private_headers
   video_reader_process.h
   warp_image_process.h)
 
+vistk_private_header_group(${image_private_headers})
 add_vistk_plugin(processes_image
   MAKE_VISTK_PROCESSES_IMAGE_LIB
   ${image_srcs}
