@@ -45,6 +45,8 @@ set(pipeline_headers
   utils.h
   version.h)
 
+set(pipeline_private_headers)
+
 if (WIN32)
   set(libdir bin)
 else ()
@@ -87,6 +89,10 @@ if (WIN32)
     "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
     VISTK_DEFAULT_MODULE_PATHS
     path_prefix)
+
+  set(pipeline_private_headers
+    ${pipeline_private_headers}
+    module-paths.h.in)
 else ()
   set(module_build_options
     ${module_build_options}
@@ -136,7 +142,9 @@ set_source_files_properties(scheduler.cxx
     COMPILE_DEFINITIONS "${scheduler_build_options}")
 
 vistk_add_library(vistk_pipeline
-  ${pipeline_srcs})
+  ${pipeline_srcs}
+  ${pipeline_headers}
+  ${pipeline_private_headers})
 target_link_libraries(vistk_pipeline
   ${Boost_CHRONO_LIBRARY}
   ${Boost_DATE_TIME_LIBRARY}

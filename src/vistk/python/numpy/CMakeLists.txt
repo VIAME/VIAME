@@ -14,8 +14,14 @@ set(python_numpy_headers
   registration.h
   vil_to_numpy.h)
 
+set(python_numpy_private_headers
+  numpy_memory_chunk.h
+  type_mappings.h)
+
 vistk_add_library(vistk_python_numpy
-  ${python_numpy_srcs})
+  ${python_numpy_srcs}
+  ${python_numpy_headers}
+  ${python_numpy_private_headers})
 target_link_libraries(vistk_python_numpy
   vil
   vistk_python_util

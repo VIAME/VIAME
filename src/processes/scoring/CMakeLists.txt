@@ -7,9 +7,18 @@ set(scoring_srcs
   score_aggregation_process.cxx
   score_writer_process.cxx)
 
+set(scoring_private_headers
+  component_score_json_writer_process.h
+  mask_scoring_process.h
+  registration.h
+  score_aggregation_process.h
+  score_writer_process.h
+  scoring-config.h)
+
 add_vistk_plugin(processes_scoring
   MAKE_VISTK_PROCESSES_SCORING_LIB
-  ${scoring_srcs})
+  ${scoring_srcs}
+  ${scoring_private_headers})
 target_link_libraries(processes_scoring
   vistk_pipeline
   vistk_scoring

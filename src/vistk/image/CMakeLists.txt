@@ -3,12 +3,21 @@ project(vistk_image)
 set(image_srcs
   warp_image.cxx)
 
+set(image_templates
+  warp_image.txx)
+
 set(image_headers
   image-config.h
   warp_image.h)
 
+set(image_private_headers
+  instantiate.h)
+
 vistk_add_library(vistk_image
-  ${image_srcs})
+  ${image_srcs}
+  ${image_templates}
+  ${image_headers}
+  ${image_private_headers})
 target_link_libraries(vistk_image
   vistk_utilities
   vil
