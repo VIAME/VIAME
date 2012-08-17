@@ -15,6 +15,8 @@
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/utils.h>
 
+#include <vistk/utilities/path.h>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -34,14 +36,6 @@
 
 namespace vistk
 {
-
-namespace
-{
-
-typedef path_t include_path_t;
-typedef std::vector<include_path_t> include_paths_t;
-
-}
 
 static std::string const default_include_dirs = std::string(DEFAULT_PIPE_INCLUDE_PATHS);
 static envvar_name_t const vistk_include_envvar = envvar_name_t("VISTK_PIPE_INCLUDE_PATH");
@@ -119,6 +113,9 @@ load_cluster_blocks(std::istream& istr, path_t const& inc_root)
 void
 flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t const& inc_root)
 {
+  typedef path_t include_path_t;
+  typedef std::vector<include_path_t> include_paths_t;
+
   include_paths_t include_dirs;
 
   // Build include directories.
