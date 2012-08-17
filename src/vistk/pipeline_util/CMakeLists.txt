@@ -46,6 +46,8 @@ set(VISTK_DEFAULT_PIPE_INCLUDE_PATHS "${vistk_default_pipe_include_paths}"
 set(vistk_pipe_include_options
   "DEFAULT_PIPE_INCLUDE_PATHS=\"${VISTK_DEFAULT_PIPE_INCLUDE_PATHS}\"")
 
+set(load_pipe_build_options)
+
 if (WIN32)
   vistk_configure_file(include-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/include-paths.h.in"
@@ -57,6 +59,7 @@ if (WIN32)
     include-paths.h.in)
 else ()
   set(load_pipe_build_options
+    ${load_pipe_build_options}
     ${vistk_pipe_include_options})
 endif ()
 
