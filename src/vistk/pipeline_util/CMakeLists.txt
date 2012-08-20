@@ -21,6 +21,9 @@ set(pipeline_util_headers
   pipe_grammar.h
   pipeline_util-config.h)
 
+set(pipeline_util_private_headers
+  providers.h)
+
 if (WIN32)
   set(path_sep ";")
 else ()
@@ -47,6 +50,10 @@ if (WIN32)
     "${CMAKE_CURRENT_SOURCE_DIR}/include-paths.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include-paths.h"
     VISTK_DEFAULT_PIPE_INCLUDE_PATHS)
+
+  set(pipeline_util_private_headers
+    ${pipeline_util_private_headers}
+    include-paths.h.in)
 else ()
   set(load_pipe_build_options
     ${vistk_pipe_include_options})
@@ -56,8 +63,11 @@ set_source_files_properties(load_pipe.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${load_pipe_build_options}")
 
+vistk_private_header_group(${pipeline_util_private_headers})
 vistk_add_library(vistk_pipeline_util
-  ${pipeline_util_srcs})
+  ${pipeline_util_srcs}
+  ${pipeline_util_headers}
+  ${pipeline_util_private_headers})
 target_link_libraries(vistk_pipeline_util
   vistk_pipeline
   ${Boost_CHRONO_LIBRARY}

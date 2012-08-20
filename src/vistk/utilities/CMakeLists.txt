@@ -24,7 +24,8 @@ set(utilities_headers
   utm_debug.h)
 
 vistk_add_library(vistk_utilities
-  ${utilities_srcs})
+  ${utilities_srcs}
+  ${utilities_headers})
 target_link_libraries(vistk_utilities
   vgl_algo)
 target_link_libraries(vistk_utilities LINK_INTERFACE_LIBRARIES

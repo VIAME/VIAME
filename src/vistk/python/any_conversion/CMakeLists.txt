@@ -9,7 +9,8 @@ set(python_any_conversion_headers
   registration.h)
 
 vistk_add_library(vistk_python_any_conversion
-  ${python_any_conversion_srcs})
+  ${python_any_conversion_srcs}
+  ${python_any_conversion_headers})
 target_link_libraries(vistk_python_any_conversion
   vistk_python_util
   ${Boost_THREAD_LIBRARY}

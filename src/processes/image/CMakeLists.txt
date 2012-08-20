@@ -11,9 +11,23 @@ set(image_srcs
   video_reader_process.cxx
   warp_image_process.cxx)
 
+set(image_private_headers
+  combine_masks_process.h
+  crop_image_process.h
+  grayscale_process.h
+  image-config.h
+  image_reader_process.h
+  image_writer_process.h
+  layered_image_reader_process.h
+  registration.h
+  video_reader_process.h
+  warp_image_process.h)
+
+vistk_private_header_group(${image_private_headers})
 add_vistk_plugin(processes_image
   MAKE_VISTK_PROCESSES_IMAGE_LIB
-  ${image_srcs})
+  ${image_srcs}
+  ${image_private_headers})
 target_link_libraries(processes_image
   vistk_image
   vistk_utilities

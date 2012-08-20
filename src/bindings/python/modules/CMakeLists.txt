@@ -3,9 +3,15 @@ project(vistk_python_modules)
 set(modules_python_srcs
   registration.cxx)
 
+set(modules_python_private_headers
+  modules-config.h
+  registration.h)
+
+vistk_private_header_group(${modules_python_private_headers})
 add_vistk_plugin(modules_python
   MAKE_VISTK_MODULES_PYTHON_LIB
-  ${modules_python_srcs})
+  ${modules_python_srcs}
+  ${modules_python_private_headers})
 target_link_libraries(modules_python
   vistk_pipeline
   vistk_python_util
