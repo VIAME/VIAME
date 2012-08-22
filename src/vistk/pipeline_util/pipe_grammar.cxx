@@ -14,7 +14,6 @@
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix.hpp>
 #include <boost/variant.hpp>
 
 #include <string>
@@ -301,8 +300,6 @@ common_grammar<Iterator>
   , port_addr()
   , connect_block()
 {
-  using namespace boost::phoenix;
-
   opt_whitespace.name("opt-namespace");
   opt_whitespace %=
     *(  qi::blank
