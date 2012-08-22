@@ -59,14 +59,11 @@ else ()
     set(vistk_using_clang TRUE)
   else ()
     execute_process(
-      COMMAND "${CMAKE_CXX_COMPILER}"
-              -dumpversion
-      WORKING_DIRECTORY
-              "${vistk_source_dir}"
-      RESULT_VARIABLE
-              gcc_return
-      OUTPUT_VARIABLE
-              gcc_version)
+      COMMAND           "${CMAKE_CXX_COMPILER}"
+                        -dumpversion
+      WORKING_DIRECTORY "${vistk_source_dir}"
+      RESULT_VARIABLE   gcc_return
+      OUTPUT_VARIABLE   gcc_version)
 
     if (gcc_version VERSION_GREATER "4.7.0" AND
         gcc_version VERSION_LESS "4.7.2")

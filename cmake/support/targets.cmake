@@ -60,7 +60,7 @@ function (vistk_compile_pic name)
   elseif (NOT MSVC)
     set_target_properties(${name}
       PROPERTIES
-      COMPILE_FLAGS "-fPIC")
+        COMPILE_FLAGS "-fPIC")
   endif ()
 endfunction ()
 
