@@ -34,11 +34,14 @@ if (VISTK_ADD_TEST_TARGETS)
   add_custom_target(tests)
 endif ()
 
-if (VALGRIND_EXECUTABLE)
-  option(VISTK_VALGRIND_GENERATE_SUPPRESSIONS "Output suppression rules for valgrind leak detections" OFF)
-  option(VISTK_VALGRIND_VERBOSE "Make valgrind verbose" OFF)
-  option(VISTK_VALGRIND_USE_SUPPRESSIONS "Suppress known leaks in valgrind" ON)
+cmake_dependent_option(VISTK_VALGRIND_GENERATE_SUPPRESSIONS "Output suppression rules for valgrind leak detections" OFF
+  VALGRIND_EXECUTABLE OFF)
+cmake_dependent_option(VISTK_VALGRIND_VERBOSE "Make valgrind verbose" OFF
+  VALGRIND_EXECUTABLE OFF)
+cmake_dependent_option(VISTK_VALGRIND_USE_SUPPRESSIONS "Suppress known leaks in valgrind" ON
+  VALGRIND_EXECUTABLE OFF)
 
+if (VALGRIND_EXECUTABLE)
   set(vistk_valgrind_arguments)
   if (VISTK_VALGRIND_GENERATE_SUPPRESSIONS)
     set(vistk_valgrind_arguments

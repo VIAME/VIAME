@@ -8,7 +8,6 @@ find_package(Boost ${vistk_boost_version} REQUIRED
 
 option(VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES "Enables fixes for boost::program_options bugs (recommended)" ON)
 mark_as_advanced(VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
-
 if (VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
   if (${Boost_VERSION} LESS 105000)
     # Override Boost's value_semantic.hpp

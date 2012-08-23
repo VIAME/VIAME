@@ -10,14 +10,13 @@
 
 find_package(Doxygen)
 
+cmake_dependent_option(VISTK_ENABLE_DOCUMENTATION "Build documentation" OFF
+  DOXYGEN_FOUND OFF)
+cmake_dependent_option(VISTK_INSTALL_DOCUMENTATION "Install documentation" OFF
+  VISTK_ENABLE_DOCUMENTATION OFF)
+
 if (DOXYGEN_FOUND)
-  option(VISTK_ENABLE_DOCUMENTATION "Build documentation" OFF)
-
   add_custom_target(doxygen)
-
-  if (VISTK_ENABLE_DOCUMENTATION)
-    option(VISTK_INSTALL_DOCUMENTATION "Install documentation" OFF)
-  endif ()
 endif ()
 
 function (create_doxygen inputdir name)

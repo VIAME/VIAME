@@ -27,14 +27,9 @@ else ()
 endif ()
 
 set(module_output_path "${vistk_binary_dir}/${destdir}/vistk")
-set(python_output_path "${vistk_binary_dir}/${destdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
-
-set(PYTHON_VERSION "2.7"
-  CACHE STRING "The version of python to use for bindings")
-set(PYTHON_ABIFLAGS ""
-  CACHE STRING "The ABI flags for the version of Python being used")
 
 include("${vistk_source_dir}/cmake/flags.cmake")
+include(CMakeDependentOption)
 
 set(vistk_warnings
   "")
@@ -52,7 +47,8 @@ if (MSVC)
   # Disable deprecation warnings for standard C and STL functions in VS2005 and
   # later
   # -----------------------------------------------------------------------------
-  if (MSVC_VERSION EQUAL 1400 OR MSVC_VERSION GREATER 1400)
+  if (MSVC_VERSION GREATER 1400 OR
+      MSVC_VERSION EQUAL 1400)
     add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-D_SCL_SECURE_NO_DEPRECATE)
@@ -61,9 +57,33 @@ if (MSVC)
 else ()
   set(vistk_using_clang FALSE)
 
+  check_cxx_compiler_flag(-std=c++11 has_cxx11_flags)
+
+  cmake_dependent_option(VISTK_ENABLE_CXX11 "Enable compilation with C++11 support" OFF
+    has_cxx11_flags OFF)
+
   # Check for clang
   if (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
     set(vistk_using_clang TRUE)
+  else ()
+    execute_process(
+      COMMAND "${CMAKE_CXX_COMPILER}"
+              -dumpversion
+      WORKING_DIRECTORY
+              "${vistk_source_dir}"
+      RESULT_VARIABLE
+              gcc_return
+      OUTPUT_VARIABLE
+              gcc_version)
+
+    if (gcc_version VERSION_GREATER "4.7.0" AND
+        gcc_version VERSION_LESS "4.7.2")
+      if (VISTK_ENABLE_CXX11)
+        message(ERROR
+          "C++11 ABI is broken with GCC 4.7.0 and 4.7.1."
+          "Refusing to enable C++11 support.")
+      endif ()
+    endif ()
   endif ()
 
   # Check for GCC-compatible visibility settings
@@ -73,7 +93,11 @@ else ()
   # Hide symbols by default
   vistk_check_compiler_flag(vistk_warnings -fvisibility=hidden)
   # Set the standard to C++98
-  vistk_check_compiler_flag(vistk_warnings -std=c++98)
+  if (VISTK_ENABLE_CXX11)
+    vistk_check_compiler_flag(vistk_warnings -std=c++11)
+  else ()
+    vistk_check_compiler_flag(vistk_warnings -std=c++98)
+  endif ()
   # General warnings
   vistk_check_compiler_flag(vistk_warnings -Wall)
   vistk_check_compiler_flag(vistk_warnings -Wextra)
@@ -118,8 +142,9 @@ else ()
   endif ()
 
   option(VISTK_ENABLE_PEDANTIC "Be pedantic" OFF)
+  cmake_dependent_option(VISTK_ENABLE_PEDANTIC_ERRORS "Be REALLY pedantic" OFF
+    VISTK_ENABLE_PEDANTIC OFF)
   if (VISTK_ENABLE_PEDANTIC)
-    option(VISTK_ENABLE_PEDANTIC_ERRORS "Be REALLY pedantic" OFF)
     if (VISTK_ENABLE_PEDANTIC_ERRORS)
       vistk_check_compiler_flag(vistk_warnings -pedantic-errors)
     else ()
@@ -132,13 +157,10 @@ else ()
     vistk_check_compiler_flag(vistk_warnings -Werror)
   endif ()
 
-  if (vistk_using_clang)
-    option(VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR "Use clang to flag undefined behavior")
-    if (VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
-      vistk_check_compiler_flag(vistk_warnings -fcatch-undefined-behavior)
-    endif ()
-  elseif ()
-    # GCC-specific warnings
+  cmake_dependent_option(VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR "Use clang to flag undefined behavior" OFF
+    vistk_using_clang OFF)
+  if (VISTK_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
+    vistk_check_compiler_flag(vistk_warnings -fcatch-undefined-behavior)
   endif ()
 
   option(VISTK_ENABLE_COVERAGE "Build with coverage testing" OFF)
@@ -170,22 +192,29 @@ foreach (config ${CMAKE_CONFIGURATION_TYPES})
 endforeach ()
 
 option(VISTK_ENABLE_PYTHON "Enable Python bindings" OFF)
+cmake_dependent_option(VISTK_ENABLE_PYTHON3 "Use Python3" OFF
+  VISTK_ENABLE_PYTHON OFF)
 if (VISTK_ENABLE_PYTHON)
-  option(VISTK_ENABLE_PYTHON3 "Use Python3" OFF)
+  set(python_output_path "${vistk_binary_dir}/${destdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
+
+  set(PYTHON_VERSION "2.7"
+    CACHE STRING "The version of python to use for bindings")
+  set(PYTHON_ABIFLAGS ""
+    CACHE STRING "The ABI flags for the version of Python being used")
+
   if (VISTK_ENABLE_PYTHON3)
     set(Python_ADDITIONAL_VERSIONS
       3
       ${PYTHON_VERSION})
   endif ()
 
-  if (WIN32)
-    # This is to avoid Boost.Python's headers to have __declspec(dllimport) in
-    # the headers which confuses Visual Studio's linker.
-    option(VISTK_HACK_LINK_BOOST_PYTHON_STATIC "Link Boost.Python statically" ON)
-    mark_as_advanced(VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
-    if (VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
-      add_definitions(-DBOOST_PYTHON_STATIC_LIB)
-    endif ()
+  # This is to avoid Boost.Python's headers to have __declspec(dllimport) in
+  # the headers which confuses Visual Studio's linker.
+  cmake_dependent_option(VISTK_HACK_LINK_BOOST_PYTHON_STATIC "Link Boost.Python statically" ON
+    WIN32 OFF)
+  mark_as_advanced(VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
+  if (VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
+    add_definitions(-DBOOST_PYTHON_STATIC_LIB)
   endif ()
 
   if (CMAKE_VERSION VERSION_LESS "2.8.8")
