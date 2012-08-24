@@ -24,6 +24,7 @@
 #include <map>
 #include <queue>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -1310,7 +1311,9 @@ pipeline
 {
   if (!d->running)
   {
-    throw pipeline_not_running_exception();
+    static std::string const reason = "Start/stop pipeline state tracking failed";
+
+    throw std::logic_error(reason);
   }
 
   d->running = false;

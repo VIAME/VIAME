@@ -569,20 +569,4 @@ pipeline_not_ready_exception
 {
 }
 
-pipeline_not_running_exception
-::pipeline_not_running_exception() throw()
-  : pipeline_exception()
-{
-  std::ostringstream sstr;
-
-  sstr << "A pipeline was stopped before it was started";
-
-  m_what = sstr.str();
-}
-
-pipeline_not_running_exception
-::~pipeline_not_running_exception() throw()
-{
-}
-
 }
