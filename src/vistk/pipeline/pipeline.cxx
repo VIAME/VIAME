@@ -732,27 +732,6 @@ pipeline
   d->setup_in_progress = false;
 }
 
-void
-pipeline
-::start()
-{
-  d->ensure_setup();
-
-  d->running = true;
-}
-
-void
-pipeline
-::stop()
-{
-  if (!d->running)
-  {
-    throw pipeline_not_running_exception();
-  }
-
-  d->running = false;
-}
-
 process::names_t
 pipeline
 ::process_names() const
@@ -1314,6 +1293,27 @@ pipeline
   }
 
   return mapping_it->second.get<1>();
+}
+
+void
+pipeline
+::start()
+{
+  d->ensure_setup();
+
+  d->running = true;
+}
+
+void
+pipeline
+::stop()
+{
+  if (!d->running)
+  {
+    throw pipeline_not_running_exception();
+  }
+
+  d->running = false;
 }
 
 pipeline::priv

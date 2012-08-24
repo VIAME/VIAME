@@ -63,10 +63,6 @@ BOOST_PYTHON_MODULE(pipeline)
       , "Returns True if the pipeline has been successfully setup, False otherwise.")
     .def("reset", &vistk::pipeline::reset
       , "Resets connections and mappings within the pipeline.")
-    .def("start", &vistk::pipeline::start
-      , "Notify the pipeline that its execution has started.")
-    .def("stop", &vistk::pipeline::stop
-      , "Notify the pipeline that its execution has ended.")
     .def("process_names", &vistk::pipeline::process_names
       , "Returns a list of all process names in the pipeline.")
     .def("process_by_name", &vistk::pipeline::process_by_name

@@ -387,20 +387,6 @@ class VISTK_PIPELINE_EXPORT pipeline
     void reset();
 
     /**
-     * \brief Notify the pipeline that its execution has started.
-     *
-     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been setup.
-     * \throws pipeline_not_ready_exception Thrown when the pipeline has not been setup successfully.
-     */
-    void start();
-    /**
-     * \brief Notify the pipeline that its execution has ended.
-     *
-     * \throws pipeline_not_setup_exception Thrown when the pipeline has not been started yet.
-     */
-    void stop();
-
-    /**
      * \brief Get a list of processes in the pipeline.
      *
      * \returns The names of all processes in the pipeline.
@@ -693,6 +679,10 @@ class VISTK_PIPELINE_EXPORT pipeline
      */
     process::port_addr_t mapped_group_output_port(process::name_t const& name, process::port_t const& port) const;
   private:
+    friend class scheduler;
+    VISTK_PIPELINE_NO_EXPORT void start();
+    VISTK_PIPELINE_NO_EXPORT void stop();
+
     class priv;
     boost::scoped_ptr<priv> d;
 };
