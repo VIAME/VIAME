@@ -238,8 +238,8 @@ class group_printer
     ~group_printer();
 
     void operator () (vistk::config_value_t const& config_value) const;
-    void operator () (vistk::input_map_t const& input_map) const;
-    void operator () (vistk::output_map_t const& output_map) const;
+    void operator () (vistk::group_input_t const& input_map) const;
+    void operator () (vistk::group_output_t const& output_map) const;
   private:
     std::ostream& m_ostr;
 };
@@ -325,7 +325,7 @@ group_printer
 
 void
 group_printer
-::operator () (vistk::input_map_t const& input_map) const
+::operator () (vistk::group_input_t const& input_map) const
 {
   vistk::map_options_t const& options = input_map.options;
   vistk::process::port_t const& from = input_map.from;
@@ -351,7 +351,7 @@ group_printer
 
 void
 group_printer
-::operator () (vistk::output_map_t const& output_map) const
+::operator () (vistk::group_output_t const& output_map) const
 {
   vistk::map_options_t const& options = output_map.options;
   vistk::process::port_addr_t const& from = output_map.from;

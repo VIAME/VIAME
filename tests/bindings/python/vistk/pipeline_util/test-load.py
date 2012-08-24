@@ -24,8 +24,8 @@ def test_create():
     load.ConfigValue()
     load.ConfigValues()
     load.MapOptions()
-    load.InputMap()
-    load.OutputMap()
+    load.GroupInput()
+    load.GroupOutput()
     load.ConfigBlock()
     load.ProcessBlock()
     load.ConnectBlock()
@@ -64,7 +64,7 @@ def test_api_calls():
     o.flags
     o.flags = process.PortFlags()
 
-    o = load.InputMap()
+    o = load.GroupInput()
     o.options
     o.from_
     o.to
@@ -72,7 +72,7 @@ def test_api_calls():
     o.from_ = process.Port()
     o.to = process.PortAddr()
 
-    o = load.OutputMap()
+    o = load.GroupOutput()
     o.options
     o.from_
     o.to
@@ -103,9 +103,9 @@ def test_api_calls():
     o = load.GroupSubblock()
     o.config = load.ConfigValue()
     o.config
-    o.input = load.InputMap()
+    o.input = load.GroupInput()
     o.input
-    o.output = load.OutputMap()
+    o.output = load.GroupOutput()
     o.output
 
     o = load.GroupBlock()

@@ -36,9 +36,9 @@ using namespace boost::python;
 static object group_subblock_config(vistk::group_subblock_t const& subblock);
 static void group_subblock_config_set(vistk::group_subblock_t& subblock, vistk::config_value_t const& config);
 static object group_subblock_input(vistk::group_subblock_t const& subblock);
-static void group_subblock_input_set(vistk::group_subblock_t& subblock, vistk::input_map_t const& input);
+static void group_subblock_input_set(vistk::group_subblock_t& subblock, vistk::group_input_t const& input);
 static object group_subblock_output(vistk::group_subblock_t const& subblock);
-static void group_subblock_output_set(vistk::group_subblock_t& subblock, vistk::output_map_t const& output);
+static void group_subblock_output_set(vistk::group_subblock_t& subblock, vistk::group_output_t const& output);
 static object pipe_block_config(vistk::pipe_block const& block);
 static void pipe_block_config_set(vistk::pipe_block& block, vistk::config_pipe_block const& config);
 static object pipe_block_process(vistk::pipe_block const& block);
@@ -90,17 +90,17 @@ BOOST_PYTHON_MODULE(load)
     , "A collection of options for a mapping.")
     .def_readwrite("flags", &vistk::map_options_t::flags)
   ;
-  class_<vistk::input_map_t>("InputMap"
+  class_<vistk::group_input_t>("GroupInput"
     , "An input mapping for a group.")
-    .def_readwrite("options", &vistk::input_map_t::options)
-    .def_readwrite("from_", &vistk::input_map_t::from)
-    .def_readwrite("to", &vistk::input_map_t::to)
+    .def_readwrite("options", &vistk::group_input_t::options)
+    .def_readwrite("from_", &vistk::group_input_t::from)
+    .def_readwrite("to", &vistk::group_input_t::to)
   ;
-  class_<vistk::output_map_t>("OutputMap"
+  class_<vistk::group_output_t>("GroupOutput"
     , "An output mapping for a group.")
-    .def_readwrite("options", &vistk::output_map_t::options)
-    .def_readwrite("from_", &vistk::output_map_t::from)
-    .def_readwrite("to", &vistk::output_map_t::to)
+    .def_readwrite("options", &vistk::group_output_t::options)
+    .def_readwrite("from_", &vistk::group_output_t::from)
+    .def_readwrite("to", &vistk::group_output_t::to)
   ;
   class_<vistk::config_pipe_block>("ConfigBlock"
     , "A block of configuration settings.")
@@ -172,8 +172,8 @@ class group_subblock_visitor
     block_t const block_type;
 
     object operator () (vistk::config_value_t const& config) const;
-    object operator () (vistk::input_map_t const& input) const;
-    object operator () (vistk::output_map_t const& output) const;
+    object operator () (vistk::group_input_t const& input) const;
+    object operator () (vistk::group_output_t const& output) const;
 };
 
 object
@@ -195,7 +195,7 @@ group_subblock_input(vistk::group_subblock_t const& subblock)
 }
 
 void
-group_subblock_input_set(vistk::group_subblock_t& subblock, vistk::input_map_t const& input)
+group_subblock_input_set(vistk::group_subblock_t& subblock, vistk::group_input_t const& input)
 {
   subblock = input;
 }
@@ -207,7 +207,7 @@ group_subblock_output(vistk::group_subblock_t const& subblock)
 }
 
 void
-group_subblock_output_set(vistk::group_subblock_t& subblock, vistk::output_map_t const& output)
+group_subblock_output_set(vistk::group_subblock_t& subblock, vistk::group_output_t const& output)
 {
   subblock = output;
 }
@@ -326,7 +326,7 @@ group_subblock_visitor
 
 object
 group_subblock_visitor
-::operator () (vistk::input_map_t const& input) const
+::operator () (vistk::group_input_t const& input) const
 {
   vistk::python::python_gil const gil;
 
@@ -342,7 +342,7 @@ group_subblock_visitor
 
 object
 group_subblock_visitor
-::operator () (vistk::output_map_t const& output) const
+::operator () (vistk::group_output_t const& output) const
 {
   vistk::python::python_gil const gil;
 

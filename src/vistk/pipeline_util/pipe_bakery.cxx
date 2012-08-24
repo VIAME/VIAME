@@ -123,11 +123,11 @@ class group_splitter
     ~group_splitter();
 
     void operator () (config_value_t const& config_block);
-    void operator () (input_map_t const& input_block);
-    void operator () (output_map_t const& output_block);
+    void operator () (group_input_t const& input_block);
+    void operator () (group_output_t const& output_block);
 
-    typedef std::vector<input_map_t> input_maps_t;
-    typedef std::vector<output_map_t> output_maps_t;
+    typedef std::vector<group_input_t> input_maps_t;
+    typedef std::vector<group_output_t> output_maps_t;
 
     config_values_t m_configs;
     input_maps_t m_inputs;
@@ -493,7 +493,7 @@ pipe_bakery
 
   mappings_t input_mappings;
 
-  BOOST_FOREACH (input_map_t const& map, splitter.m_inputs)
+  BOOST_FOREACH (group_input_t const& map, splitter.m_inputs)
   {
     process::port_flags_t flags = default_flags;
 
@@ -509,7 +509,7 @@ pipe_bakery
 
   mappings_t output_mappings;
 
-  BOOST_FOREACH (output_map_t const& map, splitter.m_outputs)
+  BOOST_FOREACH (group_output_t const& map, splitter.m_outputs)
   {
     process::port_flags_t flags = default_flags;
 
@@ -613,14 +613,14 @@ group_splitter
 
 void
 group_splitter
-::operator () (input_map_t const& input_block)
+::operator () (group_input_t const& input_block)
 {
   m_inputs.push_back(input_block);
 }
 
 void
 group_splitter
-::operator () (output_map_t const& output_block)
+::operator () (group_output_t const& output_block)
 {
   m_outputs.push_back(output_block);
 }

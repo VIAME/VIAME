@@ -74,14 +74,14 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::input_map_t,
+  vistk::group_input_t,
   (vistk::map_options_t, options)
   (vistk::process::port_t, from)
   (vistk::process::port_addr_t, to)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::output_map_t,
+  vistk::group_output_t,
   (vistk::map_options_t, options)
   (vistk::process::port_addr_t, from)
   (vistk::process::port_t, to)
@@ -105,8 +105,8 @@ static token_t const config_block_name = token_t("config");
 static token_t const process_block_name = token_t("process");
 static token_t const connect_block_name = token_t("connect");
 static token_t const group_block_name = token_t("group");
-static token_t const input_map_block_name = token_t("imap");
-static token_t const output_map_block_name = token_t("omap");
+static token_t const input_block_name = token_t("imap");
+static token_t const output_block_name = token_t("omap");
 
 static token_t const from_name = token_t("from");
 static token_t const to_name = token_t("to");
@@ -173,8 +173,8 @@ class pipe_grammar
 
     qi::rule<Iterator, map_options_t()> map_options;
 
-    qi::rule<Iterator, input_map_t()> input_map_block;
-    qi::rule<Iterator, output_map_t()> output_map_block;
+    qi::rule<Iterator, group_input_t()> group_input_block;
+    qi::rule<Iterator, group_output_t()> group_output_block;
 
     qi::rule<Iterator, group_pipe_block()> group_block;
 
@@ -464,10 +464,10 @@ pipe_grammar<Iterator>
      ( -map_flags_decl
      );
 
-  input_map_block.name("input-mapping-spec");
-  input_map_block %=
+  group_input_block.name("group-input-spec");
+  group_input_block %=
      (  opt_whitespace
-     >> qi::lit(input_map_block_name)
+     >> qi::lit(input_block_name)
      >  map_options
      >  whitespace
      >  qi::lit(from_name)
@@ -481,10 +481,10 @@ pipe_grammar<Iterator>
      >  line_end
      );
 
-  output_map_block.name("output-mapping-spec");
-  output_map_block %=
+  group_output_block.name("group-output-spec");
+  group_output_block %=
      (  opt_whitespace
-     >> qi::lit(output_map_block_name)
+     >> qi::lit(output_block_name)
      >  map_options
      >  whitespace
      >  qi::lit(from_name)
@@ -506,8 +506,8 @@ pipe_grammar<Iterator>
      >  process_name
      >  line_end
      > *(  partial_config_value_decl
-        |  input_map_block
-        |  output_map_block
+        |  group_input_block
+        |  group_output_block
         )
      );
 

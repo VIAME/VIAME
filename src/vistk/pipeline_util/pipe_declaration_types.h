@@ -91,11 +91,11 @@ struct map_options_t
 };
 
 /**
- * \struct input_map_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct group_input_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
  *
- * \brief A structure for an input mapping.
+ * \brief A structure for a group input mapping.
  */
-struct input_map_t
+struct group_input_t
 {
   /// Options for the mapping.
   map_options_t options;
@@ -106,11 +106,11 @@ struct input_map_t
 };
 
 /**
- * \struct output_map_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct group_output_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
  *
- * \brief A structure for an output mapping.
+ * \brief A structure for a group output mapping.
  */
-struct output_map_t
+struct group_output_t
 {
   /// Options for the mapping.
   map_options_t options;
@@ -162,7 +162,7 @@ struct connect_pipe_block
 };
 
 /// A variant over the possible blocks that may be contained within a group.
-typedef boost::variant<config_value_t, input_map_t, output_map_t> group_subblock_t;
+typedef boost::variant<config_value_t, group_input_t, group_output_t> group_subblock_t;
 /// A type for a collection of group subblocks.
 typedef std::vector<group_subblock_t> group_subblocks_t;
 
