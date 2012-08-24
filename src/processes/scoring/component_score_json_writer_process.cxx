@@ -155,7 +155,7 @@ void
 component_score_json_writer_process
 ::_init()
 {
-  if (!d->tags.size())
+  if (d->tags.empty())
   {
     static std::string const reason = "There must be at least one component score to write";
 

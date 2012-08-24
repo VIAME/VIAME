@@ -1434,7 +1434,7 @@ test_remove_process()
                    pipe->process_by_name(named),
                    "requesting a process after it has been removed");
 
-  if (pipe->connections_from_addr(nameu, portu).size())
+  if (!pipe->connections_from_addr(nameu, portu).empty())
   {
     TEST_ERROR("A connection exists after one of the processes has been removed");
   }
@@ -1481,7 +1481,7 @@ test_disconnect()
   pipe->disconnect(nameu, portu,
                    named, portd);
 
-  if (pipe->connections_from_addr(nameu, portu).size())
+  if (!pipe->connections_from_addr(nameu, portu).empty())
   {
     TEST_ERROR("A connection exists after being disconnected");
   }

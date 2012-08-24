@@ -1200,7 +1200,7 @@ void
 pipeline::priv
 ::check_for_processes() const
 {
-  if (!process_map.size())
+  if (process_map.empty())
   {
     throw no_processes_exception();
   }
@@ -1381,7 +1381,7 @@ void
 pipeline::priv
 ::check_for_data_dep_ports() const
 {
-  if (data_dep_connections.size())
+  if (!data_dep_connections.empty())
   {
     static std::string const reason = "Data dependency port tracking failed";
 
@@ -1471,7 +1471,7 @@ pipeline::priv
                downstream_name, downstream_port);
   }
 
-  if (type_pinnings.size())
+  if (!type_pinnings.empty())
   {
     propagate_pinned_types();
   }
@@ -1481,7 +1481,7 @@ void
 pipeline::priv
 ::check_for_untyped_ports() const
 {
-  if (untyped_connections.size())
+  if (!untyped_connections.empty())
   {
     throw untyped_connection_exception();
   }
@@ -1810,7 +1810,7 @@ pipeline::priv
     if ((i_up == i_end) &&
         (i_down == i_end))
     {
-      if (!freq_map.size())
+      if (freq_map.empty())
       {
         // Seed the frequency map at 1-to-1 based on the upstream process.
         freq_map[upstream_name] = base_freq;
