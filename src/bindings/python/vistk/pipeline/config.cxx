@@ -44,6 +44,8 @@ BOOST_PYTHON_MODULE(config)
     , "A collection of keys for a configuration.")
     .def(vector_indexing_suite<vistk::config::keys_t>())
   ;
+  class_<vistk::config::description_t>("ConfigDescription"
+    , "A description of a configuration key.");
   class_<vistk::config::value_t>("ConfigValue"
     , "A value in the configuration.");
 

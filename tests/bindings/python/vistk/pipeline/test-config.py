@@ -22,6 +22,7 @@ def test_create():
 
     config.ConfigKey()
     config.ConfigKeys()
+    config.ConfigDescription()
     config.ConfigValue()
 
 
