@@ -103,6 +103,12 @@ static void test_group_all(vistk::path_t const& pipe_file);
 static void test_no_parse(vistk::path_t const& pipe_file);
 static void test_parse_error(vistk::path_t const& pipe_file);
 static void test_envvar(vistk::path_t const& pipe_file);
+static void test_cluster_declare(vistk::path_t const& pipe_file);
+static void test_cluster_config(vistk::path_t const& pipe_file);
+static void test_cluster_input_map(vistk::path_t const& pipe_file);
+static void test_cluster_output_map(vistk::path_t const& pipe_file);
+static void test_cluster_mappings(vistk::path_t const& pipe_file);
+static void test_cluster_all(vistk::path_t const& pipe_file);
 
 void
 run_test(std::string const& test_name, vistk::path_t const& pipe_file)
@@ -263,6 +269,30 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   {
     test_envvar(pipe_file);
   }
+  else if (test_name == "cluster_declare")
+  {
+    test_cluster_declare(pipe_file);
+  }
+  else if (test_name == "cluster_config")
+  {
+    test_cluster_config(pipe_file);
+  }
+  else if (test_name == "cluster_input_map")
+  {
+    test_cluster_input_map(pipe_file);
+  }
+  else if (test_name == "cluster_output_map")
+  {
+    test_cluster_output_map(pipe_file);
+  }
+  else if (test_name == "cluster_mappings")
+  {
+    test_cluster_mappings(pipe_file);
+  }
+  else if (test_name == "cluster_all")
+  {
+    test_cluster_all(pipe_file);
+  }
   else
   {
     TEST_ERROR("Unknown test: " << test_name);
@@ -278,7 +308,8 @@ class test_visitor
       CONFIG_BLOCK,
       PROCESS_BLOCK,
       CONNECT_BLOCK,
-      GROUP_BLOCK
+      GROUP_BLOCK,
+      CLUSTER_BLOCK
     } block_type_t;
 
     typedef std::vector<block_type_t> block_types_t;
@@ -290,11 +321,13 @@ class test_visitor
     void operator () (vistk::process_pipe_block const& process_block);
     void operator () (vistk::connect_pipe_block const& connect_block);
     void operator () (vistk::group_pipe_block const& group_block);
+    void operator () (vistk::cluster_pipe_block const& cluster_block);
 
     void expect(size_t config_expect,
                 size_t process_expect,
                 size_t connect_expect,
-                size_t group_expect) const;
+                size_t group_expect,
+                size_t cluster_expect) const;
     void output_report() const;
 
     static void print_char(block_type_t type);
@@ -303,6 +336,7 @@ class test_visitor
     size_t process_count;
     size_t connect_count;
     size_t group_count;
+    size_t cluster_count;
 
     size_t total_count;
 
@@ -318,7 +352,7 @@ test_empty(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 0);
+  v.expect(0, 0, 0, 0, 0);
 }
 
 void
@@ -330,7 +364,7 @@ test_comments(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 0);
+  v.expect(0, 0, 0, 0, 0);
 }
 
 void
@@ -342,7 +376,7 @@ test_empty_config(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 }
 
 void
@@ -354,7 +388,7 @@ test_config_block(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -378,7 +412,7 @@ test_config_block_notalnum(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(2, 0, 0, 0);
+  v.expect(2, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -412,7 +446,7 @@ test_config_value_spaces(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -446,7 +480,7 @@ test_one_process(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 1, 0, 0);
+  v.expect(0, 1, 0, 0, 0);
 }
 
 void
@@ -458,7 +492,7 @@ test_connected_processes(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 2, 1, 0);
+  v.expect(0, 2, 1, 0, 0);
 }
 
 void
@@ -470,7 +504,7 @@ test_connected_processes_notalnum(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 2, 3, 0);
+  v.expect(0, 2, 3, 0, 0);
 }
 
 void
@@ -482,7 +516,7 @@ test_config_overrides(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(2, 0, 0, 0);
+  v.expect(2, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -506,7 +540,7 @@ test_config_read_only(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 }
 
 void
@@ -518,7 +552,7 @@ test_config_not_a_flag(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   EXPECT_EXCEPTION(vistk::unrecognized_config_flag_exception,
                    vistk::extract_configuration(blocks),
@@ -534,7 +568,7 @@ test_config_read_only_override(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(2, 0, 0, 0);
+  v.expect(2, 0, 0, 0, 0);
 
   EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
                    vistk::extract_configuration(blocks),
@@ -550,7 +584,7 @@ test_config_append(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -574,7 +608,7 @@ test_config_cappend(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -598,7 +632,7 @@ test_config_cappend_empty(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -622,7 +656,7 @@ test_config_provider_conf(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(2, 0, 0, 0);
+  v.expect(2, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -646,7 +680,7 @@ test_config_provider_conf_dep(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(3, 0, 0, 0);
+  v.expect(3, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -679,7 +713,7 @@ test_config_provider_conf_circular_dep(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(2, 0, 0, 0);
+  v.expect(2, 0, 0, 0, 0);
 
   EXPECT_EXCEPTION(vistk::circular_config_provide_exception,
                    vistk::extract_configuration(blocks),
@@ -695,7 +729,7 @@ test_config_provider_env(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   vistk::extract_configuration(blocks);
 }
@@ -709,7 +743,7 @@ test_config_provider_read_only(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   vistk::extract_configuration(blocks);
 }
@@ -723,7 +757,7 @@ test_config_provider_read_only_override(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(2, 0, 0, 0);
+  v.expect(2, 0, 0, 0, 0);
 
   EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
                    vistk::extract_configuration(blocks),
@@ -739,7 +773,7 @@ test_config_provider_unprovided(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   EXPECT_EXCEPTION(vistk::unrecognized_provider_exception,
                    vistk::extract_configuration(blocks),
@@ -755,7 +789,7 @@ test_include(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(1, 0, 0, 0);
+  v.expect(1, 0, 0, 0, 0);
 
   vistk::config_t const conf = vistk::extract_configuration(blocks);
 
@@ -811,7 +845,7 @@ test_group_declare(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 1);
+  v.expect(0, 0, 0, 1, 0);
 }
 
 void
@@ -823,7 +857,7 @@ test_group_config(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 1);
+  v.expect(0, 0, 0, 1, 0);
 }
 
 void
@@ -835,7 +869,7 @@ test_group_input_map(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 1);
+  v.expect(0, 0, 0, 1, 0);
 }
 
 void
@@ -847,7 +881,7 @@ test_group_output_map(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 1);
+  v.expect(0, 0, 0, 1, 0);
 }
 
 void
@@ -859,7 +893,7 @@ test_group_input_map_flags(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 1);
+  v.expect(0, 0, 0, 1, 0);
 }
 
 void
@@ -871,7 +905,7 @@ test_group_output_map_flags(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 1);
+  v.expect(0, 0, 0, 1, 0);
 }
 
 void
@@ -883,7 +917,7 @@ test_group_mappings(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 1);
+  v.expect(0, 0, 0, 1, 0);
 }
 
 void
@@ -895,7 +929,7 @@ test_group_all(vistk::path_t const& pipe_file)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 1);
+  v.expect(0, 0, 0, 1, 0);
 }
 
 void
@@ -927,7 +961,79 @@ test_envvar(vistk::path_t const& /*pipe_file*/)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
 
-  v.expect(0, 0, 0, 0);
+  v.expect(0, 0, 0, 0, 0);
+}
+
+void
+test_cluster_declare(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 0, 1);
+}
+
+void
+test_cluster_config(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 0, 1);
+}
+
+void
+test_cluster_input_map(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 0, 1);
+}
+
+void
+test_cluster_output_map(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 0, 1);
+}
+
+void
+test_cluster_mappings(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 0, 1);
+}
+
+void
+test_cluster_all(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 0, 1);
 }
 
 test_visitor
@@ -936,6 +1042,7 @@ test_visitor
   , process_count(0)
   , connect_count(0)
   , group_count(0)
+  , cluster_count(0)
   , total_count(0)
   , types()
 {
@@ -988,10 +1095,21 @@ test_visitor
 
 void
 test_visitor
+::operator () (vistk::cluster_pipe_block const& /*cluster_block*/)
+{
+  ++cluster_count;
+  ++total_count;
+
+  types.push_back(CLUSTER_BLOCK);
+}
+
+void
+test_visitor
 ::expect(size_t config_expect,
          size_t process_expect,
          size_t connect_expect,
-         size_t group_expect) const
+         size_t group_expect,
+         size_t cluster_expect) const
 {
   bool is_good = true;
 
@@ -1023,6 +1141,13 @@ test_visitor
                "Received: " << group_count);
     is_good = false;
   }
+  if (cluster_expect != cluster_count)
+  {
+    TEST_ERROR("cluster count: "
+               "Expected: " << cluster_expect << " "
+               "Received: " << cluster_count);
+    is_good = false;
+  }
 
   if (!is_good)
   {
@@ -1039,6 +1164,7 @@ test_visitor
   std::cerr << "process blocks: " << process_count << std::endl;
   std::cerr << "connect blocks: " << connect_count << std::endl;
   std::cerr << "group blocks  : " << group_count << std::endl;
+  std::cerr << "cluster blocks: " << cluster_count << std::endl;
 
   std::cerr << "Order: ";
 
@@ -1066,6 +1192,9 @@ test_visitor
       break;
     case GROUP_BLOCK:
       c = 'g';
+      break;
+    case CLUSTER_BLOCK:
+      c = 'P';
       break;
     default:
       c = 'U';

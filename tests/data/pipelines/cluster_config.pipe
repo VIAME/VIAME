@@ -1,0 +1,5 @@
+cluster mycluster
+  :# clusterdesc
+  :: clustertype
+  :# configdesc
+  :mykey myvalue

@@ -62,6 +62,12 @@ vistk_make_load_test(load_pipe parse_error)
 set(test_environment "VISTK_PIPE_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}")
 vistk_make_load_test(load_pipe envvar)
 unset(test_environment)
+vistk_make_load_test(load_pipe cluster_declare)
+vistk_make_load_test(load_pipe cluster_config)
+vistk_make_load_test(load_pipe cluster_input_map)
+vistk_make_load_test(load_pipe cluster_output_map)
+vistk_make_load_test(load_pipe cluster_mappings)
+vistk_make_load_test(load_pipe cluster_all)
 
 ##############################
 # Export tests
