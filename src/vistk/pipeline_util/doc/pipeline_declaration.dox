@@ -229,6 +229,41 @@
  * <pre>
  * </pre>
  *
+ * \subsection cluster_block Cluster block
+ *
+ * A cluster is a collection of processes which can be treated as a single
+ * process for connection and configuration purposes. They may be loaded from
+ * files and loaded as a single process.
+ *
+ * \par Specification
+ *
+ * <pre>
+ *   <description-decl>    ::= ":#" <whitespace> <key-value>
+ *   <input-map-decl>      ::= "imap"
+ *   <output-map-decl>     ::= "omap"
+ *   <cluster-config-spec> ::= <opt-whitespace> <description-decl> <line-end>
+ *                             <partial-config-spec>
+ *   <cluster-input-spec>  ::= <opt-whitespace> <description-decl> <line-end>
+ *                             <opt-whitespace> <input-map-decl> <whitespace> "from" <whitespace> <port-name> <line-end>
+ *                             <opt-whitespace> "to" <port-addr> <line-end>
+ *   <cluster-output-spec> ::= <opt-whitespace> <description-decl> <line-end>
+ *                             <opt-whitespace> <output-map-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
+ *                             <opt-whitespace> "to" <port-name> <line-end>
+ *   <cluster-decl>        ::= <cluster-config-spec> | <input-mapping-spec> | <output-mapping-spec>
+ *   <cluster-decls>       ::= <group-decl> <group-decls> | ""
+ *   <cluster-block-spec>  ::= <opt-whitespace> "cluster" <whitespace> <key-component> <line-end>
+ *                             <opt-whitespace> <description-decl> <line-end>
+ *                             <opt-whitespace> <type-decl> <line-end>
+ *                             <cluster-decls>
+ * </pre>
+ *
+ * \par Examples
+ *
+ * \todo Add some examples.
+ *
+ * <pre>
+ * </pre>
+ *
  * \subsection group_block Group block
  *
  * A group is a collection of processes which can be treated as a single
@@ -242,20 +277,20 @@
  * \par Specification
  *
  * <pre>
- *   <map-flag>            ::= <alpha> <map-flag> | <alpha>
- *   <map-flags>           ::= <map-flag> <map-separator> <map-flag> | <map-flag>
- *   <map-flag-decl>       ::= <flag-start> <map-flags> <flag-close>
- *   <map-options>         ::= <map-flag-decl> | ""
- *   <input-map-decl>      ::= "imap" <map-options>
- *   <output-map-decl>     ::= "omap" <map-options>
- *   <input-mapping-spec>  ::= <opt-whitespace> <input-map-decl> <whitespace> "from" <whitespace> <port-name> <line-end>
- *                             <opt-whitespace> "to" <port-addr> <line-end>
- *   <output-mapping-spec> ::= <opt-whitespace> <output-map-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
- *                             <opt-whitespace> "to" <port-name> <line-end>
- *   <group-decl>          ::= <partial-config-spec> | <input-mapping-spec> | <output-mapping-spec>
- *   <group-decls>         ::= <group-decl> <group-decls> | ""
- *   <group-block-spec>    ::= <opt-whitespace> "group" <whitespace> <key-component> <line-end>
- *                             <group-decls>
+ *   <map-flag>          ::= <alpha> <map-flag> | <alpha>
+ *   <map-flags>         ::= <map-flag> <map-separator> <map-flag> | <map-flag>
+ *   <map-flag-decl>     ::= <flag-start> <map-flags> <flag-close>
+ *   <map-options>       ::= <map-flag-decl> | ""
+ *   <group-input-decl>  ::= <input-map-decl> <map-options>
+ *   <group-output-decl> ::= <input-map-decl> <map-options>
+ *   <group-input-spec>  ::= <opt-whitespace> <group-input-decl> <whitespace> "from" <whitespace> <port-name> <line-end>
+ *                           <opt-whitespace> "to" <port-addr> <line-end>
+ *   <group-output-spec> ::= <opt-whitespace> <group-output-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
+ *                           <opt-whitespace> "to" <port-name> <line-end>
+ *   <group-decl>        ::= <partial-config-spec> | <group-input-spec> | <group-output-spec>
+ *   <group-decls>       ::= <group-decl> <group-decls> | ""
+ *   <group-block-spec>  ::= <opt-whitespace> "group" <whitespace> <key-component> <line-end>
+ *                           <group-decls>
  * </pre>
  *
  * \par Examples
