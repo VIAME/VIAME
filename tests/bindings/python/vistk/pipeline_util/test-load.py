@@ -34,6 +34,14 @@ def test_create():
     load.GroupBlock()
     load.PipeBlock()
     load.PipeBlocks()
+    load.ClusterConfig()
+    load.ClusterInput()
+    load.ClusterOutput()
+    load.ClusterSubblock()
+    load.ClusterSubblocks()
+    load.ClusterBlock()
+    load.ClusterDefineBlock()
+    load.ClusterDefineBlocks()
 
 
 def test_api_calls():
@@ -123,6 +131,56 @@ def test_api_calls():
     o.connect
     o.group = load.GroupBlock()
     o.group
+
+    o = load.ClusterConfig()
+    o.description
+    o.config_value
+    o.description = config.ConfigDescription()
+    o.config_value = load.ConfigValue()
+
+    o = load.ClusterInput()
+    o.description
+    o.from_
+    o.to
+    o.description = process.PortDescription()
+    o.from_ = process.Port()
+    o.to = process.PortAddr()
+
+    o = load.ClusterOutput()
+    o.description
+    o.from_
+    o.to
+    o.description = process.PortDescription()
+    o.from_ = process.PortAddr()
+    o.to = process.Port()
+
+    o = load.ClusterSubblock()
+    o.config = load.ClusterConfig()
+    o.config
+    o.input = load.ClusterInput()
+    o.input
+    o.output = load.ClusterOutput()
+    o.output
+
+    o = load.ClusterBlock()
+    o.name
+    o.description
+    o.type
+    o.subblocks
+    o.name = process.ProcessName()
+    o.description = process_registry.ProcessDescription()
+    o.type = process.ProcessType()
+    o.subblocks = load.ClusterSubblocks()
+
+    o = load.ClusterDefineBlock()
+    o.config = load.ConfigBlock()
+    o.config
+    o.process = load.ProcessBlock()
+    o.process
+    o.connect = load.ConnectBlock()
+    o.connect
+    o.cluster = load.ClusterBlock()
+    o.cluster
 
 
 def test_simple_pipeline(path):
