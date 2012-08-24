@@ -68,6 +68,7 @@ class pipe_bakery
     void operator () (config_pipe_block const& config_block);
     void operator () (process_pipe_block const& process_block);
     void operator () (connect_pipe_block const& connect_block);
+    void operator () (cluster_pipe_block const& cluster_block);
     void operator () (group_pipe_block const& group_block);
 
     /**
@@ -470,6 +471,13 @@ pipe_bakery
 ::operator () (connect_pipe_block const& connect_block)
 {
   m_connections.push_back(connection_t(connect_block.from, connect_block.to));
+}
+
+void
+pipe_bakery
+::operator () (cluster_pipe_block const& cluster_block)
+{
+  throw cluster_baking_exception();
 }
 
 void

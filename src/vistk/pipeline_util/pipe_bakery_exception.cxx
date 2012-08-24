@@ -17,6 +17,21 @@
 namespace vistk
 {
 
+cluster_baking_exception
+::cluster_baking_exception() throw()
+{
+  std::stringstream sstr;
+
+  sstr << "A cluster cannot be defined in a baked pipeline";
+
+  m_what = sstr.str();
+}
+
+cluster_baking_exception
+::~cluster_baking_exception() throw()
+{
+}
+
 unrecognized_config_flag_exception
 ::unrecognized_config_flag_exception(config::key_t const& key, config_flag_t const& flag) throw()
   : pipe_bakery_exception()

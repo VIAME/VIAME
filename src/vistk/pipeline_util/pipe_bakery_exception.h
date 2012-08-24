@@ -36,6 +36,27 @@ class VISTK_PIPELINE_UTIL_EXPORT pipe_bakery_exception
 };
 
 /**
+ * \class cluster_baking_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ *
+ * \brief The exception thrown when baking a pipeline with a cluster in it.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT cluster_baking_exception
+  : public pipe_bakery_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    cluster_baking_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~cluster_baking_exception() throw();
+};
+
+/**
  * \class unrecognized_config_flag_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when a flag on a configuration is not recognized.
