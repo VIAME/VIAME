@@ -53,7 +53,7 @@ load_pipe_blocks_from_file(path_t const& fname)
 
   sstr << include_directive << str;
 
-  pipe_blocks blocks = load_pipe_blocks(sstr, fname.parent_path());
+  pipe_blocks const blocks = load_pipe_blocks(sstr, fname.parent_path());
 
   return blocks;
 }
