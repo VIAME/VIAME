@@ -72,9 +72,9 @@ class pipe_bakery
     void operator () (group_pipe_block const& group_block);
 
     /**
-     * \note We do *not* want std::map for the groupings. With a map, we may
-     * hide errors in the blocks (setting ro values, duplicate process names,
-     * etc.)
+     * \note We do *not* want std::map for the block management. With a map, we
+     * may hide errors in the blocks (setting ro values, duplicate process
+     * names, etc.)
      */
 
     typedef std::pair<config_provider_t, config::value_t> provider_request_t;
