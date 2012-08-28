@@ -408,6 +408,22 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \returns The process in the pipeline with the given name.
      */
     process_t process_by_name(process::name_t const& name) const;
+    /**
+     * \brief Get the cluster a process is a member of.
+     *
+     * \preconds
+     *
+     * \precond{A process with the name \p name exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws no_such_process_exception Thrown when \p name does not exist in the pipeline.
+     *
+     * \param name The name of the process to retrieve.
+     *
+     * \returns The process in the pipeline with the given name.
+     */
+    process::name_t parent_cluster(process::name_t const& name) const;
 
     /**
      * \brief Find the ports requested to receive data from a port.

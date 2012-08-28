@@ -25,6 +25,7 @@
 #include <queue>
 #include <set>
 #include <stdexcept>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -52,6 +53,8 @@ class pipeline::priv
     void propagate(process::name_t const& root);
 
     typedef std::map<process::name_t, process_t> process_map_t;
+    typedef std::stack<process::name_t> parent_stack_t;
+    typedef std::map<process::name_t, process::name_t> process_parent_map_t;
     typedef std::map<process::name_t, process_cluster_t> cluster_map_t;
     typedef std::map<size_t, edge_t> edge_map_t;
 
@@ -117,6 +120,9 @@ class pipeline::priv
     edge_map_t edge_map;
 
     group_map_t groups;
+
+    process_parent_map_t process_parent_map;
+    parent_stack_t parent_stack;
 
     connected_mappings_t used_input_mappings;
     connected_mappings_t used_output_mappings;
@@ -208,9 +214,19 @@ pipeline
 
   process_cluster_t const cluster = boost::dynamic_pointer_cast<process_cluster>(process);
 
+  process::name_t parent;
+
+  if (!d->parent_stack.empty())
+  {
+    parent = d->parent_stack.top();
+  }
+
   if (cluster)
   {
     d->cluster_map[name] = cluster;
+    d->process_parent_map[name] = parent;
+
+    d->parent_stack.push(name);
 
     /// \todo Should failure to add a cluster be able to be rolled back?
 
@@ -271,10 +287,13 @@ pipeline
                       process::port_flags_t());
     }
 
+    d->parent_stack.pop();
+
     return;
   }
 
   d->process_map[name] = process;
+  d->process_parent_map[name] = parent;
 }
 
 void
@@ -757,6 +776,20 @@ pipeline
   priv::process_map_t::const_iterator i = d->process_map.find(name);
 
   if (i == d->process_map.end())
+  {
+    throw no_such_process_exception(name);
+  }
+
+  return i->second;
+}
+
+process::name_t
+pipeline
+::parent_cluster(process::name_t const& name) const
+{
+  priv::process_parent_map_t::const_iterator i = d->process_parent_map.find(name);
+
+  if (i == d->process_parent_map.end())
   {
     throw no_such_process_exception(name);
   }
