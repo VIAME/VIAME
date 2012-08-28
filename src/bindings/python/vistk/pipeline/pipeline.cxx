@@ -68,6 +68,9 @@ BOOST_PYTHON_MODULE(pipeline)
     .def("process_by_name", &vistk::pipeline::process_by_name
       , (arg("name"))
       , "Get a process by name.")
+    .def("parent_cluster", &vistk::pipeline::parent_cluster
+      , (arg("name"))
+      , "Get a process' parent cluster.")
     .def("connections_from_addr", &vistk::pipeline::connections_from_addr
       , (arg("name"), arg("port"))
       , "Return the addresses of ports that are connected downstream of a port.")
