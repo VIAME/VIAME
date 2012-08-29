@@ -37,7 +37,12 @@
 using namespace boost::local_time;
 
 #if defined(_WIN32) || defined(_WIN64)
+namespace std
+{
+
 static bool isnan(double v);
+
+}
 #endif
 
 namespace vistk
@@ -183,7 +188,7 @@ component_score_json_writer_process
 #define JSON_ATTR(key, value) \
   JSON_KEY(key) << value
 #define JSON_ATTR_DOUBLE(key, value) \
-  JSON_ATTR(key, (isnan(value) ? "\"nan\"" : boost::lexical_cast<std::string>(value)))
+  JSON_ATTR(key, (std::isnan(value) ? "\"nan\"" : boost::lexical_cast<std::string>(value)))
 #define JSON_SEP \
   "," << std::endl
 #define JSON_OBJECT_BEGIN \
@@ -370,9 +375,14 @@ component_score_json_writer_process::priv
 }
 
 #if defined(_WIN32) || defined(_WIN64)
+namespace std
+{
+
 bool
 isnan(double v)
 {
   return (v != v);
+}
+
 }
 #endif
