@@ -16,7 +16,8 @@ function (add_vistk_plugin name define)
   set_target_properties(${name}
     PROPERTIES
       DEFINE_SYMBOL    ${define}
-      PREFIX           "")
+      PREFIX           ""
+      SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX})
 endfunction ()
 
 add_subdirectory(bindings)

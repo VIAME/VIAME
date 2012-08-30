@@ -43,7 +43,8 @@ function (add_vistk_plugin name define)
       DEFINE_SYMBOL            ${define}
       LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/vistk"
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/vistk"
-      PREFIX                   "")
+      PREFIX                   ""
+      SUFFIX                   ${CMAKE_SHARED_MODULE_SUFFIX})
 
   install(
     TARGETS       ${name}
@@ -61,18 +62,19 @@ if (VISTK_ENABLE_PYTHON)
     add_library(python-${safe_modpath}-${name}
       ${ARGN})
 
+    set(pysuffix ${CMAKE_SHARED_MODULE_SUFFIX})
+
+    if (WIN32)
+      set(pysuffix .pyd)
+    endif ()
+
     set_target_properties(python-${safe_modpath}-${name}
       PROPERTIES
         OUTPUT_NAME              ${name}
         RUNTIME_OUTPUT_DIRECTORY "${PYTHON_OUTPUT_PATH}/${modpath}"
         LIBRARY_OUTPUT_DIRECTORY "${PYTHON_OUTPUT_PATH}/${modpath}"
-        PREFIX                   "")
-
-    if (WIN32)
-      set_target_properties(python-${safe_modpath}-${name}
-        PROPERTIES
-          SUFFIX ".pyd")
-    endif ()
+        PREFIX                   ""
+        SUFFIX                   ${pysuffix})
 
     foreach (config ${CMAKE_CONFIGURATION_TYPES})
       if (CMAKE_CONFIGURATION_TYPES)

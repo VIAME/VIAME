@@ -48,16 +48,17 @@ function (add_vistk_python_library name modpath)
   vistk_add_library(python-${safe_modpath}-${name}
     ${ARGN})
 
+  set(pysuffix ${CMAKE_SHARED_MODULE_SUFFIX})
+
+  if (WIN32)
+    set(pysuffix .pyd)
+  endif ()
+
   set_target_properties(python-${safe_modpath}-${name}
     PROPERTIES
       OUTPUT_NAME ${name}
-      PREFIX      "")
-
-  if (WIN32)
-    set_target_properties(python-${safe_modpath}-${name}
-      PROPERTIES
-        SUFFIX ".pyd")
-  endif ()
+      PREFIX      ""
+      SUFFIX      ${pysuffix})
 
   add_dependencies(python
     python-${safe_modpath}-${name})
