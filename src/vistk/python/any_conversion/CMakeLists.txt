@@ -15,6 +15,7 @@ target_link_libraries(vistk_python_any_conversion
   vistk_python_util
   ${Boost_THREAD_LIBRARY}
   ${${boost_python_library_var}}
+  ${Boost_SYSTEM_LIBRARY}
   ${PYTHON_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(vistk_python_any_conversion LINK_INTERFACE_LIBRARIES
