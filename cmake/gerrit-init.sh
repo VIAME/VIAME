@@ -25,7 +25,7 @@ prompt () {
     printf "%s" "$msg[$default] "
   read input
 
-  [ -z "${variable}" ] && [ -n "$default" ] &&
+  [ -z "${input}" ] && [ -n "$default" ] &&
     input="$default"
 }
 
