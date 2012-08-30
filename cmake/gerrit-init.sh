@@ -21,8 +21,8 @@ prompt () {
   [ -n "$1" ] && default="$1"
 
   [ -z "$default" ] &&
-    echo -n "$msg" ||
-    echo -n "$msg[$default] "
+    printf "%s" "$msg" ||
+    printf "%s" "$msg[$default] "
   read input
 
   [ -z "${variable}" ] && [ -n "$default" ] &&
