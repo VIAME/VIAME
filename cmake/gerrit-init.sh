@@ -43,14 +43,6 @@ if [ -e "$gerrit_dir" ]; then
   fi
 fi
 
-mkdir -p "$gerrit_dir"
-cd "$gerrit_dir"
-git init
-git pull ../.. remotes/origin/gerrit
-cd "$source_dir"
-
-git config hooks.GerritId false
-
 gerrit_ssh_test=0
 while [ "$gerrit_ssh_test" -ne 1 ]; do
 
@@ -78,6 +70,14 @@ while [ "$gerrit_ssh_test" -ne 1 ]; do
     echo "SSH connection to the Gerrit server failed"
   fi
 done
+
+mkdir -p "$gerrit_dir"
+cd "$gerrit_dir"
+git init
+git pull ../.. remotes/origin/gerrit
+cd "$source_dir"
+
+git config hooks.GerritId false
 
 git config gerrit2.hostname "${gerrit_hostname}"
 git config gerrit2.port "${gerrit_port}"
