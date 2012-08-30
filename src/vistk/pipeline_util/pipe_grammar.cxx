@@ -155,7 +155,7 @@ static token_t const provider_close = token_t("}");
 template <typename Iterator>
 class common_grammar
 {
-  protected:
+  public:
     common_grammar();
     ~common_grammar();
 
@@ -200,12 +200,13 @@ class common_grammar
 template <typename Iterator>
 class pipe_grammar
   : public qi::grammar<Iterator, pipe_blocks()>
-  , private common_grammar<Iterator>
 {
   public:
     pipe_grammar();
     ~pipe_grammar();
   private:
+    common_grammar<Iterator> const common;
+
     qi::rule<Iterator, process::port_flag_t()> map_flag;
     qi::rule<Iterator, process::port_flags_t()> map_flags;
     qi::rule<Iterator, process::port_flags_t()> map_flags_decl;
@@ -223,12 +224,13 @@ class pipe_grammar
 template <typename Iterator>
 class cluster_grammar
   : public qi::grammar<Iterator, cluster_blocks()>
-  , private common_grammar<Iterator>
 {
   public:
     cluster_grammar();
     ~cluster_grammar();
   private:
+    common_grammar<Iterator> const common;
+
     qi::rule<Iterator, std::string()> description_decl;
 
     qi::rule<Iterator, cluster_config_t()> cluster_config_block;
@@ -553,46 +555,46 @@ pipe_grammar<Iterator>
 
   group_input_block.name("group-input-spec");
   group_input_block %=
-     (  this->opt_whitespace
+     (  common.opt_whitespace
      >> qi::lit(input_block_name)
      >  map_options
-     >  this->whitespace
+     >  common.whitespace
      >  qi::lit(from_name)
-     >  this->whitespace
-     >  this->port_name
-     >  this->line_end
-     >  this->opt_whitespace
+     >  common.whitespace
+     >  common.port_name
+     >  common.line_end
+     >  common.opt_whitespace
      >  qi::lit(to_name)
-     >  this->whitespace
-     >  this->port_addr
-     >  this->line_end
+     >  common.whitespace
+     >  common.port_addr
+     >  common.line_end
      );
 
   group_output_block.name("group-output-spec");
   group_output_block %=
-     (  this->opt_whitespace
+     (  common.opt_whitespace
      >> qi::lit(output_block_name)
-     >  this->map_options
-     >  this->whitespace
+     >  map_options
+     >  common.whitespace
      >  qi::lit(from_name)
-     >  this->whitespace
-     >  this->port_addr
-     >  this->line_end
-     >  this->opt_whitespace
+     >  common.whitespace
+     >  common.port_addr
+     >  common.line_end
+     >  common.opt_whitespace
      >  qi::lit(to_name)
-     >  this->whitespace
-     >  this->port_name
-     >  this->line_end
+     >  common.whitespace
+     >  common.port_name
+     >  common.line_end
      );
 
   group_block.name("group-block-spec");
   group_block %=
-     (  this->opt_whitespace
+     (  common.opt_whitespace
      >> qi::lit(group_block_name)
-     >  this->whitespace
-     >  this->process_name
-     >  this->line_end
-     > *(  this->partial_config_value_decl
+     >  common.whitespace
+     >  common.process_name
+     >  common.line_end
+     > *(  common.partial_config_value_decl
         |  group_input_block
         |  group_output_block
         )
@@ -600,9 +602,9 @@ pipe_grammar<Iterator>
 
   pipe_block_set.name("pipeline-blocks-spec");
   pipe_block_set %=
-    *(  this->config_block
-     |  this->process_block
-     |  this->connect_block
+    *(  common.config_block
+     |  common.process_block
+     |  common.connect_block
      |  group_block
      );
 }
@@ -628,69 +630,69 @@ cluster_grammar<Iterator>
   description_decl.name("description-decl");
   description_decl %=
      (  qi::lit(description_token)
-     >  this->whitespace
-     >  this->config_value
+     >  common.whitespace
+     >  common.config_value
      );
 
   cluster_config_block.name("cluster-config-spec");
   cluster_config_block %=
-     (  this->opt_whitespace
+     (  common.opt_whitespace
      >> description_decl
-     >> this->line_end
-     >> this->partial_config_value_decl
+     >> common.line_end
+     >> common.partial_config_value_decl
      );
 
   cluster_input_block.name("cluster-input-spec");
   cluster_input_block %=
-     (  this->opt_whitespace
+     (  common.opt_whitespace
      >> description_decl
-     >> this->line_end
-     >> this->opt_whitespace
+     >> common.line_end
+     >> common.opt_whitespace
      >> qi::lit(input_block_name)
-     >  this->whitespace
+     >  common.whitespace
      >  qi::lit(from_name)
-     >  this->whitespace
-     >  this->port_name
-     >  this->line_end
-     >  this->opt_whitespace
+     >  common.whitespace
+     >  common.port_name
+     >  common.line_end
+     >  common.opt_whitespace
      >  qi::lit(to_name)
-     >  this->whitespace
-     >  this->port_addr
-     >  this->line_end
+     >  common.whitespace
+     >  common.port_addr
+     >  common.line_end
      );
 
   cluster_output_block.name("cluster-output-spec");
   cluster_output_block %=
-     (  this->opt_whitespace
+     (  common.opt_whitespace
      >> description_decl
-     >> this->line_end
-     >> this->opt_whitespace
+     >> common.line_end
+     >> common.opt_whitespace
      >> qi::lit(output_block_name)
-     >  this->whitespace
+     >  common.whitespace
      >  qi::lit(from_name)
-     >  this->whitespace
-     >  this->port_addr
-     >  this->line_end
-     >  this->opt_whitespace
+     >  common.whitespace
+     >  common.port_addr
+     >  common.line_end
+     >  common.opt_whitespace
      >  qi::lit(to_name)
-     >  this->whitespace
-     >  this->port_name
-     >  this->line_end
+     >  common.whitespace
+     >  common.port_name
+     >  common.line_end
      );
 
   cluster_block.name("cluster-block-spec");
   cluster_block %=
-     (  this->opt_whitespace
+     (  common.opt_whitespace
      >> qi::lit(cluster_block_name)
-     >  this->whitespace
-     >  this->process_name
-     >  this->line_end
-     >  this->opt_whitespace
+     >  common.whitespace
+     >  common.process_name
+     >  common.line_end
+     >  common.opt_whitespace
      >  description_decl
-     >  this->line_end
-     >  this->opt_whitespace
-     >  this->type_decl
-     >  this->line_end
+     >  common.line_end
+     >  common.opt_whitespace
+     >  common.type_decl
+     >  common.line_end
      > *(  cluster_config_block
         |  cluster_input_block
         |  cluster_output_block
@@ -700,9 +702,9 @@ cluster_grammar<Iterator>
   cluster_block_set.name("cluster-blocks-spec");
   cluster_block_set %=
      (  cluster_block
-     > *(  this->config_block
-        |  this->process_block
-        |  this->connect_block
+     > *(  common.config_block
+        |  common.process_block
+        |  common.connect_block
         )
      );
 }
