@@ -151,11 +151,6 @@ SEARCH_INCLUDES        = YES
 INCLUDE_PATH           =
 INCLUDE_FILE_PATTERNS  =
 PREDEFINED             = DOXYGEN_IGNORE
-PREDEFINED            += VISTK_EXPORT=
-PREDEFINED            += VISTK_IMPORT=
-PREDEFINED            += VISTK_NO_EXPORT=
-PREDEFINED            += VISTK_DEPRECATED=
-PREDEFINED            += VISTK_MUST_USE_RESULT=
 EXPAND_AS_DEFINED      =
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -7,12 +7,55 @@
 #ifndef VISTK_CONFIG_H
 #define VISTK_CONFIG_H
 
+/**
+ * \file config.h
+ *
+ * \brief Macros for symbol management in vistk.
+ */
+
+/**
+ * \def VISTK_EXPORT
+ *
+ * \brief Export a symbol for use outside the library.
+ */
+/**
+ * \def VISTK_IMPORT
+ *
+ * \brief Use a symbol from another library.
+ */
+/**
+ * \def VISTK_NO_EXPORT
+ *
+ * \brief Hide the symbol from outside the library.
+ */
+/**
+ * \def VISTK_DEPRECATED
+ *
+ * \brief Mark the symbol as deprecated.
+ */
+/**
+ * \def VISTK_NO_RETURN
+ *
+ * \brief The function will never return.
+ */
+/**
+ * \def VISTK_MUST_USE_RESULT
+ *
+ * \brief The return value of the function must be used.
+ */
+/**
+ * \def VISTK_UNUSED
+ *
+ * \brief The function may be unreferenced.
+ */
+
 #if defined(_WIN32) || defined(_WIN64)
 #define VISTK_EXPORT __declspec(dllexport)
 #define VISTK_IMPORT __declspec(dllimport)
 #define VISTK_NO_EXPORT
 #define VISTK_DEPRECATED __declspec(deprecated)
 #define VISTK_NO_RETURN __declspec(noreturn)
+// Unsupported.
 #define VISTK_MUST_USE_RESULT
 #else
 #ifdef __GNUC__
@@ -20,8 +63,11 @@
 #define VISTK_NO_RETURN __attribute__ ((__noreturn__))
 #define VISTK_MUST_USE_RESULT __attribute__ ((__warn_unused_result__))
 #else
+// Unsupported.
 #define VISTK_DEPRECATED
+// Unsupported.
 #define VISTK_NO_RETURN
+// Unsupported.
 #define VISTK_MUST_USE_RESULT
 #endif
 
@@ -31,8 +77,11 @@
 #define VISTK_IMPORT __attribute__ ((visibility("default")))
 #define VISTK_NO_EXPORT __attribute__ ((visibility("hidden")))
 #else
+// Unsupported.
 #define VISTK_EXPORT
+// Unsupported.
 #define VISTK_IMPORT
+// Unsupported.
 #define VISTK_NO_EXPORT
 #endif
 #endif
