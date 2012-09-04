@@ -59,11 +59,14 @@
 #define VISTK_NO_RETURN __declspec(noreturn)
 // Unsupported.
 #define VISTK_MUST_USE_RESULT
+// Unsupported.
+#define VISTK_UNUSED
 #else
 #ifdef __GNUC__
 #define VISTK_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
 #define VISTK_NO_RETURN __attribute__((__noreturn__))
 #define VISTK_MUST_USE_RESULT __attribute__((__warn_unused_result__))
+#define VISTK_UNUSED __attribute__((__unused__))
 #else
 #ifdef __clang__
 #if __has_extension(attribute_deprecated_with_message)
@@ -74,6 +77,7 @@
 #endif
 #define VISTK_NO_RETURN __attribute__((__noreturn__))
 #define VISTK_MUST_USE_RESULT __attribute__((__warn_unused_result__))
+#define VISTK_UNUSED __attribute__((__unused__))
 #else
 // Unsupported.
 #define VISTK_DEPRECATED(msg)
@@ -81,6 +85,8 @@
 #define VISTK_NO_RETURN
 // Unsupported.
 #define VISTK_MUST_USE_RESULT
+// Unsupported.
+#define VISTK_UNUSED
 #endif
 #endif
 
