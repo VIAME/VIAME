@@ -23,6 +23,8 @@ function (create_doxygen inputdir name)
   if (VISTK_ENABLE_DOCUMENTATION)
     set(doxy_project_source_dir
       "${inputdir}")
+    set(doxy_include_path
+      "${vistk_binary_dir}/src")
     set(doxy_documentation_output_path
       "${vistk_binary_dir}/doc")
     set(doxy_project_name
@@ -54,6 +56,7 @@ function (create_doxygen inputdir name)
       "${doxygen_files_dir}/Doxyfile.common.in"
       "${vistk_binary_dir}/doc/${name}/Doxyfile.common"
       doxy_project_source_dir
+      doxy_include_path
       doxy_documentation_output_path
       doxy_project_name
       doxy_tag_files
