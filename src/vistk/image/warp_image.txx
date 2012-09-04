@@ -256,6 +256,7 @@ is_identity(vistk::homography_base::transform_t const& transform)
 }
 
 template <>
+VISTK_UNUSED
 bool
 safe_cast<bool, float>(float const& value)
 {
@@ -263,6 +264,7 @@ safe_cast<bool, float>(float const& value)
 }
 
 template <>
+VISTK_UNUSED
 bool
 safe_cast<bool, double>(double const& value)
 {
@@ -270,6 +272,7 @@ safe_cast<bool, double>(double const& value)
 }
 
 template <typename T, typename U>
+VISTK_UNUSED
 T
 safe_cast(U const& value)
 {
