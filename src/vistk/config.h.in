@@ -65,12 +65,23 @@
 #define VISTK_NO_RETURN __attribute__((__noreturn__))
 #define VISTK_MUST_USE_RESULT __attribute__((__warn_unused_result__))
 #else
+#ifdef __clang__
+#if __has_extension(attribute_deprecated_with_message)
+#define VISTK_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#else
+// The msg is ignored.
+#define VISTK_DEPRECATED(msg) __attribute__((__deprecated__))
+#endif
+#define VISTK_NO_RETURN __attribute__((__noreturn__))
+#define VISTK_MUST_USE_RESULT __attribute__((__warn_unused_result__))
+#else
 // Unsupported.
 #define VISTK_DEPRECATED(msg)
 // Unsupported.
 #define VISTK_NO_RETURN
 // Unsupported.
 #define VISTK_MUST_USE_RESULT
+#endif
 #endif
 
 #cmakedefine VISTK_HAVE_GCC_VISIBILITY
