@@ -132,6 +132,7 @@ else ()
   # Miscellaneous warnings
   vistk_check_compiler_flag(vistk_warnings -Wlogical-op)
   vistk_check_compiler_flag(vistk_warnings -Wmissing-braces)
+  vistk_check_compiler_flag(vistk_warnings -Wimplicit-fallthrough)
 
   option(VISTK_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
   if (VISTK_ENABLE_NITPICK)
