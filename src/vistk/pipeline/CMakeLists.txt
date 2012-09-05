@@ -119,13 +119,11 @@ set_source_files_properties(modules.cxx
 
 set(utils_build_options)
 
-include(CheckFunctionExists)
-check_function_exists(setproctitle HAVE_SETPROCTITLE)
+include("${CMAKE_CURRENT_SOURCE_DIR}/thread_naming.cmake")
 
-if (HAVE_SETPROCTITLE)
-  set(utils_build_options
-    HAVE_SETPROCTITLE)
-endif ()
+set(utils_build_options
+  ${utils_build_options}
+  ${thread_naming_defines})
 
 set_source_files_properties(utils.cxx
   PROPERTIES
