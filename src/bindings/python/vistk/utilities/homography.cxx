@@ -22,8 +22,8 @@
 
 using namespace boost::python;
 
-static double transform_get(vistk::homography_base::transform_t const& self, unsigned row, unsigned col);
-static void transform_set(vistk::homography_base::transform_t& self, unsigned row, unsigned col, double val);
+static double transform_get(vistk::homography_base::transform_t const& self_, unsigned row, unsigned col);
+static void transform_set(vistk::homography_base::transform_t& self_, unsigned row, unsigned col, double val);
 
 BOOST_PYTHON_MODULE(homography)
 {
@@ -93,13 +93,13 @@ BOOST_PYTHON_MODULE(homography)
 }
 
 double
-transform_get(vistk::homography_base::transform_t const& self, unsigned row, unsigned col)
+transform_get(vistk::homography_base::transform_t const& self_, unsigned row, unsigned col)
 {
-  return self.get(row, col);
+  return self_.get(row, col);
 }
 
 void
-transform_set(vistk::homography_base::transform_t& self, unsigned row, unsigned col, double val)
+transform_set(vistk::homography_base::transform_t& self_, unsigned row, unsigned col, double val)
 {
-  self.set(row, col, val);
+  self_.set(row, col, val);
 }
