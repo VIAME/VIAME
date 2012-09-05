@@ -28,9 +28,12 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
+// The mechanism only make sense in debugging mode.
+#ifndef NDEBUG
 static DWORD const current_thread = -1;
 
 static void SetThreadName(DWORD dwThreadID, LPCSTR threadName);
+#endif
 #endif
 
 /**
@@ -127,6 +130,7 @@ free_envvar(envvar_value_t value)
 }
 
 #if defined(_WIN32) || defined(_WIN64)
+#ifndef NDEBUG
 
 // Code obtained from http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
 static DWORD const MS_VC_EXCEPTION = 0x406D1388;
@@ -158,4 +162,5 @@ void SetThreadName(DWORD dwThreadID, LPCSTR threadName)
    }
 }
 
+#endif
 #endif
