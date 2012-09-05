@@ -6,7 +6,14 @@
 
 #include "utils.h"
 
-#ifdef HAVE_SETPROCTITLE
+#ifdef HAVE_PTHREAD_NAMING
+#include <pthread.h>
+#ifndef DEBUG
+#ifdef HAVE_PTHREAD_SET_NAME_NP
+#include <pthread_np.h>
+#endif
+#endif
+#elif defined(HAVE_SETPROCTITLE)
 #include <cstdlib>
 #elif defined(__linux__)
 #include <sys/prctl.h>
@@ -38,7 +45,29 @@ namespace vistk
 bool
 name_thread(thread_name_t const& name)
 {
-#ifdef HAVE_SETPROCTITLE
+#ifdef HAVE_PTHREAD_NAMING
+#ifdef HAVE_PTHREAD_SETNAME_NP
+#ifdef PTHREAD_SETNAME_NP_TAKES_ID
+  pthread_t const tid = pthread_self();
+
+  int const ret = pthread_setname_np(tid, name.c_str());
+#else
+  int const ret = pthread_setname_np(name.c_str());
+#endif
+#elif defined(HAVE_PTHREAD_SET_NAME_NP)
+// The documentation states that it only makes sense in debugging; respect it.
+#ifndef NDEBUG
+  pthread_t const tid = pthread_self();
+
+  int const ret = pthread_set_name_np(tid, name.c_str());
+#else
+  // Fail if not debugging.
+  bool const ret = true;
+#endif
+#endif
+
+  return !ret;
+#elif defined(HAVE_SETPROCTITLE)
   setproctitle("%s", name.c_str());
 #elif defined(__linux__)
   int const ret = prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name.c_str()), 0, 0, 0);
