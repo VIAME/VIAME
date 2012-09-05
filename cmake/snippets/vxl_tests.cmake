@@ -14,6 +14,8 @@ if (VISTK_ENABLE_PEDANTIC)
 "
 #include <config_compiler>
 
+#include <cstdlib>
+
 int
 main()
 {
@@ -21,7 +23,7 @@ main()
 #error \"VCL_CAN_STATIC_CONST_INIT_FLOAT is defined\"
 #endif
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 ")
 
