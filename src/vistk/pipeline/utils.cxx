@@ -80,6 +80,8 @@ name_thread(thread_name_t const& name)
   return false;
 #endif
 #else
+  (void)name;
+
   return false;
 #endif
 
