@@ -120,6 +120,7 @@ else ()
   vistk_check_compiler_flag(vistk_warnings -Wcast-qual)
   vistk_check_compiler_flag(vistk_warnings -Wdouble-promotion)
   vistk_check_compiler_flag(vistk_warnings -Wfloat-equal)
+  vistk_check_compiler_flag(vistk_warnings -fstrict-overflow)
   vistk_check_compiler_flag(vistk_warnings -Wstrict-overflow=5)
   # TODO: Python triggers warnings with this
   #vistk_check_compiler_flag(vistk_warnings -Wold-style-cast)
