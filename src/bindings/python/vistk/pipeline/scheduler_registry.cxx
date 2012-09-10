@@ -26,9 +26,9 @@
 using namespace boost::python;
 
 static void register_scheduler(vistk::scheduler_registry_t reg,
-                              vistk::scheduler_registry::type_t const& type,
-                              vistk::scheduler_registry::description_t const& desc,
-                              object obj);
+                               vistk::scheduler_registry::type_t const& type,
+                               vistk::scheduler_registry::description_t const& desc,
+                               object obj);
 
 BOOST_PYTHON_MODULE(scheduler_registry)
 {

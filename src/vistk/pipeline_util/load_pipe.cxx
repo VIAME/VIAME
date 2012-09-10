@@ -210,7 +210,8 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
   }
 }
 
-bool is_separator(char ch)
+bool
+is_separator(char ch)
 {
   char const separator =
 #if defined(_WIN32) || defined(_WIN64)
