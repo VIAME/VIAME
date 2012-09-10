@@ -12,7 +12,7 @@ if (VISTK_ENABLE_PEDANTIC)
       "${cmakefiles_dir}/vxl_has_float_decls.cxx")
     file(WRITE "${vxl_has_float_decls_path}"
 "
-#include <config_compiler>
+#include <vcl_config_compiler.h>
 
 #include <cstdlib>
 
