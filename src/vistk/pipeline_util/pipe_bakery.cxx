@@ -161,6 +161,9 @@ class config_provider_sorter
   : public boost::static_visitor<>
 {
   public:
+    config_provider_sorter();
+    ~config_provider_sorter();
+
     void operator () (config::key_t const& key, config::value_t const& value) const;
     void operator () (config::key_t const& key, pipe_bakery::provider_request_t const& request);
 
@@ -678,6 +681,18 @@ ensure_provided
   config::value_t const& value = request.second;
 
   throw unrecognized_provider_exception("(unknown)", provider, value);
+}
+
+config_provider_sorter
+::config_provider_sorter()
+  : m_vertex_map()
+  , m_graph()
+{
+}
+
+config_provider_sorter
+::~config_provider_sorter()
+{
 }
 
 config::keys_t
