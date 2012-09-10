@@ -40,6 +40,7 @@ process::port_t const take_number_process::priv::port_input = port_t("number");
 take_number_process
 ::take_number_process(config_t const& config)
   : process(config)
+  , d()
 {
   port_flags_t required;
 

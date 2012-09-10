@@ -44,6 +44,7 @@ process::port_t const data_dependent_process::priv::port_output = port_t("output
 data_dependent_process
 ::data_dependent_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_reject,

@@ -195,6 +195,7 @@ config
   : m_parent(parent)
   , m_name(name)
   , m_store()
+  , m_ro_list()
 {
 }
 

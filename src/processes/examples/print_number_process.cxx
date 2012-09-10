@@ -47,6 +47,7 @@ process::port_t const print_number_process::priv::port_input = port_t("number");
 print_number_process
 ::print_number_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_path,
@@ -126,6 +127,7 @@ print_number_process
 print_number_process::priv
 ::priv(path_t const& output_path)
   : path(output_path)
+  , fout()
 {
 }
 

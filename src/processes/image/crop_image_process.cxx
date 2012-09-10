@@ -73,6 +73,7 @@ process::port_t const crop_image_process::priv::port_output = port_t("cropimage"
 crop_image_process
 ::crop_image_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_pixtype,

@@ -169,6 +169,8 @@ scheduler_registry
 
 scheduler_registry::priv
 ::priv()
+  : registry()
+  , loaded_modules()
 {
 }
 

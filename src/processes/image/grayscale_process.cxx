@@ -50,6 +50,7 @@ process::port_t const grayscale_process::priv::port_output = port_t("grayimage")
 grayscale_process
 ::grayscale_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_pixtype,

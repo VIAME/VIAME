@@ -61,6 +61,7 @@ process::port_t const timestamper_process::priv::port_output = port_t("timestamp
 timestamper_process
 ::timestamper_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_start_frame,

@@ -168,6 +168,8 @@ process_registry
 
 process_registry::priv
 ::priv()
+  : registry()
+  , loaded_modules()
 {
 }
 

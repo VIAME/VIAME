@@ -148,6 +148,8 @@ statistics
 
 statistics::priv
 ::priv()
+  : acc()
+  , data()
 {
 }
 

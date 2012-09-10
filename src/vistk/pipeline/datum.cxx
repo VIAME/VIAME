@@ -68,6 +68,8 @@ datum
 datum
 ::datum(type_t ty)
   : m_type(ty)
+  , m_error()
+  , m_datum()
 {
 }
 
@@ -75,12 +77,14 @@ datum
 ::datum(error_t const& err)
   : m_type(error)
   , m_error(err)
+  , m_datum()
 {
 }
 
 datum
 ::datum(boost::any const& dat)
   : m_type(data)
+  , m_error()
   , m_datum(dat)
 {
 }

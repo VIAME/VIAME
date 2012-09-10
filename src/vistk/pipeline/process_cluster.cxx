@@ -220,6 +220,12 @@ process_cluster
 
 process_cluster::priv
 ::priv()
+  : config_map()
+  , names()
+  , processes()
+  , input_mappings()
+  , output_mappings()
+  , internal_connections()
 {
 }
 

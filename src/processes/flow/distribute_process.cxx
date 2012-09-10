@@ -307,6 +307,7 @@ distribute_process
 
 distribute_process::priv
 ::priv()
+  : tag_data()
 {
 }
 

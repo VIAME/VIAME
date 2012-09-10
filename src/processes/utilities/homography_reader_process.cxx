@@ -48,6 +48,7 @@ process::port_t const homography_reader_process::priv::port_output = port_t("hom
 homography_reader_process
 ::homography_reader_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_path,
@@ -170,6 +171,7 @@ homography_reader_process
 homography_reader_process::priv
 ::priv(path_t const& input_path)
   : path(input_path)
+  , fin()
 {
 }
 

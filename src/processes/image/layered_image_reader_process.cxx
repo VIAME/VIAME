@@ -73,6 +73,7 @@ process::port_t const layered_image_reader_process::priv::port_image_prefix = po
 layered_image_reader_process
 ::layered_image_reader_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_pixtype,
@@ -248,7 +249,11 @@ layered_image_reader_process
 
 layered_image_reader_process::priv
 ::priv(port_type_t const& port_type)
-  : port_type_output(port_type)
+  : path()
+  , read()
+  , port_type_output(port_type)
+  , fin()
+  , layers()
 {
 }
 
@@ -257,6 +262,7 @@ layered_image_reader_process::priv
   : path(input_path)
   , read(func)
   , port_type_output(port_type)
+  , fin()
   , layers(layers_)
 {
 }

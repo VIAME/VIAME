@@ -47,6 +47,7 @@ process::port_t const timestamp_reader_process::priv::port_output = port_t("time
 timestamp_reader_process
 ::timestamp_reader_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_path,
@@ -207,6 +208,7 @@ timestamp_reader_process
 timestamp_reader_process::priv
 ::priv(path_t const& input_path)
   : path(input_path)
+  , fin()
 {
 }
 

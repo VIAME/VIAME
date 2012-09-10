@@ -134,6 +134,8 @@ score_aggregation_process
 
 score_aggregation_process::priv
 ::priv()
+  : results()
+  , statistics()
 {
   reset();
 }

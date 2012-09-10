@@ -344,7 +344,12 @@ component_score_json_writer_process
 
 component_score_json_writer_process::priv
 ::priv()
-  : ldt(local_microsec_clock::local_time(time_zone_ptr()))
+  : name()
+  , path()
+  , ldt(local_microsec_clock::local_time(time_zone_ptr()))
+  , fout()
+  , tags()
+  , tag_stats()
 {
 }
 
@@ -353,7 +358,9 @@ component_score_json_writer_process::priv
   : name(name_)
   , path(output_path)
   , ldt(local_microsec_clock::local_time(time_zone_ptr()))
+  , fout()
   , tags(tags_)
+  , tag_stats()
 {
 }
 

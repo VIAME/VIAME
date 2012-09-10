@@ -19,18 +19,22 @@ namespace vistk
 
 timestamp
 ::timestamp()
+  : m_time()
+  , m_frame()
 {
 }
 
 timestamp
 ::timestamp(time_t t)
   : m_time(t)
+  , m_frame()
 {
 }
 
 timestamp
 ::timestamp(frame_t f)
-  : m_frame(f)
+  : m_time()
+  , m_frame(f)
 {
 }
 

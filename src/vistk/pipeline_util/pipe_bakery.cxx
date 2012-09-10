@@ -418,6 +418,10 @@ pipe_bakery::config_info_t
 
 pipe_bakery
 ::pipe_bakery()
+  : m_configs()
+  , m_processes()
+  , m_connections()
+  , m_groups()
 {
 }
 
@@ -582,6 +586,9 @@ pipe_bakery
 
 group_splitter
 ::group_splitter()
+  : m_configs()
+  , m_inputs()
+  , m_outputs()
 {
 }
 
@@ -613,6 +620,7 @@ group_splitter
 
 provider_dereferencer
 ::provider_dereferencer()
+  : m_providers()
 {
   m_providers[provider_system] = boost::make_shared<system_provider>();
   m_providers[provider_environment] = boost::make_shared<environment_provider>();
@@ -620,6 +628,7 @@ provider_dereferencer
 
 provider_dereferencer
 ::provider_dereferencer(config_t const conf)
+  : m_providers()
 {
   m_providers[provider_config] = boost::make_shared<config_provider>(conf);
 }

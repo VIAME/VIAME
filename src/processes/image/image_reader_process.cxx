@@ -61,6 +61,7 @@ process::port_t const image_reader_process::priv::port_output = port_t("image");
 image_reader_process
 ::image_reader_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_pixtype,
@@ -223,6 +224,7 @@ image_reader_process::priv
   : path(input_path)
   , read(func)
   , verify(ver)
+  , fin()
 {
 }
 

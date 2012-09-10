@@ -38,6 +38,7 @@ process::port_t const take_string_process::priv::port_input = port_t("string");
 take_string_process
 ::take_string_process(config_t const& config)
   : process(config)
+  , d()
 {
   port_flags_t required;
 
