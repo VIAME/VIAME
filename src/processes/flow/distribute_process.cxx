@@ -35,10 +35,14 @@ class distribute_process::priv
     typedef port_t group_t;
     typedef port_t tag_t;
 
-    struct tag_info
+    class tag_info
     {
-      ports_t ports;
-      ports_t::const_iterator cur_port;
+      public:
+        tag_info();
+        ~tag_info();
+
+        ports_t ports;
+        ports_t::const_iterator cur_port;
     };
     typedef std::map<tag_t, tag_info> tag_data_t;
 
@@ -362,6 +366,18 @@ distribute_process::priv
   }
 
   return group_t();
+}
+
+distribute_process::priv::tag_info
+::tag_info()
+  : ports()
+  , cur_port()
+{
+}
+
+distribute_process::priv::tag_info
+::~tag_info()
+{
 }
 
 }

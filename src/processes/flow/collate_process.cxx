@@ -34,10 +34,14 @@ class collate_process::priv
 
     typedef port_t tag_t;
 
-    struct tag_info
+    class tag_info
     {
-      ports_t ports;
-      ports_t::const_iterator cur_port;
+      public:
+        tag_info();
+        ~tag_info();
+
+        ports_t ports;
+        ports_t::const_iterator cur_port;
     };
     typedef std::map<tag_t, tag_info> tag_data_t;
 
@@ -300,6 +304,7 @@ collate_process
 
 collate_process::priv
 ::priv()
+  : tag_data()
 {
 }
 
@@ -329,6 +334,18 @@ collate_process::priv
   }
 
   return tag_t();
+}
+
+collate_process::priv::tag_info
+::tag_info()
+  : ports()
+  , cur_port()
+{
+}
+
+collate_process::priv::tag_info
+::~tag_info()
+{
 }
 
 }

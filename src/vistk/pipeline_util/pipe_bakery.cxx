@@ -169,10 +169,14 @@ class config_provider_sorter
 
     config::keys_t sorted() const;
   private:
-    struct node_t
+    class node_t
     {
-      bool deref;
-      config::key_t name;
+      public:
+        node_t();
+        ~node_t();
+
+        bool deref;
+        config::key_t name;
     };
 
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, node_t> config_graph_t;
@@ -769,12 +773,23 @@ config_provider_sorter
   {
     to_vertex = boost::add_vertex(m_graph);
     m_graph[to_vertex].name = target_key;
-    m_graph[from_vertex].deref = false;
   }
 
   m_graph[from_vertex].deref = true;
 
   boost::add_edge(from_vertex, to_vertex, m_graph);
+}
+
+config_provider_sorter::node_t
+::node_t()
+  : deref(false)
+  , name()
+{
+}
+
+config_provider_sorter::node_t
+::~node_t()
+{
 }
 
 void

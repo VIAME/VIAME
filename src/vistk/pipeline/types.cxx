@@ -16,6 +16,12 @@ namespace vistk
 {
 
 pipeline_exception
+::pipeline_exception() throw()
+  : m_what()
+{
+}
+
+pipeline_exception
 ::~pipeline_exception() throw()
 {
 }
