@@ -34,6 +34,15 @@ namespace vistk
 class VISTK_PIPELINE_EXPORT process_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    process_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~process_exception() throw();
 };
 
 /**
@@ -584,6 +593,15 @@ class VISTK_PIPELINE_EXPORT missing_connection_exception
 class VISTK_PIPELINE_EXPORT process_configuration_exception
   : public process_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    process_configuration_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~process_configuration_exception() throw();
 };
 
 /**

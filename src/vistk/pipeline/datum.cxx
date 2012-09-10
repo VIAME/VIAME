@@ -89,6 +89,17 @@ datum
 {
 }
 
+datum_exception
+::datum_exception() throw()
+  : pipeline_exception()
+{
+}
+
+datum_exception
+::~datum_exception() throw()
+{
+}
+
 bad_datum_cast_exception
 ::bad_datum_cast_exception(std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw()
   : datum_exception()

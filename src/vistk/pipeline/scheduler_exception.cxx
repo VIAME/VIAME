@@ -17,6 +17,17 @@
 namespace vistk
 {
 
+scheduler_exception
+::scheduler_exception() throw()
+  : pipeline_exception()
+{
+}
+
+scheduler_exception
+::~scheduler_exception() throw()
+{
+}
+
 incompatible_pipeline_exception
 ::incompatible_pipeline_exception(std::string const& reason) throw()
   : scheduler_exception()

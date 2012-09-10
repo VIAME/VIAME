@@ -18,6 +18,17 @@
 namespace vistk
 {
 
+pipeline_addition_exception
+::pipeline_addition_exception() throw()
+  : pipeline_exception()
+{
+}
+
+pipeline_addition_exception
+::~pipeline_addition_exception() throw()
+{
+}
+
 null_pipeline_config_exception
 ::null_pipeline_config_exception() throw()
   : pipeline_exception()
@@ -69,6 +80,17 @@ null_process_addition_exception
 {
 }
 
+pipeline_setup_exception
+::pipeline_setup_exception() throw()
+  : pipeline_exception()
+{
+}
+
+pipeline_setup_exception
+::~pipeline_setup_exception() throw()
+{
+}
+
 duplicate_process_name_exception
 ::duplicate_process_name_exception(process::name_t const& name) throw()
   : pipeline_addition_exception()
@@ -88,6 +110,17 @@ duplicate_process_name_exception
 {
 }
 
+pipeline_removal_exception
+::pipeline_removal_exception() throw()
+  : pipeline_exception()
+{
+}
+
+pipeline_removal_exception
+::~pipeline_removal_exception() throw()
+{
+}
+
 remove_after_setup_exception
 ::remove_after_setup_exception(process::name_t const& name) throw()
   : pipeline_removal_exception()
@@ -103,6 +136,17 @@ remove_after_setup_exception
 
 remove_after_setup_exception
 ::~remove_after_setup_exception() throw()
+{
+}
+
+pipeline_connection_exception
+::pipeline_connection_exception() throw()
+  : pipeline_exception()
+{
+}
+
+pipeline_connection_exception
+::~pipeline_connection_exception() throw()
 {
 }
 

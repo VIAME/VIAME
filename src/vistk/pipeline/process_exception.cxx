@@ -17,6 +17,17 @@
 namespace vistk
 {
 
+process_exception
+::process_exception() throw()
+  : pipeline_exception()
+{
+}
+
+process_exception
+::~process_exception() throw()
+{
+}
+
 null_process_config_exception
 ::null_process_config_exception() throw()
   : process_exception()
@@ -374,6 +385,17 @@ missing_connection_exception
 
 missing_connection_exception
 ::~missing_connection_exception() throw()
+{
+}
+
+process_configuration_exception
+::process_configuration_exception() throw()
+  : process_exception()
+{
+}
+
+process_configuration_exception
+::~process_configuration_exception() throw()
 {
 }
 

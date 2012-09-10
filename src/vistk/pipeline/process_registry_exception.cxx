@@ -17,6 +17,17 @@
 namespace vistk
 {
 
+process_registry_exception
+::process_registry_exception() throw()
+  : pipeline_exception()
+{
+}
+
+process_registry_exception
+::~process_registry_exception() throw()
+{
+}
+
 null_process_ctor_exception
 ::null_process_ctor_exception(process::type_t const& type) throw()
   : process_registry_exception()

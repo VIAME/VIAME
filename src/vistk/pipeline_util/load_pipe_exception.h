@@ -36,6 +36,15 @@ namespace vistk
 class VISTK_PIPELINE_UTIL_EXPORT load_pipe_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    load_pipe_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~load_pipe_exception() throw();
 };
 
 /**

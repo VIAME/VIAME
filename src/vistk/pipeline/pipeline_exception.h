@@ -31,6 +31,15 @@ namespace vistk
 class VISTK_PIPELINE_EXPORT pipeline_addition_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    pipeline_addition_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~pipeline_addition_exception() throw();
 };
 
 /**
@@ -137,6 +146,15 @@ class VISTK_PIPELINE_EXPORT duplicate_process_name_exception
 class VISTK_PIPELINE_EXPORT pipeline_removal_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    pipeline_removal_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~pipeline_removal_exception() throw();
 };
 
 /**
@@ -175,6 +193,15 @@ class VISTK_PIPELINE_EXPORT remove_after_setup_exception
 class VISTK_PIPELINE_EXPORT pipeline_connection_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    pipeline_connection_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~pipeline_connection_exception() throw();
 };
 
 /**
@@ -477,6 +504,15 @@ class VISTK_PIPELINE_EXPORT connection_flag_mismatch_exception
 class VISTK_PIPELINE_EXPORT pipeline_setup_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    pipeline_setup_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~pipeline_setup_exception() throw();
 };
 
 /**

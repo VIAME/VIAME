@@ -17,6 +17,17 @@
 namespace vistk
 {
 
+scheduler_registry_exception
+::scheduler_registry_exception() throw()
+  : pipeline_exception()
+{
+}
+
+scheduler_registry_exception
+::~scheduler_registry_exception() throw()
+{
+}
+
 null_scheduler_ctor_exception
 ::null_scheduler_ctor_exception(scheduler_registry::type_t const& type) throw()
   : scheduler_registry_exception()

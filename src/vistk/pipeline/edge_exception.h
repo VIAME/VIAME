@@ -33,6 +33,15 @@ namespace vistk
 class VISTK_PIPELINE_EXPORT edge_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    edge_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~edge_exception() throw();
 };
 
 /**
@@ -87,6 +96,15 @@ class VISTK_PIPELINE_EXPORT datum_requested_after_complete
 class VISTK_PIPELINE_EXPORT edge_connection_exception
   : public edge_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    edge_connection_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~edge_connection_exception() throw();
 };
 
 /**

@@ -144,6 +144,15 @@ class VISTK_PIPELINE_EXPORT datum
 class VISTK_PIPELINE_EXPORT datum_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    datum_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~datum_exception() throw();
 };
 
 /**

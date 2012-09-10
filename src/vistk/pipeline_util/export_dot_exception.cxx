@@ -17,6 +17,17 @@
 namespace vistk
 {
 
+export_dot_exception
+::export_dot_exception() throw()
+  : pipeline_exception()
+{
+}
+
+export_dot_exception
+::~export_dot_exception() throw()
+{
+}
+
 null_pipeline_export_dot_exception
 ::null_pipeline_export_dot_exception() throw()
   : export_dot_exception()
