@@ -53,6 +53,9 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-D_SCL_SECURE_NO_DEPRECATE)
   endif ()
+
+  # Prevent namespace pollution.
+  add_definitions(-DWIN32_LEAN_AND_MEAN)
 # Assume GCC-compatible
 else ()
   set(vistk_using_clang FALSE)
