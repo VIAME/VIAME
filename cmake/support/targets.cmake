@@ -149,6 +149,11 @@ function (vistk_private_header_group)
     FILES ${ARGN})
 endfunction ()
 
+function (vistk_private_template_group)
+  source_group("Template Files\\Private"
+    FILES ${ARGN})
+endfunction ()
+
 function (vistk_install_headers subdir)
   vistk_install(
     FILES       ${ARGN}
