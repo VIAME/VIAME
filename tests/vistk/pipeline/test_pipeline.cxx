@@ -13,6 +13,7 @@
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/process_registry.h>
+#include <vistk/pipeline/scheduler.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/make_shared.hpp>
@@ -106,7 +107,6 @@ static void test_setup_pipeline_map_output();
 static void test_setup_pipeline();
 static void test_start_before_setup();
 static void test_start_unsuccessful_setup();
-static void test_stop_before_start();
 static void test_start_and_stop();
 static void test_reset_while_running();
 static void test_reset();
@@ -343,10 +343,6 @@ run_test(std::string const& test_name)
   else if (test_name == "start_unsuccessful_setup")
   {
     test_start_unsuccessful_setup();
-  }
-  else if (test_name == "stop_before_start")
-  {
-    test_stop_before_start();
   }
   else if (test_name == "start_and_stop")
   {
@@ -1775,13 +1771,16 @@ test_setup_pipeline()
   pipeline->setup_pipeline();
 }
 
+static vistk::scheduler_t create_scheduler(vistk::pipeline_t const& pipe);
+
 void
 test_start_before_setup()
 {
   vistk::pipeline_t const pipeline = create_pipeline();
+  vistk::scheduler_t const scheduler = create_scheduler(pipeline);
 
   EXPECT_EXCEPTION(vistk::pipeline_not_setup_exception,
-                   pipeline->start(),
+                   scheduler->start(),
                    "starting a pipeline that has not been setup");
 }
 
@@ -1809,19 +1808,11 @@ test_start_unsuccessful_setup()
   {
   }
 
+  vistk::scheduler_t const scheduler = create_scheduler(pipeline);
+
   EXPECT_EXCEPTION(vistk::pipeline_not_ready_exception,
-                   pipeline->start(),
+                   scheduler->start(),
                    "starting a pipeline that has not been successfully setup");
-}
-
-void
-test_stop_before_start()
-{
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  EXPECT_EXCEPTION(vistk::pipeline_not_running_exception,
-                   pipeline->stop(),
-                   "stopping a pipeline that has not been started");
 }
 
 void
@@ -1839,8 +1830,10 @@ test_start_and_stop()
 
   pipeline->setup_pipeline();
 
-  pipeline->start();
-  pipeline->stop();
+  vistk::scheduler_t const scheduler = create_scheduler(pipeline);
+
+  scheduler->start();
+  scheduler->stop();
 }
 
 void
@@ -1858,7 +1851,9 @@ test_reset_while_running()
 
   pipeline->setup_pipeline();
 
-  pipeline->start();
+  vistk::scheduler_t const scheduler = create_scheduler(pipeline);
+
+  scheduler->start();
 
   EXPECT_EXCEPTION(vistk::reset_running_pipeline_exception,
                    pipeline->reset(),
@@ -2229,4 +2224,67 @@ vistk::pipeline_t
 create_pipeline()
 {
   return boost::make_shared<vistk::pipeline>();
+}
+
+class dummy_scheduler
+  : public vistk::scheduler
+{
+  public:
+    dummy_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config);
+    ~dummy_scheduler();
+
+    void _start();
+    void _wait();
+    void _pause();
+    void _resume();
+    void _stop();
+};
+
+vistk::scheduler_t
+create_scheduler(vistk::pipeline_t const& pipe)
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  return boost::make_shared<dummy_scheduler>(pipe, config);
+}
+
+dummy_scheduler
+::dummy_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config)
+  : vistk::scheduler(pipe, config)
+{
+}
+
+dummy_scheduler
+::~dummy_scheduler()
+{
+}
+
+void
+dummy_scheduler
+::_start()
+{
+}
+
+void
+dummy_scheduler
+::_wait()
+{
+}
+
+void
+dummy_scheduler
+::_pause()
+{
+}
+
+void
+dummy_scheduler
+::_resume()
+{
+}
+
+void
+dummy_scheduler
+::_stop()
+{
 }

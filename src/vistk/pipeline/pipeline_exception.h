@@ -829,27 +829,6 @@ class VISTK_PIPELINE_EXPORT pipeline_not_ready_exception
     ~pipeline_not_ready_exception() throw();
 };
 
-/**
- * \class pipeline_not_running_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
- *
- * \brief Thrown when a pipeline that is not running is stopped.
- *
- * \ingroup exceptions
- */
-class VISTK_PIPELINE_EXPORT pipeline_not_running_exception
-  : public pipeline_exception
-{
-  public:
-    /**
-     * \brief Constructor.
-     */
-    pipeline_not_running_exception() throw();
-    /**
-     * \brief Destructor.
-     */
-    ~pipeline_not_running_exception() throw();
-};
-
 }
 
 #endif // VISTK_PIPELINE_PIPELINE_EXCEPTION_H
