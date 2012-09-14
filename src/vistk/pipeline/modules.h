@@ -21,7 +21,7 @@ namespace vistk
 /**
  * \brief Load modules from the system path.
  */
-void VISTK_PIPELINE_EXPORT load_known_modules();
+VISTK_PIPELINE_EXPORT void load_known_modules();
 
 }
 

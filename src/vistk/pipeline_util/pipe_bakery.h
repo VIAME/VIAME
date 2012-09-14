@@ -33,7 +33,7 @@ namespace vistk
  *
  * \returns A new pipeline baked from the given file.
  */
-pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe_from_file(path_t const& fname);
+VISTK_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_from_file(path_t const& fname);
 
 /**
  * \brief Bake a pipeline from a stream.
@@ -43,7 +43,7 @@ pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe_from_file(path_t const& fname);
  *
  * \returns A pipeline baked from the given stream.
  */
-pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe(std::istream& istr, path_t const& inc_root = "");
+VISTK_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe(std::istream& istr, path_t const& inc_root = "");
 
 /**
  * \brief Extract a configuration from a collection of blocks.
@@ -52,7 +52,7 @@ pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe(std::istream& istr, path_t const
  *
  * \returns A pipeline baked from \p blocks.
  */
-pipeline_t VISTK_PIPELINE_UTIL_EXPORT bake_pipe_blocks(pipe_blocks const& blocks);
+VISTK_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& blocks);
 
 /**
  * \class cluster_info pipe_bakery.h <vistk/pipeline_util/pipe_bakery.h>
@@ -122,7 +122,7 @@ cluster_info_t VISTK_PIPELINE_UTIL_EXPORT bake_cluster_blocks(cluster_blocks con
  *
  * \returns A configuration extracted from \p blocks.
  */
-config_t VISTK_PIPELINE_UTIL_EXPORT extract_configuration(pipe_blocks const& blocks);
+VISTK_PIPELINE_UTIL_EXPORT config_t extract_configuration(pipe_blocks const& blocks);
 
 }
 

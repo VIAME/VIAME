@@ -31,7 +31,7 @@ namespace vistk
  *
  * \returns A new set of pipeline blocks.
  */
-pipe_blocks VISTK_PIPELINE_UTIL_EXPORT load_pipe_blocks_from_file(path_t const& fname);
+VISTK_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks_from_file(path_t const& fname);
 
 /**
  * \brief Convert a pipeline description into a pipeline.
@@ -41,7 +41,7 @@ pipe_blocks VISTK_PIPELINE_UTIL_EXPORT load_pipe_blocks_from_file(path_t const& 
  *
  * \returns A new set of pipeline blocks.
  */
-pipe_blocks VISTK_PIPELINE_UTIL_EXPORT load_pipe_blocks(std::istream& istr, path_t const& inc_root = "");
+VISTK_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks(std::istream& istr, path_t const& inc_root = "");
 
 /**
  * \brief Convert a cluster description file into a collection of cluster blocks.

@@ -24,18 +24,18 @@ namespace python
 /**
  * \brief Register a \c vil_memory_chunk to Python.
  */
-void VISTK_PYTHON_NUMPY_EXPORT register_memory_chunk();
+VISTK_PYTHON_NUMPY_EXPORT void register_memory_chunk();
 
 /**
  * \brief Register a \c vil_image_view_base to Python.
  */
-void VISTK_PYTHON_NUMPY_EXPORT register_image_base();
+VISTK_PYTHON_NUMPY_EXPORT void register_image_base();
 
 /**
  * \brief Register a \c vil_image_view instantiation to Python.
  */
 template <typename T>
-void VISTK_PYTHON_NUMPY_EXPORT register_image_type();
+VISTK_PYTHON_NUMPY_EXPORT void register_image_type();
 
 }
 

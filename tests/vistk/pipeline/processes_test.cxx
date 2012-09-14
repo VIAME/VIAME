@@ -35,7 +35,7 @@ test_process
 extern "C"
 {
 
-void VISTK_EXPORT register_processes();
+VISTK_EXPORT void register_processes();
 
 }
 

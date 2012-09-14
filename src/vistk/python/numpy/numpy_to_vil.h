@@ -30,7 +30,7 @@ namespace python
  *
  * \returns A vil image, or \c NULL on failure.
  */
-vil_image_view_base_sptr VISTK_PYTHON_NUMPY_EXPORT numpy_to_vil(PyObject* obj);
+VISTK_PYTHON_NUMPY_EXPORT vil_image_view_base_sptr numpy_to_vil(PyObject* obj);
 
 }
 

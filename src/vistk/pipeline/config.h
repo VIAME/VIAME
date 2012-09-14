@@ -440,7 +440,7 @@ config_cast_inner(config::value_t const& value)
  * \returns The value of \p value in the requested type.
  */
 template <>
-bool VISTK_PIPELINE_EXPORT config_cast_inner(config::value_t const& value);
+VISTK_PIPELINE_EXPORT bool config_cast_inner(config::value_t const& value);
 
 /**
  * \brief Cast a configuration value to the requested type.

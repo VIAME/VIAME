@@ -35,7 +35,7 @@ namespace vistk
  * \param pipe The pipeline to export.
  * \param graph_name The name of the graph.
  */
-void VISTK_PIPELINE_UTIL_EXPORT export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_name);
+VISTK_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_name);
 
 }
 

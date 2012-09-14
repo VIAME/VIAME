@@ -21,7 +21,7 @@ extern "C"
 /**
  * \brief Register processes.
  */
-void VISTK_PROCESSES_IMAGE_EXPORT register_processes();
+VISTK_PROCESSES_IMAGE_EXPORT void register_processes();
 
 }
 

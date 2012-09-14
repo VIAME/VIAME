@@ -28,7 +28,7 @@ namespace vistk
  * \param ostr The stream to output to.
  * \param transform The transform to output.
  */
-void VISTK_UTILITIES_EXPORT debug_transform_write(std::ostream& ostr, homography_base::transform_t const& transform);
+VISTK_UTILITIES_EXPORT void debug_transform_write(std::ostream& ostr, homography_base::transform_t const& transform);
 
 /**
  * \brief Output information in the base homography class.
@@ -36,7 +36,7 @@ void VISTK_UTILITIES_EXPORT debug_transform_write(std::ostream& ostr, homography
  * \param ostr The stream to output to.
  * \param homog The homography to output.
  */
-void VISTK_UTILITIES_EXPORT debug_homography_base_write(std::ostream& ostr, homography_base const& homog);
+VISTK_UTILITIES_EXPORT void debug_homography_base_write(std::ostream& ostr, homography_base const& homog);
 
 /**
  * \brief Output information in the homography class.
