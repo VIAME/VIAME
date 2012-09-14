@@ -67,7 +67,9 @@ pipeline_builder
 
       if (!fin.good())
       {
-        static std::string const reason = "Unable to open input file";
+        vistk::path_t::string_type const& pstr = ipath.native();
+        std::string const str(pstr.begin(), pstr.end());
+        std::string const reason = "Unable to open input file: " + str;
 
         throw std::runtime_error(reason);
       }
