@@ -1474,6 +1474,11 @@ process::priv
     port_t const& port = iport.first;
     port_info_t const& info = iport.second;
 
+    if (!q->has_input_port_edge(port))
+    {
+      continue;
+    }
+
     port_frequency_t const& freq = info->frequency;
 
     if (!freq || (freq.denominator() != 1))
