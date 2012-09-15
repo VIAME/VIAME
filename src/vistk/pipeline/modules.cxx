@@ -75,15 +75,12 @@ load_known_modules()
 {
   module_paths_t module_dirs;
 
-  envvar_value_t extra_module_dirs = get_envvar(vistk_module_envvar);
+  envvar_value_t const extra_module_dirs = get_envvar(vistk_module_envvar);
 
   if (extra_module_dirs)
   {
-    boost::split(module_dirs, extra_module_dirs, is_separator, boost::token_compress_on);
+    boost::split(module_dirs, *extra_module_dirs, is_separator, boost::token_compress_on);
   }
-
-  free_envvar(extra_module_dirs);
-  extra_module_dirs = NULL;
 
   module_paths_t module_dirs_tmp;
 
