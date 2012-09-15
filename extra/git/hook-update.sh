@@ -2,7 +2,12 @@
 
 git="$( which git )"
 
-[ -x "$git" ] || { echo "Could not find 'git' in \$PATH ($PATH)"; exit 1 }
+die () {
+  echo >&2 "$@"
+  exit 1
+}
+
+[ -x "$git" ] || die "Could not find 'git' in \$PATH ($PATH)."
 
 this="$0"
 this_dir="$( dirname "$this" )"
@@ -10,7 +15,7 @@ this_dir="$( dirname "$this" )"
 cd "$this_dir"
 
 "$git" rev-parse --is-inside-work-tree 2> /dev/null || \
-  { echo "Does not seem to be a git repository"; exit 1 }
+  die "Does not seem to be a git repository."
 
 git_dir="$( git rev-parse --git-dir )"
 hook_dir="$git_dir/hooks"
