@@ -125,10 +125,10 @@ warp_image<PixType>
   size_t const snr = snj - 1;
 
   homog_point_t const corner[4] =
-    { homog_point_t(0, 0)
-    , homog_point_t(snc, 0)
-    , homog_point_t(snc, snr)
-    , homog_point_t(0, snr)
+    { homog_point_t(0.0, 0.0)
+    , homog_point_t(static_cast<double>(snc), 0.0)
+    , homog_point_t(static_cast<double>(snc), static_cast<double>(snr))
+    , homog_point_t(0.0, static_cast<double>(snr))
     };
 
   for (size_t i = 0; i < 4; ++i)
