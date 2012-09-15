@@ -10,11 +10,11 @@
 #include <cstdlib>
 #elif defined(__linux__)
 #include <sys/prctl.h>
-#elif defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <boost/scoped_array.hpp>
+
 #include <windows.h>
 #else
 #include <cstdlib>
