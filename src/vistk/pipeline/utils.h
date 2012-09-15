@@ -9,6 +9,8 @@
 
 #include "pipeline-config.h"
 
+#include <boost/optional.hpp>
+
 #include <string>
 
 /**
@@ -24,13 +26,9 @@ namespace vistk
 typedef std::string thread_name_t;
 
 /// The type for an environment variable name.
-typedef char const* envvar_name_t;
+typedef std::string envvar_name_t;
 /// The type of an environment variable value.
-#if defined(_WIN32) || defined(_WIN64)
-typedef char* envvar_value_t;
-#else
-typedef char const* envvar_value_t;
-#endif
+typedef boost::optional<std::string> envvar_value_t;
 
 /**
  * \brief Name the thread that the function was called from.
@@ -51,19 +49,11 @@ bool VISTK_PIPELINE_EXPORT name_thread(thread_name_t const& name);
 /**
  * \brief Retrieve the value of an environment variable.
  *
- * \see free_envvar
- *
  * \param name The variable to retrieve from the environement.
  *
  * \returns The value of the environment variable, \c NULL if it was not set.
  */
 envvar_value_t VISTK_PIPELINE_EXPORT get_envvar(envvar_name_t const& name);
-/**
- * \brief Release memory used by an environment variable.
- *
- * \param value The value to free.
- */
-void VISTK_PIPELINE_EXPORT free_envvar(envvar_value_t value);
 
 }
 
