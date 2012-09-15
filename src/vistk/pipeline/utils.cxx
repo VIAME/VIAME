@@ -75,7 +75,10 @@ name_thread(thread_name_t const& name)
 #elif defined(__linux__)
   int const ret = prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name.c_str()), 0, 0, 0);
 
-  return (ret < 0);
+  if (ret)
+  {
+    return false;
+  }
 #elif defined(_WIN32) || defined(_WIN64)
 #ifndef NDEBUG
   SetThreadName(current_thread, name.c_str());
