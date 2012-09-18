@@ -20,12 +20,11 @@ vistk_add_library(vistk_image
   ${image_headers}
   ${image_private_headers})
 target_link_libraries(vistk_image
-  vistk_utilities
-  vil
-  vgl)
-target_link_libraries(vistk_image LINK_INTERFACE_LIBRARIES
-  vistk_utilities
-  vil)
+  LINK_PUBLIC
+    vistk_utilities
+    vil
+  LINK_PRIVATE
+    vgl)
 set_target_properties(vistk_image
   PROPERTIES
     VERSION       ${vistk_version}

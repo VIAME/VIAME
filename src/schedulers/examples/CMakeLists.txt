@@ -19,9 +19,10 @@ add_vistk_plugin(schedulers_examples
   ${examples_srcs}
   ${examples_private_headers})
 target_link_libraries(schedulers_examples
-  vistk_pipeline
-  ${Boost_CHRONO_LIBRARY}
-  ${Boost_DATE_TIME_LIBRARY}
-  ${Boost_THREAD_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  ${CMAKE_THREAD_LIBS_INIT})
+  LINK_PRIVATE
+    vistk_pipeline
+    ${Boost_CHRONO_LIBRARY}
+    ${Boost_DATE_TIME_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT})

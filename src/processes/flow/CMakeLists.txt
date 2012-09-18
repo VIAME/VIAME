@@ -21,4 +21,5 @@ add_vistk_plugin(processes_flow
   ${flow_srcs}
   ${flow_private_headers})
 target_link_libraries(processes_flow
-  vistk_pipeline)
+  LINK_PRIVATE
+    vistk_pipeline)

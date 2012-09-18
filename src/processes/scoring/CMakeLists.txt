@@ -21,10 +21,11 @@ add_vistk_plugin(processes_scoring
   ${scoring_srcs}
   ${scoring_private_headers})
 target_link_libraries(processes_scoring
-  vistk_pipeline
-  vistk_scoring
-  image_helper
-  ${Boost_DATE_TIME_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  vil)
+  LINK_PRIVATE
+    vistk_pipeline
+    vistk_scoring
+    image_helper
+    ${Boost_DATE_TIME_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    vil)

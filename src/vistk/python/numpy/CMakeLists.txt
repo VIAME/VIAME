@@ -30,18 +30,16 @@ vistk_add_library(vistk_python_numpy
   ${python_numpy_headers}
   ${python_numpy_private_headers})
 target_link_libraries(vistk_python_numpy
-  vil
-  vistk_python_util
-  ${Boost_THREAD_LIBRARY}
-  ${Boost_CHRONO_LIBRARY}
-  ${${boost_python_library_var}}
-  ${Boost_SYSTEM_LIBRARY}
-  ${PYTHON_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(vistk_python_numpy LINK_INTERFACE_LIBRARIES
-  vil
-  ${${boost_python_library_var}}
-  ${PYTHON_LIBRARIES})
+  LINK_PUBLIC
+    vil
+    ${${boost_python_library_var}}
+    ${PYTHON_LIBRARIES}
+  LINK_PRIVATE
+    vistk_python_util
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_CHRONO_LIBRARY}
+      ${Boost_SYSTEM_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(vistk_python_numpy
   PROPERTIES
     VERSION       ${vistk_version}

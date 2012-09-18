@@ -29,12 +29,13 @@ add_vistk_plugin(processes_image
   ${image_srcs}
   ${image_private_headers})
 target_link_libraries(processes_image
-  vistk_image
-  vistk_utilities
-  vistk_pipeline
-  video_helper
-  image_helper
-  vgl
-  vgl_algo
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
+  LINK_PRIVATE
+    vistk_image
+    vistk_utilities
+    vistk_pipeline
+    video_helper
+    image_helper
+    vgl
+    vgl_algo
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY})

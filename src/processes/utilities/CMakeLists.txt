@@ -21,9 +21,10 @@ add_vistk_plugin(processes_utilities
   ${utilities_srcs}
   ${utilities_private_headers})
 target_link_libraries(processes_utilities
-  vistk_utilities
-  vistk_pipeline
-  vgl_algo
-  vnl
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
+  LINK_PRIVATE
+    vistk_utilities
+    vistk_pipeline
+    vgl_algo
+    vnl
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY})

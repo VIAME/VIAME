@@ -160,7 +160,8 @@ function (vistk_add_helper_library_sources name sources)
   add_library(${name} STATIC
     ${${sources}})
   target_link_libraries(${name}
-    ${ARGN})
+    LINK_PRIVATE
+      ${ARGN})
 
   vistk_compile_pic(${name})
 endfunction ()

@@ -36,7 +36,8 @@ function (add_tool name)
   vistk_add_executable(${name}
     ${name}.cxx)
   target_link_libraries(${name}
-    ${ARGN})
+    LINK_PRIVATE
+      ${ARGN})
   if (boost_header_targets)
     add_dependencies(${name}
       ${boost_header_targets})

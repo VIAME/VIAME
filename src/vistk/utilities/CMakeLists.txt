@@ -27,9 +27,8 @@ vistk_add_library(vistk_utilities
   ${utilities_srcs}
   ${utilities_headers})
 target_link_libraries(vistk_utilities
-  vgl_algo)
-target_link_libraries(vistk_utilities LINK_INTERFACE_LIBRARIES
-  vgl_algo)
+  LINK_PUBLIC
+    vgl_algo)
 set_target_properties(vistk_utilities
   PROPERTIES
     VERSION       ${vistk_version}

@@ -76,7 +76,8 @@ vistk_make_test(edge capacity)
 add_library(processes_test SHARED
   processes_test.cxx)
 target_link_libraries(processes_test
-  vistk_pipeline)
+  LINK_PRIVATE
+    vistk_pipeline)
 
 set_target_properties(processes_test
   PROPERTIES
