@@ -58,6 +58,9 @@ while [ "$gerrit_ssh_test" -ne 1 ]; do
   prompt "Gerrit project: " VisTK
   gerrit_project="$input"
 
+  prompt "Gerrit target remote: " origin
+  gerrit_target_remote="$input"
+
   prompt "Gerrit target branch: " master
   gerrit_target_branch="$input"
 
@@ -83,6 +86,7 @@ git config gerrit2.hostname "${gerrit_hostname}"
 git config gerrit2.port "${gerrit_port}"
 git config gerrit2.username "${gerrit_user}"
 git config gerrit2.project "${gerrit_project}"
+git config gerrit2.targetremote "${gerrit_target_remote}"
 git config gerrit2.targetbranch "${gerrit_target_branch}"
 
 if git remote | grep -q -e '^gerrit$'; then
