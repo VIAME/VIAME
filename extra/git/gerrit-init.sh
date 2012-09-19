@@ -77,7 +77,8 @@ done
 mkdir -p "$gerrit_dir"
 cd "$gerrit_dir"
 git init
-git pull ../.. remotes/origin/gerrit
+git remote add origin ../..
+git pull origin remotes/origin/gerrit
 cd "$source_dir"
 
 git config hooks.GerritId false
