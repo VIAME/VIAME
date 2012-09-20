@@ -3,7 +3,7 @@ project(vistk_python_vistk_image)
 find_package(NumPy)
 
 if (NUMPY_FOUND)
-  include_directories(${NUMPY_INCLUDE_DIR})
+  include_directories(SYSTEM ${NUMPY_INCLUDE_DIR})
 
   add_vistk_python_library(vil
     vistk/image
