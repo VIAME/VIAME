@@ -44,14 +44,7 @@ tool_main(int argc, char* argv[])
 
   boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
 
-  if (!vm.count("pipeline"))
-  {
-    std::cerr << "Error: pipeline not set" << std::endl;
-
-    tool_usage(EXIT_FAILURE, desc);
-  }
-
-  pipeline_builder const builder(vm);
+  pipeline_builder const builder(vm, desc);
 
   vistk::pipeline_t const pipe = builder.pipeline();
 

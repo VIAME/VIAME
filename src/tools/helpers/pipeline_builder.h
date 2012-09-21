@@ -22,7 +22,7 @@
 class pipeline_builder
 {
   public:
-    pipeline_builder(boost::program_options::variables_map const& vm);
+    pipeline_builder(boost::program_options::variables_map const& vm, boost::program_options::options_description const& desc);
     pipeline_builder();
     ~pipeline_builder();
 
