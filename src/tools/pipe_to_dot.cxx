@@ -27,6 +27,8 @@
 #include <cstddef>
 #include <cstdlib>
 
+static boost::program_options::options_description pipe_to_dot_options();
+
 int
 tool_main(int argc, char* argv[])
 {
@@ -37,7 +39,8 @@ tool_main(int argc, char* argv[])
     .add(tool_common_options())
     .add(pipeline_common_options())
     .add(pipeline_input_options())
-    .add(pipeline_output_options());
+    .add(pipeline_output_options())
+    .add(pipe_to_dot_options());
 
   boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
 
@@ -98,4 +101,16 @@ tool_main(int argc, char* argv[])
   }
 
   return EXIT_SUCCESS;
+}
+
+boost::program_options::options_description
+pipe_to_dot_options()
+{
+  boost::program_options::options_description desc;
+
+  desc.add_options()
+    ("name,n", boost::program_options::value<std::string>()->value_name("NAME")->default_value("unnamed"), "the name of the graph")
+  ;
+
+  return desc;
 }
