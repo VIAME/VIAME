@@ -339,6 +339,8 @@ pipeline
     return;
   }
 
+  /// \todo If process is in a cluster, remove the cluster.
+
   priv::process_map_t::const_iterator const j = d->process_map.find(name);
 
   if (j == d->process_map.end())
