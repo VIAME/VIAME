@@ -6,17 +6,17 @@ include(CheckFunctionExists)
 if (CMAKE_USE_PTHREADS_INIT)
   cmake_push_check_state()
   set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-  check_function_exists(pthread_setname_np HAVE_PTHREAD_SETNAME_NP)
-  check_function_exists(pthread_set_name_np HAVE_PTHREAD_SET_NAME_NP)
+  check_function_exists(pthread_setname_np have_pthread_setname_np)
+  check_function_exists(pthread_set_name_np have_pthread_set_name_np)
   cmake_pop_check_state()
 
-  if (HAVE_PTHREAD_SETNAME_NP OR HAVE_PTHREAD_SET_NAME_NP)
+  if (have_pthread_setname_np OR have_pthread_set_name_np)
     set(thread_naming_defines
       ${thread_naming_defines}
       HAVE_PTHREAD_NAMING)
   endif ()
 
-  if (HAVE_PTHREAD_SETNAME_NP)
+  if (have_pthread_setname_np)
     set(thread_naming_defines
       ${thread_naming_defines}
       HAVE_PTHREAD_SETNAME_NP)
@@ -41,20 +41,20 @@ main()
   return EXIT_SUCCESS;
 }
 ")
-    try_compile(PTHREAD_SETNAME_NP_TAKES_ID
+    try_compile(pthread_setname_np_takes_id
       "${cmakefiles_dir}/pthread_setname_np_takes_id"
       "${pthread_setname_np_takes_id_path}"
       CMAKE_FLAGS
         "-DLINK_LIBRARIES=${CMAKE_THREAD_LIBS_INIT}")
 
-    if (PTHREAD_SETNAME_NP_TAKES_ID)
+    if (pthread_setname_np_takes_id)
       set(thread_naming_defines
         ${thread_naming_defines}
         PTHREAD_SETNAME_NP_TAKES_ID)
     endif ()
   endif ()
 
-  if (HAVE_PTHREAD_SET_NAME_NP)
+  if (have_pthread_set_name_np)
     set(thread_naming_defines
       ${thread_naming_defines}
       HAVE_PTHREAD_SET_NAME_NP)
@@ -62,10 +62,10 @@ main()
 endif ()
 
 cmake_push_check_state()
-check_function_exists(setproctitle HAVE_SETPROCTITLE)
+check_function_exists(setproctitle have_setproctitle)
 cmake_pop_check_state()
 
-if (HAVE_SETPROCTITLE)
+if (have_setproctitle)
   set(thread_naming_defines
     ${thread_naming_defines}
     HAVE_SETPROCTITLE)
