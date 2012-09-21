@@ -24,12 +24,12 @@ option(VISTK_ENABLE_BOOST_PYTHON_FIXES "Enables fixes for Boost.Python bugs (rec
 mark_as_advanced(VISTK_ENABLE_BOOST_PYTHON_FIXES)
 if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
   # Not fixed yet.
-  #if (${Boost_VERSION} LESS 10XX00)
+  #if (Boost_VERSION LESS 10XX00)
     # Override Boost's invoke.hpp
     include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/threading")
   #endif ()
   # Not fixed yet.
-  #if (${Boost_VERSION} LESS 10XX00)
+  #if (Boost_VERSION LESS 10XX00)
     # Override Boost's override.hpp
     include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/exceptions_in_override")
   #endif ()
