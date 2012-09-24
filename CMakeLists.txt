@@ -248,7 +248,6 @@ find_package(Boost ${vistk_boost_version} REQUIRED
     thread)
 
 find_package(VXL REQUIRED)
-include(${VXL_CMAKE_DIR}/UseVXL.cmake)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
