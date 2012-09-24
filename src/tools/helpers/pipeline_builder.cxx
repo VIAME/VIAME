@@ -6,6 +6,8 @@
 
 #include "pipeline_builder.h"
 
+#include "tool_usage.h"
+
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
 #include <vistk/pipeline_util/pipe_declaration_types.h>
@@ -39,8 +41,15 @@ static std::string const split_str = "=";
 }
 
 pipeline_builder
-::pipeline_builder(boost::program_options::variables_map const& vm)
+::pipeline_builder(boost::program_options::variables_map const& vm, boost::program_options::options_description const& desc)
 {
+  if (!vm.count("pipeline"))
+  {
+    std::cerr << "Error: pipeline not set" << std::endl;
+
+    tool_usage(EXIT_FAILURE, desc);
+  }
+
   {
     std::istream* pistr;
     std::ifstream fin;
