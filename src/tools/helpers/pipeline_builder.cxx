@@ -204,7 +204,7 @@ pipeline_builder
 boost::program_options::options_description
 pipeline_common_options()
 {
-  boost::program_options::options_description desc;
+  boost::program_options::options_description desc("Common options");
 
   desc.add_options()
     ("config,c", boost::program_options::value<vistk::paths_t>()->value_name("FILE"), "supplemental configuration file")
@@ -218,7 +218,7 @@ pipeline_common_options()
 boost::program_options::options_description
 pipeline_input_options()
 {
-  boost::program_options::options_description desc;
+  boost::program_options::options_description desc("Input options");
 
   desc.add_options()
     ("pipeline,p", boost::program_options::value<vistk::path_t>()->value_name("FILE"), "pipeline")
@@ -230,7 +230,7 @@ pipeline_input_options()
 boost::program_options::options_description
 pipeline_output_options()
 {
-  boost::program_options::options_description desc;
+  boost::program_options::options_description desc("Output options");
 
   desc.add_options()
     ("output,o", boost::program_options::value<vistk::path_t>()->value_name("FILE")->default_value("-"), "output path")
@@ -242,7 +242,7 @@ pipeline_output_options()
 boost::program_options::options_description
 pipeline_run_options()
 {
-  boost::program_options::options_description desc;
+  boost::program_options::options_description desc("Run options");
 
   desc.add_options()
     ("scheduler,S", boost::program_options::value<vistk::scheduler_registry::type_t>()->value_name("TYPE"), "scheduler type")
