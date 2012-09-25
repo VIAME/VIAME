@@ -17,6 +17,7 @@
 #include <vnl/vnl_inverse.h>
 
 #include <limits>
+#include <stdexcept>
 
 #include <cmath>
 
@@ -119,8 +120,6 @@ warp_image<PixType>
 
   transform_t const inv_transform = vnl_inverse(homog);
 
-  box_t mapped_bbox;
-
   size_t const snc = sni - 1;
   size_t const snr = snj - 1;
 
@@ -131,6 +130,8 @@ warp_image<PixType>
     , homog_point_t(0, snr)
     };
 
+  box_t mapped_bbox;
+
   for (size_t i = 0; i < 4; ++i)
   {
     point_t const p = inv_transform * corner[i];
@@ -139,6 +140,14 @@ warp_image<PixType>
 
   box_t const dest_bounds(0, dni - 1, 0, dnj - 1);
   box_t const intersection = vgl_intersection(mapped_bbox, dest_bounds);
+
+  if (intersection.is_empty())
+  {
+    static std::string const reason = "The intersection of the mapped bbox "
+                                      "and the destination is invalid.";
+
+    throw std::runtime_error(reason);
+  }
 
   size_t const begin_i = static_cast<size_t>(std::floor(intersection.min_x()));
   size_t const begin_j = static_cast<size_t>(std::floor(intersection.min_y()));
