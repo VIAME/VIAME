@@ -99,7 +99,10 @@ warp_image<PixType>
 
   if (snp != dnp)
   {
-    /// \todo Throw an exception.
+    static std::string const reason = "The source and destination images do "
+                                      "not have the same number of planes";
+
+    throw std::runtime_error(reason);
   }
 
   if (is_identity(transform))
