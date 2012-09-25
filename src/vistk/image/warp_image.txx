@@ -38,6 +38,7 @@ class warp_image<PixType>::priv
     ~priv();
 
     void clear_mask();
+    void apply_mask();
 
     image_t dest;
     mask_t mask;
@@ -182,6 +183,8 @@ warp_image<PixType>
   row_start += (begin_i * dis);
   row_start += (begin_j * djs);
 
+  d->clear_mask();
+
   for (size_t j = begin_j; j < end_j; ++j, row_start += djs)
   {
     pixel_t* dest_col = row_start;
@@ -216,6 +219,8 @@ warp_image<PixType>
     }
   }
 
+  d->apply_mask();
+
   return d->dest;
 }
 
@@ -246,6 +251,48 @@ warp_image<PixType>::priv
 ::clear_mask()
 {
   mask.fill(true);
+}
+
+template <typename PixType>
+void
+warp_image<PixType>::priv
+::apply_mask()
+{
+  size_t const mask_width = mask.ni();
+  size_t const mask_height = mask.nj();
+  size_t const dest_planes = dest.nplanes();
+
+  ptrdiff_t const dis = dest.istep();
+  ptrdiff_t const djs = dest.jstep();
+  ptrdiff_t const dps = dest.planestep();
+  ptrdiff_t const mis = mask.istep();
+  ptrdiff_t const mjs = mask.jstep();
+
+  typedef mask_t::pixel_type mask_pixel_t;
+
+  pixel_t const fill_value = fill.get_value_or(pixel_t());
+
+  mask_pixel_t const* mr = mask.top_left_ptr();
+  pixel_t* dr = dest.top_left_ptr();
+
+  for (size_t i = 0; i < mask_width; ++i, mr += mis, dr += dis)
+  {
+    mask_pixel_t const* mc = mr;
+    pixel_t* dc = dr;
+
+    for (size_t j = 0; j < mask_height; ++j, mc += mjs, dc += djs)
+    {
+      if (*mc)
+      {
+        pixel_t* dp = dc;
+
+        for (size_t k = 0; k < dest_planes; ++k, dp += dps)
+        {
+          *dp = fill_value;
+        }
+      }
+    }
+  }
 }
 
 template <typename T>
