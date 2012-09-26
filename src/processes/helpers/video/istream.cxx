@@ -133,7 +133,7 @@ istream_for_impl(istream_impl_t const& impl, path_t const& path)
 #if VIDL_HAS_DC1394
   else if (impl == dc1394_impl())
   {
-    return boost::make_shared<vidl_dc1394_istream>(str);
+    return boost::make_shared<vidl_dc1394_istream>();
   }
 #endif
 #if VIDL_HAS_VIDEODEV
