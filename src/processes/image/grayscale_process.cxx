@@ -75,7 +75,7 @@ grayscale_process
     port_type_input,
     required,
     port_description_t("The image to turn into grayscale."));
-  declare_input_port(
+  declare_output_port(
     priv::port_output,
     port_type_output,
     required,
