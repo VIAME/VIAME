@@ -168,6 +168,28 @@ null_output_port_info_exception
 {
 }
 
+flag_mismatch_exception
+::flag_mismatch_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) throw()
+  : process_exception()
+  , m_name(name)
+  , m_port(port)
+  , m_reason(reason)
+{
+  std::ostringstream sstr;
+
+  sstr << "The process \'" << m_name << "\' "
+          "gave invalid flags for the "
+          "\'" << m_port << "\' port: "
+       << m_reason;
+
+  m_what = sstr.str();
+}
+
+flag_mismatch_exception
+::~flag_mismatch_exception() throw()
+{
+}
+
 set_type_on_initialized_process_exception
 ::set_type_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& type) throw()
   : process_exception()

@@ -762,7 +762,9 @@ process
 
   if (required && static_)
   {
-    /// \todo Throw an exception.
+    static std::string const reason = "An input port cannot be required and static";
+
+    throw flag_mismatch_exception(d->name, port, reason);
   }
 
   if (static_)
