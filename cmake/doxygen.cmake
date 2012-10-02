@@ -32,13 +32,17 @@ function (create_doxygen inputdir name)
 
     foreach (tag ${ARGN})
       set(doxy_tag_files
-        ${doxy_tag_files} "${vistk_binary_dir}/doc/${tag}.tag=../${tag}")
+        ${doxy_tag_files}
+        "${vistk_binary_dir}/doc/${tag}.tag=../${tag}")
       set(tag_targets
         ${tag_targets}
         doxygen-${tag}-tag)
     endforeach ()
 
     string(REPLACE ";" " " doxy_tag_files "${doxy_tag_files}")
+
+    set(doxygen_files_dir
+      "${vistk_source_dir}/extra/doxygen")
 
     add_custom_target(doxygen-${name}-dir)
     add_custom_command(
@@ -47,7 +51,7 @@ function (create_doxygen inputdir name)
               "${vistk_binary_dir}/doc/${name}"
       COMMENT "Creating documentation directory for ${name}")
     vistk_configure_file(${name}-doxyfile.common
-      "${vistk_source_dir}/cmake/Doxyfile.common.in"
+      "${doxygen_files_dir}/Doxyfile.common.in"
       "${vistk_binary_dir}/doc/${name}/Doxyfile.common"
       doxy_project_source_dir
       doxy_documentation_output_path
@@ -55,14 +59,14 @@ function (create_doxygen inputdir name)
       doxy_tag_files
       doxy_exclude_patterns)
     vistk_configure_file(${name}-doxyfile.tag
-      "${vistk_source_dir}/cmake/Doxyfile.tag.in"
+      "${doxygen_files_dir}/Doxyfile.tag.in"
       "${vistk_binary_dir}/doc/${name}/Doxyfile.tag"
       doxy_documentation_output_path
       doxy_project_name)
     add_dependencies(configure-${name}-doxyfile.tag
       configure-${name}-doxyfile.common)
     vistk_configure_file(${name}-doxyfile
-      "${vistk_source_dir}/cmake/Doxyfile.in"
+      "${doxygen_files_dir}/Doxyfile.in"
       "${vistk_binary_dir}/doc/${name}/Doxyfile"
       doxy_documentation_output_path
       doxy_project_name)
