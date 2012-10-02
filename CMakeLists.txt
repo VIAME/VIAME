@@ -34,6 +34,7 @@ endif ()
 include("${vistk_source_dir}/cmake/snippets/version.cmake")
 include("${vistk_source_dir}/cmake/snippets/flags.cmake")
 include("${vistk_source_dir}/cmake/snippets/configuration.cmake")
+include("${vistk_source_dir}/cmake/snippets/groups.cmake")
 if (vistk_is_in_git)
   include("${vistk_source_dir}/cmake/snippets/dist.cmake")
   include("${vistk_source_dir}/cmake/snippets/hooks.cmake")
@@ -42,11 +43,6 @@ endif ()
 # Dependencies.
 include("${vistk_source_dir}/cmake/snippets/python.cmake")
 include("${vistk_source_dir}/cmake/snippets/depends.cmake")
-
-source_group("Configured Files"
-  REGULAR_EXPRESSION ".*\\.in$")
-source_group("Template Files"
-  REGULAR_EXPRESSION ".*\\.txx$")
 
 add_subdirectory(conf)
 add_subdirectory(src)
