@@ -30,7 +30,7 @@ if (WIN32)
   add_definitions(-DBOOST_ALL_NO_LIB)
 endif ()
 
-include("${vistk_source_dir}/cmake/boost_tests.cmake")
+include("${vistk_source_dir}/cmake/snippets/boost_tests.cmake")
 
 ########################################
 # VXL
@@ -43,4 +43,4 @@ include_directories(SYSTEM ${VXL_CORE_INCLUDE_DIR})
 include_directories(SYSTEM ${VXL_VCL_INCLUDE_DIR})
 link_directories(${VXL_LIBRARY_DIR})
 
-include("${vistk_source_dir}/cmake/vxl_tests.cmake")
+include("${vistk_source_dir}/cmake/snippets/vxl_tests.cmake")

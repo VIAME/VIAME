@@ -16,26 +16,32 @@ set(CMAKE_MODULE_PATH
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 include(CMakeDependentOption)
-include("${vistk_source_dir}/cmake/version.cmake")
-include("${vistk_source_dir}/cmake/flags.cmake")
-include("${vistk_source_dir}/cmake/configuration.cmake")
-include("${vistk_source_dir}/cmake/python.cmake")
-include("${vistk_source_dir}/cmake/depends.cmake")
+
+# Support functions.
+include("${vistk_source_dir}/cmake/support/configure.cmake")
+include("${vistk_source_dir}/cmake/support/doxygen.cmake")
+include("${vistk_source_dir}/cmake/support/targets.cmake")
 
 find_package(Git)
 
-include("${vistk_source_dir}/cmake/configure.cmake")
 if (GIT_FOUND)
   if (IS_DIRECTORY "${vistk_source_dir}/.git")
     set(vistk_is_in_git ON)
   endif ()
 endif ()
+
+# Project setup.
+include("${vistk_source_dir}/cmake/snippets/version.cmake")
+include("${vistk_source_dir}/cmake/snippets/flags.cmake")
+include("${vistk_source_dir}/cmake/snippets/configuration.cmake")
 if (vistk_is_in_git)
-  include("${vistk_source_dir}/cmake/dist.cmake")
-  include("${vistk_source_dir}/cmake/hooks.cmake")
+  include("${vistk_source_dir}/cmake/snippets/dist.cmake")
+  include("${vistk_source_dir}/cmake/snippets/hooks.cmake")
 endif ()
-include("${vistk_source_dir}/cmake/doxygen.cmake")
-include("${vistk_source_dir}/cmake/targets.cmake")
+
+# Dependencies.
+include("${vistk_source_dir}/cmake/snippets/python.cmake")
+include("${vistk_source_dir}/cmake/snippets/depends.cmake")
 
 source_group("Configured Files"
   REGULAR_EXPRESSION ".*\\.in$")

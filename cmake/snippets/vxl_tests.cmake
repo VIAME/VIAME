@@ -1,3 +1,5 @@
+# Check for settings from VXL that are incompatible with flags.
+
 set(cmakefiles_dir
   "${vistk_binary_dir}/CMakeFiles")
 

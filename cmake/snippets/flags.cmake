@@ -1,3 +1,5 @@
+# Set up flags for the compiler.
+
 include(CheckCXXCompilerFlag)
 
 function (vistk_check_compiler_flag variable flag)
