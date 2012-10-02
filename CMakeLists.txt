@@ -5,11 +5,6 @@ cmake_minimum_required(VERSION 2.8)
 option(VISTK_USE_BUILD_TREE "Whether the build tree should be used for default paths" ON)
 mark_as_advanced(VISTK_USE_BUILD_TREE)
 
-set(vistk_version_major 0)
-set(vistk_version_minor 1)
-set(vistk_version_patch 0)
-set(vistk_version "${vistk_version_major}.${vistk_version_minor}.${vistk_version_patch}")
-
 set(vistk_source_dir "${CMAKE_CURRENT_SOURCE_DIR}")
 set(vistk_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -21,6 +16,7 @@ set(CMAKE_MODULE_PATH
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 include(CMakeDependentOption)
+include("${vistk_source_dir}/cmake/version.cmake")
 include("${vistk_source_dir}/cmake/flags.cmake")
 include("${vistk_source_dir}/cmake/configuration.cmake")
 include("${vistk_source_dir}/cmake/python.cmake")
