@@ -49,12 +49,16 @@ set(pipeline_private_headers)
 
 if (WIN32)
   set(libdir bin)
+  set(destdir bin)
 else ()
   set(libdir lib${LIB_SUFFIX})
+  set(destdir lib)
 endif ()
 
 set(vistk_default_module_paths
   "${CMAKE_INSTALL_PREFIX}/${libdir}/vistk")
+set(module_output_path
+  "${vistk_binary_dir}/${destdir}/vistk")
 
 if (WIN32)
   set(path_sep ";")

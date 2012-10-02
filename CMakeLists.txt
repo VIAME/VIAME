@@ -20,14 +20,6 @@ set(CMAKE_MODULE_PATH
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
-if (WIN32)
-  set(destdir bin)
-else ()
-  set(destdir lib)
-endif ()
-
-set(module_output_path "${vistk_binary_dir}/${destdir}/vistk")
-
 include(CMakeDependentOption)
 include("${vistk_source_dir}/cmake/flags.cmake")
 
