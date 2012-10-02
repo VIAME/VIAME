@@ -22,18 +22,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 include(CMakeDependentOption)
 include("${vistk_source_dir}/cmake/flags.cmake")
-
-foreach (config ${CMAKE_CONFIGURATION_TYPES})
-  string(TOUPPER "${config}" upper_config)
-
-  set(config_defines
-    "VISTK_CONFIGURATION=\"${config}\""
-    "VISTK_CONFIGURATION_L=L\"${config}\"")
-
-  set_directory_properties(
-    PROPERTIES
-      COMPILE_DEFINITIONS_${upper_config} "${config_defines}")
-endforeach ()
+include("${vistk_source_dir}/cmake/configuration.cmake")
 
 option(VISTK_ENABLE_PYTHON "Enable Python bindings" OFF)
 cmake_dependent_option(VISTK_ENABLE_PYTHON3 "Use Python3" OFF
