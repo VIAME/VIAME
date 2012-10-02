@@ -25,11 +25,6 @@ include("${vistk_source_dir}/cmake/flags.cmake")
 include("${vistk_source_dir}/cmake/configuration.cmake")
 include("${vistk_source_dir}/cmake/python.cmake")
 
-option(VISTK_ENABLE_EXTRAS "Enable extra files to help with tooling" OFF)
-if (VISTK_ENABLE_EXTRAS)
-  add_subdirectory(extra)
-endif ()
-
 set(vistk_boost_version 1.47)
 
 if (VISTK_ENABLE_PYTHON)
@@ -86,6 +81,11 @@ source_group("Template Files"
 
 add_subdirectory(conf)
 add_subdirectory(src)
+
+option(VISTK_ENABLE_EXTRAS "Enable extra files to help with tooling" OFF)
+if (VISTK_ENABLE_EXTRAS)
+  add_subdirectory(extra)
+endif ()
 
 option(VISTK_ENABLE_TESTING "Build tests" OFF)
 if (VISTK_ENABLE_TESTING)
