@@ -22,8 +22,6 @@
 #     group targets based on `testname'. The test instance is automatically
 #     passed as the first argument to the test.
 
-include(CTest)
-
 add_custom_target(tooling)
 
 cmake_dependent_option(VISTK_ENABLE_CDASH "Enable CDash integration" OFF

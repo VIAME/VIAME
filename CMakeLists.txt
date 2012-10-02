@@ -85,7 +85,5 @@ endif ()
 
 option(VISTK_ENABLE_TESTING "Build tests" OFF)
 if (VISTK_ENABLE_TESTING)
-  include("${vistk_source_dir}/cmake/test.cmake")
-
   add_subdirectory(tests)
 endif ()
