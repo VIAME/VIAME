@@ -18,7 +18,7 @@ add_custom_command(
           -D "vistk_source_dir=${vistk_source_dir}"
           -D "vistk_binary_dir=${vistk_binary_dir}"
           -D "GIT_EXECUTABLE=${GIT_EXECUTABLE}"
-          -P "${vistk_source_dir}/cmake/snap-script.cmake"
+          -P "${vistk_source_dir}/extra/dist/snap-script.cmake"
   WORKING_DIRECTORY
           "${vistk_source_dir}"
   COMMENT "Making a tarball for the current checkout")
