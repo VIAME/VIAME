@@ -71,8 +71,6 @@ if (VISTK_ENABLE_EXTRAS)
   add_subdirectory(extra)
 endif ()
 
-option(VISTK_ENABLE_TOOLS "Build tools" ON)
-
 set(vistk_boost_version 1.47)
 
 if (VISTK_ENABLE_PYTHON)

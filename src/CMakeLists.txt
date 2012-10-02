@@ -3,6 +3,7 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 add_subdirectory(vistk)
 
+option(VISTK_ENABLE_TOOLS "Build tools" ON)
 if (VISTK_ENABLE_TOOLS)
   add_subdirectory(tools)
 endif ()
