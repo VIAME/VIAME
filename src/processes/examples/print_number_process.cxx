@@ -11,9 +11,9 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_exception.h>
 
+#include <boost/filesystem/fstream.hpp>
 #include <boost/cstdint.hpp>
 
-#include <fstream>
 #include <string>
 
 /**
@@ -35,7 +35,7 @@ class print_number_process::priv
 
     path_t const path;
 
-    std::ofstream fout;
+    boost::filesystem::ofstream fout;
 
     static config::key_t const config_path;
     static port_t const port_input;
@@ -81,20 +81,20 @@ print_number_process
     d.reset(new priv(path));
   }
 
-  path_t::string_type const path = d->path.native();
-
-  if (path.empty())
+  if (d->path.empty())
   {
     static std::string const reason = "The path given was empty";
+    path_t::string_type const path = d->path.native();
     config::value_t const value = config::value_t(path.begin(), path.end());
 
     throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
 
-  d->fout.open(path.c_str());
+  d->fout.open(d->path);
 
   if (!d->fout.good())
   {
+    path_t::string_type const path = d->path.native();
     std::string const file_path(path.begin(), path.end());
     std::string const reason = "Failed to open the path: " + file_path;
 

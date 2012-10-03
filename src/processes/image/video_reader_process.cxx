@@ -22,7 +22,6 @@
 
 #include <vidl/vidl_istream.h>
 
-#include <fstream>
 #include <string>
 
 /**

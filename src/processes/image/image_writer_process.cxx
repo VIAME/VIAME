@@ -14,10 +14,10 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_exception.h>
 
+#include <boost/filesystem/fstream.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/format.hpp>
 
-#include <fstream>
 #include <string>
 
 /**
@@ -45,7 +45,7 @@ class image_writer_process::priv
 
     bool has_output;
 
-    std::ofstream fout;
+    boost::filesystem::ofstream fout;
 
     static config::key_t const config_pixtype;
     static config::key_t const config_pixfmt;
@@ -144,9 +144,7 @@ image_writer_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  path_t::string_type const path = d->path.native();
-
-  if (path.empty())
+  if (d->path.empty())
   {
     d->has_output = false;
   }
@@ -154,10 +152,11 @@ image_writer_process
   {
     d->has_output = true;
 
-    d->fout.open(path.c_str());
+    d->fout.open(d->path);
 
     if (!d->fout.good())
     {
+      path_t::string_type const path = d->path.native();
       std::string const file_path(path.begin(), path.end());
       std::string const reason = "Failed to open the path: " + file_path;
 

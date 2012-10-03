@@ -18,10 +18,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/foreach.hpp>
 
-#include <fstream>
 #include <istream>
 #include <sstream>
 #include <string>
@@ -189,9 +189,9 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
 
       /// \todo Check ec.
 
-      std::ifstream fin;
+      boost::filesystem::ifstream fin;
 
-      fin.open(file_path.native().c_str());
+      fin.open(file_path);
 
       if (!fin.good())
       {
