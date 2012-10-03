@@ -44,22 +44,20 @@ main(int argc, char* argv[])
 
 #if defined(_WIN32) || defined(_WIN64)
   typedef HMODULE library_t;
-  typedef std::wstring module_path_t;
 #else
   typedef void* library_t;
-  typedef std::string module_path_t;
 #endif
+  typedef vistk::path_t module_path_t;
 
   std::string const library = argv[1];
   vistk::path_t const path = argv[2];
-  module_path_t const library_path = path.native();
 
   library_t handle = NULL;
 
 #if defined(_WIN32) || defined(_WIN64)
-  handle = LoadLibraryW(library_path.c_str());
+  handle = LoadLibraryW(path.native().c_str());
 #else
-  handle = dlopen(library_path.c_str(), RTLD_NOW);
+  handle = dlopen(path.native().c_str(), RTLD_NOW);
 #endif
 
   if (!handle)

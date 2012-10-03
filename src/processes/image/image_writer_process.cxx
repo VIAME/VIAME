@@ -201,10 +201,7 @@ image_writer_process
 
   if (d->has_output)
   {
-    path_t::string_type const& fstr = path.native();
-    std::string const str(fstr.begin(), fstr.end());
-
-    d->fout << str << std::endl;
+    d->fout << path << std::endl;
   }
 
   d->write(path, input);
