@@ -106,6 +106,9 @@ class wrap_process
                                 port_description_t const& description_,
                                 port_frequency_t const& frequency_);
 
+    void _set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency);
+    void _set_output_port_frequency(port_t const& port, port_frequency_t const& new_frequency);
+
     void _remove_input_port(port_t const& port);
     void _remove_output_port(port_t const& port);
 
@@ -393,6 +396,12 @@ BOOST_PYTHON_MODULE(process)
     .def("declare_output_port", &wrap_process::_declare_output_port_1
       , (arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = vistk::process::port_frequency_t(1))
       , "Declare an output port on the process.")
+    .def("set_input_port_frequency", &wrap_process::_set_input_port_frequency
+      , (arg("port"), arg("new_frequency"))
+      , "Set an input port\'s frequency")
+    .def("set_output_port_frequency", &wrap_process::_set_output_port_frequency
+      , (arg("port"), arg("new_frequency"))
+      , "Set an output port\'s frequency")
     .def("remove_input_port", &wrap_process::_remove_input_port
       , (arg("port"))
       , "Remove an input port from the process.")
@@ -882,6 +891,20 @@ wrap_process
                          port_frequency_t const& frequency_)
 {
   declare_output_port(port, type_, flags_, description_, frequency_);
+}
+
+void
+wrap_process
+::_set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
+{
+  set_input_port_frequency(port, new_frequency);
+}
+
+void
+wrap_process
+::_set_output_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
+{
+  set_output_port_frequency(port, new_frequency);
 }
 
 void
