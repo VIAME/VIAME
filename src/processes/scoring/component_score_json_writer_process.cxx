@@ -131,7 +131,7 @@ component_score_json_writer_process
   if (d->path.empty())
   {
     static std::string const reason = "The path given was empty";
-    path_t::string_type const path = d->path.native();
+    path_t::string_type const& path = d->path.native();
     config::value_t const value = config::value_t(path.begin(), path.end());
 
     throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
@@ -141,7 +141,7 @@ component_score_json_writer_process
 
   if (!d->fout.good())
   {
-    path_t::string_type const path = d->path.native();
+    path_t::string_type const& path = d->path.native();
     std::string const file_path(path.begin(), path.end());
     std::string const reason = "Failed to open the path: " + file_path;
 

@@ -55,7 +55,7 @@ pipe_blocks
 load_pipe_blocks_from_file(path_t const& fname)
 {
   std::stringstream sstr;
-  path_t::string_type const fstr = fname.native();
+  path_t::string_type const& fstr = fname.native();
   std::string const str(fstr.begin(), fstr.end());
 
   sstr << include_directive << str;

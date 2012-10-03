@@ -85,7 +85,7 @@ homography_reader_process
 
   if (d->path.empty())
   {
-    path_t::string_type const path = d->path.native();
+    path_t::string_type const& path = d->path.native();
     config::value_t const file_path = config::value_t(path.begin(), path.end());
     static std::string const reason = "The path given was empty";
 
@@ -96,7 +96,7 @@ homography_reader_process
 
   if (!d->fin.good())
   {
-    path_t::string_type const path = d->path.native();
+    path_t::string_type const& path = d->path.native();
     std::string const file_path(path.begin(), path.end());
     std::string const reason = "Failed to open the path: " + file_path;
 

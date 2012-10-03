@@ -41,7 +41,7 @@ write(path_t const& path, datum_t const& dat)
 {
   typedef vil_image_view<PixType> image_t;
 
-  path_t::string_type const fpath = path.native();
+  path_t::string_type const& fpath = path.native();
   std::string const str(fpath.begin(), fpath.end());
 
   image_t const img = dat->get_datum<image_t>();

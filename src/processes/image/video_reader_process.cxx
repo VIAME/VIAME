@@ -171,12 +171,11 @@ video_reader_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  path_t::string_type const path = d->path.native();
-
-  if (path.empty())
+  if (d->path.empty())
   {
-    config::value_t const file_path = config::value_t(path.begin(), path.end());
     static std::string const reason = "The path given was empty";
+    path_t::string_type const& path = d->path.native();
+    config::value_t const file_path = config::value_t(path.begin(), path.end());
 
     throw invalid_configuration_value_exception(name(), priv::config_path, file_path, reason);
   }
