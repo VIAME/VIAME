@@ -18,10 +18,7 @@
 
 #include <boost/program_options/variables_map.hpp>
 
-#include <fstream>
 #include <iostream>
-#include <string>
-#include <vector>
 
 #include <cstdlib>
 

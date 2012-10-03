@@ -13,6 +13,8 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/utils.h>
 
+#include <vistk/utilities/path.h>
+
 #include <boost/filesystem/operations.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/thread/thread.hpp>
