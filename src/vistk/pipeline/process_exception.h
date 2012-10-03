@@ -279,6 +279,38 @@ class VISTK_PIPELINE_EXPORT null_output_port_info_exception
 };
 
 /**
+ * \class flag_mismatch_exception process_exception.h <vistk/pipeline/process_exception.h>
+ *
+ * \brief Thrown when incompatible flags are given for a port.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT flag_mismatch_exception
+  : public process_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the \ref process.
+     * \param port The port with \c NULL information.
+     * \param reason The reason why the flags are incompatible.
+     */
+    flag_mismatch_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~flag_mismatch_exception() throw();
+
+    /// The name of the \ref process.
+    process::name_t const m_name;
+    /// The name of the port.
+    process::port_t const m_port;
+    /// A reason for the incompatible flags.
+    std::string const m_reason;
+};
+
+/**
  * \class set_type_on_initialized_process_exception process_exception.h <vistk/pipeline/process_exception.h>
  *
  * \brief Thrown when the type on a port is attempted to be set after initialization.
