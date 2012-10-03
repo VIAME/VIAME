@@ -51,11 +51,7 @@ typedef void* library_t;
 typedef void* function_t;
 #endif
 typedef void (*load_module_t)();
-#if defined(_WIN32) || defined(_WIN64)
-typedef std::wstring module_path_t;
-#else
-typedef std::string module_path_t;
-#endif
+typedef path_t::string_type module_path_t;
 typedef std::vector<module_path_t> module_paths_t;
 typedef std::string lib_suffix_t;
 typedef std::string function_name_t;
