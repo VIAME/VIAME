@@ -143,8 +143,8 @@ layered_image_reader_process
   if (d->path.empty())
   {
     static std::string const reason = "The path given was empty";
-    path_t::string_type const& path = d->path.native();
-    config::value_t const value = config::value_t(path.begin(), path.end());
+    path_t::string_type const& pstr = d->path.native();
+    config::value_t const value = config::value_t(pstr.begin(), pstr.end());
 
     throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
@@ -153,9 +153,9 @@ layered_image_reader_process
 
   if (!d->fin.good())
   {
-    path_t::string_type const& path = d->path.native();
-    std::string const file_path(path.begin(), path.end());
-    std::string const reason = "Failed to open the path: " + file_path;
+    path_t::string_type const& pstr = d->path.native();
+    std::string const str(pstr.begin(), pstr.end());
+    std::string const reason = "Failed to open the path: " + str;
 
     throw invalid_configuration_exception(name(), reason);
   }

@@ -106,9 +106,9 @@ system_provider
 
     /// \todo Check ec.
 
-    path_t::string_type const& raw_path = curdir.native();
+    path_t::string_type const& pstr = curdir.native();
 
-    value = config::value_t(raw_path.begin(), raw_path.end());
+    value = config::value_t(pstr.begin(), pstr.end());
   }
   else if (index == "pid")
   {
