@@ -59,9 +59,9 @@
 #define VISTK_MUST_USE_RESULT
 #else
 #ifdef __GNUC__
-#define VISTK_DEPRECATED __attribute__ ((__deprecated__))
-#define VISTK_NO_RETURN __attribute__ ((__noreturn__))
-#define VISTK_MUST_USE_RESULT __attribute__ ((__warn_unused_result__))
+#define VISTK_DEPRECATED __attribute__((__deprecated__))
+#define VISTK_NO_RETURN __attribute__((__noreturn__))
+#define VISTK_MUST_USE_RESULT __attribute__((__warn_unused_result__))
 #else
 // Unsupported.
 #define VISTK_DEPRECATED
@@ -73,9 +73,9 @@
 
 #cmakedefine VISTK_HAVE_GCC_VISIBILITY
 #ifdef VISTK_HAVE_GCC_VISIBILITY
-#define VISTK_EXPORT __attribute__ ((visibility("default")))
-#define VISTK_IMPORT __attribute__ ((visibility("default")))
-#define VISTK_NO_EXPORT __attribute__ ((visibility("hidden")))
+#define VISTK_EXPORT __attribute__((__visibility__("default")))
+#define VISTK_IMPORT __attribute__((__visibility__("default")))
+#define VISTK_NO_EXPORT __attribute__((__visibility__("hidden")))
 #else
 // Unsupported.
 #define VISTK_EXPORT
