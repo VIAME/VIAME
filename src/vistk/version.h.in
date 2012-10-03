@@ -30,11 +30,11 @@
  * \param patch The patch version to check.
  */
 #define VISTK_VERSION_CHECK(major, minor, patch) \
-     (((major) <  VISTK_VERSION_MAJOR) \
-  || (((major) == VISTK_VERSION_MAJOR) \
-   && ((minor) <  VISTK_VERSION_MINOR)) \
-  || (((major) == VISTK_VERSION_MAJOR) \
-   && ((minor) == VISTK_VERSION_MINOR) \
+     (((major) <  VISTK_VERSION_MAJOR)           \
+  || (((major) == VISTK_VERSION_MAJOR)           \
+   && ((minor) <  VISTK_VERSION_MINOR))          \
+  || (((major) == VISTK_VERSION_MAJOR)           \
+   && ((minor) == VISTK_VERSION_MINOR)           \
    && ((patch) <= VISTK_VERSION_PATCH)))
 
 #cmakedefine VISTK_BUILT_FROM_GIT
