@@ -65,7 +65,7 @@ main(int argc, char* argv[])
   {
     vistk::envvar_name_t const envvar = "TEST_ENVVAR";
 
-    vistk::envvar_value_t envvalue = vistk::get_envvar(envvar);
+    vistk::envvar_value_t const envvalue = vistk::get_envvar(envvar);
 
     if (!envvalue)
     {
@@ -73,18 +73,15 @@ main(int argc, char* argv[])
     }
     else
     {
-      char const* const expected = "test_value";
+      vistk::envvar_value_t const expected = vistk::envvar_value_t("test_value");
 
-      if (strcmp(envvalue, expected))
+      if (*envvalue != *expected)
       {
         TEST_ERROR("Did not get expected value: "
                    "Expected: " << expected << " "
                    "Received: " << envvalue);
       }
     }
-
-    vistk::free_envvar(envvalue);
-    envvalue = NULL;
   }
   else
   {

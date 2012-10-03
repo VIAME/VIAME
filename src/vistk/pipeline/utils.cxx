@@ -10,11 +10,11 @@
 #include <cstdlib>
 #elif defined(__linux__)
 #include <sys/prctl.h>
-#elif defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <boost/scoped_array.hpp>
+
 #include <windows.h>
 #else
 #include <cstdlib>
@@ -60,16 +60,21 @@ name_thread(thread_name_t const& name)
 envvar_value_t
 get_envvar(envvar_name_t const& name)
 {
-  envvar_value_t value = NULL;
+  envvar_value_t value;
 
 #if defined(_WIN32) || defined(_WIN64)
-  DWORD sz = GetEnvironmentVariable(name, NULL, 0);
+  char const* const name_cstr = name.c_str();
+
+  DWORD sz = GetEnvironmentVariable(name_cstr, NULL, 0);
 
   if (sz)
   {
-    value = new char[sz];
+    typedef boost::scoped_array<char> raw_envvar_value_t;
+    raw_envvar_value_t const envvalue(new char[sz]);
 
-    sz = GetEnvironmentVariable(name, value, sz);
+    sz = GetEnvironmentVariable(name_cstr, envvalue.get(), sz);
+
+    value = envvalue.get();
   }
 
   if (!sz)
@@ -77,20 +82,15 @@ get_envvar(envvar_name_t const& name)
     /// \todo Log error that the environment reading failed.
   }
 #else
-  value = getenv(name);
+  char const* const envvalue = getenv(name.c_str());
+
+  if (envvalue)
+  {
+    value = envvalue;
+  }
 #endif
 
   return value;
-}
-
-void
-free_envvar(envvar_value_t value)
-{
-#if defined(_WIN32) || defined(_WIN64)
-  delete [] value;
-#else
-  (void)value;
-#endif
 }
 
 }

@@ -77,7 +77,7 @@ system_provider
   }
   else if (index == "homedir")
   {
-    envvar_value_t home = get_envvar(
+    envvar_value_t const home = get_envvar(
 #if defined(_WIN32) || defined(_WIN64)
       "UserProfile"
 #else
@@ -87,10 +87,8 @@ system_provider
 
     if (home)
     {
-      value = config::value_t(home);
+      value = config::value_t(*home);
     }
-
-    free_envvar(home);
   }
   else if (index == "curdir")
   {
@@ -126,16 +124,14 @@ environment_provider
 ::operator () (config::value_t const& index) const
 {
   envvar_name_t const envvar_name = index.c_str();
-  envvar_value_t envvar_value = get_envvar(envvar_name);
+  envvar_value_t const envvar_value = get_envvar(envvar_name);
 
   config::value_t value;
 
   if (envvar_value)
   {
-    value = config::value_t(envvar_value);
+    value = config::value_t(*envvar_value);
   }
-
-  free_envvar(envvar_value);
 
   return value;
 }

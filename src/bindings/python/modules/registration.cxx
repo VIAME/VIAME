@@ -62,7 +62,5 @@ is_suppressed()
     suppress_python_modules = true;
   }
 
-  free_envvar(python_suppress);
-
   return suppress_python_modules;
 }
