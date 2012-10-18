@@ -161,8 +161,11 @@ else ()
 
     vistk_check_compiler_flag(vistk_coverage -O0)
     vistk_check_compiler_flag(vistk_coverage -pg)
-    vistk_check_compiler_flag(vistk_coverage -fprofile-arcs)
     vistk_check_compiler_flag(vistk_coverage -ftest-coverage)
+
+    # It seems as though the flag isn't detected alone.
+    set(vistk_coverage
+      "${vistk_coverage} -fprofile-arcs")
 
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${vistk_coverage}")
   endif ()
