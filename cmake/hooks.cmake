@@ -7,8 +7,13 @@ add_custom_command(
           init
           --quiet
   COMMAND "${GIT_EXECUTABLE}"
-          remote add origin
+          config
+          remote.origin.url
           ../..
+  COMMAND "${GIT_EXECUTABLE}"
+          config
+          remote.origin.fetch
+          +refs/heads/hooks:refs/remotes/origin/hooks
   WORKING_DIRECTORY
           "${hooks_directory}"
   COMMENT "Initializing the hooks repository")
