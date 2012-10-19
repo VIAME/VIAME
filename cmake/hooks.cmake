@@ -22,10 +22,12 @@ add_custom_command(
   TARGET  hooks-update
   COMMAND "${GIT_EXECUTABLE}"
           fetch
+          --quiet
           origin
           remotes/origin/hooks
   COMMAND "${GIT_EXECUTABLE}"
           merge
+          --quiet
           FETCH_HEAD
   WORKING_DIRECTORY
           "${hooks_directory}"
