@@ -5,6 +5,7 @@ add_custom_command(
   OUTPUT  "${hooks_directory}/.git"
   COMMAND "${GIT_EXECUTABLE}"
           init
+          --quiet
   COMMAND "${GIT_EXECUTABLE}"
           remote add origin
           ../..
