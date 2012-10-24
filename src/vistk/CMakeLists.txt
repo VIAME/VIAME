@@ -71,6 +71,8 @@ vistk_configure_file_always(version.h
   vistk_git_hash_short
   vistk_git_dirty)
 
+set(configure_code)
+
 add_subdirectory(pipeline)
 add_subdirectory(utilities)
 add_subdirectory(pipeline_util)
