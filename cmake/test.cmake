@@ -103,8 +103,6 @@ set(test_output_path
 set(test_working_path
   "${vistk_binary_dir}/tests")
 
-set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
-
 function (vistk_declare_test testname)
   if (VISTK_ADD_TEST_TARGETS)
     add_custom_target(tests-${testname})
