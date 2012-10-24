@@ -54,11 +54,15 @@ if (VALGRIND_EXECUTABLE)
       "--verbose")
   endif ()
   if (VISTK_VALGRIND_USE_SUPPRESSIONS)
-    set(vistk_valgrind_arguments
-      ${vistk_valgrind_arguments}
-      "--suppressions=${vistk_source_dir}/tests/data/valgrind/boost.supp"
-      "--suppressions=${vistk_source_dir}/tests/data/valgrind/glibc.supp"
-      "--suppressions=${vistk_source_dir}/tests/data/valgrind/python2.7.supp")
+    file(GLOB
+      valgrind_suppressions
+      "${vistk_source_dir}/tests/data/valgrind/*.supp")
+
+    foreach (valgrind_suppression ${valgrind_suppressions})
+      set(vistk_valgrind_arguments
+        ${vistk_valgrind_arguments}
+        "--suppressions=${valgrind_suppression}")
+    endforeach ()
   endif ()
 
   add_custom_target(valgrind)
