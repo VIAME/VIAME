@@ -64,7 +64,7 @@ if ("$Format:$" STREQUAL "")
       file(GLOB patch_files
         "${PATCH_FILES}")
 
-      set(CTEST_EXTRA_SUBMIT_FILES
+      set(CTEST_NOTES_FILES
         "${patch_files}")
     else ()
       if (NOT IGNORE_PATCHES)
@@ -92,12 +92,12 @@ else ()
       set(branch_full "${BRANCH}-dirty")
 
       set(dashboard_patch
-        "${CTEST_SOURCE_DIRECTORY}/dashboard.patch")
+        "${CTEST_BINARY_DIRECTORY}/dashboard.patch")
 
       file(WRITE "${dashboard_patch}"
         "${git_diff}")
 
-      set(CTEST_EXTRA_SUBMIT_FILES
+      set(CTEST_NOTES_FILES
         "${dashboard_patch}")
     endif ()
   endif ()
