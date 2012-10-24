@@ -25,20 +25,10 @@ if (VISTK_ENABLE_CDASH)
     CACHE STRING "String describing the build (\"regex\": 'os-os_version-arch-buildtool-compiler-compiler_version(-dep-depversion)*(-feature)?')")
 
   # Configure dashboard script
-  vistk_configure_file(dashboard.ctest
+  configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/dashboard.ctest.in"
     "${vistk_binary_dir}/dashboard.ctest"
-    vistk_source_dir
-    vistk_binary_dir
-    CMAKE_GENERATOR
-    CMAKE_CTEST_COMMAND
-    vistk_is_in_git
-    CDASH_SITE_NAME
-    CDASH_BUILD_NAME
-    VISTK_ENABLE_COVERAGE
-    GCOV_EXECUTABLE
-    VALGRIND_EXECUTABLE
-    GIT_EXECUTABLE)
+    @ONLY)
 endif ()
 
 set(vistk_config_file "${vistk_binary_dir}/vistk-config.cmake")
