@@ -1,0 +1,206 @@
+# Settings to pass to this script (with -D):
+#
+# General options:
+#
+#  WITH_MEMCHECK - Set to ON to submit memcheck results (disabled if coverage
+#                  is enabled)
+#
+# Options related to testing a git checkout:
+#
+#  REMOTE        - The remote to use as the canonical remote (defaults to
+#                  origin)
+#  BRANCH        - The branch to test
+#  CLEAN_SOURCE  - Clean the source tree (WARNING: Removes ALL files and
+#                  changes not checked in)
+#  CLEAN_BRANCH  - Ensure that the specified branch is checked out and matches
+#                  the branch on the remote server
+#  CLEAN_BUILD   - Clean the build tree before running anything
+#  UPDATE        - Update the source tree
+#
+# Options related to testing released tarballs:
+#
+#  PATCH_FILES    - Patches applied on top of the release
+#  IGNORE_PATCHES - Ignore the fact that the release is patched
+
+# Site configuration (options set with CMake)
+set(CTEST_SOURCE_DIRECTORY "@vistk_source_dir@")
+set(CTEST_BINARY_DIRECTORY "@vistk_binary_dir@")
+set(CTEST_CMAKE_GENERATOR "@CMAKE_GENERATOR@")
+set(CTEST_COMMAND "@CMAKE_CTEST_COMMAND@")
+
+set(vistk_is_in_git "@vistk_is_in_git@")
+set(VISTK_IS_PATCHED "@VISTK_IS_PATCHED@")
+
+set(CTEST_SITE "@CDASH_SITE_NAME@")
+set(CTEST_BUILD_NAME_BASE "@CDASH_BUILD_NAME@")
+
+set(VISTK_ENABLE_COVERAGE "@VISTK_ENABLE_COVERAGE@")
+
+set(CTEST_COVERAGE_COMMAND "@GCOV_EXECUTABLE@")
+set(CTEST_MEMORYCHECK_COMMAND "@VALGRIND_EXECUTABLE@")
+
+###############################################################################
+
+if (VISTK_ENABLE_COVERAGE)
+  # Valgrind chokes on coverage symbols.
+  set(WITH_MEMCHECK "OFF")
+endif ()
+
+if (NOT CTEST_BUILD_NAME_BASE)
+  message(FATAL_ERROR "Refusing to submit a nameless build")
+endif ()
+
+if (NOT REMOTE)
+  set(REMOTE "origin")
+endif ()
+
+if ("$Format:$" STREQUAL "")
+  set(UPDATE FALSE)
+  set(BRANCH "$Format:%d$")
+  if (VISTK_IS_PATCHED)
+    set(branch_full "${BRANCH}-dirty")
+
+    if (PATCH_FILES)
+      file(GLOB patch_files
+        "${PATCH_FILES}")
+
+      set(CTEST_EXTRA_SUBMIT_FILES
+        "${patch_files}")
+    else ()
+      if (NOT IGNORE_PATCHES)
+        message(FATAL_ERROR
+          "Please provide patches applied to the source tree "
+          "(set IGNORE_PATCHES to suppress this error)")
+      endif ()
+    endif ()
+  endif ()
+else ()
+  if (NOT BRANCH)
+    set(BRANCH "HEAD")
+  endif ()
+
+  if (NOT CLEAN_SOURCE)
+    execute_process(
+      COMMAND           "@GIT_EXECUTABLE@"
+                        diff
+                        --exit-code
+      WORKING_DIRECTORY "${CTEST_SOURCE_DIRECTORY}"
+      RESULT_VARIABLE   git_return
+      OUTPUT_VARIABLE   git_diff)
+
+    if (git_return)
+      set(branch_full "${BRANCH}-dirty")
+
+      set(dashboard_patch
+        "${CTEST_SOURCE_DIRECTORY}/dashboard.patch")
+
+      file(WRITE "${dashboard_patch}"
+        "${git_diff}")
+
+      set(CTEST_EXTRA_SUBMIT_FILES
+        "${dashboard_patch}")
+    endif ()
+  endif ()
+endif ()
+
+if (NOT branch_full)
+  set(branch_full "${BRANCH}")
+endif ()
+
+###############################################################################
+
+if (CLEAN_BUILD)
+  ctest_empty_binary_directory("${CTEST_BINARY_DIRECTORY}")
+endif ()
+
+set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME_BASE}-${branch_full}")
+ctest_start("${SUBMISSION_TYPE}")
+
+# Update checkout
+if (vistk_is_in_git)
+  if (CLEAN_SOURCE)
+    execute_process(
+      COMMAND           "@GIT_EXECUTABLE@"
+                        reset
+                        --hard
+      WORKING_DIRECTORY "${CTEST_SOURCE_DIRECTORY}")
+    execute_process(
+      COMMAND           "@GIT_EXECUTABLE@"
+                        clean
+                        --force
+                        -d
+                        -x
+      WORKING_DIRECTORY "${CTEST_SOURCE_DIRECTORY}")
+  endif ()
+
+  if (CLEAN_BRANCH)
+    execute_process(
+      COMMAND           "@GIT_EXECUTABLE@"
+                        checkout
+                        HEAD
+      WORKING_DIRECTORY "${CTEST_SOURCE_DIRECTORY}")
+    execute_process(
+      COMMAND           "@GIT_EXECUTABLE@"
+                        checkout
+                        -t
+                        "${BRANCH}"
+                        "${REMOTE}/${BRANCH}"
+      WORKING_DIRECTORY "${CTEST_SOURCE_DIRECTORY}"
+      RESULT_VARIABLE   git_return)
+
+    if (git_return)
+      message(FATAL_ERROR "Failed to set up a clean branch for: ${BRANCH}")
+    endif ()
+  endif ()
+
+  if (UPDATE)
+    ctest_update()
+
+    execute_process(
+      COMMAND           "@GIT_EXECUTABLE@"
+                        fetch
+                        --prune
+                        --tags
+                        "${REMOTE}"
+      WORKING_DIRECTORY "${CTEST_SOURCE_DIRECTORY}")
+  endif ()
+endif()
+
+# Build project
+ctest_configure()
+ctest_build()
+ctest_test()
+
+if (WITH_MEMCHECK AND CTEST_MEMORYCHECK_COMMAND)
+  set(valgrind_arguments "")
+
+  set(valgrind_arguments
+    "${valgrind_arguments} --quiet")
+  set(valgrind_arguments
+    "${valgrind_arguments} --leak-check=yes")
+  set(valgrind_arguments
+    "${valgrind_arguments} --show-reachable=yes")
+  set(valgrind_arguments
+    "${valgrind_arguments} --num-callers=50")
+
+  file(GLOB valgrind_suppressions
+    "${CTEST_SOURCE_DIRECTORY}/tests/data/valgrind/*.supp")
+
+  foreach (valgrind_suppression ${valgrind_suppressions})
+    set(valgrind_arguments
+      ${valgrind_arguments}
+      "--suppressions=${valgrind_suppression}")
+  endforeach ()
+
+  set(CTEST_MEMORYCHECK_COMMAND_OPTIONS
+    "${valgrind_arguments}")
+
+  ctest_memcheck()
+endif ()
+
+if (VISTK_ENABLE_COVERAGE AND CTEST_COVERAGE_COMMAND)
+  ctest_coverage()
+endif ()
+
+# Submit result
+ctest_submit()

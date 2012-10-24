@@ -26,6 +26,9 @@ include(CTest)
 
 add_custom_target(tooling)
 
+cmake_dependent_option(VISTK_ENABLE_CDASH "Enable CDash integration" OFF
+  VISTK_ENABLE_TESTING OFF)
+
 find_program(VALGRIND_EXECUTABLE valgrind)
 
 option(VISTK_ADD_TEST_TARGETS "Add targets for tests to the build system" OFF)
