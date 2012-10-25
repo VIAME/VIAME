@@ -9,16 +9,11 @@ endif ()
 
 if (VISTK_ENABLE_CDASH)
   find_program(GCOV_EXECUTABLE gcov)
-  set(hostname_args)
-  if (NOT WIN32)
-    # Use the short hostname on non-Windows machines.
-    set(hostname_args "-s")
-  endif ()
   execute_process(
     COMMAND         hostname
-                    ${hostname_args}
     OUTPUT_VARIABLE default_site_name
     OUTPUT_STRIP_TRAILING_WHITESPACE)
+  string(REGEX REPLACE "^([^.]*)(\..*)?$" "\1" default_site_name "${default_site_name}")
   set(CDASH_SITE_NAME "${default_site_name}"
     CACHE STRING "The hostname to submit to the dashboard with")
   set(CDASH_BUILD_NAME ""
