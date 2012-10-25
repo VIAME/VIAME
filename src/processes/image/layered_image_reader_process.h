@@ -29,6 +29,10 @@ namespace vistk
  *
  * \process Read layered image files given a file with a list of image format string paths.
  *
+ * \iports
+ *
+ * \iport{path_format} The format string to use to read files.
+ *
  * \oports
  *
  * \oport{image/\portvar{layer}} The image layer named \portvar{tag}.
@@ -38,7 +42,6 @@ namespace vistk
  *
  * \config{pixtype} The pixel type of the images.
  * \config{pixfmt} The pixel format of the images.
- * \config{path} The file to read image format strings from.
  *
  * \reqs
  *
