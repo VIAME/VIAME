@@ -4,11 +4,15 @@ config warp_image
   :homography_type image_to_image
   :input input.txt
   :input_homography input-homog.txt
+  :output_format image-%2$04d.png
   :output output.txt
+
+process path_read
+  :: filelist_reader
+  :input[ro]{CONF} warp_image:input
 
 process read
   :: image_reader
-  :input[ro]{CONF} warp_image:input
   :pixtype[ro]{CONF} warp_image:pixtype
   :pixfmt[ro]{CONF} warp_image:pixfmt
 
@@ -28,9 +32,16 @@ config warp
 
 process write
   :: image_writer
-  :output[ro]{CONF} warp_image:output
+  :format[ro]{CONF} grayscale:output_format
   :pixtype[ro]{CONF} warp_image:pixtype
   :pixfmt[ro]{CONF} warp_image:pixfmt
+
+process path_write
+  :: filelist_writer
+  :output[ro]{CONF} warp_image:output
+
+connect from path_read.path
+        to   read.path
 
 connect from read.image
         to   warp.image

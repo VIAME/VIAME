@@ -2,11 +2,15 @@ config grayscale
   :pixtype byte
   :pixfmt rgb
   :input input.txt
+  :output_format image-%2$04d.png
   :output output.txt
+
+process path_read
+  :: filelist_reader
+  :input[ro]{CONF} grayscale:input
 
 process read
   :: image_reader
-  :input[ro]{CONF} grayscale:input
   :pixtype[ro]{CONF} grayscale:pixtype
   :pixfmt[ro]{CONF} grayscale:pixfmt
 
@@ -21,8 +25,24 @@ process write
   :pixtype[ro]{CONF} grayscale:pixtype
   :pixfmt[ro] gray
 
+process write
+  :: image_writer
+  :format[ro]{CONF} grayscale:output_format
+  :pixtype[ro]{CONF} grayscale:pixtype
+  :pixfmt[ro] gray
+
+process path_write
+  :: filelist_writer
+  :output[ro]{CONF} grayscale:output
+
+connect from path_read.path
+        to   read.path
+
 connect from read.image
         to   gray.image
 
 connect from gray.grayimage
         to   write.image
+
+connect from write.path
+        to   path_write.path
