@@ -142,8 +142,12 @@ set_source_files_properties(scheduler.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${scheduler_build_options}")
 
+# XXX: The core library must be build shared because the plugins will otherwise
+# each have their own instance of the registries and then nothing else can get
+# access to the loaded processes. Splitting out the registries into a separate
+# library might be something for the future.
 vistk_private_header_group(${pipeline_private_headers})
-vistk_add_library(vistk_pipeline
+vistk_add_library(vistk_pipeline SHARED
   ${pipeline_srcs}
   ${pipeline_headers}
   ${pipeline_private_headers})

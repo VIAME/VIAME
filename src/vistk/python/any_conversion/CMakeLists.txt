@@ -8,7 +8,9 @@ set(python_any_conversion_headers
   prototypes.h
   registration.h)
 
-vistk_add_library(vistk_python_any_conversion
+# XXX: Force building shared (see src/vistk/pipeline/CMakeLists.txt as to why
+# this must be done).
+vistk_add_library(vistk_python_any_conversion SHARED
   ${python_any_conversion_srcs}
   ${python_any_conversion_headers})
 target_link_libraries(vistk_python_any_conversion
