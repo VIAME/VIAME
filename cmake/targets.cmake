@@ -114,16 +114,16 @@ function (vistk_add_library name)
     APPEND
     FILE    "${vistk_export_file}")
 
-  set(vistk_libraries
-    ${vistk_libraries}
-    ${name}
-    CACHE INTERNAL "Libraries built as part of vistk")
-
   get_target_property(target_type
     ${name} TYPE)
 
   if (target_type STREQUAL "STATIC_LIBRARY")
     vistk_compile_pic(${name})
+  else ()
+    set(vistk_libraries
+      ${vistk_libraries}
+      ${name}
+      CACHE INTERNAL "Libraries built as part of vistk")
   endif ()
 
   vistk_install(
