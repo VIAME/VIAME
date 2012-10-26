@@ -45,7 +45,7 @@ function (add_vistk_python_library name modpath)
   set(library_subdir /python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath})
   set(component runtime)
 
-  vistk_add_library(python-${safe_modpath}-${name}
+  vistk_add_library(python-${safe_modpath}-${name} SHARED
     ${ARGN})
 
   set_target_properties(python-${safe_modpath}-${name}

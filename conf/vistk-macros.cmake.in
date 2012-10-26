@@ -58,7 +58,7 @@ if (VISTK_ENABLE_PYTHON)
   function (add_vistk_python_library name modpath)
     string(REPLACE "/" "." safe_modpath ${modpath})
 
-    add_library(python-${safe_modpath}-${name}
+    add_library(python-${safe_modpath}-${name} SHARED
       ${ARGN})
 
     set_target_properties(python-${safe_modpath}-${name}
