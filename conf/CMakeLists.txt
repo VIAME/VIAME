@@ -13,8 +13,8 @@ if (VISTK_ENABLE_CDASH)
     COMMAND         hostname
     OUTPUT_VARIABLE default_site_name
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  string(REGEX REPLACE "^([^.]*)(\..*)?$" "\1" default_site_name "${default_site_name}")
-  set(CDASH_SITE_NAME "${default_site_name}"
+  string(REGEX REPLACE "^([^.]+)(\\..*)?$" "\\1" short_default_site_name "${default_site_name}")
+  set(CDASH_SITE_NAME "${short_default_site_name}"
     CACHE STRING "The hostname to submit to the dashboard with")
   set(CDASH_BUILD_NAME ""
     CACHE STRING "String describing the build (\"regex\": 'os-os_version-arch-buildtool-compiler-compiler_version(-dep-depversion)*(-feature)?')")
