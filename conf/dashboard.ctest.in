@@ -2,6 +2,7 @@
 #
 # General options:
 #
+#  TYPE          - One of "Experimental", "Continuous", or "Nightly"
 #  WITH_MEMCHECK - Set to ON to submit memcheck results (disabled if coverage
 #                  is enabled)
 #
@@ -52,6 +53,10 @@ endif ()
 
 if (NOT REMOTE)
   set(REMOTE "origin")
+endif ()
+
+if (NOT TYPE)
+  set(TYPE "Experimental")
 endif ()
 
 if ("$Format:$" STREQUAL "")
@@ -114,7 +119,7 @@ if (CLEAN_BUILD)
 endif ()
 
 set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME_BASE}-${branch_full}")
-ctest_start("${SUBMISSION_TYPE}")
+ctest_start("${TYPE}")
 
 # Update checkout
 if (vistk_is_in_git)
