@@ -2,12 +2,14 @@ project(vistk_processes_utilities)
 
 set(utilities_srcs
   homography_reader_process.cxx
+  invert_transform_process.cxx
   registration.cxx
   timestamp_reader_process.cxx
   timestamper_process.cxx)
 
 set(utilities_private_headers
   homography_reader_process.h
+  invert_transform_process.h
   registration.h
   timestamp_reader_process.h
   timestamper_process.h
@@ -22,5 +24,6 @@ target_link_libraries(processes_utilities
   vistk_utilities
   vistk_pipeline
   vgl_algo
+  vnl
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
