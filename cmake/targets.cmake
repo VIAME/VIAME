@@ -37,6 +37,19 @@ function (vistk_install)
   endif ()
 endfunction ()
 
+function (vistk_compile_pic name)
+  # TODO: Bump minimum CMake version to 2.8.9
+  if (CMAKE_VERSION VERSION_GREATER "2.8.9")
+    set_target_properties(${name}
+      PROPERTIES
+        POSITION_INDEPENDENT_CODE TRUE)
+  elseif (NOT MSVC)
+    set_target_properties(${name}
+      PROPERTIES
+      COMPILE_FLAGS "-fPIC")
+  endif ()
+endfunction ()
+
 function (vistk_add_executable name)
   add_executable(${name}
     ${ARGN})
@@ -136,16 +149,7 @@ function (vistk_add_helper_library_sources name sources)
   target_link_libraries(${name}
     ${ARGN})
 
-  # TODO: Bump minimum CMake version to 2.8.9
-  if (CMAKE_VERSION VERSION_GREATER "2.8.9")
-    set_target_properties(${name}
-      PROPERTIES
-        POSITION_INDEPENDENT_CODE TRUE)
-  elseif (NOT MSVC)
-    set_target_properties(${name}
-      PROPERTIES
-      COMPILE_FLAGS "-fPIC")
-  endif ()
+  vistk_compile_pic(${name})
 endfunction ()
 
 function (vistk_add_helper_library name)
