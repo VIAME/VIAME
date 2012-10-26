@@ -119,6 +119,13 @@ function (vistk_add_library name)
     ${name}
     CACHE INTERNAL "Libraries built as part of vistk")
 
+  get_target_property(target_type
+    ${name} TYPE)
+
+  if (target_type STREQUAL "STATIC_LIBRARY")
+    vistk_compile_pic(${name})
+  endif ()
+
   vistk_install(
     TARGETS       ${name}
     ${exports}
