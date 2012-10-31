@@ -84,6 +84,7 @@ class bakery_base
                       bool ro,
                       bool app,
                       bool capp);
+        ~config_info_t();
 
         config_reference_t reference;
         bool read_only;
@@ -147,6 +148,9 @@ class ensure_provided
   : public boost::static_visitor<config::value_t>
 {
   public:
+    ensure_provided();
+    ~ensure_provided();
+
     config::value_t operator () (config::value_t const& value) const;
     config::value_t operator () (bakery_base::provider_request_t const& request) const;
 };
@@ -417,6 +421,11 @@ bakery_base::config_info_t
 {
 }
 
+bakery_base::config_info_t
+::~config_info_t()
+{
+}
+
 bakery_base
 ::bakery_base()
   : m_configs()
@@ -658,6 +667,16 @@ provider_dereferencer
   config::value_t const& value = request.second;
 
   return (*provider)(value);
+}
+
+ensure_provided
+::ensure_provided()
+{
+}
+
+ensure_provided
+::~ensure_provided()
+{
 }
 
 config::value_t
