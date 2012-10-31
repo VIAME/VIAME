@@ -426,6 +426,29 @@ class VISTK_PIPELINE_EXPORT pipeline
     process::name_t parent_cluster(process::name_t const& name) const;
 
     /**
+     * \brief Get a list of processes in the pipeline.
+     *
+     * \returns The list of all cluster names in the pipeline.
+     */
+    process::names_t cluster_names() const;
+    /**
+     * \brief Get a cluster by name.
+     *
+     * \preconds
+     *
+     * \precond{A cluster with the name \p name exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws no_such_process_exception Thrown when \p name does not exist in the pipeline.
+     *
+     * \param name The name of the cluster to retrieve.
+     *
+     * \returns The cluster in the pipeline with the given name.
+     */
+    process_cluster_t cluster_by_name(process::name_t const& name) const;
+
+    /**
      * \brief Find the ports requested to receive data from a port.
      *
      * \param name The name to lookup.

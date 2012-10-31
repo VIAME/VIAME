@@ -18,6 +18,7 @@
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/function.hpp>
+#include <boost/functional.hpp>
 #include <boost/make_shared.hpp>
 
 #include <functional>
@@ -77,6 +78,14 @@ class pipeline::priv
 
     typedef enum
     {
+      cluster_upstream,
+      cluster_downstream
+    } cluster_connection_type_t;
+    typedef std::pair<process::connection_t, cluster_connection_type_t> cluster_connection_t;
+    typedef std::vector<cluster_connection_t> cluster_connections_t;
+
+    typedef enum
+    {
       push_upstream,
       push_downstream
     } direction_t;
@@ -97,6 +106,7 @@ class pipeline::priv
     // Steps for setting up the pipeline.
     void check_for_processes() const;
     void map_group_connections();
+    void map_cluster_connections();
     void configure_processes();
     void check_for_data_dep_ports() const;
     void propagate_pinned_types();
@@ -129,6 +139,7 @@ class pipeline::priv
 
     process::connections_t data_dep_connections;
     group_connections_t group_connections;
+    cluster_connections_t cluster_connections;
     process::connections_t untyped_connections;
     type_pinnings_t type_pinnings;
 
@@ -141,10 +152,14 @@ class pipeline::priv
     static bool is_downstream_for(process::port_addr_t const& addr, process::connection_t const& connection);
     static bool is_group_upstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection);
     static bool is_group_downstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection);
+    static bool is_cluster_upstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection);
+    static bool is_cluster_downstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection);
     static bool is_addr_on(process::name_t const& name, process::port_addr_t const& addr);
     static bool is_connection_with(process::name_t const& name, process::connection_t const& connection);
     static bool is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection);
     static bool is_group_connection_for(process::connection_t const& connection, group_connection_t const& gconnection);
+    static bool is_cluster_connection_with(process::name_t const& name, cluster_connection_t const& cconnection);
+    static bool is_cluster_connection_for(process::connection_t const& connection, cluster_connection_t const& cconnection);
 
     static process::port_t const port_sep;
     static config::key_t const config_edge;
@@ -382,6 +397,26 @@ pipeline
     return;
   }
 
+  priv::cluster_map_t::const_iterator const up_cluster_it = d->cluster_map.find(upstream_name);
+  priv::cluster_map_t::const_iterator const down_cluster_it = d->cluster_map.find(downstream_name);
+
+  bool const upstream_is_cluster = (up_cluster_it != d->cluster_map.end());
+  bool const downstream_is_cluster = (down_cluster_it != d->cluster_map.end());
+
+  if (upstream_is_cluster || downstream_is_cluster)
+  {
+    if (upstream_is_cluster)
+    {
+      d->cluster_connections.push_back(priv::cluster_connection_t(connection, priv::cluster_upstream));
+    }
+    else if (downstream_is_cluster)
+    {
+      d->cluster_connections.push_back(priv::cluster_connection_t(connection, priv::cluster_downstream));
+    }
+
+    return;
+  }
+
   process_t const up_proc = process_by_name(upstream_name);
   process_t const down_proc = process_by_name(downstream_name);
 
@@ -434,6 +469,7 @@ pipeline
 
   boost::function<bool (process::connection_t const&)> const eq = boost::bind(std::equal_to<process::connection_t>(), conn, _1);
   boost::function<bool (priv::group_connection_t const&)> const group_eq = boost::bind(&priv::is_group_connection_for, conn, _1);
+  boost::function<bool (priv::cluster_connection_t const&)> const cluster_eq = boost::bind(&priv::is_cluster_connection_for, conn, _1);
 
 #define FORGET_CONNECTION(T, f, conns)                                   \
   do                                                                     \
@@ -447,6 +483,7 @@ pipeline
   FORGET_CONNECTION(process::connections_t, eq, d->data_dep_connections);
   FORGET_CONNECTION(process::connections_t, eq, d->untyped_connections);
   FORGET_CONNECTION(priv::group_connections_t, group_eq, d->group_connections);
+  FORGET_CONNECTION(priv::cluster_connections_t, cluster_eq, d->cluster_connections);
 
 #undef FORGET_CONNECTION
 }
@@ -635,6 +672,7 @@ pipeline
   try
   {
     d->map_group_connections();
+    d->map_cluster_connections();
     d->configure_processes();
     d->check_for_data_dep_ports();
     d->propagate_pinned_types();
@@ -698,6 +736,7 @@ pipeline
   d->used_output_mappings.clear();
   d->data_dep_connections.clear();
   d->group_connections.clear();
+  d->cluster_connections.clear();
   d->untyped_connections.clear();
   d->type_pinnings.clear();
 
@@ -758,6 +797,36 @@ pipeline
   priv::process_parent_map_t::const_iterator i = d->process_parent_map.find(name);
 
   if (i == d->process_parent_map.end())
+  {
+    throw no_such_process_exception(name);
+  }
+
+  return i->second;
+}
+
+process::names_t
+pipeline
+::cluster_names() const
+{
+  process::names_t names;
+
+  BOOST_FOREACH (priv::cluster_map_t::value_type const& cluster, d->cluster_map)
+  {
+    process::name_t const& name = cluster.first;
+
+    names.push_back(name);
+  }
+
+  return names;
+}
+
+process_cluster_t
+pipeline
+::cluster_by_name(process::name_t const& name) const
+{
+  priv::cluster_map_t::const_iterator i = d->cluster_map.find(name);
+
+  if (i == d->cluster_map.end())
   {
     throw no_such_process_exception(name);
   }
@@ -1355,9 +1424,11 @@ pipeline::priv
 {
   process_map_t::const_iterator const proc_it = process_map.find(name);
   group_map_t::const_iterator const group_it = groups.find(name);
+  cluster_map_t::const_iterator const cluster_it = cluster_map.find(name);
 
   if ((proc_it != process_map.end()) ||
-      (group_it != groups.end()))
+      (group_it != groups.end()) ||
+      (cluster_it != cluster_map.end()))
   {
     throw duplicate_process_name_exception(name);
   }
@@ -1369,6 +1440,7 @@ pipeline::priv
 {
   boost::function<bool (process::connection_t const&)> const is = boost::bind(&is_connection_with, name, _1);
   boost::function<bool (group_connection_t const&)> const group_is = boost::bind(&is_group_connection_with, name, _1);
+  boost::function<bool (cluster_connection_t const&)> const cluster_is = boost::bind(&is_cluster_connection_with, name, _1);
 
 #define FORGET_CONNECTIONS(T, f, conns)                                  \
   do                                                                     \
@@ -1382,6 +1454,7 @@ pipeline::priv
   FORGET_CONNECTIONS(process::connections_t, is, data_dep_connections);
   FORGET_CONNECTIONS(process::connections_t, is, untyped_connections);
   FORGET_CONNECTIONS(group_connections_t, group_is, group_connections);
+  FORGET_CONNECTIONS(cluster_connections_t, cluster_is, cluster_connections);
 
 #undef FORGET_CONNECTIONS
 
@@ -1773,6 +1846,124 @@ pipeline::priv
   if (group_connections.size())
   {
     map_group_connections();
+  }
+}
+
+void
+pipeline::priv
+::map_cluster_connections()
+{
+  cluster_connections_t const cconnections = cluster_connections;
+
+  // Forget the connections we'll be mapping.
+  cluster_connections.clear();
+
+  BOOST_FOREACH (cluster_connection_t const& cconnection, cconnections)
+  {
+    process::connection_t const& connection = cconnection.first;
+    cluster_connection_type_t const& type = cconnection.second;
+
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    switch (type)
+    {
+      case cluster_upstream:
+        {
+          process::name_t const& cluster_name = upstream_name;
+          process::port_t const& cluster_port = upstream_port;
+
+          cluster_map_t::const_iterator const cluster_it = cluster_map.find(cluster_name);
+
+          if (cluster_it == cluster_map.end())
+          {
+            throw no_such_process_exception(cluster_name);
+          }
+
+          process_cluster_t const& cluster = cluster_it->second;
+          process::connections_t mapped_connections = cluster->output_mappings();
+
+          boost::function<bool (process::connection_t const&)> const is_port = boost::bind(&is_downstream_for, upstream_addr, _1);
+
+          process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(), mapped_connections.end(), boost::not1(is_port));
+          mapped_connections.erase(i, mapped_connections.end());
+
+          if (mapped_connections.empty())
+          {
+            throw no_such_port_exception(cluster_name, cluster_port);
+          }
+          else if (mapped_connections.size() != 1)
+          {
+            static std::string const reason = "Failed to ensure that only one output "
+                                              "mapping is allowed on a cluster port";
+
+            throw std::logic_error(reason);
+          }
+
+          process::connection_t const& mapped_port_conn = mapped_connections[0];
+          process::port_addr_t const& mapped_port_addr = mapped_port_conn.first;
+
+          process::name_t const& mapped_name = mapped_port_addr.first;
+          process::port_t const& mapped_port = mapped_port_addr.second;
+
+          q->connect(mapped_name, mapped_port,
+                     downstream_name, downstream_port);
+        }
+
+        break;
+      case cluster_downstream:
+        {
+          process::name_t const& cluster_name = downstream_name;
+          process::port_t const& cluster_port = downstream_port;
+
+          cluster_map_t::const_iterator const cluster_it = cluster_map.find(cluster_name);
+
+          if (cluster_it == cluster_map.end())
+          {
+            throw no_such_process_exception(cluster_name);
+          }
+
+          process_cluster_t const& cluster = cluster_it->second;
+          process::connections_t mapped_connections = cluster->input_mappings();
+
+          boost::function<bool (process::connection_t const&)> const is_port = boost::bind(&is_upstream_for, downstream_addr, _1);
+
+          process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(), mapped_connections.end(), boost::not1(is_port));
+          mapped_connections.erase(i, mapped_connections.end());
+
+          if (mapped_connections.empty())
+          {
+            throw no_such_port_exception(cluster_name, cluster_port);
+          }
+
+          BOOST_FOREACH (process::connection_t const& mapped_port_conn, mapped_connections)
+          {
+            process::port_addr_t const& mapped_port_addr = mapped_port_conn.second;
+
+            process::name_t const& mapped_name = mapped_port_addr.first;
+            process::port_t const& mapped_port = mapped_port_addr.second;
+
+            q->connect(upstream_name, upstream_port,
+                       mapped_name, mapped_port);
+          }
+        }
+
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Cluster ports could be mapped to other cluster ports. We need to call again
+  // until every cluster port has been resolved to a process.
+  if (!cluster_connections.empty())
+  {
+    map_cluster_connections();
   }
 }
 
@@ -2472,6 +2663,24 @@ pipeline::priv
 
 bool
 pipeline::priv
+::is_cluster_upstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection)
+{
+  process::connection_t const connection = cconnection.first;
+
+  return is_upstream_for(addr, connection);
+}
+
+bool
+pipeline::priv
+::is_cluster_downstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection)
+{
+  process::connection_t const connection = cconnection.first;
+
+  return is_downstream_for(addr, connection);
+}
+
+bool
+pipeline::priv
 ::is_addr_on(process::name_t const& name, process::port_addr_t const& addr)
 {
   process::name_t const& proc_name = addr.first;
@@ -2505,6 +2714,24 @@ pipeline::priv
   process::connection_t const& group_connection = gconnection.first;
 
   return (connection == group_connection);
+}
+
+bool
+pipeline::priv
+::is_cluster_connection_with(process::name_t const& name, cluster_connection_t const& cconnection)
+{
+  process::connection_t const& connection = cconnection.first;
+
+  return is_connection_with(name, connection);
+}
+
+bool
+pipeline::priv
+::is_cluster_connection_for(process::connection_t const& connection, cluster_connection_t const& cconnection)
+{
+  process::connection_t const& cluster_connection = cconnection.first;
+
+  return (connection == cluster_connection);
 }
 
 pipeline::priv::propagation_exception
