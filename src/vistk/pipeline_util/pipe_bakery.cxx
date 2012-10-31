@@ -231,6 +231,41 @@ bake_pipe_blocks(pipe_blocks const& blocks)
   return pipe;
 }
 
+cluster_info
+::cluster_info(process::type_t const& type_,
+               process_registry::description_t const& description_,
+               process_ctor_t const& ctor_)
+  : type(type_)
+  , description(description_)
+  , ctor(ctor_)
+{
+}
+
+cluster_info
+::~cluster_info()
+{
+}
+
+cluster_info_t
+bake_cluster_from_file(path_t const& fname)
+{
+  return bake_cluster_blocks(load_cluster_blocks_from_file(fname));
+}
+
+cluster_info_t
+bake_cluster(std::istream& istr, path_t const& inc_root)
+{
+  return bake_cluster_blocks(load_cluster_blocks(istr, inc_root));
+}
+
+cluster_info_t
+bake_cluster_blocks(cluster_blocks const& /*blocks*/)
+{
+  /// \todo Implement.
+
+  return cluster_info_t();
+}
+
 config_t
 extract_configuration(pipe_blocks const& blocks)
 {
