@@ -99,12 +99,9 @@ class bakery_base
     typedef std::pair<process::name_t, process::type_t> process_decl_t;
     typedef std::vector<process_decl_t> process_decls_t;
 
-    typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
-    typedef std::vector<connection_t> connections_t;
-
     config_decls_t m_configs;
     process_decls_t m_processes;
-    connections_t m_connections;
+    process::connections_t m_connections;
   protected:
     void register_config_value(config::key_t const& root_key, config_value_t const& value);
   private:
@@ -216,7 +213,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
 
   // Make connections.
   {
-    BOOST_FOREACH (bakery_base::connection_t const& conn, bakery.m_connections)
+    BOOST_FOREACH (process::connection_t const& conn, bakery.m_connections)
     {
       process::port_addr_t const& up = conn.first;
       process::port_addr_t const& down = conn.second;
@@ -565,7 +562,7 @@ void
 bakery_base
 ::operator () (connect_pipe_block const& connect_block)
 {
-  m_connections.push_back(connection_t(connect_block.from, connect_block.to));
+  m_connections.push_back(process::connection_t(connect_block.from, connect_block.to));
 }
 
 void
