@@ -57,9 +57,6 @@ static config_provider_t const provider_system = config_provider_t("SYS");
 
 }
 
-class bakery_base;
-static config_t extract_configuration(bakery_base& bakery);
-
 class bakery_base
   : public boost::static_visitor<>
 {
@@ -138,6 +135,8 @@ class pipe_bakery
     group_decls_t m_groups;
 };
 
+static config_t extract_configuration(bakery_base::config_decls_t& configs);
+
 pipeline_t
 bake_pipe_blocks(pipe_blocks const& blocks)
 {
@@ -147,7 +146,8 @@ bake_pipe_blocks(pipe_blocks const& blocks)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
 
-  config_t global_conf = extract_configuration(bakery);
+  bakery_base::config_decls_t& configs = bakery.m_configs;
+  config_t global_conf = extract_configuration(configs);
 
   // Create pipeline.
   config_t const pipeline_conf = global_conf->subblock_view(config_pipeline_key);
@@ -287,7 +287,7 @@ class cluster_bakery
     opt_cluster_component_info_t m_cluster;
 };
 
-static void dereference_static_providers(bakery_base& bakery);
+static void dereference_static_providers(bakery_base::config_decls_t& bakery);
 
 class cluster_creator
 {
@@ -316,7 +316,9 @@ bake_cluster_blocks(cluster_blocks const& blocks)
     return cluster_info_t();
   }
 
-  dereference_static_providers(bakery);
+  bakery_base::config_decls_t& configs = bakery.m_configs;
+
+  dereference_static_providers(configs);
 
   process::type_t const& type = bakery.m_type;
   process_registry::description_t const& description = bakery.m_description;
@@ -334,7 +336,9 @@ extract_configuration(pipe_blocks const& blocks)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
 
-  return extract_configuration(bakery);
+  bakery_base::config_decls_t& configs = bakery.m_configs;
+
+  return extract_configuration(configs);
 }
 
 class provider_dereferencer
@@ -398,15 +402,15 @@ class config_provider_sorter
 };
 
 config_t
-extract_configuration(bakery_base& bakery)
+extract_configuration(bakery_base::config_decls_t& configs)
 {
-  dereference_static_providers(bakery);
+  dereference_static_providers(configs);
 
   config_t tmp_conf = config::empty_config();
 
   ensure_provided const ensure;
 
-  BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
+  BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
   {
     config::key_t const& key = decl.first;
     bakery_base::config_info_t const& info = decl.second;
@@ -431,7 +435,7 @@ extract_configuration(bakery_base& bakery)
   {
     config_provider_sorter sorter;
 
-    BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
+    BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
     {
       config::key_t const& key = decl.first;
       bakery_base::config_info_t const& info = decl.second;
@@ -452,7 +456,7 @@ extract_configuration(bakery_base& bakery)
     /// \todo This is algorithmically naive, but I'm not sure if there's a better way.
     BOOST_FOREACH (config::key_t const& key, keys)
     {
-      BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
+      BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
       {
         config::key_t const& cur_key = decl.first;
 
@@ -475,7 +479,7 @@ extract_configuration(bakery_base& bakery)
 
   config_t conf = config::empty_config();
 
-  BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
+  BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
   {
     config::key_t const& key = decl.first;
     bakery_base::config_info_t const& info = decl.second;
@@ -779,11 +783,11 @@ cluster_bakery::cluster_component_info_t
 }
 
 void
-dereference_static_providers(bakery_base& bakery)
+dereference_static_providers(bakery_base::config_decls_t& configs)
 {
   provider_dereferencer const deref;
 
-  BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
+  BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
   {
     bakery_base::config_info_t& info = decl.second;
     bakery_base::config_reference_t& ref = info.reference;
