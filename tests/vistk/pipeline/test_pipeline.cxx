@@ -56,17 +56,7 @@ static void test_null_config();
 static void test_null_process();
 static void test_add_process();
 static void test_add_cluster();
-static void test_add_group();
 static void test_duplicate_process_process();
-static void test_duplicate_process_group();
-static void test_duplicate_group_process();
-static void test_duplicate_group_group();
-static void test_map_input_no_group();
-static void test_map_output_no_group();
-static void test_map_input_no_process();
-static void test_map_output_no_process();
-static void test_map_input();
-static void test_map_output();
 static void test_connect_no_upstream();
 static void test_connect_no_downstream();
 static void test_connect_untyped_data_connection();
@@ -74,8 +64,6 @@ static void test_connect_untyped_flow_connection();
 static void test_connect_type_mismatch();
 static void test_connect_flag_mismatch();
 static void test_connect();
-static void test_connect_input_map();
-static void test_connect_output_map();
 static void test_setup_pipeline_no_processes();
 static void test_setup_pipeline_orphaned_process();
 static void test_setup_pipeline_type_force_flow_upstream();
@@ -96,14 +84,9 @@ static void test_setup_pipeline_untyped_data_dependent();
 static void test_setup_pipeline_untyped_connection();
 static void test_setup_pipeline_missing_required_input_connection();
 static void test_setup_pipeline_missing_required_output_connection();
-static void test_setup_pipeline_missing_required_group_input_connection();
-static void test_setup_pipeline_missing_required_group_output_connection();
 static void test_setup_pipeline_duplicate();
 static void test_setup_pipeline_add_process();
-static void test_setup_pipeline_add_group();
 static void test_setup_pipeline_connect();
-static void test_setup_pipeline_map_input();
-static void test_setup_pipeline_map_output();
 static void test_setup_pipeline();
 static void test_start_before_setup();
 static void test_start_unsuccessful_setup();
@@ -112,14 +95,8 @@ static void test_reset_while_running();
 static void test_reset();
 static void test_remove_process();
 static void test_remove_process_after_setup();
-static void test_remove_group();
-static void test_remove_group_after_setup();
 static void test_disconnect();
 static void test_disconnect_after_setup();
-static void test_unmap_input();
-static void test_unmap_input_after_setup();
-static void test_unmap_output();
-static void test_unmap_output_after_setup();
 
 void
 run_test(std::string const& test_name)
@@ -140,49 +117,9 @@ run_test(std::string const& test_name)
   {
     test_add_cluster();
   }
-  else if (test_name == "add_group")
-  {
-    test_add_group();
-  }
   else if (test_name == "duplicate_process_process")
   {
     test_duplicate_process_process();
-  }
-  else if (test_name == "duplicate_process_group")
-  {
-    test_duplicate_process_group();
-  }
-  else if (test_name == "duplicate_group_process")
-  {
-    test_duplicate_group_process();
-  }
-  else if (test_name == "duplicate_group_group")
-  {
-    test_duplicate_group_group();
-  }
-  else if (test_name == "map_input_no_group")
-  {
-    test_map_input_no_group();
-  }
-  else if (test_name == "map_output_no_group")
-  {
-    test_map_output_no_group();
-  }
-  else if (test_name == "map_input_no_process")
-  {
-    test_map_input_no_process();
-  }
-  else if (test_name == "map_output_no_process")
-  {
-    test_map_output_no_process();
-  }
-  else if (test_name == "map_input")
-  {
-    test_map_input();
-  }
-  else if (test_name == "map_output")
-  {
-    test_map_output();
   }
   else if (test_name == "connect_no_upstream")
   {
@@ -211,14 +148,6 @@ run_test(std::string const& test_name)
   else if (test_name == "connect")
   {
     test_connect();
-  }
-  else if (test_name == "connect_input_map")
-  {
-    test_connect_input_map();
-  }
-  else if (test_name == "connect_output_map")
-  {
-    test_connect_output_map();
   }
   else if (test_name == "setup_pipeline_no_processes")
   {
@@ -300,14 +229,6 @@ run_test(std::string const& test_name)
   {
     test_setup_pipeline_missing_required_output_connection();
   }
-  else if (test_name == "setup_pipeline_missing_required_group_input_connection")
-  {
-    test_setup_pipeline_missing_required_group_input_connection();
-  }
-  else if (test_name == "setup_pipeline_missing_required_group_output_connection")
-  {
-    test_setup_pipeline_missing_required_group_output_connection();
-  }
   else if (test_name == "setup_pipeline_duplicate")
   {
     test_setup_pipeline_duplicate();
@@ -316,21 +237,9 @@ run_test(std::string const& test_name)
   {
     test_setup_pipeline_add_process();
   }
-  else if (test_name == "setup_pipeline_add_group")
-  {
-    test_setup_pipeline_add_group();
-  }
   else if (test_name == "setup_pipeline_connect")
   {
     test_setup_pipeline_connect();
-  }
-  else if (test_name == "setup_pipeline_map_input")
-  {
-    test_setup_pipeline_map_input();
-  }
-  else if (test_name == "setup_pipeline_map_output")
-  {
-    test_setup_pipeline_map_output();
   }
   else if (test_name == "setup_pipeline")
   {
@@ -364,14 +273,6 @@ run_test(std::string const& test_name)
   {
     test_remove_process_after_setup();
   }
-  else if (test_name == "remove_group")
-  {
-    test_remove_group();
-  }
-  else if (test_name == "remove_group_after_setup")
-  {
-    test_remove_group_after_setup();
-  }
   else if (test_name == "disconnect")
   {
     test_disconnect();
@@ -379,22 +280,6 @@ run_test(std::string const& test_name)
   else if (test_name == "disconnect_after_setup")
   {
     test_disconnect_after_setup();
-  }
-  else if (test_name == "unmap_input")
-  {
-    test_unmap_input();
-  }
-  else if (test_name == "unmap_input_after_setup")
-  {
-    test_unmap_input_after_setup();
-  }
-  else if (test_name == "unmap_output")
-  {
-    test_unmap_output();
-  }
-  else if (test_name == "unmap_output_after_setup")
-  {
-    test_unmap_output_after_setup();
   }
   else
   {
@@ -459,16 +344,6 @@ test_add_cluster()
 }
 
 void
-test_add_group()
-{
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_group(proc_name);
-}
-
-void
 test_duplicate_process_process()
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
@@ -485,160 +360,6 @@ test_duplicate_process_process()
   EXPECT_EXCEPTION(vistk::duplicate_process_name_exception,
                    pipeline->add_process(dup_process),
                    "adding a duplicate process to the pipeline");
-}
-
-void
-test_duplicate_process_group()
-{
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
-
-  vistk::process_t const dup_process = create_process(proc_type, proc_name);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_group(proc_name);
-
-  EXPECT_EXCEPTION(vistk::duplicate_process_name_exception,
-                   pipeline->add_process(dup_process),
-                   "adding a duplicate process to the pipeline");
-}
-
-void
-test_duplicate_group_process()
-{
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-
-  EXPECT_EXCEPTION(vistk::duplicate_process_name_exception,
-                   pipeline->add_group(proc_name),
-                   "adding a duplicate group to the pipeline");
-}
-
-void
-test_duplicate_group_group()
-{
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_group(proc_name);
-
-  EXPECT_EXCEPTION(vistk::duplicate_process_name_exception,
-                   pipeline->add_group(proc_name),
-                   "adding a duplicate group to the pipeline");
-}
-
-void
-test_map_input_no_group()
-{
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  EXPECT_EXCEPTION(vistk::no_such_group_exception,
-                   pipeline->map_input_port(proc_name, vistk::process::port_t(),
-                                            vistk::process::name_t(), vistk::process::port_t(),
-                                            vistk::process::port_flags_t()),
-                   "mapping an input on a non-existent group");
-}
-
-void
-test_map_output_no_group()
-{
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  EXPECT_EXCEPTION(vistk::no_such_group_exception,
-                   pipeline->map_output_port(proc_name, vistk::process::port_t(),
-                                             vistk::process::name_t(), vistk::process::port_t(),
-                                             vistk::process::port_flags_t()),
-                   "mapping an output to a non-existent group");
-}
-
-void
-test_map_input_no_process()
-{
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_group(proc_name);
-
-  pipeline->map_input_port(proc_name, vistk::process::port_t(),
-                           vistk::process::name_t(), vistk::process::port_t(),
-                           vistk::process::port_flags_t());
-}
-
-void
-test_map_output_no_process()
-{
-  vistk::config::value_t const proc_name = vistk::process::name_t("name");
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_group(proc_name);
-
-  pipeline->map_output_port(proc_name, vistk::process::port_t(),
-                            vistk::process::name_t(), vistk::process::port_t(),
-                            vistk::process::port_flags_t());
-}
-
-void
-test_map_input()
-{
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
-
-  vistk::process::name_t const group_name = vistk::process::name_t("group");
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_group(group_name);
-  pipeline->add_process(process);
-
-  pipeline->map_input_port(group_name, vistk::process::port_t(),
-                           proc_name, vistk::process::port_t(),
-                           vistk::process::port_flags_t());
-}
-
-void
-test_map_output()
-{
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
-
-  vistk::process::name_t const group_name = vistk::process::name_t("group");
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  vistk::process::port_t const port_name = vistk::process::port_t("port");
-
-  pipeline->add_group(group_name);
-  pipeline->add_process(process);
-
-  pipeline->map_output_port(group_name, port_name,
-                            proc_name, vistk::process::port_t(),
-                            vistk::process::port_flags_t());
-
-  EXPECT_EXCEPTION(vistk::group_output_already_mapped_exception,
-                   pipeline->map_output_port(group_name, port_name,
-                                             proc_name, vistk::process::port_t(),
-                                             vistk::process::port_flags_t()),
-                   "mapping an output on an non-existent group");
 }
 
 void
@@ -803,70 +524,6 @@ test_connect()
   vistk::process::port_t const port_named = vistk::process::port_t("factor1");
 
   pipeline->connect(proc_nameu, port_nameu,
-                    proc_named, port_named);
-}
-
-void
-test_connect_input_map()
-{
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
-
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
-
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_process(processu);
-  pipeline->add_process(processd);
-
-  vistk::process::name_t const group_name = vistk::process::name_t("group");
-  vistk::process::port_t const group_port = vistk::process::name_t("mapped_port");
-
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_named = vistk::process::port_t("factor1");
-
-  pipeline->add_group(group_name);
-  pipeline->map_input_port(group_name, group_port,
-                           proc_named, port_named,
-                           vistk::process::port_flags_t());
-
-  pipeline->connect(proc_nameu, port_nameu,
-                    group_name, group_port);
-}
-
-void
-test_connect_output_map()
-{
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
-
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
-
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_process(processu);
-  pipeline->add_process(processd);
-
-  vistk::process::name_t const group_name = vistk::process::name_t("group");
-  vistk::process::port_t const group_port = vistk::process::name_t("mapped_port");
-
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_named = vistk::process::port_t("factor1");
-
-  pipeline->add_group(group_name);
-  pipeline->map_output_port(group_name, group_port,
-                            proc_nameu, port_nameu,
-                            vistk::process::port_flags_t());
-
-  pipeline->connect(group_name, group_port,
                     proc_named, port_named);
 }
 
@@ -1490,84 +1147,6 @@ test_setup_pipeline_missing_required_output_connection()
 }
 
 void
-test_setup_pipeline_missing_required_group_input_connection()
-{
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typet = vistk::process::type_t("take_number");
-
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
-  vistk::process::name_t const group_name = vistk::process::name_t("group");
-
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processt = create_process(proc_typet, proc_namet);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_process(processu);
-  pipeline->add_process(processt);
-  pipeline->add_group(group_name);
-
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_namet = vistk::process::port_t("number");
-  vistk::process::port_t const group_port = vistk::process::port_t("group_port");
-
-  vistk::process::port_flags_t flags;
-
-  flags.insert(vistk::process::flag_required);
-
-  pipeline->map_input_port(group_name, group_port,
-                           proc_namet, port_namet,
-                           flags);
-
-  pipeline->connect(proc_nameu, port_nameu,
-                    proc_namet, port_namet);
-
-  EXPECT_EXCEPTION(vistk::missing_connection_exception,
-                   pipeline->setup_pipeline(),
-                   "missing required group input port connection");
-}
-
-void
-test_setup_pipeline_missing_required_group_output_connection()
-{
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typet = vistk::process::type_t("take_number");
-
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
-  vistk::process::name_t const group_name = vistk::process::name_t("group");
-
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processt = create_process(proc_typet, proc_namet);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_process(processu);
-  pipeline->add_process(processt);
-  pipeline->add_group(group_name);
-
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_namet = vistk::process::port_t("number");
-  vistk::process::port_t const group_port = vistk::process::port_t("group_port");
-
-  vistk::process::port_flags_t flags;
-
-  flags.insert(vistk::process::flag_required);
-
-  pipeline->map_output_port(group_name, group_port,
-                            proc_nameu, port_nameu,
-                            flags);
-
-  pipeline->connect(proc_nameu, port_nameu,
-                    proc_namet, port_namet);
-
-  EXPECT_EXCEPTION(vistk::missing_connection_exception,
-                   pipeline->setup_pipeline(),
-                   "missing required group output port connection");
-}
-
-void
 test_setup_pipeline_duplicate()
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
@@ -1608,27 +1187,6 @@ test_setup_pipeline_add_process()
 }
 
 void
-test_setup_pipeline_add_group()
-{
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
-  vistk::process::name_t const group_name = vistk::process::name_t("group");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-
-  pipeline->setup_pipeline();
-
-  EXPECT_EXCEPTION(vistk::add_after_setup_exception,
-                   pipeline->add_group(group_name),
-                   "adding a group after setup");
-}
-
-void
 test_setup_pipeline_connect()
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
@@ -1660,68 +1218,6 @@ test_setup_pipeline_connect()
                    pipeline->connect(proc_named, oport_name,
                                      proc_nameu, iport_name),
                    "making a connection after setup");
-}
-
-void
-test_setup_pipeline_map_input()
-{
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
-
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("number");
-  vistk::process::name_t const proc_named = vistk::process::name_t("sink");
-  vistk::process::name_t const group_name = vistk::process::name_t("group");
-
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_process(processu);
-  pipeline->add_process(processd);
-  pipeline->add_group(group_name);
-
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_named = vistk::process::port_t("sink");
-
-  pipeline->connect(proc_nameu, port_nameu,
-                    proc_named, port_named);
-
-  pipeline->setup_pipeline();
-
-  vistk::process::port_t const iport_name = vistk::process::port_t("status");
-
-  EXPECT_EXCEPTION(vistk::connection_after_setup_exception,
-                   pipeline->map_input_port(group_name, iport_name,
-                                            proc_nameu, iport_name,
-                                            vistk::process::port_flags_t()),
-                   "mapping an input port after setup");
-}
-
-void
-test_setup_pipeline_map_output()
-{
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
-
-  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
-  vistk::process::name_t const group_name = vistk::process::name_t("group");
-
-  vistk::process_t const process = create_process(proc_type, proc_name);
-
-  vistk::pipeline_t const pipeline = create_pipeline();
-
-  pipeline->add_process(process);
-  pipeline->add_group(group_name);
-
-  pipeline->setup_pipeline();
-
-  vistk::process::port_t const port_name = vistk::process::port_heartbeat;
-
-  EXPECT_EXCEPTION(vistk::connection_after_setup_exception,
-                   pipeline->map_output_port(group_name, port_name,
-                                             proc_name, port_name,
-                                             vistk::process::port_flags_t()),
-                   "mapping an output port after setup");
 }
 
 void
@@ -1918,7 +1414,6 @@ test_remove_process()
   vistk::process::type_t const typed = vistk::process::type_t("sink");
   vistk::process::name_t const nameu = vistk::process::name_t("up");
   vistk::process::name_t const named = vistk::process::name_t("down");
-  vistk::process::name_t const group = vistk::process::name_t("group");
 
   vistk::pipeline_t const pipe = create_pipeline();
   vistk::process_t const procu = create_process(typeu, nameu);
@@ -1926,20 +1421,12 @@ test_remove_process()
 
   pipe->add_process(procu);
   pipe->add_process(procd);
-  pipe->add_group(group);
 
   vistk::process::port_t const portu = vistk::process::port_heartbeat;
   vistk::process::port_t const portd = vistk::process::port_t("sink");
 
   pipe->connect(nameu, portu,
                 named, portd);
-
-  pipe->map_input_port(group, portd,
-                       named, portd,
-                       vistk::process::port_flags_t());
-  pipe->map_output_port(group, portu,
-                        nameu, portu,
-                        vistk::process::port_flags_t());
 
   pipe->remove_process(named);
 
@@ -1951,16 +1438,6 @@ test_remove_process()
   {
     TEST_ERROR("A connection exists after one of the processes has been removed");
   }
-
-  EXPECT_EXCEPTION(vistk::no_such_group_port_exception,
-                   pipe->mapped_group_input_ports(group, portd),
-                   "requesting mapped input ports for a group port after all of the mapped processes were removed");
-
-  pipe->remove_process(nameu);
-
-  EXPECT_EXCEPTION(vistk::no_such_group_port_exception,
-                   pipe->mapped_group_output_port(group, portu),
-                   "requesting mapped output port for a group port after the mapped process was removed");
 }
 
 void
@@ -1979,52 +1456,6 @@ test_remove_process_after_setup()
   EXPECT_EXCEPTION(vistk::remove_after_setup_exception,
                    pipe->remove_process(name),
                    "removing a process after the pipeline has been setup");
-}
-
-void
-test_remove_group()
-{
-  vistk::process::type_t const type = vistk::process::type_t("orphan");
-  vistk::process::name_t const name = vistk::process::name_t("name");
-  vistk::process::name_t const group = vistk::process::name_t("group");
-
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const proc = create_process(type, name);
-
-  pipe->add_process(proc);
-  pipe->add_group(group);
-
-  vistk::process::port_t const port = vistk::process::port_heartbeat;
-
-  pipe->map_output_port(group, port,
-                        name, port,
-                        vistk::process::port_flags_t());
-
-  pipe->remove_group(group);
-
-  EXPECT_EXCEPTION(vistk::no_such_group_exception,
-                   pipe->output_ports_for_group(group),
-                   "requesting a group after it has been removed");
-}
-
-void
-test_remove_group_after_setup()
-{
-  vistk::process::type_t const type = vistk::process::type_t("orphan");
-  vistk::process::name_t const name = vistk::process::name_t("name");
-  vistk::process::name_t const group = vistk::process::name_t("group");
-
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const proc = create_process(type, name);
-
-  pipe->add_process(proc);
-  pipe->add_group(group);
-
-  pipe->setup_pipeline();
-
-  EXPECT_EXCEPTION(vistk::remove_after_setup_exception,
-                   pipe->remove_group(group),
-                   "requesting a group after it has been removed");
 }
 
 void
@@ -2083,130 +1514,6 @@ test_disconnect_after_setup()
                    pipe->disconnect(nameu, portu,
                                     named, portd),
                    "requesting a disconnect after the pipeline has been setup");
-}
-
-void
-test_unmap_input()
-{
-  vistk::process::type_t const type = vistk::process::type_t("sink");
-  vistk::process::name_t const name = vistk::process::name_t("down");
-  vistk::process::name_t const group = vistk::process::name_t("group");
-
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const proc = create_process(type, name);
-
-  pipe->add_process(proc);
-  pipe->add_group(group);
-
-  vistk::process::port_t const port = vistk::process::port_t("sink");
-
-  pipe->map_input_port(group, port,
-                       name, port,
-                       vistk::process::port_flags_t());
-
-  pipe->unmap_input_port(group, port,
-                         name, port);
-
-  EXPECT_EXCEPTION(vistk::no_such_group_port_exception,
-                   pipe->mapped_group_input_ports(group, port),
-                   "when requesting mapped input ports after all of the mappings have been removed");
-}
-
-void
-test_unmap_input_after_setup()
-{
-  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
-  vistk::process::type_t const typed = vistk::process::type_t("sink");
-  vistk::process::name_t const nameu = vistk::process::name_t("up");
-  vistk::process::name_t const named = vistk::process::name_t("down");
-  vistk::process::name_t const group = vistk::process::name_t("group");
-
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const procu = create_process(typeu, nameu);
-  vistk::process_t const procd = create_process(typed, named);
-
-  pipe->add_process(procu);
-  pipe->add_process(procd);
-  pipe->add_group(group);
-
-  vistk::process::port_t const portu = vistk::process::port_heartbeat;
-  vistk::process::port_t const portd = vistk::process::port_t("sink");
-
-  pipe->connect(nameu, portu,
-                named, portd);
-
-  pipe->map_input_port(group, portd,
-                       named, portd,
-                       vistk::process::port_flags_t());
-
-  pipe->setup_pipeline();
-
-  EXPECT_EXCEPTION(vistk::disconnection_after_setup_exception,
-                   pipe->unmap_input_port(group, portd,
-                                          named, portd),
-                   "unmapping an input port after setup");
-}
-
-void
-test_unmap_output()
-{
-  vistk::process::type_t const type = vistk::process::type_t("orphan");
-  vistk::process::name_t const name = vistk::process::name_t("up");
-  vistk::process::name_t const group = vistk::process::name_t("group");
-
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const proc = create_process(type, name);
-
-  pipe->add_process(proc);
-  pipe->add_group(group);
-
-  vistk::process::port_t const port = vistk::process::port_heartbeat;
-
-  pipe->map_output_port(group, port,
-                        name, port,
-                        vistk::process::port_flags_t());
-
-  pipe->unmap_output_port(group, port,
-                          name, port);
-
-  EXPECT_EXCEPTION(vistk::no_such_group_port_exception,
-                   pipe->mapped_group_output_port(group, port),
-                   "when requesting the mapped output port after the mapping has been removed");
-}
-
-void
-test_unmap_output_after_setup()
-{
-  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
-  vistk::process::type_t const typed = vistk::process::type_t("sink");
-  vistk::process::name_t const nameu = vistk::process::name_t("up");
-  vistk::process::name_t const named = vistk::process::name_t("down");
-  vistk::process::name_t const group = vistk::process::name_t("group");
-
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const procu = create_process(typeu, nameu);
-  vistk::process_t const procd = create_process(typed, named);
-
-  pipe->add_process(procu);
-  pipe->add_process(procd);
-  pipe->add_group(group);
-
-  vistk::process::port_t const portu = vistk::process::port_heartbeat;
-  vistk::process::port_t const portd = vistk::process::port_t("sink");
-
-  pipe->connect(nameu, portu,
-                named, portd);
-
-  pipe->map_output_port(group, portu,
-                        nameu, portu,
-                        vistk::process::port_flags_t());
-
-  pipe->setup_pipeline();
-
-  EXPECT_EXCEPTION(vistk::disconnection_after_setup_exception,
-                   pipe->unmap_output_port(group, portu,
-                                           nameu, portu),
-                   "unmapping an output port after setup");
 }
 
 vistk::process_t

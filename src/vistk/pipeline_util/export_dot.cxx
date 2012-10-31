@@ -34,7 +34,6 @@ static std::string const node_prefix_output = "_output_";
 static std::string const style_global = "";
 static std::string const style_process_subgraph = "color=lightgray;style=filled;";
 static std::string const style_process = "shape=ellipse,rank=same";
-static std::string const style_group = "labelloc=t;labeljust=l;color=lightgray;";
 static std::string const style_port = "shape=none,height=0,width=0,fontsize=7";
 static std::string const style_port_edge = "arrowhead=none,color=black";
 static std::string const style_map_edge = "color=gray";
@@ -62,7 +61,6 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
   ostr << style_global << std::endl;
 
   process::names_t const proc_names = pipe->process_names();
-  process::names_t const groups = pipe->groups();
 
   ostr << std::endl;
 
@@ -72,106 +70,6 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
     process_t const proc = pipe->process_by_name(name);
 
     output_process(ostr, proc);
-  }
-
-  // Output groups
-  BOOST_FOREACH (process::name_t const& group, groups)
-  {
-    ostr << "subgraph \"cluster_" << group << "\" {" << std::endl;
-    ostr << style_group << std::endl;
-
-    ostr << std::endl;
-
-    ostr << "label = \"" << group << "\";" << std::endl;
-
-    ostr << std::endl;
-
-    process::ports_t const iports = pipe->input_ports_for_group(group);
-
-    BOOST_FOREACH (process::port_t const& port, iports)
-    {
-      std::string const node_port_name = group + node_prefix_input + port;
-
-      ostr << "\"" << node_port_name << "\" ["
-              "label=\"" << port << "\","
-           << style_input_port
-           << "];" << std::endl;
-
-      // Connect mapped ports.
-      process::port_addrs_t const addrs = pipe->mapped_group_input_ports(group, port);
-
-      BOOST_FOREACH (process::port_addr_t const& addr, addrs)
-      {
-        process::name_t const& mapped_name = addr.first;
-        process::port_t const& mapped_port = addr.second;
-
-        std::string const mapped_node_name = mapped_name + node_prefix_input + mapped_port;
-
-        ostr << "\"" << node_port_name << "\" -> "
-                "\"" << mapped_node_name << "\" ["
-             << style_input_map_edge
-             << "];" << std::endl;
-      }
-
-      ostr << std::endl;
-    }
-
-    process::ports_t const oports = pipe->output_ports_for_group(group);
-
-    BOOST_FOREACH (process::port_t const& port, oports)
-    {
-      std::string const node_port_name = group + node_prefix_output + port;
-
-      ostr << "\"" << node_port_name << "\" ["
-              "label=\"" << port << "\","
-           << style_output_port
-           << "];" << std::endl;
-
-      // Connect mapped port.
-      process::port_addr_t const addr = pipe->mapped_group_output_port(group, port);
-
-      if (addr != process::port_addr_t())
-      {
-        process::name_t const& mapped_name = addr.first;
-        process::port_t const& mapped_port = addr.second;
-
-        std::string const mapped_node_name = mapped_name + node_prefix_output + mapped_port;
-
-        ostr << "\"" << mapped_node_name << "\" -> "
-                "\"" << node_port_name << "\" ["
-             << style_output_map_edge
-             << "];" << std::endl;
-      }
-
-      ostr << std::endl;
-    }
-
-    // Output group connections
-    BOOST_FOREACH (process::port_t const& port, oports)
-    {
-      std::string const node_from_port_name = group + node_prefix_output + port;
-
-      process::port_addrs_t const addrs = pipe->connections_from_addr(group, port);
-
-      BOOST_FOREACH (process::port_addr_t const& addr, addrs)
-      {
-        process::name_t const& recv_name = addr.first;
-        process::port_t const& recv_port = addr.second;
-
-        std::string const node_to_port_name = recv_name + node_prefix_input + recv_port;
-
-        ostr << "\"" << node_from_port_name << "\" -> "
-                "\"" << node_to_port_name << "\" ["
-             << style_connection_edge
-             << "];" << std::endl;
-      }
-    }
-
-    ostr << std::endl;
-
-    ostr << "}" << std::endl;
-
-    ostr << std::endl;
   }
 
   // Output connections

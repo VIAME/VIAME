@@ -1,3 +1,0 @@
-group mygroup
-  omap from myproc.oport
-       to   oport

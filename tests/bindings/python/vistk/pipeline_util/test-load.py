@@ -23,15 +23,9 @@ def test_create():
     load.ConfigKey()
     load.ConfigValue()
     load.ConfigValues()
-    load.MapOptions()
-    load.GroupInput()
-    load.GroupOutput()
     load.ConfigBlock()
     load.ProcessBlock()
     load.ConnectBlock()
-    load.GroupSubblock()
-    load.GroupSubblocks()
-    load.GroupBlock()
     load.PipeBlock()
     load.PipeBlocks()
     load.ClusterConfig()
@@ -68,26 +62,6 @@ def test_api_calls():
     o.key = load.ConfigKey()
     o.value = config.ConfigValue()
 
-    o = load.MapOptions()
-    o.flags
-    o.flags = process.PortFlags()
-
-    o = load.GroupInput()
-    o.options
-    o.from_
-    o.to
-    o.options = load.MapOptions()
-    o.from_ = process.Port()
-    o.to = process.PortAddr()
-
-    o = load.GroupOutput()
-    o.options
-    o.from_
-    o.to
-    o.options = load.MapOptions()
-    o.from_ = process.PortAddr()
-    o.to = process.Port()
-
     o = load.ConfigBlock()
     o.key
     o.values
@@ -108,20 +82,6 @@ def test_api_calls():
     o.from_ = process.PortAddr()
     o.to = process.PortAddr()
 
-    o = load.GroupSubblock()
-    o.config = load.ConfigValue()
-    o.config
-    o.input = load.GroupInput()
-    o.input
-    o.output = load.GroupOutput()
-    o.output
-
-    o = load.GroupBlock()
-    o.name
-    o.subblocks
-    o.name = process.ProcessName()
-    o.subblocks = load.GroupSubblocks()
-
     o = load.PipeBlock()
     o.config = load.ConfigBlock()
     o.config
@@ -129,8 +89,6 @@ def test_api_calls():
     o.process
     o.connect = load.ConnectBlock()
     o.connect
-    o.group = load.GroupBlock()
-    o.group
 
     o = load.ClusterConfig()
     o.description

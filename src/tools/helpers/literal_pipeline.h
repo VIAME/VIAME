@@ -35,9 +35,6 @@
 #define CONFIG_BLOCK(name) \
   "config " name "\n"
 
-#define GROUP(name) \
-  "group " name "\n"
-
 #define INPUT_MAPPING(port, mapped, mapped_port) \
   "  imap from " port "\n"                       \
   "       to   " mapped "." mapped_port "\n"

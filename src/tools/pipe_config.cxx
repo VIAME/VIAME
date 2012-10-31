@@ -38,7 +38,6 @@ class config_printer
     void operator () (vistk::config_pipe_block const& config_block) const;
     void operator () (vistk::process_pipe_block const& process_block) const;
     void operator () (vistk::connect_pipe_block const& connect_block) const;
-    void operator () (vistk::group_pipe_block const& group_block) const;
   private:
     void print_config_value(vistk::config_value_t const& config_value) const;
 
@@ -230,36 +229,6 @@ config_printer
   m_ostr << std::endl;
 }
 
-class group_printer
-: public boost::static_visitor<>
-{
-  public:
-    group_printer(std::ostream& ostr);
-    ~group_printer();
-
-    void operator () (vistk::config_value_t const& config_value) const;
-    void operator () (vistk::group_input_t const& input_map) const;
-    void operator () (vistk::group_output_t const& output_map) const;
-  private:
-    std::ostream& m_ostr;
-};
-
-void
-config_printer
-::operator () (vistk::group_pipe_block const& group_block) const
-{
-  vistk::process::name_t const& name = group_block.name;
-  vistk::group_subblocks_t const& subblocks = group_block.subblocks;
-
-  m_ostr << "group " << name << std::endl;
-
-  group_printer const printer(m_ostr);
-
-  std::for_each(subblocks.begin(), subblocks.end(), boost::apply_visitor(printer));
-
-  m_ostr << std::endl;
-}
-
 key_printer
 ::key_printer(std::ostream& ostr)
   : m_ostr(ostr)
@@ -301,76 +270,4 @@ key_printer
   }
 
   m_ostr << " " << value << std::endl;
-}
-
-group_printer
-::group_printer(std::ostream& ostr)
-  : m_ostr(ostr)
-{
-}
-
-group_printer
-::~group_printer()
-{
-}
-
-void
-group_printer
-::operator () (vistk::config_value_t const& config_value) const
-{
-  key_printer const printer(m_ostr);
-
-  printer(config_value);
-}
-
-void
-group_printer
-::operator () (vistk::group_input_t const& input_map) const
-{
-  vistk::map_options_t const& options = input_map.options;
-  vistk::process::port_t const& from = input_map.from;
-  vistk::process::port_addr_t const& to = input_map.to;
-
-  boost::optional<vistk::process::port_flags_t> const& flags = options.flags;
-
-  vistk::process::name_t const& to_name = to.first;
-  vistk::process::port_t const& to_port = to.second;
-
-  m_ostr << "  imap";
-
-  if (flags)
-  {
-    vistk::config_flag_t const flag_list = boost::join(*flags, ",");
-
-    m_ostr << "[" << flag_list << "]";
-  }
-
-  m_ostr << " from " << from << std::endl;
-  m_ostr << "  to " << to_name << "." << to_port << std::endl;
-}
-
-void
-group_printer
-::operator () (vistk::group_output_t const& output_map) const
-{
-  vistk::map_options_t const& options = output_map.options;
-  vistk::process::port_addr_t const& from = output_map.from;
-  vistk::process::port_t const& to = output_map.to;
-
-  boost::optional<vistk::process::port_flags_t> const& flags = options.flags;
-
-  vistk::process::name_t const& from_name = from.first;
-  vistk::process::port_t const& from_port = from.second;
-
-  m_ostr << "  omap";
-
-  if (flags)
-  {
-    vistk::config_flag_t const flag_list = boost::join(*flags, ",");
-
-    m_ostr << "[" << flag_list << "]";
-  }
-
-  m_ostr << " from " << from_name << "." << from_port << std::endl;
-  m_ostr << "  to " << to << std::endl;
 }

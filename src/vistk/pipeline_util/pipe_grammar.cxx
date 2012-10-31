@@ -69,31 +69,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::map_options_t,
-  (boost::optional<vistk::process::port_flags_t>, flags)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-  vistk::group_input_t,
-  (vistk::map_options_t, options)
-  (vistk::process::port_t, from)
-  (vistk::process::port_addr_t, to)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-  vistk::group_output_t,
-  (vistk::map_options_t, options)
-  (vistk::process::port_addr_t, from)
-  (vistk::process::port_t, to)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-  vistk::group_pipe_block,
-  (vistk::process::name_t, name)
-  (vistk::group_subblocks_t, subblocks)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
   vistk::cluster_config_t,
   (vistk::config::description_t, description)
   (vistk::config_value_t, config_value)
@@ -134,7 +109,6 @@ static token_t const process_block_name = token_t("process");
 static token_t const connect_block_name = token_t("connect");
 static token_t const input_block_name = token_t("imap");
 static token_t const output_block_name = token_t("omap");
-static token_t const group_block_name = token_t("group");
 static token_t const cluster_block_name = token_t("cluster");
 
 static token_t const from_name = token_t("from");
@@ -206,17 +180,6 @@ class pipe_grammar
     ~pipe_grammar();
   private:
     common_grammar<Iterator> const common;
-
-    qi::rule<Iterator, process::port_flag_t()> map_flag;
-    qi::rule<Iterator, process::port_flags_t()> map_flags;
-    qi::rule<Iterator, process::port_flags_t()> map_flags_decl;
-
-    qi::rule<Iterator, map_options_t()> map_options;
-
-    qi::rule<Iterator, group_input_t()> group_input_block;
-    qi::rule<Iterator, group_output_t()> group_output_block;
-
-    qi::rule<Iterator, group_pipe_block()> group_block;
 
     qi::rule<Iterator, pipe_blocks()> pipe_block_set;
 };
@@ -521,91 +484,13 @@ template <typename Iterator>
 pipe_grammar<Iterator>
 ::pipe_grammar()
   : pipe_grammar::base_type(pipe_block_set, "pipeline-declaration")
-  , map_flag()
-  , map_flags()
-  , map_flags_decl()
-  , map_options()
-  , group_input_block()
-  , group_output_block()
-  , group_block()
   , pipe_block_set()
 {
-  map_flag.name("map-flag");
-  map_flag %=
-    +(  qi::alpha
-     );
-
-  map_flags.name("map-flags");
-  map_flags %=
-     (  map_flag
-     %  qi::lit(flag_separator)
-     );
-
-  map_flags_decl.name("map-flag-decl");
-  map_flags_decl %=
-     (  qi::lit(flag_decl_open)
-     >  map_flags
-     >  qi::lit(flag_decl_close)
-     );
-
-  map_options.name("map-options");
-  map_options %=
-     ( -map_flags_decl
-     );
-
-  group_input_block.name("group-input-spec");
-  group_input_block %=
-     (  common.opt_whitespace
-     >> qi::lit(input_block_name)
-     >  map_options
-     >  common.whitespace
-     >  qi::lit(from_name)
-     >  common.whitespace
-     >  common.port_name
-     >  common.line_end
-     >  common.opt_whitespace
-     >  qi::lit(to_name)
-     >  common.whitespace
-     >  common.port_addr
-     >  common.line_end
-     );
-
-  group_output_block.name("group-output-spec");
-  group_output_block %=
-     (  common.opt_whitespace
-     >> qi::lit(output_block_name)
-     >  map_options
-     >  common.whitespace
-     >  qi::lit(from_name)
-     >  common.whitespace
-     >  common.port_addr
-     >  common.line_end
-     >  common.opt_whitespace
-     >  qi::lit(to_name)
-     >  common.whitespace
-     >  common.port_name
-     >  common.line_end
-     );
-
-  group_block.name("group-block-spec");
-  group_block %=
-     (  common.opt_whitespace
-     >> qi::lit(group_block_name)
-     >  common.whitespace
-     >  common.process_name
-     >  common.line_end
-     > *(  common.partial_config_value_decl
-        |  group_input_block
-        |  group_output_block
-        )
-     );
-
   pipe_block_set.name("pipeline-blocks-spec");
   pipe_block_set %=
     *(  common.config_block
      |  common.process_block
      |  common.connect_block
-     |  group_block
      );
 }
 

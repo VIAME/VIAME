@@ -123,16 +123,6 @@ class pipe_bakery
     ~pipe_bakery();
 
     using bakery_base::operator ();
-    void operator () (group_pipe_block const& group_block);
-
-    typedef boost::tuple<process::port_t, process::port_flags_t, process::port_addr_t> mapping_t;
-    typedef std::vector<mapping_t> mappings_t;
-    typedef std::pair<mappings_t, mappings_t> group_info_t;
-
-    typedef std::pair<process::name_t, group_info_t> group_decl_t;
-    typedef std::vector<group_decl_t> group_decls_t;
-
-    group_decls_t m_groups;
 };
 
 static config_t extract_configuration(bakery_base::config_decls_t& configs);
@@ -167,45 +157,6 @@ bake_pipe_blocks(pipe_blocks const& blocks)
       process_t const proc = reg->create_process(proc_type, proc_name, proc_conf);
 
       pipe->add_process(proc);
-    }
-  }
-
-  // Create groups.
-  {
-    BOOST_FOREACH (pipe_bakery::group_decl_t const& decl, bakery.m_groups)
-    {
-      process::name_t const& group_name = decl.first;
-      pipe_bakery::group_info_t const& group_info = decl.second;
-
-      pipe->add_group(group_name);
-
-      pipe_bakery::mappings_t const& input_mappings = group_info.first;
-
-      BOOST_FOREACH (pipe_bakery::mapping_t const& mapping, input_mappings)
-      {
-        process::port_t const& group_port = mapping.get<0>();
-        process::port_flags_t const& flags = mapping.get<1>();
-        process::port_addr_t const& addr = mapping.get<2>();
-
-        process::name_t const& proc_name = addr.first;
-        process::port_t const& proc_port = addr.second;
-
-        pipe->map_input_port(group_name, group_port, proc_name, proc_port, flags);
-      }
-
-      pipe_bakery::mappings_t const& output_mappings = group_info.second;
-
-      BOOST_FOREACH (pipe_bakery::mapping_t const& mapping, output_mappings)
-      {
-        process::port_t const& group_port = mapping.get<0>();
-        process::port_flags_t const& flags = mapping.get<1>();
-        process::port_addr_t const& addr = mapping.get<2>();
-
-        process::name_t const& proc_name = addr.first;
-        process::port_t const& proc_port = addr.second;
-
-        pipe->map_output_port(group_name, group_port, proc_name, proc_port, flags);
-      }
     }
   }
 
@@ -627,90 +578,12 @@ bakery_base
 pipe_bakery
 ::pipe_bakery()
   : bakery_base()
-  , m_groups()
 {
 }
 
 pipe_bakery
 ::~pipe_bakery()
 {
-}
-
-class group_splitter
-  : public boost::static_visitor<>
-{
-  public:
-    group_splitter();
-    ~group_splitter();
-
-    void operator () (config_value_t const& config_block);
-    void operator () (group_input_t const& input_block);
-    void operator () (group_output_t const& output_block);
-
-    typedef std::vector<group_input_t> input_maps_t;
-    typedef std::vector<group_output_t> output_maps_t;
-
-    config_values_t m_configs;
-    input_maps_t m_inputs;
-    output_maps_t m_outputs;
-};
-
-void
-pipe_bakery
-::operator () (group_pipe_block const& group_block)
-{
-  group_subblocks_t const& subblocks = group_block.subblocks;
-
-  group_splitter splitter;
-
-  std::for_each(subblocks.begin(), subblocks.end(), boost::apply_visitor(splitter));
-
-  process::name_t const& name = group_block.name;
-  config_values_t const& values = splitter.m_configs;
-
-  BOOST_FOREACH (config_value_t const& value, values)
-  {
-    register_config_value(name, value);
-  }
-
-  process::port_flags_t default_flags;
-
-  mappings_t input_mappings;
-
-  BOOST_FOREACH (group_input_t const& map, splitter.m_inputs)
-  {
-    process::port_flags_t flags = default_flags;
-
-    if (map.options.flags)
-    {
-      flags = *map.options.flags;
-    }
-
-    mapping_t const mapping = mapping_t(map.from, flags, map.to);
-
-    input_mappings.push_back(mapping);
-  }
-
-  mappings_t output_mappings;
-
-  BOOST_FOREACH (group_output_t const& map, splitter.m_outputs)
-  {
-    process::port_flags_t flags = default_flags;
-
-    if (map.options.flags)
-    {
-      flags = *map.options.flags;
-    }
-
-    mapping_t const mapping = mapping_t(map.to, flags, map.from);
-
-    output_mappings.push_back(mapping);
-  }
-
-  group_info_t const info = group_info_t(input_mappings, output_mappings);
-  group_decl_t const decl = group_decl_t(name, info);
-
-  m_groups.push_back(decl);
 }
 
 cluster_bakery
@@ -1157,20 +1030,6 @@ config_provider_sorter
   boost::add_edge(from_vertex, to_vertex, m_graph);
 }
 
-config::key_t
-flatten_keys(config::keys_t const& keys)
-{
-  return boost::join(keys, config::block_sep);
-}
-
-group_splitter
-::group_splitter()
-  : m_configs()
-  , m_inputs()
-  , m_outputs()
-{
-}
-
 config_provider_sorter::node_t
 ::node_t()
   : deref(false)
@@ -1183,30 +1042,10 @@ config_provider_sorter::node_t
 {
 }
 
-group_splitter
-::~group_splitter()
+config::key_t
+flatten_keys(config::keys_t const& keys)
 {
-}
-
-void
-group_splitter
-::operator () (config_value_t const& config_block)
-{
-  m_configs.push_back(config_block);
-}
-
-void
-group_splitter
-::operator () (group_input_t const& input_block)
-{
-  m_inputs.push_back(input_block);
-}
-
-void
-group_splitter
-::operator () (group_output_t const& output_block)
-{
-  m_outputs.push_back(output_block);
+  return boost::join(keys, config::block_sep);
 }
 
 cluster_splitter

@@ -80,47 +80,6 @@ struct config_value_t
 typedef std::vector<config_value_t> config_values_t;
 
 /**
- * \struct map_options_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
- *
- * \brief Options for a mapping connection.
- */
-struct map_options_t
-{
-  /// Flags for the mapping.
-  boost::optional<process::port_flags_t> flags;
-};
-
-/**
- * \struct group_input_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
- *
- * \brief A structure for a group input mapping.
- */
-struct group_input_t
-{
-  /// Options for the mapping.
-  map_options_t options;
-  /// The name of the group input port.
-  process::port_t from;
-  /// The address of the mapped downstream port.
-  process::port_addr_t to;
-};
-
-/**
- * \struct group_output_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
- *
- * \brief A structure for a group output mapping.
- */
-struct group_output_t
-{
-  /// Options for the mapping.
-  map_options_t options;
-  /// The address of the mapped upstream port.
-  process::port_addr_t from;
-  /// The name of the group output port.
-  process::port_t to;
-};
-
-/**
  * \struct config_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for a configuration block.
@@ -161,30 +120,11 @@ struct connect_pipe_block
   process::port_addr_t to;
 };
 
-/// A variant over the possible blocks that may be contained within a group.
-typedef boost::variant<config_value_t, group_input_t, group_output_t> group_subblock_t;
-/// A type for a collection of group subblocks.
-typedef std::vector<group_subblock_t> group_subblocks_t;
-
-/**
- * \struct group_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
- *
- * \brief A structure for a group block.
- */
-struct group_pipe_block
-{
-  /// The name of the group.
-  process::name_t name;
-  /// Subblocks of the group.
-  group_subblocks_t subblocks;
-};
-
 /// A discriminating union over all available pipeline block types.
 typedef boost::variant
   < config_pipe_block
   , process_pipe_block
   , connect_pipe_block
-  , group_pipe_block
   > pipe_block;
 
 /// A type for a collection of pipe blocks.

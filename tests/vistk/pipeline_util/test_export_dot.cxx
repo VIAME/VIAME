@@ -58,12 +58,10 @@ main(int argc, char* argv[])
 
 static void test_pipeline_null(vistk::path_t const& pipe_file);
 static void test_simple_pipeline(vistk::path_t const& pipe_file);
-static void test_simple_group_pipeline(vistk::path_t const& pipe_file);
 static void test_pipeline_setup_null(vistk::path_t const& pipe_file);
 static void test_pipeline_setup_no_setup(vistk::path_t const& pipe_file);
 static void test_pipeline_setup_no_success(vistk::path_t const& pipe_file);
 static void test_simple_pipeline_setup(vistk::path_t const& pipe_file);
-static void test_simple_group_pipeline_setup(vistk::path_t const& pipe_file);
 
 void
 run_test(std::string const& test_name, vistk::path_t const& pipe_file)
@@ -75,10 +73,6 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   else if (test_name == "simple_pipeline")
   {
     test_simple_pipeline(pipe_file);
-  }
-  else if (test_name == "simple_group_pipeline")
-  {
-    test_simple_group_pipeline(pipe_file);
   }
   else if (test_name == "pipeline_setup_null")
   {
@@ -95,10 +89,6 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   else if (test_name == "simple_pipeline_setup")
   {
     test_simple_pipeline_setup(pipe_file);
-  }
-  else if (test_name == "simple_group_pipeline_setup")
-  {
-    test_simple_group_pipeline_setup(pipe_file);
   }
   else
   {
@@ -120,18 +110,6 @@ test_pipeline_null(vistk::path_t const& /*pipe_file*/)
 
 void
 test_simple_pipeline(vistk::path_t const& pipe_file)
-{
-  vistk::load_known_modules();
-
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
-
-  std::ostringstream sstr;
-
-  vistk::export_dot(sstr, pipeline, "(unnamed)");
-}
-
-void
-test_simple_group_pipeline(vistk::path_t const& pipe_file)
 {
   vistk::load_known_modules();
 
@@ -192,18 +170,6 @@ test_pipeline_setup_no_success(vistk::path_t const& pipe_file)
 
 void
 test_simple_pipeline_setup(vistk::path_t const& pipe_file)
-{
-  vistk::load_known_modules();
-
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
-
-  std::ostringstream sstr;
-
-  vistk::export_dot(sstr, pipeline, "(unnamed)");
-}
-
-void
-test_simple_group_pipeline_setup(vistk::path_t const& pipe_file)
 {
   vistk::load_known_modules();
 

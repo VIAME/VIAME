@@ -49,8 +49,6 @@ class pipeline::priv
 
     void check_duplicate_name(process::name_t const& name);
     void remove_from_pipeline(process::name_t const& name);
-    void remove_group_input_port(process::name_t const& name, process::port_t const& port);
-    void remove_group_output_port(process::name_t const& name, process::port_t const& port);
     void propagate(process::name_t const& root);
 
     typedef std::map<process::name_t, process_t> process_map_t;
@@ -58,23 +56,6 @@ class pipeline::priv
     typedef std::map<process::name_t, process::name_t> process_parent_map_t;
     typedef std::map<process::name_t, process_cluster_t> cluster_map_t;
     typedef std::map<size_t, edge_t> edge_map_t;
-
-    typedef boost::tuple<process::port_flags_t, process::port_addrs_t> input_mapping_info_t;
-    typedef boost::tuple<process::port_flags_t, process::port_addr_t> output_mapping_info_t;
-    typedef std::map<process::port_t, input_mapping_info_t> input_port_mapping_t;
-    typedef std::map<process::port_t, output_mapping_info_t> output_port_mapping_t;
-    typedef std::pair<input_port_mapping_t, output_port_mapping_t> port_mapping_t;
-    typedef std::map<process::name_t, port_mapping_t> group_map_t;
-
-    typedef std::map<process::name_t, process::ports_t> connected_mappings_t;
-
-    typedef enum
-    {
-      group_upstream,
-      group_downstream
-    } group_connection_type_t;
-    typedef std::pair<process::connection_t, group_connection_type_t> group_connection_t;
-    typedef std::vector<group_connection_t> group_connections_t;
 
     typedef enum
     {
@@ -105,7 +86,6 @@ class pipeline::priv
 
     // Steps for setting up the pipeline.
     void check_for_processes() const;
-    void map_group_connections();
     void map_cluster_connections();
     void configure_processes();
     void check_for_data_dep_ports() const;
@@ -129,16 +109,10 @@ class pipeline::priv
     cluster_map_t cluster_map;
     edge_map_t edge_map;
 
-    group_map_t groups;
-
     process_parent_map_t process_parent_map;
     parent_stack_t parent_stack;
 
-    connected_mappings_t used_input_mappings;
-    connected_mappings_t used_output_mappings;
-
     process::connections_t data_dep_connections;
-    group_connections_t group_connections;
     cluster_connections_t cluster_connections;
     process::connections_t untyped_connections;
     type_pinnings_t type_pinnings;
@@ -150,14 +124,10 @@ class pipeline::priv
 
     static bool is_upstream_for(process::port_addr_t const& addr, process::connection_t const& connection);
     static bool is_downstream_for(process::port_addr_t const& addr, process::connection_t const& connection);
-    static bool is_group_upstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection);
-    static bool is_group_downstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection);
     static bool is_cluster_upstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection);
     static bool is_cluster_downstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection);
     static bool is_addr_on(process::name_t const& name, process::port_addr_t const& addr);
     static bool is_connection_with(process::name_t const& name, process::connection_t const& connection);
-    static bool is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection);
-    static bool is_group_connection_for(process::connection_t const& connection, group_connection_t const& gconnection);
     static bool is_cluster_connection_with(process::name_t const& name, cluster_connection_t const& cconnection);
     static bool is_cluster_connection_for(process::connection_t const& connection, cluster_connection_t const& cconnection);
 
@@ -220,7 +190,7 @@ pipeline
 
   if (d->setup)
   {
-    throw add_after_setup_exception(process->name(), true);
+    throw add_after_setup_exception(process->name());
   }
 
   process::name_t const name = process->name();
@@ -279,25 +249,11 @@ pipeline
 
 void
 pipeline
-::add_group(process::name_t const& name)
-{
-  if (d->setup)
-  {
-    throw add_after_setup_exception(name, false);
-  }
-
-  d->check_duplicate_name(name);
-
-  d->groups[name] = priv::port_mapping_t();
-}
-
-void
-pipeline
 ::remove_process(process::name_t const& name)
 {
   if (d->setup)
   {
-    throw remove_after_setup_exception(name, true);
+    throw remove_after_setup_exception(name);
   }
 
   priv::cluster_map_t::iterator const i = d->cluster_map.find(name);
@@ -336,27 +292,6 @@ pipeline
 
 void
 pipeline
-::remove_group(process::name_t const& name)
-{
-  if (d->setup)
-  {
-    throw remove_after_setup_exception(name, false);
-  }
-
-  priv::group_map_t::const_iterator const i = d->groups.find(name);
-
-  if (i == d->groups.end())
-  {
-    throw no_such_process_exception(name);
-  }
-
-  d->groups.erase(name);
-
-  d->remove_from_pipeline(name);
-}
-
-void
-pipeline
 ::connect(process::name_t const& upstream_name,
           process::port_t const& upstream_port,
           process::name_t const& downstream_name,
@@ -375,26 +310,6 @@ pipeline
   if (!d->setup_in_progress)
   {
     d->planned_connections.push_back(connection);
-  }
-
-  priv::group_map_t::const_iterator const up_group_it = d->groups.find(upstream_name);
-  priv::group_map_t::const_iterator const down_group_it = d->groups.find(downstream_name);
-
-  bool const upstream_is_group = (up_group_it != d->groups.end());
-  bool const downstream_is_group = (down_group_it != d->groups.end());
-
-  if (upstream_is_group || downstream_is_group)
-  {
-    if (upstream_is_group)
-    {
-      d->group_connections.push_back(priv::group_connection_t(connection, priv::group_upstream));
-    }
-    else if (downstream_is_group)
-    {
-      d->group_connections.push_back(priv::group_connection_t(connection, priv::group_downstream));
-    }
-
-    return;
   }
 
   priv::cluster_map_t::const_iterator const up_cluster_it = d->cluster_map.find(upstream_name);
@@ -468,7 +383,6 @@ pipeline
   process::connection_t const conn = process::connection_t(upstream_addr, downstream_addr);
 
   boost::function<bool (process::connection_t const&)> const eq = boost::bind(std::equal_to<process::connection_t>(), conn, _1);
-  boost::function<bool (priv::group_connection_t const&)> const group_eq = boost::bind(&priv::is_group_connection_for, conn, _1);
   boost::function<bool (priv::cluster_connection_t const&)> const cluster_eq = boost::bind(&priv::is_cluster_connection_for, conn, _1);
 
 #define FORGET_CONNECTION(T, f, conns)                                   \
@@ -482,174 +396,9 @@ pipeline
   FORGET_CONNECTION(process::connections_t, eq, d->connections);
   FORGET_CONNECTION(process::connections_t, eq, d->data_dep_connections);
   FORGET_CONNECTION(process::connections_t, eq, d->untyped_connections);
-  FORGET_CONNECTION(priv::group_connections_t, group_eq, d->group_connections);
   FORGET_CONNECTION(priv::cluster_connections_t, cluster_eq, d->cluster_connections);
 
 #undef FORGET_CONNECTION
-}
-
-void
-pipeline
-::map_input_port(process::name_t const& group,
-                 process::port_t const& port,
-                 process::name_t const& mapped_name,
-                 process::port_t const& mapped_port,
-                 process::port_flags_t const& flags)
-{
-  if (d->setup)
-  {
-    throw connection_after_setup_exception(group, port,
-                                           mapped_name, mapped_port);
-  }
-
-  priv::group_map_t::iterator const group_it = d->groups.find(group);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(group);
-  }
-
-  priv::port_mapping_t& port_mapping = group_it->second;
-  priv::input_port_mapping_t& mapping = port_mapping.first;
-
-  priv::input_mapping_info_t& mapping_info = mapping[port];
-
-  process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_name, mapped_port);
-
-  mapping_info.get<0>().insert(flags.begin(), flags.end());
-  mapping_info.get<1>().push_back(mapped_port_addr);
-}
-
-void
-pipeline
-::map_output_port(process::name_t const& group,
-                  process::port_t const& port,
-                  process::name_t const& mapped_name,
-                  process::port_t const& mapped_port,
-                  process::port_flags_t const& flags)
-{
-  if (d->setup)
-  {
-    throw connection_after_setup_exception(mapped_name, mapped_port,
-                                           group, port);
-  }
-
-  priv::group_map_t::iterator const group_it = d->groups.find(group);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(group);
-  }
-
-  priv::port_mapping_t& port_mapping = group_it->second;
-  priv::output_port_mapping_t& mapping = port_mapping.second;
-
-  priv::output_port_mapping_t::const_iterator const port_it = mapping.find(port);
-
-  if (port_it != mapping.end())
-  {
-    priv::output_mapping_info_t const& output_info = port_it->second;
-    process::port_addr_t const& prev_port_addr = output_info.get<1>();
-    process::name_t const& prev_name = prev_port_addr.first;
-    process::port_t const& prev_port = prev_port_addr.second;
-
-    throw group_output_already_mapped_exception(group, port, prev_name, prev_port, mapped_name, mapped_port);
-  }
-
-  process::port_addr_t const mapped_port_addr = process::port_addr_t(mapped_name, mapped_port);
-  priv::output_mapping_info_t const mapping_info = priv::output_mapping_info_t(flags, mapped_port_addr);
-
-  mapping[port] = mapping_info;
-}
-
-void
-pipeline
-::unmap_input_port(process::name_t const& group,
-                   process::port_t const& port,
-                   process::name_t const& mapped_name,
-                   process::port_t const& mapped_port)
-{
-  if (d->setup)
-  {
-    throw disconnection_after_setup_exception(group, port,
-                                              mapped_name, mapped_port);
-  }
-
-  priv::group_map_t::iterator const group_it = d->groups.find(group);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(group);
-  }
-
-  priv::port_mapping_t& port_mapping = group_it->second;
-  priv::input_port_mapping_t& imapping = port_mapping.first;
-
-  priv::input_port_mapping_t::iterator const map_i = imapping.find(port);
-
-  if (map_i == imapping.end())
-  {
-    throw no_such_group_port_exception(group, port);
-  }
-
-  priv::input_mapping_info_t& mapping_info = map_i->second;
-  process::port_addrs_t& mappings = mapping_info.get<1>();
-
-  process::port_addr_t const mapped_addr = process::port_addr_t(mapped_name, mapped_port);
-
-  process::port_addrs_t::iterator const i = std::remove(mappings.begin(), mappings.end(),
-                                                        mapped_addr);
-  mappings.erase(i, mappings.end());
-
-  if (!mappings.size())
-  {
-    imapping.erase(port);
-
-    d->remove_group_input_port(group, port);
-  }
-}
-
-void
-pipeline
-::unmap_output_port(process::name_t const& group,
-                    process::port_t const& port,
-                    process::name_t const& mapped_name,
-                    process::port_t const& mapped_port)
-{
-  if (d->setup)
-  {
-    throw disconnection_after_setup_exception(mapped_name, mapped_port,
-                                              group, port);
-  }
-
-  priv::group_map_t::iterator const group_it = d->groups.find(group);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(group);
-  }
-
-  priv::port_mapping_t& port_mapping = group_it->second;
-  priv::output_port_mapping_t& omapping = port_mapping.second;
-
-  priv::output_port_mapping_t::const_iterator const map_i = omapping.find(port);
-
-  if (map_i == omapping.end())
-  {
-    throw no_such_group_port_exception(group, port);
-  }
-
-  priv::output_mapping_info_t const& mapping_info = map_i->second;
-  process::port_addr_t const& mapping = mapping_info.get<1>();
-
-  process::port_addr_t const mapped_addr = process::port_addr_t(mapped_name, mapped_port);
-
-  if (mapping == mapped_addr)
-  {
-    omapping.erase(port);
-
-    d->remove_group_output_port(group, port);
-  }
 }
 
 void
@@ -671,7 +420,6 @@ pipeline
 
   try
   {
-    d->map_group_connections();
     d->map_cluster_connections();
     d->configure_processes();
     d->check_for_data_dep_ports();
@@ -732,10 +480,7 @@ pipeline
   // Clear internal bookkeeping.
   d->connections.clear();
   d->edge_map.clear();
-  d->used_input_mappings.clear();
-  d->used_output_mappings.clear();
   d->data_dep_connections.clear();
-  d->group_connections.clear();
   d->cluster_connections.clear();
   d->untyped_connections.clear();
   d->type_pinnings.clear();
@@ -1209,164 +954,6 @@ pipeline
   return edges;
 }
 
-process::names_t
-pipeline
-::groups() const
-{
-  process::names_t names;
-
-  BOOST_FOREACH (priv::group_map_t::value_type const& group, d->groups)
-  {
-    process::name_t const& name = group.first;
-
-    names.push_back(name);
-  }
-
-  return names;
-}
-
-process::ports_t
-pipeline
-::input_ports_for_group(process::name_t const& name) const
-{
-  process::ports_t ports;
-
-  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(name);
-  }
-
-  priv::input_port_mapping_t const& mapping = group_it->second.first;
-
-  BOOST_FOREACH (priv::input_port_mapping_t::value_type const& port_it, mapping)
-  {
-    process::port_t const& port = port_it.first;
-
-    ports.push_back(port);
-  }
-
-  return ports;
-}
-
-process::ports_t
-pipeline
-::output_ports_for_group(process::name_t const& name) const
-{
-  process::ports_t ports;
-
-  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(name);
-  }
-
-  priv::output_port_mapping_t const& mapping = group_it->second.second;
-
-  BOOST_FOREACH (priv::output_port_mapping_t::value_type const& port_it, mapping)
-  {
-    process::port_t const& port = port_it.first;
-
-    ports.push_back(port);
-  }
-
-  return ports;
-}
-
-process::port_flags_t
-pipeline
-::mapped_group_input_port_flags(process::name_t const& name, process::port_t const& port) const
-{
-  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(name);
-  }
-
-  priv::input_port_mapping_t const& mapping = group_it->second.first;
-
-  priv::input_port_mapping_t::const_iterator const mapping_it = mapping.find(port);
-
-  if (mapping_it == mapping.end())
-  {
-    throw no_such_group_port_exception(name, port);
-  }
-
-  return mapping_it->second.get<0>();
-}
-
-process::port_flags_t
-pipeline
-::mapped_group_output_port_flags(process::name_t const& name, process::port_t const& port) const
-{
-  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(name);
-  }
-
-  priv::output_port_mapping_t const& mapping = group_it->second.second;
-
-  priv::output_port_mapping_t::const_iterator const mapping_it = mapping.find(port);
-
-  if (mapping_it == mapping.end())
-  {
-    throw no_such_group_port_exception(name, port);
-  }
-
-  return mapping_it->second.get<0>();
-}
-
-process::port_addrs_t
-pipeline
-::mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const
-{
-  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(name);
-  }
-
-  priv::input_port_mapping_t const& mapping = group_it->second.first;
-
-  priv::input_port_mapping_t::const_iterator const mapping_it = mapping.find(port);
-
-  if (mapping_it == mapping.end())
-  {
-    throw no_such_group_port_exception(name, port);
-  }
-
-  return mapping_it->second.get<1>();
-}
-
-process::port_addr_t
-pipeline
-::mapped_group_output_port(process::name_t const& name, process::port_t const& port) const
-{
-  priv::group_map_t::const_iterator const group_it = d->groups.find(name);
-
-  if (group_it == d->groups.end())
-  {
-    throw no_such_group_exception(name);
-  }
-
-  priv::output_port_mapping_t const& mapping = group_it->second.second;
-
-  priv::output_port_mapping_t::const_iterator const mapping_it = mapping.find(port);
-
-  if (mapping_it == mapping.end())
-  {
-    throw no_such_group_port_exception(name, port);
-  }
-
-  return mapping_it->second.get<1>();
-}
-
 void
 pipeline
 ::start()
@@ -1399,11 +986,7 @@ pipeline::priv
   , process_map()
   , cluster_map()
   , edge_map()
-  , groups()
-  , used_input_mappings()
-  , used_output_mappings()
   , data_dep_connections()
-  , group_connections()
   , untyped_connections()
   , type_pinnings()
   , setup(false)
@@ -1423,11 +1006,9 @@ pipeline::priv
 ::check_duplicate_name(process::name_t const& name)
 {
   process_map_t::const_iterator const proc_it = process_map.find(name);
-  group_map_t::const_iterator const group_it = groups.find(name);
   cluster_map_t::const_iterator const cluster_it = cluster_map.find(name);
 
   if ((proc_it != process_map.end()) ||
-      (group_it != groups.end()) ||
       (cluster_it != cluster_map.end()))
   {
     throw duplicate_process_name_exception(name);
@@ -1439,7 +1020,6 @@ pipeline::priv
 ::remove_from_pipeline(process::name_t const& name)
 {
   boost::function<bool (process::connection_t const&)> const is = boost::bind(&is_connection_with, name, _1);
-  boost::function<bool (group_connection_t const&)> const group_is = boost::bind(&is_group_connection_with, name, _1);
   boost::function<bool (cluster_connection_t const&)> const cluster_is = boost::bind(&is_cluster_connection_with, name, _1);
 
 #define FORGET_CONNECTIONS(T, f, conns)                                  \
@@ -1453,124 +1033,9 @@ pipeline::priv
   FORGET_CONNECTIONS(process::connections_t, is, connections);
   FORGET_CONNECTIONS(process::connections_t, is, data_dep_connections);
   FORGET_CONNECTIONS(process::connections_t, is, untyped_connections);
-  FORGET_CONNECTIONS(group_connections_t, group_is, group_connections);
   FORGET_CONNECTIONS(cluster_connections_t, cluster_is, cluster_connections);
 
 #undef FORGET_CONNECTIONS
-
-  BOOST_FOREACH (group_map_t::value_type& group, groups)
-  {
-    process::name_t const& group_name = group.first;
-    port_mapping_t& port_mapping = group.second;
-
-    input_port_mapping_t& input_mappings = port_mapping.first;
-    input_port_mapping_t::iterator in = input_mappings.begin();
-    input_port_mapping_t::iterator const in_end = input_mappings.end();
-
-    while (in != in_end)
-    {
-      input_port_mapping_t::value_type& input_mapping = *in;
-
-      process::port_t const& port = input_mapping.first;
-      input_mapping_info_t& info = input_mapping.second;
-
-      process::port_addrs_t& mappings = info.get<1>();
-
-      process::port_addrs_t::iterator const i = std::remove_if(mappings.begin(), mappings.end(),
-                                                               boost::bind(is_addr_on, name, _1));
-      mappings.erase(i, mappings.end());
-
-      if (!mappings.size())
-      {
-        process::port_t const port_save = port;
-
-        input_mappings.erase(in++);
-
-        remove_group_input_port(group_name, port_save);
-      }
-      else
-      {
-        ++in;
-      }
-    }
-
-    output_port_mapping_t& output_mappings = port_mapping.second;
-    output_port_mapping_t::iterator out = output_mappings.begin();
-    output_port_mapping_t::iterator const out_end = output_mappings.end();
-
-    while (out != out_end)
-    {
-      output_port_mapping_t::value_type& output_mapping = *out;
-
-      process::port_t const& port = output_mapping.first;
-      output_mapping_info_t& info = output_mapping.second;
-
-      process::port_addr_t& mapping = info.get<1>();
-
-      if (!is_addr_on(name, mapping))
-      {
-        process::port_t const port_save = port;
-
-        output_mappings.erase(out++);
-
-        remove_group_input_port(group_name, port_save);
-      }
-      else
-      {
-        ++out;
-      }
-    }
-  }
-}
-
-void
-pipeline::priv
-::remove_group_input_port(process::name_t const& name, process::port_t const& port)
-{
-  process::port_addr_t const addr = process::port_addr_t(name, port);
-
-  boost::function<bool (process::connection_t const&)> const down = boost::bind(&is_downstream_for, addr, _1);
-  boost::function<bool (group_connection_t const&)> const group_down = boost::bind(&is_group_downstream_for, addr, _1);
-
-#define FORGET_PORT(T, f, conns)                                         \
-  do                                                                     \
-  {                                                                      \
-    T::iterator const i = std::remove_if(conns.begin(), conns.end(), f); \
-    conns.erase(i, conns.end());                                         \
-  } while (false)
-
-    FORGET_PORT(process::connections_t, down, planned_connections);
-    FORGET_PORT(process::connections_t, down, connections);
-    FORGET_PORT(process::connections_t, down, data_dep_connections);
-    FORGET_PORT(process::connections_t, down, untyped_connections);
-    FORGET_PORT(priv::group_connections_t, group_down, group_connections);
-
-#undef FORGET_PORT
-}
-
-void
-pipeline::priv
-::remove_group_output_port(process::name_t const& name, process::port_t const& port)
-{
-  process::port_addr_t const addr = process::port_addr_t(name, port);
-
-  boost::function<bool (process::connection_t const&)> const up = boost::bind(&is_upstream_for, addr, _1);
-  boost::function<bool (group_connection_t const&)> const group_up = boost::bind(&is_group_upstream_for, addr, _1);
-
-#define FORGET_PORT(T, f, conns)                                         \
-  do                                                                     \
-  {                                                                      \
-    T::iterator const i = std::remove_if(conns.begin(), conns.end(), f); \
-    conns.erase(i, conns.end());                                         \
-  } while (false)
-
-    FORGET_PORT(process::connections_t, up, planned_connections);
-    FORGET_PORT(process::connections_t, up, connections);
-    FORGET_PORT(process::connections_t, up, data_dep_connections);
-    FORGET_PORT(process::connections_t, up, untyped_connections);
-    FORGET_PORT(priv::group_connections_t, group_up, group_connections);
-
-#undef FORGET_PORT
 }
 
 pipeline::priv::port_type_status
@@ -1738,114 +1203,6 @@ pipeline::priv
   if (!process_map.size())
   {
     throw no_processes_exception();
-  }
-}
-
-void
-pipeline::priv
-::map_group_connections()
-{
-  group_connections_t const gconnections = group_connections;
-
-  // Forget the connections we'll be mapping.
-  group_connections.clear();
-
-  BOOST_FOREACH (group_connection_t const& gconnection, gconnections)
-  {
-    process::connection_t const& connection = gconnection.first;
-    group_connection_type_t const& type = gconnection.second;
-
-    process::port_addr_t const& upstream_addr = connection.first;
-    process::port_addr_t const& downstream_addr = connection.second;
-
-    process::name_t const& upstream_name = upstream_addr.first;
-    process::port_t const& upstream_port = upstream_addr.second;
-    process::name_t const& downstream_name = downstream_addr.first;
-    process::port_t const& downstream_port = downstream_addr.second;
-
-    switch (type)
-    {
-      case group_upstream:
-        {
-          process::name_t const& group_name = upstream_name;
-          process::port_t const& group_port = upstream_port;
-
-          group_map_t::const_iterator const group_it = groups.find(group_name);
-
-          if (group_it == groups.end())
-          {
-            throw no_such_group_exception(group_name);
-          }
-
-          port_mapping_t const& port_mapping = group_it->second;
-          output_port_mapping_t const& mapping = port_mapping.second;
-          output_port_mapping_t::const_iterator const mapping_it = mapping.find(group_port);
-
-          if (mapping_it == mapping.end())
-          {
-            throw no_such_group_port_exception(group_name, group_port);
-          }
-
-          output_mapping_info_t const& info = mapping_it->second;
-          process::port_addr_t const& mapped_port_addr = info.get<1>();
-
-          process::name_t const& mapped_name = mapped_port_addr.first;
-          process::port_t const& mapped_port = mapped_port_addr.second;
-
-          q->connect(mapped_name, mapped_port,
-                     downstream_name, downstream_port);
-
-          used_output_mappings[group_name].push_back(group_port);
-        }
-
-        break;
-      case group_downstream:
-        {
-          process::name_t const& group_name = downstream_name;
-          process::port_t const& group_port = downstream_port;
-
-          group_map_t::const_iterator const group_it = groups.find(group_name);
-
-          if (group_it == groups.end())
-          {
-            throw no_such_group_exception(group_name);
-          }
-
-          port_mapping_t const& port_mapping = group_it->second;
-          input_port_mapping_t const& mapping = port_mapping.first;
-          input_port_mapping_t::const_iterator const mapping_it = mapping.find(group_port);
-
-          if (mapping_it == mapping.end())
-          {
-            throw no_such_group_port_exception(group_name, group_port);
-          }
-
-          input_mapping_info_t const& info = mapping_it->second;
-          process::port_addrs_t const& mapped_port_addrs = info.get<1>();
-
-          BOOST_FOREACH (process::port_addr_t const& mapped_port_addr, mapped_port_addrs)
-          {
-            process::name_t const& mapped_name = mapped_port_addr.first;
-            process::port_t const& mapped_port = mapped_port_addr.second;
-
-            q->connect(upstream_name, upstream_port,
-                       mapped_name, mapped_port);
-          }
-
-          used_input_mappings[group_name].push_back(group_port);
-        }
-
-        break;
-      default:
-        break;
-    }
-  }
-
-  // Group ports could be mapped to other group ports. We need to call again
-  // until every group port has been resolved to a process.
-  if (group_connections.size())
-  {
-    map_group_connections();
   }
 }
 
@@ -2294,80 +1651,6 @@ pipeline::priv
     }
   }
 
-  if (groups.size())
-  {
-    process::names_t const group_names = q->groups();
-
-    BOOST_FOREACH(process::name_t const& cur_group, group_names)
-    {
-      process::port_addrs_t connected_ports;
-
-      // Get all processes input ports on the group map to.
-      process::ports_t const input_ports = q->input_ports_for_group(cur_group);
-      BOOST_FOREACH (process::port_t const& port, input_ports)
-      {
-        // Check for required flags.
-        process::port_flags_t const mapped_port_flags = q->mapped_group_input_port_flags(cur_group, port);
-
-        process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
-        if (i != mapped_port_flags.end())
-        {
-          connected_mappings_t const& conns = used_input_mappings;
-
-          connected_mappings_t::const_iterator const c = conns.find(cur_group);
-
-          if (c == conns.end())
-          {
-            static std::string const reason = "The input mapping has the required flag";
-
-            throw missing_connection_exception(cur_group, port, reason);
-          }
-        }
-
-        // Mark mapped ports as connected.
-        process::port_addrs_t const mapped_ports = q->mapped_group_input_ports(cur_group, port);
-
-        connected_ports.insert(connected_ports.end(), mapped_ports.begin(), mapped_ports.end());
-      }
-
-      // Get all processes output ports on the group map to.
-      process::ports_t const output_ports = q->output_ports_for_group(cur_group);
-      BOOST_FOREACH (process::port_t const& port, output_ports)
-      {
-        // Check for required flags.
-        process::port_flags_t const mapped_port_flags = q->mapped_group_output_port_flags(cur_group, port);
-
-        process::port_flags_t::const_iterator const i = mapped_port_flags.find(process::flag_required);
-        if (i != mapped_port_flags.end())
-        {
-          connected_mappings_t const& conns = used_input_mappings;
-
-          connected_mappings_t::const_iterator const c = conns.find(cur_group);
-
-          if (c == conns.end())
-          {
-            static std::string const reason = "The output mapping has the required flag";
-
-            throw missing_connection_exception(cur_group, port, reason);
-          }
-        }
-
-        // Mark mapped ports as connected.
-        process::port_addr_t const mapped_port = q->mapped_group_output_port(cur_group, port);
-
-        connected_ports.push_back(mapped_port);
-      }
-
-      // Mark these processes as connected.
-      BOOST_FOREACH (process::port_addr_t const& port_addr, connected_ports)
-      {
-        process::name_t const& name = port_addr.first;
-
-        procs.insert(name);
-      }
-    }
-  }
-
   if (procs.size() != process_map.size())
   {
     throw orphaned_processes_exception();
@@ -2645,24 +1928,6 @@ pipeline::priv
 
 bool
 pipeline::priv
-::is_group_upstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection)
-{
-  process::connection_t const connection = gconnection.first;
-
-  return is_upstream_for(addr, connection);
-}
-
-bool
-pipeline::priv
-::is_group_downstream_for(process::port_addr_t const& addr, group_connection_t const& gconnection)
-{
-  process::connection_t const connection = gconnection.first;
-
-  return is_downstream_for(addr, connection);
-}
-
-bool
-pipeline::priv
 ::is_cluster_upstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection)
 {
   process::connection_t const connection = cconnection.first;
@@ -2696,24 +1961,6 @@ pipeline::priv
   process::port_addr_t const& downstream_addr = connection.second;
 
   return (is_addr_on(name, upstream_addr) || is_addr_on(name, downstream_addr));
-}
-
-bool
-pipeline::priv
-::is_group_connection_with(process::name_t const& name, group_connection_t const& gconnection)
-{
-  process::connection_t const& connection = gconnection.first;
-
-  return is_connection_with(name, connection);
-}
-
-bool
-pipeline::priv
-::is_group_connection_for(process::connection_t const& connection, group_connection_t const& gconnection)
-{
-  process::connection_t const& group_connection = gconnection.first;
-
-  return (connection == group_connection);
 }
 
 bool

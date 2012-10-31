@@ -35,16 +35,13 @@ null_pipeline_config_exception
 }
 
 add_after_setup_exception
-::add_after_setup_exception(process::name_t const& name, bool is_process) throw()
+::add_after_setup_exception(process::name_t const& name) throw()
   : pipeline_addition_exception()
   , m_name(name)
-  , m_is_process(is_process)
 {
   std::ostringstream sstr;
 
-  std::string const& type = (m_is_process ? "process" : "group");
-
-  sstr << "The " << type << " named \'" << m_name << "\' "
+  sstr << "The process named \'" << m_name << "\' "
           "was added to the pipeline after it was setup";
 
   m_what = sstr.str();
@@ -92,16 +89,13 @@ duplicate_process_name_exception
 }
 
 remove_after_setup_exception
-::remove_after_setup_exception(process::name_t const& name, bool is_process) throw()
+::remove_after_setup_exception(process::name_t const& name) throw()
   : pipeline_removal_exception()
   , m_name(name)
-  , m_is_process(is_process)
 {
   std::ostringstream sstr;
 
-  std::string const& type = (m_is_process ? "process" : "group");
-
-  sstr << "The " << type << " named \'" << m_name << "\' "
+  sstr << "The process named \'" << m_name << "\' "
           "was removed from the pipeline after it was setup";
 
   m_what = sstr.str();
@@ -447,78 +441,6 @@ frequency_mismatch_exception
 
 frequency_mismatch_exception
 ::~frequency_mismatch_exception() throw()
-{
-}
-
-no_such_group_exception
-::no_such_group_exception(process::name_t const& name) throw()
-  : pipeline_exception()
-  , m_name(name)
-{
-  std::ostringstream sstr;
-
-  sstr << "A group named \'" << m_name << "\' "
-          "was requested but it does not exist in "
-          "the pipeline";
-
-  m_what = sstr.str();
-}
-
-no_such_group_exception
-::~no_such_group_exception() throw()
-{
-}
-
-no_such_group_port_exception
-::no_such_group_port_exception(process::name_t const& name, process::port_t const& port) throw()
-  : pipeline_exception()
-  , m_name(name)
-  , m_port(port)
-{
-  std::ostringstream sstr;
-
-  sstr << "The \'" << m_port << "\' on the group "
-          "named \'" << m_name << "\' was "
-          "requested when it does not exist";
-
-  m_what = sstr.str();
-}
-
-no_such_group_port_exception
-::~no_such_group_port_exception() throw()
-{
-}
-
-group_output_already_mapped_exception
-::group_output_already_mapped_exception(process::name_t const& name,
-                                        process::port_t const& port,
-                                        process::name_t const& current_process,
-                                        process::port_t const& current_port,
-                                        process::name_t const& new_process,
-                                        process::port_t const& new_port) throw()
-  : pipeline_exception()
-  , m_name(name)
-  , m_port(port)
-  , m_current_process(current_process)
-  , m_current_port(current_port)
-  , m_new_process(new_process)
-  , m_new_port(new_port)
-{
-  std::ostringstream sstr;
-
-  sstr << "The \'" << m_name << "\' group output port "
-          "\'" << m_port << "\' is already connected to "
-          "the \'" << m_current_port << "\' port of the "
-          "\'" << m_current_process << "\' process, but "
-          "was attempted to be connected to the "
-          "\'" << m_new_port << "\' port of the "
-          "\'" << m_new_process << "\' process";
-
-  m_what = sstr.str();
-}
-
-group_output_already_mapped_exception
-::~group_output_already_mapped_exception() throw()
 {
 }
 
