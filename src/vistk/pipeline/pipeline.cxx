@@ -319,7 +319,7 @@ pipeline
     throw remove_after_setup_exception(name, true);
   }
 
-  priv::cluster_map_t::const_iterator const i = d->cluster_map.find(name);
+  priv::cluster_map_t::iterator const i = d->cluster_map.find(name);
 
   if (i != d->cluster_map.end())
   {
@@ -335,6 +335,8 @@ pipeline
 
       remove_process(cluster_proc_name);
     }
+
+    d->cluster_map.erase(i);
 
     return;
   }
