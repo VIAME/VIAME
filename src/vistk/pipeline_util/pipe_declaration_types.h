@@ -210,11 +210,11 @@ struct cluster_config_t
  */
 struct cluster_input_t
 {
-  /// Options for the mapping.
+  /// Description of the cluster's port.
   process::port_description_t description;
-  /// The name of the group input port.
+  /// The name of the cluster's input port.
   process::port_t from;
-  /// The address of the mapped downstream port.
+  /// The address of the mapped port.
   process::port_addr_t to;
 };
 
@@ -225,11 +225,11 @@ struct cluster_input_t
  */
 struct cluster_output_t
 {
-  /// Options for the mapping.
+  /// Description of the cluster's port.
   process::port_description_t description;
   /// The address of the mapped upstream port.
   process::port_addr_t from;
-  /// The name of the group output port.
+  /// The name of the cluster's output port.
   process::port_t to;
 };
 

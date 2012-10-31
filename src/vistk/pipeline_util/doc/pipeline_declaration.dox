@@ -250,7 +250,7 @@
  *                             <opt-whitespace> <output-map-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
  *                             <opt-whitespace> "to" <port-name> <line-end>
  *   <cluster-decl>        ::= <cluster-config-spec> | <input-mapping-spec> | <output-mapping-spec>
- *   <cluster-decls>       ::= <group-decl> <group-decls> | ""
+ *   <cluster-decls>       ::= <cluster-decl> <cluster-decls> | ""
  *   <cluster-block-spec>  ::= <opt-whitespace> "cluster" <whitespace> <key-component> <line-end>
  *                             <opt-whitespace> <description-decl> <line-end>
  *                             <opt-whitespace> <type-decl> <line-end>
