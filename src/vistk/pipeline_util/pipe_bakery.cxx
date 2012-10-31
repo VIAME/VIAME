@@ -241,6 +241,8 @@ extract_configuration(pipe_blocks const& blocks)
   return extract_configuration(bakery);
 }
 
+static void dereference_static_providers(bakery_base& bakery);
+
 class provider_dereferencer
   : public boost::static_visitor<bakery_base::config_reference_t>
 {
@@ -304,18 +306,7 @@ class config_provider_sorter
 config_t
 extract_configuration(bakery_base& bakery)
 {
-  // Dereference (non-configuration) providers.
-  {
-    provider_dereferencer const deref;
-
-    BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
-    {
-      bakery_base::config_info_t& info = decl.second;
-      bakery_base::config_reference_t& ref = info.reference;
-
-      ref = boost::apply_visitor(deref, ref);
-    }
-  }
+  dereference_static_providers(bakery);
 
   config_t tmp_conf = config::empty_config();
 
@@ -626,6 +617,20 @@ pipe_bakery
   group_decl_t const decl = group_decl_t(group_block.name, info);
 
   m_groups.push_back(decl);
+}
+
+void
+dereference_static_providers(bakery_base& bakery)
+{
+  provider_dereferencer const deref;
+
+  BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
+  {
+    bakery_base::config_info_t& info = decl.second;
+    bakery_base::config_reference_t& ref = info.reference;
+
+    ref = boost::apply_visitor(deref, ref);
+  }
 }
 
 provider_dereferencer
