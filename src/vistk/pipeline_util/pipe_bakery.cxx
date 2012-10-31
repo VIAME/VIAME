@@ -292,6 +292,19 @@ class cluster_bakery
     opt_cluster_component_info_t m_cluster;
 };
 
+static void dereference_static_providers(bakery_base& bakery);
+
+class cluster_creator
+{
+  public:
+    cluster_creator(cluster_bakery const& bakery);
+    ~cluster_creator();
+
+    process_t operator () (config_t const& config) const;
+
+    cluster_bakery const m_bakery;
+};
+
 cluster_info_t
 bake_cluster_blocks(cluster_blocks const& blocks)
 {
@@ -308,9 +321,15 @@ bake_cluster_blocks(cluster_blocks const& blocks)
     return cluster_info_t();
   }
 
-  /// \todo Implement.
+  dereference_static_providers(bakery);
 
-  return cluster_info_t();
+  process::type_t const& type = bakery.m_type;
+  process_registry::description_t const& description = bakery.m_description;
+  process_ctor_t const ctor = cluster_creator(bakery);
+
+  cluster_info_t const info = boost::make_shared<cluster_info>(type, description, ctor);
+
+  return info;
 }
 
 config_t
@@ -322,8 +341,6 @@ extract_configuration(pipe_blocks const& blocks)
 
   return extract_configuration(bakery);
 }
-
-static void dereference_static_providers(bakery_base& bakery);
 
 class provider_dereferencer
   : public boost::static_visitor<bakery_base::config_reference_t>
@@ -783,6 +800,26 @@ dereference_static_providers(bakery_base& bakery)
 
     ref = boost::apply_visitor(deref, ref);
   }
+}
+
+cluster_creator
+::cluster_creator(cluster_bakery const& bakery)
+  : m_bakery(bakery)
+{
+}
+
+cluster_creator
+::~cluster_creator()
+{
+}
+
+process_t
+cluster_creator
+::operator () (config_t const& /*config*/) const
+{
+  /// \todo Implement.
+
+  return process_t();
 }
 
 provider_dereferencer
