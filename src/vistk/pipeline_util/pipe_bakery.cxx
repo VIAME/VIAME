@@ -298,6 +298,8 @@ class cluster_creator
     process_t operator () (config_t const& config) const;
 
     cluster_bakery const m_bakery;
+  private:
+    config_t m_default_config;
 };
 
 cluster_info_t
@@ -800,6 +802,9 @@ cluster_creator
 ::cluster_creator(cluster_bakery const& bakery)
   : m_bakery(bakery)
 {
+  bakery_base::config_decls_t default_configs = m_bakery.m_configs;
+
+  m_default_config = extract_configuration(default_configs);
 }
 
 cluster_creator
