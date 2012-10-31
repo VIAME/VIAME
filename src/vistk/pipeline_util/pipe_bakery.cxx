@@ -572,11 +572,12 @@ pipe_bakery
 
   std::for_each(subblocks.begin(), subblocks.end(), boost::apply_visitor(splitter));
 
+  process::name_t const& name = group_block.name;
   config_values_t const& values = splitter.m_configs;
 
   BOOST_FOREACH (config_value_t const& value, values)
   {
-    register_config_value(group_block.name, value);
+    register_config_value(name, value);
   }
 
   process::port_flags_t default_flags;
@@ -614,7 +615,7 @@ pipe_bakery
   }
 
   group_info_t const info = group_info_t(input_mappings, output_mappings);
-  group_decl_t const decl = group_decl_t(group_block.name, info);
+  group_decl_t const decl = group_decl_t(name, info);
 
   m_groups.push_back(decl);
 }
