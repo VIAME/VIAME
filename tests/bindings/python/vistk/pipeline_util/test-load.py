@@ -75,10 +75,10 @@ def test_api_calls():
     o = load.GroupInput()
     o.options
     o.from_
-    o.targets
+    o.to
     o.options = load.MapOptions()
     o.from_ = process.Port()
-    o.targets = process.PortAddrs()
+    o.to = process.PortAddr()
 
     o = load.GroupOutput()
     o.options
@@ -141,10 +141,10 @@ def test_api_calls():
     o = load.ClusterInput()
     o.description
     o.from_
-    o.to
+    o.targets
     o.description = process.PortDescription()
     o.from_ = process.Port()
-    o.to = process.PortAddr()
+    o.targets = process.PortAddrs()
 
     o = load.ClusterOutput()
     o.description

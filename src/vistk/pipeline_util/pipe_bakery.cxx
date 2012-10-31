@@ -738,6 +738,11 @@ class cluster_splitter
     void operator () (cluster_output_t const& output_block);
 
     cluster_bakery::cluster_component_info_t& m_info;
+  private:
+    typedef std::set<process::port_t> unique_ports_t;
+
+    unique_ports_t m_input_ports;
+    unique_ports_t m_output_ports;
 };
 
 void
@@ -1085,6 +1090,18 @@ void
 cluster_splitter
 ::operator () (cluster_input_t const& input_block)
 {
+  process::port_t const& port = input_block.from;
+  unique_ports_t::const_iterator const i = m_input_ports.find(port);
+
+  if (i != m_input_ports.end())
+  {
+    /// \todo Throw an exception.
+
+    return;
+  }
+
+  m_input_ports.insert(port);
+
   m_info.m_inputs.push_back(input_block);
 }
 
@@ -1092,6 +1109,18 @@ void
 cluster_splitter
 ::operator () (cluster_output_t const& output_block)
 {
+  process::port_t const& port = output_block.to;
+  unique_ports_t::const_iterator const i = m_output_ports.find(port);
+
+  if (i != m_output_ports.end())
+  {
+    /// \todo Throw an exception.
+
+    return;
+  }
+
+  m_output_ports.insert(port);
+
   m_info.m_outputs.push_back(output_block);
 }
 
