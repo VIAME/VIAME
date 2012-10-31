@@ -817,13 +817,158 @@ cluster_creator
 {
 }
 
+class loaded_cluster
+  : public process_cluster
+{
+  public:
+    loaded_cluster(config_t const& config);
+    ~loaded_cluster();
+
+    friend class cluster_creator;
+};
+
 process_t
 cluster_creator
-::operator () (config_t const& /*config*/) const
+::operator () (config_t const& config) const
 {
-  /// \todo Implement.
+  bakery_base::config_decls_t all_configs = m_bakery.m_configs;
 
-  return process_t();
+  // Append the given configuration to the declarations in the file.
+  config::keys_t const& keys = config->available_values();
+  BOOST_FOREACH (config::key_t const& key, keys)
+  {
+    config::value_t const value = config->get_value<config::value_t>(key);
+    bakery_base::config_reference_t const ref = bakery_base::config_reference_t(value);
+    bool const is_read_only = config->is_read_only(key);
+    bakery_base::config_info_t const info = bakery_base::config_info_t(ref, is_read_only, false, false);
+    bakery_base::config_decl_t const decl = bakery_base::config_decl_t(key, info);
+
+    all_configs.push_back(decl);
+  }
+
+  config_t const full_config = extract_configuration(all_configs);
+
+  typedef boost::shared_ptr<loaded_cluster> loaded_cluster_t;
+
+  loaded_cluster_t const cluster = boost::make_shared<loaded_cluster>(full_config);
+
+  cluster_bakery::opt_cluster_component_info_t const& opt_info = m_bakery.m_cluster;
+
+  if (!opt_info)
+  {
+    static std::string const reason = "Failed to catch missing cluster block earlier";
+
+    throw std::logic_error(reason);
+  }
+
+  cluster_bakery::cluster_component_info_t const& info = *opt_info;
+
+  process::name_t const& name = m_bakery.m_name;
+  config_t const main_config = m_default_config->subblock_view(name);
+
+  // Declare configuration values.
+  BOOST_FOREACH (cluster_config_t const& conf, info.m_configs)
+  {
+    // Calls to map_config are not necessary because extract_configuration does
+    // the mappings for us via configuration providers.
+
+    config_value_t const& config_value = conf.config_value;
+    config_key_t const& config_key = config_value.key;
+    config::keys_t const& key_path = config_key.key_path;
+    config::key_t const& key = flatten_keys(key_path);
+    config::value_t const& value = main_config->get_value<config::value_t>(key);
+    config::description_t const& description = conf.description;
+
+    cluster->declare_configuration_key(
+      key,
+      value,
+      description);
+  }
+
+  // Add processes.
+  BOOST_FOREACH (bakery_base::process_decl_t const& proc_decl, m_bakery.m_processes)
+  {
+    process::name_t const& proc_name = proc_decl.first;
+    process::type_t const& type = proc_decl.second;
+
+    cluster->add_process(proc_name, type);
+  }
+
+  // Add input ports.
+  {
+    process::port_flags_t const input_flags;
+
+    BOOST_FOREACH (cluster_input_t const& input, info.m_inputs)
+    {
+      process::port_description_t const& description = input.description;
+      process::port_t const& port = input.from;
+
+      cluster->declare_input_port(
+        port,
+        /// \todo How to declare a port's type?
+        process::type_any,
+        input_flags,
+        description);
+
+      process::port_addrs_t const& addrs = input.targets;
+
+      BOOST_FOREACH (process::port_addr_t const& addr, addrs)
+      {
+        process::name_t const& mapped_name = addr.first;
+        process::port_t const& mapped_port = addr.second;
+
+        cluster->input_map(
+          port,
+          mapped_name,
+          mapped_port);
+      }
+    }
+  }
+
+  // Add output ports.
+  {
+    process::port_flags_t const output_flags;
+
+    BOOST_FOREACH (cluster_output_t const& output, info.m_outputs)
+    {
+      process::port_description_t const& description = output.description;
+      process::port_t const& port = output.to;
+
+      cluster->declare_output_port(
+        port,
+        /// \todo How to declare a port's type?
+        process::type_any,
+        output_flags,
+        description);
+
+      process::port_addr_t const& addr = output.from;
+
+      process::name_t const& mapped_name = addr.first;
+      process::port_t const& mapped_port = addr.second;
+
+      cluster->output_map(
+        port,
+        mapped_name,
+        mapped_port);
+    }
+  }
+
+  // Add connections.
+  BOOST_FOREACH (process::connection_t const& connection, m_bakery.m_connections)
+  {
+    process::port_addr_t const& upstream_addr = connection.first;
+    process::port_addr_t const& downstream_addr = connection.second;
+
+    process::name_t const& upstream_name = upstream_addr.first;
+    process::port_t const& upstream_port = upstream_addr.second;
+    process::name_t const& downstream_name = downstream_addr.first;
+    process::port_t const& downstream_port = downstream_addr.second;
+
+    cluster->connect(upstream_name, upstream_port,
+                     downstream_name, downstream_port);
+  }
+
+  return cluster;
 }
 
 provider_dereferencer
@@ -1122,6 +1267,17 @@ cluster_splitter
   m_output_ports.insert(port);
 
   m_info.m_outputs.push_back(output_block);
+}
+
+loaded_cluster
+::loaded_cluster(config_t const& config)
+  : process_cluster(config)
+{
+}
+
+loaded_cluster
+::~loaded_cluster()
+{
 }
 
 }
