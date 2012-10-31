@@ -313,9 +313,7 @@ bake_cluster_blocks(cluster_blocks const& blocks)
 
   if (!opt_cluster)
   {
-    /// \todo Throw an exception.
-
-    return cluster_info_t();
+    throw missing_cluster_block_exception();
   }
 
   bakery_base::config_decls_t& configs = bakery.m_configs;
@@ -751,9 +749,7 @@ cluster_bakery
 {
   if (m_cluster)
   {
-    /// \todo Throw an exception.
-
-    return;
+    throw multiple_cluster_blocks_exception();
   }
 
   m_name = cluster_block_.name;
@@ -1240,9 +1236,7 @@ cluster_splitter
 
   if (i != m_input_ports.end())
   {
-    /// \todo Throw an exception.
-
-    return;
+    throw duplicate_cluster_input_port_exception(port);
   }
 
   m_input_ports.insert(port);
@@ -1259,9 +1253,7 @@ cluster_splitter
 
   if (i != m_output_ports.end())
   {
-    /// \todo Throw an exception.
-
-    return;
+    throw duplicate_cluster_output_port_exception(port);
   }
 
   m_output_ports.insert(port);

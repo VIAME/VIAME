@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -33,6 +33,114 @@ namespace vistk
 class VISTK_PIPELINE_UTIL_EXPORT pipe_bakery_exception
   : public pipeline_exception
 {
+};
+
+/**
+ * \class missing_cluster_block_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ *
+ * \brief The exception thrown when baking a cluster without a cluster block.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT missing_cluster_block_exception
+  : public pipe_bakery_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    missing_cluster_block_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~missing_cluster_block_exception() throw();
+};
+
+/**
+ * \class multiple_cluster_blocks_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ *
+ * \brief The exception thrown when baking a cluster with multiple cluster blocks.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT multiple_cluster_blocks_exception
+  : public pipe_bakery_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    multiple_cluster_blocks_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~multiple_cluster_blocks_exception() throw();
+};
+
+/**
+ * \class duplicate_cluster_port_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ *
+ * \brief The exception thrown when a cluster is declared with duplicate ports.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT duplicate_cluster_port_exception
+  : public pipe_bakery_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    duplicate_cluster_port_exception(process::port_t const& port, char const* const side) throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~duplicate_cluster_port_exception() throw();
+
+    /// The name of the duplicate port.
+    process::port_t const m_port;
+};
+
+/**
+ * \class duplicate_cluster_input_port_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ *
+ * \brief The exception thrown when a cluster is declared with duplicate input ports.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT duplicate_cluster_input_port_exception
+  : public duplicate_cluster_port_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    duplicate_cluster_input_port_exception(process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~duplicate_cluster_input_port_exception() throw();
+};
+
+/**
+ * \class duplicate_cluster_output_port_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ *
+ * \brief The exception thrown when a cluster is declared with duplicate output ports.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT duplicate_cluster_output_port_exception
+  : public duplicate_cluster_port_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    duplicate_cluster_output_port_exception(process::port_t const& port) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~duplicate_cluster_output_port_exception() throw();
 };
 
 /**
