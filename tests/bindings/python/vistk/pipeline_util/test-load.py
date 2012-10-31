@@ -75,10 +75,10 @@ def test_api_calls():
     o = load.GroupInput()
     o.options
     o.from_
-    o.to
+    o.targets
     o.options = load.MapOptions()
     o.from_ = process.Port()
-    o.to = process.PortAddr()
+    o.targets = process.PortAddrs()
 
     o = load.GroupOutput()
     o.options

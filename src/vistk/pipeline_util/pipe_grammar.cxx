@@ -103,7 +103,7 @@ BOOST_FUSION_ADAPT_STRUCT(
   vistk::cluster_input_t,
   (vistk::process::port_description_t, description)
   (vistk::process::port_t, from)
-  (vistk::process::port_addr_t, to)
+  (vistk::process::port_addrs_t, targets)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -234,6 +234,7 @@ class cluster_grammar
     qi::rule<Iterator, std::string()> description_decl;
 
     qi::rule<Iterator, cluster_config_t()> cluster_config_block;
+    qi::rule<Iterator, process::port_addrs_t()> cluster_input_target;
     qi::rule<Iterator, cluster_input_t()> cluster_input_block;
     qi::rule<Iterator, cluster_output_t()> cluster_output_block;
 
@@ -640,6 +641,14 @@ cluster_grammar<Iterator>
      >> common.partial_config_value_decl
      );
 
+  cluster_input_target.name("cluster-input-target");
+  cluster_input_target %=
+    +(  qi::lit(to_name)
+     >  common.whitespace
+     >  common.port_addr
+     >  common.line_end
+     );
+
   cluster_input_block.name("cluster-input-spec");
   cluster_input_block %=
      (  common.opt_whitespace
@@ -653,10 +662,7 @@ cluster_grammar<Iterator>
      >  common.port_name
      >  common.line_end
      >  common.opt_whitespace
-     >  qi::lit(to_name)
-     >  common.whitespace
-     >  common.port_addr
-     >  common.line_end
+     >  cluster_input_target
      );
 
   cluster_output_block.name("cluster-output-spec");

@@ -214,8 +214,8 @@ struct cluster_input_t
   process::port_description_t description;
   /// The name of the cluster's input port.
   process::port_t from;
-  /// The address of the mapped port.
-  process::port_addr_t to;
+  /// The addresses of the mapped port.
+  process::port_addrs_t targets;
 };
 
 /**

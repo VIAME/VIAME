@@ -169,7 +169,7 @@ BOOST_PYTHON_MODULE(load)
     , "An input mapping for a cluster.")
     .def_readwrite("description", &vistk::cluster_input_t::description)
     .def_readwrite("from_", &vistk::cluster_input_t::from)
-    .def_readwrite("to", &vistk::cluster_input_t::to)
+    .def_readwrite("targets", &vistk::cluster_input_t::targets)
   ;
   class_<vistk::cluster_output_t>("ClusterOutput"
     , "An output mapping for a cluster.")
