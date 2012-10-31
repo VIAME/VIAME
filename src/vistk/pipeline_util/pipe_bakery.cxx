@@ -104,8 +104,6 @@ class bakery_base
     process::connections_t m_connections;
   protected:
     void register_config_value(config::key_t const& root_key, config_value_t const& value);
-  private:
-    static config::key_t flatten_keys(config::keys_t const& keys);
 };
 
 pipeline_t
@@ -530,6 +528,8 @@ bakery_base
 {
 }
 
+static config::key_t flatten_keys(config::keys_t const& keys);
+
 void
 bakery_base
 ::operator () (config_pipe_block const& config_block)
@@ -618,13 +618,6 @@ bakery_base
   config_decl_t const decl = config_decl_t(full_key, info);
 
   m_configs.push_back(decl);
-}
-
-config::key_t
-bakery_base
-::flatten_keys(config::keys_t const& keys)
-{
-  return boost::join(keys, config::block_sep);
 }
 
 pipe_bakery
@@ -1007,6 +1000,12 @@ config_provider_sorter
   m_graph[from_vertex].deref = true;
 
   boost::add_edge(from_vertex, to_vertex, m_graph);
+}
+
+config::key_t
+flatten_keys(config::keys_t const& keys)
+{
+  return boost::join(keys, config::block_sep);
 }
 
 group_splitter
