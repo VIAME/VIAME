@@ -253,40 +253,6 @@ pipeline
               downstream_name, downstream_port);
     }
 
-    add_group(name);
-
-    process::connections_t const& imappings = cluster->input_mappings();
-
-    BOOST_FOREACH (process::connection_t const& mapping, imappings)
-    {
-      process::port_addr_t const& upstream_addr = mapping.first;
-      process::port_addr_t const& downstream_addr = mapping.second;
-
-      process::port_t const& upstream_port = upstream_addr.second;
-      process::name_t const& downstream_name = downstream_addr.first;
-      process::port_t const& downstream_port = downstream_addr.second;
-
-      map_input_port(name, upstream_port,
-                     downstream_name, downstream_port,
-                     process::port_flags_t());
-    }
-
-    process::connections_t const& omappings = cluster->output_mappings();
-
-    BOOST_FOREACH (process::connection_t const& mapping, omappings)
-    {
-      process::port_addr_t const& upstream_addr = mapping.first;
-      process::port_addr_t const& downstream_addr = mapping.second;
-
-      process::name_t const& upstream_name = upstream_addr.first;
-      process::port_t const& upstream_port = upstream_addr.second;
-      process::port_t const& downstream_port = downstream_addr.second;
-
-      map_output_port(name, downstream_port,
-                      upstream_name, upstream_port,
-                      process::port_flags_t());
-    }
-
     d->parent_stack.pop();
 
     return;
@@ -324,8 +290,6 @@ pipeline
   if (i != d->cluster_map.end())
   {
     process_cluster_t const& cluster = i->second;
-
-    remove_group(name);
 
     processes_t const cluster_procs = cluster->processes();
 
