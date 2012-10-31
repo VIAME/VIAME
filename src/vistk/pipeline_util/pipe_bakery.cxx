@@ -14,6 +14,7 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
+#include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/process_registry.h>
 
 #include <boost/algorithm/string/join.hpp>
@@ -22,6 +23,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/optional.hpp>
 #include <boost/variant.hpp>
 
 #include <algorithm>
@@ -258,9 +260,54 @@ bake_cluster(std::istream& istr, path_t const& inc_root)
   return bake_cluster_blocks(load_cluster_blocks(istr, inc_root));
 }
 
-cluster_info_t
-bake_cluster_blocks(cluster_blocks const& /*blocks*/)
+class cluster_bakery
+  : public bakery_base
 {
+  public:
+    cluster_bakery();
+    ~cluster_bakery();
+
+    using bakery_base::operator ();
+    void operator () (cluster_pipe_block const& cluster_block_);
+
+    class cluster_component_info_t
+    {
+      public:
+        cluster_component_info_t();
+        ~cluster_component_info_t();
+
+        typedef std::vector<cluster_config_t> config_maps_t;
+        typedef std::vector<cluster_input_t> input_maps_t;
+        typedef std::vector<cluster_output_t> output_maps_t;
+
+        config_maps_t m_configs;
+        input_maps_t m_inputs;
+        output_maps_t m_outputs;
+    };
+    typedef boost::optional<cluster_component_info_t> opt_cluster_component_info_t;
+
+    process::name_t m_name;
+    process::type_t m_type;
+    process_registry::description_t m_description;
+    opt_cluster_component_info_t m_cluster;
+};
+
+cluster_info_t
+bake_cluster_blocks(cluster_blocks const& blocks)
+{
+  cluster_bakery bakery;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
+
+  cluster_bakery::opt_cluster_component_info_t const& opt_cluster = bakery.m_cluster;
+
+  if (!opt_cluster)
+  {
+    /// \todo Throw an exception.
+
+    return cluster_info_t();
+  }
+
   /// \todo Implement.
 
   return cluster_info_t();
@@ -655,6 +702,75 @@ pipe_bakery
   m_groups.push_back(decl);
 }
 
+cluster_bakery
+::cluster_bakery()
+  : bakery_base()
+{
+}
+
+cluster_bakery
+::~cluster_bakery()
+{
+}
+
+class cluster_splitter
+  : public boost::static_visitor<>
+{
+  public:
+    cluster_splitter(cluster_bakery::cluster_component_info_t& info);
+    ~cluster_splitter();
+
+    void operator () (cluster_config_t const& config_block);
+    void operator () (cluster_input_t const& input_block);
+    void operator () (cluster_output_t const& output_block);
+
+    cluster_bakery::cluster_component_info_t& m_info;
+};
+
+void
+cluster_bakery
+::operator () (cluster_pipe_block const& cluster_block_)
+{
+  if (m_cluster)
+  {
+    /// \todo Throw an exception.
+
+    return;
+  }
+
+  m_name = cluster_block_.name;
+  m_description = cluster_block_.description;
+  m_type = cluster_block_.type;
+
+  cluster_component_info_t cluster;
+
+  cluster_subblocks_t const& subblocks = cluster_block_.subblocks;
+
+  cluster_splitter splitter(cluster);
+
+  std::for_each(subblocks.begin(), subblocks.end(), boost::apply_visitor(splitter));
+
+  m_cluster = cluster;
+
+  cluster_component_info_t::config_maps_t const& values = cluster.m_configs;
+  BOOST_FOREACH (cluster_config_t const& value, values)
+  {
+    config_value_t const& config_value = value.config_value;
+
+    register_config_value(m_name, config_value);
+  }
+}
+
+cluster_bakery::cluster_component_info_t
+::cluster_component_info_t()
+{
+}
+
+cluster_bakery::cluster_component_info_t
+::~cluster_component_info_t()
+{
+}
+
 void
 dereference_static_providers(bakery_base& bakery)
 {
@@ -903,6 +1019,38 @@ group_splitter
 ::operator () (group_output_t const& output_block)
 {
   m_outputs.push_back(output_block);
+}
+
+cluster_splitter
+::cluster_splitter(cluster_bakery::cluster_component_info_t& info)
+  : m_info(info)
+{
+}
+
+cluster_splitter
+::~cluster_splitter()
+{
+}
+
+void
+cluster_splitter
+::operator () (cluster_config_t const& config_block)
+{
+  m_info.m_configs.push_back(config_block);
+}
+
+void
+cluster_splitter
+::operator () (cluster_input_t const& input_block)
+{
+  m_info.m_inputs.push_back(input_block);
+}
+
+void
+cluster_splitter
+::operator () (cluster_output_t const& output_block)
+{
+  m_info.m_outputs.push_back(output_block);
 }
 
 }
