@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
+#include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/edge.h>
-#include <vistk/pipeline/edge_exception.h>
 #include <vistk/pipeline/stamp.h>
 
 #include <vistk/python/util/python_gil.h>

@@ -5,7 +5,7 @@
  */
 
 #include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/pipeline_exception.h>
+#include <vistk/pipeline/process_cluster.h>
 
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
