@@ -109,6 +109,18 @@ class bakery_base
     static config::key_t flatten_keys(config::keys_t const& keys);
 };
 
+pipeline_t
+bake_pipe_from_file(path_t const& fname)
+{
+  return bake_pipe_blocks(load_pipe_blocks_from_file(fname));
+}
+
+pipeline_t
+bake_pipe(std::istream& istr, path_t const& inc_root)
+{
+  return bake_pipe_blocks(load_pipe_blocks(istr, inc_root));
+}
+
 class pipe_bakery
   : public bakery_base
 {
@@ -128,76 +140,6 @@ class pipe_bakery
 
     group_decls_t m_groups;
 };
-
-class provider_dereferencer
-  : public boost::static_visitor<bakery_base::config_reference_t>
-{
-  public:
-    provider_dereferencer();
-    provider_dereferencer(config_t const conf);
-    ~provider_dereferencer();
-
-    bakery_base::config_reference_t operator () (config::value_t const& value) const;
-    bakery_base::config_reference_t operator () (bakery_base::provider_request_t const& request) const;
-  private:
-    typedef std::map<config_provider_t, provider_t> provider_map_t;
-    provider_map_t m_providers;
-};
-
-class ensure_provided
-  : public boost::static_visitor<config::value_t>
-{
-  public:
-    ensure_provided();
-    ~ensure_provided();
-
-    config::value_t operator () (config::value_t const& value) const;
-    config::value_t operator () (bakery_base::provider_request_t const& request) const;
-};
-
-class config_provider_sorter
-  : public boost::static_visitor<>
-{
-  public:
-    config_provider_sorter();
-    ~config_provider_sorter();
-
-    void operator () (config::key_t const& key, config::value_t const& value) const;
-    void operator () (config::key_t const& key, bakery_base::provider_request_t const& request);
-
-    config::keys_t sorted() const;
-  private:
-    class node_t
-    {
-      public:
-        node_t();
-        ~node_t();
-
-        bool deref;
-        config::key_t name;
-    };
-
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, node_t> config_graph_t;
-    typedef boost::graph_traits<config_graph_t>::vertex_descriptor vertex_t;
-    typedef std::vector<vertex_t> vertices_t;
-    typedef std::map<config::key_t, vertex_t> vertex_map_t;
-    typedef vertex_map_t::value_type vertex_entry_t;
-
-    vertex_map_t m_vertex_map;
-    config_graph_t m_graph;
-};
-
-pipeline_t
-bake_pipe_from_file(path_t const& fname)
-{
-  return bake_pipe_blocks(load_pipe_blocks_from_file(fname));
-}
-
-pipeline_t
-bake_pipe(std::istream& istr, path_t const& inc_root)
-{
-  return bake_pipe_blocks(load_pipe_blocks(istr, inc_root));
-}
 
 pipeline_t
 bake_pipe_blocks(pipe_blocks const& blocks)
@@ -299,7 +241,65 @@ extract_configuration(pipe_blocks const& blocks)
   return extract_configuration(bakery);
 }
 
+class provider_dereferencer
+  : public boost::static_visitor<bakery_base::config_reference_t>
+{
+  public:
+    provider_dereferencer();
+    provider_dereferencer(config_t const conf);
+    ~provider_dereferencer();
+
+    bakery_base::config_reference_t operator () (config::value_t const& value) const;
+    bakery_base::config_reference_t operator () (bakery_base::provider_request_t const& request) const;
+  private:
+    typedef std::map<config_provider_t, provider_t> provider_map_t;
+    provider_map_t m_providers;
+};
+
+class ensure_provided
+  : public boost::static_visitor<config::value_t>
+{
+  public:
+    ensure_provided();
+    ~ensure_provided();
+
+    config::value_t operator () (config::value_t const& value) const;
+    config::value_t operator () (bakery_base::provider_request_t const& request) const;
+};
+
 static void set_config_value(config_t conf, bakery_base::config_info_t const& flags, config::key_t const& key, config::value_t const& value);
+
+class config_provider_sorter
+  : public boost::static_visitor<>
+{
+  public:
+    config_provider_sorter();
+    ~config_provider_sorter();
+
+    void operator () (config::key_t const& key, config::value_t const& value) const;
+    void operator () (config::key_t const& key, bakery_base::provider_request_t const& request);
+
+    config::keys_t sorted() const;
+  private:
+    class node_t
+    {
+      public:
+        node_t();
+        ~node_t();
+
+        bool deref;
+        config::key_t name;
+    };
+
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, node_t> config_graph_t;
+    typedef boost::graph_traits<config_graph_t>::vertex_descriptor vertex_t;
+    typedef std::vector<vertex_t> vertices_t;
+    typedef std::map<config::key_t, vertex_t> vertex_map_t;
+    typedef vertex_map_t::value_type vertex_entry_t;
+
+    vertex_map_t m_vertex_map;
+    config_graph_t m_graph;
+};
 
 config_t
 extract_configuration(bakery_base& bakery)
