@@ -238,23 +238,25 @@
  * \par Specification
  *
  * <pre>
- *   <description-decl>    ::= ":#" <whitespace> <key-value>
- *   <input-map-decl>      ::= "imap"
- *   <output-map-decl>     ::= "omap"
- *   <cluster-config-spec> ::= <opt-whitespace> <description-decl> <line-end>
- *                             <partial-config-spec>
- *   <cluster-input-spec>  ::= <opt-whitespace> <description-decl> <line-end>
- *                             <opt-whitespace> <input-map-decl> <whitespace> "from" <whitespace> <port-name> <line-end>
- *                             <opt-whitespace> "to" <port-addr> <line-end>
- *   <cluster-output-spec> ::= <opt-whitespace> <description-decl> <line-end>
- *                             <opt-whitespace> <output-map-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
- *                             <opt-whitespace> "to" <port-name> <line-end>
- *   <cluster-decl>        ::= <cluster-config-spec> | <input-mapping-spec> | <output-mapping-spec>
- *   <cluster-decls>       ::= <cluster-decl> <cluster-decls> | ""
- *   <cluster-block-spec>  ::= <opt-whitespace> "cluster" <whitespace> <key-component> <line-end>
- *                             <opt-whitespace> <description-decl> <line-end>
- *                             <opt-whitespace> <type-decl> <line-end>
- *                             <cluster-decls>
+ *   <description-decl>         ::= ":#" <whitespace> <key-value>
+ *   <input-map-decl>           ::= "imap"
+ *   <output-map-decl>          ::= "omap"
+ *   <cluster-config-spec>      ::= <opt-whitespace> <description-decl> <line-end>
+ *                                  <partial-config-spec>
+ *   <opt-cluster-input-target> ::= <cluster-input-target> | ""
+ *   <cluster-input-target>     ::= <opt-whitespace> "to" <port-addr> <line-end> <opt-cluster-input-target>
+ *   <cluster-input-spec>       ::= <opt-whitespace> <description-decl> <line-end>
+ *                                  <opt-whitespace> <input-map-decl> <whitespace> "from" <whitespace> <port-name> <line-end>
+ *                                  <cluster-input-target>
+ *   <cluster-output-spec>      ::= <opt-whitespace> <description-decl> <line-end>
+ *                                  <opt-whitespace> <output-map-decl> <whitespace> "from" <whitespace> <port-addr> <line-end>
+ *                                  <opt-whitespace> "to" <port-name> <line-end>
+ *   <cluster-decl>             ::= <cluster-config-spec> | <input-mapping-spec> | <output-mapping-spec>
+ *   <cluster-decls>            ::= <cluster-decl> <cluster-decls> | ""
+ *   <cluster-block-spec>       ::= <opt-whitespace> "cluster" <whitespace> <key-component> <line-end>
+ *                                  <opt-whitespace> <description-decl> <line-end>
+ *                                  <opt-whitespace> <type-decl> <line-end>
+ *                                  <cluster-decls>
  * </pre>
  *
  * \par Examples
