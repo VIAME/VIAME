@@ -306,16 +306,20 @@ extract_configuration(bakery_base& bakery)
 {
   // Dereference (non-configuration) providers.
   {
+    provider_dereferencer const deref;
+
     BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
     {
       bakery_base::config_info_t& info = decl.second;
       bakery_base::config_reference_t& ref = info.reference;
 
-      ref = boost::apply_visitor(provider_dereferencer(), ref);
+      ref = boost::apply_visitor(deref, ref);
     }
   }
 
   config_t tmp_conf = config::empty_config();
+
+  ensure_provided const ensure;
 
   BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
   {
@@ -328,7 +332,7 @@ extract_configuration(bakery_base& bakery)
     // Only add provided configurations to the configuration.
     try
     {
-      val = boost::apply_visitor(ensure_provided(), ref);
+      val = boost::apply_visitor(ensure, ref);
     }
     catch (...)
     {
@@ -358,7 +362,7 @@ extract_configuration(bakery_base& bakery)
 
     config::keys_t const keys = sorter.sorted();
 
-    provider_dereferencer deref(tmp_conf);
+    provider_dereferencer const deref(tmp_conf);
 
     /// \todo This is algorithmically naive, but I'm not sure if there's a better way.
     BOOST_FOREACH (config::key_t const& key, keys)
@@ -377,7 +381,7 @@ extract_configuration(bakery_base& bakery)
 
         ref = boost::apply_visitor(deref, ref);
 
-        config::value_t const val = boost::apply_visitor(ensure_provided(), ref);
+        config::value_t const val = boost::apply_visitor(ensure, ref);
 
         set_config_value(tmp_conf, info, key, val);
       }
@@ -396,7 +400,7 @@ extract_configuration(bakery_base& bakery)
 
     try
     {
-      val = boost::apply_visitor(ensure_provided(), ref);
+      val = boost::apply_visitor(ensure, ref);
     }
     catch (unrecognized_provider_exception const& e)
     {
