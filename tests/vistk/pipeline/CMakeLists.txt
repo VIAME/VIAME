@@ -275,7 +275,7 @@ function (vistk_make_run_test group instance)
 
     set_tests_properties(test-${group}-${instance}-${scheduler}
       PROPERTIES
-        TIMEOUT 60)
+        TIMEOUT 5)
 
     unset(test_environment)
   endforeach ()
