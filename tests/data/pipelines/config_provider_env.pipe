@@ -1,2 +1,2 @@
 config myblock
-  :myenv{ENV} PATH
+  :myenv{ENV} TEST_ENV

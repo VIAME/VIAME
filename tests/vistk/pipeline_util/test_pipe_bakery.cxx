@@ -400,7 +400,18 @@ test_config_provider_env(vistk::path_t const& pipe_file)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::extract_configuration(blocks);
+  vistk::config_t const config = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = vistk::config::key_t("myenv");
+  vistk::config::value_t const value = config->get_value<vistk::config::value_t>(mykey);
+  vistk::config::value_t const expected = vistk::config::value_t("expected");
+
+  if (value != expected)
+  {
+    TEST_ERROR("Environment was not read properly: "
+               "Expected: " << expected << " "
+               "Received: " << value);
+  }
 }
 
 void
