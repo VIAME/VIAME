@@ -149,6 +149,14 @@ def test_simple_pipeline(path):
         load.load_pipe(fin)
 
 
+def test_cluster_multiplier(path):
+    from vistk.pipeline_util import load
+
+    blocks = load.load_cluster_file(path)
+    with open(path, 'r') as fin:
+        load.load_cluster(fin)
+
+
 def main(testname, path):
     if testname == 'import':
         test_import()
@@ -158,6 +166,8 @@ def main(testname, path):
         test_api_calls()
     elif testname == 'simple_pipeline':
         test_simple_pipeline(path)
+    elif testname == 'cluster_multiplier':
+        test_cluster_multiplier(path)
     else:
         test_error("No such test '%s'" % testname)
 

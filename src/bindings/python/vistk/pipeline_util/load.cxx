@@ -55,6 +55,8 @@ static object cluster_block_cluster(vistk::cluster_block const& block);
 static void cluster_block_cluster_set(vistk::cluster_block& block, vistk::cluster_pipe_block const& cluster);
 static vistk::pipe_blocks load_pipe_file(std::string const& path);
 static vistk::pipe_blocks load_pipe(object const& stream, std::string const& inc_root);
+static vistk::cluster_blocks load_cluster_file(std::string const& path);
+static vistk::cluster_blocks load_cluster(object const& stream, std::string const& inc_root);
 
 BOOST_PYTHON_MODULE(load)
 {
@@ -173,6 +175,12 @@ BOOST_PYTHON_MODULE(load)
   def("load_pipe", &load_pipe
     , (arg("stream"), arg("inc_root") = std::string())
     , "Load pipe blocks from a stream.");
+  def("load_cluster_file", &load_cluster_file
+    , (arg("path"))
+    , "Load cluster blocks from a file.");
+  def("load_cluster", &load_cluster
+    , (arg("stream"), arg("inc_root") = std::string())
+    , "Load cluster blocks from a stream.");
 }
 
 class pipe_block_visitor
@@ -351,6 +359,20 @@ load_pipe(object const& stream, std::string const& inc_root)
   pyistream istr(stream);
 
   return vistk::load_pipe_blocks(istr, vistk::path_t(inc_root));
+}
+
+vistk::cluster_blocks
+load_cluster_file(std::string const& path)
+{
+  return vistk::load_cluster_blocks_from_file(vistk::path_t(path));
+}
+
+vistk::cluster_blocks
+load_cluster(object const& stream, std::string const& inc_root)
+{
+  pyistream istr(stream);
+
+  return vistk::load_cluster_blocks(istr, vistk::path_t(inc_root));
 }
 
 cluster_subblock_visitor
