@@ -98,6 +98,7 @@ static void test_envvar(vistk::path_t const& pipe_file);
 static void test_cluster_declare(vistk::path_t const& pipe_file);
 static void test_cluster_config(vistk::path_t const& pipe_file);
 static void test_cluster_input_map(vistk::path_t const& pipe_file);
+static void test_cluster_input_multi_map(vistk::path_t const& pipe_file);
 static void test_cluster_output_map(vistk::path_t const& pipe_file);
 static void test_cluster_mappings(vistk::path_t const& pipe_file);
 static void test_cluster_all(vistk::path_t const& pipe_file);
@@ -240,6 +241,10 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   else if (test_name == "cluster_input_map")
   {
     test_cluster_input_map(pipe_file);
+  }
+  else if (test_name == "cluster_input_multi_map")
+  {
+    test_cluster_input_multi_map(pipe_file);
   }
   else if (test_name == "cluster_output_map")
   {
@@ -850,6 +855,18 @@ test_cluster_config(vistk::path_t const& pipe_file)
 
 void
 test_cluster_input_map(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+void
+test_cluster_input_multi_map(vistk::path_t const& pipe_file)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
