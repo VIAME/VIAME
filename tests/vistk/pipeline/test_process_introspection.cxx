@@ -105,7 +105,8 @@ test_process(vistk::process::type_t const& type)
 
   if (process->type() != type)
   {
-    TEST_ERROR("The type does not match the registry type");
+    TEST_ERROR("Type (" << process->type() << ") "
+               "does not match registry type: " << type);
   }
 
   test_process_properties(process);
