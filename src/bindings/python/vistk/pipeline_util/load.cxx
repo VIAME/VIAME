@@ -375,65 +375,6 @@ load_cluster(object const& stream, std::string const& inc_root)
   return vistk::load_cluster_blocks(istr, vistk::path_t(inc_root));
 }
 
-cluster_subblock_visitor
-::cluster_subblock_visitor(block_t type)
-  : block_type(type)
-{
-}
-
-cluster_subblock_visitor
-::~cluster_subblock_visitor()
-{
-}
-
-object
-cluster_subblock_visitor
-::operator () (vistk::cluster_config_t const& config) const
-{
-  vistk::python::python_gil const gil;
-
-  (void)gil;
-
-  if (block_type == BLOCK_CONFIG)
-  {
-    return object(config);
-  }
-
-  return object();
-}
-
-object
-cluster_subblock_visitor
-::operator () (vistk::cluster_input_t const& input) const
-{
-  vistk::python::python_gil const gil;
-
-  (void)gil;
-
-  if (block_type == BLOCK_INPUT)
-  {
-    return object(input);
-  }
-
-  return object();
-}
-
-object
-cluster_subblock_visitor
-::operator () (vistk::cluster_output_t const& output) const
-{
-  vistk::python::python_gil const gil;
-
-  (void)gil;
-
-  if (block_type == BLOCK_OUTPUT)
-  {
-    return object(output);
-  }
-
-  return object();
-}
-
 pipe_block_visitor
 ::pipe_block_visitor(block_t type)
   : block_type(type)
@@ -515,4 +456,63 @@ pipe_block_visitor
   }
 
   return obj;
+}
+
+cluster_subblock_visitor
+::cluster_subblock_visitor(block_t type)
+  : block_type(type)
+{
+}
+
+cluster_subblock_visitor
+::~cluster_subblock_visitor()
+{
+}
+
+object
+cluster_subblock_visitor
+::operator () (vistk::cluster_config_t const& config) const
+{
+  vistk::python::python_gil const gil;
+
+  (void)gil;
+
+  if (block_type == BLOCK_CONFIG)
+  {
+    return object(config);
+  }
+
+  return object();
+}
+
+object
+cluster_subblock_visitor
+::operator () (vistk::cluster_input_t const& input) const
+{
+  vistk::python::python_gil const gil;
+
+  (void)gil;
+
+  if (block_type == BLOCK_INPUT)
+  {
+    return object(input);
+  }
+
+  return object();
+}
+
+object
+cluster_subblock_visitor
+::operator () (vistk::cluster_output_t const& output) const
+{
+  vistk::python::python_gil const gil;
+
+  (void)gil;
+
+  if (block_type == BLOCK_OUTPUT)
+  {
+    return object(output);
+  }
+
+  return object();
 }
