@@ -38,7 +38,6 @@ tool_main(int argc, char* argv[])
   boost::program_options::options_description desc;
   desc
     .add(tool_common_options())
-    .add(pipe_to_dot_options())
     .add(pipeline_common_options())
     .add(pipeline_input_options())
     .add(pipeline_output_options())
