@@ -35,6 +35,7 @@ using namespace boost::python;
 static vistk::process::type_t cluster_info_type(vistk::cluster_info_t const& self);
 static vistk::process_registry::description_t cluster_info_description(vistk::cluster_info_t const& self);
 static vistk::process_t cluster_info_create(vistk::cluster_info_t const& self, vistk::config_t const& config);
+static vistk::process_t cluster_info_create_default(vistk::cluster_info_t const& self);
 static void register_cluster(vistk::cluster_info_t const& info);
 static vistk::pipeline_t bake_pipe_file(std::string const& path);
 static vistk::pipeline_t bake_pipe(object stream, std::string const& inc_root);
@@ -49,7 +50,9 @@ BOOST_PYTHON_MODULE(bake)
     .def("type", &cluster_info_type)
     .def("description", &cluster_info_description)
     .def("create", &cluster_info_create
-      , (arg("config") = vistk::config::empty_config())
+      , (arg("config"))
+      , "Create an instance of the cluster.")
+    .def("create", &cluster_info_create_default
       , "Create an instance of the cluster.")
   ;
 
@@ -98,6 +101,14 @@ cluster_info_create(vistk::cluster_info_t const& self, vistk::config_t const& co
   vistk::process_ctor_t const& ctor = self->ctor;
 
   return ctor(config);
+}
+
+vistk::process_t
+cluster_info_create_default(vistk::cluster_info_t const& self)
+{
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  return cluster_info_create(self, conf);
 }
 
 void
