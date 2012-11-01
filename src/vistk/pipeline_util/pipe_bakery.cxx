@@ -563,7 +563,7 @@ bakery_base
       }
       else
       {
-        throw unrecognized_config_flag_exception(flag, full_key);
+        throw unrecognized_config_flag_exception(full_key, flag);
       }
     }
   }
