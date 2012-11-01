@@ -702,6 +702,8 @@ cluster_creator
 {
   bakery_base::config_decls_t all_configs = m_bakery.m_configs;
 
+  process::name_t const& name = m_bakery.m_name;
+
   // Append the given configuration to the declarations in the file.
   config::keys_t const& keys = config->available_values();
   BOOST_FOREACH (config::key_t const& key, keys)
@@ -710,7 +712,8 @@ cluster_creator
     bakery_base::config_reference_t const ref = bakery_base::config_reference_t(value);
     bool const is_read_only = config->is_read_only(key);
     bakery_base::config_info_t const info = bakery_base::config_info_t(ref, is_read_only, false, false);
-    bakery_base::config_decl_t const decl = bakery_base::config_decl_t(key, info);
+    config::key_t const full_key = config::key_t(name) + config::block_sep + key;
+    bakery_base::config_decl_t const decl = bakery_base::config_decl_t(full_key, info);
 
     all_configs.push_back(decl);
   }
@@ -732,7 +735,6 @@ cluster_creator
 
   cluster_bakery::cluster_component_info_t const& info = *opt_info;
 
-  process::name_t const& name = m_bakery.m_name;
   config_t const main_config = m_default_config->subblock_view(name);
 
   // Declare configuration values.
