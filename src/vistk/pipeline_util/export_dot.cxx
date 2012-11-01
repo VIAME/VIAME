@@ -43,13 +43,13 @@ static std::string const node_suffix_main = "_main";
 static std::string const node_prefix_input = "_input_";
 static std::string const node_prefix_output = "_output_";
 
-static std::string const style_global = "";
-static std::string const style_process_subgraph = "color=lightgray;style=filled;";
+static std::string const style_global = "clusterrank=local;";
+static std::string const style_process_subgraph = "color=lightgray;style=filled;fillcolor=lightgray;";
 static std::string const style_process = "shape=ellipse,rank=same";
 static std::string const style_cluster = "labelloc=t;labeljust=l;color=black;style=filled;fillcolor=gray;";
 static std::string const style_port = "shape=none,height=0,width=0,fontsize=7";
 static std::string const style_port_edge = "arrowhead=none,color=black";
-static std::string const style_map_edge = "color=gray";
+static std::string const style_map_edge = "color=\"#808080\"";
 static std::string const style_input_port = style_port;
 static std::string const style_input_port_edge = style_port_edge;
 static std::string const style_input_map_edge = style_map_edge;
