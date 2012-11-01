@@ -183,7 +183,7 @@ class VISTK_PIPELINE_EXPORT config
      *
      * \param config The other configuration.
      */
-    void merge_config(config_t config);
+    void merge_config(config_t const& config);
 
     /**
      * \brief Return the values available in the configuration.

@@ -138,12 +138,13 @@ config
 
 void
 config
-::merge_config(config_t conf)
+::merge_config(config_t const& conf)
 {
-  BOOST_FOREACH (store_t::value_type const& value, conf->m_store)
+  config::keys_t const keys = conf->available_values();
+
+  BOOST_FOREACH (key_t const& key, keys)
   {
-    key_t const& key = value.first;
-    value_t const& val = value.second;
+    value_t const& val = conf->get_value<value_t>(key);
 
     set_value(key, val);
   }
