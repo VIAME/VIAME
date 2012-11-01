@@ -438,7 +438,7 @@ test_config_provider_env(vistk::path_t const& pipe_file)
 
   vistk::config_t const config = vistk::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myenv");
+  vistk::config::key_t const mykey = vistk::config::key_t("myblock:myenv");
   vistk::config::value_t const value = config->get_value<vistk::config::value_t>(mykey);
   vistk::config::value_t const expected = vistk::config::value_t("expected");
 
