@@ -151,12 +151,13 @@ warp_image<PixType>
   box_t const dest_bounds(0, dni - 1, 0, dnj - 1);
   box_t const intersection = vgl_intersection(mapped_bbox, dest_bounds);
 
+  d->clear_mask();
+
   if (intersection.is_empty())
   {
-    static std::string const reason = "The intersection of the mapped bbox "
-                                      "and the destination is invalid.";
+    d->apply_mask();
 
-    throw std::runtime_error(reason);
+    return d->dest;
   }
 
   size_t const begin_i = static_cast<size_t>(std::floor(intersection.min_x()));
@@ -191,8 +192,6 @@ warp_image<PixType>
   pixel_t* row_start = d->dest.top_left_ptr();
   row_start += (begin_i * dis);
   row_start += (begin_j * djs);
-
-  d->clear_mask();
 
   for (size_t j = begin_j; j < end_j; ++j, row_start += djs)
   {
