@@ -1,0 +1,21 @@
+cluster multiplier
+  :# Multiply a number by a constant factor.
+  :: multiplier_cluster_test
+  :# The constant factor to multiply by.
+  :factor 20
+  :# The factor to multiply by.
+  imap from factor
+       to   multiply.factor1
+  :# The product.
+  omap from multiply.product
+       to   product
+
+process const
+  :: const_number
+  :value[ro]{CONF} multiplier:factor
+
+process multiply
+  :: multiplication
+
+connect from const.number
+        to   multiply.factor2

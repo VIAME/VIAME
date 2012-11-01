@@ -12,6 +12,12 @@
 
 #include <vistk/utilities/path.h>
 
+#include <vistk/pipeline/modules.h>
+#include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/process_cluster.h>
+
+#include <boost/lexical_cast.hpp>
+
 #include <exception>
 #include <iostream>
 #include <sstream>
@@ -69,6 +75,8 @@ static void test_config_provider_env(vistk::path_t const& pipe_file);
 static void test_config_provider_read_only(vistk::path_t const& pipe_file);
 static void test_config_provider_read_only_override(vistk::path_t const& pipe_file);
 static void test_config_provider_unprovided(vistk::path_t const& pipe_file);
+static void test_pipeline_multiplier(vistk::path_t const& pipe_file);
+static void test_cluster_multiplier(vistk::path_t const& pipe_file);
 
 void
 run_test(std::string const& test_name, vistk::path_t const& pipe_file)
@@ -140,6 +148,14 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   else if (test_name == "config_provider_unprovided")
   {
     test_config_provider_unprovided(pipe_file);
+  }
+  else if (test_name == "pipeline_multiplier")
+  {
+    test_pipeline_multiplier(pipe_file);
+  }
+  else if (test_name == "cluster_multiplier")
+  {
+    test_cluster_multiplier(pipe_file);
   }
   else
   {
@@ -447,4 +463,60 @@ test_config_provider_unprovided(vistk::path_t const& pipe_file)
   EXPECT_EXCEPTION(vistk::unrecognized_provider_exception,
                    vistk::extract_configuration(blocks),
                    "using an unknown provider");
+}
+
+void
+test_pipeline_multiplier(vistk::path_t const& pipe_file)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  vistk::load_known_modules();
+
+  vistk::pipeline_t const pipeline = vistk::bake_pipe_blocks(blocks);
+
+  if (!pipeline)
+  {
+    TEST_ERROR("A pipeline was not created");
+
+    return;
+  }
+
+  pipeline->process_by_name("gen_numbers1");
+  pipeline->process_by_name("gen_numbers2");
+  pipeline->process_by_name("multiply");
+  pipeline->process_by_name("print");
+
+  /// \todo Verify the connections are done properly.
+}
+
+void
+test_cluster_multiplier(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  vistk::load_known_modules();
+
+  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+
+  vistk::process_ctor_t const ctor = info->ctor;
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  config->set_value("factor", boost::lexical_cast<vistk::config::value_t>(30));
+
+  vistk::process_t const proc = ctor(config);
+
+  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  /// \todo Verify the configuration.
+  /// \todo Verify the input mapping.
+  /// \todo Verify the output mapping.
+  /// \todo Verify the connections are done properly.
 }
