@@ -16,6 +16,8 @@
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_inverse.h>
 
+#include <boost/lexical_cast.hpp>
+
 #include <limits>
 #include <stdexcept>
 
@@ -99,8 +101,12 @@ warp_image<PixType>
 
   if (snp != dnp)
   {
-    static std::string const reason = "The source and destination images do "
-                                      "not have the same number of planes";
+    std::string const source_planes = boost::lexical_cast<std::string>(snp);
+    std::string const dest_planes = boost::lexical_cast<std::string>(dnp);
+    std::string const reason = "The source and destination images do "
+                               "not have the same number of planes: "
+                               "source: " + source_planes +
+                               "dest: " + dest_planes;
 
     throw std::runtime_error(reason);
   }
