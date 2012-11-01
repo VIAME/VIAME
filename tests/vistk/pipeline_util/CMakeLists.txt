@@ -2,7 +2,9 @@ project(vistk_test_pipeline_util)
 
 set(libraries
   vistk_pipeline_util
-  vistk_pipeline)
+  vistk_pipeline
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
 
 set(vistk_test_pipelines_directory
   "${vistk_test_data_directory}/pipelines")
@@ -15,11 +17,7 @@ endfunction ()
 ##############################
 # Pipeline loading tests
 ##############################
-set(load_pipe_libraries
-  ${libraries}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
-vistk_build_test(load_pipe load_pipe_libraries test_load_pipe.cxx)
+vistk_build_test(load_pipe libraries test_load_pipe.cxx)
 
 vistk_make_load_test(load_pipe empty)
 vistk_make_load_test(load_pipe comments)
@@ -65,11 +63,7 @@ vistk_make_load_test(load_pipe cluster_all)
 ##############################
 # Export tests
 ##############################
-set(export_dot_libraries
-  ${libraries}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
-vistk_build_test(export_dot export_dot_libraries test_export_dot.cxx)
+vistk_build_test(export_dot libraries test_export_dot.cxx)
 
 vistk_make_load_test(export_dot pipeline_null)
 vistk_make_load_test(export_dot simple_pipeline)
