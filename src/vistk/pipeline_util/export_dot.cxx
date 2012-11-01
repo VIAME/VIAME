@@ -105,69 +105,6 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 }
 
 void
-export_dot_setup(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_name)
-{
-  if (!pipe)
-  {
-    throw null_pipeline_export_dot_exception();
-  }
-
-  if (!pipe->is_setup())
-  {
-    throw pipeline_not_setup_exception();
-  }
-
-  if (!pipe->setup_successful())
-  {
-    throw pipeline_not_ready_exception();
-  }
-
-  ostr << "strict digraph \"" << graph_name << "\" {" << std::endl;
-  ostr << style_global << std::endl;
-
-  process::names_t const proc_names = pipe->process_names();
-
-  // Output nodes
-  BOOST_FOREACH (process::name_t const& name, proc_names)
-  {
-    process_t const proc = pipe->process_by_name(name);
-
-    output_process(ostr, proc);
-  }
-
-  // Output connections
-  BOOST_FOREACH (process::name_t const& name, proc_names)
-  {
-    process_t const proc = pipe->process_by_name(name);
-
-    process::ports_t const oports = proc->output_ports();
-    BOOST_FOREACH (process::port_t const& port, oports)
-    {
-      std::string const node_from_port_name = name + node_prefix_output + port;
-
-      process::port_addrs_t const addrs = pipe->receivers_for_port(name, port);
-
-      BOOST_FOREACH (process::port_addr_t const& addr, addrs)
-      {
-        process::name_t const& recv_name = addr.first;
-        process::port_t const& recv_port = addr.second;
-
-        std::string const node_to_port_name = recv_name + node_prefix_input + recv_port;
-
-        ostr << "\"" << node_from_port_name << "\" -> "
-                "\"" << node_to_port_name << "\" ["
-             << style_connection_edge
-             << "];" << std::endl;
-      }
-    }
-  }
-
-  ostr << std::endl;
-
-  ostr << "}" << std::endl;
-}
-
-void
 output_process(std::ostream& ostr, process_t const& process)
 {
   process::name_t const& name = process->name();

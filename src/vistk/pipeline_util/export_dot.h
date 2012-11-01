@@ -37,22 +37,6 @@ namespace vistk
  */
 void VISTK_PIPELINE_UTIL_EXPORT export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_name);
 
-/**
- * \brief Exports a dot graph for a pipeline.
- *
- * Outputs a DOT formatted graph which represents the pipeline after connections
- * have been resolved.
- *
- * \throws null_pipeline_export_dot_exception Thrown when \p pipe is \c NULL.
- * \throws pipeline_not_setup_exception Thrown when \p pipe is not setup.
- * \throws pipeline_not_ready_exception Thrown when \p pipe has not been setup successfully.
- *
- * \param ostr The stream to export to.
- * \param pipe The pipeline to export.
- * \param graph_name The name of the graph.
- */
-void VISTK_PIPELINE_UTIL_EXPORT export_dot_setup(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_name);
-
 }
 
 #endif // VISTK_PIPELINE_UTIL_EXPORT_DOT_H

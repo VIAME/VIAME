@@ -86,13 +86,9 @@ tool_main(int argc, char* argv[])
   if (vm.count("setup"))
   {
     pipe->setup_pipeline();
+  }
 
-    vistk::export_dot_setup(ostr, pipe, graph_name);
-  }
-  else
-  {
-    vistk::export_dot(ostr, pipe, graph_name);
-  }
+  vistk::export_dot(ostr, pipe, graph_name);
 
   return EXIT_SUCCESS;
 }
