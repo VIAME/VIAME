@@ -79,6 +79,10 @@ vistk_make_load_test(pipe_bakery config_provider_read_only_override)
 vistk_make_load_test(pipe_bakery config_provider_unprovided)
 vistk_make_load_test(pipe_bakery pipeline_multiplier)
 vistk_make_load_test(pipe_bakery cluster_multiplier)
+vistk_make_load_test(pipe_bakery cluster_missing_cluster)
+vistk_make_load_test(pipe_bakery cluster_multiple_cluster)
+vistk_make_load_test(pipe_bakery cluster_duplicate_input)
+vistk_make_load_test(pipe_bakery cluster_duplicate_output)
 
 ##############################
 # Export tests

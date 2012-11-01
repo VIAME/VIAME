@@ -1,0 +1,9 @@
+cluster mycluster
+  :# clusterdesc
+  :: clustertype
+  :# iportdesc
+  imap from iport
+       to   myproc.iport
+  :# iportdesc
+  imap from iport
+       to   myproc.iport2

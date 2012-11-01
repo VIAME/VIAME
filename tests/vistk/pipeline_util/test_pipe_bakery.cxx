@@ -77,6 +77,10 @@ static void test_config_provider_read_only_override(vistk::path_t const& pipe_fi
 static void test_config_provider_unprovided(vistk::path_t const& pipe_file);
 static void test_pipeline_multiplier(vistk::path_t const& pipe_file);
 static void test_cluster_multiplier(vistk::path_t const& pipe_file);
+static void test_cluster_missing_cluster(vistk::path_t const& pipe_file);
+static void test_cluster_multiple_cluster(vistk::path_t const& pipe_file);
+static void test_cluster_duplicate_input(vistk::path_t const& pipe_file);
+static void test_cluster_duplicate_output(vistk::path_t const& pipe_file);
 
 void
 run_test(std::string const& test_name, vistk::path_t const& pipe_file)
@@ -156,6 +160,22 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   else if (test_name == "cluster_multiplier")
   {
     test_cluster_multiplier(pipe_file);
+  }
+  else if (test_name == "cluster_missing_cluster")
+  {
+    test_cluster_missing_cluster(pipe_file);
+  }
+  else if (test_name == "cluster_multiple_cluster")
+  {
+    test_cluster_multiple_cluster(pipe_file);
+  }
+  else if (test_name == "cluster_duplicate_input")
+  {
+    test_cluster_duplicate_input(pipe_file);
+  }
+  else if (test_name == "cluster_duplicate_output")
+  {
+    test_cluster_duplicate_output(pipe_file);
   }
   else
   {
@@ -519,4 +539,54 @@ test_cluster_multiplier(vistk::path_t const& pipe_file)
   /// \todo Verify the input mapping.
   /// \todo Verify the output mapping.
   /// \todo Verify the connections are done properly.
+}
+
+void
+test_cluster_missing_cluster(vistk::path_t const& /*pipe_file*/)
+{
+  vistk::cluster_blocks const blocks;
+
+  EXPECT_EXCEPTION(vistk::missing_cluster_block_exception,
+                   vistk::bake_cluster_blocks(blocks),
+                   "baking a set of cluster blocks without a cluster");
+}
+
+void
+test_cluster_multiple_cluster(vistk::path_t const& /*pipe_file*/)
+{
+  vistk::cluster_blocks blocks;
+
+  vistk::cluster_pipe_block const cluster_pipe_block;
+  vistk::cluster_block const cluster_block = cluster_pipe_block;
+
+  blocks.push_back(cluster_block);
+  blocks.push_back(cluster_block);
+
+  EXPECT_EXCEPTION(vistk::multiple_cluster_blocks_exception,
+                   vistk::bake_cluster_blocks(blocks),
+                   "baking a set of cluster blocks without multiple clusters");
+}
+
+void
+test_cluster_duplicate_input(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  vistk::load_known_modules();
+
+  EXPECT_EXCEPTION(vistk::duplicate_cluster_input_port_exception,
+                   vistk::bake_cluster_blocks(blocks),
+                   "baking a cluster with duplicate input ports");
+}
+
+void
+test_cluster_duplicate_output(vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  vistk::load_known_modules();
+
+  EXPECT_EXCEPTION(vistk::duplicate_cluster_output_port_exception,
+                   vistk::bake_cluster_blocks(blocks),
+                   "baking a cluster with duplicate output ports");
 }
