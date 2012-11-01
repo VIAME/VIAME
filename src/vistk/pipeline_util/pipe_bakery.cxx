@@ -722,6 +722,10 @@ cluster_creator
 
   typedef boost::shared_ptr<loaded_cluster> loaded_cluster_t;
 
+  // Pull out the main config block to the top-level.
+  config_t const cluster_config = full_config->subblock_view(name);
+  full_config->merge_config(cluster_config);
+
   loaded_cluster_t const cluster = boost::make_shared<loaded_cluster>(full_config);
 
   cluster_bakery::opt_cluster_component_info_t const& opt_info = m_bakery.m_cluster;
