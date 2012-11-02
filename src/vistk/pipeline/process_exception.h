@@ -242,11 +242,6 @@ class VISTK_PIPELINE_EXPORT null_input_port_info_exception
      * \brief Destructor.
      */
     ~null_input_port_info_exception() throw();
-
-    /// The name of the \ref process.
-    process::name_t const m_name;
-    /// The name of the port.
-    process::port_t const m_port;
 };
 
 /**
@@ -271,11 +266,6 @@ class VISTK_PIPELINE_EXPORT null_output_port_info_exception
      * \brief Destructor.
      */
     ~null_output_port_info_exception() throw();
-
-    /// The name of the \ref process.
-    process::name_t const m_name;
-    /// The name of the port.
-    process::port_t const m_port;
 };
 
 /**
