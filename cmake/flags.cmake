@@ -8,10 +8,12 @@ function (vistk_check_compiler_flag variable flag)
   if ("have_compiler_flag-${safeflag}")
     if (${variable})
       set(${variable}
-        "${${variable}} ${flag}")
+        "${${variable}} ${flag}"
+        PARENT_SCOPE)
     else ()
       set(${variable}
-        "${flag}")
+        "${flag}"
+        PARENT_SCOPE)
     endif ()
   endif ()
 endfunction ()
