@@ -546,7 +546,12 @@ test_cluster_multiplier(vistk::path_t const& pipe_file)
 void
 test_cluster_missing_cluster(vistk::path_t const& /*pipe_file*/)
 {
-  vistk::cluster_blocks const blocks;
+  vistk::cluster_blocks blocks;
+
+  vistk::process_pipe_block const pipe_block;
+  vistk::cluster_block const block = pipe_block;
+
+  blocks.push_back(block);
 
   EXPECT_EXCEPTION(vistk::missing_cluster_block_exception,
                    vistk::bake_cluster_blocks(blocks),
