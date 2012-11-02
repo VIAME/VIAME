@@ -26,6 +26,9 @@ include(CTest)
 
 add_custom_target(tooling)
 
+cmake_dependent_option(VISTK_ENABLE_CDASH "Enable CDash integration" OFF
+  VISTK_ENABLE_TESTING OFF)
+
 find_program(VALGRIND_EXECUTABLE valgrind)
 
 option(VISTK_ADD_TEST_TARGETS "Add targets for tests to the build system" OFF)
@@ -54,11 +57,15 @@ if (VALGRIND_EXECUTABLE)
       "--verbose")
   endif ()
   if (VISTK_VALGRIND_USE_SUPPRESSIONS)
-    set(vistk_valgrind_arguments
-      ${vistk_valgrind_arguments}
-      "--suppressions=${vistk_source_dir}/tests/data/valgrind/boost.supp"
-      "--suppressions=${vistk_source_dir}/tests/data/valgrind/glibc.supp"
-      "--suppressions=${vistk_source_dir}/tests/data/valgrind/python2.7.supp")
+    file(GLOB
+      valgrind_suppressions
+      "${vistk_source_dir}/tests/data/valgrind/*.supp")
+
+    foreach (valgrind_suppression ${valgrind_suppressions})
+      set(vistk_valgrind_arguments
+        ${vistk_valgrind_arguments}
+        "--suppressions=${valgrind_suppression}")
+    endforeach ()
   endif ()
 
   add_custom_target(valgrind)
@@ -98,8 +105,6 @@ set(test_output_path
   "${test_base_output_path}/${CMAKE_CFG_INTDIR}")
 set(test_working_path
   "${vistk_binary_dir}/tests")
-
-set(BUILDNAME "" CACHE STRING "The build name for CDash submissions")
 
 function (vistk_declare_test testname)
   if (VISTK_ADD_TEST_TARGETS)

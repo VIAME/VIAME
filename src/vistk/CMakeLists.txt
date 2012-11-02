@@ -40,6 +40,11 @@ if (IS_DIRECTORY \"${vistk_source_dir}/.git\")
   if (git_return)
     set(vistk_git_dirty \"dirty\")
   endif ()
+
+  message(STATUS \"version: \${vistk_version}\")
+  message(STATUS \"git hash: \${vistk_git_hash}\")
+  message(STATUS \"git short hash: \${vistk_git_hash_short}\")
+  message(STATUS \"git dirty: \${vistk_git_dirty}\")
 endif ()
 ")
 else ()
@@ -65,6 +70,8 @@ vistk_configure_file_always(version.h
   vistk_git_hash
   vistk_git_hash_short
   vistk_git_dirty)
+
+set(configure_code)
 
 add_subdirectory(pipeline)
 add_subdirectory(utilities)
