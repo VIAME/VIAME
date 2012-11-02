@@ -1,6 +1,5 @@
-cluster multiplier
+cluster multiplier_cluster_test
   :# Multiply a number by a constant factor.
-  :: multiplier_cluster_test
   :# The constant factor to multiply by.
   :factor 20
   :# The factor to multiply by.
@@ -12,7 +11,7 @@ cluster multiplier
 
 process const
   :: const_number
-  :value[ro]{CONF} multiplier:factor
+  :value[ro]{CONF} multiplier_cluster_test:factor
 
 process multiply
   :: multiplication

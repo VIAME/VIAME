@@ -1,5 +1,4 @@
 cluster mycluster
   :# clusterdesc
-  :: clustertype
   imap from iport
        to   proc.iport

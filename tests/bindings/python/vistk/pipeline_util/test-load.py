@@ -121,13 +121,11 @@ def test_api_calls():
     o.output
 
     o = load.ClusterBlock()
-    o.name
-    o.description
     o.type
+    o.description
     o.subblocks
-    o.name = process.ProcessName()
-    o.description = process_registry.ProcessDescription()
     o.type = process.ProcessType()
+    o.description = process_registry.ProcessDescription()
     o.subblocks = load.ClusterSubblocks()
 
     o = load.ClusterDefineBlock()

@@ -151,9 +151,8 @@ BOOST_PYTHON_MODULE(load)
   ;
   class_<vistk::cluster_pipe_block>("ClusterBlock"
     , "A block which declares a cluster within the pipeline.")
-    .def_readwrite("name", &vistk::cluster_pipe_block::name)
-    .def_readwrite("description", &vistk::cluster_pipe_block::description)
     .def_readwrite("type", &vistk::cluster_pipe_block::type)
+    .def_readwrite("description", &vistk::cluster_pipe_block::description)
     .def_readwrite("subblocks", &vistk::cluster_pipe_block::subblocks)
   ;
   class_<vistk::cluster_block>("ClusterDefineBlock"

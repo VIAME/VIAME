@@ -232,7 +232,6 @@ class cluster_bakery
     };
     typedef boost::optional<cluster_component_info_t> opt_cluster_component_info_t;
 
-    process::name_t m_name;
     process::type_t m_type;
     process_registry::description_t m_description;
     opt_cluster_component_info_t m_cluster;
@@ -625,9 +624,8 @@ cluster_bakery
     throw multiple_cluster_blocks_exception();
   }
 
-  m_name = cluster_block_.name;
-  m_description = cluster_block_.description;
   m_type = cluster_block_.type;
+  m_description = cluster_block_.description;
 
   cluster_component_info_t cluster;
 
@@ -644,7 +642,7 @@ cluster_bakery
   {
     config_value_t const& config_value = value.config_value;
 
-    register_config_value(m_name, config_value);
+    register_config_value(m_type, config_value);
   }
 }
 
@@ -702,7 +700,7 @@ cluster_creator
 {
   bakery_base::config_decls_t all_configs = m_bakery.m_configs;
 
-  process::name_t const& name = m_bakery.m_name;
+  process::type_t const& type = m_bakery.m_type;
 
   // Append the given configuration to the declarations in the file.
   config::keys_t const& keys = config->available_values();
@@ -712,7 +710,7 @@ cluster_creator
     bakery_base::config_reference_t const ref = bakery_base::config_reference_t(value);
     bool const is_read_only = config->is_read_only(key);
     bakery_base::config_info_t const info = bakery_base::config_info_t(ref, is_read_only, false, false);
-    config::key_t const full_key = config::key_t(name) + config::block_sep + key;
+    config::key_t const full_key = config::key_t(type) + config::block_sep + key;
     bakery_base::config_decl_t const decl = bakery_base::config_decl_t(full_key, info);
 
     all_configs.push_back(decl);
@@ -723,7 +721,7 @@ cluster_creator
   typedef boost::shared_ptr<loaded_cluster> loaded_cluster_t;
 
   // Pull out the main config block to the top-level.
-  config_t const cluster_config = full_config->subblock_view(name);
+  config_t const cluster_config = full_config->subblock_view(type);
   full_config->merge_config(cluster_config);
 
   loaded_cluster_t const cluster = boost::make_shared<loaded_cluster>(full_config);
@@ -739,7 +737,7 @@ cluster_creator
 
   cluster_bakery::cluster_component_info_t const& info = *opt_info;
 
-  config_t const main_config = m_default_config->subblock_view(name);
+  config_t const main_config = m_default_config->subblock_view(type);
 
   // Declare configuration values.
   BOOST_FOREACH (cluster_config_t const& conf, info.m_configs)
@@ -764,9 +762,9 @@ cluster_creator
   BOOST_FOREACH (bakery_base::process_decl_t const& proc_decl, m_bakery.m_processes)
   {
     process::name_t const& proc_name = proc_decl.first;
-    process::type_t const& type = proc_decl.second;
+    process::type_t const& proc_type = proc_decl.second;
 
-    cluster->add_process(proc_name, type);
+    cluster->add_process(proc_name, proc_type);
   }
 
   // Add input ports.

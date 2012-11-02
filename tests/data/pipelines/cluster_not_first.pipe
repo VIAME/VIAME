@@ -2,7 +2,6 @@ config myblock
 
 cluster mycluster
   :# clusterdesc
-  :: clustertype
   :# oport desc
   omap from myproc.oport
        to   oport

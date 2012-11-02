@@ -1,13 +1,11 @@
 cluster mycluster
   :# clusterdesc
-  :: clustertype
   :# oport desc
   omap from myproc.oport
        to   oport
 
 cluster mycluster2
   :# clusterdesc
-  :: clustertype
   :# oport desc
   omap from myproc.oport
        to   oport

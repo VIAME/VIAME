@@ -1,4 +1,3 @@
 cluster mycluster
   :# clusterdesc
-  :: clustertype
   :mykey myvalue

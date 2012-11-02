@@ -185,12 +185,10 @@ typedef std::vector<cluster_subblock_t> cluster_subblocks_t;
  */
 struct cluster_pipe_block
 {
-  /// The name of the cluster.
-  process::name_t name;
-  /// The description of the cluster.
-  process_registry::description_t description;
   /// The type of the cluster.
   process::type_t type;
+  /// The description of the cluster.
+  process_registry::description_t description;
   /// Subblocks of the cluster.
   cluster_subblocks_t subblocks;
 };

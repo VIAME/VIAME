@@ -90,9 +90,8 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
   vistk::cluster_pipe_block,
-  (vistk::process::name_t, name)
-  (vistk::process_registry::description_t, description)
   (vistk::process::type_t, type)
+  (vistk::process_registry::description_t, description)
   (vistk::cluster_subblocks_t, subblocks)
 )
 
@@ -574,13 +573,10 @@ cluster_grammar<Iterator>
      (  common.opt_whitespace
      >> qi::lit(cluster_block_name)
      >  common.whitespace
-     >  common.process_name
+     >  common.type_name
      >  common.line_end
      >  common.opt_whitespace
      >  description_decl
-     >  common.line_end
-     >  common.opt_whitespace
-     >  common.type_decl
      >  common.line_end
      > *(  cluster_config_block
         |  cluster_input_block

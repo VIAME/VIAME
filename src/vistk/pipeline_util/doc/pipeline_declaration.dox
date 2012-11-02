@@ -255,7 +255,6 @@
  *   <cluster-decls>            ::= <cluster-decl> <cluster-decls> | ""
  *   <cluster-block-spec>       ::= <opt-whitespace> "cluster" <whitespace> <key-component> <line-end>
  *                                  <opt-whitespace> <description-decl> <line-end>
- *                                  <opt-whitespace> <type-decl> <line-end>
  *                                  <cluster-decls>
  * </pre>
  *
