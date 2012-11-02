@@ -82,6 +82,8 @@ static void test_cluster_multiple_cluster(vistk::path_t const& pipe_file);
 static void test_cluster_duplicate_input(vistk::path_t const& pipe_file);
 static void test_cluster_duplicate_output(vistk::path_t const& pipe_file);
 
+/// \todo Add tests for clusters without ports or processes.
+
 void
 run_test(std::string const& test_name, vistk::path_t const& pipe_file)
 {

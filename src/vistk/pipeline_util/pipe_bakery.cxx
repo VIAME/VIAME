@@ -259,11 +259,34 @@ bake_cluster_blocks(cluster_blocks const& blocks)
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
 
+  if (bakery.m_processes.empty())
+  {
+    /// \todo Throw an exception.
+
+    return cluster_info_t();
+  }
+
   cluster_bakery::opt_cluster_component_info_t const& opt_cluster = bakery.m_cluster;
 
   if (!opt_cluster)
   {
     throw missing_cluster_block_exception();
+  }
+
+  cluster_bakery::cluster_component_info_t const& cluster = *opt_cluster;
+
+  if (cluster.m_inputs.empty())
+  {
+    /// \todo Throw an exception.
+
+    return cluster_info_t();
+  }
+
+  if (cluster.m_outputs.empty())
+  {
+    /// \todo Throw an exception.
+
+    return cluster_info_t();
   }
 
   bakery_base::config_decls_t& configs = bakery.m_configs;
