@@ -27,7 +27,8 @@
       got_exception = true;                 \
                                             \
       std::cerr << "Expected exception: "   \
-                << e.what();                \
+                << e.what()                 \
+                << std::endl;               \
     }                                       \
     catch (std::exception const& e)         \
     {                                       \
