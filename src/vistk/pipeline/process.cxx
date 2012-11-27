@@ -1405,7 +1405,7 @@ process::priv
 
     frequency_component_t const rel_count = freq.numerator();
 
-    for (frequency_component_t j = 1; j < rel_count; ++j)
+    for (frequency_component_t j = 0; j < rel_count; ++j)
     {
       edge_datum_t const edat = iedge->peek_datum(j);
 
