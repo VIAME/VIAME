@@ -70,6 +70,8 @@ function (vistk_configure_file name source dest)
   add_custom_target(configure-${name} ${all}
     DEPENDS "${dest}"
     SOURCES "${source}")
+  source_group("Configured Files"
+    FILES "${source}")
   add_dependencies(configure
     configure-${name})
 endfunction ()
