@@ -68,7 +68,7 @@ else ()
     if (gcc_version VERSION_GREATER "4.7.0" AND
         gcc_version VERSION_LESS "4.7.2")
       if (VISTK_ENABLE_CXX11)
-        message(ERROR
+        message(SEND_ERROR
           "C++11 ABI is broken with GCC 4.7.0 and 4.7.1."
           "Refusing to enable C++11 support.")
       endif ()
