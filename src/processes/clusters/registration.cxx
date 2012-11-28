@@ -35,11 +35,22 @@
 
 using namespace vistk;
 
-static std::string const default_include_dirs = std::string(DEFAULT_CLUSTER_PATHS);
+namespace
+{
+
+#if defined(_WIN32) || defined(_WIN64)
+typedef std::wstring cluster_path_t;
+#else
+typedef std::string cluster_path_t;
+#endif
+
+}
+
+static cluster_path_t const default_include_dirs = cluster_path_t(DEFAULT_CLUSTER_PATHS);
 static envvar_name_t const vistk_include_envvar = envvar_name_t("VISTK_CLUSTER_PATH");
 static std::string const pipe_suffix = std::string(".cluster");
 
-static bool is_separator(char ch);
+static bool is_separator(cluster_path_t::value_type ch);
 
 void
 register_processes()
@@ -159,9 +170,9 @@ register_processes()
 }
 
 bool
-is_separator(char ch)
+is_separator(cluster_path_t::value_type ch)
 {
-  char const separator =
+  cluster_path_t::value_type const separator =
 #if defined(_WIN32) || defined(_WIN64)
     ';';
 #else
