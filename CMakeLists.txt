@@ -262,6 +262,7 @@ link_directories(${VXL_LIBRARY_DIR})
 
 find_package(Git)
 
+include("${vistk_source_dir}/cmake/boost_tests.cmake")
 include("${vistk_source_dir}/cmake/vxl_tests.cmake")
 
 include("${vistk_source_dir}/cmake/configure.cmake")
