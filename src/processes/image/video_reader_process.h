@@ -32,6 +32,7 @@ namespace vistk
  * \oports
  *
  * \oport{image} The frame.
+ * \oport{timestamp} The timestamp for the image.
  *
  * \configs
  *

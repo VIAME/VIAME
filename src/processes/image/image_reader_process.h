@@ -32,6 +32,7 @@ namespace vistk
  * \oports
  *
  * \oport{image} The image read in for the step.
+ * \oport{timestamp} The timestamp for the image.
  *
  * \configs
  *
