@@ -75,7 +75,8 @@ set_target_properties(processes_test
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    PREFIX                   "")
+    PREFIX                   ""
+    SUFFIX                   ${CMAKE_SHARED_MODULE_SUFFIX})
 
 vistk_build_test(modules libraries test_modules.cxx)
 
