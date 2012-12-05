@@ -91,7 +91,7 @@ class VISTK_PIPELINE_EXPORT process
     /// The type for the type of data on a port.
     typedef std::string port_type_t;
     /// The type for the component of a frequency.
-    typedef uint64_t frequency_component_t;
+    typedef size_t frequency_component_t;
     /// The type for the frequency of data on a port.
     typedef boost::rational<frequency_component_t> port_frequency_t;
     /// The type for a flag on a port.
