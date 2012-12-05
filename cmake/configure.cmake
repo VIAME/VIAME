@@ -67,13 +67,15 @@ function (vistk_configure_file name source dest)
     WORKING_DIRECTORY
             "${CMAKE_CURRENT_BINARY_DIR}"
     COMMENT "Configuring ${name} file \"${source}\" -> \"${dest}\"")
-  add_custom_target(configure-${name} ${all}
-    DEPENDS "${dest}"
-    SOURCES "${source}")
-  source_group("Configured Files"
-    FILES "${source}")
-  add_dependencies(configure
-    configure-${name})
+  if (NOT no_configure_target)
+    add_custom_target(configure-${name} ${all}
+      DEPENDS "${dest}"
+      SOURCES "${source}")
+    source_group("Configured Files"
+      FILES "${source}")
+    add_dependencies(configure
+      configure-${name})
+  endif ()
 endfunction ()
 
 function (vistk_configure_file_always name source dest)
