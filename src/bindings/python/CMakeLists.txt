@@ -20,18 +20,36 @@ find_package(Boost ${vistk_boost_version} REQUIRED
 find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
+set(boost_header_targets)
+
 option(VISTK_ENABLE_BOOST_PYTHON_FIXES "Enables fixes for Boost.Python bugs (recommended)" ON)
 mark_as_advanced(VISTK_ENABLE_BOOST_PYTHON_FIXES)
 if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
   # Not fixed yet.
   #if (${Boost_VERSION} LESS 10XX00)
     # Override Boost's invoke.hpp
-    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/threading")
+    set(reldir "helpers/include/threading")
+    set(target_name "boost-python-invoke.hpp")
+    vistk_configure_directory(${target_name}
+      "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
+      "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
+    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_BINARY_DIR}/${reldir}")
+    set(boost_header_targets
+      ${boost_header_targets}
+      ${target_name})
   #endif ()
   # Not fixed yet.
   #if (${Boost_VERSION} LESS 10XX00)
     # Override Boost's override.hpp
-    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/exceptions_in_override")
+    set(reldir "helpers/include/exceptions_in_override")
+    set(target_name "boost-python-override.hpp")
+    vistk_configure_directory(${target_name}
+      "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
+      "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
+    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_BINARY_DIR}/${reldir}")
+    set(boost_header_targets
+      ${boost_header_targets}
+      ${target_name})
   #endif ()
 endif ()
 
@@ -60,6 +78,10 @@ function (add_vistk_python_library name modpath)
       PREFIX      ""
       SUFFIX      ${pysuffix})
 
+  if (boost_header_targets)
+    add_dependencies(python-${safe_modpath}-${name}
+      ${boost_header_targets})
+  endif (boost_header_targets)
   add_dependencies(python
     python-${safe_modpath}-${name})
 endfunction ()

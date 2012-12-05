@@ -6,12 +6,22 @@ find_package(Boost ${vistk_boost_version} REQUIRED
   COMPONENTS
     program_options)
 
+set(boost_header_targets)
+
 option(VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES "Enables fixes for boost::program_options bugs (recommended)" ON)
 mark_as_advanced(VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
 if (VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
   if (${Boost_VERSION} LESS 105000)
     # Override Boost's value_semantic.hpp
-    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/helpers/include/value_name")
+    set(reldir "helpers/include/value_name")
+    set(target_name "boost-program_options-value_semantic.hpp")
+    vistk_configure_directory(${target_name}
+      "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
+      "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
+    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_BINARY_DIR}/${reldir}")
+    set(boost_header_targets
+      ${boost_header_targets}
+      ${target_name})
   endif ()
 endif ()
 
@@ -24,6 +34,10 @@ function (add_tool name)
     ${name}.cxx)
   target_link_libraries(${name}
     ${ARGN})
+  if (boost_header_targets)
+    add_dependencies(${name}
+      ${boost_header_targets})
+  endif (boost_header_targets)
 endfunction ()
 
 function (add_python_tool name)
