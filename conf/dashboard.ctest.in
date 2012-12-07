@@ -89,6 +89,7 @@ else ()
       COMMAND           "@GIT_EXECUTABLE@"
                         diff
                         --exit-code
+                        HEAD
       WORKING_DIRECTORY "${CTEST_SOURCE_DIRECTORY}"
       RESULT_VARIABLE   git_return
       OUTPUT_VARIABLE   git_diff)
