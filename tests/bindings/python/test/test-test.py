@@ -49,6 +49,22 @@ def test_unexpected_exception():
                      raise_exception)
 
 
+def test_environment():
+    import os
+
+    envvar = 'TEST_ENVVAR'
+
+    if envvar not in os.environ:
+        test_error('failed to get environment from CTest')
+    else:
+        expected = 'test_value'
+
+        envvalue = os.environ[envvar]
+
+        if envvalue != expected:
+            test_error('did not get expected value')
+
+
 if __name__ == '__main__':
     import os
     import sys
@@ -71,6 +87,7 @@ if __name__ == '__main__':
         , 'error_string_second_line': test_error_string_second_line
         , 'expected_exception': test_expected_exception
         , 'unexpected_exception': test_unexpected_exception
+        , 'environment': test_environment
         }
 
     from vistk.test.test import *
