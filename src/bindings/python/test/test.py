@@ -10,11 +10,11 @@ def test_error(msg):
     sys.stderr.write("Error: %s\n" % msg)
 
 
-def expect_exception(action, kind, func, *args):
+def expect_exception(action, kind, func, *args, **kwargs):
     got_exception = False
 
     try:
-        func(*args)
+        func(*args, **kwargs)
     except kind:
         got_exception = True
     except BaseException as e:
