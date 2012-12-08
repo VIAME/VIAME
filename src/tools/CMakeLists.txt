@@ -18,6 +18,9 @@ if (VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
     vistk_configure_directory(${target_name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
       "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
+    if (NOT BOOST_MANGLE_NAMESPACE STREQUAL "boost")
+      include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}")
+    endif ()
     include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_BINARY_DIR}/${reldir}")
     set(boost_header_targets
       ${boost_header_targets}
