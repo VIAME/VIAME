@@ -7,6 +7,17 @@
 #ifndef VISTK_TEST_TEST_COMMON_H
 #define VISTK_TEST_TEST_COMMON_H
 
+#include <boost/function.hpp>
+
+#include <exception>
+#include <iostream>
+#include <map>
+#include <string>
+
+#include <cstdlib>
+
+typedef std::string testname_t;
+
 #define TEST_ERROR(msg)                         \
   do                                            \
   {                                             \
@@ -50,6 +61,65 @@
                  "expected exception when " \
                  << action);                \
     }                                       \
+  } while (false)
+
+#define CHECK_ARGS(numargs)        \
+  do                               \
+  {                                \
+    if (argc != (numargs + 1))     \
+    {                              \
+      TEST_ERROR("Expected "       \
+                 << numargs        \
+                 << " arguments"); \
+                                   \
+      return EXIT_FAILURE;         \
+    }                              \
+  } while (false)
+
+#define DECLARE_TEST(testname) \
+  static void test_##testname TEST_ARGS
+
+#define ADD_TEST(tests, testname) \
+  tests[#testname] = test_##testname
+
+#define IMPLEMENT_TEST(testname) \
+  void                           \
+  test_##testname TEST_ARGS
+
+#define DECLARE_TEST_MAP(tests)                             \
+  typedef boost::function<void TEST_ARGS> test_function_t;  \
+  typedef std::map<testname_t, test_function_t> test_map_t; \
+                                                            \
+  test_map_t tests
+
+#define RUN_TEST(tests, testname, ...)          \
+  do                                            \
+  {                                             \
+    test_map_t::const_iterator const i =        \
+      tests.find(testname);                     \
+                                                \
+    if (i == tests.end())                       \
+    {                                           \
+      TEST_ERROR("Unknown test: " << testname); \
+                                                \
+      return EXIT_FAILURE;                      \
+    }                                           \
+                                                \
+    test_function_t const& func = i->second;    \
+                                                \
+    try                                         \
+    {                                           \
+      func(__VA_ARGS__);                        \
+    }                                           \
+    catch (std::exception const& e)             \
+    {                                           \
+      TEST_ERROR("Unexpected exception: "       \
+                 << e.what());                  \
+                                                \
+      return EXIT_FAILURE;                      \
+    }                                           \
+                                                \
+    return EXIT_SUCCESS;                        \
   } while (false)
 
 #endif // VISTK_TEST_TEST_COMMON_H
