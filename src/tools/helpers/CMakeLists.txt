@@ -6,7 +6,7 @@ function (add_tool_helper_library name)
   if (boost_header_targets)
     add_dependencies(${name}
       ${boost_header_targets})
-  endif (boost_header_targets)
+  endif ()
 endfunction ()
 
 add_tool_helper_library(tool_usage
