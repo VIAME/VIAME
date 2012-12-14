@@ -78,19 +78,6 @@ class VISTK_UTILITIES_EXPORT utm_zone_t
     hemisphere_t hemisphere() const;
 
     /**
-     * \brief Set the utm zone.
-     *
-     * \param z The zone.
-     */
-    void set_zone(zone_t z);
-    /**
-     * \brief Set the hemisphere of the zone.
-     *
-     * \param h The hemisphere.
-     */
-    void set_hemisphere(hemisphere_t h);
-
-    /**
      * \brief Equality operator for utm zones.
      *
      * \param utm The zone to compare to.

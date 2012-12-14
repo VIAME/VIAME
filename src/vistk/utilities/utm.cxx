@@ -50,20 +50,6 @@ utm_zone_t
   return m_hemisphere;
 }
 
-void
-utm_zone_t
-::set_zone(zone_t z)
-{
-  m_zone = z;
-}
-
-void
-utm_zone_t
-::set_hemisphere(hemisphere_t h)
-{
-  m_hemisphere = h;
-}
-
 bool
 utm_zone_t
 ::operator == (utm_zone_t const& utm) const
