@@ -1,6 +1,5 @@
 cluster warp
   :# Warp an image
-  :: warp
   :# The pixtype of the images to warp.
   :pixtype byte
   :# The pixfmt of the images to warp.
