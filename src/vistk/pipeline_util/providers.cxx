@@ -18,6 +18,13 @@
 #include <boost/thread/thread.hpp>
 #include <boost/lexical_cast.hpp>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <process.h>
+#else
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 /**
  * \file providers.cxx
  *
@@ -100,6 +107,16 @@ system_provider
     path_t::string_type const& raw_path = curdir.native();
 
     value = config::value_t(raw_path.begin(), raw_path.end());
+  }
+  else if (index == "pid")
+  {
+#if defined(_WIN32) || defined(_WIN64)
+    int const pid = _getpid();
+#else
+    pid_t const pid = getpid();
+#endif
+
+    value = boost::lexical_cast<config::value_t>(pid);
   }
   else
   {
