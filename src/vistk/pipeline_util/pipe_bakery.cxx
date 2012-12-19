@@ -787,7 +787,9 @@ cluster_creator
     process::name_t const& proc_name = proc_decl.first;
     process::type_t const& proc_type = proc_decl.second;
 
-    cluster->add_process(proc_name, proc_type);
+    config_t const proc_config = full_config->subblock_view(proc_name);
+
+    cluster->add_process(proc_name, proc_type, proc_config);
   }
 
   // Add input ports.
