@@ -50,9 +50,11 @@ static std::string const style_cluster = "labelloc=t;labeljust=l;color=black;sty
 static std::string const style_port = "shape=none,height=0,width=0,fontsize=7";
 static std::string const style_port_edge = "arrowhead=none,color=black";
 static std::string const style_map_edge = "color=\"#808080\"";
+static std::string const style_input_subgraph = "clusterrank=local;rankdir=BT;";
 static std::string const style_input_port = style_port;
 static std::string const style_input_port_edge = style_port_edge;
 static std::string const style_input_map_edge = style_map_edge;
+static std::string const style_output_subgraph = "clusterrank=local;rankdir=BT;";
 static std::string const style_output_port = style_port;
 static std::string const style_output_port_edge = style_port_edge;
 static std::string const style_output_map_edge = style_map_edge;
@@ -298,6 +300,12 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
 
   typedef std::set<process::port_t> unique_ports_t;
 
+  ostr << "subgraph \"cluster_" << name << "_inputs\" {" << std::endl;
+
+  ostr << style_input_subgraph << std::endl;
+
+  ostr << std::endl;
+
   // Input ports
   process::connections_t const input_mappings = cluster->input_mappings();
   unique_ports_t input_ports;
@@ -311,15 +319,33 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
 
     unique_ports_t::const_iterator const i = input_ports.find(port);
 
-    if (i == input_ports.end())
+    if (i != input_ports.end())
     {
-      ostr << "\"" << node_port_name << "\" ["
-              "label=\"" << port << "\","
-           << style_input_port
-           << "];" << std::endl;
-
-      input_ports.insert(port);
+      continue;
     }
+
+    ostr << "\"" << node_port_name << "\" ["
+            "label=\"" << port << "\","
+         << style_input_port
+         << "];" << std::endl;
+
+    input_ports.insert(port);
+  }
+
+  ostr << std::endl;
+
+  ostr << "}" << std::endl;
+
+  ostr << std::endl;
+
+  BOOST_FOREACH (process::connection_t const& input_mapping, input_mappings)
+  {
+    process::port_addr_t const& upstream_addr = input_mapping.first;
+    process::port_addr_t const& downstream_addr = input_mapping.second;
+
+    process::port_t const& port = upstream_addr.second;
+
+    std::string const node_port_name = name + node_prefix_input + port;
 
     // Connect mapped ports.
     process::name_t const& mapped_name = downstream_addr.first;
@@ -335,6 +361,12 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
     ostr << std::endl;
   }
 
+  ostr << "subgraph \"cluster_" << name << "_outputs\" {" << std::endl;
+
+  ostr << style_output_subgraph << std::endl;
+
+  ostr << std::endl;
+
   // Output ports
   process::connections_t const output_mappings = cluster->output_mappings();
   unique_ports_t output_ports;
@@ -348,15 +380,32 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
 
     unique_ports_t::const_iterator const i = output_ports.find(port);
 
-    if (i == output_ports.end())
+    if (i != output_ports.end())
     {
-      ostr << "\"" << node_port_name << "\" ["
-              "label=\"" << port << "\","
-           << style_output_port
-           << "];" << std::endl;
-
-      output_ports.insert(port);
+      continue;
     }
+    ostr << "\"" << node_port_name << "\" ["
+            "label=\"" << port << "\","
+         << style_output_port
+         << "];" << std::endl;
+
+    output_ports.insert(port);
+  }
+
+  ostr << std::endl;
+
+  ostr << "}" << std::endl;
+
+  ostr << std::endl;
+
+  BOOST_FOREACH (process::connection_t const& output_mapping, output_mappings)
+  {
+    process::port_addr_t const& upstream_addr = output_mapping.first;
+    process::port_addr_t const& downstream_addr = output_mapping.second;
+
+    process::port_t const& port = downstream_addr.second;
+
+    std::string const node_port_name = name + node_prefix_output + port;
 
     // Connect mapped port.
     process::name_t const& mapped_name = upstream_addr.first;
