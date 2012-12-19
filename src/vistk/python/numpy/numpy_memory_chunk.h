@@ -11,13 +11,15 @@
 
 #include <vil/vil_memory_chunk.h>
 
+#include <Python.h>
+
+#include <numpy/arrayobject.h>
+
 /**
  * \file numpy_memory_chunk.h
  *
  * \brief Declaration of a NumPy-managed memory chunk for vxl.
  */
-
-struct PyArrayObject;
 
 /**
  * \class numpy_memory_chunk numpy_memory_chunk.h <vistk/python/numpy/numpy_memory_chunk.h>

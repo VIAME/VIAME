@@ -9,7 +9,9 @@
 
 #include <vil/vil_memory_chunk.h>
 
-struct PyArrayObject;
+#include <Python.h>
+
+#include <numpy/arrayobject.h>
 
 class numpy_memory_chunk
   : public vil_memory_chunk
