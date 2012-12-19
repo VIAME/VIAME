@@ -102,17 +102,19 @@ function (vistk_add_library name)
       runtime)
   endif ()
 
-  set(exports)
+  if (NOT no_export)
+    set(exports)
 
-  if ("${library_subdir}" STREQUAL "")
-    set(exports
-      EXPORT vistk_exports)
+    if ("${library_subdir}" STREQUAL "")
+      set(exports
+        EXPORT vistk_exports)
+    endif ()
+
+    export(
+      TARGETS ${name}
+      APPEND
+      FILE    "${vistk_export_file}")
   endif ()
-
-  export(
-    TARGETS ${name}
-    APPEND
-    FILE    "${vistk_export_file}")
 
   get_target_property(target_type
     ${name} TYPE)
