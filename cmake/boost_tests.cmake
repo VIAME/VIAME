@@ -33,6 +33,7 @@ main()
     "${boost_mangle_namespace_path}"
     CMAKE_FLAGS         "-DINCLUDE_DIRECTORIES=${Boost_INCLUDE_DIRS}"
     RUN_OUTPUT_VARIABLE boost_detect_mangle_namespace)
+  string(STRIP "${boost_detect_mangle_namespace}" boost_detect_mangle_namespace)
   set(BOOST_MANGLE_NAMESPACE "${boost_detect_mangle_namespace}"
     CACHE INTERNAL "The detected mangled boost namespace")
 endif ()
