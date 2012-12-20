@@ -67,13 +67,15 @@ function (vistk_configure_file name source dest)
     WORKING_DIRECTORY
             "${CMAKE_CURRENT_BINARY_DIR}"
     COMMENT "Configuring ${name} file \"${source}\" -> \"${dest}\"")
-  add_custom_target(configure-${name} ${all}
-    DEPENDS "${dest}"
-    SOURCES "${source}")
-  source_group("Configured Files"
-    FILES "${source}")
-  add_dependencies(configure
-    configure-${name})
+  if (NOT no_configure_target)
+    add_custom_target(configure-${name} ${all}
+      DEPENDS "${dest}"
+      SOURCES "${source}")
+    source_group("Configured Files"
+      FILES "${source}")
+    add_dependencies(configure
+      configure-${name})
+  endif ()
 endfunction ()
 
 function (vistk_configure_file_always name source dest)
@@ -81,6 +83,44 @@ function (vistk_configure_file_always name source dest)
     "${dest}.noexist")
 
   vistk_configure_file(${name} "${source}" "${dest}" ${ARGN})
+endfunction ()
+
+function (vistk_configure_directory name sourcedir destdir)
+  set(no_configure_target TRUE)
+
+  file(GLOB_RECURSE sources
+    RELATIVE "${sourcedir}"
+    "${sourcedir}/*")
+
+  set(count 0)
+  set(source_paths)
+  set(dest_paths)
+
+  foreach (source ${sources})
+    set(source_path
+      "${sourcedir}/${source}")
+    set(dest_path
+      "${destdir}/${source}")
+
+    vistk_configure_file(${name}-${count}
+      "${source_path}"
+      "${dest_path}")
+
+    set(source_paths
+      ${source_paths}
+      "${source_path}")
+    set(dest_paths
+      ${dest_paths}
+      "${dest_path}")
+
+    math(EXPR count "${count} + 1")
+  endforeach ()
+
+  add_custom_target(configure-${name} ${all}
+    DEPENDS ${dest_paths}
+    SOURCES ${source_paths})
+  add_dependencies(configure
+    configure-${name})
 endfunction ()
 
 function (vistk_configure_pkgconfig module)

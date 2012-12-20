@@ -17,6 +17,7 @@
 
 #include <vistk/utilities/path.h>
 
+#include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
 
 #include <fstream>
