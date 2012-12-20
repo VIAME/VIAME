@@ -12,10 +12,6 @@
 
 #include <vil/vil_pixel_format.h>
 
-#include <Python.h>
-
-#include <numpy/arrayobject.h>
-
 static vil_pixel_format convert_format(int numpy_format);
 
 numpy_memory_chunk

@@ -10,10 +10,6 @@
 
 #include <vistk/python/util/python_gil.h>
 
-#include <Python.h>
-
-#include <numpy/arrayobject.h>
-
 /**
  * \file numpy_memory_chunk.cxx
  *
