@@ -145,6 +145,15 @@ process_cluster
 {
   d->ensure_name(name_);
 
+  process_t const& proc = d->processes[name_];
+
+  if (!proc->input_port_info(mapped_port))
+  {
+    throw no_such_port_exception(name_, mapped_port);
+
+    return;
+  }
+
   name_t const real_name = convert_name(name(), name_);
 
   port_addr_t const cluster_addr = port_addr_t(name(), port);
@@ -160,6 +169,15 @@ process_cluster
 ::output_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
   d->ensure_name(name_);
+
+  process_t const& proc = d->processes[name_];
+
+  if (!proc->output_port_info(mapped_port))
+  {
+    throw no_such_port_exception(name_, mapped_port);
+
+    return;
+  }
 
   name_t const real_name = convert_name(name(), name_);
 
