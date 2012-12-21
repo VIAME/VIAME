@@ -31,11 +31,8 @@
  * \brief Implementation of the read video gravl process.
  */
 
-static size_t sabs(ptrdiff_t a);
 static size_t compute_block_size(gravl::image::dimension dim,
                                  gravl::image::stride s);
-static ptrdiff_t compute_offset(gravl::image::dimension dim,
-                                gravl::image::stride s);
 template <typename T> static T* compute_block_start(
   T* top_left, gravl::image::dimension dim, gravl::image::stride s);
 template <typename T> static T* compute_top_left(
