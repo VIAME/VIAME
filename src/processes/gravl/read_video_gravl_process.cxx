@@ -125,7 +125,7 @@ read_video_gravl_process
   if (d->uri.empty())
   {
     static std::string const reason = "The URI given was empty";
-    config::value_t const value = config::value_t(d->uri.begin(), d->uri.end());
+    config::value_t const value = config::value_t(d->uri);
 
     throw invalid_configuration_value_exception(name(), priv::config_uri, value, reason);
   }
@@ -141,7 +141,7 @@ read_video_gravl_process
   d->video = d->resource.get_data<gravl::data_block>();
   if (!d->video)
   {
-    std::string const reason = "Failed to obtain data_block from resource";
+    static std::string const reason = "Failed to obtain data_block from resource";
 
     throw invalid_configuration_exception(name(), reason);
   }
