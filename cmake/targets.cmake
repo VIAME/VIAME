@@ -76,9 +76,11 @@ function (vistk_add_executable name)
       runtime)
   endif ()
 
+  vistk_export(${name})
+
   vistk_install(
     TARGETS     ${name}
-    EXPORT      vistk_exports
+    ${exports}
     DESTINATION bin
     COMPONENT   ${component})
 endfunction ()
