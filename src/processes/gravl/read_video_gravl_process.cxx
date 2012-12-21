@@ -31,46 +31,15 @@
  * \brief Implementation of the read video gravl process.
  */
 
-namespace
-{
-
-size_t sabs(ptrdiff_t a)
-{
-  return static_cast<size_t>((a < 0 ? -a : a));
-}
-
-size_t compute_block_size(gravl::image::dimension dim, gravl::image::stride s)
-{
-  return ((dim.width  - 1) * sabs(s.width)) +
-         ((dim.height - 1) * sabs(s.height)) +
-         ((dim.planes - 1) * sabs(s.planes)) + 1;
-}
-
-ptrdiff_t compute_offset(gravl::image::dimension dim, gravl::image::stride s)
-{
-  ptrdiff_t result = 0;
-  if (s.width < 0)
-    result -= s.width * (dim.width - 1);
-  if (s.height < 0)
-    result -= s.height * (dim.height - 1);
-  if (s.planes < 0)
-    result -= s.planes * (dim.planes - 1);
-  return result;
-}
-
-template <typename T> T* compute_block_start(
-  T* top_left, gravl::image::dimension dim, gravl::image::stride s)
-{
-  return top_left - compute_offset(dim, s);
-}
-
-template <typename T> T* compute_top_left(
-  T* top_left, gravl::image::dimension dim, gravl::image::stride s)
-{
-  return top_left + compute_offset(dim, s);
-}
-
-}
+static size_t sabs(ptrdiff_t a);
+static size_t compute_block_size(gravl::image::dimension dim,
+                                 gravl::image::stride s);
+static ptrdiff_t compute_offset(gravl::image::dimension dim,
+                                gravl::image::stride s);
+template <typename T> static T* compute_block_start(
+  T* top_left, gravl::image::dimension dim, gravl::image::stride s);
+template <typename T> static T* compute_top_left(
+  T* top_left, gravl::image::dimension dim, gravl::image::stride s);
 
 namespace vistk
 {
@@ -83,8 +52,8 @@ class read_video_gravl_process::priv
 
     std::string const uri;
 
-    gravl::resource_ptr the_resource;
-    gravl::data_block* the_video;
+    gravl::resource_ptr resource;
+    gravl::data_block* video;
 
     static config::key_t const config_pixtype;
     static config::key_t const config_pixfmt;
@@ -161,16 +130,16 @@ read_video_gravl_process
     throw invalid_configuration_value_exception(name(), priv::config_uri, value, reason);
   }
 
-  d->the_resource = gravl::raf::get_resource(d->uri.c_str());
-  if (!d->the_resource)
+  d->resource = gravl::raf::get_resource(d->uri.c_str());
+  if (!d->resource)
   {
     std::string const reason = "Failed to open the resource: " + d->uri;
 
     throw invalid_configuration_exception(name(), reason);
   }
 
-  d->the_video = d->the_resource.get_data<gravl::data_block>();
-  if (!d->the_video)
+  d->video = d->resource.get_data<gravl::data_block>();
+  if (!d->video)
   {
     std::string const reason = "Failed to obtain data_block from resource";
 
@@ -184,7 +153,7 @@ void
 read_video_gravl_process
 ::_init()
 {
-  d->the_video->rewind();
+  d->video->rewind();
 
   process::_init();
 }
@@ -195,12 +164,12 @@ read_video_gravl_process
 {
   datum_t dat;
 
-  if (d->the_video->at_end())
+  if (d->video->at_end())
   {
     mark_process_as_complete();
     dat = datum::complete_datum();
   }
-  else if (!d->the_video)
+  else if (!d->video)
   {
     static datum::error_t const err_string = datum::error_t("Error with input file stream.");
 
@@ -208,7 +177,7 @@ read_video_gravl_process
   }
   else
   {
-    gravl::frame_ptr const frame = d->the_video->current_frame();
+    gravl::frame_ptr const frame = d->video->current_frame();
     gravl::image_data const* const image_data = frame.get_const_data<gravl::image_data>();
     gravl::image const image = (image_data ? image_data->pixels() : gravl::image());
 
@@ -237,7 +206,7 @@ read_video_gravl_process
       dat = datum::new_datum(vil);
     }
 
-    d->the_video->advance();
+    d->video->advance();
   }
 
   push_datum_to_port(priv::port_output, dat);
@@ -256,4 +225,53 @@ read_video_gravl_process::priv
 {
 }
 
+}
+
+size_t
+sabs(ptrdiff_t a)
+{
+  return static_cast<size_t>((a < 0 ? -a : a));
+}
+
+size_t
+compute_block_size(gravl::image::dimension dim, gravl::image::stride s)
+{
+  return ((dim.width  - 1) * sabs(s.width)) +
+         ((dim.height - 1) * sabs(s.height)) +
+         ((dim.planes - 1) * sabs(s.planes)) + 1;
+}
+
+ptrdiff_t
+compute_offset(gravl::image::dimension dim, gravl::image::stride s)
+{
+  ptrdiff_t result = 0;
+  if (s.width < 0)
+  {
+    result -= s.width * (dim.width - 1);
+  }
+  if (s.height < 0)
+  {
+    result -= s.height * (dim.height - 1);
+  }
+  if (s.planes < 0)
+  {
+    result -= s.planes * (dim.planes - 1);
+  }
+  return result;
+}
+
+template <typename T>
+T*
+compute_block_start(
+  T* top_left, gravl::image::dimension dim, gravl::image::stride s)
+{
+  return top_left - compute_offset(dim, s);
+}
+
+template <typename T>
+T*
+compute_top_left(
+  T* top_left, gravl::image::dimension dim, gravl::image::stride s)
+{
+  return top_left + compute_offset(dim, s);
 }
