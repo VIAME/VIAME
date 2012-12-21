@@ -1,6 +1,6 @@
 project(vistk_processes_gravl)
 
-include_directories(${gravl_INCLUDE_DIR})
+include_directories(SYSTEM ${gravl_INCLUDE_DIR})
 
 set(gravl_srcs
   read_video_gravl_process.cxx
