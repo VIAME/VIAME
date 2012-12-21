@@ -37,13 +37,12 @@ namespace vistk
  *
  * \config{pixtype} The pixel type of the input images.
  * \config{pixfmt} The pixel format of the input images.
- * \config{input} The file to read filepaths from.
- * \config{verify} Verify images during initialization.
+ * \config{input} The URI of the resource.
  *
  * \reqs
  *
  * \req The \port{image} port must be connected.
- * \req The \key{input} configuration must be a valid filepath.
+ * \req The \key{input} configuration must be a valid URI.
  *
  * \ingroup process_image
  */
