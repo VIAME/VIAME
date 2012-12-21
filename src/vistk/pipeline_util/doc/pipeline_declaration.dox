@@ -121,6 +121,7 @@
  *   <full-key-path> ::= <key-path> <key-options>
  *   <value-char>    ::= <graph> | <blank>
  *   <key-value>     ::= <value-char> <key-value> | <value-char>
+ *   <config-spec>   ::= <full-key-path> <whitespace> <key-value>
  * </pre>
  *
  * \par Examples
