@@ -7,6 +7,10 @@ add_subdirectory(image)
 add_subdirectory(scoring)
 add_subdirectory(utilities)
 
+if (VISTK_ENABLE_GRAVL)
+  add_subdirectory(gravl)
+endif ()
+
 if (VISTK_ENABLE_TESTING)
   add_subdirectory(examples)
 endif ()

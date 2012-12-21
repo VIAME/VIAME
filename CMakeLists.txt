@@ -30,6 +30,11 @@ if (GIT_FOUND)
   endif ()
 endif ()
 
+option(VISTK_ENABLE_GRAVL "Enable gravl reader process" OFF)
+if (VISTK_ENABLE_GRAVL)
+  find_package(gravl REQUIRED)
+endif ()
+
 # Project setup.
 include("${vistk_source_dir}/cmake/snippets/version.cmake")
 include("${vistk_source_dir}/cmake/snippets/flags.cmake")
