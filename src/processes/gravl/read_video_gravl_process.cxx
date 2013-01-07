@@ -31,10 +31,6 @@
  * \brief Implementation of the read video gravl process.
  */
 
-template <typename PixType> static vistk::datum_t convert_image(
-  gravl::data_block* video, vistk::pixtype_t const& pixtype,
-  vil_pixel_format pixfmt);
-
 namespace vistk
 {
 
@@ -152,6 +148,11 @@ read_video_gravl_process
   process::_init();
 }
 
+template <typename PixType>
+static vistk::datum_t convert_image(
+  gravl::data_block* video, vistk::pixtype_t const& pixtype,
+  vil_pixel_format pixfmt);
+
 void
 read_video_gravl_process
 ::_step()
@@ -222,18 +223,19 @@ read_video_gravl_process::priv
 {
 }
 
-}
-
-static size_t compute_block_size(gravl::image::dimension dim,
-                                 gravl::image::stride s);
-template <typename T> static T* compute_block_start(
+static size_t compute_block_size(
+  gravl::image::dimension dim, gravl::image::stride s);
+template <typename T>
+static T* compute_block_start(
   T* top_left, gravl::image::dimension dim, gravl::image::stride s);
-template <typename T> static T* compute_top_left(
+template <typename T>
+static T* compute_top_left(
   T* top_left, gravl::image::dimension dim, gravl::image::stride s);
 
 template <typename PixType>
-vistk::datum_t convert_image(
-  gravl::data_block* video, vistk::pixtype_t const& pixtype,
+datum_t
+convert_image(
+  gravl::data_block* video, pixtype_t const& pixtype,
   vil_pixel_format pixfmt)
 {
   gravl::frame_ptr const frame = video->current_frame();
@@ -244,7 +246,7 @@ vistk::datum_t convert_image(
 
   if (!image)
   {
-    return vistk::datum::empty_datum();
+    return datum::empty_datum();
   }
   else if (image.format() != gravl::image::format_of<PixType>())
   {
@@ -252,7 +254,7 @@ vistk::datum_t convert_image(
     reason << "Unable to convert the image: the image pixel type "
            << image.format() << " does not match the port output type "
            << '\'' << pixtype << '\'';
-    return vistk::datum::error_datum(reason.str());
+    return datum::error_datum(reason.str());
   }
   else
   {
@@ -271,15 +273,11 @@ vistk::datum_t convert_image(
                                       compute_top_left(buffer, dim, ps),
                                       dim.width, dim.height, dim.planes,
                                       ps.width, ps.height, ps.planes);
-    return vistk::datum::new_datum(vil);
+    return datum::new_datum(vil);
   }
 }
 
-static size_t
-sabs(ptrdiff_t a)
-{
-  return static_cast<size_t>((a < 0 ? -a : a));
-}
+static size_t sabs(ptrdiff_t a);
 
 size_t
 compute_block_size(gravl::image::dimension dim, gravl::image::stride s)
@@ -289,7 +287,32 @@ compute_block_size(gravl::image::dimension dim, gravl::image::stride s)
          ((dim.planes - 1) * sabs(s.planes)) + 1;
 }
 
-static ptrdiff_t
+static ptrdiff_t compute_offset(
+  gravl::image::dimension dim, gravl::image::stride s);
+
+template <typename T>
+T*
+compute_block_start(
+  T* top_left, gravl::image::dimension dim, gravl::image::stride s)
+{
+  return top_left - compute_offset(dim, s);
+}
+
+template <typename T>
+T*
+compute_top_left(
+  T* top_left, gravl::image::dimension dim, gravl::image::stride s)
+{
+  return top_left + compute_offset(dim, s);
+}
+
+size_t
+sabs(ptrdiff_t a)
+{
+  return static_cast<size_t>((a < 0 ? -a : a));
+}
+
+ptrdiff_t
 compute_offset(gravl::image::dimension dim, gravl::image::stride s)
 {
   ptrdiff_t result = 0;
@@ -308,18 +331,4 @@ compute_offset(gravl::image::dimension dim, gravl::image::stride s)
   return result;
 }
 
-template <typename T>
-T*
-compute_block_start(
-  T* top_left, gravl::image::dimension dim, gravl::image::stride s)
-{
-  return top_left - compute_offset(dim, s);
-}
-
-template <typename T>
-T*
-compute_top_left(
-  T* top_left, gravl::image::dimension dim, gravl::image::stride s)
-{
-  return top_left + compute_offset(dim, s);
 }
