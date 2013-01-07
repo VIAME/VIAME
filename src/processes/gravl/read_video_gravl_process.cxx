@@ -31,12 +31,9 @@
  * \brief Implementation of the read video gravl process.
  */
 
-static size_t compute_block_size(gravl::image::dimension dim,
-                                 gravl::image::stride s);
-template <typename T> static T* compute_block_start(
-  T* top_left, gravl::image::dimension dim, gravl::image::stride s);
-template <typename T> static T* compute_top_left(
-  T* top_left, gravl::image::dimension dim, gravl::image::stride s);
+template <typename PixType> static vistk::datum_t convert_image(
+  gravl::data_block* video, vistk::pixtype_t const& pixtype,
+  vil_pixel_format pixfmt);
 
 namespace vistk
 {
@@ -174,33 +171,36 @@ read_video_gravl_process
   }
   else
   {
-    gravl::frame_ptr const frame = d->video->current_frame();
-    gravl::image_data const* const image_data = frame.get_const_data<gravl::image_data>();
-    gravl::image const image = (image_data ? image_data->pixels() : gravl::image());
-
-    if (!image || image.format() != gravl::image::format_of<uint8_t>())
+    pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
+    if (pixtype == pixtypes::pixtype_byte()) // uint8_t
     {
-      dat = datum::empty_datum();
+      dat = convert_image<uint8_t>(d->video, pixtype, VIL_PIXEL_FORMAT_BYTE);
+    }
+//     else if (pixtype == pixtypes::pixtype_short()) // uint16_t - TODO
+//     {
+//       dat = convert_image<uint16_t>(d->video, pixtype, VIL_PIXEL_FORMAT_INT_16);
+//     }
+//     else if (pixtype == pixtypes::pixtype_int()) // uint32_t - TODO
+//     {
+//       dat = convert_image<uint32_t>(d->video, pixtype, VIL_PIXEL_FORMAT_INT_32);
+//     }
+//     else if (pixtype == pixtypes::pixtype_long()) // uint64_t - TODO
+//     {
+//       dat = convert_image<uint64_t>(d->video, pixtype, VIL_PIXEL_FORMAT_INT_64);
+//     }
+    else if (pixtype == pixtypes::pixtype_float()) // float
+    {
+      dat = convert_image<float>(d->video, pixtype, VIL_PIXEL_FORMAT_FLOAT);
+    }
+    else if (pixtype == pixtypes::pixtype_double()) // double
+    {
+      dat = convert_image<double>(d->video, pixtype, VIL_PIXEL_FORMAT_DOUBLE);
     }
     else
     {
-      gravl::image::dimension const dim = image.dimensions();
-      gravl::image::stride const ps = image.strides();
-      uint8_t const* const top_left = image.data<uint8_t>();
-      size_t const size = compute_block_size(dim, ps);
-
-      // Ugh, there is no way to create a vil_image_view from existing data
-      // without arranging for said existing data to stick around, so stuck
-      // having to copy the data (again) :-(
-      vil_memory_chunk* const mem = new vil_memory_chunk(size, VIL_PIXEL_FORMAT_BYTE);
-      uint8_t* const buffer = reinterpret_cast<uint8_t*>(mem->data());
-      memcpy(buffer, compute_block_start(top_left, dim, ps), size);
-
-      vil_image_view<vxl_byte> const vil(vil_memory_chunk_sptr(mem),
-                                         compute_top_left(buffer, dim, ps),
-                                         dim.width, dim.height, dim.planes,
-                                         ps.width, ps.height, ps.planes);
-      dat = datum::new_datum(vil);
+      std::string const reason = "The pixtype \'" + pixtype + "\' "
+                                 "is not supported";
+      throw invalid_configuration_exception(name(), reason);
     }
 
     d->video->advance();
@@ -224,7 +224,58 @@ read_video_gravl_process::priv
 
 }
 
-size_t
+static size_t compute_block_size(gravl::image::dimension dim,
+                                 gravl::image::stride s);
+template <typename T> static T* compute_block_start(
+  T* top_left, gravl::image::dimension dim, gravl::image::stride s);
+template <typename T> static T* compute_top_left(
+  T* top_left, gravl::image::dimension dim, gravl::image::stride s);
+
+template <typename PixType>
+vistk::datum_t convert_image(
+  gravl::data_block* video, vistk::pixtype_t const& pixtype,
+  vil_pixel_format pixfmt)
+{
+  gravl::frame_ptr const frame = video->current_frame();
+  gravl::image_data const* const image_data =
+    frame.get_const_data<gravl::image_data>();
+  gravl::image const image =
+    (image_data ? image_data->pixels() : gravl::image());
+
+  if (!image)
+  {
+    return vistk::datum::empty_datum();
+  }
+  else if (image.format() != gravl::image::format_of<PixType>())
+  {
+    std::stringstream reason;
+    reason << "Unable to convert the image: the image pixel type "
+           << image.format() << " does not match the port output type "
+           << '\'' << pixtype << '\'';
+    return vistk::datum::error_datum(reason.str());
+  }
+  else
+  {
+    gravl::image::dimension const dim = image.dimensions();
+    gravl::image::stride const ps = image.strides();
+    PixType const* const top_left = image.data<PixType>();
+    size_t const size = compute_block_size(dim, ps);
+
+    // vil_image_view is implicitly mutable, even though the ctors would
+    // appear to suggest otherwise... so we must copy the pixels
+    vil_memory_chunk* const mem = new vil_memory_chunk(size, pixfmt);
+    PixType* const buffer = reinterpret_cast<PixType*>(mem->data());
+    memcpy(buffer, compute_block_start(top_left, dim, ps), size);
+
+    vil_image_view<PixType> const vil(vil_memory_chunk_sptr(mem),
+                                      compute_top_left(buffer, dim, ps),
+                                      dim.width, dim.height, dim.planes,
+                                      ps.width, ps.height, ps.planes);
+    return vistk::datum::new_datum(vil);
+  }
+}
+
+static size_t
 sabs(ptrdiff_t a)
 {
   return static_cast<size_t>((a < 0 ? -a : a));
@@ -238,7 +289,7 @@ compute_block_size(gravl::image::dimension dim, gravl::image::stride s)
          ((dim.planes - 1) * sabs(s.planes)) + 1;
 }
 
-ptrdiff_t
+static ptrdiff_t
 compute_offset(gravl::image::dimension dim, gravl::image::stride s)
 {
   ptrdiff_t result = 0;
