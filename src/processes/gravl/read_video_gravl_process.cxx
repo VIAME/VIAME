@@ -168,7 +168,7 @@ read_video_gravl_process
   }
   else if (!d->video)
   {
-    static datum::error_t const err_string = datum::error_t("Error with input file stream.");
+    static datum::error_t const err_string = datum::error_t("Error with input file stream");
 
     dat = datum::error_datum(err_string);
   }
