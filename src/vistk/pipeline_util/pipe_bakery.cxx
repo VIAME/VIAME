@@ -55,21 +55,19 @@ static config_provider_t const provider_system = config_provider_t("SYS");
 
 }
 
-class pipe_bakery;
-static config_t extract_configuration(pipe_bakery& bakery);
+class bakery_base;
+static config_t extract_configuration(bakery_base& bakery);
 
-class pipe_bakery
+class bakery_base
   : public boost::static_visitor<>
 {
   public:
-    pipe_bakery();
-    ~pipe_bakery();
+    bakery_base();
+    virtual ~bakery_base();
 
     void operator () (config_pipe_block const& config_block);
     void operator () (process_pipe_block const& process_block);
     void operator () (connect_pipe_block const& connect_block);
-    void operator () (cluster_pipe_block const& cluster_block);
-    void operator () (group_pipe_block const& group_block);
 
     /**
      * \note We do *not* want std::map for the block management. With a map, we
@@ -101,50 +99,45 @@ class pipe_bakery
     typedef std::pair<process::port_addr_t, process::port_addr_t> connection_t;
     typedef std::vector<connection_t> connections_t;
 
-    typedef boost::tuple<process::port_t, process::port_flags_t, process::port_addr_t> mapping_t;
-    typedef std::vector<mapping_t> mappings_t;
-    typedef std::pair<mappings_t, mappings_t> group_info_t;
-    typedef std::pair<process::name_t, group_info_t> group_decl_t;
-    typedef std::vector<group_decl_t> group_decls_t;
-
-    static config::key_t flatten_keys(config::keys_t const& keys);
-    void register_config_value(config::key_t const& root_key, config_value_t const& value);
-
     config_decls_t m_configs;
     process_decls_t m_processes;
     connections_t m_connections;
+  protected:
+    void register_config_value(config::key_t const& root_key, config_value_t const& value);
+  private:
+    static config::key_t flatten_keys(config::keys_t const& keys);
+};
+
+class pipe_bakery
+  : public bakery_base
+{
+  public:
+    pipe_bakery();
+    ~pipe_bakery();
+
+    using bakery_base::operator ();
+    void operator () (group_pipe_block const& group_block);
+
+    typedef boost::tuple<process::port_t, process::port_flags_t, process::port_addr_t> mapping_t;
+    typedef std::vector<mapping_t> mappings_t;
+    typedef std::pair<mappings_t, mappings_t> group_info_t;
+
+    typedef std::pair<process::name_t, group_info_t> group_decl_t;
+    typedef std::vector<group_decl_t> group_decls_t;
+
     group_decls_t m_groups;
 };
 
-class group_splitter
-  : public boost::static_visitor<>
-{
-  public:
-    group_splitter();
-    ~group_splitter();
-
-    void operator () (config_value_t const& config_block);
-    void operator () (group_input_t const& input_block);
-    void operator () (group_output_t const& output_block);
-
-    typedef std::vector<group_input_t> input_maps_t;
-    typedef std::vector<group_output_t> output_maps_t;
-
-    config_values_t m_configs;
-    input_maps_t m_inputs;
-    output_maps_t m_outputs;
-};
-
 class provider_dereferencer
-  : public boost::static_visitor<pipe_bakery::config_reference_t>
+  : public boost::static_visitor<bakery_base::config_reference_t>
 {
   public:
     provider_dereferencer();
     provider_dereferencer(config_t const conf);
     ~provider_dereferencer();
 
-    pipe_bakery::config_reference_t operator () (config::value_t const& value) const;
-    pipe_bakery::config_reference_t operator () (pipe_bakery::provider_request_t const& request) const;
+    bakery_base::config_reference_t operator () (config::value_t const& value) const;
+    bakery_base::config_reference_t operator () (bakery_base::provider_request_t const& request) const;
   private:
     typedef std::map<config_provider_t, provider_t> provider_map_t;
     provider_map_t m_providers;
@@ -155,7 +148,7 @@ class ensure_provided
 {
   public:
     config::value_t operator () (config::value_t const& value) const;
-    config::value_t operator () (pipe_bakery::provider_request_t const& request) const;
+    config::value_t operator () (bakery_base::provider_request_t const& request) const;
 };
 
 class config_provider_sorter
@@ -166,7 +159,7 @@ class config_provider_sorter
     ~config_provider_sorter();
 
     void operator () (config::key_t const& key, config::value_t const& value) const;
-    void operator () (config::key_t const& key, pipe_bakery::provider_request_t const& request);
+    void operator () (config::key_t const& key, bakery_base::provider_request_t const& request);
 
     config::keys_t sorted() const;
   private:
@@ -222,7 +215,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
   {
     process_registry_t reg = process_registry::self();
 
-    BOOST_FOREACH (pipe_bakery::process_decl_t const& decl, bakery.m_processes)
+    BOOST_FOREACH (bakery_base::process_decl_t const& decl, bakery.m_processes)
     {
       process::name_t const& proc_name = decl.first;
       process::type_t const& proc_type = decl.second;
@@ -275,7 +268,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
 
   // Make connections.
   {
-    BOOST_FOREACH (pipe_bakery::connection_t const& conn, bakery.m_connections)
+    BOOST_FOREACH (bakery_base::connection_t const& conn, bakery.m_connections)
     {
       process::port_addr_t const& up = conn.first;
       process::port_addr_t const& down = conn.second;
@@ -302,17 +295,17 @@ extract_configuration(pipe_blocks const& blocks)
   return extract_configuration(bakery);
 }
 
-static void set_config_value(config_t conf, pipe_bakery::config_info_t const& flags, config::key_t const& key, config::value_t const& value);
+static void set_config_value(config_t conf, bakery_base::config_info_t const& flags, config::key_t const& key, config::value_t const& value);
 
 config_t
-extract_configuration(pipe_bakery& bakery)
+extract_configuration(bakery_base& bakery)
 {
   // Dereference (non-configuration) providers.
   {
-    BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+    BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
     {
-      pipe_bakery::config_info_t& info = decl.second;
-      pipe_bakery::config_reference_t& ref = info.reference;
+      bakery_base::config_info_t& info = decl.second;
+      bakery_base::config_reference_t& ref = info.reference;
 
       ref = boost::apply_visitor(provider_dereferencer(), ref);
     }
@@ -320,11 +313,11 @@ extract_configuration(pipe_bakery& bakery)
 
   config_t tmp_conf = config::empty_config();
 
-  BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+  BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
   {
     config::key_t const& key = decl.first;
-    pipe_bakery::config_info_t const& info = decl.second;
-    pipe_bakery::config_reference_t const& ref = info.reference;
+    bakery_base::config_info_t const& info = decl.second;
+    bakery_base::config_reference_t const& ref = info.reference;
 
     config::value_t val;
 
@@ -345,11 +338,11 @@ extract_configuration(pipe_bakery& bakery)
   {
     config_provider_sorter sorter;
 
-    BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+    BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
     {
       config::key_t const& key = decl.first;
-      pipe_bakery::config_info_t const& info = decl.second;
-      pipe_bakery::config_reference_t const& ref = info.reference;
+      bakery_base::config_info_t const& info = decl.second;
+      bakery_base::config_reference_t const& ref = info.reference;
 
       /// \bug Why must this be done?
       typedef boost::variant<config::key_t> dummy_variant;
@@ -366,7 +359,7 @@ extract_configuration(pipe_bakery& bakery)
     /// \todo This is algorithmically naive, but I'm not sure if there's a better way.
     BOOST_FOREACH (config::key_t const& key, keys)
     {
-      BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+      BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
       {
         config::key_t const& cur_key = decl.first;
 
@@ -375,8 +368,8 @@ extract_configuration(pipe_bakery& bakery)
           continue;
         }
 
-        pipe_bakery::config_info_t& info = decl.second;
-        pipe_bakery::config_reference_t& ref = info.reference;
+        bakery_base::config_info_t& info = decl.second;
+        bakery_base::config_reference_t& ref = info.reference;
 
         ref = boost::apply_visitor(deref, ref);
 
@@ -389,11 +382,11 @@ extract_configuration(pipe_bakery& bakery)
 
   config_t conf = config::empty_config();
 
-  BOOST_FOREACH (pipe_bakery::config_decl_t& decl, bakery.m_configs)
+  BOOST_FOREACH (bakery_base::config_decl_t& decl, bakery.m_configs)
   {
     config::key_t const& key = decl.first;
-    pipe_bakery::config_info_t const& info = decl.second;
-    pipe_bakery::config_reference_t const& ref = info.reference;
+    bakery_base::config_info_t const& info = decl.second;
+    bakery_base::config_reference_t const& ref = info.reference;
 
     config::value_t val;
 
@@ -412,7 +405,7 @@ extract_configuration(pipe_bakery& bakery)
   return conf;
 }
 
-pipe_bakery::config_info_t
+bakery_base::config_info_t
 ::config_info_t(config_reference_t const& ref,
                 bool ro,
                 bool app,
@@ -424,22 +417,21 @@ pipe_bakery::config_info_t
 {
 }
 
-pipe_bakery
-::pipe_bakery()
+bakery_base
+::bakery_base()
   : m_configs()
   , m_processes()
   , m_connections()
-  , m_groups()
 {
 }
 
-pipe_bakery
-::~pipe_bakery()
+bakery_base
+::~bakery_base()
 {
 }
 
 void
-pipe_bakery
+bakery_base
 ::operator () (config_pipe_block const& config_block)
 {
   config::key_t const root_key = flatten_keys(config_block.key);
@@ -453,7 +445,7 @@ pipe_bakery
 }
 
 void
-pipe_bakery
+bakery_base
 ::operator () (process_pipe_block const& process_block)
 {
   config_values_t const& values = process_block.config_values;
@@ -467,18 +459,104 @@ pipe_bakery
 }
 
 void
-pipe_bakery
+bakery_base
 ::operator () (connect_pipe_block const& connect_block)
 {
   m_connections.push_back(connection_t(connect_block.from, connect_block.to));
 }
 
 void
-pipe_bakery
-::operator () (cluster_pipe_block const& cluster_block)
+bakery_base
+::register_config_value(config::key_t const& root_key, config_value_t const& value)
 {
-  throw cluster_baking_exception();
+  config_key_t const key = value.key;
+
+  config::key_t const subkey = flatten_keys(key.key_path);
+
+  config_reference_t c_value;
+
+  if (key.options.provider)
+  {
+    c_value = provider_request_t(*key.options.provider, value.value);
+  }
+  else
+  {
+    c_value = value.value;
+  }
+
+  config::key_t const full_key = root_key + config::block_sep + subkey;
+
+  bool is_readonly = false;
+  bool append = false;
+  bool comma_append = false;
+
+  if (key.options.flags)
+  {
+    BOOST_FOREACH (config_flag_t const& flag, *key.options.flags)
+    {
+      if (flag == flag_read_only)
+      {
+        is_readonly = true;
+      }
+      else if (flag == flag_append)
+      {
+        append = true;
+      }
+      else if (flag == flag_comma_append)
+      {
+        comma_append = true;
+      }
+      else
+      {
+        throw unrecognized_config_flag_exception(flag, full_key);
+      }
+    }
+  }
+
+  config_info_t const info = config_info_t(c_value, is_readonly, append, comma_append);
+
+  config_decl_t const decl = config_decl_t(full_key, info);
+
+  m_configs.push_back(decl);
 }
+
+config::key_t
+bakery_base
+::flatten_keys(config::keys_t const& keys)
+{
+  return boost::join(keys, config::block_sep);
+}
+
+pipe_bakery
+::pipe_bakery()
+  : bakery_base()
+  , m_groups()
+{
+}
+
+pipe_bakery
+::~pipe_bakery()
+{
+}
+
+class group_splitter
+  : public boost::static_visitor<>
+{
+  public:
+    group_splitter();
+    ~group_splitter();
+
+    void operator () (config_value_t const& config_block);
+    void operator () (group_input_t const& input_block);
+    void operator () (group_output_t const& output_block);
+
+    typedef std::vector<group_input_t> input_maps_t;
+    typedef std::vector<group_output_t> output_maps_t;
+
+    config_values_t m_configs;
+    input_maps_t m_inputs;
+    output_maps_t m_outputs;
+};
 
 void
 pipe_bakery
@@ -537,102 +615,6 @@ pipe_bakery
   m_groups.push_back(decl);
 }
 
-void
-pipe_bakery
-::register_config_value(config::key_t const& root_key, config_value_t const& value)
-{
-  config_key_t const key = value.key;
-
-  config::key_t const subkey = flatten_keys(key.key_path);
-
-  config_reference_t c_value;
-
-  if (key.options.provider)
-  {
-    c_value = provider_request_t(*key.options.provider, value.value);
-  }
-  else
-  {
-    c_value = value.value;
-  }
-
-  config::key_t const full_key = root_key + config::block_sep + subkey;
-
-  bool is_readonly = false;
-  bool append = false;
-  bool comma_append = false;
-
-  if (key.options.flags)
-  {
-    BOOST_FOREACH (config_flag_t const& flag, *key.options.flags)
-    {
-      if (flag == flag_read_only)
-      {
-        is_readonly = true;
-      }
-      else if (flag == flag_append)
-      {
-        append = true;
-      }
-      else if (flag == flag_comma_append)
-      {
-        comma_append = true;
-      }
-      else
-      {
-        throw unrecognized_config_flag_exception(flag, full_key);
-      }
-    }
-  }
-
-  config_info_t const info = config_info_t(c_value, is_readonly, append, comma_append);
-
-  config_decl_t const decl = config_decl_t(full_key, info);
-
-  m_configs.push_back(decl);
-}
-
-config::key_t
-pipe_bakery
-::flatten_keys(config::keys_t const& keys)
-{
-  return boost::join(keys, config::block_sep);
-}
-
-group_splitter
-::group_splitter()
-  : m_configs()
-  , m_inputs()
-  , m_outputs()
-{
-}
-
-group_splitter
-::~group_splitter()
-{
-}
-
-void
-group_splitter
-::operator () (config_value_t const& config_block)
-{
-  m_configs.push_back(config_block);
-}
-
-void
-group_splitter
-::operator () (group_input_t const& input_block)
-{
-  m_inputs.push_back(input_block);
-}
-
-void
-group_splitter
-::operator () (group_output_t const& output_block)
-{
-  m_outputs.push_back(output_block);
-}
-
 provider_dereferencer
 ::provider_dereferencer()
   : m_providers()
@@ -653,16 +635,16 @@ provider_dereferencer
 {
 }
 
-pipe_bakery::config_reference_t
+bakery_base::config_reference_t
 provider_dereferencer
 ::operator () (config::value_t const& value) const
 {
   return value;
 }
 
-pipe_bakery::config_reference_t
+bakery_base::config_reference_t
 provider_dereferencer
-::operator () (pipe_bakery::provider_request_t const& request) const
+::operator () (bakery_base::provider_request_t const& request) const
 {
   config_provider_t const& provider_name = request.first;
   provider_map_t::const_iterator const i = m_providers.find(provider_name);
@@ -687,12 +669,37 @@ ensure_provided
 
 config::value_t
 ensure_provided
-::operator () (pipe_bakery::provider_request_t const& request) const
+::operator () (bakery_base::provider_request_t const& request) const
 {
   config_provider_t const& provider = request.first;
   config::value_t const& value = request.second;
 
   throw unrecognized_provider_exception("(unknown)", provider, value);
+}
+
+void
+set_config_value(config_t conf, bakery_base::config_info_t const& flags, config::key_t const& key, config::value_t const& value)
+{
+  config::value_t val = value;
+
+  if (flags.comma_append || flags.append)
+  {
+    config::value_t const cur_val = conf->get_value(key, config::value_t());
+
+    if (flags.comma_append && !cur_val.empty())
+    {
+      val = ',' + val;
+    }
+
+    val = cur_val + val;
+  }
+
+  conf->set_value(key, val);
+
+  if (flags.read_only)
+  {
+    conf->mark_read_only(key);
+  }
 }
 
 config_provider_sorter
@@ -745,7 +752,7 @@ config_provider_sorter
 
 void
 config_provider_sorter
-::operator () (config::key_t const& key, pipe_bakery::provider_request_t const& request)
+::operator () (config::key_t const& key, bakery_base::provider_request_t const& request)
 {
   config_provider_t const& provider = request.first;
   config::value_t const& value = request.second;
@@ -788,6 +795,14 @@ config_provider_sorter
   boost::add_edge(from_vertex, to_vertex, m_graph);
 }
 
+group_splitter
+::group_splitter()
+  : m_configs()
+  , m_inputs()
+  , m_outputs()
+{
+}
+
 config_provider_sorter::node_t
 ::node_t()
   : deref(false)
@@ -800,29 +815,30 @@ config_provider_sorter::node_t
 {
 }
 
-void
-set_config_value(config_t conf, pipe_bakery::config_info_t const& flags, config::key_t const& key, config::value_t const& value)
+group_splitter
+::~group_splitter()
 {
-  config::value_t val = value;
+}
 
-  if (flags.comma_append || flags.append)
-  {
-    config::value_t const cur_val = conf->get_value(key, config::value_t());
+void
+group_splitter
+::operator () (config_value_t const& config_block)
+{
+  m_configs.push_back(config_block);
+}
 
-    if (flags.comma_append && !cur_val.empty())
-    {
-      val = ',' + val;
-    }
+void
+group_splitter
+::operator () (group_input_t const& input_block)
+{
+  m_inputs.push_back(input_block);
+}
 
-    val = cur_val + val;
-  }
-
-  conf->set_value(key, val);
-
-  if (flags.read_only)
-  {
-    conf->mark_read_only(key);
-  }
+void
+group_splitter
+::operator () (group_output_t const& output_block)
+{
+  m_outputs.push_back(output_block);
 }
 
 }
