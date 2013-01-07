@@ -7,6 +7,7 @@
 #include "registration.h"
 
 #include "homography_reader_process.h"
+#include "invert_transform_process.h"
 #include "timestamp_reader_process.h"
 #include "timestamper_process.h"
 
@@ -36,6 +37,7 @@ register_processes()
   }
 
   registry->register_process("homography_reader", "Read homographies from a file", create_process<homography_reader_process>);
+  registry->register_process("invert_transform", "Invert tranformation matrices", create_process<invert_transform_process>);
   registry->register_process("timestamp_reader", "Read timestamps from a file", create_process<timestamp_reader_process>);
   registry->register_process("timestamp_source", "A source of timestamps", create_timestamp_source);
   registry->register_process("timestamper", "Generates timestamps", create_process<timestamper_process>);

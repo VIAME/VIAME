@@ -16,7 +16,10 @@
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_inverse.h>
 
+#include <boost/lexical_cast.hpp>
+
 #include <limits>
+#include <stdexcept>
 
 #include <cmath>
 
@@ -37,6 +40,7 @@ class warp_image<PixType>::priv
     ~priv();
 
     void clear_mask();
+    void apply_mask();
 
     image_t dest;
     mask_t mask;
@@ -97,7 +101,14 @@ warp_image<PixType>
 
   if (snp != dnp)
   {
-    /// \todo Throw an exception.
+    std::string const source_planes = boost::lexical_cast<std::string>(snp);
+    std::string const dest_planes = boost::lexical_cast<std::string>(dnp);
+    std::string const reason = "The source and destination images do "
+                               "not have the same number of planes: "
+                               "source: " + source_planes +
+                               "dest: " + dest_planes;
+
+    throw std::runtime_error(reason);
   }
 
   if (is_identity(transform))
@@ -119,8 +130,6 @@ warp_image<PixType>
 
   transform_t const inv_transform = vnl_inverse(homog);
 
-  box_t mapped_bbox;
-
   size_t const snc = sni - 1;
   size_t const snr = snj - 1;
 
@@ -131,6 +140,8 @@ warp_image<PixType>
     , homog_point_t(0.0, static_cast<double>(snr))
     };
 
+  box_t mapped_bbox;
+
   for (size_t i = 0; i < 4; ++i)
   {
     point_t const p = inv_transform * corner[i];
@@ -139,6 +150,15 @@ warp_image<PixType>
 
   box_t const dest_bounds(0, dni - 1, 0, dnj - 1);
   box_t const intersection = vgl_intersection(mapped_bbox, dest_bounds);
+
+  d->clear_mask();
+
+  if (intersection.is_empty())
+  {
+    d->apply_mask();
+
+    return d->dest;
+  }
 
   size_t const begin_i = static_cast<size_t>(std::floor(intersection.min_x()));
   size_t const begin_j = static_cast<size_t>(std::floor(intersection.min_y()));
@@ -207,6 +227,8 @@ warp_image<PixType>
     }
   }
 
+  d->apply_mask();
+
   return d->dest;
 }
 
@@ -237,6 +259,48 @@ warp_image<PixType>::priv
 ::clear_mask()
 {
   mask.fill(true);
+}
+
+template <typename PixType>
+void
+warp_image<PixType>::priv
+::apply_mask()
+{
+  size_t const mask_width = mask.ni();
+  size_t const mask_height = mask.nj();
+  size_t const dest_planes = dest.nplanes();
+
+  ptrdiff_t const dis = dest.istep();
+  ptrdiff_t const djs = dest.jstep();
+  ptrdiff_t const dps = dest.planestep();
+  ptrdiff_t const mis = mask.istep();
+  ptrdiff_t const mjs = mask.jstep();
+
+  typedef mask_t::pixel_type mask_pixel_t;
+
+  pixel_t const fill_value = fill.get_value_or(pixel_t());
+
+  mask_pixel_t const* mr = mask.top_left_ptr();
+  pixel_t* dr = dest.top_left_ptr();
+
+  for (size_t i = 0; i < mask_width; ++i, mr += mis, dr += dis)
+  {
+    mask_pixel_t const* mc = mr;
+    pixel_t* dc = dr;
+
+    for (size_t j = 0; j < mask_height; ++j, mc += mjs, dc += djs)
+    {
+      if (*mc)
+      {
+        pixel_t* dp = dc;
+
+        for (size_t k = 0; k < dest_planes; ++k, dp += dps)
+        {
+          *dp = fill_value;
+        }
+      }
+    }
+  }
 }
 
 template <typename T>
