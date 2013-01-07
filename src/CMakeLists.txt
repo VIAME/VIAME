@@ -10,6 +10,8 @@ endif ()
 function (add_vistk_plugin name define)
   set(library_subdir /vistk)
 
+  set(no_export ON)
+
   vistk_add_library(${name} SHARED
     ${ARGN})
 

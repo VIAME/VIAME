@@ -69,6 +69,8 @@ function (add_vistk_python_library name modpath)
   set(library_subdir /python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath})
   set(component runtime)
 
+  set(no_export ON)
+
   vistk_add_library(python-${safe_modpath}-${name} SHARED
     ${ARGN})
 

@@ -37,6 +37,20 @@ function (vistk_install)
   endif ()
 endfunction ()
 
+macro (vistk_export name)
+  set(exports)
+
+  if (NOT no_export)
+    set(exports
+      EXPORT vistk_exports)
+
+    export(
+      TARGETS ${name}
+      APPEND
+      FILE    "${vistk_export_file}")
+  endif ()
+endmacro ()
+
 function (vistk_compile_pic name)
   # TODO: Bump minimum CMake version to 2.8.9
   if (CMAKE_VERSION VERSION_GREATER "2.8.9")
@@ -62,9 +76,11 @@ function (vistk_add_executable name)
       runtime)
   endif ()
 
+  vistk_export(${name})
+
   vistk_install(
     TARGETS     ${name}
-    EXPORT      vistk_exports
+    ${exports}
     DESTINATION bin
     COMPONENT   ${component})
 endfunction ()
@@ -102,18 +118,6 @@ function (vistk_add_library name)
       runtime)
   endif ()
 
-  set(exports)
-
-  if ("${library_subdir}" STREQUAL "")
-    set(exports
-      EXPORT vistk_exports)
-  endif ()
-
-  export(
-    TARGETS ${name}
-    APPEND
-    FILE    "${vistk_export_file}")
-
   get_target_property(target_type
     ${name} TYPE)
 
@@ -125,6 +129,8 @@ function (vistk_add_library name)
       ${name}
       CACHE INTERNAL "Libraries built as part of vistk")
   endif ()
+
+  vistk_export(${name})
 
   vistk_install(
     TARGETS       ${name}
