@@ -92,7 +92,8 @@ homography_base
 
 homography_base
 ::homography_base()
-  : m_valid(false)
+  : m_transform()
+  , m_valid(false)
   , m_new_reference(false)
 {
   set_identity();
@@ -101,6 +102,9 @@ homography_base
 template <typename Source, typename Dest>
 homography<Source, Dest>
 ::homography()
+  : homography_base()
+  , m_source()
+  , m_dest()
 {
 }
 

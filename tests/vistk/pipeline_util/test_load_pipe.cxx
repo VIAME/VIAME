@@ -937,6 +937,7 @@ test_visitor
   , connect_count(0)
   , group_count(0)
   , total_count(0)
+  , types()
 {
 }
 

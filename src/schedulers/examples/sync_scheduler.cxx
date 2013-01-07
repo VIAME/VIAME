@@ -136,6 +136,8 @@ sync_scheduler
 
 sync_scheduler::priv
 ::priv()
+  : thread()
+  , mut()
 {
 }
 

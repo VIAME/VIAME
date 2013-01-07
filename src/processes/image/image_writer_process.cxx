@@ -71,6 +71,7 @@ process::port_t const image_writer_process::priv::port_input = port_t("image");
 image_writer_process
 ::image_writer_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_pixtype,
@@ -219,6 +220,7 @@ image_writer_process::priv
   , write(func)
   , count(0)
   , has_output(false)
+  , fout()
 {
 }
 

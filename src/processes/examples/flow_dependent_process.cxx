@@ -41,6 +41,7 @@ process::port_t const flow_dependent_process::priv::port_output = port_t("output
 flow_dependent_process
 ::flow_dependent_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_reject,

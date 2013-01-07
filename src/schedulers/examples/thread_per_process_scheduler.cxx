@@ -121,6 +121,8 @@ thread_per_process_scheduler
 
 thread_per_process_scheduler::priv
 ::priv()
+  : process_threads()
+  , mut()
 {
 }
 

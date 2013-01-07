@@ -84,6 +84,10 @@ class VISTK_PIPELINE_EXPORT pipeline_exception
 {
   public:
     /**
+     * \brief Constructor.
+     */
+    pipeline_exception() throw();
+    /**
      * \brief Destructor.
      */
     virtual ~pipeline_exception() throw();

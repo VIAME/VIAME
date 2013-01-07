@@ -42,6 +42,7 @@ static std::string const split_str = "=";
 
 pipeline_builder
 ::pipeline_builder(boost::program_options::variables_map const& vm, boost::program_options::options_description const& desc)
+  : m_blocks()
 {
   if (!vm.count("pipeline"))
   {
@@ -86,6 +87,7 @@ pipeline_builder
 
 pipeline_builder
 ::pipeline_builder()
+  : m_blocks()
 {
 }
 

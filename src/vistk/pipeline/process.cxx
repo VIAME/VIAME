@@ -426,6 +426,7 @@ process
 
 process
 ::process(config_t const& config)
+  : d()
 {
   if (!config)
   {
@@ -1288,13 +1289,30 @@ process
 
 process::priv
 ::priv(process* proc, config_t const& c)
-  : q(proc)
+  : name()
+  , type()
+  , input_ports()
+  , output_ports()
+  , config_keys()
+  , input_edges()
+  , output_edges()
+  , q(proc)
   , conf(c)
+  , static_inputs()
+  , required_inputs()
+  , required_outputs()
+  , flow_tag_port_types()
+  , input_flow_tag_ports()
+  , output_flow_tag_ports()
+  , input_port_tags()
+  , output_port_tags()
+  , core_frequency()
   , configured(false)
   , initialized(false)
   , output_stamps_made(false)
   , is_complete(false)
   , check_input_level(check_valid)
+  , stamp_for_inputs()
 {
 }
 

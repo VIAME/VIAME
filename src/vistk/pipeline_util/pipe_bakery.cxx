@@ -161,15 +161,22 @@ class config_provider_sorter
   : public boost::static_visitor<>
 {
   public:
+    config_provider_sorter();
+    ~config_provider_sorter();
+
     void operator () (config::key_t const& key, config::value_t const& value) const;
     void operator () (config::key_t const& key, pipe_bakery::provider_request_t const& request);
 
     config::keys_t sorted() const;
   private:
-    struct node_t
+    class node_t
     {
-      bool deref;
-      config::key_t name;
+      public:
+        node_t();
+        ~node_t();
+
+        bool deref;
+        config::key_t name;
     };
 
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, node_t> config_graph_t;
@@ -418,6 +425,10 @@ pipe_bakery::config_info_t
 
 pipe_bakery
 ::pipe_bakery()
+  : m_configs()
+  , m_processes()
+  , m_connections()
+  , m_groups()
 {
 }
 
@@ -582,6 +593,9 @@ pipe_bakery
 
 group_splitter
 ::group_splitter()
+  : m_configs()
+  , m_inputs()
+  , m_outputs()
 {
 }
 
@@ -613,6 +627,7 @@ group_splitter
 
 provider_dereferencer
 ::provider_dereferencer()
+  : m_providers()
 {
   m_providers[provider_system] = boost::make_shared<system_provider>();
   m_providers[provider_environment] = boost::make_shared<environment_provider>();
@@ -620,6 +635,7 @@ provider_dereferencer
 
 provider_dereferencer
 ::provider_dereferencer(config_t const conf)
+  : m_providers()
 {
   m_providers[provider_config] = boost::make_shared<config_provider>(conf);
 }
@@ -669,6 +685,18 @@ ensure_provided
   config::value_t const& value = request.second;
 
   throw unrecognized_provider_exception("(unknown)", provider, value);
+}
+
+config_provider_sorter
+::config_provider_sorter()
+  : m_vertex_map()
+  , m_graph()
+{
+}
+
+config_provider_sorter
+::~config_provider_sorter()
+{
 }
 
 config::keys_t
@@ -745,12 +773,23 @@ config_provider_sorter
   {
     to_vertex = boost::add_vertex(m_graph);
     m_graph[to_vertex].name = target_key;
-    m_graph[from_vertex].deref = false;
   }
 
   m_graph[from_vertex].deref = true;
 
   boost::add_edge(from_vertex, to_vertex, m_graph);
+}
+
+config_provider_sorter::node_t
+::node_t()
+  : deref(false)
+  , name()
+{
+}
+
+config_provider_sorter::node_t
+::~node_t()
+{
 }
 
 void

@@ -41,6 +41,7 @@ process::port_t const const_number_process::priv::port_output = port_t("number")
 const_number_process
 ::const_number_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_value,

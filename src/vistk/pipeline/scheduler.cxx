@@ -55,6 +55,7 @@ scheduler
 
 scheduler
 ::scheduler(pipeline_t const& pipe, config_t const& config)
+  : d()
 {
   if (!config)
   {
@@ -197,6 +198,7 @@ scheduler::priv
   , p(pipe)
   , paused(false)
   , running(false)
+  , mut()
 {
 }
 

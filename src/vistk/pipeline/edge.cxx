@@ -28,6 +28,8 @@ namespace vistk
 
 edge_datum_t
 ::edge_datum_t()
+  : datum()
+  , stamp()
 {
 }
 
@@ -90,6 +92,7 @@ class edge::priv
 
 edge
 ::edge(config_t const& config)
+  : d()
 {
   if (!config)
   {
@@ -330,6 +333,13 @@ edge::priv
   : depends(depends_)
   , capacity(capacity_)
   , downstream_complete(false)
+  , upstream()
+  , downstream()
+  , q()
+  , cond_have_data()
+  , cond_have_space()
+  , mutex()
+  , complete_mutex()
 {
 }
 

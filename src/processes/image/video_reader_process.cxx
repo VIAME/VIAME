@@ -72,6 +72,7 @@ static std::string const impl_sep = ", ";
 video_reader_process
 ::video_reader_process(config_t const& config)
   : process(config)
+  , d()
 {
   istream_impls_t const impls = known_istream_impls();
   std::string impls_str = boost::join(impls, impl_sep);

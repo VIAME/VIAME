@@ -44,6 +44,7 @@ process::port_t const score_writer_process::priv::port_score = port_t("score");
 score_writer_process
 ::score_writer_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_path,
@@ -130,6 +131,7 @@ score_writer_process
 score_writer_process::priv
 ::priv(path_t const& output_path)
   : path(output_path)
+  , fout()
 {
 }
 

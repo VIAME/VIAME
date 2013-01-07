@@ -173,6 +173,7 @@ config::key_t const pipeline::priv::config_edge_conn = config::key_t("_edge_by_c
 
 pipeline
 ::pipeline(config_t const& config)
+  : d()
 {
   d.reset(new priv(this, config));
 
@@ -1323,6 +1324,18 @@ pipeline::priv
 ::priv(pipeline* pipe, config_t conf)
   : q(pipe)
   , config(conf)
+  , planned_connections()
+  , connections()
+  , process_map()
+  , cluster_map()
+  , edge_map()
+  , groups()
+  , used_input_mappings()
+  , used_output_mappings()
+  , data_dep_connections()
+  , group_connections()
+  , untyped_connections()
+  , type_pinnings()
   , setup(false)
   , setup_in_progress(false)
   , setup_successful(false)

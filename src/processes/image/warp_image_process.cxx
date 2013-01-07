@@ -54,6 +54,7 @@ process::port_t const warp_image_process::priv::port_output = port_t("warped_ima
 warp_image_process
 ::warp_image_process(config_t const& config)
   : process(config)
+  , d()
 {
   declare_configuration_key(
     priv::config_pixtype,

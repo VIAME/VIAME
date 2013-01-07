@@ -201,6 +201,7 @@ combine_masks_process::priv
 ::priv()
   : combine(or_for_pixtype(pixtypes::pixtype_byte()))
   , port_type(port_type_for_pixtype(pixtypes::pixtype_byte(), pixfmts::pixfmt_mask()))
+  , tags()
 {
 }
 

@@ -53,6 +53,9 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-D_SCL_SECURE_NO_DEPRECATE)
   endif ()
+
+  # Prevent namespace pollution.
+  add_definitions(-DWIN32_LEAN_AND_MEAN)
 # Assume GCC-compatible
 else ()
   set(vistk_using_clang FALSE)
@@ -120,6 +123,7 @@ else ()
   vistk_check_compiler_flag(vistk_warnings -Wcast-qual)
   vistk_check_compiler_flag(vistk_warnings -Wdouble-promotion)
   vistk_check_compiler_flag(vistk_warnings -Wfloat-equal)
+  vistk_check_compiler_flag(vistk_warnings -fstrict-overflow)
   vistk_check_compiler_flag(vistk_warnings -Wstrict-overflow=5)
   # TODO: Python triggers warnings with this
   #vistk_check_compiler_flag(vistk_warnings -Wold-style-cast)
@@ -132,6 +136,7 @@ else ()
   # Miscellaneous warnings
   vistk_check_compiler_flag(vistk_warnings -Wlogical-op)
   vistk_check_compiler_flag(vistk_warnings -Wmissing-braces)
+  vistk_check_compiler_flag(vistk_warnings -Wimplicit-fallthrough)
 
   option(VISTK_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
   if (VISTK_ENABLE_NITPICK)
