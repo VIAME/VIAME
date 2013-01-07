@@ -520,7 +520,6 @@ template <typename Iterator>
 pipe_grammar<Iterator>
 ::pipe_grammar()
   : pipe_grammar::base_type(pipe_block_set, "pipeline-declaration")
-  , common_grammar<Iterator>()
   , map_flag()
   , map_flags()
   , map_flags_decl()
@@ -619,7 +618,6 @@ template <typename Iterator>
 cluster_grammar<Iterator>
 ::cluster_grammar()
   : cluster_grammar::base_type(cluster_block_set, "cluster-declaration")
-  , common_grammar<Iterator>()
   , description_decl()
   , cluster_config_block()
   , cluster_input_block()
