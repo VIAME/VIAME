@@ -54,7 +54,7 @@ tool_version_message()
 boost::program_options::options_description
 tool_common_options()
 {
-  boost::program_options::options_description desc;
+  boost::program_options::options_description desc("General options");
 
   desc.add_options()
     ("help,h", "output help message and quit")
