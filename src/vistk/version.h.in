@@ -7,24 +7,51 @@
 #ifndef VISTK_VERSION_H
 #define VISTK_VERSION_H
 
+/**
+ * \file version.h
+ *
+ * \brief Version information for vistk.
+ */
+
+/// The major version.
 #define VISTK_VERSION_MAJOR  @vistk_version_major@
+/// The minor version.
 #define VISTK_VERSION_MINOR  @vistk_version_minor@
+/// The patch version.
 #define VISTK_VERSION_PATCH  @vistk_version_patch@
+/// The full version as a string.
 #define VISTK_VERSION        "@vistk_version@"
 
+/**
+ * \brief Check whether vistk is built with at least some minimum version.
+ *
+ * \param major The major version to check.
+ * \param minor The minor version to check.
+ * \param patch The patch version to check.
+ */
 #define VISTK_VERSION_CHECK(major, minor, patch) \
-     (((major) <  VISTK_VERSION_MAJOR) \
-  || (((major) == VISTK_VERSION_MAJOR) \
-   && ((minor) <  VISTK_VERSION_MINOR)) \
-  || (((major) == VISTK_VERSION_MAJOR) \
-   && ((minor) == VISTK_VERSION_MINOR) \
+     (((major) <  VISTK_VERSION_MAJOR)           \
+  || (((major) == VISTK_VERSION_MAJOR)           \
+   && ((minor) <  VISTK_VERSION_MINOR))          \
+  || (((major) == VISTK_VERSION_MAJOR)           \
+   && ((minor) == VISTK_VERSION_MINOR)           \
    && ((patch) <= VISTK_VERSION_PATCH)))
 
 #cmakedefine VISTK_BUILT_FROM_GIT
+/// The full git hash of the build.
 #define VISTK_GIT_HASH       "@vistk_git_hash@"
+/// A short, unique (at the time of creation) hash prefix.
 #define VISTK_GIT_HASH_SHORT "@vistk_git_hash_short@"
+/// A string describing the 'dirty' state of the build tree.
 #define VISTK_GIT_DIRTY      "@vistk_git_dirty@"
+/// The git version information.
 #define VISTK_GIT_VERSION    VISTK_GIT_HASH VISTK_GIT_DIRTY
+
+/**
+ * \def VISTK_VERSION_FULL
+ *
+ * \brief The full version string.
+ */
 
 #ifdef VISTK_BUILT_FROM_GIT
 #define VISTK_VERSION_FULL   VISTK_VERSION ".git" VISTK_GIT_VERSION
