@@ -141,7 +141,9 @@ class VISTK_PIPELINE_EXPORT process_cluster
     void _reset();
 
     /**
-     * \brief Method where subclass data processing occurs.
+     * \brief A stub implementation to ensure that clusters should not be stepped.
+     *
+     * \throws process_exception Always thrown since clusters should not be stepped.
      */
     void _step();
 
