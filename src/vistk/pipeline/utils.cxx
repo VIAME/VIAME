@@ -28,18 +28,18 @@
 #include <cstdlib>
 #endif
 
+/**
+ * \file utils.cxx
+ *
+ * \brief Implementation of pipeline utilities.
+ */
+
 #if defined(_WIN32) || defined(_WIN64)
 // The mechanism only make sense in debugging mode.
 #ifndef NDEBUG
 static void SetThreadName(DWORD dwThreadID, LPCSTR threadName);
 #endif
 #endif
-
-/**
- * \file utils.cxx
- *
- * \brief Implementation of pipeline utilities.
- */
 
 namespace vistk
 {
@@ -147,7 +147,8 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void SetThreadName(DWORD dwThreadID, LPCSTR threadName)
+void
+SetThreadName(DWORD dwThreadID, LPCSTR threadName)
 {
    THREADNAME_INFO info;
    info.dwType = 0x1000;
