@@ -57,6 +57,7 @@ static void test_new_is_not_full();
 static void test_new_has_count_zero();
 static void test_push_datum();
 static void test_peek_datum();
+static void test_peek_datum_index();
 static void test_pop_datum();
 static void test_get_datum();
 static void test_null_upstream_process();
@@ -96,6 +97,10 @@ run_test(std::string const& test_name)
   else if (test_name == "peek_datum")
   {
     test_peek_datum();
+  }
+  else if (test_name == "peek_datum_index")
+  {
+    test_peek_datum_index();
   }
   else if (test_name == "pop_datum")
   {
@@ -264,6 +269,48 @@ test_peek_datum()
   if (*estamp != *stamp)
   {
     TEST_ERROR("The edge modified a stamp on a peek");
+  }
+}
+
+void
+test_peek_datum_index()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
+  vistk::datum_t const dat1 = vistk::datum::empty_datum();
+  vistk::datum_t const dat2 = vistk::datum::complete_datum();
+  vistk::stamp_t const stamp1 = vistk::stamp::new_stamp(inc);
+  vistk::stamp_t const stamp2 = vistk::stamp::incremented_stamp(stamp1);
+
+  vistk::edge_datum_t const edat1 = vistk::edge_datum_t(dat1, stamp1);
+  vistk::edge_datum_t const edat2 = vistk::edge_datum_t(dat2, stamp2);
+
+  edge->push_datum(edat1);
+  edge->push_datum(edat2);
+
+  vistk::edge_datum_t const get_edat = edge->peek_datum(1);
+
+  if (edge->datum_count() != 2)
+  {
+    TEST_ERROR("An edge removed a datum on an indexed peek");
+  }
+
+  vistk::stamp_t const& estamp = get_edat.stamp;
+
+  if (*estamp != *stamp2)
+  {
+    TEST_ERROR("The edge modified a stamp on a peek");
+  }
+
+  vistk::datum_t const& edatum = get_edat.datum;
+
+  if (edatum != dat2)
+  {
+    TEST_ERROR("The edge modified a datum on a peek");
   }
 }
 

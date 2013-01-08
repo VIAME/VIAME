@@ -15,7 +15,7 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/weak_ptr.hpp>
 
-#include <queue>
+#include <deque>
 
 /**
  * \file edge.cxx
@@ -75,7 +75,9 @@ class edge::priv
     process_ref_t upstream;
     process_ref_t downstream;
 
-    std::queue<edge_datum_t> q;
+    typedef std::deque<edge_datum_t> edge_queue_t;
+
+    edge_queue_t q;
 
     boost::condition_variable_any cond_have_data;
     boost::condition_variable_any cond_have_space;
@@ -178,7 +180,7 @@ edge
 
       (void)write_lock;
 
-      d->q.push(datum);
+      d->q.push_back(datum);
     }
   }
 
@@ -208,7 +210,7 @@ edge
 
       (void)write_lock;
 
-      d->q.pop();
+      d->q.pop_front();
     }
   }
 
@@ -230,7 +232,7 @@ edge
     d->cond_have_data.wait(lock);
   }
 
-  return d->q.front();
+  return d->q.at(idx);
 }
 
 void
@@ -252,7 +254,7 @@ edge
 
       (void)write_lock;
 
-      d->q.pop();
+      d->q.pop_front();
     }
   }
 
@@ -273,7 +275,7 @@ edge
 
   while (d->q.size())
   {
-    d->q.pop();
+    d->q.pop_front();
   }
 
   d->cond_have_space.notify_one();
