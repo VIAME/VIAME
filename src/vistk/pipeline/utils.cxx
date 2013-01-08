@@ -64,7 +64,7 @@ name_thread(thread_name_t const& name)
   int const ret = pthread_set_name_np(tid, name.c_str());
 #else
   // Fail if not debugging.
-  bool const ret = true;
+  return false;
 #endif
 #endif
 
@@ -74,10 +74,7 @@ name_thread(thread_name_t const& name)
 #elif defined(__linux__)
   int const ret = prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name.c_str()), 0, 0, 0);
 
-  if (ret)
-  {
-    return false;
-  }
+  return !ret;
 #elif defined(_WIN32) || defined(_WIN64)
 #ifndef NDEBUG
   static DWORD const current_thread = -1;
