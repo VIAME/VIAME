@@ -8,8 +8,9 @@
 
 #ifdef HAVE_PTHREAD_NAMING
 #include <pthread.h>
-#ifndef DEBUG
 #ifdef HAVE_PTHREAD_SET_NAME_NP
+// The mechanism only make sense in debugging mode.
+#ifndef DEBUG
 #include <pthread_np.h>
 #endif
 #endif
