@@ -140,7 +140,9 @@ scheduler_registry_t
 scheduler_registry
 ::self()
 {
-  static boost::mutex mut;
+  typedef boost::mutex mutex_t;
+
+  static mutex_t mut;
 
   if (reg_self)
   {
@@ -148,7 +150,7 @@ scheduler_registry
   }
 
   {
-    boost::mutex::scoped_lock const lock(mut);
+    boost::unique_lock<mutex_t> const lock(mut);
 
     (void)lock;
 
