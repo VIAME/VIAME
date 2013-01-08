@@ -31,8 +31,6 @@
 #if defined(_WIN32) || defined(_WIN64)
 // The mechanism only make sense in debugging mode.
 #ifndef NDEBUG
-static DWORD const current_thread = -1;
-
 static void SetThreadName(DWORD dwThreadID, LPCSTR threadName);
 #endif
 #endif
@@ -82,6 +80,8 @@ name_thread(thread_name_t const& name)
   }
 #elif defined(_WIN32) || defined(_WIN64)
 #ifndef NDEBUG
+  static DWORD const current_thread = -1;
+
   SetThreadName(current_thread, name.c_str());
 #else
   return false;
@@ -137,8 +137,6 @@ free_envvar(envvar_value_t value)
 #ifndef NDEBUG
 
 // Code obtained from http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
-static DWORD const MS_VC_EXCEPTION = 0x406D1388;
-
 #pragma pack(push,8)
 typedef struct tagTHREADNAME_INFO
 {
@@ -159,6 +157,8 @@ void SetThreadName(DWORD dwThreadID, LPCSTR threadName)
 
    __try
    {
+      static DWORD const MS_VC_EXCEPTION = 0x406D1388;
+
       RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
    }
    __except(EXCEPTION_EXECUTE_HANDLER)
