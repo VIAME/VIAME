@@ -103,6 +103,8 @@ void
 process_cluster
 ::map_config(config::key_t const& key, name_t const& name_, config::key_t const& mapped_key)
 {
+  d->ensure_name(name_);
+
   priv::config_mapping_t const mapping = priv::config_mapping_t(key, mapped_key);
 
   d->config_map[name_].push_back(mapping);
