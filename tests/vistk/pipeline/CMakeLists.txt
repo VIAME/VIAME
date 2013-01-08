@@ -129,6 +129,12 @@ vistk_build_test(process_cluster libraries test_process_cluster.cxx)
 vistk_make_test(process_cluster configure)
 vistk_make_test(process_cluster init)
 vistk_make_test(process_cluster step)
+vistk_make_test(process_cluster duplicate_name)
+vistk_make_test(process_cluster map_config_no_exist)
+vistk_make_test(process_cluster map_input_no_exist)
+vistk_make_test(process_cluster map_input_port_no_exist)
+vistk_make_test(process_cluster map_output_no_exist)
+vistk_make_test(process_cluster map_output_port_no_exist)
 
 ##############################
 # Scheduler tests
