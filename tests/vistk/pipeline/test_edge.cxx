@@ -14,6 +14,9 @@
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/stamp.h>
 
+#include <boost/chrono/duration.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 
 #include <exception>
@@ -65,6 +68,7 @@ static void test_set_upstream_process();
 static void test_set_downstream_process();
 static void test_push_data_into_complete();
 static void test_get_data_from_complete();
+static void test_capacity();
 
 void
 run_test(std::string const& test_name)
@@ -128,6 +132,10 @@ run_test(std::string const& test_name)
   else if (test_name == "get_data_from_complete")
   {
     test_get_data_from_complete();
+  }
+  else if (test_name == "capacity")
+  {
+    test_capacity();
   }
   else
   {
@@ -439,4 +447,42 @@ test_get_data_from_complete()
   EXPECT_EXCEPTION(vistk::datum_requested_after_complete,
                    edge->pop_datum(),
                    "popping data from a complete edge");
+}
+
+static void push_datum(vistk::edge_t edge, vistk::edge_datum_t edat);
+
+void
+test_capacity()
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::config::value_t const value_capacity = boost::lexical_cast<vistk::config::value_t>(1);
+
+  config->set_value(vistk::edge::config_capacity, value_capacity);
+
+  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+
+  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+
+  vistk::datum_t const dat1 = vistk::datum::empty_datum();
+  vistk::datum_t const dat2 = vistk::datum::complete_datum();
+  vistk::stamp_t const stamp1 = vistk::stamp::new_stamp(inc);
+  vistk::stamp_t const stamp2 = vistk::stamp::incremented_stamp(stamp1);
+
+  vistk::edge_datum_t const edat1 = vistk::edge_datum_t(dat1, stamp1);
+  vistk::edge_datum_t const edat2 = vistk::edge_datum_t(dat2, stamp2);
+
+  // Fill the edge.
+  edge->push_datum(edat1);
+
+  boost::thread thread = boost::thread(boost::bind(&push_datum, edge, edat2));
+
+  thread.join();
+}
+
+void
+push_datum(vistk::edge_t edge, vistk::edge_datum_t edat)
+{
+  // Cause a deadlock (the test should timeout).
+  edge->push_datum(edat);
 }

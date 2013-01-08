@@ -44,7 +44,13 @@ vistk_make_test(stamp ordering)
 ##############################
 # Edge tests
 ##############################
-vistk_build_test(edge libraries test_edge.cxx)
+set(edge_libraries
+  ${libraries}
+  ${Boost_THREAD_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_CHRONO_LIBRARY})
+
+vistk_build_test(edge edge_libraries test_edge.cxx)
 
 vistk_make_test(edge null_config)
 vistk_make_test(edge makes_dependency)
@@ -61,6 +67,14 @@ vistk_make_test(edge set_upstream_process)
 vistk_make_test(edge set_downstream_process)
 vistk_make_test(edge push_data_into_complete)
 vistk_make_test(edge get_data_from_complete)
+vistk_make_test(edge capacity)
+
+# The test should timeout since the test causes
+# a deadlock due to the capacity settings.
+set_tests_properties(test-edge-capacity
+  PROPERTIES
+    TIMEOUT   5
+    WILL_FAIL TRUE)
 
 ##############################
 # Modules tests
