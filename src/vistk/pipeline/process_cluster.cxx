@@ -54,9 +54,9 @@ process_cluster
 {
   processes_t procs;
 
-  BOOST_FOREACH (priv::process_map_t::value_type const& process, d->processes)
+  BOOST_FOREACH (priv::process_map_t::value_type const& process_entry, d->processes)
   {
-    process_t const& proc = process.second;
+    process_t const& proc = process_entry.second;
 
     procs.push_back(proc);
   }
@@ -249,7 +249,6 @@ process_cluster
 process_cluster::priv
 ::priv()
   : config_map()
-  , names()
   , processes()
   , input_mappings()
   , output_mappings()
