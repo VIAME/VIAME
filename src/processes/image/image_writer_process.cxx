@@ -200,7 +200,9 @@ image_writer_process
 
   if (d->has_output)
   {
-    d->fout << path << std::endl;
+    std::string const str = path.string<std::string>();
+
+    d->fout << str << std::endl;
   }
 
   d->write(path, input);
