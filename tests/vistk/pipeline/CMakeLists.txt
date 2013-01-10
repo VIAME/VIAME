@@ -69,13 +69,6 @@ vistk_make_test(edge push_data_into_complete)
 vistk_make_test(edge get_data_from_complete)
 vistk_make_test(edge capacity)
 
-# The test should timeout since the test causes
-# a deadlock due to the capacity settings.
-set_tests_properties(test-edge-capacity
-  PROPERTIES
-    TIMEOUT   5
-    WILL_FAIL TRUE)
-
 ##############################
 # Modules tests
 ##############################

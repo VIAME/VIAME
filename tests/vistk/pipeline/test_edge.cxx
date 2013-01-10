@@ -15,6 +15,7 @@
 #include <vistk/pipeline/stamp.h>
 
 #include <boost/chrono/duration.hpp>
+#include <boost/chrono/process_cpu_clocks.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -449,6 +450,8 @@ test_get_data_from_complete()
                    "popping data from a complete edge");
 }
 
+#define SECONDS_TO_WAIT 1
+
 static void push_datum(vistk::edge_t edge, vistk::edge_datum_t edat);
 
 void
@@ -477,12 +480,49 @@ test_capacity()
 
   boost::thread thread = boost::thread(boost::bind(&push_datum, edge, edat2));
 
+  // Give the other thread some time.
+  boost::this_thread::sleep_for(boost::chrono::seconds(SECONDS_TO_WAIT));
+
+  // Make sure the edge still is at capacity.
+  if (edge->datum_count() != 1)
+  {
+    TEST_ERROR("A datum was pushed into a full edge");
+  }
+
+  // Let the other thread go (it should have been blocking).
+  edge->get_datum();
+
+  // Make sure the other thread completes.
   thread.join();
 }
 
 void
 push_datum(vistk::edge_t edge, vistk::edge_datum_t edat)
 {
-  // Cause a deadlock (the test should timeout).
+  // This clock is used because it is both steady (which rules out system_clock)
+  // and uses the wall time (which rules out thread_clock).
+  typedef boost::chrono::process_real_cpu_clock time_clock_t;
+  typedef time_clock_t::time_point time_point_t;
+  typedef time_clock_t::duration duration_t;
+
+  time_point_t const start = time_clock_t::now();
+
+  // This should be blocking.
   edge->push_datum(edat);
+
+  time_point_t const end = time_clock_t::now();
+
+  duration_t const duration = end - start;
+
+  static double const tolerance = 0.75;
+
+  if (duration < (tolerance * boost::chrono::seconds(SECONDS_TO_WAIT)))
+  {
+    TEST_ERROR("It seems as though blocking did not occur when pushing into a full edge");
+  }
+
+  if (edge->datum_count() != 1)
+  {
+    TEST_ERROR("A datum was pushed into a full edge");
+  }
 }
