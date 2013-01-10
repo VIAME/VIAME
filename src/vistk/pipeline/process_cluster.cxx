@@ -39,6 +39,7 @@ class process_cluster::priv
     typedef std::map<process::name_t, config_mappings_t> config_map_t;
     typedef std::map<process::name_t, process_t> process_map_t;
 
+    bool has_name(name_t const& name) const;
     void ensure_name(name_t const& name) const;
 
     config_map_t config_map;
@@ -103,7 +104,10 @@ void
 process_cluster
 ::map_config(config::key_t const& key, name_t const& name_, config::key_t const& mapped_key)
 {
-  d->ensure_name(name_);
+  if (d->has_name(name_))
+  {
+    /// \todo Log a warning that the mapping will be ignored.
+  }
 
   priv::config_mapping_t const mapping = priv::config_mapping_t(key, mapped_key);
 
@@ -261,13 +265,20 @@ process_cluster::priv
 {
 }
 
+bool
+process_cluster::priv
+::has_name(name_t const& name) const
+{
+  process_map_t::const_iterator const i = processes.find(name);
+
+  return (i != processes.end());
+}
+
 void
 process_cluster::priv
 ::ensure_name(name_t const& name) const
 {
-  process_map_t::const_iterator const i = processes.find(name);
-
-  if (i == processes.end())
+  if (!has_name(name))
   {
     throw no_such_process_exception(name);
   }

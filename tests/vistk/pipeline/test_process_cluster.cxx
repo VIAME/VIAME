@@ -187,9 +187,7 @@ test_map_config_no_exist()
   vistk::config::key_t const key = vistk::config::key_t("key");
   vistk::process::name_t const name = vistk::process::name_t("name");
 
-  EXPECT_EXCEPTION(vistk::no_such_process_exception,
-                   cluster->_map_config(key, name, key),
-                   "mapping an input to a non-existent process");
+  cluster->_map_config(key, name, key);
 }
 
 void
