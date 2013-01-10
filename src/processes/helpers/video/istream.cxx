@@ -107,8 +107,7 @@ known_istream_impls()
 istream_t
 istream_for_impl(istream_impl_t const& impl, path_t const& path)
 {
-  path_t::string_type const& pstr = path.native();
-  std::string const str(pstr.begin(), pstr.end());
+  std::string const str = path.string<std::string>();
 
   if (impl == glob_impl())
   {

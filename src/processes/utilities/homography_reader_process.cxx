@@ -85,9 +85,8 @@ homography_reader_process
 
   if (d->path.empty())
   {
-    path_t::string_type const& pstr = d->path.native();
-    config::value_t const value = config::value_t(pstr.begin(), pstr.end());
     static std::string const reason = "The path given was empty";
+    config::value_t const value = d->path.string<config::value_t>();
 
     throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
@@ -96,8 +95,7 @@ homography_reader_process
 
   if (!d->fin.good())
   {
-    path_t::string_type const& pstr = d->path.native();
-    std::string const str(pstr.begin(), pstr.end());
+    std::string const str = d->path.string<std::string>();
     std::string const reason = "Failed to open the path: " + str;
 
     throw invalid_configuration_exception(name(), reason);
