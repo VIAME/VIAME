@@ -37,12 +37,12 @@ class process_cluster::priv
     typedef std::pair<config::key_t, config::key_t> config_mapping_t;
     typedef std::vector<config_mapping_t> config_mappings_t;
     typedef std::map<process::name_t, config_mappings_t> config_map_t;
+    typedef std::map<process::name_t, process_t> process_map_t;
 
     void ensure_name(name_t const& name) const;
 
     config_map_t config_map;
-    names_t names;
-    processes_t processes;
+    process_map_t processes;
     connections_t input_mappings;
     connections_t output_mappings;
     connections_t internal_connections;
@@ -52,7 +52,16 @@ processes_t
 process_cluster
 ::processes() const
 {
-  return d->processes;
+  processes_t procs;
+
+  BOOST_FOREACH (priv::process_map_t::value_type const& process, d->processes)
+  {
+    process_t const& proc = process.second;
+
+    procs.push_back(proc);
+  }
+
+  return procs;
 }
 
 process::connections_t
@@ -94,6 +103,8 @@ void
 process_cluster
 ::map_config(config::key_t const& key, name_t const& name_, config::key_t const& mapped_key)
 {
+  d->ensure_name(name_);
+
   priv::config_mapping_t const mapping = priv::config_mapping_t(key, mapped_key);
 
   d->config_map[name_].push_back(mapping);
@@ -103,9 +114,9 @@ void
 process_cluster
 ::add_process(name_t const& name_, type_t const& type_, config_t const& conf)
 {
-  names_t::const_iterator const i = std::find(d->names.begin(), d->names.end(), name_);
+  priv::process_map_t::const_iterator const i = d->processes.find(name_);
 
-  if (i != d->names.end())
+  if (i != d->processes.end())
   {
     throw duplicate_process_name_exception(name_);
   }
@@ -127,8 +138,7 @@ process_cluster
 
   process_t const proc = reg->create_process(type_, real_name, conf);
 
-  d->names.push_back(name_);
-  d->processes.push_back(proc);
+  d->processes[name_] = proc;
 }
 
 void
@@ -136,6 +146,15 @@ process_cluster
 ::input_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
   d->ensure_name(name_);
+
+  process_t const& proc = d->processes[name_];
+
+  if (!proc->input_port_info(mapped_port))
+  {
+    throw no_such_port_exception(name_, mapped_port);
+
+    return;
+  }
 
   name_t const real_name = convert_name(name(), name_);
 
@@ -152,6 +171,15 @@ process_cluster
 ::output_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
   d->ensure_name(name_);
+
+  process_t const& proc = d->processes[name_];
+
+  if (!proc->output_port_info(mapped_port))
+  {
+    throw no_such_port_exception(name_, mapped_port);
+
+    return;
+  }
 
   name_t const real_name = convert_name(name(), name_);
 
@@ -238,9 +266,9 @@ void
 process_cluster::priv
 ::ensure_name(name_t const& name) const
 {
-  names_t::const_iterator const i = std::find(names.begin(), names.end(), name);
+  process_map_t::const_iterator const i = processes.find(name);
 
-  if (i == names.end())
+  if (i == processes.end())
   {
     throw no_such_process_exception(name);
   }
