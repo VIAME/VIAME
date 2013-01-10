@@ -6,7 +6,15 @@
 
 #include "utils.h"
 
-#ifdef HAVE_SETPROCTITLE
+#ifdef HAVE_PTHREAD_NAMING
+#include <pthread.h>
+#ifdef HAVE_PTHREAD_SET_NAME_NP
+// The mechanism only make sense in debugging mode.
+#ifndef DEBUG
+#include <pthread_np.h>
+#endif
+#endif
+#elif defined(HAVE_SETPROCTITLE)
 #include <cstdlib>
 #elif defined(__linux__)
 #include <sys/prctl.h>
@@ -22,17 +30,18 @@
 #include <cstdlib>
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
-static DWORD const current_thread = -1;
-
-static void SetThreadName(DWORD dwThreadID, LPCSTR threadName);
-#endif
-
 /**
  * \file utils.cxx
  *
  * \brief Implementation of pipeline utilities.
  */
+
+#if defined(_WIN32) || defined(_WIN64)
+// The mechanism only make sense in debugging mode.
+#ifndef NDEBUG
+static void SetThreadName(DWORD dwThreadID, LPCSTR threadName);
+#endif
+#endif
 
 namespace vistk
 {
@@ -40,19 +49,45 @@ namespace vistk
 bool
 name_thread(thread_name_t const& name)
 {
-#ifdef HAVE_SETPROCTITLE
+#ifdef HAVE_PTHREAD_NAMING
+#ifdef HAVE_PTHREAD_SETNAME_NP
+#ifdef PTHREAD_SETNAME_NP_TAKES_ID
+  pthread_t const tid = pthread_self();
+
+  int const ret = pthread_setname_np(tid, name.c_str());
+#else
+  int const ret = pthread_setname_np(name.c_str());
+#endif
+#elif defined(HAVE_PTHREAD_SET_NAME_NP)
+// The documentation states that it only makes sense in debugging; respect it.
+#ifndef NDEBUG
+  pthread_t const tid = pthread_self();
+
+  int const ret = pthread_set_name_np(tid, name.c_str());
+#else
+  // Fail if not debugging.
+  return false;
+#endif
+#endif
+
+  return !ret;
+#elif defined(HAVE_SETPROCTITLE)
   setproctitle("%s", name.c_str());
 #elif defined(__linux__)
   int const ret = prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name.c_str()), 0, 0, 0);
 
-  return (ret < 0);
+  return !ret;
 #elif defined(_WIN32) || defined(_WIN64)
 #ifndef NDEBUG
+  static DWORD const current_thread = -1;
+
   SetThreadName(current_thread, name.c_str());
 #else
   return false;
 #endif
 #else
+  (void)name;
+
   return false;
 #endif
 
@@ -98,10 +133,9 @@ get_envvar(envvar_name_t const& name)
 }
 
 #if defined(_WIN32) || defined(_WIN64)
+#ifndef NDEBUG
 
 // Code obtained from http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
-static DWORD const MS_VC_EXCEPTION = 0x406D1388;
-
 #pragma pack(push,8)
 typedef struct tagTHREADNAME_INFO
 {
@@ -112,7 +146,8 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void SetThreadName(DWORD dwThreadID, LPCSTR threadName)
+void
+SetThreadName(DWORD dwThreadID, LPCSTR threadName)
 {
    THREADNAME_INFO info;
    info.dwType = 0x1000;
@@ -122,6 +157,8 @@ void SetThreadName(DWORD dwThreadID, LPCSTR threadName)
 
    __try
    {
+      static DWORD const MS_VC_EXCEPTION = 0x406D1388;
+
       RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
    }
    __except(EXCEPTION_EXECUTE_HANDLER)
@@ -129,4 +166,5 @@ void SetThreadName(DWORD dwThreadID, LPCSTR threadName)
    }
 }
 
+#endif
 #endif

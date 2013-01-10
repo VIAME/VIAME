@@ -26,7 +26,7 @@ option(VISTK_ENABLE_BOOST_PYTHON_FIXES "Enables fixes for Boost.Python bugs (rec
 mark_as_advanced(VISTK_ENABLE_BOOST_PYTHON_FIXES)
 if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
   # Not fixed yet.
-  #if (${Boost_VERSION} LESS 10XX00)
+  #if (Boost_VERSION LESS 10XX00)
     # Override Boost's invoke.hpp
     set(reldir "helpers/include/threading")
     set(target_name "boost-python-invoke.hpp")
@@ -42,7 +42,7 @@ if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
       ${target_name})
   #endif ()
   # Not fixed yet.
-  #if (${Boost_VERSION} LESS 10XX00)
+  #if (Boost_VERSION LESS 10XX00)
     # Override Boost's override.hpp
     set(reldir "helpers/include/exceptions_in_override")
     set(target_name "boost-python-override.hpp")
