@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -23,6 +23,8 @@
 
 #include <vil/vil_image_view.h>
 
+#include <boost/bind.hpp>
+
 #include <string>
 
 /**
@@ -44,6 +46,8 @@ class read_video_gravl_process::priv
 
     gravl::resource_ptr resource;
     gravl::data_block* video;
+
+    boost::function<datum_t (gravl::data_block*)> convert_func;
 
     static config::key_t const config_pixtype;
     static config::key_t const config_pixfmt;
@@ -100,6 +104,11 @@ read_video_gravl_process
 {
 }
 
+template <typename PixType>
+static vistk::datum_t convert_image(
+  gravl::data_block* video, vistk::pixtype_t const& pixtype,
+  vil_pixel_format pixfmt);
+
 void
 read_video_gravl_process
 ::_configure()
@@ -136,6 +145,39 @@ read_video_gravl_process
     throw invalid_configuration_exception(name(), reason);
   }
 
+  // Get the function to convert the gravl::image to a vil_image_view
+  pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
+  if (pixtype == pixtypes::pixtype_byte()) // uint8_t
+  {
+    d->convert_func = boost::bind(&convert_image<uint8_t>, _1, pixtype, VIL_PIXEL_FORMAT_BYTE);
+  }
+//   else if (pixtype == pixtypes::pixtype_short()) // uint16_t - TODO
+//   {
+//     d->convert_func = boost::bind(&convert_image<uint16_t>, _1, pixtype, VIL_PIXEL_FORMAT_INT_16);
+//   }
+//   else if (pixtype == pixtypes::pixtype_int()) // uint32_t - TODO
+//   {
+//     d->convert_func = boost::bind(&convert_image<uint32_t>, _1, pixtype, VIL_PIXEL_FORMAT_INT_32);
+//   }
+//   else if (pixtype == pixtypes::pixtype_long()) // uint64_t - TODO
+//   {
+//     d->convert_func = boost::bind(&convert_image<uint64_t>, _1, pixtype, VIL_PIXEL_FORMAT_INT_64);
+//   }
+  else if (pixtype == pixtypes::pixtype_float()) // float
+  {
+    d->convert_func = boost::bind(&convert_image<float>, _1, pixtype, VIL_PIXEL_FORMAT_FLOAT);
+  }
+  else if (pixtype == pixtypes::pixtype_double()) // double
+  {
+    d->convert_func = boost::bind(&convert_image<double>, _1, pixtype, VIL_PIXEL_FORMAT_DOUBLE);
+  }
+  else
+  {
+    std::string const reason = "The pixtype \'" + pixtype + "\' "
+                                "is not supported";
+    throw invalid_configuration_exception(name(), reason);
+  }
+
   process::_configure();
 }
 
@@ -147,11 +189,6 @@ read_video_gravl_process
 
   process::_init();
 }
-
-template <typename PixType>
-static vistk::datum_t convert_image(
-  gravl::data_block* video, vistk::pixtype_t const& pixtype,
-  vil_pixel_format pixfmt);
 
 void
 read_video_gravl_process
@@ -172,38 +209,7 @@ read_video_gravl_process
   }
   else
   {
-    pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
-    if (pixtype == pixtypes::pixtype_byte()) // uint8_t
-    {
-      dat = convert_image<uint8_t>(d->video, pixtype, VIL_PIXEL_FORMAT_BYTE);
-    }
-//     else if (pixtype == pixtypes::pixtype_short()) // uint16_t - TODO
-//     {
-//       dat = convert_image<uint16_t>(d->video, pixtype, VIL_PIXEL_FORMAT_INT_16);
-//     }
-//     else if (pixtype == pixtypes::pixtype_int()) // uint32_t - TODO
-//     {
-//       dat = convert_image<uint32_t>(d->video, pixtype, VIL_PIXEL_FORMAT_INT_32);
-//     }
-//     else if (pixtype == pixtypes::pixtype_long()) // uint64_t - TODO
-//     {
-//       dat = convert_image<uint64_t>(d->video, pixtype, VIL_PIXEL_FORMAT_INT_64);
-//     }
-    else if (pixtype == pixtypes::pixtype_float()) // float
-    {
-      dat = convert_image<float>(d->video, pixtype, VIL_PIXEL_FORMAT_FLOAT);
-    }
-    else if (pixtype == pixtypes::pixtype_double()) // double
-    {
-      dat = convert_image<double>(d->video, pixtype, VIL_PIXEL_FORMAT_DOUBLE);
-    }
-    else
-    {
-      std::string const reason = "The pixtype \'" + pixtype + "\' "
-                                 "is not supported";
-      throw invalid_configuration_exception(name(), reason);
-    }
-
+    dat = d->convert_func(d->video);
     d->video->advance();
   }
 
