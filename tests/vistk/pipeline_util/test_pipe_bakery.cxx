@@ -548,7 +548,7 @@ test_cluster_missing_cluster(vistk::path_t const& /*pipe_file*/)
 {
   vistk::cluster_blocks blocks;
 
-  vistk::process_pipe_block const pipe_block;
+  vistk::process_pipe_block const pipe_block = vistk::process_pipe_block();
   vistk::cluster_block const block = pipe_block;
 
   blocks.push_back(block);
@@ -563,7 +563,7 @@ test_cluster_multiple_cluster(vistk::path_t const& /*pipe_file*/)
 {
   vistk::cluster_blocks blocks;
 
-  vistk::cluster_pipe_block const cluster_pipe_block;
+  vistk::cluster_pipe_block const cluster_pipe_block = vistk::cluster_pipe_block();
   vistk::cluster_block const cluster_block = cluster_pipe_block;
 
   blocks.push_back(cluster_block);
