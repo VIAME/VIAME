@@ -11,6 +11,7 @@
 #include <processes/helpers/image/format.h>
 
 #include <vistk/utilities/path.h>
+#include <vistk/utilities/timestamp.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
@@ -44,6 +45,8 @@ class video_reader_process::priv
     istream_read_func_t const read;
     bool const verify;
 
+    timestamp::frame_t frame;
+
     static config::key_t const config_pixtype;
     static config::key_t const config_pixfmt;
     static config::key_t const config_path;
@@ -54,6 +57,7 @@ class video_reader_process::priv
     static config::value_t const default_verify;
     static config::value_t const default_impl;
     static port_t const port_output;
+    static port_t const port_output_ts;
 };
 
 config::key_t const video_reader_process::priv::config_pixtype = config::key_t("pixtype");
@@ -66,6 +70,7 @@ config::value_t const video_reader_process::priv::default_pixfmt = config::value
 config::value_t const video_reader_process::priv::default_verify = config::value_t("false");
 config::value_t const video_reader_process::priv::default_impl = config::value_t(default_istream_impl());
 process::port_t const video_reader_process::priv::port_output = port_t("image");
+process::port_t const video_reader_process::priv::port_output_ts = port_t("timestamp");
 
 static std::string const impl_sep = ", ";
 
@@ -103,6 +108,7 @@ video_reader_process
 
   port_type_t const port_type_output = port_type_for_pixtype(pixtype, pixfmt);
 
+  port_flags_t const none;
   port_flags_t required;
 
   required.insert(flag_required);
@@ -112,6 +118,11 @@ video_reader_process
     port_type_output,
     required,
     port_description_t("The images that are read in."));
+  declare_output_port(
+    priv::port_output_ts,
+    "timestamp",
+    none,
+    port_description_t("The timestamp for the image."));
 }
 
 video_reader_process
@@ -249,15 +260,39 @@ video_reader_process
 ::_step()
 {
   datum_t dat;
+  datum_t dat_ts;
 
   dat = d->read(d->istream);
 
-  push_datum_to_port(priv::port_output, dat);
-
-  if (dat->type() == datum::complete)
+  switch (dat->type())
   {
-    mark_process_as_complete();
+    case datum::data:
+    case datum::empty:
+      ++d->frame;
+      break;
+    case datum::complete:
+      mark_process_as_complete();
+      break;
+    case datum::error:
+    case datum::invalid:
+    case datum::flush:
+    default:
+      break;
   }
+
+  if (dat->type() == datum::data)
+  {
+    timestamp const ts = timestamp(d->frame);
+
+    dat_ts = datum::new_datum(ts);
+  }
+  else
+  {
+    dat_ts = dat;
+  }
+
+  push_datum_to_port(priv::port_output, dat);
+  push_datum_to_port(priv::port_output_ts, dat_ts);
 
   process::_step();
 }
@@ -268,6 +303,7 @@ video_reader_process::priv
   , istream(istr)
   , read(func)
   , verify(ver)
+  , frame(0)
 {
 }
 

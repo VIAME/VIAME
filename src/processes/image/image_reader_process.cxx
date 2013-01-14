@@ -10,6 +10,7 @@
 #include <processes/helpers/image/read.h>
 
 #include <vistk/utilities/path.h>
+#include <vistk/utilities/timestamp.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
@@ -37,6 +38,8 @@ class image_reader_process::priv
     read_func_t const read;
     bool const verify;
 
+    timestamp::frame_t frame;
+
     std::ifstream fin;
 
     static config::key_t const config_pixtype;
@@ -47,6 +50,7 @@ class image_reader_process::priv
     static config::value_t const default_pixfmt;
     static config::value_t const default_verify;
     static port_t const port_output;
+    static port_t const port_output_ts;
 };
 
 config::key_t const image_reader_process::priv::config_pixtype = config::key_t("pixtype");
@@ -57,6 +61,7 @@ config::value_t const image_reader_process::priv::default_pixtype = config::valu
 config::value_t const image_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const image_reader_process::priv::default_verify = config::value_t("false");
 process::port_t const image_reader_process::priv::port_output = port_t("image");
+process::port_t const image_reader_process::priv::port_output_ts = port_t("timestamp");
 
 image_reader_process
 ::image_reader_process(config_t const& config)
@@ -85,6 +90,7 @@ image_reader_process
 
   port_type_t const port_type_output = port_type_for_pixtype(pixtype, pixfmt);
 
+  port_flags_t const none;
   port_flags_t required;
 
   required.insert(flag_required);
@@ -94,6 +100,11 @@ image_reader_process
     port_type_output,
     required,
     port_description_t("The images that are read in."));
+  declare_output_port(
+    priv::port_output_ts,
+    "timestamp",
+    none,
+    port_description_t("The timestamp for the image."));
 }
 
 image_reader_process
@@ -186,17 +197,20 @@ image_reader_process
 ::_step()
 {
   datum_t dat;
+  datum_t dat_ts;
 
   if (d->fin.eof())
   {
     mark_process_as_complete();
     dat = datum::complete_datum();
+    dat_ts = dat;
   }
   else if (!d->fin.good())
   {
     static datum::error_t const err_string = datum::error_t("Error with input file stream.");
 
     dat = datum::error_datum(err_string);
+    dat_ts = dat;
   }
   else
   {
@@ -212,9 +226,16 @@ image_reader_process
     {
       dat = d->read(line);
     }
+
+    ++d->frame;
+
+    timestamp const ts = timestamp(d->frame);
+
+    dat_ts = datum::new_datum(ts);
   }
 
   push_datum_to_port(priv::port_output, dat);
+  push_datum_to_port(priv::port_output_ts, dat_ts);
 
   process::_step();
 }
@@ -224,6 +245,7 @@ image_reader_process::priv
   : path(input_path)
   , read(func)
   , verify(ver)
+  , frame(0)
   , fin()
 {
 }

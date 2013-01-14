@@ -32,6 +32,7 @@ namespace vistk
  * \oports
  *
  * \oport{image/\portvar{layer}} The image layer named \portvar{tag}.
+ * \oport{timestamp} The timestamp for the image.
  *
  * \configs
  *

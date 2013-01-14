@@ -10,6 +10,7 @@
 #include <processes/helpers/image/read.h>
 
 #include <vistk/utilities/path.h>
+#include <vistk/utilities/timestamp.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/datum.h>
@@ -47,6 +48,8 @@ class layered_image_reader_process::priv
     read_func_t const read;
     port_type_t const port_type_output;
 
+    timestamp::frame_t frame;
+
     std::ifstream fin;
 
     layers_t layers;
@@ -59,6 +62,7 @@ class layered_image_reader_process::priv
     static config::value_t const default_pixfmt;
     static config::value_t const default_format;
     static port_t const port_image_prefix;
+    static port_t const port_timestamp;
 };
 
 config::key_t const layered_image_reader_process::priv::config_pixtype = config::key_t("pixtype");
@@ -69,6 +73,7 @@ config::value_t const layered_image_reader_process::priv::default_pixtype = conf
 config::value_t const layered_image_reader_process::priv::default_pixfmt = config::value_t(pixfmts::pixfmt_rgb());
 config::value_t const layered_image_reader_process::priv::default_format = config::value_t("image-%1%-%2%.png");
 process::port_t const layered_image_reader_process::priv::port_image_prefix = port_t("image/");
+process::port_t const layered_image_reader_process::priv::port_timestamp = port_t("timestamp");
 
 layered_image_reader_process
 ::layered_image_reader_process(config_t const& config)
@@ -98,6 +103,14 @@ layered_image_reader_process
   port_type_t const port_type = port_type_for_pixtype(pixtype, pixfmt);
 
   d.reset(new priv(port_type));
+
+  port_flags_t const none;
+
+  declare_output_port(
+    priv::port_timestamp,
+    "timestamp",
+    none,
+    port_description_t("The timestamp for the image."));
 }
 
 layered_image_reader_process
@@ -155,12 +168,14 @@ layered_image_reader_process
 ::_step()
 {
   datum_t dat;
+  datum_t dat_ts;
   std::string line;
   bool complete = false;
 
   if (d->fin.eof())
   {
     dat = datum::complete_datum();
+    dat_ts = dat;
     complete = true;
   }
   else if (!d->fin.good())
@@ -168,6 +183,7 @@ layered_image_reader_process
     static datum::error_t const err_string = datum::error_t("Error with input file stream.");
 
     dat = datum::error_datum(err_string);
+    dat_ts = dat;
   }
   else
   {
@@ -176,6 +192,15 @@ layered_image_reader_process
     if (line.empty())
     {
       dat = datum::empty_datum();
+      dat_ts = dat;
+    }
+    else
+    {
+      ++d->frame;
+
+      timestamp const ts = timestamp(d->frame);
+
+      dat_ts = datum::new_datum(ts);
     }
   }
 
@@ -209,6 +234,8 @@ layered_image_reader_process
 
     push_datum_to_port(priv::port_image_prefix + layer, odat);
   }
+
+  push_datum_to_port(priv::port_timestamp, dat_ts);
 
   if (complete)
   {
@@ -262,6 +289,7 @@ layered_image_reader_process::priv
   : path(input_path)
   , read(func)
   , port_type_output(port_type)
+  , frame(0)
   , fin()
   , layers(layers_)
 {
