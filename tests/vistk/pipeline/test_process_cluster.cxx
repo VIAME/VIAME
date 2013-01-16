@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -147,7 +147,7 @@ class sample_cluster
   : public vistk::process_cluster
 {
   public:
-    sample_cluster();
+    sample_cluster(vistk::config_t const& conf = vistk::config::empty_config());
     ~sample_cluster();
 
     void _map_config(vistk::config::key_t const& key, name_t const& name_, vistk::config::key_t const& mapped_key);
@@ -272,8 +272,8 @@ empty_cluster
 }
 
 sample_cluster
-::sample_cluster()
-  : vistk::process_cluster(vistk::config::empty_config())
+::sample_cluster(vistk::config_t const& conf)
+  : vistk::process_cluster(conf)
 {
 }
 
