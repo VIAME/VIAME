@@ -34,16 +34,14 @@ def test_api_calls():
 
     proc_type1 = 'numbers'
     proc_type2 = 'print_number'
+    proc_type3 = 'orphan_cluster'
 
     proc_name1 = 'src'
     proc_name2 = 'snk'
+    proc_name3 = 'orp'
 
     port_name1 = 'number'
     port_name2 = 'number'
-
-    group_name = 'group'
-    group_iport = 'iport'
-    group_oport = 'oport'
 
     modules.load_known_modules()
 
@@ -58,37 +56,24 @@ def test_api_calls():
     c.set_value(conf_name, 'test-python-pipeline-api_calls-print_number.txt')
     proc2 = reg.create_process(proc_type2, proc_name2, c)
 
+    proc3 = reg.create_process(proc_type3, proc_name3)
+
     p.add_process(proc1)
     p.add_process(proc2)
-    p.add_group(group_name)
+    p.add_process(proc3)
     p.connect(proc_name1, port_name1,
               proc_name2, port_name2)
-    p.map_input_port(group_name, group_iport,
-                     proc_name2, port_name2,
-                     process.PortFlags())
-    p.map_output_port(group_name, group_oport,
-                      proc_name1, port_name1,
-                      process.PortFlags())
     p.process_names()
     p.process_by_name(proc_name1)
+    p.cluster_names()
+    p.cluster_by_name(proc_name3)
     p.connections_from_addr(proc_name1, port_name1)
     p.connection_to_addr(proc_name2, port_name2)
-    p.groups()
-    p.input_ports_for_group(group_name)
-    p.output_ports_for_group(group_name)
-    p.mapped_group_input_port_flags(group_name, group_iport)
-    p.mapped_group_output_port_flags(group_name, group_oport)
-    p.mapped_group_input_ports(group_name, group_iport)
-    p.mapped_group_output_port(group_name, group_oport)
 
     p.disconnect(proc_name1, port_name1,
                  proc_name2, port_name2)
-    p.unmap_input_port(group_name, group_iport,
-                       proc_name2, port_name2)
-    p.unmap_output_port(group_name, group_oport,
-                        proc_name1, port_name1)
     p.remove_process(proc_name1)
-    p.remove_group(group_name)
+    p.remove_process(proc_name3)
 
     # Restore the pipeline so that setup_pipeline works.
     p.add_process(proc1)

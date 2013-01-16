@@ -86,13 +86,9 @@ tool_main(int argc, char* argv[])
   if (vm.count("setup"))
   {
     pipe->setup_pipeline();
+  }
 
-    vistk::export_dot_setup(ostr, pipe, graph_name);
-  }
-  else
-  {
-    vistk::export_dot(ostr, pipe, graph_name);
-  }
+  vistk::export_dot(ostr, pipe, graph_name);
 
   return EXIT_SUCCESS;
 }
@@ -104,6 +100,7 @@ pipe_to_dot_options()
 
   desc.add_options()
     ("name,n", boost::program_options::value<std::string>()->value_name("NAME")->default_value("unnamed"), "the name of the graph")
+    ("setup", "whether to setup the pipeline before exporting or not")
   ;
 
   return desc;

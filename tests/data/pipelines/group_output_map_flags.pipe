@@ -1,3 +1,0 @@
-group mygroup
-  omap[myflag] from myproc.oport
-               to   oport

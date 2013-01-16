@@ -31,7 +31,7 @@ def test_simple_pipeline(path):
 
     p.setup_pipeline()
 
-    export_.export_dot_setup(w, p, name)
+    export_.export_dot(w, p, name)
 
     os.close(r)
     os.close(w)

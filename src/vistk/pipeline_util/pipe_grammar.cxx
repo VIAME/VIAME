@@ -69,28 +69,30 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::map_options_t,
-  (boost::optional<vistk::process::port_flags_t>, flags)
+  vistk::cluster_config_t,
+  (vistk::config::description_t, description)
+  (vistk::config_value_t, config_value)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::input_map_t,
-  (vistk::map_options_t, options)
+  vistk::cluster_input_t,
+  (vistk::process::port_description_t, description)
   (vistk::process::port_t, from)
-  (vistk::process::port_addr_t, to)
+  (vistk::process::port_addrs_t, targets)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::output_map_t,
-  (vistk::map_options_t, options)
+  vistk::cluster_output_t,
+  (vistk::process::port_description_t, description)
   (vistk::process::port_addr_t, from)
   (vistk::process::port_t, to)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::group_pipe_block,
-  (vistk::process::name_t, name)
-  (vistk::group_subblocks_t, subblocks)
+  vistk::cluster_pipe_block,
+  (vistk::process::type_t, type)
+  (vistk::process_registry::description_t, description)
+  (vistk::cluster_subblocks_t, subblocks)
 )
 
 #endif
@@ -104,13 +106,14 @@ namespace
 static token_t const config_block_name = token_t("config");
 static token_t const process_block_name = token_t("process");
 static token_t const connect_block_name = token_t("connect");
-static token_t const group_block_name = token_t("group");
-static token_t const input_map_block_name = token_t("imap");
-static token_t const output_map_block_name = token_t("omap");
+static token_t const input_block_name = token_t("imap");
+static token_t const output_block_name = token_t("omap");
+static token_t const cluster_block_name = token_t("cluster");
 
 static token_t const from_name = token_t("from");
 static token_t const to_name = token_t("to");
 static token_t const type_token = token_t("::");
+static token_t const description_token = token_t(":#");
 
 static token_t const config_path_separator = token_t(config::block_sep);
 static token_t const port_separator = token_t(".");
@@ -122,13 +125,12 @@ static token_t const provider_close = token_t("}");
 
 }
 
-template<typename Iterator>
-class pipe_grammar
-  : public qi::grammar<Iterator, pipe_blocks()>
+template <typename Iterator>
+class common_grammar
 {
   public:
-    pipe_grammar();
-    ~pipe_grammar();
+    common_grammar();
+    ~common_grammar();
 
     qi::rule<Iterator> opt_whitespace;
     qi::rule<Iterator> whitespace;
@@ -166,37 +168,42 @@ class pipe_grammar
     qi::rule<Iterator, process::port_addr_t()> port_addr;
 
     qi::rule<Iterator, connect_pipe_block()> connect_block;
-
-    qi::rule<Iterator, process::port_flag_t()> map_flag;
-    qi::rule<Iterator, process::port_flags_t()> map_flags;
-    qi::rule<Iterator, process::port_flags_t()> map_flags_decl;
-
-    qi::rule<Iterator, map_options_t()> map_options;
-
-    qi::rule<Iterator, input_map_t()> input_map_block;
-    qi::rule<Iterator, output_map_t()> output_map_block;
-
-    qi::rule<Iterator, group_pipe_block()> group_block;
-
-    qi::rule<Iterator, pipe_blocks()> block_set;
 };
 
-class printer
+template <typename Iterator>
+class pipe_grammar
+  : public qi::grammar<Iterator, pipe_blocks()>
 {
   public:
-    typedef utf8_string string;
-
-    printer(std::ostream& ostr);
-    ~printer();
-
-    void element(string const& tag, string const& value, int depth) const;
+    pipe_grammar();
+    ~pipe_grammar();
   private:
-    static int const indent_width;
+    common_grammar<Iterator> const common;
 
-    std::ostream& m_ostr;
+    qi::rule<Iterator, pipe_blocks()> pipe_block_set;
 };
 
-int const printer::indent_width = 4;
+template <typename Iterator>
+class cluster_grammar
+  : public qi::grammar<Iterator, cluster_blocks()>
+{
+  public:
+    cluster_grammar();
+    ~cluster_grammar();
+  private:
+    common_grammar<Iterator> const common;
+
+    qi::rule<Iterator, std::string()> description_decl;
+
+    qi::rule<Iterator, cluster_config_t()> cluster_config_block;
+    qi::rule<Iterator, process::port_addrs_t()> cluster_input_target;
+    qi::rule<Iterator, cluster_input_t()> cluster_input_block;
+    qi::rule<Iterator, cluster_output_t()> cluster_output_block;
+
+    qi::rule<Iterator, cluster_pipe_block()> cluster_block;
+
+    qi::rule<Iterator, cluster_blocks()> cluster_block_set;
+};
 
 static void print_info(std::ostream& ostr, boost::spirit::info const& what);
 
@@ -233,11 +240,43 @@ parse_pipe_blocks_from_string(std::string const& str)
   return blocks;
 }
 
-template<typename Iterator>
-pipe_grammar<Iterator>
-::pipe_grammar()
-  : pipe_grammar::base_type(block_set, "pipeline-declaration")
-  , opt_whitespace()
+cluster_blocks
+parse_cluster_blocks_from_string(std::string const& str)
+{
+  static cluster_grammar<std::string::const_iterator> grammar;
+
+  std::string::const_iterator i = str.begin();
+  std::string::const_iterator const i_end = str.end();
+
+  cluster_blocks blocks;
+
+  try
+  {
+    qi::parse(i, i_end, grammar, blocks);
+  }
+  catch (qi::expectation_failure<std::string::const_iterator> const& e)
+  {
+    std::string::const_iterator const& begin = e.first;
+    std::string::const_iterator const& end = e.last;
+    std::ostringstream sstr;
+
+    print_info(sstr, e.what_);
+
+    throw failed_to_parse(sstr.str(), std::string(begin, end));
+  }
+
+  if (i != i_end)
+  {
+    throw failed_to_parse("End of file", std::string(i, i_end));
+  }
+
+  return blocks;
+}
+
+template <typename Iterator>
+common_grammar<Iterator>
+::common_grammar()
+  : opt_whitespace()
   , whitespace()
   , eol()
   , line_end()
@@ -261,14 +300,6 @@ pipe_grammar<Iterator>
   , port_name()
   , port_addr()
   , connect_block()
-  , map_flag()
-  , map_flags()
-  , map_flags_decl()
-  , map_options()
-  , input_map_block()
-  , output_map_block()
-  , group_block()
-  , block_set()
 {
   using namespace boost::phoenix;
 
@@ -440,90 +471,158 @@ pipe_grammar<Iterator>
      >  port_addr
      >  line_end
      );
+}
 
-  map_flag.name("map-flag");
-  map_flag %=
-    +(  qi::alpha
-     );
+template <typename Iterator>
+common_grammar<Iterator>
+::~common_grammar()
+{
+}
 
-  map_flags.name("map-flags");
-  map_flags %=
-     (  map_flag
-     %  qi::lit(flag_separator)
-     );
-
-  map_flags_decl.name("map-flag-decl");
-  map_flags_decl %=
-     (  qi::lit(flag_decl_open)
-     >  map_flags
-     >  qi::lit(flag_decl_close)
-     );
-
-  map_options.name("map-options");
-  map_options %=
-     ( -map_flags_decl
-     );
-
-  input_map_block.name("input-mapping-spec");
-  input_map_block %=
-     (  opt_whitespace
-     >> qi::lit(input_map_block_name)
-     >  map_options
-     >  whitespace
-     >  qi::lit(from_name)
-     >  whitespace
-     >  port_name
-     >  line_end
-     >  opt_whitespace
-     >  qi::lit(to_name)
-     >  whitespace
-     >  port_addr
-     >  line_end
-     );
-
-  output_map_block.name("output-mapping-spec");
-  output_map_block %=
-     (  opt_whitespace
-     >> qi::lit(output_map_block_name)
-     >  map_options
-     >  whitespace
-     >  qi::lit(from_name)
-     >  whitespace
-     >  port_addr
-     >  line_end
-     >  opt_whitespace
-     >  qi::lit(to_name)
-     >  whitespace
-     >  port_name
-     >  line_end
-     );
-
-  group_block.name("group-block-spec");
-  group_block %=
-     (  opt_whitespace
-     >> qi::lit(group_block_name)
-     >  whitespace
-     >  process_name
-     >  line_end
-     > *(  partial_config_value_decl
-        |  input_map_block
-        |  output_map_block
-        )
-     );
-
-  block_set.name("block-spec");
-  block_set %=
-    *(  config_block
-     |  process_block
-     |  connect_block
-     |  group_block
+template <typename Iterator>
+pipe_grammar<Iterator>
+::pipe_grammar()
+  : pipe_grammar::base_type(pipe_block_set, "pipeline-declaration")
+  , pipe_block_set()
+{
+  pipe_block_set.name("pipeline-blocks-spec");
+  pipe_block_set %=
+    *(  common.config_block
+     |  common.process_block
+     |  common.connect_block
      );
 }
 
-template<typename Iterator>
+template <typename Iterator>
 pipe_grammar<Iterator>
 ::~pipe_grammar()
 {
+}
+
+template <typename Iterator>
+cluster_grammar<Iterator>
+::cluster_grammar()
+  : cluster_grammar::base_type(cluster_block_set, "cluster-declaration")
+  , description_decl()
+  , cluster_config_block()
+  , cluster_input_block()
+  , cluster_output_block()
+  , cluster_block()
+  , cluster_block_set()
+{
+  description_decl.name("description-decl");
+  description_decl %=
+     (  qi::lit(description_token)
+     >  common.whitespace
+     >  common.config_value
+     );
+
+  cluster_config_block.name("cluster-config-spec");
+  cluster_config_block %=
+     (  common.opt_whitespace
+     >> description_decl
+     >> common.line_end
+     >> common.partial_config_value_decl
+     );
+
+  cluster_input_target.name("cluster-input-target");
+  cluster_input_target %=
+    +(  qi::lit(to_name)
+     >  common.whitespace
+     >  common.port_addr
+     >  common.line_end
+     );
+
+  cluster_input_block.name("cluster-input-spec");
+  cluster_input_block %=
+     (  common.opt_whitespace
+     >> description_decl
+     >> common.line_end
+     >> common.opt_whitespace
+     >> qi::lit(input_block_name)
+     >  common.whitespace
+     >  qi::lit(from_name)
+     >  common.whitespace
+     >  common.port_name
+     >  common.line_end
+     >  common.opt_whitespace
+     >  cluster_input_target
+     );
+
+  cluster_output_block.name("cluster-output-spec");
+  cluster_output_block %=
+     (  common.opt_whitespace
+     >> description_decl
+     >> common.line_end
+     >> common.opt_whitespace
+     >> qi::lit(output_block_name)
+     >  common.whitespace
+     >  qi::lit(from_name)
+     >  common.whitespace
+     >  common.port_addr
+     >  common.line_end
+     >  common.opt_whitespace
+     >  qi::lit(to_name)
+     >  common.whitespace
+     >  common.port_name
+     >  common.line_end
+     );
+
+  cluster_block.name("cluster-block-spec");
+  cluster_block %=
+     (  common.opt_whitespace
+     >> qi::lit(cluster_block_name)
+     >  common.whitespace
+     >  common.type_name
+     >  common.line_end
+     >  common.opt_whitespace
+     >  description_decl
+     >  common.line_end
+     > *(  cluster_config_block
+        |  cluster_input_block
+        |  cluster_output_block
+        )
+     );
+
+  cluster_block_set.name("cluster-blocks-spec");
+  cluster_block_set %=
+     (  cluster_block
+     > *(  common.config_block
+        |  common.process_block
+        |  common.connect_block
+        )
+     );
+}
+
+template <typename Iterator>
+cluster_grammar<Iterator>
+::~cluster_grammar()
+{
+}
+
+class printer
+{
+  public:
+    typedef utf8_string string;
+
+    printer(std::ostream& ostr);
+    ~printer();
+
+    void element(string const& tag, string const& value, int depth) const;
+  private:
+    static int const indent_width;
+
+    std::ostream& m_ostr;
+};
+
+int const printer::indent_width = 4;
+
+void
+print_info(std::ostream& ostr, boost::spirit::info const& what)
+{
+  printer pr(ostr);
+  basic_info_walker<printer> walker(pr, what.tag, 0);
+  boost::apply_visitor(walker, what.value);
 }
 
 printer
@@ -551,14 +650,6 @@ printer
   {
     m_ostr << ", value: " << value;
   }
-}
-
-void
-print_info(std::ostream& ostr, boost::spirit::info const& what)
-{
-  printer pr(ostr);
-  basic_info_walker<printer> walker(pr, what.tag, 0);
-  boost::apply_visitor(walker, what.value);
 }
 
 }

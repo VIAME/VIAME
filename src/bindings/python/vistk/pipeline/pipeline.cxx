@@ -5,7 +5,7 @@
  */
 
 #include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/pipeline_exception.h>
+#include <vistk/pipeline/process_cluster.h>
 
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
@@ -28,33 +28,15 @@ BOOST_PYTHON_MODULE(pipeline)
     .def("add_process", &vistk::pipeline::add_process
       , (arg("process"))
       , "Add a process to the pipeline.")
-    .def("add_group", &vistk::pipeline::add_group
-      , (arg("group"))
-      , "Create a group within the pipeline.")
     .def("remove_process", &vistk::pipeline::remove_process
       , (arg("name"))
       , "Remove a process from the pipeline.")
-    .def("remove_group", &vistk::pipeline::remove_group
-      , (arg("group"))
-      , "Remove a group from the pipeline.")
     .def("connect", &vistk::pipeline::connect
       , (arg("upstream"), arg("upstream_port"), arg("downstream"), arg("downstream_port"))
       , "Connect two ports within the pipeline together.")
     .def("disconnect", &vistk::pipeline::disconnect
       , (arg("upstream"), arg("upstream_port"), arg("downstream"), arg("downstream_port"))
       , "Disconnect two ports from each other in the pipeline.")
-    .def("map_input_port", &vistk::pipeline::map_input_port
-      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"), arg("flags"))
-      , "Maps a group input port to an input port on a process.")
-    .def("map_output_port", &vistk::pipeline::map_output_port
-      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"), arg("flags"))
-      , "Maps a group output port to an output port on a process.")
-    .def("unmap_input_port", &vistk::pipeline::unmap_input_port
-      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"))
-      , "Unmaps a group input port from an input port on a process.")
-    .def("unmap_output_port", &vistk::pipeline::unmap_output_port
-      , (arg("group"), arg("group_port"), arg("name"), arg("process_port"))
-      , "Unmaps a group output port from an output port on a process.")
     .def("setup_pipeline", &vistk::pipeline::setup_pipeline
       , "Prepares the pipeline for execution.")
     .def("is_setup", &vistk::pipeline::is_setup
@@ -68,6 +50,14 @@ BOOST_PYTHON_MODULE(pipeline)
     .def("process_by_name", &vistk::pipeline::process_by_name
       , (arg("name"))
       , "Get a process by name.")
+    .def("parent_cluster", &vistk::pipeline::parent_cluster
+      , (arg("name"))
+      , "Get a process' parent cluster.")
+    .def("cluster_names", &vistk::pipeline::cluster_names
+      , "Returns a list of all cluster names in the pipeline.")
+    .def("cluster_by_name", &vistk::pipeline::cluster_by_name
+      , (arg("name"))
+      , "Get a cluster by name.")
     .def("connections_from_addr", &vistk::pipeline::connections_from_addr
       , (arg("name"), arg("port"))
       , "Return the addresses of ports that are connected downstream of a port.")
@@ -107,25 +97,5 @@ BOOST_PYTHON_MODULE(pipeline)
     .def("output_edges_for_port", &vistk::pipeline::output_edges_for_port
       , (arg("name"), arg("port"))
       , "Return the edges that are receiving data from the given port.")
-    .def("groups", &vistk::pipeline::groups
-      , "Returns a list of all groups in the pipeline.")
-    .def("input_ports_for_group", &vistk::pipeline::input_ports_for_group
-      , (arg("name"))
-      , "Return the input ports on a group.")
-    .def("output_ports_for_group", &vistk::pipeline::output_ports_for_group
-      , (arg("name"))
-      , "Return the output ports on a group.")
-    .def("mapped_group_input_port_flags", &vistk::pipeline::mapped_group_input_port_flags
-      , (arg("name"), arg("port"))
-      , "Return the flags on a group\'s input port.")
-    .def("mapped_group_output_port_flags", &vistk::pipeline::mapped_group_output_port_flags
-      , (arg("name"), arg("port"))
-      , "Return the flags on a group\'s output port.")
-    .def("mapped_group_input_ports", &vistk::pipeline::mapped_group_input_ports
-      , (arg("name"), arg("port"))
-      , "Return the ports that are mapped to the group\'s input port.")
-    .def("mapped_group_output_port", &vistk::pipeline::mapped_group_output_port
-      , (arg("name"), arg("port"))
-      , "Return the ports that are mapped to the group\'s output port.")
   ;
 }

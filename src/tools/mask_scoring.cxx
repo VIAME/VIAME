@@ -172,7 +172,7 @@ std::string
 base_pipeline()
 {
   return
-    CONFIG_GROUP("mask_scoring")
+    CONFIG_BLOCK("mask_scoring")
       CONFIG("input", "image_list.txt")
       CONFIG("truth_input", "truth_list.txt")
       CONFIG("output", "output.txt")

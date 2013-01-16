@@ -23,17 +23,19 @@ def test_create():
     load.ConfigKey()
     load.ConfigValue()
     load.ConfigValues()
-    load.MapOptions()
-    load.InputMap()
-    load.OutputMap()
     load.ConfigBlock()
     load.ProcessBlock()
     load.ConnectBlock()
-    load.GroupSubblock()
-    load.GroupSubblocks()
-    load.GroupBlock()
     load.PipeBlock()
     load.PipeBlocks()
+    load.ClusterConfig()
+    load.ClusterInput()
+    load.ClusterOutput()
+    load.ClusterSubblock()
+    load.ClusterSubblocks()
+    load.ClusterBlock()
+    load.ClusterDefineBlock()
+    load.ClusterDefineBlocks()
 
 
 def test_api_calls():
@@ -60,26 +62,6 @@ def test_api_calls():
     o.key = load.ConfigKey()
     o.value = config.ConfigValue()
 
-    o = load.MapOptions()
-    o.flags
-    o.flags = process.PortFlags()
-
-    o = load.InputMap()
-    o.options
-    o.from_
-    o.to
-    o.options = load.MapOptions()
-    o.from_ = process.Port()
-    o.to = process.PortAddr()
-
-    o = load.OutputMap()
-    o.options
-    o.from_
-    o.to
-    o.options = load.MapOptions()
-    o.from_ = process.PortAddr()
-    o.to = process.Port()
-
     o = load.ConfigBlock()
     o.key
     o.values
@@ -100,20 +82,6 @@ def test_api_calls():
     o.from_ = process.PortAddr()
     o.to = process.PortAddr()
 
-    o = load.GroupSubblock()
-    o.config = load.ConfigValue()
-    o.config
-    o.input = load.InputMap()
-    o.input
-    o.output = load.OutputMap()
-    o.output
-
-    o = load.GroupBlock()
-    o.name
-    o.subblocks
-    o.name = process.ProcessName()
-    o.subblocks = load.GroupSubblocks()
-
     o = load.PipeBlock()
     o.config = load.ConfigBlock()
     o.config
@@ -121,8 +89,54 @@ def test_api_calls():
     o.process
     o.connect = load.ConnectBlock()
     o.connect
-    o.group = load.GroupBlock()
-    o.group
+
+    o = load.ClusterConfig()
+    o.description
+    o.config_value
+    o.description = config.ConfigDescription()
+    o.config_value = load.ConfigValue()
+
+    o = load.ClusterInput()
+    o.description
+    o.from_
+    o.targets
+    o.description = process.PortDescription()
+    o.from_ = process.Port()
+    o.targets = process.PortAddrs()
+
+    o = load.ClusterOutput()
+    o.description
+    o.from_
+    o.to
+    o.description = process.PortDescription()
+    o.from_ = process.PortAddr()
+    o.to = process.Port()
+
+    o = load.ClusterSubblock()
+    o.config = load.ClusterConfig()
+    o.config
+    o.input = load.ClusterInput()
+    o.input
+    o.output = load.ClusterOutput()
+    o.output
+
+    o = load.ClusterBlock()
+    o.type
+    o.description
+    o.subblocks
+    o.type = process.ProcessType()
+    o.description = process_registry.ProcessDescription()
+    o.subblocks = load.ClusterSubblocks()
+
+    o = load.ClusterDefineBlock()
+    o.config = load.ConfigBlock()
+    o.config
+    o.process = load.ProcessBlock()
+    o.process
+    o.connect = load.ConnectBlock()
+    o.connect
+    o.cluster = load.ClusterBlock()
+    o.cluster
 
 
 def test_simple_pipeline(path):
@@ -131,6 +145,14 @@ def test_simple_pipeline(path):
     blocks = load.load_pipe_file(path)
     with open(path, 'r') as fin:
         load.load_pipe(fin)
+
+
+def test_cluster_multiplier(path):
+    from vistk.pipeline_util import load
+
+    blocks = load.load_cluster_file(path)
+    with open(path, 'r') as fin:
+        load.load_cluster(fin)
 
 
 def main(testname, path):
@@ -142,6 +164,8 @@ def main(testname, path):
         test_api_calls()
     elif testname == 'simple_pipeline':
         test_simple_pipeline(path)
+    elif testname == 'cluster_multiplier':
+        test_cluster_multiplier(path)
     else:
         test_error("No such test '%s'" % testname)
 

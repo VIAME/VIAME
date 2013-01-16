@@ -58,12 +58,7 @@ main(int argc, char* argv[])
 
 static void test_pipeline_null(vistk::path_t const& pipe_file);
 static void test_simple_pipeline(vistk::path_t const& pipe_file);
-static void test_simple_group_pipeline(vistk::path_t const& pipe_file);
-static void test_pipeline_setup_null(vistk::path_t const& pipe_file);
-static void test_pipeline_setup_no_setup(vistk::path_t const& pipe_file);
-static void test_pipeline_setup_no_success(vistk::path_t const& pipe_file);
 static void test_simple_pipeline_setup(vistk::path_t const& pipe_file);
-static void test_simple_group_pipeline_setup(vistk::path_t const& pipe_file);
 
 void
 run_test(std::string const& test_name, vistk::path_t const& pipe_file)
@@ -76,29 +71,9 @@ run_test(std::string const& test_name, vistk::path_t const& pipe_file)
   {
     test_simple_pipeline(pipe_file);
   }
-  else if (test_name == "simple_group_pipeline")
-  {
-    test_simple_group_pipeline(pipe_file);
-  }
-  else if (test_name == "pipeline_setup_null")
-  {
-    test_pipeline_setup_null(pipe_file);
-  }
-  else if (test_name == "pipeline_setup_no_setup")
-  {
-    test_pipeline_setup_no_setup(pipe_file);
-  }
-  else if (test_name == "pipeline_setup_no_success")
-  {
-    test_pipeline_setup_no_success(pipe_file);
-  }
   else if (test_name == "simple_pipeline_setup")
   {
     test_simple_pipeline_setup(pipe_file);
-  }
-  else if (test_name == "simple_group_pipeline_setup")
-  {
-    test_simple_group_pipeline_setup(pipe_file);
   }
   else
   {
@@ -131,79 +106,7 @@ test_simple_pipeline(vistk::path_t const& pipe_file)
 }
 
 void
-test_simple_group_pipeline(vistk::path_t const& pipe_file)
-{
-  vistk::load_known_modules();
-
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
-
-  std::ostringstream sstr;
-
-  vistk::export_dot(sstr, pipeline, "(unnamed)");
-}
-
-void
-test_pipeline_setup_null(vistk::path_t const& /*pipe_file*/)
-{
-  vistk::pipeline_t const pipeline;
-
-  std::ostringstream sstr;
-
-  EXPECT_EXCEPTION(vistk::null_pipeline_export_dot_exception,
-                   vistk::export_dot_setup(sstr, pipeline, "(unnamed)"),
-                   "exporting a NULL pipeline to dot");
-}
-
-void
-test_pipeline_setup_no_setup(vistk::path_t const& pipe_file)
-{
-  vistk::load_known_modules();
-
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
-
-  std::ostringstream sstr;
-
-  EXPECT_EXCEPTION(vistk::pipeline_not_setup_exception,
-                   vistk::export_dot_setup(sstr, pipeline, "(unnamed)"),
-                   "exporting a non-setup pipeline");
-}
-
-void
-test_pipeline_setup_no_success(vistk::path_t const& pipe_file)
-{
-  vistk::load_known_modules();
-
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
-
-  std::ostringstream sstr;
-
-  try
-  {
-    pipeline->setup_pipeline();
-  }
-  catch (vistk::pipeline_exception const&)
-  {
-  }
-
-  EXPECT_EXCEPTION(vistk::pipeline_not_ready_exception,
-                   vistk::export_dot_setup(sstr, pipeline, "(unnamed)"),
-                   "exporting an unsuccessfully setup pipeline");
-}
-
-void
 test_simple_pipeline_setup(vistk::path_t const& pipe_file)
-{
-  vistk::load_known_modules();
-
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
-
-  std::ostringstream sstr;
-
-  vistk::export_dot(sstr, pipeline, "(unnamed)");
-}
-
-void
-test_simple_group_pipeline_setup(vistk::path_t const& pipe_file)
 {
   vistk::load_known_modules();
 

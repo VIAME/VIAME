@@ -31,6 +31,15 @@ namespace vistk
  */
 pipe_blocks VISTK_PIPELINE_UTIL_NO_EXPORT parse_pipe_blocks_from_string(std::string const& str);
 
+/**
+ * \brief Parse cluster blocks from a string.
+ *
+ * \param str The string to parse.
+ *
+ * \returns The cluster blocks within the string.
+ */
+cluster_blocks VISTK_PIPELINE_UTIL_NO_EXPORT parse_cluster_blocks_from_string(std::string const& str);
+
 }
 
 #endif // VISTK_PIPELINE_UTIL_PIPE_GRAMMAR_H

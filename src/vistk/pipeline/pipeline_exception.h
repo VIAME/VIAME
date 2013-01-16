@@ -69,9 +69,8 @@ class VISTK_PIPELINE_EXPORT add_after_setup_exception
      * \brief Constructor.
      *
      * \param name The name of the process.
-     * \param is_process True if the addition is a process, false if it was a group.
      */
-    add_after_setup_exception(process::name_t const& name, bool is_process) throw();
+    add_after_setup_exception(process::name_t const& name) throw();
     /**
      * \brief Destructor.
      */
@@ -79,8 +78,6 @@ class VISTK_PIPELINE_EXPORT add_after_setup_exception
 
     /// The name of the process.
     process::name_t const m_name;
-    /// True if the addition is a process, false if it was a group.
-    bool const m_is_process;
 };
 
 /**
@@ -157,9 +154,8 @@ class VISTK_PIPELINE_EXPORT remove_after_setup_exception
      * \brief Constructor.
      *
      * \param name The name of the process.
-     * \param is_process True if the addition is a process, false if it was a group.
      */
-    remove_after_setup_exception(process::name_t const& name, bool is_process) throw();
+    remove_after_setup_exception(process::name_t const& name) throw();
     /**
      * \brief Destructor.
      */
@@ -167,8 +163,6 @@ class VISTK_PIPELINE_EXPORT remove_after_setup_exception
 
     /// The name of the process.
     process::name_t const m_name;
-    /// True if the addition is a process, false if it was a group.
-    bool const m_is_process;
 };
 
 /**
@@ -663,107 +657,6 @@ class VISTK_PIPELINE_EXPORT frequency_mismatch_exception
     process::port_t const m_downstream_port;
     /// The frequency of the downstream process.
     process::port_frequency_t const m_downstream_frequency;
-};
-
-/**
- * \class no_such_group_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
- *
- * \brief Thrown when a group is requested that does not exist in a \ref pipeline.
- *
- * \ingroup exceptions
- */
-class VISTK_PIPELINE_EXPORT no_such_group_exception
-  : public pipeline_exception
-{
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param name The name requested.
-     */
-    no_such_group_exception(process::name_t const& name) throw();
-    /**
-     * \brief Destructor.
-     */
-    ~no_such_group_exception() throw();
-
-    /// The name of the group requested.
-    process::name_t const m_name;
-};
-
-/**
- * \class no_such_group_port_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
- *
- * \brief Thrown when a port on a group is requested that does not exist.
- *
- * \ingroup exceptions
- */
-class VISTK_PIPELINE_EXPORT no_such_group_port_exception
-  : public pipeline_exception
-{
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param name The name requested.
-     * \param port The port requested.
-     */
-    no_such_group_port_exception(process::name_t const& name, process::port_t const& port) throw();
-    /**
-     * \brief Destructor.
-     */
-    ~no_such_group_port_exception() throw();
-
-    /// The name of the group requested.
-    process::name_t const m_name;
-    /// The name of the port requested.
-    process::port_t const m_port;
-};
-
-/**
- * \class group_output_already_mapped_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
- *
- * \brief Thrown when an output port on a group is attempted to be remapped.
- *
- * \ingroup exceptions
- */
-class VISTK_PIPELINE_EXPORT group_output_already_mapped_exception
-  : public pipeline_exception
-{
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param name The name requested.
-     * \param port The port requested.
-     * \param current_process The current process mapped.
-     * \param current_port The current port mapped.
-     * \param new_process The process requested to be mapped.
-     * \param new_port The port requested to be mapped.
-     */
-    group_output_already_mapped_exception(process::name_t const& name,
-                                          process::port_t const& port,
-                                          process::name_t const& current_process,
-                                          process::port_t const& current_port,
-                                          process::name_t const& new_process,
-                                          process::port_t const& new_port) throw();
-    /**
-     * \brief Destructor.
-     */
-    ~group_output_already_mapped_exception() throw();
-
-    /// The name of the group requested.
-    process::name_t const m_name;
-    /// The name of the port requested.
-    process::port_t const m_port;
-    /// The name of the current process requested.
-    process::name_t const m_current_process;
-    /// The name of the current port requested.
-    process::port_t const m_current_port;
-    /// The name of the new process requested.
-    process::name_t const m_new_process;
-    /// The name of the new port requested.
-    process::port_t const m_new_port;
 };
 
 /**

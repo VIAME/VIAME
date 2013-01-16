@@ -32,11 +32,8 @@
 #define CONFIG(key, value) \
   CONFIG_RAW(key, "", "", value)
 
-#define CONFIG_GROUP(name) \
+#define CONFIG_BLOCK(name) \
   "config " name "\n"
-
-#define GROUP(name) \
-  "group " name "\n"
 
 #define INPUT_MAPPING(port, mapped, mapped_port) \
   "  imap from " port "\n"                       \

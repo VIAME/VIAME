@@ -2,7 +2,9 @@ project(vistk_test_pipeline_util)
 
 set(libraries
   vistk_pipeline_util
-  vistk_pipeline)
+  vistk_pipeline
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
 
 set(vistk_test_pipelines_directory
   "${vistk_test_data_directory}/pipelines")
@@ -15,11 +17,7 @@ endfunction ()
 ##############################
 # Pipeline loading tests
 ##############################
-set(load_pipe_libraries
-  ${libraries}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
-vistk_build_test(load_pipe load_pipe_libraries test_load_pipe.cxx)
+vistk_build_test(load_pipe libraries test_load_pipe.cxx)
 
 vistk_make_load_test(load_pipe empty)
 vistk_make_load_test(load_pipe comments)
@@ -30,53 +28,67 @@ vistk_make_load_test(load_pipe config_value_spaces)
 vistk_make_load_test(load_pipe one_process)
 vistk_make_load_test(load_pipe connected_processes)
 vistk_make_load_test(load_pipe connected_processes_notalnum)
-vistk_make_load_test(load_pipe config_overrides)
-vistk_make_load_test(load_pipe config_read_only)
-vistk_make_load_test(load_pipe config_not_a_flag)
-vistk_make_load_test(load_pipe config_read_only_override)
-vistk_make_load_test(load_pipe config_append)
-vistk_make_load_test(load_pipe config_cappend)
-vistk_make_load_test(load_pipe config_cappend_empty)
-vistk_make_load_test(load_pipe config_provider_conf)
-vistk_make_load_test(load_pipe config_provider_conf_dep)
-vistk_make_load_test(load_pipe config_provider_conf_circular_dep)
-vistk_make_load_test(load_pipe config_provider_env)
-vistk_make_load_test(load_pipe config_provider_read_only)
-vistk_make_load_test(load_pipe config_provider_read_only_override)
-vistk_make_load_test(load_pipe config_provider_unprovided)
 vistk_make_load_test(load_pipe include)
 vistk_make_load_test(load_pipe no_exist)
 vistk_make_load_test(load_pipe not_a_file)
 vistk_make_load_test(load_pipe include_no_exist)
 vistk_make_load_test(load_pipe include_not_a_file)
-vistk_make_load_test(load_pipe group_declare)
-vistk_make_load_test(load_pipe group_config)
-vistk_make_load_test(load_pipe group_input_map)
-vistk_make_load_test(load_pipe group_output_map)
-vistk_make_load_test(load_pipe group_input_map_flags)
-vistk_make_load_test(load_pipe group_output_map_flags)
-vistk_make_load_test(load_pipe group_mappings)
-vistk_make_load_test(load_pipe group_all)
 vistk_make_load_test(load_pipe no_parse)
 vistk_make_load_test(load_pipe parse_error)
 set(test_environment "VISTK_PIPE_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}")
 vistk_make_load_test(load_pipe envvar)
 unset(test_environment)
+vistk_make_load_test(load_pipe cluster_declare)
+vistk_make_load_test(load_pipe cluster_config)
+vistk_make_load_test(load_pipe cluster_input_map)
+vistk_make_load_test(load_pipe cluster_input_multi_map)
+vistk_make_load_test(load_pipe cluster_output_map)
+vistk_make_load_test(load_pipe cluster_mappings)
+vistk_make_load_test(load_pipe cluster_all)
+vistk_make_load_test(load_pipe cluster_missing_config_description)
+vistk_make_load_test(load_pipe cluster_missing_input_description)
+vistk_make_load_test(load_pipe cluster_missing_output_description)
+vistk_make_load_test(load_pipe cluster_missing_type)
+vistk_make_load_test(load_pipe cluster_missing_type_description)
+vistk_make_load_test(load_pipe cluster_multiple_clusters)
+vistk_make_load_test(load_pipe cluster_not_first)
+
+##############################
+# Baking tests
+##############################
+vistk_build_test(pipe_bakery libraries test_pipe_bakery.cxx)
+
+vistk_make_load_test(pipe_bakery config_block)
+vistk_make_load_test(pipe_bakery config_block_notalnum)
+vistk_make_load_test(pipe_bakery config_value_spaces)
+vistk_make_load_test(pipe_bakery config_overrides)
+vistk_make_load_test(pipe_bakery config_read_only)
+vistk_make_load_test(pipe_bakery config_not_a_flag)
+vistk_make_load_test(pipe_bakery config_read_only_override)
+vistk_make_load_test(pipe_bakery config_append)
+vistk_make_load_test(pipe_bakery config_cappend)
+vistk_make_load_test(pipe_bakery config_cappend_empty)
+vistk_make_load_test(pipe_bakery config_provider_conf)
+vistk_make_load_test(pipe_bakery config_provider_conf_dep)
+vistk_make_load_test(pipe_bakery config_provider_conf_circular_dep)
+set(test_environment "TEST_ENV=expected")
+vistk_make_load_test(pipe_bakery config_provider_env)
+unset(test_environment)
+vistk_make_load_test(pipe_bakery config_provider_read_only)
+vistk_make_load_test(pipe_bakery config_provider_read_only_override)
+vistk_make_load_test(pipe_bakery config_provider_unprovided)
+vistk_make_load_test(pipe_bakery pipeline_multiplier)
+vistk_make_load_test(pipe_bakery cluster_multiplier)
+vistk_make_load_test(pipe_bakery cluster_missing_cluster)
+vistk_make_load_test(pipe_bakery cluster_multiple_cluster)
+vistk_make_load_test(pipe_bakery cluster_duplicate_input)
+vistk_make_load_test(pipe_bakery cluster_duplicate_output)
 
 ##############################
 # Export tests
 ##############################
-set(export_dot_libraries
-  ${libraries}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
-vistk_build_test(export_dot export_dot_libraries test_export_dot.cxx)
+vistk_build_test(export_dot libraries test_export_dot.cxx)
 
 vistk_make_load_test(export_dot pipeline_null)
 vistk_make_load_test(export_dot simple_pipeline)
-vistk_make_load_test(export_dot simple_group_pipeline)
-vistk_make_load_test(export_dot pipeline_setup_null)
-vistk_make_load_test(export_dot pipeline_setup_no_setup)
-vistk_make_load_test(export_dot pipeline_setup_no_success)
 vistk_make_load_test(export_dot simple_pipeline_setup)
-vistk_make_load_test(export_dot simple_group_pipeline_setup)

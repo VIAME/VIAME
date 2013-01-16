@@ -10,7 +10,6 @@
 
 #include <vistk/pipeline/edge.h>
 #include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/stamp.h>
 
 #include <vistk/python/util/python_gil.h>

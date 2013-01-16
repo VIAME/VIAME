@@ -80,47 +80,6 @@ struct config_value_t
 typedef std::vector<config_value_t> config_values_t;
 
 /**
- * \struct map_options_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
- *
- * \brief Options for a mapping connection.
- */
-struct map_options_t
-{
-  /// Flags for the mapping.
-  boost::optional<process::port_flags_t> flags;
-};
-
-/**
- * \struct input_map_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
- *
- * \brief A structure for an input mapping.
- */
-struct input_map_t
-{
-  /// Options for the mapping.
-  map_options_t options;
-  /// The name of the group input port.
-  process::port_t from;
-  /// The address of the mapped downstream port.
-  process::port_addr_t to;
-};
-
-/**
- * \struct output_map_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
- *
- * \brief A structure for an output mapping.
- */
-struct output_map_t
-{
-  /// Options for the mapping.
-  map_options_t options;
-  /// The address of the mapped upstream port.
-  process::port_addr_t from;
-  /// The name of the group output port.
-  process::port_t to;
-};
-
-/**
  * \struct config_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for a configuration block.
@@ -161,34 +120,89 @@ struct connect_pipe_block
   process::port_addr_t to;
 };
 
-/// A variant over the possible blocks that may be contained within a group.
-typedef boost::variant<config_value_t, input_map_t, output_map_t> group_subblock_t;
-/// A type for a collection of group subblocks.
-typedef std::vector<group_subblock_t> group_subblocks_t;
-
-/**
- * \struct group_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
- *
- * \brief A structure for a group block.
- */
-struct group_pipe_block
-{
-  /// The name of the group.
-  process::name_t name;
-  /// Subblocks of the group.
-  group_subblocks_t subblocks;
-};
-
-/// A discriminating union over all available block types.
+/// A discriminating union over all available pipeline block types.
 typedef boost::variant
   < config_pipe_block
   , process_pipe_block
   , connect_pipe_block
-  , group_pipe_block
   > pipe_block;
 
 /// A type for a collection of pipe blocks.
 typedef std::vector<pipe_block> pipe_blocks;
+
+/**
+ * \struct cluster_config_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ *
+ * \brief A structure for cluster config.
+ */
+struct cluster_config_t
+{
+  /// Description of the configuration value.
+  config::description_t description;
+  /// The configuration declaration.
+  config_value_t config_value;
+};
+
+/**
+ * \struct cluster_input_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ *
+ * \brief A structure for a cluster input mapping.
+ */
+struct cluster_input_t
+{
+  /// Description of the cluster's port.
+  process::port_description_t description;
+  /// The name of the cluster's input port.
+  process::port_t from;
+  /// The addresses of the mapped port.
+  process::port_addrs_t targets;
+};
+
+/**
+ * \struct cluster_output_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ *
+ * \brief A structure for a cluster output mapping.
+ */
+struct cluster_output_t
+{
+  /// Description of the cluster's port.
+  process::port_description_t description;
+  /// The address of the mapped upstream port.
+  process::port_addr_t from;
+  /// The name of the cluster's output port.
+  process::port_t to;
+};
+
+/// A variant over the possible blocks that may be contained within a cluster.
+typedef boost::variant<cluster_config_t, cluster_input_t, cluster_output_t> cluster_subblock_t;
+/// A type for a collection of cluster subblocks.
+typedef std::vector<cluster_subblock_t> cluster_subblocks_t;
+
+/**
+ * \struct cluster_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ *
+ * \brief A structure for a cluster block.
+ */
+struct cluster_pipe_block
+{
+  /// The type of the cluster.
+  process::type_t type;
+  /// The description of the cluster.
+  process_registry::description_t description;
+  /// Subblocks of the cluster.
+  cluster_subblocks_t subblocks;
+};
+
+/// A discriminating union over all available cluster block types.
+typedef boost::variant
+  < config_pipe_block
+  , process_pipe_block
+  , connect_pipe_block
+  , cluster_pipe_block
+  > cluster_block;
+
+/// A type for a collection of cluster blocks.
+typedef std::vector<cluster_block> cluster_blocks;
 
 }
 

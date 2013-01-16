@@ -30,11 +30,39 @@ def test_simple_pipeline(path):
     bake.extract_configuration(blocks)
 
 
+def test_cluster_multiplier(path):
+    from vistk.pipeline import config
+    from vistk.pipeline import pipeline
+    from vistk.pipeline import modules
+    from vistk.pipeline_util import bake
+    from vistk.pipeline_util import load
+
+    blocks = load.load_cluster_file(path)
+
+    modules.load_known_modules()
+
+    bake.bake_cluster_file(path)
+    with open(path, 'r') as fin:
+        bake.bake_cluster(fin)
+    info = bake.bake_cluster_blocks(blocks)
+
+    conf = config.empty_config()
+
+    info.type()
+    info.description()
+    info.create()
+    info.create(conf)
+
+    bake.register_cluster(info)
+
+
 def main(testname, path):
     if testname == 'import':
         test_import()
     elif testname == 'simple_pipeline':
         test_simple_pipeline(path)
+    elif testname == 'cluster_multiplier':
+        test_cluster_multiplier(path)
     else:
         test_error("No such test '%s'" % testname)
 

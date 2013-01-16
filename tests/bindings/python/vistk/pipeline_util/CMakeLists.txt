@@ -15,6 +15,7 @@ vistk_build_python_test(bake test-bake.py)
 
 vistk_make_python_load_test(bake import)
 vistk_make_python_load_test(bake simple_pipeline)
+vistk_make_python_load_test(bake cluster_multiplier)
 
 ##############################
 # Export tests
@@ -33,3 +34,4 @@ vistk_make_python_load_test(load import)
 vistk_make_python_load_test(load create)
 vistk_make_python_load_test(load api_calls)
 vistk_make_python_load_test(load simple_pipeline)
+vistk_make_python_load_test(load cluster_multiplier)

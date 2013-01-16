@@ -172,6 +172,8 @@ process_cluster
 {
   d->ensure_name(name_);
 
+  /// \todo Make sure that only one process is mapped to a port.
+
   process_t const& proc = d->processes[name_];
 
   if (!proc->output_port_info(mapped_port))

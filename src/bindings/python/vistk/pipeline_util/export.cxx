@@ -34,9 +34,6 @@ BOOST_PYTHON_MODULE(export_)
   def("export_dot", &export_dot
     , (arg("stream"), arg("pipeline"), arg("name"))
     , "Writes the pipeline to the stream in dot format.");
-  def("export_dot_setup", &export_dot
-    , (arg("stream"), arg("pipeline"), arg("name"))
-    , "Writes a setup pipeline to the stream in dot format.");
 }
 
 void

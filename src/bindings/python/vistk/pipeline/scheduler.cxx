@@ -8,7 +8,6 @@
 
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/scheduler.h>
-#include <vistk/pipeline/scheduler_exception.h>
 
 #include <vistk/python/util/python_gil.h>
 

@@ -17,6 +17,81 @@
 namespace vistk
 {
 
+missing_cluster_block_exception
+::missing_cluster_block_exception() throw()
+  : pipe_bakery_exception()
+{
+  std::stringstream sstr;
+
+  sstr << "A cluster block was not given when "
+          "baking a cluster";
+
+  m_what = sstr.str();
+}
+
+missing_cluster_block_exception
+::~missing_cluster_block_exception() throw()
+{
+}
+
+multiple_cluster_blocks_exception
+::multiple_cluster_blocks_exception() throw()
+  : pipe_bakery_exception()
+{
+  std::stringstream sstr;
+
+  sstr << "Multiple cluster blocks were given "
+          "when baking a cluster";
+
+  m_what = sstr.str();
+}
+
+multiple_cluster_blocks_exception
+::~multiple_cluster_blocks_exception() throw()
+{
+}
+
+duplicate_cluster_port_exception
+::duplicate_cluster_port_exception(process::port_t const& port, char const* const side) throw()
+  : pipe_bakery_exception()
+  , m_port(port)
+{
+  std::stringstream sstr;
+
+  sstr << "The " << side << " port "
+          "\'" << port << "\' was declared "
+          "twice in a cluster";
+
+  m_what = sstr.str();
+}
+
+duplicate_cluster_port_exception
+::~duplicate_cluster_port_exception() throw()
+{
+}
+
+duplicate_cluster_input_port_exception
+::duplicate_cluster_input_port_exception(process::port_t const& port) throw()
+  : duplicate_cluster_port_exception(port, "input")
+{
+}
+
+duplicate_cluster_input_port_exception
+::~duplicate_cluster_input_port_exception() throw()
+{
+}
+
+duplicate_cluster_output_port_exception
+::duplicate_cluster_output_port_exception(process::port_t const& port) throw()
+  : duplicate_cluster_port_exception(port, "output")
+{
+}
+
+duplicate_cluster_output_port_exception
+::~duplicate_cluster_output_port_exception() throw()
+{
+}
+
 unrecognized_config_flag_exception
 ::unrecognized_config_flag_exception(config::key_t const& key, config_flag_t const& flag) throw()
   : pipe_bakery_exception()

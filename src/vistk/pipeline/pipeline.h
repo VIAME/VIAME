@@ -60,7 +60,7 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \preconds
      *
      * \precond{\p process}
-     * \precond{Another process or group is not already named \c process->name()}
+     * \precond{Another process is not already named \c process->name()}
      *
      * \endpreconds
      *
@@ -77,27 +77,6 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \param process The process to add to the pipeline.
      */
     void add_process(process_t const& process);
-    /**
-     * \brief Declare a logical group of processes in the pipeline.
-     *
-     * \preconds
-     *
-     * \precond{Another process or group is not already named \p name}
-     *
-     * \endpreconds
-     *
-     * \throws add_after_setup_exception Thrown if called after the pipeline has been setup.
-     * \throws duplicate_process_name_exception Thrown when a process or group is already named \p name.
-     *
-     * \postconds
-     *
-     * \postcond{A group with the name \p name is available within the pipeline}
-     *
-     * \endpostconds
-     *
-     * \param name The name of the group.
-     */
-    void add_group(process::name_t const& name);
 
     /**
      * \brief Remove a process to the pipeline.
@@ -121,37 +100,15 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \param name The process to add to the pipeline.
      */
     void remove_process(process::name_t const& name);
-    /**
-     * \brief Remove a logical group of processes from the pipeline.
-     *
-     * \preconds
-     *
-     * \precond{A group named \p name already exists in the pipeline}
-     *
-     * \endpreconds
-     *
-     * \throws remove_after_setup_exception Thrown if called after the pipeline has been setup.
-     * \throws no_such_group_exception Thrown when \p name is not a group in the pipeline.
-     *
-     * \postconds
-     *
-     * \postcond{The group with the name \p name is no longer available available within the pipeline}
-     * \postcond{All mapped ports on the group \p name are disconnected and unmapped}
-     *
-     * \endpostconds
-     *
-     * \param name The name of the group.
-     */
-    void remove_group(process::name_t const& name);
 
     /**
      * \brief Connect two ports in the pipeline together with an edge.
      *
      * \preconds
      *
-     * \precond{\p upstream_name is the name of a process or group in the pipeline}
+     * \precond{\p upstream_name is the name of a process in the pipeline}
      * \precond{\p upstream_port is an output port on \p upstream_name}
-     * \precond{\p downstream_name is the name of a process or group in the pipeline}
+     * \precond{\p downstream_name is the name of a process in the pipeline}
      * \precond{\p downstream_port is an input port on \p downstream_name}
      * \precond{The types of the ports are compatible\, or at least one is \ref process::type_any}
      * \precond{The flags of the ports are compatible (a \ref
@@ -212,134 +169,6 @@ class VISTK_PIPELINE_EXPORT pipeline
                     process::port_t const& upstream_port,
                     process::name_t const& downstream_name,
                     process::port_t const& downstream_port);
-
-    /**
-     * \brief Map a group input port to a process input port.
-     *
-     * \todo How to declare types/desc for these ports?
-     *
-     * \preconds
-     *
-     * \precond{A group named \p group exists}
-     * \precond{A process or group named \c mapped_process exists}
-     *
-     * \endpreconds
-     *
-     * \throws connection_after_setup_exception Thrown if called after the pipeline has been setup.
-     * \throws no_such_group_exception Thrown when \p group does not exist in the pipeline.
-     * \throws no_such_process_exception Thrown when \p mapped_process does not exist in the pipeline.
-     *
-     * \postconds
-     *
-     * \postcond{A connection to \port{group.port} is mapped to a connection to
-     *           \port{mapped_process.mapped_port} instead}
-     *
-     * \endpostconds
-     *
-     * \param group The group name.
-     * \param port The group port.
-     * \param mapped_name The mapped process name.
-     * \param mapped_port The mapped process port.
-     * \param flags A list of flags for the port.
-     */
-    void map_input_port(process::name_t const& group,
-                        process::port_t const& port,
-                        process::name_t const& mapped_name,
-                        process::port_t const& mapped_port,
-                        process::port_flags_t const& flags);
-    /**
-     * \brief Map a group output port to a process output port.
-     *
-     * \todo How to declare types/desc for these ports?
-     *
-     * \preconds
-     *
-     * \precond{A group named \p group exists}
-     * \precond{An output port named \p port does not already exist for the group \p group}
-     * \precond{A process or group named \c mapped_process exists}
-     *
-     * \endpreconds
-     *
-     * \throws connection_after_setup_exception Thrown if called after the pipeline has been setup.
-     * \throws no_such_group_exception Thrown when \p group does not exist in the pipeline.
-     * \throws no_such_process_exception Thrown when \p mapped_process does not exist in the pipeline.
-     * \throws group_output_already_mapped_exception Thrown when \p port on \p group has already been mapped.
-     *
-     * \postconds
-     *
-     * \postcond{A connection to \port{group.port} is mapped to a connection to
-     *           \port{mapped_process.mapped_port} instead}
-     *
-     * \endpostconds
-     *
-     * \param group The group name.
-     * \param port The group port.
-     * \param mapped_name The mapped process name.
-     * \param mapped_port The mapped process port.
-     * \param flags A list of flags for the port.
-     */
-    void map_output_port(process::name_t const& group,
-                         process::port_t const& port,
-                         process::name_t const& mapped_name,
-                         process::port_t const& mapped_port,
-                         process::port_flags_t const& flags);
-
-    /**
-     * \brief Unmap a group input port to a process input port.
-     *
-     * \preconds
-     *
-     * \precond{A mapping from \p group\ \c .\ \p port to \p mapped_process\ \c .\ \p mapped_port exists in the pipeline}
-     *
-     * \endpreconds
-     *
-     * \throws disconnection_after_setup_exception Thrown if called after the pipeline has been setup.
-     * \throws no_such_connection_exception Thrown when the mapping does not exist within the pipeline.
-     *
-     * \postconds
-     *
-     * \postcond{Connections to \port{group.port} are no longer mapped to a connection to
-     *           \port{mapped_process.mapped_port}}
-     *
-     * \endpostconds
-     *
-     * \param group The group name.
-     * \param port The group port.
-     * \param mapped_name The mapped process name.
-     * \param mapped_port The mapped process port.
-     */
-    void unmap_input_port(process::name_t const& group,
-                          process::port_t const& port,
-                          process::name_t const& mapped_name,
-                          process::port_t const& mapped_port);
-    /**
-     * \brief Unmap a group output port to a process output port.
-     *
-     * \preconds
-     *
-     * \precond{A mapping from \p mapped_process\ \c .\ \p mapped_port to \p group\ \c .\ \p port exists in the pipeline}
-     *
-     * \endpreconds
-     *
-     * \throws disconnection_after_setup_exception Thrown if called after the pipeline has been setup.
-     * \throws no_such_connection_exception Thrown when the mapping does not exist within the pipeline.
-     *
-     * \postconds
-     *
-     * \postcond{Connections to \port{group.port} are no longer mapped to a connection to
-     *           \port{mapped_process.mapped_port}}
-     *
-     * \endpostconds
-     *
-     * \param group The group name.
-     * \param port The group port.
-     * \param mapped_name The mapped process name.
-     * \param mapped_port The mapped process port.
-     */
-    void unmap_output_port(process::name_t const& group,
-                           process::port_t const& port,
-                           process::name_t const& mapped_name,
-                           process::port_t const& mapped_port);
 
     /**
      * \brief Set the pipeline up for execution.
@@ -408,6 +237,45 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \returns The process in the pipeline with the given name.
      */
     process_t process_by_name(process::name_t const& name) const;
+    /**
+     * \brief Get the cluster a process is a member of.
+     *
+     * \preconds
+     *
+     * \precond{A process with the name \p name exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws no_such_process_exception Thrown when \p name does not exist in the pipeline.
+     *
+     * \param name The name of the process to retrieve.
+     *
+     * \returns The process in the pipeline with the given name.
+     */
+    process::name_t parent_cluster(process::name_t const& name) const;
+
+    /**
+     * \brief Get a list of processes in the pipeline.
+     *
+     * \returns The list of all cluster names in the pipeline.
+     */
+    process::names_t cluster_names() const;
+    /**
+     * \brief Get a cluster by name.
+     *
+     * \preconds
+     *
+     * \precond{A cluster with the name \p name exists in the pipeline}
+     *
+     * \endpreconds
+     *
+     * \throws no_such_process_exception Thrown when \p name does not exist in the pipeline.
+     *
+     * \param name The name of the cluster to retrieve.
+     *
+     * \returns The cluster in the pipeline with the given name.
+     */
+    process_cluster_t cluster_by_name(process::name_t const& name) const;
 
     /**
      * \brief Find the ports requested to receive data from a port.
@@ -563,121 +431,6 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \returns All edges that carry data from \p name's \p port.
      */
     edges_t output_edges_for_port(process::name_t const& name, process::port_t const& port) const;
-
-    /**
-     * \brief The groups within the pipeline.
-     *
-     * \returns The list of all group names in the pipeline.
-     */
-    process::names_t groups() const;
-    /**
-     * \brief The input port names for a group.
-     *
-     * \preconds
-     *
-     * \precond{A group with the name \p name exists in the pipeline}
-     *
-     * \endpreconds
-     *
-     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
-     *
-     * \param name The name of the group.
-     *
-     * \returns The list of input ports available for \p name.
-     */
-    process::ports_t input_ports_for_group(process::name_t const& name) const;
-    /**
-     * \brief The output port names for a group.
-     *
-     * \preconds
-     *
-     * \precond{A group with the name \p name exists in the pipeline}
-     *
-     * \endpreconds
-     *
-     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
-     *
-     * \param name The name of the group.
-     *
-     * \returns The list of output ports available for \p name.
-     */
-    process::ports_t output_ports_for_group(process::name_t const& name) const;
-    /**
-     * \brief Query for the flags on an input port on a group.
-     *
-     * \preconds
-     *
-     * \precond{A group with the name \p name exists in the pipeline}
-     * \precond{The group has a mapped input port named \p port}
-     *
-     * \endpreconds
-     *
-     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
-     * \throws no_such_group_port_exception Thrown when \p port is not an input port on the group.
-     *
-     * \param name The name of the group.
-     * \param port The name of the port.
-     *
-     * \returns The flags on the input port \p port for \p name.
-     */
-    process::port_flags_t mapped_group_input_port_flags(process::name_t const& name, process::port_t const& port) const;
-    /**
-     * \brief Query for the flags on an output port on a group.
-     *
-     * \preconds
-     *
-     * \precond{A group with the name \p name exists in the pipeline}
-     * \precond{The group has a mapped output port named \p port}
-     *
-     * \endpreconds
-     *
-     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
-     * \throws no_such_group_port_exception Thrown when \p port is not an output port on the group.
-     *
-     * \param name The name of the group.
-     * \param port The name of the port.
-     *
-     * \returns The flags on the output port \p port for \p name.
-     */
-    process::port_flags_t mapped_group_output_port_flags(process::name_t const& name, process::port_t const& port) const;
-    /**
-     * \brief Query for the ports that are mapped to the group input port.
-     *
-     * \preconds
-     *
-     * \precond{A group with the name \p name exists in the pipeline}
-     * \precond{The group has a mapped input port named \p port}
-     *
-     * \endpreconds
-     *
-     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
-     * \throws no_such_group_port_exception Thrown when \p port is not an input port on the group.
-     *
-     * \param name The name of the group.
-     * \param port The name of the port.
-     *
-     * \returns The list of input ports mapped for \p name on the \p port port.
-     */
-    process::port_addrs_t mapped_group_input_ports(process::name_t const& name, process::port_t const& port) const;
-    /**
-     * \brief Query for the port that is mapped to the group output port.
-     *
-     * \preconds
-     *
-     * \precond{A group with the name \p name exists in the pipeline}
-     * \precond{The group has a mapped output port named \p port}
-     *
-     * \endpreconds
-     *
-     * \throws no_such_group_exception Thrown when \p name does not exist in the pipeline.
-     * \throws no_such_group_port_exception Thrown when \p port is not an output port on the group.
-     *
-     * \param name The name of the group.
-     * \param port The name of the port.
-     *
-     * \returns The output port mapped for \p name on the \p port port.
-     */
-    process::port_addr_t mapped_group_output_port(process::name_t const& name, process::port_t const& port) const;
   private:
     friend class scheduler;
     VISTK_PIPELINE_NO_EXPORT void start();

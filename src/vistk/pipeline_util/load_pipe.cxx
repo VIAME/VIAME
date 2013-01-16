@@ -84,6 +84,39 @@ load_pipe_blocks(std::istream& istr, path_t const& inc_root)
   return parse_pipe_blocks_from_string(sstr.str());
 }
 
+cluster_blocks
+load_cluster_blocks_from_file(path_t const& fname)
+{
+  std::stringstream sstr;
+  path_t::string_type const& fstr = fname.native();
+  std::string const str(fstr.begin(), fstr.end());
+
+  sstr << include_directive << str;
+
+  cluster_blocks const blocks = load_cluster_blocks(sstr, fname.parent_path());
+
+  return blocks;
+}
+
+cluster_blocks
+load_cluster_blocks(std::istream& istr, path_t const& inc_root)
+{
+  std::stringstream sstr;
+
+  sstr.exceptions(std::stringstream::failbit | std::stringstream::badbit);
+
+  try
+  {
+    flatten_pipe_declaration(sstr, istr, inc_root);
+  }
+  catch (std::ios_base::failure const& e)
+  {
+    throw stream_failure_exception(e.what());
+  }
+
+  return parse_cluster_blocks_from_string(sstr.str());
+}
+
 void
 flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t const& inc_root)
 {
