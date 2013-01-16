@@ -12,6 +12,7 @@
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/pipeline_exception.h>
 #include <vistk/pipeline/process_cluster.h>
+#include <vistk/pipeline/process_cluster_exception.h>
 #include <vistk/pipeline/process_exception.h>
 
 #include <boost/make_shared.hpp>
@@ -53,12 +54,22 @@ main(int argc, char* argv[])
 static void test_configure();
 static void test_init();
 static void test_step();
+static void test_add_process();
 static void test_duplicate_name();
+static void test_map_config();
+static void test_map_config_after_process();
 static void test_map_config_no_exist();
+static void test_map_input();
 static void test_map_input_no_exist();
 static void test_map_input_port_no_exist();
+static void test_map_output();
 static void test_map_output_no_exist();
 static void test_map_output_port_no_exist();
+static void test_connect();
+static void test_connect_upstream_no_exist();
+static void test_connect_upstream_port_no_exist();
+static void test_connect_downstream_no_exist();
+static void test_connect_downstream_port_no_exist();
 
 void
 run_test(std::string const& test_name)
@@ -75,13 +86,29 @@ run_test(std::string const& test_name)
   {
     test_step();
   }
+  else if (test_name == "add_process")
+  {
+    test_add_process();
+  }
   else if (test_name == "duplicate_name")
   {
     test_duplicate_name();
   }
+  else if (test_name == "map_config")
+  {
+    test_map_config();
+  }
+  else if (test_name == "map_config_after_process")
+  {
+    test_map_config_after_process();
+  }
   else if (test_name == "map_config_no_exist")
   {
     test_map_config_no_exist();
+  }
+  else if (test_name == "map_input")
+  {
+    test_map_input();
   }
   else if (test_name == "map_input_no_exist")
   {
@@ -91,6 +118,10 @@ run_test(std::string const& test_name)
   {
     test_map_input_port_no_exist();
   }
+  else if (test_name == "map_output")
+  {
+    test_map_output();
+  }
   else if (test_name == "map_output_no_exist")
   {
     test_map_output_no_exist();
@@ -98,6 +129,26 @@ run_test(std::string const& test_name)
   else if (test_name == "map_output_port_no_exist")
   {
     test_map_output_port_no_exist();
+  }
+  else if (test_name == "connect")
+  {
+    test_connect();
+  }
+  else if (test_name == "connect_upstream_no_exist")
+  {
+    test_connect_upstream_no_exist();
+  }
+  else if (test_name == "connect_upstream_port_no_exist")
+  {
+    test_connect_upstream_port_no_exist();
+  }
+  else if (test_name == "connect_downstream_no_exist")
+  {
+    test_connect_downstream_no_exist();
+  }
+  else if (test_name == "connect_downstream_port_no_exist")
+  {
+    test_connect_downstream_port_no_exist();
   }
   else
   {
@@ -159,6 +210,49 @@ class sample_cluster
 };
 
 void
+test_add_process()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("orphan");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name, type);
+
+  vistk::processes_t const procs = cluster->processes();
+
+  if (procs.empty())
+  {
+    TEST_ERROR("A cluster does not contain a process after adding one");
+
+    // The remaining code won't be happy with an empty vector.
+    return;
+  }
+
+  if (procs.size() != 1)
+  {
+    TEST_ERROR("A cluster has more processes than declared");
+  }
+
+  vistk::process_t const& proc = procs[0];
+
+  if (proc->type() != type)
+  {
+    TEST_ERROR("A cluster added a process of a different type than requested");
+  }
+
+  // TODO: Get the mangled name.
+  if (proc->name() == name)
+  {
+    TEST_ERROR("A cluster did not mangle a processes name");
+  }
+}
+
+void
 test_duplicate_name()
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
@@ -178,6 +272,39 @@ test_duplicate_name()
 }
 
 void
+test_map_config()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::config::key_t const key = vistk::config::key_t("key");
+  vistk::process::name_t const name = vistk::process::name_t("name");
+
+  cluster->_map_config(key, name, key);
+}
+
+void
+test_map_config_after_process()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::config::key_t const key = vistk::config::key_t("key");
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("orphan");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name, type);
+
+  EXPECT_EXCEPTION(vistk::mapping_after_process_exception,
+                   cluster->_map_config(key, name, key),
+                   "mapping a configuration after the process has been added");
+}
+
+void
 test_map_config_no_exist()
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
@@ -188,6 +315,77 @@ test_map_config_no_exist()
   vistk::process::name_t const name = vistk::process::name_t("name");
 
   cluster->_map_config(key, name, key);
+}
+
+void
+test_map_input()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(conf);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("print_number");
+  vistk::process::port_t const port = vistk::process::port_t("cluster_number");
+  vistk::process::port_t const mapped_port = vistk::process::port_t("number");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name, type);
+
+  cluster->_input_map(port, name, mapped_port);
+
+  vistk::process::connections_t const mappings = cluster->input_mappings();
+
+  if (mappings.empty())
+  {
+    TEST_ERROR("A cluster does not contain an input mapping after adding one");
+
+    // The remaining code won't be happy with an empty vector.
+    return;
+  }
+
+  if (mappings.size() != 1)
+  {
+    TEST_ERROR("A cluster has more input mappings than declared");
+  }
+
+  vistk::process::connection_t const& mapping = mappings[0];
+
+  vistk::process::port_addr_t const& up_addr = mapping.first;
+  vistk::process::name_t const& up_name = up_addr.first;
+  vistk::process::port_t const& up_port = up_addr.second;
+
+  if (up_name != cluster_name)
+  {
+    TEST_ERROR("A cluster input mapping\'s upstream name is not the cluster itself");
+  }
+
+  if (up_port != port)
+  {
+    TEST_ERROR("A cluster input mapping\'s upstream port is not the one requested");
+  }
+
+  vistk::process::port_addr_t const& down_addr = mapping.second;
+  vistk::process::name_t const& down_name = down_addr.first;
+  vistk::process::port_t const& down_port = down_addr.second;
+
+  // TODO: Get the mangled name.
+  if (down_name == name)
+  {
+    TEST_ERROR("A cluster input mapping\'s downstream name was not mangled");
+  }
+
+  if (down_port != mapped_port)
+  {
+    TEST_ERROR("A cluster input mapping\'s downstream port is not the one requested");
+  }
 }
 
 void
@@ -226,6 +424,77 @@ test_map_input_port_no_exist()
 }
 
 void
+test_map_output()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(conf);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("numbers");
+  vistk::process::port_t const port = vistk::process::port_t("cluster_number");
+  vistk::process::port_t const mapped_port = vistk::process::port_t("number");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name, type);
+
+  cluster->_output_map(port, name, mapped_port);
+
+  vistk::process::connections_t const mappings = cluster->output_mappings();
+
+  if (mappings.empty())
+  {
+    TEST_ERROR("A cluster does not contain an output mapping after adding one");
+
+    // The remaining code won't be happy with an empty vector.
+    return;
+  }
+
+  if (mappings.size() != 1)
+  {
+    TEST_ERROR("A cluster has more output mappings than declared");
+  }
+
+  vistk::process::connection_t const& mapping = mappings[0];
+
+  vistk::process::port_addr_t const& down_addr = mapping.second;
+  vistk::process::name_t const& down_name = down_addr.first;
+  vistk::process::port_t const& down_port = down_addr.second;
+
+  if (down_name != cluster_name)
+  {
+    TEST_ERROR("A cluster output mapping\'s downstream name is not the cluster itself");
+  }
+
+  if (down_port != port)
+  {
+    TEST_ERROR("A cluster output mapping\'s downstream port is not the one requested");
+  }
+
+  vistk::process::port_addr_t const& up_addr = mapping.first;
+  vistk::process::name_t const& up_name = up_addr.first;
+  vistk::process::port_t const& up_port = up_addr.second;
+
+  // TODO: Get the mangled name.
+  if (up_name == name)
+  {
+    TEST_ERROR("A cluster output mapping\'s upstream name was not mangled");
+  }
+
+  if (up_port != mapped_port)
+  {
+    TEST_ERROR("A cluster output mapping\'s upstream port is not the one requested");
+  }
+}
+
+void
 test_map_output_no_exist()
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
@@ -258,6 +527,164 @@ test_map_output_port_no_exist()
   EXPECT_EXCEPTION(vistk::no_such_port_exception,
                    cluster->_output_map(port, name, port),
                    "mapping an output to a non-existent port");
+}
+
+void
+test_connect()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::process::name_t const name1 = vistk::process::name_t("name1");
+  vistk::process::name_t const name2 = vistk::process::name_t("name2");
+  vistk::process::type_t const type1 = vistk::process::type_t("numbers");
+  vistk::process::type_t const type2 = vistk::process::type_t("print_number");
+  vistk::process::port_t const port = vistk::process::port_t("number");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name1, type1);
+  cluster->_add_process(name2, type2);
+
+  cluster->_connect(name1, port, name2, port);
+
+  vistk::process::connections_t const mappings = cluster->internal_connections();
+
+  if (mappings.empty())
+  {
+    TEST_ERROR("A cluster does not contain an internal connection after adding one");
+
+    // The remaining code won't be happy with an empty vector.
+    return;
+  }
+
+  if (mappings.size() != 1)
+  {
+    TEST_ERROR("A cluster has more internal connections than declared");
+  }
+
+  vistk::process::connection_t const& mapping = mappings[0];
+
+  vistk::process::port_addr_t const& down_addr = mapping.second;
+  vistk::process::name_t const& down_name = down_addr.first;
+  vistk::process::port_t const& down_port = down_addr.second;
+
+  vistk::process::port_addr_t const& up_addr = mapping.first;
+  vistk::process::name_t const& up_name = up_addr.first;
+  vistk::process::port_t const& up_port = up_addr.second;
+
+  // TODO: Get the mangled name.
+  if (up_name == name1)
+  {
+    TEST_ERROR("A cluster internal connection\'s upstream name was not mangled");
+  }
+
+  if (up_port != port)
+  {
+    TEST_ERROR("A cluster internal connection\'s upstream port is not the one requested");
+  }
+
+  // TODO: Get the mangled name.
+  if (down_name == name2)
+  {
+    TEST_ERROR("A cluster internal connection\'s downstream name is not the cluster itself");
+  }
+
+  if (down_port != port)
+  {
+    TEST_ERROR("A cluster internal connection\'s downstream port is not the one requested");
+  }
+}
+
+void
+test_connect_upstream_no_exist()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::process::name_t const name1 = vistk::process::name_t("name1");
+  vistk::process::name_t const name2 = vistk::process::name_t("name2");
+  vistk::process::type_t const type = vistk::process::type_t("print_number");
+  vistk::process::port_t const port = vistk::process::port_t("number");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name2, type);
+
+  EXPECT_EXCEPTION(vistk::no_such_process_exception,
+                   cluster->_connect(name1, port, name2, port),
+                   "making a connection when the upstream process does not exist");
+}
+
+void
+test_connect_upstream_port_no_exist()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::process::name_t const name1 = vistk::process::name_t("name1");
+  vistk::process::name_t const name2 = vistk::process::name_t("name2");
+  vistk::process::type_t const type1 = vistk::process::type_t("numbers");
+  vistk::process::type_t const type2 = vistk::process::type_t("print_number");
+  vistk::process::port_t const port1 = vistk::process::port_t("no_such_port");
+  vistk::process::port_t const port2 = vistk::process::port_t("number");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name1, type1);
+  cluster->_add_process(name2, type2);
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   cluster->_connect(name1, port1, name2, port2),
+                   "making a connection when the upstream port does not exist");
+}
+
+void
+test_connect_downstream_no_exist()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::process::name_t const name1 = vistk::process::name_t("name1");
+  vistk::process::name_t const name2 = vistk::process::name_t("name2");
+  vistk::process::type_t const type = vistk::process::type_t("numbers");
+  vistk::process::port_t const port = vistk::process::port_t("number");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name1, type);
+
+  EXPECT_EXCEPTION(vistk::no_such_process_exception,
+                   cluster->_connect(name1, port, name2, port),
+                   "making a connection when the upstream process does not exist");
+}
+
+void
+test_connect_downstream_port_no_exist()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::process::name_t const name1 = vistk::process::name_t("name1");
+  vistk::process::name_t const name2 = vistk::process::name_t("name2");
+  vistk::process::type_t const type1 = vistk::process::type_t("numbers");
+  vistk::process::type_t const type2 = vistk::process::type_t("print_number");
+  vistk::process::port_t const port1 = vistk::process::port_t("number");
+  vistk::process::port_t const port2 = vistk::process::port_t("no_such_port");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name1, type1);
+  cluster->_add_process(name2, type2);
+
+  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+                   cluster->_connect(name1, port1, name2, port2),
+                   "making a connection when the downstream port does not exist");
 }
 
 empty_cluster
