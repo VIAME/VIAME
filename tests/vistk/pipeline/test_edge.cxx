@@ -16,6 +16,9 @@
 
 #include <boost/chrono/duration.hpp>
 #include <boost/chrono/process_cpu_clocks.hpp>
+#if BOOST_VERSION < 105000
+#include <boost/date_time/posix_time/posix_time.hpp>
+#endif
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -481,7 +484,11 @@ test_capacity()
   boost::thread thread = boost::thread(boost::bind(&push_datum, edge, edat2));
 
   // Give the other thread some time.
+#if BOOST_VERSION < 105000
+  boost::this_thread::sleep(boost::posix_time::seconds(SECONDS_TO_WAIT));
+#else
   boost::this_thread::sleep_for(boost::chrono::seconds(SECONDS_TO_WAIT));
+#endif
 
   // Make sure the edge still is at capacity.
   if (edge->datum_count() != 1)
