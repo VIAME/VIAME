@@ -1,7 +1,5 @@
 project(vistk_tests)
 
-include(CTest)
-
 include("${vistk_source_dir}/cmake/support/test.cmake")
 
 set(vistk_test_data_directory

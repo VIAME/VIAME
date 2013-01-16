@@ -54,5 +54,7 @@ endif ()
 
 option(VISTK_ENABLE_TESTING "Build tests" OFF)
 if (VISTK_ENABLE_TESTING)
+  include(CTest)
+
   add_subdirectory(tests)
 endif ()
