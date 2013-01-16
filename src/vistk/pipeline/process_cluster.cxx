@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -7,6 +7,7 @@
 #include "process_cluster.h"
 
 #include "pipeline_exception.h"
+#include "process_cluster_exception.h"
 #include "process_exception.h"
 #include "process_registry.h"
 
@@ -106,7 +107,8 @@ process_cluster
 {
   if (d->has_name(name_))
   {
-    /// \todo Log a warning that the mapping will be ignored.
+    throw mapping_after_process_exception(name(), key,
+                                          name_, mapped_key);
   }
 
   priv::config_mapping_t const mapping = priv::config_mapping_t(key, mapped_key);

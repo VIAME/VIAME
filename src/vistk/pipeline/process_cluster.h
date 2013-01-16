@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -76,6 +76,8 @@ class VISTK_PIPELINE_EXPORT process_cluster
 
     /**
      * \brief Map a configuration value to a process.
+     *
+     * \throws mapping_after_process_exception Thrown when a process named \p name_ already exists.
      *
      * \param key The key on the cluster.
      * \param name_ The process to map the configuration to.
