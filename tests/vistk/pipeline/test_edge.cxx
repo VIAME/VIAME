@@ -501,6 +501,12 @@ test_capacity()
 
   // Make sure the other thread completes.
   thread.join();
+
+  // Make sure the edge still is at capacity.
+  if (edge->datum_count() != 1)
+  {
+    TEST_ERROR("The other thread did not push into the edge");
+  }
 }
 
 void
