@@ -231,6 +231,17 @@ config
   return i->second;
 }
 
+configuration_exception
+::configuration_exception() throw()
+  : pipeline_exception()
+{
+}
+
+configuration_exception
+::~configuration_exception() throw()
+{
+}
+
 bad_configuration_cast
 ::bad_configuration_cast(char const* reason) throw()
   : configuration_exception()

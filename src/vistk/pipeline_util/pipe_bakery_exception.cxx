@@ -17,6 +17,17 @@
 namespace vistk
 {
 
+pipe_bakery_exception
+::pipe_bakery_exception() throw()
+  : pipeline_exception()
+{
+}
+
+pipe_bakery_exception
+::~pipe_bakery_exception() throw()
+{
+}
+
 missing_cluster_block_exception
 ::missing_cluster_block_exception() throw()
   : pipe_bakery_exception()

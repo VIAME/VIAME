@@ -31,6 +31,15 @@ namespace vistk
 class VISTK_PIPELINE_EXPORT process_registry_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    process_registry_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~process_registry_exception() throw();
 };
 
 /**

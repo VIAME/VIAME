@@ -33,6 +33,15 @@ namespace vistk
 class VISTK_PIPELINE_UTIL_EXPORT pipe_bakery_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    pipe_bakery_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~pipe_bakery_exception() throw();
 };
 
 /**

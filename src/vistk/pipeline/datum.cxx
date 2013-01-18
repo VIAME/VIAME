@@ -89,6 +89,19 @@ datum
 {
 }
 
+datum_exception
+::datum_exception() throw()
+  : pipeline_exception()
+{
+}
+
+datum_exception
+::~datum_exception() throw()
+{
+}
+
+static char const* string_for_type(datum::type_t type);
+
 bad_datum_cast_exception
 ::bad_datum_cast_exception(std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw()
   : datum_exception()
@@ -102,14 +115,14 @@ bad_datum_cast_exception
   if (m_type == datum::error)
   {
     sstr << "Failed to cast datum of type "
-            "\'" << m_type << "\' (" << m_error << ") into "
+            "\'" << string_for_type(m_type) << "\' (" << m_error << ") into "
          << m_typeid << ": "
          << m_reason << ".";
   }
   else
   {
     sstr << "Failed to cast datum of type "
-            "\'" << m_type << "\' into " << m_typeid << ": "
+            "\'" << string_for_type(m_type) << "\' into " << m_typeid << ": "
          << m_reason << ".";
   }
 
@@ -119,6 +132,31 @@ bad_datum_cast_exception
 bad_datum_cast_exception
 ::~bad_datum_cast_exception() throw()
 {
+}
+
+char const*
+string_for_type(datum::type_t type)
+{
+  switch (type)
+  {
+#define STRING_FOR_TYPE(type) \
+  case datum::type:           \
+    return #type
+
+    STRING_FOR_TYPE(data);
+    STRING_FOR_TYPE(empty);
+    STRING_FOR_TYPE(error);
+    STRING_FOR_TYPE(invalid);
+    STRING_FOR_TYPE(flush);
+    STRING_FOR_TYPE(complete);
+
+#undef STRING_FOR_TYPE
+
+    default:
+      break;
+  }
+
+  return "unknown";
 }
 
 }

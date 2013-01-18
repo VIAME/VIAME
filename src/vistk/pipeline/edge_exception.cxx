@@ -17,6 +17,17 @@
 namespace vistk
 {
 
+edge_exception
+::edge_exception() throw()
+  : pipeline_exception()
+{
+}
+
+edge_exception
+::~edge_exception() throw()
+{
+}
+
 null_edge_config_exception
 ::null_edge_config_exception() throw()
   : edge_exception()
@@ -47,6 +58,17 @@ datum_requested_after_complete
 
 datum_requested_after_complete
 ::~datum_requested_after_complete() throw()
+{
+}
+
+edge_connection_exception
+::edge_connection_exception() throw()
+  : edge_exception()
+{
+}
+
+edge_connection_exception
+::~edge_connection_exception() throw()
 {
 }
 

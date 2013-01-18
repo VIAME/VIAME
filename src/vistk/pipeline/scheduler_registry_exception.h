@@ -31,6 +31,15 @@ namespace vistk
 class VISTK_PIPELINE_EXPORT scheduler_registry_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    scheduler_registry_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~scheduler_registry_exception() throw();
 };
 
 /**

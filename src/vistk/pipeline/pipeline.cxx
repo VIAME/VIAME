@@ -1383,7 +1383,7 @@ pipeline::priv
 {
   if (data_dep_connections.size())
   {
-    static std::string const reason = "Data dependency port tracking failed.";
+    static std::string const reason = "Data dependency port tracking failed";
 
     throw std::logic_error(reason);
   }

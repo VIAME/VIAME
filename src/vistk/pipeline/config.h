@@ -230,6 +230,15 @@ class VISTK_PIPELINE_EXPORT config
 class VISTK_PIPELINE_EXPORT configuration_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    configuration_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~configuration_exception() throw();
 };
 
 /**

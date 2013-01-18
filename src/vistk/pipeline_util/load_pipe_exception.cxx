@@ -17,6 +17,17 @@
 namespace vistk
 {
 
+load_pipe_exception
+::load_pipe_exception() throw()
+  : pipeline_exception()
+{
+}
+
+load_pipe_exception
+::~load_pipe_exception() throw()
+{
+}
+
 file_no_exist_exception
 ::file_no_exist_exception(path_t const& fname) throw()
   : load_pipe_exception()

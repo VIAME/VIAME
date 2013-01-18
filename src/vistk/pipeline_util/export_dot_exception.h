@@ -30,6 +30,15 @@ namespace vistk
 class VISTK_PIPELINE_UTIL_EXPORT export_dot_exception
   : public pipeline_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    export_dot_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~export_dot_exception() throw();
 };
 
 /**
