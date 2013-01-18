@@ -60,9 +60,11 @@ static void test_map_config();
 static void test_map_config_after_process();
 static void test_map_config_no_exist();
 static void test_map_input();
+static void test_map_input_twice();
 static void test_map_input_no_exist();
 static void test_map_input_port_no_exist();
 static void test_map_output();
+static void test_map_output_twice();
 static void test_map_output_no_exist();
 static void test_map_output_port_no_exist();
 static void test_connect();
@@ -110,6 +112,10 @@ run_test(std::string const& test_name)
   {
     test_map_input();
   }
+  else if (test_name == "map_input_twice")
+  {
+    test_map_input_twice();
+  }
   else if (test_name == "map_input_no_exist")
   {
     test_map_input_no_exist();
@@ -121,6 +127,10 @@ run_test(std::string const& test_name)
   else if (test_name == "map_output")
   {
     test_map_output();
+  }
+  else if (test_name == "map_output_twice")
+  {
+    test_map_output_twice();
   }
   else if (test_name == "map_output_no_exist")
   {
@@ -389,6 +399,30 @@ test_map_input()
 }
 
 void
+test_map_input_twice()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("print_number");
+  vistk::process::port_t const port1 = vistk::process::port_t("cluster_number1");
+  vistk::process::port_t const port2 = vistk::process::port_t("cluster_number2");
+  vistk::process::port_t const mapped_port = vistk::process::port_t("number");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name, type);
+
+  cluster->_input_map(port1, name, mapped_port);
+
+  EXPECT_EXCEPTION(vistk::port_reconnect_exception,
+                   cluster->_input_map(port2, name, mapped_port),
+                   "mapping a second cluster port to a process input port");
+}
+
+void
 test_map_input_no_exist()
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
@@ -492,6 +526,31 @@ test_map_output()
   {
     TEST_ERROR("A cluster output mapping\'s upstream port is not the one requested");
   }
+}
+
+void
+test_map_output_twice()
+{
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::process::name_t const name1 = vistk::process::name_t("name1");
+  vistk::process::name_t const name2 = vistk::process::name_t("name2");
+  vistk::process::type_t const type = vistk::process::type_t("numbers");
+  vistk::process::port_t const port = vistk::process::port_t("cluster_number");
+  vistk::process::port_t const mapped_port = vistk::process::port_t("number");
+
+  vistk::load_known_modules();
+
+  cluster->_add_process(name1, type);
+  cluster->_add_process(name2, type);
+
+  cluster->_output_map(port, name1, mapped_port);
+
+  EXPECT_EXCEPTION(vistk::port_reconnect_exception,
+                   cluster->_output_map(port, name2, mapped_port),
+                   "mapping a second port to a cluster output port");
 }
 
 void
