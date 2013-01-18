@@ -187,6 +187,17 @@ process_cluster
     return;
   }
 
+  BOOST_FOREACH (connection_t const& output_mapping, d->output_mappings)
+  {
+    port_addr_t const& cluster_addr = output_mapping.second;
+    port_t const& cluster_port = cluster_addr.second;
+
+    if (cluster_port == port)
+    {
+      throw port_reconnect_exception(name(), port);
+    }
+  }
+
   name_t const real_name = convert_name(name(), name_);
 
   port_addr_t const cluster_addr = port_addr_t(name(), port);
