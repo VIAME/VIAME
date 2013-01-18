@@ -164,6 +164,19 @@ process_cluster
 
   name_t const real_name = convert_name(name(), name_);
 
+  BOOST_FOREACH (connection_t const& input_mapping, d->input_mappings)
+  {
+    port_addr_t const& process_addr = input_mapping.second;
+    name_t const& process_name = process_addr.first;
+    port_t const& process_port = process_addr.second;
+
+    if ((process_name == real_name) &&
+        (process_port == mapped_port))
+    {
+      throw port_reconnect_exception(process_name, mapped_port);
+    }
+  }
+
   port_addr_t const cluster_addr = port_addr_t(name(), port);
   port_addr_t const mapped_addr = port_addr_t(real_name, mapped_port);
 
