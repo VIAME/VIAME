@@ -11,6 +11,7 @@ set(pipeline_srcs
   process.cxx
   process_exception.cxx
   process_cluster.cxx
+  process_cluster_exception.cxx
   process_registry.cxx
   process_registry_exception.cxx
   scheduler.cxx
@@ -34,6 +35,7 @@ set(pipeline_headers
   process.h
   process_exception.h
   process_cluster.h
+  process_cluster_exception.h
   process_registry.h
   process_registry_exception.h
   scheduler.h

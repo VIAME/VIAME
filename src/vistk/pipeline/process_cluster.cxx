@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -7,6 +7,7 @@
 #include "process_cluster.h"
 
 #include "pipeline_exception.h"
+#include "process_cluster_exception.h"
 #include "process_exception.h"
 #include "process_registry.h"
 
@@ -39,6 +40,7 @@ class process_cluster::priv
     typedef std::map<process::name_t, config_mappings_t> config_map_t;
     typedef std::map<process::name_t, process_t> process_map_t;
 
+    bool has_name(name_t const& name) const;
     void ensure_name(name_t const& name) const;
 
     config_map_t config_map;
@@ -103,7 +105,11 @@ void
 process_cluster
 ::map_config(config::key_t const& key, name_t const& name_, config::key_t const& mapped_key)
 {
-  d->ensure_name(name_);
+  if (d->has_name(name_))
+  {
+    throw mapping_after_process_exception(name(), key,
+                                          name_, mapped_key);
+  }
 
   priv::config_mapping_t const mapping = priv::config_mapping_t(key, mapped_key);
 
@@ -158,6 +164,19 @@ process_cluster
 
   name_t const real_name = convert_name(name(), name_);
 
+  BOOST_FOREACH (connection_t const& input_mapping, d->input_mappings)
+  {
+    port_addr_t const& process_addr = input_mapping.second;
+    name_t const& process_name = process_addr.first;
+    port_t const& process_port = process_addr.second;
+
+    if ((process_name == real_name) &&
+        (process_port == mapped_port))
+    {
+      throw port_reconnect_exception(process_name, mapped_port);
+    }
+  }
+
   port_addr_t const cluster_addr = port_addr_t(name(), port);
   port_addr_t const mapped_addr = port_addr_t(real_name, mapped_port);
 
@@ -183,6 +202,17 @@ process_cluster
     return;
   }
 
+  BOOST_FOREACH (connection_t const& output_mapping, d->output_mappings)
+  {
+    port_addr_t const& cluster_addr = output_mapping.second;
+    port_t const& cluster_port = cluster_addr.second;
+
+    if (cluster_port == port)
+    {
+      throw port_reconnect_exception(name(), port);
+    }
+  }
+
   name_t const real_name = convert_name(name(), name_);
 
   port_addr_t const cluster_addr = port_addr_t(name(), port);
@@ -200,6 +230,20 @@ process_cluster
 {
   d->ensure_name(upstream_name);
   d->ensure_name(downstream_name);
+
+  process_t const& up_proc = d->processes[upstream_name];
+
+  if (!up_proc->output_port_info(upstream_port))
+  {
+    throw no_such_port_exception(upstream_name, upstream_port);
+  }
+
+  process_t const& down_proc = d->processes[downstream_name];
+
+  if (!down_proc->input_port_info(downstream_port))
+  {
+    throw no_such_port_exception(downstream_name, downstream_port);
+  }
 
   name_t const up_real_name = convert_name(name(), upstream_name);
   name_t const down_real_name = convert_name(name(), downstream_name);
@@ -263,13 +307,20 @@ process_cluster::priv
 {
 }
 
+bool
+process_cluster::priv
+::has_name(name_t const& name) const
+{
+  process_map_t::const_iterator const i = processes.find(name);
+
+  return (i != processes.end());
+}
+
 void
 process_cluster::priv
 ::ensure_name(name_t const& name) const
 {
-  process_map_t::const_iterator const i = processes.find(name);
-
-  if (i == processes.end())
+  if (!has_name(name))
   {
     throw no_such_process_exception(name);
   }

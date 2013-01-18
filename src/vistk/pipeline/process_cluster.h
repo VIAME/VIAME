@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -77,6 +77,8 @@ class VISTK_PIPELINE_EXPORT process_cluster
     /**
      * \brief Map a configuration value to a process.
      *
+     * \throws mapping_after_process_exception Thrown when a process named \p name_ already exists.
+     *
      * \param key The key on the cluster.
      * \param name_ The process to map the configuration to.
      * \param mapped_key The key to map the configuration to.
@@ -85,7 +87,7 @@ class VISTK_PIPELINE_EXPORT process_cluster
     /**
      * \brief Add a process to the cluster.
      *
-     * \throws duplicate_process_name_exception Thrown when a process named \p name already exists.
+     * \throws duplicate_process_name_exception Thrown when a process named \p name_ already exists.
      *
      * \param name_ The name of the process.
      * \param type_ The type of the process.
@@ -95,7 +97,8 @@ class VISTK_PIPELINE_EXPORT process_cluster
     /**
      * \brief Map a port to an input on the cluster.
      *
-     * \throws no_such_process_exception Thrown when \p name does not exist in the cluster.
+     * \throws no_such_process_exception Thrown when \p name_ does not exist in the cluster.
+     * \throws no_such_port_exception Thrown when the process \p name_ does not have an input port \p port.
      *
      * \param port The port on the cluster.
      * \param name_ The name of the process to map the input to.
@@ -105,7 +108,8 @@ class VISTK_PIPELINE_EXPORT process_cluster
     /**
      * \brief Map a port to an output on the cluster.
      *
-     * \throws no_such_process_exception Thrown when \p name does not exist in the cluster.
+     * \throws no_such_process_exception Thrown when \p name_ does not exist in the cluster.
+     * \throws no_such_port_exception Thrown when the process \p name_ does not have an output port \p port.
      *
      * \param port The port on the cluster.
      * \param name_ The name of the process to map the output to.
@@ -116,6 +120,7 @@ class VISTK_PIPELINE_EXPORT process_cluster
      * \brief Connect processes within the cluster.
      *
      * \throws no_such_process_exception Thrown when either \p upstream_name or \p downstream_name do not exist in the cluster.
+     * \throws no_such_port_exception Thrown when a port requested for connection does not exist.
      *
      * \param upstream_name The upstream process name.
      * \param upstream_port The upstream process port.
