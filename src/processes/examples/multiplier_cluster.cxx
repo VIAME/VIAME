@@ -77,8 +77,8 @@ multiplier_cluster
   port_t const mult_input_port1 = port_t("factor1");
   port_t const mult_output_port = port_t("product");
 
-  input_map(priv::port_factor, priv::name_multiplication, mult_input_port1);
-  output_map(priv::port_output, priv::name_multiplication, mult_output_port);
+  map_input(priv::port_factor, priv::name_multiplication, mult_input_port1);
+  map_output(priv::port_output, priv::name_multiplication, mult_output_port);
 
   port_t const const_port = port_t("number");
   port_t const mult_input_port2 = port_t("factor2");

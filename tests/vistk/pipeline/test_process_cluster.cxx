@@ -213,8 +213,8 @@ class sample_cluster
 
     void _map_config(vistk::config::key_t const& key, name_t const& name_, vistk::config::key_t const& mapped_key);
     void _add_process(name_t const& name_, type_t const& type_, vistk::config_t const& config = vistk::config::empty_config());
-    void _input_map(port_t const& port, name_t const& name_, port_t const& mapped_port);
-    void _output_map(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void _map_input(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void _map_output(port_t const& port, name_t const& name_, port_t const& mapped_port);
     void _connect(name_t const& upstream_name, port_t const& upstream_port,
                   name_t const& downstream_name, port_t const& downstream_port);
 };
@@ -349,7 +349,7 @@ test_map_input()
 
   cluster->_add_process(name, type);
 
-  cluster->_input_map(port, name, mapped_port);
+  cluster->_map_input(port, name, mapped_port);
 
   vistk::process::connections_t const mappings = cluster->input_mappings();
 
@@ -415,10 +415,10 @@ test_map_input_twice()
 
   cluster->_add_process(name, type);
 
-  cluster->_input_map(port1, name, mapped_port);
+  cluster->_map_input(port1, name, mapped_port);
 
   EXPECT_EXCEPTION(vistk::port_reconnect_exception,
-                   cluster->_input_map(port2, name, mapped_port),
+                   cluster->_map_input(port2, name, mapped_port),
                    "mapping a second cluster port to a process input port");
 }
 
@@ -433,7 +433,7 @@ test_map_input_no_exist()
   vistk::process::name_t const name = vistk::process::name_t("name");
 
   EXPECT_EXCEPTION(vistk::no_such_process_exception,
-                   cluster->_input_map(port, name, port),
+                   cluster->_map_input(port, name, port),
                    "mapping an input to a non-existent process");
 }
 
@@ -453,7 +453,7 @@ test_map_input_port_no_exist()
   cluster->_add_process(name, type);
 
   EXPECT_EXCEPTION(vistk::no_such_port_exception,
-                   cluster->_input_map(port, name, port),
+                   cluster->_map_input(port, name, port),
                    "mapping an input to a non-existent port");
 }
 
@@ -479,7 +479,7 @@ test_map_output()
 
   cluster->_add_process(name, type);
 
-  cluster->_output_map(port, name, mapped_port);
+  cluster->_map_output(port, name, mapped_port);
 
   vistk::process::connections_t const mappings = cluster->output_mappings();
 
@@ -546,10 +546,10 @@ test_map_output_twice()
   cluster->_add_process(name1, type);
   cluster->_add_process(name2, type);
 
-  cluster->_output_map(port, name1, mapped_port);
+  cluster->_map_output(port, name1, mapped_port);
 
   EXPECT_EXCEPTION(vistk::port_reconnect_exception,
-                   cluster->_output_map(port, name2, mapped_port),
+                   cluster->_map_output(port, name2, mapped_port),
                    "mapping a second port to a cluster output port");
 }
 
@@ -564,7 +564,7 @@ test_map_output_no_exist()
   vistk::process::name_t const name = vistk::process::name_t("name");
 
   EXPECT_EXCEPTION(vistk::no_such_process_exception,
-                   cluster->_output_map(port, name, port),
+                   cluster->_map_output(port, name, port),
                    "mapping an output to a non-existent process");
 }
 
@@ -584,7 +584,7 @@ test_map_output_port_no_exist()
   cluster->_add_process(name, type);
 
   EXPECT_EXCEPTION(vistk::no_such_port_exception,
-                   cluster->_output_map(port, name, port),
+                   cluster->_map_output(port, name, port),
                    "mapping an output to a non-existent port");
 }
 
@@ -784,16 +784,16 @@ sample_cluster
 
 void
 sample_cluster
-::_input_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
+::_map_input(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
-  input_map(port, name_, mapped_port);
+  map_input(port, name_, mapped_port);
 }
 
 void
 sample_cluster
-::_output_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
+::_map_output(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
-  output_map(port, name_, mapped_port);
+  map_output(port, name_, mapped_port);
 }
 
 void
