@@ -33,6 +33,15 @@ namespace vistk
 class VISTK_PIPELINE_EXPORT process_cluster_exception
   : public process_exception
 {
+  public:
+    /**
+     * \brief Constructor.
+     */
+    process_cluster_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~process_cluster_exception() throw();
 };
 
 /**

@@ -17,6 +17,17 @@
 namespace vistk
 {
 
+process_cluster_exception
+::process_cluster_exception() throw()
+  : process_exception()
+{
+}
+
+process_cluster_exception
+::~process_cluster_exception() throw()
+{
+}
+
 mapping_after_process_exception
 ::mapping_after_process_exception(process::name_t const& name, config::key_t const& key, process::name_t const& mapped_name, config::key_t const& mapped_key) throw()
   : process_cluster_exception()
