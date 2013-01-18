@@ -4,6 +4,12 @@ option(VISTK_ENABLE_PYTHON "Enable Python bindings" OFF)
 cmake_dependent_option(VISTK_ENABLE_PYTHON3 "Use Python3" OFF
   VISTK_ENABLE_PYTHON OFF)
 if (VISTK_ENABLE_PYTHON)
+  if (WIN32)
+    set(destdir bin)
+  else ()
+    set(destdir lib)
+  endif ()
+
   set(python_output_path "${vistk_binary_dir}/${destdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
 
   set(PYTHON_VERSION "2.7"
