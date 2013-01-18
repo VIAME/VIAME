@@ -37,7 +37,6 @@ include("${vistk_source_dir}/cmake/snippets/boost_tests.cmake")
 ########################################
 
 find_package(VXL REQUIRED)
-include(${VXL_CMAKE_DIR}/UseVXL.cmake)
 
 include_directories(SYSTEM ${VXL_CORE_INCLUDE_DIR})
 include_directories(SYSTEM ${VXL_VCL_INCLUDE_DIR})
