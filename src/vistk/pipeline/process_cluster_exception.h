@@ -81,4 +81,4 @@ class VISTK_PIPELINE_EXPORT mapping_after_process_exception
 
 }
 
-#endif // VISTK_PIPELINE_PROCESS_EXCEPTION_H
+#endif // VISTK_PIPELINE_PROCESS_CLUSTER_EXCEPTION_H
