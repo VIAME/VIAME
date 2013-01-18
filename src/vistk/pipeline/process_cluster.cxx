@@ -234,8 +234,6 @@ process_cluster
   if (!up_proc->output_port_info(upstream_port))
   {
     throw no_such_port_exception(upstream_name, upstream_port);
-
-    return;
   }
 
   process_t const& down_proc = d->processes[downstream_name];
@@ -243,8 +241,6 @@ process_cluster
   if (!down_proc->input_port_info(downstream_port))
   {
     throw no_such_port_exception(downstream_name, downstream_port);
-
-    return;
   }
 
   name_t const up_real_name = convert_name(name(), upstream_name);
