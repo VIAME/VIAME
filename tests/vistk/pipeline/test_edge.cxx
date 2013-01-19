@@ -14,6 +14,7 @@
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/stamp.h>
 
+#include <boost/chrono/chrono_io.hpp>
 #include <boost/chrono/duration.hpp>
 #include <boost/chrono/process_cpu_clocks.hpp>
 #if BOOST_VERSION < 105000
