@@ -578,7 +578,13 @@ push_datum(vistk::edge_t edge, vistk::edge_datum_t edat)
 
   if (duration < (tolerance * boost::chrono::seconds(SECONDS_TO_WAIT)))
   {
-    TEST_ERROR("It seems as though blocking did not occur when pushing into a full edge");
+    TEST_ERROR("It seems as though blocking did not "
+               "occur when pushing into a full edge: "
+               "expected to wait between "
+               << tolerance * SECONDS_TO_WAIT << " and "
+               << SECONDS_TO_WAIT << " seconds, but "
+               "waited for " << duration << " seconds "
+               "instead");
   }
 
   if (edge->datum_count() != 1)
