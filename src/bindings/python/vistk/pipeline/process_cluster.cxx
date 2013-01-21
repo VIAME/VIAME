@@ -44,8 +44,8 @@ class wrap_process_cluster
 
     void _map_config(vistk::config::key_t const& key, name_t const& name_, vistk::config::key_t const& mapped_key);
     void _add_process(name_t const& name_, type_t const& type_, vistk::config_t const& config);
-    void _input_map(port_t const& port, name_t const& name_, port_t const& mapped_port);
-    void _output_map(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void _map_input(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void _map_output(port_t const& port, name_t const& name_, port_t const& mapped_port);
     void _connect(name_t const& upstream_name, port_t const& upstream_port,
                   name_t const& downstream_name, port_t const& downstream_port);
 
@@ -99,10 +99,10 @@ BOOST_PYTHON_MODULE(process_cluster)
     .def("add_process", &wrap_process_cluster::_add_process
       , (arg("name"), arg("type"), arg("config") = vistk::config::empty_config())
       , "Add a process to the cluster.")
-    .def("input_map", &wrap_process_cluster::_input_map
+    .def("map_input", &wrap_process_cluster::_map_input
       , (arg("port"), arg("name"), arg("mapped_port"))
       , "Map a port on the cluster to an input port.")
-    .def("output_map", &wrap_process_cluster::_output_map
+    .def("map_output", &wrap_process_cluster::_map_output
       , (arg("port"), arg("name"), arg("mapped_port"))
       , "Map an output port to a port on the cluster.")
     .def("connect", &wrap_process_cluster::_connect
@@ -179,16 +179,16 @@ wrap_process_cluster
 
 void
 wrap_process_cluster
-::_input_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
+::_map_input(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
-  input_map(port, name_, mapped_port);
+  map_input(port, name_, mapped_port);
 }
 
 void
 wrap_process_cluster
-::_output_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
+::_map_output(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
-  output_map(port, name_, mapped_port);
+  map_output(port, name_, mapped_port);
 }
 
 void

@@ -815,7 +815,7 @@ cluster_creator
         process::name_t const& mapped_name = addr.first;
         process::port_t const& mapped_port = addr.second;
 
-        cluster->input_map(
+        cluster->map_input(
           port,
           mapped_name,
           mapped_port);
@@ -844,7 +844,7 @@ cluster_creator
       process::name_t const& mapped_name = addr.first;
       process::port_t const& mapped_port = addr.second;
 
-      cluster->output_map(
+      cluster->map_output(
         port,
         mapped_name,
         mapped_port);

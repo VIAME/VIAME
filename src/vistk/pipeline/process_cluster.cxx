@@ -149,7 +149,7 @@ process_cluster
 
 void
 process_cluster
-::input_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
+::map_input(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
   d->ensure_name(name_);
 
@@ -187,7 +187,7 @@ process_cluster
 
 void
 process_cluster
-::output_map(port_t const& port, name_t const& name_, port_t const& mapped_port)
+::map_output(port_t const& port, name_t const& name_, port_t const& mapped_port)
 {
   d->ensure_name(name_);
 

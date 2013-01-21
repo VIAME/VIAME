@@ -104,7 +104,7 @@ class VISTK_PIPELINE_EXPORT process_cluster
      * \param name_ The name of the process to map the input to.
      * \param mapped_port The port on the process to map the input to.
      */
-    void input_map(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void map_input(port_t const& port, name_t const& name_, port_t const& mapped_port);
     /**
      * \brief Map a port to an output on the cluster.
      *
@@ -115,7 +115,7 @@ class VISTK_PIPELINE_EXPORT process_cluster
      * \param name_ The name of the process to map the output to.
      * \param mapped_port The port on the process to map the output to.
      */
-    void output_map(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void map_output(port_t const& port, name_t const& name_, port_t const& mapped_port);
     /**
      * \brief Connect processes within the cluster.
      *
