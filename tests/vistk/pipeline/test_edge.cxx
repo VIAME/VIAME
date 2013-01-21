@@ -584,8 +584,7 @@ push_datum(vistk::edge_t edge, vistk::edge_datum_t edat)
                "expected to wait between "
                << tolerance * SECONDS_TO_WAIT << " and "
                << SECONDS_TO_WAIT << " seconds, but "
-               "waited for " << duration << " seconds "
-               "instead");
+               "waited for " << duration << " instead");
   }
 
   if (edge->datum_count() != 1)
