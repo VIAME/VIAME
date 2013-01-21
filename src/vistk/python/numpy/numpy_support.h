@@ -7,8 +7,6 @@
 #ifndef VISTK_PYTHON_NUMPY_NUMPY_SUPPORT_H
 #define VISTK_PYTHON_NUMPY_NUMPY_SUPPORT_H
 
-#include "numpy-config.h"
-
 #include <numpy/numpyconfig.h>
 
 /**
