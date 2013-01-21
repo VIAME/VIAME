@@ -5,6 +5,7 @@
  */
 
 #include <python/helpers/numpy_memory_chunk.h>
+#include <python/helpers/numpy_support.h>
 #include <python/helpers/python_wrap_vil_smart_ptr.h>
 
 #include <vistk/python/any_conversion/prototypes.h>
@@ -108,22 +109,22 @@ class vil_image_converter
       {
         if (img.planestep() == 1)
         {
-          flags |= NPY_CONTIGUOUS;
+          flags |= NPY(C_CONTIGUOUS);
         }
         else if (img.istep() == 1)
         {
-          flags |= NPY_FORTRAN;
+          flags |= NPY(F_CONTIGUOUS);
         }
       }
 
-      flags |= NPY_WRITEABLE;
-      flags |= NPY_NOTSWAPPED;
+      flags |= NPY(WRITEABLE);
+      flags |= NPY(NOTSWAPPED);
 
       uintptr_t const mem = reinterpret_cast<uintptr_t>(img.top_left_ptr());
 
       if (!(mem % sizeof(T)))
       {
-        flags |= NPY_ALIGNED;
+        flags |= NPY(ALIGNED);
       }
 
       PyObject* obj = Py_None;
@@ -161,7 +162,7 @@ class vil_image_converter
 
       vil_memory_chunk_sptr chunk;
 
-      if (~flags & NPY_UPDATEIFCOPY)
+      if (~flags & NPY(UPDATEIFCOPY))
       {
         PyObject* const memobj = PyArray_BASE(arr);
 
