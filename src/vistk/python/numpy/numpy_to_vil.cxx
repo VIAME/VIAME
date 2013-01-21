@@ -7,6 +7,7 @@
 #include "numpy_to_vil.h"
 
 #include "numpy_memory_chunk.h"
+#include "numpy_support.h"
 #include "registration.h"
 #include "type_mappings.h"
 
@@ -120,7 +121,7 @@ convert_image(PyArrayObject* arr)
 
   vil_memory_chunk_sptr chunk;
 
-  if (~flags & NPY_UPDATEIFCOPY)
+  if (~flags & NPY_FLAG(UPDATEIFCOPY))
   {
     PyObject* const memobj = PyArray_BASE(arr);
 

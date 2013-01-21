@@ -16,7 +16,13 @@ set(python_numpy_headers
 
 set(python_numpy_private_headers
   numpy_memory_chunk.h
+  numpy_support.h
   type_mappings.h)
+
+if (NUMPY_VERSION VERSION_GREATER "1.7.0" OR
+    NUMPY_VERSION VERSION_EQUAL "1.7.0")
+  add_definitions(-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION)
+endif ()
 
 vistk_private_header_group(${python_numpy_private_headers})
 vistk_add_library(vistk_python_numpy

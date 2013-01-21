@@ -6,6 +6,7 @@
 
 #include "vil_to_numpy.h"
 
+#include "numpy_support.h"
 #include "registration.h"
 #include "type_mappings.h"
 
@@ -158,22 +159,22 @@ vil_to_numpy(vil_image_view<T> const& img)
   {
     if (img.planestep() == 1)
     {
-      flags |= NPY_CONTIGUOUS;
+      flags |= NPY_FLAG(C_CONTIGUOUS);
     }
     else if (img.istep() == 1)
     {
-      flags |= NPY_FORTRAN;
+      flags |= NPY_FLAG(F_CONTIGUOUS);
     }
   }
 
-  flags |= NPY_WRITEABLE;
-  flags |= NPY_NOTSWAPPED;
+  flags |= NPY_FLAG(WRITEABLE);
+  flags |= NPY_FLAG(NOTSWAPPED);
 
   uintptr_t const mem = reinterpret_cast<uintptr_t>(img.top_left_ptr());
 
   if (!(mem % sizeof(T)))
   {
-    flags |= NPY_ALIGNED;
+    flags |= NPY_FLAG(ALIGNED);
   }
 
   PyObject* obj = Py_None;
