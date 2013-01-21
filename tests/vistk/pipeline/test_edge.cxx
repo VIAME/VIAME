@@ -14,6 +14,7 @@
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/stamp.h>
 
+#include <boost/chrono/chrono_io.hpp>
 #include <boost/chrono/duration.hpp>
 #include <boost/chrono/process_cpu_clocks.hpp>
 #if BOOST_VERSION < 105000
@@ -501,6 +502,7 @@ test_get_data_from_complete()
 }
 
 #define SECONDS_TO_WAIT 1
+#define WAIT_DURATION boost::chrono::seconds(SECONDS_TO_WAIT)
 
 static void push_datum(vistk::edge_t edge, vistk::edge_datum_t edat);
 
@@ -534,7 +536,7 @@ test_capacity()
 #if BOOST_VERSION < 105000
   boost::this_thread::sleep(boost::posix_time::seconds(SECONDS_TO_WAIT));
 #else
-  boost::this_thread::sleep_for(boost::chrono::seconds(SECONDS_TO_WAIT));
+  boost::this_thread::sleep_for(WAIT_DURATION);
 #endif
 
   // Make sure the edge still is at capacity.
@@ -576,9 +578,14 @@ push_datum(vistk::edge_t edge, vistk::edge_datum_t edat)
 
   static double const tolerance = 0.75;
 
-  if (duration < (tolerance * boost::chrono::seconds(SECONDS_TO_WAIT)))
+  if (duration < (tolerance * WAIT_DURATION))
   {
-    TEST_ERROR("It seems as though blocking did not occur when pushing into a full edge");
+    TEST_ERROR("It seems as though blocking did not "
+               "occur when pushing into a full edge: "
+               "expected to wait between "
+               << tolerance * WAIT_DURATION << " and "
+               << WAIT_DURATION << ", but waited for "
+               << duration << " instead");
   }
 
   if (edge->datum_count() != 1)
