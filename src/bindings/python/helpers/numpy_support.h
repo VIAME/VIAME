@@ -9,7 +9,7 @@
 
 #include <numpy/numpyconfig.h>
 
-#if NPY_API_VERSION >= 0x00000006
+#if NPY_API_VERSION >= 0x00000007
 // All NPY_* defines were renamed to NPY_ARRAY_* in 1.7 and the old ones
 // deprecated.
 #define NPY(x) NPY_ARRAY_##x
