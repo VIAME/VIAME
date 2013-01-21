@@ -10,11 +10,11 @@
 #include <numpy/numpyconfig.h>
 
 #if NPY_API_VERSION >= 0x00000007
-// All NPY_* defines were renamed to NPY_ARRAY_* in 1.7 and the old ones
+// All NPY_* flags were renamed to NPY_ARRAY_* in 1.7 and the old ones
 // deprecated.
-#define NPY(x) NPY_ARRAY_##x
+#define NPY_FLAG(x) NPY_ARRAY_##x
 #else
-#define NPY(x) NPY_##x
+#define NPY_FLAG(x) NPY_##x
 #endif
 
 #endif // VISTK_PYTHON_HELPERS_NUMPY_SUPPORT_H

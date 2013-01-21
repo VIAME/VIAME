@@ -121,7 +121,7 @@ convert_image(PyArrayObject* arr)
 
   vil_memory_chunk_sptr chunk;
 
-  if (~flags & NPY(UPDATEIFCOPY))
+  if (~flags & NPY_FLAG(UPDATEIFCOPY))
   {
     PyObject* const memobj = PyArray_BASE(arr);
 
