@@ -22,7 +22,6 @@
 
 #include <vidl/vidl_istream.h>
 
-#include <fstream>
 #include <string>
 
 /**
@@ -172,14 +171,12 @@ video_reader_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  path_t::string_type const path = d->path.native();
-
-  if (path.empty())
+  if (d->path.empty())
   {
-    config::value_t const file_path = config::value_t(path.begin(), path.end());
     static std::string const reason = "The path given was empty";
+    config::value_t const value = d->path.string<config::value_t>();
 
-    throw invalid_configuration_value_exception(name(), priv::config_path, file_path, reason);
+    throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
 }
 

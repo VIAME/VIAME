@@ -17,10 +17,10 @@
 
 #include <vistk/utilities/path.h>
 
+#include <boost/filesystem/fstream.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -57,17 +57,17 @@ tool_main(int argc, char* argv[])
   }
 
   std::ostream* postr;
-  std::ofstream fout;
+  boost::filesystem::ofstream fout;
 
   vistk::path_t const opath = vm["output"].as<vistk::path_t>();
 
-  if (opath.native() == vistk::path_t("-"))
+  if (opath == vistk::path_t("-"))
   {
     postr = &std::cout;
   }
   else
   {
-    fout.open(opath.native().c_str());
+    fout.open(opath);
 
     if (fout.bad())
     {

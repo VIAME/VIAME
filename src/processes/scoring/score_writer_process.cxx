@@ -13,7 +13,7 @@
 
 #include <vistk/utilities/path.h>
 
-#include <fstream>
+#include <boost/filesystem/fstream.hpp>
 
 /**
  * \file score_writer_process.cxx
@@ -32,7 +32,7 @@ class score_writer_process::priv
 
     path_t const path;
 
-    std::ofstream fout;
+    boost::filesystem::ofstream fout;
 
     static config::key_t const config_path;
     static port_t const port_score;
@@ -79,22 +79,20 @@ score_writer_process
     d.reset(new priv(path));
   }
 
-  path_t::string_type const path = d->path.native();
-
-  if (path.empty())
+  if (d->path.empty())
   {
     static std::string const reason = "The path given was empty";
-    config::value_t const value = config::value_t(path.begin(), path.end());
+    config::value_t const value = d->path.string<config::value_t>();
 
     throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
 
-  d->fout.open(path.c_str());
+  d->fout.open(d->path);
 
   if (!d->fout.good())
   {
-    std::string const file_path(path.begin(), path.end());
-    std::string const reason = "Failed to open the path: " + file_path;
+    std::string const str = d->path.string<std::string>();
+    std::string const reason = "Failed to open the path: " + str;
 
     throw invalid_configuration_exception(name(), reason);
   }

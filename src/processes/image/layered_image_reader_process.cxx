@@ -17,10 +17,10 @@
 #include <vistk/pipeline/process_exception.h>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
-#include <fstream>
 #include <string>
 
 /**
@@ -50,7 +50,7 @@ class layered_image_reader_process::priv
 
     timestamp::frame_t frame;
 
-    std::ifstream fin;
+    boost::filesystem::ifstream fin;
 
     layers_t layers;
 
@@ -140,22 +140,20 @@ layered_image_reader_process
     throw invalid_configuration_exception(name(), reason);
   }
 
-  path_t::string_type const path = d->path.native();
-
-  if (path.empty())
+  if (d->path.empty())
   {
     static std::string const reason = "The path given was empty";
-    config::value_t const value = config::value_t(path.begin(), path.end());
+    config::value_t const value = d->path.string<config::value_t>();
 
     throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
 
-  d->fin.open(path.c_str());
+  d->fin.open(d->path);
 
   if (!d->fin.good())
   {
-    std::string const file_path(path.begin(), path.end());
-    std::string const reason = "Failed to open the path: " + file_path;
+    std::string const str = d->path.string<std::string>();
+    std::string const reason = "Failed to open the path: " + str;
 
     throw invalid_configuration_exception(name(), reason);
   }

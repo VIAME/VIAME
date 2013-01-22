@@ -20,6 +20,7 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -27,7 +28,6 @@
 #include <boost/bind.hpp>
 
 #include <algorithm>
-#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -53,17 +53,17 @@ pipeline_builder
 
   {
     std::istream* pistr;
-    std::ifstream fin;
+    boost::filesystem::ifstream fin;
 
     vistk::path_t const ipath = vm["pipeline"].as<vistk::path_t>();
 
-    if (ipath.native() == vistk::path_t("-"))
+    if (ipath == vistk::path_t("-"))
     {
       pistr = &std::cin;
     }
     else
     {
-      fin.open(ipath.native().c_str());
+      fin.open(ipath);
 
       if (!fin.good())
       {

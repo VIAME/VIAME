@@ -20,10 +20,10 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 
-#include <fstream>
 #include <iostream>
 
 #include <cstdlib>
@@ -74,17 +74,17 @@ tool_main(int argc, char* argv[])
   }
 
   std::ostream* postr;
-  std::ofstream fout;
+  boost::filesystem::ofstream fout;
 
   vistk::path_t const opath = vm["output"].as<vistk::path_t>();
 
-  if (opath.native() == vistk::path_t("-"))
+  if (opath == vistk::path_t("-"))
   {
     postr = &std::cout;
   }
   else
   {
-    fout.open(opath.native().c_str());
+    fout.open(opath);
 
     if (fout.bad())
     {

@@ -52,8 +52,7 @@ read(path_t const& path)
 
   /// \todo Check ec.
 
-  path_t::string_type const fstr = path.native();
-  std::string const str(fstr.begin(), fstr.end());
+  std::string const str = path.string<std::string>();
 
   image_t img = vil_load(str.c_str());
 

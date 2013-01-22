@@ -16,7 +16,8 @@
 
 #include <vnl/vnl_double_3x3.h>
 
-#include <fstream>
+#include <boost/filesystem/fstream.hpp>
+
 #include <string>
 
 /**
@@ -36,7 +37,7 @@ class homography_reader_process::priv
 
     path_t const path;
 
-    std::ifstream fin;
+    boost::filesystem::ifstream fin;
 
     static config::key_t const config_path;
     static port_t const port_output;
@@ -82,22 +83,20 @@ homography_reader_process
     d.reset(new priv(path));
   }
 
-  path_t::string_type const path = d->path.native();
-
-  if (path.empty())
+  if (d->path.empty())
   {
-    config::value_t const file_path = config::value_t(path.begin(), path.end());
     static std::string const reason = "The path given was empty";
+    config::value_t const value = d->path.string<config::value_t>();
 
-    throw invalid_configuration_value_exception(name(), priv::config_path, file_path, reason);
+    throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }
 
-  d->fin.open(path.c_str());
+  d->fin.open(d->path);
 
   if (!d->fin.good())
   {
-    std::string const file_path(path.begin(), path.end());
-    std::string const reason = "Failed to open the path: " + file_path;
+    std::string const str = d->path.string<std::string>();
+    std::string const reason = "Failed to open the path: " + str;
 
     throw invalid_configuration_exception(name(), reason);
   }
