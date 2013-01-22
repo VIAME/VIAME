@@ -58,15 +58,8 @@ else ()
   if (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
     set(vistk_using_clang TRUE)
   else ()
-    execute_process(
-      COMMAND           "${CMAKE_CXX_COMPILER}"
-                        -dumpversion
-      WORKING_DIRECTORY "${vistk_source_dir}"
-      RESULT_VARIABLE   gcc_return
-      OUTPUT_VARIABLE   gcc_version)
-
-    if (gcc_version VERSION_GREATER "4.7.0" AND
-        gcc_version VERSION_LESS "4.7.2")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.7.0" AND
+        CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.7.2")
       if (VISTK_ENABLE_CXX11)
         message(SEND_ERROR
           "C++11 ABI is broken with GCC 4.7.0 and 4.7.1."
