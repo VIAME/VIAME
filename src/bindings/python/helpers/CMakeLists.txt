@@ -29,6 +29,11 @@ find_package(NumPy)
 if (NUMPY_FOUND)
   include_directories(SYSTEM ${NUMPY_INCLUDE_DIR})
 
+  if (NUMPY_VERSION VERSION_GREATER "1.7.0" OR
+      NUMPY_VERSION VERSION_EQUAL "1.7.0")
+    add_definitions(-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION)
+  endif ()
+
   add_python_helper_library(numpy_memory_chunk
     vistk_python_util
     vil
