@@ -21,6 +21,10 @@ if (VISTK_ENABLE_PYTHON)
     set(Python_ADDITIONAL_VERSIONS
       3
       ${PYTHON_VERSION})
+
+    if (CMAKE_VERSION VERSION_LESS "2.8.8")
+      message(WARNING "Python 3 support may not work with CMake versions older than 2.8.8")
+    endif ()
   endif ()
 
   # This is to avoid Boost.Python's headers to have __declspec(dllimport) in
@@ -30,9 +34,5 @@ if (VISTK_ENABLE_PYTHON)
   mark_as_advanced(VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
   if (VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
     add_definitions(-DBOOST_PYTHON_STATIC_LIB)
-  endif ()
-
-  if (CMAKE_VERSION VERSION_LESS "2.8.8")
-    message(WARNING "Python 3 support may not work with CMake versions older than 2.8.8")
   endif ()
 endif ()
