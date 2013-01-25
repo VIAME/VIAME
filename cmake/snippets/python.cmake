@@ -22,6 +22,11 @@ if (VISTK_ENABLE_PYTHON)
       3
       ${PYTHON_VERSION})
 
+    if (PYTHON_VERSION VERSION_LESS "3.0")
+      set(PYTHON_VERSION "3.0"
+        CACHE STRING "The version of python to use for bindings" FORCE)
+    endif ()
+
     if (CMAKE_VERSION VERSION_LESS "2.8.8")
       message(WARNING "Python 3 support may not work with CMake versions older than 2.8.8")
     endif ()
