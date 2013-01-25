@@ -21,6 +21,8 @@ DECLARE_TEST(available_values);
 DECLARE_TEST(read_only);
 DECLARE_TEST(read_only_unset);
 DECLARE_TEST(subblock);
+DECLARE_TEST(subblock_match);
+DECLARE_TEST(subblock_prefix_match);
 DECLARE_TEST(subblock_view);
 DECLARE_TEST(merge_config);
 
@@ -44,6 +46,8 @@ main(int argc, char* argv[])
   ADD_TEST(tests, read_only);
   ADD_TEST(tests, read_only_unset);
   ADD_TEST(tests, subblock);
+  ADD_TEST(tests, subblock_match);
+  ADD_TEST(tests, subblock_prefix_match);
   ADD_TEST(tests, subblock_view);
   ADD_TEST(tests, merge_config);
 
@@ -359,6 +363,48 @@ IMPLEMENT_TEST(subblock)
   if (subblock->has_value(keyc))
   {
     TEST_ERROR("Subblock inherited unrelated key");
+  }
+}
+
+IMPLEMENT_TEST(subblock_match)
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+
+  config->set_value(block_name, valuea);
+
+  vistk::config_t const subblock = config->subblock(block_name);
+
+  vistk::config::keys_t const keys = subblock->available_values();
+
+  if (!keys.empty())
+  {
+    TEST_ERROR("A subblock inherited a value that shared the block name");
+  }
+}
+
+IMPLEMENT_TEST(subblock_prefix_match)
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+
+  config->set_value(block_name + keya, valuea);
+
+  vistk::config_t const subblock = config->subblock(block_name);
+
+  vistk::config::keys_t const keys = subblock->available_values();
+
+  if (!keys.empty())
+  {
+    TEST_ERROR("A subblock inherited a value that shared a prefix with the block name");
   }
 }
 
