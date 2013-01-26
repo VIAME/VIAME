@@ -457,8 +457,6 @@ IMPLEMENT_TEST(cluster_missing_processes)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
-  vistk::load_known_modules();
-
   EXPECT_EXCEPTION(vistk::cluster_without_processes_exception,
                    vistk::bake_cluster_blocks(blocks),
                    "baking a cluster without processes");
@@ -467,8 +465,6 @@ IMPLEMENT_TEST(cluster_missing_processes)
 IMPLEMENT_TEST(cluster_missing_ports)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
-
-  vistk::load_known_modules();
 
   EXPECT_EXCEPTION(vistk::cluster_without_ports_exception,
                    vistk::bake_cluster_blocks(blocks),
