@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -13,6 +13,8 @@
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/types.h>
+
+#include <string>
 
 /**
  * \file pipe_bakery_exception.h
@@ -179,6 +181,35 @@ class VISTK_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
     config::key_t const m_key;
     /// The unrecognized flag.
     config_flag_t const m_flag;
+};
+
+/**
+ * \class config_flag_mismatch_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ *
+ * \brief The exception thrown when flags on a configuration are mismatched.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
+  : public pipe_bakery_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param key The key the flag was on.
+     * \param reason The reason for the mismatch.
+     */
+    config_flag_mismatch_exception(config::key_t const& key, std::string const& reason) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~config_flag_mismatch_exception() throw();
+
+    /// The key the flag was on.
+    config::key_t const m_key;
+    /// The reason for the mismatch.
+    std::string const m_reason;
 };
 
 /**
