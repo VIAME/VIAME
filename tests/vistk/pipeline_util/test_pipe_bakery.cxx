@@ -37,6 +37,8 @@ DECLARE_TEST(config_read_only_override);
 DECLARE_TEST(config_append);
 DECLARE_TEST(config_cappend);
 DECLARE_TEST(config_cappend_empty);
+DECLARE_TEST(config_pappend);
+DECLARE_TEST(config_pappend_empty);
 DECLARE_TEST(config_provider_conf);
 DECLARE_TEST(config_provider_conf_dep);
 DECLARE_TEST(config_provider_conf_circular_dep);
@@ -77,6 +79,8 @@ main(int argc, char* argv[])
   ADD_TEST(tests, config_append);
   ADD_TEST(tests, config_cappend);
   ADD_TEST(tests, config_cappend_empty);
+  ADD_TEST(tests, config_pappend);
+  ADD_TEST(tests, config_pappend_empty);
   ADD_TEST(tests, config_provider_conf);
   ADD_TEST(tests, config_provider_conf_dep);
   ADD_TEST(tests, config_provider_conf_circular_dep);
@@ -269,6 +273,44 @@ IMPLEMENT_TEST(config_cappend_empty)
   if (myvalue != expected)
   {
     TEST_ERROR("Configuration value was created with a comma separator: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+}
+
+IMPLEMENT_TEST(config_pappend)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
+  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
+  vistk::path_t const expected_path = vistk::path_t("myvalue") / vistk::path_t("othervalue");
+  vistk::config::value_t const expected = expected_path.string<vistk::config::value_t>();
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration value was not appended with a path separator: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+}
+
+IMPLEMENT_TEST(config_pappend_empty)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
+  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
+  vistk::path_t const expected_path = vistk::path_t(".") / vistk::path_t("othervalue");
+  vistk::config::value_t const expected = expected_path.string<vistk::config::value_t>();
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration value was not created properly with a path separator: "
                "Expected: " << expected << " "
                "Received: " << myvalue);
   }
