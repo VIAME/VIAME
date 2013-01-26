@@ -569,9 +569,24 @@ bakery_base
   config::key_t const full_key = root_key + config::block_sep + subkey;
 
   bool is_readonly = false;
-  bool append = false;
+  bool string_append = false;
   bool comma_append = false;
   bool path_append = false;
+  bool appending = false;
+
+#define APPEND_CHECK(flag)                                             \
+  do                                                                   \
+  {                                                                    \
+    if (appending)                                                     \
+    {                                                                  \
+      std::string const reason = "The \'" + flag + "\' flag cannot "   \
+                                 "be used with other appending flags"; \
+                                                                       \
+      throw config_flag_mismatch_exception(full_key, reason);          \
+    }                                                                  \
+                                                                       \
+    appending = true;                                                  \
+  } while (false)
 
   if (key.options.flags)
   {
@@ -583,14 +598,20 @@ bakery_base
       }
       else if (flag == flag_append)
       {
-        append = true;
+        APPEND_CHECK(flag_append);
+
+        string_append = true;
       }
       else if (flag == flag_comma_append)
       {
+        APPEND_CHECK(flag_comma_append);
+
         comma_append = true;
       }
       else if (flag == flag_path_append)
       {
+        APPEND_CHECK(flag_path_append);
+
         path_append = true;
       }
       else
@@ -600,7 +621,9 @@ bakery_base
     }
   }
 
-  config_info_t const info = config_info_t(c_value, is_readonly, append, comma_append, path_append);
+#undef APPEND_CHECK
+
+  config_info_t const info = config_info_t(c_value, is_readonly, string_append, comma_append, path_append);
 
   config_decl_t const decl = config_decl_t(full_key, info);
 
