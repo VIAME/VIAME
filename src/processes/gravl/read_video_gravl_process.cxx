@@ -115,7 +115,6 @@ read_video_gravl_process
 {
   // Configure the process.
   {
-    pixtype_t const pixtype = config_value<pixtype_t>(priv::config_pixtype);
     std::string const uri = config_value<std::string>(priv::config_uri);
 
     d.reset(new priv(uri));
