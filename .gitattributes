@@ -1,0 +1,5 @@
+*.h   hooks.checkcopyright
+*.cxx hooks.checkcopyright
+*.txx hooks.checkcopyright
+*.py  hooks.checkcopyright
+*.in  hooks.checkcopyright
