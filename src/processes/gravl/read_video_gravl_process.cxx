@@ -131,6 +131,8 @@ read_video_gravl_process
   d->resource = gravl::raf::get_resource(d->uri.c_str());
   if (!d->resource)
   {
+    /// \todo Use an error handler to try to extract more useful information
+    ///       about why we were not able to obtain a resource.
     std::string const reason = "Failed to open the resource: " + d->uri;
 
     throw invalid_configuration_exception(name(), reason);
@@ -201,12 +203,6 @@ read_video_gravl_process
   {
     mark_process_as_complete();
     dat = datum::complete_datum();
-  }
-  else if (!d->video)
-  {
-    static datum::error_t const err_string = datum::error_t("Error with input file stream");
-
-    dat = datum::error_datum(err_string);
   }
   else
   {
