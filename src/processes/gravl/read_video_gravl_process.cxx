@@ -151,6 +151,8 @@ read_video_gravl_process
   {
     d->convert_func = boost::bind(&convert_image<uint8_t>, _1, pixtype, VIL_PIXEL_FORMAT_BYTE);
   }
+  /// \todo Add support for uint16, uint32 and uint64 images when supported by
+  ///       vistk::pixtypes.
 //   else if (pixtype == pixtypes::pixtype_short()) // uint16_t - TODO
 //   {
 //     d->convert_func = boost::bind(&convert_image<uint16_t>, _1, pixtype, VIL_PIXEL_FORMAT_INT_16);
