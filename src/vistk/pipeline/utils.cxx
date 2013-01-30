@@ -197,7 +197,7 @@ name_thread_prctl(thread_name_t const& name)
 #ifdef NAME_THREAD_USING_WIN32
 // The mechanism only make sense in debugging mode.
 #ifndef NDEBUG
-static void SetThreadName(DWORD dwThreadID, LPCSTR threadName);
+static void set_thread_name(DWORD thread_id, LPCSTR name);
 #endif
 
 bool
@@ -222,27 +222,30 @@ name_thread_win32(thread_name_t const& name)
 #pragma pack(push,8)
 typedef struct tagTHREADNAME_INFO
 {
-   DWORD dwType; // Must be 0x1000.
-   LPCSTR szName; // Pointer to name (in user addr space).
+   DWORD dwType;     // Must be 0x1000.
+   LPCSTR szName;    // Pointer to name (in user addr space).
    DWORD dwThreadID; // Thread ID (-1 = caller thread).
-   DWORD dwFlags; // Reserved for future use, must be zero.
+   DWORD dwFlags;    // Reserved for future use, must be zero.
 } THREADNAME_INFO;
 #pragma pack(pop)
 
 void
-SetThreadName(DWORD dwThreadID, LPCSTR threadName)
+set_thread_name(DWORD thread_id, LPCSTR name)
 {
    THREADNAME_INFO info;
    info.dwType = 0x1000;
-   info.szName = threadName;
-   info.dwThreadID = dwThreadID;
+   info.szName = name;
+   info.dwThreadID = thread_id;
    info.dwFlags = 0;
 
    __try
    {
       static DWORD const MS_VC_EXCEPTION = 0x406D1388;
 
-      RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+      RaiseException(MS_VC_EXCEPTION,
+        0,
+        sizeof(info) / sizeof(ULONG_PTR),
+        reinterpret_cast<ULONG_PTR*>&info);
    }
    __except(EXCEPTION_EXECUTE_HANDLER)
    {
