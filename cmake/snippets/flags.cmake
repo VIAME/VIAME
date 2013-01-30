@@ -45,6 +45,7 @@ if (MSVC)
 
   # Prevent namespace pollution.
   add_definitions(-DWIN32_LEAN_AND_MEAN)
+  add_definitions(-DNOMINMAX)
 # Assume GCC-compatible
 else ()
   set(vistk_using_clang FALSE)
