@@ -1,6 +1,6 @@
 #!@PYTHON_EXECUTABLE@
 #ckwg +4
-# Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
@@ -41,15 +41,6 @@ def test_api_calls():
     homog.destination()
 
 
-def main(testname):
-    if testname == 'import':
-        test_import()
-    elif testname == 'api_calls':
-        test_api_calls()
-    else:
-        test_error("No such test '%s'" % testname)
-
-
 if __name__ == '__main__':
     import os
     import sys
@@ -64,9 +55,11 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    tests = \
+        { 'import': test_import
+        , 'api_calls': test_api_calls
+        }
+
     from vistk.test.test import *
 
-    try:
-        main(testname)
-    except BaseException as e:
-        test_error("Unexpected exception: %s" % str(e))
+    run_test(testname, tests)

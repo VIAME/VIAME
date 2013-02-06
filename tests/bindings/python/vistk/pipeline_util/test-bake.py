@@ -1,11 +1,11 @@
 #!@PYTHON_EXECUTABLE@
 #ckwg +4
-# Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def test_import():
+def test_import(path):
     try:
         import vistk.pipeline_util.bake
     except:
@@ -56,17 +56,6 @@ def test_cluster_multiplier(path):
     bake.register_cluster(info)
 
 
-def main(testname, path):
-    if testname == 'import':
-        test_import()
-    elif testname == 'simple_pipeline':
-        test_simple_pipeline(path)
-    elif testname == 'cluster_multiplier':
-        test_cluster_multiplier(path)
-    else:
-        test_error("No such test '%s'" % testname)
-
-
 if __name__ == '__main__':
     import os
     import sys
@@ -83,11 +72,14 @@ if __name__ == '__main__':
 
     pipeline_dir = sys.argv[4]
 
+    tests = \
+        { 'import': test_import
+        , 'simple_pipeline': test_simple_pipeline
+        , 'cluster_multiplier': test_cluster_multiplier
+        }
+
     path = os.path.join(pipeline_dir, '%s.pipe' % testname)
 
     from vistk.test.test import *
 
-    try:
-        main(testname, path)
-    except BaseException as e:
-        test_error("Unexpected exception: %s" % str(e))
+    run_test(testname, tests, path)
