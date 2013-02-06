@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -15,92 +15,39 @@
 
 #include <boost/foreach.hpp>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(get_twice);
+DECLARE_TEST(null_config);
+DECLARE_TEST(load_processes);
+DECLARE_TEST(null_ctor);
+DECLARE_TEST(duplicate_types);
+DECLARE_TEST(unknown_types);
+DECLARE_TEST(module_marking);
+DECLARE_TEST(register_cluster);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, get_twice);
+  ADD_TEST(tests, null_config);
+  ADD_TEST(tests, load_processes);
+  ADD_TEST(tests, null_ctor);
+  ADD_TEST(tests, duplicate_types);
+  ADD_TEST(tests, unknown_types);
+  ADD_TEST(tests, module_marking);
+  ADD_TEST(tests, register_cluster);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
+  RUN_TEST(tests, testname);
 }
 
-static void test_get_twice();
-static void test_null_config();
-static void test_load_processes();
-static void test_null_ctor();
-static void test_duplicate_types();
-static void test_unknown_types();
-static void test_module_marking();
-static void test_register_cluster();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "get_twice")
-  {
-    test_get_twice();
-  }
-  else if (test_name == "null_config")
-  {
-    test_null_config();
-  }
-  else if (test_name == "load_processes")
-  {
-    test_load_processes();
-  }
-  else if (test_name == "null_ctor")
-  {
-    test_null_ctor();
-  }
-  else if (test_name == "duplicate_types")
-  {
-    test_duplicate_types();
-  }
-  else if (test_name == "unknown_types")
-  {
-    test_unknown_types();
-  }
-  else if (test_name == "module_marking")
-  {
-    test_module_marking();
-  }
-  else if (test_name == "register_cluster")
-  {
-    test_register_cluster();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
-}
-
-void
-test_get_twice()
+IMPLEMENT_TEST(get_twice)
 {
   vistk::process_registry_t const reg1 = vistk::process_registry::self();
   vistk::process_registry_t const reg2 = vistk::process_registry::self();
@@ -111,8 +58,7 @@ test_get_twice()
   }
 }
 
-void
-test_null_config()
+IMPLEMENT_TEST(null_config)
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
@@ -123,8 +69,7 @@ test_null_config()
                    "requesting a NULL config to a process");
 }
 
-void
-test_load_processes()
+IMPLEMENT_TEST(load_processes)
 {
   vistk::load_known_modules();
 
@@ -168,8 +113,7 @@ test_load_processes()
   }
 }
 
-void
-test_null_ctor()
+IMPLEMENT_TEST(null_ctor)
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
@@ -180,8 +124,7 @@ test_null_ctor()
 
 static vistk::process_t null_process(vistk::config_t const& config);
 
-void
-test_duplicate_types()
+IMPLEMENT_TEST(duplicate_types)
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
@@ -194,8 +137,7 @@ test_duplicate_types()
                    "requesting an non-existent process type");
 }
 
-void
-test_unknown_types()
+IMPLEMENT_TEST(unknown_types)
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
@@ -210,8 +152,7 @@ test_unknown_types()
                    "requesting an non-existent process type");
 }
 
-void
-test_module_marking()
+IMPLEMENT_TEST(module_marking)
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
@@ -232,8 +173,7 @@ test_module_marking()
   }
 }
 
-void
-test_register_cluster()
+IMPLEMENT_TEST(register_cluster)
 {
   vistk::load_known_modules();
 

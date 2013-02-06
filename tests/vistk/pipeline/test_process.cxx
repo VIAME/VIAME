@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -16,193 +16,78 @@
 
 #include <boost/make_shared.hpp>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(null_input_edge);
+DECLARE_TEST(null_output_edge);
+DECLARE_TEST(connect_after_init);
+DECLARE_TEST(reconfigure);
+DECLARE_TEST(reinit);
+DECLARE_TEST(reset);
+DECLARE_TEST(step_before_configure);
+DECLARE_TEST(step_before_init);
+DECLARE_TEST(set_static_input_type);
+DECLARE_TEST(set_static_output_type);
+DECLARE_TEST(set_input_type_duplicate);
+DECLARE_TEST(set_output_type_duplicate);
+DECLARE_TEST(set_input_type_after_init);
+DECLARE_TEST(set_output_type_after_init);
+DECLARE_TEST(set_tagged_flow_dependent_port);
+DECLARE_TEST(set_tagged_flow_dependent_port_cascade);
+DECLARE_TEST(add_input_port_after_type_pin);
+DECLARE_TEST(add_output_port_after_type_pin);
+DECLARE_TEST(set_untagged_flow_dependent_port);
+DECLARE_TEST(remove_input_port);
+DECLARE_TEST(remove_output_port);
+DECLARE_TEST(remove_non_exist_input_port);
+DECLARE_TEST(remove_non_exist_output_port);
+DECLARE_TEST(remove_only_tagged_flow_dependent_port);
+DECLARE_TEST(remove_tagged_flow_dependent_port);
+DECLARE_TEST(null_config);
+DECLARE_TEST(null_input_port_info);
+DECLARE_TEST(null_output_port_info);
+DECLARE_TEST(null_conf_info);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, null_input_edge);
+  ADD_TEST(tests, null_output_edge);
+  ADD_TEST(tests, connect_after_init);
+  ADD_TEST(tests, reconfigure);
+  ADD_TEST(tests, reinit);
+  ADD_TEST(tests, reset);
+  ADD_TEST(tests, step_before_configure);
+  ADD_TEST(tests, step_before_init);
+  ADD_TEST(tests, set_static_input_type);
+  ADD_TEST(tests, set_static_output_type);
+  ADD_TEST(tests, set_input_type_duplicate);
+  ADD_TEST(tests, set_output_type_duplicate);
+  ADD_TEST(tests, set_input_type_after_init);
+  ADD_TEST(tests, set_output_type_after_init);
+  ADD_TEST(tests, set_tagged_flow_dependent_port);
+  ADD_TEST(tests, set_tagged_flow_dependent_port_cascade);
+  ADD_TEST(tests, add_input_port_after_type_pin);
+  ADD_TEST(tests, add_output_port_after_type_pin);
+  ADD_TEST(tests, set_untagged_flow_dependent_port);
+  ADD_TEST(tests, remove_input_port);
+  ADD_TEST(tests, remove_output_port);
+  ADD_TEST(tests, remove_non_exist_input_port);
+  ADD_TEST(tests, remove_non_exist_output_port);
+  ADD_TEST(tests, remove_only_tagged_flow_dependent_port);
+  ADD_TEST(tests, remove_tagged_flow_dependent_port);
+  ADD_TEST(tests, null_config);
+  ADD_TEST(tests, null_input_port_info);
+  ADD_TEST(tests, null_output_port_info);
+  ADD_TEST(tests, null_conf_info);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
-}
-
-static void test_null_input_edge();
-static void test_null_output_edge();
-static void test_connect_after_init();
-static void test_reconfigure();
-static void test_reinit();
-static void test_reset();
-static void test_step_before_configure();
-static void test_step_before_init();
-static void test_set_static_input_type();
-static void test_set_static_output_type();
-static void test_set_input_type_duplicate();
-static void test_set_output_type_duplicate();
-static void test_set_input_type_after_init();
-static void test_set_output_type_after_init();
-static void test_set_tagged_flow_dependent_port();
-static void test_set_tagged_flow_dependent_port_cascade();
-static void test_add_input_port_after_type_pin();
-static void test_add_output_port_after_type_pin();
-static void test_set_untagged_flow_dependent_port();
-static void test_remove_input_port();
-static void test_remove_output_port();
-static void test_remove_non_exist_input_port();
-static void test_remove_non_exist_output_port();
-static void test_remove_only_tagged_flow_dependent_port();
-static void test_remove_tagged_flow_dependent_port();
-static void test_null_config();
-static void test_null_input_port_info();
-static void test_null_output_port_info();
-static void test_null_conf_info();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "null_input_edge")
-  {
-    test_null_input_edge();
-  }
-  else if (test_name == "null_output_edge")
-  {
-    test_null_output_edge();
-  }
-  else if (test_name == "connect_after_init")
-  {
-    test_connect_after_init();
-  }
-  else if (test_name == "reconfigure")
-  {
-    test_reconfigure();
-  }
-  else if (test_name == "reinit")
-  {
-    test_reinit();
-  }
-  else if (test_name == "reset")
-  {
-    test_reset();
-  }
-  else if (test_name == "step_before_configure")
-  {
-    test_step_before_configure();
-  }
-  else if (test_name == "step_before_init")
-  {
-    test_step_before_init();
-  }
-  else if (test_name == "set_static_input_type")
-  {
-    test_set_static_input_type();
-  }
-  else if (test_name == "set_static_output_type")
-  {
-    test_set_static_output_type();
-  }
-  else if (test_name == "set_input_type_duplicate")
-  {
-    test_set_input_type_duplicate();
-  }
-  else if (test_name == "set_output_type_duplicate")
-  {
-    test_set_output_type_duplicate();
-  }
-  else if (test_name == "set_input_type_after_init")
-  {
-    test_set_input_type_after_init();
-  }
-  else if (test_name == "set_output_type_after_init")
-  {
-    test_set_output_type_after_init();
-  }
-  else if (test_name == "set_tagged_flow_dependent_port")
-  {
-    test_set_tagged_flow_dependent_port();
-  }
-  else if (test_name == "set_tagged_flow_dependent_port_cascade")
-  {
-    test_set_tagged_flow_dependent_port_cascade();
-  }
-  else if (test_name == "add_input_port_after_type_pin")
-  {
-    test_add_input_port_after_type_pin();
-  }
-  else if (test_name == "add_output_port_after_type_pin")
-  {
-    test_add_output_port_after_type_pin();
-  }
-  else if (test_name == "set_untagged_flow_dependent_port")
-  {
-    test_set_untagged_flow_dependent_port();
-  }
-  else if (test_name == "remove_input_port")
-  {
-    test_remove_input_port();
-  }
-  else if (test_name == "remove_output_port")
-  {
-    test_remove_output_port();
-  }
-  else if (test_name == "remove_non_exist_input_port")
-  {
-    test_remove_non_exist_input_port();
-  }
-  else if (test_name == "remove_non_exist_output_port")
-  {
-    test_remove_non_exist_output_port();
-  }
-  else if (test_name == "remove_only_tagged_flow_dependent_port")
-  {
-    test_remove_only_tagged_flow_dependent_port();
-  }
-  else if (test_name == "remove_tagged_flow_dependent_port")
-  {
-    test_remove_tagged_flow_dependent_port();
-  }
-  else if (test_name == "null_config")
-  {
-    test_null_config();
-  }
-  else if (test_name == "null_input_port_info")
-  {
-    test_null_input_port_info();
-  }
-  else if (test_name == "null_output_port_info")
-  {
-    test_null_output_port_info();
-  }
-  else if (test_name == "null_conf_info")
-  {
-    test_null_conf_info();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
+  RUN_TEST(tests, testname);
 }
 
 static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t());
@@ -257,8 +142,7 @@ class null_conf_info_process
     ~null_conf_info_process();
 };
 
-void
-test_null_input_edge()
+IMPLEMENT_TEST(null_input_edge)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -271,8 +155,7 @@ test_null_input_edge()
                    "connecting a NULL edge to an input port");
 }
 
-void
-test_null_output_edge()
+IMPLEMENT_TEST(null_output_edge)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -285,8 +168,7 @@ test_null_output_edge()
                    "connecting a NULL edge to an output port");
 }
 
-void
-test_connect_after_init()
+IMPLEMENT_TEST(connect_after_init)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -307,8 +189,7 @@ test_connect_after_init()
                    "connecting an input edge after initialization");
 }
 
-void
-test_reconfigure()
+IMPLEMENT_TEST(reconfigure)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -321,8 +202,7 @@ test_reconfigure()
                    "reconfiguring a process");
 }
 
-void
-test_reinit()
+IMPLEMENT_TEST(reinit)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -336,8 +216,7 @@ test_reinit()
                    "reinitializing a process");
 }
 
-void
-test_reset()
+IMPLEMENT_TEST(reset)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -356,8 +235,7 @@ test_reset()
   process->init();
 }
 
-void
-test_step_before_configure()
+IMPLEMENT_TEST(step_before_configure)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -368,8 +246,7 @@ test_step_before_configure()
                    "stepping before configuring");
 }
 
-void
-test_step_before_init()
+IMPLEMENT_TEST(step_before_init)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -382,8 +259,7 @@ test_step_before_init()
                    "stepping before initialization");
 }
 
-void
-test_set_static_input_type()
+IMPLEMENT_TEST(set_static_input_type)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("multiplication");
 
@@ -397,8 +273,7 @@ test_set_static_input_type()
                    "setting the type of a non-dependent input port");
 }
 
-void
-test_set_static_output_type()
+IMPLEMENT_TEST(set_static_output_type)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("multiplication");
 
@@ -412,8 +287,7 @@ test_set_static_output_type()
                    "setting the type of a non-dependent output port");
 }
 
-void
-test_set_input_type_duplicate()
+IMPLEMENT_TEST(set_input_type_duplicate)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
@@ -437,8 +311,7 @@ test_set_input_type_duplicate()
   }
 }
 
-void
-test_set_output_type_duplicate()
+IMPLEMENT_TEST(set_output_type_duplicate)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
@@ -462,8 +335,7 @@ test_set_output_type_duplicate()
   }
 }
 
-void
-test_set_input_type_after_init()
+IMPLEMENT_TEST(set_input_type_after_init)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
@@ -480,8 +352,7 @@ test_set_input_type_after_init()
                    "setting an input port type after initialization");
 }
 
-void
-test_set_output_type_after_init()
+IMPLEMENT_TEST(set_output_type_after_init)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
@@ -498,8 +369,7 @@ test_set_output_type_after_init()
                    "setting an output port type after initialization");
 }
 
-void
-test_set_tagged_flow_dependent_port()
+IMPLEMENT_TEST(set_tagged_flow_dependent_port)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
 
@@ -549,8 +419,7 @@ test_set_tagged_flow_dependent_port()
   }
 }
 
-void
-test_set_tagged_flow_dependent_port_cascade()
+IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
 
@@ -586,8 +455,7 @@ test_set_tagged_flow_dependent_port_cascade()
   }
 }
 
-void
-test_add_input_port_after_type_pin()
+IMPLEMENT_TEST(add_input_port_after_type_pin)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("collate");
 
@@ -622,8 +490,7 @@ test_add_input_port_after_type_pin()
   }
 }
 
-void
-test_add_output_port_after_type_pin()
+IMPLEMENT_TEST(add_output_port_after_type_pin)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("distribute");
 
@@ -658,8 +525,7 @@ test_add_output_port_after_type_pin()
   }
 }
 
-void
-test_set_untagged_flow_dependent_port()
+IMPLEMENT_TEST(set_untagged_flow_dependent_port)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
 
@@ -711,8 +577,7 @@ test_set_untagged_flow_dependent_port()
 vistk::process::port_type_t const remove_ports_process::input_port = vistk::process::port_type_t("input");
 vistk::process::port_type_t const remove_ports_process::output_port = vistk::process::port_type_t("output");
 
-void
-test_remove_input_port()
+IMPLEMENT_TEST(remove_input_port)
 {
   vistk::process::port_type_t const type = vistk::process::port_type_t("type");
   boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
@@ -724,8 +589,7 @@ test_remove_input_port()
                    "after removing an input port");
 }
 
-void
-test_remove_output_port()
+IMPLEMENT_TEST(remove_output_port)
 {
   vistk::process::port_type_t const type = vistk::process::port_type_t("type");
   boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
@@ -737,8 +601,7 @@ test_remove_output_port()
                    "after removing an output port");
 }
 
-void
-test_remove_non_exist_input_port()
+IMPLEMENT_TEST(remove_non_exist_input_port)
 {
   vistk::process::port_t const port = vistk::process::port_t("port");
   vistk::process::port_type_t const type = vistk::process::port_type_t("type");
@@ -749,8 +612,7 @@ test_remove_non_exist_input_port()
                    "after removing a non-existent input port");
 }
 
-void
-test_remove_non_exist_output_port()
+IMPLEMENT_TEST(remove_non_exist_output_port)
 {
   vistk::process::port_t const port = vistk::process::port_t("port");
   vistk::process::port_type_t const type = vistk::process::port_type_t("type");
@@ -761,8 +623,7 @@ test_remove_non_exist_output_port()
                    "after removing a non-existent output port");
 }
 
-void
-test_remove_only_tagged_flow_dependent_port()
+IMPLEMENT_TEST(remove_only_tagged_flow_dependent_port)
 {
   vistk::process::port_t const port = vistk::process::port_t("port");
   vistk::process::port_type_t const flow_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("tag");
@@ -783,8 +644,7 @@ test_remove_only_tagged_flow_dependent_port()
   }
 }
 
-void
-test_remove_tagged_flow_dependent_port()
+IMPLEMENT_TEST(remove_tagged_flow_dependent_port)
 {
   vistk::process::port_type_t const flow_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("tag");
   vistk::process::port_type_t const type = vistk::process::port_type_t("type");
@@ -802,8 +662,7 @@ test_remove_tagged_flow_dependent_port()
   }
 }
 
-void
-test_null_config()
+IMPLEMENT_TEST(null_config)
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
@@ -818,8 +677,7 @@ test_null_config()
                    "passing NULL as the configuration for a process");
 }
 
-void
-test_null_input_port_info()
+IMPLEMENT_TEST(null_input_port_info)
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
@@ -834,8 +692,7 @@ test_null_input_port_info()
                    "passing NULL as an input port info structure");
 }
 
-void
-test_null_output_port_info()
+IMPLEMENT_TEST(null_output_port_info)
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 
@@ -850,8 +707,7 @@ test_null_output_port_info()
                    "passing NULL as an output port info structure");
 }
 
-void
-test_null_conf_info()
+IMPLEMENT_TEST(null_conf_info)
 {
   vistk::process_registry_t const reg = vistk::process_registry::self();
 

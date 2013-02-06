@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -14,58 +14,24 @@
 
 #include <boost/make_shared.hpp>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(null_config);
+DECLARE_TEST(null_pipeline);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, null_config);
+  ADD_TEST(tests, null_pipeline);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
-}
-
-static void test_null_config();
-static void test_null_pipeline();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "null_config")
-  {
-    test_null_config();
-  }
-  else if (test_name == "null_pipeline")
-  {
-    test_null_pipeline();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
+  RUN_TEST(tests, testname);
 }
 
 class null_scheduler
@@ -100,8 +66,7 @@ class null_pipeline_scheduler
 
 static vistk::scheduler_t create_scheduler(vistk::scheduler_registry::type_t const& type);
 
-void
-test_null_config()
+IMPLEMENT_TEST(null_config)
 {
   vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
@@ -114,8 +79,7 @@ test_null_config()
                    "passing NULL as the configuration for a scheduler");
 }
 
-void
-test_null_pipeline()
+IMPLEMENT_TEST(null_pipeline)
 {
   vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 

@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -11,80 +11,40 @@
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_registry.h>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(load);
+DECLARE_TEST(multiple_load);
+DECLARE_TEST(envvar);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, load);
+  ADD_TEST(tests, multiple_load);
+  ADD_TEST(tests, envvar);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
+  RUN_TEST(tests, testname);
 }
 
-static void test_load();
-static void test_multiple_load();
-static void test_envvar();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "load")
-  {
-    test_load();
-  }
-  else if (test_name == "multiple_load")
-  {
-    test_multiple_load();
-  }
-  else if (test_name == "envvar")
-  {
-    test_envvar();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
-}
-
-void
-test_load()
+IMPLEMENT_TEST(load)
 {
   vistk::load_known_modules();
 }
 
-void
-test_multiple_load()
+IMPLEMENT_TEST(multiple_load)
 {
   vistk::load_known_modules();
   vistk::load_known_modules();
 }
 
-void
-test_envvar()
+IMPLEMENT_TEST(envvar)
 {
   vistk::load_known_modules();
 

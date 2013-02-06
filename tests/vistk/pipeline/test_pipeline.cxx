@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -18,280 +18,116 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/make_shared.hpp>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(null_config);
+DECLARE_TEST(null_process);
+DECLARE_TEST(add_process);
+DECLARE_TEST(add_cluster);
+DECLARE_TEST(duplicate_process_process);
+DECLARE_TEST(connect_no_upstream);
+DECLARE_TEST(connect_no_downstream);
+DECLARE_TEST(connect_untyped_data_connection);
+DECLARE_TEST(connect_untyped_flow_connection);
+DECLARE_TEST(connect_type_mismatch);
+DECLARE_TEST(connect_flag_mismatch);
+DECLARE_TEST(connect);
+DECLARE_TEST(setup_pipeline_no_processes);
+DECLARE_TEST(setup_pipeline_orphaned_process);
+DECLARE_TEST(setup_pipeline_type_force_flow_upstream);
+DECLARE_TEST(setup_pipeline_type_force_flow_downstream);
+DECLARE_TEST(setup_pipeline_type_force_cascade_up);
+DECLARE_TEST(setup_pipeline_type_force_cascade_down);
+DECLARE_TEST(setup_pipeline_type_force_cascade_both);
+DECLARE_TEST(setup_pipeline_backwards_edge);
+DECLARE_TEST(setup_pipeline_not_a_dag);
+DECLARE_TEST(setup_pipeline_data_dependent_set);
+DECLARE_TEST(setup_pipeline_data_dependent_set_reject);
+DECLARE_TEST(setup_pipeline_data_dependent_set_cascade);
+DECLARE_TEST(setup_pipeline_data_dependent_set_cascade_reject);
+DECLARE_TEST(setup_pipeline_type_force_flow_upstream_reject);
+DECLARE_TEST(setup_pipeline_type_force_flow_downstream_reject);
+DECLARE_TEST(setup_pipeline_type_force_cascade_reject);
+DECLARE_TEST(setup_pipeline_untyped_data_dependent);
+DECLARE_TEST(setup_pipeline_untyped_connection);
+DECLARE_TEST(setup_pipeline_missing_required_input_connection);
+DECLARE_TEST(setup_pipeline_missing_required_output_connection);
+DECLARE_TEST(setup_pipeline_duplicate);
+DECLARE_TEST(setup_pipeline_add_process);
+DECLARE_TEST(setup_pipeline_connect);
+DECLARE_TEST(setup_pipeline);
+DECLARE_TEST(start_before_setup);
+DECLARE_TEST(start_unsuccessful_setup);
+DECLARE_TEST(start_and_stop);
+DECLARE_TEST(reset_while_running);
+DECLARE_TEST(reset);
+DECLARE_TEST(remove_process);
+DECLARE_TEST(remove_process_after_setup);
+DECLARE_TEST(disconnect);
+DECLARE_TEST(disconnect_after_setup);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, null_config);
+  ADD_TEST(tests, null_process);
+  ADD_TEST(tests, add_process);
+  ADD_TEST(tests, add_cluster);
+  ADD_TEST(tests, duplicate_process_process);
+  ADD_TEST(tests, connect_no_upstream);
+  ADD_TEST(tests, connect_no_downstream);
+  ADD_TEST(tests, connect_untyped_data_connection);
+  ADD_TEST(tests, connect_untyped_flow_connection);
+  ADD_TEST(tests, connect_type_mismatch);
+  ADD_TEST(tests, connect_flag_mismatch);
+  ADD_TEST(tests, connect);
+  ADD_TEST(tests, setup_pipeline_no_processes);
+  ADD_TEST(tests, setup_pipeline_orphaned_process);
+  ADD_TEST(tests, setup_pipeline_type_force_flow_upstream);
+  ADD_TEST(tests, setup_pipeline_type_force_flow_downstream);
+  ADD_TEST(tests, setup_pipeline_type_force_cascade_up);
+  ADD_TEST(tests, setup_pipeline_type_force_cascade_down);
+  ADD_TEST(tests, setup_pipeline_type_force_cascade_both);
+  ADD_TEST(tests, setup_pipeline_backwards_edge);
+  ADD_TEST(tests, setup_pipeline_not_a_dag);
+  ADD_TEST(tests, setup_pipeline_data_dependent_set);
+  ADD_TEST(tests, setup_pipeline_data_dependent_set_reject);
+  ADD_TEST(tests, setup_pipeline_data_dependent_set_cascade);
+  ADD_TEST(tests, setup_pipeline_data_dependent_set_cascade_reject);
+  ADD_TEST(tests, setup_pipeline_type_force_flow_upstream_reject);
+  ADD_TEST(tests, setup_pipeline_type_force_flow_downstream_reject);
+  ADD_TEST(tests, setup_pipeline_type_force_cascade_reject);
+  ADD_TEST(tests, setup_pipeline_untyped_data_dependent);
+  ADD_TEST(tests, setup_pipeline_untyped_connection);
+  ADD_TEST(tests, setup_pipeline_missing_required_input_connection);
+  ADD_TEST(tests, setup_pipeline_missing_required_output_connection);
+  ADD_TEST(tests, setup_pipeline_duplicate);
+  ADD_TEST(tests, setup_pipeline_add_process);
+  ADD_TEST(tests, setup_pipeline_connect);
+  ADD_TEST(tests, setup_pipeline);
+  ADD_TEST(tests, start_before_setup);
+  ADD_TEST(tests, start_unsuccessful_setup);
+  ADD_TEST(tests, start_and_stop);
+  ADD_TEST(tests, reset_while_running);
+  ADD_TEST(tests, reset);
+  ADD_TEST(tests, remove_process);
+  ADD_TEST(tests, remove_process_after_setup);
+  ADD_TEST(tests, disconnect);
+  ADD_TEST(tests, disconnect_after_setup);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
-}
-
-static void test_null_config();
-static void test_null_process();
-static void test_add_process();
-static void test_add_cluster();
-static void test_duplicate_process_process();
-static void test_connect_no_upstream();
-static void test_connect_no_downstream();
-static void test_connect_untyped_data_connection();
-static void test_connect_untyped_flow_connection();
-static void test_connect_type_mismatch();
-static void test_connect_flag_mismatch();
-static void test_connect();
-static void test_setup_pipeline_no_processes();
-static void test_setup_pipeline_orphaned_process();
-static void test_setup_pipeline_type_force_flow_upstream();
-static void test_setup_pipeline_type_force_flow_downstream();
-static void test_setup_pipeline_type_force_cascade_up();
-static void test_setup_pipeline_type_force_cascade_down();
-static void test_setup_pipeline_type_force_cascade_both();
-static void test_setup_pipeline_backwards_edge();
-static void test_setup_pipeline_not_a_dag();
-static void test_setup_pipeline_data_dependent_set();
-static void test_setup_pipeline_data_dependent_set_reject();
-static void test_setup_pipeline_data_dependent_set_cascade();
-static void test_setup_pipeline_data_dependent_set_cascade_reject();
-static void test_setup_pipeline_type_force_flow_upstream_reject();
-static void test_setup_pipeline_type_force_flow_downstream_reject();
-static void test_setup_pipeline_type_force_cascade_reject();
-static void test_setup_pipeline_untyped_data_dependent();
-static void test_setup_pipeline_untyped_connection();
-static void test_setup_pipeline_missing_required_input_connection();
-static void test_setup_pipeline_missing_required_output_connection();
-static void test_setup_pipeline_duplicate();
-static void test_setup_pipeline_add_process();
-static void test_setup_pipeline_connect();
-static void test_setup_pipeline();
-static void test_start_before_setup();
-static void test_start_unsuccessful_setup();
-static void test_start_and_stop();
-static void test_reset_while_running();
-static void test_reset();
-static void test_remove_process();
-static void test_remove_process_after_setup();
-static void test_disconnect();
-static void test_disconnect_after_setup();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "null_config")
-  {
-    test_null_config();
-  }
-  else if (test_name == "null_process")
-  {
-    test_null_process();
-  }
-  else if (test_name == "add_process")
-  {
-    test_add_process();
-  }
-  else if (test_name == "add_cluster")
-  {
-    test_add_cluster();
-  }
-  else if (test_name == "duplicate_process_process")
-  {
-    test_duplicate_process_process();
-  }
-  else if (test_name == "connect_no_upstream")
-  {
-    test_connect_no_upstream();
-  }
-  else if (test_name == "connect_no_downstream")
-  {
-    test_connect_no_downstream();
-  }
-  else if (test_name == "connect_untyped_data_connection")
-  {
-    test_connect_untyped_data_connection();
-  }
-  else if (test_name == "connect_untyped_flow_connection")
-  {
-    test_connect_untyped_flow_connection();
-  }
-  else if (test_name == "connect_type_mismatch")
-  {
-    test_connect_type_mismatch();
-  }
-  else if (test_name == "connect_flag_mismatch")
-  {
-    test_connect_flag_mismatch();
-  }
-  else if (test_name == "connect")
-  {
-    test_connect();
-  }
-  else if (test_name == "setup_pipeline_no_processes")
-  {
-    test_setup_pipeline_no_processes();
-  }
-  else if (test_name == "setup_pipeline_orphaned_process")
-  {
-    test_setup_pipeline_orphaned_process();
-  }
-  else if (test_name == "setup_pipeline_type_force_flow_upstream")
-  {
-    test_setup_pipeline_type_force_flow_upstream();
-  }
-  else if (test_name == "setup_pipeline_type_force_flow_downstream")
-  {
-    test_setup_pipeline_type_force_flow_downstream();
-  }
-  else if (test_name == "setup_pipeline_type_force_cascade_up")
-  {
-    test_setup_pipeline_type_force_cascade_up();
-  }
-  else if (test_name == "setup_pipeline_type_force_cascade_down")
-  {
-    test_setup_pipeline_type_force_cascade_down();
-  }
-  else if (test_name == "setup_pipeline_type_force_cascade_both")
-  {
-    test_setup_pipeline_type_force_cascade_both();
-  }
-  else if (test_name == "setup_pipeline_backwards_edge")
-  {
-    test_setup_pipeline_backwards_edge();
-  }
-  else if (test_name == "setup_pipeline_not_a_dag")
-  {
-    test_setup_pipeline_not_a_dag();
-  }
-  else if (test_name == "setup_pipeline_data_dependent_set")
-  {
-    test_setup_pipeline_data_dependent_set();
-  }
-  else if (test_name == "setup_pipeline_data_dependent_set_reject")
-  {
-    test_setup_pipeline_data_dependent_set_reject();
-  }
-  else if (test_name == "setup_pipeline_data_dependent_set_cascade")
-  {
-    test_setup_pipeline_data_dependent_set_cascade();
-  }
-  else if (test_name == "setup_pipeline_data_dependent_set_cascade_reject")
-  {
-    test_setup_pipeline_data_dependent_set_cascade_reject();
-  }
-  else if (test_name == "setup_pipeline_type_force_flow_upstream_reject")
-  {
-    test_setup_pipeline_type_force_flow_upstream_reject();
-  }
-  else if (test_name == "setup_pipeline_type_force_flow_downstream_reject")
-  {
-    test_setup_pipeline_type_force_flow_downstream_reject();
-  }
-  else if (test_name == "setup_pipeline_type_force_cascade_reject")
-  {
-    test_setup_pipeline_type_force_cascade_reject();
-  }
-  else if (test_name == "setup_pipeline_untyped_data_dependent")
-  {
-    test_setup_pipeline_untyped_data_dependent();
-  }
-  else if (test_name == "setup_pipeline_untyped_connection")
-  {
-    test_setup_pipeline_untyped_connection();
-  }
-  else if (test_name == "setup_pipeline_missing_required_input_connection")
-  {
-    test_setup_pipeline_missing_required_input_connection();
-  }
-  else if (test_name == "setup_pipeline_missing_required_output_connection")
-  {
-    test_setup_pipeline_missing_required_output_connection();
-  }
-  else if (test_name == "setup_pipeline_duplicate")
-  {
-    test_setup_pipeline_duplicate();
-  }
-  else if (test_name == "setup_pipeline_add_process")
-  {
-    test_setup_pipeline_add_process();
-  }
-  else if (test_name == "setup_pipeline_connect")
-  {
-    test_setup_pipeline_connect();
-  }
-  else if (test_name == "setup_pipeline")
-  {
-    test_setup_pipeline();
-  }
-  else if (test_name == "start_before_setup")
-  {
-    test_start_before_setup();
-  }
-  else if (test_name == "start_unsuccessful_setup")
-  {
-    test_start_unsuccessful_setup();
-  }
-  else if (test_name == "start_and_stop")
-  {
-    test_start_and_stop();
-  }
-  else if (test_name == "reset_while_running")
-  {
-    test_reset_while_running();
-  }
-  else if (test_name == "reset")
-  {
-    test_reset();
-  }
-  else if (test_name == "remove_process")
-  {
-    test_remove_process();
-  }
-  else if (test_name == "remove_process_after_setup")
-  {
-    test_remove_process_after_setup();
-  }
-  else if (test_name == "disconnect")
-  {
-    test_disconnect();
-  }
-  else if (test_name == "disconnect_after_setup")
-  {
-    test_disconnect_after_setup();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
+  RUN_TEST(tests, testname);
 }
 
 static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
 static vistk::pipeline_t create_pipeline();
 
-void
-test_null_config()
+IMPLEMENT_TEST(null_config)
 {
   vistk::config_t const config;
 
@@ -300,8 +136,7 @@ test_null_config()
                    "passing a NULL config to the pipeline");
 }
 
-void
-test_null_process()
+IMPLEMENT_TEST(null_process)
 {
   vistk::process_t const process;
 
@@ -312,8 +147,7 @@ test_null_process()
                    "adding a NULL process to the pipeline");
 }
 
-void
-test_add_process()
+IMPLEMENT_TEST(add_process)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
@@ -324,8 +158,7 @@ test_add_process()
   pipeline->add_process(process);
 }
 
-void
-test_add_cluster()
+IMPLEMENT_TEST(add_cluster)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("multiplier_cluster");
 
@@ -343,8 +176,7 @@ test_add_cluster()
   }
 }
 
-void
-test_duplicate_process_process()
+IMPLEMENT_TEST(duplicate_process_process)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
@@ -362,8 +194,7 @@ test_duplicate_process_process()
                    "adding a duplicate process to the pipeline");
 }
 
-void
-test_connect_no_upstream()
+IMPLEMENT_TEST(connect_no_upstream)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
@@ -383,8 +214,7 @@ test_connect_no_upstream()
                    "connecting with a non-existent upstream");
 }
 
-void
-test_connect_no_downstream()
+IMPLEMENT_TEST(connect_no_downstream)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
@@ -404,8 +234,7 @@ test_connect_no_downstream()
                    "connecting with a non-existent downstream");
 }
 
-void
-test_connect_untyped_data_connection()
+IMPLEMENT_TEST(connect_untyped_data_connection)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -428,8 +257,7 @@ test_connect_untyped_data_connection()
                     proc_name2, port_name2);
 }
 
-void
-test_connect_untyped_flow_connection()
+IMPLEMENT_TEST(connect_untyped_flow_connection)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
@@ -451,8 +279,7 @@ test_connect_untyped_flow_connection()
                     proc_name2, port_name2);
 }
 
-void
-test_connect_type_mismatch()
+IMPLEMENT_TEST(connect_type_mismatch)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_typed = vistk::process::type_t("take_string");
@@ -477,8 +304,7 @@ test_connect_type_mismatch()
                    "connecting type-mismatched ports");
 }
 
-void
-test_connect_flag_mismatch()
+IMPLEMENT_TEST(connect_flag_mismatch)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("const");
   vistk::process::type_t const proc_typed = vistk::process::type_t("mutate");
@@ -503,8 +329,7 @@ test_connect_flag_mismatch()
                    "connecting flag-mismatched ports");
 }
 
-void
-test_connect()
+IMPLEMENT_TEST(connect)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
@@ -527,8 +352,7 @@ test_connect()
                     proc_named, port_named);
 }
 
-void
-test_setup_pipeline_no_processes()
+IMPLEMENT_TEST(setup_pipeline_no_processes)
 {
   vistk::pipeline_t const pipeline = create_pipeline();
 
@@ -537,8 +361,7 @@ test_setup_pipeline_no_processes()
                    "setting up an empty pipeline");
 }
 
-void
-test_setup_pipeline_orphaned_process()
+IMPLEMENT_TEST(setup_pipeline_orphaned_process)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -558,8 +381,7 @@ test_setup_pipeline_orphaned_process()
                    "setting up a pipeline with orphaned processes");
 }
 
-void
-test_setup_pipeline_type_force_flow_upstream()
+IMPLEMENT_TEST(setup_pipeline_type_force_flow_upstream)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
@@ -584,8 +406,7 @@ test_setup_pipeline_type_force_flow_upstream()
   pipeline->setup_pipeline();
 }
 
-void
-test_setup_pipeline_type_force_flow_downstream()
+IMPLEMENT_TEST(setup_pipeline_type_force_flow_downstream)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -610,8 +431,7 @@ test_setup_pipeline_type_force_flow_downstream()
   pipeline->setup_pipeline();
 }
 
-void
-test_setup_pipeline_type_force_cascade_up()
+IMPLEMENT_TEST(setup_pipeline_type_force_cascade_up)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
@@ -649,8 +469,7 @@ test_setup_pipeline_type_force_cascade_up()
   }
 }
 
-void
-test_setup_pipeline_type_force_cascade_down()
+IMPLEMENT_TEST(setup_pipeline_type_force_cascade_down)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -688,8 +507,7 @@ test_setup_pipeline_type_force_cascade_down()
   }
 }
 
-void
-test_setup_pipeline_type_force_cascade_both()
+IMPLEMENT_TEST(setup_pipeline_type_force_cascade_both)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
@@ -741,8 +559,7 @@ test_setup_pipeline_type_force_cascade_both()
   }
 }
 
-void
-test_setup_pipeline_backwards_edge()
+IMPLEMENT_TEST(setup_pipeline_backwards_edge)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("feedback");
 
@@ -763,8 +580,7 @@ test_setup_pipeline_backwards_edge()
   pipeline->setup_pipeline();
 }
 
-void
-test_setup_pipeline_not_a_dag()
+IMPLEMENT_TEST(setup_pipeline_not_a_dag)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("multiplication");
@@ -803,8 +619,7 @@ test_setup_pipeline_not_a_dag()
                    "a cycle is in the pipeline graph");
 }
 
-void
-test_setup_pipeline_data_dependent_set()
+IMPLEMENT_TEST(setup_pipeline_data_dependent_set)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -836,8 +651,7 @@ test_setup_pipeline_data_dependent_set()
   }
 }
 
-void
-test_setup_pipeline_data_dependent_set_reject()
+IMPLEMENT_TEST(setup_pipeline_data_dependent_set_reject)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -868,8 +682,7 @@ test_setup_pipeline_data_dependent_set_reject()
                    "a data dependent type propagation gets rejected");
 }
 
-void
-test_setup_pipeline_data_dependent_set_cascade()
+IMPLEMENT_TEST(setup_pipeline_data_dependent_set_cascade)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -915,8 +728,7 @@ test_setup_pipeline_data_dependent_set_cascade()
   }
 }
 
-void
-test_setup_pipeline_data_dependent_set_cascade_reject()
+IMPLEMENT_TEST(setup_pipeline_data_dependent_set_cascade_reject)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -952,8 +764,7 @@ test_setup_pipeline_data_dependent_set_cascade_reject()
                    "a data dependent type propagation gets rejected");
 }
 
-void
-test_setup_pipeline_type_force_flow_upstream_reject()
+IMPLEMENT_TEST(setup_pipeline_type_force_flow_upstream_reject)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
@@ -984,8 +795,7 @@ test_setup_pipeline_type_force_flow_upstream_reject()
                    "setting up a pipeline where an upstream dependent type that gets rejected");
 }
 
-void
-test_setup_pipeline_type_force_flow_downstream_reject()
+IMPLEMENT_TEST(setup_pipeline_type_force_flow_downstream_reject)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -1016,8 +826,7 @@ test_setup_pipeline_type_force_flow_downstream_reject()
                    "setting up a pipeline with a downstream dependent type that gets rejected");
 }
 
-void
-test_setup_pipeline_type_force_cascade_reject()
+IMPLEMENT_TEST(setup_pipeline_type_force_cascade_reject)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -1055,8 +864,7 @@ test_setup_pipeline_type_force_cascade_reject()
                    "setting up a pipeline where a dependent type that gets rejected elsewhere");
 }
 
-void
-test_setup_pipeline_untyped_data_dependent()
+IMPLEMENT_TEST(setup_pipeline_untyped_data_dependent)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
   vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
@@ -1087,8 +895,7 @@ test_setup_pipeline_untyped_data_dependent()
                    "a connected, unresolved data-dependent port exists after initialization");
 }
 
-void
-test_setup_pipeline_untyped_connection()
+IMPLEMENT_TEST(setup_pipeline_untyped_connection)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
 
@@ -1114,8 +921,7 @@ test_setup_pipeline_untyped_connection()
                    "an untyped connection exists in the pipeline");
 }
 
-void
-test_setup_pipeline_missing_required_input_connection()
+IMPLEMENT_TEST(setup_pipeline_missing_required_input_connection)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("take_string");
 
@@ -1130,8 +936,7 @@ test_setup_pipeline_missing_required_input_connection()
                    "setting up a pipeline with missing required input connections");
 }
 
-void
-test_setup_pipeline_missing_required_output_connection()
+IMPLEMENT_TEST(setup_pipeline_missing_required_output_connection)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
 
@@ -1146,8 +951,7 @@ test_setup_pipeline_missing_required_output_connection()
                    "setting up a pipeline with missing required output connections");
 }
 
-void
-test_setup_pipeline_duplicate()
+IMPLEMENT_TEST(setup_pipeline_duplicate)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -1166,8 +970,7 @@ test_setup_pipeline_duplicate()
                    "setting up a pipeline multiple times");
 }
 
-void
-test_setup_pipeline_add_process()
+IMPLEMENT_TEST(setup_pipeline_add_process)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -1186,8 +989,7 @@ test_setup_pipeline_add_process()
                    "adding a process after setup");
 }
 
-void
-test_setup_pipeline_connect()
+IMPLEMENT_TEST(setup_pipeline_connect)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
@@ -1220,8 +1022,7 @@ test_setup_pipeline_connect()
                    "making a connection after setup");
 }
 
-void
-test_setup_pipeline()
+IMPLEMENT_TEST(setup_pipeline)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
@@ -1269,8 +1070,7 @@ test_setup_pipeline()
 
 static vistk::scheduler_t create_scheduler(vistk::pipeline_t const& pipe);
 
-void
-test_start_before_setup()
+IMPLEMENT_TEST(start_before_setup)
 {
   vistk::pipeline_t const pipeline = create_pipeline();
   vistk::scheduler_t const scheduler = create_scheduler(pipeline);
@@ -1280,8 +1080,7 @@ test_start_before_setup()
                    "starting a pipeline that has not been setup");
 }
 
-void
-test_start_unsuccessful_setup()
+IMPLEMENT_TEST(start_unsuccessful_setup)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -1311,8 +1110,7 @@ test_start_unsuccessful_setup()
                    "starting a pipeline that has not been successfully setup");
 }
 
-void
-test_start_and_stop()
+IMPLEMENT_TEST(start_and_stop)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -1332,8 +1130,7 @@ test_start_and_stop()
   scheduler->stop();
 }
 
-void
-test_reset_while_running()
+IMPLEMENT_TEST(reset_while_running)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
@@ -1356,8 +1153,7 @@ test_reset_while_running()
                    "resetting a running pipeline");
 }
 
-void
-test_reset()
+IMPLEMENT_TEST(reset)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
@@ -1407,8 +1203,7 @@ test_reset()
   pipeline->setup_pipeline();
 }
 
-void
-test_remove_process()
+IMPLEMENT_TEST(remove_process)
 {
   vistk::process::type_t const typeu = vistk::process::type_t("orphan");
   vistk::process::type_t const typed = vistk::process::type_t("sink");
@@ -1440,8 +1235,7 @@ test_remove_process()
   }
 }
 
-void
-test_remove_process_after_setup()
+IMPLEMENT_TEST(remove_process_after_setup)
 {
   vistk::process::type_t const type = vistk::process::type_t("orphan");
   vistk::process::name_t const name = vistk::process::name_t("name");
@@ -1458,8 +1252,7 @@ test_remove_process_after_setup()
                    "removing a process after the pipeline has been setup");
 }
 
-void
-test_disconnect()
+IMPLEMENT_TEST(disconnect)
 {
   vistk::process::type_t const typeu = vistk::process::type_t("orphan");
   vistk::process::type_t const typed = vistk::process::type_t("sink");
@@ -1487,8 +1280,7 @@ test_disconnect()
   }
 }
 
-void
-test_disconnect_after_setup()
+IMPLEMENT_TEST(disconnect_after_setup)
 {
   vistk::process::type_t const typeu = vistk::process::type_t("orphan");
   vistk::process::type_t const typed = vistk::process::type_t("sink");

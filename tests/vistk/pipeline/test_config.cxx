@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -8,117 +8,49 @@
 
 #include <vistk/pipeline/config.h>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(has_value);
+DECLARE_TEST(get_value);
+DECLARE_TEST(get_value_nested);
+DECLARE_TEST(get_value_no_exist);
+DECLARE_TEST(get_value_type_mismatch);
+DECLARE_TEST(bool_conversion);
+DECLARE_TEST(unset_value);
+DECLARE_TEST(available_values);
+DECLARE_TEST(read_only);
+DECLARE_TEST(read_only_unset);
+DECLARE_TEST(subblock);
+DECLARE_TEST(subblock_view);
+DECLARE_TEST(merge_config);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, has_value);
+  ADD_TEST(tests, get_value);
+  ADD_TEST(tests, get_value_nested);
+  ADD_TEST(tests, get_value_no_exist);
+  ADD_TEST(tests, get_value_type_mismatch);
+  ADD_TEST(tests, bool_conversion);
+  ADD_TEST(tests, unset_value);
+  ADD_TEST(tests, available_values);
+  ADD_TEST(tests, read_only);
+  ADD_TEST(tests, read_only_unset);
+  ADD_TEST(tests, subblock);
+  ADD_TEST(tests, subblock_view);
+  ADD_TEST(tests, merge_config);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
+  RUN_TEST(tests, testname);
 }
 
-static void test_has_value();
-static void test_get_value();
-static void test_get_value_nested();
-static void test_get_value_no_exist();
-static void test_get_value_type_mismatch();
-static void test_bool_conversion();
-static void test_unset_value();
-static void test_available_values();
-static void test_read_only();
-static void test_read_only_unset();
-static void test_subblock();
-static void test_subblock_view();
-static void test_merge_config();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "has_value")
-  {
-    test_has_value();
-  }
-  else if (test_name == "get_value")
-  {
-    test_get_value();
-  }
-  else if (test_name == "get_value_nested")
-  {
-    test_get_value_nested();
-  }
-  else if (test_name == "get_value_no_exist")
-  {
-    test_get_value_no_exist();
-  }
-  else if (test_name == "get_value_type_mismatch")
-  {
-    test_get_value_type_mismatch();
-  }
-  else if (test_name == "bool_conversion")
-  {
-    test_bool_conversion();
-  }
-  else if (test_name == "unset_value")
-  {
-    test_unset_value();
-  }
-  else if (test_name == "available_values")
-  {
-    test_available_values();
-  }
-  else if (test_name == "read_only")
-  {
-    test_read_only();
-  }
-  else if (test_name == "read_only_unset")
-  {
-    test_read_only_unset();
-  }
-  else if (test_name == "subblock")
-  {
-    test_subblock();
-  }
-  else if (test_name == "subblock_view")
-  {
-    test_subblock_view();
-  }
-  else if (test_name == "merge_config")
-  {
-    test_merge_config();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
-}
-
-void
-test_has_value()
+IMPLEMENT_TEST(has_value)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -140,8 +72,7 @@ test_has_value()
   }
 }
 
-void
-test_get_value()
+IMPLEMENT_TEST(get_value)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -159,8 +90,7 @@ test_get_value()
   }
 }
 
-void
-test_get_value_nested()
+IMPLEMENT_TEST(get_value_nested)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -181,8 +111,7 @@ test_get_value_nested()
   }
 }
 
-void
-test_get_value_no_exist()
+IMPLEMENT_TEST(get_value_no_exist)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -203,8 +132,7 @@ test_get_value_no_exist()
   }
 }
 
-void
-test_get_value_type_mismatch()
+IMPLEMENT_TEST(get_value_type_mismatch)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -227,8 +155,7 @@ test_get_value_type_mismatch()
   }
 }
 
-void
-test_bool_conversion()
+IMPLEMENT_TEST(bool_conversion)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -292,8 +219,7 @@ test_bool_conversion()
   }
 }
 
-void
-test_unset_value()
+IMPLEMENT_TEST(unset_value)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -320,8 +246,7 @@ test_unset_value()
   }
 }
 
-void
-test_available_values()
+IMPLEMENT_TEST(available_values)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -347,8 +272,7 @@ test_available_values()
   }
 }
 
-void
-test_read_only()
+IMPLEMENT_TEST(read_only)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -373,8 +297,7 @@ test_read_only()
   }
 }
 
-void
-test_read_only_unset()
+IMPLEMENT_TEST(read_only_unset)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -398,8 +321,7 @@ test_read_only_unset()
   }
 }
 
-void
-test_subblock()
+IMPLEMENT_TEST(subblock)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -440,8 +362,7 @@ test_subblock()
   }
 }
 
-void
-test_subblock_view()
+IMPLEMENT_TEST(subblock_view)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -512,8 +433,7 @@ test_subblock_view()
   }
 }
 
-void
-test_merge_config()
+IMPLEMENT_TEST(merge_config)
 {
   vistk::config_t const configa = vistk::config::empty_config();
   vistk::config_t const configb = vistk::config::empty_config();

@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -8,77 +8,33 @@
 
 #include <vistk/pipeline/datum.h>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(empty);
+DECLARE_TEST(flush);
+DECLARE_TEST(complete);
+DECLARE_TEST(error);
+DECLARE_TEST(new);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, empty);
+  ADD_TEST(tests, flush);
+  ADD_TEST(tests, complete);
+  ADD_TEST(tests, error);
+  ADD_TEST(tests, new);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
+  RUN_TEST(tests, testname);
 }
 
-static void test_empty();
-static void test_flush();
-static void test_complete();
-static void test_error();
-static void test_new();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "empty")
-  {
-    test_empty();
-  }
-  else if (test_name == "flush")
-  {
-    test_flush();
-  }
-  else if (test_name == "complete")
-  {
-    test_complete();
-  }
-  else if (test_name == "error")
-  {
-    test_error();
-  }
-  else if (test_name == "new")
-  {
-    test_new();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
-}
-
-void
-test_empty()
+IMPLEMENT_TEST(empty)
 {
   vistk::datum_t const dat = vistk::datum::empty_datum();
 
@@ -97,8 +53,7 @@ test_empty()
                    "retrieving a value from an empty datum");
 }
 
-void
-test_flush()
+IMPLEMENT_TEST(flush)
 {
   vistk::datum_t const dat = vistk::datum::flush_datum();
 
@@ -117,8 +72,7 @@ test_flush()
                    "retrieving a value from an flush datum");
 }
 
-void
-test_complete()
+IMPLEMENT_TEST(complete)
 {
   vistk::datum_t const dat = vistk::datum::complete_datum();
 
@@ -137,8 +91,7 @@ test_complete()
                    "retrieving a value from a complete datum");
 }
 
-void
-test_error()
+IMPLEMENT_TEST(error)
 {
   vistk::datum::error_t const error = vistk::datum::error_t("An error");
   vistk::datum_t const dat = vistk::datum::error_datum(error);
@@ -158,8 +111,7 @@ test_error()
                    "retrieving a value from an error datum");
 }
 
-void
-test_new()
+IMPLEMENT_TEST(new)
 {
   int const datum = 100;
   vistk::datum_t const dat = vistk::datum::new_datum(100);

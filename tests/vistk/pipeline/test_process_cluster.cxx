@@ -17,153 +17,62 @@
 
 #include <boost/make_shared.hpp>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(configure);
+DECLARE_TEST(init);
+DECLARE_TEST(step);
+DECLARE_TEST(add_process);
+DECLARE_TEST(duplicate_name);
+DECLARE_TEST(map_config);
+DECLARE_TEST(map_config_after_process);
+DECLARE_TEST(map_config_no_exist);
+DECLARE_TEST(map_input);
+DECLARE_TEST(map_input_twice);
+DECLARE_TEST(map_input_no_exist);
+DECLARE_TEST(map_input_port_no_exist);
+DECLARE_TEST(map_output);
+DECLARE_TEST(map_output_twice);
+DECLARE_TEST(map_output_no_exist);
+DECLARE_TEST(map_output_port_no_exist);
+DECLARE_TEST(connect);
+DECLARE_TEST(connect_upstream_no_exist);
+DECLARE_TEST(connect_upstream_port_no_exist);
+DECLARE_TEST(connect_downstream_no_exist);
+DECLARE_TEST(connect_downstream_port_no_exist);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, configure);
+  ADD_TEST(tests, init);
+  ADD_TEST(tests, step);
+  ADD_TEST(tests, add_process);
+  ADD_TEST(tests, duplicate_name);
+  ADD_TEST(tests, map_config);
+  ADD_TEST(tests, map_config_after_process);
+  ADD_TEST(tests, map_config_no_exist);
+  ADD_TEST(tests, map_input);
+  ADD_TEST(tests, map_input_twice);
+  ADD_TEST(tests, map_input_no_exist);
+  ADD_TEST(tests, map_input_port_no_exist);
+  ADD_TEST(tests, map_output);
+  ADD_TEST(tests, map_output_twice);
+  ADD_TEST(tests, map_output_no_exist);
+  ADD_TEST(tests, map_output_port_no_exist);
+  ADD_TEST(tests, connect);
+  ADD_TEST(tests, connect_upstream_no_exist);
+  ADD_TEST(tests, connect_upstream_port_no_exist);
+  ADD_TEST(tests, connect_downstream_no_exist);
+  ADD_TEST(tests, connect_downstream_port_no_exist);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
-}
-
-static void test_configure();
-static void test_init();
-static void test_step();
-static void test_add_process();
-static void test_duplicate_name();
-static void test_map_config();
-static void test_map_config_after_process();
-static void test_map_config_no_exist();
-static void test_map_input();
-static void test_map_input_twice();
-static void test_map_input_no_exist();
-static void test_map_input_port_no_exist();
-static void test_map_output();
-static void test_map_output_twice();
-static void test_map_output_no_exist();
-static void test_map_output_port_no_exist();
-static void test_connect();
-static void test_connect_upstream_no_exist();
-static void test_connect_upstream_port_no_exist();
-static void test_connect_downstream_no_exist();
-static void test_connect_downstream_port_no_exist();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "configure")
-  {
-    test_configure();
-  }
-  else if (test_name == "init")
-  {
-    test_init();
-  }
-  else if (test_name == "step")
-  {
-    test_step();
-  }
-  else if (test_name == "add_process")
-  {
-    test_add_process();
-  }
-  else if (test_name == "duplicate_name")
-  {
-    test_duplicate_name();
-  }
-  else if (test_name == "map_config")
-  {
-    test_map_config();
-  }
-  else if (test_name == "map_config_after_process")
-  {
-    test_map_config_after_process();
-  }
-  else if (test_name == "map_config_no_exist")
-  {
-    test_map_config_no_exist();
-  }
-  else if (test_name == "map_input")
-  {
-    test_map_input();
-  }
-  else if (test_name == "map_input_twice")
-  {
-    test_map_input_twice();
-  }
-  else if (test_name == "map_input_no_exist")
-  {
-    test_map_input_no_exist();
-  }
-  else if (test_name == "map_input_port_no_exist")
-  {
-    test_map_input_port_no_exist();
-  }
-  else if (test_name == "map_output")
-  {
-    test_map_output();
-  }
-  else if (test_name == "map_output_twice")
-  {
-    test_map_output_twice();
-  }
-  else if (test_name == "map_output_no_exist")
-  {
-    test_map_output_no_exist();
-  }
-  else if (test_name == "map_output_port_no_exist")
-  {
-    test_map_output_port_no_exist();
-  }
-  else if (test_name == "connect")
-  {
-    test_connect();
-  }
-  else if (test_name == "connect_upstream_no_exist")
-  {
-    test_connect_upstream_no_exist();
-  }
-  else if (test_name == "connect_upstream_port_no_exist")
-  {
-    test_connect_upstream_port_no_exist();
-  }
-  else if (test_name == "connect_downstream_no_exist")
-  {
-    test_connect_downstream_no_exist();
-  }
-  else if (test_name == "connect_downstream_port_no_exist")
-  {
-    test_connect_downstream_port_no_exist();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
+  RUN_TEST(tests, testname);
 }
 
 class empty_cluster
@@ -174,16 +83,14 @@ class empty_cluster
     ~empty_cluster();
 };
 
-void
-test_configure()
+IMPLEMENT_TEST(configure)
 {
   vistk::process_cluster_t const cluster = boost::make_shared<empty_cluster>();
 
   cluster->configure();
 }
 
-void
-test_init()
+IMPLEMENT_TEST(init)
 {
   vistk::process_cluster_t const cluster = boost::make_shared<empty_cluster>();
 
@@ -191,8 +98,7 @@ test_init()
   cluster->init();
 }
 
-void
-test_step()
+IMPLEMENT_TEST(step)
 {
   vistk::process_cluster_t const cluster = boost::make_shared<empty_cluster>();
 
@@ -219,8 +125,7 @@ class sample_cluster
                   name_t const& downstream_name, port_t const& downstream_port);
 };
 
-void
-test_add_process()
+IMPLEMENT_TEST(add_process)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -262,8 +167,7 @@ test_add_process()
   }
 }
 
-void
-test_duplicate_name()
+IMPLEMENT_TEST(duplicate_name)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -281,8 +185,7 @@ test_duplicate_name()
                    "adding a process with a duplicate name to a cluster");
 }
 
-void
-test_map_config()
+IMPLEMENT_TEST(map_config)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -294,8 +197,7 @@ test_map_config()
   cluster->_map_config(key, name, key);
 }
 
-void
-test_map_config_after_process()
+IMPLEMENT_TEST(map_config_after_process)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -314,8 +216,7 @@ test_map_config_after_process()
                    "mapping a configuration after the process has been added");
 }
 
-void
-test_map_config_no_exist()
+IMPLEMENT_TEST(map_config_no_exist)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -327,8 +228,7 @@ test_map_config_no_exist()
   cluster->_map_config(key, name, key);
 }
 
-void
-test_map_input()
+IMPLEMENT_TEST(map_input)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -398,8 +298,7 @@ test_map_input()
   }
 }
 
-void
-test_map_input_twice()
+IMPLEMENT_TEST(map_input_twice)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -422,8 +321,7 @@ test_map_input_twice()
                    "mapping a second cluster port to a process input port");
 }
 
-void
-test_map_input_no_exist()
+IMPLEMENT_TEST(map_input_no_exist)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -437,8 +335,7 @@ test_map_input_no_exist()
                    "mapping an input to a non-existent process");
 }
 
-void
-test_map_input_port_no_exist()
+IMPLEMENT_TEST(map_input_port_no_exist)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -457,8 +354,7 @@ test_map_input_port_no_exist()
                    "mapping an input to a non-existent port");
 }
 
-void
-test_map_output()
+IMPLEMENT_TEST(map_output)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -528,8 +424,7 @@ test_map_output()
   }
 }
 
-void
-test_map_output_twice()
+IMPLEMENT_TEST(map_output_twice)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -553,8 +448,7 @@ test_map_output_twice()
                    "mapping a second port to a cluster output port");
 }
 
-void
-test_map_output_no_exist()
+IMPLEMENT_TEST(map_output_no_exist)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -568,8 +462,7 @@ test_map_output_no_exist()
                    "mapping an output to a non-existent process");
 }
 
-void
-test_map_output_port_no_exist()
+IMPLEMENT_TEST(map_output_port_no_exist)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -588,8 +481,7 @@ test_map_output_port_no_exist()
                    "mapping an output to a non-existent port");
 }
 
-void
-test_connect()
+IMPLEMENT_TEST(connect)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -656,8 +548,7 @@ test_connect()
   }
 }
 
-void
-test_connect_upstream_no_exist()
+IMPLEMENT_TEST(connect_upstream_no_exist)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -677,8 +568,7 @@ test_connect_upstream_no_exist()
                    "making a connection when the upstream process does not exist");
 }
 
-void
-test_connect_upstream_port_no_exist()
+IMPLEMENT_TEST(connect_upstream_port_no_exist)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -701,8 +591,7 @@ test_connect_upstream_port_no_exist()
                    "making a connection when the upstream port does not exist");
 }
 
-void
-test_connect_downstream_no_exist()
+IMPLEMENT_TEST(connect_downstream_no_exist)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
@@ -722,8 +611,7 @@ test_connect_downstream_no_exist()
                    "making a connection when the upstream process does not exist");
 }
 
-void
-test_connect_downstream_port_no_exist()
+IMPLEMENT_TEST(connect_downstream_port_no_exist)
 {
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
