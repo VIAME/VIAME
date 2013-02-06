@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -18,213 +18,92 @@
 #include <boost/variant.hpp>
 
 #include <algorithm>
-#include <exception>
-#include <iostream>
 #include <sstream>
-#include <string>
 #include <vector>
 
 #include <cstddef>
-#include <cstdlib>
+
+#define TEST_ARGS (vistk::path_t const& pipe_file)
+
+DECLARE_TEST(empty);
+DECLARE_TEST(comments);
+DECLARE_TEST(empty_config);
+DECLARE_TEST(config_block);
+DECLARE_TEST(config_block_notalnum);
+DECLARE_TEST(config_value_spaces);
+DECLARE_TEST(one_process);
+DECLARE_TEST(connected_processes);
+DECLARE_TEST(connected_processes_notalnum);
+DECLARE_TEST(include);
+DECLARE_TEST(no_exist);
+DECLARE_TEST(not_a_file);
+DECLARE_TEST(include_no_exist);
+DECLARE_TEST(include_not_a_file);
+DECLARE_TEST(no_parse);
+DECLARE_TEST(parse_error);
+DECLARE_TEST(envvar);
+DECLARE_TEST(cluster_declare);
+DECLARE_TEST(cluster_config);
+DECLARE_TEST(cluster_input_map);
+DECLARE_TEST(cluster_input_multi_map);
+DECLARE_TEST(cluster_output_map);
+DECLARE_TEST(cluster_mappings);
+DECLARE_TEST(cluster_all);
+DECLARE_TEST(cluster_missing_config_description);
+DECLARE_TEST(cluster_missing_input_description);
+DECLARE_TEST(cluster_missing_output_description);
+DECLARE_TEST(cluster_missing_type);
+DECLARE_TEST(cluster_missing_type_description);
+DECLARE_TEST(cluster_multiple_clusters);
+DECLARE_TEST(cluster_not_first);
 
 static std::string const pipe_ext = ".pipe";
-
-static void run_test(std::string const& test_name, vistk::path_t const& pipe_file);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 3)
-  {
-    TEST_ERROR("Expected two arguments");
+  CHECK_ARGS(2);
 
-    return EXIT_FAILURE;
-  }
-
-  vistk::load_known_modules();
-
-  std::string const test_name = argv[1];
+  testname_t const testname = argv[1];
   vistk::path_t const pipe_dir = argv[2];
 
-  vistk::path_t const pipe_file = pipe_dir / (test_name + pipe_ext);
+  vistk::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
 
-  try
-  {
-    run_test(test_name, pipe_file);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  DECLARE_TEST_MAP(tests);
 
-    return EXIT_FAILURE;
-  }
+  ADD_TEST(tests, empty);
+  ADD_TEST(tests, comments);
+  ADD_TEST(tests, empty_config);
+  ADD_TEST(tests, config_block);
+  ADD_TEST(tests, config_block_notalnum);
+  ADD_TEST(tests, config_value_spaces);
+  ADD_TEST(tests, one_process);
+  ADD_TEST(tests, connected_processes);
+  ADD_TEST(tests, connected_processes_notalnum);
+  ADD_TEST(tests, include);
+  ADD_TEST(tests, no_exist);
+  ADD_TEST(tests, not_a_file);
+  ADD_TEST(tests, include_no_exist);
+  ADD_TEST(tests, include_not_a_file);
+  ADD_TEST(tests, no_parse);
+  ADD_TEST(tests, parse_error);
+  ADD_TEST(tests, envvar);
+  ADD_TEST(tests, cluster_declare);
+  ADD_TEST(tests, cluster_config);
+  ADD_TEST(tests, cluster_input_map);
+  ADD_TEST(tests, cluster_input_multi_map);
+  ADD_TEST(tests, cluster_output_map);
+  ADD_TEST(tests, cluster_mappings);
+  ADD_TEST(tests, cluster_all);
+  ADD_TEST(tests, cluster_missing_config_description);
+  ADD_TEST(tests, cluster_missing_input_description);
+  ADD_TEST(tests, cluster_missing_output_description);
+  ADD_TEST(tests, cluster_missing_type);
+  ADD_TEST(tests, cluster_missing_type_description);
+  ADD_TEST(tests, cluster_multiple_clusters);
+  ADD_TEST(tests, cluster_not_first);
 
-  return EXIT_SUCCESS;
-}
-
-static void test_empty(vistk::path_t const& pipe_file);
-static void test_comments(vistk::path_t const& pipe_file);
-static void test_empty_config(vistk::path_t const& pipe_file);
-static void test_config_block(vistk::path_t const& pipe_file);
-static void test_config_block_notalnum(vistk::path_t const& pipe_file);
-static void test_config_value_spaces(vistk::path_t const& pipe_file);
-static void test_one_process(vistk::path_t const& pipe_file);
-static void test_connected_processes(vistk::path_t const& pipe_file);
-static void test_connected_processes_notalnum(vistk::path_t const& pipe_file);
-static void test_include(vistk::path_t const& pipe_file);
-static void test_no_exist(vistk::path_t const& pipe_file);
-static void test_not_a_file(vistk::path_t const& pipe_file);
-static void test_include_no_exist(vistk::path_t const& pipe_file);
-static void test_include_not_a_file(vistk::path_t const& pipe_file);
-static void test_no_parse(vistk::path_t const& pipe_file);
-static void test_parse_error(vistk::path_t const& pipe_file);
-static void test_envvar(vistk::path_t const& pipe_file);
-static void test_cluster_declare(vistk::path_t const& pipe_file);
-static void test_cluster_config(vistk::path_t const& pipe_file);
-static void test_cluster_input_map(vistk::path_t const& pipe_file);
-static void test_cluster_input_multi_map(vistk::path_t const& pipe_file);
-static void test_cluster_output_map(vistk::path_t const& pipe_file);
-static void test_cluster_mappings(vistk::path_t const& pipe_file);
-static void test_cluster_all(vistk::path_t const& pipe_file);
-static void test_cluster_missing_config_description(vistk::path_t const& pipe_file);
-static void test_cluster_missing_input_description(vistk::path_t const& pipe_file);
-static void test_cluster_missing_output_description(vistk::path_t const& pipe_file);
-static void test_cluster_missing_type(vistk::path_t const& pipe_file);
-static void test_cluster_missing_type_description(vistk::path_t const& pipe_file);
-static void test_cluster_multiple_clusters(vistk::path_t const& pipe_file);
-static void test_cluster_not_first(vistk::path_t const& pipe_file);
-
-void
-run_test(std::string const& test_name, vistk::path_t const& pipe_file)
-{
-  if (test_name == "empty")
-  {
-    test_empty(pipe_file);
-  }
-  else if (test_name == "comments")
-  {
-    test_comments(pipe_file);
-  }
-  else if (test_name == "empty_config")
-  {
-    test_empty_config(pipe_file);
-  }
-  else if (test_name == "config_block")
-  {
-    test_config_block(pipe_file);
-  }
-  else if (test_name == "config_block_notalnum")
-  {
-    test_config_block_notalnum(pipe_file);
-  }
-  else if (test_name == "config_value_spaces")
-  {
-    test_config_value_spaces(pipe_file);
-  }
-  else if (test_name == "one_process")
-  {
-    test_one_process(pipe_file);
-  }
-  else if (test_name == "connected_processes")
-  {
-    test_connected_processes(pipe_file);
-  }
-  else if (test_name == "connected_processes_notalnum")
-  {
-    test_connected_processes_notalnum(pipe_file);
-  }
-  else if (test_name == "include")
-  {
-    test_include(pipe_file);
-  }
-  else if (test_name == "no_exist")
-  {
-    test_no_exist(pipe_file);
-  }
-  else if (test_name == "not_a_file")
-  {
-    test_not_a_file(pipe_file);
-  }
-  else if (test_name == "include_no_exist")
-  {
-    test_include_no_exist(pipe_file);
-  }
-  else if (test_name == "include_not_a_file")
-  {
-    test_include_not_a_file(pipe_file);
-  }
-  else if (test_name == "no_parse")
-  {
-    test_no_parse(pipe_file);
-  }
-  else if (test_name == "parse_error")
-  {
-    test_parse_error(pipe_file);
-  }
-  else if (test_name == "envvar")
-  {
-    test_envvar(pipe_file);
-  }
-  else if (test_name == "cluster_declare")
-  {
-    test_cluster_declare(pipe_file);
-  }
-  else if (test_name == "cluster_config")
-  {
-    test_cluster_config(pipe_file);
-  }
-  else if (test_name == "cluster_input_map")
-  {
-    test_cluster_input_map(pipe_file);
-  }
-  else if (test_name == "cluster_input_multi_map")
-  {
-    test_cluster_input_multi_map(pipe_file);
-  }
-  else if (test_name == "cluster_output_map")
-  {
-    test_cluster_output_map(pipe_file);
-  }
-  else if (test_name == "cluster_mappings")
-  {
-    test_cluster_mappings(pipe_file);
-  }
-  else if (test_name == "cluster_all")
-  {
-    test_cluster_all(pipe_file);
-  }
-  else if (test_name == "cluster_missing_config_description")
-  {
-    test_cluster_missing_config_description(pipe_file);
-  }
-  else if (test_name == "cluster_missing_input_description")
-  {
-    test_cluster_missing_input_description(pipe_file);
-  }
-  else if (test_name == "cluster_missing_output_description")
-  {
-    test_cluster_missing_output_description(pipe_file);
-  }
-  else if (test_name == "cluster_missing_type")
-  {
-    test_cluster_missing_type(pipe_file);
-  }
-  else if (test_name == "cluster_missing_type_description")
-  {
-    test_cluster_missing_type_description(pipe_file);
-  }
-  else if (test_name == "cluster_multiple_clusters")
-  {
-    test_cluster_multiple_clusters(pipe_file);
-  }
-  else if (test_name == "cluster_not_first")
-  {
-    test_cluster_not_first(pipe_file);
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
+  RUN_TEST(tests, testname, pipe_file);
 }
 
 class test_visitor
@@ -267,8 +146,7 @@ class test_visitor
     block_types_t types;
 };
 
-void
-test_empty(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(empty)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -279,8 +157,7 @@ test_empty(vistk::path_t const& pipe_file)
   v.expect(0, 0, 0, 0);
 }
 
-void
-test_comments(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(comments)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -291,8 +168,7 @@ test_comments(vistk::path_t const& pipe_file)
   v.expect(0, 0, 0, 0);
 }
 
-void
-test_empty_config(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(empty_config)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -303,8 +179,7 @@ test_empty_config(vistk::path_t const& pipe_file)
   v.expect(1, 0, 0, 0);
 }
 
-void
-test_config_block(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_block)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -315,8 +190,7 @@ test_config_block(vistk::path_t const& pipe_file)
   v.expect(1, 0, 0, 0);
 }
 
-void
-test_config_block_notalnum(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_block_notalnum)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -327,8 +201,7 @@ test_config_block_notalnum(vistk::path_t const& pipe_file)
   v.expect(2, 0, 0, 0);
 }
 
-void
-test_config_value_spaces(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_value_spaces)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -339,8 +212,7 @@ test_config_value_spaces(vistk::path_t const& pipe_file)
   v.expect(1, 0, 0, 0);
 }
 
-void
-test_one_process(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(one_process)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -351,8 +223,7 @@ test_one_process(vistk::path_t const& pipe_file)
   v.expect(0, 1, 0, 0);
 }
 
-void
-test_connected_processes(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(connected_processes)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -363,8 +234,7 @@ test_connected_processes(vistk::path_t const& pipe_file)
   v.expect(0, 2, 1, 0);
 }
 
-void
-test_connected_processes_notalnum(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(connected_processes_notalnum)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -375,8 +245,7 @@ test_connected_processes_notalnum(vistk::path_t const& pipe_file)
   v.expect(0, 2, 3, 0);
 }
 
-void
-test_include(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(include)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -387,57 +256,52 @@ test_include(vistk::path_t const& pipe_file)
   v.expect(1, 0, 0, 0);
 }
 
-void
-test_no_exist(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(no_exist)
 {
   EXPECT_EXCEPTION(vistk::file_no_exist_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
                    "loading a non-existent file");
 }
 
-void
-test_not_a_file(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(not_a_file)
 {
   EXPECT_EXCEPTION(vistk::not_a_file_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
                    "loading a non-file");
 }
 
-void
-test_include_no_exist(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(include_no_exist)
 {
   EXPECT_EXCEPTION(vistk::file_no_exist_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
                    "including a non-existent file");
 }
 
-void
-test_include_not_a_file(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(include_not_a_file)
 {
   EXPECT_EXCEPTION(vistk::not_a_file_exception,
                    vistk::load_pipe_blocks_from_file(pipe_file),
                    "including a non-file");
 }
 
-void
-test_no_parse(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(no_parse)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_pipe_blocks_from_file(pipe_file),
                    "loading an invalid file");
 }
 
-void
-test_parse_error(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(parse_error)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
-void
-test_envvar(vistk::path_t const& /*pipe_file*/)
+IMPLEMENT_TEST(envvar)
 {
+  (void)pipe_file;
+
   std::stringstream sstr;
 
   sstr << "!include include_test.pipe" << std::endl;
@@ -451,8 +315,7 @@ test_envvar(vistk::path_t const& /*pipe_file*/)
   v.expect(0, 0, 0, 0);
 }
 
-void
-test_cluster_declare(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_declare)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
@@ -463,8 +326,7 @@ test_cluster_declare(vistk::path_t const& pipe_file)
   v.expect(0, 0, 0, 1);
 }
 
-void
-test_cluster_config(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_config)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
@@ -475,8 +337,7 @@ test_cluster_config(vistk::path_t const& pipe_file)
   v.expect(0, 0, 0, 1);
 }
 
-void
-test_cluster_input_map(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_input_map)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
@@ -487,8 +348,7 @@ test_cluster_input_map(vistk::path_t const& pipe_file)
   v.expect(0, 0, 0, 1);
 }
 
-void
-test_cluster_input_multi_map(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_input_multi_map)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
@@ -499,8 +359,7 @@ test_cluster_input_multi_map(vistk::path_t const& pipe_file)
   v.expect(0, 0, 0, 1);
 }
 
-void
-test_cluster_output_map(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_output_map)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
@@ -511,8 +370,7 @@ test_cluster_output_map(vistk::path_t const& pipe_file)
   v.expect(0, 0, 0, 1);
 }
 
-void
-test_cluster_mappings(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_mappings)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
@@ -523,8 +381,7 @@ test_cluster_mappings(vistk::path_t const& pipe_file)
   v.expect(0, 0, 0, 1);
 }
 
-void
-test_cluster_all(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_all)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
@@ -535,56 +392,49 @@ test_cluster_all(vistk::path_t const& pipe_file)
   v.expect(0, 0, 0, 1);
 }
 
-void
-test_cluster_missing_config_description(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_missing_config_description)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
-void
-test_cluster_missing_input_description(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_missing_input_description)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
-void
-test_cluster_missing_output_description(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_missing_output_description)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
-void
-test_cluster_missing_type(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_missing_type)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
-void
-test_cluster_missing_type_description(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_missing_type_description)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
-void
-test_cluster_multiple_clusters(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_multiple_clusters)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
-void
-test_cluster_not_first(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_not_first)
 {
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_cluster_blocks_from_file(pipe_file),

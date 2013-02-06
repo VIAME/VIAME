@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -25,168 +25,76 @@
 
 #include <cstdlib>
 
-static std::string const pipe_ext = ".pipe";
+#define TEST_ARGS (vistk::path_t const& pipe_file)
 
-static void run_test(std::string const& test_name, vistk::path_t const& pipe_file);
+DECLARE_TEST(config_block);
+DECLARE_TEST(config_block_notalnum);
+DECLARE_TEST(config_value_spaces);
+DECLARE_TEST(config_overrides);
+DECLARE_TEST(config_read_only);
+DECLARE_TEST(config_not_a_flag);
+DECLARE_TEST(config_read_only_override);
+DECLARE_TEST(config_append);
+DECLARE_TEST(config_cappend);
+DECLARE_TEST(config_cappend_empty);
+DECLARE_TEST(config_provider_conf);
+DECLARE_TEST(config_provider_conf_dep);
+DECLARE_TEST(config_provider_conf_circular_dep);
+DECLARE_TEST(config_provider_env);
+DECLARE_TEST(config_provider_read_only);
+DECLARE_TEST(config_provider_read_only_override);
+DECLARE_TEST(config_provider_unprovided);
+DECLARE_TEST(pipeline_multiplier);
+DECLARE_TEST(cluster_multiplier);
+DECLARE_TEST(cluster_missing_cluster);
+DECLARE_TEST(cluster_multiple_cluster);
+DECLARE_TEST(cluster_duplicate_input);
+DECLARE_TEST(cluster_duplicate_output);
+
+/// \todo Add tests for clusters without ports or processes.
+
+static std::string const pipe_ext = ".pipe";
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 3)
-  {
-    TEST_ERROR("Expected two arguments");
+  CHECK_ARGS(2);
 
-    return EXIT_FAILURE;
-  }
-
-  std::string const test_name = argv[1];
+  std::string const testname = argv[1];
   vistk::path_t const pipe_dir = argv[2];
 
-  vistk::path_t const pipe_file = pipe_dir / (test_name + pipe_ext);
+  vistk::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
 
-  try
-  {
-    run_test(test_name, pipe_file);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  DECLARE_TEST_MAP(tests);
 
-    return EXIT_FAILURE;
-  }
+  ADD_TEST(tests, config_block);
+  ADD_TEST(tests, config_block_notalnum);
+  ADD_TEST(tests, config_value_spaces);
+  ADD_TEST(tests, config_overrides);
+  ADD_TEST(tests, config_read_only);
+  ADD_TEST(tests, config_not_a_flag);
+  ADD_TEST(tests, config_read_only_override);
+  ADD_TEST(tests, config_append);
+  ADD_TEST(tests, config_cappend);
+  ADD_TEST(tests, config_cappend_empty);
+  ADD_TEST(tests, config_provider_conf);
+  ADD_TEST(tests, config_provider_conf_dep);
+  ADD_TEST(tests, config_provider_conf_circular_dep);
+  ADD_TEST(tests, config_provider_env);
+  ADD_TEST(tests, config_provider_read_only);
+  ADD_TEST(tests, config_provider_read_only_override);
+  ADD_TEST(tests, config_provider_unprovided);
+  ADD_TEST(tests, pipeline_multiplier);
+  ADD_TEST(tests, cluster_multiplier);
+  ADD_TEST(tests, cluster_missing_cluster);
+  ADD_TEST(tests, cluster_multiple_cluster);
+  ADD_TEST(tests, cluster_duplicate_input);
+  ADD_TEST(tests, cluster_duplicate_output);
 
-  return EXIT_SUCCESS;
+  RUN_TEST(tests, testname, pipe_file);
 }
 
-static void test_config_block(vistk::path_t const& pipe_file);
-static void test_config_block_notalnum(vistk::path_t const& pipe_file);
-static void test_config_value_spaces(vistk::path_t const& pipe_file);
-static void test_config_overrides(vistk::path_t const& pipe_file);
-static void test_config_read_only(vistk::path_t const& pipe_file);
-static void test_config_not_a_flag(vistk::path_t const& pipe_file);
-static void test_config_read_only_override(vistk::path_t const& pipe_file);
-static void test_config_append(vistk::path_t const& pipe_file);
-static void test_config_cappend(vistk::path_t const& pipe_file);
-static void test_config_cappend_empty(vistk::path_t const& pipe_file);
-static void test_config_provider_conf(vistk::path_t const& pipe_file);
-static void test_config_provider_conf_dep(vistk::path_t const& pipe_file);
-static void test_config_provider_conf_circular_dep(vistk::path_t const& pipe_file);
-static void test_config_provider_env(vistk::path_t const& pipe_file);
-static void test_config_provider_read_only(vistk::path_t const& pipe_file);
-static void test_config_provider_read_only_override(vistk::path_t const& pipe_file);
-static void test_config_provider_unprovided(vistk::path_t const& pipe_file);
-static void test_pipeline_multiplier(vistk::path_t const& pipe_file);
-static void test_cluster_multiplier(vistk::path_t const& pipe_file);
-static void test_cluster_missing_cluster(vistk::path_t const& pipe_file);
-static void test_cluster_multiple_cluster(vistk::path_t const& pipe_file);
-static void test_cluster_duplicate_input(vistk::path_t const& pipe_file);
-static void test_cluster_duplicate_output(vistk::path_t const& pipe_file);
-
-/// \todo Add tests for clusters without ports or processes.
-
-void
-run_test(std::string const& test_name, vistk::path_t const& pipe_file)
-{
-  if (test_name == "config_block")
-  {
-    test_config_block(pipe_file);
-  }
-  else if (test_name == "config_block_notalnum")
-  {
-    test_config_block_notalnum(pipe_file);
-  }
-  else if (test_name == "config_value_spaces")
-  {
-    test_config_value_spaces(pipe_file);
-  }
-  else if (test_name == "config_overrides")
-  {
-    test_config_overrides(pipe_file);
-  }
-  else if (test_name == "config_read_only")
-  {
-    test_config_read_only(pipe_file);
-  }
-  else if (test_name == "config_not_a_flag")
-  {
-    test_config_not_a_flag(pipe_file);
-  }
-  else if (test_name == "config_read_only_override")
-  {
-    test_config_read_only_override(pipe_file);
-  }
-  else if (test_name == "config_append")
-  {
-    test_config_append(pipe_file);
-  }
-  else if (test_name == "config_cappend")
-  {
-    test_config_cappend(pipe_file);
-  }
-  else if (test_name == "config_cappend_empty")
-  {
-    test_config_cappend_empty(pipe_file);
-  }
-  else if (test_name == "config_provider_conf")
-  {
-    test_config_provider_conf(pipe_file);
-  }
-  else if (test_name == "config_provider_conf_dep")
-  {
-    test_config_provider_conf_dep(pipe_file);
-  }
-  else if (test_name == "config_provider_conf_circular_dep")
-  {
-    test_config_provider_conf_circular_dep(pipe_file);
-  }
-  else if (test_name == "config_provider_env")
-  {
-    test_config_provider_env(pipe_file);
-  }
-  else if (test_name == "config_provider_read_only")
-  {
-    test_config_provider_read_only(pipe_file);
-  }
-  else if (test_name == "config_provider_read_only_override")
-  {
-    test_config_provider_read_only_override(pipe_file);
-  }
-  else if (test_name == "config_provider_unprovided")
-  {
-    test_config_provider_unprovided(pipe_file);
-  }
-  else if (test_name == "pipeline_multiplier")
-  {
-    test_pipeline_multiplier(pipe_file);
-  }
-  else if (test_name == "cluster_multiplier")
-  {
-    test_cluster_multiplier(pipe_file);
-  }
-  else if (test_name == "cluster_missing_cluster")
-  {
-    test_cluster_missing_cluster(pipe_file);
-  }
-  else if (test_name == "cluster_multiple_cluster")
-  {
-    test_cluster_multiple_cluster(pipe_file);
-  }
-  else if (test_name == "cluster_duplicate_input")
-  {
-    test_cluster_duplicate_input(pipe_file);
-  }
-  else if (test_name == "cluster_duplicate_output")
-  {
-    test_cluster_duplicate_output(pipe_file);
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
-}
-
-void
-test_config_block(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_block)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -204,8 +112,7 @@ test_config_block(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_block_notalnum(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_block_notalnum)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -234,8 +141,7 @@ test_config_block_notalnum(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_value_spaces(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_value_spaces)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -264,8 +170,7 @@ test_config_value_spaces(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_overrides(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_overrides)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -283,8 +188,7 @@ test_config_overrides(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_read_only(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_read_only)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -298,8 +202,7 @@ test_config_read_only(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_not_a_flag(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_not_a_flag)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -308,8 +211,7 @@ test_config_not_a_flag(vistk::path_t const& pipe_file)
                    "using an unknown flag");
 }
 
-void
-test_config_read_only_override(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_read_only_override)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -318,8 +220,7 @@ test_config_read_only_override(vistk::path_t const& pipe_file)
                    "setting a read-only value");
 }
 
-void
-test_config_append(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_append)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -337,8 +238,7 @@ test_config_append(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_cappend(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_cappend)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -356,8 +256,7 @@ test_config_cappend(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_cappend_empty(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_cappend_empty)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -375,8 +274,7 @@ test_config_cappend_empty(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_provider_conf(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_provider_conf)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -394,8 +292,7 @@ test_config_provider_conf(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_provider_conf_dep(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_provider_conf_dep)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -423,8 +320,7 @@ test_config_provider_conf_dep(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_provider_conf_circular_dep(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_provider_conf_circular_dep)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -433,8 +329,7 @@ test_config_provider_conf_circular_dep(vistk::path_t const& pipe_file)
                    "circular configuration provides exist");
 }
 
-void
-test_config_provider_env(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_provider_env)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -452,8 +347,7 @@ test_config_provider_env(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_provider_read_only(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_provider_read_only)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -467,8 +361,7 @@ test_config_provider_read_only(vistk::path_t const& pipe_file)
   }
 }
 
-void
-test_config_provider_read_only_override(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_provider_read_only_override)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -477,8 +370,7 @@ test_config_provider_read_only_override(vistk::path_t const& pipe_file)
                    "setting a read-only provided value");
 }
 
-void
-test_config_provider_unprovided(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(config_provider_unprovided)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -487,8 +379,7 @@ test_config_provider_unprovided(vistk::path_t const& pipe_file)
                    "using an unknown provider");
 }
 
-void
-test_pipeline_multiplier(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(pipeline_multiplier)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -511,8 +402,7 @@ test_pipeline_multiplier(vistk::path_t const& pipe_file)
   /// \todo Verify the connections are done properly.
 }
 
-void
-test_cluster_multiplier(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_multiplier)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
@@ -543,9 +433,10 @@ test_cluster_multiplier(vistk::path_t const& pipe_file)
   /// \todo Verify the connections are done properly.
 }
 
-void
-test_cluster_missing_cluster(vistk::path_t const& /*pipe_file*/)
+IMPLEMENT_TEST(cluster_missing_cluster)
 {
+  (void)pipe_file;
+
   vistk::cluster_blocks blocks;
 
   vistk::process_pipe_block const pipe_block = vistk::process_pipe_block();
@@ -558,9 +449,10 @@ test_cluster_missing_cluster(vistk::path_t const& /*pipe_file*/)
                    "baking a set of cluster blocks without a cluster");
 }
 
-void
-test_cluster_multiple_cluster(vistk::path_t const& /*pipe_file*/)
+IMPLEMENT_TEST(cluster_multiple_cluster)
 {
+  (void)pipe_file;
+
   vistk::cluster_blocks blocks;
 
   vistk::cluster_pipe_block const cluster_pipe_block = vistk::cluster_pipe_block();
@@ -574,8 +466,7 @@ test_cluster_multiple_cluster(vistk::path_t const& /*pipe_file*/)
                    "baking a set of cluster blocks without multiple clusters");
 }
 
-void
-test_cluster_duplicate_input(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_duplicate_input)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
@@ -586,8 +477,7 @@ test_cluster_duplicate_input(vistk::path_t const& pipe_file)
                    "baking a cluster with duplicate input ports");
 }
 
-void
-test_cluster_duplicate_output(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(cluster_duplicate_output)
 {
   vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
 
