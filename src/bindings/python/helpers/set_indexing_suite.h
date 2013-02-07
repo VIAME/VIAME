@@ -156,7 +156,7 @@ class set_indexing_suite
     static Container
     difference(Container const& container, Container const& other)
     {
-      return set_operation(container, other, &std::set_difference<iterator_type, iterator_type, output_iterator_type>);
+      return set_operation(container, other, &set_difference_wrap<iterator_type, iterator_type, output_iterator_type>);
     }
 
     static Container
@@ -180,7 +180,7 @@ class set_indexing_suite
     static Container
     intersection(Container const& container, Container const& other)
     {
-      return set_operation(container, other, &std::set_intersection<iterator_type, iterator_type, output_iterator_type>);
+      return set_operation(container, other, &set_intersection_wrap<iterator_type, iterator_type, output_iterator_type>);
     }
 
     static void
@@ -252,7 +252,7 @@ class set_indexing_suite
     static Container
     symmetric_difference(Container const& container, Container const& other)
     {
-      return set_operation(container, other, &std::set_symmetric_difference<iterator_type, iterator_type, output_iterator_type>);
+      return set_operation(container, other, &set_symmetric_difference_wrap<iterator_type, iterator_type, output_iterator_type>);
     }
 
     static void
@@ -264,7 +264,7 @@ class set_indexing_suite
     static Container
     union_(Container const& container, Container const& other)
     {
-      return set_operation(container, other, &std::merge<iterator_type, iterator_type, output_iterator_type>);
+      return set_operation(container, other, &merge_wrap<iterator_type, iterator_type, output_iterator_type>);
     }
 
     static void
@@ -286,6 +286,42 @@ class set_indexing_suite
                 it);
 
       return result;
+    }
+
+    template <typename InputIterator1, typename InputIterator2, typename OutputIterator>
+    static OutputIterator
+    set_difference_wrap(InputIterator1 first1, InputIterator1 last1,
+                        InputIterator2 first2, InputIterator2 last2,
+                        OutputIterator result)
+    {
+      return std::set_difference(first1, last1, first2, last2, result);
+    }
+
+    template <typename InputIterator1, typename InputIterator2, typename OutputIterator>
+    static OutputIterator
+    set_intersection_wrap(InputIterator1 first1, InputIterator1 last1,
+                          InputIterator2 first2, InputIterator2 last2,
+                          OutputIterator result)
+    {
+      return std::set_intersection(first1, last1, first2, last2, result);
+    }
+
+    template <typename InputIterator1, typename InputIterator2, typename OutputIterator>
+    static OutputIterator
+    merge_wrap(InputIterator1 first1, InputIterator1 last1,
+               InputIterator2 first2, InputIterator2 last2,
+               OutputIterator result)
+    {
+      return std::merge(first1, last1, first2, last2, result);
+    }
+
+    template <typename InputIterator1, typename InputIterator2, typename OutputIterator>
+    static OutputIterator
+    set_symmetric_difference_wrap(InputIterator1 first1, InputIterator1 last1,
+                                  InputIterator2 first2, InputIterator2 last2,
+                                  OutputIterator result)
+    {
+      return std::set_symmetric_difference(first1, last1, first2, last2, result);
     }
 
     static void

@@ -17,7 +17,11 @@ def expect_exception(action, kind, func, *args):
         func(*args)
     except kind:
         got_exception = True
-    except BaseException as e:
+    except BaseException:
+        import sys
+
+        e = sys.exc_info()[0]
+
         test_error("Got unexpected exception: %s" % str(e))
 
         got_exception = True

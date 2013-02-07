@@ -1,5 +1,5 @@
 #ckwg +4
-# Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
@@ -48,5 +48,9 @@ def load_python_modules():
     for module in all_modules:
         try:
             _load_python_module(module)
-        except BaseException as e:
+        except BaseException:
+            import sys
+
+            e = sys.exc_info()[0]
+
             _log("Failed to load '%s': %s" % (module, str(e)))
