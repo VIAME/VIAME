@@ -1,6 +1,6 @@
 #!@PYTHON_EXECUTABLE@
 #ckwg +4
-# Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
@@ -246,7 +246,7 @@ def test_register_cluster():
         p = reg.create_process(proc_type, process.ProcessName())
         if p is None:
             raise Exception()
-    except BaseException, e:
+    except BaseException:
         import sys
 
         e = sys.exc_info()[0]
