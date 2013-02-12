@@ -5,14 +5,14 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def test_import(path):
+def test_import(path_unused):
     try:
         import vistk.pipeline_util.load
     except:
         test_error("Failed to import the load module")
 
 
-def test_create(path):
+def test_create(path_unused):
     from vistk.pipeline_util import load
 
     load.Token()
@@ -38,7 +38,7 @@ def test_create(path):
     load.ClusterDefineBlocks()
 
 
-def test_api_calls(path):
+def test_api_calls(path_unused):
     from vistk.pipeline import config
     from vistk.pipeline import process
     from vistk.pipeline import process_registry

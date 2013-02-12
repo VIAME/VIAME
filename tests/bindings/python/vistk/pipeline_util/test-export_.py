@@ -5,7 +5,7 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-def test_import(path):
+def test_import(path_unused):
     try:
         import vistk.pipeline_util.export_
     except:
