@@ -33,6 +33,25 @@ endif ()
 option(VISTK_ENABLE_GRAVL "Enable gravl reader process" OFF)
 if (VISTK_ENABLE_GRAVL)
   find_package(gravl REQUIRED)
+
+  # Check if C++11 support is required by gravl, if not using MSVC. (On MSVC,
+  # there are no options for it, so nothing we can do without knowing the
+  # respective compiler versions; we will be okay as long as we are using the
+  # same or never version as was used to build gravl; otherwise gravl's
+  # build-time check catch any incompatibility).
+  if (NOT MSVC)
+    if (GRAVL_REQUIRE_CPP11)
+      if (NOT has_cxx11_flags)
+        message(SEND_ERROR
+          "Found gravl built with C++11 support, but your compiler has no option "
+          "to enable C++11 support. This configuration is not supported.")
+      elseif (NOT VISTK_ENABLE_CXX11)
+        message(SEND_ERROR
+          "Found gravl built with C++11 support, but VISTK_ENABLE_CXX11 is FALSE. "
+          "This configuration is not supported.")
+      endif ()
+    endif ()
+  endif ()
 endif ()
 
 # Project setup.
