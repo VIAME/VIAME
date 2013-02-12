@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -63,17 +63,17 @@ typedef std::string testname_t;
     }                                       \
   } while (false)
 
-#define CHECK_ARGS(numargs)        \
-  do                               \
-  {                                \
-    if (argc != (numargs + 1))     \
-    {                              \
-      TEST_ERROR("Expected "       \
-                 << numargs        \
-                 << " arguments"); \
-                                   \
-      return EXIT_FAILURE;         \
-    }                              \
+#define CHECK_ARGS(numargs)     \
+  do                            \
+  {                             \
+    if (argc != (numargs + 1))  \
+    {                           \
+      TEST_ERROR("Expected "    \
+                 #numargs       \
+                 " arguments"); \
+                                \
+      return EXIT_FAILURE;      \
+    }                           \
   } while (false)
 
 #define DECLARE_TEST(testname) \
