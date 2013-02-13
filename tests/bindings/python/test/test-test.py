@@ -1,43 +1,68 @@
 #!@PYTHON_EXECUTABLE@
 #ckwg +4
-# Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
+
+
+def test_return_code():
+    import sys
+
+    sys.exit(1)
+
+
+def test_error_string():
+    test_error('an error')
+
+
+def test_error_string_mid():
+    import sys
+
+    sys.stderr.write('Test')
+    test_error('an error')
+
+
+def test_error_string_stdout():
+    import sys
+
+    sys.stdout.write('Error: an error\n')
+
+
+def test_error_string_second_line():
+    import sys
+
+    sys.stderr.write('Not an error\n')
+    test_error("an error")
 
 
 def raise_exception():
     raise NotImplementedError
 
 
-def main(testname):
-    if testname == 'return_code':
-        import sys
+def test_expected_exception():
+    expect_exception('when throwing an exception', NotImplementedError,
+                     raise_exception)
 
-        sys.exit(1)
-    elif testname == 'error_string':
-        test_error("an error")
-    elif testname == 'error_string_mid':
-        import sys
 
-        sys.stderr.write('Test')
-        test_error("an error")
-    elif testname == 'error_string_stdout':
-        import sys
+def test_unexpected_exception():
+    expect_exception('when throwing an unexpected exception', SyntaxError,
+                     raise_exception)
 
-        sys.stdout.write("Error: an error\n")
-    elif testname == 'error_string_second_line':
-        import sys
 
-        sys.stderr.write('Not an error\n')
-        test_error("an error")
-    elif testname == 'expected_exception':
-        expect_exception('when throwing an exception', NotImplementedError,
-                         raise_exception)
-    elif testname == 'unexpected_exception':
-        expect_exception('when throwing an unexpected exception', SyntaxError,
-                         raise_exception)
+def test_environment():
+    import os
+
+    envvar = 'TEST_ENVVAR'
+
+    if envvar not in os.environ:
+        test_error('failed to get environment from CTest')
     else:
-        test_error("No such test '%s'" % testname)
+        expected = 'test_value'
+
+        envvalue = os.environ[envvar]
+
+        if envvalue != expected:
+            test_error('did not get expected value')
 
 
 if __name__ == '__main__':
@@ -54,9 +79,17 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    tests = \
+        { 'return_code': test_return_code
+        , 'error_string': test_error_string
+        , 'error_string_mid': test_error_string_mid
+        , 'error_string_stdout': test_error_string_stdout
+        , 'error_string_second_line': test_error_string_second_line
+        , 'expected_exception': test_expected_exception
+        , 'unexpected_exception': test_unexpected_exception
+        , 'environment': test_environment
+        }
+
     from vistk.test.test import *
 
-    try:
-        main(testname)
-    except BaseException as e:
-        test_error("Unexpected exception: %s" % str(e))
+    run_test(testname, tests)

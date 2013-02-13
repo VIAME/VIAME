@@ -1,6 +1,6 @@
 #!@PYTHON_EXECUTABLE@
 #ckwg +4
-# Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
@@ -80,21 +80,6 @@ def test_pythonpath():
         test_error("Failed to load extra Python schedulers accessible from PYTHONPATH")
 
 
-def main(testname):
-    if testname == 'import':
-        test_import()
-    elif testname == 'load':
-        test_load()
-    elif testname == 'masking':
-        test_masking()
-    elif testname == 'extra_modules':
-        test_extra_modules()
-    elif testname == 'pythonpath':
-        test_pythonpath()
-    else:
-        test_error("No such test '%s'" % testname)
-
-
 if __name__ == '__main__':
     import os
     import sys
@@ -109,9 +94,14 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    tests = \
+        { 'import': test_import
+        , 'load': test_load
+        , 'masking': test_masking
+        , 'extra_modules': test_extra_modules
+        , 'pythonpath': test_pythonpath
+        }
+
     from vistk.test.test import *
 
-    try:
-        main(testname)
-    except BaseException as e:
-        test_error("Unexpected exception: %s" % str(e))
+    run_test(testname, tests)

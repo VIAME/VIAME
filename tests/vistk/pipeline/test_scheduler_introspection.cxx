@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -16,15 +16,10 @@
 
 #include <boost/foreach.hpp>
 
-#include <exception>
-#include <iostream>
-
-#include <cstdlib>
-
 int
 main()
 {
-  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
+  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
 
   try
   {

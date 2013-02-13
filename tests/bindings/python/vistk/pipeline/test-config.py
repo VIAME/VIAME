@@ -1,6 +1,6 @@
 #!@PYTHON_EXECUTABLE@
 #ckwg +4
-# Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
@@ -374,41 +374,6 @@ def test_dict():
         test_error("Value was not converted to a string")
 
 
-def main(testname):
-    if testname == 'import':
-        test_import()
-    elif testname == 'create':
-        test_create()
-    elif testname == 'api_calls':
-        test_api_calls()
-    elif testname == 'has_value':
-        test_has_value()
-    elif testname == 'get_value':
-        test_get_value()
-    elif testname == 'get_value_nested':
-        test_get_value_nested()
-    elif testname == 'get_value_no_exist':
-        test_get_value_no_exist()
-    elif testname == 'unset_value':
-        test_unset_value()
-    elif testname == 'available_values':
-        test_available_values()
-    elif testname == 'read_only':
-        test_read_only()
-    elif testname == 'read_only_unset':
-        test_read_only_unset()
-    elif testname == 'subblock':
-        test_subblock()
-    elif testname == 'subblock_view':
-        test_subblock_view()
-    elif testname == 'merge_config':
-        test_merge_config()
-    elif testname == 'dict':
-        test_dict()
-    else:
-        test_error("No such test '%s'" % testname)
-
-
 if __name__ == '__main__':
     import os
     import sys
@@ -423,9 +388,24 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    tests = \
+        { 'import': test_import
+        , 'create': test_create
+        , 'api_calls': test_api_calls
+        , 'has_value': test_has_value
+        , 'get_value': test_get_value
+        , 'get_value_nested': test_get_value_nested
+        , 'get_value_no_exist': test_get_value_no_exist
+        , 'unset_value': test_unset_value
+        , 'available_values': test_available_values
+        , 'read_only': test_read_only
+        , 'read_only_unset': test_read_only_unset
+        , 'subblock': test_subblock
+        , 'subblock_view': test_subblock_view
+        , 'merge_config': test_merge_config
+        , 'dict': test_dict
+        }
+
     from vistk.test.test import *
 
-    try:
-        main(testname)
-    except BaseException as e:
-        test_error("Unexpected exception: %s" % str(e))
+    run_test(testname, tests)

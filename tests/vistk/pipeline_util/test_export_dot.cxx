@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -16,74 +16,39 @@
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/pipeline_exception.h>
 
-#include <exception>
-#include <iostream>
 #include <sstream>
-#include <string>
 
-#include <cstdlib>
+#define TEST_ARGS (vistk::path_t const& pipe_file)
+
+DECLARE_TEST(pipeline_null);
+DECLARE_TEST(simple_pipeline);
+DECLARE_TEST(simple_pipeline_setup);
 
 static std::string const pipe_ext = ".pipe";
-
-static void run_test(std::string const& test_name, vistk::path_t const& pipe_file);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 3)
-  {
-    TEST_ERROR("Expected two arguments");
+  CHECK_ARGS(2);
 
-    return EXIT_FAILURE;
-  }
-
-  std::string const test_name = argv[1];
+  testname_t const testname = argv[1];
   vistk::path_t const pipe_dir = argv[2];
 
-  vistk::path_t const pipe_file = pipe_dir / (test_name + pipe_ext);
+  vistk::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
 
-  try
-  {
-    run_test(test_name, pipe_file);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  DECLARE_TEST_MAP(tests);
 
-    return EXIT_FAILURE;
-  }
+  ADD_TEST(tests, pipeline_null);
+  ADD_TEST(tests, simple_pipeline);
+  ADD_TEST(tests, simple_pipeline_setup);
 
-  return EXIT_SUCCESS;
+  RUN_TEST(tests, testname, pipe_file);
 }
 
-static void test_pipeline_null(vistk::path_t const& pipe_file);
-static void test_simple_pipeline(vistk::path_t const& pipe_file);
-static void test_simple_pipeline_setup(vistk::path_t const& pipe_file);
-
-void
-run_test(std::string const& test_name, vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(pipeline_null)
 {
-  if (test_name == "pipeline_null")
-  {
-    test_pipeline_null(pipe_file);
-  }
-  else if (test_name == "simple_pipeline")
-  {
-    test_simple_pipeline(pipe_file);
-  }
-  else if (test_name == "simple_pipeline_setup")
-  {
-    test_simple_pipeline_setup(pipe_file);
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
-}
+  (void)pipe_file;
 
-void
-test_pipeline_null(vistk::path_t const& /*pipe_file*/)
-{
   vistk::pipeline_t const pipeline;
 
   std::ostringstream sstr;
@@ -93,8 +58,7 @@ test_pipeline_null(vistk::path_t const& /*pipe_file*/)
                    "exporting a NULL pipeline to dot");
 }
 
-void
-test_simple_pipeline(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(simple_pipeline)
 {
   vistk::load_known_modules();
 
@@ -105,8 +69,7 @@ test_simple_pipeline(vistk::path_t const& pipe_file)
   vistk::export_dot(sstr, pipeline, "(unnamed)");
 }
 
-void
-test_simple_pipeline_setup(vistk::path_t const& pipe_file)
+IMPLEMENT_TEST(simple_pipeline_setup)
 {
   vistk::load_known_modules();
 

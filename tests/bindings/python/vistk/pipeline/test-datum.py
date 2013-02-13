@@ -1,6 +1,6 @@
 #!@PYTHON_EXECUTABLE@
 #ckwg +4
-# Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
@@ -99,23 +99,6 @@ def test_error_():
         test_error("An error datum does not have None as its data")
 
 
-def main(testname):
-    if testname == 'import':
-        test_import()
-    elif testname == 'new':
-        test_new()
-    elif testname == 'empty':
-        test_empty()
-    elif testname == 'flush':
-        test_flush()
-    elif testname == 'complete':
-        test_complete()
-    elif testname == 'error':
-        test_error_()
-    else:
-        test_error("No such test '%s'" % testname)
-
-
 if __name__ == '__main__':
     import os
     import sys
@@ -130,9 +113,15 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    tests = \
+        { 'import': test_import
+        , 'new': test_new
+        , 'empty': test_empty
+        , 'flush': test_flush
+        , 'complete': test_complete
+        , 'error': test_error_
+        }
+
     from vistk.test.test import *
 
-    try:
-        main(testname)
-    except BaseException as e:
-        test_error("Unexpected exception: %s" % str(e))
+    run_test(testname, tests)

@@ -247,21 +247,6 @@ def test_memory():
         a = f(z)
 
 
-def main(testname):
-    if testname == 'import':
-        test_import()
-    elif testname == 'vil_to_numpy':
-        test_vil_to_numpy()
-    elif testname == 'numpy_to_vil':
-        test_numpy_to_vil()
-    elif testname == 'datum':
-        test_datum()
-    elif testname == 'memory':
-        test_memory()
-    else:
-        test_error("No such test '%s'" % testname)
-
-
 if __name__ == '__main__':
     import os
     import sys
@@ -276,9 +261,14 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    tests = \
+        { 'import': test_import
+        , 'vil_to_numpy': test_vil_to_numpy
+        , 'numpy_to_vil': test_numpy_to_vil
+        , 'datum': test_datum
+        , 'memory': test_memory
+        }
+
     from vistk.test.test import *
 
-    try:
-        main(testname)
-    except BaseException as e:
-        test_error("Unexpected exception: %s" % str(e))
+    run_test(testname, tests)

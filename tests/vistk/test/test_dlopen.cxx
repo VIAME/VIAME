@@ -8,9 +8,6 @@
 
 #include <vistk/utilities/path.h>
 
-#include <iostream>
-#include <string>
-
 #if defined(_WIN32) || defined(_WIN64)
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -35,12 +32,7 @@ static tstring last_windows_error();
 int
 main(int argc, char* argv[])
 {
-  if (argc != 3)
-  {
-    TEST_ERROR("Expected two arguments");
-
-    return EXIT_FAILURE;
-  }
+  CHECK_ARGS(2);
 
 #if defined(_WIN32) || defined(_WIN64)
   typedef HMODULE library_t;

@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -8,62 +8,27 @@
 
 #include <vistk/pipeline/stamp.h>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(equality);
+DECLARE_TEST(ordering);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, equality);
+  ADD_TEST(tests, ordering);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
+  RUN_TEST(tests, testname);
 }
 
-static void test_equality();
-static void test_ordering();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "equality")
-  {
-    return test_equality();
-  }
-  else if (test_name == "ordering")
-  {
-    return test_ordering();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
-}
-
-void
-test_equality()
+IMPLEMENT_TEST(equality)
 {
   vistk::stamp::increment_t const inca = vistk::stamp::increment_t(1);
   vistk::stamp::increment_t const incb = 2 * inca;
@@ -92,8 +57,7 @@ test_equality()
   }
 }
 
-void
-test_ordering()
+IMPLEMENT_TEST(ordering)
 {
   vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
 

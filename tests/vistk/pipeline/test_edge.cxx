@@ -24,137 +24,57 @@
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 
-#include <exception>
-#include <iostream>
-#include <string>
+#define TEST_ARGS ()
 
-#include <cstdlib>
-
-static void run_test(std::string const& test_name);
+DECLARE_TEST(null_config);
+DECLARE_TEST(makes_dependency);
+DECLARE_TEST(new_has_no_data);
+DECLARE_TEST(new_is_not_full);
+DECLARE_TEST(new_has_count_zero);
+DECLARE_TEST(push_datum);
+DECLARE_TEST(peek_datum);
+DECLARE_TEST(peek_datum_index);
+DECLARE_TEST(pop_datum);
+DECLARE_TEST(get_datum);
+DECLARE_TEST(null_upstream_process);
+DECLARE_TEST(null_downstream_process);
+DECLARE_TEST(set_upstream_process);
+DECLARE_TEST(set_downstream_process);
+DECLARE_TEST(push_data_into_complete);
+DECLARE_TEST(get_data_from_complete);
+DECLARE_TEST(capacity);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
-  {
-    TEST_ERROR("Expected one argument");
+  CHECK_ARGS(1);
 
-    return EXIT_FAILURE;
-  }
+  testname_t const testname = argv[1];
 
-  std::string const test_name = argv[1];
+  DECLARE_TEST_MAP(tests);
 
-  try
-  {
-    run_test(test_name);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
+  ADD_TEST(tests, null_config);
+  ADD_TEST(tests, makes_dependency);
+  ADD_TEST(tests, new_has_no_data);
+  ADD_TEST(tests, new_is_not_full);
+  ADD_TEST(tests, new_has_count_zero);
+  ADD_TEST(tests, push_datum);
+  ADD_TEST(tests, peek_datum);
+  ADD_TEST(tests, peek_datum_index);
+  ADD_TEST(tests, pop_datum);
+  ADD_TEST(tests, get_datum);
+  ADD_TEST(tests, null_upstream_process);
+  ADD_TEST(tests, null_downstream_process);
+  ADD_TEST(tests, set_upstream_process);
+  ADD_TEST(tests, set_downstream_process);
+  ADD_TEST(tests, push_data_into_complete);
+  ADD_TEST(tests, get_data_from_complete);
+  ADD_TEST(tests, capacity);
 
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
+  RUN_TEST(tests, testname);
 }
 
-static void test_null_config();
-static void test_makes_dependency();
-static void test_new_has_no_data();
-static void test_new_is_not_full();
-static void test_new_has_count_zero();
-static void test_push_datum();
-static void test_peek_datum();
-static void test_peek_datum_index();
-static void test_pop_datum();
-static void test_get_datum();
-static void test_null_upstream_process();
-static void test_null_downstream_process();
-static void test_set_upstream_process();
-static void test_set_downstream_process();
-static void test_push_data_into_complete();
-static void test_get_data_from_complete();
-static void test_capacity();
-
-void
-run_test(std::string const& test_name)
-{
-  if (test_name == "null_config")
-  {
-    test_null_config();
-  }
-  else if (test_name == "makes_dependency")
-  {
-    test_makes_dependency();
-  }
-  else if (test_name == "new_has_no_data")
-  {
-    test_new_has_no_data();
-  }
-  else if (test_name == "new_is_not_full")
-  {
-    test_new_is_not_full();
-  }
-  else if (test_name == "new_has_count_zero")
-  {
-    test_new_has_count_zero();
-  }
-  else if (test_name == "push_datum")
-  {
-    test_push_datum();
-  }
-  else if (test_name == "peek_datum")
-  {
-    test_peek_datum();
-  }
-  else if (test_name == "peek_datum_index")
-  {
-    test_peek_datum_index();
-  }
-  else if (test_name == "pop_datum")
-  {
-    test_pop_datum();
-  }
-  else if (test_name == "get_datum")
-  {
-    test_get_datum();
-  }
-  else if (test_name == "null_upstream_process")
-  {
-    test_null_upstream_process();
-  }
-  else if (test_name == "null_downstream_process")
-  {
-    test_null_downstream_process();
-  }
-  else if (test_name == "set_upstream_process")
-  {
-    test_set_upstream_process();
-  }
-  else if (test_name == "set_downstream_process")
-  {
-    test_set_downstream_process();
-  }
-  else if (test_name == "push_data_into_complete")
-  {
-    test_push_data_into_complete();
-  }
-  else if (test_name == "get_data_from_complete")
-  {
-    test_get_data_from_complete();
-  }
-  else if (test_name == "capacity")
-  {
-    test_capacity();
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
-}
-
-void
-test_null_config()
+IMPLEMENT_TEST(null_config)
 {
   vistk::config_t const config;
 
@@ -163,8 +83,7 @@ test_null_config()
                    "when passing a NULL config to an edge");
 }
 
-void
-test_makes_dependency()
+IMPLEMENT_TEST(makes_dependency)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -186,8 +105,7 @@ test_makes_dependency()
   }
 }
 
-void
-test_new_has_no_data()
+IMPLEMENT_TEST(new_has_no_data)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -199,8 +117,7 @@ test_new_has_no_data()
   }
 }
 
-void
-test_new_is_not_full()
+IMPLEMENT_TEST(new_is_not_full)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -212,8 +129,7 @@ test_new_is_not_full()
   }
 }
 
-void
-test_new_has_count_zero()
+IMPLEMENT_TEST(new_has_count_zero)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -225,8 +141,7 @@ test_new_has_count_zero()
   }
 }
 
-void
-test_push_datum()
+IMPLEMENT_TEST(push_datum)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -254,8 +169,7 @@ test_push_datum()
   }
 }
 
-void
-test_peek_datum()
+IMPLEMENT_TEST(peek_datum)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -285,8 +199,7 @@ test_peek_datum()
   }
 }
 
-void
-test_peek_datum_index()
+IMPLEMENT_TEST(peek_datum_index)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -327,8 +240,7 @@ test_peek_datum_index()
   }
 }
 
-void
-test_pop_datum()
+IMPLEMENT_TEST(pop_datum)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -351,8 +263,7 @@ test_pop_datum()
   }
 }
 
-void
-test_get_datum()
+IMPLEMENT_TEST(get_datum)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -382,8 +293,7 @@ test_get_datum()
   }
 }
 
-void
-test_null_upstream_process()
+IMPLEMENT_TEST(null_upstream_process)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -396,8 +306,7 @@ test_null_upstream_process()
                    "setting a NULL process as upstream");
 }
 
-void
-test_null_downstream_process()
+IMPLEMENT_TEST(null_downstream_process)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -410,8 +319,7 @@ test_null_downstream_process()
                    "setting a NULL process as downstream");
 }
 
-void
-test_set_upstream_process()
+IMPLEMENT_TEST(set_upstream_process)
 {
   vistk::load_known_modules();
 
@@ -429,8 +337,7 @@ test_set_upstream_process()
                    "setting a second process as upstream");
 }
 
-void
-test_set_downstream_process()
+IMPLEMENT_TEST(set_downstream_process)
 {
   vistk::load_known_modules();
 
@@ -448,8 +355,7 @@ test_set_downstream_process()
                    "setting a second process as downstream");
 }
 
-void
-test_push_data_into_complete()
+IMPLEMENT_TEST(push_data_into_complete)
 {
   vistk::config_t const config = vistk::config::empty_config();
 
@@ -479,8 +385,7 @@ test_push_data_into_complete()
   }
 }
 
-void
-test_get_data_from_complete()
+IMPLEMENT_TEST(get_data_from_complete)
 {
   vistk::config_t const config = vistk::config::empty_config();
 

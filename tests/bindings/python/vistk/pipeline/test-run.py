@@ -1,6 +1,6 @@
 #!@PYTHON_EXECUTABLE@
 #ckwg +4
-# Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
@@ -341,19 +341,6 @@ def test_python_via_cpp(sched_type):
     check_file(output_file, [a * b for a, b in zip(list(range(min1, max1)), list(range(min2, max2)))])
 
 
-def main(testname, sched_type):
-    if testname == 'python_to_python':
-        test_python_to_python(sched_type)
-    elif testname == 'cpp_to_python':
-        test_cpp_to_python(sched_type)
-    elif testname == 'python_to_cpp':
-        test_python_to_cpp(sched_type)
-    elif testname == 'python_via_cpp':
-        test_python_via_cpp(sched_type)
-    else:
-        test_error("No such test '%s'" % testname)
-
-
 if __name__ == '__main__':
     import os
     import sys
@@ -368,9 +355,13 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    tests = \
+        { 'python_to_python': test_python_to_python
+        , 'cpp_to_python': test_cpp_to_python
+        , 'python_to_cpp': test_python_to_cpp
+        , 'python_via_cpp': test_python_via_cpp
+        }
+
     from vistk.test.test import *
 
-    try:
-        main(testname, sched_type)
-    except BaseException as e:
-        test_error("Unexpected exception: %s" % str(e))
+    run_test(testname, tests, sched_type)

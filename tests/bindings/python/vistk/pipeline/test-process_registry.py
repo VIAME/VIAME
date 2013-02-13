@@ -327,23 +327,6 @@ def test_wrapper_api():
     check_process(p)
 
 
-def main(testname):
-    if testname == 'import':
-        test_import()
-    elif testname == 'create':
-        test_create()
-    elif testname == 'api_calls':
-        test_api_calls()
-    elif testname == 'register':
-        test_register()
-    elif testname == 'register_cluster':
-        test_register_cluster()
-    elif testname == 'wrapper_api':
-        test_wrapper_api()
-    else:
-        test_error("No such test '%s'" % testname)
-
-
 if __name__ == '__main__':
     import os
     import sys
@@ -358,9 +341,15 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
+    tests = \
+        { 'import': test_import
+        , 'create': test_create
+        , 'api_calls': test_api_calls
+        , 'register': test_register
+        , 'register_cluster': test_register_cluster
+        , 'wrapper_api': test_wrapper_api
+        }
+
     from vistk.test.test import *
 
-    try:
-        main(testname)
-    except BaseException as e:
-        test_error("Unexpected exception: %s" % str(e))
+    run_test(testname, tests)

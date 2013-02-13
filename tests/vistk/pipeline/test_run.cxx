@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -18,91 +18,50 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
 
-#include <exception>
 #include <fstream>
-#include <iostream>
-#include <string>
 
-#include <cstddef>
-#include <cstdlib>
+#define TEST_ARGS (vistk::scheduler_registry::type_t const& scheduler_type)
+
+DECLARE_TEST(simple_pipeline);
+DECLARE_TEST(pysimple_pipeline);
+DECLARE_TEST(multiplier_pipeline);
+DECLARE_TEST(multiplier_cluster_pipeline);
 
 static std::string const test_sep = "-";
-
-static void run_test(std::string const& test_name, vistk::scheduler_registry::type_t const& scheduler_type);
 
 int
 main(int argc, char* argv[])
 {
-  if (argc != 2)
+  CHECK_ARGS(1);
+
+  testname_t const full_testname = argv[1];
+
+  size_t const sep_pos = full_testname.find(test_sep);
+
+  if (sep_pos == testname_t::npos)
   {
-    TEST_ERROR("Expected one argument");
+    TEST_ERROR("Unexpected test name format: " << full_testname);
 
     return EXIT_FAILURE;
   }
 
-  std::string const full_test_name = argv[1];
+  testname_t const testname = full_testname.substr(0, sep_pos);
+  vistk::scheduler_registry::type_t const scheduler_type = full_testname.substr(sep_pos + test_sep.length());
 
-  size_t const sep_pos = full_test_name.find(test_sep);
+  DECLARE_TEST_MAP(tests);
 
-  if (sep_pos == std::string::npos)
-  {
-    TEST_ERROR("Unexpected test name format: " << full_test_name);
+  ADD_TEST(tests, simple_pipeline);
+  ADD_TEST(tests, pysimple_pipeline);
+  ADD_TEST(tests, multiplier_pipeline);
+  ADD_TEST(tests, multiplier_cluster_pipeline);
 
-    return EXIT_FAILURE;
-  }
-
-  std::string const test_name = full_test_name.substr(0, sep_pos);
-  std::string const scheduler_type = full_test_name.substr(sep_pos + test_sep.length());
-
-  try
-  {
-    run_test(test_name, scheduler_type);
-  }
-  catch (std::exception const& e)
-  {
-    TEST_ERROR("Unexpected exception: " << e.what());
-
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
-}
-
-static void test_simple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type);
-static void test_pysimple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type);
-static void test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type);
-static void test_multiplier_cluster_pipeline(vistk::scheduler_registry::type_t const& scheduler_type);
-
-void
-run_test(std::string const& test_name, vistk::scheduler_registry::type_t const& scheduler_type)
-{
-  if (test_name == "simple_pipeline")
-  {
-    test_simple_pipeline(scheduler_type);
-  }
-  else if (test_name == "pysimple_pipeline")
-  {
-    test_pysimple_pipeline(scheduler_type);
-  }
-  else if (test_name == "multiplier_pipeline")
-  {
-    test_multiplier_pipeline(scheduler_type);
-  }
-  else if (test_name == "multiplier_cluster_pipeline")
-  {
-    test_multiplier_cluster_pipeline(scheduler_type);
-  }
-  else
-  {
-    TEST_ERROR("Unknown test: " << test_name);
-  }
+  RUN_TEST(tests, testname, scheduler_type);
 }
 
 static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
 static vistk::pipeline_t create_pipeline();
 
-void
-test_simple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
+IMPLEMENT_TEST(simple_pipeline)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
@@ -191,8 +150,7 @@ test_simple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
   }
 }
 
-void
-test_pysimple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
+IMPLEMENT_TEST(pysimple_pipeline)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_typet = vistk::process::type_t("pyprint_number");
@@ -281,8 +239,7 @@ test_pysimple_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
   }
 }
 
-void
-test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
+IMPLEMENT_TEST(multiplier_pipeline)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
@@ -398,8 +355,7 @@ test_multiplier_pipeline(vistk::scheduler_registry::type_t const& scheduler_type
   }
 }
 
-void
-test_multiplier_cluster_pipeline(vistk::scheduler_registry::type_t const& scheduler_type)
+IMPLEMENT_TEST(multiplier_cluster_pipeline)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
   vistk::process::type_t const proc_typed = vistk::process::type_t("multiplier_cluster");
