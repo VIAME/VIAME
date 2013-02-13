@@ -21,6 +21,8 @@ DECLARE_TEST(available_values);
 DECLARE_TEST(read_only);
 DECLARE_TEST(read_only_unset);
 DECLARE_TEST(subblock);
+DECLARE_TEST(subblock_match);
+DECLARE_TEST(subblock_prefix_match);
 DECLARE_TEST(subblock_view);
 DECLARE_TEST(merge_config);
 
@@ -44,6 +46,8 @@ main(int argc, char* argv[])
   ADD_TEST(tests, read_only);
   ADD_TEST(tests, read_only_unset);
   ADD_TEST(tests, subblock);
+  ADD_TEST(tests, subblock_match);
+  ADD_TEST(tests, subblock_prefix_match);
   ADD_TEST(tests, subblock_view);
   ADD_TEST(tests, merge_config);
 
@@ -57,7 +61,7 @@ IMPLEMENT_TEST(has_value)
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
 
   config->set_value(keya, valuea);
 
@@ -78,7 +82,7 @@ IMPLEMENT_TEST(get_value)
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
 
   config->set_value(keya, valuea);
 
@@ -97,7 +101,7 @@ IMPLEMENT_TEST(get_value_nested)
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
 
   config->set_value(keya + vistk::config::block_sep + keyb, valuea);
 
@@ -118,7 +122,7 @@ IMPLEMENT_TEST(get_value_no_exist)
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
 
-  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
+  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
 
   EXPECT_EXCEPTION(vistk::no_such_configuration_value_exception,
                    config->get_value<vistk::config::value_t>(keya),
@@ -138,7 +142,7 @@ IMPLEMENT_TEST(get_value_type_mismatch)
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
   int const valueb = 100;
 
   config->set_value(keya, valuea);
@@ -226,8 +230,8 @@ IMPLEMENT_TEST(unset_value)
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
-  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
 
   config->set_value(keya, valuea);
   config->set_value(keyb, valueb);
@@ -253,8 +257,8 @@ IMPLEMENT_TEST(available_values)
   vistk::config::key_t const keya = vistk::config::key_t("keya");
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
-  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
 
   config->set_value(keya, valuea);
   config->set_value(keyb, valueb);
@@ -278,8 +282,8 @@ IMPLEMENT_TEST(read_only)
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
-  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
 
   config->set_value(keya, valuea);
 
@@ -303,7 +307,7 @@ IMPLEMENT_TEST(read_only_unset)
 
   vistk::config::key_t const keya = vistk::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
 
   config->set_value(keya, valuea);
 
@@ -332,9 +336,9 @@ IMPLEMENT_TEST(subblock)
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
   vistk::config::key_t const keyc = vistk::config::key_t("keyc");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
-  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
-  vistk::config::value_t const valuec = vistk::config::value_t("value_c");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+  vistk::config::value_t const valuec = vistk::config::value_t("valuec");
 
   config->set_value(block_name + vistk::config::block_sep + keya, valuea);
   config->set_value(block_name + vistk::config::block_sep + keyb, valueb);
@@ -362,6 +366,48 @@ IMPLEMENT_TEST(subblock)
   }
 }
 
+IMPLEMENT_TEST(subblock_match)
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+
+  config->set_value(block_name, valuea);
+
+  vistk::config_t const subblock = config->subblock(block_name);
+
+  vistk::config::keys_t const keys = subblock->available_values();
+
+  if (!keys.empty())
+  {
+    TEST_ERROR("A subblock inherited a value that shared the block name");
+  }
+}
+
+IMPLEMENT_TEST(subblock_prefix_match)
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+
+  config->set_value(block_name + keya, valuea);
+
+  vistk::config_t const subblock = config->subblock(block_name);
+
+  vistk::config::keys_t const keys = subblock->available_values();
+
+  if (!keys.empty())
+  {
+    TEST_ERROR("A subblock inherited a value that shared a prefix with the block name");
+  }
+}
+
 IMPLEMENT_TEST(subblock_view)
 {
   vistk::config_t const config = vistk::config::empty_config();
@@ -373,9 +419,9 @@ IMPLEMENT_TEST(subblock_view)
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
   vistk::config::key_t const keyc = vistk::config::key_t("keyc");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
-  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
-  vistk::config::value_t const valuec = vistk::config::value_t("value_c");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+  vistk::config::value_t const valuec = vistk::config::value_t("valuec");
 
   config->set_value(block_name + vistk::config::block_sep + keya, valuea);
   config->set_value(block_name + vistk::config::block_sep + keyb, valueb);
@@ -442,9 +488,9 @@ IMPLEMENT_TEST(merge_config)
   vistk::config::key_t const keyb = vistk::config::key_t("keyb");
   vistk::config::key_t const keyc = vistk::config::key_t("keyc");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("value_a");
-  vistk::config::value_t const valueb = vistk::config::value_t("value_b");
-  vistk::config::value_t const valuec = vistk::config::value_t("value_c");
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+  vistk::config::value_t const valuec = vistk::config::value_t("valuec");
 
   configa->set_value(keya, valuea);
   configa->set_value(keyb, valuea);
