@@ -261,9 +261,7 @@ bake_cluster_blocks(cluster_blocks const& blocks)
 
   if (bakery.m_processes.empty())
   {
-    /// \todo Throw an exception.
-
-    return cluster_info_t();
+    throw cluster_without_processes_exception();
   }
 
   cluster_bakery::opt_cluster_component_info_t const& opt_cluster = bakery.m_cluster;
@@ -275,18 +273,10 @@ bake_cluster_blocks(cluster_blocks const& blocks)
 
   cluster_bakery::cluster_component_info_t const& cluster = *opt_cluster;
 
-  if (cluster.m_inputs.empty())
+  if (cluster.m_inputs.empty() &&
+      cluster.m_outputs.empty())
   {
-    /// \todo Throw an exception.
-
-    return cluster_info_t();
-  }
-
-  if (cluster.m_outputs.empty())
-  {
-    /// \todo Throw an exception.
-
-    return cluster_info_t();
+    throw cluster_without_ports_exception();
   }
 
   bakery_base::config_decls_t& configs = bakery.m_configs;

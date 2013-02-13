@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -84,6 +84,48 @@ class VISTK_PIPELINE_UTIL_EXPORT multiple_cluster_blocks_exception
      * \brief Destructor.
      */
     ~multiple_cluster_blocks_exception() throw();
+};
+
+/**
+ * \class cluster_without_processes_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ *
+ * \brief The exception thrown when a cluster does not contain any processes.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT cluster_without_processes_exception
+  : public pipe_bakery_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    cluster_without_processes_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~cluster_without_processes_exception() throw();
+};
+
+/**
+ * \class cluster_without_ports_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ *
+ * \brief The exception thrown when a cluster does not contain any ports.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT cluster_without_ports_exception
+  : public pipe_bakery_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    cluster_without_ports_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~cluster_without_ports_exception() throw();
 };
 
 /**

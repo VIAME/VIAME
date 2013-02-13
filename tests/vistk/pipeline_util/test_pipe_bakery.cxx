@@ -47,6 +47,8 @@ DECLARE_TEST(config_provider_unprovided);
 DECLARE_TEST(pipeline_multiplier);
 DECLARE_TEST(cluster_multiplier);
 DECLARE_TEST(cluster_missing_cluster);
+DECLARE_TEST(cluster_missing_processes);
+DECLARE_TEST(cluster_missing_ports);
 DECLARE_TEST(cluster_multiple_cluster);
 DECLARE_TEST(cluster_duplicate_input);
 DECLARE_TEST(cluster_duplicate_output);
@@ -87,6 +89,8 @@ main(int argc, char* argv[])
   ADD_TEST(tests, pipeline_multiplier);
   ADD_TEST(tests, cluster_multiplier);
   ADD_TEST(tests, cluster_missing_cluster);
+  ADD_TEST(tests, cluster_missing_processes);
+  ADD_TEST(tests, cluster_missing_ports);
   ADD_TEST(tests, cluster_multiple_cluster);
   ADD_TEST(tests, cluster_duplicate_input);
   ADD_TEST(tests, cluster_duplicate_output);
@@ -447,6 +451,24 @@ IMPLEMENT_TEST(cluster_missing_cluster)
   EXPECT_EXCEPTION(vistk::missing_cluster_block_exception,
                    vistk::bake_cluster_blocks(blocks),
                    "baking a set of cluster blocks without a cluster");
+}
+
+IMPLEMENT_TEST(cluster_missing_processes)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  EXPECT_EXCEPTION(vistk::cluster_without_processes_exception,
+                   vistk::bake_cluster_blocks(blocks),
+                   "baking a cluster without processes");
+}
+
+IMPLEMENT_TEST(cluster_missing_ports)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  EXPECT_EXCEPTION(vistk::cluster_without_ports_exception,
+                   vistk::bake_cluster_blocks(blocks),
+                   "baking a cluster without ports");
 }
 
 IMPLEMENT_TEST(cluster_multiple_cluster)

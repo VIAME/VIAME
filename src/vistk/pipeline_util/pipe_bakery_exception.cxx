@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -59,6 +59,40 @@ multiple_cluster_blocks_exception
 
 multiple_cluster_blocks_exception
 ::~multiple_cluster_blocks_exception() throw()
+{
+}
+
+cluster_without_processes_exception
+::cluster_without_processes_exception() throw()
+  : pipe_bakery_exception()
+{
+  std::stringstream sstr;
+
+  sstr << "A cluster cannot be baked without "
+          "any processes";
+
+  m_what = sstr.str();
+}
+
+cluster_without_processes_exception
+::~cluster_without_processes_exception() throw()
+{
+}
+
+cluster_without_ports_exception
+::cluster_without_ports_exception() throw()
+  : pipe_bakery_exception()
+{
+  std::stringstream sstr;
+
+  sstr << "A cluster cannot be baked without "
+          "any ports";
+
+  m_what = sstr.str();
+}
+
+cluster_without_ports_exception
+::~cluster_without_ports_exception() throw()
 {
 }
 
