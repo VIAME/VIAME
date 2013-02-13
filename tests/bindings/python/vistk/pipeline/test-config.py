@@ -41,7 +41,7 @@ def test_has_value():
     keya = 'keya'
     keyb = 'keyb'
 
-    valuea = 'value_a'
+    valuea = 'valuea'
 
     c.set_value(keya, valuea)
 
@@ -59,7 +59,7 @@ def test_get_value():
 
     keya = 'keya'
 
-    valuea = 'value_a'
+    valuea = 'valuea'
 
     c.set_value(keya, valuea)
 
@@ -77,7 +77,7 @@ def test_get_value_nested():
     keya = 'keya'
     keyb = 'keyb'
 
-    valuea = 'value_a'
+    valuea = 'valuea'
 
     c.set_value(keya + config.Config.block_sep + keyb, valuea)
 
@@ -97,7 +97,7 @@ def test_get_value_no_exist():
     keya = 'keya'
     keyb = 'keyb'
 
-    valueb = 'value_b'
+    valueb = 'valueb'
 
     expect_exception('retrieving an unset value', BaseException,
                      c.get_value, keya)
@@ -116,8 +116,8 @@ def test_unset_value():
     keya = 'keya'
     keyb = 'keyb'
 
-    valuea = 'value_a'
-    valueb = 'value_b'
+    valuea = 'valuea'
+    valueb = 'valueb'
 
     c.set_value(keya, valuea)
     c.set_value(keyb, valueb)
@@ -141,8 +141,8 @@ def test_available_values():
     keya = 'keya'
     keyb = 'keyb'
 
-    valuea = 'value_a'
-    valueb = 'value_b'
+    valuea = 'valuea'
+    valueb = 'valueb'
 
     c.set_value(keya, valuea)
     c.set_value(keyb, valueb)
@@ -166,8 +166,8 @@ def test_read_only():
 
     keya = 'keya'
 
-    valuea = 'value_a'
-    valueb = 'value_b'
+    valuea = 'valuea'
+    valueb = 'valueb'
 
     c.set_value(keya, valuea)
 
@@ -189,7 +189,7 @@ def test_read_only_unset():
 
     keya = 'keya'
 
-    valuea = 'value_a'
+    valuea = 'valuea'
 
     c.set_value(keya, valuea)
 
@@ -216,9 +216,9 @@ def test_subblock():
     keyb = 'keyb'
     keyc = 'keyc'
 
-    valuea = 'value_a'
-    valueb = 'value_b'
-    valuec = 'value_c'
+    valuea = 'valuea'
+    valueb = 'valueb'
+    valuec = 'valuec'
 
     c.set_value(block1 + config.Config.block_sep + keya, valuea)
     c.set_value(block1 + config.Config.block_sep + keyb, valueb)
@@ -252,9 +252,9 @@ def test_subblock_view():
     keyb = 'keyb'
     keyc = 'keyc'
 
-    valuea = 'value_a'
-    valueb = 'value_b'
-    valuec = 'value_c'
+    valuea = 'valuea'
+    valueb = 'valueb'
+    valuec = 'valuec'
 
     c.set_value(block1 + config.Config.block_sep + keya, valuea)
     c.set_value(block2 + config.Config.block_sep + keyb, valueb)
@@ -292,9 +292,9 @@ def test_merge_config():
     keyb = 'keyb'
     keyc = 'keyc'
 
-    valuea = 'value_a'
-    valueb = 'value_b'
-    valuec = 'value_c'
+    valuea = 'valuea'
+    valueb = 'valueb'
+    valuec = 'valuec'
 
     c.set_value(keya, valuea)
     c.set_value(keyb, valuea)
