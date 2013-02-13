@@ -28,7 +28,7 @@ namespace vistk
  * \param ostr The stream to output to.
  * \param ref The reference plane to output.
  */
-void VISTK_UTILITIES_EXPORT debug_plane_ref_write(std::ostream& ostr, plane_ref_t const& ref);
+VISTK_UTILITIES_EXPORT void debug_plane_ref_write(std::ostream& ostr, plane_ref_t const& ref);
 
 }
 

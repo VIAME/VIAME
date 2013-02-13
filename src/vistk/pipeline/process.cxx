@@ -943,7 +943,7 @@ process
     ports_t::iterator const i = std::remove(ports.begin(), ports.end(), port);
     ports.erase(i, ports.end());
 
-    if (!ports.size())
+    if (ports.empty())
     {
       d->check_tag(tag);
     }
@@ -983,7 +983,7 @@ process
     ports_t::iterator const i = std::remove(ports.begin(), ports.end(), port);
     ports.erase(i, ports.end());
 
-    if (!ports.size())
+    if (ports.empty())
     {
       d->check_tag(tag);
     }
@@ -1623,7 +1623,7 @@ process::priv
   ports_t const iports = input_flow_tag_ports[tag];
   ports_t const oports = output_flow_tag_ports[tag];
 
-  if (!iports.size() && !oports.size())
+  if (iports.empty() && oports.empty())
   {
     flow_tag_port_types.erase(tag);
   }

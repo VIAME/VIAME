@@ -24,7 +24,7 @@ namespace python
 /**
  * \brief Import the NumPy module.
  */
-void VISTK_PYTHON_NUMPY_EXPORT import_numpy();
+VISTK_PYTHON_NUMPY_EXPORT void import_numpy();
 
 }
 

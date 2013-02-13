@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -14,7 +14,6 @@
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix.hpp>
 #include <boost/variant.hpp>
 
 #include <string>
@@ -301,8 +300,6 @@ common_grammar<Iterator>
   , port_addr()
   , connect_block()
 {
-  using namespace boost::phoenix;
-
   opt_whitespace.name("opt-namespace");
   opt_whitespace %=
     *(  qi::blank
@@ -640,10 +637,9 @@ void
 printer
 ::element(string const& tag, string const& value, int depth) const
 {
-  for (int i = 0; i < (depth * indent_width); ++i)
-  {
-    m_ostr << ' ';
-  }
+  std::string const indent = std::string(depth * indent_width, ' ');
+
+  m_ostr << indent;
 
   m_ostr << "tag: " << tag;
   if (!value.empty())

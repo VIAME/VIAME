@@ -39,7 +39,7 @@ typedef vil_image_view<uint8_t> mask_t;
  *
  * \returns The results of the scoring.
  */
-scoring_result_t VISTK_SCORING_EXPORT score_mask(mask_t const& truth_mask, mask_t const& computed_mask);
+VISTK_SCORING_EXPORT scoring_result_t score_mask(mask_t const& truth_mask, mask_t const& computed_mask);
 
 }
 

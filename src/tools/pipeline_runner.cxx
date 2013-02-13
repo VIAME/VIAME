@@ -22,8 +22,6 @@
 
 #include <cstdlib>
 
-namespace po = boost::program_options;
-
 static vistk::config::key_t const scheduler_block = vistk::config::key_t("_scheduler");
 
 int

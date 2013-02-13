@@ -33,7 +33,7 @@ namespace vistk
  * \param ostr The stream to output to.
  * \param ref The zone to output.
  */
-void VISTK_UTILITIES_EXPORT debug_utm_zone_write(std::ostream& ostr, utm_zone_t const& utm);
+VISTK_UTILITIES_EXPORT void debug_utm_zone_write(std::ostream& ostr, utm_zone_t const& utm);
 
 }
 

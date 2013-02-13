@@ -46,7 +46,7 @@ typedef uint64_t priority_t;
  * \param from The function for converting from Python.
  * \param to The function for converting to Python.
  */
-void VISTK_PYTHON_ANY_CONVERSION_EXPORT register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to);
+VISTK_PYTHON_ANY_CONVERSION_EXPORT void register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to);
 
 }
 

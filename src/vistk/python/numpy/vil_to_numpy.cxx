@@ -40,7 +40,7 @@ vil_to_numpy(vil_image_view_base_sptr const& img)
 {
   vistk::python::python_gil const gil;
 
-  (void) gil;
+  (void)gil;
 
   register_image_base();
 
@@ -131,7 +131,7 @@ vil_to_numpy(vil_image_view<T> const& img)
 {
   vistk::python::python_gil const gil;
 
-  (void) gil;
+  (void)gil;
 
   typedef vil_image_view<T> image_t;
   typedef typename image_t::pixel_type pixel_t;

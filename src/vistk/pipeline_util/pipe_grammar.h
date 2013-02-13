@@ -29,7 +29,7 @@ namespace vistk
  *
  * \returns The pipeline blocks within the string.
  */
-pipe_blocks VISTK_PIPELINE_UTIL_NO_EXPORT parse_pipe_blocks_from_string(std::string const& str);
+VISTK_PIPELINE_UTIL_NO_EXPORT pipe_blocks parse_pipe_blocks_from_string(std::string const& str);
 
 /**
  * \brief Parse cluster blocks from a string.

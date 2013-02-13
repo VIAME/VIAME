@@ -44,7 +44,7 @@ typedef boost::optional<std::string> envvar_value_t;
  *
  * \returns True if the name was successfully set, false otherwise.
  */
-bool VISTK_PIPELINE_EXPORT name_thread(thread_name_t const& name);
+VISTK_PIPELINE_EXPORT bool name_thread(thread_name_t const& name);
 
 /**
  * \brief Retrieve the value of an environment variable.
@@ -53,7 +53,7 @@ bool VISTK_PIPELINE_EXPORT name_thread(thread_name_t const& name);
  *
  * \returns The value of the environment variable, \c NULL if it was not set.
  */
-envvar_value_t VISTK_PIPELINE_EXPORT get_envvar(envvar_name_t const& name);
+VISTK_PIPELINE_EXPORT envvar_value_t get_envvar(envvar_name_t const& name);
 
 }
 

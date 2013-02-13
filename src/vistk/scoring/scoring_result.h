@@ -93,7 +93,7 @@ typedef std::vector<scoring_result_t> scoring_results_t;
  * \param lhs The left hand side of the operation.
  * \param rhs The right hand side of the operation.
  */
-scoring_result_t VISTK_SCORING_EXPORT operator + (scoring_result_t const& lhs, scoring_result_t const& rhs);
+VISTK_SCORING_EXPORT scoring_result_t operator + (scoring_result_t const& lhs, scoring_result_t const& rhs);
 
 }
 

@@ -17,9 +17,8 @@
 #include <Python.h>
 
 using namespace boost::python;
-using namespace vistk;
 
-static envvar_name_t const python_suppress_envvar = envvar_name_t("VISTK_NO_PYTHON_MODULES");
+static vistk::envvar_name_t const python_suppress_envvar = vistk::envvar_name_t("VISTK_NO_PYTHON_MODULES");
 
 static void load();
 static bool is_suppressed();
@@ -53,7 +52,7 @@ load()
 bool
 is_suppressed()
 {
-  envvar_value_t const python_suppress = get_envvar(python_suppress_envvar);
+  vistk::envvar_value_t const python_suppress = vistk::get_envvar(python_suppress_envvar);
 
   bool suppress_python_modules = false;
 

@@ -33,7 +33,7 @@ namespace vistk
  * \param ostr The stream to output to.
  * \param ts The timestamp to output.
  */
-void VISTK_UTILITIES_EXPORT debug_timestamp_write(std::ostream& ostr, timestamp const& ts);
+VISTK_UTILITIES_EXPORT void debug_timestamp_write(std::ostream& ostr, timestamp const& ts);
 
 }
 

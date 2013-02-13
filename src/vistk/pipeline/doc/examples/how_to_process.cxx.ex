@@ -35,9 +35,9 @@ class compare_string_process::priv
 
 config::key_t const compare_string_process::priv::config_icase = config::key_t("ignore_case");
 config::value_t const compare_string_process::priv::default_icase = config::value_t("false");
-process::port_t const compare_string_process::priv::port_string1 = process::port_t("string1");
-process::port_t const compare_string_process::priv::port_string2 = process::port_t("string2");
-process::port_t const compare_string_process::priv::port_output = process::port_t("are_same");
+process::port_t const compare_string_process::priv::port_string1 = port_t("string1");
+process::port_t const compare_string_process::priv::port_string2 = port_t("string2");
+process::port_t const compare_string_process::priv::port_output = port_t("are_same");
 
 compare_string_process
 ::compare_string_process(config_t const& config)

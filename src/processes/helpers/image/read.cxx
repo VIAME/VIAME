@@ -54,7 +54,7 @@ read(path_t const& path)
 
   std::string const str = path.string<std::string>();
 
-  image_t img = vil_load(str.c_str());
+  image_t const img = vil_load(str.c_str());
 
   if (!img)
   {

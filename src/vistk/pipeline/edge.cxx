@@ -273,7 +273,7 @@ edge
 
   d->downstream_complete = true;
 
-  while (d->q.size())
+  while (!d->q.empty())
   {
     d->q.pop_front();
   }
@@ -354,7 +354,7 @@ bool
 edge::priv
 ::has_data() const
 {
-  return (q.size() != 0);
+  return !q.empty();
 }
 
 bool

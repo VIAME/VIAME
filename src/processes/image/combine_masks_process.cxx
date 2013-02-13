@@ -91,7 +91,7 @@ void
 combine_masks_process
 ::_init()
 {
-  if (!d->tags.size())
+  if (d->tags.empty())
   {
     static std::string const reason = "There must be at least one mask to combine";
 

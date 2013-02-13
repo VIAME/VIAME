@@ -21,7 +21,7 @@ extern "C"
 /**
  * \brief Register schedulers.
  */
-void VISTK_SCHEDULERS_EXAMPLES_EXPORT register_schedulers();
+VISTK_SCHEDULERS_EXAMPLES_EXPORT void register_schedulers();
 
 }
 
