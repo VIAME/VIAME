@@ -402,7 +402,7 @@ extract_configuration(bakery_base::config_decls_t& configs)
       {
         val = boost::apply_visitor(ensure, ref);
       }
-      catch (...)
+      catch (unrecognized_provider_exception const /*e*/)
       {
         unprovided_keys.insert(key);
 
