@@ -157,6 +157,26 @@ unrecognized_config_flag_exception
 {
 }
 
+config_flag_mismatch_exception
+::config_flag_mismatch_exception(config::key_t const& key, std::string const& reason) throw()
+  : pipe_bakery_exception()
+  , m_key(key)
+  , m_reason(reason)
+{
+  std::stringstream sstr;
+
+  sstr << "The \'" << m_key << "\' key "
+          "has unsupported flags: "
+       << m_reason;
+
+  m_what = sstr.str();
+}
+
+config_flag_mismatch_exception
+::~config_flag_mismatch_exception() throw()
+{
+}
+
 unrecognized_provider_exception
 ::unrecognized_provider_exception(config::key_t const& key, config_provider_t const& provider, config::value_t const& index) throw()
   : pipe_bakery_exception()
