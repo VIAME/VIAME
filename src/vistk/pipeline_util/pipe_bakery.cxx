@@ -376,25 +376,41 @@ extract_configuration(bakery_base::config_decls_t& configs)
 
   ensure_provided const ensure;
 
-  BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
   {
-    config::key_t const& key = decl.first;
-    bakery_base::config_info_t const& info = decl.second;
-    bakery_base::config_reference_t const& ref = info.reference;
+    typedef std::set<config::key_t> unprovided_keys_t;
 
-    config::value_t val;
+    unprovided_keys_t unprovided_keys;
 
-    // Only add provided configurations to the configuration.
-    try
+    BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
     {
-      val = boost::apply_visitor(ensure, ref);
-    }
-    catch (...)
-    {
-      continue;
-    }
+      config::key_t const& key = decl.first;
 
-    set_config_value(tmp_conf, info, key, val);
+      unprovided_keys_t::const_iterator const i = unprovided_keys.find(key);
+
+      if (i != unprovided_keys.end())
+      {
+        continue;
+      }
+
+      bakery_base::config_info_t const& info = decl.second;
+      bakery_base::config_reference_t const& ref = info.reference;
+
+      config::value_t val;
+
+      // Only add provided configurations to the configuration.
+      try
+      {
+        val = boost::apply_visitor(ensure, ref);
+      }
+      catch (...)
+      {
+        unprovided_keys.insert(key);
+
+        continue;
+      }
+
+      set_config_value(tmp_conf, info, key, val);
+    }
   }
 
   // Dereference configuration providers.
