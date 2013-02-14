@@ -28,6 +28,7 @@
 #include <boost/variant.hpp>
 
 #include <iostream>
+#include <set>
 #include <stdexcept>
 
 #include <cstdlib>
@@ -40,14 +41,20 @@ class config_printer
     ~config_printer();
 
     void operator () (vistk::config_pipe_block const& config_block) const;
-    void operator () (vistk::process_pipe_block const& process_block) const;
+    void operator () (vistk::process_pipe_block const& process_block);
     void operator () (vistk::connect_pipe_block const& connect_block) const;
+
+    void output_process_defaults();
   private:
     void print_config_value(vistk::config_value_t const& config_value) const;
+    void output_process(vistk::process_t const& proc);
+
+    typedef std::set<vistk::process::name_t> process_set_t;
 
     std::ostream& m_ostr;
     vistk::pipeline_t const m_pipe;
     vistk::config_t const m_config;
+    process_set_t m_visited;
 };
 
 int
@@ -102,9 +109,11 @@ tool_main(int argc, char* argv[])
 
   std::ostream& ostr = *postr;
 
-  config_printer const printer(ostr, pipe, config);
+  config_printer printer(ostr, pipe, config);
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(printer));
+
+  printer.output_process_defaults();
 
   return EXIT_SUCCESS;
 }
@@ -153,7 +162,7 @@ config_printer
 
 void
 config_printer
-::operator () (vistk::process_pipe_block const& process_block) const
+::operator () (vistk::process_pipe_block const& process_block)
 {
   vistk::process::name_t const& name = process_block.name;
   vistk::process::type_t const& type = process_block.type;
@@ -189,6 +198,82 @@ config_printer
     }
   }
 
+  output_process(proc);
+}
+
+void
+config_printer
+::operator () (vistk::connect_pipe_block const& connect_block) const
+{
+  vistk::process::port_addr_t const& upstream_addr = connect_block.from;
+  vistk::process::port_addr_t const& downstream_addr = connect_block.to;
+
+  vistk::process::name_t const& upstream_name = upstream_addr.first;
+  vistk::process::port_t const& upstream_port = upstream_addr.second;
+  vistk::process::name_t const& downstream_name = downstream_addr.first;
+  vistk::process::port_t const& downstream_port = downstream_addr.second;
+
+  m_ostr << "connect from " << upstream_name << "." << upstream_port << std::endl;
+  m_ostr << "        to   " << downstream_name << "." << downstream_port << std::endl;
+
+  m_ostr << std::endl;
+}
+
+void
+config_printer
+::output_process_defaults()
+{
+  vistk::process::names_t const cluster_names = m_pipe->cluster_names();
+
+  BOOST_FOREACH (vistk::process::name_t const& name, cluster_names)
+  {
+    process_set_t::const_iterator const i = m_visited.find(name);
+
+    if (i != m_visited.end())
+    {
+      continue;
+    }
+
+    vistk::process_cluster_t const cluster = m_pipe->cluster_by_name(name);
+    vistk::process_t const proc = boost::static_pointer_cast<vistk::process>(cluster);
+
+    vistk::process::type_t const& type = proc->type();
+
+    m_ostr << "# Defaults for \'" << name << "\' cluster." << std::endl;
+    m_ostr << "config " << name << std::endl;
+    m_ostr << "#  :: " << type << std::endl;
+
+    output_process(proc);
+  }
+
+  vistk::process::names_t const process_names = m_pipe->process_names();
+
+  BOOST_FOREACH (vistk::process::name_t const& name, process_names)
+  {
+    process_set_t::const_iterator const i = m_visited.find(name);
+
+    if (i != m_visited.end())
+    {
+      continue;
+    }
+
+    vistk::process_t const proc = m_pipe->process_by_name(name);
+
+    vistk::process::type_t const& type = proc->type();
+
+    m_ostr << "# Defaults for \'" << name << "\' process." << std::endl;
+    m_ostr << "config " << name << std::endl;
+    m_ostr << "#  :: " << type << std::endl;
+
+    output_process(proc);
+  }
+}
+
+void
+config_printer
+::output_process(vistk::process_t const& proc)
+{
+  vistk::process::name_t const name = proc->name();
   vistk::config::keys_t const keys = proc->available_config();
 
   BOOST_FOREACH (vistk::config::key_t const& key, keys)
@@ -234,24 +319,8 @@ config_printer
   }
 
   m_ostr << std::endl;
-}
 
-void
-config_printer
-::operator () (vistk::connect_pipe_block const& connect_block) const
-{
-  vistk::process::port_addr_t const& upstream_addr = connect_block.from;
-  vistk::process::port_addr_t const& downstream_addr = connect_block.to;
-
-  vistk::process::name_t const& upstream_name = upstream_addr.first;
-  vistk::process::port_t const& upstream_port = upstream_addr.second;
-  vistk::process::name_t const& downstream_name = downstream_addr.first;
-  vistk::process::port_t const& downstream_port = downstream_addr.second;
-
-  m_ostr << "connect from " << upstream_name << "." << upstream_port << std::endl;
-  m_ostr << "        to   " << downstream_name << "." << downstream_port << std::endl;
-
-  m_ostr << std::endl;
+  m_visited.insert(name);
 }
 
 key_printer
