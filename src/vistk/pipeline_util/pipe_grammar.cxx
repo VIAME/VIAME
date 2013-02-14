@@ -362,6 +362,7 @@ common_grammar<Iterator>
     +(  qi::alnum
      |  qi::char_('-')
      |  qi::char_('_')
+     |  qi::char_('/')
      );
 
   config_key_path.name("key-path");

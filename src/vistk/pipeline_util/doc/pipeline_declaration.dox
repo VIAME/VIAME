@@ -115,7 +115,7 @@
  *
  * <pre>
  *   <separator>     ::= ":"
- *   <symbol-char>   ::= <alnum> | "-" | "_"
+ *   <symbol-char>   ::= <alnum> | "-" | "_" | "/"
  *   <key-component> ::= <symbol-char> <key-component>
  *   <key-path>      ::= <key-component> <separator> <key-path> | <key-component>
  *   <full-key-path> ::= <key-path> <key-options>

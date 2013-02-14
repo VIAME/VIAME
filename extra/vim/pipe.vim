@@ -11,7 +11,7 @@ endif
 syn case match
 
 let s:begin_line='\(^[ \t]*\)'
-let s:config_name='[a-zA-Z0-9_-]\+'
+let s:config_name='[a-zA-Z0-9_/-]\+'
 let s:port_name='[a-zA-Z0-9_/-]\+'
 let s:flag='[a-zA-Z]\+'
 let s:provider='[A-Z]\+'
