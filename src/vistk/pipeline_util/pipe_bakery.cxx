@@ -426,7 +426,7 @@ extract_configuration(bakery_base::config_decls_t& configs)
       /// \bug Why must this be done?
       typedef boost::variant<config::key_t> dummy_variant;
 
-      dummy_variant const var(key);
+      dummy_variant const var = key;
 
       boost::apply_visitor(sorter, var, ref);
     }
