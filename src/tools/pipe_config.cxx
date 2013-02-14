@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -13,6 +13,9 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/pipeline_exception.h>
+#include <vistk/pipeline/process.h>
+#include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/types.h>
 
 #include <vistk/utilities/path.h>
@@ -25,6 +28,7 @@
 #include <boost/variant.hpp>
 
 #include <iostream>
+#include <stdexcept>
 
 #include <cstdlib>
 
@@ -162,7 +166,28 @@ config_printer
 
   std::for_each(values.begin(), values.end(), printer);
 
-  vistk::process_t const proc = m_pipe->process_by_name(name);
+  vistk::process_t proc;
+
+  try
+  {
+    proc = m_pipe->process_by_name(name);
+  }
+  catch (vistk::no_such_process_exception const& /*e*/)
+  {
+    try
+    {
+      vistk::process_cluster_t const cluster = m_pipe->cluster_by_name(name);
+
+      proc = boost::static_pointer_cast<vistk::process>(cluster);
+    }
+    catch (vistk::no_such_process_exception const& /*e*/)
+    {
+      std::string const reason = "A process block did not result in a process being "
+                                 "added to the pipeline: " + name;
+
+      throw std::logic_error(reason);
+    }
+  }
 
   vistk::config::keys_t const keys = proc->available_config();
 
