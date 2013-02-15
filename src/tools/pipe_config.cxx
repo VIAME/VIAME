@@ -284,6 +284,7 @@ void
 config_printer
 ::output_process_block(vistk::process_t const& proc, std::string const& kind)
 {
+  vistk::process::name_t const& name = proc->name();
   vistk::process::type_t const& type = proc->type();
 
   m_ostr << "# Defaults for \'" << name << "\' " << kind << ":" << std::endl;
