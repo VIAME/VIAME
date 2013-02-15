@@ -60,7 +60,7 @@ function (vistk_compile_pic name)
   elseif (NOT MSVC)
     set_target_properties(${name}
       PROPERTIES
-      COMPILE_FLAGS "-fPIC")
+        COMPILE_FLAGS "-fPIC")
   endif ()
 endfunction ()
 
@@ -146,6 +146,11 @@ endfunction ()
 
 function (vistk_private_header_group)
   source_group("Header Files\\Private"
+    FILES ${ARGN})
+endfunction ()
+
+function (vistk_private_template_group)
+  source_group("Template Files\\Private"
     FILES ${ARGN})
 endfunction ()
 

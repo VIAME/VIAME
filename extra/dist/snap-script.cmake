@@ -35,23 +35,19 @@ set(snap_suffix ".${vistk_date}git${vistk_git_hash_short}")
 set(dirty_suffix ".dirty${vistk_time}")
 
 execute_process(
-  COMMAND "${GIT_EXECUTABLE}"
-          archive
-          --format=tar
-          --prefix=vistk-${vistk_version}/
-          HEAD
-  COMMAND bzip2
-  OUTPUT_FILE
-          "${vistk_binary_dir}/vistk-${vistk_version}${snap_suffix}.tar.bz2"
-  WORKING_DIRECTORY
-          "${vistk_source_dir}")
+  COMMAND           "${GIT_EXECUTABLE}"
+                    archive
+                    --format=tar
+                    --prefix=vistk-${vistk_version}/
+                    HEAD
+  COMMAND           bzip2
+  OUTPUT_FILE       "${vistk_binary_dir}/vistk-${vistk_version}${snap_suffix}.tar.bz2"
+  WORKING_DIRECTORY "${vistk_source_dir}")
 if (git_return)
   execute_process(
-    COMMAND "${GIT_EXECUTABLE}"
-            diff
-            HEAD
-    OUTPUT_FILE
-            "${vistk_binary_dir}/vistk-${vistk_version}${snap_suffix}${dirty_suffix}.patch"
-    WORKING_DIRECTORY
-            "${vistk_source_dir}")
+    COMMAND           "${GIT_EXECUTABLE}"
+                      diff
+                      HEAD
+    OUTPUT_FILE       "${vistk_binary_dir}/vistk-${vistk_version}${snap_suffix}${dirty_suffix}.patch"
+    WORKING_DIRECTORY "${vistk_source_dir}")
 endif ()

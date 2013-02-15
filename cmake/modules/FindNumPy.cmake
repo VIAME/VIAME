@@ -17,7 +17,7 @@ if (PYTHON_EXECUTABLE)
     OUTPUT_VARIABLE __numpy_include_dir
     ERROR_QUIET)
 
-  if (${__numpy_include_dir_res} EQUAL 0)
+  if (NOT __numpy_include_dir_res)
     set(NUMPY_INCLUDE_DIR "${__numpy_include_dir}"
       CACHE PATH "Include directory for NumPy headers")
   endif ()
