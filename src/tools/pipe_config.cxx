@@ -47,6 +47,7 @@ class config_printer
     void output_process_defaults();
   private:
     void print_config_value(vistk::config_value_t const& config_value) const;
+    void output_process_by_name(vistk::process::name_t const& name, bool fatal_if_no_process);
     void output_process(vistk::process_t const& proc);
 
     typedef std::set<vistk::process::name_t> process_set_t;
@@ -157,36 +158,7 @@ config_printer
 
   std::for_each(values.begin(), values.end(), printer);
 
-  vistk::process_t proc;
-
-  if (!m_visited.count(key_path))
-  {
-    try
-    {
-      proc = m_pipe->process_by_name(key_path);
-    }
-    catch (vistk::no_such_process_exception const& /*e*/)
-    {
-      try
-      {
-        vistk::process_cluster_t const cluster = m_pipe->cluster_by_name(key_path);
-
-        proc = boost::static_pointer_cast<vistk::process>(cluster);
-      }
-      catch (vistk::no_such_process_exception const& /*e*/)
-      {
-      }
-    }
-  }
-
-  if (proc)
-  {
-    output_process(proc);
-  }
-  else
-  {
-    m_ostr << std::endl;
-  }
+  output_process_by_name(key_path, false);
 }
 
 void
@@ -204,30 +176,7 @@ config_printer
 
   std::for_each(values.begin(), values.end(), printer);
 
-  vistk::process_t proc;
-
-  try
-  {
-    proc = m_pipe->process_by_name(name);
-  }
-  catch (vistk::no_such_process_exception const& /*e*/)
-  {
-    try
-    {
-      vistk::process_cluster_t const cluster = m_pipe->cluster_by_name(name);
-
-      proc = boost::static_pointer_cast<vistk::process>(cluster);
-    }
-    catch (vistk::no_such_process_exception const& /*e*/)
-    {
-      std::string const reason = "A process block did not result in a process being "
-                                 "added to the pipeline: " + name;
-
-      throw std::logic_error(reason);
-    }
-  }
-
-  output_process(proc);
+  output_process_by_name(name, true);
 }
 
 void
@@ -291,6 +240,49 @@ config_printer
     m_ostr << "#  :: " << type << std::endl;
 
     output_process(proc);
+  }
+}
+
+void
+config_printer
+::output_process_by_name(vistk::process::name_t const& name, bool fatal_if_no_process)
+{
+  vistk::process_t proc;
+
+  if (!m_visited.count(name))
+  {
+    try
+    {
+      proc = m_pipe->process_by_name(name);
+    }
+    catch (vistk::no_such_process_exception const& /*e*/)
+    {
+      try
+      {
+        vistk::process_cluster_t const cluster = m_pipe->cluster_by_name(name);
+
+        proc = boost::static_pointer_cast<vistk::process>(cluster);
+      }
+      catch (vistk::no_such_process_exception const& /*e*/)
+      {
+        if (fatal_if_no_process)
+        {
+          std::string const reason = "A process block did not result in a process being "
+                                     "added to the pipeline: " + name;
+
+          throw std::logic_error(reason);
+        }
+      }
+    }
+  }
+
+  if (proc)
+  {
+    output_process(proc);
+  }
+  else
+  {
+    m_ostr << std::endl;
   }
 }
 
