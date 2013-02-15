@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -261,9 +261,7 @@ distribute_process
   {
     priv::tag_t const tag = port.substr(priv::port_status_prefix.size());
 
-    priv::tag_data_t::const_iterator const i = d->tag_data.find(tag);
-
-    if (i == d->tag_data.end())
+    if (!d->tag_data.count(tag))
     {
       priv::tag_info info;
 

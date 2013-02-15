@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -57,11 +57,7 @@ thread_per_process_scheduler
     process_t const proc = p->process_by_name(name);
     process::properties_t const consts = proc->properties();
 
-    process::properties_t::const_iterator i;
-
-    i = consts.find(process::property_no_threads);
-
-    if (i != consts.end())
+    if (consts.count(process::property_no_threads))
     {
       std::string const reason = "The process \'" + name + "\' does "
                                  "not support being in its own thread";

@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -278,9 +278,7 @@ pipeline
 
   /// \todo If process is in a cluster, remove the cluster.
 
-  priv::process_map_t::const_iterator const j = d->process_map.find(name);
-
-  if (j == d->process_map.end())
+  if (!d->process_map.count(name))
   {
     throw no_such_process_exception(name);
   }
@@ -312,11 +310,8 @@ pipeline
     d->planned_connections.push_back(connection);
   }
 
-  priv::cluster_map_t::const_iterator const up_cluster_it = d->cluster_map.find(upstream_name);
-  priv::cluster_map_t::const_iterator const down_cluster_it = d->cluster_map.find(downstream_name);
-
-  bool const upstream_is_cluster = (up_cluster_it != d->cluster_map.end());
-  bool const downstream_is_cluster = (down_cluster_it != d->cluster_map.end());
+  bool const upstream_is_cluster = d->cluster_map.count(upstream_name);
+  bool const downstream_is_cluster = d->cluster_map.count(downstream_name);
 
   if (upstream_is_cluster || downstream_is_cluster)
   {
@@ -649,7 +644,7 @@ pipeline
 
   BOOST_FOREACH (process::name_t const& process_name, names)
   {
-    priv::process_map_t::const_iterator i = d->process_map.find(process_name);
+    priv::process_map_t::const_iterator const i = d->process_map.find(process_name);
     process_t const& process = i->second;
 
     processes.push_back(process);
@@ -1005,11 +1000,7 @@ void
 pipeline::priv
 ::check_duplicate_name(process::name_t const& name)
 {
-  process_map_t::const_iterator const proc_it = process_map.find(name);
-  cluster_map_t::const_iterator const cluster_it = cluster_map.find(name);
-
-  if ((proc_it != process_map.end()) ||
-      (cluster_it != cluster_map.end()))
+  if (process_map.count(name) || cluster_map.count(name))
   {
     throw duplicate_process_name_exception(name);
   }
@@ -1085,15 +1076,8 @@ bool
 pipeline::priv
 ::check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const
 {
-  process::port_flags_t::const_iterator i;
-
-  i = up_flags.find(process::flag_output_const);
-
-  bool const is_const = (i != up_flags.end());
-
-  i = down_flags.find(process::flag_input_mutable);
-
-  bool const requires_mutable = (i != down_flags.end());
+  bool const is_const = up_flags.count(process::flag_output_const);
+  bool const requires_mutable = down_flags.count(process::flag_input_mutable);
 
   if (is_const && requires_mutable)
   {
@@ -1539,9 +1523,7 @@ pipeline::priv
 
     // Configure the edge.
     {
-      process::port_flags_t::const_iterator const it = down_flags.find(process::flag_input_nodep);
-
-      bool const has_nodep = (it != down_flags.end());
+      bool const has_nodep = down_flags.count(process::flag_input_nodep);
 
       edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
       edge_config->mark_read_only(edge::config_dependency);
@@ -1582,8 +1564,7 @@ pipeline::priv
       to_visit.pop();
 
       // Ignore the process if we've already visited it.
-      name_set_t::const_iterator const i = procs.find(cur_proc);
-      if (i != procs.end())
+      if (procs.count(cur_proc))
       {
         continue;
       }
@@ -1601,8 +1582,7 @@ pipeline::priv
           // Check for required flags.
           process::port_flags_t const port_flags = process->input_port_info(port)->flags;
 
-          process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
-          if (f != port_flags.end())
+          if (port_flags.count(process::flag_required))
           {
             if (!q->input_edge_for_port(cur_proc, port))
             {
@@ -1620,8 +1600,7 @@ pipeline::priv
           // Check for required flags.
           process::port_flags_t const port_flags = process->output_port_info(port)->flags;
 
-          process::port_flags_t::const_iterator const f = port_flags.find(process::flag_required);
-          if (f != port_flags.end())
+          if (port_flags.count(process::flag_required))
           {
             if (q->output_edges_for_port(cur_proc, port).empty())
             {
@@ -1702,9 +1681,7 @@ pipeline::priv
         process::port_info_t const info = proc->input_port_info(port);
         process::port_flags_t const& flags = info->flags;
 
-        process::port_flags_t::const_iterator const i = flags.find(process::flag_input_nodep);
-
-        if (i != flags.end())
+        if (flags.count(process::flag_input_nodep))
         {
           continue;
         }
@@ -1800,15 +1777,13 @@ pipeline::priv
       continue;
     }
 
-    process_frequency_map_t::const_iterator const i_up = freq_map.find(upstream_name);
-    process_frequency_map_t::const_iterator const i_down = freq_map.find(downstream_name);
-    process_frequency_map_t::const_iterator const i_end = freq_map.end();
+    bool const up_in_map = freq_map.count(upstream_name);
+    bool const down_in_map = freq_map.count(downstream_name);
 
     bool have_upstream = false;
     bool have_downstream = false;
 
-    if ((i_up == i_end) &&
-        (i_down == i_end))
+    if (!up_in_map && !down_in_map)
     {
       if (freq_map.empty())
       {
@@ -1818,11 +1793,11 @@ pipeline::priv
       }
     }
 
-    if (i_up != i_end)
+    if (up_in_map)
     {
       have_upstream = true;
     }
-    if (i_down != i_end)
+    if (down_in_map)
     {
       have_downstream = true;
     }

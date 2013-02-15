@@ -251,9 +251,7 @@ layered_image_reader_process
   {
     priv::layer_t const layer = port.substr(priv::port_image_prefix.size());
 
-    priv::layers_t::const_iterator const i = std::find(d->layers.begin(), d->layers.end(), layer);
-
-    if (i == d->layers.end())
+    if (!std::count(d->layers.begin(), d->layers.end(), layer))
     {
       d->layers.push_back(layer);
 

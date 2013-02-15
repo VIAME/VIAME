@@ -120,9 +120,7 @@ void
 process_cluster
 ::add_process(name_t const& name_, type_t const& type_, config_t const& conf)
 {
-  priv::process_map_t::const_iterator const i = d->processes.find(name_);
-
-  if (i != d->processes.end())
+  if (d->processes.count(name_))
   {
     throw duplicate_process_name_exception(name_);
   }
@@ -311,9 +309,7 @@ bool
 process_cluster::priv
 ::has_name(name_t const& name) const
 {
-  process_map_t::const_iterator const i = processes.find(name);
-
-  return (i != processes.end());
+  return processes.count(name);
 }
 
 void

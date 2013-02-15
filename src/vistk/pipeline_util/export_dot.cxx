@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -317,9 +317,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
 
     std::string const node_port_name = name + node_prefix_input + port;
 
-    unique_ports_t::const_iterator const i = input_ports.find(port);
-
-    if (i != input_ports.end())
+    if (input_ports.count(port))
     {
       continue;
     }
@@ -378,12 +376,11 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
 
     std::string const node_port_name = name + node_prefix_output + port;
 
-    unique_ports_t::const_iterator const i = output_ports.find(port);
-
-    if (i != output_ports.end())
+    if (output_ports.count(port))
     {
       continue;
     }
+
     ostr << "\"" << node_port_name << "\" ["
             "label=\"" << port << "\","
          << style_output_port

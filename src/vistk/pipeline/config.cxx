@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -124,9 +124,7 @@ bool
 config
 ::is_read_only(key_t const& key) const
 {
-  ro_list_t::iterator i = m_ro_list.find(key);
-
-  return (i != m_ro_list.end());
+  return m_ro_list.count(key);
 }
 
 void
@@ -188,7 +186,7 @@ config
     return m_parent->has_value(m_name + block_sep + key);
   }
 
-  return (m_store.find(key) != m_store.end());
+  return m_store.count(key);
 }
 
 config

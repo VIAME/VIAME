@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -54,9 +54,7 @@ class set_indexing_suite
     static bool
     contains(Container const& container, key_type const& key)
     {
-      const_iterator_type const i = container.find(key);
-
-      return (i != container.end());
+      return container.count(key);
     }
 
     static index_type
