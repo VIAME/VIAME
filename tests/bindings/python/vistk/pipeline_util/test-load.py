@@ -114,11 +114,26 @@ def test_api_calls(path_unused):
 
     o = load.ClusterSubblock()
     o.config = load.ClusterConfig()
-    o.config
+    if o.config is None:
+        test_error("The 'config' is None when the cluster subblock is a config")
+    if o.input is not None:
+        test_error("The 'input' is not None when the cluster subblock is a config")
+    if o.output is not None:
+        test_error("The 'output' is not None when the cluster subblock is a config")
     o.input = load.ClusterInput()
-    o.input
+    if o.config is not None:
+        test_error("The 'config' is not None when the cluster subblock is an input")
+    if o.input is None:
+        test_error("The 'input' is None when the cluster subblock is an input")
+    if o.output is not None:
+        test_error("The 'output' is not None when the cluster subblock is an input")
     o.output = load.ClusterOutput()
-    o.output
+    if o.config is not None:
+        test_error("The 'config' is not None when the cluster subblock is an output")
+    if o.input is not None:
+        test_error("The 'input' is not None when the cluster subblock is an output")
+    if o.output is None:
+        test_error("The 'output' is None when the cluster subblock is an output")
 
     o = load.ClusterBlock()
     o.type
@@ -130,13 +145,41 @@ def test_api_calls(path_unused):
 
     o = load.ClusterDefineBlock()
     o.config = load.ConfigBlock()
-    o.config
+    if o.config is None:
+        test_error("The 'config' is None when the pipe subblock is a config")
+    if o.process is not None:
+        test_error("The 'process' is not None when the pipe subblock is a config")
+    if o.connect is not None:
+        test_error("The 'connect' is not None when the pipe subblock is a config")
+    if o.cluster is not None:
+        test_error("The 'cluster' is not None when the pipe subblock is a config")
     o.process = load.ProcessBlock()
-    o.process
+    if o.config is not None:
+        test_error("The 'config' is not None when the pipe subblock is a process")
+    if o.process is None:
+        test_error("The 'process' is None when the pipe subblock is a process")
+    if o.connect is not None:
+        test_error("The 'connect' is not None when the pipe subblock is a process")
+    if o.cluster is not None:
+        test_error("The 'cluster' is not None when the pipe subblock is a process")
     o.connect = load.ConnectBlock()
-    o.connect
+    if o.config is not None:
+        test_error("The 'config' is not None when the pipe subblock is a connection")
+    if o.process is not None:
+        test_error("The 'process' is not None when the pipe subblock is a connection")
+    if o.connect is None:
+        test_error("The 'connect' is None when the pipe subblock is a connection")
+    if o.cluster is not None:
+        test_error("The 'cluster' is not None when the pipe subblock is a connection")
     o.cluster = load.ClusterBlock()
-    o.cluster
+    if o.config is not None:
+        test_error("The 'config' is not None when the pipe subblock is a cluster")
+    if o.process is not None:
+        test_error("The 'process' is not None when the pipe subblock is a cluster")
+    if o.connect is not None:
+        test_error("The 'connect' is not None when the pipe subblock is a cluster")
+    if o.cluster is None:
+        test_error("The 'cluster' is None when the pipe subblock is a cluster")
 
 
 def test_simple_pipeline(path):
