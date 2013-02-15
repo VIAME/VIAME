@@ -380,6 +380,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
     {
       continue;
     }
+
     ostr << "\"" << node_port_name << "\" ["
             "label=\"" << port << "\","
          << style_output_port
