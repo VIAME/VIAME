@@ -7,6 +7,7 @@ add_subdirectory(image)
 add_subdirectory(scoring)
 add_subdirectory(utilities)
 
+option(VISTK_ENABLE_GRAVL "Enable gravl reader process" OFF)
 if (VISTK_ENABLE_GRAVL)
   add_subdirectory(gravl)
 endif ()
