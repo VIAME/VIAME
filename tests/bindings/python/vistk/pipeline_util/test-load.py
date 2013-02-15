@@ -179,7 +179,7 @@ def test_api_calls(path_unused):
     if o.connect is not None:
         test_error("The 'connect' is not None when the pipe subblock is a cluster")
     if o.cluster is None:
-        test_error("The 'cluster' is not None when the pipe subblock is a cluster")
+        test_error("The 'cluster' is None when the pipe subblock is a cluster")
 
 
 def test_simple_pipeline(path):
