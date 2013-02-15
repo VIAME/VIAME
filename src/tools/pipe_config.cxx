@@ -40,7 +40,7 @@ class config_printer
     config_printer(std::ostream& ostr, vistk::pipeline_t const& pipe, vistk::config_t const& conf);
     ~config_printer();
 
-    void operator () (vistk::config_pipe_block const& config_block) const;
+    void operator () (vistk::config_pipe_block const& config_block);
     void operator () (vistk::process_pipe_block const& process_block);
     void operator () (vistk::connect_pipe_block const& connect_block) const;
 
@@ -144,7 +144,7 @@ class key_printer
 
 void
 config_printer
-::operator () (vistk::config_pipe_block const& config_block) const
+::operator () (vistk::config_pipe_block const& config_block)
 {
   vistk::config::keys_t const& keys = config_block.key;
   vistk::config_values_t const& values = config_block.values;
@@ -157,7 +157,36 @@ config_printer
 
   std::for_each(values.begin(), values.end(), printer);
 
-  m_ostr << std::endl;
+  vistk::process_t proc;
+
+  if (!m_visited.count(key_path))
+  {
+    try
+    {
+      proc = m_pipe->process_by_name(key_path);
+    }
+    catch (vistk::no_such_process_exception const& /*e*/)
+    {
+      try
+      {
+        vistk::process_cluster_t const cluster = m_pipe->cluster_by_name(key_path);
+
+        proc = boost::static_pointer_cast<vistk::process>(cluster);
+      }
+      catch (vistk::no_such_process_exception const& /*e*/)
+      {
+      }
+    }
+  }
+
+  if (proc)
+  {
+    output_process(proc);
+  }
+  else
+  {
+    m_ostr << std::endl;
+  }
 }
 
 void
