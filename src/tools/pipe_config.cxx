@@ -237,7 +237,7 @@ config_printer
 
     vistk::process::type_t const& type = proc->type();
 
-    m_ostr << "# Defaults for \'" << name << "\' cluster." << std::endl;
+    m_ostr << "# Defaults for \'" << name << "\' cluster:" << std::endl;
     m_ostr << "config " << name << std::endl;
     m_ostr << "#  :: " << type << std::endl;
 
@@ -257,7 +257,7 @@ config_printer
 
     vistk::process::type_t const& type = proc->type();
 
-    m_ostr << "# Defaults for \'" << name << "\' process." << std::endl;
+    m_ostr << "# Defaults for \'" << name << "\' process:" << std::endl;
     m_ostr << "config " << name << std::endl;
     m_ostr << "#  :: " << type << std::endl;
 
