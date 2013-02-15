@@ -644,7 +644,7 @@ pipeline
 
   BOOST_FOREACH (process::name_t const& process_name, names)
   {
-    priv::process_map_t::const_iterator i = d->process_map.find(process_name);
+    priv::process_map_t::const_iterator const i = d->process_map.find(process_name);
     process_t const& process = i->second;
 
     processes.push_back(process);
