@@ -154,7 +154,8 @@ macro (vistk_build_test testname libraries)
     PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${test_base_output_path}")
   target_link_libraries(test-${testname}
-    ${${libraries}})
+    LINK_PRIVATE
+      ${${libraries}})
   vistk_declare_test(${testname})
 endmacro ()
 

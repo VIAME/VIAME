@@ -17,9 +17,8 @@ vistk_add_library(vistk_scoring
   ${scoring_srcs}
   ${scoring_headers})
 target_link_libraries(vistk_scoring
-  vil)
-target_link_libraries(vistk_scoring LINK_INTERFACE_LIBRARIES
-  vil)
+  LINK_PUBLIC
+    vil)
 set_target_properties(vistk_scoring
   PROPERTIES
     VERSION       ${vistk_version}

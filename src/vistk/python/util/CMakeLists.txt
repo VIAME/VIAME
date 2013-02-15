@@ -13,9 +13,8 @@ vistk_add_library(vistk_python_util
   ${python_util_srcs}
   ${python_util_headers})
 target_link_libraries(vistk_python_util
-  ${PYTHON_LIBRARIES})
-target_link_libraries(vistk_python_util LINK_INTERFACE_LIBRARIES
-  ${PYTHON_LIBRARIES})
+  LINK_PUBLIC
+    ${PYTHON_LIBRARIES})
 set_target_properties(vistk_python_util
   PROPERTIES
     VERSION       ${vistk_version}

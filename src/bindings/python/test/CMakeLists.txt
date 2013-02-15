@@ -8,10 +8,11 @@ add_vistk_python_library(test_image
   vistk/test
   test_image.cxx)
 target_link_libraries(python-vistk.test-test_image
-  vil
-  vistk_python_util
-  ${${boost_python_library_var}}
-  ${PYTHON_LIBRARIES})
+  LINK_PRIVATE
+    vil
+    vistk_python_util
+    ${${boost_python_library_var}}
+    ${PYTHON_LIBRARIES})
 
 add_python_module(test.py
   vistk/test

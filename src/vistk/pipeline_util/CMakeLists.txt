@@ -73,16 +73,14 @@ vistk_add_library(vistk_pipeline_util
   ${pipeline_util_headers}
   ${pipeline_util_private_headers})
 target_link_libraries(vistk_pipeline_util
-  vistk_pipeline
-  ${Boost_CHRONO_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_THREAD_LIBRARY}
-  ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(vistk_pipeline_util LINK_INTERFACE_LIBRARIES
-  vistk_pipeline
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
+  LINK_PUBLIC
+    vistk_pipeline
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+  LINK_PRIVATE
+    ${Boost_CHRONO_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(vistk_pipeline_util
   PROPERTIES
     VERSION       ${vistk_version}

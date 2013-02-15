@@ -14,18 +14,16 @@ vistk_add_library(vistk_python_any_conversion SHARED
   ${python_any_conversion_srcs}
   ${python_any_conversion_headers})
 target_link_libraries(vistk_python_any_conversion
-  vistk_python_util
-  ${Boost_THREAD_LIBRARY}
-  ${Boost_CHRONO_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  ${${boost_python_library_var}}
-  ${Boost_SYSTEM_LIBRARY}
-  ${PYTHON_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(vistk_python_any_conversion LINK_INTERFACE_LIBRARIES
-  vistk_python_util
-  ${${boost_python_library_var}}
-  ${PYTHON_LIBRARIES})
+  LINK_PUBLIC
+    vistk_python_util
+    ${${boost_python_library_var}}
+    ${PYTHON_LIBRARIES}
+  LINK_PRIVATE
+    ${Boost_THREAD_LIBRARY}
+    ${Boost_CHRONO_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(vistk_python_any_conversion
   PROPERTIES
     VERSION       ${vistk_version}
