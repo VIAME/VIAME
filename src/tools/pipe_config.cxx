@@ -30,6 +30,7 @@
 #include <iostream>
 #include <set>
 #include <stdexcept>
+#include <string>
 
 #include <cstdlib>
 
@@ -48,6 +49,7 @@ class config_printer
   private:
     void print_config_value(vistk::config_value_t const& config_value) const;
     void output_process_by_name(vistk::process::name_t const& name, bool fatal_if_no_process);
+    void output_process_block(vistk::process_t const& name, std::string const& kind);
     void output_process(vistk::process_t const& proc);
 
     typedef std::set<vistk::process::name_t> process_set_t;
@@ -213,13 +215,9 @@ config_printer
     vistk::process_cluster_t const cluster = m_pipe->cluster_by_name(name);
     vistk::process_t const proc = boost::static_pointer_cast<vistk::process>(cluster);
 
-    vistk::process::type_t const& type = proc->type();
+    static std::string const kind = "cluster";
 
-    m_ostr << "# Defaults for \'" << name << "\' cluster:" << std::endl;
-    m_ostr << "config " << name << std::endl;
-    m_ostr << "#  :: " << type << std::endl;
-
-    output_process(proc);
+    output_process_block(proc, kind);
   }
 
   vistk::process::names_t const process_names = m_pipe->process_names();
@@ -233,13 +231,9 @@ config_printer
 
     vistk::process_t const proc = m_pipe->process_by_name(name);
 
-    vistk::process::type_t const& type = proc->type();
+    static std::string const kind = "process";
 
-    m_ostr << "# Defaults for \'" << name << "\' process:" << std::endl;
-    m_ostr << "config " << name << std::endl;
-    m_ostr << "#  :: " << type << std::endl;
-
-    output_process(proc);
+    output_process_block(proc, kind);
   }
 }
 
@@ -284,6 +278,19 @@ config_printer
   {
     m_ostr << std::endl;
   }
+}
+
+void
+config_printer
+::output_process_block(vistk::process_t const& proc, std::string const& kind)
+{
+  vistk::process::type_t const& type = proc->type();
+
+  m_ostr << "# Defaults for \'" << name << "\' " << kind << ":" << std::endl;
+  m_ostr << "config " << name << std::endl;
+  m_ostr << "#  :: " << type << std::endl;
+
+  output_process(proc);
 }
 
 void
