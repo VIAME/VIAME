@@ -227,9 +227,7 @@ config_printer
 
   BOOST_FOREACH (vistk::process::name_t const& name, cluster_names)
   {
-    process_set_t::const_iterator const i = m_visited.find(name);
-
-    if (i != m_visited.end())
+    if (m_visited.count(name))
     {
       continue;
     }
@@ -250,9 +248,7 @@ config_printer
 
   BOOST_FOREACH (vistk::process::name_t const& name, process_names)
   {
-    process_set_t::const_iterator const i = m_visited.find(name);
-
-    if (i != m_visited.end())
+    if (m_visited.count(name))
     {
       continue;
     }
