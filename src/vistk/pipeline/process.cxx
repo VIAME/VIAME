@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -750,16 +750,10 @@ process
   }
 
   port_flags_t const& flags = info->flags;
-  port_flags_t::const_iterator i;
 
-  i = flags.find(flag_required);
-  bool const required = (i != flags.end());
-
-  i = flags.find(flag_input_static);
-  bool const static_ = (i != flags.end());
-
-  i = flags.find(flag_input_nodep);
-  bool const no_dep = (i != flags.end());
+  bool const required = flags.count(flag_required);
+  bool const static_ = flags.count(flag_input_static);
+  bool const no_dep = flags.count(flag_input_nodep);
 
   if (required && static_)
   {
@@ -839,9 +833,8 @@ process
   d->output_edges[port] = boost::make_shared<priv::output_port_info>();
 
   port_flags_t const& flags = info->flags;
-  port_flags_t::const_iterator const i = flags.find(flag_required);
 
-  if (i != flags.end())
+  if (flags.count(flag_required))
   {
     d->required_outputs.push_back(port);
   }
@@ -917,9 +910,7 @@ process
 ::remove_input_port(port_t const& port)
 {
   // Ensure the port exists.
-  priv::port_map_t::const_iterator const p = d->input_ports.find(port);
-
-  if (p == d->input_ports.end())
+  if (!d->input_ports.count(port))
   {
     throw no_such_port_exception(d->name, port);
   }
@@ -957,9 +948,7 @@ process
 ::remove_output_port(port_t const& port)
 {
   // Ensure the port exists.
-  priv::port_map_t::const_iterator const p = d->output_ports.find(port);
-
-  if (p == d->output_ports.end())
+  if (!d->output_ports.count(port))
   {
     throw no_such_port_exception(d->name, port);
   }
@@ -1034,25 +1023,19 @@ bool
 process
 ::has_input_port_edge(port_t const& port) const
 {
-  priv::port_map_t::iterator i = d->input_ports.find(port);
-
-  if (i == d->input_ports.end())
+  if (!d->input_ports.count(port))
   {
     throw no_such_port_exception(d->name, port);
   }
 
-  priv::input_edge_map_t::const_iterator const e = d->input_edges.find(port);
-
-  return (e != d->input_edges.end());
+  return d->input_edges.count(port);
 }
 
 size_t
 process
 ::count_output_port_edges(port_t const& port) const
 {
-  priv::port_map_t::iterator i = d->output_ports.find(port);
-
-  if (i == d->output_ports.end())
+  if (!d->output_ports.count(port))
   {
     throw no_such_port_exception(d->name, port);
   }
@@ -1080,9 +1063,7 @@ edge_datum_t
 process
 ::grab_from_port(port_t const& port) const
 {
-  priv::port_map_t::iterator i = d->input_ports.find(port);
-
-  if (i == d->input_ports.end())
+  if (!d->input_ports.count(port))
   {
     throw no_such_port_exception(d->name, port);
   }
@@ -1114,9 +1095,7 @@ void
 process
 ::push_to_port(port_t const& port, edge_datum_t const& dat) const
 {
-  priv::port_map_t::iterator i = d->output_ports.find(port);
-
-  if (i == d->output_ports.end())
+  if (!d->output_ports.count(port))
   {
     throw no_such_port_exception(d->name, port);
   }
@@ -1252,9 +1231,7 @@ bool
 process
 ::is_static_input(port_t const& port) const
 {
-  ports_t::const_iterator const i = std::find(d->static_inputs.begin(), d->static_inputs.end(), port);
-
-  return (i != d->static_inputs.end());
+  return std::count(d->static_inputs.begin(), d->static_inputs.end(), port);
 }
 
 void
@@ -1343,9 +1320,7 @@ void
 process::priv
 ::connect_input_port(port_t const& port, edge_t const& edge)
 {
-  port_map_t::const_iterator const i = input_ports.find(port);
-
-  if (i == input_ports.end())
+  if (!input_ports.count(port))
   {
     throw no_such_port_exception(name, port);
   }
@@ -1362,9 +1337,7 @@ void
 process::priv
 ::connect_output_port(port_t const& port, edge_t const& edge)
 {
-  port_map_t::const_iterator const i = output_ports.find(port);
-
-  if (i == output_ports.end())
+  if (!output_ports.count(port))
   {
     throw no_such_port_exception(name, port);
   }

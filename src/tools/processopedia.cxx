@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -63,8 +63,7 @@ tool_main(int argc, char* argv[])
     return EXIT_SUCCESS;
   }
 
-  boost::program_options::variables_map::const_iterator const i = vm.find("hidden");
-  bool const hidden = (i != vm.end());
+  bool const hidden = vm.count("hidden");
 
   BOOST_FOREACH (vistk::process::type_t const& proc_type, types)
   {

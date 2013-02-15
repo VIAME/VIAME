@@ -311,9 +311,7 @@ component_score_json_writer_process
   {
     priv::tag_t const tag = port.substr(priv::port_score_prefix.size());
 
-    priv::tags_t::const_iterator const i = std::find(d->tags.begin(), d->tags.end(), tag);
-
-    if (i == d->tags.end())
+    if (!std::count(d->tags.begin(), d->tags.end(), tag))
     {
       port_t const port_score = priv::port_score_prefix + tag;
       port_t const port_stats = priv::port_stats_prefix + tag;

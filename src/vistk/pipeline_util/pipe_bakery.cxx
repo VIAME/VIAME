@@ -1134,9 +1134,8 @@ cluster_splitter
 ::operator () (cluster_input_t const& input_block)
 {
   process::port_t const& port = input_block.from;
-  unique_ports_t::const_iterator const i = m_input_ports.find(port);
 
-  if (i != m_input_ports.end())
+  if (m_input_ports.count(port))
   {
     throw duplicate_cluster_input_port_exception(port);
   }
@@ -1151,9 +1150,8 @@ cluster_splitter
 ::operator () (cluster_output_t const& output_block)
 {
   process::port_t const& port = output_block.to;
-  unique_ports_t::const_iterator const i = m_output_ports.find(port);
 
-  if (i != m_output_ports.end())
+  if (m_output_ports.count(port))
   {
     throw duplicate_cluster_output_port_exception(port);
   }

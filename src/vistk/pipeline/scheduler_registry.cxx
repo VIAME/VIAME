@@ -58,7 +58,7 @@ scheduler_registry
     throw null_scheduler_ctor_exception(type);
   }
 
-  if (d->registry.find(type) != d->registry.end())
+  if (d->registry.count(type))
   {
     throw scheduler_type_already_exists_exception(type);
   }
@@ -131,9 +131,7 @@ bool
 scheduler_registry
 ::is_module_loaded(module_t const& module) const
 {
-  priv::loaded_modules_t::const_iterator const i = d->loaded_modules.find(module);
-
-  return (i != d->loaded_modules.end());
+  return d->loaded_modules.count(module);
 }
 
 scheduler_registry_t

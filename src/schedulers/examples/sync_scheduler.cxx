@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -68,28 +68,20 @@ sync_scheduler
     process_t const proc = p->process_by_name(name);
     process::properties_t const consts = proc->properties();
 
+    if (consts.count(process::property_unsync_output))
     {
-      process::properties_t::const_iterator const i = consts.find(process::property_unsync_output);
+      std::string const reason = "The process \'" + name + "\' does not output "
+                                 "consistent data across all its output ports";
 
-      if (i != consts.end())
-      {
-        std::string const reason = "The process \'" + name + "\' does not output "
-                                   "consistent data across all its output ports";
-
-        throw incompatible_pipeline_exception(reason);
-      }
+      throw incompatible_pipeline_exception(reason);
     }
 
+    if (consts.count(process::property_unsync_input))
     {
-      process::properties_t::const_iterator const i = consts.find(process::property_unsync_input);
+      std::string const reason = "The process \'" + name + "\' does not expect "
+                                 "consistent data across all its input ports";
 
-      if (i != consts.end())
-      {
-        std::string const reason = "The process \'" + name + "\' does not expect "
-                                   "consistent data across all its input ports";
-
-        throw incompatible_pipeline_exception(reason);
-      }
+      throw incompatible_pipeline_exception(reason);
     }
   }
 }
