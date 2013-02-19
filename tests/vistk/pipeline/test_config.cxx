@@ -21,6 +21,7 @@ DECLARE_TEST(available_values);
 DECLARE_TEST(read_only);
 DECLARE_TEST(read_only_unset);
 DECLARE_TEST(subblock);
+DECLARE_TEST(subblock_nested);
 DECLARE_TEST(subblock_match);
 DECLARE_TEST(subblock_prefix_match);
 DECLARE_TEST(subblock_view);
@@ -46,6 +47,7 @@ main(int argc, char* argv[])
   ADD_TEST(tests, read_only);
   ADD_TEST(tests, read_only_unset);
   ADD_TEST(tests, subblock);
+  ADD_TEST(tests, subblock_nested);
   ADD_TEST(tests, subblock_match);
   ADD_TEST(tests, subblock_prefix_match);
   ADD_TEST(tests, subblock_view);
@@ -377,6 +379,54 @@ IMPLEMENT_TEST(subblock)
   if (subblock->has_value(keyc))
   {
     TEST_ERROR("Subblock inherited unrelated key");
+  }
+}
+
+IMPLEMENT_TEST(subblock_nested)
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+  vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
+  vistk::config::key_t const nested_block_name = block_name + vistk::config::block_sep + other_block_name;
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+
+  config->set_value(nested_block_name + vistk::config::block_sep + keya, valuea);
+  config->set_value(nested_block_name + vistk::config::block_sep + keyb, valueb);
+
+  vistk::config_t const subblock = config->subblock(nested_block_name);
+
+  if (subblock->has_value(keya))
+  {
+    vistk::config::value_t const get_valuea = subblock->get_value<vistk::config::value_t>(keya);
+
+    if (valuea != get_valuea)
+    {
+      TEST_ERROR("Nested subblock did not inherit expected keys");
+    }
+  }
+  else
+  {
+    TEST_ERROR("Subblock did not inherit expected keys");
+  }
+
+  if (subblock->has_value(keyb))
+  {
+    vistk::config::value_t const get_valueb = subblock->get_value<vistk::config::value_t>(keyb);
+
+    if (valueb != get_valueb)
+    {
+      TEST_ERROR("Nested subblock did not inherit expected keys");
+    }
+  }
+  else
+  {
+    TEST_ERROR("Subblock did not inherit expected keys");
   }
 }
 
