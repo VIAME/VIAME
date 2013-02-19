@@ -23,6 +23,9 @@ vistk_make_test(config subblock_nested)
 vistk_make_test(config subblock_match)
 vistk_make_test(config subblock_prefix_match)
 vistk_make_test(config subblock_view)
+vistk_make_test(config subblock_view_nested)
+vistk_make_test(config subblock_view_match)
+vistk_make_test(config subblock_view_prefix_match)
 vistk_make_test(config merge_config)
 
 ##############################

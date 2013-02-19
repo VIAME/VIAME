@@ -25,6 +25,9 @@ DECLARE_TEST(subblock_nested);
 DECLARE_TEST(subblock_match);
 DECLARE_TEST(subblock_prefix_match);
 DECLARE_TEST(subblock_view);
+DECLARE_TEST(subblock_view_nested);
+DECLARE_TEST(subblock_view_match);
+DECLARE_TEST(subblock_view_prefix_match);
 DECLARE_TEST(merge_config);
 
 int
@@ -51,6 +54,9 @@ main(int argc, char* argv[])
   ADD_TEST(tests, subblock_match);
   ADD_TEST(tests, subblock_prefix_match);
   ADD_TEST(tests, subblock_view);
+  ADD_TEST(tests, subblock_view_nested);
+  ADD_TEST(tests, subblock_view_match);
+  ADD_TEST(tests, subblock_view_prefix_match);
   ADD_TEST(tests, merge_config);
 
   RUN_TEST(tests, testname);
@@ -540,6 +546,96 @@ IMPLEMENT_TEST(subblock_view)
   if (keys.size() != get_keys.size())
   {
     TEST_ERROR("Did not retrieve correct number of keys from the subblock");
+  }
+}
+
+IMPLEMENT_TEST(subblock_view_nested)
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+  vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
+  vistk::config::key_t const nested_block_name = block_name + vistk::config::block_sep + other_block_name;
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+
+  config->set_value(nested_block_name + vistk::config::block_sep + keya, valuea);
+  config->set_value(nested_block_name + vistk::config::block_sep + keyb, valueb);
+
+  vistk::config_t const subblock = config->subblock_view(nested_block_name);
+
+  if (subblock->has_value(keya))
+  {
+    vistk::config::value_t const get_valuea = subblock->get_value<vistk::config::value_t>(keya);
+
+    if (valuea != get_valuea)
+    {
+      TEST_ERROR("Nested subblock did not inherit expected keys");
+    }
+  }
+  else
+  {
+    TEST_ERROR("Subblock did not inherit expected keys");
+  }
+
+  if (subblock->has_value(keyb))
+  {
+    vistk::config::value_t const get_valueb = subblock->get_value<vistk::config::value_t>(keyb);
+
+    if (valueb != get_valueb)
+    {
+      TEST_ERROR("Nested subblock did not inherit expected keys");
+    }
+  }
+  else
+  {
+    TEST_ERROR("Subblock did not inherit expected keys");
+  }
+}
+
+IMPLEMENT_TEST(subblock_view_match)
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+
+  config->set_value(block_name, valuea);
+
+  vistk::config_t const subblock = config->subblock_view(block_name);
+
+  vistk::config::keys_t const keys = subblock->available_values();
+
+  if (!keys.empty())
+  {
+    TEST_ERROR("A subblock inherited a value that shared the block name");
+  }
+}
+
+IMPLEMENT_TEST(subblock_view_prefix_match)
+{
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::config::key_t const block_name = vistk::config::key_t("block");
+
+  vistk::config::key_t const keya = vistk::config::key_t("keya");
+
+  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+
+  config->set_value(block_name + keya, valuea);
+
+  vistk::config_t const subblock = config->subblock_view(block_name);
+
+  vistk::config::keys_t const keys = subblock->available_values();
+
+  if (!keys.empty())
+  {
+    TEST_ERROR("A subblock inherited a value that shared a prefix with the block name");
   }
 }
 
