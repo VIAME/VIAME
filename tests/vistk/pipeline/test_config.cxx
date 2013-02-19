@@ -346,16 +346,30 @@ IMPLEMENT_TEST(subblock)
 
   vistk::config_t const subblock = config->subblock(block_name);
 
-  vistk::config::value_t const get_valuea = subblock->get_value<vistk::config::value_t>(keya);
+  if (subblock->has_value(keya))
+  {
+    vistk::config::value_t const get_valuea = subblock->get_value<vistk::config::value_t>(keya);
 
-  if (valuea != get_valuea)
+    if (valuea != get_valuea)
+    {
+      TEST_ERROR("Subblock did not inherit expected keys");
+    }
+  }
+  else
   {
     TEST_ERROR("Subblock did not inherit expected keys");
   }
 
-  vistk::config::value_t const get_valueb = subblock->get_value<vistk::config::value_t>(keyb);
+  if (subblock->has_value(keyb))
+  {
+    vistk::config::value_t const get_valueb = subblock->get_value<vistk::config::value_t>(keyb);
 
-  if (valueb != get_valueb)
+    if (valueb != get_valueb)
+    {
+      TEST_ERROR("Subblock did not inherit expected keys");
+    }
+  }
+  else
   {
     TEST_ERROR("Subblock did not inherit expected keys");
   }
