@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -169,17 +169,20 @@ class VISTK_PIPELINE_EXPORT bad_datum_cast_exception
     /**
      * \brief Constructor.
      *
-     * \param typeid_ The type that was requested.
+     * \param requested_typeid The type that was requested.
+     * \param typeid_ The type that is in the datum.
      * \param type The type of the datum.
      * \param error The type that was requested.
      * \param reason The reason for the bad cast.
      */
-    bad_datum_cast_exception(std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw();
+    bad_datum_cast_exception(std::string const& requested_typeid, std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw();
     /**
      * \brief Destructor.
      */
     ~bad_datum_cast_exception() throw();
 
+    /// The requested datum type.
+    std::string const m_requested_typeid;
     /// The datum type.
     std::string const m_typeid;
     /// The datum type.
@@ -207,9 +210,10 @@ datum::get_datum() const
   }
   catch (boost::bad_any_cast const& e)
   {
-    std::string const type_name = typeid(T).name();
+    std::string const req_type_name = typeid(T).name();
+    std::string const type_name = m_datum.type().name();
 
-    throw bad_datum_cast_exception(type_name, m_type, m_error, e.what());
+    throw bad_datum_cast_exception(req_type_name, type_name, m_type, m_error, e.what());
   }
 }
 
