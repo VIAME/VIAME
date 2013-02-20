@@ -58,16 +58,16 @@
 namespace vistk
 {
 
-#ifdef NAME_THREAD_USING_PTHREAD
-static bool name_thread_pthread(thread_name_t const& name);
+#ifdef NAME_THREAD_USING_PRCTL
+static bool name_thread_prctl(thread_name_t const& name);
 #endif
 
 #ifdef NAME_THREAD_USING_SETPROCTITLE
 static bool name_thread_setproctitle(thread_name_t const& name);
 #endif
 
-#ifdef NAME_THREAD_USING_PRCTL
-static bool name_thread_prctl(thread_name_t const& name);
+#ifdef NAME_THREAD_USING_PTHREAD
+static bool name_thread_pthread(thread_name_t const& name);
 #endif
 
 #ifdef NAME_THREAD_USING_WIN32
@@ -79,10 +79,10 @@ name_thread(thread_name_t const& name)
 {
   bool ret = false;
 
-#ifdef NAME_THREAD_USING_PTHREAD
+#ifdef NAME_THREAD_USING_PRCTL
   if (!ret)
   {
-    ret = name_thread_pthread(name);
+    ret = name_thread_prctl(name);
   }
 #endif
 
@@ -93,10 +93,10 @@ name_thread(thread_name_t const& name)
   }
 #endif
 
-#ifdef NAME_THREAD_USING_PRCTL
+#ifdef NAME_THREAD_USING_PTHREAD
   if (!ret)
   {
-    ret = name_thread_prctl(name);
+    ret = name_thread_pthread(name);
   }
 #endif
 
@@ -146,6 +146,24 @@ get_envvar(envvar_name_t const& name)
   return value;
 }
 
+#ifdef NAME_THREAD_USING_PRCTL
+bool
+name_thread_prctl(thread_name_t const& name)
+{
+  int const ret = prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name.c_str()), 0, 0, 0);
+
+  return (ret == 0);
+}
+#endif
+
+#ifdef NAME_THREAD_USING_SETPROCTITLE
+bool
+name_thread_setproctitle(thread_name_t const& name)
+{
+  setproctitle("%s", name.c_str());
+}
+#endif
+
 #ifdef NAME_THREAD_USING_PTHREAD
 bool
 name_thread_pthread(thread_name_t const& name)
@@ -171,24 +189,6 @@ name_thread_pthread(thread_name_t const& name)
   ret = 1;
 #endif
 #endif
-
-  return (ret == 0);
-}
-#endif
-
-#ifdef NAME_THREAD_USING_SETPROCTITLE
-bool
-name_thread_setproctitle(thread_name_t const& name)
-{
-  setproctitle("%s", name.c_str());
-}
-#endif
-
-#ifdef NAME_THREAD_USING_PRCTL
-bool
-name_thread_prctl(thread_name_t const& name)
-{
-  int const ret = prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name.c_str()), 0, 0, 0);
 
   return (ret == 0);
 }
