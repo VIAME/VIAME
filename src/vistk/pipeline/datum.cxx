@@ -120,6 +120,13 @@ bad_datum_cast_exception
          << m_typeid << ": "
          << m_reason << ".";
   }
+  else if (m_type == datum::data)
+  {
+    sstr << "Failed to cast datum of type "
+            "\'" << string_for_type(m_type) << "\' (" << m_typeid << ") into "
+         << m_requested_typeid << ": "
+         << m_reason << ".";
+  }
   else
   {
     sstr << "Failed to cast datum of type "
