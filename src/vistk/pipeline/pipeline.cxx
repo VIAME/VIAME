@@ -1514,8 +1514,8 @@ pipeline::priv
     // Configure the edge based on the connected ports.
     {
       config_t const conn_config = config->subblock(priv::config_edge_conn);
-      config_t const up_config = conn_config->subblock(upstream_name + priv::port_sep + upstream_port);
-      config_t const down_config = conn_config->subblock(downstream_name + priv::port_sep + downstream_port);
+      config_t const up_config = conn_config->subblock(upstream_name + config::block_sep + "up" + config::block_sep + upstream_port);
+      config_t const down_config = conn_config->subblock(downstream_name + config::block_sep + "down" + config::block_sep + downstream_port);
 
       edge_config->merge_config(up_config);
       edge_config->merge_config(down_config);
