@@ -35,6 +35,9 @@ DECLARE_TEST(config_read_only);
 DECLARE_TEST(config_not_a_flag);
 DECLARE_TEST(config_read_only_override);
 DECLARE_TEST(config_append);
+DECLARE_TEST(config_append_ro);
+DECLARE_TEST(config_append_provided);
+DECLARE_TEST(config_append_provided_ro);
 DECLARE_TEST(config_cappend);
 DECLARE_TEST(config_cappend_empty);
 DECLARE_TEST(config_pappend);
@@ -83,6 +86,9 @@ main(int argc, char* argv[])
   ADD_TEST(tests, config_not_a_flag);
   ADD_TEST(tests, config_read_only_override);
   ADD_TEST(tests, config_append);
+  ADD_TEST(tests, config_append_ro);
+  ADD_TEST(tests, config_append_provided);
+  ADD_TEST(tests, config_append_provided_ro);
   ADD_TEST(tests, config_cappend);
   ADD_TEST(tests, config_cappend_empty);
   ADD_TEST(tests, config_pappend);
@@ -251,6 +257,70 @@ IMPLEMENT_TEST(config_append)
     TEST_ERROR("Configuration value was not appended: "
                "Expected: " << expected << " "
                "Received: " << myvalue);
+  }
+}
+
+IMPLEMENT_TEST(config_append_ro)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
+  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
+  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration value was not appended: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+
+  if (!conf->is_read_only(mykey))
+  {
+    TEST_ERROR("The configuration value was not marked as read only");
+  }
+}
+
+IMPLEMENT_TEST(config_append_provided)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
+  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
+  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration value was not appended: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+}
+
+IMPLEMENT_TEST(config_append_provided_ro)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
+  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
+  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration value was not appended: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+
+  if (!conf->is_read_only(mykey))
+  {
+    TEST_ERROR("The configuration value was not marked as read only");
   }
 }
 
