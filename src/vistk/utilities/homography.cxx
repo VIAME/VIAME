@@ -191,6 +191,7 @@ template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::timestamp, vistk:
 template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::utm_zone_t, vistk::timestamp>;
 template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::plane_ref_t, vistk::utm_zone_t>;
 template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::utm_zone_t, vistk::plane_ref_t>;
+template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::plane_ref_t, vistk::plane_ref_t>;
 
 template <typename Source, typename Shared, typename Dest>
 vistk::homography<Source, Dest>
