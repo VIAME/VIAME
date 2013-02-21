@@ -1082,9 +1082,9 @@ pipeline::priv
 ::check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const
 {
   bool const is_const = up_flags.count(process::flag_output_const);
-  bool const requires_mutable = down_flags.count(process::flag_input_mutable);
+  bool const is_mutable = down_flags.count(process::flag_input_mutable);
 
-  if (is_const && requires_mutable)
+  if (is_const && is_mutable)
   {
     return false;
   }
