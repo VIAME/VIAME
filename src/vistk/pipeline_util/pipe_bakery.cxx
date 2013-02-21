@@ -128,7 +128,7 @@ class pipe_bakery
     using bakery_base::operator ();
 };
 
-static config_t extract_configuration(bakery_base::config_decls_t& configs);
+static config_t extract_configuration_from_decls(bakery_base::config_decls_t& configs);
 
 pipeline_t
 bake_pipe_blocks(pipe_blocks const& blocks)
@@ -140,7 +140,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
 
   bakery_base::config_decls_t& configs = bakery.m_configs;
-  config_t global_conf = extract_configuration(configs);
+  config_t global_conf = extract_configuration_from_decls(configs);
 
   // Create pipeline.
   config_t const pipeline_conf = global_conf->subblock_view(config_pipeline_key);
@@ -304,7 +304,7 @@ extract_configuration(pipe_blocks const& blocks)
 
   bakery_base::config_decls_t& configs = bakery.m_configs;
 
-  return extract_configuration(configs);
+  return extract_configuration_from_decls(configs);
 }
 
 class provider_dereferencer
@@ -368,7 +368,7 @@ class config_provider_sorter
 };
 
 config_t
-extract_configuration(bakery_base::config_decls_t& configs)
+extract_configuration_from_decls(bakery_base::config_decls_t& configs)
 {
   dereference_static_providers(configs);
 
@@ -722,7 +722,7 @@ cluster_creator
 {
   bakery_base::config_decls_t default_configs = m_bakery.m_configs;
 
-  m_default_config = extract_configuration(default_configs);
+  m_default_config = extract_configuration_from_decls(default_configs);
 }
 
 cluster_creator
@@ -762,7 +762,7 @@ cluster_creator
     all_configs.push_back(decl);
   }
 
-  config_t const full_config = extract_configuration(all_configs);
+  config_t const full_config = extract_configuration_from_decls(all_configs);
 
   typedef boost::shared_ptr<loaded_cluster> loaded_cluster_t;
 
@@ -788,8 +788,9 @@ cluster_creator
   // Declare configuration values.
   BOOST_FOREACH (cluster_config_t const& conf, info.m_configs)
   {
-    // Calls to map_config are not necessary because extract_configuration does
-    // the mappings for us via configuration providers.
+    // Calls to map_config are not necessary because
+    // extract_configuration_from_decls does the mappings for us via
+    // configuration providers.
 
     config_value_t const& config_value = conf.config_value;
     config_key_t const& config_key = config_value.key;
