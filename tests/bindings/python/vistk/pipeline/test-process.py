@@ -80,6 +80,7 @@ def test_api_calls():
     process.PythonProcess.type_data_dependent
     process.PythonProcess.type_flow_dependent
     process.PythonProcess.flag_output_const
+    process.PythonProcess.flag_output_shared
     process.PythonProcess.flag_input_static
     process.PythonProcess.flag_input_mutable
     process.PythonProcess.flag_input_nodep
