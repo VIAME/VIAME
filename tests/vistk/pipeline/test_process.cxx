@@ -34,6 +34,7 @@ DECLARE_TEST(set_input_type_after_init);
 DECLARE_TEST(set_output_type_after_init);
 DECLARE_TEST(set_tagged_flow_dependent_port);
 DECLARE_TEST(set_tagged_flow_dependent_port_cascade);
+DECLARE_TEST(set_tagged_flow_dependent_port_cascade_any);
 DECLARE_TEST(add_input_port_after_type_pin);
 DECLARE_TEST(add_output_port_after_type_pin);
 DECLARE_TEST(set_untagged_flow_dependent_port);
@@ -73,6 +74,7 @@ main(int argc, char* argv[])
   ADD_TEST(tests, set_output_type_after_init);
   ADD_TEST(tests, set_tagged_flow_dependent_port);
   ADD_TEST(tests, set_tagged_flow_dependent_port_cascade);
+  ADD_TEST(tests, set_tagged_flow_dependent_port_cascade_any);
   ADD_TEST(tests, add_input_port_after_type_pin);
   ADD_TEST(tests, add_output_port_after_type_pin);
   ADD_TEST(tests, set_untagged_flow_dependent_port);
@@ -452,6 +454,35 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade)
   if (oinfo->type != port_type)
   {
     TEST_ERROR("Setting the input port type did not also set the output port info");
+  }
+}
+
+IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade_any)
+{
+  vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
+
+  vistk::process::port_t const iport_name = vistk::process::port_t("tagged_input");
+  vistk::process::port_t const oport_name = vistk::process::port_t("tagged_output");
+
+  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+
+  vistk::process_t const input_process = create_process(proc_type);
+
+  if (!input_process->set_input_port_type(iport_name, vistk::process::type_any))
+  {
+    TEST_ERROR("Could not set the input port type");
+  }
+
+  if (!input_process->set_input_port_type(iport_name, port_type))
+  {
+    TEST_ERROR("Could not set the input port type after setting it to 'any'");
+  }
+
+  vistk::process::port_info_t const info = input_process->input_port_info(iport_name);
+
+  if (info->type != port_type)
+  {
+    TEST_ERROR("Setting the port type on a flow port set to 'any' did not apply");
   }
 }
 
