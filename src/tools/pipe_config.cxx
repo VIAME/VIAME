@@ -20,6 +20,7 @@
 
 #include <vistk/utilities/path.h>
 
+#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -27,7 +28,9 @@
 #include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -145,6 +148,8 @@ class key_printer
     std::ostream& m_ostr;
 };
 
+static vistk::process::name_t denormalize_name(vistk::process::name_t const& name);
+
 void
 config_printer
 ::operator () (vistk::config_pipe_block const& config_block)
@@ -160,8 +165,12 @@ config_printer
 
   std::for_each(values.begin(), values.end(), printer);
 
-  output_process_by_name(key_path, false);
+  vistk::process::name_t const denorm_name = denormalize_name(key_path);
+
+  output_process_by_name(denorm_name, false);
 }
+
+static vistk::process::name_t normalize_name(vistk::process::name_t const& name);
 
 void
 config_printer
@@ -286,9 +295,10 @@ config_printer
 {
   vistk::process::name_t const name = proc->name();
   vistk::process::type_t const type = proc->type();
+  vistk::process::name_t const norm_name = normalize_name(name);
 
   m_ostr << "# Defaults for \'" << name << "\' " << kind << ":" << std::endl;
-  m_ostr << "config " << name << std::endl;
+  m_ostr << "config " << norm_name << std::endl;
   m_ostr << "#  :: " << type << std::endl;
 
   output_process(proc);
@@ -300,6 +310,7 @@ config_printer
 {
   vistk::process::name_t const name = proc->name();
   vistk::config::keys_t const keys = proc->available_config();
+  vistk::process::name_t const norm_name = normalize_name(name);
 
   BOOST_FOREACH (vistk::config::key_t const& key, keys)
   {
@@ -329,7 +340,7 @@ config_printer
       m_ostr << "  # Default value: " << def << std::endl;
     }
 
-    vistk::config::key_t const resolved_key = name + vistk::config::block_sep + key;
+    vistk::config::key_t const resolved_key = norm_name + vistk::config::block_sep + key;
 
     if (m_config->has_value(resolved_key))
     {
@@ -389,4 +400,28 @@ key_printer
   }
 
   m_ostr << " " << value << std::endl;
+}
+
+vistk::process::name_t
+denormalize_name(vistk::process::name_t const& name)
+{
+  vistk::process::name_t denorm_name;
+
+  std::replace_copy_if(name.begin(), name.end(),
+                       std::back_inserter(denorm_name),
+                       boost::is_any_of(":"), '/');
+
+  return denorm_name;
+}
+
+vistk::process::name_t
+normalize_name(vistk::process::name_t const& name)
+{
+  vistk::process::name_t norm_name;
+
+  std::replace_copy_if(name.begin(), name.end(),
+                       std::back_inserter(norm_name),
+                       boost::is_any_of("/"), ':');
+
+  return norm_name;
 }
