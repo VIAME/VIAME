@@ -385,9 +385,7 @@ extract_configuration(bakery_base::config_decls_t& configs)
     {
       config::key_t const& key = decl.first;
 
-      unprovided_keys_t::const_iterator const i = unprovided_keys.find(key);
-
-      if (i != unprovided_keys.end())
+      if (unprovided_keys.count(key))
       {
         continue;
       }
