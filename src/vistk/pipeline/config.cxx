@@ -29,7 +29,7 @@ config::key_t const config::block_sep = key_t(":");
 config::key_t const config::global_value = key_t("_global");
 
 static bool does_not_begin_with(config::key_t const& key, config::key_t const& name);
-static config::key_t strip_block_name(config::key_t const& key);
+static config::key_t strip_block_name(config::key_t const& subblock, config::key_t const& key);
 
 config_t
 config
@@ -56,7 +56,7 @@ config
       continue;
     }
 
-    key_t const stripped_key_name = strip_block_name(key_name);
+    key_t const stripped_key_name = strip_block_name(key, key_name);
 
     conf->set_value(stripped_key_name, get_value(key_name));
   }
@@ -162,7 +162,7 @@ config
 
     parent_keys.erase(i, parent_keys.end());
 
-    std::transform(parent_keys.begin(), parent_keys.end(), std::back_inserter(keys), strip_block_name);
+    std::transform(parent_keys.begin(), parent_keys.end(), std::back_inserter(keys), boost::bind(strip_block_name, m_name, _1));
   }
   else
   {
@@ -366,16 +366,14 @@ does_not_begin_with(config::key_t const& key, config::key_t const& name)
 }
 
 config::key_t
-strip_block_name(config::key_t const& key)
+strip_block_name(config::key_t const& subblock, config::key_t const& key)
 {
-  size_t const pos = key.find(config::block_sep);
-
-  if (pos == config::key_t::npos)
+  if (!boost::starts_with(key, subblock + config::block_sep))
   {
     return key;
   }
 
-  return key.substr(pos + 1);
+  return key.substr(subblock.size() + config::block_sep.size());
 }
 
 }
