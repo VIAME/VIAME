@@ -15,11 +15,15 @@
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process_cluster.h>
+#include <vistk/pipeline/process_registry.h>
+#include <vistk/pipeline/scheduler.h>
+#include <vistk/pipeline/scheduler_registry.h>
 
 #include <boost/lexical_cast.hpp>
 
 #include <exception>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 
@@ -58,6 +62,8 @@ DECLARE_TEST(cluster_missing_ports);
 DECLARE_TEST(cluster_multiple_cluster);
 DECLARE_TEST(cluster_duplicate_input);
 DECLARE_TEST(cluster_duplicate_output);
+DECLARE_TEST(cluster_configuration_default);
+DECLARE_TEST(cluster_configuration_provide);
 
 /// \todo Add tests for clusters without ports or processes.
 
@@ -106,6 +112,8 @@ main(int argc, char* argv[])
   ADD_TEST(tests, cluster_multiple_cluster);
   ADD_TEST(tests, cluster_duplicate_input);
   ADD_TEST(tests, cluster_duplicate_output);
+  ADD_TEST(tests, cluster_configuration_default);
+  ADD_TEST(tests, cluster_configuration_provide);
 
   RUN_TEST(tests, testname, pipe_file);
 }
@@ -594,4 +602,162 @@ IMPLEMENT_TEST(cluster_duplicate_output)
   EXPECT_EXCEPTION(vistk::duplicate_cluster_output_port_exception,
                    vistk::bake_cluster_blocks(blocks),
                    "baking a cluster with duplicate output ports");
+}
+
+static void test_cluster(vistk::process_t const& cluster, std::string const& path);
+
+IMPLEMENT_TEST(cluster_configuration_default)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  vistk::load_known_modules();
+
+  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+
+  vistk::process_ctor_t const ctor = info->ctor;
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::process_t const cluster = ctor(config);
+
+  std::string const output_path = "test-pipe_bakery-configuration_default.txt";
+
+  test_cluster(cluster, output_path);
+}
+
+IMPLEMENT_TEST(cluster_configuration_provide)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  vistk::load_known_modules();
+
+  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+
+  vistk::process_ctor_t const ctor = info->ctor;
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  vistk::process_t const cluster = ctor(config);
+
+  std::string const output_path = "test-pipe_bakery-configuration_provide.txt";
+
+  test_cluster(cluster, output_path);
+}
+
+static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
+static vistk::pipeline_t create_pipeline();
+
+void
+test_cluster(vistk::process_t const& cluster, std::string const& path)
+{
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
+  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_named = cluster->name();
+  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+
+  int32_t const start_value = 10;
+  int32_t const end_value = 20;
+
+  {
+    vistk::config_t const configu = vistk::config::empty_config();
+
+    vistk::config::key_t const start_key = vistk::config::key_t("start");
+    vistk::config::key_t const end_key = vistk::config::key_t("end");
+
+    vistk::config::value_t const start_num = boost::lexical_cast<vistk::config::value_t>(start_value);
+    vistk::config::value_t const end_num = boost::lexical_cast<vistk::config::value_t>(end_value);
+
+    configu->set_value(start_key, start_num);
+    configu->set_value(end_key, end_num);
+
+    vistk::config_t const configt = vistk::config::empty_config();
+
+    vistk::config::key_t const output_key = vistk::config::key_t("output");
+    vistk::config::value_t const output_value = vistk::config::value_t(path);
+
+    configt->set_value(output_key, output_value);
+
+    vistk::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
+    vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+
+    vistk::pipeline_t const pipeline = create_pipeline();
+
+    pipeline->add_process(processu);
+    pipeline->add_process(cluster);
+    pipeline->add_process(processt);
+
+    vistk::process::port_t const port_nameu = vistk::process::port_t("number");
+    vistk::process::port_t const port_namedi = vistk::process::port_t("factor");
+    vistk::process::port_t const port_namedo = vistk::process::port_t("product");
+    vistk::process::port_t const port_namet = vistk::process::port_t("number");
+
+    pipeline->connect(proc_nameu, port_nameu,
+                      proc_named, port_namedi);
+    pipeline->connect(proc_named, port_namedo,
+                      proc_namet, port_namet);
+
+    pipeline->setup_pipeline();
+
+    vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+
+    vistk::scheduler_t const scheduler = reg->create_scheduler(vistk::scheduler_registry::default_type, pipeline);
+
+    scheduler->start();
+    scheduler->wait();
+  }
+
+  std::ifstream fin(path.c_str());
+
+  if (!fin.good())
+  {
+    TEST_ERROR("Could not open the output file");
+  }
+
+  std::string line;
+
+  // From the input cluster.
+  static const int32_t factor = 20;
+
+  for (int32_t i = start_value; i < end_value; ++i)
+  {
+    std::getline(fin, line);
+
+    if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i * factor))
+    {
+      TEST_ERROR("Did not get expected value: "
+                 "Expected: " << i * factor << " "
+                 "Received: " << line);
+    }
+  }
+
+  std::getline(fin, line);
+
+  if (!line.empty())
+  {
+    TEST_ERROR("Empty line missing");
+  }
+
+  if (!fin.eof())
+  {
+    TEST_ERROR("Not at end of file");
+  }
+}
+
+vistk::process_t
+create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
+{
+  static bool const modules_loaded = (vistk::load_known_modules(), true);
+  static vistk::process_registry_t const reg = vistk::process_registry::self();
+
+  (void)modules_loaded;
+
+  return reg->create_process(type, name, config);
+}
+
+vistk::pipeline_t
+create_pipeline()
+{
+  return boost::make_shared<vistk::pipeline>();
 }
