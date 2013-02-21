@@ -18,6 +18,7 @@
 #include "orphan_cluster.h"
 #include "orphan_process.h"
 #include "print_number_process.h"
+#include "shared_process.h"
 #include "tagged_flow_dependent_process.h"
 #include "take_number_process.h"
 #include "take_string_process.h"
@@ -56,6 +57,7 @@ register_processes()
   registry->register_process("orphan_cluster", "A dummy cluster", create_process<orphan_cluster>);
   registry->register_process("orphan", "A dummy process", create_process<orphan_process>);
   registry->register_process("print_number", "Print numbers to a file", create_process<print_number_process>);
+  registry->register_process("shared", "A process with the shared flag", create_process<shared_process>);
   registry->register_process("tagged_flow_dependent", "A process with a tagged flow dependent types", create_process<tagged_flow_dependent_process>);
   registry->register_process("take_number", "Print numbers to a file", create_process<take_number_process>);
   registry->register_process("take_string", "Print strings to a file", create_process<take_string_process>);
