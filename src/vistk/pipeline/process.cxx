@@ -758,7 +758,6 @@ process
 
   bool const required = flags.count(flag_required);
   bool const static_ = flags.count(flag_input_static);
-  bool const no_dep = flags.count(flag_input_nodep);
 
   if (required && static_)
   {
@@ -776,6 +775,8 @@ process
 
     d->static_inputs.push_back(port);
   }
+
+  bool const no_dep = flags.count(flag_input_nodep);
 
   if (required && !no_dep)
   {
