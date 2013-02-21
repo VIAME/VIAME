@@ -30,7 +30,10 @@ DECLARE_TEST(connect_no_downstream);
 DECLARE_TEST(connect_untyped_data_connection);
 DECLARE_TEST(connect_untyped_flow_connection);
 DECLARE_TEST(connect_type_mismatch);
-DECLARE_TEST(connect_flag_mismatch);
+DECLARE_TEST(connect_flag_shared_no_mutate);
+DECLARE_TEST(connect_flag_mismatch_const_mutate);
+DECLARE_TEST(connect_flag_mismatch_shared_mutate_first);
+DECLARE_TEST(connect_flag_mismatch_shared_mutate_second);
 DECLARE_TEST(connect);
 DECLARE_TEST(setup_pipeline_no_processes);
 DECLARE_TEST(setup_pipeline_orphaned_process);
@@ -85,7 +88,10 @@ main(int argc, char* argv[])
   ADD_TEST(tests, connect_untyped_data_connection);
   ADD_TEST(tests, connect_untyped_flow_connection);
   ADD_TEST(tests, connect_type_mismatch);
-  ADD_TEST(tests, connect_flag_mismatch);
+  ADD_TEST(tests, connect_flag_shared_no_mutate);
+  ADD_TEST(tests, connect_flag_mismatch_const_mutate);
+  ADD_TEST(tests, connect_flag_mismatch_shared_mutate_first);
+  ADD_TEST(tests, connect_flag_mismatch_shared_mutate_second);
   ADD_TEST(tests, connect);
   ADD_TEST(tests, setup_pipeline_no_processes);
   ADD_TEST(tests, setup_pipeline_orphaned_process);
@@ -304,7 +310,35 @@ IMPLEMENT_TEST(connect_type_mismatch)
                    "connecting type-mismatched ports");
 }
 
-IMPLEMENT_TEST(connect_flag_mismatch)
+IMPLEMENT_TEST(connect_flag_shared_no_mutate)
+{
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("shared");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_named1 = vistk::process::name_t("downstream1");
+  vistk::process::name_t const proc_named2 = vistk::process::name_t("downstream2");
+
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processd1 = create_process(proc_typed, proc_named1);
+  vistk::process_t const processd2 = create_process(proc_typed, proc_named2);
+
+  vistk::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processd1);
+  pipeline->add_process(processd2);
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("shared");
+  vistk::process::port_t const port_named = vistk::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_named1, port_named);
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_named2, port_named);
+}
+
+IMPLEMENT_TEST(connect_flag_mismatch_const_mutate)
 {
   vistk::process::type_t const proc_typeu = vistk::process::type_t("const");
   vistk::process::type_t const proc_typed = vistk::process::type_t("mutate");
@@ -326,7 +360,73 @@ IMPLEMENT_TEST(connect_flag_mismatch)
   EXPECT_EXCEPTION(vistk::connection_flag_mismatch_exception,
                    pipeline->connect(proc_nameu, port_nameu,
                                      proc_named, port_named),
-                   "connecting flag-mismatched ports");
+                   "connecting a const to a mutate port");
+}
+
+IMPLEMENT_TEST(connect_flag_mismatch_shared_mutate_first)
+{
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("shared");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
+  vistk::process::type_t const proc_typem = vistk::process::type_t("mutate");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+  vistk::process::name_t const proc_namem = vistk::process::name_t("downstream_mutate");
+
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processd = create_process(proc_typed, proc_named);
+  vistk::process_t const processm = create_process(proc_typem, proc_namem);
+
+  vistk::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processd);
+  pipeline->add_process(processm);
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("shared");
+  vistk::process::port_t const port_named = vistk::process::port_t("sink");
+  vistk::process::port_t const port_namem = vistk::process::port_t("mutate");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namem, port_namem);
+
+  EXPECT_EXCEPTION(vistk::connection_flag_mismatch_exception,
+                   pipeline->connect(proc_nameu, port_nameu,
+                                     proc_named, port_named),
+                   "connecting to a shared port already connected to a mutate port");
+}
+
+IMPLEMENT_TEST(connect_flag_mismatch_shared_mutate_second)
+{
+  vistk::process::type_t const proc_typeu = vistk::process::type_t("shared");
+  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
+  vistk::process::type_t const proc_typem = vistk::process::type_t("mutate");
+
+  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
+  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+  vistk::process::name_t const proc_namem = vistk::process::name_t("downstream_mutate");
+
+  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
+  vistk::process_t const processd = create_process(proc_typed, proc_named);
+  vistk::process_t const processm = create_process(proc_typem, proc_namem);
+
+  vistk::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processd);
+  pipeline->add_process(processm);
+
+  vistk::process::port_t const port_nameu = vistk::process::port_t("shared");
+  vistk::process::port_t const port_named = vistk::process::port_t("sink");
+  vistk::process::port_t const port_namem = vistk::process::port_t("mutate");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_named, port_named);
+
+  EXPECT_EXCEPTION(vistk::connection_flag_mismatch_exception,
+                   pipeline->connect(proc_nameu, port_nameu,
+                                     proc_namem, port_namem),
+                   "connecting a mutate port to a shared port already connected to a port");
 }
 
 IMPLEMENT_TEST(connect)
