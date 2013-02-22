@@ -43,7 +43,7 @@ template <typename T>
 static vil_image_view_base_sptr convert_image(PyArrayObject* arr);
 
 vil_image_view_base_sptr
-numpy_to_vil(PyObject* obj)
+numpy_to_vil_base(PyObject* obj)
 {
   vistk::python::python_gil const gil;
 
@@ -72,6 +72,15 @@ numpy_to_vil(PyObject* obj)
   }
 
   return vil_image_view_base_sptr();
+}
+
+template <typename T>
+vil_image_view<T>
+numpy_to_vil(PyObject* obj)
+{
+  vil_image_view_base_sptr const base_view = numpy_to_vil_base(obj);
+
+  return vil_image_view<T>(base_view);
 }
 
 void
@@ -154,3 +163,24 @@ convert_image(PyArrayObject* arr)
 }
 
 }
+
+#define INSTANTIATE_NUMPY_TO_VIL(type) \
+  template VISTK_PYTHON_NUMPY_EXPORT vil_image_view<type> vistk::python::numpy_to_vil<type>(PyObject*)
+
+INSTANTIATE_NUMPY_TO_VIL(bool);
+INSTANTIATE_NUMPY_TO_VIL(signed char);
+INSTANTIATE_NUMPY_TO_VIL(unsigned char);
+INSTANTIATE_NUMPY_TO_VIL(short);
+INSTANTIATE_NUMPY_TO_VIL(unsigned short);
+INSTANTIATE_NUMPY_TO_VIL(int);
+INSTANTIATE_NUMPY_TO_VIL(unsigned int);
+INSTANTIATE_NUMPY_TO_VIL(long);
+INSTANTIATE_NUMPY_TO_VIL(unsigned long);
+#if 0 && VXL_HAS_INT_64
+INSTANTIATE_NUMPY_TO_VIL(long long);
+INSTANTIATE_NUMPY_TO_VIL(unsigned long long);
+#endif
+INSTANTIATE_NUMPY_TO_VIL(float);
+INSTANTIATE_NUMPY_TO_VIL(double);
+
+#undef INSTANTIATE_NUMPY_TO_VIL
