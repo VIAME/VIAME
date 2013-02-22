@@ -14,6 +14,7 @@ set(examples_srcs
   orphan_process.cxx
   print_number_process.cxx
   registration.cxx
+  shared_process.cxx
   tagged_flow_dependent_process.cxx
   take_number_process.cxx
   take_string_process.cxx)
@@ -33,6 +34,7 @@ set(examples_private_headers
   orphan_process.h
   print_number_process.h
   registration.h
+  shared_process.h
   tagged_flow_dependent_process.h
   take_number_process.h
   take_string_process.h)

@@ -186,6 +186,14 @@ test_process_input_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
+    bool const is_shared = flags.count(vistk::process::flag_output_shared);
+
+    if (is_shared)
+    {
+      TEST_ERROR("Shared flag on input port "
+                 "(" << process->type() << "." << port << ")");
+    }
+
     vistk::process::port_type_t const& type = info->type;
 
     bool const is_data_dependent = (type == vistk::process::type_data_dependent);

@@ -45,6 +45,7 @@ process::port_type_t const process::type_none = port_type_t("_none");
 process::port_type_t const process::type_data_dependent = port_type_t("_data_dependent");
 process::port_type_t const process::type_flow_dependent = port_type_t("_flow_dependent/");
 process::port_flag_t const process::flag_output_const = port_flag_t("_const");
+process::port_flag_t const process::flag_output_shared = port_flag_t("_shared");
 process::port_flag_t const process::flag_input_static = port_flag_t("_static");
 process::port_flag_t const process::flag_input_mutable = port_flag_t("_mutable");
 process::port_flag_t const process::flag_input_nodep = port_flag_t("_nodep");
@@ -757,7 +758,6 @@ process
 
   bool const required = flags.count(flag_required);
   bool const static_ = flags.count(flag_input_static);
-  bool const no_dep = flags.count(flag_input_nodep);
 
   if (required && static_)
   {
@@ -776,9 +776,22 @@ process
     d->static_inputs.push_back(port);
   }
 
+  bool const no_dep = flags.count(flag_input_nodep);
+
   if (required && !no_dep)
   {
     d->required_inputs.push_back(port);
+  }
+
+  bool const is_shared = flags.count(flag_output_shared);
+  bool const is_const = flags.count(flag_output_const);
+
+  if (is_shared && is_const)
+  {
+    static std::string const reason = "An input port cannot be shared and const "
+                                      "(\'const\' is a stricter \'shared\')";
+
+    throw flag_mismatch_exception(d->name, port, reason);
   }
 
   d->input_ports[port] = info;

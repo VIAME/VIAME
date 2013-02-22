@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -307,6 +307,7 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("type_data_dependent", &vistk::process::type_data_dependent)
     .def_readonly("type_flow_dependent", &vistk::process::type_flow_dependent)
     .def_readonly("flag_output_const", &vistk::process::flag_output_const)
+    .def_readonly("flag_output_shared", &vistk::process::flag_output_shared)
     .def_readonly("flag_input_static", &vistk::process::flag_input_static)
     .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
     .def_readonly("flag_input_nodep", &vistk::process::flag_input_nodep)

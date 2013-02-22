@@ -80,9 +80,11 @@ class pipeline::priv
       type_compatible
     } port_type_status;
 
+    typedef std::map<process::port_addr_t, bool> shared_port_map_t;
+
     // Steps for checking a connection.
     port_type_status check_connection_types(process::connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type);
-    bool check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const;
+    bool check_connection_flags(process::connection_t const& connection, process::port_flags_t const& up_flags, process::port_flags_t const& down_flags);
 
     // Steps for setting up the pipeline.
     void check_for_processes() const;
@@ -116,6 +118,8 @@ class pipeline::priv
     cluster_connections_t cluster_connections;
     process::connections_t untyped_connections;
     type_pinnings_t type_pinnings;
+
+    shared_port_map_t connected_shared_ports;
 
     bool setup;
     bool setup_in_progress;
@@ -341,7 +345,7 @@ pipeline
   process::port_flags_t const& up_flags = up_info->flags;
   process::port_flags_t const& down_flags = down_info->flags;
 
-  if (!d->check_connection_flags(up_flags, down_flags))
+  if (!d->check_connection_flags(connection, up_flags, down_flags))
   {
     throw connection_flag_mismatch_exception(upstream_name, upstream_port,
                                              downstream_name, downstream_port);
@@ -484,6 +488,7 @@ pipeline
   d->cluster_connections.clear();
   d->untyped_connections.clear();
   d->type_pinnings.clear();
+  d->connected_shared_ports.clear();
 
   d->setup_in_progress = true;
 
@@ -1079,14 +1084,38 @@ pipeline::priv
 
 bool
 pipeline::priv
-::check_connection_flags(process::port_flags_t const& up_flags, process::port_flags_t const& down_flags) const
+::check_connection_flags(process::connection_t const& connection, process::port_flags_t const& up_flags, process::port_flags_t const& down_flags)
 {
   bool const is_const = up_flags.count(process::flag_output_const);
-  bool const requires_mutable = down_flags.count(process::flag_input_mutable);
+  bool const is_shared = up_flags.count(process::flag_output_shared);
+  bool const is_mutable = down_flags.count(process::flag_input_mutable);
 
-  if (is_const && requires_mutable)
+  if (is_const && is_mutable)
   {
     return false;
+  }
+
+  if (is_shared)
+  {
+    process::port_addr_t const& up_addr = connection.first;
+
+    shared_port_map_t::const_iterator const i = connected_shared_ports.find(up_addr);
+
+    if (i == connected_shared_ports.end())
+    {
+      // Nothing is connected yet.
+      connected_shared_ports[up_addr] = is_mutable;
+    }
+    else
+    {
+      bool const& has_mutable = i->second;
+
+      // Only one input can listen to a shared port if any are mutable.
+      if (is_mutable || has_mutable)
+      {
+        return false;
+      }
+    }
   }
 
   return true;
