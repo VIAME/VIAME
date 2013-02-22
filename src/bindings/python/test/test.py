@@ -47,6 +47,6 @@ def run_test(testname, tests, *args, **kwargs):
     except BaseException:
         import sys
 
-        e = sys.excinfo()[0]
+        e = sys.exc_info()[0]
 
         test_error("Unexpected exception: %s" % str(e))
