@@ -125,7 +125,7 @@ endfunction ()
 
 function (vistk_configure_pkgconfig module)
   if (UNIX)
-    set(pkgconfig_file "${vistk_binary_dir}/${module}.pc")
+    set(pkgconfig_file "${vistk_binary_dir}/lib/pkgconfig/${module}.pc")
 
     vistk_configure_file(vistk-${module}.pc
       "${CMAKE_CURRENT_SOURCE_DIR}/${module}.pc.in"
