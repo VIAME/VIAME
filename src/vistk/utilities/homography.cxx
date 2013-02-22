@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -184,13 +184,14 @@ homography<Source, Dest>
 }
 
 // Keep in sync with homography_types.h
-template class vistk::homography<vistk::timestamp, vistk::timestamp>;
-template class vistk::homography<vistk::timestamp, vistk::plane_ref_t>;
-template class vistk::homography<vistk::plane_ref_t, vistk::timestamp>;
-template class vistk::homography<vistk::timestamp, vistk::utm_zone_t>;
-template class vistk::homography<vistk::utm_zone_t, vistk::timestamp>;
-template class vistk::homography<vistk::plane_ref_t, vistk::utm_zone_t>;
-template class vistk::homography<vistk::utm_zone_t, vistk::plane_ref_t>;
+template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::timestamp, vistk::timestamp>;
+template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::timestamp, vistk::plane_ref_t>;
+template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::plane_ref_t, vistk::timestamp>;
+template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::timestamp, vistk::utm_zone_t>;
+template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::utm_zone_t, vistk::timestamp>;
+template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::plane_ref_t, vistk::utm_zone_t>;
+template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::utm_zone_t, vistk::plane_ref_t>;
+template class VISTK_UTILITIES_EXPORT vistk::homography<vistk::plane_ref_t, vistk::plane_ref_t>;
 
 template <typename Source, typename Shared, typename Dest>
 vistk::homography<Source, Dest>
