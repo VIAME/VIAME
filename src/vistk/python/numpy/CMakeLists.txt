@@ -17,6 +17,7 @@ set(python_numpy_headers
 set(python_numpy_private_headers
   numpy_memory_chunk.h
   numpy_support.h
+  python_wrap_vil_smart_ptr.h
   type_mappings.h)
 
 if (NUMPY_VERSION VERSION_GREATER "1.7.0" OR
