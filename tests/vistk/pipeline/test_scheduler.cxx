@@ -9,6 +9,8 @@
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/modules.h>
+#include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/pipeline_exception.h>
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/scheduler.h>
 #include <vistk/pipeline/scheduler_exception.h>
@@ -32,6 +34,7 @@ DECLARE_TEST(wait_before_start_scheduler);
 DECLARE_TEST(stop_before_start_scheduler);
 DECLARE_TEST(resume_before_start_scheduler);
 DECLARE_TEST(resume_unpaused_scheduler);
+DECLARE_TEST(restart);
 
 int
 main(int argc, char* argv[])
@@ -56,6 +59,7 @@ main(int argc, char* argv[])
   ADD_TEST(tests, stop_before_start_scheduler);
   ADD_TEST(tests, resume_before_start_scheduler);
   ADD_TEST(tests, resume_unpaused_scheduler);
+  ADD_TEST(tests, restart);
 
   RUN_TEST(tests, testname);
 }
@@ -66,6 +70,8 @@ class null_scheduler
   public:
     null_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config);
     virtual ~null_scheduler();
+
+    void reset_pipeline() const;
   protected:
     void _start();
     void _wait();
@@ -231,6 +237,20 @@ IMPLEMENT_TEST(resume_unpaused_scheduler)
                    "resuming an unpaused scheduler");
 }
 
+IMPLEMENT_TEST(restart)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+  sched->stop();
+
+  boost::shared_ptr<null_scheduler> const null_sched = boost::dynamic_pointer_cast<null_scheduler>(sched);
+
+  null_sched->reset_pipeline();
+
+  sched->start();
+}
+
 vistk::scheduler_t
 create_scheduler(vistk::scheduler_registry::type_t const& type)
 {
@@ -273,6 +293,14 @@ null_scheduler
 null_scheduler
 ::~null_scheduler()
 {
+}
+
+void
+null_scheduler
+::reset_pipeline() const
+{
+  pipeline()->reset();
+  pipeline()->setup_pipeline();
 }
 
 void

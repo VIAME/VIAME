@@ -182,6 +182,7 @@ vistk_make_test(scheduler wait_before_start_scheduler)
 vistk_make_test(scheduler stop_before_start_scheduler)
 vistk_make_test(scheduler resume_before_start_scheduler)
 vistk_make_test(scheduler resume_unpaused_scheduler)
+vistk_make_test(scheduler restart)
 
 ##############################
 # Pipeline tests
