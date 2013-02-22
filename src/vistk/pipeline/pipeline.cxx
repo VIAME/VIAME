@@ -155,12 +155,17 @@ class pipeline::priv
         process::port_type_t const m_type;
         bool const m_push_upstream;
     };
+  private:
+    static config::key_t const upstream_subblock;
+    static config::key_t const downstream_subblock;
 };
 
 process::port_t const pipeline::priv::port_sep = config::key_t(".");
 config::key_t const pipeline::priv::config_edge = config::key_t("_edge");
 config::key_t const pipeline::priv::config_edge_type = config::key_t("_edge_by_type");
 config::key_t const pipeline::priv::config_edge_conn = config::key_t("_edge_by_conn");
+config::key_t const pipeline::priv::upstream_subblock = config::key_t("up");
+config::key_t const pipeline::priv::downstream_subblock = config::key_t("down");
 
 pipeline
 ::pipeline(config_t const& config)
@@ -1514,8 +1519,8 @@ pipeline::priv
     // Configure the edge based on the connected ports.
     {
       config_t const conn_config = config->subblock(priv::config_edge_conn);
-      config_t const up_config = conn_config->subblock(upstream_name + priv::port_sep + upstream_port);
-      config_t const down_config = conn_config->subblock(downstream_name + priv::port_sep + downstream_port);
+      config_t const up_config = conn_config->subblock(upstream_name + config::block_sep + upstream_subblock + config::block_sep + upstream_port);
+      config_t const down_config = conn_config->subblock(downstream_name + config::block_sep + downstream_subblock + config::block_sep + downstream_port);
 
       edge_config->merge_config(up_config);
       edge_config->merge_config(down_config);
