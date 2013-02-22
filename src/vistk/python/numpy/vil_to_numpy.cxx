@@ -36,7 +36,7 @@ namespace python
 {
 
 PyObject*
-vil_to_numpy(vil_image_view_base_sptr const& img)
+vil_base_to_numpy(vil_image_view_base_sptr const& img)
 {
   vistk::python::python_gil const gil;
 
