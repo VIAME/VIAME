@@ -48,7 +48,7 @@ register_memory_chunk_to_python()
   // shouldn't be messing with such things, but it allows us to have numpy
   // arrays hold a reference to the memory chunk that is being used when
   // converting a vil_image_view into a NumPy array.
-  class_<vil_memory_chunk, vil_memory_chunk_sptr, boost::noncopyable>("_VilMemoryChunk"
+  class_<vil_memory_chunk, vil_memory_chunk_sptr>("_VilMemoryChunk"
     , "<internal>"
     , no_init);
 }
@@ -66,7 +66,7 @@ register_image_base()
 void
 register_image_base_to_python()
 {
-  class_<vil_image_view_base, vil_image_view_base_sptr, boost::noncopyable>("_VilImage"
+  class_<vil_image_view_base_sptr>("_VilImage"
     , "<internal>"
     , no_init);
 }
@@ -91,7 +91,7 @@ register_image_to_python()
 
   base += typeid(T).name();
 
-  class_<vil_image_view<T>, boost::noncopyable>(base.c_str()
+  class_<vil_image_view<T> >(base.c_str()
     , "<internal>"
     , no_init);
 }
