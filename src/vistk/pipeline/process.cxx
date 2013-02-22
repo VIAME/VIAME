@@ -576,9 +576,11 @@ process
     return true;
   }
 
+  bool const is_data_dependent = (old_type == type_data_dependent);
   bool const is_flow_dependent = boost::starts_with(old_type, type_flow_dependent);
+  bool const is_any = (old_type == type_any);
 
-  if ((old_type != type_data_dependent) && !is_flow_dependent)
+  if (!is_data_dependent && !is_flow_dependent && !is_any)
   {
     throw static_type_reset_exception(name(), port, old_type, new_type);
   }
@@ -641,9 +643,11 @@ process
     return true;
   }
 
+  bool const is_data_dependent = (old_type == type_data_dependent);
   bool const is_flow_dependent = boost::starts_with(old_type, type_flow_dependent);
+  bool const is_any = (old_type == type_any);
 
-  if ((old_type != type_data_dependent) && !is_flow_dependent)
+  if (!is_data_dependent && !is_flow_dependent && !is_any)
   {
     throw static_type_reset_exception(name(), port, old_type, new_type);
   }
