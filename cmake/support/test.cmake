@@ -27,13 +27,13 @@ add_custom_target(tooling)
 cmake_dependent_option(VISTK_ENABLE_CDASH "Enable CDash integration" OFF
   VISTK_ENABLE_TESTING OFF)
 
-find_program(VALGRIND_EXECUTABLE valgrind)
-
 option(VISTK_ADD_TEST_TARGETS "Add targets for tests to the build system" OFF)
 mark_as_advanced(VISTK_ADD_TEST_TARGETS)
 if (VISTK_ADD_TEST_TARGETS)
   add_custom_target(tests)
 endif ()
+
+find_program(VALGRIND_EXECUTABLE valgrind)
 
 cmake_dependent_option(VISTK_VALGRIND_GENERATE_SUPPRESSIONS "Output suppression rules for valgrind leak detections" OFF
   VALGRIND_EXECUTABLE OFF)
@@ -44,16 +44,19 @@ cmake_dependent_option(VISTK_VALGRIND_USE_SUPPRESSIONS "Suppress known leaks in 
 
 if (VALGRIND_EXECUTABLE)
   set(vistk_valgrind_arguments)
+
   if (VISTK_VALGRIND_GENERATE_SUPPRESSIONS)
     set(vistk_valgrind_arguments
         ${vistk_valgrind_arguments}
         "--gen-suppressions=all")
   endif ()
+
   if (VISTK_VALGRIND_VERBOSE)
     set(vistk_valgrind_arguments
       ${vistk_valgrind_arguments}
       "--verbose")
   endif ()
+
   if (VISTK_VALGRIND_USE_SUPPRESSIONS)
     file(GLOB
       valgrind_suppressions
