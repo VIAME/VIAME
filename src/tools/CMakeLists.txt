@@ -90,12 +90,3 @@ add_tool(processopedia
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
-
-add_tool(mask_scoring
-  pipeline_builder
-  tool_io
-  tool_usage
-  vistk_pipeline
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})

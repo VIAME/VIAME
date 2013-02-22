@@ -6,11 +6,10 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline_util/pipe_declaration_types.h>
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/load_pipe_exception.h>
-
-#include <vistk/utilities/path.h>
+#include <vistk/pipeline_util/path.h>
+#include <vistk/pipeline_util/pipe_declaration_types.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>

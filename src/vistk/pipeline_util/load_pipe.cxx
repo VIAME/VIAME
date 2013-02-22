@@ -10,12 +10,11 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <vistk/pipeline_util/include-paths.h>
 #endif
+#include "path.h"
 #include "pipe_grammar.h"
 
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/utils.h>
-
-#include <vistk/utilities/path.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>

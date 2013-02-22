@@ -3,9 +3,7 @@ project(vistk_tools_pipelines)
 add_subdirectory(clusters)
 add_subdirectory(include)
 
-set(pipelines
-  grayscale.pipe
-  warp_image.pipe)
+set(pipelines)
 
 install(
   FILES       ${pipelines}

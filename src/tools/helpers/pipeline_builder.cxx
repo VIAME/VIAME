@@ -10,14 +10,13 @@
 #include "tool_usage.h"
 
 #include <vistk/pipeline_util/load_pipe.h>
+#include <vistk/pipeline_util/path.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
 #include <vistk/pipeline_util/pipe_declaration_types.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/scheduler_registry.h>
-
-#include <vistk/utilities/path.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>

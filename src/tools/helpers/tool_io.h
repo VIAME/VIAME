@@ -7,7 +7,7 @@
 #ifndef VISTK_TOOL_HELPERS_TOOL_IO_H
 #define VISTK_TOOL_HELPERS_TOOL_IO_H
 
-#include <vistk/utilities/path.h>
+#include <vistk/pipeline_util/path.h>
 
 #include <boost/shared_ptr.hpp>
 

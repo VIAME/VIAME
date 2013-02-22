@@ -19,16 +19,8 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
 find_package(PythonInterp ${PYTHON_VERSION})
 
-find_package(NumPy)
-
 add_subdirectory(util)
 add_subdirectory(any_conversion)
-
-if (NUMPY_FOUND)
-  include_directories(SYSTEM ${NUMPY_INCLUDE_DIR})
-
-  add_subdirectory(numpy)
-endif ()
 
 create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"

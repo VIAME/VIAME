@@ -11,14 +11,13 @@
 #endif
 
 #include <vistk/pipeline_util/load_pipe_exception.h>
+#include <vistk/pipeline_util/path.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
 #include <vistk/pipeline_util/pipe_bakery_exception.h>
 
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/process_registry_exception.h>
 #include <vistk/pipeline/utils.h>
-
-#include <vistk/utilities/path.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>

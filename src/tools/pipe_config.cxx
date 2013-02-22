@@ -9,6 +9,7 @@
 #include "helpers/tool_main.h"
 #include "helpers/tool_usage.h"
 
+#include <vistk/pipeline_util/path.h>
 #include <vistk/pipeline_util/pipe_declaration_types.h>
 
 #include <vistk/pipeline/config.h>
@@ -18,8 +19,6 @@
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/types.h>
-
-#include <vistk/utilities/path.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>

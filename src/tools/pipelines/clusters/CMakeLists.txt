@@ -1,7 +1,6 @@
 project(vistk_tools_pipelines_clusters)
 
-set(pipeline_clusters
-  warp_image.cluster)
+set(pipeline_clusters)
 
 install(
   FILES       ${pipeline_clusters}

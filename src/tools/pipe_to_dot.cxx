@@ -10,6 +10,7 @@
 #include "helpers/tool_usage.h"
 
 #include <vistk/pipeline_util/export_dot.h>
+#include <vistk/pipeline_util/path.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
@@ -19,8 +20,7 @@
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/types.h>
 
-#include <vistk/utilities/path.h>
-
+#include <boost/filesystem/fstream.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
 

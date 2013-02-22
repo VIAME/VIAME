@@ -6,14 +6,11 @@
 
 #include "providers.h"
 
+#include "path.h"
 #include "pipe_bakery_exception.h"
-
-#include <vistk/utilities/path.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/utils.h>
-
-#include <vistk/utilities/path.h>
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/system/error_code.hpp>

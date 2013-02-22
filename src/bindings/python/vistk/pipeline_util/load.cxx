@@ -10,10 +10,9 @@
 #include <vistk/pipeline_util/load_pipe.h>
 #include <vistk/pipeline_util/load_pipe_exception.h>
 #include <vistk/pipeline_util/pipe_declaration_types.h>
+#include <vistk/pipeline_util/path.h>
 
 #include <vistk/pipeline/process.h>
-
-#include <vistk/utilities/path.h>
 
 #include <vistk/python/util/python_gil.h>
 

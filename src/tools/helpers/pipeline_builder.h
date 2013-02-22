@@ -7,11 +7,10 @@
 #ifndef VISTK_TOOLS_HELPERS_PIPELINE_BUILDER_H
 #define VISTK_TOOLS_HELPERS_PIPELINE_BUILDER_H
 
+#include <vistk/pipeline_util/path.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
 
 #include <vistk/pipeline/types.h>
-
-#include <vistk/utilities/path.h>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>

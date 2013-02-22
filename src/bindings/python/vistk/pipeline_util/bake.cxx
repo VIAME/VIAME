@@ -6,13 +6,12 @@
 
 #include <python/helpers/pystream.h>
 
+#include <vistk/pipeline_util/path.h>
 #include <vistk/pipeline_util/pipe_bakery.h>
 #include <vistk/pipeline_util/pipe_bakery_exception.h>
 
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process_registry.h>
-
-#include <vistk/utilities/path.h>
 
 #include <vistk/python/util/python_gil.h>
 

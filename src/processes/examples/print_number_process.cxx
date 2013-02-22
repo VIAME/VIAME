@@ -6,7 +6,7 @@
 
 #include "print_number_process.h"
 
-#include <vistk/utilities/path.h>
+#include <vistk/pipeline_util/path.h>
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/process_exception.h>

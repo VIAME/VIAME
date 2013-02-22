@@ -15,6 +15,7 @@ set(pipeline_util_headers
   export_dot_exception.h
   load_pipe.h
   load_pipe_exception.h
+  path.h
   pipe_bakery.h
   pipe_bakery_exception.h
   pipe_declaration_types.h
