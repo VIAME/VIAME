@@ -63,8 +63,8 @@ class null_scheduler
 {
   public:
     null_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config);
-    ~null_scheduler();
-
+    virtual ~null_scheduler();
+  protected:
     void _start();
     void _wait();
     void _pause();
