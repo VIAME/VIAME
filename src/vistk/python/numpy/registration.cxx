@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -100,21 +100,23 @@ register_image_to_python()
 
 }
 
-#define REGISTER_IMAGE_TYPE(type) \
-  template void vistk::python::register_image_type<type>()
+#define INSTANTIATE_REGISTER_IMAGE_TYPE(type) \
+  template VISTK_PYTHON_NUMPY_EXPORT void vistk::python::register_image_type<type>()
 
-REGISTER_IMAGE_TYPE(bool);
-REGISTER_IMAGE_TYPE(signed char);
-REGISTER_IMAGE_TYPE(unsigned char);
-REGISTER_IMAGE_TYPE(short);
-REGISTER_IMAGE_TYPE(unsigned short);
-REGISTER_IMAGE_TYPE(int);
-REGISTER_IMAGE_TYPE(unsigned int);
-REGISTER_IMAGE_TYPE(long);
-REGISTER_IMAGE_TYPE(unsigned long);
+INSTANTIATE_REGISTER_IMAGE_TYPE(bool);
+INSTANTIATE_REGISTER_IMAGE_TYPE(signed char);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned char);
+INSTANTIATE_REGISTER_IMAGE_TYPE(short);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned short);
+INSTANTIATE_REGISTER_IMAGE_TYPE(int);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned int);
+INSTANTIATE_REGISTER_IMAGE_TYPE(long);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned long);
 #if VXL_HAS_INT_64
-REGISTER_IMAGE_TYPE(long long);
-REGISTER_IMAGE_TYPE(unsigned long long);
+INSTANTIATE_REGISTER_IMAGE_TYPE(long long);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned long long);
 #endif
-REGISTER_IMAGE_TYPE(float);
-REGISTER_IMAGE_TYPE(double);
+INSTANTIATE_REGISTER_IMAGE_TYPE(float);
+INSTANTIATE_REGISTER_IMAGE_TYPE(double);
+
+#undef INSTANTIATE_REGISTER_IMAGE_TYPE
