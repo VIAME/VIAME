@@ -159,6 +159,11 @@ scheduler
 
   (void)lock;
 
+  if (!d->running)
+  {
+    throw resume_before_start_exception();
+  }
+
   if (!d->paused)
   {
     throw resume_unpaused_scheduler_exception();
