@@ -44,7 +44,7 @@ target_link_libraries(vistk_python_numpy
     vistk_python_util
     ${Boost_THREAD_LIBRARY}
     ${Boost_CHRONO_LIBRARY}
-      ${Boost_SYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(vistk_python_numpy
   PROPERTIES
