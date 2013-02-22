@@ -1,5 +1,7 @@
 project(vistk_python_vistk_image)
 
+find_package(NumPy)
+
 if (NUMPY_FOUND)
   add_vistk_python_library(vil
     vistk/image
