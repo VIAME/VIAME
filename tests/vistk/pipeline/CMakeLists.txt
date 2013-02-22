@@ -180,6 +180,7 @@ vistk_make_test(scheduler repause_scheduler)
 vistk_make_test(scheduler pause_before_start_scheduler)
 vistk_make_test(scheduler wait_before_start_scheduler)
 vistk_make_test(scheduler stop_before_start_scheduler)
+vistk_make_test(scheduler resume_before_start_scheduler)
 vistk_make_test(scheduler resume_unpaused_scheduler)
 
 ##############################

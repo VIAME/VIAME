@@ -30,6 +30,7 @@ DECLARE_TEST(repause_scheduler);
 DECLARE_TEST(pause_before_start_scheduler);
 DECLARE_TEST(wait_before_start_scheduler);
 DECLARE_TEST(stop_before_start_scheduler);
+DECLARE_TEST(resume_before_start_scheduler);
 DECLARE_TEST(resume_unpaused_scheduler);
 
 int
@@ -53,6 +54,7 @@ main(int argc, char* argv[])
   ADD_TEST(tests, pause_before_start_scheduler);
   ADD_TEST(tests, wait_before_start_scheduler);
   ADD_TEST(tests, stop_before_start_scheduler);
+  ADD_TEST(tests, resume_before_start_scheduler);
   ADD_TEST(tests, resume_unpaused_scheduler);
 
   RUN_TEST(tests, testname);
@@ -209,9 +211,20 @@ IMPLEMENT_TEST(stop_before_start_scheduler)
                    "stopping a scheduler before it is started");
 }
 
+IMPLEMENT_TEST(resume_before_start_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  EXPECT_EXCEPTION(vistk::resume_before_start_exception,
+                   sched->resume(),
+                   "resuming an unstarted scheduler");
+}
+
 IMPLEMENT_TEST(resume_unpaused_scheduler)
 {
   vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
 
   EXPECT_EXCEPTION(vistk::resume_unpaused_scheduler_exception,
                    sched->resume(),
