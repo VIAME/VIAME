@@ -193,7 +193,7 @@ def test_datum():
         except BaseException:
             import sys
 
-            e = sys.exc_info()[0]
+            e = sys.exc_info()[1]
 
             test_error("Could not initialize pipeline: '%s'" % str(e))
             continue
@@ -206,7 +206,7 @@ def test_datum():
         except BaseException:
             import sys
 
-            e = sys.exc_info()[0]
+            e = sys.exc_info()[1]
 
             test_error("Could not execute pipeline: '%s'" % str(e))
 
