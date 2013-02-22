@@ -24,6 +24,11 @@ if (NUMPY_VERSION VERSION_GREATER "1.7.0" OR
   add_definitions(-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION)
 endif ()
 
+# NumPy is not imported from this library, so use an external symbol table
+# instead of embedding the table here.
+add_definitions(-DNO_IMPORT_ARRAY)
+add_definitions(-DPY_ARRAY_UNIQUE_SYMBOL=vistk_ARRAY_API)
+
 vistk_private_header_group(${python_numpy_private_headers})
 vistk_add_library(vistk_python_numpy
   ${python_numpy_srcs}

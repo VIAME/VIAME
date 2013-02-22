@@ -6,6 +6,7 @@
 
 #include "vil_to_numpy.h"
 
+#include "import.h"
 #include "numpy_support.h"
 #include "registration.h"
 #include "type_mappings.h"
@@ -189,6 +190,8 @@ vil_to_numpy(vil_image_view<T> const& img)
     /// \todo Log that vil doesn't own this memory...there be dragons here.
     Py_INCREF(obj);
   }
+
+  vistk::python::import_numpy();
 
   PyObject* const arr = PyArray_New(&PyArray_Type, nd, dims, arr_type, strides, reinterpret_cast<void*>(mem), sizeof(pixel_t), flags, obj);
 

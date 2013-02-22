@@ -10,6 +10,9 @@
 
 #include <Python.h>
 
+// This module does import the array module, so undef the block.
+#undef NO_IMPORT_ARRAY
+
 #include <numpy/arrayobject.h>
 
 /**

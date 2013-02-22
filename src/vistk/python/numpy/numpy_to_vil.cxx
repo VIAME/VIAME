@@ -6,6 +6,7 @@
 
 #include "numpy_to_vil.h"
 
+#include "import.h"
 #include "numpy_memory_chunk.h"
 #include "numpy_support.h"
 #include "registration.h"
@@ -92,6 +93,8 @@ numpy_to_vil_check(PyObject* obj)
 
     throw std::runtime_error(reason);
   }
+
+  import_numpy();
 
   if (!PyArray_Check(obj))
   {
