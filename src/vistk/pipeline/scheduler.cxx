@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -141,7 +141,7 @@ scheduler
 
   (void)write_lock;
 
-  if (!d->paused)
+  if (d->paused)
   {
     throw repause_scheduler_exception();
   }
@@ -159,7 +159,12 @@ scheduler
 
   (void)lock;
 
-  if (d->paused)
+  if (!d->running)
+  {
+    throw resume_before_start_exception();
+  }
+
+  if (!d->paused)
   {
     throw resume_unpaused_scheduler_exception();
   }

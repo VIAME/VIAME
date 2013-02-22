@@ -8,6 +8,10 @@
 
 #include <vistk/pipeline/config.h>
 #include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/modules.h>
+#include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/pipeline_exception.h>
+#include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/scheduler.h>
 #include <vistk/pipeline/scheduler_exception.h>
 #include <vistk/pipeline/scheduler_registry.h>
@@ -18,6 +22,19 @@
 
 DECLARE_TEST(null_config);
 DECLARE_TEST(null_pipeline);
+DECLARE_TEST(start_scheduler);
+DECLARE_TEST(pause_scheduler);
+DECLARE_TEST(resume_scheduler);
+DECLARE_TEST(stop_scheduler);
+DECLARE_TEST(stop_paused_scheduler);
+DECLARE_TEST(restart_scheduler);
+DECLARE_TEST(repause_scheduler);
+DECLARE_TEST(pause_before_start_scheduler);
+DECLARE_TEST(wait_before_start_scheduler);
+DECLARE_TEST(stop_before_start_scheduler);
+DECLARE_TEST(resume_before_start_scheduler);
+DECLARE_TEST(resume_unpaused_scheduler);
+DECLARE_TEST(restart);
 
 int
 main(int argc, char* argv[])
@@ -30,6 +47,19 @@ main(int argc, char* argv[])
 
   ADD_TEST(tests, null_config);
   ADD_TEST(tests, null_pipeline);
+  ADD_TEST(tests, start_scheduler);
+  ADD_TEST(tests, pause_scheduler);
+  ADD_TEST(tests, resume_scheduler);
+  ADD_TEST(tests, stop_scheduler);
+  ADD_TEST(tests, stop_paused_scheduler);
+  ADD_TEST(tests, restart_scheduler);
+  ADD_TEST(tests, repause_scheduler);
+  ADD_TEST(tests, pause_before_start_scheduler);
+  ADD_TEST(tests, wait_before_start_scheduler);
+  ADD_TEST(tests, stop_before_start_scheduler);
+  ADD_TEST(tests, resume_before_start_scheduler);
+  ADD_TEST(tests, resume_unpaused_scheduler);
+  ADD_TEST(tests, restart);
 
   RUN_TEST(tests, testname);
 }
@@ -39,8 +69,10 @@ class null_scheduler
 {
   public:
     null_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config);
-    ~null_scheduler();
+    virtual ~null_scheduler();
 
+    void reset_pipeline() const;
+  protected:
     void _start();
     void _wait();
     void _pause();
@@ -92,6 +124,133 @@ IMPLEMENT_TEST(null_pipeline)
                    "passing NULL as the pipeline for a scheduler");
 }
 
+static vistk::scheduler_t create_minimal_scheduler();
+
+IMPLEMENT_TEST(start_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+}
+
+IMPLEMENT_TEST(pause_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+  sched->pause();
+}
+
+IMPLEMENT_TEST(resume_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+  sched->pause();
+  sched->resume();
+}
+
+IMPLEMENT_TEST(stop_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+  sched->stop();
+}
+
+IMPLEMENT_TEST(stop_paused_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+  sched->pause();
+  sched->stop();
+}
+
+IMPLEMENT_TEST(restart_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+
+  EXPECT_EXCEPTION(vistk::restart_scheduler_exception,
+                   sched->start(),
+                   "calling start on a scheduler a second time");
+}
+
+IMPLEMENT_TEST(repause_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+  sched->pause();
+
+  EXPECT_EXCEPTION(vistk::repause_scheduler_exception,
+                   sched->pause(),
+                   "pausing a scheduler a second time");
+}
+
+IMPLEMENT_TEST(pause_before_start_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  EXPECT_EXCEPTION(vistk::pause_before_start_exception,
+                   sched->pause(),
+                   "pausing a scheduler before it is started");
+}
+
+IMPLEMENT_TEST(wait_before_start_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  EXPECT_EXCEPTION(vistk::wait_before_start_exception,
+                   sched->wait(),
+                   "waiting on a scheduler before it is started");
+}
+
+IMPLEMENT_TEST(stop_before_start_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  EXPECT_EXCEPTION(vistk::stop_before_start_exception,
+                   sched->stop(),
+                   "stopping a scheduler before it is started");
+}
+
+IMPLEMENT_TEST(resume_before_start_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  EXPECT_EXCEPTION(vistk::resume_before_start_exception,
+                   sched->resume(),
+                   "resuming an unstarted scheduler");
+}
+
+IMPLEMENT_TEST(resume_unpaused_scheduler)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+
+  EXPECT_EXCEPTION(vistk::resume_unpaused_scheduler_exception,
+                   sched->resume(),
+                   "resuming an unpaused scheduler");
+}
+
+IMPLEMENT_TEST(restart)
+{
+  vistk::scheduler_t const sched = create_minimal_scheduler();
+
+  sched->start();
+  sched->stop();
+
+  boost::shared_ptr<null_scheduler> const null_sched = boost::dynamic_pointer_cast<null_scheduler>(sched);
+
+  null_sched->reset_pipeline();
+
+  sched->start();
+}
+
 vistk::scheduler_t
 create_scheduler(vistk::scheduler_registry::type_t const& type)
 {
@@ -100,6 +259,29 @@ create_scheduler(vistk::scheduler_registry::type_t const& type)
   vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>();
 
   return reg->create_scheduler(type, pipeline);
+}
+
+vistk::scheduler_t
+create_minimal_scheduler()
+{
+  vistk::load_known_modules();
+
+  static vistk::process::type_t const type = vistk::process::type_t("orphan");
+  static vistk::process::name_t const name = vistk::process::name_t("name");
+
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+  vistk::process_t const proc = reg->create_process(type, name);
+
+  vistk::pipeline_t const pipe = boost::make_shared<vistk::pipeline>();
+
+  pipe->add_process(proc);
+  pipe->setup_pipeline();
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::scheduler_t const sched = boost::make_shared<null_scheduler>(pipe, conf);
+
+  return sched;
 }
 
 null_scheduler
@@ -111,6 +293,14 @@ null_scheduler
 null_scheduler
 ::~null_scheduler()
 {
+}
+
+void
+null_scheduler
+::reset_pipeline() const
+{
+  pipeline()->reset();
+  pipeline()->setup_pipeline();
 }
 
 void

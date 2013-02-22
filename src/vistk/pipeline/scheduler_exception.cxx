@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -138,6 +138,22 @@ repause_scheduler_exception
 
 repause_scheduler_exception
 ::~repause_scheduler_exception() throw()
+{
+}
+
+resume_before_start_exception
+::resume_before_start_exception() throw()
+  : scheduler_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A scheduler was resumed before it was started";
+
+  m_what = sstr.str();
+}
+
+resume_before_start_exception
+::~resume_before_start_exception() throw()
 {
 }
 

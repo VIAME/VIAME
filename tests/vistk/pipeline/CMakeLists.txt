@@ -171,6 +171,19 @@ vistk_build_test(scheduler libraries test_scheduler.cxx)
 
 vistk_make_test(scheduler null_config)
 vistk_make_test(scheduler null_pipeline)
+vistk_make_test(scheduler start_scheduler)
+vistk_make_test(scheduler pause_scheduler)
+vistk_make_test(scheduler resume_scheduler)
+vistk_make_test(scheduler stop_scheduler)
+vistk_make_test(scheduler stop_paused_scheduler)
+vistk_make_test(scheduler restart_scheduler)
+vistk_make_test(scheduler repause_scheduler)
+vistk_make_test(scheduler pause_before_start_scheduler)
+vistk_make_test(scheduler wait_before_start_scheduler)
+vistk_make_test(scheduler stop_before_start_scheduler)
+vistk_make_test(scheduler resume_before_start_scheduler)
+vistk_make_test(scheduler resume_unpaused_scheduler)
+vistk_make_test(scheduler restart)
 
 ##############################
 # Pipeline tests
