@@ -52,6 +52,12 @@ vistk_make_load_test(load_pipe cluster_missing_type)
 vistk_make_load_test(load_pipe cluster_missing_type_description)
 vistk_make_load_test(load_pipe cluster_multiple_clusters)
 vistk_make_load_test(load_pipe cluster_not_first)
+vistk_make_load_test(load_pipe cluster_with_slash)
+vistk_make_load_test(load_pipe cluster_input_map_with_slash)
+vistk_make_load_test(load_pipe cluster_output_map_with_slash)
+vistk_make_load_test(load_pipe process_with_slash)
+vistk_make_load_test(load_pipe connect_input_with_slash)
+vistk_make_load_test(load_pipe connect_output_with_slash)
 
 ##############################
 # Baking tests
