@@ -145,6 +145,7 @@ class common_grammar
 
     qi::rule<Iterator, config_key_options_t()> config_key_options;
 
+    qi::rule<Iterator, config::key_t()> decl_component;
     qi::rule<Iterator, config::key_t()> config_key;
     qi::rule<Iterator, config::keys_t()> config_key_path;
     qi::rule<Iterator, config::value_t()> config_value;
@@ -285,6 +286,7 @@ common_grammar<Iterator>
   , config_provider()
   , config_provider_decl()
   , config_key_options()
+  , decl_component()
   , config_key()
   , config_key_path()
   , config_value()
@@ -357,6 +359,13 @@ common_grammar<Iterator>
      > -config_provider_decl
      );
 
+  decl_component.name("decl-component");
+  decl_component %=
+    +(  qi::alnum
+     |  qi::char_('-')
+     |  qi::char_('_')
+     );
+
   config_key.name("key-component");
   config_key %=
     +(  qi::alnum
@@ -411,7 +420,7 @@ common_grammar<Iterator>
 
   type_name.name("type-name");
   type_name %=
-     (  config_key
+     (  decl_component
      );
 
   type_decl.name("type-decl");
@@ -423,7 +432,7 @@ common_grammar<Iterator>
 
   process_name.name("port-process");
   process_name %=
-     (  config_key
+     (  decl_component
      );
 
   process_block.name("process-block-spec");
@@ -449,7 +458,7 @@ common_grammar<Iterator>
 
   port_addr.name("port-addr");
   port_addr %=
-     (  process_name
+     (  config_key
      >  qi::lit(port_separator)
      >  port_name
      );
