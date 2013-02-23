@@ -74,10 +74,10 @@ typedef boost::function<void ()> callback_t;
 
 }
 
-static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const pipe, parent_names_t const& parent_map);
+static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map);
 
 void
-export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_name)
+export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name)
 {
   if (!pipe)
   {
@@ -176,7 +176,7 @@ static void output_process(std::ostream& ostr, process_t const& process);
 static void output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, callback_t const& output_children);
 
 void
-output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const pipe, parent_names_t const& parent_map)
+output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map)
 {
   parent_names_t::const_iterator const i = parent_map.find(name);
 
