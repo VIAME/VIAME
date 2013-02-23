@@ -1,10 +1,11 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
 #include "helpers/pipeline_builder.h"
+#include "helpers/tool_io.h"
 #include "helpers/tool_main.h"
 #include "helpers/tool_usage.h"
 
@@ -17,11 +18,9 @@
 
 #include <vistk/utilities/path.h>
 
-#include <boost/filesystem/fstream.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -56,30 +55,9 @@ tool_main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  std::ostream* postr;
-  boost::filesystem::ofstream fout;
-
   vistk::path_t const opath = vm["output"].as<vistk::path_t>();
 
-  if (opath == vistk::path_t("-"))
-  {
-    postr = &std::cout;
-  }
-  else
-  {
-    fout.open(opath);
-
-    if (fout.bad())
-    {
-      std::cerr << "Error: Unable to open output file" << std::endl;
-
-      return EXIT_FAILURE;
-    }
-
-    postr = &fout;
-  }
-
-  std::ostream& ostr = *postr;
+  ostream_t const ostr = open_ostream(opath);
 
   std::string const graph_name = vm["name"].as<std::string>();
 
@@ -88,7 +66,7 @@ tool_main(int argc, char* argv[])
     pipe->setup_pipeline();
   }
 
-  vistk::export_dot(ostr, pipe, graph_name);
+  vistk::export_dot(*ostr, pipe, graph_name);
 
   return EXIT_SUCCESS;
 }
