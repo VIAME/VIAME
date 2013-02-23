@@ -12,9 +12,14 @@
 
 #include <vistk/utilities/path.h>
 
+#include <vistk/pipeline/config.h>
 #include <vistk/pipeline/modules.h>
 #include <vistk/pipeline/pipeline.h>
+#include <vistk/pipeline/process.h>
+#include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/pipeline_exception.h>
+
+#include <boost/make_shared.hpp>
 
 #include <sstream>
 
@@ -24,6 +29,8 @@ DECLARE_TEST(pipeline_null);
 DECLARE_TEST(simple_pipeline);
 DECLARE_TEST(simple_pipeline_setup);
 DECLARE_TEST(simple_pipeline_cluster);
+DECLARE_TEST(cluster_null);
+DECLARE_TEST(cluster_multiplier);
 
 static std::string const pipe_ext = ".pipe";
 
@@ -43,6 +50,8 @@ main(int argc, char* argv[])
   ADD_TEST(tests, simple_pipeline);
   ADD_TEST(tests, simple_pipeline_setup);
   ADD_TEST(tests, simple_pipeline_cluster);
+  ADD_TEST(tests, cluster_null);
+  ADD_TEST(tests, cluster_multiplier);
 
   RUN_TEST(tests, testname, pipe_file);
 }
@@ -91,4 +100,35 @@ IMPLEMENT_TEST(simple_pipeline_cluster)
   std::ostringstream sstr;
 
   vistk::export_dot(sstr, pipeline, "(unnamed)");
+}
+
+IMPLEMENT_TEST(cluster_null)
+{
+  (void)pipe_file;
+
+  vistk::process_cluster_t const cluster;
+
+  std::ostringstream sstr;
+
+  EXPECT_EXCEPTION(vistk::null_cluster_export_dot_exception,
+                   vistk::export_dot(sstr, cluster, "(unnamed)"),
+                   "exporting a NULL cluster to dot");
+}
+
+IMPLEMENT_TEST(cluster_multiplier)
+{
+  vistk::load_known_modules();
+
+  vistk::cluster_info_t const info = vistk::bake_cluster_from_file(pipe_file);
+  vistk::config_t const conf = vistk::config::empty_config();
+  vistk::process::name_t const name = vistk::process::name_t("name");
+
+  conf->set_value(vistk::process::config_name, name);
+
+  vistk::process_t const proc = info->ctor(conf);
+  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+
+  std::ostringstream sstr;
+
+  vistk::export_dot(sstr, cluster, "(unnamed)");
 }
