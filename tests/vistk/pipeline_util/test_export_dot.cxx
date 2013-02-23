@@ -17,6 +17,7 @@
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/process.h>
 #include <vistk/pipeline/process_cluster.h>
+#include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/pipeline_exception.h>
 
 #include <boost/make_shared.hpp>
@@ -26,10 +27,12 @@
 #define TEST_ARGS (vistk::path_t const& pipe_file)
 
 DECLARE_TEST(pipeline_null);
+DECLARE_TEST(pipeline_empty_name);
 DECLARE_TEST(simple_pipeline);
 DECLARE_TEST(simple_pipeline_setup);
 DECLARE_TEST(simple_pipeline_cluster);
 DECLARE_TEST(cluster_null);
+DECLARE_TEST(cluster_empty_name);
 DECLARE_TEST(cluster_multiplier);
 
 static std::string const pipe_ext = ".pipe";
@@ -47,10 +50,12 @@ main(int argc, char* argv[])
   DECLARE_TEST_MAP(tests);
 
   ADD_TEST(tests, pipeline_null);
+  ADD_TEST(tests, pipeline_empty_name);
   ADD_TEST(tests, simple_pipeline);
   ADD_TEST(tests, simple_pipeline_setup);
   ADD_TEST(tests, simple_pipeline_cluster);
   ADD_TEST(tests, cluster_null);
+  ADD_TEST(tests, cluster_empty_name);
   ADD_TEST(tests, cluster_multiplier);
 
   RUN_TEST(tests, testname, pipe_file);
@@ -67,6 +72,28 @@ IMPLEMENT_TEST(pipeline_null)
   EXPECT_EXCEPTION(vistk::null_pipeline_export_dot_exception,
                    vistk::export_dot(sstr, pipeline, "(unnamed)"),
                    "exporting a NULL pipeline to dot");
+}
+
+IMPLEMENT_TEST(pipeline_empty_name)
+{
+  (void)pipe_file;
+
+  vistk::load_known_modules();
+
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+
+  vistk::process::type_t const type = vistk::process::type_t("orphan");
+  vistk::process_t const proc = reg->create_process(type, vistk::process::name_t());
+
+  vistk::pipeline_t const pipe = boost::make_shared<vistk::pipeline>();
+
+  pipe->add_process(proc);
+
+  std::ostringstream sstr;
+
+  EXPECT_EXCEPTION(vistk::empty_name_export_dot_exception,
+                   vistk::export_dot(sstr, pipe, "(unnamed)"),
+                   "exporting a pipeline with an empty name to dot");
 }
 
 IMPLEMENT_TEST(simple_pipeline)
@@ -113,6 +140,23 @@ IMPLEMENT_TEST(cluster_null)
   EXPECT_EXCEPTION(vistk::null_cluster_export_dot_exception,
                    vistk::export_dot(sstr, cluster, "(unnamed)"),
                    "exporting a NULL cluster to dot");
+}
+
+IMPLEMENT_TEST(cluster_empty_name)
+{
+  vistk::load_known_modules();
+
+  vistk::cluster_info_t const info = vistk::bake_cluster_from_file(pipe_file);
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::process_t const proc = info->ctor(conf);
+  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+
+  std::ostringstream sstr;
+
+  EXPECT_EXCEPTION(vistk::empty_name_export_dot_exception,
+                   vistk::export_dot(sstr, cluster, "(unnamed)"),
+                   "exporting a cluster with an empty name to dot");
 }
 
 IMPLEMENT_TEST(cluster_multiplier)
