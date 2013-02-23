@@ -52,38 +52,70 @@ tool_main(int argc, char* argv[])
   vistk::process_cluster_t cluster;
   vistk::pipeline_t pipe;
 
+  bool const have_cluster = vm.count("cluster");
   bool const have_cluster_type = vm.count("cluster-type");
   bool const have_pipeline = vm.count("pipeline");
 
+  bool const export_cluster = (have_cluster || have_cluster_type);
 
-  if (have_cluster_type && have_pipeline)
+  if (export_cluster && have_pipeline)
   {
-    std::cerr << "Error: The and \'cluster-type\' option is incompatible "
-                 "with the \'pipeline\' option" << std::endl;
+    std::cerr << "Error: The \'cluster\' and \'cluster-type\' options are "
+                 "incompatible with the \'pipeline\' option" << std::endl;
 
     return EXIT_FAILURE;
   }
 
   std::string const graph_name = vm["name"].as<std::string>();
 
-  if (have_cluster_type)
+  if (export_cluster)
   {
+    if (have_cluster && have_cluster_type)
+    {
+      std::cerr << "Error: The \'cluster\' option is incompatible "
+                   "with the \'cluster-type\' option" << std::endl;
+
+      return EXIT_FAILURE;
+    }
+
     pipeline_builder builder;
 
     builder.load_from_options(vm);
     vistk::config_t const conf = builder.config();
 
-    vistk::process_registry_t const reg = vistk::process_registry::self();
-
-    vistk::process::type_t const type = vm["cluster-type"].as<vistk::process::type_t>();
-
-    vistk::process_t const proc = reg->create_process(type, graph_name, conf);
-    cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
-
-    if (!cluster)
+    if (have_cluster)
     {
-      std::cerr << "Error: The given type (\'" << type << "\') "
-                   "is not a cluster" << std::endl;
+      vistk::path_t const ipath = vm["cluster"].as<vistk::path_t>();
+
+      istream_t const istr = open_istream(ipath);
+
+      vistk::cluster_info_t const info = vistk::bake_cluster(*istr);
+
+      conf->set_value(vistk::process::config_name, graph_name);
+
+      vistk::process_t const proc = info->ctor(conf);
+      cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+    }
+    else if (have_cluster_type)
+    {
+      vistk::process_registry_t const reg = vistk::process_registry::self();
+
+      vistk::process::type_t const type = vm["cluster-type"].as<vistk::process::type_t>();
+
+      vistk::process_t const proc = reg->create_process(type, graph_name, conf);
+      cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+
+      if (!cluster)
+      {
+        std::cerr << "Error: The given type (\'" << type << "\') "
+                     "is not a cluster" << std::endl;
+
+        return EXIT_FAILURE;
+      }
+    }
+    else
+    {
+      std::cerr << "Internal error: option tracking failure" << std::endl;
 
       return EXIT_FAILURE;
     }
@@ -103,8 +135,8 @@ tool_main(int argc, char* argv[])
   }
   else
   {
-    std::cerr << "Error: Either \'cluster-type\' or \'pipeline\' "
-                 "must be specified" << std::endl;
+    std::cerr << "Error: One of \'cluster\', \'cluster-type\', or "
+                 "\'pipeline\' must be specified" << std::endl;
 
     tool_usage(EXIT_FAILURE, desc);
   }
@@ -158,6 +190,7 @@ cluster_options()
   boost::program_options::options_description desc("Cluster options");
 
   desc.add_options()
+    ("cluster,C", boost::program_options::value<std::string>()->value_name("FILE"), "the cluster file to export")
     ("cluster-type,T", boost::program_options::value<std::string>()->value_name("TYPE"), "the cluster type to export")
   ;
 
