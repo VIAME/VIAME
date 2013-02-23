@@ -115,7 +115,9 @@
  *
  * <pre>
  *   <separator>     ::= ":"
- *   <symbol-char>   ::= <alnum> | "-" | "_" | "/"
+ *   <decl-char>     ::= <alnum> | "-" | "_"
+ *   <symbol-char>   ::= <decl-char> | "/"
+ *   <decl-name>     ::= <decl-char> <decl-name>
  *   <key-component> ::= <symbol-char> <key-component>
  *   <key-path>      ::= <key-component> <separator> <key-path> | <key-component>
  *   <full-key-path> ::= <key-path> <key-options>
@@ -185,8 +187,8 @@
  *
  * <pre>
  *   <type-token>         ::= "::"
- *   <type-decl>          ::= <type-token> <whitespace> <key-component>
- *   <process-block-spec> ::= <opt-whitespace> "process" <whitespace> <key-component> <line-end>
+ *   <type-decl>          ::= <type-token> <whitespace> <decl-component>
+ *   <process-block-spec> ::= <opt-whitespace> "process" <whitespace> <decl-component> <line-end>
  *                            <opt-whitespace> <type-decl> <line-end>
  *                            <partial-configs>
  * </pre>
@@ -212,8 +214,7 @@
  * \par Specification
  *
  * <pre>
- *   <port-char>           ::= <symbol-char> | "/"
- *   <port-component>      ::= <port-char> <port-component>
+ *   <port-component>      ::= <symbol-char> <port-component>
  *   <port-process>        ::= <key-component>
  *   <port-addr-separator> ::= "."
  *   <port-name>           ::= <port-component>
@@ -253,7 +254,7 @@
  *                                  <opt-whitespace> "to" <port-name> <line-end>
  *   <cluster-decl>             ::= <cluster-config-spec> | <input-mapping-spec> | <output-mapping-spec>
  *   <cluster-decls>            ::= <cluster-decl> <cluster-decls> | ""
- *   <cluster-block-spec>       ::= <opt-whitespace> "cluster" <whitespace> <key-component> <line-end>
+ *   <cluster-block-spec>       ::= <opt-whitespace> "cluster" <whitespace> <decl-component> <line-end>
  *                                  <opt-whitespace> <description-decl> <line-end>
  *                                  <cluster-decls>
  * </pre>
