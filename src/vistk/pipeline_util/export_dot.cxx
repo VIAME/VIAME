@@ -95,6 +95,11 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
 
   BOOST_FOREACH (process::name_t const& name, proc_names)
   {
+    if (name.empty())
+    {
+      throw empty_name_export_dot_exception();
+    }
+
     process::name_t const parent = pipe->parent_cluster(name);
 
     name_info_t const info = name_info_t(name, name_process);
@@ -104,6 +109,11 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
 
   BOOST_FOREACH (process::name_t const& name, cluster_names)
   {
+    if (name.empty())
+    {
+      throw empty_name_export_dot_exception();
+    }
+
     process::name_t const parent = pipe->parent_cluster(name);
 
     name_info_t const info = name_info_t(name, name_cluster);

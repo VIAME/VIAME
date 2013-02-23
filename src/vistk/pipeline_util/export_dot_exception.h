@@ -83,6 +83,27 @@ class VISTK_PIPELINE_UTIL_EXPORT null_cluster_export_dot_exception
     ~null_cluster_export_dot_exception() throw();
 };
 
+/**
+ * \class empty_name_export_dot_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ *
+ * \brief The exception thrown when a process in a pipeline has an empty name.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT empty_name_export_dot_exception
+  : public export_dot_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    empty_name_export_dot_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~empty_name_export_dot_exception() throw();
+};
+
 }
 
 #endif // VISTK_PIPELINE_UTIL_EXPORT_DOT_EXCEPTION_H

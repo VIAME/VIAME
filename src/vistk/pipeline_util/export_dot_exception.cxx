@@ -60,4 +60,21 @@ null_cluster_export_dot_exception
 {
 }
 
+empty_name_export_dot_exception
+::empty_name_export_dot_exception() throw()
+  : export_dot_exception()
+{
+  std::stringstream sstr;
+
+  sstr << "A process with an empty name cannot be "
+          "exported to dot";
+
+  m_what = sstr.str();
+}
+
+empty_name_export_dot_exception
+::~empty_name_export_dot_exception() throw()
+{
+}
+
 }
