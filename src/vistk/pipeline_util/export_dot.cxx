@@ -15,6 +15,7 @@
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/function.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 
 #include <map>
@@ -170,6 +171,21 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
   ostr << std::endl;
 
   ostr << "}" << std::endl;
+}
+
+void
+export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string const& graph_name)
+{
+  if (!cluster)
+  {
+    throw null_cluster_export_dot_exception();
+  }
+
+  pipeline_t const pipe = boost::make_shared<pipeline>();
+
+  pipe->add_process(cluster);
+
+  export_dot(ostr, pipe, graph_name);
 }
 
 static void output_process(std::ostream& ostr, process_t const& process);

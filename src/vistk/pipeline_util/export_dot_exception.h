@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011, 2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -60,6 +60,27 @@ class VISTK_PIPELINE_UTIL_EXPORT null_pipeline_export_dot_exception
      * \brief Destructor.
      */
     ~null_pipeline_export_dot_exception() throw();
+};
+
+/**
+ * \class null_cluster_export_dot_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ *
+ * \brief The exception thrown when a \c NULL cluster is given to export.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_UTIL_EXPORT null_cluster_export_dot_exception
+  : public export_dot_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    null_cluster_export_dot_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    ~null_cluster_export_dot_exception() throw();
 };
 
 }
