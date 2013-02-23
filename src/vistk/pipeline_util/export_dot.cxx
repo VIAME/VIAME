@@ -198,9 +198,10 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
 
   if (i == parent_map.end())
   {
-    /// \todo Throw an exception.
+    std::string const reason = "Internal: Failed to keep track of parent "
+                               "of " + name;
 
-    return;
+    throw std::logic_error(reason);
   }
 
   name_infos_t const& name_infos = i->second;
