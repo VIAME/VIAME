@@ -21,7 +21,7 @@ def test_vil_to_numpy():
     height = 600
     planes = 3
 
-    shape = (width, height, planes)
+    shape = (height, width, planes)
 
     types = [ (test_image.make_image_bool, np.bool)
             , (test_image.make_image_uint8_t, np.uint8)
@@ -52,7 +52,7 @@ def test_numpy_to_vil():
     height = 600
     planes = 3
 
-    shape = (width, height, planes)
+    shape = (height, width, planes)
 
     size = width * height * planes
 
@@ -132,7 +132,7 @@ def test_datum():
     height = 600
     planes = 1
 
-    shape = (width, height, planes)
+    shape = (height, width, planes)
 
     types = [ (test_image.save_image_bool, vil.numpy_to_vil_bool, 'bool', np.bool)
             , (test_image.save_image_uint8_t, vil.numpy_to_vil_uint8_t, 'byte', np.uint8)
@@ -225,7 +225,7 @@ def test_memory():
     height = 600
     planes = 3
 
-    shape = (width, height, planes)
+    shape = (height, width, planes)
 
     types = [ (test_image.make_image_bool, test_image.pass_image_bool, vil.numpy_to_vil_bool, np.bool)
             , (test_image.make_image_uint8_t, test_image.pass_image_uint8_t, vil.numpy_to_vil_uint8_t, np.uint8)
