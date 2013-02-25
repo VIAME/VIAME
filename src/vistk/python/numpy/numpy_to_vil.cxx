@@ -157,8 +157,8 @@ convert_image(PyArrayObject* arr)
   ptrdiff_t const pstep = ((nd == 2) ? 0 : strides[2]);
 
   vil_image_view_base_sptr const base = new image_t(chunk, reinterpret_cast<pixel_t*>(mem),
-                                                    dims[0], dims[1], np,
-                                                    strides[0] / pxsz, strides[1] / pxsz, pstep / pxsz);
+                                                    dims[1], dims[0], np,
+                                                    strides[1] / pxsz, strides[0] / pxsz, pstep / pxsz);
 
   return base;
 }

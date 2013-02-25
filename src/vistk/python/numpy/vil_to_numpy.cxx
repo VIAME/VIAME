@@ -146,23 +146,23 @@ vil_to_numpy(vil_image_view<T> const& img)
   npy_intp* const strides = PyDimMem_NEW(nd);
   bool const contig = img.is_contiguous();
 
-  dims[0] = img.ni();
-  dims[1] = img.nj();
+  dims[0] = img.nj();
+  dims[1] = img.ni();
   dims[2] = img.nplanes();
 
-  strides[0] = img.istep();
-  strides[1] = img.jstep();
+  strides[0] = img.jstep();
+  strides[1] = img.istep();
   strides[2] = img.planestep();
 
   int flags = 0;
 
   if (contig)
   {
-    if (img.planestep() == 1)
+    if (strides[2] == 1)
     {
       flags |= NPY_FLAG(C_CONTIGUOUS);
     }
-    else if (img.istep() == 1)
+    else if (strides[1] == 1)
     {
       flags |= NPY_FLAG(F_CONTIGUOUS);
     }
