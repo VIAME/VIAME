@@ -94,6 +94,8 @@ vistk_make_load_test(pipe_bakery cluster_missing_ports)
 vistk_make_load_test(pipe_bakery cluster_multiple_cluster)
 vistk_make_load_test(pipe_bakery cluster_duplicate_input)
 vistk_make_load_test(pipe_bakery cluster_duplicate_output)
+vistk_make_load_test(pipe_bakery cluster_configuration_default)
+vistk_make_load_test(pipe_bakery cluster_configuration_provide)
 
 ##############################
 # Export tests
