@@ -56,6 +56,12 @@ DECLARE_TEST(cluster_missing_type);
 DECLARE_TEST(cluster_missing_type_description);
 DECLARE_TEST(cluster_multiple_clusters);
 DECLARE_TEST(cluster_not_first);
+DECLARE_TEST(cluster_with_slash);
+DECLARE_TEST(cluster_input_map_with_slash);
+DECLARE_TEST(cluster_output_map_with_slash);
+DECLARE_TEST(process_with_slash);
+DECLARE_TEST(connect_input_with_slash);
+DECLARE_TEST(connect_output_with_slash);
 
 static std::string const pipe_ext = ".pipe";
 
@@ -102,6 +108,12 @@ main(int argc, char* argv[])
   ADD_TEST(tests, cluster_missing_type_description);
   ADD_TEST(tests, cluster_multiple_clusters);
   ADD_TEST(tests, cluster_not_first);
+  ADD_TEST(tests, cluster_with_slash);
+  ADD_TEST(tests, cluster_input_map_with_slash);
+  ADD_TEST(tests, cluster_output_map_with_slash);
+  ADD_TEST(tests, process_with_slash);
+  ADD_TEST(tests, connect_input_with_slash);
+  ADD_TEST(tests, connect_output_with_slash);
 
   RUN_TEST(tests, testname, pipe_file);
 }
@@ -439,6 +451,64 @@ IMPLEMENT_TEST(cluster_not_first)
   EXPECT_EXCEPTION(vistk::failed_to_parse,
                    vistk::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
+}
+
+IMPLEMENT_TEST(cluster_with_slash)
+{
+  EXPECT_EXCEPTION(vistk::failed_to_parse,
+                   vistk::load_cluster_blocks_from_file(pipe_file),
+                   "with an expect error");
+}
+
+IMPLEMENT_TEST(cluster_input_map_with_slash)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+IMPLEMENT_TEST(cluster_output_map_with_slash)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 0, 1);
+}
+
+IMPLEMENT_TEST(process_with_slash)
+{
+  EXPECT_EXCEPTION(vistk::failed_to_parse,
+                   vistk::load_pipe_blocks_from_file(pipe_file),
+                   "with an expect error");
+}
+
+IMPLEMENT_TEST(connect_input_with_slash)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 1, 0);
+}
+
+IMPLEMENT_TEST(connect_output_with_slash)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(0, 0, 1, 0);
 }
 
 test_visitor
