@@ -55,7 +55,7 @@ BOOST_PYTHON_MODULE(vil)
     , "Convert a NumPy array into a base vil image.");
   def("vil_to_numpy", &vistk::python::vil_base_to_numpy
     , (arg("numpy array"))
-    , "Convert a NumPy array into a base vil image.");
+    , "Convert a base vil image into a NumPy array.");
 
 #define DEFINE_CONVERSION_FUNCTIONS(type)                         \
   do                                                              \
