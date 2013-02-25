@@ -23,6 +23,7 @@
 DECLARE_TEST(pipeline_null);
 DECLARE_TEST(simple_pipeline);
 DECLARE_TEST(simple_pipeline_setup);
+DECLARE_TEST(simple_pipeline_cluster);
 
 static std::string const pipe_ext = ".pipe";
 
@@ -41,6 +42,7 @@ main(int argc, char* argv[])
   ADD_TEST(tests, pipeline_null);
   ADD_TEST(tests, simple_pipeline);
   ADD_TEST(tests, simple_pipeline_setup);
+  ADD_TEST(tests, simple_pipeline_cluster);
 
   RUN_TEST(tests, testname, pipe_file);
 }
@@ -70,6 +72,17 @@ IMPLEMENT_TEST(simple_pipeline)
 }
 
 IMPLEMENT_TEST(simple_pipeline_setup)
+{
+  vistk::load_known_modules();
+
+  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
+
+  std::ostringstream sstr;
+
+  vistk::export_dot(sstr, pipeline, "(unnamed)");
+}
+
+IMPLEMENT_TEST(simple_pipeline_cluster)
 {
   vistk::load_known_modules();
 
