@@ -8,6 +8,8 @@
 
 #include <boost/filesystem/fstream.hpp>
 
+#include <iostream>
+
 namespace
 {
 
