@@ -150,16 +150,8 @@ tool_main(int argc, char* argv[])
     tool_usage(EXIT_FAILURE, desc);
   }
 
-  // Make sure we have one...
-  if (!cluster && !pipe)
-  {
-    std::cerr << "Internal error: option tracking failure" << std::endl;
-
-    return EXIT_FAILURE;
-  }
-
-  // ...but not both.
-  if (cluster && pipe)
+  // Make sure we have one, but not both.
+  if (!cluster == !pipe)
   {
     std::cerr << "Internal error: option tracking failure" << std::endl;
 
@@ -182,12 +174,6 @@ tool_main(int argc, char* argv[])
     }
 
     vistk::export_dot(*ostr, pipe, graph_name);
-  }
-  else
-  {
-    std::cerr << "Internal error: option tracking failure" << std::endl;
-
-    return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;
