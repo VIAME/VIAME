@@ -55,6 +55,7 @@ tool_main(int argc, char* argv[])
   bool const have_cluster = vm.count("cluster");
   bool const have_cluster_type = vm.count("cluster-type");
   bool const have_pipeline = vm.count("pipeline");
+  bool const have_setup = vm.count("setup");
 
   bool const export_cluster = (have_cluster || have_cluster_type);
 
@@ -62,6 +63,14 @@ tool_main(int argc, char* argv[])
   {
     std::cerr << "Error: The \'cluster\' and \'cluster-type\' options are "
                  "incompatible with the \'pipeline\' option" << std::endl;
+
+    return EXIT_FAILURE;
+  }
+
+  if (export_cluster && have_setup)
+  {
+    std::cerr << "Error: The \'cluster\' and \'cluster-type\' options are "
+                 "incompatible with the \'setup\' option" << std::endl;
 
     return EXIT_FAILURE;
   }
@@ -167,7 +176,7 @@ tool_main(int argc, char* argv[])
   }
   else if (pipe)
   {
-    if (vm.count("setup"))
+    if (have_setup)
     {
       pipe->setup_pipeline();
     }
