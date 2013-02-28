@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -103,8 +103,9 @@ datum_exception
 static char const* string_for_type(datum::type_t type);
 
 bad_datum_cast_exception
-::bad_datum_cast_exception(std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw()
+::bad_datum_cast_exception(std::string const& requested_typeid, std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw()
   : datum_exception()
+  , m_requested_typeid(requested_typeid)
   , m_typeid(typeid_)
   , m_type(type)
   , m_error(error)
@@ -119,10 +120,18 @@ bad_datum_cast_exception
          << m_typeid << ": "
          << m_reason << ".";
   }
+  else if (m_type == datum::data)
+  {
+    sstr << "Failed to cast datum of type "
+            "\'" << string_for_type(m_type) << "\' (" << m_typeid << ") into "
+         << m_requested_typeid << ": "
+         << m_reason << ".";
+  }
   else
   {
     sstr << "Failed to cast datum of type "
-            "\'" << string_for_type(m_type) << "\' into " << m_typeid << ": "
+            "\'" << string_for_type(m_type) << "\' into "
+         << m_requested_typeid << ": "
          << m_reason << ".";
   }
 
