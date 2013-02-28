@@ -200,7 +200,7 @@ pipe_to_dot_cluster_options()
 boost::program_options::options_description
 pipe_to_dot_pipeline_options()
 {
-  boost::program_options::options_description desc;
+  boost::program_options::options_description desc("Pipeline options");
 
   desc.add_options()
     ("name,n", boost::program_options::value<std::string>()->value_name("NAME")->default_value("unnamed"), "the name of the graph")
