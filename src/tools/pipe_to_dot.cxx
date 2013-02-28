@@ -30,8 +30,8 @@
 #include <cstddef>
 #include <cstdlib>
 
-static boost::program_options::options_description cluster_options();
-static boost::program_options::options_description pipe_to_dot_options();
+static boost::program_options::options_description pipe_to_dot_cluster_options();
+static boost::program_options::options_description pipe_to_dot_pipeline_options();
 
 int
 tool_main(int argc, char* argv[])
@@ -43,9 +43,9 @@ tool_main(int argc, char* argv[])
     .add(tool_common_options())
     .add(pipeline_common_options())
     .add(pipeline_input_options())
-    .add(cluster_options())
+    .add(pipe_to_dot_cluster_options())
     .add(pipeline_output_options())
-    .add(pipe_to_dot_options());
+    .add(pipe_to_dot_pipeline_options());
 
   boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
 
@@ -185,7 +185,7 @@ tool_main(int argc, char* argv[])
 }
 
 boost::program_options::options_description
-cluster_options()
+pipe_to_dot_cluster_options()
 {
   boost::program_options::options_description desc("Cluster options");
 
@@ -198,7 +198,7 @@ cluster_options()
 }
 
 boost::program_options::options_description
-pipe_to_dot_options()
+pipe_to_dot_pipeline_options()
 {
   boost::program_options::options_description desc;
 
