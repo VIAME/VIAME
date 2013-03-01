@@ -52,6 +52,8 @@ class wrap_process
 
     void _base_step();
 
+    void _base_reconfigure();
+
     properties_t _base_properties() const;
 
     ports_t _base_input_ports() const;
@@ -76,6 +78,8 @@ class wrap_process
     void _flush();
 
     void _step();
+
+    void _reconfigure();
 
     properties_t _properties() const;
 
@@ -329,6 +333,8 @@ BOOST_PYTHON_MODULE(process)
       , "Base class flush.")
     .def("_base_step", &wrap_process::_base_step
       , "Base class step.")
+    .def("_base_reconfigure", &wrap_process::_base_reconfigure
+      , "Base class reconfigure.")
     .def("_base_properties", &wrap_process::_base_properties
       , "Base class properties.")
     .def("_base_input_ports", &wrap_process::_base_input_ports
@@ -368,6 +374,8 @@ BOOST_PYTHON_MODULE(process)
       , "Flushes the process subclass.")
     .def("_step", &wrap_process::_step, &wrap_process::_base_step
       , "Step the process subclass for one iteration.")
+    .def("_reconfigure", &wrap_process::_reconfigure, &wrap_process::_base_reconfigure
+      , "Runtime configuration for subclasses.")
     .def("_properties", &wrap_process::_properties, &wrap_process::_base_properties
       , "The properties on the subclass.")
     .def("_input_ports", &wrap_process::_input_ports, &wrap_process::_base_input_ports
@@ -508,6 +516,13 @@ wrap_process
 ::_base_step()
 {
   TRANSLATE_PYTHON_EXCEPTION(process::_step())
+}
+
+void
+wrap_process
+::_base_reconfigure()
+{
+  TRANSLATE_PYTHON_EXCEPTION(process::_reconfigure())
 }
 
 vistk::process::properties_t
@@ -685,6 +700,28 @@ wrap_process
   }
 
   _base_step();
+}
+
+void
+wrap_process
+::_reconfigure()
+{
+  {
+    vistk::python::python_gil const gil;
+
+    (void)gil;
+
+    override const f = get_override("_reconfigure");
+
+    if (f)
+    {
+      HANDLE_PYTHON_EXCEPTION(f())
+
+      return;
+    }
+  }
+
+  _base_reconfigure();
 }
 
 vistk::process::properties_t
