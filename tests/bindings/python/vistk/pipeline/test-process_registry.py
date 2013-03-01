@@ -301,6 +301,7 @@ def test_wrapper_api():
                          p.connect_output_port, oport, e)
 
         p.available_config()
+        p.available_tunable_config()
         expect_exception("asking for info on a non-existant config key", RuntimeError,
                          p.config_info, key)
 
