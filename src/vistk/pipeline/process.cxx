@@ -155,7 +155,7 @@ class process::priv
     output_edge_map_t output_edges;
 
     process* const q;
-    config_t const conf;
+    config_t conf;
 
     ports_t static_inputs;
     ports_t required_inputs;
@@ -537,6 +537,12 @@ process
 void
 process
 ::_step()
+{
+}
+
+void
+process
+::_reconfigure()
 {
 }
 
@@ -1309,6 +1315,65 @@ process
   d->core_frequency = frequency;
 
   d->make_output_stamps();
+}
+
+void
+process
+::reconfigure(config_t const& conf)
+{
+  config::keys_t const tunable_keys = available_tunable_config();
+
+  BOOST_FOREACH (config::key_t const& tunable_key, tunable_keys)
+  {
+    if (!conf->has_value(tunable_key))
+    {
+      continue;
+    }
+
+    config::value_t const value = conf->get_value<config::value_t>(tunable_key);
+
+    d->conf->set_value(tunable_key, value);
+  }
+
+  _reconfigure();
+}
+
+void
+process
+::reconfigure_with_provides(config_t const& conf)
+{
+  // We can't use available_tunable_config() here because we filtered out
+  // read-only values from it. Instead, we need to create a new configuration
+  // block (since read-only can't be unset) and fill it again. We can be sure
+  // that the "read-only"-ness of the values are kept because this method is
+  // only called by process_cluster and it only sets values which are mapped to
+  // this process by it. This allows cluster parameters to be tunable and
+  // provided as read-only to the process.
+  config::keys_t const current_keys = d->conf->available_values();
+  config_t const new_conf = config::empty_config();
+
+  BOOST_FOREACH (config::key_t const& key, current_keys)
+  {
+    config::value_t value = d->conf->get_value<config::value_t>(key);
+
+    if (conf->has_value(key))
+    {
+      value = conf->get_value<config::value_t>(key);
+    }
+
+    new_conf->set_value(key, value);
+
+    // Preserve read-only flags so that a future reconfigure doesn't trigger any
+    // issues.
+    if (d->conf->is_read_only(key) || conf->is_read_only(key))
+    {
+      new_conf->mark_read_only(key);
+    }
+  }
+
+  d->conf = new_conf;
+
+  _reconfigure();
 }
 
 process::priv

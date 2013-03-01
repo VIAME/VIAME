@@ -505,6 +505,11 @@ class VISTK_PIPELINE_EXPORT process
     virtual void _step();
 
     /**
+     * \brief Runtime configuration for subclasses.
+     */
+    virtual void _reconfigure();
+
+    /**
      * \brief Subclass property query method.
      *
      * \returns Properties on the subclass.
@@ -818,6 +823,10 @@ class VISTK_PIPELINE_EXPORT process
 
     friend class pipeline;
     VISTK_PIPELINE_NO_EXPORT void set_core_frequency(port_frequency_t const& frequency);
+    VISTK_PIPELINE_NO_EXPORT void reconfigure(config_t const& conf);
+
+    friend class process_cluster;
+    VISTK_PIPELINE_NO_EXPORT void reconfigure_with_provides(config_t const& conf);
 
     class priv;
     boost::scoped_ptr<priv> d;
