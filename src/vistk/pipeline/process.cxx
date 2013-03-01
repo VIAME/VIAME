@@ -71,9 +71,11 @@ process::port_info
 
 process::conf_info
 ::conf_info(config::value_t const& def_,
-            config::description_t const& description_)
+            config::description_t const& description_,
+            bool tunable_)
   : def(def_)
   , description(description_)
+  , tunable(tunable_)
 {
 }
 
@@ -1014,11 +1016,13 @@ void
 process
 ::declare_configuration_key(config::key_t const& key,
                             config::value_t const& def_,
-                            config::description_t const& description_)
+                            config::description_t const& description_,
+                            bool tunable_)
 {
   declare_configuration_key(key, boost::make_shared<conf_info>(
     def_,
-    description_));
+    description_,
+    tunable_));
 }
 
 void

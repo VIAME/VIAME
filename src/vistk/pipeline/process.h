@@ -157,9 +157,11 @@ class VISTK_PIPELINE_EXPORT process
          *
          * \param def_ The default value for the parameter.
          * \param description_ A description of the value.
+         * \param tunable_ Whether the parameter is tunable or not.
          */
         conf_info(config::value_t const& def_,
-                  config::description_t const& description_);
+                  config::description_t const& description_,
+                  bool tunable_);
         /**
          * \brief Destructor.
          */
@@ -169,6 +171,8 @@ class VISTK_PIPELINE_EXPORT process
         config::value_t const def;
         /// A description of the value.
         config::description_t const description;
+        /// Whether the parameter is tunable or not.
+        bool const tunable;
     };
     /// Type for information about a configuration parameter.
     typedef boost::shared_ptr<conf_info const> conf_info_t;
@@ -664,10 +668,12 @@ class VISTK_PIPELINE_EXPORT process
      * \param key The configuration key.
      * \param def_ The default value for the parameter.
      * \param description_ A description of the value.
+     * \param tunable_ Whether the parameter is tunable or not.
      */
     void declare_configuration_key(config::key_t const& key,
                                    config::value_t const& def_,
-                                   config::description_t const& description_);
+                                   config::description_t const& description_,
+                                   bool tunable_ = false);
 
     /**
      * \brief Mark the process as complete.
