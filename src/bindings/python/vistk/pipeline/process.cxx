@@ -115,6 +115,10 @@ class wrap_process
     void _declare_configuration_key_1(vistk::config::key_t const& key,
                                       vistk::config::value_t const& def_,
                                       vistk::config::description_t const& description_);
+    void _declare_configuration_key_2(vistk::config::key_t const& key,
+                                      vistk::config::value_t const& def_,
+                                      vistk::config::description_t const& description_,
+                                      bool tunable_);
 
     void _mark_process_as_complete();
 
@@ -226,9 +230,10 @@ BOOST_PYTHON_MODULE(process)
   class_<vistk::process::conf_info, vistk::process::conf_info_t>("ConfInfo"
     , "Information about a configuration on a process."
     , no_init)
-    .def(init<vistk::config::value_t, vistk::config::description_t>())
+    .def(init<vistk::config::value_t, vistk::config::description_t, bool>())
     .def_readonly("default", &vistk::process::conf_info::def)
     .def_readonly("description", &vistk::process::conf_info::description)
+    .def_readonly("tunable", &vistk::process::conf_info::tunable)
   ;
 
   implicitly_convertible<boost::shared_ptr<vistk::process::conf_info>, vistk::process::conf_info_t>();
@@ -413,6 +418,9 @@ BOOST_PYTHON_MODULE(process)
       , "Declare a configuration key for the process.")
     .def("declare_configuration_key", &wrap_process::_declare_configuration_key_1
       , (arg("key"), arg("default"), arg("description"))
+      , "Declare a configuration key for the process.")
+    .def("declare_configuration_key", &wrap_process::_declare_configuration_key_2
+      , (arg("key"), arg("default"), arg("description"), arg("tunable"))
       , "Declare a configuration key for the process.")
     .def("mark_process_as_complete", &wrap_process::_mark_process_as_complete
       , "Tags the process as complete.")
@@ -935,6 +943,16 @@ wrap_process
                                vistk::config::description_t const& description_)
 {
   declare_configuration_key(key, def_, description_);
+}
+
+void
+wrap_process
+::_declare_configuration_key_2(vistk::config::key_t const& key,
+                               vistk::config::value_t const& def_,
+                               vistk::config::description_t const& description_,
+                               bool tunable_)
+{
+  declare_configuration_key(key, def_, description_, tunable_);
 }
 
 void
