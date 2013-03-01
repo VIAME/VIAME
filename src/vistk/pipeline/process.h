@@ -400,6 +400,12 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The names of all available configuration keys.
      */
     config::keys_t available_config() const;
+    /**
+     * \brief Request available tunable configuration options for the process.
+     *
+     * \returns The names of all available tunable configuration keys.
+     */
+    config::keys_t available_tunable_config();
 
     /**
      * \brief Retrieve information about a configuration parameter.

@@ -406,6 +406,32 @@ process
   return keys;
 }
 
+config::keys_t
+process
+::available_tunable_config()
+{
+  config::keys_t const all_keys = available_config();
+  config::keys_t keys;
+
+  BOOST_FOREACH (config::key_t const& key, all_keys)
+  {
+    // Read-only parameters aren't tunable.
+    if (d->conf->is_read_only(key))
+    {
+      continue;
+    }
+
+    conf_info_t const info = config_info(key);
+
+    if (info->tunable)
+    {
+      keys.push_back(key);
+    }
+  }
+
+  return keys;
+}
+
 process::conf_info_t
 process
 ::config_info(config::key_t const& key)
