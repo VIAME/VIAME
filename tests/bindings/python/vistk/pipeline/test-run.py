@@ -15,8 +15,8 @@ def make_source(conf):
             self.conf_start = 'start'
             self.conf_end = 'end'
 
-            self.declare_configuration_key(self.conf_start, str(0), 'Starting number')
-            self.declare_configuration_key(self.conf_end, str(10), 'Ending number')
+            self.declare_configuration_key(self.conf_start, str(0), 'Starting number', False)
+            self.declare_configuration_key(self.conf_end, str(10), 'Ending number', True)
 
             self.port_output = 'number'
 
@@ -57,7 +57,7 @@ def make_sink(conf):
 
             self.conf_output = 'output'
 
-            self.declare_configuration_key(self.conf_output, 'output.txt', 'Output file name')
+            self.declare_configuration_key(self.conf_output, 'output.txt', 'Output file name', False)
 
             self.port_input = 'number'
 
