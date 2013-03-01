@@ -108,10 +108,12 @@ tool_main(int argc, char* argv[])
 
       vistk::config::value_t const& def = info->def;
       vistk::config::description_t const& conf_desc = info->description;
+      bool const& tunable = info->tunable;
 
       std::cout << "    Name       : " << key << std::endl;
       std::cout << "    Default    : " << def << std::endl;
       std::cout << "    Description: " << conf_desc << std::endl;
+      std::cout << "    Tunable    : " << tunable << std::endl;
       std::cout << std::endl;
     }
 
