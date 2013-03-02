@@ -1373,13 +1373,32 @@ process
   // this process by it. This allows cluster parameters to be tunable and
   // provided as read-only to the process.
   config::keys_t const process_keys = available_config();
+  config::keys_t const current_keys = d->conf->available_values();
   config::keys_t const new_keys = conf->available_values();
+
+  typedef std::set<config::key_t> key_set_t;
+
+  key_set_t all_keys;
+
+  all_keys.insert(current_keys.begin(), current_keys.end());
+  all_keys.insert(new_keys.begin(), new_keys.end());
 
   config_t const new_conf = config::empty_config();
 
-  BOOST_FOREACH (config::key_t const& key, new_keys)
+  BOOST_FOREACH (config::key_t const& key, all_keys)
   {
+    bool const has_value_now = d->conf->has_value(key);
     bool const for_process = std::count(process_keys.begin(), process_keys.end(), key);
+
+    if (has_value_now)
+    {
+      // Pass the value down as-is.
+      config::value_t const value = d->conf->get_value<config::value_t>(key);
+
+      new_conf->set_value(key, value);
+    }
+
+    bool can_override = true;
 
     if (for_process)
     {
@@ -1387,13 +1406,16 @@ process
 
       if (!info->tunable)
       {
-        continue;
+        can_override = false;
       }
     }
 
-    config::value_t const value = conf->get_value<config::value_t>(key);
+    if (can_override)
+    {
+      config::value_t const value = conf->get_value<config::value_t>(key);
 
-    new_conf->set_value(key, value);
+      new_conf->set_value(key, value);
+    }
 
     // Preserve read-only flags so that a future reconfigure doesn't trigger any
     // issues.
