@@ -37,6 +37,8 @@ class wrap_process_cluster
 
     properties_t _base_properties() const;
 
+    void _base_reconfigure();
+
     vistk::processes_t processes() const;
     connections_t input_mappings() const;
     connections_t output_mappings() const;
@@ -50,6 +52,8 @@ class wrap_process_cluster
                   name_t const& downstream_name, port_t const& downstream_port);
 
     properties_t _properties() const;
+
+    void _reconfigure();
 
     void _declare_input_port(port_t const& port, port_info_t const& info);
     void _declare_input_port_1(port_t const& port,
@@ -93,6 +97,8 @@ BOOST_PYTHON_MODULE(process_cluster)
     .def_readonly("flag_required", &vistk::process::flag_required)
     .def("_base_properties", &wrap_process_cluster::_base_properties
       , "Base class properties.")
+    .def("_base_reconfigure", &wrap_process_cluster::_base_reconfigure
+      , "Base class reconfigure.")
     .def("map_config", &wrap_process_cluster::_map_config
       , (arg("key"), arg("name"), arg("mapped_key"))
       , "Map a configuration value to a process.")
@@ -110,6 +116,8 @@ BOOST_PYTHON_MODULE(process_cluster)
       , "Connect two ports within the cluster.")
     .def("_properties", &wrap_process_cluster::_properties, &wrap_process_cluster::_base_properties
       , "The properties on the subclass.")
+    .def("_reconfigure", &wrap_process_cluster::_reconfigure, &wrap_process_cluster::_base_reconfigure
+      , "Runtime configuration for subclasses.")
     .def("declare_input_port", &wrap_process_cluster::_declare_input_port
       , (arg("port"), arg("info"))
       , "Declare an input port on the process.")
@@ -161,6 +169,13 @@ wrap_process_cluster
 ::_base_properties() const
 {
   return process_cluster::properties();
+}
+
+void
+wrap_process_cluster
+::_base_reconfigure()
+{
+  return process_cluster::_reconfigure();
 }
 
 void
@@ -218,6 +233,26 @@ wrap_process_cluster
   }
 
   return _base_properties();
+}
+
+void
+wrap_process_cluster
+::_reconfigure()
+{
+  {
+    vistk::python::python_gil const gil;
+
+    (void)gil;
+
+    override const f = get_override("_reconfigure");
+
+    if (f)
+    {
+      HANDLE_PYTHON_EXCEPTION(f())
+    }
+  }
+
+  _base_reconfigure();
 }
 
 void
