@@ -585,7 +585,7 @@ process::name_t
 pipeline
 ::parent_cluster(process::name_t const& name) const
 {
-  priv::process_parent_map_t::const_iterator i = d->process_parent_map.find(name);
+  priv::process_parent_map_t::const_iterator const i = d->process_parent_map.find(name);
 
   if (i == d->process_parent_map.end())
   {
