@@ -37,7 +37,7 @@ class wrap_process_cluster
 
     properties_t _base_properties() const;
 
-    void _base_reconfigure();
+    void _base_reconfigure(vistk::config_t const& conf);
 
     vistk::processes_t processes() const;
     connections_t input_mappings() const;
@@ -53,7 +53,7 @@ class wrap_process_cluster
 
     properties_t _properties() const;
 
-    void _reconfigure();
+    void _reconfigure(vistk::config_t const& conf);
 
     void _declare_input_port(port_t const& port, port_info_t const& info);
     void _declare_input_port_1(port_t const& port,
@@ -98,6 +98,7 @@ BOOST_PYTHON_MODULE(process_cluster)
     .def("_base_properties", &wrap_process_cluster::_base_properties
       , "Base class properties.")
     .def("_base_reconfigure", &wrap_process_cluster::_base_reconfigure
+      , (arg("config"))
       , "Base class reconfigure.")
     .def("map_config", &wrap_process_cluster::_map_config
       , (arg("key"), arg("name"), arg("mapped_key"))
@@ -117,6 +118,7 @@ BOOST_PYTHON_MODULE(process_cluster)
     .def("_properties", &wrap_process_cluster::_properties, &wrap_process_cluster::_base_properties
       , "The properties on the subclass.")
     .def("_reconfigure", &wrap_process_cluster::_reconfigure, &wrap_process_cluster::_base_reconfigure
+      , (arg("config"))
       , "Runtime configuration for subclasses.")
     .def("declare_input_port", &wrap_process_cluster::_declare_input_port
       , (arg("port"), arg("info"))
@@ -173,9 +175,9 @@ wrap_process_cluster
 
 void
 wrap_process_cluster
-::_base_reconfigure()
+::_base_reconfigure(vistk::config_t const& conf)
 {
-  return process_cluster::_reconfigure();
+  return process_cluster::_reconfigure(conf);
 }
 
 void
@@ -237,7 +239,7 @@ wrap_process_cluster
 
 void
 wrap_process_cluster
-::_reconfigure()
+::_reconfigure(vistk::config_t const& conf)
 {
   {
     vistk::python::python_gil const gil;
@@ -248,11 +250,11 @@ wrap_process_cluster
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(f())
+      HANDLE_PYTHON_EXCEPTION(f(conf))
     }
   }
 
-  _base_reconfigure();
+  _base_reconfigure(conf);
 }
 
 void

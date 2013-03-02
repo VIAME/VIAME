@@ -100,10 +100,10 @@ def example_process():
 
             self._base_step()
 
-        def _reconfigure(self):
+        def _reconfigure(self, conf):
             self.ran_reconfigure = True
 
-            self._base_reconfigure()
+            self._base_reconfigure(conf)
 
         def _properties(self):
             self.ran_properties = True

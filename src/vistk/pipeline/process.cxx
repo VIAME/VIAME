@@ -551,7 +551,7 @@ process
 
 void
 process
-::_reconfigure()
+::_reconfigure(config_t const& /*conf*/)
 {
 }
 
@@ -1358,7 +1358,7 @@ process
 
   (void)lock;
 
-  _reconfigure();
+  _reconfigure(conf);
 }
 
 void
@@ -1410,7 +1410,7 @@ process
 
   (void)lock;
 
-  _reconfigure();
+  _reconfigure(conf);
 }
 
 process::priv

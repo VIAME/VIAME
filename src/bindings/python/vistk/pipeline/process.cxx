@@ -52,7 +52,7 @@ class wrap_process
 
     void _base_step();
 
-    void _base_reconfigure();
+    void _base_reconfigure(vistk::config_t const& conf);
 
     properties_t _base_properties() const;
 
@@ -79,7 +79,7 @@ class wrap_process
 
     void _step();
 
-    void _reconfigure();
+    void _reconfigure(vistk::config_t const& conf);
 
     properties_t _properties() const;
 
@@ -334,6 +334,7 @@ BOOST_PYTHON_MODULE(process)
     .def("_base_step", &wrap_process::_base_step
       , "Base class step.")
     .def("_base_reconfigure", &wrap_process::_base_reconfigure
+      , (arg("config"))
       , "Base class reconfigure.")
     .def("_base_properties", &wrap_process::_base_properties
       , "Base class properties.")
@@ -375,6 +376,7 @@ BOOST_PYTHON_MODULE(process)
     .def("_step", &wrap_process::_step, &wrap_process::_base_step
       , "Step the process subclass for one iteration.")
     .def("_reconfigure", &wrap_process::_reconfigure, &wrap_process::_base_reconfigure
+      , (arg("config"))
       , "Runtime configuration for subclasses.")
     .def("_properties", &wrap_process::_properties, &wrap_process::_base_properties
       , "The properties on the subclass.")
@@ -520,9 +522,9 @@ wrap_process
 
 void
 wrap_process
-::_base_reconfigure()
+::_base_reconfigure(vistk::config_t const& conf)
 {
-  TRANSLATE_PYTHON_EXCEPTION(process::_reconfigure())
+  TRANSLATE_PYTHON_EXCEPTION(process::_reconfigure(conf))
 }
 
 vistk::process::properties_t
@@ -704,7 +706,7 @@ wrap_process
 
 void
 wrap_process
-::_reconfigure()
+::_reconfigure(vistk::config_t const& conf)
 {
   {
     vistk::python::python_gil const gil;
@@ -715,13 +717,13 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(f())
+      HANDLE_PYTHON_EXCEPTION(f(conf))
 
       return;
     }
   }
 
-  _base_reconfigure();
+  _base_reconfigure(conf);
 }
 
 vistk::process::properties_t

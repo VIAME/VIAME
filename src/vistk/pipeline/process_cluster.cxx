@@ -281,7 +281,7 @@ process_cluster
 
 void
 process_cluster
-::_reconfigure()
+::_reconfigure(config_t const& conf)
 {
   config::keys_t const tunable_keys = available_tunable_config();
 
@@ -290,7 +290,8 @@ process_cluster
     name_t const& name_ = config_mapping.first;
     priv::config_mappings_t const& mappings = config_mapping.second;
 
-    config_t const conf = config::empty_config();
+    // Grab the new subblock for the process.
+    config_t const proc_conf = conf->subblock(name_);
 
     BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
     {
@@ -305,13 +306,13 @@ process_cluster
 
       config::value_t const& value = config_value<config::value_t>(key);
 
-      conf->set_value(mapped_key, value);
+      proc_conf->set_value(mapped_key, value);
     }
 
-    d->processes[name_]->reconfigure_with_provides(conf);
+    d->processes[name_]->reconfigure_with_provides(proc_conf);
   }
 
-  process::_reconfigure();
+  process::_reconfigure(conf);
 }
 
 process::properties_t
