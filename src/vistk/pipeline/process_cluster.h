@@ -153,6 +153,11 @@ class VISTK_PIPELINE_EXPORT process_cluster
     void _step();
 
     /**
+     * \brief Runtime configuration for subclasses.
+     */
+    virtual void _reconfigure();
+
+    /**
      * \brief Subclass property query method.
      *
      * \returns Properties on the subclass.

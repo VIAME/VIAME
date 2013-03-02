@@ -279,6 +279,41 @@ process_cluster
   throw process_exception();
 }
 
+void
+process_cluster
+::_reconfigure()
+{
+  config::keys_t const tunable_keys = available_tunable_config();
+
+  BOOST_FOREACH (priv::config_map_t::value_type const& config_mapping, d->config_map)
+  {
+    name_t const& name_ = config_mapping.first;
+    priv::config_mappings_t const& mappings = config_mapping.second;
+
+    config_t const conf = config::empty_config();
+
+    BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
+    {
+      config::key_t const& key = mapping.first;
+
+      if (!std::count(tunable_keys.begin(), tunable_keys.end(), key))
+      {
+        continue;
+      }
+
+      config::key_t const& mapped_key = mapping.second;
+
+      config::value_t const& value = config_value<config::value_t>(key);
+
+      conf->set_value(mapped_key, value);
+    }
+
+    d->processes[name_]->reconfigure_with_provides(conf);
+  }
+
+  process::_reconfigure();
+}
+
 process::properties_t
 process_cluster
 ::_properties() const
