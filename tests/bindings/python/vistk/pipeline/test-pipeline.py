@@ -100,6 +100,10 @@ def test_api_calls():
 
     p.reset()
 
+    c = config.empty_config()
+
+    p.reconfigure(c)
+
 
 if __name__ == '__main__':
     import os

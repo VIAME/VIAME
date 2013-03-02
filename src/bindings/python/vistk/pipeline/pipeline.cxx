@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -45,6 +45,9 @@ BOOST_PYTHON_MODULE(pipeline)
       , "Returns True if the pipeline has been successfully setup, False otherwise.")
     .def("reset", &vistk::pipeline::reset
       , "Resets connections and mappings within the pipeline.")
+    .def("reconfigure", &vistk::pipeline::reconfigure
+      , (arg("conf"))
+      , "Reconfigures processes within the pipeline.")
     .def("process_names", &vistk::pipeline::process_names
       , "Returns a list of all process names in the pipeline.")
     .def("process_by_name", &vistk::pipeline::process_by_name
