@@ -510,6 +510,47 @@ pipeline
   d->setup_in_progress = false;
 }
 
+void
+pipeline
+::reconfigure(config_t const& conf) const
+{
+  BOOST_FOREACH (priv::process_map_t::value_type const& proc_entry, d->process_map)
+  {
+    process::name_t const& name = proc_entry.first;
+    process::name_t const parent = parent_cluster(name);
+
+    // We only want to reconfigure top-level processes; clusters are in charge
+    // of reconfiguring child processes.
+    if (!parent.empty())
+    {
+      continue;
+    }
+
+    process_t const& proc = proc_entry.second;
+    config_t const proc_conf = conf->subblock_view(name);
+
+    proc->reconfigure(proc_conf);
+  }
+
+  BOOST_FOREACH (priv::cluster_map_t::value_type const& cluster_entry, d->cluster_map)
+  {
+    process::name_t const& name = cluster_entry.first;
+    process::name_t const parent = parent_cluster(name);
+
+    // We only want to reconfigure top-level processes; clusters are in charge
+    // of reconfiguring child processes.
+    if (!parent.empty())
+    {
+      continue;
+    }
+
+    process_cluster_t const& cluster = cluster_entry.second;
+    config_t const proc_conf = conf->subblock_view(name);
+
+    cluster->reconfigure(proc_conf);
+  }
+}
+
 process::names_t
 pipeline
 ::process_names() const
