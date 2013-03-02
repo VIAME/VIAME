@@ -168,7 +168,7 @@ vistk::process::properties_t
 wrap_process_cluster
 ::_base_properties() const
 {
-  return process_cluster::properties();
+  return process_cluster::_properties();
 }
 
 void
