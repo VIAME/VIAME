@@ -1330,9 +1330,15 @@ void
 process
 ::reconfigure(config_t const& conf)
 {
+  config::keys_t const new_keys = conf->available_values();
+
+  if (new_keys.empty())
+  {
+    return;
+  }
+
   config::keys_t const process_keys = available_config();
   config::keys_t const tunable_keys = available_tunable_config();
-  config::keys_t const new_keys = conf->available_values();
 
   BOOST_FOREACH (config::key_t const& key, new_keys)
   {
@@ -1365,6 +1371,13 @@ void
 process
 ::reconfigure_with_provides(config_t const& conf)
 {
+  config::keys_t const new_keys = conf->available_values();
+
+  if (new_keys.empty())
+  {
+    return;
+  }
+
   // We can't use available_tunable_config() here because we filtered out
   // read-only values from it. Instead, we need to create a new configuration
   // block (since read-only can't be unset) and fill it again. We can be sure
@@ -1374,7 +1387,6 @@ process
   // provided as read-only to the process.
   config::keys_t const process_keys = available_config();
   config::keys_t const current_keys = d->conf->available_values();
-  config::keys_t const new_keys = conf->available_values();
 
   typedef std::set<config::key_t> key_set_t;
 
