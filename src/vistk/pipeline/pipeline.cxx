@@ -215,10 +215,11 @@ pipeline
     parent = d->parent_stack.top();
   }
 
+  d->process_parent_map[name] = parent;
+
   if (cluster)
   {
     d->cluster_map[name] = cluster;
-    d->process_parent_map[name] = parent;
 
     d->parent_stack.push(name);
 
@@ -253,7 +254,6 @@ pipeline
   }
 
   d->process_map[name] = process;
-  d->process_parent_map[name] = parent;
 }
 
 void
