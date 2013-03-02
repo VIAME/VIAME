@@ -179,6 +179,8 @@ class process::priv
 
     stamp_t stamp_for_inputs;
 
+    mutex_t reconfigure_mut;
+
     static config::value_t const default_name;
 };
 
@@ -267,6 +269,13 @@ process
     }
     else
     {
+      // We don't want to reconfigure while the subclass is running. Since the
+      // base class shouldn't be messed with while configuring, we only need to
+      // lock around the base class _step method call.
+      priv::shared_lock_t const lock(d->reconfigure_mut);
+
+      (void)lock;
+
       _step();
     }
 
@@ -1335,6 +1344,11 @@ process
     d->conf->set_value(tunable_key, value);
   }
 
+  // Prevent stepping while reconfiguring a process.
+  priv::unique_lock_t const lock(d->reconfigure_mut);
+
+  (void)lock;
+
   _reconfigure();
 }
 
@@ -1372,6 +1386,11 @@ process
   }
 
   d->conf = new_conf;
+
+  // Prevent stepping while reconfiguring a process.
+  priv::unique_lock_t const lock(d->reconfigure_mut);
+
+  (void)lock;
 
   _reconfigure();
 }
