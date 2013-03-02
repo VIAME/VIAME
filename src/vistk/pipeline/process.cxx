@@ -1330,18 +1330,27 @@ void
 process
 ::reconfigure(config_t const& conf)
 {
+  config::keys_t const process_keys = available_config();
   config::keys_t const tunable_keys = available_tunable_config();
+  config::keys_t const new_keys = conf->available_values();
 
-  BOOST_FOREACH (config::key_t const& tunable_key, tunable_keys)
+  BOOST_FOREACH (config::key_t const& key, new_keys)
   {
-    if (!conf->has_value(tunable_key))
+    bool const for_process = std::count(process_keys.begin(), process_keys.end(), key);
+
+    if (for_process)
     {
-      continue;
+      bool const tunable = std::count(tunable_keys.begin(), tunable_keys.end(), key);
+
+      if (!tunable)
+      {
+        continue;
+      }
     }
 
-    config::value_t const value = conf->get_value<config::value_t>(tunable_key);
+    config::value_t const value = conf->get_value<config::value_t>(key);
 
-    d->conf->set_value(tunable_key, value);
+    d->conf->set_value(key, value);
   }
 
   // Prevent stepping while reconfiguring a process.
@@ -1363,17 +1372,26 @@ process
   // only called by process_cluster and it only sets values which are mapped to
   // this process by it. This allows cluster parameters to be tunable and
   // provided as read-only to the process.
-  config::keys_t const current_keys = d->conf->available_values();
+  config::keys_t const process_keys = available_config();
+  config::keys_t const new_keys = conf->available_values();
+
   config_t const new_conf = config::empty_config();
 
-  BOOST_FOREACH (config::key_t const& key, current_keys)
+  BOOST_FOREACH (config::key_t const& key, new_keys)
   {
-    config::value_t value = d->conf->get_value<config::value_t>(key);
+    bool const for_process = std::count(process_keys.begin(), process_keys.end(), key);
 
-    if (conf->has_value(key))
+    if (for_process)
     {
-      value = conf->get_value<config::value_t>(key);
+      conf_info_t const info = config_info(key);
+
+      if (!info->tunable)
+      {
+        continue;
+      }
     }
+
+    config::value_t const value = conf->get_value<config::value_t>(key);
 
     new_conf->set_value(key, value);
 
