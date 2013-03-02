@@ -251,6 +251,8 @@ wrap_process_cluster
     if (f)
     {
       HANDLE_PYTHON_EXCEPTION(f(conf))
+
+      return;
     }
   }
 
