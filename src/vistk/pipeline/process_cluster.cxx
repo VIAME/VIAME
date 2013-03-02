@@ -290,8 +290,7 @@ process_cluster
     name_t const& name_ = config_mapping.first;
     priv::config_mappings_t const& mappings = config_mapping.second;
 
-    // Grab the new subblock for the process.
-    config_t const proc_conf = conf->subblock(name_);
+    config_t const provide_conf = config::empty_config();
 
     BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
     {
@@ -306,10 +305,18 @@ process_cluster
 
       config::value_t const& value = config_value<config::value_t>(key);
 
-      proc_conf->set_value(mapped_key, value);
+      provide_conf->set_value(mapped_key, value);
     }
 
-    d->processes[name_]->reconfigure_with_provides(proc_conf);
+    process_t const proc = d->processes[name_];
+
+    // Grab the new subblock for the process.
+    config_t const proc_conf = conf->subblock(name_);
+
+    // Reconfigure the given process normally.
+    proc->reconfigure(proc_conf);
+    // Overwrite any provided configuration values which may be read-only.
+    proc->reconfigure_with_provides(provide_conf);
   }
 
   process::_reconfigure(conf);
