@@ -18,6 +18,7 @@
 #include <vistk/pipeline/process_registry.h>
 
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -759,15 +760,47 @@ class loaded_cluster
     friend class cluster_creator;
 };
 
+class provided_by_cluster
+{
+  public:
+    provided_by_cluster(process::type_t const& name);
+    ~provided_by_cluster();
+
+    bool operator () (bakery_base::config_decl_t const& decl) const;
+  private:
+    process::type_t const m_name;
+};
+
+class extract_literal_value
+  : public boost::static_visitor<config::value_t>
+{
+  public:
+    extract_literal_value();
+    ~extract_literal_value();
+
+    config::value_t operator () (config::value_t const& value) const;
+    config::value_t operator () (bakery_base::provider_request_t const& request) const;
+};
+
 process_t
 cluster_creator
 ::operator () (config_t const& config) const
 {
   bakery_base::config_decls_t all_configs = m_bakery.m_configs;
+  // See comment below.
+  bakery_base::config_decls_t no_mapped_configs = all_configs;
 
   process::type_t const& type = m_bakery.m_type;
 
-  // Append the given configuration to the declarations in the file.
+  provided_by_cluster const mapping_filter(type);
+
+  // Filter out configuration settings which are mapped by the cluster.
+  bakery_base::config_decls_t::iterator const i = std::remove_if(no_mapped_configs.begin(), no_mapped_configs.end(), mapping_filter);
+
+  bakery_base::config_decls_t const mapped_decls(i, no_mapped_configs.end());
+  no_mapped_configs.erase(i, no_mapped_configs.end());
+
+  // Append the given configuration to the declarations from the parsed blocks.
   config::keys_t const& keys = config->available_values();
   BOOST_FOREACH (config::key_t const& key, keys)
   {
@@ -778,10 +811,21 @@ cluster_creator
     config::key_t const full_key = config::key_t(type) + config::block_sep + key;
     bakery_base::config_decl_t const decl = bakery_base::config_decl_t(full_key, info);
 
+    // See comment below.
     all_configs.push_back(decl);
+    no_mapped_configs.push_back(decl);
   }
 
-  config_t const full_config = extract_configuration_from_decls(all_configs);
+  // Ensure that the full configuration is valid. This must be done to catch
+  // the error when a configuration should be mapped is set via the config
+  // parameter to this function. See the pipe_bakery-cluster_override_mapped
+  // test for more information.
+  extract_configuration_from_decls(all_configs);
+  // Clear all_configs since it won't be needed anymore.
+  all_configs.clear();
+
+  // Get the configuration without mapped parameters.
+  config_t const full_config = extract_configuration_from_decls(no_mapped_configs);
 
   typedef boost::shared_ptr<loaded_cluster> loaded_cluster_t;
 
@@ -807,10 +851,6 @@ cluster_creator
   // Declare configuration values.
   BOOST_FOREACH (cluster_config_t const& conf, info.m_configs)
   {
-    // Calls to map_config are not necessary because
-    // extract_configuration_from_decls does the mappings for us via
-    // configuration providers.
-
     config_value_t const& config_value = conf.config_value;
     config_key_t const& config_key = config_value.key;
     config::keys_t const& key_path = config_key.key_path;
@@ -833,6 +873,8 @@ cluster_creator
       description,
       tunable);
   }
+
+  /// \todo Map configurations.
 
   // Add processes.
   BOOST_FOREACH (bakery_base::process_decl_t const& proc_decl, m_bakery.m_processes)
@@ -1200,6 +1242,129 @@ loaded_cluster
 loaded_cluster
 ::~loaded_cluster()
 {
+}
+
+provided_by_cluster
+::provided_by_cluster(process::type_t const& name)
+  : m_name(name)
+{
+}
+
+provided_by_cluster
+::~provided_by_cluster()
+{
+}
+
+class check_provider
+  : public boost::static_visitor<bool>
+{
+  public:
+    check_provider(config_provider_t const& provider);
+    ~check_provider();
+
+    bool operator () (config::value_t const& value) const;
+    bool operator () (bakery_base::provider_request_t const& request) const;
+  private:
+    config_provider_t const m_provider;
+};
+
+bool
+provided_by_cluster
+::operator () (bakery_base::config_decl_t const& decl) const
+{
+  bakery_base::config_info_t const& info = decl.second;
+
+  // Mapped configurations must be read-only.
+  if (!info.read_only)
+  {
+    return false;
+  }
+
+  // Mapped configurations must be a provider_config request.
+  check_provider const check = check_provider(provider_config);
+
+  bakery_base::config_reference_t const& ref = info.reference;
+  bool const conf_provided = boost::apply_visitor(check, ref);
+
+  if (!conf_provided)
+  {
+    return false;
+  }
+
+  extract_literal_value const literal_value = extract_literal_value();
+
+  config::value_t const value = boost::apply_visitor(literal_value, ref);
+
+  // It must be mapped to the the actual cluster.
+  if (!boost::starts_with(value, m_name + config::block_sep))
+  {
+    return false;
+  }
+
+  /**
+   * \todo Should we check that the key in the request is a process in the
+   * cluster?
+   *
+   * Fully dereferencing configuration providers requires quite a bit more
+   * information to be passed to this point. As it is, the case where a config
+   * block has the mappings to the cluster and the processes map to it is not
+   * supported. This will be not behave as expected.
+   */
+
+  return true;
+}
+
+extract_literal_value
+::extract_literal_value()
+{
+}
+
+extract_literal_value
+::~extract_literal_value()
+{
+}
+
+config::value_t
+extract_literal_value
+::operator () (config::value_t const& value) const
+{
+  return value;
+}
+
+config::value_t
+extract_literal_value
+::operator () (bakery_base::provider_request_t const& request) const
+{
+  config::value_t const& value = request.second;
+
+  return value;
+}
+
+check_provider
+::check_provider(config_provider_t const& provider)
+  : m_provider(provider)
+{
+}
+
+check_provider
+::~check_provider()
+{
+}
+
+bool
+check_provider
+::operator () (config::value_t const& /*value*/) const
+{
+  return false;
+}
+
+bool
+check_provider
+::operator () (bakery_base::provider_request_t const& request) const
+{
+  config_provider_t const& provider = request.first;
+
+  return (m_provider == provider);
 }
 
 }
