@@ -50,6 +50,9 @@ DECLARE_TEST(null_output_port_info);
 DECLARE_TEST(null_conf_info);
 DECLARE_TEST(tunable_config);
 DECLARE_TEST(tunable_config_read_only);
+DECLARE_TEST(reconfigure_tunable);
+DECLARE_TEST(reconfigure_non_tunable);
+DECLARE_TEST(reconfigure_extra_parameters);
 
 int
 main(int argc, char* argv[])
@@ -92,6 +95,9 @@ main(int argc, char* argv[])
   ADD_TEST(tests, null_conf_info);
   ADD_TEST(tests, tunable_config);
   ADD_TEST(tests, tunable_config_read_only);
+  ADD_TEST(tests, reconfigure_tunable);
+  ADD_TEST(tests, reconfigure_non_tunable);
+  ADD_TEST(tests, reconfigure_extra_parameters);
 
   RUN_TEST(tests, testname);
 }
@@ -806,6 +812,104 @@ IMPLEMENT_TEST(tunable_config_read_only)
   }
 }
 
+class expect_process
+  : public vistk::process
+{
+  public:
+    expect_process(vistk::config_t const& conf);
+    ~expect_process();
+
+    static vistk::config::key_t const config_tunable;
+    static vistk::config::key_t const config_expect;
+    static vistk::config::key_t const config_expect_key;
+  protected:
+    void _reconfigure(vistk::config_t const& conf);
+  private:
+    std::string m_expect;
+    bool m_expect_key;
+};
+
+IMPLEMENT_TEST(reconfigure_tunable)
+{
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+
+  conf->set_value(expect_process::config_tunable, tunable_value);
+  conf->set_value(expect_process::config_expect, tuned_value);
+  conf->set_value(vistk::process::config_name, proc_name);
+
+  vistk::process_t const expect = boost::make_shared<expect_process>(conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(expect);
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  new_conf->set_value(proc_name + vistk::config::block_sep + expect_process::config_tunable, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(reconfigure_non_tunable)
+{
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+
+  conf->set_value(expect_process::config_tunable, tunable_value);
+  conf->mark_read_only(expect_process::config_tunable);
+  conf->set_value(expect_process::config_expect, tunable_value);
+  conf->set_value(vistk::process::config_name, proc_name);
+
+  vistk::process_t const expect = boost::make_shared<expect_process>(conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(expect);
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+
+  new_conf->set_value(proc_name + vistk::config::block_sep + expect_process::config_tunable, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(reconfigure_extra_parameters)
+{
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+
+  conf->set_value(expect_process::config_expect, new_key);
+  conf->set_value(expect_process::config_expect_key, "true");
+  conf->set_value(vistk::process::config_name, proc_name);
+
+  vistk::process_t const expect = boost::make_shared<expect_process>(conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(expect);
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+
+  new_conf->set_value(proc_name + vistk::config::block_sep + new_key, tunable_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
 vistk::process_t
 create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t const& conf)
 {
@@ -926,4 +1030,51 @@ remove_ports_process
 ::_remove_output_port(port_t const& port)
 {
   remove_output_port(port);
+}
+
+vistk::config::key_t const expect_process::config_tunable = vistk::config::key_t("tunable");
+vistk::config::key_t const expect_process::config_expect = vistk::config::key_t("expect");
+vistk::config::key_t const expect_process::config_expect_key = vistk::config::key_t("expect_key");
+
+expect_process
+::expect_process(vistk::config_t const& conf)
+  : process(conf)
+{
+  declare_configuration_key(
+    config_tunable,
+    vistk::config::value_t(),
+    vistk::config::description_t(),
+    true);
+
+  m_expect = conf->get_value<std::string>(config_expect);
+  m_expect_key = conf->get_value<bool>(config_expect_key, false);
+}
+
+expect_process
+::~expect_process()
+{
+}
+
+void
+expect_process
+::_reconfigure(vistk::config_t const& conf)
+{
+  if (m_expect_key)
+  {
+    if (!conf->has_value(m_expect))
+    {
+      TEST_ERROR("Extra parameter was not let through on a reconfigure");
+    }
+  }
+  else
+  {
+    std::string const cur_value = config_value<std::string>(config_tunable);
+
+    if (cur_value != m_expect)
+    {
+      TEST_ERROR("Did not get expected tunable value: "
+                 "Expected: " << m_expect << " "
+                 "Received: " << cur_value);
+    }
+  }
 }
