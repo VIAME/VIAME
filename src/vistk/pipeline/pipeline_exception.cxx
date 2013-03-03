@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -136,6 +136,22 @@ remove_after_setup_exception
 
 remove_after_setup_exception
 ::~remove_after_setup_exception() throw()
+{
+}
+
+reconfigure_before_setup_exception
+::reconfigure_before_setup_exception() throw()
+  : pipeline_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A pipeline was reconfigured before it was setup";
+
+  m_what = sstr.str();
+}
+
+reconfigure_before_setup_exception
+::~reconfigure_before_setup_exception() throw()
 {
 }
 

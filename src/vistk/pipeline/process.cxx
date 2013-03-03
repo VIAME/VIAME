@@ -1330,6 +1330,13 @@ void
 process
 ::reconfigure(config_t const& conf)
 {
+  if (!d->configured)
+  {
+    static std::string const reason = "Internal: Setup tracking in the pipeline failed";
+
+    throw std::logic_error(reason);
+  }
+
   config::keys_t const new_keys = conf->available_values();
 
   if (new_keys.empty())
@@ -1371,6 +1378,13 @@ void
 process
 ::reconfigure_with_provides(config_t const& conf)
 {
+  if (!d->configured)
+  {
+    static std::string const reason = "Internal: Setup tracking in the pipeline failed";
+
+    throw std::logic_error(reason);
+  }
+
   config::keys_t const new_keys = conf->available_values();
 
   if (new_keys.empty())

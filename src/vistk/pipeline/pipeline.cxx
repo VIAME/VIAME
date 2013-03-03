@@ -514,6 +514,11 @@ void
 pipeline
 ::reconfigure(config_t const& conf) const
 {
+  if (!d->setup)
+  {
+    throw reconfigure_before_setup_exception();
+  }
+
   BOOST_FOREACH (priv::process_map_t::value_type const& proc_entry, d->process_map)
   {
     process::name_t const& name = proc_entry.first;
