@@ -44,6 +44,8 @@ DECLARE_TEST(config_append_provided);
 DECLARE_TEST(config_append_provided_ro);
 DECLARE_TEST(config_append_comma);
 DECLARE_TEST(config_append_comma_empty);
+DECLARE_TEST(config_append_space);
+DECLARE_TEST(config_append_space_empty);
 DECLARE_TEST(config_append_path);
 DECLARE_TEST(config_append_path_empty);
 DECLARE_TEST(config_append_flag_mismatch_ac);
@@ -107,6 +109,8 @@ main(int argc, char* argv[])
   ADD_TEST(tests, config_append_provided_ro);
   ADD_TEST(tests, config_append_comma);
   ADD_TEST(tests, config_append_comma_empty);
+  ADD_TEST(tests, config_append_space);
+  ADD_TEST(tests, config_append_space_empty);
   ADD_TEST(tests, config_append_path);
   ADD_TEST(tests, config_append_path_empty);
   ADD_TEST(tests, config_append_flag_mismatch_ac);
@@ -383,6 +387,42 @@ IMPLEMENT_TEST(config_append_comma_empty)
   if (myvalue != expected)
   {
     TEST_ERROR("Configuration value was created with a comma separator: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+}
+
+IMPLEMENT_TEST(config_append_space)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
+  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
+  vistk::config::value_t const expected = vistk::config::value_t("myvalue othervalue");
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration value was not appended with a space separator: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+}
+
+IMPLEMENT_TEST(config_append_space_empty)
+{
+  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+
+  vistk::config_t const conf = vistk::extract_configuration(blocks);
+
+  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
+  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
+  vistk::config::value_t const expected = vistk::config::value_t("othervalue");
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration value was created with a space separator: "
                "Expected: " << expected << " "
                "Received: " << myvalue);
   }
