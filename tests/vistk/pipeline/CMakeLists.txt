@@ -250,6 +250,7 @@ vistk_make_test(pipeline remove_process)
 vistk_make_test(pipeline remove_process_after_setup)
 vistk_make_test(pipeline disconnect)
 vistk_make_test(pipeline disconnect_after_setup)
+vistk_make_test(pipeline reconfigure_before_setup)
 vistk_make_test(pipeline reconfigure)
 vistk_make_test(pipeline reconfigure_only_top_level)
 

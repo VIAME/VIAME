@@ -69,6 +69,7 @@ DECLARE_TEST(remove_process);
 DECLARE_TEST(remove_process_after_setup);
 DECLARE_TEST(disconnect);
 DECLARE_TEST(disconnect_after_setup);
+DECLARE_TEST(reconfigure_before_setup);
 DECLARE_TEST(reconfigure);
 DECLARE_TEST(reconfigure_only_top_level);
 
@@ -129,6 +130,7 @@ main(int argc, char* argv[])
   ADD_TEST(tests, remove_process_after_setup);
   ADD_TEST(tests, disconnect);
   ADD_TEST(tests, disconnect_after_setup);
+  ADD_TEST(tests, reconfigure_before_setup);
   ADD_TEST(tests, reconfigure);
   ADD_TEST(tests, reconfigure_only_top_level);
 
@@ -1411,6 +1413,24 @@ IMPLEMENT_TEST(disconnect_after_setup)
                    pipe->disconnect(nameu, portu,
                                     named, portd),
                    "requesting a disconnect after the pipeline has been setup");
+}
+
+IMPLEMENT_TEST(reconfigure_before_setup)
+{
+  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+
+  vistk::process_t const expect = create_process(proc_type, proc_name);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(expect);
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  EXPECT_EXCEPTION(vistk::reconfigure_before_setup_exception,
+                   pipeline->reconfigure(conf),
+                   "reconfiguring a pipeline before it was setup");
 }
 
 class check_reconfigure_process
