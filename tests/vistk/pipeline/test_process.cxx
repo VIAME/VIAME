@@ -48,6 +48,8 @@ DECLARE_TEST(null_config);
 DECLARE_TEST(null_input_port_info);
 DECLARE_TEST(null_output_port_info);
 DECLARE_TEST(null_conf_info);
+DECLARE_TEST(tunable_config);
+DECLARE_TEST(tunable_config_read_only);
 
 int
 main(int argc, char* argv[])
@@ -88,6 +90,8 @@ main(int argc, char* argv[])
   ADD_TEST(tests, null_input_port_info);
   ADD_TEST(tests, null_output_port_info);
   ADD_TEST(tests, null_conf_info);
+  ADD_TEST(tests, tunable_config);
+  ADD_TEST(tests, tunable_config_read_only);
 
   RUN_TEST(tests, testname);
 }
@@ -751,6 +755,55 @@ IMPLEMENT_TEST(null_conf_info)
   EXPECT_EXCEPTION(vistk::null_conf_info_exception,
                    create_process(proc_type, proc_name),
                    "passing NULL as an configuration info structure");
+}
+
+IMPLEMENT_TEST(tunable_config)
+{
+  vistk::process::type_t const proc_type = vistk::process::type_t("tunable");
+
+  vistk::config::key_t const tunable_key = vistk::config::key_t("tunable");
+
+  vistk::process_t const proc = create_process(proc_type);
+
+  vistk::config::keys_t const tunable = proc->available_tunable_config();
+
+  if (tunable.size() != 1)
+  {
+    TEST_ERROR("Failed to get the expected number of tunable parameters");
+  }
+
+  if (tunable.empty())
+  {
+    return;
+  }
+
+  if (tunable[0] != tunable_key)
+  {
+    TEST_ERROR("Failed to get the expected tunable parameter");
+  }
+}
+
+IMPLEMENT_TEST(tunable_config_read_only)
+{
+  vistk::process::type_t const proc_type = vistk::process::type_t("tunable");
+  vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const tunable_key = vistk::config::key_t("tunable");
+  vistk::config::value_t const tunable_value = vistk::config::value_t("value");
+
+  conf->set_value(tunable_key, tunable_value);
+  conf->mark_read_only(tunable_key);
+
+  vistk::process_t const proc = create_process(proc_type, proc_name, conf);
+
+  vistk::config::keys_t const tunable = proc->available_tunable_config();
+
+  if (!tunable.empty())
+  {
+    TEST_ERROR("Failed to exclude read-only parameters as tunable");
+  }
 }
 
 vistk::process_t
