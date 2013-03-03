@@ -11,6 +11,7 @@
 #include <vistk/pipeline/pipeline.h>
 #include <vistk/pipeline/pipeline_exception.h>
 #include <vistk/pipeline/process.h>
+#include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/process_exception.h>
 #include <vistk/pipeline/process_registry.h>
 #include <vistk/pipeline/scheduler.h>
@@ -68,6 +69,8 @@ DECLARE_TEST(remove_process);
 DECLARE_TEST(remove_process_after_setup);
 DECLARE_TEST(disconnect);
 DECLARE_TEST(disconnect_after_setup);
+DECLARE_TEST(reconfigure);
+DECLARE_TEST(reconfigure_only_top_level);
 
 int
 main(int argc, char* argv[])
@@ -126,6 +129,8 @@ main(int argc, char* argv[])
   ADD_TEST(tests, remove_process_after_setup);
   ADD_TEST(tests, disconnect);
   ADD_TEST(tests, disconnect_after_setup);
+  ADD_TEST(tests, reconfigure);
+  ADD_TEST(tests, reconfigure_only_top_level);
 
   RUN_TEST(tests, testname);
 }
@@ -1408,6 +1413,99 @@ IMPLEMENT_TEST(disconnect_after_setup)
                    "requesting a disconnect after the pipeline has been setup");
 }
 
+class check_reconfigure_process
+  : public vistk::process
+{
+  public:
+    check_reconfigure_process(vistk::config_t const& conf);
+    ~check_reconfigure_process();
+
+    static vistk::config::key_t const config_should_reconfigure;
+  protected:
+    void _reconfigure(vistk::config_t const& conf);
+  private:
+    bool m_should_reconfigure;
+    bool m_did_reconfigure;
+};
+
+IMPLEMENT_TEST(reconfigure)
+{
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  conf->set_value(check_reconfigure_process::config_should_reconfigure, "true");
+  conf->set_value(vistk::process::config_name, proc_name);
+
+  vistk::process_t const check = boost::make_shared<check_reconfigure_process>(conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(check);
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("new_key");
+  vistk::config::value_t const value = vistk::config::value_t("old_value");
+
+  new_conf->set_value(proc_name + vistk::config::block_sep + key, value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+class sample_cluster
+  : public vistk::process_cluster
+{
+  public:
+    sample_cluster(vistk::config_t const& conf);
+    ~sample_cluster();
+
+    void _add_process(name_t const& name_, type_t const& type_, vistk::config_t const& config);
+};
+
+IMPLEMENT_TEST(reconfigure_only_top_level)
+{
+  vistk::process_registry_t const reg = vistk::process_registry::self();
+
+  vistk::process::type_t const proc_type = vistk::process::type_t("check_reconfigure");
+
+  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<check_reconfigure_process>);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  conf->set_value(check_reconfigure_process::config_should_reconfigure, "false");
+  conf->set_value(vistk::process::config_name, proc_name);
+
+  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
+
+  vistk::config_t const cluster_conf = vistk::config::empty_config();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(cluster_conf);
+
+  cluster->_add_process(proc_name, proc_type, conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("new_key");
+  vistk::config::value_t const value = vistk::config::value_t("old_value");
+
+  vistk::process::name_t const resolved_name = cluster_name + "/" + proc_name;
+
+  new_conf->set_value(resolved_name + vistk::config::block_sep + key, value);
+
+  pipeline->reconfigure(new_conf);
+}
+
 vistk::process_t
 create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
 {
@@ -1486,4 +1584,50 @@ void
 dummy_scheduler
 ::_stop()
 {
+}
+
+vistk::config::key_t const check_reconfigure_process::config_should_reconfigure = vistk::config::key_t("should_reconfigure");
+
+check_reconfigure_process
+::check_reconfigure_process(vistk::config_t const& conf)
+  : process(conf)
+  , m_did_reconfigure(false)
+{
+  m_should_reconfigure = conf->get_value<bool>(config_should_reconfigure);
+}
+
+check_reconfigure_process
+::~check_reconfigure_process()
+{
+  if (m_did_reconfigure != m_should_reconfigure)
+  {
+    TEST_ERROR("Did not get expected reconfigure behavior: "
+               "Expected: " << m_should_reconfigure << " "
+               "Actual  : " << m_did_reconfigure);
+  }
+}
+
+void
+check_reconfigure_process
+::_reconfigure(vistk::config_t const& /*conf*/)
+{
+  m_did_reconfigure = true;
+}
+
+sample_cluster
+::sample_cluster(vistk::config_t const& conf)
+  : vistk::process_cluster(conf)
+{
+}
+
+sample_cluster
+::~sample_cluster()
+{
+}
+
+void
+sample_cluster
+::_add_process(name_t const& name_, type_t const& type_, vistk::config_t const& config)
+{
+  add_process(name_, type_, config);
 }
