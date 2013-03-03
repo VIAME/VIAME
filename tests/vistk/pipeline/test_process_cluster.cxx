@@ -124,11 +124,10 @@ class sample_cluster
     void _connect(name_t const& upstream_name, port_t const& upstream_port,
                   name_t const& downstream_name, port_t const& downstream_port);
 };
+typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
 IMPLEMENT_TEST(add_process)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::name_t const name = vistk::process::name_t("name");
@@ -169,8 +168,6 @@ IMPLEMENT_TEST(add_process)
 
 IMPLEMENT_TEST(duplicate_name)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::name_t const name = vistk::process::name_t("name");
@@ -187,8 +184,6 @@ IMPLEMENT_TEST(duplicate_name)
 
 IMPLEMENT_TEST(map_config)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::config::key_t const key = vistk::config::key_t("key");
@@ -199,8 +194,6 @@ IMPLEMENT_TEST(map_config)
 
 IMPLEMENT_TEST(map_config_after_process)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::config::key_t const key = vistk::config::key_t("key");
@@ -218,8 +211,6 @@ IMPLEMENT_TEST(map_config_after_process)
 
 IMPLEMENT_TEST(map_config_no_exist)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::config::key_t const key = vistk::config::key_t("key");
@@ -230,8 +221,6 @@ IMPLEMENT_TEST(map_config_no_exist)
 
 IMPLEMENT_TEST(map_input)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   vistk::config_t const conf = vistk::config::empty_config();
 
   vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
@@ -300,8 +289,6 @@ IMPLEMENT_TEST(map_input)
 
 IMPLEMENT_TEST(map_input_twice)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::name_t const name = vistk::process::name_t("name");
@@ -323,8 +310,6 @@ IMPLEMENT_TEST(map_input_twice)
 
 IMPLEMENT_TEST(map_input_no_exist)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::port_t const port = vistk::process::port_t("port");
@@ -337,8 +322,6 @@ IMPLEMENT_TEST(map_input_no_exist)
 
 IMPLEMENT_TEST(map_input_port_no_exist)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::port_t const port = vistk::process::port_t("no_such_port");
@@ -356,8 +339,6 @@ IMPLEMENT_TEST(map_input_port_no_exist)
 
 IMPLEMENT_TEST(map_output)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   vistk::config_t const conf = vistk::config::empty_config();
 
   vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
@@ -426,8 +407,6 @@ IMPLEMENT_TEST(map_output)
 
 IMPLEMENT_TEST(map_output_twice)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::name_t const name1 = vistk::process::name_t("name1");
@@ -450,8 +429,6 @@ IMPLEMENT_TEST(map_output_twice)
 
 IMPLEMENT_TEST(map_output_no_exist)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::port_t const port = vistk::process::port_t("port");
@@ -464,8 +441,6 @@ IMPLEMENT_TEST(map_output_no_exist)
 
 IMPLEMENT_TEST(map_output_port_no_exist)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::port_t const port = vistk::process::port_t("no_such_port");
@@ -483,8 +458,6 @@ IMPLEMENT_TEST(map_output_port_no_exist)
 
 IMPLEMENT_TEST(connect)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::name_t const name1 = vistk::process::name_t("name1");
@@ -550,8 +523,6 @@ IMPLEMENT_TEST(connect)
 
 IMPLEMENT_TEST(connect_upstream_no_exist)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::name_t const name1 = vistk::process::name_t("name1");
@@ -570,8 +541,6 @@ IMPLEMENT_TEST(connect_upstream_no_exist)
 
 IMPLEMENT_TEST(connect_upstream_port_no_exist)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::name_t const name1 = vistk::process::name_t("name1");
@@ -593,8 +562,6 @@ IMPLEMENT_TEST(connect_upstream_port_no_exist)
 
 IMPLEMENT_TEST(connect_downstream_no_exist)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::name_t const name1 = vistk::process::name_t("name1");
@@ -613,8 +580,6 @@ IMPLEMENT_TEST(connect_downstream_no_exist)
 
 IMPLEMENT_TEST(connect_downstream_port_no_exist)
 {
-  typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
-
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::process::name_t const name1 = vistk::process::name_t("name1");
