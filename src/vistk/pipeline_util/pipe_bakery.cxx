@@ -51,6 +51,7 @@ static config_flag_t const flag_read_only = config_flag_t("ro");
 static config_flag_t const flag_append = config_flag_t("append");
 static config_flag_t const flag_comma_append = config_flag_t("cappend");
 static config_flag_t const flag_path_append = config_flag_t("pappend");
+static config_flag_t const flag_tunable = config_flag_t("tunable");
 
 static config_provider_t const provider_config = config_provider_t("CONF");
 static config_provider_t const provider_environment = config_provider_t("ENV");
@@ -618,6 +619,10 @@ bakery_base
 
         path_append = true;
       }
+      else if (flag == flag_tunable)
+      {
+        // Ignore here (but don't error).
+      }
       else
       {
         throw unrecognized_config_flag_exception(full_key, flag);
@@ -812,11 +817,21 @@ cluster_creator
     config::key_t const& key = flatten_keys(key_path);
     config::value_t const& value = main_config->get_value<config::value_t>(key);
     config::description_t const& description = conf.description;
+    config_key_options_t const& options = config_key.options;
+    bool tunable = false;
+
+    if (options.flags)
+    {
+      config_flags_t const& flags = *options.flags;
+
+      tunable = std::count(flags.begin(), flags.end(), flag_tunable);
+    }
 
     cluster->declare_configuration_key(
       key,
       value,
-      description);
+      description,
+      tunable);
   }
 
   // Add processes.
