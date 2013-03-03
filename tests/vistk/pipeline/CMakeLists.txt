@@ -137,6 +137,11 @@ vistk_make_test(process null_config)
 vistk_make_test(process null_input_port_info)
 vistk_make_test(process null_output_port_info)
 vistk_make_test(process null_conf_info)
+vistk_make_test(process tunable_config)
+vistk_make_test(process tunable_config_read_only)
+vistk_make_test(process reconfigure_tunable)
+vistk_make_test(process reconfigure_non_tunable)
+vistk_make_test(process reconfigure_extra_parameters)
 
 ##############################
 # Process cluster tests
@@ -164,6 +169,12 @@ vistk_make_test(process_cluster connect_upstream_no_exist)
 vistk_make_test(process_cluster connect_downstream_no_exist)
 vistk_make_test(process_cluster connect_upstream_port_no_exist)
 vistk_make_test(process_cluster connect_downstream_port_no_exist)
+vistk_make_test(process_cluster reconfigure_pass_mappings)
+vistk_make_test(process_cluster reconfigure_pass_extra)
+vistk_make_test(process_cluster reconfigure_tunable_mapped)
+vistk_make_test(process_cluster reconfigure_tunable_only_mapped)
+vistk_make_test(process_cluster reconfigure_read_only)
+vistk_make_test(process_cluster reconfigure_read_only_mapped)
 
 ##############################
 # Scheduler tests
@@ -239,6 +250,8 @@ vistk_make_test(pipeline remove_process)
 vistk_make_test(pipeline remove_process_after_setup)
 vistk_make_test(pipeline disconnect)
 vistk_make_test(pipeline disconnect_after_setup)
+vistk_make_test(pipeline reconfigure)
+vistk_make_test(pipeline reconfigure_only_top_level)
 
 ##############################
 # Introspection tests
