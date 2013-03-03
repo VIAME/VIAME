@@ -57,6 +57,7 @@ static config_flag_t const flag_read_only = config_flag_t("ro");
 static config_flag_t const flag_append = config_flag_t("append");
 static config_flag_t const flag_append_prefix = config_flag_t("append=");
 static config_flag_t const flag_append_comma = config_flag_t("comma");
+static config_flag_t const flag_append_space = config_flag_t("space");
 static config_flag_t const flag_append_path = config_flag_t("path");
 static config_flag_t const flag_tunable = config_flag_t("tunable");
 
@@ -93,6 +94,7 @@ class bakery_base
           append_none,
           append_string,
           append_comma,
+          append_space,
           append_path
         } append_t;
 
@@ -619,6 +621,10 @@ bakery_base
         {
           append = config_info_t::append_comma;
         }
+        else if (kind == flag_append_space)
+        {
+          append = config_info_t::append_space;
+        }
         else if (kind == flag_append_path)
         {
           append = config_info_t::append_path;
@@ -1112,6 +1118,12 @@ set_config_value(config_t conf, bakery_base::config_info_t const& flags, config:
       if (has_cur_val)
       {
         val = cur_val + "," + val;
+      }
+      break;
+    case bakery_base::config_info_t::append_space:
+      if (has_cur_val)
+      {
+        val = cur_val + " " + val;
       }
       break;
     case bakery_base::config_info_t::append_path:
