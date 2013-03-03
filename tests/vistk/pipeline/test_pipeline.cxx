@@ -1462,6 +1462,7 @@ IMPLEMENT_TEST(reconfigure)
   vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
 
   pipeline->add_process(check);
+  pipeline->setup_pipeline();
 
   vistk::config_t const new_conf = vistk::config::empty_config();
 
@@ -1513,6 +1514,7 @@ IMPLEMENT_TEST(reconfigure_only_top_level)
   vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
 
   pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
 
   vistk::config_t const new_conf = vistk::config::empty_config();
 

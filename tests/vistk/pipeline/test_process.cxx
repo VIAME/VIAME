@@ -834,6 +834,7 @@ IMPLEMENT_TEST(reconfigure_tunable)
   vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
 
   pipeline->add_process(expect);
+  pipeline->setup_pipeline();
 
   vistk::config_t const new_conf = vistk::config::empty_config();
 
@@ -864,6 +865,7 @@ IMPLEMENT_TEST(reconfigure_non_tunable)
   vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
 
   pipeline->add_process(expect);
+  pipeline->setup_pipeline();
 
   vistk::config_t const new_conf = vistk::config::empty_config();
 
@@ -895,6 +897,7 @@ IMPLEMENT_TEST(reconfigure_extra_parameters)
   vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
 
   pipeline->add_process(expect);
+  pipeline->setup_pipeline();
 
   vistk::config_t const new_conf = vistk::config::empty_config();
 
