@@ -56,8 +56,8 @@
  *
  * \cflag{ro} Marks the configuration value as read-only.
  * \cflag{append} Appends to the configuration key.
- * \cflag{cappend} Appends to the configuration key, prefixing a comma if the value is non-empty.
- * \cflag{pappend} Appends to the configuration key as if it is a directory name.
+ * \cflag{append=comma} Appends to the configuration key, prefixing a comma if the value is non-empty.
+ * \cflag{append=path} Appends to the configuration key as if it is a directory name.
  *
  * \par Specification
  *

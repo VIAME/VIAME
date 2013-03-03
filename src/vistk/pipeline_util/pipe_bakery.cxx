@@ -55,8 +55,9 @@ static config::key_t const config_pipeline_key = config::key_t("_pipeline");
 
 static config_flag_t const flag_read_only = config_flag_t("ro");
 static config_flag_t const flag_append = config_flag_t("append");
-static config_flag_t const flag_comma_append = config_flag_t("cappend");
-static config_flag_t const flag_path_append = config_flag_t("pappend");
+static config_flag_t const flag_append_prefix = config_flag_t("append=");
+static config_flag_t const flag_append_comma = config_flag_t("comma");
+static config_flag_t const flag_append_path = config_flag_t("path");
 static config_flag_t const flag_tunable = config_flag_t("tunable");
 
 static config_provider_t const provider_config = config_provider_t("CONF");
@@ -87,18 +88,22 @@ class bakery_base
     class config_info_t
     {
       public:
+        typedef enum
+        {
+          append_none,
+          append_string,
+          append_comma,
+          append_path
+        } append_t;
+
         config_info_t(config_reference_t const& ref,
                       bool ro,
-                      bool app,
-                      bool capp,
-                      bool papp);
+                      append_t app);
         ~config_info_t();
 
         config_reference_t reference;
         bool read_only;
-        bool append;
-        bool comma_append;
-        bool path_append;
+        append_t append;
     };
     typedef std::pair<config::key_t, config_info_t> config_decl_t;
     typedef std::vector<config_decl_t> config_decls_t;
@@ -492,14 +497,10 @@ extract_configuration_from_decls(bakery_base::config_decls_t& configs)
 bakery_base::config_info_t
 ::config_info_t(config_reference_t const& ref,
                 bool ro,
-                bool app,
-                bool capp,
-                bool papp)
+                append_t app)
   : reference(ref)
   , read_only(ro)
   , append(app)
-  , comma_append(capp)
-  , path_append(papp)
 {
 }
 
@@ -580,23 +581,18 @@ bakery_base
   config::key_t const full_key = root_key + config::block_sep + subkey;
 
   bool is_readonly = false;
-  bool string_append = false;
-  bool comma_append = false;
-  bool path_append = false;
-  bool appending = false;
+  config_info_t::append_t append = config_info_t::append_none;
 
 #define APPEND_CHECK(flag)                                             \
   do                                                                   \
   {                                                                    \
-    if (appending)                                                     \
+    if (append != config_info_t::append_none)                          \
     {                                                                  \
       std::string const reason = "The \'" + flag + "\' flag cannot "   \
                                  "be used with other appending flags"; \
                                                                        \
       throw config_flag_mismatch_exception(full_key, reason);          \
     }                                                                  \
-                                                                       \
-    appending = true;                                                  \
   } while (false)
 
   if (key.options.flags)
@@ -611,19 +607,26 @@ bakery_base
       {
         APPEND_CHECK(flag_append);
 
-        string_append = true;
+        append = config_info_t::append_string;
       }
-      else if (flag == flag_comma_append)
+      else if (boost::starts_with(flag, flag_append_prefix))
       {
-        APPEND_CHECK(flag_comma_append);
+        APPEND_CHECK(flag);
 
-        comma_append = true;
-      }
-      else if (flag == flag_path_append)
-      {
-        APPEND_CHECK(flag_path_append);
+        config_flag_t const& kind = flag.substr(flag_append_prefix.size());
 
-        path_append = true;
+        if (kind == flag_append_comma)
+        {
+          append = config_info_t::append_comma;
+        }
+        else if (kind == flag_append_path)
+        {
+          append = config_info_t::append_path;
+        }
+        else
+        {
+          throw unrecognized_config_flag_exception(full_key, flag);
+        }
       }
       else if (flag == flag_tunable)
       {
@@ -638,7 +641,7 @@ bakery_base
 
 #undef APPEND_CHECK
 
-  config_info_t const info = config_info_t(c_value, is_readonly, string_append, comma_append, path_append);
+  config_info_t const info = config_info_t(c_value, is_readonly, append);
 
   config_decl_t const decl = config_decl_t(full_key, info);
 
@@ -832,7 +835,7 @@ cluster_creator
     config::value_t const value = config->get_value<config::value_t>(key);
     bakery_base::config_reference_t const ref = bakery_base::config_reference_t(value);
     bool const is_read_only = config->is_read_only(key);
-    bakery_base::config_info_t const info = bakery_base::config_info_t(ref, is_read_only, false, false, false);
+    bakery_base::config_info_t const info = bakery_base::config_info_t(ref, is_read_only, bakery_base::config_info_t::append_none);
     config::key_t const full_key = config::key_t(type) + config::block_sep + key;
     bakery_base::config_decl_t const decl = bakery_base::config_decl_t(full_key, info);
 
@@ -1097,27 +1100,32 @@ set_config_value(config_t conf, bakery_base::config_info_t const& flags, config:
 {
   config::value_t val = value;
 
-  if (flags.path_append || flags.comma_append || flags.append)
+  config::value_t const cur_val = conf->get_value(key, config::value_t());
+  bool const has_cur_val = !cur_val.empty();
+
+  switch (flags.append)
   {
-    config::value_t const cur_val = conf->get_value(key, config::value_t());
-
-    if (flags.comma_append && !cur_val.empty())
-    {
-      val = ',' + val;
-    }
-
-    if (flags.path_append)
-    {
-      path_t const base_path = path_t(cur_val.empty() ? "." : cur_val);
-      path_t const val_path = path_t(val);
-      path_t const new_path = base_path / val_path;
-
-      val = new_path.string<config::value_t>();
-    }
-    else
-    {
+    case bakery_base::config_info_t::append_string:
       val = cur_val + val;
-    }
+      break;
+    case bakery_base::config_info_t::append_comma:
+      if (has_cur_val)
+      {
+        val = cur_val + "," + val;
+      }
+      break;
+    case bakery_base::config_info_t::append_path:
+      {
+        path_t const base_path = path_t(has_cur_val ? cur_val : ".");
+        path_t const val_path = path_t(val);
+        path_t const new_path = base_path / val_path;
+
+        val = new_path.string<config::value_t>();
+      }
+      break;
+    case bakery_base::config_info_t::append_none:
+    default:
+      break;
   }
 
   conf->set_value(key, val);
