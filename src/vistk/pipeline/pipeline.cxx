@@ -1392,12 +1392,11 @@ void
 pipeline::priv
 ::configure_processes()
 {
-  process::names_t const names = q->process_names();
-
   // Configure processes.
-  BOOST_FOREACH (process::name_t const& name, names)
+  BOOST_FOREACH (process_map_t::value_type const& proc_data, process_map)
   {
-    process_t const proc = q->process_by_name(name);
+    process::name_t const& name = proc_data.first;
+    process_t const& proc = proc_data.second;
     process::connections_t unresolved_connections;
 
     proc->configure();
