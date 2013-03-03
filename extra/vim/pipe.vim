@@ -13,7 +13,7 @@ syn case match
 let s:begin_line='\(^[ \t]*\)'
 let s:config_name='[a-zA-Z0-9_/-]\+'
 let s:port_name='[a-zA-Z0-9_/-]\+'
-let s:flag='[a-zA-Z]\+'
+let s:flag='[a-zA-Z0-9_/=-]\+'
 let s:provider='[A-Z]\+'
 let s:config_value='[a-zA-Z0-9./:_ \t-]\+'
 
