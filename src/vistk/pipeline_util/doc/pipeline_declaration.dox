@@ -65,7 +65,8 @@
  *   <flag-start>     ::= "["
  *   <flag-separator> ::= ","
  *   <flag-end>       ::= "]"
- *   <key-flag>       ::= <alpha> <key-flag> | <alpha>
+ *   <key-flag-char>  ::= <alnum> | "-" | "_" | "="
+ *   <key-flag>       ::= <key-flag-char> <key-flag> | <key-flag-char>
  *   <key-flags>      ::= <key-flag> <flag-separator> <key-flag> | <key-flag>
  *   <key-flags-decl> ::= <flag-start> <key-flags> <flag-close>
  * </pre>
