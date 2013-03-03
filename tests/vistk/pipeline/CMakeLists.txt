@@ -8,6 +8,7 @@ set(libraries
 ##############################
 vistk_build_test(config libraries test_config.cxx)
 
+vistk_make_test(config block_sep_size)
 vistk_make_test(config has_value)
 vistk_make_test(config get_value)
 vistk_make_test(config get_value_nested)
