@@ -42,10 +42,10 @@ DECLARE_TEST(config_append);
 DECLARE_TEST(config_append_ro);
 DECLARE_TEST(config_append_provided);
 DECLARE_TEST(config_append_provided_ro);
-DECLARE_TEST(config_cappend);
-DECLARE_TEST(config_cappend_empty);
-DECLARE_TEST(config_pappend);
-DECLARE_TEST(config_pappend_empty);
+DECLARE_TEST(config_append_comma);
+DECLARE_TEST(config_append_comma_empty);
+DECLARE_TEST(config_append_path);
+DECLARE_TEST(config_append_path_empty);
 DECLARE_TEST(config_append_flag_mismatch_ac);
 DECLARE_TEST(config_append_flag_mismatch_ap);
 DECLARE_TEST(config_append_flag_mismatch_cp);
@@ -105,10 +105,10 @@ main(int argc, char* argv[])
   ADD_TEST(tests, config_append_ro);
   ADD_TEST(tests, config_append_provided);
   ADD_TEST(tests, config_append_provided_ro);
-  ADD_TEST(tests, config_cappend);
-  ADD_TEST(tests, config_cappend_empty);
-  ADD_TEST(tests, config_pappend);
-  ADD_TEST(tests, config_pappend_empty);
+  ADD_TEST(tests, config_append_comma);
+  ADD_TEST(tests, config_append_comma_empty);
+  ADD_TEST(tests, config_append_path);
+  ADD_TEST(tests, config_append_path_empty);
   ADD_TEST(tests, config_append_flag_mismatch_ac);
   ADD_TEST(tests, config_append_flag_mismatch_ap);
   ADD_TEST(tests, config_append_flag_mismatch_cp);
@@ -352,7 +352,7 @@ IMPLEMENT_TEST(config_append_provided_ro)
   }
 }
 
-IMPLEMENT_TEST(config_cappend)
+IMPLEMENT_TEST(config_append_comma)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -370,7 +370,7 @@ IMPLEMENT_TEST(config_cappend)
   }
 }
 
-IMPLEMENT_TEST(config_cappend_empty)
+IMPLEMENT_TEST(config_append_comma_empty)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -388,7 +388,7 @@ IMPLEMENT_TEST(config_cappend_empty)
   }
 }
 
-IMPLEMENT_TEST(config_pappend)
+IMPLEMENT_TEST(config_append_path)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 
@@ -407,7 +407,7 @@ IMPLEMENT_TEST(config_pappend)
   }
 }
 
-IMPLEMENT_TEST(config_pappend_empty)
+IMPLEMENT_TEST(config_append_path_empty)
 {
   vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
 

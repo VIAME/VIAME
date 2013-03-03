@@ -1,0 +1,2 @@
+config myblock
+  :mykey[append=comma] othervalue

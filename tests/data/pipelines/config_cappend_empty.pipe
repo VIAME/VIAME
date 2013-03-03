@@ -1,2 +1,0 @@
-config myblock
-  :mykey[cappend] othervalue
