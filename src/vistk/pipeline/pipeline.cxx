@@ -1438,6 +1438,14 @@ pipeline::priv
       data_dep_connections = unresolved_connections;
     }
   }
+
+  // Configure clusters.
+  BOOST_FOREACH (cluster_map_t::value_type const& cluster_data, cluster_map)
+  {
+    process_cluster_t const& cluster = cluster_data.second;
+
+    cluster->configure();
+  }
 }
 
 void
