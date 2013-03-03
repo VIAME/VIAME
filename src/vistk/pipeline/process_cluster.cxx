@@ -136,6 +136,9 @@ process_cluster
 
     /// \todo Create a copy of conf before modifying it.
     conf->set_value(mapped_key, value);
+    // Make sure that the parameter is not reconfigured away by anything other
+    // than this cluster.
+    conf->mark_read_only(mapped_key);
   }
 
   process_registry_t const reg = process_registry::self();
