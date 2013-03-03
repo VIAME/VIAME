@@ -92,7 +92,7 @@ main(int argc, char* argv[])
   RUN_TEST(tests, testname);
 }
 
-static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t());
+static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t(), vistk::config_t const& conf = vistk::config::empty_config());
 static vistk::edge_t create_edge();
 
 class remove_ports_process
@@ -754,14 +754,14 @@ IMPLEMENT_TEST(null_conf_info)
 }
 
 vistk::process_t
-create_process(vistk::process::type_t const& type, vistk::process::name_t const& name)
+create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t const& conf)
 {
   static bool const modules_loaded = (vistk::load_known_modules(), true);
   static vistk::process_registry_t const reg = vistk::process_registry::self();
 
   (void)modules_loaded;
 
-  return reg->create_process(type, name);
+  return reg->create_process(type, name, conf);
 }
 
 vistk::edge_t
