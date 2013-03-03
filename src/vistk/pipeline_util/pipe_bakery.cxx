@@ -17,8 +17,10 @@
 #include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/process_registry.h>
 
+#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -874,7 +876,49 @@ cluster_creator
       tunable);
   }
 
-  /// \todo Map configurations.
+  extract_literal_value const literal_value = extract_literal_value();
+
+  // Add config mappings.
+  BOOST_FOREACH (bakery_base::config_decl_t const& decl, mapped_decls)
+  {
+    config::key_t const& key = decl.first;
+    bakery_base::config_info_t const& mapping_info = decl.second;
+    bakery_base::config_reference_t const& ref = mapping_info.reference;
+
+    config::value_t const value = boost::apply_visitor(literal_value, ref);
+
+    config::keys_t mapped_key_path;
+    config::keys_t source_key_path;
+
+    /// \bug Does not work if (vistk::config::block_sep.size() != 1).
+    boost::split(mapped_key_path, key, boost::is_any_of(vistk::config::block_sep));
+    /// \bug Does not work if (vistk::config::block_sep.size() != 1).
+    boost::split(source_key_path, value, boost::is_any_of(vistk::config::block_sep));
+
+    if (mapped_key_path.size() < 2)
+    {
+      /// \todo Error.
+
+      continue;
+    }
+
+    if (source_key_path.size() < 2)
+    {
+      /// \todo Error.
+
+      continue;
+    }
+
+    config::key_t const mapped_name = mapped_key_path[0];
+    mapped_key_path.erase(mapped_key_path.begin());
+
+    config::key_t const mapped_key = flatten_keys(mapped_key_path);
+
+    source_key_path.erase(source_key_path.begin());
+    config::key_t const source_key = flatten_keys(source_key_path);
+
+    cluster->map_config(source_key, mapped_name, mapped_key);
+  }
 
   // Add processes.
   BOOST_FOREACH (bakery_base::process_decl_t const& proc_decl, m_bakery.m_processes)
