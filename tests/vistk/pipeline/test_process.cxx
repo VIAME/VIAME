@@ -21,7 +21,7 @@
 DECLARE_TEST(null_input_edge);
 DECLARE_TEST(null_output_edge);
 DECLARE_TEST(connect_after_init);
-DECLARE_TEST(reconfigure);
+DECLARE_TEST(configure_twice);
 DECLARE_TEST(reinit);
 DECLARE_TEST(reset);
 DECLARE_TEST(step_before_configure);
@@ -61,7 +61,7 @@ main(int argc, char* argv[])
   ADD_TEST(tests, null_input_edge);
   ADD_TEST(tests, null_output_edge);
   ADD_TEST(tests, connect_after_init);
-  ADD_TEST(tests, reconfigure);
+  ADD_TEST(tests, configure_twice);
   ADD_TEST(tests, reinit);
   ADD_TEST(tests, reset);
   ADD_TEST(tests, step_before_configure);
@@ -191,7 +191,7 @@ IMPLEMENT_TEST(connect_after_init)
                    "connecting an input edge after initialization");
 }
 
-IMPLEMENT_TEST(reconfigure)
+IMPLEMENT_TEST(configure_twice)
 {
   vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
 
