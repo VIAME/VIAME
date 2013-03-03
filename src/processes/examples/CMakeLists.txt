@@ -4,6 +4,7 @@ set(examples_srcs
   const_process.cxx
   const_number_process.cxx
   data_dependent_process.cxx
+  expect_process.cxx
   feedback_process.cxx
   flow_dependent_process.cxx
   multiplication_process.cxx
@@ -25,6 +26,7 @@ set(examples_private_headers
   const_number_process.h
   data_dependent_process.h
   examples-config.h
+  expect_process.h
   feedback_process.h
   flow_dependent_process.h
   multiplication_process.h
