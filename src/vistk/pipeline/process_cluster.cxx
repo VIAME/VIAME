@@ -134,6 +134,7 @@ process_cluster
 
     config::value_t const value = config_value<config::value_t>(key);
 
+    /// \todo Create a copy of conf before modifying it.
     conf->set_value(mapped_key, value);
   }
 
