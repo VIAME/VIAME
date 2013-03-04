@@ -174,8 +174,7 @@ vistk_make_test(process_cluster reconfigure_pass_tunable_mappings)
 vistk_make_test(process_cluster reconfigure_no_pass_untunable_mappings)
 vistk_make_test(process_cluster reconfigure_pass_extra)
 vistk_make_test(process_cluster reconfigure_tunable_only_if_mapped)
-vistk_make_test(process_cluster reconfigure_read_only_mapped)
-vistk_make_test(process_cluster reconfigure_read_only_mapped_untunable)
+vistk_make_test(process_cluster reconfigure_mapped_untunable)
 
 ##############################
 # Scheduler tests
