@@ -32,6 +32,7 @@
 #endif
 
 #ifdef NAME_THREAD_USING_PTHREAD
+#include <errno.h>
 #include <pthread.h>
 #ifdef HAVE_PTHREAD_SET_NAME_NP
 #include <pthread_np.h>
@@ -169,7 +170,7 @@ name_thread_setproctitle(thread_name_t const& name)
 bool
 name_thread_pthread(thread_name_t const& name)
 {
-  int ret;
+  int ret = -ENOTSUP;
 
 #ifdef HAVE_PTHREAD_SETNAME_NP
 #ifdef PTHREAD_SETNAME_NP_TAKES_ID
