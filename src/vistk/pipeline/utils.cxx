@@ -26,6 +26,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #ifndef NDEBUG
+// The mechanism only make sense in debugging mode.
 #define NAME_THREAD_USING_WIN32
 #endif
 #endif
@@ -179,15 +180,9 @@ name_thread_pthread(thread_name_t const& name)
   ret = pthread_setname_np(name.c_str());
 #endif
 #elif defined(HAVE_PTHREAD_SET_NAME_NP)
-// The documentation states that it only makes sense in debugging; respect it.
-#ifndef NDEBUG
   pthread_t const tid = pthread_self();
 
   ret = pthread_set_name_np(tid, name.c_str());
-#else
-  // Fail if not debugging.
-  ret = 1;
-#endif
 #endif
 
   return (ret == 0);
@@ -195,27 +190,16 @@ name_thread_pthread(thread_name_t const& name)
 #endif
 
 #ifdef NAME_THREAD_USING_WIN32
-// The mechanism only make sense in debugging mode.
-#ifndef NDEBUG
 static void set_thread_name(DWORD thread_id, LPCSTR name);
-#endif
 
 bool
 name_thread_win32(thread_name_t const& name)
 {
-  bool ret;
-
-#ifndef NDEBUG
   static DWORD const current_thread = -1;
 
   set_thread_name(current_thread, name.c_str());
 
-  ret = true;
-#else
-  ret = false;
-#endif
-
-  return ret;
+  return true;
 }
 
 // Code obtained from http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
