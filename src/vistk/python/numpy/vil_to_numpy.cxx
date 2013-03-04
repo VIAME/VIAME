@@ -6,6 +6,7 @@
 
 #include "vil_to_numpy.h"
 
+#include "import.h"
 #include "numpy_support.h"
 #include "registration.h"
 #include "type_mappings.h"
@@ -36,7 +37,7 @@ namespace python
 {
 
 PyObject*
-vil_to_numpy(vil_image_view_base_sptr const& img)
+vil_base_to_numpy(vil_image_view_base_sptr const& img)
 {
   vistk::python::python_gil const gil;
 
@@ -145,23 +146,23 @@ vil_to_numpy(vil_image_view<T> const& img)
   npy_intp* const strides = PyDimMem_NEW(nd);
   bool const contig = img.is_contiguous();
 
-  dims[0] = img.ni();
-  dims[1] = img.nj();
+  dims[0] = img.nj();
+  dims[1] = img.ni();
   dims[2] = img.nplanes();
 
-  strides[0] = img.istep();
-  strides[1] = img.jstep();
+  strides[0] = img.jstep();
+  strides[1] = img.istep();
   strides[2] = img.planestep();
 
   int flags = 0;
 
   if (contig)
   {
-    if (img.planestep() == 1)
+    if (strides[2] == 1)
     {
       flags |= NPY_FLAG(C_CONTIGUOUS);
     }
-    else if (img.istep() == 1)
+    else if (strides[0] == 1)
     {
       flags |= NPY_FLAG(F_CONTIGUOUS);
     }
@@ -189,6 +190,8 @@ vil_to_numpy(vil_image_view<T> const& img)
     /// \todo Log that vil doesn't own this memory...there be dragons here.
     Py_INCREF(obj);
   }
+
+  vistk::python::import_numpy();
 
   PyObject* const arr = PyArray_New(&PyArray_Type, nd, dims, arr_type, strides, reinterpret_cast<void*>(mem), sizeof(pixel_t), flags, obj);
 

@@ -20,7 +20,7 @@ def expect_exception(action, kind, func, *args, **kwargs):
     except BaseException:
         import sys
 
-        e = sys.exc_info()[0]
+        e = sys.exc_info()[1]
 
         test_error("Got unexpected exception: %s" % str(e))
 
@@ -47,6 +47,6 @@ def run_test(testname, tests, *args, **kwargs):
     except BaseException:
         import sys
 
-        e = sys.exc_info()[0]
+        e = sys.exc_info()[1]
 
         test_error("Unexpected exception: %s" % str(e))

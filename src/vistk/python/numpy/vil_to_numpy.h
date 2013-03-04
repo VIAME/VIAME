@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -31,7 +31,7 @@ namespace python
  *
  * \returns A NumPy image, or \c None on failure.
  */
-VISTK_PYTHON_NUMPY_EXPORT PyObject* vil_to_numpy(vil_image_view_base_sptr const& img);
+VISTK_PYTHON_NUMPY_EXPORT PyObject* vil_base_to_numpy(vil_image_view_base_sptr const& img);
 
 /**
  * \brief Convert a \c vil_image_view instantation into a NumPy image.

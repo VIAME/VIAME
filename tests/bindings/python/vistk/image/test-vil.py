@@ -21,16 +21,17 @@ def test_vil_to_numpy():
     height = 600
     planes = 3
 
-    shape = (width, height, planes)
+    shape = (height, width, planes)
 
     types = [ (test_image.make_image_bool, np.bool)
             , (test_image.make_image_uint8_t, np.uint8)
             , (test_image.make_image_float, np.float32)
             , (test_image.make_image_double, np.double)
+            , (test_image.make_image_base, np.uint8)
             ]
 
     for f, t in types:
-        i = f(width, height, planes)
+        i = vil.vil_to_numpy(f(width, height, planes))
 
         if not i.dtype == t:
             test_error("Wrong type returned: got: '%s' expected: '%s'" % (i.dtype, t))
@@ -51,20 +52,21 @@ def test_numpy_to_vil():
     height = 600
     planes = 3
 
-    shape = (width, height, planes)
+    shape = (height, width, planes)
 
     size = width * height * planes
 
-    types = [ (test_image.take_image_bool, np.bool)
-            , (test_image.take_image_uint8_t, np.uint8)
-            , (test_image.take_image_float, np.float32)
-            , (test_image.take_image_double, np.double)
+    types = [ (test_image.take_image_bool, vil.numpy_to_vil_bool, np.bool)
+            , (test_image.take_image_uint8_t, vil.numpy_to_vil_uint8_t, np.uint8)
+            , (test_image.take_image_float, vil.numpy_to_vil_float, np.float32)
+            , (test_image.take_image_double, vil.numpy_to_vil_double, np.double)
+            , (test_image.take_image_base, vil.numpy_to_vil, np.uint8)
             ]
 
-    for f, t in types:
+    for f, c, t in types:
         i = np.zeros(shape, dtype=t)
 
-        sz = f(i)
+        sz = f(c(i))
 
         if not sz == size:
             test_error("Wrong size calculated: got: '%d' expected: '%d'" % (sz, size))
@@ -89,12 +91,13 @@ def create_verify_process(c, shape, dtype):
             self.declare_input_port(self.input_port, self.type_any, required, 'image port')
 
         def _step(self):
+            from vistk.image import vil
             from vistk.pipeline import datum
             from vistk.pipeline import edge
             import numpy as np
 
             dat = self.grab_datum_from_port(self.input_port)
-            img = dat.get_datum()
+            img = vil.vil_to_numpy(dat.get_datum())
 
             if isinstance(img, np.ndarray):
                 self.got_image = True
@@ -129,12 +132,12 @@ def test_datum():
     height = 600
     planes = 1
 
-    shape = (width, height, planes)
+    shape = (height, width, planes)
 
-    types = [ (test_image.save_image_bool, 'bool', np.bool)
-            , (test_image.save_image_uint8_t, 'byte', np.uint8)
-            , (test_image.save_image_float, 'float', np.float32)
-            , (test_image.save_image_double, 'double', np.double)
+    types = [ (test_image.save_image_bool, vil.numpy_to_vil_bool, 'bool', np.bool)
+            , (test_image.save_image_uint8_t, vil.numpy_to_vil_uint8_t, 'byte', np.uint8)
+            , (test_image.save_image_float, vil.numpy_to_vil_float, 'float', np.float32)
+            , (test_image.save_image_double, vil.numpy_to_vil_double, 'double', np.double)
             ]
 
     modules.load_known_modules()
@@ -143,7 +146,7 @@ def test_datum():
 
     sched_type = 'sync'
 
-    for f, pt, t in types:
+    for f, c, pt, t in types:
         from vistk.pipeline import config
         from vistk.pipeline import pipeline
         from vistk.pipeline import process
@@ -153,7 +156,7 @@ def test_datum():
         lname = 'test-python-vil-datum-%s.txt' % pt
         fname = 'test-python-vil-datum-%s.tiff' % pt
 
-        if not f(a, fname):
+        if not f(c(a), fname):
             test_error("Failed to save '%s' image" % pt)
             continue
 
@@ -193,7 +196,7 @@ def test_datum():
         except BaseException:
             import sys
 
-            e = sys.exc_info()[0]
+            e = sys.exc_info()[1]
 
             test_error("Could not initialize pipeline: '%s'" % str(e))
             continue
@@ -206,7 +209,7 @@ def test_datum():
         except BaseException:
             import sys
 
-            e = sys.exc_info()[0]
+            e = sys.exc_info()[1]
 
             test_error("Could not execute pipeline: '%s'" % str(e))
 
@@ -222,23 +225,24 @@ def test_memory():
     height = 600
     planes = 3
 
-    shape = (width, height, planes)
+    shape = (height, width, planes)
 
-    types = [ (test_image.make_image_bool, test_image.pass_image_bool, np.bool)
-            , (test_image.make_image_uint8_t, test_image.pass_image_uint8_t, np.uint8)
-            , (test_image.make_image_float, test_image.pass_image_float, np.float32)
-            , (test_image.make_image_double, test_image.pass_image_double, np.double)
+    types = [ (test_image.make_image_bool, test_image.pass_image_bool, vil.numpy_to_vil_bool, np.bool)
+            , (test_image.make_image_uint8_t, test_image.pass_image_uint8_t, vil.numpy_to_vil_uint8_t, np.uint8)
+            , (test_image.make_image_float, test_image.pass_image_float, vil.numpy_to_vil_float, np.float32)
+            , (test_image.make_image_double, test_image.pass_image_double, vil.numpy_to_vil_double, np.double)
+            , (test_image.make_image_base, test_image.pass_image_base, vil.numpy_to_vil, np.uint8)
             ]
 
-    for _, f, t in types:
+    for _, f, c, t in types:
         a = np.zeros(shape, dtype=t)
 
-        x = f(a)
+        x = f(c(a))
         y = f(x)
         z = f(y)
         a = f(z)
 
-    for m, f, t in types:
+    for m, f, _, t in types:
         a = m(width, height, planes)
 
         x = f(a)

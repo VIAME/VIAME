@@ -51,6 +51,6 @@ def load_python_modules():
         except BaseException:
             import sys
 
-            e = sys.exc_info()[0]
+            e = sys.exc_info()[1]
 
             _log("Failed to load '%s': %s" % (module, str(e)))

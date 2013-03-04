@@ -6,6 +6,7 @@
 
 #include "numpy_memory_chunk.h"
 
+#include "import.h"
 #include "type_mappings.h"
 
 #include <vistk/python/util/python_gil.h>
@@ -28,6 +29,8 @@ numpy_memory_chunk
   (void)gil;
 
   Py_INCREF(m_arr);
+
+  vistk::python::import_numpy();
 
   int const numpy_format = PyArray_TYPE(m_arr);
   vil_pixel_format vil_format = convert_format(numpy_format);

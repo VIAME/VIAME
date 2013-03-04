@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -48,7 +48,7 @@ register_memory_chunk_to_python()
   // shouldn't be messing with such things, but it allows us to have numpy
   // arrays hold a reference to the memory chunk that is being used when
   // converting a vil_image_view into a NumPy array.
-  class_<vil_memory_chunk, vil_memory_chunk_sptr, boost::noncopyable>("_VilMemoryChunk"
+  class_<vil_memory_chunk, vil_memory_chunk_sptr>("_VilMemoryChunk"
     , "<internal>"
     , no_init);
 }
@@ -66,7 +66,7 @@ register_image_base()
 void
 register_image_base_to_python()
 {
-  class_<vil_image_view_base, vil_image_view_base_sptr, boost::noncopyable>("_VilImage"
+  class_<vil_image_view_base_sptr>("_VilImage"
     , "<internal>"
     , no_init);
 }
@@ -91,7 +91,7 @@ register_image_to_python()
 
   base += typeid(T).name();
 
-  class_<vil_image_view<T>, boost::noncopyable>(base.c_str()
+  class_<vil_image_view<T> >(base.c_str()
     , "<internal>"
     , no_init);
 }
@@ -100,21 +100,23 @@ register_image_to_python()
 
 }
 
-#define REGISTER_IMAGE_TYPE(type) \
-  template void vistk::python::register_image_type<type>()
+#define INSTANTIATE_REGISTER_IMAGE_TYPE(type) \
+  template VISTK_PYTHON_NUMPY_EXPORT void vistk::python::register_image_type<type>()
 
-REGISTER_IMAGE_TYPE(bool);
-REGISTER_IMAGE_TYPE(signed char);
-REGISTER_IMAGE_TYPE(unsigned char);
-REGISTER_IMAGE_TYPE(short);
-REGISTER_IMAGE_TYPE(unsigned short);
-REGISTER_IMAGE_TYPE(int);
-REGISTER_IMAGE_TYPE(unsigned int);
-REGISTER_IMAGE_TYPE(long);
-REGISTER_IMAGE_TYPE(unsigned long);
-#if VXL_HAS_INT_64
-REGISTER_IMAGE_TYPE(long long);
-REGISTER_IMAGE_TYPE(unsigned long long);
+INSTANTIATE_REGISTER_IMAGE_TYPE(bool);
+INSTANTIATE_REGISTER_IMAGE_TYPE(signed char);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned char);
+INSTANTIATE_REGISTER_IMAGE_TYPE(short);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned short);
+INSTANTIATE_REGISTER_IMAGE_TYPE(int);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned int);
+INSTANTIATE_REGISTER_IMAGE_TYPE(long);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned long);
+#if 0 && VXL_HAS_INT_64
+INSTANTIATE_REGISTER_IMAGE_TYPE(long long);
+INSTANTIATE_REGISTER_IMAGE_TYPE(unsigned long long);
 #endif
-REGISTER_IMAGE_TYPE(float);
-REGISTER_IMAGE_TYPE(double);
+INSTANTIATE_REGISTER_IMAGE_TYPE(float);
+INSTANTIATE_REGISTER_IMAGE_TYPE(double);
+
+#undef INSTANTIATE_REGISTER_IMAGE_TYPE

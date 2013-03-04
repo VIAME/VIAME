@@ -249,7 +249,7 @@ def test_register_cluster():
     except BaseException:
         import sys
 
-        e = sys.exc_info()[0]
+        e = sys.exc_info()[1]
 
         test_error("Could not create newly registered process cluster type: %s" % str(e))
 
