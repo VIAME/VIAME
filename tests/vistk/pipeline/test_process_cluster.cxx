@@ -40,6 +40,12 @@ DECLARE_TEST(connect_upstream_no_exist);
 DECLARE_TEST(connect_upstream_port_no_exist);
 DECLARE_TEST(connect_downstream_no_exist);
 DECLARE_TEST(connect_downstream_port_no_exist);
+DECLARE_TEST(reconfigure_pass_tunable_mappings);
+DECLARE_TEST(reconfigure_no_pass_untunable_mappings);
+DECLARE_TEST(reconfigure_pass_extra);
+DECLARE_TEST(reconfigure_tunable_only_if_mapped);
+DECLARE_TEST(reconfigure_read_only_mapped);
+DECLARE_TEST(reconfigure_read_only_mapped_untunable);
 
 int
 main(int argc, char* argv[])
@@ -71,6 +77,12 @@ main(int argc, char* argv[])
   ADD_TEST(tests, connect_upstream_port_no_exist);
   ADD_TEST(tests, connect_downstream_no_exist);
   ADD_TEST(tests, connect_downstream_port_no_exist);
+  ADD_TEST(tests, reconfigure_pass_tunable_mappings);
+  ADD_TEST(tests, reconfigure_no_pass_untunable_mappings);
+  ADD_TEST(tests, reconfigure_pass_extra);
+  ADD_TEST(tests, reconfigure_tunable_only_if_mapped);
+  ADD_TEST(tests, reconfigure_read_only_mapped);
+  ADD_TEST(tests, reconfigure_read_only_mapped_untunable);
 
   RUN_TEST(tests, testname);
 }
@@ -116,6 +128,11 @@ class sample_cluster
   public:
     sample_cluster(vistk::config_t const& conf = vistk::config::empty_config());
     ~sample_cluster();
+
+    void _declare_configuration_key(vistk::config::key_t const& key,
+                                    vistk::config::value_t const& def_,
+                                    vistk::config::description_t const& description_,
+                                    bool tunable_);
 
     void _map_config(vistk::config::key_t const& key, name_t const& name_, vistk::config::key_t const& mapped_key);
     void _add_process(name_t const& name_, type_t const& type_, vistk::config_t const& config = vistk::config::empty_config());
@@ -599,6 +616,290 @@ IMPLEMENT_TEST(connect_downstream_port_no_exist)
                    "making a connection when the downstream port does not exist");
 }
 
+IMPLEMENT_TEST(reconfigure_pass_tunable_mappings)
+{
+  vistk::load_known_modules();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::config_t const cluster_conf = vistk::config::empty_config();
+
+  cluster_conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(cluster_conf);
+
+  vistk::config::key_t const key = vistk::config::key_t("key");
+
+  cluster->_declare_configuration_key(
+    key,
+    vistk::config::value_t(),
+    vistk::config::description_t(),
+    true);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("expect");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key_tunable = vistk::config::key_t("tunable");
+  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
+
+  cluster->_map_config(key, name, key_tunable);
+
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+
+  conf->set_value(key_tunable, tunable_value);
+  conf->set_value(key_expect, tuned_value);
+
+  cluster->_add_process(name, type, conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(reconfigure_no_pass_untunable_mappings)
+{
+  vistk::load_known_modules();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::config_t const cluster_conf = vistk::config::empty_config();
+
+  cluster_conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(cluster_conf);
+
+  vistk::config::key_t const key = vistk::config::key_t("key");
+
+  cluster->_declare_configuration_key(
+    key,
+    vistk::config::value_t(),
+    vistk::config::description_t(),
+    false);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("expect");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key_tunable = vistk::config::key_t("tunable");
+  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
+
+  cluster->_map_config(key, name, key_tunable);
+
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+
+  conf->set_value(key_tunable, tunable_value);
+  conf->set_value(key_expect, tunable_value);
+
+  cluster->_add_process(name, type, conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(reconfigure_pass_extra)
+{
+  vistk::load_known_modules();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::config_t const cluster_conf = vistk::config::empty_config();
+
+  cluster_conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(cluster_conf);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("expect");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
+  vistk::config::key_t const key_expect_key = vistk::config::key_t("expect_key");
+
+  vistk::config::value_t const extra_key = vistk::config::value_t("new_key");
+
+  conf->set_value(key_expect, extra_key);
+  conf->set_value(key_expect_key, "true");
+
+  cluster->_add_process(name, type, conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + name + vistk::config::block_sep + extra_key, extra_key);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(reconfigure_tunable_only_if_mapped)
+{
+  vistk::load_known_modules();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::config_t const cluster_conf = vistk::config::empty_config();
+
+  cluster_conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(cluster_conf);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("expect");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key_tunable = vistk::config::key_t("tunable");
+  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
+
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+
+  conf->set_value(key_tunable, tunable_value);
+  conf->mark_read_only(key_tunable);
+  conf->set_value(key_expect, tunable_value);
+
+  cluster->_add_process(name, type, conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + name + vistk::config::block_sep + key_tunable, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(reconfigure_read_only_mapped)
+{
+  vistk::load_known_modules();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::config_t const cluster_conf = vistk::config::empty_config();
+
+  cluster_conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(cluster_conf);
+
+  vistk::config::key_t const key = vistk::config::key_t("key");
+
+  cluster->_declare_configuration_key(
+    key,
+    vistk::config::value_t(),
+    vistk::config::description_t(),
+    true);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("expect");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key_tunable = vistk::config::key_t("tunable");
+  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
+
+  cluster->_map_config(key, name, key_tunable);
+
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+
+  conf->set_value(key_tunable, tunable_value);
+  conf->mark_read_only(key_tunable);
+  conf->set_value(key_expect, tuned_value);
+
+  cluster->_add_process(name, type, conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(reconfigure_read_only_mapped_untunable)
+{
+  vistk::load_known_modules();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::config_t const cluster_conf = vistk::config::empty_config();
+
+  cluster_conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(cluster_conf);
+
+  vistk::config::key_t const key = vistk::config::key_t("key");
+
+  cluster->_declare_configuration_key(
+    key,
+    vistk::config::value_t(),
+    vistk::config::description_t(),
+    true);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("expect");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key_tunable = vistk::config::key_t("tunable");
+  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
+
+  cluster->_map_config(key, name, key_expect);
+
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+
+  conf->set_value(key_tunable, tunable_value);
+  conf->set_value(key_expect, tunable_value);
+  conf->mark_read_only(key_expect);
+
+  cluster->_add_process(name, type, conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
 empty_cluster
 ::empty_cluster()
   : vistk::process_cluster(vistk::config::empty_config())
@@ -619,6 +920,16 @@ sample_cluster
 sample_cluster
 ::~sample_cluster()
 {
+}
+
+void
+sample_cluster
+::_declare_configuration_key(vistk::config::key_t const& key,
+                             vistk::config::value_t const& def_,
+                             vistk::config::description_t const& description_,
+                             bool tunable_)
+{
+  declare_configuration_key(key, def_, description_, tunable_);
 }
 
 void

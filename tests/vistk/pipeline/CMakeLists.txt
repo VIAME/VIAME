@@ -169,12 +169,12 @@ vistk_make_test(process_cluster connect_upstream_no_exist)
 vistk_make_test(process_cluster connect_downstream_no_exist)
 vistk_make_test(process_cluster connect_upstream_port_no_exist)
 vistk_make_test(process_cluster connect_downstream_port_no_exist)
-vistk_make_test(process_cluster reconfigure_pass_mappings)
+vistk_make_test(process_cluster reconfigure_pass_tunable_mappings)
+vistk_make_test(process_cluster reconfigure_no_pass_untunable_mappings)
 vistk_make_test(process_cluster reconfigure_pass_extra)
-vistk_make_test(process_cluster reconfigure_tunable_mapped)
-vistk_make_test(process_cluster reconfigure_tunable_only_mapped)
-vistk_make_test(process_cluster reconfigure_read_only)
+vistk_make_test(process_cluster reconfigure_tunable_only_if_mapped)
 vistk_make_test(process_cluster reconfigure_read_only_mapped)
+vistk_make_test(process_cluster reconfigure_read_only_mapped_untunable)
 
 ##############################
 # Scheduler tests
