@@ -228,12 +228,19 @@ IMPLEMENT_TEST(map_config_after_process)
 
 IMPLEMENT_TEST(map_config_no_exist)
 {
+  vistk::load_known_modules();
+
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
 
   vistk::config::key_t const key = vistk::config::key_t("key");
   vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("nnameame");
 
   cluster->_map_config(key, name, key);
+
+  EXPECT_EXCEPTION(vistk::unknown_configuration_value_exception,
+                   cluster->_add_process(name, type),
+                   "mapping an unknown configuration on a cluster");
 }
 
 IMPLEMENT_TEST(map_config_read_only)
