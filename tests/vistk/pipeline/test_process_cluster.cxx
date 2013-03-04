@@ -854,9 +854,11 @@ IMPLEMENT_TEST(reconfigure_mapped_untunable)
 
   vistk::config::key_t const key = vistk::config::key_t("key");
 
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+
   cluster->_declare_configuration_key(
     key,
-    vistk::config::value_t(),
+    tunable_value,
     vistk::config::description_t(),
     true);
 
@@ -870,11 +872,9 @@ IMPLEMENT_TEST(reconfigure_mapped_untunable)
 
   cluster->_map_config(key, name, key_expect);
 
-  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
   vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
 
   conf->set_value(key_tunable, tunable_value);
-  conf->set_value(key_expect, tunable_value);
 
   cluster->_add_process(name, type, conf);
 
