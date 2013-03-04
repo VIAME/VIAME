@@ -28,6 +28,7 @@ DECLARE_TEST(map_config);
 DECLARE_TEST(map_config_after_process);
 DECLARE_TEST(map_config_no_exist);
 DECLARE_TEST(map_config_read_only);
+DECLARE_TEST(map_config_ignore_override);
 DECLARE_TEST(map_input);
 DECLARE_TEST(map_input_twice);
 DECLARE_TEST(map_input_no_exist);
@@ -65,6 +66,7 @@ main(int argc, char* argv[])
   ADD_TEST(tests, map_config_after_process);
   ADD_TEST(tests, map_config_no_exist);
   ADD_TEST(tests, map_config_read_only);
+  ADD_TEST(tests, map_config_ignore_override);
   ADD_TEST(tests, map_input);
   ADD_TEST(tests, map_input_twice);
   ADD_TEST(tests, map_input_no_exist);
@@ -276,6 +278,60 @@ IMPLEMENT_TEST(map_config_read_only)
   EXPECT_EXCEPTION(vistk::mapping_to_read_only_value_exception,
                    cluster->_add_process(name, type, conf),
                    "when mapping to a value which already has a read-only value");
+}
+
+IMPLEMENT_TEST(map_config_ignore_override)
+{
+  vistk::load_known_modules();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::config_t const cluster_conf = vistk::config::empty_config();
+
+  cluster_conf->set_value(vistk::process::config_name, cluster_name);
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>(cluster_conf);
+
+  vistk::config::key_t const key = vistk::config::key_t("key");
+
+  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+
+  cluster->_declare_configuration_key(
+    key,
+    tunable_value,
+    vistk::config::description_t(),
+    true);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("expect");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key_tunable = vistk::config::key_t("tunable");
+  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
+
+  cluster->_map_config(key, name, key_expect);
+
+  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+
+  conf->set_value(key_tunable, tunable_value);
+  // The setting should be used from the mapping, not here.
+  conf->set_value(key_expect, tuned_value);
+
+  cluster->_add_process(name, type, conf);
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  // Fill a block so that the expect process gets reconfigured to do its check;
+  // if the block for it is empty, the check won't happen.
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(map_input)
