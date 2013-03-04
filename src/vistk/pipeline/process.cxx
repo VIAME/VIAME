@@ -1413,10 +1413,10 @@ process
 
   BOOST_FOREACH (config::key_t const& key, all_keys)
   {
-    bool const has_value_now = d->conf->has_value(key);
+    bool const has_old_value = d->conf->has_value(key);
     bool const for_process = std::count(process_keys.begin(), process_keys.end(), key);
 
-    if (has_value_now)
+    if (has_old_value)
     {
       // Pass the value down as-is.
       config::value_t const value = d->conf->get_value<config::value_t>(key);
@@ -1436,7 +1436,9 @@ process
       }
     }
 
-    if (can_override)
+    bool const has_new_value = conf->has_value(key);
+
+    if (can_override && has_new_value)
     {
       config::value_t const value = conf->get_value<config::value_t>(key);
 
