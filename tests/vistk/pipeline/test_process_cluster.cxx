@@ -27,6 +27,7 @@ DECLARE_TEST(duplicate_name);
 DECLARE_TEST(map_config);
 DECLARE_TEST(map_config_after_process);
 DECLARE_TEST(map_config_no_exist);
+DECLARE_TEST(map_config_read_only);
 DECLARE_TEST(map_input);
 DECLARE_TEST(map_input_twice);
 DECLARE_TEST(map_input_no_exist);
@@ -64,6 +65,7 @@ main(int argc, char* argv[])
   ADD_TEST(tests, map_config);
   ADD_TEST(tests, map_config_after_process);
   ADD_TEST(tests, map_config_no_exist);
+  ADD_TEST(tests, map_config_read_only);
   ADD_TEST(tests, map_input);
   ADD_TEST(tests, map_input_twice);
   ADD_TEST(tests, map_input_no_exist);
@@ -234,6 +236,41 @@ IMPLEMENT_TEST(map_config_no_exist)
   vistk::process::name_t const name = vistk::process::name_t("name");
 
   cluster->_map_config(key, name, key);
+}
+
+IMPLEMENT_TEST(map_config_read_only)
+{
+  vistk::load_known_modules();
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  sample_cluster_t const cluster = boost::make_shared<sample_cluster>();
+
+  vistk::config::key_t const key = vistk::config::key_t("key");
+
+  cluster->_declare_configuration_key(
+    key,
+    vistk::config::value_t(),
+    vistk::config::description_t(),
+    true);
+
+  vistk::process::name_t const name = vistk::process::name_t("name");
+  vistk::process::type_t const type = vistk::process::type_t("orphan");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::config::key_t const mapped_key = vistk::config::key_t("mapped_key");
+
+  cluster->_map_config(key, name, mapped_key);
+
+  vistk::config::value_t const mapped_value = vistk::config::value_t("old_value");
+
+  conf->set_value(mapped_key, mapped_value);
+  conf->mark_read_only(mapped_key);
+
+  EXPECT_EXCEPTION(vistk::mapping_to_read_only_value_exception,
+                   cluster->_add_process(name, type, conf),
+                   "when mapping to a value which already has a read-only value");
 }
 
 IMPLEMENT_TEST(map_input)
