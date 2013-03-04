@@ -179,7 +179,7 @@ process_cluster
   process_registry_t const reg = process_registry::self();
   name_t const real_name = convert_name(name(), name_);
 
-  process_t const proc = reg->create_process(type_, real_name, conf);
+  process_t const proc = reg->create_process(type_, real_name, new_conf);
 
   d->processes[name_] = proc;
 }
