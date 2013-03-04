@@ -98,11 +98,11 @@ def test_api_calls():
     p.is_setup()
     p.setup_successful()
 
-    p.reset()
-
     c = config.empty_config()
 
     p.reconfigure(c)
+
+    p.reset()
 
 
 if __name__ == '__main__':
