@@ -125,6 +125,25 @@ process_cluster
     throw duplicate_process_name_exception(name_);
   }
 
+  typedef std::set<config::key_t> key_set_t;
+
+  config::keys_t const cur_keys = conf->available_values();
+  key_set_t ro_keys;
+
+  config_t const new_conf = config::empty_config();
+
+  BOOST_FOREACH (config::key_t const& key, cur_keys)
+  {
+    config::value_t const value = conf->get_value<config::value_t>(key);
+
+    new_conf->set_value(key, value);
+
+    if (conf->is_read_only(key))
+    {
+      ro_keys.insert(key);
+    }
+  }
+
   priv::config_mappings_t const mappings = d->config_map[name_];
 
   BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
@@ -134,11 +153,27 @@ process_cluster
 
     config::value_t const value = config_value<config::value_t>(key);
 
-    /// \todo Create a copy of conf before modifying it.
-    conf->set_value(mapped_key, value);
+    if (ro_keys.count(mapped_key))
+    {
+      config::value_t const new_value = new_conf->get_value<config::value_t>(mapped_key);
+
+      throw mapping_to_read_only_value_exception(name(), key, value, name_, mapped_key, new_value);
+    }
+
+    if (new_conf->has_value(mapped_key))
+    {
+      /// \todo Log a warning.
+    }
+
+    new_conf->set_value(mapped_key, value);
     // Make sure that the parameter is not reconfigured away by anything other
     // than this cluster.
-    conf->mark_read_only(mapped_key);
+    new_conf->mark_read_only(mapped_key);
+  }
+
+  BOOST_FOREACH (config::key_t const& key, ro_keys)
+  {
+    new_conf->mark_read_only(key);
   }
 
   process_registry_t const reg = process_registry::self();
