@@ -162,7 +162,7 @@ vil_to_numpy(vil_image_view<T> const& img)
     {
       flags |= NPY_FLAG(C_CONTIGUOUS);
     }
-    else if (strides[1] == 1)
+    else if (strides[0] == 1)
     {
       flags |= NPY_FLAG(F_CONTIGUOUS);
     }
