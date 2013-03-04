@@ -42,7 +42,7 @@ mapping_after_process_exception
           "the process cluster \'" << m_name << "\' was "
           "requested for mapping to the \'" << m_mapped_key << "\' "
           "configuration on the process \'" << m_name << "\', "
-          "but it has already been created";
+          "but the process has already been created";
 
   m_what = sstr.str();
 }
