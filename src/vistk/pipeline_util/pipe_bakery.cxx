@@ -17,6 +17,7 @@
 #include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/process_registry.h>
 
+#include <boost/algorithm/cxx11/copy_if.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -784,23 +785,32 @@ class extract_literal_value
     config::value_t operator () (bakery_base::provider_request_t const& request) const;
 };
 
+#if __cplusplus >= 201103L
+#define COPY_IF std::copy_if
+#elif BOOST_VERSION >= 105000
+#define COPY_IF boost::copy_if
+#else
+#define COPY_IF copy_if
+
+template <typename InputIterator, typename OutputIterator, typename UnaryPredicate>
+static OutputIterator copy_if(InputIterator first, InputIterator last, OutputIterator result, UnaryPredicate pred);
+#endif
+
 process_t
 cluster_creator
 ::operator () (config_t const& config) const
 {
   bakery_base::config_decls_t all_configs = m_bakery.m_configs;
   // See comment below.
-  bakery_base::config_decls_t no_mapped_configs = all_configs;
 
   process::type_t const& type = m_bakery.m_type;
 
-  provided_by_cluster const mapping_filter(type);
+  provided_by_cluster const mapping_filter(type, proc_names);
 
-  // Filter out configuration settings which are mapped by the cluster.
-  bakery_base::config_decls_t::iterator const i = std::remove_if(no_mapped_configs.begin(), no_mapped_configs.end(), mapping_filter);
+  bakery_base::config_decls_t mapped_decls;
 
-  bakery_base::config_decls_t const mapped_decls(i, no_mapped_configs.end());
-  no_mapped_configs.erase(i, no_mapped_configs.end());
+  // Copy out configuration settings which are mapped by the cluster.
+  COPY_IF(all_configs.begin(), all_configs.end(), std::back_inserter(mapped_decls), mapping_filter);
 
   // Append the given configuration to the declarations from the parsed blocks.
   config::keys_t const& keys = config->available_values();
@@ -815,19 +825,9 @@ cluster_creator
 
     // See comment below.
     all_configs.push_back(decl);
-    no_mapped_configs.push_back(decl);
   }
 
-  // Ensure that the full configuration is valid. This must be done to catch
-  // the error when a configuration should be mapped is set via the config
-  // parameter to this function. See the pipe_bakery-cluster_override_mapped
-  // test for more information.
-  extract_configuration_from_decls(all_configs);
-  // Clear all_configs since it won't be needed anymore.
-  all_configs.clear();
-
-  // Get the configuration without mapped parameters.
-  config_t const full_config = extract_configuration_from_decls(no_mapped_configs);
+  config_t const full_config = extract_configuration_from_decls(all_configs);
 
   typedef boost::shared_ptr<loaded_cluster> loaded_cluster_t;
 
