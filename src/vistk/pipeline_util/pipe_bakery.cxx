@@ -17,7 +17,9 @@
 #include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/process_registry.h>
 
+#if (__cplusplus < 201103L) && (BOOST_VERSION >= 105000)
 #include <boost/algorithm/cxx11/copy_if.hpp>
+#endif
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -793,6 +795,8 @@ class extract_literal_value
 #else
 #define COPY_IF copy_if
 
+#define USE_CUSTOM_COPY_IF
+
 template <typename InputIterator, typename OutputIterator, typename UnaryPredicate>
 static OutputIterator copy_if(InputIterator first, InputIterator last, OutputIterator result, UnaryPredicate pred);
 #endif
@@ -1404,6 +1408,7 @@ extract_literal_value
   return value;
 }
 
+#ifdef USE_CUSTOM_COPY_IF
 template <typename InputIterator, typename OutputIterator, typename UnaryPredicate>
 OutputIterator
 copy_if(InputIterator first, InputIterator last, OutputIterator result, UnaryPredicate pred)
@@ -1421,6 +1426,8 @@ copy_if(InputIterator first, InputIterator last, OutputIterator result, UnaryPre
 
   return result;
 }
+#endif
+
 check_provider
 ::check_provider(config_provider_t const& provider)
   : m_provider(provider)
