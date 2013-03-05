@@ -27,6 +27,10 @@ namespace vistk
  *
  * \process A process which checks values.
  *
+ * \oports
+ *
+ * \oport{dummy} A dummy port.
+ *
  * \configs
  *
  * \config{tunable} A tunable parameter.
@@ -51,6 +55,7 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT expect_process
     ~expect_process();
   protected:
     void _configure();
+    void _step();
     void _reconfigure(config_t const& conf);
   private:
     class priv;

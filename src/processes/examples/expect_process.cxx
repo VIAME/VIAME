@@ -7,6 +7,7 @@
 #include "expect_process.h"
 
 #include <vistk/pipeline/config.h>
+#include <vistk/pipeline/datum.h>
 #include <vistk/pipeline/process_exception.h>
 
 /**
@@ -31,12 +32,14 @@ class expect_process::priv
     static config::key_t const config_expect;
     static config::key_t const config_expect_key;
     static config::value_t const default_expect_key;
+    static port_t const port_output;
 };
 
 config::key_t const expect_process::priv::config_tunable = config::key_t("tunable");
 config::key_t const expect_process::priv::config_expect = config::key_t("expect");
 config::key_t const expect_process::priv::config_expect_key = config::key_t("expect_key");
 config::value_t const expect_process::priv::default_expect_key = config::value_t("false");
+process::port_t const expect_process::priv::port_output = port_t("dummy");
 
 expect_process
 ::expect_process(config_t const& config)
@@ -56,6 +59,14 @@ expect_process
     priv::config_expect_key,
     priv::default_expect_key,
     vistk::config::description_t("Whether to expect a key or a value."));
+
+  port_flags_t const none;
+
+  declare_output_port(
+    priv::port_output,
+    type_none,
+    none,
+    port_description_t("A dummy port."));
 }
 
 expect_process
@@ -76,6 +87,17 @@ expect_process
   }
 
   process::_configure();
+}
+
+void
+expect_process
+::_step()
+{
+  datum_t const dat = datum::empty_datum();
+
+  push_datum_to_port(priv::port_output, dat);
+
+  process::_step();
 }
 
 void
