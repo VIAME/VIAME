@@ -766,12 +766,13 @@ class loaded_cluster
 class provided_by_cluster
 {
   public:
-    provided_by_cluster(process::type_t const& name);
+    provided_by_cluster(process::type_t const& name, process::names_t const& procs);
     ~provided_by_cluster();
 
     bool operator () (bakery_base::config_decl_t const& decl) const;
   private:
     process::type_t const m_name;
+    process::names_t const m_procs;
 };
 
 class extract_literal_value
@@ -804,6 +805,15 @@ cluster_creator
   // See comment below.
 
   process::type_t const& type = m_bakery.m_type;
+
+  process::names_t proc_names;
+
+  BOOST_FOREACH (bakery_base::process_decl_t const& proc_decl, m_bakery.m_processes)
+  {
+    process::name_t const& proc_name = proc_decl.first;
+
+    proc_names.push_back(proc_name);
+  }
 
   provided_by_cluster const mapping_filter(type, proc_names);
 
@@ -1289,8 +1299,9 @@ loaded_cluster
 }
 
 provided_by_cluster
-::provided_by_cluster(process::type_t const& name)
+::provided_by_cluster(process::type_t const& name, process::names_t const& procs)
   : m_name(name)
+  , m_procs(procs)
 {
 }
 
@@ -1346,14 +1357,25 @@ provided_by_cluster
   }
 
   /**
-   * \todo Should we check that the key in the request is a process in the
-   * cluster?
-   *
-   * Fully dereferencing configuration providers requires quite a bit more
-   * information to be passed to this point. As it is, the case where a config
-   * block has the mappings to the cluster and the processes map to it is not
-   * supported. This will be not behave as expected.
+   * \todo There should be at least a warning that if the target is being
+   * provided by a tunable parameter on the cluster that this will likely not
+   * work as intended.
    */
+
+  config::key_t const& key = decl.first;
+
+  config::keys_t key_path;
+
+  /// \bug Does not work if (vistk::config::block_sep.size() != 1).
+  boost::split(key_path, key, boost::is_any_of(vistk::config::block_sep));
+
+  bool const is_proc = std::count(m_procs.begin(), m_procs.end(), key_path[0]);
+
+  if (!is_proc)
+  {
+    // We can't map to non-processes.
+    return false;
+  }
 
   return true;
 }
@@ -1384,6 +1406,23 @@ extract_literal_value
   return value;
 }
 
+template <typename InputIterator, typename OutputIterator, typename UnaryPredicate>
+OutputIterator
+copy_if(InputIterator first, InputIterator last, OutputIterator result, UnaryPredicate pred)
+{
+  while (first != last)
+  {
+    if (pred(*first))
+    {
+      *result = *first;
+      ++result;
+    }
+
+    ++first;
+  }
+
+  return result;
+}
 check_provider
 ::check_provider(config_provider_t const& provider)
   : m_provider(provider)
