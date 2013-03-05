@@ -802,7 +802,6 @@ cluster_creator
 ::operator () (config_t const& config) const
 {
   bakery_base::config_decls_t all_configs = m_bakery.m_configs;
-  // See comment below.
 
   process::type_t const& type = m_bakery.m_type;
 
@@ -833,7 +832,6 @@ cluster_creator
     config::key_t const full_key = config::key_t(type) + config::block_sep + key;
     bakery_base::config_decl_t const decl = bakery_base::config_decl_t(full_key, info);
 
-    // See comment below.
     all_configs.push_back(decl);
   }
 
