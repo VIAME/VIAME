@@ -15,6 +15,7 @@
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/function.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 
 #include <map>
@@ -74,10 +75,10 @@ typedef boost::function<void ()> callback_t;
 
 }
 
-static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const pipe, parent_names_t const& parent_map);
+static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map);
 
 void
-export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_name)
+export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name)
 {
   if (!pipe)
   {
@@ -94,6 +95,11 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 
   BOOST_FOREACH (process::name_t const& name, proc_names)
   {
+    if (name.empty())
+    {
+      throw empty_name_export_dot_exception();
+    }
+
     process::name_t const parent = pipe->parent_cluster(name);
 
     name_info_t const info = name_info_t(name, name_process);
@@ -103,6 +109,11 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
 
   BOOST_FOREACH (process::name_t const& name, cluster_names)
   {
+    if (name.empty())
+    {
+      throw empty_name_export_dot_exception();
+    }
+
     process::name_t const parent = pipe->parent_cluster(name);
 
     name_info_t const info = name_info_t(name, name_cluster);
@@ -172,19 +183,35 @@ export_dot(std::ostream& ostr, pipeline_t const pipe, std::string const& graph_n
   ostr << "}" << std::endl;
 }
 
+void
+export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string const& graph_name)
+{
+  if (!cluster)
+  {
+    throw null_cluster_export_dot_exception();
+  }
+
+  pipeline_t const pipe = boost::make_shared<pipeline>();
+
+  pipe->add_process(cluster);
+
+  export_dot(ostr, pipe, graph_name);
+}
+
 static void output_process(std::ostream& ostr, process_t const& process);
 static void output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, callback_t const& output_children);
 
 void
-output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const pipe, parent_names_t const& parent_map)
+output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map)
 {
   parent_names_t::const_iterator const i = parent_map.find(name);
 
   if (i == parent_map.end())
   {
-    /// \todo Throw an exception.
+    std::string const reason = "Internal: Failed to keep track of parent "
+                               "of " + name;
 
-    return;
+    throw std::logic_error(reason);
   }
 
   name_infos_t const& name_infos = i->second;

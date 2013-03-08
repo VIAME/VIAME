@@ -5,6 +5,7 @@
  */
 
 #include "helpers/pipeline_builder.h"
+#include "helpers/tool_io.h"
 #include "helpers/tool_main.h"
 #include "helpers/tool_usage.h"
 
@@ -24,13 +25,12 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 
 #include <algorithm>
-#include <iostream>
 #include <iterator>
+#include <ostream>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -90,32 +90,11 @@ tool_main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  std::ostream* postr;
-  boost::filesystem::ofstream fout;
-
   vistk::path_t const opath = vm["output"].as<vistk::path_t>();
 
-  if (opath == vistk::path_t("-"))
-  {
-    postr = &std::cout;
-  }
-  else
-  {
-    fout.open(opath);
+  ostream_t const ostr = open_ostream(opath);
 
-    if (fout.bad())
-    {
-      std::cerr << "Error: Unable to open output file" << std::endl;
-
-      return EXIT_FAILURE;
-    }
-
-    postr = &fout;
-  }
-
-  std::ostream& ostr = *postr;
-
-  config_printer printer(ostr, pipe, config);
+  config_printer printer(*ostr, pipe, config);
 
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(printer));
 

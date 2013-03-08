@@ -1,11 +1,12 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
 #include "helpers/pipeline_builder.h"
 #include "helpers/literal_pipeline.h"
+#include "helpers/tool_io.h"
 #include "helpers/tool_main.h"
 #include "helpers/tool_usage.h"
 
@@ -15,12 +16,11 @@
 #include <vistk/pipeline/scheduler_registry.h>
 #include <vistk/pipeline/pipeline.h>
 
-#include <boost/filesystem/fstream.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/foreach.hpp>
 
-#include <iostream>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -72,32 +72,11 @@ tool_main(int argc, char* argv[])
 
     if (vm.count("dump"))
     {
-      std::ostream* postr;
-      boost::filesystem::ofstream fout;
-
       vistk::path_t const opath = vm["dump"].as<vistk::path_t>();
 
-      if (opath == vistk::path_t("-"))
-      {
-        postr = &std::cout;
-      }
-      else
-      {
-        fout.open(opath);
+      ostream_t const ostr = open_ostream(opath);
 
-        if (fout.bad())
-        {
-          std::cerr << "Error: Unable to open output file" << std::endl;
-
-          return EXIT_FAILURE;
-        }
-
-        postr = &fout;
-      }
-
-      std::ostream& ostr = *postr;
-
-      ostr << sstr.str();
+      *ostr << sstr.str();
 
       return EXIT_SUCCESS;
     }

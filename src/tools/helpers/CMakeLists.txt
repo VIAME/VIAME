@@ -15,7 +15,12 @@ add_tool_helper_library(tool_usage
 add_dependencies(tool_usage
   configure-version.h)
 
+add_tool_helper_library(tool_io
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})
+
 add_tool_helper_library(pipeline_builder
+  tool_io
   tool_usage
   vistk_pipeline_util
   vistk_pipeline

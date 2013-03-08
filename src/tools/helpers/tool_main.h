@@ -1,11 +1,11 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_TOOLS_HELPERS_MAIN_H
-#define VISTK_TOOLS_HELPERS_MAIN_H
+#ifndef VISTK_TOOLS_HELPERS_TOOL_MAIN_H
+#define VISTK_TOOLS_HELPERS_TOOL_MAIN_H
 
 static int vistk_main(int argc, char* argv[]);
 
@@ -33,4 +33,4 @@ main(int argc, char* argv[])                                    \
 int                                                             \
 vistk_main
 
-#endif // VISTK_TOOLS_HELPERS_MAIN_H
+#endif // VISTK_TOOLS_HELPERS_TOOL_MAIN_H

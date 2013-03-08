@@ -60,6 +60,7 @@ endfunction ()
 
 add_tool(pipe_config
   pipeline_builder
+  tool_io
   tool_usage
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
@@ -68,6 +69,7 @@ add_tool(pipe_config
 
 add_tool(pipe_to_dot
   pipeline_builder
+  tool_io
   tool_usage
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
@@ -91,6 +93,7 @@ add_tool(processopedia
 
 add_tool(mask_scoring
   pipeline_builder
+  tool_io
   tool_usage
   vistk_pipeline
   ${Boost_FILESYSTEM_LIBRARY}

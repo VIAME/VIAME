@@ -6,6 +6,7 @@
 
 #include "pipeline_builder.h"
 
+#include "tool_io.h"
 #include "tool_usage.h"
 
 #include <vistk/pipeline_util/load_pipe.h>
@@ -20,7 +21,6 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -28,7 +28,6 @@
 #include <boost/bind.hpp>
 
 #include <algorithm>
-#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -52,36 +51,13 @@ pipeline_builder
   }
 
   {
-    std::istream* pistr;
-    boost::filesystem::ifstream fin;
-
     vistk::path_t const ipath = vm["pipeline"].as<vistk::path_t>();
 
-    if (ipath == vistk::path_t("-"))
-    {
-      pistr = &std::cin;
-    }
-    else
-    {
-      fin.open(ipath);
-
-      if (!fin.good())
-      {
-        vistk::path_t::string_type const& pstr = ipath.native();
-        std::string const str(pstr.begin(), pstr.end());
-        std::string const reason = "Unable to open input file: " + str;
-
-        throw std::runtime_error(reason);
-      }
-
-      pistr = &fin;
-    }
-
-    std::istream& istr = *pistr;
+    istream_t const istr = open_istream(ipath);
 
     /// \todo Include paths?
 
-    load_pipeline(istr);
+    load_pipeline(*istr);
   }
 
   load_from_options(vm);
