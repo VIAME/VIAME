@@ -156,8 +156,9 @@ base_pipeline()
       CONFIG("truth_input", "truth_list.txt")
       CONFIG("output", "output.txt")
       CONFIG("name", "(unnamed)")
-    PROCESS("layered_image_reader", "truth_reader")
+    PROCESS("filelist_reader", "path_reader")
       CONFIG_FULL("path", "ro", "CONF", "mask_scoring:truth_input")
+    PROCESS("layered_image_reader", "truth_reader")
       CONFIG_FLAGS("pixfmt", "ro", "mask")
       CONFIG_FLAGS("pixtype", "ro", "byte")
     PROCESS("image_reader", "reader")
@@ -174,6 +175,8 @@ base_pipeline()
 
     CONNECT("combine", "mask",
             "scoring", "truth_mask")
+    CONNECT("path_reader", "path",
+            "reader", "path_format")
     CONNECT("reader", "image",
             "scoring", "computed_mask")
 

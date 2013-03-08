@@ -33,12 +33,18 @@ namespace vistk
  *
  * \iport{image} The image to write.
  *
+ * \oports
+ *
+ * \oport{path} The path written to.
+ *
  * \configs
  *
  * \config{pixtype} The pixel type of the input images.
  * \config{pixfmt} The pixel format of the input images.
- * \config{format} The format for the output file names.
- * \config{output} The file to write filepaths to.
+ * \config{format} The format for the output file names. The format string is
+ *                 passed two parameters:
+ *                   1) the name of the process
+ *                   2) The step count (0 indexed)
  *
  * \reqs
  *

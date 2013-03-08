@@ -2,6 +2,7 @@ project(vistk_processes)
 
 add_subdirectory(helpers)
 add_subdirectory(clusters)
+add_subdirectory(filelist)
 add_subdirectory(flow)
 add_subdirectory(image)
 add_subdirectory(scoring)

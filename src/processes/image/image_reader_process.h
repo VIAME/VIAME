@@ -29,6 +29,10 @@ namespace vistk
  *
  * \process Read images given a file with a list of image paths.
  *
+ * \iports
+ *
+ * \iport{path} The path to read the image from.
+ *
  * \oports
  *
  * \oport{image} The image read in for the step.
@@ -38,13 +42,10 @@ namespace vistk
  *
  * \config{pixtype} The pixel type of the input images.
  * \config{pixfmt} The pixel format of the input images.
- * \config{input} The file to read filepaths from.
- * \config{verify} Verify images during initialization.
  *
  * \reqs
  *
  * \req The \port{image} port must be connected.
- * \req The \key{input} configuration must be a valid filepath.
  *
  * \ingroup process_image
  */
@@ -67,11 +68,6 @@ class VISTK_PROCESSES_IMAGE_NO_EXPORT image_reader_process
      * \brief Configure the process.
      */
     void _configure();
-
-    /**
-     * \brief Initialize the process.
-     */
-    void _init();
 
     /**
      * \brief Step the process.

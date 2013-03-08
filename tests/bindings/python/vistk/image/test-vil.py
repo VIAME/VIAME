@@ -165,15 +165,22 @@ def test_datum():
 
         p = pipeline.Pipeline()
 
+        list_name = 'list'
         read_name = 'read'
         verify_name = 'verify'
 
         c = config.empty_config()
 
         c['input'] = lname
+
+        proc_type = 'filelist_reader'
+
+        l = reg.create_process(proc_type, list_name, c)
+
+        c = config.empty_config()
+
         c['pixtype'] = pt
         c['pixfmt'] = 'grayscale'
-        c['verify'] = 'true'
 
         proc_type = 'image_reader'
 
@@ -183,13 +190,17 @@ def test_datum():
 
         v = create_verify_process(c, shape, t)
 
+        p.add_process(l)
         p.add_process(r)
         p.add_process(v)
 
-        port = 'image'
+        pport = 'path'
+        iport = 'image'
 
-        p.connect(read_name, port,
-                  verify_name, port)
+        p.connect(list_name, pport,
+                  read_name, pport)
+        p.connect(read_name, iport,
+                  verify_name, iport)
 
         try:
             p.setup_pipeline()

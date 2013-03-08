@@ -43,7 +43,7 @@ register_processes()
   registry->register_process("combine_masks", "Combine image masks into a single mask", create_process<combine_masks_process>);
   registry->register_process("crop_image", "Crop an image to a specific size", create_process<crop_image_process>);
   registry->register_process("grayscale", "Convert an RGB image into grayscale", create_process<grayscale_process>);
-  registry->register_process("image_reader", "Read images from files given a list of images", create_process<image_reader_process>);
+  registry->register_process("image_reader", "Read images from files", create_process<image_reader_process>);
   registry->register_process("image_writer", "Write images to files", create_process<image_writer_process>);
   registry->register_process("layered_image_reader", "Read image layers from the filesystem", create_process<layered_image_reader_process>);
   registry->register_process("video_reader", "Read images from a video", create_process<video_reader_process>);
