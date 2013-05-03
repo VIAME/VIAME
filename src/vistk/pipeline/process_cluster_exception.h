@@ -79,6 +79,45 @@ class VISTK_PIPELINE_EXPORT mapping_after_process_exception
     config::key_t const m_mapped_key;
 };
 
+/**
+ * \class mapping_to_read_only_value_exception process_cluster_exception.h <vistk/pipeline/process_cluster_exception.h>
+ *
+ * \brief Thrown when a configuration is mapped to a read-only value.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT mapping_to_read_only_value_exception
+  : public process_cluster_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     * \param key The name of the configuration.
+     * \param mapped_name The name of the process.
+     * \param mapped_key The name of the configuration.
+     */
+    mapping_to_read_only_value_exception(process::name_t const& name, config::key_t const& key, config::value_t const& value, process::name_t const& mapped_name, config::key_t const& mapped_key, config::value_t const& ro_value) throw();
+    /**
+     * \brief Destructor.
+     */
+    ~mapping_to_read_only_value_exception() throw();
+
+    /// The name of the \ref process_cluster the mapping occurred in.
+    process::name_t const m_name;
+    /// The key of the configuration on the cluster.
+    config::key_t const m_key;
+    /// The value of the configuration on the cluster.
+    config::value_t const m_value;
+    /// The name of the \ref process which was being mapped to.
+    process::name_t const m_mapped_name;
+    /// The key of the configuration on the \ref process being mapped to.
+    config::key_t const m_mapped_key;
+    /// The value of the configuration given.
+    config::value_t const m_ro_value;
+};
+
 }
 
 #endif // VISTK_PIPELINE_PROCESS_CLUSTER_EXCEPTION_H

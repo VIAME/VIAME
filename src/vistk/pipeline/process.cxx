@@ -71,9 +71,11 @@ process::port_info
 
 process::conf_info
 ::conf_info(config::value_t const& def_,
-            config::description_t const& description_)
+            config::description_t const& description_,
+            bool tunable_)
   : def(def_)
   , description(description_)
+  , tunable(tunable_)
 {
 }
 
@@ -153,7 +155,7 @@ class process::priv
     output_edge_map_t output_edges;
 
     process* const q;
-    config_t const conf;
+    config_t conf;
 
     ports_t static_inputs;
     ports_t required_inputs;
@@ -176,6 +178,8 @@ class process::priv
     data_check_t check_input_level;
 
     stamp_t stamp_for_inputs;
+
+    mutex_t reconfigure_mut;
 
     static config::value_t const default_name;
 };
@@ -265,6 +269,13 @@ process
     }
     else
     {
+      // We don't want to reconfigure while the subclass is running. Since the
+      // base class shouldn't be messed with while configuring, we only need to
+      // lock around the base class _step method call.
+      priv::shared_lock_t const lock(d->reconfigure_mut);
+
+      (void)lock;
+
       _step();
     }
 
@@ -404,6 +415,32 @@ process
   return keys;
 }
 
+config::keys_t
+process
+::available_tunable_config()
+{
+  config::keys_t const all_keys = available_config();
+  config::keys_t keys;
+
+  BOOST_FOREACH (config::key_t const& key, all_keys)
+  {
+    // Read-only parameters aren't tunable.
+    if (d->conf->is_read_only(key))
+    {
+      continue;
+    }
+
+    conf_info_t const info = config_info(key);
+
+    if (info->tunable)
+    {
+      keys.push_back(key);
+    }
+  }
+
+  return keys;
+}
+
 process::conf_info_t
 process
 ::config_info(config::key_t const& key)
@@ -509,6 +546,12 @@ process
 void
 process
 ::_step()
+{
+}
+
+void
+process
+::_reconfigure(config_t const& /*conf*/)
 {
 }
 
@@ -1014,11 +1057,13 @@ void
 process
 ::declare_configuration_key(config::key_t const& key,
                             config::value_t const& def_,
-                            config::description_t const& description_)
+                            config::description_t const& description_,
+                            bool tunable_)
 {
   declare_configuration_key(key, boost::make_shared<conf_info>(
     def_,
-    description_));
+    description_,
+    tunable_));
 }
 
 void
@@ -1279,6 +1324,143 @@ process
   d->core_frequency = frequency;
 
   d->make_output_stamps();
+}
+
+void
+process
+::reconfigure(config_t const& conf)
+{
+  if (!d->configured)
+  {
+    static std::string const reason = "Internal: Setup tracking in the pipeline failed";
+
+    throw std::logic_error(reason);
+  }
+
+  config::keys_t const new_keys = conf->available_values();
+
+  if (new_keys.empty())
+  {
+    return;
+  }
+
+  config::keys_t const process_keys = available_config();
+  config::keys_t const tunable_keys = available_tunable_config();
+
+  BOOST_FOREACH (config::key_t const& key, new_keys)
+  {
+    bool const for_process = std::count(process_keys.begin(), process_keys.end(), key);
+
+    if (for_process)
+    {
+      bool const tunable = std::count(tunable_keys.begin(), tunable_keys.end(), key);
+
+      if (!tunable)
+      {
+        continue;
+      }
+    }
+
+    config::value_t const value = conf->get_value<config::value_t>(key);
+
+    d->conf->set_value(key, value);
+  }
+
+  // Prevent stepping while reconfiguring a process.
+  priv::unique_lock_t const lock(d->reconfigure_mut);
+
+  (void)lock;
+
+  _reconfigure(conf);
+}
+
+void
+process
+::reconfigure_with_provides(config_t const& conf)
+{
+  if (!d->configured)
+  {
+    static std::string const reason = "Internal: Setup tracking in the pipeline failed";
+
+    throw std::logic_error(reason);
+  }
+
+  config::keys_t const new_keys = conf->available_values();
+
+  if (new_keys.empty())
+  {
+    return;
+  }
+
+  // We can't use available_tunable_config() here because we filtered out
+  // read-only values from it. Instead, we need to create a new configuration
+  // block (since read-only can't be unset) and fill it again. We can be sure
+  // that the "read-only"-ness of the values are kept because this method is
+  // only called by process_cluster and it only sets values which are mapped to
+  // this process by it. This allows cluster parameters to be tunable and
+  // provided as read-only to the process.
+  config::keys_t const process_keys = available_config();
+  config::keys_t const current_keys = d->conf->available_values();
+
+  typedef std::set<config::key_t> key_set_t;
+
+  key_set_t all_keys;
+
+  all_keys.insert(current_keys.begin(), current_keys.end());
+  all_keys.insert(new_keys.begin(), new_keys.end());
+
+  config_t const new_conf = config::empty_config();
+
+  BOOST_FOREACH (config::key_t const& key, all_keys)
+  {
+    bool const has_old_value = d->conf->has_value(key);
+    bool const for_process = std::count(process_keys.begin(), process_keys.end(), key);
+
+    if (has_old_value)
+    {
+      // Pass the value down as-is.
+      config::value_t const value = d->conf->get_value<config::value_t>(key);
+
+      new_conf->set_value(key, value);
+    }
+
+    bool can_override = true;
+
+    if (for_process)
+    {
+      conf_info_t const info = config_info(key);
+
+      if (!info->tunable)
+      {
+        can_override = false;
+      }
+    }
+
+    bool const has_new_value = conf->has_value(key);
+
+    if (can_override && has_new_value)
+    {
+      config::value_t const value = conf->get_value<config::value_t>(key);
+
+      new_conf->set_value(key, value);
+    }
+
+    // Preserve read-only flags so that a future reconfigure doesn't trigger any
+    // issues.
+    if (d->conf->is_read_only(key) || conf->is_read_only(key))
+    {
+      new_conf->mark_read_only(key);
+    }
+  }
+
+  d->conf = new_conf;
+
+  // Prevent stepping while reconfiguring a process.
+  priv::unique_lock_t const lock(d->reconfigure_mut);
+
+  (void)lock;
+
+  _reconfigure(conf);
 }
 
 process::priv

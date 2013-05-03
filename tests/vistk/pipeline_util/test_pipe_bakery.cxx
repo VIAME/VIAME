@@ -67,6 +67,16 @@ DECLARE_TEST(cluster_duplicate_input);
 DECLARE_TEST(cluster_duplicate_output);
 DECLARE_TEST(cluster_configuration_default);
 DECLARE_TEST(cluster_configuration_provide);
+DECLARE_TEST(cluster_map_config);
+DECLARE_TEST(cluster_map_config_tunable);
+DECLARE_TEST(cluster_map_config_redirect);
+DECLARE_TEST(cluster_map_config_modified);
+DECLARE_TEST(cluster_map_config_not_read_only);
+DECLARE_TEST(cluster_map_config_only_provided);
+DECLARE_TEST(cluster_map_config_only_conf_provided);
+DECLARE_TEST(cluster_map_config_to_non_process);
+DECLARE_TEST(cluster_map_config_not_from_cluster);
+DECLARE_TEST(cluster_override_mapped);
 
 /// \todo Add tests for clusters without ports or processes.
 
@@ -120,6 +130,16 @@ main(int argc, char* argv[])
   ADD_TEST(tests, cluster_duplicate_output);
   ADD_TEST(tests, cluster_configuration_default);
   ADD_TEST(tests, cluster_configuration_provide);
+  ADD_TEST(tests, cluster_map_config);
+  ADD_TEST(tests, cluster_map_config_tunable);
+  ADD_TEST(tests, cluster_map_config_redirect);
+  ADD_TEST(tests, cluster_map_config_modified);
+  ADD_TEST(tests, cluster_map_config_not_read_only);
+  ADD_TEST(tests, cluster_map_config_only_provided);
+  ADD_TEST(tests, cluster_map_config_only_conf_provided);
+  ADD_TEST(tests, cluster_map_config_to_non_process);
+  ADD_TEST(tests, cluster_map_config_not_from_cluster);
+  ADD_TEST(tests, cluster_override_mapped);
 
   RUN_TEST(tests, testname, pipe_file);
 }
@@ -714,6 +734,344 @@ IMPLEMENT_TEST(cluster_configuration_provide)
   test_cluster(cluster, output_path);
 }
 
+static vistk::process_cluster_t setup_map_config_cluster(vistk::process::name_t const& name, vistk::path_t const& pipe_file);
+
+IMPLEMENT_TEST(cluster_map_config)
+{
+  /// \todo This test is poorly designed in that it tests for mapping by
+  /// leveraging the fact that only mapped configuration get pushed through when
+  /// reconfiguring a cluster.
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("tunable");
+  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(cluster_map_config_tunable)
+{
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("tunable");
+  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(cluster_map_config_redirect)
+{
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("tunable");
+  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
+  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+
+  // Fill a block so that the expect process gets reconfigured to do its check;
+  // if the block for it is empty, the check won't happen.
+  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(cluster_map_config_modified)
+{
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("tunable");
+  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
+  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+
+  // Fill a block so that the expect process gets reconfigured to do its check;
+  // if the block for it is empty, the check won't happen.
+  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(cluster_map_config_not_read_only)
+{
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("tunable");
+  vistk::config::value_t const tuned_value = vistk::config::key_t("unexpected");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
+  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+
+  // Fill a block so that the expect process gets reconfigured to do its check;
+  // if the block for it is empty, the check won't happen.
+  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(cluster_map_config_only_provided)
+{
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("tunable");
+  vistk::config::value_t const tuned_value = vistk::config::key_t("unexpected");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
+  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+
+  // Fill a block so that the expect process gets reconfigured to do its check;
+  // if the block for it is empty, the check won't happen.
+  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(cluster_map_config_only_conf_provided)
+{
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("tunable");
+  vistk::config::value_t const tuned_value = vistk::config::key_t("unexpected");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
+  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+
+  // Fill a block so that the expect process gets reconfigured to do its check;
+  // if the block for it is empty, the check won't happen.
+  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(cluster_map_config_to_non_process)
+{
+  /// \todo This test is poorly designed because there's no check that / the
+  /// mapping wasn't actually created.
+
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::config::key_t const key = vistk::config::key_t("tunable");
+  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+
+  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
+  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+
+  // Fill a block so that the expect process gets reconfigured to do its check;
+  // if the block for it is empty, the check won't happen.
+  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(cluster_map_config_not_from_cluster)
+{
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+
+  if (!cluster)
+  {
+    TEST_ERROR("A cluster was not created");
+
+    return;
+  }
+
+  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+
+  pipeline->add_process(cluster);
+  pipeline->setup_pipeline();
+
+  vistk::config_t const new_conf = vistk::config::empty_config();
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
+  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+
+  // Fill a block so that the expect process gets reconfigured to do its check;
+  // if the block for it is empty, the check won't happen.
+  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+
+  pipeline->reconfigure(new_conf);
+}
+
+IMPLEMENT_TEST(cluster_override_mapped)
+{
+  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+
+  vistk::config_t const conf = vistk::config::empty_config();
+
+  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
+  vistk::config::key_t const key = vistk::config::key_t("tunable");
+
+  vistk::config::key_t const full_key = proc_name + vistk::config::block_sep + key;
+  vistk::config::value_t const value = vistk::config::value_t("unexpected");
+
+  // The problem here is that the expect:tunable parameter is meant to be mapped
+  // with the map_config call within the cluster. Due to the implementation,
+  // the lines which cause the linking are removed, so if we try to sneak in an
+  // invalid parameter, we should get an error about overriding a read-only
+  // variable.
+  conf->set_value(full_key, value);
+
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  vistk::load_known_modules();
+
+  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+
+  vistk::process_ctor_t const ctor = info->ctor;
+
+  EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
+                   ctor(conf),
+                   "manually setting a parameter which is mapped in a cluster");
+}
+
 static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
 static vistk::pipeline_t create_pipeline();
 
@@ -830,4 +1188,26 @@ vistk::pipeline_t
 create_pipeline()
 {
   return boost::make_shared<vistk::pipeline>();
+}
+
+vistk::process_cluster_t
+setup_map_config_cluster(vistk::process::name_t const& name, vistk::path_t const& pipe_file)
+{
+  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+
+  vistk::load_known_modules();
+
+  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+
+  vistk::process_ctor_t const ctor = info->ctor;
+
+  vistk::config_t const config = vistk::config::empty_config();
+
+  config->set_value(vistk::process::config_name, name);
+
+  vistk::process_t const proc = ctor(config);
+
+  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+
+  return cluster;
 }

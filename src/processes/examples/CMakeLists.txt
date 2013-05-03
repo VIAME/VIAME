@@ -4,6 +4,7 @@ set(examples_srcs
   const_process.cxx
   const_number_process.cxx
   data_dependent_process.cxx
+  expect_process.cxx
   feedback_process.cxx
   flow_dependent_process.cxx
   multiplication_process.cxx
@@ -17,13 +18,15 @@ set(examples_srcs
   shared_process.cxx
   tagged_flow_dependent_process.cxx
   take_number_process.cxx
-  take_string_process.cxx)
+  take_string_process.cxx
+  tunable_process.cxx)
 
 set(examples_private_headers
   const_process.h
   const_number_process.h
   data_dependent_process.h
   examples-config.h
+  expect_process.h
   feedback_process.h
   flow_dependent_process.h
   multiplication_process.h
@@ -37,7 +40,8 @@ set(examples_private_headers
   shared_process.h
   tagged_flow_dependent_process.h
   take_number_process.h
-  take_string_process.h)
+  take_string_process.h
+  tunable_process.h)
 
 set(suppress_install TRUE)
 

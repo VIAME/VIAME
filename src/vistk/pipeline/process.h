@@ -157,9 +157,11 @@ class VISTK_PIPELINE_EXPORT process
          *
          * \param def_ The default value for the parameter.
          * \param description_ A description of the value.
+         * \param tunable_ Whether the parameter is tunable or not.
          */
         conf_info(config::value_t const& def_,
-                  config::description_t const& description_);
+                  config::description_t const& description_,
+                  bool tunable_);
         /**
          * \brief Destructor.
          */
@@ -169,6 +171,8 @@ class VISTK_PIPELINE_EXPORT process
         config::value_t const def;
         /// A description of the value.
         config::description_t const description;
+        /// Whether the parameter is tunable or not.
+        bool const tunable;
     };
     /// Type for information about a configuration parameter.
     typedef boost::shared_ptr<conf_info const> conf_info_t;
@@ -396,6 +400,12 @@ class VISTK_PIPELINE_EXPORT process
      * \returns The names of all available configuration keys.
      */
     config::keys_t available_config() const;
+    /**
+     * \brief Request available tunable configuration options for the process.
+     *
+     * \returns The names of all available tunable configuration keys.
+     */
+    config::keys_t available_tunable_config();
 
     /**
      * \brief Retrieve information about a configuration parameter.
@@ -493,6 +503,13 @@ class VISTK_PIPELINE_EXPORT process
      * \brief Method where subclass data processing occurs.
      */
     virtual void _step();
+
+    /**
+     * \brief Runtime configuration for subclasses.
+     *
+     * \params conf The configuration block to apply.
+     */
+    virtual void _reconfigure(config_t const& conf);
 
     /**
      * \brief Subclass property query method.
@@ -664,10 +681,12 @@ class VISTK_PIPELINE_EXPORT process
      * \param key The configuration key.
      * \param def_ The default value for the parameter.
      * \param description_ A description of the value.
+     * \param tunable_ Whether the parameter is tunable or not.
      */
     void declare_configuration_key(config::key_t const& key,
                                    config::value_t const& def_,
-                                   config::description_t const& description_);
+                                   config::description_t const& description_,
+                                   bool tunable_ = false);
 
     /**
      * \brief Mark the process as complete.
@@ -806,6 +825,10 @@ class VISTK_PIPELINE_EXPORT process
 
     friend class pipeline;
     VISTK_PIPELINE_NO_EXPORT void set_core_frequency(port_frequency_t const& frequency);
+    VISTK_PIPELINE_NO_EXPORT void reconfigure(config_t const& conf);
+
+    friend class process_cluster;
+    VISTK_PIPELINE_NO_EXPORT void reconfigure_with_provides(config_t const& conf);
 
     class priv;
     boost::scoped_ptr<priv> d;

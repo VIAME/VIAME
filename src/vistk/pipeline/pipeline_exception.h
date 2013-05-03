@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -181,6 +181,27 @@ class VISTK_PIPELINE_EXPORT remove_after_setup_exception
 
     /// The name of the process.
     process::name_t const m_name;
+};
+
+/**
+ * \class reconfigure_before_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ *
+ * \brief Thrown when a pipeline is reconfigured before setup.
+ *
+ * \ingroup exceptions
+ */
+class VISTK_PIPELINE_EXPORT reconfigure_before_setup_exception
+  : public pipeline_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    reconfigure_before_setup_exception() throw();
+    /**
+     * \brief Destructor.
+     */
+    virtual ~reconfigure_before_setup_exception() throw();
 };
 
 /**

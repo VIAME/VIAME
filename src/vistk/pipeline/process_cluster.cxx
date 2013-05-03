@@ -125,6 +125,25 @@ process_cluster
     throw duplicate_process_name_exception(name_);
   }
 
+  typedef std::set<config::key_t> key_set_t;
+
+  config::keys_t const cur_keys = conf->available_values();
+  key_set_t ro_keys;
+
+  config_t const new_conf = config::empty_config();
+
+  BOOST_FOREACH (config::key_t const& key, cur_keys)
+  {
+    config::value_t const value = conf->get_value<config::value_t>(key);
+
+    new_conf->set_value(key, value);
+
+    if (conf->is_read_only(key))
+    {
+      ro_keys.insert(key);
+    }
+  }
+
   priv::config_mappings_t const mappings = d->config_map[name_];
 
   BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
@@ -134,13 +153,33 @@ process_cluster
 
     config::value_t const value = config_value<config::value_t>(key);
 
-    conf->set_value(mapped_key, value);
+    if (ro_keys.count(mapped_key))
+    {
+      config::value_t const new_value = new_conf->get_value<config::value_t>(mapped_key);
+
+      throw mapping_to_read_only_value_exception(name(), key, value, name_, mapped_key, new_value);
+    }
+
+    if (new_conf->has_value(mapped_key))
+    {
+      /// \todo Log a warning.
+    }
+
+    new_conf->set_value(mapped_key, value);
+    // Make sure that the parameter is not reconfigured away by anything other
+    // than this cluster.
+    new_conf->mark_read_only(mapped_key);
+  }
+
+  BOOST_FOREACH (config::key_t const& key, ro_keys)
+  {
+    new_conf->mark_read_only(key);
   }
 
   process_registry_t const reg = process_registry::self();
   name_t const real_name = convert_name(name(), name_);
 
-  process_t const proc = reg->create_process(type_, real_name, conf);
+  process_t const proc = reg->create_process(type_, real_name, new_conf);
 
   d->processes[name_] = proc;
 }
@@ -277,6 +316,49 @@ process_cluster
 ::_step()
 {
   throw process_exception();
+}
+
+void
+process_cluster
+::_reconfigure(config_t const& conf)
+{
+  config::keys_t const tunable_keys = available_tunable_config();
+
+  BOOST_FOREACH (priv::config_map_t::value_type const& config_mapping, d->config_map)
+  {
+    name_t const& name_ = config_mapping.first;
+    priv::config_mappings_t const& mappings = config_mapping.second;
+
+    config_t const provide_conf = config::empty_config();
+
+    BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
+    {
+      config::key_t const& key = mapping.first;
+
+      if (!std::count(tunable_keys.begin(), tunable_keys.end(), key))
+      {
+        continue;
+      }
+
+      config::key_t const& mapped_key = mapping.second;
+
+      config::value_t const& value = config_value<config::value_t>(key);
+
+      provide_conf->set_value(mapped_key, value);
+    }
+
+    process_t const proc = d->processes[name_];
+
+    // Grab the new subblock for the process.
+    config_t const proc_conf = conf->subblock(name_);
+
+    // Reconfigure the given process normally.
+    proc->reconfigure(proc_conf);
+    // Overwrite any provided configuration values which may be read-only.
+    proc->reconfigure_with_provides(provide_conf);
+  }
+
+  process::_reconfigure(conf);
 }
 
 process::properties_t

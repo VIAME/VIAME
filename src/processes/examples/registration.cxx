@@ -9,6 +9,7 @@
 #include "const_number_process.h"
 #include "const_process.h"
 #include "data_dependent_process.h"
+#include "expect_process.h"
 #include "feedback_process.h"
 #include "flow_dependent_process.h"
 #include "multiplication_process.h"
@@ -22,6 +23,7 @@
 #include "tagged_flow_dependent_process.h"
 #include "take_number_process.h"
 #include "take_string_process.h"
+#include "tunable_process.h"
 
 #include <vistk/pipeline/process_registry.h>
 
@@ -48,6 +50,7 @@ register_processes()
   registry->register_process("const", "A process with the const flag", create_process<const_process>);
   registry->register_process("const_number", "Outputs a constant number", create_process<const_number_process>);
   registry->register_process("data_dependent", "A process with a data dependent type", create_process<data_dependent_process>);
+  registry->register_process("expect", "A process which expects some conditions", create_process<expect_process>);
   registry->register_process("feedback", "A process which feeds data into itself", create_process<feedback_process>);
   registry->register_process("flow_dependent", "A process with a flow dependent type", create_process<flow_dependent_process>);
   registry->register_process("multiplication", "Multiplies numbers", create_process<multiplication_process>);
@@ -61,6 +64,7 @@ register_processes()
   registry->register_process("tagged_flow_dependent", "A process with a tagged flow dependent types", create_process<tagged_flow_dependent_process>);
   registry->register_process("take_number", "Print numbers to a file", create_process<take_number_process>);
   registry->register_process("take_string", "Print strings to a file", create_process<take_string_process>);
+  registry->register_process("tunable", "A process with a tunable parameter", create_process<tunable_process>);
 
   registry->mark_module_as_loaded(module_name);
 }

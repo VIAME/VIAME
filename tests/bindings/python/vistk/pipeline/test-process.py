@@ -35,7 +35,7 @@ def test_create():
     process.Connection()
     process.Connections()
     process.PortInfo('type', process.PortFlags(), 'desc', process.PortFrequency(1, 1))
-    process.ConfInfo('default', 'desc')
+    process.ConfInfo('default', 'desc', False)
     process.DataInfo(True, datum.DatumType.invalid)
     process.DataCheck.none
     process.DataCheck.sync
@@ -60,9 +60,10 @@ def test_api_calls():
     a.description
     a.frequency
 
-    a = process.ConfInfo('default', 'desc')
+    a = process.ConfInfo('default', 'desc', False)
     a.default
     a.description
+    a.tunable
 
     a = process.DataInfo(True, datum.DatumType.invalid)
     a.in_sync

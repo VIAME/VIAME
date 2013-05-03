@@ -215,10 +215,11 @@ pipeline
     parent = d->parent_stack.top();
   }
 
+  d->process_parent_map[name] = parent;
+
   if (cluster)
   {
     d->cluster_map[name] = cluster;
-    d->process_parent_map[name] = parent;
 
     d->parent_stack.push(name);
 
@@ -253,7 +254,6 @@ pipeline
   }
 
   d->process_map[name] = process;
-  d->process_parent_map[name] = parent;
 }
 
 void
@@ -510,6 +510,52 @@ pipeline
   d->setup_in_progress = false;
 }
 
+void
+pipeline
+::reconfigure(config_t const& conf) const
+{
+  if (!d->setup)
+  {
+    throw reconfigure_before_setup_exception();
+  }
+
+  BOOST_FOREACH (priv::process_map_t::value_type const& proc_entry, d->process_map)
+  {
+    process::name_t const& name = proc_entry.first;
+    process::name_t const parent = parent_cluster(name);
+
+    // We only want to reconfigure top-level processes; clusters are in charge
+    // of reconfiguring child processes.
+    if (!parent.empty())
+    {
+      continue;
+    }
+
+    process_t const& proc = proc_entry.second;
+    config_t const proc_conf = conf->subblock_view(name);
+
+    proc->reconfigure(proc_conf);
+  }
+
+  BOOST_FOREACH (priv::cluster_map_t::value_type const& cluster_entry, d->cluster_map)
+  {
+    process::name_t const& name = cluster_entry.first;
+    process::name_t const parent = parent_cluster(name);
+
+    // We only want to reconfigure top-level processes; clusters are in charge
+    // of reconfiguring child processes.
+    if (!parent.empty())
+    {
+      continue;
+    }
+
+    process_cluster_t const& cluster = cluster_entry.second;
+    config_t const proc_conf = conf->subblock_view(name);
+
+    cluster->reconfigure(proc_conf);
+  }
+}
+
 process::names_t
 pipeline
 ::process_names() const
@@ -544,7 +590,7 @@ process::name_t
 pipeline
 ::parent_cluster(process::name_t const& name) const
 {
-  priv::process_parent_map_t::const_iterator i = d->process_parent_map.find(name);
+  priv::process_parent_map_t::const_iterator const i = d->process_parent_map.find(name);
 
   if (i == d->process_parent_map.end())
   {
@@ -1346,12 +1392,11 @@ void
 pipeline::priv
 ::configure_processes()
 {
-  process::names_t const names = q->process_names();
-
   // Configure processes.
-  BOOST_FOREACH (process::name_t const& name, names)
+  BOOST_FOREACH (process_map_t::value_type const& proc_data, process_map)
   {
-    process_t const proc = q->process_by_name(name);
+    process::name_t const& name = proc_data.first;
+    process_t const& proc = proc_data.second;
     process::connections_t unresolved_connections;
 
     proc->configure();
@@ -1392,6 +1437,14 @@ pipeline::priv
     {
       data_dep_connections = unresolved_connections;
     }
+  }
+
+  // Configure clusters.
+  BOOST_FOREACH (cluster_map_t::value_type const& cluster_data, cluster_map)
+  {
+    process_cluster_t const& cluster = cluster_data.second;
+
+    cluster->configure();
   }
 }
 

@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -75,6 +75,8 @@ BOOST_PYTHON_MODULE(process_registry)
       , "Sets the type for an output port.")
     .def("available_config", &vistk::process::available_config
       , "Returns a list of available configuration keys for the process.")
+    .def("available_tunable_config", &vistk::process::available_tunable_config
+      , "Returns a list of available tunable configuration keys for the process.")
     .def("config_info", &vistk::process::config_info
       , (arg("config"))
       , "Returns information about the given configuration key.")

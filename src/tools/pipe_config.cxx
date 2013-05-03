@@ -289,6 +289,7 @@ config_printer
 {
   vistk::process::name_t const name = proc->name();
   vistk::config::keys_t const keys = proc->available_config();
+  vistk::config::keys_t const tunable_keys = proc->available_tunable_config();
   vistk::process::name_t const norm_name = normalize_name(name);
 
   BOOST_FOREACH (vistk::config::key_t const& key, keys)
@@ -304,9 +305,12 @@ config_printer
 
     vistk::config::description_t const desc = boost::replace_all_copy(info->description, "\n", "\n  #   ");
 
-    m_ostr << "  # Key: " << key << std::endl;
+    bool const is_tunable = std::count(tunable_keys.begin(), tunable_keys.end(), key);
+    std::string const tunable = (is_tunable ? "yes" : "no");
 
+    m_ostr << "  # Key: " << key << std::endl;
     m_ostr << "  # Description: " << desc << std::endl;
+    m_ostr << "  # Tunable: " << tunable << std::endl;
 
     vistk::config::value_t const& def = info->def;
 

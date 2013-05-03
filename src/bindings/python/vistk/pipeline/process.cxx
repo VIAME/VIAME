@@ -52,6 +52,8 @@ class wrap_process
 
     void _base_step();
 
+    void _base_reconfigure(vistk::config_t const& conf);
+
     properties_t _base_properties() const;
 
     ports_t _base_input_ports() const;
@@ -76,6 +78,8 @@ class wrap_process
     void _flush();
 
     void _step();
+
+    void _reconfigure(vistk::config_t const& conf);
 
     properties_t _properties() const;
 
@@ -115,6 +119,10 @@ class wrap_process
     void _declare_configuration_key_1(vistk::config::key_t const& key,
                                       vistk::config::value_t const& def_,
                                       vistk::config::description_t const& description_);
+    void _declare_configuration_key_2(vistk::config::key_t const& key,
+                                      vistk::config::value_t const& def_,
+                                      vistk::config::description_t const& description_,
+                                      bool tunable_);
 
     void _mark_process_as_complete();
 
@@ -226,9 +234,10 @@ BOOST_PYTHON_MODULE(process)
   class_<vistk::process::conf_info, vistk::process::conf_info_t>("ConfInfo"
     , "Information about a configuration on a process."
     , no_init)
-    .def(init<vistk::config::value_t, vistk::config::description_t>())
+    .def(init<vistk::config::value_t, vistk::config::description_t, bool>())
     .def_readonly("default", &vistk::process::conf_info::def)
     .def_readonly("description", &vistk::process::conf_info::description)
+    .def_readonly("tunable", &vistk::process::conf_info::tunable)
   ;
 
   implicitly_convertible<boost::shared_ptr<vistk::process::conf_info>, vistk::process::conf_info_t>();
@@ -288,6 +297,8 @@ BOOST_PYTHON_MODULE(process)
       , "Sets the type for an output port.")
     .def("available_config", &vistk::process::available_config
       , "Returns a list of available configuration keys for the process.")
+    .def("available_tunable_config", &vistk::process::available_tunable_config
+      , "Returns a list of available tunable configuration keys for the process.")
     .def("config_info", &vistk::process::config_info
       , (arg("config"))
       , "Returns information about the given configuration key.")
@@ -322,6 +333,9 @@ BOOST_PYTHON_MODULE(process)
       , "Base class flush.")
     .def("_base_step", &wrap_process::_base_step
       , "Base class step.")
+    .def("_base_reconfigure", &wrap_process::_base_reconfigure
+      , (arg("config"))
+      , "Base class reconfigure.")
     .def("_base_properties", &wrap_process::_base_properties
       , "Base class properties.")
     .def("_base_input_ports", &wrap_process::_base_input_ports
@@ -361,6 +375,9 @@ BOOST_PYTHON_MODULE(process)
       , "Flushes the process subclass.")
     .def("_step", &wrap_process::_step, &wrap_process::_base_step
       , "Step the process subclass for one iteration.")
+    .def("_reconfigure", &wrap_process::_reconfigure, &wrap_process::_base_reconfigure
+      , (arg("config"))
+      , "Runtime configuration for subclasses.")
     .def("_properties", &wrap_process::_properties, &wrap_process::_base_properties
       , "The properties on the subclass.")
     .def("_input_ports", &wrap_process::_input_ports, &wrap_process::_base_input_ports
@@ -413,6 +430,9 @@ BOOST_PYTHON_MODULE(process)
       , "Declare a configuration key for the process.")
     .def("declare_configuration_key", &wrap_process::_declare_configuration_key_1
       , (arg("key"), arg("default"), arg("description"))
+      , "Declare a configuration key for the process.")
+    .def("declare_configuration_key", &wrap_process::_declare_configuration_key_2
+      , (arg("key"), arg("default"), arg("description"), arg("tunable"))
       , "Declare a configuration key for the process.")
     .def("mark_process_as_complete", &wrap_process::_mark_process_as_complete
       , "Tags the process as complete.")
@@ -498,6 +518,13 @@ wrap_process
 ::_base_step()
 {
   TRANSLATE_PYTHON_EXCEPTION(process::_step())
+}
+
+void
+wrap_process
+::_base_reconfigure(vistk::config_t const& conf)
+{
+  TRANSLATE_PYTHON_EXCEPTION(process::_reconfigure(conf))
 }
 
 vistk::process::properties_t
@@ -675,6 +702,28 @@ wrap_process
   }
 
   _base_step();
+}
+
+void
+wrap_process
+::_reconfigure(vistk::config_t const& conf)
+{
+  {
+    vistk::python::python_gil const gil;
+
+    (void)gil;
+
+    override const f = get_override("_reconfigure");
+
+    if (f)
+    {
+      HANDLE_PYTHON_EXCEPTION(f(conf))
+
+      return;
+    }
+  }
+
+  _base_reconfigure(conf);
 }
 
 vistk::process::properties_t
@@ -935,6 +984,16 @@ wrap_process
                                vistk::config::description_t const& description_)
 {
   declare_configuration_key(key, def_, description_);
+}
+
+void
+wrap_process
+::_declare_configuration_key_2(vistk::config::key_t const& key,
+                               vistk::config::value_t const& def_,
+                               vistk::config::description_t const& description_,
+                               bool tunable_)
+{
+  declare_configuration_key(key, def_, description_, tunable_);
 }
 
 void

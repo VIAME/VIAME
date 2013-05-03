@@ -69,6 +69,7 @@ def example_process():
             self.ran_init = False
             self.ran_reset = False
             self.ran_step = False
+            self.ran_reconfigure = False
             self.ran_properties = False
             self.ran_input_ports = False
             self.ran_output_ports = False
@@ -98,6 +99,11 @@ def example_process():
             self.ran_step = True
 
             self._base_step()
+
+        def _reconfigure(self, conf):
+            self.ran_reconfigure = True
+
+            self._base_reconfigure(conf)
 
         def _properties(self):
             self.ran_properties = True
@@ -154,6 +160,8 @@ def example_process():
             # TODO: See TODO below.
             #if not self.ran_step:
             #    test_error("_step override was not called")
+            #if not self.ran_reconfigure:
+            #    test_error("_reconfigure override was not called")
             if not self.ran_properties:
                 test_error("_properties override was not called")
             if not self.ran_input_ports:
@@ -301,6 +309,7 @@ def test_wrapper_api():
                          p.connect_output_port, oport, e)
 
         p.available_config()
+        p.available_tunable_config()
         expect_exception("asking for info on a non-existant config key", RuntimeError,
                          p.config_info, key)
 
@@ -317,6 +326,12 @@ def test_wrapper_api():
         # cannot be set. Needs to be stepped within a pipeline to verify this.
         # Enable the ran_step check in p.check when this is fixed.
         #p.step()
+
+        # TODO: Can't check this because only the process_cluster base class
+        # and the pipeline may reconfigure a process. Needs to be stepped
+        # within a pipeline to verify this. Enable the ran_step check in
+        # p.check when this is fixed.
+        #p.reconfigure(reconf)
 
         p.check()
 

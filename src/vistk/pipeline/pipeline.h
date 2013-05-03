@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -214,6 +214,15 @@ class VISTK_PIPELINE_EXPORT pipeline
      * \throws reset_running_pipeline_exception Thrown when the pipeline is running.
      */
     void reset();
+
+    /**
+     * \brief Reconfigure processes within the pipeline.
+     *
+     * \warning This does not ensure that every process gets reconfigured at the
+     * same time; any synchronization is best handled at the cluster level if
+     * needed.
+     */
+    void reconfigure(config_t const& conf) const;
 
     /**
      * \brief Get a list of processes in the pipeline.

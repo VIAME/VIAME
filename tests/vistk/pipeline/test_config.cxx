@@ -10,6 +10,7 @@
 
 #define TEST_ARGS ()
 
+DECLARE_TEST(block_sep_size);
 DECLARE_TEST(has_value);
 DECLARE_TEST(get_value);
 DECLARE_TEST(get_value_nested);
@@ -39,6 +40,7 @@ main(int argc, char* argv[])
 
   DECLARE_TEST_MAP(tests);
 
+  ADD_TEST(tests, block_sep_size);
   ADD_TEST(tests, has_value);
   ADD_TEST(tests, get_value);
   ADD_TEST(tests, get_value_nested);
@@ -60,6 +62,15 @@ main(int argc, char* argv[])
   ADD_TEST(tests, merge_config);
 
   RUN_TEST(tests, testname);
+}
+
+IMPLEMENT_TEST(block_sep_size)
+{
+  if (vistk::config::block_sep.size() != 1)
+  {
+    TEST_ERROR("Block separator is not size 1; quite a "
+               "few places rest on this assumption now");
+  }
 }
 
 IMPLEMENT_TEST(has_value)

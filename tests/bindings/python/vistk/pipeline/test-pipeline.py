@@ -98,6 +98,10 @@ def test_api_calls():
     p.is_setup()
     p.setup_successful()
 
+    c = config.empty_config()
+
+    p.reconfigure(c)
+
     p.reset()
 
 

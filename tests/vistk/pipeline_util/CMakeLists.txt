@@ -102,6 +102,18 @@ vistk_make_load_test(pipe_bakery cluster_duplicate_input)
 vistk_make_load_test(pipe_bakery cluster_duplicate_output)
 vistk_make_load_test(pipe_bakery cluster_configuration_default)
 vistk_make_load_test(pipe_bakery cluster_configuration_provide)
+vistk_make_load_test(pipe_bakery cluster_map_config)
+vistk_make_load_test(pipe_bakery cluster_map_config_tunable)
+vistk_make_load_test(pipe_bakery cluster_map_config_redirect)
+vistk_make_load_test(pipe_bakery cluster_map_config_modified)
+vistk_make_load_test(pipe_bakery cluster_map_config_not_read_only)
+vistk_make_load_test(pipe_bakery cluster_map_config_only_provided)
+set(test_environment "TEST_ENV=expected")
+vistk_make_load_test(pipe_bakery cluster_map_config_only_conf_provided)
+unset(test_environment)
+vistk_make_load_test(pipe_bakery cluster_map_config_to_non_process)
+vistk_make_load_test(pipe_bakery cluster_map_config_not_from_cluster)
+vistk_make_load_test(pipe_bakery cluster_override_mapped)
 
 ##############################
 # Export tests

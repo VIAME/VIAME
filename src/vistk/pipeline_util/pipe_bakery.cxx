@@ -17,7 +17,13 @@
 #include <vistk/pipeline/process_cluster.h>
 #include <vistk/pipeline/process_registry.h>
 
+#if (__cplusplus < 201103L) && (BOOST_VERSION >= 105000)
+#include <boost/algorithm/cxx11/copy_if.hpp>
+#endif
+#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -51,6 +57,7 @@ static config_flag_t const flag_read_only = config_flag_t("ro");
 static config_flag_t const flag_append = config_flag_t("append");
 static config_flag_t const flag_comma_append = config_flag_t("cappend");
 static config_flag_t const flag_path_append = config_flag_t("pappend");
+static config_flag_t const flag_tunable = config_flag_t("tunable");
 
 static config_provider_t const provider_config = config_provider_t("CONF");
 static config_provider_t const provider_environment = config_provider_t("ENV");
@@ -618,6 +625,10 @@ bakery_base
 
         path_append = true;
       }
+      else if (flag == flag_tunable)
+      {
+        // Ignore here (but don't error).
+      }
       else
       {
         throw unrecognized_config_flag_exception(full_key, flag);
@@ -754,6 +765,42 @@ class loaded_cluster
     friend class cluster_creator;
 };
 
+class provided_by_cluster
+{
+  public:
+    provided_by_cluster(process::type_t const& name, process::names_t const& procs);
+    ~provided_by_cluster();
+
+    bool operator () (bakery_base::config_decl_t const& decl) const;
+  private:
+    process::type_t const m_name;
+    process::names_t const m_procs;
+};
+
+class extract_literal_value
+  : public boost::static_visitor<config::value_t>
+{
+  public:
+    extract_literal_value();
+    ~extract_literal_value();
+
+    config::value_t operator () (config::value_t const& value) const;
+    config::value_t operator () (bakery_base::provider_request_t const& request) const;
+};
+
+#if __cplusplus >= 201103L
+#define COPY_IF std::copy_if
+#elif BOOST_VERSION >= 105000
+#define COPY_IF boost::copy_if
+#else
+#define COPY_IF copy_if
+
+#define USE_CUSTOM_COPY_IF
+
+template <typename InputIterator, typename OutputIterator, typename UnaryPredicate>
+static OutputIterator copy_if(InputIterator first, InputIterator last, OutputIterator result, UnaryPredicate pred);
+#endif
+
 process_t
 cluster_creator
 ::operator () (config_t const& config) const
@@ -762,7 +809,23 @@ cluster_creator
 
   process::type_t const& type = m_bakery.m_type;
 
-  // Append the given configuration to the declarations in the file.
+  process::names_t proc_names;
+
+  BOOST_FOREACH (bakery_base::process_decl_t const& proc_decl, m_bakery.m_processes)
+  {
+    process::name_t const& proc_name = proc_decl.first;
+
+    proc_names.push_back(proc_name);
+  }
+
+  provided_by_cluster const mapping_filter(type, proc_names);
+
+  bakery_base::config_decls_t mapped_decls;
+
+  // Copy out configuration settings which are mapped by the cluster.
+  COPY_IF(all_configs.begin(), all_configs.end(), std::back_inserter(mapped_decls), mapping_filter);
+
+  // Append the given configuration to the declarations from the parsed blocks.
   config::keys_t const& keys = config->available_values();
   BOOST_FOREACH (config::key_t const& key, keys)
   {
@@ -802,21 +865,71 @@ cluster_creator
   // Declare configuration values.
   BOOST_FOREACH (cluster_config_t const& conf, info.m_configs)
   {
-    // Calls to map_config are not necessary because
-    // extract_configuration_from_decls does the mappings for us via
-    // configuration providers.
-
     config_value_t const& config_value = conf.config_value;
     config_key_t const& config_key = config_value.key;
     config::keys_t const& key_path = config_key.key_path;
     config::key_t const& key = flatten_keys(key_path);
     config::value_t const& value = main_config->get_value<config::value_t>(key);
     config::description_t const& description = conf.description;
+    config_key_options_t const& options = config_key.options;
+    bool tunable = false;
+
+    if (options.flags)
+    {
+      config_flags_t const& flags = *options.flags;
+
+      tunable = std::count(flags.begin(), flags.end(), flag_tunable);
+    }
 
     cluster->declare_configuration_key(
       key,
       value,
-      description);
+      description,
+      tunable);
+  }
+
+  extract_literal_value const literal_value = extract_literal_value();
+
+  // Add config mappings.
+  BOOST_FOREACH (bakery_base::config_decl_t const& decl, mapped_decls)
+  {
+    config::key_t const& key = decl.first;
+    bakery_base::config_info_t const& mapping_info = decl.second;
+    bakery_base::config_reference_t const& ref = mapping_info.reference;
+
+    config::value_t const value = boost::apply_visitor(literal_value, ref);
+
+    config::keys_t mapped_key_path;
+    config::keys_t source_key_path;
+
+    /// \bug Does not work if (vistk::config::block_sep.size() != 1).
+    boost::split(mapped_key_path, key, boost::is_any_of(vistk::config::block_sep));
+    /// \bug Does not work if (vistk::config::block_sep.size() != 1).
+    boost::split(source_key_path, value, boost::is_any_of(vistk::config::block_sep));
+
+    if (mapped_key_path.size() < 2)
+    {
+      /// \todo Error.
+
+      continue;
+    }
+
+    if (source_key_path.size() < 2)
+    {
+      /// \todo Error.
+
+      continue;
+    }
+
+    config::key_t const mapped_name = mapped_key_path[0];
+    mapped_key_path.erase(mapped_key_path.begin());
+
+    config::key_t const mapped_key = flatten_keys(mapped_key_path);
+
+    source_key_path.erase(source_key_path.begin());
+    config::key_t const source_key = flatten_keys(source_key_path);
+
+    cluster->map_config(source_key, mapped_name, mapped_key);
   }
 
   // Add processes.
@@ -1185,6 +1298,161 @@ loaded_cluster
 loaded_cluster
 ::~loaded_cluster()
 {
+}
+
+provided_by_cluster
+::provided_by_cluster(process::type_t const& name, process::names_t const& procs)
+  : m_name(name)
+  , m_procs(procs)
+{
+}
+
+provided_by_cluster
+::~provided_by_cluster()
+{
+}
+
+class check_provider
+  : public boost::static_visitor<bool>
+{
+  public:
+    check_provider(config_provider_t const& provider);
+    ~check_provider();
+
+    bool operator () (config::value_t const& value) const;
+    bool operator () (bakery_base::provider_request_t const& request) const;
+  private:
+    config_provider_t const m_provider;
+};
+
+bool
+provided_by_cluster
+::operator () (bakery_base::config_decl_t const& decl) const
+{
+  bakery_base::config_info_t const& info = decl.second;
+
+  // Mapped configurations must be read-only.
+  if (!info.read_only)
+  {
+    return false;
+  }
+
+  // Mapped configurations must be a provider_config request.
+  check_provider const check = check_provider(provider_config);
+
+  bakery_base::config_reference_t const& ref = info.reference;
+  bool const conf_provided = boost::apply_visitor(check, ref);
+
+  if (!conf_provided)
+  {
+    return false;
+  }
+
+  extract_literal_value const literal_value = extract_literal_value();
+
+  config::value_t const value = boost::apply_visitor(literal_value, ref);
+
+  // It must be mapped to the the actual cluster.
+  if (!boost::starts_with(value, m_name + config::block_sep))
+  {
+    return false;
+  }
+
+  /**
+   * \todo There should be at least a warning that if the target is being
+   * provided by a tunable parameter on the cluster that this will likely not
+   * work as intended.
+   */
+
+  config::key_t const& key = decl.first;
+
+  config::keys_t key_path;
+
+  /// \bug Does not work if (vistk::config::block_sep.size() != 1).
+  boost::split(key_path, key, boost::is_any_of(vistk::config::block_sep));
+
+  bool const is_proc = std::count(m_procs.begin(), m_procs.end(), key_path[0]);
+
+  if (!is_proc)
+  {
+    // We can't map to non-processes.
+    return false;
+  }
+
+  return true;
+}
+
+extract_literal_value
+::extract_literal_value()
+{
+}
+
+extract_literal_value
+::~extract_literal_value()
+{
+}
+
+config::value_t
+extract_literal_value
+::operator () (config::value_t const& value) const
+{
+  return value;
+}
+
+config::value_t
+extract_literal_value
+::operator () (bakery_base::provider_request_t const& request) const
+{
+  config::value_t const& value = request.second;
+
+  return value;
+}
+
+#ifdef USE_CUSTOM_COPY_IF
+template <typename InputIterator, typename OutputIterator, typename UnaryPredicate>
+OutputIterator
+copy_if(InputIterator first, InputIterator last, OutputIterator result, UnaryPredicate pred)
+{
+  while (first != last)
+  {
+    if (pred(*first))
+    {
+      *result = *first;
+      ++result;
+    }
+
+    ++first;
+  }
+
+  return result;
+}
+#endif
+
+check_provider
+::check_provider(config_provider_t const& provider)
+  : m_provider(provider)
+{
+}
+
+check_provider
+::~check_provider()
+{
+}
+
+bool
+check_provider
+::operator () (config::value_t const& /*value*/) const
+{
+  return false;
+}
+
+bool
+check_provider
+::operator () (bakery_base::provider_request_t const& request) const
+{
+  config_provider_t const& provider = request.first;
+
+  return (m_provider == provider);
 }
 
 }
