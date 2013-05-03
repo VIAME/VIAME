@@ -5,7 +5,15 @@ sprokit_configure_file(config.h
 
 set(SPROKIT_BUILT_FROM_GIT)
 
-if (GIT_FOUND)
+if ("$Format:$" STREQUAL "")
+  set(sprokit_git_hash       "$Format:%H$")
+  set(sprokit_git_hash_short "$Format:%h$")
+
+  option(SPROKIT_IS_PATCHED "Set to ON if patches are applied on top of a released tarball" OFF)
+  if (SPROKIT_IS_PATCHED)
+    set(sprokit_git_dirty "dirty")
+  endif ()
+elseif (GIT_FOUND)
   set(configure_code "
 if (IS_DIRECTORY \"${sprokit_source_dir}/.git\")
   set(SPROKIT_BUILT_FROM_GIT TRUE)
@@ -48,15 +56,9 @@ if (IS_DIRECTORY \"${sprokit_source_dir}/.git\")
 endif ()
 ")
 else ()
-  if ("$Format:$" STREQUAL "")
-    set(sprokit_git_hash       "$Format:%H$")
-    set(sprokit_git_hash_short "$Format:%h$")
-
-    option(SPROKIT_IS_PATCHED "Set to ON if patches are applied on top of a released tarball" OFF)
-    if (SPROKIT_IS_PATCHED)
-      set(sprokit_git_dirty "dirty")
-    endif ()
-  endif ()
+  set(sprokit_git_hash       "<unknown>")
+  set(sprokit_git_hash_short "<unknown>")
+  set(sprokit_git_dirty      "<unknown>")
 endif ()
 
 sprokit_configure_file_always(version.h
