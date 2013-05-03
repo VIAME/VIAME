@@ -115,7 +115,6 @@ thread_per_process_scheduler
 ::_stop()
 {
   d->process_threads->interrupt_all();
-  d->process_threads.reset();
 }
 
 thread_per_process_scheduler::priv
