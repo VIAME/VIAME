@@ -1,6 +1,6 @@
 project(sprokit)
 
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 2.8.8)
 
 option(SPROKIT_USE_BUILD_TREE "Whether the build tree should be used for default paths" ON)
 mark_as_advanced(SPROKIT_USE_BUILD_TREE)
