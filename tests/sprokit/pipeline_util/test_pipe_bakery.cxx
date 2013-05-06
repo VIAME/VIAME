@@ -41,10 +41,12 @@ DECLARE_TEST(config_append);
 DECLARE_TEST(config_append_ro);
 DECLARE_TEST(config_append_provided);
 DECLARE_TEST(config_append_provided_ro);
-DECLARE_TEST(config_cappend);
-DECLARE_TEST(config_cappend_empty);
-DECLARE_TEST(config_pappend);
-DECLARE_TEST(config_pappend_empty);
+DECLARE_TEST(config_append_comma);
+DECLARE_TEST(config_append_comma_empty);
+DECLARE_TEST(config_append_space);
+DECLARE_TEST(config_append_space_empty);
+DECLARE_TEST(config_append_path);
+DECLARE_TEST(config_append_path_empty);
 DECLARE_TEST(config_append_flag_mismatch_ac);
 DECLARE_TEST(config_append_flag_mismatch_ap);
 DECLARE_TEST(config_append_flag_mismatch_cp);
@@ -104,10 +106,12 @@ main(int argc, char* argv[])
   ADD_TEST(tests, config_append_ro);
   ADD_TEST(tests, config_append_provided);
   ADD_TEST(tests, config_append_provided_ro);
-  ADD_TEST(tests, config_cappend);
-  ADD_TEST(tests, config_cappend_empty);
-  ADD_TEST(tests, config_pappend);
-  ADD_TEST(tests, config_pappend_empty);
+  ADD_TEST(tests, config_append_comma);
+  ADD_TEST(tests, config_append_comma_empty);
+  ADD_TEST(tests, config_append_space);
+  ADD_TEST(tests, config_append_space_empty);
+  ADD_TEST(tests, config_append_path);
+  ADD_TEST(tests, config_append_path_empty);
   ADD_TEST(tests, config_append_flag_mismatch_ac);
   ADD_TEST(tests, config_append_flag_mismatch_ap);
   ADD_TEST(tests, config_append_flag_mismatch_cp);
@@ -351,7 +355,7 @@ IMPLEMENT_TEST(config_append_provided_ro)
   }
 }
 
-IMPLEMENT_TEST(config_cappend)
+IMPLEMENT_TEST(config_append_comma)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
@@ -369,7 +373,7 @@ IMPLEMENT_TEST(config_cappend)
   }
 }
 
-IMPLEMENT_TEST(config_cappend_empty)
+IMPLEMENT_TEST(config_append_comma_empty)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
@@ -387,7 +391,43 @@ IMPLEMENT_TEST(config_cappend_empty)
   }
 }
 
-IMPLEMENT_TEST(config_pappend)
+IMPLEMENT_TEST(config_append_space)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
+
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue othervalue");
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration value was not appended with a space separator: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+}
+
+IMPLEMENT_TEST(config_append_space_empty)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
+
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("othervalue");
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration value was created with a space separator: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+}
+
+IMPLEMENT_TEST(config_append_path)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
@@ -406,7 +446,7 @@ IMPLEMENT_TEST(config_pappend)
   }
 }
 
-IMPLEMENT_TEST(config_pappend_empty)
+IMPLEMENT_TEST(config_append_path_empty)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 

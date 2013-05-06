@@ -325,7 +325,10 @@ common_grammar<Iterator>
 
   config_flag.name("key-flag");
   config_flag %=
-    +(  qi::alpha
+    +(  qi::alnum
+     |  qi::char_('-')
+     |  qi::char_('_')
+     |  qi::char_('=')
      );
 
   config_flags.name("key-flags");
