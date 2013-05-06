@@ -6,13 +6,13 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/edge.h>
-#include <vistk/pipeline/edge_exception.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/stamp.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/datum.h>
+#include <sprokit/pipeline/edge.h>
+#include <sprokit/pipeline/edge_exception.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/stamp.h>
 
 #include <boost/chrono/chrono_io.hpp>
 #include <boost/chrono/duration.hpp>
@@ -76,27 +76,27 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(null_config)
 {
-  vistk::config_t const config;
+  sprokit::config_t const config;
 
-  EXPECT_EXCEPTION(vistk::null_edge_config_exception,
-                   boost::make_shared<vistk::edge>(config),
+  EXPECT_EXCEPTION(sprokit::null_edge_config_exception,
+                   boost::make_shared<sprokit::edge>(config),
                    "when passing a NULL config to an edge");
 }
 
 IMPLEMENT_TEST(makes_dependency)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
   if (!edge->makes_dependency())
   {
     TEST_ERROR("A default edge does not imply a dependency");
   }
 
-  config->set_value(vistk::edge::config_dependency, "false");
+  config->set_value(sprokit::edge::config_dependency, "false");
 
-  vistk::edge_t const edge2 = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge2 = boost::make_shared<sprokit::edge>(config);
 
   if (edge2->makes_dependency())
   {
@@ -107,9 +107,9 @@ IMPLEMENT_TEST(makes_dependency)
 
 IMPLEMENT_TEST(new_has_no_data)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
   if (edge->has_data())
   {
@@ -119,9 +119,9 @@ IMPLEMENT_TEST(new_has_no_data)
 
 IMPLEMENT_TEST(new_is_not_full)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
   if (edge->full_of_data())
   {
@@ -131,9 +131,9 @@ IMPLEMENT_TEST(new_is_not_full)
 
 IMPLEMENT_TEST(new_has_count_zero)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
   if (edge->datum_count())
   {
@@ -143,16 +143,16 @@ IMPLEMENT_TEST(new_has_count_zero)
 
 IMPLEMENT_TEST(push_datum)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+  sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
-  vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
+  sprokit::datum_t const dat = sprokit::datum::complete_datum();
+  sprokit::stamp_t const stamp = sprokit::stamp::new_stamp(inc);
 
-  vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
+  sprokit::edge_datum_t const edat = sprokit::edge_datum_t(dat, stamp);
 
   edge->push_datum(edat);
 
@@ -171,27 +171,27 @@ IMPLEMENT_TEST(push_datum)
 
 IMPLEMENT_TEST(peek_datum)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+  sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
-  vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
+  sprokit::datum_t const dat = sprokit::datum::complete_datum();
+  sprokit::stamp_t const stamp = sprokit::stamp::new_stamp(inc);
 
-  vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
+  sprokit::edge_datum_t const edat = sprokit::edge_datum_t(dat, stamp);
 
   edge->push_datum(edat);
 
-  vistk::edge_datum_t const get_edat = edge->peek_datum();
+  sprokit::edge_datum_t const get_edat = edge->peek_datum();
 
   if (edge->datum_count() != 1)
   {
     TEST_ERROR("An edge removed a datum on an peek");
   }
 
-  vistk::stamp_t const& estamp = get_edat.stamp;
+  sprokit::stamp_t const& estamp = get_edat.stamp;
 
   if (*estamp != *stamp)
   {
@@ -201,38 +201,38 @@ IMPLEMENT_TEST(peek_datum)
 
 IMPLEMENT_TEST(peek_datum_index)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+  sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
-  vistk::datum_t const dat1 = vistk::datum::empty_datum();
-  vistk::datum_t const dat2 = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp1 = vistk::stamp::new_stamp(inc);
-  vistk::stamp_t const stamp2 = vistk::stamp::incremented_stamp(stamp1);
+  sprokit::datum_t const dat1 = sprokit::datum::empty_datum();
+  sprokit::datum_t const dat2 = sprokit::datum::complete_datum();
+  sprokit::stamp_t const stamp1 = sprokit::stamp::new_stamp(inc);
+  sprokit::stamp_t const stamp2 = sprokit::stamp::incremented_stamp(stamp1);
 
-  vistk::edge_datum_t const edat1 = vistk::edge_datum_t(dat1, stamp1);
-  vistk::edge_datum_t const edat2 = vistk::edge_datum_t(dat2, stamp2);
+  sprokit::edge_datum_t const edat1 = sprokit::edge_datum_t(dat1, stamp1);
+  sprokit::edge_datum_t const edat2 = sprokit::edge_datum_t(dat2, stamp2);
 
   edge->push_datum(edat1);
   edge->push_datum(edat2);
 
-  vistk::edge_datum_t const get_edat = edge->peek_datum(1);
+  sprokit::edge_datum_t const get_edat = edge->peek_datum(1);
 
   if (edge->datum_count() != 2)
   {
     TEST_ERROR("An edge removed a datum on an indexed peek");
   }
 
-  vistk::stamp_t const& estamp = get_edat.stamp;
+  sprokit::stamp_t const& estamp = get_edat.stamp;
 
   if (*estamp != *stamp2)
   {
     TEST_ERROR("The edge modified a stamp on a peek");
   }
 
-  vistk::datum_t const& edatum = get_edat.datum;
+  sprokit::datum_t const& edatum = get_edat.datum;
 
   if (edatum != dat2)
   {
@@ -242,16 +242,16 @@ IMPLEMENT_TEST(peek_datum_index)
 
 IMPLEMENT_TEST(pop_datum)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+  sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
-  vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
+  sprokit::datum_t const dat = sprokit::datum::complete_datum();
+  sprokit::stamp_t const stamp = sprokit::stamp::new_stamp(inc);
 
-  vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
+  sprokit::edge_datum_t const edat = sprokit::edge_datum_t(dat, stamp);
 
   edge->push_datum(edat);
 
@@ -265,27 +265,27 @@ IMPLEMENT_TEST(pop_datum)
 
 IMPLEMENT_TEST(get_datum)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+  sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
-  vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
+  sprokit::datum_t const dat = sprokit::datum::complete_datum();
+  sprokit::stamp_t const stamp = sprokit::stamp::new_stamp(inc);
 
-  vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
+  sprokit::edge_datum_t const edat = sprokit::edge_datum_t(dat, stamp);
 
   edge->push_datum(edat);
 
-  vistk::edge_datum_t const get_edat = edge->get_datum();
+  sprokit::edge_datum_t const get_edat = edge->get_datum();
 
   if (edge->datum_count() != 0)
   {
     TEST_ERROR("An edge did not remove a datum on a get");
   }
 
-  vistk::stamp_t const& estamp = get_edat.stamp;
+  sprokit::stamp_t const& estamp = get_edat.stamp;
 
   if (*estamp != *stamp)
   {
@@ -295,78 +295,78 @@ IMPLEMENT_TEST(get_datum)
 
 IMPLEMENT_TEST(null_upstream_process)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::process_t const process;
+  sprokit::process_t const process;
 
-  EXPECT_EXCEPTION(vistk::null_process_connection_exception,
+  EXPECT_EXCEPTION(sprokit::null_process_connection_exception,
                    edge->set_upstream_process(process),
                    "setting a NULL process as upstream");
 }
 
 IMPLEMENT_TEST(null_downstream_process)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::process_t const process;
+  sprokit::process_t const process;
 
-  EXPECT_EXCEPTION(vistk::null_process_connection_exception,
+  EXPECT_EXCEPTION(sprokit::null_process_connection_exception,
                    edge->set_downstream_process(process),
                    "setting a NULL process as downstream");
 }
 
 IMPLEMENT_TEST(set_upstream_process)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
-  vistk::process_t const process = reg->create_process(proc_type, vistk::process::name_t());
+  sprokit::process_t const process = reg->create_process(proc_type, sprokit::process::name_t());
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>();
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>();
 
   edge->set_upstream_process(process);
 
-  EXPECT_EXCEPTION(vistk::input_already_connected_exception,
+  EXPECT_EXCEPTION(sprokit::input_already_connected_exception,
                    edge->set_upstream_process(process),
                    "setting a second process as upstream");
 }
 
 IMPLEMENT_TEST(set_downstream_process)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
-  vistk::process_t const process = reg->create_process(proc_type, vistk::process::name_t());
+  sprokit::process_t const process = reg->create_process(proc_type, sprokit::process::name_t());
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>();
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>();
 
   edge->set_downstream_process(process);
 
-  EXPECT_EXCEPTION(vistk::output_already_connected_exception,
+  EXPECT_EXCEPTION(sprokit::output_already_connected_exception,
                    edge->set_downstream_process(process),
                    "setting a second process as downstream");
 }
 
 IMPLEMENT_TEST(push_data_into_complete)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+  sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
-  vistk::datum_t const dat = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp = vistk::stamp::new_stamp(inc);
+  sprokit::datum_t const dat = sprokit::datum::complete_datum();
+  sprokit::stamp_t const stamp = sprokit::stamp::new_stamp(inc);
 
-  vistk::edge_datum_t const edat = vistk::edge_datum_t(dat, stamp);
+  sprokit::edge_datum_t const edat = sprokit::edge_datum_t(dat, stamp);
 
   edge->push_datum(edat);
 
@@ -387,21 +387,21 @@ IMPLEMENT_TEST(push_data_into_complete)
 
 IMPLEMENT_TEST(get_data_from_complete)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
   edge->mark_downstream_as_complete();
 
-  EXPECT_EXCEPTION(vistk::datum_requested_after_complete,
+  EXPECT_EXCEPTION(sprokit::datum_requested_after_complete,
                    edge->peek_datum(),
                    "peeking at a complete edge");
 
-  EXPECT_EXCEPTION(vistk::datum_requested_after_complete,
+  EXPECT_EXCEPTION(sprokit::datum_requested_after_complete,
                    edge->get_datum(),
                    "getting data from a complete edge");
 
-  EXPECT_EXCEPTION(vistk::datum_requested_after_complete,
+  EXPECT_EXCEPTION(sprokit::datum_requested_after_complete,
                    edge->pop_datum(),
                    "popping data from a complete edge");
 }
@@ -409,28 +409,28 @@ IMPLEMENT_TEST(get_data_from_complete)
 #define SECONDS_TO_WAIT 1
 #define WAIT_DURATION boost::chrono::seconds(SECONDS_TO_WAIT)
 
-static void push_datum(vistk::edge_t edge, vistk::edge_datum_t edat);
+static void push_datum(sprokit::edge_t edge, sprokit::edge_datum_t edat);
 
 void
 test_capacity()
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::value_t const value_capacity = boost::lexical_cast<vistk::config::value_t>(1);
+  sprokit::config::value_t const value_capacity = boost::lexical_cast<sprokit::config::value_t>(1);
 
-  config->set_value(vistk::edge::config_capacity, value_capacity);
+  config->set_value(sprokit::edge::config_capacity, value_capacity);
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+  sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
-  vistk::datum_t const dat1 = vistk::datum::empty_datum();
-  vistk::datum_t const dat2 = vistk::datum::complete_datum();
-  vistk::stamp_t const stamp1 = vistk::stamp::new_stamp(inc);
-  vistk::stamp_t const stamp2 = vistk::stamp::incremented_stamp(stamp1);
+  sprokit::datum_t const dat1 = sprokit::datum::empty_datum();
+  sprokit::datum_t const dat2 = sprokit::datum::complete_datum();
+  sprokit::stamp_t const stamp1 = sprokit::stamp::new_stamp(inc);
+  sprokit::stamp_t const stamp2 = sprokit::stamp::incremented_stamp(stamp1);
 
-  vistk::edge_datum_t const edat1 = vistk::edge_datum_t(dat1, stamp1);
-  vistk::edge_datum_t const edat2 = vistk::edge_datum_t(dat2, stamp2);
+  sprokit::edge_datum_t const edat1 = sprokit::edge_datum_t(dat1, stamp1);
+  sprokit::edge_datum_t const edat2 = sprokit::edge_datum_t(dat2, stamp2);
 
   // Fill the edge.
   edge->push_datum(edat1);
@@ -464,7 +464,7 @@ test_capacity()
 }
 
 void
-push_datum(vistk::edge_t edge, vistk::edge_datum_t edat)
+push_datum(sprokit::edge_t edge, sprokit::edge_datum_t edat)
 {
   // This clock is used because it is both steady (which rules out system_clock)
   // and uses the wall time (which rules out thread_clock).

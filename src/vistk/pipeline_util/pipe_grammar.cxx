@@ -31,72 +31,72 @@ using namespace boost::spirit;
 #ifndef DOXYGEN_IGNORE
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::config_key_options_t,
-  (boost::optional<vistk::config_flags_t>, flags)
-  (boost::optional<vistk::config_provider_t>, provider)
+  sprokit::config_key_options_t,
+  (boost::optional<sprokit::config_flags_t>, flags)
+  (boost::optional<sprokit::config_provider_t>, provider)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::config_key_t,
-  (vistk::config::keys_t, key_path)
-  (vistk::config_key_options_t, options)
+  sprokit::config_key_t,
+  (sprokit::config::keys_t, key_path)
+  (sprokit::config_key_options_t, options)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::config_value_t,
-  (vistk::config_key_t, key)
-  (vistk::config::value_t, value)
+  sprokit::config_value_t,
+  (sprokit::config_key_t, key)
+  (sprokit::config::value_t, value)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::config_pipe_block,
-  (vistk::config::keys_t, key)
-  (vistk::config_values_t, values)
+  sprokit::config_pipe_block,
+  (sprokit::config::keys_t, key)
+  (sprokit::config_values_t, values)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::process_pipe_block,
-  (vistk::process::name_t, name)
-  (vistk::process::type_t, type)
-  (vistk::config_values_t, config_values)
+  sprokit::process_pipe_block,
+  (sprokit::process::name_t, name)
+  (sprokit::process::type_t, type)
+  (sprokit::config_values_t, config_values)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::connect_pipe_block,
-  (vistk::process::port_addr_t, from)
-  (vistk::process::port_addr_t, to)
+  sprokit::connect_pipe_block,
+  (sprokit::process::port_addr_t, from)
+  (sprokit::process::port_addr_t, to)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::cluster_config_t,
-  (vistk::config::description_t, description)
-  (vistk::config_value_t, config_value)
+  sprokit::cluster_config_t,
+  (sprokit::config::description_t, description)
+  (sprokit::config_value_t, config_value)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::cluster_input_t,
-  (vistk::process::port_description_t, description)
-  (vistk::process::port_t, from)
-  (vistk::process::port_addrs_t, targets)
+  sprokit::cluster_input_t,
+  (sprokit::process::port_description_t, description)
+  (sprokit::process::port_t, from)
+  (sprokit::process::port_addrs_t, targets)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::cluster_output_t,
-  (vistk::process::port_description_t, description)
-  (vistk::process::port_addr_t, from)
-  (vistk::process::port_t, to)
+  sprokit::cluster_output_t,
+  (sprokit::process::port_description_t, description)
+  (sprokit::process::port_addr_t, from)
+  (sprokit::process::port_t, to)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-  vistk::cluster_pipe_block,
-  (vistk::process::type_t, type)
-  (vistk::process_registry::description_t, description)
-  (vistk::cluster_subblocks_t, subblocks)
+  sprokit::cluster_pipe_block,
+  (sprokit::process::type_t, type)
+  (sprokit::process_registry::description_t, description)
+  (sprokit::cluster_subblocks_t, subblocks)
 )
 
 #endif
 
-namespace vistk
+namespace sprokit
 {
 
 namespace

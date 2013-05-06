@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
-#define VISTK_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
+#ifndef SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
+#define SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
 
 #include "pipeline-config.h"
 
@@ -15,20 +15,20 @@
 /**
  * \file scheduler_registry_exception.h
  *
- * \brief Header for exceptions used within the \link vistk::scheduler_registry scheduler registry\endlink.
+ * \brief Header for exceptions used within the \link sprokit::scheduler_registry scheduler registry\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class scheduler_registry_exception scheduler_registry_exception.h <vistk/pipeline/scheduler_registry_exception.h>
+ * \class scheduler_registry_exception scheduler_registry_exception.h <sprokit/pipeline/scheduler_registry_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref scheduler_registry.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT scheduler_registry_exception
+class SPROKIT_PIPELINE_EXPORT scheduler_registry_exception
   : public pipeline_exception
 {
   public:
@@ -43,13 +43,13 @@ class VISTK_PIPELINE_EXPORT scheduler_registry_exception
 };
 
 /**
- * \class null_scheduler_ctor_exception scheduler_registry_exception.h <vistk/pipeline/scheduler_registry_exception.h>
+ * \class null_scheduler_ctor_exception scheduler_registry_exception.h <sprokit/pipeline/scheduler_registry_exception.h>
  *
  * \brief Thrown when a \c NULL constructor function is added to the registry.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_scheduler_ctor_exception
+class SPROKIT_PIPELINE_EXPORT null_scheduler_ctor_exception
   : public scheduler_registry_exception
 {
   public:
@@ -69,13 +69,13 @@ class VISTK_PIPELINE_EXPORT null_scheduler_ctor_exception
 };
 
 /**
- * \class null_scheduler_registry_config_exception scheduler_registry_exception.h <vistk/pipeline/scheduler_registry_exception.h>
+ * \class null_scheduler_registry_config_exception scheduler_registry_exception.h <sprokit/pipeline/scheduler_registry_exception.h>
  *
  * \brief Thrown when a \c NULL \ref config is passed to a scheduler.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_scheduler_registry_config_exception
+class SPROKIT_PIPELINE_EXPORT null_scheduler_registry_config_exception
   : public scheduler_registry_exception
 {
   public:
@@ -90,13 +90,13 @@ class VISTK_PIPELINE_EXPORT null_scheduler_registry_config_exception
 };
 
 /**
- * \class null_scheduler_registry_pipeline_exception scheduler_registry_exception.h <vistk/pipeline/scheduler_registry_exception.h>
+ * \class null_scheduler_registry_pipeline_exception scheduler_registry_exception.h <sprokit/pipeline/scheduler_registry_exception.h>
  *
- * \brief Thrown when a \c NULL \link vistk::pipeline\endlink is passed to a scheduler.
+ * \brief Thrown when a \c NULL \link sprokit::pipeline\endlink is passed to a scheduler.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_scheduler_registry_pipeline_exception
+class SPROKIT_PIPELINE_EXPORT null_scheduler_registry_pipeline_exception
   : public scheduler_registry_exception
 {
   public:
@@ -111,13 +111,13 @@ class VISTK_PIPELINE_EXPORT null_scheduler_registry_pipeline_exception
 };
 
 /**
- * \class no_such_scheduler_type_exception scheduler_registry_exception.h <vistk/pipeline/scheduler_registry_exception.h>
+ * \class no_such_scheduler_type_exception scheduler_registry_exception.h <sprokit/pipeline/scheduler_registry_exception.h>
  *
  * \brief Thrown when a type is requested, but does not exist in the registry.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_such_scheduler_type_exception
+class SPROKIT_PIPELINE_EXPORT no_such_scheduler_type_exception
   : public scheduler_registry_exception
 {
   public:
@@ -137,13 +137,13 @@ class VISTK_PIPELINE_EXPORT no_such_scheduler_type_exception
 };
 
 /**
- * \class scheduler_type_already_exists_exception scheduler_registry_exception.h <vistk/pipeline/scheduler_registry_exception.h>
+ * \class scheduler_type_already_exists_exception scheduler_registry_exception.h <sprokit/pipeline/scheduler_registry_exception.h>
  *
  * \brief Thrown when a type is added, but does already exists in the registry.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT scheduler_type_already_exists_exception
+class SPROKIT_PIPELINE_EXPORT scheduler_type_already_exists_exception
   : public scheduler_registry_exception
 {
   public:
@@ -164,4 +164,4 @@ class VISTK_PIPELINE_EXPORT scheduler_type_already_exists_exception
 
 }
 
-#endif // VISTK_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
+#endif // SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H

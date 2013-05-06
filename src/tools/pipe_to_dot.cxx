@@ -9,16 +9,16 @@
 #include "helpers/tool_main.h"
 #include "helpers/tool_usage.h"
 
-#include <vistk/pipeline_util/export_dot.h>
-#include <vistk/pipeline_util/path.h>
+#include <sprokit/pipeline_util/export_dot.h>
+#include <sprokit/pipeline_util/path.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_cluster.h>
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_cluster.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/types.h>
 
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -36,7 +36,7 @@ static boost::program_options::options_description pipe_to_dot_pipeline_options(
 int
 tool_main(int argc, char* argv[])
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
   boost::program_options::options_description desc;
   desc
@@ -49,8 +49,8 @@ tool_main(int argc, char* argv[])
 
   boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
 
-  vistk::process_cluster_t cluster;
-  vistk::pipeline_t pipe;
+  sprokit::process_cluster_t cluster;
+  sprokit::pipeline_t pipe;
 
   bool const have_cluster = vm.count("cluster");
   bool const have_cluster_type = vm.count("cluster-type");
@@ -90,29 +90,29 @@ tool_main(int argc, char* argv[])
     pipeline_builder builder;
 
     builder.load_from_options(vm);
-    vistk::config_t const conf = builder.config();
+    sprokit::config_t const conf = builder.config();
 
     if (have_cluster)
     {
-      vistk::path_t const ipath = vm["cluster"].as<vistk::path_t>();
+      sprokit::path_t const ipath = vm["cluster"].as<sprokit::path_t>();
 
       istream_t const istr = open_istream(ipath);
 
-      vistk::cluster_info_t const info = vistk::bake_cluster(*istr);
+      sprokit::cluster_info_t const info = sprokit::bake_cluster(*istr);
 
-      conf->set_value(vistk::process::config_name, graph_name);
+      conf->set_value(sprokit::process::config_name, graph_name);
 
-      vistk::process_t const proc = info->ctor(conf);
-      cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+      sprokit::process_t const proc = info->ctor(conf);
+      cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
     }
     else if (have_cluster_type)
     {
-      vistk::process_registry_t const reg = vistk::process_registry::self();
+      sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-      vistk::process::type_t const type = vm["cluster-type"].as<vistk::process::type_t>();
+      sprokit::process::type_t const type = vm["cluster-type"].as<sprokit::process::type_t>();
 
-      vistk::process_t const proc = reg->create_process(type, graph_name, conf);
-      cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+      sprokit::process_t const proc = reg->create_process(type, graph_name, conf);
+      cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
       if (!cluster)
       {
@@ -158,13 +158,13 @@ tool_main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 
-  vistk::path_t const opath = vm["output"].as<vistk::path_t>();
+  sprokit::path_t const opath = vm["output"].as<sprokit::path_t>();
 
   ostream_t const ostr = open_ostream(opath);
 
   if (cluster)
   {
-    vistk::export_dot(*ostr, cluster, graph_name);
+    sprokit::export_dot(*ostr, cluster, graph_name);
   }
   else if (pipe)
   {
@@ -173,7 +173,7 @@ tool_main(int argc, char* argv[])
       pipe->setup_pipeline();
     }
 
-    vistk::export_dot(*ostr, pipe, graph_name);
+    sprokit::export_dot(*ostr, pipe, graph_name);
   }
 
   return EXIT_SUCCESS;

@@ -6,7 +6,7 @@
 
 
 def make_source(conf):
-    from vistk.pipeline import process
+    from sprokit.pipeline import process
 
     class Source(process.PythonProcess):
         def __init__(self, conf):
@@ -32,7 +32,7 @@ def make_source(conf):
             self._base_configure()
 
         def _step(self):
-            from vistk.pipeline import datum
+            from sprokit.pipeline import datum
 
             if self.counter >= self.end:
                 self.mark_process_as_complete()
@@ -49,7 +49,7 @@ def make_source(conf):
 
 
 def make_sink(conf):
-    from vistk.pipeline import process
+    from sprokit.pipeline import process
 
     class Sink(process.PythonProcess):
         def __init__(self, conf):
@@ -74,7 +74,7 @@ def make_sink(conf):
             self._base_configure()
 
         def _step(self):
-            from vistk.pipeline import datum
+            from sprokit.pipeline import datum
 
             num = self.grab_value_from_port(self.port_input)
 
@@ -87,8 +87,8 @@ def make_sink(conf):
 
 
 def create_process(type, name, conf):
-    from vistk.pipeline import modules
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import process_registry
 
     modules.load_known_modules()
 
@@ -100,9 +100,9 @@ def create_process(type, name, conf):
 
 
 def run_pipeline(sched_type, pipe, conf):
-    from vistk.pipeline import config
-    from vistk.pipeline import modules
-    from vistk.pipeline import scheduler_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import scheduler_registry
 
     modules.load_known_modules()
 
@@ -135,9 +135,9 @@ def check_file(fname, expect):
 
 
 def test_python_to_python(sched_type):
-    from vistk.pipeline import config
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import process
+    from sprokit.pipeline import config
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import process
 
     name_source = 'source'
     name_sink = 'sink'
@@ -180,9 +180,9 @@ def test_python_to_python(sched_type):
 
 
 def test_cpp_to_python(sched_type):
-    from vistk.pipeline import config
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import process
+    from sprokit.pipeline import config
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import process
 
     name_source = 'source'
     name_sink = 'sink'
@@ -224,9 +224,9 @@ def test_cpp_to_python(sched_type):
 
 
 def test_python_to_cpp(sched_type):
-    from vistk.pipeline import config
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import process
+    from sprokit.pipeline import config
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import process
 
     name_source = 'source'
     name_sink = 'sink'
@@ -268,9 +268,9 @@ def test_python_to_cpp(sched_type):
 
 
 def test_python_via_cpp(sched_type):
-    from vistk.pipeline import config
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import process
+    from sprokit.pipeline import config
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import process
 
     name_source1 = 'source1'
     name_source2 = 'source2'
@@ -362,6 +362,6 @@ if __name__ == '__main__':
         , 'python_via_cpp': test_python_via_cpp
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests, sched_type)

@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_EXAMPLES_SHARED_PROCESS_H
-#define VISTK_PROCESSES_EXAMPLES_SHARED_PROCESS_H
+#ifndef SPROKIT_PROCESSES_EXAMPLES_SHARED_PROCESS_H
+#define SPROKIT_PROCESSES_EXAMPLES_SHARED_PROCESS_H
 
 #include "examples-config.h"
 
-#include <vistk/pipeline/process.h>
+#include <sprokit/pipeline/process.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -19,7 +19,7 @@
  * \brief Declaration of the shared process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
@@ -39,7 +39,7 @@ namespace vistk
  *
  * \ingroup examples
  */
-class VISTK_PROCESSES_EXAMPLES_NO_EXPORT shared_process
+class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT shared_process
   : public process
 {
   public:
@@ -65,4 +65,4 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT shared_process
 
 }
 
-#endif // VISTK_PROCESSES_EXAMPLES_SHARED_PROCESS_H
+#endif // SPROKIT_PROCESSES_EXAMPLES_SHARED_PROCESS_H

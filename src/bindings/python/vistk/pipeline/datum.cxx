@@ -4,11 +4,11 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <vistk/pipeline/datum.h>
+#include <sprokit/pipeline/datum.h>
 
-#include <vistk/python/any_conversion/prototypes.h>
-#include <vistk/python/any_conversion/registration.h>
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/any_conversion/prototypes.h>
+#include <sprokit/python/any_conversion/registration.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
@@ -26,45 +26,45 @@
 /**
  * \file datum.cxx
  *
- * \brief Python bindings for \link vistk::datum\endlink.
+ * \brief Python bindings for \link sprokit::datum\endlink.
  */
 
 using namespace boost::python;
 
-static vistk::datum_t new_datum(object const& obj);
-static vistk::datum::type_t datum_type(vistk::datum_t const& self);
-static vistk::datum::error_t datum_get_error(vistk::datum_t const& self);
-static object datum_get_datum(vistk::datum_t const& self);
+static sprokit::datum_t new_datum(object const& obj);
+static sprokit::datum::type_t datum_type(sprokit::datum_t const& self);
+static sprokit::datum::error_t datum_get_error(sprokit::datum_t const& self);
+static object datum_get_datum(sprokit::datum_t const& self);
 
 BOOST_PYTHON_MODULE(datum)
 {
-  enum_<vistk::datum::type_t>("DatumType"
+  enum_<sprokit::datum::type_t>("DatumType"
     , "A type for a datum packet.")
-    .value("invalid", vistk::datum::invalid)
-    .value("data", vistk::datum::data)
-    .value("empty", vistk::datum::empty)
-    .value("flush", vistk::datum::flush)
-    .value("complete", vistk::datum::complete)
-    .value("error", vistk::datum::error)
+    .value("invalid", sprokit::datum::invalid)
+    .value("data", sprokit::datum::data)
+    .value("empty", sprokit::datum::empty)
+    .value("flush", sprokit::datum::flush)
+    .value("complete", sprokit::datum::complete)
+    .value("error", sprokit::datum::error)
   ;
 
-  class_<vistk::datum::error_t>("DatumError"
+  class_<sprokit::datum::error_t>("DatumError"
     , "The type of an error message.");
 
   def("new", &new_datum
     , (arg("dat"))
     , "Creates a new datum packet.");
-  def("empty", &vistk::datum::empty_datum
+  def("empty", &sprokit::datum::empty_datum
     , "Creates an empty datum packet.");
-  def("flush", &vistk::datum::flush_datum
+  def("flush", &sprokit::datum::flush_datum
     , "Creates a flush marker datum packet.");
-  def("complete", &vistk::datum::complete_datum
+  def("complete", &sprokit::datum::complete_datum
     , "Creates a complete marker datum packet.");
-  def("error", &vistk::datum::error_datum
+  def("error", &sprokit::datum::error_datum
     , (arg("err"))
     , "Creates an error datum packet.");
 
-  class_<vistk::datum_t>("Datum"
+  class_<sprokit::datum_t>("Datum"
     , "A packet of data within the pipeline."
     , no_init)
     .def("type", &datum_type
@@ -75,47 +75,47 @@ BOOST_PYTHON_MODULE(datum)
       , "Get the data contained within the packet.")
   ;
 
-  vistk::python::register_type<std::string>(0);
-  vistk::python::register_type<int32_t>(1);
-  vistk::python::register_type<char>(2);
-  vistk::python::register_type<bool>(3);
-  vistk::python::register_type<double>(4);
+  sprokit::python::register_type<std::string>(0);
+  sprokit::python::register_type<int32_t>(1);
+  sprokit::python::register_type<char>(2);
+  sprokit::python::register_type<bool>(3);
+  sprokit::python::register_type<double>(4);
 
   // At worst, pass the object itself through.
-  vistk::python::register_type<object>(std::numeric_limits<vistk::python::priority_t>::max());
+  sprokit::python::register_type<object>(std::numeric_limits<sprokit::python::priority_t>::max());
 
   implicitly_convertible<boost::any, object>();
   implicitly_convertible<object, boost::any>();
 }
 
-vistk::datum_t
+sprokit::datum_t
 new_datum(object const& obj)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
   boost::any const any = extract<boost::any>(obj)();
 
-  return vistk::datum::new_datum(any);
+  return sprokit::datum::new_datum(any);
 }
 
-vistk::datum::type_t
-datum_type(vistk::datum_t const& self)
+sprokit::datum::type_t
+datum_type(sprokit::datum_t const& self)
 {
   return self->type();
 }
 
-vistk::datum::error_t
-datum_get_error(vistk::datum_t const& self)
+sprokit::datum::error_t
+datum_get_error(sprokit::datum_t const& self)
 {
   return self->get_error();
 }
 
 object
-datum_get_datum(vistk::datum_t const& self)
+datum_get_datum(sprokit::datum_t const& self)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 

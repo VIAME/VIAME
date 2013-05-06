@@ -6,7 +6,7 @@
 
 #include "const_process.h"
 
-#include <vistk/pipeline/datum.h>
+#include <sprokit/pipeline/datum.h>
 
 /**
  * \file const_process.cxx
@@ -14,7 +14,7 @@
  * \brief Implementation of the const process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class const_process::priv

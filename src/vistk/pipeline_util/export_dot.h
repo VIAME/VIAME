@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_EXPORT_DOT_H
-#define VISTK_PIPELINE_UTIL_EXPORT_DOT_H
+#ifndef SPROKIT_PIPELINE_UTIL_EXPORT_DOT_H
+#define SPROKIT_PIPELINE_UTIL_EXPORT_DOT_H
 
 #include "pipeline_util-config.h"
 
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/types.h>
 
 #include <iosfwd>
 #include <string>
@@ -20,7 +20,7 @@
  * \brief Functions export a dot file for a pipeline.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
@@ -35,7 +35,7 @@ namespace vistk
  * \param pipe The pipeline to export.
  * \param graph_name The name of the graph.
  */
-VISTK_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name);
+SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name);
 
 /**
  * \brief Exports a dot graph for a cluster.
@@ -49,8 +49,8 @@ VISTK_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, pipeline_t const&
  * \param cluster The cluster to export.
  * \param graph_name The name of the graph.
  */
-VISTK_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string const& graph_name);
+SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string const& graph_name);
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_EXPORT_DOT_H
+#endif // SPROKIT_PIPELINE_UTIL_EXPORT_DOT_H

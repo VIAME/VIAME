@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_CLUSTERS_REGISTRATION_H
-#define VISTK_PROCESSES_CLUSTERS_REGISTRATION_H
+#ifndef SPROKIT_PROCESSES_CLUSTERS_REGISTRATION_H
+#define SPROKIT_PROCESSES_CLUSTERS_REGISTRATION_H
 
 #include "clusters-config.h"
 
@@ -21,8 +21,8 @@ extern "C"
 /**
  * \brief Register processes.
  */
-void VISTK_PROCESSES_CLUSTERS_EXPORT register_processes();
+void SPROKIT_PROCESSES_CLUSTERS_EXPORT register_processes();
 
 }
 
-#endif // VISTK_PROCESSES_CLUSTERS_REGISTRATION_H
+#endif // SPROKIT_PROCESSES_CLUSTERS_REGISTRATION_H

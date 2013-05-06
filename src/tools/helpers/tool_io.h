@@ -4,10 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_TOOL_HELPERS_TOOL_IO_H
-#define VISTK_TOOL_HELPERS_TOOL_IO_H
+#ifndef SPROKIT_TOOL_HELPERS_TOOL_IO_H
+#define SPROKIT_TOOL_HELPERS_TOOL_IO_H
 
-#include <vistk/pipeline_util/path.h>
+#include <sprokit/pipeline_util/path.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -17,7 +17,7 @@
 typedef boost::shared_ptr<std::istream> istream_t;
 typedef boost::shared_ptr<std::ostream> ostream_t;
 
-istream_t open_istream(vistk::path_t const& path);
-ostream_t open_ostream(vistk::path_t const& path);
+istream_t open_istream(sprokit::path_t const& path);
+ostream_t open_ostream(sprokit::path_t const& path);
 
-#endif // VISTK_TOOL_HELPERS_TOOL_IO_H
+#endif // SPROKIT_TOOL_HELPERS_TOOL_IO_H

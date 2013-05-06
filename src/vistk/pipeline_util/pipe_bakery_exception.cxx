@@ -14,7 +14,7 @@
  * \brief Implementations of exceptions used when baking a pipeline.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 pipe_bakery_exception

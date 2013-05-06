@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTILS_H
-#define VISTK_PIPELINE_UTILS_H
+#ifndef SPROKIT_PIPELINE_UTILS_H
+#define SPROKIT_PIPELINE_UTILS_H
 
 #include "pipeline-config.h"
 
@@ -19,7 +19,7 @@
  * \brief Common utilities when dealing with pipelines.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /// The type for the name of a thread.
@@ -44,7 +44,7 @@ typedef boost::optional<std::string> envvar_value_t;
  *
  * \returns True if the name was successfully set, false otherwise.
  */
-VISTK_PIPELINE_EXPORT bool name_thread(thread_name_t const& name);
+SPROKIT_PIPELINE_EXPORT bool name_thread(thread_name_t const& name);
 
 /**
  * \brief Retrieve the value of an environment variable.
@@ -53,8 +53,8 @@ VISTK_PIPELINE_EXPORT bool name_thread(thread_name_t const& name);
  *
  * \returns The value of the environment variable, \c NULL if it was not set.
  */
-VISTK_PIPELINE_EXPORT envvar_value_t get_envvar(envvar_name_t const& name);
+SPROKIT_PIPELINE_EXPORT envvar_value_t get_envvar(envvar_name_t const& name);
 
 }
 
-#endif // VISTK_PIPELINE_UTILS_H
+#endif // SPROKIT_PIPELINE_UTILS_H

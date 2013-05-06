@@ -7,13 +7,13 @@
 
 def test_import():
     try:
-        import vistk.pipeline.config
+        import sprokit.pipeline.config
     except:
         test_error("Failed to import the config module")
 
 
 def test_create():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     try:
         config.empty_config()
@@ -27,14 +27,14 @@ def test_create():
 
 
 def test_api_calls():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     config.Config.block_sep
     config.Config.global_value
 
 
 def test_has_value():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -53,7 +53,7 @@ def test_has_value():
 
 
 def test_get_value():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -70,7 +70,7 @@ def test_get_value():
 
 
 def test_get_value_nested():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -90,7 +90,7 @@ def test_get_value_nested():
 
 
 def test_get_value_no_exist():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -109,7 +109,7 @@ def test_get_value_no_exist():
 
 
 def test_unset_value():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -134,7 +134,7 @@ def test_unset_value():
 
 
 def test_available_values():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -160,7 +160,7 @@ def test_available_values():
 
 
 def test_read_only():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -183,7 +183,7 @@ def test_read_only():
 
 
 def test_read_only_unset():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -205,7 +205,7 @@ def test_read_only_unset():
 
 
 def test_subblock():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -241,7 +241,7 @@ def test_subblock():
 
 
 def test_subblock_view():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -283,7 +283,7 @@ def test_subblock_view():
 
 
 def test_merge_config():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
     d = config.empty_config()
@@ -321,7 +321,7 @@ def test_merge_config():
 
 
 def test_dict():
-    from vistk.pipeline import config
+    from sprokit.pipeline import config
 
     c = config.empty_config()
 
@@ -406,6 +406,6 @@ if __name__ == '__main__':
         , 'dict': test_dict
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

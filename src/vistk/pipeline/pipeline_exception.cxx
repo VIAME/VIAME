@@ -12,10 +12,10 @@
 /**
  * \file pipeline_exception.cxx
  *
- * \brief Implementation of exceptions used within \link vistk::pipeline pipelines\endlink.
+ * \brief Implementation of exceptions used within \link sprokit::pipeline pipelines\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 pipeline_addition_exception

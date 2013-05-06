@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_IMPL_H
-#define VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_IMPL_H
+#ifndef SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_IMPL_H
+#define SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_IMPL_H
 
 #include "function_process.h"
 
@@ -118,7 +118,7 @@
  * \param desc A description of the port.
  */
 #define DEFINE_IPORT_VARS(cls, name, type, port_type, flags, desc) \
-  vistk::process::port_t const CLASS_NAME(cls)::priv::IPORT_VAR(name) = vistk::process::port_t(#name)
+  sprokit::process::port_t const CLASS_NAME(cls)::priv::IPORT_VAR(name) = sprokit::process::port_t(#name)
 
 /**
  * \def DECLARE_OPORT_VARS
@@ -147,7 +147,7 @@
  * \param desc A description of the port.
  */
 #define DEFINE_OPORT_VARS(cls, name, type, port_type, flags, desc) \
-  vistk::process::port_t const CLASS_NAME(cls)::priv::OPORT_VAR(name) = vistk::process::port_t(#name)
+  sprokit::process::port_t const CLASS_NAME(cls)::priv::OPORT_VAR(name) = sprokit::process::port_t(#name)
 
 /**
  * \def DECLARE_CONF_VARS
@@ -161,8 +161,8 @@
  * \param desc A description of the configuration.
  */
 #define DECLARE_CONF_VARS(cls, name, type, default, desc) \
-  static vistk::config::key_t const CONF_VAR(name);       \
-  static vistk::config::value_t const CONF_DEF_VAR(name); \
+  static sprokit::config::key_t const CONF_VAR(name);       \
+  static sprokit::config::value_t const CONF_DEF_VAR(name); \
   type const CONF_VALUE_VAR(name)
 /**
  * \def DEFINE_CONF_VARS
@@ -176,8 +176,8 @@
  * \param desc A description of the configuration.
  */
 #define DEFINE_CONF_VARS(cls, name, type, default, desc)                                          \
-  vistk::config::key_t const CLASS_NAME(cls)::priv::CONF_VAR(name) = vistk::config::key_t(#name); \
-  vistk::config::value_t const CLASS_NAME(cls)::priv::CONF_DEF_VAR(name) = vistk::config::value_t(default)
+  sprokit::config::key_t const CLASS_NAME(cls)::priv::CONF_VAR(name) = sprokit::config::key_t(#name); \
+  sprokit::config::value_t const CLASS_NAME(cls)::priv::CONF_DEF_VAR(name) = sprokit::config::value_t(default)
 
 /**
  * \def CONFIG_DECLARE_ARGS
@@ -244,7 +244,7 @@
   declare_configuration_key(                           \
     priv::CONF_VAR(name),                              \
     priv::CONF_DEF_VAR(name),                          \
-    vistk::config::description_t(desc))
+    sprokit::config::description_t(desc))
 
 /**
  * \def GRAB_CONFIG_VALUE
@@ -525,8 +525,8 @@ iports(DEFINE_IPORT_VARS, LINES)                                      \
 oports(DEFINE_OPORT_VARS, LINES)                                      \
                                                                       \
 CLASS_NAME(name)                                                      \
-::CLASS_NAME(name)(vistk::config_t const& config)                     \
-  : vistk::process(config)                                            \
+::CLASS_NAME(name)(sprokit::config_t const& config)                     \
+  : sprokit::process(config)                                            \
 {                                                                     \
   port_flags_t required;                                              \
                                                                       \
@@ -579,4 +579,4 @@ CLASS_NAME(name)::priv                                                \
 {                                                                     \
 }
 
-#endif // VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_IMPL_H
+#endif // SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_IMPL_H

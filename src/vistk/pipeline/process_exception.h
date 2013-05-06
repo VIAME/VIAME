@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_PROCESS_EXCEPTION_H
-#define VISTK_PIPELINE_PROCESS_EXCEPTION_H
+#ifndef SPROKIT_PIPELINE_PROCESS_EXCEPTION_H
+#define SPROKIT_PIPELINE_PROCESS_EXCEPTION_H
 
 #include "pipeline-config.h"
 
@@ -18,20 +18,20 @@
 /**
  * \file process_exception.h
  *
- * \brief Header for exceptions used within \link vistk::process processes\endlink.
+ * \brief Header for exceptions used within \link sprokit::process processes\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class process_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class process_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref process.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT process_exception
+class SPROKIT_PIPELINE_EXPORT process_exception
   : public pipeline_exception
 {
   public:
@@ -46,13 +46,13 @@ class VISTK_PIPELINE_EXPORT process_exception
 };
 
 /**
- * \class null_process_config_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class null_process_config_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a \c NULL \ref config is passed to a process.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_process_config_exception
+class SPROKIT_PIPELINE_EXPORT null_process_config_exception
   : public process_exception
 {
   public:
@@ -67,13 +67,13 @@ class VISTK_PIPELINE_EXPORT null_process_config_exception
 };
 
 /**
- * \class already_initialized_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class already_initialized_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a process has been initialized before configure.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT already_initialized_exception
+class SPROKIT_PIPELINE_EXPORT already_initialized_exception
   : public process_exception
 {
   public:
@@ -93,13 +93,13 @@ class VISTK_PIPELINE_EXPORT already_initialized_exception
 };
 
 /**
- * \class unconfigured_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class unconfigured_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a process hasn't been configured before initialization or stepping.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT unconfigured_exception
+class SPROKIT_PIPELINE_EXPORT unconfigured_exception
   : public process_exception
 {
   public:
@@ -119,13 +119,13 @@ class VISTK_PIPELINE_EXPORT unconfigured_exception
 };
 
 /**
- * \class reconfigured_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class reconfigured_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a process is configured for a second time.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT reconfigured_exception
+class SPROKIT_PIPELINE_EXPORT reconfigured_exception
   : public process_exception
 {
   public:
@@ -145,13 +145,13 @@ class VISTK_PIPELINE_EXPORT reconfigured_exception
 };
 
 /**
- * \class reinitialization_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class reinitialization_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a process is initialized for a second time.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT reinitialization_exception
+class SPROKIT_PIPELINE_EXPORT reinitialization_exception
   : public process_exception
 {
   public:
@@ -171,13 +171,13 @@ class VISTK_PIPELINE_EXPORT reinitialization_exception
 };
 
 /**
- * \class null_conf_info_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class null_conf_info_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a port is declared with a \c NULL info structure.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_conf_info_exception
+class SPROKIT_PIPELINE_EXPORT null_conf_info_exception
   : public process_exception
 {
   public:
@@ -200,13 +200,13 @@ class VISTK_PIPELINE_EXPORT null_conf_info_exception
 };
 
 /**
- * \class null_port_info_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class null_port_info_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when \c NULL is passed as information for a port.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_port_info_exception
+class SPROKIT_PIPELINE_EXPORT null_port_info_exception
   : public process_exception
 {
   public:
@@ -230,13 +230,13 @@ class VISTK_PIPELINE_EXPORT null_port_info_exception
 };
 
 /**
- * \class null_input_port_info_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class null_input_port_info_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when \c NULL is passed as information for an input port.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_input_port_info_exception
+class SPROKIT_PIPELINE_EXPORT null_input_port_info_exception
   : public null_port_info_exception
 {
   public:
@@ -254,13 +254,13 @@ class VISTK_PIPELINE_EXPORT null_input_port_info_exception
 };
 
 /**
- * \class null_output_port_info_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class null_output_port_info_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when \c NULL is passed as information for an output port.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_output_port_info_exception
+class SPROKIT_PIPELINE_EXPORT null_output_port_info_exception
   : public null_port_info_exception
 {
   public:
@@ -278,13 +278,13 @@ class VISTK_PIPELINE_EXPORT null_output_port_info_exception
 };
 
 /**
- * \class flag_mismatch_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class flag_mismatch_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when incompatible flags are given for a port.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT flag_mismatch_exception
+class SPROKIT_PIPELINE_EXPORT flag_mismatch_exception
   : public process_exception
 {
   public:
@@ -310,13 +310,13 @@ class VISTK_PIPELINE_EXPORT flag_mismatch_exception
 };
 
 /**
- * \class set_type_on_initialized_process_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class set_type_on_initialized_process_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when the type on a port is attempted to be set after initialization.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT set_type_on_initialized_process_exception
+class SPROKIT_PIPELINE_EXPORT set_type_on_initialized_process_exception
   : public process_exception
 {
   public:
@@ -342,13 +342,13 @@ class VISTK_PIPELINE_EXPORT set_type_on_initialized_process_exception
 };
 
 /**
- * \class set_frequency_on_initialized_process_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class set_frequency_on_initialized_process_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when the frequency on a port is attempted to be set after initialization.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT set_frequency_on_initialized_process_exception
+class SPROKIT_PIPELINE_EXPORT set_frequency_on_initialized_process_exception
   : public process_exception
 {
   public:
@@ -374,13 +374,13 @@ class VISTK_PIPELINE_EXPORT set_frequency_on_initialized_process_exception
 };
 
 /**
- * \class uninitialized_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class uninitialized_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a process is stepped before initialization.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT uninitialized_exception
+class SPROKIT_PIPELINE_EXPORT uninitialized_exception
   : public process_exception
 {
   public:
@@ -400,13 +400,13 @@ class VISTK_PIPELINE_EXPORT uninitialized_exception
 };
 
 /**
- * \class port_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class port_connection_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief The base class used when an error occurs when connecting to a port.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT port_connection_exception
+class SPROKIT_PIPELINE_EXPORT port_connection_exception
   : public process_exception
 {
   public:
@@ -429,13 +429,13 @@ class VISTK_PIPELINE_EXPORT port_connection_exception
 };
 
 /**
- * \class connect_to_initialized_process_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class connect_to_initialized_process_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection is requested to be made to an initialized process.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT connect_to_initialized_process_exception
+class SPROKIT_PIPELINE_EXPORT connect_to_initialized_process_exception
   : public port_connection_exception
 {
   public:
@@ -453,13 +453,13 @@ class VISTK_PIPELINE_EXPORT connect_to_initialized_process_exception
 };
 
 /**
- * \class no_such_port_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class no_such_port_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection to a port that does not exist is requested.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_such_port_exception
+class SPROKIT_PIPELINE_EXPORT no_such_port_exception
   : public port_connection_exception
 {
   public:
@@ -477,13 +477,13 @@ class VISTK_PIPELINE_EXPORT no_such_port_exception
 };
 
 /**
- * \class null_edge_port_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class null_edge_port_connection_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection to a port is given an \ref edge that is \c NULL.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_edge_port_connection_exception
+class SPROKIT_PIPELINE_EXPORT null_edge_port_connection_exception
   : public port_connection_exception
 {
   public:
@@ -501,13 +501,13 @@ class VISTK_PIPELINE_EXPORT null_edge_port_connection_exception
 };
 
 /**
- * \class static_type_reset_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class static_type_reset_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a port type is attempted to be reset on a static type.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT static_type_reset_exception
+class SPROKIT_PIPELINE_EXPORT static_type_reset_exception
   : public port_connection_exception
 {
   public:
@@ -532,13 +532,13 @@ class VISTK_PIPELINE_EXPORT static_type_reset_exception
 };
 
 /**
- * \class port_reconnect_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class port_reconnect_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a port that is already connected is connected to again.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT port_reconnect_exception
+class SPROKIT_PIPELINE_EXPORT port_reconnect_exception
   : public port_connection_exception
 {
   public:
@@ -556,13 +556,13 @@ class VISTK_PIPELINE_EXPORT port_reconnect_exception
 };
 
 /**
- * \class missing_connection_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class missing_connection_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a connection to a port that is marked as required is missing.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT missing_connection_exception
+class SPROKIT_PIPELINE_EXPORT missing_connection_exception
   : public port_connection_exception
 {
   public:
@@ -584,13 +584,13 @@ class VISTK_PIPELINE_EXPORT missing_connection_exception
 };
 
 /**
- * \class process_configuration_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class process_configuration_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a \ref process has a configuration issue.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT process_configuration_exception
+class SPROKIT_PIPELINE_EXPORT process_configuration_exception
   : public process_exception
 {
   public:
@@ -605,13 +605,13 @@ class VISTK_PIPELINE_EXPORT process_configuration_exception
 };
 
 /**
- * \class unknown_configuration_value_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class unknown_configuration_value_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a requested configuration value does not exist.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT unknown_configuration_value_exception
+class SPROKIT_PIPELINE_EXPORT unknown_configuration_value_exception
   : public process_configuration_exception
 {
   public:
@@ -634,13 +634,13 @@ class VISTK_PIPELINE_EXPORT unknown_configuration_value_exception
 };
 
 /**
- * \class invalid_configuration_value_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class invalid_configuration_value_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a configuration value has an invalid value.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT invalid_configuration_value_exception
+class SPROKIT_PIPELINE_EXPORT invalid_configuration_value_exception
   : public process_configuration_exception
 {
   public:
@@ -669,13 +669,13 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_value_exception
 };
 
 /**
- * \class invalid_configuration_exception process_exception.h <vistk/pipeline/process_exception.h>
+ * \class invalid_configuration_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
  * \brief Thrown when a configuration for a \ref process is invalid.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT invalid_configuration_exception
+class SPROKIT_PIPELINE_EXPORT invalid_configuration_exception
   : public process_configuration_exception
 {
   public:
@@ -699,4 +699,4 @@ class VISTK_PIPELINE_EXPORT invalid_configuration_exception
 
 }
 
-#endif // VISTK_PIPELINE_PROCESS_EXCEPTION_H
+#endif // SPROKIT_PIPELINE_PROCESS_EXCEPTION_H

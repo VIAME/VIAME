@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_FLOW_REGISTRATION_H
-#define VISTK_PROCESSES_FLOW_REGISTRATION_H
+#ifndef SPROKIT_PROCESSES_FLOW_REGISTRATION_H
+#define SPROKIT_PROCESSES_FLOW_REGISTRATION_H
 
 #include "flow-config.h"
 
@@ -21,8 +21,8 @@ extern "C"
 /**
  * \brief Register processes.
  */
-VISTK_PROCESSES_FLOW_EXPORT void register_processes();
+SPROKIT_PROCESSES_FLOW_EXPORT void register_processes();
 
 }
 
-#endif // VISTK_PROCESSES_FLOW_REGISTRATION_H
+#endif // SPROKIT_PROCESSES_FLOW_REGISTRATION_H

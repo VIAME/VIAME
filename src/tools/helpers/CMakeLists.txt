@@ -1,7 +1,7 @@
-project(vistk_tools_helpers)
+project(sprokit_tools_helpers)
 
 function (add_tool_helper_library name)
-  vistk_add_helper_library(${name}
+  sprokit_add_helper_library(${name}
     ${ARGN})
   if (boost_header_targets)
     add_dependencies(${name}
@@ -22,8 +22,8 @@ add_tool_helper_library(tool_io
 add_tool_helper_library(pipeline_builder
   tool_io
   tool_usage
-  vistk_pipeline_util
-  vistk_pipeline
+  sprokit_pipeline_util
+  sprokit_pipeline
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})

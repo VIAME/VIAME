@@ -12,7 +12,7 @@
  * \brief Implementation of the orphan process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 orphan_process

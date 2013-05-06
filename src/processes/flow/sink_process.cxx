@@ -6,8 +6,8 @@
 
 #include "sink_process.h"
 
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/edge.h>
+#include <sprokit/pipeline/datum.h>
+#include <sprokit/pipeline/edge.h>
 
 /**
  * \file sink_process.cxx
@@ -15,7 +15,7 @@
  * \brief Implementation of the sink process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class sink_process::priv

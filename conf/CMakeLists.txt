@@ -1,13 +1,13 @@
-project(vistk_conf)
+project(sprokit_conf)
 
-if (VISTK_ENABLE_TESTING)
+if (SPROKIT_ENABLE_TESTING)
   # Configure the warning and code coverage suppression file
-  vistk_configure_file(CTestCustom.cmake
+  sprokit_configure_file(CTestCustom.cmake
     "${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in"
-    "${vistk_binary_dir}/CTestCustom.cmake")
+    "${sprokit_binary_dir}/CTestCustom.cmake")
 endif ()
 
-if (VISTK_ENABLE_CDASH)
+if (SPROKIT_ENABLE_CDASH)
   find_program(GCOV_EXECUTABLE gcov)
   execute_process(
     COMMAND         hostname
@@ -22,59 +22,59 @@ if (VISTK_ENABLE_CDASH)
   # Configure dashboard script
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/dashboard.ctest.in"
-    "${vistk_binary_dir}/dashboard.ctest"
+    "${sprokit_binary_dir}/dashboard.ctest"
     @ONLY)
 endif ()
 
-set(vistk_config_file "${vistk_binary_dir}/vistk-config.cmake")
-vistk_configure_file(vistk-config.cmake
-  "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config.cmake.in"
-  "${vistk_config_file}"
-  vistk_source_dir
-  vistk_binary_dir
-  vistk_version
-  VISTK_ENABLE_PYTHON
-  VISTK_ENABLE_PYTHON3
+set(sprokit_config_file "${sprokit_binary_dir}/sprokit-config.cmake")
+sprokit_configure_file(sprokit-config.cmake
+  "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-config.cmake.in"
+  "${sprokit_config_file}"
+  sprokit_source_dir
+  sprokit_binary_dir
+  sprokit_version
+  SPROKIT_ENABLE_PYTHON
+  SPROKIT_ENABLE_PYTHON3
   PYTHON_EXECUTABLE
   BUILD_SHARED_LIBS)
 
-set(vistk_config_install_file "${vistk_binary_dir}/vistk-config-install.cmake")
-vistk_configure_file(vistk-config-install.cmake
-  "${CMAKE_CURRENT_SOURCE_DIR}/vistk-config-install.cmake.in"
-  "${vistk_config_install_file}"
+set(sprokit_config_install_file "${sprokit_binary_dir}/sprokit-config-install.cmake")
+sprokit_configure_file(sprokit-config-install.cmake
+  "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-config-install.cmake.in"
+  "${sprokit_config_install_file}"
   CMAKE_INSTALL_PREFIX
   LIB_SUFFIX
-  vistk_version
-  VISTK_ENABLE_PYTHON
-  VISTK_ENABLE_PYTHON3
+  sprokit_version
+  SPROKIT_ENABLE_PYTHON
+  SPROKIT_ENABLE_PYTHON3
   PYTHON_EXECUTABLE
   BUILD_SHARED_LIBS)
 
 if (WIN32)
   set(cmakedir cmake)
 else ()
-  set(cmakedir lib${LIB_SUFFIX}/cmake/vistk)
+  set(cmakedir lib${LIB_SUFFIX}/cmake/sprokit)
 endif ()
 
-set(vistk_macros_file "${vistk_binary_dir}/vistk-macros.cmake")
-vistk_configure_file(vistk-macros.cmake
-  "${CMAKE_CURRENT_SOURCE_DIR}/vistk-macros.cmake.in"
-  "${vistk_macros_file}")
+set(sprokit_macros_file "${sprokit_binary_dir}/sprokit-macros.cmake")
+sprokit_configure_file(sprokit-macros.cmake
+  "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-macros.cmake.in"
+  "${sprokit_macros_file}")
 
 # Configure the CMake EXPORT file during installation
 install(
-  FILES       "${vistk_macros_file}"
+  FILES       "${sprokit_macros_file}"
   DESTINATION "${cmakedir}"
   COMPONENT   development)
 install(
-  FILES       "${vistk_config_install_file}"
+  FILES       "${sprokit_config_install_file}"
   DESTINATION "${cmakedir}"
   COMPONENT   development
-  RENAME      vistk-config.cmake)
+  RENAME      sprokit-config.cmake)
 install(
-  EXPORT      vistk_exports
+  EXPORT      sprokit_exports
   DESTINATION "${cmakedir}"
-  FILE        vistk-config-targets.cmake
+  FILE        sprokit-config-targets.cmake
   COMPONENT   development)
 
-vistk_configure_pkgconfig(vistk)
+sprokit_configure_pkgconfig(sprokit)

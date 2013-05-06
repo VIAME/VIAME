@@ -1,5 +1,5 @@
 set(hooks_directory
-  "${vistk_source_dir}/.git/hooks")
+  "${sprokit_source_dir}/.git/hooks")
 
 add_custom_command(
   OUTPUT  "${hooks_directory}/.git"

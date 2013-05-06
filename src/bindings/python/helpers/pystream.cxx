@@ -6,7 +6,7 @@
 
 #include "pystream.h"
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/extract.hpp>
 #include <boost/python/str.hpp>
@@ -31,7 +31,7 @@ std::streamsize
 pyistream_device
 ::read(char_type* s, std::streamsize n)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
@@ -68,7 +68,7 @@ std::streamsize
 pyostream_device
 ::write(char_type const* s, std::streamsize n)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 

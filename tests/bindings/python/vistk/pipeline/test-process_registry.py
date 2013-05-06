@@ -7,15 +7,15 @@
 
 def test_import():
     try:
-        from vistk.pipeline import config
-        import vistk.pipeline.process_registry
+        from sprokit.pipeline import config
+        import sprokit.pipeline.process_registry
     except:
         test_error("Failed to import the process_registry module")
 
 
 def test_create():
-    from vistk.pipeline import config
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import process_registry
 
     process_registry.ProcessRegistry.self()
     process_registry.ProcessDescription()
@@ -23,10 +23,10 @@ def test_create():
 
 
 def test_api_calls():
-    from vistk.pipeline import config
-    from vistk.pipeline import modules
-    from vistk.pipeline import process
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import process
+    from sprokit.pipeline import process_registry
 
     modules.load_known_modules()
 
@@ -59,7 +59,7 @@ def test_api_calls():
 
 
 def example_process():
-    from vistk.pipeline import process
+    from sprokit.pipeline import process
 
     class PythonExample(process.PythonProcess):
         def __init__(self, conf):
@@ -185,7 +185,7 @@ def example_process():
 
 
 def base_example_process():
-    from vistk.pipeline import process
+    from sprokit.pipeline import process
 
     class PythonBaseExample(process.PythonProcess):
         def __init__(self, conf):
@@ -198,8 +198,8 @@ def base_example_process():
 
 
 def base_example_process_cluster():
-    from vistk.pipeline import process
-    from vistk.pipeline import process_cluster
+    from sprokit.pipeline import process
+    from sprokit.pipeline import process_cluster
 
     class PythonBaseClusterExample(process_cluster.PythonProcessCluster):
         def __init__(self, conf):
@@ -212,9 +212,9 @@ def base_example_process_cluster():
 
 
 def test_register():
-    from vistk.pipeline import config
-    from vistk.pipeline import process
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import process
+    from sprokit.pipeline import process_registry
 
     proc_type = 'python_example'
     proc_desc = 'simple description'
@@ -235,10 +235,10 @@ def test_register():
 
 
 def test_register_cluster():
-    from vistk.pipeline import config
-    from vistk.pipeline import process
-    from vistk.pipeline import process_cluster
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import process
+    from sprokit.pipeline import process_cluster
+    from sprokit.pipeline import process_registry
 
     proc_type = 'python_example'
     proc_desc = 'simple description'
@@ -266,10 +266,10 @@ def test_register_cluster():
 
 
 def test_wrapper_api():
-    from vistk.pipeline import config
-    from vistk.pipeline import edge
-    from vistk.pipeline import process
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import edge
+    from sprokit.pipeline import process
+    from sprokit.pipeline import process_registry
 
     proc_type = 'python_example'
     proc_desc = 'simple description'
@@ -365,6 +365,6 @@ if __name__ == '__main__':
         , 'wrapper_api': test_wrapper_api
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

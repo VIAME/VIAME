@@ -17,21 +17,21 @@ def _log(msg):
 
 
 def _load_python_module(mod):
-    if hasattr(mod, '__vistk_register__'):
+    if hasattr(mod, '__sprokit_register__'):
         import collections
 
-        if isinstance(mod.__vistk_register__, collections.Callable):
-            mod.__vistk_register__()
+        if isinstance(mod.__sprokit_register__, collections.Callable):
+            mod.__sprokit_register__()
 
 
 def load_python_modules():
     import os
 
-    packages = [ 'vistk.processes'
-               , 'vistk.schedulers'
+    packages = [ 'sprokit.processes'
+               , 'sprokit.schedulers'
                ]
 
-    envvar = 'VISTK_PYTHON_MODULES'
+    envvar = 'SPROKIT_PYTHON_MODULES'
 
     if envvar in os.environ:
         extra_modules = os.environ[envvar]

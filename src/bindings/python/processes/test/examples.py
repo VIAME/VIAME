@@ -4,7 +4,7 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-from vistk.pipeline import process
+from sprokit.pipeline import process
 
 
 class TestPythonProcess(process.PythonProcess):

@@ -6,9 +6,9 @@
 
 #include "number_process.h"
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/process_exception.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/datum.h>
+#include <sprokit/pipeline/process_exception.h>
 
 #include <boost/cstdint.hpp>
 
@@ -20,7 +20,7 @@
  * \brief Implementation of the number process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class number_process::priv

@@ -4,11 +4,11 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-from vistk.processes.test import examples
+from sprokit.processes.test import examples
 
 
-def __vistk_register__():
-    from vistk.pipeline import process_registry
+def __sprokit_register__():
+    from sprokit.pipeline import process_registry
 
     module_name = 'python:test.examples'
 

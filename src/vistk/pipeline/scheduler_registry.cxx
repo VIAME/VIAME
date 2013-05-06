@@ -20,10 +20,10 @@
 /**
  * \file scheduler_registry.cxx
  *
- * \brief Implementation of the \link vistk::scheduler_registry scheduler registry\endlink.
+ * \brief Implementation of the \link sprokit::scheduler_registry scheduler registry\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 scheduler_registry::type_t const scheduler_registry::default_type = type_t("thread_per_process");

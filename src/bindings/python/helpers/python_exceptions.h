@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H
-#define VISTK_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H
+#ifndef SPROKIT_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H
+#define SPROKIT_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H
 
 /// \todo More useful output?
 
@@ -38,7 +38,7 @@
   }                                                \
   catch (std::exception const& e)                  \
   {                                                \
-    vistk::python::python_gil const gil;           \
+    sprokit::python::python_gil const gil;           \
                                                    \
     (void)gil;                                     \
                                                    \
@@ -49,4 +49,4 @@
 
 void python_print_exception();
 
-#endif // VISTK_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H
+#endif // SPROKIT_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H

@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_EXAMPLES_MULTIPLIER_CLUSTER_H
-#define VISTK_PROCESSES_EXAMPLES_MULTIPLIER_CLUSTER_H
+#ifndef SPROKIT_PROCESSES_EXAMPLES_MULTIPLIER_CLUSTER_H
+#define SPROKIT_PROCESSES_EXAMPLES_MULTIPLIER_CLUSTER_H
 
 #include "examples-config.h"
 
-#include <vistk/pipeline/process_cluster.h>
+#include <sprokit/pipeline/process_cluster.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -19,7 +19,7 @@
  * \brief Declaration of the multiplier cluster.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
@@ -31,7 +31,7 @@ namespace vistk
  *
  * \ingroup examples
  */
-class VISTK_PROCESSES_EXAMPLES_NO_EXPORT multiplier_cluster
+class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT multiplier_cluster
   : public process_cluster
 {
   public:
@@ -52,4 +52,4 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT multiplier_cluster
 
 }
 
-#endif // VISTK_PROCESSES_EXAMPLES_MULTIPLIER_CLUSTER_H
+#endif // SPROKIT_PROCESSES_EXAMPLES_MULTIPLIER_CLUSTER_H

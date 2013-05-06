@@ -35,10 +35,10 @@
 /**
  * \file pipeline.cxx
  *
- * \brief Implementation of the base class for \link vistk::pipeline pipelines\endlink.
+ * \brief Implementation of the base class for \link sprokit::pipeline pipelines\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class pipeline::priv

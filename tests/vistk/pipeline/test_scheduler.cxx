@@ -6,15 +6,15 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/pipeline_exception.h>
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/scheduler.h>
-#include <vistk/pipeline/scheduler_exception.h>
-#include <vistk/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/pipeline_exception.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/scheduler.h>
+#include <sprokit/pipeline/scheduler_exception.h>
+#include <sprokit/pipeline/scheduler_registry.h>
 
 #include <boost/make_shared.hpp>
 
@@ -65,10 +65,10 @@ main(int argc, char* argv[])
 }
 
 class null_scheduler
-  : public vistk::scheduler
+  : public sprokit::scheduler
 {
   public:
-    null_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config);
+    null_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
     virtual ~null_scheduler();
 
     void reset_pipeline() const;
@@ -84,7 +84,7 @@ class null_config_scheduler
   : public null_scheduler
 {
   public:
-    null_config_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config);
+    null_config_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
     ~null_config_scheduler();
 };
 
@@ -92,50 +92,50 @@ class null_pipeline_scheduler
   : public null_scheduler
 {
   public:
-    null_pipeline_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config);
+    null_pipeline_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
     ~null_pipeline_scheduler();
 };
 
-static vistk::scheduler_t create_scheduler(vistk::scheduler_registry::type_t const& type);
+static sprokit::scheduler_t create_scheduler(sprokit::scheduler_registry::type_t const& type);
 
 IMPLEMENT_TEST(null_config)
 {
-  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+  sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-  vistk::scheduler_registry::type_t const sched_type = vistk::scheduler_registry::type_t("null_config");
+  sprokit::scheduler_registry::type_t const sched_type = sprokit::scheduler_registry::type_t("null_config");
 
-  reg->register_scheduler(sched_type, vistk::scheduler_registry::description_t(), vistk::create_scheduler<null_config_scheduler>);
+  reg->register_scheduler(sched_type, sprokit::scheduler_registry::description_t(), sprokit::create_scheduler<null_config_scheduler>);
 
-  EXPECT_EXCEPTION(vistk::null_scheduler_config_exception,
+  EXPECT_EXCEPTION(sprokit::null_scheduler_config_exception,
                    create_scheduler(sched_type),
                    "passing NULL as the configuration for a scheduler");
 }
 
 IMPLEMENT_TEST(null_pipeline)
 {
-  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+  sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-  vistk::scheduler_registry::type_t const sched_type = vistk::scheduler_registry::type_t("null_pipeline");
+  sprokit::scheduler_registry::type_t const sched_type = sprokit::scheduler_registry::type_t("null_pipeline");
 
-  reg->register_scheduler(sched_type, vistk::scheduler_registry::description_t(), vistk::create_scheduler<null_pipeline_scheduler>);
+  reg->register_scheduler(sched_type, sprokit::scheduler_registry::description_t(), sprokit::create_scheduler<null_pipeline_scheduler>);
 
-  EXPECT_EXCEPTION(vistk::null_scheduler_pipeline_exception,
+  EXPECT_EXCEPTION(sprokit::null_scheduler_pipeline_exception,
                    create_scheduler(sched_type),
                    "passing NULL as the pipeline for a scheduler");
 }
 
-static vistk::scheduler_t create_minimal_scheduler();
+static sprokit::scheduler_t create_minimal_scheduler();
 
 IMPLEMENT_TEST(start_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
   sched->start();
 }
 
 IMPLEMENT_TEST(pause_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
   sched->start();
   sched->pause();
@@ -143,7 +143,7 @@ IMPLEMENT_TEST(pause_scheduler)
 
 IMPLEMENT_TEST(resume_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
   sched->start();
   sched->pause();
@@ -152,7 +152,7 @@ IMPLEMENT_TEST(resume_scheduler)
 
 IMPLEMENT_TEST(stop_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
   sched->start();
   sched->stop();
@@ -160,7 +160,7 @@ IMPLEMENT_TEST(stop_scheduler)
 
 IMPLEMENT_TEST(stop_paused_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
   sched->start();
   sched->pause();
@@ -169,77 +169,77 @@ IMPLEMENT_TEST(stop_paused_scheduler)
 
 IMPLEMENT_TEST(restart_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
   sched->start();
 
-  EXPECT_EXCEPTION(vistk::restart_scheduler_exception,
+  EXPECT_EXCEPTION(sprokit::restart_scheduler_exception,
                    sched->start(),
                    "calling start on a scheduler a second time");
 }
 
 IMPLEMENT_TEST(repause_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
   sched->start();
   sched->pause();
 
-  EXPECT_EXCEPTION(vistk::repause_scheduler_exception,
+  EXPECT_EXCEPTION(sprokit::repause_scheduler_exception,
                    sched->pause(),
                    "pausing a scheduler a second time");
 }
 
 IMPLEMENT_TEST(pause_before_start_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
-  EXPECT_EXCEPTION(vistk::pause_before_start_exception,
+  EXPECT_EXCEPTION(sprokit::pause_before_start_exception,
                    sched->pause(),
                    "pausing a scheduler before it is started");
 }
 
 IMPLEMENT_TEST(wait_before_start_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
-  EXPECT_EXCEPTION(vistk::wait_before_start_exception,
+  EXPECT_EXCEPTION(sprokit::wait_before_start_exception,
                    sched->wait(),
                    "waiting on a scheduler before it is started");
 }
 
 IMPLEMENT_TEST(stop_before_start_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
-  EXPECT_EXCEPTION(vistk::stop_before_start_exception,
+  EXPECT_EXCEPTION(sprokit::stop_before_start_exception,
                    sched->stop(),
                    "stopping a scheduler before it is started");
 }
 
 IMPLEMENT_TEST(resume_before_start_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
-  EXPECT_EXCEPTION(vistk::resume_before_start_exception,
+  EXPECT_EXCEPTION(sprokit::resume_before_start_exception,
                    sched->resume(),
                    "resuming an unstarted scheduler");
 }
 
 IMPLEMENT_TEST(resume_unpaused_scheduler)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
   sched->start();
 
-  EXPECT_EXCEPTION(vistk::resume_unpaused_scheduler_exception,
+  EXPECT_EXCEPTION(sprokit::resume_unpaused_scheduler_exception,
                    sched->resume(),
                    "resuming an unpaused scheduler");
 }
 
 IMPLEMENT_TEST(restart)
 {
-  vistk::scheduler_t const sched = create_minimal_scheduler();
+  sprokit::scheduler_t const sched = create_minimal_scheduler();
 
   sched->start();
   sched->stop();
@@ -251,42 +251,42 @@ IMPLEMENT_TEST(restart)
   sched->start();
 }
 
-vistk::scheduler_t
-create_scheduler(vistk::scheduler_registry::type_t const& type)
+sprokit::scheduler_t
+create_scheduler(sprokit::scheduler_registry::type_t const& type)
 {
-  static vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+  static sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>();
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>();
 
   return reg->create_scheduler(type, pipeline);
 }
 
-vistk::scheduler_t
+sprokit::scheduler_t
 create_minimal_scheduler()
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  static vistk::process::type_t const type = vistk::process::type_t("orphan");
-  static vistk::process::name_t const name = vistk::process::name_t("name");
+  static sprokit::process::type_t const type = sprokit::process::type_t("orphan");
+  static sprokit::process::name_t const name = sprokit::process::name_t("name");
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
-  vistk::process_t const proc = reg->create_process(type, name);
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
+  sprokit::process_t const proc = reg->create_process(type, name);
 
-  vistk::pipeline_t const pipe = boost::make_shared<vistk::pipeline>();
+  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
   pipe->add_process(proc);
   pipe->setup_pipeline();
 
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
-  vistk::scheduler_t const sched = boost::make_shared<null_scheduler>(pipe, conf);
+  sprokit::scheduler_t const sched = boost::make_shared<null_scheduler>(pipe, conf);
 
   return sched;
 }
 
 null_scheduler
-::null_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config)
-  : vistk::scheduler(pipe, config)
+::null_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config)
+  : sprokit::scheduler(pipe, config)
 {
 }
 
@@ -334,8 +334,8 @@ null_scheduler
 }
 
 null_config_scheduler
-::null_config_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& /*config*/)
-  : null_scheduler(pipe, vistk::config_t())
+::null_config_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& /*config*/)
+  : null_scheduler(pipe, sprokit::config_t())
 {
 }
 
@@ -345,8 +345,8 @@ null_config_scheduler
 }
 
 null_pipeline_scheduler
-::null_pipeline_scheduler(vistk::pipeline_t const& /*pipe*/, vistk::config_t const& config)
-  : null_scheduler(vistk::pipeline_t(), config)
+::null_pipeline_scheduler(sprokit::pipeline_t const& /*pipe*/, sprokit::config_t const& config)
+  : null_scheduler(sprokit::pipeline_t(), config)
 {
 }
 

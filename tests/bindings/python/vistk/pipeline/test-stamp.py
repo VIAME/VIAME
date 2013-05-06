@@ -7,19 +7,19 @@
 
 def test_import():
     try:
-        import vistk.pipeline.stamp
+        import sprokit.pipeline.stamp
     except:
         test_error("Failed to import the stamp module")
 
 
 def test_create():
-    from vistk.pipeline import stamp
+    from sprokit.pipeline import stamp
 
     stamp.new_stamp(1)
 
 
 def test_api_calls():
-    from vistk.pipeline import stamp
+    from sprokit.pipeline import stamp
 
     s = stamp.new_stamp(1)
     si = stamp.incremented_stamp(s)
@@ -58,6 +58,6 @@ if __name__ == '__main__':
         , 'api_calls': test_api_calls
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

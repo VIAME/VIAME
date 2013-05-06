@@ -1,9 +1,9 @@
 /**
- * \mainpage The vistk Pipeline API Documentation
+ * \mainpage The sprokit Pipeline API Documentation
  *
  * \section introduction Introduction
  *
- * This is the vistk pipeline API that addresses issues that have arisen in the
+ * This is the sprokit pipeline API that addresses issues that have arisen in the
  * vidtk pipeline.
  *
  * \todo Write introduction.

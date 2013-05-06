@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_SCHEDULER_EXCEPTION_H
-#define VISTK_PIPELINE_SCHEDULER_EXCEPTION_H
+#ifndef SPROKIT_PIPELINE_SCHEDULER_EXCEPTION_H
+#define SPROKIT_PIPELINE_SCHEDULER_EXCEPTION_H
 
 #include "pipeline-config.h"
 
@@ -16,20 +16,20 @@
 /**
  * \file scheduler_exception.h
  *
- * \brief Header for exceptions used within \link vistk::scheduler schedulers\endlink.
+ * \brief Header for exceptions used within \link sprokit::scheduler schedulers\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class scheduler_exception scheduler_exception.h <vistk/pipeline/scheduler_exception.h>
+ * \class scheduler_exception scheduler_exception.h <sprokit/pipeline/scheduler_exception.h>
  *
  * \brief The base class for all exceptions thrown from an \ref scheduler.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT scheduler_exception
+class SPROKIT_PIPELINE_EXPORT scheduler_exception
   : public pipeline_exception
 {
   public:
@@ -44,13 +44,13 @@ class VISTK_PIPELINE_EXPORT scheduler_exception
 };
 
 /**
- * \class incompatible_pipeline_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class incompatible_pipeline_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a scheduler cannot execute the given pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT incompatible_pipeline_exception
+class SPROKIT_PIPELINE_EXPORT incompatible_pipeline_exception
   : public scheduler_exception
 {
   public:
@@ -68,13 +68,13 @@ class VISTK_PIPELINE_EXPORT incompatible_pipeline_exception
 };
 
 /**
- * \class null_scheduler_config_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class null_scheduler_config_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \c NULL \ref config is passed to a scheduler.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_scheduler_config_exception
+class SPROKIT_PIPELINE_EXPORT null_scheduler_config_exception
   : public scheduler_exception
 {
   public:
@@ -89,13 +89,13 @@ class VISTK_PIPELINE_EXPORT null_scheduler_config_exception
 };
 
 /**
- * \class null_scheduler_pipeline_exception scheduler_exception.h <vistk/pipeline/scheduler_exception.h>
+ * \class null_scheduler_pipeline_exception scheduler_exception.h <sprokit/pipeline/scheduler_exception.h>
  *
  * \brief Thrown when \c NULL \ref pipeline is passed to a scheduler.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_scheduler_pipeline_exception
+class SPROKIT_PIPELINE_EXPORT null_scheduler_pipeline_exception
   : public scheduler_exception
 {
   public:
@@ -110,13 +110,13 @@ class VISTK_PIPELINE_EXPORT null_scheduler_pipeline_exception
 };
 
 /**
- * \class restart_scheduler_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class restart_scheduler_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a scheduler is started after it has already been started.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT restart_scheduler_exception
+class SPROKIT_PIPELINE_EXPORT restart_scheduler_exception
   : public scheduler_exception
 {
   public:
@@ -131,13 +131,13 @@ class VISTK_PIPELINE_EXPORT restart_scheduler_exception
 };
 
 /**
- * \class wait_before_start_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class wait_before_start_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a scheduler is waited on before it is started.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT wait_before_start_exception
+class SPROKIT_PIPELINE_EXPORT wait_before_start_exception
   : public scheduler_exception
 {
   public:
@@ -152,13 +152,13 @@ class VISTK_PIPELINE_EXPORT wait_before_start_exception
 };
 
 /**
- * \class pause_before_start_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class pause_before_start_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a scheduler is paused before it is started.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT pause_before_start_exception
+class SPROKIT_PIPELINE_EXPORT pause_before_start_exception
   : public scheduler_exception
 {
   public:
@@ -173,13 +173,13 @@ class VISTK_PIPELINE_EXPORT pause_before_start_exception
 };
 
 /**
- * \class repause_scheduler_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class repause_scheduler_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a scheduler is paused while it is already paused.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT repause_scheduler_exception
+class SPROKIT_PIPELINE_EXPORT repause_scheduler_exception
   : public scheduler_exception
 {
   public:
@@ -194,13 +194,13 @@ class VISTK_PIPELINE_EXPORT repause_scheduler_exception
 };
 
 /**
- * \class resume_before_start_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class resume_before_start_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a scheduler is resumed before it is started.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT resume_before_start_exception
+class SPROKIT_PIPELINE_EXPORT resume_before_start_exception
   : public scheduler_exception
 {
   public:
@@ -215,13 +215,13 @@ class VISTK_PIPELINE_EXPORT resume_before_start_exception
 };
 
 /**
- * \class resume_unpaused_scheduler_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class resume_unpaused_scheduler_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when an unpaused scheduler is resumed.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT resume_unpaused_scheduler_exception
+class SPROKIT_PIPELINE_EXPORT resume_unpaused_scheduler_exception
   : public scheduler_exception
 {
   public:
@@ -236,13 +236,13 @@ class VISTK_PIPELINE_EXPORT resume_unpaused_scheduler_exception
 };
 
 /**
- * \class stop_before_start_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class stop_before_start_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a scheduler is stopped before it is started.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT stop_before_start_exception
+class SPROKIT_PIPELINE_EXPORT stop_before_start_exception
   : public scheduler_exception
 {
   public:
@@ -258,4 +258,4 @@ class VISTK_PIPELINE_EXPORT stop_before_start_exception
 
 }
 
-#endif // VISTK_PIPELINE_SCHEDULER_EXCEPTION_H
+#endif // SPROKIT_PIPELINE_SCHEDULER_EXCEPTION_H

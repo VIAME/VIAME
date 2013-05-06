@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_SCHEDULER_REGISTRY_H
-#define VISTK_PIPELINE_SCHEDULER_REGISTRY_H
+#ifndef SPROKIT_PIPELINE_SCHEDULER_REGISTRY_H
+#define SPROKIT_PIPELINE_SCHEDULER_REGISTRY_H
 
 #include "pipeline-config.h"
 
@@ -22,23 +22,23 @@
 /**
  * \file scheduler_registry.h
  *
- * \brief Header for the \link vistk::scheduler_registry scheduler registry\endlink.
+ * \brief Header for the \link sprokit::scheduler_registry scheduler registry\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /// A function which returns a \ref scheduler.
 typedef boost::function<scheduler_t (pipeline_t const& pipe, config_t const& config)> scheduler_ctor_t;
 
 /**
- * \class scheduler_registry scheduler_registry.h <vistk/pipeline/scheduler_registry.h>
+ * \class scheduler_registry scheduler_registry.h <sprokit/pipeline/scheduler_registry.h>
  *
  * \brief A registry of schedulers which can generate schedulers of a different types.
  *
  * \ingroup registries
  */
-class VISTK_PIPELINE_EXPORT scheduler_registry
+class SPROKIT_PIPELINE_EXPORT scheduler_registry
 {
   public:
     /// The type of registry keys.
@@ -61,7 +61,7 @@ class VISTK_PIPELINE_EXPORT scheduler_registry
      * \throws null_scheduler_ctor_exception Thrown if \p ctor is \c NULL.
      * \throws scheduler_type_already_exists_exception Thrown if the type already exists.
      *
-     * \see vistk::create_scheduler
+     * \see sprokit::create_scheduler
      *
      * \param type The name of the \ref scheduler type.
      * \param desc A description of the type.
@@ -146,4 +146,4 @@ create_scheduler(pipeline_t const& pipe, config_t const& conf)
 
 }
 
-#endif // VISTK_PIPELINE_SCHEDULER_REGISTRY_H
+#endif // SPROKIT_PIPELINE_SCHEDULER_REGISTRY_H

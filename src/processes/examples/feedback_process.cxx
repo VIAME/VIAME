@@ -6,7 +6,7 @@
 
 #include "feedback_process.h"
 
-#include <vistk/pipeline/datum.h>
+#include <sprokit/pipeline/datum.h>
 
 /**
  * \file feedback_process.cxx
@@ -14,7 +14,7 @@
  * \brief Implementation of the feedback process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class feedback_process::priv

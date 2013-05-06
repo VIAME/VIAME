@@ -23,10 +23,10 @@
 /**
  * \file process_registry.cxx
  *
- * \brief Implementation of the \link vistk::process_registry process registry\endlink.
+ * \brief Implementation of the \link sprokit::process_registry process registry\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class process_registry::priv

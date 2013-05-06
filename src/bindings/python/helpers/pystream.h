@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_HELPERS_PYSTREAM_H
-#define VISTK_PYTHON_HELPERS_PYSTREAM_H
+#ifndef SPROKIT_PYTHON_HELPERS_PYSTREAM_H
+#define SPROKIT_PYTHON_HELPERS_PYSTREAM_H
 
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -41,4 +41,4 @@ class pyostream_device
 
 typedef boost::iostreams::stream<pyostream_device> pyostream;
 
-#endif // VISTK_PYTHON_HELPERS_PYSTREAM_H
+#endif // SPROKIT_PYTHON_HELPERS_PYSTREAM_H

@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_PIPE_DECLARATION_TYPES_H
-#define VISTK_PIPELINE_UTIL_PIPE_DECLARATION_TYPES_H
+#ifndef SPROKIT_PIPELINE_UTIL_PIPE_DECLARATION_TYPES_H
+#define SPROKIT_PIPELINE_UTIL_PIPE_DECLARATION_TYPES_H
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_registry.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_registry.h>
 
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
@@ -23,7 +23,7 @@
  * \brief Types for the AST of a pipeline declaration.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /// The type for a token in the AST.
@@ -38,7 +38,7 @@ typedef std::vector<config_flag_t> config_flags_t;
 typedef token_t config_provider_t;
 
 /**
- * \struct config_key_options_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct config_key_options_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief Options for a configuration key.
  */
@@ -51,7 +51,7 @@ struct config_key_options_t
 };
 
 /**
- * \struct config_key_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct config_key_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for information on a configuration key.
  */
@@ -64,7 +64,7 @@ struct config_key_t
 };
 
 /**
- * \struct config_value_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct config_value_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for a configuration value.
  */
@@ -80,7 +80,7 @@ struct config_value_t
 typedef std::vector<config_value_t> config_values_t;
 
 /**
- * \struct config_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct config_pipe_block pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for a configuration block.
  */
@@ -93,7 +93,7 @@ struct config_pipe_block
 };
 
 /**
- * \struct process_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct process_pipe_block pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for a process block.
  */
@@ -108,7 +108,7 @@ struct process_pipe_block
 };
 
 /**
- * \struct connect_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct connect_pipe_block pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for a connection block.
  */
@@ -131,7 +131,7 @@ typedef boost::variant
 typedef std::vector<pipe_block> pipe_blocks;
 
 /**
- * \struct cluster_config_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct cluster_config_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for cluster config.
  */
@@ -144,7 +144,7 @@ struct cluster_config_t
 };
 
 /**
- * \struct cluster_input_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct cluster_input_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for a cluster input mapping.
  */
@@ -159,7 +159,7 @@ struct cluster_input_t
 };
 
 /**
- * \struct cluster_output_t pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct cluster_output_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for a cluster output mapping.
  */
@@ -179,7 +179,7 @@ typedef boost::variant<cluster_config_t, cluster_input_t, cluster_output_t> clus
 typedef std::vector<cluster_subblock_t> cluster_subblocks_t;
 
 /**
- * \struct cluster_pipe_block pipe_declaration_types.h <vistk/pipeline_util/pipe_declaration_types.h>
+ * \struct cluster_pipe_block pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
  *
  * \brief A structure for a cluster block.
  */
@@ -206,4 +206,4 @@ typedef std::vector<cluster_block> cluster_blocks;
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_PIPE_DECLARATION_TYPES_H
+#endif // SPROKIT_PIPELINE_UTIL_PIPE_DECLARATION_TYPES_H

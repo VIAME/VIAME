@@ -6,10 +6,10 @@
 
 #include "take_string_process.h"
 
-#include <vistk/pipeline_util/path.h>
+#include <sprokit/pipeline_util/path.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/process_exception.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/process_exception.h>
 
 #include <string>
 
@@ -19,7 +19,7 @@
  * \brief Implementation of the string taking process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class take_string_process::priv

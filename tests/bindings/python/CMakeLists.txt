@@ -1,30 +1,30 @@
-project(vistk_test_python)
+project(sprokit_test_python)
 
 find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 
 set(test_runner
   "${PYTHON_EXECUTABLE}")
 
-function (vistk_build_python_test group input)
-  vistk_configure_file(test-python-${group}
+function (sprokit_build_python_test group input)
+  sprokit_configure_file(test-python-${group}
     "${CMAKE_CURRENT_SOURCE_DIR}/${input}"
     "${test_output_path}/test-python-${group}"
     PYTHON_EXECUTABLE)
 
-  vistk_declare_test(python-${group})
+  sprokit_declare_test(python-${group})
 endfunction ()
 
-function (vistk_make_python_test group instance)
+function (sprokit_make_python_test group instance)
   set(python_module_path
     "${python_output_path}/${CMAKE_CFG_INTDIR}")
   set(python_chdir
     "${CMAKE_CFG_INTDIR}")
 
-  vistk_make_test(python-${group} ${instance}
+  sprokit_make_test(python-${group} ${instance}
     "${python_chdir}" "${python_module_path}" ${ARGN})
 endfunction ()
 
 add_subdirectory(test)
 
-add_subdirectory(vistk)
+add_subdirectory(sprokit)
 add_subdirectory(modules)

@@ -6,10 +6,10 @@
 
 #include <python/helpers/pystream.h>
 
-#include <vistk/pipeline_util/export_dot.h>
-#include <vistk/pipeline_util/export_dot_exception.h>
+#include <sprokit/pipeline_util/export_dot.h>
+#include <sprokit/pipeline_util/export_dot_exception.h>
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/def.hpp>
 #include <boost/python/module.hpp>
@@ -27,7 +27,7 @@
 
 using namespace boost::python;
 
-void export_dot(object const& stream, vistk::pipeline_t const pipe, std::string const& graph_name);
+void export_dot(object const& stream, sprokit::pipeline_t const pipe, std::string const& graph_name);
 
 BOOST_PYTHON_MODULE(export_)
 {
@@ -37,13 +37,13 @@ BOOST_PYTHON_MODULE(export_)
 }
 
 void
-export_dot(object const& stream, vistk::pipeline_t const pipe, std::string const& graph_name)
+export_dot(object const& stream, sprokit::pipeline_t const pipe, std::string const& graph_name)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
   pyostream ostr(stream);
 
-  return vistk::export_dot(ostr, pipe, graph_name);
+  return sprokit::export_dot(ostr, pipe, graph_name);
 }

@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_EXPORT_DOT_EXCEPTION_H
-#define VISTK_PIPELINE_UTIL_EXPORT_DOT_EXCEPTION_H
+#ifndef SPROKIT_PIPELINE_UTIL_EXPORT_DOT_EXCEPTION_H
+#define SPROKIT_PIPELINE_UTIL_EXPORT_DOT_EXCEPTION_H
 
 #include "pipeline_util-config.h"
 
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/types.h>
 
 /**
  * \file export_dot_exception.h
@@ -17,17 +17,17 @@
  * \brief Header for exceptions used when export a pipeline to dot.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class export_dot_exception export_dot_exception.h <vistk/pipeline_util/export_dot_exception.h>
+ * \class export_dot_exception export_dot_exception.h <sprokit/pipeline_util/export_dot_exception.h>
  *
  * \brief The base class for all exceptions thrown when exporting a pipeline to dot.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT export_dot_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT export_dot_exception
   : public pipeline_exception
 {
   public:
@@ -42,13 +42,13 @@ class VISTK_PIPELINE_UTIL_EXPORT export_dot_exception
 };
 
 /**
- * \class null_pipeline_export_dot_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ * \class null_pipeline_export_dot_exception load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
  *
  * \brief The exception thrown when a \c NULL pipeline is given to export.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT null_pipeline_export_dot_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT null_pipeline_export_dot_exception
   : public export_dot_exception
 {
   public:
@@ -63,13 +63,13 @@ class VISTK_PIPELINE_UTIL_EXPORT null_pipeline_export_dot_exception
 };
 
 /**
- * \class null_cluster_export_dot_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ * \class null_cluster_export_dot_exception load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
  *
  * \brief The exception thrown when a \c NULL cluster is given to export.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT null_cluster_export_dot_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT null_cluster_export_dot_exception
   : public export_dot_exception
 {
   public:
@@ -84,13 +84,13 @@ class VISTK_PIPELINE_UTIL_EXPORT null_cluster_export_dot_exception
 };
 
 /**
- * \class empty_name_export_dot_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ * \class empty_name_export_dot_exception load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
  *
  * \brief The exception thrown when a process in a pipeline has an empty name.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT empty_name_export_dot_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT empty_name_export_dot_exception
   : public export_dot_exception
 {
   public:
@@ -106,4 +106,4 @@ class VISTK_PIPELINE_UTIL_EXPORT empty_name_export_dot_exception
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_EXPORT_DOT_EXCEPTION_H
+#endif // SPROKIT_PIPELINE_UTIL_EXPORT_DOT_EXCEPTION_H

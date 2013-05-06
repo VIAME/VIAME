@@ -7,10 +7,10 @@
 #include "export_dot.h"
 #include "export_dot_exception.h"
 
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/pipeline_exception.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_cluster.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/pipeline_exception.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_cluster.h>
 
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
@@ -34,7 +34,7 @@
  * \brief Implementation of dot exporting.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 namespace

@@ -6,7 +6,7 @@
 
 #include "const_number_process.h"
 
-#include <vistk/pipeline/config.h>
+#include <sprokit/pipeline/config.h>
 
 #include <boost/cstdint.hpp>
 
@@ -16,7 +16,7 @@
  * \brief Implementation of the constant number process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class const_number_process::priv

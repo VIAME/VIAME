@@ -4,25 +4,25 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_MODULES_H
-#define VISTK_PIPELINE_MODULES_H
+#ifndef SPROKIT_PIPELINE_MODULES_H
+#define SPROKIT_PIPELINE_MODULES_H
 
 #include "pipeline-config.h"
 
 /**
  * \file modules.h
  *
- * \brief Functions dealing with modules in vistk.
+ * \brief Functions dealing with modules in sprokit.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
  * \brief Load modules from the system path.
  */
-VISTK_PIPELINE_EXPORT void load_known_modules();
+SPROKIT_PIPELINE_EXPORT void load_known_modules();
 
 }
 
-#endif // VISTK_PIPELINE_MODULES_H
+#endif // SPROKIT_PIPELINE_MODULES_H

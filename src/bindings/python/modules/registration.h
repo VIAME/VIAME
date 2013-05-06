@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_MODULES_PYTHON_REGISTRATION_H
-#define VISTK_MODULES_PYTHON_REGISTRATION_H
+#ifndef SPROKIT_MODULES_PYTHON_REGISTRATION_H
+#define SPROKIT_MODULES_PYTHON_REGISTRATION_H
 
 #include "modules-config.h"
 
@@ -21,8 +21,8 @@ extern "C"
 /**
  * \brief Register processes.
  */
-void VISTK_MODULES_PYTHON_EXPORT register_processes();
+void SPROKIT_MODULES_PYTHON_EXPORT register_processes();
 
 }
 
-#endif // VISTK_MODULES_PYTHON_REGISTRATION_H
+#endif // SPROKIT_MODULES_PYTHON_REGISTRATION_H

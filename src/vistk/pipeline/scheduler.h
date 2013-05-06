@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_SCHEDULER_H
-#define VISTK_PIPELINE_SCHEDULER_H
+#ifndef SPROKIT_PIPELINE_SCHEDULER_H
+#define SPROKIT_PIPELINE_SCHEDULER_H
 
 #include "pipeline-config.h"
 
@@ -17,20 +17,20 @@
 /**
  * \file scheduler.h
  *
- * \brief Header for \link vistk::scheduler schedulers\endlink.
+ * \brief Header for \link sprokit::scheduler schedulers\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class scheduler scheduler.h <vistk/pipeline/scheduler.h>
+ * \class scheduler scheduler.h <sprokit/pipeline/scheduler.h>
  *
  * \brief The base class for execution strategies on a \ref pipeline.
  *
  * \ingroup base_classes
  */
-class VISTK_PIPELINE_EXPORT scheduler
+class SPROKIT_PIPELINE_EXPORT scheduler
   : boost::noncopyable
 {
   public:
@@ -118,4 +118,4 @@ class VISTK_PIPELINE_EXPORT scheduler
 
 }
 
-#endif // VISTK_PIPELINE_SCHEDULER_H
+#endif // SPROKIT_PIPELINE_SCHEDULER_H

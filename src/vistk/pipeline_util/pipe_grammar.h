@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_PIPE_GRAMMAR_H
-#define VISTK_PIPELINE_UTIL_PIPE_GRAMMAR_H
+#ifndef SPROKIT_PIPELINE_UTIL_PIPE_GRAMMAR_H
+#define SPROKIT_PIPELINE_UTIL_PIPE_GRAMMAR_H
 
 #include "pipeline_util-config.h"
 
@@ -19,7 +19,7 @@
  * \brief Functions to parse pipeline blocks from a string.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
@@ -29,7 +29,7 @@ namespace vistk
  *
  * \returns The pipeline blocks within the string.
  */
-VISTK_PIPELINE_UTIL_NO_EXPORT pipe_blocks parse_pipe_blocks_from_string(std::string const& str);
+SPROKIT_PIPELINE_UTIL_NO_EXPORT pipe_blocks parse_pipe_blocks_from_string(std::string const& str);
 
 /**
  * \brief Parse cluster blocks from a string.
@@ -38,8 +38,8 @@ VISTK_PIPELINE_UTIL_NO_EXPORT pipe_blocks parse_pipe_blocks_from_string(std::str
  *
  * \returns The cluster blocks within the string.
  */
-cluster_blocks VISTK_PIPELINE_UTIL_NO_EXPORT parse_cluster_blocks_from_string(std::string const& str);
+cluster_blocks SPROKIT_PIPELINE_UTIL_NO_EXPORT parse_cluster_blocks_from_string(std::string const& str);
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_PIPE_GRAMMAR_H
+#endif // SPROKIT_PIPELINE_UTIL_PIPE_GRAMMAR_H

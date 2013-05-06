@@ -12,7 +12,7 @@
  * \brief RAII class for calling into non-Python code.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 namespace python

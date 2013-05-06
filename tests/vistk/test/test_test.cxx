@@ -6,7 +6,7 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/utils.h>
+#include <sprokit/pipeline/utils.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -86,9 +86,9 @@ IMPLEMENT_TEST(unexpected_exception)
 
 IMPLEMENT_TEST(environment)
 {
-  vistk::envvar_name_t const envvar = "TEST_ENVVAR";
+  sprokit::envvar_name_t const envvar = "TEST_ENVVAR";
 
-  vistk::envvar_value_t const envvalue = vistk::get_envvar(envvar);
+  sprokit::envvar_value_t const envvalue = sprokit::get_envvar(envvar);
 
   if (!envvalue)
   {
@@ -96,7 +96,7 @@ IMPLEMENT_TEST(environment)
   }
   else
   {
-    vistk::envvar_value_t const expected = vistk::envvar_value_t("test_value");
+    sprokit::envvar_value_t const expected = sprokit::envvar_value_t("test_value");
 
     if (*envvalue != *expected)
     {

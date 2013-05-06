@@ -1,21 +1,21 @@
-project(vistk_tools)
+project(sprokit_tools)
 
 add_subdirectory(pipelines)
 
-find_package(Boost ${vistk_boost_version} REQUIRED
+find_package(Boost ${sprokit_boost_version} REQUIRED
   COMPONENTS
     program_options)
 
 set(boost_header_targets)
 
-option(VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES "Enables fixes for boost::program_options bugs (recommended)" ON)
-mark_as_advanced(VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
-if (VISTK_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
+option(SPROKIT_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES "Enables fixes for boost::program_options bugs (recommended)" ON)
+mark_as_advanced(SPROKIT_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
+if (SPROKIT_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
   if (Boost_VERSION LESS 105000)
     # Override Boost's value_semantic.hpp
     set(reldir "helpers/include/value_name")
     set(target_name "boost-program_options-value_semantic.hpp")
-    vistk_configure_directory(${target_name}
+    sprokit_configure_directory(${target_name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
       "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
     if (NOT BOOST_MANGLE_NAMESPACE STREQUAL "boost")
@@ -33,7 +33,7 @@ add_subdirectory(helpers)
 function (add_tool name)
   set(component tool)
 
-  vistk_add_executable(${name}
+  sprokit_add_executable(${name}
     ${name}.cxx)
   target_link_libraries(${name}
     LINK_PRIVATE
@@ -45,14 +45,14 @@ function (add_tool name)
 endfunction ()
 
 function (add_python_tool name)
-  if (VISTK_ENABLE_PYTHON)
-    vistk_configure_file(tool-python-${name}
+  if (SPROKIT_ENABLE_PYTHON)
+    sprokit_configure_file(tool-python-${name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${name}.py"
-      "${vistk_binary_dir}/bin/${name}"
+      "${sprokit_binary_dir}/bin/${name}"
       PYTHON_EXECUTABLE)
 
-    vistk_install(
-      PROGRAMS    "${vistk_binary_dir}/bin/${name}"
+    sprokit_install(
+      PROGRAMS    "${sprokit_binary_dir}/bin/${name}"
       DESTINATION bin
       COMPONENT   tool)
   endif ()
@@ -62,7 +62,7 @@ add_tool(pipe_config
   pipeline_builder
   tool_io
   tool_usage
-  vistk_pipeline
+  sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
@@ -71,7 +71,7 @@ add_tool(pipe_to_dot
   pipeline_builder
   tool_io
   tool_usage
-  vistk_pipeline
+  sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
@@ -79,14 +79,14 @@ add_tool(pipe_to_dot
 add_tool(pipeline_runner
   pipeline_builder
   tool_usage
-  vistk_pipeline
+  sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
 add_tool(processopedia
   tool_usage
-  vistk_pipeline
+  sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})

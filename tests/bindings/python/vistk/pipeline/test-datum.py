@@ -7,13 +7,13 @@
 
 def test_import():
     try:
-        import vistk.pipeline.datum
+        import sprokit.pipeline.datum
     except:
         test_error("Failed to import the datum module")
 
 
 def test_new():
-    from vistk.pipeline import datum
+    from sprokit.pipeline import datum
 
     d = datum.new('test_datum')
 
@@ -30,7 +30,7 @@ def test_new():
 
 
 def test_empty():
-    from vistk.pipeline import datum
+    from sprokit.pipeline import datum
 
     d = datum.empty()
 
@@ -47,7 +47,7 @@ def test_empty():
 
 
 def test_flush():
-    from vistk.pipeline import datum
+    from sprokit.pipeline import datum
 
     d = datum.flush()
 
@@ -64,7 +64,7 @@ def test_flush():
 
 
 def test_complete():
-    from vistk.pipeline import datum
+    from sprokit.pipeline import datum
 
     d = datum.complete()
 
@@ -81,7 +81,7 @@ def test_complete():
 
 
 def test_error_():
-    from vistk.pipeline import datum
+    from sprokit.pipeline import datum
 
     err = 'An error'
 
@@ -122,6 +122,6 @@ if __name__ == '__main__':
         , 'error': test_error_
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

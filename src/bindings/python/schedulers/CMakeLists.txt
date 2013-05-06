@@ -1,3 +1,3 @@
-project(vistk_python_schedulers)
+project(sprokit_python_schedulers)
 
 add_subdirectory(examples)

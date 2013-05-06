@@ -1,4 +1,4 @@
-project(vistk_python_any_conversion)
+project(sprokit_python_any_conversion)
 
 set(python_any_conversion_srcs
   registration.cxx)
@@ -8,14 +8,14 @@ set(python_any_conversion_headers
   prototypes.h
   registration.h)
 
-# XXX: Force building shared (see src/vistk/pipeline/CMakeLists.txt as to why
+# XXX: Force building shared (see src/sprokit/pipeline/CMakeLists.txt as to why
 # this must be done).
-vistk_add_library(vistk_python_any_conversion SHARED
+sprokit_add_library(sprokit_python_any_conversion SHARED
   ${python_any_conversion_srcs}
   ${python_any_conversion_headers})
-target_link_libraries(vistk_python_any_conversion
+target_link_libraries(sprokit_python_any_conversion
   LINK_PUBLIC
-    vistk_python_util
+    sprokit_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES}
   LINK_PRIVATE
@@ -24,13 +24,13 @@ target_link_libraries(vistk_python_any_conversion
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT})
-set_target_properties(vistk_python_any_conversion
+set_target_properties(sprokit_python_any_conversion
   PROPERTIES
-    VERSION       ${vistk_version}
+    VERSION       ${sprokit_version}
     SOVERSION     0
-    DEFINE_SYMBOL MAKE_VISTK_PYTHON_ANY_CONVERSION_LIB)
+    DEFINE_SYMBOL MAKE_SPROKIT_PYTHON_ANY_CONVERSION_LIB)
 
-vistk_install_headers(vistk/python/any_conversion ${python_any_conversion_headers})
+sprokit_install_headers(sprokit/python/any_conversion ${python_any_conversion_headers})
 
-vistk_configure_pkgconfig(vistk-python_any_conversion
+sprokit_configure_pkgconfig(sprokit-python_any_conversion
   PYTHON_VERSION)

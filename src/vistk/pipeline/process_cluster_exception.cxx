@@ -11,10 +11,10 @@
 /**
  * \file process_cluster_exception.cxx
  *
- * \brief Implementation of exceptions used within \link vistk::process_clsuter process clusters\endlink.
+ * \brief Implementation of exceptions used within \link sprokit::process_clsuter process clusters\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 process_cluster_exception

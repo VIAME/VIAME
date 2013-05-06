@@ -12,7 +12,7 @@
  * \brief Implementation of base type logic.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 pipeline_exception

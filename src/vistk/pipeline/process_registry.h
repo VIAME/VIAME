@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_PROCESS_REGISTRY_H
-#define VISTK_PIPELINE_PROCESS_REGISTRY_H
+#ifndef SPROKIT_PIPELINE_PROCESS_REGISTRY_H
+#define SPROKIT_PIPELINE_PROCESS_REGISTRY_H
 
 #include "pipeline-config.h"
 
@@ -23,23 +23,23 @@
 /**
  * \file process_registry.h
  *
- * \brief Header for the \link vistk::process_registry process registry\endlink.
+ * \brief Header for the \link sprokit::process_registry process registry\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /// A function which returns a \ref process.
 typedef boost::function<process_t (config_t const& config)> process_ctor_t;
 
 /**
- * \class process_registry process_registry.h <vistk/pipeline/process_registry.h>
+ * \class process_registry process_registry.h <sprokit/pipeline/process_registry.h>
  *
  * \brief A registry of processes which can generate processes of a different types.
  *
  * \ingroup registries
  */
-class VISTK_PIPELINE_EXPORT process_registry
+class SPROKIT_PIPELINE_EXPORT process_registry
 {
   public:
     /// The type for a description of the pipeline.
@@ -58,7 +58,7 @@ class VISTK_PIPELINE_EXPORT process_registry
      * \throws null_process_ctor_exception Thrown if \p ctor is \c NULL.
      * \throws process_type_already_exists_exception Thrown if the type already exists.
      *
-     * \see vistk::create_process
+     * \see sprokit::create_process
      *
      * \param type The name of the \ref process type.
      * \param desc A description of the type.
@@ -139,4 +139,4 @@ create_process(config_t const& conf)
 
 }
 
-#endif // VISTK_PIPELINE_PROCESS_REGISTRY_H
+#endif // SPROKIT_PIPELINE_PROCESS_REGISTRY_H

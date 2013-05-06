@@ -4,9 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <vistk/pipeline/config.h>
+#include <sprokit/pipeline/config.h>
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
@@ -20,42 +20,42 @@
 /**
  * \file config.cxx
  *
- * \brief Python bindings for \link vistk::config\endlink.
+ * \brief Python bindings for \link sprokit::config\endlink.
  */
 
 using namespace boost::python;
 
-static vistk::config::value_t config_get_value(vistk::config_t self, vistk::config::key_t const& key);
-static vistk::config::value_t config_get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def);
-static size_t config_len(vistk::config_t self);
-static vistk::config::value_t config_getitem(vistk::config_t self, vistk::config::key_t const& key);
-static void config_setitem(vistk::config_t self, vistk::config::key_t const& key, object const& value);
-static void config_delitem(vistk::config_t self, vistk::config::key_t const& key);
+static sprokit::config::value_t config_get_value(sprokit::config_t self, sprokit::config::key_t const& key);
+static sprokit::config::value_t config_get_value_with_default(sprokit::config_t self, sprokit::config::key_t const& key, sprokit::config::value_t const& def);
+static size_t config_len(sprokit::config_t self);
+static sprokit::config::value_t config_getitem(sprokit::config_t self, sprokit::config::key_t const& key);
+static void config_setitem(sprokit::config_t self, sprokit::config::key_t const& key, object const& value);
+static void config_delitem(sprokit::config_t self, sprokit::config::key_t const& key);
 
 BOOST_PYTHON_MODULE(config)
 {
-  def("empty_config", &vistk::config::empty_config
-    , (arg("name") = vistk::config::key_t())
+  def("empty_config", &sprokit::config::empty_config
+    , (arg("name") = sprokit::config::key_t())
     , "Returns an empty configuration.");
 
-  class_<vistk::config::key_t>("ConfigKey"
+  class_<sprokit::config::key_t>("ConfigKey"
     , "A key for a configuration.");
-  class_<vistk::config::keys_t>("ConfigKeys"
+  class_<sprokit::config::keys_t>("ConfigKeys"
     , "A collection of keys for a configuration.")
-    .def(vector_indexing_suite<vistk::config::keys_t>())
+    .def(vector_indexing_suite<sprokit::config::keys_t>())
   ;
-  class_<vistk::config::description_t>("ConfigDescription"
+  class_<sprokit::config::description_t>("ConfigDescription"
     , "A description of a configuration key.");
-  class_<vistk::config::value_t>("ConfigValue"
+  class_<sprokit::config::value_t>("ConfigValue"
     , "A value in the configuration.");
 
-  class_<vistk::config, vistk::config_t, boost::noncopyable>("Config"
+  class_<sprokit::config, sprokit::config_t, boost::noncopyable>("Config"
     , "A key-value store of configuration values"
     , no_init)
-    .def("subblock", &vistk::config::subblock
+    .def("subblock", &sprokit::config::subblock
       , (arg("name"))
       , "Returns a subblock from the configuration.")
-    .def("subblock_view", &vistk::config::subblock_view
+    .def("subblock_view", &sprokit::config::subblock_view
       , (arg("name"))
       , "Returns a linked subblock from the configuration.")
     .def("get_value", &config_get_value
@@ -64,68 +64,68 @@ BOOST_PYTHON_MODULE(config)
     .def("get_value", &config_get_value_with_default
       , (arg("key"), arg("default"))
       , "Retrieve a value from the configuration, using a default in case of failure.")
-    .def("set_value", &vistk::config::set_value
+    .def("set_value", &sprokit::config::set_value
       , (arg("key"), arg("value"))
       , "Set a value in the configuration.")
-    .def("unset_value", &vistk::config::unset_value
+    .def("unset_value", &sprokit::config::unset_value
       , (arg("key"))
       , "Unset a value in the configuration.")
-    .def("is_read_only", &vistk::config::is_read_only
+    .def("is_read_only", &sprokit::config::is_read_only
       , (arg("key"))
       , "Check if a key is marked as read only.")
-    .def("mark_read_only", &vistk::config::mark_read_only
+    .def("mark_read_only", &sprokit::config::mark_read_only
       , (arg("key"))
       , "Mark a key as read only.")
-    .def("merge_config", &vistk::config::merge_config
+    .def("merge_config", &sprokit::config::merge_config
       , (arg("config"))
       , "Merge another configuration block into the current one.")
-    .def("available_values", &vistk::config::available_values
+    .def("available_values", &sprokit::config::available_values
       , "Retrieves the list of available values in the configuration.")
-    .def("has_value", &vistk::config::has_value
+    .def("has_value", &sprokit::config::has_value
       , (arg("key"))
       , "Returns True if the key is set.")
-    .def_readonly("block_sep", &vistk::config::block_sep
+    .def_readonly("block_sep", &sprokit::config::block_sep
       , "The string which separates block names from key names.")
-    .def_readonly("global_value", &vistk::config::global_value
+    .def_readonly("global_value", &sprokit::config::global_value
       , "A special key which is automatically inherited on subblock requests.")
     .def("__len__", &config_len)
-    .def("__contains__", &vistk::config::has_value)
+    .def("__contains__", &sprokit::config::has_value)
     .def("__getitem__", &config_getitem)
     .def("__setitem__", &config_setitem)
     .def("__delitem__", &config_delitem)
   ;
 }
 
-vistk::config::value_t
-config_get_value(vistk::config_t self, vistk::config::key_t const& key)
+sprokit::config::value_t
+config_get_value(sprokit::config_t self, sprokit::config::key_t const& key)
 {
-  return self->get_value<vistk::config::value_t>(key);
+  return self->get_value<sprokit::config::value_t>(key);
 }
 
-vistk::config::value_t
-config_get_value_with_default(vistk::config_t self, vistk::config::key_t const& key, vistk::config::value_t const& def)
+sprokit::config::value_t
+config_get_value_with_default(sprokit::config_t self, sprokit::config::key_t const& key, sprokit::config::value_t const& def)
 {
-  return self->get_value<vistk::config::value_t>(key, def);
+  return self->get_value<sprokit::config::value_t>(key, def);
 }
 
 size_t
-config_len(vistk::config_t self)
+config_len(sprokit::config_t self)
 {
   return self->available_values().size();
 }
 
-vistk::config::value_t
-config_getitem(vistk::config_t self, vistk::config::key_t const& key)
+sprokit::config::value_t
+config_getitem(sprokit::config_t self, sprokit::config::key_t const& key)
 {
-  vistk::config::value_t val;
+  sprokit::config::value_t val;
 
   try
   {
     val = config_get_value(self, key);
   }
-  catch (vistk::no_such_configuration_value_exception const&)
+  catch (sprokit::no_such_configuration_value_exception const&)
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -141,25 +141,25 @@ config_getitem(vistk::config_t self, vistk::config::key_t const& key)
 }
 
 void
-config_setitem(vistk::config_t self, vistk::config::key_t const& key, object const& value)
+config_setitem(sprokit::config_t self, sprokit::config::key_t const& key, object const& value)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
-  self->set_value(key, extract<vistk::config::value_t>(str(value)));
+  self->set_value(key, extract<sprokit::config::value_t>(str(value)));
 }
 
 void
-config_delitem(vistk::config_t self, vistk::config::key_t const& key)
+config_delitem(sprokit::config_t self, sprokit::config::key_t const& key)
 {
   try
   {
     self->unset_value(key);
   }
-  catch (vistk::no_such_configuration_value_exception const&)
+  catch (sprokit::no_such_configuration_value_exception const&)
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 

@@ -4,15 +4,15 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_PIPE_BAKERY_H
-#define VISTK_PIPELINE_UTIL_PIPE_BAKERY_H
+#ifndef SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_H
+#define SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_H
 
 #include "pipeline_util-config.h"
 
 #include "path.h"
 #include "pipe_declaration_types.h"
 
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/types.h>
 
 #include <iosfwd>
 
@@ -22,7 +22,7 @@
  * \brief Functions to bake a pipeline.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
@@ -32,7 +32,7 @@ namespace vistk
  *
  * \returns A new pipeline baked from the given file.
  */
-VISTK_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_from_file(path_t const& fname);
+SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_from_file(path_t const& fname);
 
 /**
  * \brief Bake a pipeline from a stream.
@@ -42,7 +42,7 @@ VISTK_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_from_file(path_t const& fname);
  *
  * \returns A pipeline baked from the given stream.
  */
-VISTK_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe(std::istream& istr, path_t const& inc_root = "");
+SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe(std::istream& istr, path_t const& inc_root = "");
 
 /**
  * \brief Extract a configuration from a collection of blocks.
@@ -51,14 +51,14 @@ VISTK_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe(std::istream& istr, path_t const
  *
  * \returns A pipeline baked from \p blocks.
  */
-VISTK_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& blocks);
+SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& blocks);
 
 /**
- * \class cluster_info pipe_bakery.h <vistk/pipeline_util/pipe_bakery.h>
+ * \class cluster_info pipe_bakery.h <sprokit/pipeline_util/pipe_bakery.h>
  *
  * \brief Information about a loaded cluster.
  */
-class VISTK_PIPELINE_UTIL_EXPORT cluster_info
+class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
 {
   public:
     /**
@@ -93,7 +93,7 @@ typedef boost::shared_ptr<cluster_info> cluster_info_t;
  *
  * \returns Information about the cluster in the file.
  */
-cluster_info_t VISTK_PIPELINE_UTIL_EXPORT bake_cluster_from_file(path_t const& fname);
+cluster_info_t SPROKIT_PIPELINE_UTIL_EXPORT bake_cluster_from_file(path_t const& fname);
 
 /**
  * \brief Bake a cluster from a stream.
@@ -103,7 +103,7 @@ cluster_info_t VISTK_PIPELINE_UTIL_EXPORT bake_cluster_from_file(path_t const& f
  *
  * \returns Information about the cluster in the stream.
  */
-cluster_info_t VISTK_PIPELINE_UTIL_EXPORT bake_cluster(std::istream& istr, path_t const& inc_root = "");
+cluster_info_t SPROKIT_PIPELINE_UTIL_EXPORT bake_cluster(std::istream& istr, path_t const& inc_root = "");
 
 /**
  * \brief Extract a configuration from a collection of blocks.
@@ -112,7 +112,7 @@ cluster_info_t VISTK_PIPELINE_UTIL_EXPORT bake_cluster(std::istream& istr, path_
  *
  * \returns Information about the cluster based on \p blocks.
  */
-cluster_info_t VISTK_PIPELINE_UTIL_EXPORT bake_cluster_blocks(cluster_blocks const& blocks);
+cluster_info_t SPROKIT_PIPELINE_UTIL_EXPORT bake_cluster_blocks(cluster_blocks const& blocks);
 
 /**
  * \brief Extract a configuration from a collection of blocks.
@@ -121,8 +121,8 @@ cluster_info_t VISTK_PIPELINE_UTIL_EXPORT bake_cluster_blocks(cluster_blocks con
  *
  * \returns A configuration extracted from \p blocks.
  */
-VISTK_PIPELINE_UTIL_EXPORT config_t extract_configuration(pipe_blocks const& blocks);
+SPROKIT_PIPELINE_UTIL_EXPORT config_t extract_configuration(pipe_blocks const& blocks);
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_PIPE_BAKERY_H
+#endif // SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_H

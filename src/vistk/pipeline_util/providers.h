@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_PROVIDERS_H
-#define VISTK_PIPELINE_UTIL_PROVIDERS_H
+#ifndef SPROKIT_PIPELINE_UTIL_PROVIDERS_H
+#define SPROKIT_PIPELINE_UTIL_PROVIDERS_H
 
 #include "pipeline_util-config.h"
 
-#include <vistk/pipeline/config.h>
+#include <sprokit/pipeline/config.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -19,7 +19,7 @@
  * \brief Configuration providers.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class provider;
@@ -31,7 +31,7 @@ typedef boost::shared_ptr<provider> provider_t;
  *
  * \brief The base abstract class for providers.
  */
-class VISTK_PIPELINE_UTIL_NO_EXPORT provider
+class SPROKIT_PIPELINE_UTIL_NO_EXPORT provider
 {
   public:
     /**
@@ -58,7 +58,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT provider
  *
  * \brief A provider which dereferences configuration values (symlinking).
  */
-class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider
+class SPROKIT_PIPELINE_UTIL_NO_EXPORT config_provider
   : public provider
 {
   public:
@@ -90,7 +90,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT config_provider
  *
  * \brief A provider which queries information from the system.
  */
-class VISTK_PIPELINE_UTIL_NO_EXPORT system_provider
+class SPROKIT_PIPELINE_UTIL_NO_EXPORT system_provider
   : public provider
 {
   public:
@@ -118,7 +118,7 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT system_provider
  *
  * \brief A provider which queries information from the environment.
  */
-class VISTK_PIPELINE_UTIL_NO_EXPORT environment_provider
+class SPROKIT_PIPELINE_UTIL_NO_EXPORT environment_provider
   : public provider
 {
   public:
@@ -143,4 +143,4 @@ class VISTK_PIPELINE_UTIL_NO_EXPORT environment_provider
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_PROVIDERS_H
+#endif // SPROKIT_PIPELINE_UTIL_PROVIDERS_H

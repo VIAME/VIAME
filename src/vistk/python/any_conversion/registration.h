@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_ANY_CONVERSION_REGISTRATION_H
-#define VISTK_PYTHON_ANY_CONVERSION_REGISTRATION_H
+#ifndef SPROKIT_PYTHON_ANY_CONVERSION_REGISTRATION_H
+#define SPROKIT_PYTHON_ANY_CONVERSION_REGISTRATION_H
 
 #include "any_conversion-config.h"
 
@@ -22,7 +22,7 @@
  * \brief Helpers for working with boost::any in Python.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 namespace python
@@ -46,10 +46,10 @@ typedef uint64_t priority_t;
  * \param from The function for converting from Python.
  * \param to The function for converting to Python.
  */
-VISTK_PYTHON_ANY_CONVERSION_EXPORT void register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to);
+SPROKIT_PYTHON_ANY_CONVERSION_EXPORT void register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to);
 
 }
 
 }
 
-#endif // VISTK_PYTHON_ANY_CONVERSION_REGISTRATION_H
+#endif // SPROKIT_PYTHON_ANY_CONVERSION_REGISTRATION_H

@@ -4,10 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_HELPERS_PYTHON_CONVERT_OPTIONAL_H
-#define VISTK_PYTHON_HELPERS_PYTHON_CONVERT_OPTIONAL_H
+#ifndef SPROKIT_PYTHON_HELPERS_PYTHON_CONVERT_OPTIONAL_H
+#define SPROKIT_PYTHON_HELPERS_PYTHON_CONVERT_OPTIONAL_H
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/converter/registry.hpp>
 #include <boost/python/class.hpp>
@@ -60,7 +60,7 @@ void*
 boost_optional_converter<T>
 ::convertible(PyObject* obj)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
@@ -87,7 +87,7 @@ PyObject*
 boost_optional_converter<T>
 ::convert(optional_t const& opt)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
@@ -106,7 +106,7 @@ void
 boost_optional_converter<T>
 ::construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
@@ -202,4 +202,4 @@ boost_optional_operations<T>
   return opt.get_value_or(def);
 }
 
-#endif // VISTK_PYTHON_PIPELINE_PYTHON_CONVERT_OPTIONAL_H
+#endif // SPROKIT_PYTHON_PIPELINE_PYTHON_CONVERT_OPTIONAL_H

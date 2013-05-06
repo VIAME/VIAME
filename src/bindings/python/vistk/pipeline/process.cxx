@@ -8,11 +8,11 @@
 #include <python/helpers/python_wrap_const_shared_ptr.h>
 #include <python/helpers/set_indexing_suite.h>
 
-#include <vistk/pipeline/edge.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/stamp.h>
+#include <sprokit/pipeline/edge.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/stamp.h>
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/args.hpp>
@@ -25,21 +25,21 @@
 /**
  * \file process.cxx
  *
- * \brief Python bindings for \link vistk::process\endlink.
+ * \brief Python bindings for \link sprokit::process\endlink.
  */
 
 using namespace boost::python;
 
-static vistk::process::property_t const property_python = vistk::process::property_t("_python");
+static sprokit::process::property_t const property_python = sprokit::process::property_t("_python");
 
 /// \todo How to do grab_input_as<>?
 
 class wrap_process
-  : public vistk::process
-  , public wrapper<vistk::process>
+  : public sprokit::process
+  , public wrapper<sprokit::process>
 {
   public:
-    wrap_process(vistk::config_t const& config);
+    wrap_process(sprokit::config_t const& config);
     ~wrap_process();
 
     void _base_configure();
@@ -52,7 +52,7 @@ class wrap_process
 
     void _base_step();
 
-    void _base_reconfigure(vistk::config_t const& conf);
+    void _base_reconfigure(sprokit::config_t const& conf);
 
     properties_t _base_properties() const;
 
@@ -65,9 +65,9 @@ class wrap_process
     bool _base_set_input_port_type(port_t const& port, port_type_t const& new_type);
     bool _base_set_output_port_type(port_t const& port, port_type_t const& new_type);
 
-    vistk::config::keys_t _base_available_config() const;
+    sprokit::config::keys_t _base_available_config() const;
 
-    conf_info_t _base_config_info(vistk::config::key_t const& key);
+    conf_info_t _base_config_info(sprokit::config::key_t const& key);
 
     void _configure();
 
@@ -79,7 +79,7 @@ class wrap_process
 
     void _step();
 
-    void _reconfigure(vistk::config_t const& conf);
+    void _reconfigure(sprokit::config_t const& conf);
 
     properties_t _properties() const;
 
@@ -92,9 +92,9 @@ class wrap_process
     bool _set_input_port_type(port_t const& port, port_type_t const& new_type);
     bool _set_output_port_type(port_t const& port, port_type_t const& new_type);
 
-    vistk::config::keys_t _available_config() const;
+    sprokit::config::keys_t _available_config() const;
 
-    conf_info_t _config_info(vistk::config::key_t const& key);
+    conf_info_t _config_info(sprokit::config::key_t const& key);
 
     void _declare_input_port(port_t const& port, port_info_t const& info);
     void _declare_input_port_1(port_t const& port,
@@ -115,13 +115,13 @@ class wrap_process
     void _remove_input_port(port_t const& port);
     void _remove_output_port(port_t const& port);
 
-    void _declare_configuration_key(vistk::config::key_t const& key, conf_info_t const& info);
-    void _declare_configuration_key_1(vistk::config::key_t const& key,
-                                      vistk::config::value_t const& def_,
-                                      vistk::config::description_t const& description_);
-    void _declare_configuration_key_2(vistk::config::key_t const& key,
-                                      vistk::config::value_t const& def_,
-                                      vistk::config::description_t const& description_,
+    void _declare_configuration_key(sprokit::config::key_t const& key, conf_info_t const& info);
+    void _declare_configuration_key_1(sprokit::config::key_t const& key,
+                                      sprokit::config::value_t const& def_,
+                                      sprokit::config::description_t const& description_);
+    void _declare_configuration_key_2(sprokit::config::key_t const& key,
+                                      sprokit::config::value_t const& def_,
+                                      sprokit::config::description_t const& description_,
                                       bool tunable_);
 
     void _mark_process_as_complete();
@@ -129,65 +129,65 @@ class wrap_process
     bool _has_input_port_edge(port_t const& port) const;
     size_t _count_output_port_edges(port_t const& port) const;
 
-    vistk::edge_datum_t _grab_from_port(port_t const& port) const;
-    vistk::datum_t _grab_datum_from_port(port_t const& port) const;
+    sprokit::edge_datum_t _grab_from_port(port_t const& port) const;
+    sprokit::datum_t _grab_datum_from_port(port_t const& port) const;
     object _grab_value_from_port(port_t const& port) const;
-    void _push_to_port(port_t const& port, vistk::edge_datum_t const& dat) const;
-    void _push_datum_to_port(port_t const& port, vistk::datum_t const& dat) const;
+    void _push_to_port(port_t const& port, sprokit::edge_datum_t const& dat) const;
+    void _push_datum_to_port(port_t const& port, sprokit::datum_t const& dat) const;
     void _push_value_to_port(port_t const& port, object const& obj) const;
 
-    vistk::config_t _get_config() const;
-    vistk::config::value_t _config_value(vistk::config::key_t const& key) const;
+    sprokit::config_t _get_config() const;
+    sprokit::config::value_t _config_value(sprokit::config::key_t const& key) const;
 
     void _set_data_checking_level(data_check_t check);
 
-    data_info_t _edge_data_info(vistk::edge_data_t const& data);
+    data_info_t _edge_data_info(sprokit::edge_data_t const& data);
 };
 
 BOOST_PYTHON_MODULE(process)
 {
-  class_<vistk::process::name_t>("ProcessName"
+  class_<sprokit::process::name_t>("ProcessName"
     , "A type for the name of a process.");
-  class_<vistk::process::names_t>("ProcessNames"
+  class_<sprokit::process::names_t>("ProcessNames"
     , "A collection of process names.")
-    .def(vector_indexing_suite<vistk::process::names_t>())
+    .def(vector_indexing_suite<sprokit::process::names_t>())
   ;
-  class_<vistk::process::type_t>("ProcessType"
+  class_<sprokit::process::type_t>("ProcessType"
     , "The type for a type of process.");
-  class_<vistk::process::types_t>("ProcessTypes"
+  class_<sprokit::process::types_t>("ProcessTypes"
     , "A collection of process types.")
-    .def(vector_indexing_suite<vistk::process::types_t>())
+    .def(vector_indexing_suite<sprokit::process::types_t>())
   ;
-  class_<vistk::process::property_t>("ProcessProperty"
+  class_<sprokit::process::property_t>("ProcessProperty"
     , "A property on a process.");
-  class_<vistk::process::properties_t>("ProcessProperties"
+  class_<sprokit::process::properties_t>("ProcessProperties"
     , "A collection of properties on a process.")
-    .def(set_indexing_suite<vistk::process::properties_t>())
+    .def(set_indexing_suite<sprokit::process::properties_t>())
   ;
-  class_<vistk::process::port_description_t>("PortDescription"
+  class_<sprokit::process::port_description_t>("PortDescription"
     , "A description for a port.");
-  class_<vistk::process::port_t>("Port"
+  class_<sprokit::process::port_t>("Port"
     , "The name of a port.");
-  class_<vistk::process::ports_t>("Ports"
+  class_<sprokit::process::ports_t>("Ports"
     , "A collection of ports.")
-    .def(vector_indexing_suite<vistk::process::ports_t>())
+    .def(vector_indexing_suite<sprokit::process::ports_t>())
   ;
-  class_<vistk::process::port_type_t>("PortType"
+  class_<sprokit::process::port_type_t>("PortType"
     , "The type of data on a port.");
-  class_<vistk::process::port_flag_t>("PortFlag"
+  class_<sprokit::process::port_flag_t>("PortFlag"
     , "A flag on a port.");
-  class_<vistk::process::port_flags_t>("PortFlags"
+  class_<sprokit::process::port_flags_t>("PortFlags"
     , "A collection of port flags.")
-    .def(set_indexing_suite<vistk::process::port_flags_t>())
+    .def(set_indexing_suite<sprokit::process::port_flags_t>())
   ;
-  class_<vistk::process::port_frequency_t>("PortFrequency"
+  class_<sprokit::process::port_frequency_t>("PortFrequency"
     , "A frequency for a port."
     , no_init)
-    .def(init<vistk::process::frequency_component_t>())
-    .def(init<vistk::process::frequency_component_t, vistk::process::frequency_component_t>())
-    .def("numerator", &vistk::process::port_frequency_t::numerator
+    .def(init<sprokit::process::frequency_component_t>())
+    .def(init<sprokit::process::frequency_component_t, sprokit::process::frequency_component_t>())
+    .def("numerator", &sprokit::process::port_frequency_t::numerator
       , "The numerator of the frequency.")
-    .def("denominator", &vistk::process::port_frequency_t::denominator
+    .def("denominator", &sprokit::process::port_frequency_t::denominator
       , "The denominator of the frequency.")
     .def(self <  self)
     .def(self <= self)
@@ -200,129 +200,129 @@ BOOST_PYTHON_MODULE(process)
     .def(self / self)
     .def(!self)
   ;
-  class_<vistk::process::port_addr_t>("PortAddr"
+  class_<sprokit::process::port_addr_t>("PortAddr"
     , "An address for a port within a pipeline.")
-    .def_readwrite("process", &vistk::process::port_addr_t::first)
-    .def_readwrite("port", &vistk::process::port_addr_t::second)
+    .def_readwrite("process", &sprokit::process::port_addr_t::first)
+    .def_readwrite("port", &sprokit::process::port_addr_t::second)
   ;
-  class_<vistk::process::port_addrs_t>("PortAddrs"
+  class_<sprokit::process::port_addrs_t>("PortAddrs"
     , "A collection of port addresses.")
-    .def(vector_indexing_suite<vistk::process::port_addrs_t>())
+    .def(vector_indexing_suite<sprokit::process::port_addrs_t>())
   ;
-  class_<vistk::process::connection_t>("Connection"
+  class_<sprokit::process::connection_t>("Connection"
     , "A connection between two ports.")
-    .def_readwrite("upstream", &vistk::process::connection_t::first)
-    .def_readwrite("downstream", &vistk::process::connection_t::second)
+    .def_readwrite("upstream", &sprokit::process::connection_t::first)
+    .def_readwrite("downstream", &sprokit::process::connection_t::second)
   ;
-  class_<vistk::process::connections_t>("Connections"
+  class_<sprokit::process::connections_t>("Connections"
     , "A collection of connections.")
-    .def(vector_indexing_suite<vistk::process::connections_t>())
+    .def(vector_indexing_suite<sprokit::process::connections_t>())
   ;
 
-  class_<vistk::process::port_info, vistk::process::port_info_t>("PortInfo"
+  class_<sprokit::process::port_info, sprokit::process::port_info_t>("PortInfo"
     , "Information about a port on a process."
     , no_init)
-    .def(init<vistk::process::port_type_t, vistk::process::port_flags_t, vistk::process::port_description_t, vistk::process::port_frequency_t>())
-    .def_readonly("type", &vistk::process::port_info::type)
-    .def_readonly("flags", &vistk::process::port_info::flags)
-    .def_readonly("description", &vistk::process::port_info::description)
-    .def_readonly("frequency", &vistk::process::port_info::frequency)
+    .def(init<sprokit::process::port_type_t, sprokit::process::port_flags_t, sprokit::process::port_description_t, sprokit::process::port_frequency_t>())
+    .def_readonly("type", &sprokit::process::port_info::type)
+    .def_readonly("flags", &sprokit::process::port_info::flags)
+    .def_readonly("description", &sprokit::process::port_info::description)
+    .def_readonly("frequency", &sprokit::process::port_info::frequency)
   ;
 
-  implicitly_convertible<boost::shared_ptr<vistk::process::port_info>, vistk::process::port_info_t>();
+  implicitly_convertible<boost::shared_ptr<sprokit::process::port_info>, sprokit::process::port_info_t>();
 
-  class_<vistk::process::conf_info, vistk::process::conf_info_t>("ConfInfo"
+  class_<sprokit::process::conf_info, sprokit::process::conf_info_t>("ConfInfo"
     , "Information about a configuration on a process."
     , no_init)
-    .def(init<vistk::config::value_t, vistk::config::description_t, bool>())
-    .def_readonly("default", &vistk::process::conf_info::def)
-    .def_readonly("description", &vistk::process::conf_info::description)
-    .def_readonly("tunable", &vistk::process::conf_info::tunable)
+    .def(init<sprokit::config::value_t, sprokit::config::description_t, bool>())
+    .def_readonly("default", &sprokit::process::conf_info::def)
+    .def_readonly("description", &sprokit::process::conf_info::description)
+    .def_readonly("tunable", &sprokit::process::conf_info::tunable)
   ;
 
-  implicitly_convertible<boost::shared_ptr<vistk::process::conf_info>, vistk::process::conf_info_t>();
+  implicitly_convertible<boost::shared_ptr<sprokit::process::conf_info>, sprokit::process::conf_info_t>();
 
-  class_<vistk::process::data_info, vistk::process::data_info_t>("DataInfo"
+  class_<sprokit::process::data_info, sprokit::process::data_info_t>("DataInfo"
     , "Information about a set of data packets from edges."
     , no_init)
-    .def(init<bool, vistk::datum::type_t>())
-    .def_readonly("in_sync", &vistk::process::data_info::in_sync)
-    .def_readonly("max_status", &vistk::process::data_info::max_status)
+    .def(init<bool, sprokit::datum::type_t>())
+    .def_readonly("in_sync", &sprokit::process::data_info::in_sync)
+    .def_readonly("max_status", &sprokit::process::data_info::max_status)
   ;
 
-  enum_<vistk::process::data_check_t>("DataCheck"
+  enum_<sprokit::process::data_check_t>("DataCheck"
     , "Levels of input validation")
-    .value("none", vistk::process::check_none)
-    .value("sync", vistk::process::check_sync)
-    .value("valid", vistk::process::check_valid)
+    .value("none", sprokit::process::check_none)
+    .value("sync", sprokit::process::check_sync)
+    .value("valid", sprokit::process::check_valid)
   ;
 
-  implicitly_convertible<boost::shared_ptr<vistk::process::data_info>, vistk::process::data_info_t>();
+  implicitly_convertible<boost::shared_ptr<sprokit::process::data_info>, sprokit::process::data_info_t>();
 
   class_<wrap_process, boost::noncopyable>("PythonProcess"
     , "The base class for Python processes."
     , no_init)
-    .def(init<vistk::config_t>())
-    .def("configure", &vistk::process::configure
+    .def(init<sprokit::config_t>())
+    .def("configure", &sprokit::process::configure
       , "Configure the process.")
-    .def("init", &vistk::process::init
+    .def("init", &sprokit::process::init
       , "Initializes the process.")
-    .def("reset", &vistk::process::reset
+    .def("reset", &sprokit::process::reset
       , "Resets the process.")
-    .def("step", &vistk::process::step
+    .def("step", &sprokit::process::step
       , "Steps the process for one iteration.")
-    .def("properties", &vistk::process::properties
+    .def("properties", &sprokit::process::properties
       , "Returns the properties on the process.")
-    .def("connect_input_port", &vistk::process::connect_input_port
+    .def("connect_input_port", &sprokit::process::connect_input_port
       , (arg("port"), arg("edge"))
       , "Connects the given edge to the input port.")
-    .def("connect_output_port", &vistk::process::connect_output_port
+    .def("connect_output_port", &sprokit::process::connect_output_port
       , (arg("port"), arg("edge"))
       , "Connects the given edge to the output port.")
-    .def("input_ports", &vistk::process::input_ports
+    .def("input_ports", &sprokit::process::input_ports
       , "Returns a list of input ports on the process.")
-    .def("output_ports", &vistk::process::output_ports
+    .def("output_ports", &sprokit::process::output_ports
       , "Returns a list of output ports on the process.")
-    .def("input_port_info", &vistk::process::input_port_info
+    .def("input_port_info", &sprokit::process::input_port_info
       , (arg("port"))
       , "Returns information about the given input port.")
-    .def("output_port_info", &vistk::process::output_port_info
+    .def("output_port_info", &sprokit::process::output_port_info
       , (arg("port"))
       , "Returns information about the given output port.")
-    .def("set_input_port_type", &vistk::process::set_input_port_type
+    .def("set_input_port_type", &sprokit::process::set_input_port_type
       , (arg("port"), arg("new_type"))
       , "Sets the type for an input port.")
-    .def("set_output_port_type", &vistk::process::set_output_port_type
+    .def("set_output_port_type", &sprokit::process::set_output_port_type
       , (arg("port"), arg("new_type"))
       , "Sets the type for an output port.")
-    .def("available_config", &vistk::process::available_config
+    .def("available_config", &sprokit::process::available_config
       , "Returns a list of available configuration keys for the process.")
-    .def("available_tunable_config", &vistk::process::available_tunable_config
+    .def("available_tunable_config", &sprokit::process::available_tunable_config
       , "Returns a list of available tunable configuration keys for the process.")
-    .def("config_info", &vistk::process::config_info
+    .def("config_info", &sprokit::process::config_info
       , (arg("config"))
       , "Returns information about the given configuration key.")
-    .def("name", &vistk::process::name
+    .def("name", &sprokit::process::name
       , "Returns the name of the process.")
-    .def("type", &vistk::process::type
+    .def("type", &sprokit::process::type
       , "Returns the type of the process.")
-    .def_readonly("property_no_threads", &vistk::process::property_no_threads)
-    .def_readonly("property_no_reentrancy", &vistk::process::property_no_reentrancy)
-    .def_readonly("property_unsync_input", &vistk::process::property_unsync_input)
-    .def_readonly("property_unsync_output", &vistk::process::property_unsync_output)
-    .def_readonly("port_heartbeat", &vistk::process::port_heartbeat)
-    .def_readonly("config_name", &vistk::process::config_name)
-    .def_readonly("config_type", &vistk::process::config_type)
-    .def_readonly("type_any", &vistk::process::type_any)
-    .def_readonly("type_none", &vistk::process::type_none)
-    .def_readonly("type_data_dependent", &vistk::process::type_data_dependent)
-    .def_readonly("type_flow_dependent", &vistk::process::type_flow_dependent)
-    .def_readonly("flag_output_const", &vistk::process::flag_output_const)
-    .def_readonly("flag_output_shared", &vistk::process::flag_output_shared)
-    .def_readonly("flag_input_static", &vistk::process::flag_input_static)
-    .def_readonly("flag_input_mutable", &vistk::process::flag_input_mutable)
-    .def_readonly("flag_input_nodep", &vistk::process::flag_input_nodep)
-    .def_readonly("flag_required", &vistk::process::flag_required)
+    .def_readonly("property_no_threads", &sprokit::process::property_no_threads)
+    .def_readonly("property_no_reentrancy", &sprokit::process::property_no_reentrancy)
+    .def_readonly("property_unsync_input", &sprokit::process::property_unsync_input)
+    .def_readonly("property_unsync_output", &sprokit::process::property_unsync_output)
+    .def_readonly("port_heartbeat", &sprokit::process::port_heartbeat)
+    .def_readonly("config_name", &sprokit::process::config_name)
+    .def_readonly("config_type", &sprokit::process::config_type)
+    .def_readonly("type_any", &sprokit::process::type_any)
+    .def_readonly("type_none", &sprokit::process::type_none)
+    .def_readonly("type_data_dependent", &sprokit::process::type_data_dependent)
+    .def_readonly("type_flow_dependent", &sprokit::process::type_flow_dependent)
+    .def_readonly("flag_output_const", &sprokit::process::flag_output_const)
+    .def_readonly("flag_output_shared", &sprokit::process::flag_output_shared)
+    .def_readonly("flag_input_static", &sprokit::process::flag_input_static)
+    .def_readonly("flag_input_mutable", &sprokit::process::flag_input_mutable)
+    .def_readonly("flag_input_nodep", &sprokit::process::flag_input_nodep)
+    .def_readonly("flag_required", &sprokit::process::flag_required)
     .def("_base_configure", &wrap_process::_base_configure
       , "Base class configure.")
     .def("_base_init", &wrap_process::_base_init
@@ -405,13 +405,13 @@ BOOST_PYTHON_MODULE(process)
       , (arg("port"), arg("info"))
       , "Declare an input port on the process.")
     .def("declare_input_port", &wrap_process::_declare_input_port_1
-      , (arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = vistk::process::port_frequency_t(1))
+      , (arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = sprokit::process::port_frequency_t(1))
       , "Declare an input port on the process.")
     .def("declare_output_port", &wrap_process::_declare_output_port
       , (arg("port"), arg("info"))
       , "Declare an output port on the process.")
     .def("declare_output_port", &wrap_process::_declare_output_port_1
-      , (arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = vistk::process::port_frequency_t(1))
+      , (arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = sprokit::process::port_frequency_t(1))
       , "Declare an output port on the process.")
     .def("set_input_port_frequency", &wrap_process::_set_input_port_frequency
       , (arg("port"), arg("new_frequency"))
@@ -475,8 +475,8 @@ BOOST_PYTHON_MODULE(process)
 }
 
 wrap_process
-::wrap_process(vistk::config_t const& config)
-  : vistk::process(config)
+::wrap_process(sprokit::config_t const& config)
+  : sprokit::process(config)
 {
 }
 
@@ -522,12 +522,12 @@ wrap_process
 
 void
 wrap_process
-::_base_reconfigure(vistk::config_t const& conf)
+::_base_reconfigure(sprokit::config_t const& conf)
 {
   TRANSLATE_PYTHON_EXCEPTION(process::_reconfigure(conf))
 }
 
-vistk::process::properties_t
+sprokit::process::properties_t
 wrap_process
 ::_base_properties() const
 {
@@ -538,28 +538,28 @@ wrap_process
   return consts;
 }
 
-vistk::process::ports_t
+sprokit::process::ports_t
 wrap_process
 ::_base_input_ports() const
 {
   return process::_input_ports();
 }
 
-vistk::process::ports_t
+sprokit::process::ports_t
 wrap_process
 ::_base_output_ports() const
 {
   return process::_output_ports();
 }
 
-vistk::process::port_info_t
+sprokit::process::port_info_t
 wrap_process
 ::_base_input_port_info(port_t const& port)
 {
   TRANSLATE_PYTHON_EXCEPTION(return process::_input_port_info(port))
 }
 
-vistk::process::port_info_t
+sprokit::process::port_info_t
 wrap_process
 ::_base_output_port_info(port_t const& port)
 {
@@ -580,16 +580,16 @@ wrap_process
   TRANSLATE_PYTHON_EXCEPTION(return process::_set_input_port_type(port, new_type))
 }
 
-vistk::config::keys_t
+sprokit::config::keys_t
 wrap_process
 ::_base_available_config() const
 {
   TRANSLATE_PYTHON_EXCEPTION(return process::_available_config())
 }
 
-vistk::process::conf_info_t
+sprokit::process::conf_info_t
 wrap_process
-::_base_config_info(vistk::config::key_t const& key)
+::_base_config_info(sprokit::config::key_t const& key)
 {
   TRANSLATE_PYTHON_EXCEPTION(return process::_config_info(key))
 }
@@ -599,7 +599,7 @@ wrap_process
 ::_configure()
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -621,7 +621,7 @@ wrap_process
 ::_init()
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -643,7 +643,7 @@ wrap_process
 ::_reset()
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -665,7 +665,7 @@ wrap_process
 ::_flush()
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -687,7 +687,7 @@ wrap_process
 ::_step()
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -706,10 +706,10 @@ wrap_process
 
 void
 wrap_process
-::_reconfigure(vistk::config_t const& conf)
+::_reconfigure(sprokit::config_t const& conf)
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -726,12 +726,12 @@ wrap_process
   _base_reconfigure(conf);
 }
 
-vistk::process::properties_t
+sprokit::process::properties_t
 wrap_process
 ::_properties() const
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -746,12 +746,12 @@ wrap_process
   return _base_properties();
 }
 
-vistk::process::ports_t
+sprokit::process::ports_t
 wrap_process
 ::_input_ports() const
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -766,12 +766,12 @@ wrap_process
   return _base_input_ports();
 }
 
-vistk::process::ports_t
+sprokit::process::ports_t
 wrap_process
 ::_output_ports() const
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -786,12 +786,12 @@ wrap_process
   return _base_output_ports();
 }
 
-vistk::process::port_info_t
+sprokit::process::port_info_t
 wrap_process
 ::_input_port_info(port_t const& port)
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -806,12 +806,12 @@ wrap_process
   return _base_input_port_info(port);
 }
 
-vistk::process::port_info_t
+sprokit::process::port_info_t
 wrap_process
 ::_output_port_info(port_t const& port)
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -831,7 +831,7 @@ wrap_process
 ::_set_input_port_type(port_t const& port, port_type_t const& new_type)
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -851,7 +851,7 @@ wrap_process
 ::_set_output_port_type(port_t const& port, port_type_t const& new_type)
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -866,12 +866,12 @@ wrap_process
   return _base_set_output_port_type(port, new_type);
 }
 
-vistk::config::keys_t
+sprokit::config::keys_t
 wrap_process
 ::_available_config() const
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -886,12 +886,12 @@ wrap_process
   return _base_available_config();
 }
 
-vistk::process::conf_info_t
+sprokit::process::conf_info_t
 wrap_process
-::_config_info(vistk::config::key_t const& key)
+::_config_info(sprokit::config::key_t const& key)
 {
   {
-    vistk::python::python_gil const gil;
+    sprokit::python::python_gil const gil;
 
     (void)gil;
 
@@ -972,25 +972,25 @@ wrap_process
 
 void
 wrap_process
-::_declare_configuration_key(vistk::config::key_t const& key, conf_info_t const& info)
+::_declare_configuration_key(sprokit::config::key_t const& key, conf_info_t const& info)
 {
   declare_configuration_key(key, info);
 }
 
 void
 wrap_process
-::_declare_configuration_key_1(vistk::config::key_t const& key,
-                               vistk::config::value_t const& def_,
-                               vistk::config::description_t const& description_)
+::_declare_configuration_key_1(sprokit::config::key_t const& key,
+                               sprokit::config::value_t const& def_,
+                               sprokit::config::description_t const& description_)
 {
   declare_configuration_key(key, def_, description_);
 }
 
 void
 wrap_process
-::_declare_configuration_key_2(vistk::config::key_t const& key,
-                               vistk::config::value_t const& def_,
-                               vistk::config::description_t const& description_,
+::_declare_configuration_key_2(sprokit::config::key_t const& key,
+                               sprokit::config::value_t const& def_,
+                               sprokit::config::description_t const& description_,
                                bool tunable_)
 {
   declare_configuration_key(key, def_, description_, tunable_);
@@ -1017,14 +1017,14 @@ wrap_process
   return count_output_port_edges(port);
 }
 
-vistk::edge_datum_t
+sprokit::edge_datum_t
 wrap_process
 ::_grab_from_port(port_t const& port) const
 {
   return grab_from_port(port);
 }
 
-vistk::datum_t
+sprokit::datum_t
 wrap_process
 ::_grab_datum_from_port(port_t const& port) const
 {
@@ -1035,11 +1035,11 @@ object
 wrap_process
 ::_grab_value_from_port(port_t const& port) const
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
-  vistk::datum_t const dat = grab_datum_from_port(port);
+  sprokit::datum_t const dat = grab_datum_from_port(port);
   boost::any const any = dat->get_datum<boost::any>();
 
   return object(any);
@@ -1047,14 +1047,14 @@ wrap_process
 
 void
 wrap_process
-::_push_to_port(port_t const& port, vistk::edge_datum_t const& dat) const
+::_push_to_port(port_t const& port, sprokit::edge_datum_t const& dat) const
 {
   return push_to_port(port, dat);
 }
 
 void
 wrap_process
-::_push_datum_to_port(port_t const& port, vistk::datum_t const& dat) const
+::_push_datum_to_port(port_t const& port, sprokit::datum_t const& dat) const
 {
   return push_datum_to_port(port, dat);
 }
@@ -1063,28 +1063,28 @@ void
 wrap_process
 ::_push_value_to_port(port_t const& port, object const& obj) const
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
   boost::any const any = extract<boost::any>(obj)();
-  vistk::datum_t const dat = vistk::datum::new_datum(any);
+  sprokit::datum_t const dat = sprokit::datum::new_datum(any);
 
   return push_datum_to_port(port, dat);
 }
 
-vistk::config_t
+sprokit::config_t
 wrap_process
 ::_get_config() const
 {
   return get_config();
 }
 
-vistk::config::value_t
+sprokit::config::value_t
 wrap_process
-::_config_value(vistk::config::key_t const& key) const
+::_config_value(sprokit::config::key_t const& key) const
 {
-  return config_value<vistk::config::value_t>(key);
+  return config_value<sprokit::config::value_t>(key);
 }
 
 void
@@ -1094,9 +1094,9 @@ wrap_process
   set_data_checking_level(check);
 }
 
-vistk::process::data_info_t
+sprokit::process::data_info_t
 wrap_process
-::_edge_data_info(vistk::edge_data_t const& data)
+::_edge_data_info(sprokit::edge_data_t const& data)
 {
   return edge_data_info(data);
 }

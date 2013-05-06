@@ -2,10 +2,10 @@ prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
 includedir=${prefix}/include
 libdir=${prefix}/lib@LIB_SUFFIX@
-vistkplugindir=${libdir}/vistk
+sprokitplugindir=${libdir}/sprokit
 
-Name: vistk-pipeline
-Description: The vistk-pipeline library
-Version: @vistk_version@
-Requires: vistk = @vistk_version@
-Libs: -lvistk_pipeline
+Name: sprokit-pipeline
+Description: The sprokit-pipeline library
+Version: @sprokit_version@
+Requires: sprokit = @sprokit_version@
+Libs: -lsprokit_pipeline

@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_EDGE_H
-#define VISTK_PIPELINE_EDGE_H
+#ifndef SPROKIT_PIPELINE_EDGE_H
+#define SPROKIT_PIPELINE_EDGE_H
 
 #include "pipeline-config.h"
 
@@ -21,18 +21,18 @@
 /**
  * \file edge.h
  *
- * \brief Header for \link vistk::edge edges\endlink.
+ * \brief Header for \link sprokit::edge edges\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class edge_datum_t <vistk/pipeline/edge.h>
+ * \class edge_datum_t <sprokit/pipeline/edge.h>
  *
  * \brief The packet of data that actually exists within edges.
  */
-class VISTK_PIPELINE_EXPORT edge_datum_t
+class SPROKIT_PIPELINE_EXPORT edge_datum_t
   : boost::equality_comparable<edge_datum_t>
 {
   public:
@@ -72,13 +72,13 @@ typedef std::vector<edge_datum_t> edge_data_t;
 typedef std::vector<edge_t> edges_t;
 
 /**
- * \class edge edge.h <vistk/pipeline/edge.h>
+ * \class edge edge.h <sprokit/pipeline/edge.h>
  *
  * \brief A connection between two \ref process ports which can carry data.
  *
  * \ingroup base_classes
  */
-class VISTK_PIPELINE_EXPORT edge
+class SPROKIT_PIPELINE_EXPORT edge
   : boost::noncopyable
 {
   public:
@@ -272,6 +272,6 @@ class VISTK_PIPELINE_EXPORT edge
 
 }
 
-template struct boost::equality_comparable<vistk::edge_datum_t>;
+template struct boost::equality_comparable<sprokit::edge_datum_t>;
 
-#endif // VISTK_PIPELINE_EDGE_H
+#endif // SPROKIT_PIPELINE_EDGE_H

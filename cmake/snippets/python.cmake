@@ -1,23 +1,23 @@
 # Set up options for Python.
 
-option(VISTK_ENABLE_PYTHON "Enable Python bindings" OFF)
-cmake_dependent_option(VISTK_ENABLE_PYTHON3 "Use Python3" OFF
-  VISTK_ENABLE_PYTHON OFF)
-if (VISTK_ENABLE_PYTHON)
+option(SPROKIT_ENABLE_PYTHON "Enable Python bindings" OFF)
+cmake_dependent_option(SPROKIT_ENABLE_PYTHON3 "Use Python3" OFF
+  SPROKIT_ENABLE_PYTHON OFF)
+if (SPROKIT_ENABLE_PYTHON)
   if (WIN32)
     set(destdir bin)
   else ()
     set(destdir lib)
   endif ()
 
-  set(python_output_path "${vistk_binary_dir}/${destdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
+  set(python_output_path "${sprokit_binary_dir}/${destdir}/python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
 
   set(PYTHON_VERSION "2.7"
     CACHE STRING "The version of python to use for bindings")
   set(PYTHON_ABIFLAGS ""
     CACHE STRING "The ABI flags for the version of Python being used")
 
-  if (VISTK_ENABLE_PYTHON3)
+  if (SPROKIT_ENABLE_PYTHON3)
     set(Python_ADDITIONAL_VERSIONS
       3
       ${PYTHON_VERSION})
@@ -34,10 +34,10 @@ if (VISTK_ENABLE_PYTHON)
 
   # This is to avoid Boost.Python's headers to have __declspec(dllimport) in
   # the headers which confuses Visual Studio's linker.
-  cmake_dependent_option(VISTK_HACK_LINK_BOOST_PYTHON_STATIC "Link Boost.Python statically" ON
+  cmake_dependent_option(SPROKIT_HACK_LINK_BOOST_PYTHON_STATIC "Link Boost.Python statically" ON
     WIN32 OFF)
-  mark_as_advanced(VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
-  if (VISTK_HACK_LINK_BOOST_PYTHON_STATIC)
+  mark_as_advanced(SPROKIT_HACK_LINK_BOOST_PYTHON_STATIC)
+  if (SPROKIT_HACK_LINK_BOOST_PYTHON_STATIC)
     add_definitions(-DBOOST_PYTHON_STATIC_LIB)
   endif ()
 endif ()

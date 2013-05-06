@@ -6,7 +6,7 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/datum.h>
+#include <sprokit/pipeline/datum.h>
 
 #define TEST_ARGS ()
 
@@ -36,9 +36,9 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(empty)
 {
-  vistk::datum_t const dat = vistk::datum::empty_datum();
+  sprokit::datum_t const dat = sprokit::datum::empty_datum();
 
-  if (dat->type() != vistk::datum::empty)
+  if (dat->type() != sprokit::datum::empty)
   {
     TEST_ERROR("Datum type mismatch");
   }
@@ -48,16 +48,16 @@ IMPLEMENT_TEST(empty)
     TEST_ERROR("An empty datum has an error string");
   }
 
-  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+  EXPECT_EXCEPTION(sprokit::bad_datum_cast_exception,
                    dat->get_datum<int>(),
                    "retrieving a value from an empty datum");
 }
 
 IMPLEMENT_TEST(flush)
 {
-  vistk::datum_t const dat = vistk::datum::flush_datum();
+  sprokit::datum_t const dat = sprokit::datum::flush_datum();
 
-  if (dat->type() != vistk::datum::flush)
+  if (dat->type() != sprokit::datum::flush)
   {
     TEST_ERROR("Datum type mismatch");
   }
@@ -67,16 +67,16 @@ IMPLEMENT_TEST(flush)
     TEST_ERROR("A flush datum has an error string");
   }
 
-  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+  EXPECT_EXCEPTION(sprokit::bad_datum_cast_exception,
                    dat->get_datum<int>(),
                    "retrieving a value from an flush datum");
 }
 
 IMPLEMENT_TEST(complete)
 {
-  vistk::datum_t const dat = vistk::datum::complete_datum();
+  sprokit::datum_t const dat = sprokit::datum::complete_datum();
 
-  if (dat->type() != vistk::datum::complete)
+  if (dat->type() != sprokit::datum::complete)
   {
     TEST_ERROR("Datum type mismatch");
   }
@@ -86,17 +86,17 @@ IMPLEMENT_TEST(complete)
     TEST_ERROR("A complete datum has an error string");
   }
 
-  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+  EXPECT_EXCEPTION(sprokit::bad_datum_cast_exception,
                    dat->get_datum<int>(),
                    "retrieving a value from a complete datum");
 }
 
 IMPLEMENT_TEST(error)
 {
-  vistk::datum::error_t const error = vistk::datum::error_t("An error");
-  vistk::datum_t const dat = vistk::datum::error_datum(error);
+  sprokit::datum::error_t const error = sprokit::datum::error_t("An error");
+  sprokit::datum_t const dat = sprokit::datum::error_datum(error);
 
-  if (dat->type() != vistk::datum::error)
+  if (dat->type() != sprokit::datum::error)
   {
     TEST_ERROR("Datum type mismatch");
   }
@@ -106,7 +106,7 @@ IMPLEMENT_TEST(error)
     TEST_ERROR("An error datum did not keep the message");
   }
 
-  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+  EXPECT_EXCEPTION(sprokit::bad_datum_cast_exception,
                    dat->get_datum<int>(),
                    "retrieving a value from an error datum");
 }
@@ -114,9 +114,9 @@ IMPLEMENT_TEST(error)
 IMPLEMENT_TEST(new)
 {
   int const datum = 100;
-  vistk::datum_t const dat = vistk::datum::new_datum(100);
+  sprokit::datum_t const dat = sprokit::datum::new_datum(100);
 
-  if (dat->type() != vistk::datum::data)
+  if (dat->type() != sprokit::datum::data)
   {
     TEST_ERROR("Datum type mismatch");
   }
@@ -133,7 +133,7 @@ IMPLEMENT_TEST(new)
     TEST_ERROR("Did not get same value out as put into datum");
   }
 
-  EXPECT_EXCEPTION(vistk::bad_datum_cast_exception,
+  EXPECT_EXCEPTION(sprokit::bad_datum_cast_exception,
                    dat->get_datum<std::string>(),
                    "retrieving an int as a string");
 }

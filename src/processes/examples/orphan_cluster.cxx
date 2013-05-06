@@ -12,7 +12,7 @@
  * \brief Implementation of the orphan cluster.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 orphan_cluster

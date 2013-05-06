@@ -7,13 +7,13 @@
 
 def test_import(path_unused):
     try:
-        import vistk.pipeline_util.load
+        import sprokit.pipeline_util.load
     except:
         test_error("Failed to import the load module")
 
 
 def test_create(path_unused):
-    from vistk.pipeline_util import load
+    from sprokit.pipeline_util import load
 
     load.Token()
     load.ConfigFlag()
@@ -39,10 +39,10 @@ def test_create(path_unused):
 
 
 def test_api_calls(path_unused):
-    from vistk.pipeline import config
-    from vistk.pipeline import process
-    from vistk.pipeline import process_registry
-    from vistk.pipeline_util import load
+    from sprokit.pipeline import config
+    from sprokit.pipeline import process
+    from sprokit.pipeline import process_registry
+    from sprokit.pipeline_util import load
 
     o = load.ConfigKeyOptions()
     o.flags
@@ -183,7 +183,7 @@ def test_api_calls(path_unused):
 
 
 def test_simple_pipeline(path):
-    from vistk.pipeline_util import load
+    from sprokit.pipeline_util import load
 
     blocks = load.load_pipe_file(path)
     with open(path, 'r') as fin:
@@ -191,7 +191,7 @@ def test_simple_pipeline(path):
 
 
 def test_cluster_multiplier(path):
-    from vistk.pipeline_util import load
+    from sprokit.pipeline_util import load
 
     blocks = load.load_cluster_file(path)
     with open(path, 'r') as fin:
@@ -224,6 +224,6 @@ if __name__ == '__main__':
 
     path = os.path.join(pipeline_dir, '%s.pipe' % testname)
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests, path)

@@ -6,14 +6,14 @@
 
 #include <python/helpers/pystream.h>
 
-#include <vistk/pipeline_util/path.h>
-#include <vistk/pipeline_util/pipe_bakery.h>
-#include <vistk/pipeline_util/pipe_bakery_exception.h>
+#include <sprokit/pipeline_util/path.h>
+#include <sprokit/pipeline_util/pipe_bakery.h>
+#include <sprokit/pipeline_util/pipe_bakery_exception.h>
 
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/process_registry.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/process_registry.h>
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
@@ -31,19 +31,19 @@
 
 using namespace boost::python;
 
-static vistk::process::type_t cluster_info_type(vistk::cluster_info_t const& self);
-static vistk::process_registry::description_t cluster_info_description(vistk::cluster_info_t const& self);
-static vistk::process_t cluster_info_create(vistk::cluster_info_t const& self, vistk::config_t const& config);
-static vistk::process_t cluster_info_create_default(vistk::cluster_info_t const& self);
-static void register_cluster(vistk::cluster_info_t const& info);
-static vistk::pipeline_t bake_pipe_file(std::string const& path);
-static vistk::pipeline_t bake_pipe(object stream, std::string const& inc_root);
-static vistk::cluster_info_t bake_cluster_file(std::string const& path);
-static vistk::cluster_info_t bake_cluster(object stream, std::string const& inc_root);
+static sprokit::process::type_t cluster_info_type(sprokit::cluster_info_t const& self);
+static sprokit::process_registry::description_t cluster_info_description(sprokit::cluster_info_t const& self);
+static sprokit::process_t cluster_info_create(sprokit::cluster_info_t const& self, sprokit::config_t const& config);
+static sprokit::process_t cluster_info_create_default(sprokit::cluster_info_t const& self);
+static void register_cluster(sprokit::cluster_info_t const& info);
+static sprokit::pipeline_t bake_pipe_file(std::string const& path);
+static sprokit::pipeline_t bake_pipe(object stream, std::string const& inc_root);
+static sprokit::cluster_info_t bake_cluster_file(std::string const& path);
+static sprokit::cluster_info_t bake_cluster(object stream, std::string const& inc_root);
 
 BOOST_PYTHON_MODULE(bake)
 {
-  class_<vistk::cluster_info_t>("ClusterInfo"
+  class_<sprokit::cluster_info_t>("ClusterInfo"
     , "Information loaded from a cluster file."
     , no_init)
     .def("type", &cluster_info_type)
@@ -65,7 +65,7 @@ BOOST_PYTHON_MODULE(bake)
   def("bake_pipe", &bake_pipe
     , (arg("stream"), arg("inc_root") = std::string())
     , "Build a pipeline from a stream.");
-  def("bake_pipe_blocks", &vistk::bake_pipe_blocks
+  def("bake_pipe_blocks", &sprokit::bake_pipe_blocks
     , (arg("blocks"))
     , "Build a pipeline from pipe blocks.");
   def("bake_cluster_file", &bake_cluster_file
@@ -74,44 +74,44 @@ BOOST_PYTHON_MODULE(bake)
   def("bake_cluster", &bake_cluster
     , (arg("stream"), arg("inc_root") = std::string())
     , "Build a cluster from a stream.");
-  def("bake_cluster_blocks", &vistk::bake_cluster_blocks
+  def("bake_cluster_blocks", &sprokit::bake_cluster_blocks
     , (arg("blocks"))
     , "Build a cluster from cluster blocks.");
-  def("extract_configuration", &vistk::extract_configuration
+  def("extract_configuration", &sprokit::extract_configuration
     , (arg("blocks"))
     , "Extract the configuration from pipe blocks.");
 }
 
-vistk::process::type_t
-cluster_info_type(vistk::cluster_info_t const& self)
+sprokit::process::type_t
+cluster_info_type(sprokit::cluster_info_t const& self)
 {
   return self->type;
 }
 
-vistk::process_registry::description_t
-cluster_info_description(vistk::cluster_info_t const& self)
+sprokit::process_registry::description_t
+cluster_info_description(sprokit::cluster_info_t const& self)
 {
   return self->description;
 }
 
-vistk::process_t
-cluster_info_create(vistk::cluster_info_t const& self, vistk::config_t const& config)
+sprokit::process_t
+cluster_info_create(sprokit::cluster_info_t const& self, sprokit::config_t const& config)
 {
-  vistk::process_ctor_t const& ctor = self->ctor;
+  sprokit::process_ctor_t const& ctor = self->ctor;
 
   return ctor(config);
 }
 
-vistk::process_t
-cluster_info_create_default(vistk::cluster_info_t const& self)
+sprokit::process_t
+cluster_info_create_default(sprokit::cluster_info_t const& self)
 {
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
   return cluster_info_create(self, conf);
 }
 
 void
-register_cluster(vistk::cluster_info_t const& info)
+register_cluster(sprokit::cluster_info_t const& info)
 {
   if (!info)
   {
@@ -120,47 +120,47 @@ register_cluster(vistk::cluster_info_t const& info)
     throw std::runtime_error(reason);
   }
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const& type = info->type;
-  vistk::process_registry::description_t const& description = info->description;
-  vistk::process_ctor_t const& ctor = info->ctor;
+  sprokit::process::type_t const& type = info->type;
+  sprokit::process_registry::description_t const& description = info->description;
+  sprokit::process_ctor_t const& ctor = info->ctor;
 
   reg->register_process(type, description, ctor);
 }
 
-vistk::pipeline_t
+sprokit::pipeline_t
 bake_pipe_file(std::string const& path)
 {
-  return vistk::bake_pipe_from_file(vistk::path_t(path));
+  return sprokit::bake_pipe_from_file(sprokit::path_t(path));
 }
 
-vistk::pipeline_t
+sprokit::pipeline_t
 bake_pipe(object stream, std::string const& inc_root)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
   pyistream istr(stream);
 
-  return vistk::bake_pipe(istr, vistk::path_t(inc_root));
+  return sprokit::bake_pipe(istr, sprokit::path_t(inc_root));
 }
 
-vistk::cluster_info_t
+sprokit::cluster_info_t
 bake_cluster_file(std::string const& path)
 {
-  return vistk::bake_cluster_from_file(vistk::path_t(path));
+  return sprokit::bake_cluster_from_file(sprokit::path_t(path));
 }
 
-vistk::cluster_info_t
+sprokit::cluster_info_t
 bake_cluster(object stream, std::string const& inc_root)
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
   pyistream istr(stream);
 
-  return vistk::bake_cluster(istr, vistk::path_t(inc_root));
+  return sprokit::bake_cluster(istr, sprokit::path_t(inc_root));
 }

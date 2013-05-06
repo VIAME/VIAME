@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_EXAMPLES_ORPHAN_CLUSTER_H
-#define VISTK_PROCESSES_EXAMPLES_ORPHAN_CLUSTER_H
+#ifndef SPROKIT_PROCESSES_EXAMPLES_ORPHAN_CLUSTER_H
+#define SPROKIT_PROCESSES_EXAMPLES_ORPHAN_CLUSTER_H
 
 #include "examples-config.h"
 
-#include <vistk/pipeline/process_cluster.h>
+#include <sprokit/pipeline/process_cluster.h>
 
 /**
  * \file orphan_cluster.h
@@ -17,7 +17,7 @@
  * \brief Declaration of the orphan cluster.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
@@ -29,7 +29,7 @@ namespace vistk
  *
  * \ingroup examples
  */
-class VISTK_PROCESSES_EXAMPLES_NO_EXPORT orphan_cluster
+class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT orphan_cluster
   : public process_cluster
 {
   public:
@@ -47,4 +47,4 @@ class VISTK_PROCESSES_EXAMPLES_NO_EXPORT orphan_cluster
 
 }
 
-#endif // VISTK_PROCESSES_EXAMPLES_ORPHAN_CLUSTER_H
+#endif // SPROKIT_PROCESSES_EXAMPLES_ORPHAN_CLUSTER_H

@@ -6,7 +6,7 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
+#include <sprokit/pipeline/config.h>
 
 #define TEST_ARGS ()
 
@@ -66,7 +66,7 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(block_sep_size)
 {
-  if (vistk::config::block_sep.size() != 1)
+  if (sprokit::config::block_sep.size() != 1)
   {
     TEST_ERROR("Block separator is not size 1; quite a "
                "few places rest on this assumption now");
@@ -75,12 +75,12 @@ IMPLEMENT_TEST(block_sep_size)
 
 IMPLEMENT_TEST(has_value)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
 
   config->set_value(keya, valuea);
 
@@ -97,15 +97,15 @@ IMPLEMENT_TEST(has_value)
 
 IMPLEMENT_TEST(get_value)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
 
   config->set_value(keya, valuea);
 
-  vistk::config::value_t const get_valuea = config->get_value<vistk::config::value_t>(keya);
+  sprokit::config::value_t const get_valuea = config->get_value<sprokit::config::value_t>(keya);
 
   if (valuea != get_valuea)
   {
@@ -115,18 +115,18 @@ IMPLEMENT_TEST(get_value)
 
 IMPLEMENT_TEST(get_value_nested)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
 
-  config->set_value(keya + vistk::config::block_sep + keyb, valuea);
+  config->set_value(keya + sprokit::config::block_sep + keyb, valuea);
 
-  vistk::config_t const nested_config = config->subblock(keya);
+  sprokit::config_t const nested_config = config->subblock(keya);
 
-  vistk::config::value_t const get_valuea = nested_config->get_value<vistk::config::value_t>(keyb);
+  sprokit::config::value_t const get_valuea = nested_config->get_value<sprokit::config::value_t>(keyb);
 
   if (valuea != get_valuea)
   {
@@ -136,18 +136,18 @@ IMPLEMENT_TEST(get_value_nested)
 
 IMPLEMENT_TEST(get_value_no_exist)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
 
-  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+  sprokit::config::value_t const valueb = sprokit::config::value_t("valueb");
 
-  EXPECT_EXCEPTION(vistk::no_such_configuration_value_exception,
-                   config->get_value<vistk::config::value_t>(keya),
+  EXPECT_EXCEPTION(sprokit::no_such_configuration_value_exception,
+                   config->get_value<sprokit::config::value_t>(keya),
                    "retrieving an unset value");
 
-  vistk::config::value_t const get_valueb = config->get_value<vistk::config::value_t>(keyb, valueb);
+  sprokit::config::value_t const get_valueb = config->get_value<sprokit::config::value_t>(keyb, valueb);
 
   if (valueb != get_valueb)
   {
@@ -157,16 +157,16 @@ IMPLEMENT_TEST(get_value_no_exist)
 
 IMPLEMENT_TEST(get_value_type_mismatch)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
   int const valueb = 100;
 
   config->set_value(keya, valuea);
 
-  EXPECT_EXCEPTION(vistk::bad_configuration_cast_exception,
+  EXPECT_EXCEPTION(sprokit::bad_configuration_cast_exception,
                    config->get_value<int>(keya),
                    "doing an invalid cast");
 
@@ -180,16 +180,16 @@ IMPLEMENT_TEST(get_value_type_mismatch)
 
 IMPLEMENT_TEST(bool_conversion)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("key");
+  sprokit::config::key_t const key = sprokit::config::key_t("key");
 
-  vistk::config::value_t const lit_true = vistk::config::value_t("true");
-  vistk::config::value_t const lit_false = vistk::config::value_t("false");
-  vistk::config::value_t const lit_True = vistk::config::value_t("True");
-  vistk::config::value_t const lit_False = vistk::config::value_t("False");
-  vistk::config::value_t const lit_1 = vistk::config::value_t("1");
-  vistk::config::value_t const lit_0 = vistk::config::value_t("0");
+  sprokit::config::value_t const lit_true = sprokit::config::value_t("true");
+  sprokit::config::value_t const lit_false = sprokit::config::value_t("false");
+  sprokit::config::value_t const lit_True = sprokit::config::value_t("True");
+  sprokit::config::value_t const lit_False = sprokit::config::value_t("False");
+  sprokit::config::value_t const lit_1 = sprokit::config::value_t("1");
+  sprokit::config::value_t const lit_0 = sprokit::config::value_t("0");
 
   bool val;
 
@@ -244,24 +244,24 @@ IMPLEMENT_TEST(bool_conversion)
 
 IMPLEMENT_TEST(unset_value)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
-  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
+  sprokit::config::value_t const valueb = sprokit::config::value_t("valueb");
 
   config->set_value(keya, valuea);
   config->set_value(keyb, valueb);
 
   config->unset_value(keya);
 
-  EXPECT_EXCEPTION(vistk::no_such_configuration_value_exception,
-                   config->get_value<vistk::config::value_t>(keya),
+  EXPECT_EXCEPTION(sprokit::no_such_configuration_value_exception,
+                   config->get_value<sprokit::config::value_t>(keya),
                    "retrieving an unset value");
 
-  vistk::config::value_t const get_valueb = config->get_value<vistk::config::value_t>(keyb);
+  sprokit::config::value_t const get_valueb = config->get_value<sprokit::config::value_t>(keyb);
 
   if (valueb != get_valueb)
   {
@@ -271,23 +271,23 @@ IMPLEMENT_TEST(unset_value)
 
 IMPLEMENT_TEST(available_values)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
-  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
+  sprokit::config::value_t const valueb = sprokit::config::value_t("valueb");
 
   config->set_value(keya, valuea);
   config->set_value(keyb, valueb);
 
-  vistk::config::keys_t keys;
+  sprokit::config::keys_t keys;
 
   keys.push_back(keya);
   keys.push_back(keyb);
 
-  vistk::config::keys_t const get_keys = config->available_values();
+  sprokit::config::keys_t const get_keys = config->available_values();
 
   if (keys.size() != get_keys.size())
   {
@@ -297,22 +297,22 @@ IMPLEMENT_TEST(available_values)
 
 IMPLEMENT_TEST(read_only)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
-  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
+  sprokit::config::value_t const valueb = sprokit::config::value_t("valueb");
 
   config->set_value(keya, valuea);
 
   config->mark_read_only(keya);
 
-  EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
+  EXPECT_EXCEPTION(sprokit::set_on_read_only_value_exception,
                    config->set_value(keya, valueb),
                    "setting a read only value");
 
-  vistk::config::value_t const get_valuea = config->get_value<vistk::config::value_t>(keya);
+  sprokit::config::value_t const get_valuea = config->get_value<sprokit::config::value_t>(keya);
 
   if (valuea != get_valuea)
   {
@@ -322,21 +322,21 @@ IMPLEMENT_TEST(read_only)
 
 IMPLEMENT_TEST(read_only_unset)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
 
   config->set_value(keya, valuea);
 
   config->mark_read_only(keya);
 
-  EXPECT_EXCEPTION(vistk::unset_on_read_only_value_exception,
+  EXPECT_EXCEPTION(sprokit::unset_on_read_only_value_exception,
                    config->unset_value(keya),
                    "unsetting a read only value");
 
-  vistk::config::value_t const get_valuea = config->get_value<vistk::config::value_t>(keya);
+  sprokit::config::value_t const get_valuea = config->get_value<sprokit::config::value_t>(keya);
 
   if (valuea != get_valuea)
   {
@@ -346,28 +346,28 @@ IMPLEMENT_TEST(read_only_unset)
 
 IMPLEMENT_TEST(subblock)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const block_name = vistk::config::key_t("block");
-  vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
+  sprokit::config::key_t const block_name = sprokit::config::key_t("block");
+  sprokit::config::key_t const other_block_name = sprokit::config::key_t("other_block");
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
-  vistk::config::key_t const keyc = vistk::config::key_t("keyc");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
+  sprokit::config::key_t const keyc = sprokit::config::key_t("keyc");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
-  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
-  vistk::config::value_t const valuec = vistk::config::value_t("valuec");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
+  sprokit::config::value_t const valueb = sprokit::config::value_t("valueb");
+  sprokit::config::value_t const valuec = sprokit::config::value_t("valuec");
 
-  config->set_value(block_name + vistk::config::block_sep + keya, valuea);
-  config->set_value(block_name + vistk::config::block_sep + keyb, valueb);
-  config->set_value(other_block_name + vistk::config::block_sep + keyc, valuec);
+  config->set_value(block_name + sprokit::config::block_sep + keya, valuea);
+  config->set_value(block_name + sprokit::config::block_sep + keyb, valueb);
+  config->set_value(other_block_name + sprokit::config::block_sep + keyc, valuec);
 
-  vistk::config_t const subblock = config->subblock(block_name);
+  sprokit::config_t const subblock = config->subblock(block_name);
 
   if (subblock->has_value(keya))
   {
-    vistk::config::value_t const get_valuea = subblock->get_value<vistk::config::value_t>(keya);
+    sprokit::config::value_t const get_valuea = subblock->get_value<sprokit::config::value_t>(keya);
 
     if (valuea != get_valuea)
     {
@@ -381,7 +381,7 @@ IMPLEMENT_TEST(subblock)
 
   if (subblock->has_value(keyb))
   {
-    vistk::config::value_t const get_valueb = subblock->get_value<vistk::config::value_t>(keyb);
+    sprokit::config::value_t const get_valueb = subblock->get_value<sprokit::config::value_t>(keyb);
 
     if (valueb != get_valueb)
     {
@@ -401,26 +401,26 @@ IMPLEMENT_TEST(subblock)
 
 IMPLEMENT_TEST(subblock_nested)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const block_name = vistk::config::key_t("block");
-  vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
-  vistk::config::key_t const nested_block_name = block_name + vistk::config::block_sep + other_block_name;
+  sprokit::config::key_t const block_name = sprokit::config::key_t("block");
+  sprokit::config::key_t const other_block_name = sprokit::config::key_t("other_block");
+  sprokit::config::key_t const nested_block_name = block_name + sprokit::config::block_sep + other_block_name;
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
-  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
+  sprokit::config::value_t const valueb = sprokit::config::value_t("valueb");
 
-  config->set_value(nested_block_name + vistk::config::block_sep + keya, valuea);
-  config->set_value(nested_block_name + vistk::config::block_sep + keyb, valueb);
+  config->set_value(nested_block_name + sprokit::config::block_sep + keya, valuea);
+  config->set_value(nested_block_name + sprokit::config::block_sep + keyb, valueb);
 
-  vistk::config_t const subblock = config->subblock(nested_block_name);
+  sprokit::config_t const subblock = config->subblock(nested_block_name);
 
   if (subblock->has_value(keya))
   {
-    vistk::config::value_t const get_valuea = subblock->get_value<vistk::config::value_t>(keya);
+    sprokit::config::value_t const get_valuea = subblock->get_value<sprokit::config::value_t>(keya);
 
     if (valuea != get_valuea)
     {
@@ -434,7 +434,7 @@ IMPLEMENT_TEST(subblock_nested)
 
   if (subblock->has_value(keyb))
   {
-    vistk::config::value_t const get_valueb = subblock->get_value<vistk::config::value_t>(keyb);
+    sprokit::config::value_t const get_valueb = subblock->get_value<sprokit::config::value_t>(keyb);
 
     if (valueb != get_valueb)
     {
@@ -449,17 +449,17 @@ IMPLEMENT_TEST(subblock_nested)
 
 IMPLEMENT_TEST(subblock_match)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const block_name = vistk::config::key_t("block");
+  sprokit::config::key_t const block_name = sprokit::config::key_t("block");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
 
   config->set_value(block_name, valuea);
 
-  vistk::config_t const subblock = config->subblock(block_name);
+  sprokit::config_t const subblock = config->subblock(block_name);
 
-  vistk::config::keys_t const keys = subblock->available_values();
+  sprokit::config::keys_t const keys = subblock->available_values();
 
   if (!keys.empty())
   {
@@ -469,19 +469,19 @@ IMPLEMENT_TEST(subblock_match)
 
 IMPLEMENT_TEST(subblock_prefix_match)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const block_name = vistk::config::key_t("block");
+  sprokit::config::key_t const block_name = sprokit::config::key_t("block");
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
 
   config->set_value(block_name + keya, valuea);
 
-  vistk::config_t const subblock = config->subblock(block_name);
+  sprokit::config_t const subblock = config->subblock(block_name);
 
-  vistk::config::keys_t const keys = subblock->available_values();
+  sprokit::config::keys_t const keys = subblock->available_values();
 
   if (!keys.empty())
   {
@@ -491,24 +491,24 @@ IMPLEMENT_TEST(subblock_prefix_match)
 
 IMPLEMENT_TEST(subblock_view)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const block_name = vistk::config::key_t("block");
-  vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
+  sprokit::config::key_t const block_name = sprokit::config::key_t("block");
+  sprokit::config::key_t const other_block_name = sprokit::config::key_t("other_block");
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
-  vistk::config::key_t const keyc = vistk::config::key_t("keyc");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
+  sprokit::config::key_t const keyc = sprokit::config::key_t("keyc");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
-  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
-  vistk::config::value_t const valuec = vistk::config::value_t("valuec");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
+  sprokit::config::value_t const valueb = sprokit::config::value_t("valueb");
+  sprokit::config::value_t const valuec = sprokit::config::value_t("valuec");
 
-  config->set_value(block_name + vistk::config::block_sep + keya, valuea);
-  config->set_value(block_name + vistk::config::block_sep + keyb, valueb);
-  config->set_value(other_block_name + vistk::config::block_sep + keyc, valuec);
+  config->set_value(block_name + sprokit::config::block_sep + keya, valuea);
+  config->set_value(block_name + sprokit::config::block_sep + keyb, valueb);
+  config->set_value(other_block_name + sprokit::config::block_sep + keyc, valuec);
 
-  vistk::config_t const subblock = config->subblock_view(block_name);
+  sprokit::config_t const subblock = config->subblock_view(block_name);
 
   if (!subblock->has_value(keya))
   {
@@ -520,9 +520,9 @@ IMPLEMENT_TEST(subblock_view)
     TEST_ERROR("Subblock view inherited unrelated key");
   }
 
-  config->set_value(block_name + vistk::config::block_sep + keya, valueb);
+  config->set_value(block_name + sprokit::config::block_sep + keya, valueb);
 
-  vistk::config::value_t const get_valuea1 = subblock->get_value<vistk::config::value_t>(keya);
+  sprokit::config::value_t const get_valuea1 = subblock->get_value<sprokit::config::value_t>(keya);
 
   if (valueb != get_valuea1)
   {
@@ -531,7 +531,7 @@ IMPLEMENT_TEST(subblock_view)
 
   subblock->set_value(keya, valuea);
 
-  vistk::config::value_t const get_valuea2 = config->get_value<vistk::config::value_t>(block_name + vistk::config::block_sep + keya);
+  sprokit::config::value_t const get_valuea2 = config->get_value<sprokit::config::value_t>(block_name + sprokit::config::block_sep + keya);
 
   if (valuea != get_valuea2)
   {
@@ -540,19 +540,19 @@ IMPLEMENT_TEST(subblock_view)
 
   subblock->unset_value(keyb);
 
-  if (config->has_value(block_name + vistk::config::block_sep + keyb))
+  if (config->has_value(block_name + sprokit::config::block_sep + keyb))
   {
     TEST_ERROR("Unsetting from a subblock view did not unset in parent view");
   }
 
-  config->set_value(block_name + vistk::config::block_sep + keyc, valuec);
+  config->set_value(block_name + sprokit::config::block_sep + keyc, valuec);
 
-  vistk::config::keys_t keys;
+  sprokit::config::keys_t keys;
 
   keys.push_back(keya);
   keys.push_back(keyc);
 
-  vistk::config::keys_t const get_keys = subblock->available_values();
+  sprokit::config::keys_t const get_keys = subblock->available_values();
 
   if (keys.size() != get_keys.size())
   {
@@ -562,26 +562,26 @@ IMPLEMENT_TEST(subblock_view)
 
 IMPLEMENT_TEST(subblock_view_nested)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const block_name = vistk::config::key_t("block");
-  vistk::config::key_t const other_block_name = vistk::config::key_t("other_block");
-  vistk::config::key_t const nested_block_name = block_name + vistk::config::block_sep + other_block_name;
+  sprokit::config::key_t const block_name = sprokit::config::key_t("block");
+  sprokit::config::key_t const other_block_name = sprokit::config::key_t("other_block");
+  sprokit::config::key_t const nested_block_name = block_name + sprokit::config::block_sep + other_block_name;
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
-  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
+  sprokit::config::value_t const valueb = sprokit::config::value_t("valueb");
 
-  config->set_value(nested_block_name + vistk::config::block_sep + keya, valuea);
-  config->set_value(nested_block_name + vistk::config::block_sep + keyb, valueb);
+  config->set_value(nested_block_name + sprokit::config::block_sep + keya, valuea);
+  config->set_value(nested_block_name + sprokit::config::block_sep + keyb, valueb);
 
-  vistk::config_t const subblock = config->subblock_view(nested_block_name);
+  sprokit::config_t const subblock = config->subblock_view(nested_block_name);
 
   if (subblock->has_value(keya))
   {
-    vistk::config::value_t const get_valuea = subblock->get_value<vistk::config::value_t>(keya);
+    sprokit::config::value_t const get_valuea = subblock->get_value<sprokit::config::value_t>(keya);
 
     if (valuea != get_valuea)
     {
@@ -595,7 +595,7 @@ IMPLEMENT_TEST(subblock_view_nested)
 
   if (subblock->has_value(keyb))
   {
-    vistk::config::value_t const get_valueb = subblock->get_value<vistk::config::value_t>(keyb);
+    sprokit::config::value_t const get_valueb = subblock->get_value<sprokit::config::value_t>(keyb);
 
     if (valueb != get_valueb)
     {
@@ -610,17 +610,17 @@ IMPLEMENT_TEST(subblock_view_nested)
 
 IMPLEMENT_TEST(subblock_view_match)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const block_name = vistk::config::key_t("block");
+  sprokit::config::key_t const block_name = sprokit::config::key_t("block");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
 
   config->set_value(block_name, valuea);
 
-  vistk::config_t const subblock = config->subblock_view(block_name);
+  sprokit::config_t const subblock = config->subblock_view(block_name);
 
-  vistk::config::keys_t const keys = subblock->available_values();
+  sprokit::config::keys_t const keys = subblock->available_values();
 
   if (!keys.empty())
   {
@@ -630,19 +630,19 @@ IMPLEMENT_TEST(subblock_view_match)
 
 IMPLEMENT_TEST(subblock_view_prefix_match)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::config::key_t const block_name = vistk::config::key_t("block");
+  sprokit::config::key_t const block_name = sprokit::config::key_t("block");
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
 
   config->set_value(block_name + keya, valuea);
 
-  vistk::config_t const subblock = config->subblock_view(block_name);
+  sprokit::config_t const subblock = config->subblock_view(block_name);
 
-  vistk::config::keys_t const keys = subblock->available_values();
+  sprokit::config::keys_t const keys = subblock->available_values();
 
   if (!keys.empty())
   {
@@ -652,16 +652,16 @@ IMPLEMENT_TEST(subblock_view_prefix_match)
 
 IMPLEMENT_TEST(merge_config)
 {
-  vistk::config_t const configa = vistk::config::empty_config();
-  vistk::config_t const configb = vistk::config::empty_config();
+  sprokit::config_t const configa = sprokit::config::empty_config();
+  sprokit::config_t const configb = sprokit::config::empty_config();
 
-  vistk::config::key_t const keya = vistk::config::key_t("keya");
-  vistk::config::key_t const keyb = vistk::config::key_t("keyb");
-  vistk::config::key_t const keyc = vistk::config::key_t("keyc");
+  sprokit::config::key_t const keya = sprokit::config::key_t("keya");
+  sprokit::config::key_t const keyb = sprokit::config::key_t("keyb");
+  sprokit::config::key_t const keyc = sprokit::config::key_t("keyc");
 
-  vistk::config::value_t const valuea = vistk::config::value_t("valuea");
-  vistk::config::value_t const valueb = vistk::config::value_t("valueb");
-  vistk::config::value_t const valuec = vistk::config::value_t("valuec");
+  sprokit::config::value_t const valuea = sprokit::config::value_t("valuea");
+  sprokit::config::value_t const valueb = sprokit::config::value_t("valueb");
+  sprokit::config::value_t const valuec = sprokit::config::value_t("valuec");
 
   configa->set_value(keya, valuea);
   configa->set_value(keyb, valuea);
@@ -671,21 +671,21 @@ IMPLEMENT_TEST(merge_config)
 
   configa->merge_config(configb);
 
-  vistk::config::value_t const get_valuea = configa->get_value<vistk::config::value_t>(keya);
+  sprokit::config::value_t const get_valuea = configa->get_value<sprokit::config::value_t>(keya);
 
   if (valuea != get_valuea)
   {
     TEST_ERROR("Unmerged key changed");
   }
 
-  vistk::config::value_t const get_valueb = configa->get_value<vistk::config::value_t>(keyb);
+  sprokit::config::value_t const get_valueb = configa->get_value<sprokit::config::value_t>(keyb);
 
   if (valueb != get_valueb)
   {
     TEST_ERROR("Conflicting key was not overwritten");
   }
 
-  vistk::config::value_t const get_valuec = configa->get_value<vistk::config::value_t>(keyc);
+  sprokit::config::value_t const get_valuec = configa->get_value<sprokit::config::value_t>(keyc);
 
   if (valuec != get_valuec)
   {

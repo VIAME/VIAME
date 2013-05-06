@@ -7,17 +7,17 @@
 
 def test_import():
     try:
-        import vistk.pipeline.config
-        import vistk.pipeline.process
-        import vistk.pipeline.process_cluster
+        import sprokit.pipeline.config
+        import sprokit.pipeline.process
+        import sprokit.pipeline.process_cluster
     except:
         test_error("Failed to import the process_cluster module")
 
 
 def test_api_calls():
-    from vistk.pipeline import config
-    from vistk.pipeline import process
-    from vistk.pipeline import process_cluster
+    from sprokit.pipeline import config
+    from sprokit.pipeline import process
+    from sprokit.pipeline import process_cluster
 
     process_cluster.PythonProcessCluster.type_any
     process_cluster.PythonProcessCluster.type_none
@@ -59,6 +59,6 @@ if __name__ == '__main__':
         , 'api_calls': test_api_calls
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

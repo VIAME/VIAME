@@ -18,10 +18,10 @@
 /**
  * \file scheduler.cxx
  *
- * \brief Implementation of the base class for \link vistk::scheduler schedulers\endlink.
+ * \brief Implementation of the base class for \link sprokit::scheduler schedulers\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class scheduler::priv

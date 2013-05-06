@@ -6,13 +6,13 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/scheduler.h>
-#include <vistk/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/scheduler.h>
+#include <sprokit/pipeline/scheduler_registry.h>
 
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
@@ -20,7 +20,7 @@
 
 #include <fstream>
 
-#define TEST_ARGS (vistk::scheduler_registry::type_t const& scheduler_type)
+#define TEST_ARGS (sprokit::scheduler_registry::type_t const& scheduler_type)
 
 DECLARE_TEST(simple_pipeline);
 DECLARE_TEST(pysimple_pipeline);
@@ -46,7 +46,7 @@ main(int argc, char* argv[])
   }
 
   testname_t const testname = full_testname.substr(0, sep_pos);
-  vistk::scheduler_registry::type_t const scheduler_type = full_testname.substr(sep_pos + test_sep.length());
+  sprokit::scheduler_registry::type_t const scheduler_type = full_testname.substr(sep_pos + test_sep.length());
 
   DECLARE_TEST_MAP(tests);
 
@@ -58,16 +58,16 @@ main(int argc, char* argv[])
   RUN_TEST(tests, testname, scheduler_type);
 }
 
-static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
-static vistk::pipeline_t create_pipeline();
+static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config = sprokit::config::empty_config());
+static sprokit::pipeline_t create_pipeline();
 
 IMPLEMENT_TEST(simple_pipeline)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("print_number");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
 
   std::string const output_path = "test-run-simple_pipeline-" + scheduler_type + "-print_number.txt";
 
@@ -75,42 +75,42 @@ IMPLEMENT_TEST(simple_pipeline)
   int32_t const end_value = 20;
 
   {
-    vistk::config_t const configu = vistk::config::empty_config();
+    sprokit::config_t const configu = sprokit::config::empty_config();
 
-    vistk::config::key_t const start_key = vistk::config::key_t("start");
-    vistk::config::value_t const start_num = boost::lexical_cast<vistk::config::value_t>(start_value);
-    vistk::config::key_t const end_key = vistk::config::key_t("end");
-    vistk::config::value_t const end_num = boost::lexical_cast<vistk::config::value_t>(end_value);
+    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
+    sprokit::config::value_t const start_num = boost::lexical_cast<sprokit::config::value_t>(start_value);
+    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
+    sprokit::config::value_t const end_num = boost::lexical_cast<sprokit::config::value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    vistk::config_t const configt = vistk::config::empty_config();
+    sprokit::config_t const configt = sprokit::config::empty_config();
 
-    vistk::config::key_t const output_key = vistk::config::key_t("output");
-    vistk::config::value_t const output_value = vistk::config::value_t(output_path);
+    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
+    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
-    vistk::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
-    vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+    sprokit::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
+    sprokit::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-    vistk::pipeline_t const pipeline = create_pipeline();
+    sprokit::pipeline_t const pipeline = create_pipeline();
 
     pipeline->add_process(processu);
     pipeline->add_process(processt);
 
-    vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-    vistk::process::port_t const port_namet = vistk::process::port_t("number");
+    sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+    sprokit::process::port_t const port_namet = sprokit::process::port_t("number");
 
     pipeline->connect(proc_nameu, port_nameu,
                       proc_namet, port_namet);
 
     pipeline->setup_pipeline();
 
-    vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-    vistk::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -129,7 +129,7 @@ IMPLEMENT_TEST(simple_pipeline)
   {
     std::getline(fin, line);
 
-    if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i))
+    if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i << " "
@@ -152,11 +152,11 @@ IMPLEMENT_TEST(simple_pipeline)
 
 IMPLEMENT_TEST(pysimple_pipeline)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typet = vistk::process::type_t("pyprint_number");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("pyprint_number");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
 
   std::string const output_path = "test-run-pysimple_pipeline-" + scheduler_type + "-print_number.txt";
 
@@ -164,42 +164,42 @@ IMPLEMENT_TEST(pysimple_pipeline)
   int32_t const end_value = 20;
 
   {
-    vistk::config_t const configu = vistk::config::empty_config();
+    sprokit::config_t const configu = sprokit::config::empty_config();
 
-    vistk::config::key_t const start_key = vistk::config::key_t("start");
-    vistk::config::value_t const start_num = boost::lexical_cast<vistk::config::value_t>(start_value);
-    vistk::config::key_t const end_key = vistk::config::key_t("end");
-    vistk::config::value_t const end_num = boost::lexical_cast<vistk::config::value_t>(end_value);
+    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
+    sprokit::config::value_t const start_num = boost::lexical_cast<sprokit::config::value_t>(start_value);
+    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
+    sprokit::config::value_t const end_num = boost::lexical_cast<sprokit::config::value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    vistk::config_t const configt = vistk::config::empty_config();
+    sprokit::config_t const configt = sprokit::config::empty_config();
 
-    vistk::config::key_t const output_key = vistk::config::key_t("output");
-    vistk::config::value_t const output_value = vistk::config::value_t(output_path);
+    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
+    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
-    vistk::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
-    vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+    sprokit::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
+    sprokit::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-    vistk::pipeline_t const pipeline = create_pipeline();
+    sprokit::pipeline_t const pipeline = create_pipeline();
 
     pipeline->add_process(processu);
     pipeline->add_process(processt);
 
-    vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-    vistk::process::port_t const port_namet = vistk::process::port_t("input");
+    sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+    sprokit::process::port_t const port_namet = sprokit::process::port_t("input");
 
     pipeline->connect(proc_nameu, port_nameu,
                       proc_namet, port_namet);
 
     pipeline->setup_pipeline();
 
-    vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-    vistk::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -218,7 +218,7 @@ IMPLEMENT_TEST(pysimple_pipeline)
   {
     std::getline(fin, line);
 
-    if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i))
+    if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i << " "
@@ -241,14 +241,14 @@ IMPLEMENT_TEST(pysimple_pipeline)
 
 IMPLEMENT_TEST(multiplier_pipeline)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
-  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("multiplication");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("print_number");
 
-  vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
-  vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
-  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+  sprokit::process::name_t const proc_nameu1 = sprokit::process::name_t("upstream1");
+  sprokit::process::name_t const proc_nameu2 = sprokit::process::name_t("upstream2");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
 
   std::string const output_path = "test-run-multiplier_pipeline-" + scheduler_type + "-print_number.txt";
 
@@ -259,49 +259,49 @@ IMPLEMENT_TEST(multiplier_pipeline)
   int32_t const end_value2= 30;
 
   {
-    vistk::config_t const configu1 = vistk::config::empty_config();
+    sprokit::config_t const configu1 = sprokit::config::empty_config();
 
-    vistk::config::key_t const start_key = vistk::config::key_t("start");
-    vistk::config::key_t const end_key = vistk::config::key_t("end");
+    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
+    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
 
-    vistk::config::value_t const start_num1 = boost::lexical_cast<vistk::config::value_t>(start_value1);
-    vistk::config::value_t const end_num1 = boost::lexical_cast<vistk::config::value_t>(end_value1);
+    sprokit::config::value_t const start_num1 = boost::lexical_cast<sprokit::config::value_t>(start_value1);
+    sprokit::config::value_t const end_num1 = boost::lexical_cast<sprokit::config::value_t>(end_value1);
 
     configu1->set_value(start_key, start_num1);
     configu1->set_value(end_key, end_num1);
 
-    vistk::config_t const configu2 = vistk::config::empty_config();
+    sprokit::config_t const configu2 = sprokit::config::empty_config();
 
-    vistk::config::value_t const start_num2 = boost::lexical_cast<vistk::config::value_t>(start_value2);
-    vistk::config::value_t const end_num2 = boost::lexical_cast<vistk::config::value_t>(end_value2);
+    sprokit::config::value_t const start_num2 = boost::lexical_cast<sprokit::config::value_t>(start_value2);
+    sprokit::config::value_t const end_num2 = boost::lexical_cast<sprokit::config::value_t>(end_value2);
 
     configu2->set_value(start_key, start_num2);
     configu2->set_value(end_key, end_num2);
 
-    vistk::config_t const configt = vistk::config::empty_config();
+    sprokit::config_t const configt = sprokit::config::empty_config();
 
-    vistk::config::key_t const output_key = vistk::config::key_t("output");
-    vistk::config::value_t const output_value = vistk::config::value_t(output_path);
+    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
+    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
-    vistk::process_t const processu1 = create_process(proc_typeu, proc_nameu1, configu1);
-    vistk::process_t const processu2 = create_process(proc_typeu, proc_nameu2, configu2);
-    vistk::process_t const processd = create_process(proc_typed, proc_named);
-    vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+    sprokit::process_t const processu1 = create_process(proc_typeu, proc_nameu1, configu1);
+    sprokit::process_t const processu2 = create_process(proc_typeu, proc_nameu2, configu2);
+    sprokit::process_t const processd = create_process(proc_typed, proc_named);
+    sprokit::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-    vistk::pipeline_t const pipeline = create_pipeline();
+    sprokit::pipeline_t const pipeline = create_pipeline();
 
     pipeline->add_process(processu1);
     pipeline->add_process(processu2);
     pipeline->add_process(processd);
     pipeline->add_process(processt);
 
-    vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-    vistk::process::port_t const port_named1 = vistk::process::port_t("factor1");
-    vistk::process::port_t const port_named2 = vistk::process::port_t("factor2");
-    vistk::process::port_t const port_namedo = vistk::process::port_t("product");
-    vistk::process::port_t const port_namet = vistk::process::port_t("number");
+    sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+    sprokit::process::port_t const port_named1 = sprokit::process::port_t("factor1");
+    sprokit::process::port_t const port_named2 = sprokit::process::port_t("factor2");
+    sprokit::process::port_t const port_namedo = sprokit::process::port_t("product");
+    sprokit::process::port_t const port_namet = sprokit::process::port_t("number");
 
     pipeline->connect(proc_nameu1, port_nameu,
                       proc_named, port_named1);
@@ -312,9 +312,9 @@ IMPLEMENT_TEST(multiplier_pipeline)
 
     pipeline->setup_pipeline();
 
-    vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-    vistk::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -334,7 +334,7 @@ IMPLEMENT_TEST(multiplier_pipeline)
   {
     std::getline(fin, line);
 
-    if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i * j))
+    if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * j))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i * j << " "
@@ -357,13 +357,13 @@ IMPLEMENT_TEST(multiplier_pipeline)
 
 IMPLEMENT_TEST(multiplier_cluster_pipeline)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplier_cluster");
-  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("multiplier_cluster");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("print_number");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
-  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
 
   std::string const output_path = "test-run-multiplier_cluster_pipeline-" + scheduler_type + "-print_number.txt";
 
@@ -373,46 +373,46 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
   int32_t const factor_value = 20;
 
   {
-    vistk::config_t const configu = vistk::config::empty_config();
+    sprokit::config_t const configu = sprokit::config::empty_config();
 
-    vistk::config::key_t const start_key = vistk::config::key_t("start");
-    vistk::config::key_t const end_key = vistk::config::key_t("end");
+    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
+    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
 
-    vistk::config::value_t const start_num = boost::lexical_cast<vistk::config::value_t>(start_value);
-    vistk::config::value_t const end_num = boost::lexical_cast<vistk::config::value_t>(end_value);
+    sprokit::config::value_t const start_num = boost::lexical_cast<sprokit::config::value_t>(start_value);
+    sprokit::config::value_t const end_num = boost::lexical_cast<sprokit::config::value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    vistk::config_t const configd = vistk::config::empty_config();
+    sprokit::config_t const configd = sprokit::config::empty_config();
 
-    vistk::config::key_t const factor_key = vistk::config::key_t("factor");
+    sprokit::config::key_t const factor_key = sprokit::config::key_t("factor");
 
-    vistk::config::value_t const factor = boost::lexical_cast<vistk::config::value_t>(factor_value);
+    sprokit::config::value_t const factor = boost::lexical_cast<sprokit::config::value_t>(factor_value);
 
     configd->set_value(factor_key, factor);
 
-    vistk::config_t const configt = vistk::config::empty_config();
+    sprokit::config_t const configt = sprokit::config::empty_config();
 
-    vistk::config::key_t const output_key = vistk::config::key_t("output");
-    vistk::config::value_t const output_value = vistk::config::value_t(output_path);
+    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
+    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
-    vistk::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
-    vistk::process_t const processd = create_process(proc_typed, proc_named, configd);
-    vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+    sprokit::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
+    sprokit::process_t const processd = create_process(proc_typed, proc_named, configd);
+    sprokit::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-    vistk::pipeline_t const pipeline = create_pipeline();
+    sprokit::pipeline_t const pipeline = create_pipeline();
 
     pipeline->add_process(processu);
     pipeline->add_process(processd);
     pipeline->add_process(processt);
 
-    vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-    vistk::process::port_t const port_namedi = vistk::process::port_t("factor");
-    vistk::process::port_t const port_namedo = vistk::process::port_t("product");
-    vistk::process::port_t const port_namet = vistk::process::port_t("number");
+    sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+    sprokit::process::port_t const port_namedi = sprokit::process::port_t("factor");
+    sprokit::process::port_t const port_namedo = sprokit::process::port_t("product");
+    sprokit::process::port_t const port_namet = sprokit::process::port_t("number");
 
     pipeline->connect(proc_nameu, port_nameu,
                       proc_named, port_namedi);
@@ -421,9 +421,9 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
 
     pipeline->setup_pipeline();
 
-    vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-    vistk::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -442,7 +442,7 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
   {
     std::getline(fin, line);
 
-    if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i * factor_value))
+    if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * factor_value))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i * factor_value << " "
@@ -463,19 +463,19 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
   }
 }
 
-vistk::process_t
-create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
+sprokit::process_t
+create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config)
 {
-  static bool const modules_loaded = (vistk::load_known_modules(), true);
-  static vistk::process_registry_t const reg = vistk::process_registry::self();
+  static bool const modules_loaded = (sprokit::load_known_modules(), true);
+  static sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
   (void)modules_loaded;
 
   return reg->create_process(type, name, config);
 }
 
-vistk::pipeline_t
+sprokit::pipeline_t
 create_pipeline()
 {
-  return boost::make_shared<vistk::pipeline>();
+  return boost::make_shared<sprokit::pipeline>();
 }

@@ -6,12 +6,12 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/process_cluster.h>
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/process_registry_exception.h>
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/process_cluster.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_registry_exception.h>
+#include <sprokit/pipeline/types.h>
 
 #include <boost/foreach.hpp>
 
@@ -49,8 +49,8 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(get_twice)
 {
-  vistk::process_registry_t const reg1 = vistk::process_registry::self();
-  vistk::process_registry_t const reg2 = vistk::process_registry::self();
+  sprokit::process_registry_t const reg1 = sprokit::process_registry::self();
+  sprokit::process_registry_t const reg2 = sprokit::process_registry::self();
 
   if (reg1 != reg2)
   {
@@ -60,32 +60,32 @@ IMPLEMENT_TEST(get_twice)
 
 IMPLEMENT_TEST(null_config)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::config_t const config;
+  sprokit::config_t const config;
 
-  EXPECT_EXCEPTION(vistk::null_process_registry_config_exception,
-                   reg->create_process(vistk::process::type_t(), vistk::process::name_t(), config),
+  EXPECT_EXCEPTION(sprokit::null_process_registry_config_exception,
+                   reg->create_process(sprokit::process::type_t(), sprokit::process::name_t(), config),
                    "requesting a NULL config to a process");
 }
 
 IMPLEMENT_TEST(load_processes)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::types_t const types = reg->types();
+  sprokit::process::types_t const types = reg->types();
 
-  BOOST_FOREACH (vistk::process::type_t const& type, types)
+  BOOST_FOREACH (sprokit::process::type_t const& type, types)
   {
-    vistk::process_t process;
+    sprokit::process_t process;
 
     try
     {
-      process = reg->create_process(type, vistk::process::name_t());
+      process = reg->create_process(type, sprokit::process::name_t());
     }
-    catch (vistk::no_such_process_type_exception const& e)
+    catch (sprokit::no_such_process_type_exception const& e)
     {
       TEST_ERROR("Failed to create process: " << e.what());
 
@@ -115,48 +115,48 @@ IMPLEMENT_TEST(load_processes)
 
 IMPLEMENT_TEST(null_ctor)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  EXPECT_EXCEPTION(vistk::null_process_ctor_exception,
-                   reg->register_process(vistk::process::type_t(), vistk::process_registry::description_t(), vistk::process_ctor_t()),
+  EXPECT_EXCEPTION(sprokit::null_process_ctor_exception,
+                   reg->register_process(sprokit::process::type_t(), sprokit::process_registry::description_t(), sprokit::process_ctor_t()),
                    "requesting an non-existent process type");
 }
 
-static vistk::process_t null_process(vistk::config_t const& config);
+static sprokit::process_t null_process(sprokit::config_t const& config);
 
 IMPLEMENT_TEST(duplicate_types)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
+  sprokit::process::type_t const non_existent_process = sprokit::process::type_t("no_such_process");
 
-  reg->register_process(non_existent_process, vistk::process_registry::description_t(), null_process);
+  reg->register_process(non_existent_process, sprokit::process_registry::description_t(), null_process);
 
-  EXPECT_EXCEPTION(vistk::process_type_already_exists_exception,
-                   reg->register_process(non_existent_process, vistk::process_registry::description_t(), null_process),
+  EXPECT_EXCEPTION(sprokit::process_type_already_exists_exception,
+                   reg->register_process(non_existent_process, sprokit::process_registry::description_t(), null_process),
                    "requesting an non-existent process type");
 }
 
 IMPLEMENT_TEST(unknown_types)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const non_existent_process = vistk::process::type_t("no_such_process");
+  sprokit::process::type_t const non_existent_process = sprokit::process::type_t("no_such_process");
 
-  EXPECT_EXCEPTION(vistk::no_such_process_type_exception,
-                   reg->create_process(non_existent_process, vistk::process::name_t()),
+  EXPECT_EXCEPTION(sprokit::no_such_process_type_exception,
+                   reg->create_process(non_existent_process, sprokit::process::name_t()),
                    "requesting an non-existent process type");
 
-  EXPECT_EXCEPTION(vistk::no_such_process_type_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_process_type_exception,
                    reg->description(non_existent_process),
                    "requesting an non-existent process type");
 }
 
 IMPLEMENT_TEST(module_marking)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process_registry::module_t const module = vistk::process_registry::module_t("module");
+  sprokit::process_registry::module_t const module = sprokit::process_registry::module_t("module");
 
   if (reg->is_module_loaded(module))
   {
@@ -175,27 +175,27 @@ IMPLEMENT_TEST(module_marking)
 
 IMPLEMENT_TEST(register_cluster)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const cluster_type = vistk::process::type_t("orphan_cluster");
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::process::type_t const cluster_type = sprokit::process::type_t("orphan_cluster");
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::process_t const cluster_from_reg = reg->create_process(cluster_type, vistk::process::name_t(), config);
+  sprokit::process_t const cluster_from_reg = reg->create_process(cluster_type, sprokit::process::name_t(), config);
 
-  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(cluster_from_reg);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(cluster_from_reg);
 
   if (!cluster)
   {
     TEST_ERROR("Failed to turn a process back into a cluster");
   }
 
-  vistk::process::type_t const type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const type = sprokit::process::type_t("orphan");
 
-  vistk::process_t const not_a_cluster_from_reg = reg->create_process(type, vistk::process::name_t(), config);
+  sprokit::process_t const not_a_cluster_from_reg = reg->create_process(type, sprokit::process::name_t(), config);
 
-  vistk::process_cluster_t const not_a_cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(not_a_cluster_from_reg);
+  sprokit::process_cluster_t const not_a_cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(not_a_cluster_from_reg);
 
   if (not_a_cluster)
   {
@@ -203,8 +203,8 @@ IMPLEMENT_TEST(register_cluster)
   }
 }
 
-vistk::process_t
-null_process(vistk::config_t const& /*config*/)
+sprokit::process_t
+null_process(sprokit::config_t const& /*config*/)
 {
-  return vistk::process_t();
+  return sprokit::process_t();
 }

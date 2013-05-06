@@ -90,6 +90,6 @@ if __name__ == '__main__':
         , 'environment': test_environment
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

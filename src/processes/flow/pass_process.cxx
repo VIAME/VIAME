@@ -6,8 +6,8 @@
 
 #include "pass_process.h"
 
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/edge.h>
+#include <sprokit/pipeline/datum.h>
+#include <sprokit/pipeline/edge.h>
 
 /**
  * \file pass_process.cxx
@@ -15,7 +15,7 @@
  * \brief Implementation of the pass process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class pass_process::priv

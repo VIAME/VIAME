@@ -10,14 +10,14 @@
 #include <processes/clusters/cluster-paths.h>
 #endif
 
-#include <vistk/pipeline_util/load_pipe_exception.h>
-#include <vistk/pipeline_util/path.h>
-#include <vistk/pipeline_util/pipe_bakery.h>
-#include <vistk/pipeline_util/pipe_bakery_exception.h>
+#include <sprokit/pipeline_util/load_pipe_exception.h>
+#include <sprokit/pipeline_util/path.h>
+#include <sprokit/pipeline_util/pipe_bakery.h>
+#include <sprokit/pipeline_util/pipe_bakery_exception.h>
 
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/process_registry_exception.h>
-#include <vistk/pipeline/utils.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_registry_exception.h>
+#include <sprokit/pipeline/utils.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -32,7 +32,7 @@
  * \brief Register processes for use.
  */
 
-using namespace vistk;
+using namespace sprokit;
 
 namespace
 {
@@ -46,7 +46,7 @@ typedef std::string cluster_path_t;
 }
 
 static cluster_path_t const default_include_dirs = cluster_path_t(DEFAULT_CLUSTER_PATHS);
-static envvar_name_t const vistk_include_envvar = envvar_name_t("VISTK_CLUSTER_PATH");
+static envvar_name_t const sprokit_include_envvar = envvar_name_t("SPROKIT_CLUSTER_PATH");
 static std::string const pipe_suffix = std::string(".cluster");
 
 static bool is_separator(cluster_path_t::value_type ch);
@@ -75,7 +75,7 @@ register_processes()
   {
     include_paths_t include_dirs_tmp;
 
-    envvar_value_t const extra_include_dirs = get_envvar(vistk_include_envvar);
+    envvar_value_t const extra_include_dirs = get_envvar(sprokit_include_envvar);
 
     if (extra_include_dirs)
     {

@@ -6,32 +6,32 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/edge.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_exception.h>
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/process_registry_exception.h>
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/edge.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_exception.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_registry_exception.h>
+#include <sprokit/pipeline/types.h>
 
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
-static void test_process(vistk::process::type_t const& type);
+static void test_process(sprokit::process::type_t const& type);
 
 int
 main()
 {
   try
   {
-    vistk::load_known_modules();
+    sprokit::load_known_modules();
   }
-  catch (vistk::process_type_already_exists_exception const& e)
+  catch (sprokit::process_type_already_exists_exception const& e)
   {
     TEST_ERROR("Duplicate process names: " << e.what());
   }
-  catch (vistk::pipeline_exception const& e)
+  catch (sprokit::pipeline_exception const& e)
   {
     TEST_ERROR("Failed to load modules: " << e.what());
   }
@@ -42,11 +42,11 @@ main()
     return EXIT_FAILURE;
   }
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::types_t const types = reg->types();
+  sprokit::process::types_t const types = reg->types();
 
-  BOOST_FOREACH (vistk::process::type_t const& type, types)
+  BOOST_FOREACH (sprokit::process::type_t const& type, types)
   {
     try
     {
@@ -62,28 +62,28 @@ main()
   return EXIT_SUCCESS;
 }
 
-static void test_process_properties(vistk::process_t const process);
-static void test_process_configuration(vistk::process_t const process);
-static void test_process_input_ports(vistk::process_t const process);
-static void test_process_output_ports(vistk::process_t const process);
+static void test_process_properties(sprokit::process_t const process);
+static void test_process_configuration(sprokit::process_t const process);
+static void test_process_input_ports(sprokit::process_t const process);
+static void test_process_output_ports(sprokit::process_t const process);
 
-static void test_process_invalid_configuration(vistk::process_t const process);
-static void test_process_invalid_input_port(vistk::process_t const process);
-static void test_process_invalid_output_port(vistk::process_t const process);
+static void test_process_invalid_configuration(sprokit::process_t const process);
+static void test_process_invalid_input_port(sprokit::process_t const process);
+static void test_process_invalid_output_port(sprokit::process_t const process);
 
 void
-test_process(vistk::process::type_t const& type)
+test_process(sprokit::process::type_t const& type)
 {
-  static vistk::process::name_t const expected_name = vistk::process::name_t("expected_name");
+  static sprokit::process::name_t const expected_name = sprokit::process::name_t("expected_name");
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
   if (reg->description(type).empty())
   {
     TEST_ERROR("The description is empty");
   }
 
-  vistk::process_t const process = reg->create_process(type, expected_name);
+  sprokit::process_t const process = reg->create_process(type, expected_name);
 
   if (!process)
   {
@@ -115,9 +115,9 @@ test_process(vistk::process::type_t const& type)
 }
 
 void
-test_process_properties(vistk::process_t const process)
+test_process_properties(sprokit::process_t const process)
 {
-  vistk::process::properties_t const consts = process->properties();
+  sprokit::process::properties_t const consts = process->properties();
 
   (void)consts;
 
@@ -125,47 +125,47 @@ test_process_properties(vistk::process_t const process)
 }
 
 void
-test_process_configuration(vistk::process_t const process)
+test_process_configuration(sprokit::process_t const process)
 {
-  vistk::config::keys_t const keys = process->available_config();
+  sprokit::config::keys_t const keys = process->available_config();
 
-  BOOST_FOREACH (vistk::config::key_t const& key, keys)
+  BOOST_FOREACH (sprokit::config::key_t const& key, keys)
   {
     try
     {
       process->config_info(key);
     }
-    catch (vistk::unknown_configuration_value_exception const& e)
+    catch (sprokit::unknown_configuration_value_exception const& e)
     {
       TEST_ERROR("Failed to get a default for "
-                 << process->type() << vistk::config::block_sep << key
+                 << process->type() << sprokit::config::block_sep << key
                  << ": " << e.what());
     }
     catch (std::exception const& e)
     {
       TEST_ERROR("Unexpected exception when querying for default "
-                 "(" << process->type() << vistk::config::block_sep
+                 "(" << process->type() << sprokit::config::block_sep
                  << key << "): " << e.what());
     }
   }
 }
 
 void
-test_process_input_ports(vistk::process_t const process)
+test_process_input_ports(sprokit::process_t const process)
 {
-  static vistk::config_t const config = vistk::config::empty_config();
+  static sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::process::ports_t const ports = process->input_ports();
+  sprokit::process::ports_t const ports = process->input_ports();
 
-  BOOST_FOREACH (vistk::process::port_t const& port, ports)
+  BOOST_FOREACH (sprokit::process::port_t const& port, ports)
   {
-    vistk::process::port_info_t info;
+    sprokit::process::port_info_t info;
 
     try
     {
       info = process->input_port_info(port);
     }
-    catch (vistk::no_such_port_exception const& e)
+    catch (sprokit::no_such_port_exception const& e)
     {
       TEST_ERROR("Failed to get a info for input port "
                  << process->type() << "." << port << ": " << e.what());
@@ -176,9 +176,9 @@ test_process_input_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << "): " << e.what());
     }
 
-    vistk::process::port_flags_t const& flags = info->flags;
+    sprokit::process::port_flags_t const& flags = info->flags;
 
-    bool const is_const = flags.count(vistk::process::flag_output_const);
+    bool const is_const = flags.count(sprokit::process::flag_output_const);
 
     if (is_const)
     {
@@ -186,7 +186,7 @@ test_process_input_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    bool const is_shared = flags.count(vistk::process::flag_output_shared);
+    bool const is_shared = flags.count(sprokit::process::flag_output_shared);
 
     if (is_shared)
     {
@@ -194,9 +194,9 @@ test_process_input_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    vistk::process::port_type_t const& type = info->type;
+    sprokit::process::port_type_t const& type = info->type;
 
-    bool const is_data_dependent = (type == vistk::process::type_data_dependent);
+    bool const is_data_dependent = (type == sprokit::process::type_data_dependent);
 
     if (is_data_dependent)
     {
@@ -204,7 +204,7 @@ test_process_input_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    vistk::process::port_description_t const& description = info->description;
+    sprokit::process::port_description_t const& description = info->description;
 
     if (description.empty())
     {
@@ -212,32 +212,32 @@ test_process_input_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+    sprokit::edge_t edge = boost::make_shared<sprokit::edge>(config);
 
     process->connect_input_port(port, edge);
 
-    EXPECT_EXCEPTION(vistk::port_reconnect_exception,
+    EXPECT_EXCEPTION(sprokit::port_reconnect_exception,
                      process->connect_input_port(port, edge),
                      "connecting to an input port a second time");
   }
 }
 
 void
-test_process_output_ports(vistk::process_t const process)
+test_process_output_ports(sprokit::process_t const process)
 {
-  static vistk::config_t const config = vistk::config::empty_config();
+  static sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::process::ports_t const ports = process->output_ports();
+  sprokit::process::ports_t const ports = process->output_ports();
 
-  BOOST_FOREACH (vistk::process::port_t const& port, ports)
+  BOOST_FOREACH (sprokit::process::port_t const& port, ports)
   {
-    vistk::process::port_info_t info;
+    sprokit::process::port_info_t info;
 
     try
     {
       info = process->output_port_info(port);
     }
-    catch (vistk::no_such_port_exception const& e)
+    catch (sprokit::no_such_port_exception const& e)
     {
       TEST_ERROR("Failed to get a info for output port "
                  << process->type() << "." << port << ": " << e.what());
@@ -248,9 +248,9 @@ test_process_output_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << "): " << e.what());
     }
 
-    vistk::process::port_flags_t const& flags = info->flags;
+    sprokit::process::port_flags_t const& flags = info->flags;
 
-    bool const is_mutable = flags.count(vistk::process::flag_input_mutable);
+    bool const is_mutable = flags.count(sprokit::process::flag_input_mutable);
 
     if (is_mutable)
     {
@@ -258,7 +258,7 @@ test_process_output_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    bool const is_nodep = flags.count(vistk::process::flag_input_nodep);
+    bool const is_nodep = flags.count(sprokit::process::flag_input_nodep);
 
     if (is_nodep)
     {
@@ -266,7 +266,7 @@ test_process_output_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    vistk::process::port_description_t const& description = info->description;
+    sprokit::process::port_description_t const& description = info->description;
 
     if (description.empty())
     {
@@ -274,8 +274,8 @@ test_process_output_ports(vistk::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    vistk::edge_t edge1 = boost::make_shared<vistk::edge>(config);
-    vistk::edge_t edge2 = boost::make_shared<vistk::edge>(config);
+    sprokit::edge_t edge1 = boost::make_shared<sprokit::edge>(config);
+    sprokit::edge_t edge2 = boost::make_shared<sprokit::edge>(config);
 
     process->connect_output_port(port, edge1);
     process->connect_output_port(port, edge2);
@@ -283,46 +283,46 @@ test_process_output_ports(vistk::process_t const process)
 }
 
 void
-test_process_invalid_configuration(vistk::process_t const process)
+test_process_invalid_configuration(sprokit::process_t const process)
 {
-  vistk::config::key_t const non_existent_config = vistk::config::key_t("does_not_exist");
+  sprokit::config::key_t const non_existent_config = sprokit::config::key_t("does_not_exist");
 
-  EXPECT_EXCEPTION(vistk::unknown_configuration_value_exception,
+  EXPECT_EXCEPTION(sprokit::unknown_configuration_value_exception,
                    process->config_info(non_existent_config),
                    "requesting the information for a non-existent config");
 }
 
 void
-test_process_invalid_input_port(vistk::process_t const process)
+test_process_invalid_input_port(sprokit::process_t const process)
 {
-  static vistk::process::port_t const non_existent_port = vistk::process::port_t("does_not_exist");
-  static vistk::config_t const config = vistk::config::empty_config();
+  static sprokit::process::port_t const non_existent_port = sprokit::process::port_t("does_not_exist");
+  static sprokit::config_t const config = sprokit::config::empty_config();
 
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    process->input_port_info(non_existent_port),
                    "requesting the info for a non-existent input port");
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t edge = boost::make_shared<sprokit::edge>(config);
 
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    process->connect_input_port(non_existent_port, edge),
                    "requesting a connection to a non-existent input port");
 }
 
 void
-test_process_invalid_output_port(vistk::process_t const process)
+test_process_invalid_output_port(sprokit::process_t const process)
 {
-  static vistk::process::port_t const non_existent_port = vistk::process::port_t("does_not_exist");
-  static vistk::config_t const config = vistk::config::empty_config();
+  static sprokit::process::port_t const non_existent_port = sprokit::process::port_t("does_not_exist");
+  static sprokit::config_t const config = sprokit::config::empty_config();
 
   // Output ports.
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    process->output_port_info(non_existent_port),
                    "requesting the info for a non-existent output port");
 
-  vistk::edge_t edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t edge = boost::make_shared<sprokit::edge>(config);
 
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    process->connect_output_port(non_existent_port, edge),
                    "requesting a connection to a non-existent output port");
 }

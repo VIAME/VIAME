@@ -7,7 +7,7 @@
 
 def test_import(path_unused):
     try:
-        import vistk.pipeline_util.export_
+        import sprokit.pipeline_util.export_
     except:
         test_error("Failed to import the export_ module")
 
@@ -15,10 +15,10 @@ def test_import(path_unused):
 def test_simple_pipeline(path):
     import os
 
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import modules
-    from vistk.pipeline_util import bake
-    from vistk.pipeline_util import export_
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import modules
+    from sprokit.pipeline_util import bake
+    from sprokit.pipeline_util import export_
 
     modules.load_known_modules()
 
@@ -60,6 +60,6 @@ if __name__ == '__main__':
 
     path = os.path.join(pipeline_dir, '%s.pipe' % testname)
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests, path)

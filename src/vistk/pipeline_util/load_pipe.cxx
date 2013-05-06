@@ -8,13 +8,13 @@
 #include "load_pipe_exception.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <vistk/pipeline_util/include-paths.h>
+#include <sprokit/pipeline_util/include-paths.h>
 #endif
 #include "path.h"
 #include "pipe_grammar.h"
 
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/utils.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/utils.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -33,11 +33,11 @@
  * \brief Implementation of the pipeline declaration loading.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 static std::string const default_include_dirs = std::string(DEFAULT_PIPE_INCLUDE_PATHS);
-static envvar_name_t const vistk_include_envvar = envvar_name_t("VISTK_PIPE_INCLUDE_PATH");
+static envvar_name_t const sprokit_include_envvar = envvar_name_t("SPROKIT_PIPE_INCLUDE_PATH");
 static std::string const include_directive = "!include ";
 static char const comment_marker = '#';
 
@@ -123,7 +123,7 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
 
     include_paths_t include_dirs_tmp;
 
-    envvar_value_t const extra_include_dirs = get_envvar(vistk_include_envvar);
+    envvar_value_t const extra_include_dirs = get_envvar(sprokit_include_envvar);
 
     if (extra_include_dirs)
     {

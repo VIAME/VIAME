@@ -6,13 +6,13 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/edge.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_exception.h>
-#include <vistk/pipeline/process_registry.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/edge.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_exception.h>
+#include <sprokit/pipeline/process_registry.h>
 
 #include <boost/make_shared.hpp>
 
@@ -102,11 +102,11 @@ main(int argc, char* argv[])
   RUN_TEST(tests, testname);
 }
 
-static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name = vistk::process::name_t(), vistk::config_t const& conf = vistk::config::empty_config());
-static vistk::edge_t create_edge();
+static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name = sprokit::process::name_t(), sprokit::config_t const& conf = sprokit::config::empty_config());
+static sprokit::edge_t create_edge();
 
 class remove_ports_process
-  : public vistk::process
+  : public sprokit::process
 {
   public:
     remove_ports_process(port_type_t const& port_type);
@@ -123,116 +123,116 @@ class remove_ports_process
 };
 
 class null_config_process
-  : public vistk::process
+  : public sprokit::process
 {
   public:
-    null_config_process(vistk::config_t const& config);
+    null_config_process(sprokit::config_t const& config);
     ~null_config_process();
 };
 
 class null_input_info_process
-  : public vistk::process
+  : public sprokit::process
 {
   public:
-    null_input_info_process(vistk::config_t const& config);
+    null_input_info_process(sprokit::config_t const& config);
     ~null_input_info_process();
 };
 
 class null_output_info_process
-  : public vistk::process
+  : public sprokit::process
 {
   public:
-    null_output_info_process(vistk::config_t const& config);
+    null_output_info_process(sprokit::config_t const& config);
     ~null_output_info_process();
 };
 
 class null_conf_info_process
-  : public vistk::process
+  : public sprokit::process
 {
   public:
-    null_conf_info_process(vistk::config_t const& config);
+    null_conf_info_process(sprokit::config_t const& config);
     ~null_conf_info_process();
 };
 
 IMPLEMENT_TEST(null_input_edge)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
-  vistk::edge_t const edge;
+  sprokit::edge_t const edge;
 
-  EXPECT_EXCEPTION(vistk::null_edge_port_connection_exception,
-                   process->connect_input_port(vistk::process::port_t(), edge),
+  EXPECT_EXCEPTION(sprokit::null_edge_port_connection_exception,
+                   process->connect_input_port(sprokit::process::port_t(), edge),
                    "connecting a NULL edge to an input port");
 }
 
 IMPLEMENT_TEST(null_output_edge)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
-  vistk::edge_t const edge;
+  sprokit::edge_t const edge;
 
-  EXPECT_EXCEPTION(vistk::null_edge_port_connection_exception,
-                   process->connect_output_port(vistk::process::port_t(), edge),
+  EXPECT_EXCEPTION(sprokit::null_edge_port_connection_exception,
+                   process->connect_output_port(sprokit::process::port_t(), edge),
                    "connecting a NULL edge to an output port");
 }
 
 IMPLEMENT_TEST(connect_after_init)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  vistk::pipeline_t const pipe = boost::make_shared<vistk::pipeline>(config);
+  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>(config);
 
   // Only the pipeline can properly initialize a process.
   pipe->add_process(process);
   pipe->setup_pipeline();
 
-  EXPECT_EXCEPTION(vistk::connect_to_initialized_process_exception,
-                   process->connect_input_port(vistk::process::port_t(), edge),
+  EXPECT_EXCEPTION(sprokit::connect_to_initialized_process_exception,
+                   process->connect_input_port(sprokit::process::port_t(), edge),
                    "connecting an input edge after initialization");
 }
 
 IMPLEMENT_TEST(configure_twice)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
   process->configure();
 
-  EXPECT_EXCEPTION(vistk::reconfigured_exception,
+  EXPECT_EXCEPTION(sprokit::reconfigured_exception,
                    process->configure(),
                    "reconfiguring a process");
 }
 
 IMPLEMENT_TEST(reinit)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
   process->configure();
   process->init();
 
-  EXPECT_EXCEPTION(vistk::reinitialization_exception,
+  EXPECT_EXCEPTION(sprokit::reinitialization_exception,
                    process->init(),
                    "reinitializing a process");
 }
 
 IMPLEMENT_TEST(reset)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
   process->configure();
 
@@ -249,72 +249,72 @@ IMPLEMENT_TEST(reset)
 
 IMPLEMENT_TEST(step_before_configure)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
-  EXPECT_EXCEPTION(vistk::unconfigured_exception,
+  EXPECT_EXCEPTION(sprokit::unconfigured_exception,
                    process->step(),
                    "stepping before configuring");
 }
 
 IMPLEMENT_TEST(step_before_init)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
   process->configure();
 
-  EXPECT_EXCEPTION(vistk::uninitialized_exception,
+  EXPECT_EXCEPTION(sprokit::uninitialized_exception,
                    process->step(),
                    "stepping before initialization");
 }
 
 IMPLEMENT_TEST(set_static_input_type)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("multiplication");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("multiplication");
 
-  vistk::process::port_t const port_name = vistk::process::port_t("factor1");
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("factor1");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
-  EXPECT_EXCEPTION(vistk::static_type_reset_exception,
+  EXPECT_EXCEPTION(sprokit::static_type_reset_exception,
                    process->set_input_port_type(port_name, port_type),
                    "setting the type of a non-dependent input port");
 }
 
 IMPLEMENT_TEST(set_static_output_type)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("multiplication");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("multiplication");
 
-  vistk::process::port_t const port_name = vistk::process::port_t("product");
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("product");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
-  EXPECT_EXCEPTION(vistk::static_type_reset_exception,
+  EXPECT_EXCEPTION(sprokit::static_type_reset_exception,
                    process->set_output_port_type(port_name, port_type),
                    "setting the type of a non-dependent output port");
 }
 
 IMPLEMENT_TEST(set_input_type_duplicate)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::port_t const port_name = vistk::process::port_t("input");
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("input");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const process = create_process(proc_type);
-
-  process->set_input_port_type(port_name, port_type);
-
-  vistk::process::port_info_t const port_info_before = process->input_port_info(port_name);
+  sprokit::process_t const process = create_process(proc_type);
 
   process->set_input_port_type(port_name, port_type);
 
-  vistk::process::port_info_t const port_info_duplicate = process->input_port_info(port_name);
+  sprokit::process::port_info_t const port_info_before = process->input_port_info(port_name);
+
+  process->set_input_port_type(port_name, port_type);
+
+  sprokit::process::port_info_t const port_info_duplicate = process->input_port_info(port_name);
 
   // If nothing actually changes, info pointers should still be valid.
   if (port_info_before != port_info_duplicate)
@@ -325,20 +325,20 @@ IMPLEMENT_TEST(set_input_type_duplicate)
 
 IMPLEMENT_TEST(set_output_type_duplicate)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const process = create_process(proc_type);
-
-  process->set_output_port_type(port_name, port_type);
-
-  vistk::process::port_info_t const port_info_before = process->output_port_info(port_name);
+  sprokit::process_t const process = create_process(proc_type);
 
   process->set_output_port_type(port_name, port_type);
 
-  vistk::process::port_info_t const port_info_duplicate = process->output_port_info(port_name);
+  sprokit::process::port_info_t const port_info_before = process->output_port_info(port_name);
+
+  process->set_output_port_type(port_name, port_type);
+
+  sprokit::process::port_info_t const port_info_duplicate = process->output_port_info(port_name);
 
   // If nothing actually changes, info pointers should still be valid.
   if (port_info_before != port_info_duplicate)
@@ -349,56 +349,56 @@ IMPLEMENT_TEST(set_output_type_duplicate)
 
 IMPLEMENT_TEST(set_input_type_after_init)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::port_t const port_name = vistk::process::port_t("input");
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("input");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
   process->configure();
   process->init();
 
-  EXPECT_EXCEPTION(vistk::set_type_on_initialized_process_exception,
+  EXPECT_EXCEPTION(sprokit::set_type_on_initialized_process_exception,
                    process->set_input_port_type(port_name, port_type),
                    "setting an input port type after initialization");
 }
 
 IMPLEMENT_TEST(set_output_type_after_init)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
   process->configure();
   process->init();
 
-  EXPECT_EXCEPTION(vistk::set_type_on_initialized_process_exception,
+  EXPECT_EXCEPTION(sprokit::set_type_on_initialized_process_exception,
                    process->set_output_port_type(port_name, port_type),
                    "setting an output port type after initialization");
 }
 
 IMPLEMENT_TEST(set_tagged_flow_dependent_port)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("tagged_flow_dependent");
 
-  vistk::process::port_t const iport_name = vistk::process::port_t("tagged_input");
-  vistk::process::port_t const oport_name = vistk::process::port_t("tagged_output");
+  sprokit::process::port_t const iport_name = sprokit::process::port_t("tagged_input");
+  sprokit::process::port_t const oport_name = sprokit::process::port_t("tagged_output");
 
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const input_process = create_process(proc_type);
+  sprokit::process_t const input_process = create_process(proc_type);
 
   if (!input_process->set_input_port_type(iport_name, port_type))
   {
     TEST_ERROR("Could not set the input port type");
   }
 
-  vistk::process::port_info_t const iiinfo = input_process->input_port_info(iport_name);
-  vistk::process::port_info_t const ioinfo = input_process->output_port_info(oport_name);
+  sprokit::process::port_info_t const iiinfo = input_process->input_port_info(iport_name);
+  sprokit::process::port_info_t const ioinfo = input_process->output_port_info(oport_name);
 
   if (iiinfo->type != port_type)
   {
@@ -410,15 +410,15 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port)
     TEST_ERROR("Setting the input port type did not also set the output port info");
   }
 
-  vistk::process_t const output_process = create_process(proc_type);
+  sprokit::process_t const output_process = create_process(proc_type);
 
   if (!output_process->set_output_port_type(oport_name, port_type))
   {
     TEST_ERROR("Could not set the output port type");
   }
 
-  vistk::process::port_info_t const oiinfo = output_process->input_port_info(iport_name);
-  vistk::process::port_info_t const ooinfo = output_process->output_port_info(oport_name);
+  sprokit::process::port_info_t const oiinfo = output_process->input_port_info(iport_name);
+  sprokit::process::port_info_t const ooinfo = output_process->output_port_info(oport_name);
 
   if (ooinfo->type != port_type)
   {
@@ -433,15 +433,15 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port)
 
 IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("tagged_flow_dependent");
 
-  vistk::process::port_t const iport_name = vistk::process::port_t("tagged_input");
-  vistk::process::port_t const oport_name = vistk::process::port_t("tagged_output");
+  sprokit::process::port_t const iport_name = sprokit::process::port_t("tagged_input");
+  sprokit::process::port_t const oport_name = sprokit::process::port_t("tagged_output");
 
-  vistk::process::port_type_t const tag_port_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("other_tag");
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_type_t const tag_port_type = sprokit::process::type_flow_dependent + sprokit::process::port_type_t("other_tag");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const input_process = create_process(proc_type);
+  sprokit::process_t const input_process = create_process(proc_type);
 
   if (!input_process->set_input_port_type(iport_name, tag_port_type))
   {
@@ -453,8 +453,8 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade)
     TEST_ERROR("Could not set the output port type");
   }
 
-  vistk::process::port_info_t const iinfo = input_process->input_port_info(iport_name);
-  vistk::process::port_info_t const oinfo = input_process->output_port_info(oport_name);
+  sprokit::process::port_info_t const iinfo = input_process->input_port_info(iport_name);
+  sprokit::process::port_info_t const oinfo = input_process->output_port_info(oport_name);
 
   if (iinfo->type != port_type)
   {
@@ -469,16 +469,16 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade)
 
 IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade_any)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("tagged_flow_dependent");
 
-  vistk::process::port_t const iport_name = vistk::process::port_t("tagged_input");
-  vistk::process::port_t const oport_name = vistk::process::port_t("tagged_output");
+  sprokit::process::port_t const iport_name = sprokit::process::port_t("tagged_input");
+  sprokit::process::port_t const oport_name = sprokit::process::port_t("tagged_output");
 
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const input_process = create_process(proc_type);
+  sprokit::process_t const input_process = create_process(proc_type);
 
-  if (!input_process->set_input_port_type(iport_name, vistk::process::type_any))
+  if (!input_process->set_input_port_type(iport_name, sprokit::process::type_any))
   {
     TEST_ERROR("Could not set the input port type");
   }
@@ -488,7 +488,7 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade_any)
     TEST_ERROR("Could not set the input port type after setting it to 'any'");
   }
 
-  vistk::process::port_info_t const info = input_process->input_port_info(iport_name);
+  sprokit::process::port_info_t const info = input_process->input_port_info(iport_name);
 
   if (info->type != port_type)
   {
@@ -498,23 +498,23 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade_any)
 
 IMPLEMENT_TEST(add_input_port_after_type_pin)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("collate");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("collate");
 
-  vistk::process::port_t const status = vistk::process::port_t("status/");
-  vistk::process::port_t const res = vistk::process::port_t("res/");
-  vistk::process::port_t const coll = vistk::process::port_t("coll/");
+  sprokit::process::port_t const status = sprokit::process::port_t("status/");
+  sprokit::process::port_t const res = sprokit::process::port_t("res/");
+  sprokit::process::port_t const coll = sprokit::process::port_t("coll/");
 
-  vistk::process::port_t const tag = vistk::process::port_t("test");
-  vistk::process::port_t const group = vistk::process::port_t("/group");
+  sprokit::process::port_t const tag = sprokit::process::port_t("test");
+  sprokit::process::port_t const group = sprokit::process::port_t("/group");
 
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const process = create_process(proc_type);
-  vistk::edge_t const edge = create_edge();
+  sprokit::process_t const process = create_process(proc_type);
+  sprokit::edge_t const edge = create_edge();
 
   (void)process->input_port_info(status + tag);
 
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    process->connect_input_port(coll + tag + group, edge),
                    "making sure the input port does not exist");
 
@@ -523,7 +523,7 @@ IMPLEMENT_TEST(add_input_port_after_type_pin)
     TEST_ERROR("Could not set the source port type");
   }
 
-  vistk::process::port_info_t const info = process->input_port_info(coll + tag + group);
+  sprokit::process::port_info_t const info = process->input_port_info(coll + tag + group);
 
   if (info->type != port_type)
   {
@@ -533,23 +533,23 @@ IMPLEMENT_TEST(add_input_port_after_type_pin)
 
 IMPLEMENT_TEST(add_output_port_after_type_pin)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("distribute");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("distribute");
 
-  vistk::process::port_t const status = vistk::process::port_t("status/");
-  vistk::process::port_t const src = vistk::process::port_t("src/");
-  vistk::process::port_t const dist = vistk::process::port_t("dist/");
+  sprokit::process::port_t const status = sprokit::process::port_t("status/");
+  sprokit::process::port_t const src = sprokit::process::port_t("src/");
+  sprokit::process::port_t const dist = sprokit::process::port_t("dist/");
 
-  vistk::process::port_t const tag = vistk::process::port_t("test");
-  vistk::process::port_t const group = vistk::process::port_t("/group");
+  sprokit::process::port_t const tag = sprokit::process::port_t("test");
+  sprokit::process::port_t const group = sprokit::process::port_t("/group");
 
-  vistk::process::port_type_t const port_type = vistk::process::port_type_t("type");
+  sprokit::process::port_type_t const port_type = sprokit::process::port_type_t("type");
 
-  vistk::process_t const process = create_process(proc_type);
-  vistk::edge_t const edge = create_edge();
+  sprokit::process_t const process = create_process(proc_type);
+  sprokit::edge_t const edge = create_edge();
 
   (void)process->output_port_info(status + tag);
 
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    process->connect_output_port(dist + tag + group, edge),
                    "making sure the output port does not exist");
 
@@ -558,7 +558,7 @@ IMPLEMENT_TEST(add_output_port_after_type_pin)
     TEST_ERROR("Could not set the source port type");
   }
 
-  vistk::process::port_info_t const info = process->output_port_info(dist + tag + group);
+  sprokit::process::port_info_t const info = process->output_port_info(dist + tag + group);
 
   if (info->type != port_type)
   {
@@ -568,23 +568,23 @@ IMPLEMENT_TEST(add_output_port_after_type_pin)
 
 IMPLEMENT_TEST(set_untagged_flow_dependent_port)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("tagged_flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("tagged_flow_dependent");
 
-  vistk::process::port_t const iport_name = vistk::process::port_t("untagged_input");
-  vistk::process::port_t const oport_name = vistk::process::port_t("untagged_output");
+  sprokit::process::port_t const iport_name = sprokit::process::port_t("untagged_input");
+  sprokit::process::port_t const oport_name = sprokit::process::port_t("untagged_output");
 
-  vistk::process::port_type_t const iport_type = vistk::process::port_type_t("itype");
-  vistk::process::port_type_t const oport_type = vistk::process::port_type_t("otype");
+  sprokit::process::port_type_t const iport_type = sprokit::process::port_type_t("itype");
+  sprokit::process::port_type_t const oport_type = sprokit::process::port_type_t("otype");
 
-  vistk::process_t const process = create_process(proc_type);
+  sprokit::process_t const process = create_process(proc_type);
 
   if (!process->set_input_port_type(iport_name, iport_type))
   {
     TEST_ERROR("Could not set the input port type");
   }
 
-  vistk::process::port_info_t const iiinfo = process->input_port_info(iport_name);
-  vistk::process::port_info_t const ioinfo = process->output_port_info(oport_name);
+  sprokit::process::port_info_t const iiinfo = process->input_port_info(iport_name);
+  sprokit::process::port_info_t const ioinfo = process->output_port_info(oport_name);
 
   if (iiinfo->type != iport_type)
   {
@@ -601,8 +601,8 @@ IMPLEMENT_TEST(set_untagged_flow_dependent_port)
     TEST_ERROR("Could not set the output port type");
   }
 
-  vistk::process::port_info_t const oiinfo = process->input_port_info(iport_name);
-  vistk::process::port_info_t const ooinfo = process->output_port_info(oport_name);
+  sprokit::process::port_info_t const oiinfo = process->input_port_info(iport_name);
+  sprokit::process::port_info_t const ooinfo = process->output_port_info(oport_name);
 
   if (ooinfo->type != oport_type)
   {
@@ -615,60 +615,60 @@ IMPLEMENT_TEST(set_untagged_flow_dependent_port)
   }
 }
 
-vistk::process::port_type_t const remove_ports_process::input_port = vistk::process::port_type_t("input");
-vistk::process::port_type_t const remove_ports_process::output_port = vistk::process::port_type_t("output");
+sprokit::process::port_type_t const remove_ports_process::input_port = sprokit::process::port_type_t("input");
+sprokit::process::port_type_t const remove_ports_process::output_port = sprokit::process::port_type_t("output");
 
 IMPLEMENT_TEST(remove_input_port)
 {
-  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  sprokit::process::port_type_t const type = sprokit::process::port_type_t("type");
   boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
 
   proc->_remove_input_port(remove_ports_process::input_port);
 
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    proc->input_port_info(remove_ports_process::input_port),
                    "after removing an input port");
 }
 
 IMPLEMENT_TEST(remove_output_port)
 {
-  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  sprokit::process::port_type_t const type = sprokit::process::port_type_t("type");
   boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
 
   proc->_remove_output_port(remove_ports_process::output_port);
 
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    proc->output_port_info(remove_ports_process::output_port),
                    "after removing an output port");
 }
 
 IMPLEMENT_TEST(remove_non_exist_input_port)
 {
-  vistk::process::port_t const port = vistk::process::port_t("port");
-  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  sprokit::process::port_t const port = sprokit::process::port_t("port");
+  sprokit::process::port_type_t const type = sprokit::process::port_type_t("type");
   boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
 
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    proc->_remove_input_port(port),
                    "after removing a non-existent input port");
 }
 
 IMPLEMENT_TEST(remove_non_exist_output_port)
 {
-  vistk::process::port_t const port = vistk::process::port_t("port");
-  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  sprokit::process::port_t const port = sprokit::process::port_t("port");
+  sprokit::process::port_type_t const type = sprokit::process::port_type_t("type");
   boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
 
-  EXPECT_EXCEPTION(vistk::no_such_port_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    proc->_remove_output_port(port),
                    "after removing a non-existent output port");
 }
 
 IMPLEMENT_TEST(remove_only_tagged_flow_dependent_port)
 {
-  vistk::process::port_t const port = vistk::process::port_t("port");
-  vistk::process::port_type_t const flow_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("tag");
-  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  sprokit::process::port_t const port = sprokit::process::port_t("port");
+  sprokit::process::port_type_t const flow_type = sprokit::process::type_flow_dependent + sprokit::process::port_type_t("tag");
+  sprokit::process::port_type_t const type = sprokit::process::port_type_t("type");
   boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
 
   proc->_remove_input_port(remove_ports_process::input_port);
@@ -676,8 +676,8 @@ IMPLEMENT_TEST(remove_only_tagged_flow_dependent_port)
   proc->_remove_output_port(remove_ports_process::output_port);
   proc->create_input_port(port, flow_type);
 
-  vistk::process::port_info_t const info = proc->input_port_info(port);
-  vistk::process::port_type_t const& new_type = info->type;
+  sprokit::process::port_info_t const info = proc->input_port_info(port);
+  sprokit::process::port_type_t const& new_type = info->type;
 
   if (new_type != flow_type)
   {
@@ -687,15 +687,15 @@ IMPLEMENT_TEST(remove_only_tagged_flow_dependent_port)
 
 IMPLEMENT_TEST(remove_tagged_flow_dependent_port)
 {
-  vistk::process::port_type_t const flow_type = vistk::process::type_flow_dependent + vistk::process::port_type_t("tag");
-  vistk::process::port_type_t const type = vistk::process::port_type_t("type");
+  sprokit::process::port_type_t const flow_type = sprokit::process::type_flow_dependent + sprokit::process::port_type_t("tag");
+  sprokit::process::port_type_t const type = sprokit::process::port_type_t("type");
   boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
 
   proc->set_output_port_type(remove_ports_process::output_port, type);
   proc->_remove_output_port(remove_ports_process::output_port);
 
-  vistk::process::port_info_t const info = proc->input_port_info(remove_ports_process::input_port);
-  vistk::process::port_type_t const& new_type = info->type;
+  sprokit::process::port_info_t const info = proc->input_port_info(remove_ports_process::input_port);
+  sprokit::process::port_type_t const& new_type = info->type;
 
   if (new_type != type)
   {
@@ -705,73 +705,73 @@ IMPLEMENT_TEST(remove_tagged_flow_dependent_port)
 
 IMPLEMENT_TEST(null_config)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const proc_type = vistk::process::type_t("null_config");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("null_config");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_config_process>);
+  reg->register_process(proc_type, sprokit::process_registry::description_t(), sprokit::create_process<null_config_process>);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
+  sprokit::process::name_t const proc_name = sprokit::process::name_t(proc_type);
 
-  EXPECT_EXCEPTION(vistk::null_process_config_exception,
+  EXPECT_EXCEPTION(sprokit::null_process_config_exception,
                    create_process(proc_type, proc_name),
                    "passing NULL as the configuration for a process");
 }
 
 IMPLEMENT_TEST(null_input_port_info)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const proc_type = vistk::process::type_t("null_input_port");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("null_input_port");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_input_info_process>);
+  reg->register_process(proc_type, sprokit::process_registry::description_t(), sprokit::create_process<null_input_info_process>);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
+  sprokit::process::name_t const proc_name = sprokit::process::name_t(proc_type);
 
-  EXPECT_EXCEPTION(vistk::null_input_port_info_exception,
+  EXPECT_EXCEPTION(sprokit::null_input_port_info_exception,
                    create_process(proc_type, proc_name),
                    "passing NULL as an input port info structure");
 }
 
 IMPLEMENT_TEST(null_output_port_info)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const proc_type = vistk::process::type_t("null_output_port");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("null_output_port");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_output_info_process>);
+  reg->register_process(proc_type, sprokit::process_registry::description_t(), sprokit::create_process<null_output_info_process>);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
+  sprokit::process::name_t const proc_name = sprokit::process::name_t(proc_type);
 
-  EXPECT_EXCEPTION(vistk::null_output_port_info_exception,
+  EXPECT_EXCEPTION(sprokit::null_output_port_info_exception,
                    create_process(proc_type, proc_name),
                    "passing NULL as an output port info structure");
 }
 
 IMPLEMENT_TEST(null_conf_info)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const proc_type = vistk::process::type_t("null_conf");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("null_conf");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<null_conf_info_process>);
+  reg->register_process(proc_type, sprokit::process_registry::description_t(), sprokit::create_process<null_conf_info_process>);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
+  sprokit::process::name_t const proc_name = sprokit::process::name_t(proc_type);
 
-  EXPECT_EXCEPTION(vistk::null_conf_info_exception,
+  EXPECT_EXCEPTION(sprokit::null_conf_info_exception,
                    create_process(proc_type, proc_name),
                    "passing NULL as an configuration info structure");
 }
 
 IMPLEMENT_TEST(tunable_config)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("tunable");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("tunable");
 
-  vistk::config::key_t const tunable_key = vistk::config::key_t("tunable");
+  sprokit::config::key_t const tunable_key = sprokit::config::key_t("tunable");
 
-  vistk::process_t const proc = create_process(proc_type);
+  sprokit::process_t const proc = create_process(proc_type);
 
-  vistk::config::keys_t const tunable = proc->available_tunable_config();
+  sprokit::config::keys_t const tunable = proc->available_tunable_config();
 
   if (tunable.size() != 1)
   {
@@ -791,20 +791,20 @@ IMPLEMENT_TEST(tunable_config)
 
 IMPLEMENT_TEST(tunable_config_read_only)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("tunable");
-  vistk::process::name_t const proc_name = vistk::process::name_t(proc_type);
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("tunable");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t(proc_type);
 
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const tunable_key = vistk::config::key_t("tunable");
-  vistk::config::value_t const tunable_value = vistk::config::value_t("value");
+  sprokit::config::key_t const tunable_key = sprokit::config::key_t("tunable");
+  sprokit::config::value_t const tunable_value = sprokit::config::value_t("value");
 
   conf->set_value(tunable_key, tunable_value);
   conf->mark_read_only(tunable_key);
 
-  vistk::process_t const proc = create_process(proc_type, proc_name, conf);
+  sprokit::process_t const proc = create_process(proc_type, proc_name, conf);
 
-  vistk::config::keys_t const tunable = proc->available_tunable_config();
+  sprokit::config::keys_t const tunable = proc->available_tunable_config();
 
   if (!tunable.empty())
   {
@@ -814,123 +814,123 @@ IMPLEMENT_TEST(tunable_config_read_only)
 
 IMPLEMENT_TEST(reconfigure_tunable)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("expect");
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("expect");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key_tunable = vistk::config::key_t("tunable");
-  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
+  sprokit::config::key_t const key_tunable = sprokit::config::key_t("tunable");
+  sprokit::config::key_t const key_expect = sprokit::config::key_t("expect");
 
-  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
-  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+  sprokit::config::value_t const tunable_value = sprokit::config::value_t("old_value");
+  sprokit::config::value_t const tuned_value = sprokit::config::value_t("new_value");
 
   conf->set_value(key_tunable, tunable_value);
   conf->set_value(key_expect, tuned_value);
-  conf->set_value(vistk::process::config_name, proc_name);
+  conf->set_value(sprokit::process::config_name, proc_name);
 
-  vistk::process_t const expect = create_process(proc_type, proc_name, conf);
+  sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  new_conf->set_value(proc_name + vistk::config::block_sep + key_tunable, tuned_value);
+  new_conf->set_value(proc_name + sprokit::config::block_sep + key_tunable, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(reconfigure_non_tunable)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("expect");
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("expect");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key_tunable = vistk::config::key_t("tunable");
-  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
+  sprokit::config::key_t const key_tunable = sprokit::config::key_t("tunable");
+  sprokit::config::key_t const key_expect = sprokit::config::key_t("expect");
 
-  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+  sprokit::config::value_t const tunable_value = sprokit::config::value_t("old_value");
 
   conf->set_value(key_tunable, tunable_value);
   conf->mark_read_only(key_tunable);
   conf->set_value(key_expect, tunable_value);
-  conf->set_value(vistk::process::config_name, proc_name);
+  conf->set_value(sprokit::process::config_name, proc_name);
 
-  vistk::process_t const expect = create_process(proc_type, proc_name, conf);
+  sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::value_t const tuned_value = vistk::config::value_t("new_value");
+  sprokit::config::value_t const tuned_value = sprokit::config::value_t("new_value");
 
-  new_conf->set_value(proc_name + vistk::config::block_sep + key_tunable, tuned_value);
+  new_conf->set_value(proc_name + sprokit::config::block_sep + key_tunable, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(reconfigure_extra_parameters)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("expect");
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("expect");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+  sprokit::config::key_t const new_key = sprokit::config::key_t("new_key");
 
-  vistk::config::key_t const key_expect = vistk::config::key_t("expect");
-  vistk::config::key_t const key_expect_key = vistk::config::key_t("expect_key");
+  sprokit::config::key_t const key_expect = sprokit::config::key_t("expect");
+  sprokit::config::key_t const key_expect_key = sprokit::config::key_t("expect_key");
 
   conf->set_value(key_expect, new_key);
   conf->set_value(key_expect_key, "true");
-  conf->set_value(vistk::process::config_name, proc_name);
+  conf->set_value(sprokit::process::config_name, proc_name);
 
-  vistk::process_t const expect = create_process(proc_type, proc_name, conf);
+  sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::value_t const tunable_value = vistk::config::value_t("old_value");
+  sprokit::config::value_t const tunable_value = sprokit::config::value_t("old_value");
 
-  new_conf->set_value(proc_name + vistk::config::block_sep + new_key, tunable_value);
+  new_conf->set_value(proc_name + sprokit::config::block_sep + new_key, tunable_value);
 
   pipeline->reconfigure(new_conf);
 }
 
-vistk::process_t
-create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t const& conf)
+sprokit::process_t
+create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t const& conf)
 {
-  static bool const modules_loaded = (vistk::load_known_modules(), true);
-  static vistk::process_registry_t const reg = vistk::process_registry::self();
+  static bool const modules_loaded = (sprokit::load_known_modules(), true);
+  static sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
   (void)modules_loaded;
 
   return reg->create_process(type, name, conf);
 }
 
-vistk::edge_t
+sprokit::edge_t
 create_edge()
 {
-  vistk::config_t const config = vistk::config::empty_config();
-  vistk::edge_t const edge = boost::make_shared<vistk::edge>(config);
+  sprokit::config_t const config = sprokit::config::empty_config();
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
   return edge;
 }
 
 null_config_process
-::null_config_process(vistk::config_t const& /*config*/)
-  : vistk::process(vistk::config_t())
+::null_config_process(sprokit::config_t const& /*config*/)
+  : sprokit::process(sprokit::config_t())
 {
 }
 
@@ -940,8 +940,8 @@ null_config_process
 }
 
 null_input_info_process
-::null_input_info_process(vistk::config_t const& config)
-  : vistk::process(config)
+::null_input_info_process(sprokit::config_t const& config)
+  : sprokit::process(config)
 {
   name_t const port = name_t("port");
 
@@ -954,8 +954,8 @@ null_input_info_process
 }
 
 null_output_info_process
-::null_output_info_process(vistk::config_t const& config)
-  : vistk::process(config)
+::null_output_info_process(sprokit::config_t const& config)
+  : sprokit::process(config)
 {
   name_t const port = name_t("port");
 
@@ -968,10 +968,10 @@ null_output_info_process
 }
 
 null_conf_info_process
-::null_conf_info_process(vistk::config_t const& config)
-  : vistk::process(config)
+::null_conf_info_process(sprokit::config_t const& config)
+  : sprokit::process(config)
 {
-  vistk::config::key_t const key = vistk::config::key_t("key");
+  sprokit::config::key_t const key = sprokit::config::key_t("key");
 
   declare_configuration_key(key, conf_info_t());
 }
@@ -983,7 +983,7 @@ null_conf_info_process
 
 remove_ports_process
 ::remove_ports_process(port_type_t const& port_type)
-  : vistk::process(vistk::config::empty_config())
+  : sprokit::process(sprokit::config::empty_config())
 {
   create_input_port(input_port, port_type);
   create_output_port(output_port, port_type);

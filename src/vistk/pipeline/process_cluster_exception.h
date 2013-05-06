@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_PROCESS_CLUSTER_EXCEPTION_H
-#define VISTK_PIPELINE_PROCESS_CLUSTER_EXCEPTION_H
+#ifndef SPROKIT_PIPELINE_PROCESS_CLUSTER_EXCEPTION_H
+#define SPROKIT_PIPELINE_PROCESS_CLUSTER_EXCEPTION_H
 
 #include "pipeline-config.h"
 
@@ -17,20 +17,20 @@
 /**
  * \file process_cluster_exception.h
  *
- * \brief Header for exceptions used within \link vistk::process_cluster process clusters\endlink.
+ * \brief Header for exceptions used within \link sprokit::process_cluster process clusters\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class process_cluster_exception process_cluster_exception.h <vistk/pipeline/process_cluster_exception.h>
+ * \class process_cluster_exception process_cluster_exception.h <sprokit/pipeline/process_cluster_exception.h>
  *
  * \brief The base class for special exceptions thrown from a \ref process_cluster.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT process_cluster_exception
+class SPROKIT_PIPELINE_EXPORT process_cluster_exception
   : public process_exception
 {
   public:
@@ -45,13 +45,13 @@ class VISTK_PIPELINE_EXPORT process_cluster_exception
 };
 
 /**
- * \class mapping_after_process_exception process_cluster_exception.h <vistk/pipeline/process_cluster_exception.h>
+ * \class mapping_after_process_exception process_cluster_exception.h <sprokit/pipeline/process_cluster_exception.h>
  *
  * \brief Thrown when a configuration is mapped after the process has been created.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT mapping_after_process_exception
+class SPROKIT_PIPELINE_EXPORT mapping_after_process_exception
   : public process_cluster_exception
 {
   public:
@@ -80,13 +80,13 @@ class VISTK_PIPELINE_EXPORT mapping_after_process_exception
 };
 
 /**
- * \class mapping_to_read_only_value_exception process_cluster_exception.h <vistk/pipeline/process_cluster_exception.h>
+ * \class mapping_to_read_only_value_exception process_cluster_exception.h <sprokit/pipeline/process_cluster_exception.h>
  *
  * \brief Thrown when a configuration is mapped to a read-only value.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT mapping_to_read_only_value_exception
+class SPROKIT_PIPELINE_EXPORT mapping_to_read_only_value_exception
   : public process_cluster_exception
 {
   public:
@@ -120,4 +120,4 @@ class VISTK_PIPELINE_EXPORT mapping_to_read_only_value_exception
 
 }
 
-#endif // VISTK_PIPELINE_PROCESS_CLUSTER_EXCEPTION_H
+#endif // SPROKIT_PIPELINE_PROCESS_CLUSTER_EXCEPTION_H

@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_PIPELINE_EXCEPTION_H
-#define VISTK_PIPELINE_PIPELINE_EXCEPTION_H
+#ifndef SPROKIT_PIPELINE_PIPELINE_EXCEPTION_H
+#define SPROKIT_PIPELINE_PIPELINE_EXCEPTION_H
 
 #include "pipeline-config.h"
 
@@ -15,20 +15,20 @@
 /**
  * \file pipeline_exception.h
  *
- * \brief Header for exceptions used within \link vistk::pipeline pipelines\endlink.
+ * \brief Header for exceptions used within \link sprokit::pipeline pipelines\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class pipeline_addition_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class pipeline_addition_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief The base exception thrown when adding processes to the pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT pipeline_addition_exception
+class SPROKIT_PIPELINE_EXPORT pipeline_addition_exception
   : public pipeline_exception
 {
   public:
@@ -43,13 +43,13 @@ class VISTK_PIPELINE_EXPORT pipeline_addition_exception
 };
 
 /**
- * \class null_pipeline_config_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class null_pipeline_config_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \c NULL \ref config is passed to a pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_pipeline_config_exception
+class SPROKIT_PIPELINE_EXPORT null_pipeline_config_exception
   : public pipeline_exception
 {
   public:
@@ -64,13 +64,13 @@ class VISTK_PIPELINE_EXPORT null_pipeline_config_exception
 };
 
 /**
- * \class add_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class add_after_setup_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a process or group is added to a pipeline after setup.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT add_after_setup_exception
+class SPROKIT_PIPELINE_EXPORT add_after_setup_exception
   : public pipeline_addition_exception
 {
   public:
@@ -90,13 +90,13 @@ class VISTK_PIPELINE_EXPORT add_after_setup_exception
 };
 
 /**
- * \class null_process_addition_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class null_process_addition_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \c NULL is given as a \ref process to add to a \ref pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT null_process_addition_exception
+class SPROKIT_PIPELINE_EXPORT null_process_addition_exception
   : public pipeline_addition_exception
 {
   public:
@@ -111,13 +111,13 @@ class VISTK_PIPELINE_EXPORT null_process_addition_exception
 };
 
 /**
- * \class duplicate_process_name_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class duplicate_process_name_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref process with a duplicate name is added to the \ref pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT duplicate_process_name_exception
+class SPROKIT_PIPELINE_EXPORT duplicate_process_name_exception
   : public pipeline_addition_exception
 {
   public:
@@ -137,13 +137,13 @@ class VISTK_PIPELINE_EXPORT duplicate_process_name_exception
 };
 
 /**
- * \class pipeline_removal_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class pipeline_removal_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief The base exception thrown when removing processes to the pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT pipeline_removal_exception
+class SPROKIT_PIPELINE_EXPORT pipeline_removal_exception
   : public pipeline_exception
 {
   public:
@@ -158,13 +158,13 @@ class VISTK_PIPELINE_EXPORT pipeline_removal_exception
 };
 
 /**
- * \class remove_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class remove_after_setup_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a process or group is removed from a pipeline after setup.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT remove_after_setup_exception
+class SPROKIT_PIPELINE_EXPORT remove_after_setup_exception
   : public pipeline_removal_exception
 {
   public:
@@ -184,13 +184,13 @@ class VISTK_PIPELINE_EXPORT remove_after_setup_exception
 };
 
 /**
- * \class reconfigure_before_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class reconfigure_before_setup_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a pipeline is reconfigured before setup.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT reconfigure_before_setup_exception
+class SPROKIT_PIPELINE_EXPORT reconfigure_before_setup_exception
   : public pipeline_exception
 {
   public:
@@ -205,13 +205,13 @@ class VISTK_PIPELINE_EXPORT reconfigure_before_setup_exception
 };
 
 /**
- * \class pipeline_connection_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class pipeline_connection_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref pipeline due to connections.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT pipeline_connection_exception
+class SPROKIT_PIPELINE_EXPORT pipeline_connection_exception
   : public pipeline_exception
 {
   public:
@@ -226,13 +226,13 @@ class VISTK_PIPELINE_EXPORT pipeline_connection_exception
 };
 
 /**
- * \class connection_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class connection_after_setup_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a connection is requested after setup.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT connection_after_setup_exception
+class SPROKIT_PIPELINE_EXPORT connection_after_setup_exception
   : public pipeline_connection_exception
 {
   public:
@@ -264,13 +264,13 @@ class VISTK_PIPELINE_EXPORT connection_after_setup_exception
 };
 
 /**
- * \class disconnection_after_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class disconnection_after_setup_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a disconnection is requested after setup.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT disconnection_after_setup_exception
+class SPROKIT_PIPELINE_EXPORT disconnection_after_setup_exception
   : public pipeline_connection_exception
 {
   public:
@@ -302,13 +302,13 @@ class VISTK_PIPELINE_EXPORT disconnection_after_setup_exception
 };
 
 /**
- * \class no_such_process_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class no_such_process_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref process is requested that does not exist in a \ref pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_such_process_exception
+class SPROKIT_PIPELINE_EXPORT no_such_process_exception
   : public pipeline_connection_exception
 {
   public:
@@ -328,13 +328,13 @@ class VISTK_PIPELINE_EXPORT no_such_process_exception
 };
 
 /**
- * \class connection_dependent_type_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class connection_dependent_type_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a connection sets a type on a port that is rejected.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT connection_dependent_type_exception
+class SPROKIT_PIPELINE_EXPORT connection_dependent_type_exception
   : public pipeline_connection_exception
 {
   public:
@@ -374,13 +374,13 @@ class VISTK_PIPELINE_EXPORT connection_dependent_type_exception
 };
 
 /**
- * \class connection_dependent_type_cascade_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class connection_dependent_type_cascade_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a connection sets a type on a port that is rejected due to propagation of the type.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT connection_dependent_type_cascade_exception
+class SPROKIT_PIPELINE_EXPORT connection_dependent_type_cascade_exception
   : public pipeline_connection_exception
 {
   public:
@@ -432,13 +432,13 @@ class VISTK_PIPELINE_EXPORT connection_dependent_type_cascade_exception
 };
 
 /**
- * \class connection_type_mismatch_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class connection_type_mismatch_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a connection is requested with type mismatched ports.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT connection_type_mismatch_exception
+class SPROKIT_PIPELINE_EXPORT connection_type_mismatch_exception
   : public pipeline_connection_exception
 {
   public:
@@ -478,13 +478,13 @@ class VISTK_PIPELINE_EXPORT connection_type_mismatch_exception
 };
 
 /**
- * \class connection_flag_mismatch_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class connection_flag_mismatch_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a connection is requested with mismatched ports flags.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT connection_flag_mismatch_exception
+class SPROKIT_PIPELINE_EXPORT connection_flag_mismatch_exception
   : public pipeline_connection_exception
 {
   public:
@@ -516,13 +516,13 @@ class VISTK_PIPELINE_EXPORT connection_flag_mismatch_exception
 };
 
 /**
- * \class pipeline_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class pipeline_setup_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief The base class for all exceptions thrown from a \ref pipeline due to issues when setting up a pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT pipeline_setup_exception
+class SPROKIT_PIPELINE_EXPORT pipeline_setup_exception
   : public pipeline_exception
 {
   public:
@@ -537,13 +537,13 @@ class VISTK_PIPELINE_EXPORT pipeline_setup_exception
 };
 
 /**
- * \class pipeline_duplicate_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class pipeline_duplicate_setup_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a pipeline is setup more than once.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT pipeline_duplicate_setup_exception
+class SPROKIT_PIPELINE_EXPORT pipeline_duplicate_setup_exception
   : public pipeline_setup_exception
 {
   public:
@@ -558,13 +558,13 @@ class VISTK_PIPELINE_EXPORT pipeline_duplicate_setup_exception
 };
 
 /**
- * \class no_processes_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class no_processes_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref pipeline has no processes in it.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_processes_exception
+class SPROKIT_PIPELINE_EXPORT no_processes_exception
   : public pipeline_setup_exception
 {
   public:
@@ -579,13 +579,13 @@ class VISTK_PIPELINE_EXPORT no_processes_exception
 };
 
 /**
- * \class orphaned_processes_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class orphaned_processes_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref pipeline has orphaned processes in it.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT orphaned_processes_exception
+class SPROKIT_PIPELINE_EXPORT orphaned_processes_exception
   : public pipeline_setup_exception
 {
   public:
@@ -600,13 +600,13 @@ class VISTK_PIPELINE_EXPORT orphaned_processes_exception
 };
 
 /**
- * \class not_a_dag_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class not_a_dag_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref pipeline contains cycles.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT not_a_dag_exception
+class SPROKIT_PIPELINE_EXPORT not_a_dag_exception
   : public pipeline_setup_exception
 {
   public:
@@ -621,13 +621,13 @@ class VISTK_PIPELINE_EXPORT not_a_dag_exception
 };
 
 /**
- * \class untyped_data_dependent_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class untyped_data_dependent_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref process contains a data-dependent port even after initialization.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT untyped_data_dependent_exception
+class SPROKIT_PIPELINE_EXPORT untyped_data_dependent_exception
   : public pipeline_setup_exception
 {
   public:
@@ -650,13 +650,13 @@ class VISTK_PIPELINE_EXPORT untyped_data_dependent_exception
 };
 
 /**
- * \class untyped_connection_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class untyped_connection_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a \ref process contains a data-dependent port even after initialization.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT untyped_connection_exception
+class SPROKIT_PIPELINE_EXPORT untyped_connection_exception
   : public pipeline_setup_exception
 {
   public:
@@ -671,13 +671,13 @@ class VISTK_PIPELINE_EXPORT untyped_connection_exception
 };
 
 /**
- * \class frequency_mismatch_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class frequency_mismatch_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when the frequencies within the pipeline cannot be resolved.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT frequency_mismatch_exception
+class SPROKIT_PIPELINE_EXPORT frequency_mismatch_exception
   : public pipeline_setup_exception
 {
   public:
@@ -717,13 +717,13 @@ class VISTK_PIPELINE_EXPORT frequency_mismatch_exception
 };
 
 /**
- * \class reset_running_pipeline_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class reset_running_pipeline_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a pipeline is reset while it is running.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT reset_running_pipeline_exception
+class SPROKIT_PIPELINE_EXPORT reset_running_pipeline_exception
   : public pipeline_exception
 {
   public:
@@ -738,13 +738,13 @@ class VISTK_PIPELINE_EXPORT reset_running_pipeline_exception
 };
 
 /**
- * \class pipeline_not_setup_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class pipeline_not_setup_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a pipeline that has not been setup is started.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT pipeline_not_setup_exception
+class SPROKIT_PIPELINE_EXPORT pipeline_not_setup_exception
   : public pipeline_exception
 {
   public:
@@ -759,13 +759,13 @@ class VISTK_PIPELINE_EXPORT pipeline_not_setup_exception
 };
 
 /**
- * \class pipeline_not_ready_exception pipeline_exception.h <vistk/pipeline/pipeline_exception.h>
+ * \class pipeline_not_ready_exception pipeline_exception.h <sprokit/pipeline/pipeline_exception.h>
  *
  * \brief Thrown when a pipeline that did not succeed in setting up is started.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT pipeline_not_ready_exception
+class SPROKIT_PIPELINE_EXPORT pipeline_not_ready_exception
   : public pipeline_exception
 {
   public:
@@ -781,4 +781,4 @@ class VISTK_PIPELINE_EXPORT pipeline_not_ready_exception
 
 }
 
-#endif // VISTK_PIPELINE_PIPELINE_EXCEPTION_H
+#endif // SPROKIT_PIPELINE_PIPELINE_EXCEPTION_H

@@ -11,10 +11,10 @@
 /**
  * \file datum.cxx
  *
- * \brief Implementation of a piece of \link vistk::datum data\endlink in the pipeline.
+ * \brief Implementation of a piece of \link sprokit::datum data\endlink in the pipeline.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 datum_t

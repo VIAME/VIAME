@@ -1,5 +1,5 @@
 set(cmakefiles_dir
-  "${vistk_binary_dir}/CMakeFiles")
+  "${sprokit_binary_dir}/CMakeFiles")
 
 if (CMAKE_CROSSCOMPILING)
   set(BOOST_MANGLE_NAMESPACE "boost" CACHE STRING "The mangled boost namespace")
@@ -29,7 +29,7 @@ main()
 ")
 
   try_run(boost_mangle_namespace_run boost_mangle_namespace_compile
-    "${vistk_binary_dir}"
+    "${sprokit_binary_dir}"
     "${boost_mangle_namespace_path}"
     CMAKE_FLAGS         "-DINCLUDE_DIRECTORIES=${Boost_INCLUDE_DIRS}"
     RUN_OUTPUT_VARIABLE boost_detect_mangle_namespace)

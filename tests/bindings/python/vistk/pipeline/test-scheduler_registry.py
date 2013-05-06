@@ -7,15 +7,15 @@
 
 def test_import():
     try:
-        from vistk.pipeline import config
-        import vistk.pipeline.scheduler_registry
+        from sprokit.pipeline import config
+        import sprokit.pipeline.scheduler_registry
     except:
         test_error("Failed to import the scheduler_registry module")
 
 
 def test_create():
-    from vistk.pipeline import config
-    from vistk.pipeline import scheduler_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import scheduler_registry
 
     scheduler_registry.SchedulerRegistry.self()
     scheduler_registry.SchedulerType()
@@ -25,10 +25,10 @@ def test_create():
 
 
 def test_api_calls():
-    from vistk.pipeline import config
-    from vistk.pipeline import modules
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import scheduler_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import scheduler_registry
 
     modules.load_known_modules()
 
@@ -46,7 +46,7 @@ def test_api_calls():
 
 
 def example_scheduler():
-    from vistk.pipeline import scheduler
+    from sprokit.pipeline import scheduler
 
     class PythonExample(scheduler.PythonScheduler):
         def __init__(self, pipe, conf):
@@ -77,10 +77,10 @@ def example_scheduler():
 
 
 def test_register():
-    from vistk.pipeline import config
-    from vistk.pipeline import modules
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import scheduler_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import scheduler_registry
 
     modules.load_known_modules()
 
@@ -105,10 +105,10 @@ def test_register():
 
 
 def test_wrapper_api():
-    from vistk.pipeline import config
-    from vistk.pipeline import modules
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import scheduler_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import scheduler_registry
 
     sched_type = 'python_example'
     sched_desc = 'simple description'
@@ -156,6 +156,6 @@ if __name__ == '__main__':
         , 'wrapper_api': test_wrapper_api
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

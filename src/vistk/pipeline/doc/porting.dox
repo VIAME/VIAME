@@ -2,7 +2,7 @@
  * \page porting Porting
  *
  * This page outlines some steps that may be involved when porting a process
- * from the vidtk process framework into a vistk pipeline process.
+ * from the vidtk process framework into a sprokit pipeline process.
  *
  * \section porting_splitting Splitting the process
  *
@@ -29,7 +29,7 @@
  * Processes receive their configuration when constructed. This is to ensure
  * that a process is consistent throughout its entire existence. This also means
  * that constructors should not throw exceptions for invalid configurations
- * during construction. Instead, the \ref vistk::process::_configure() function
+ * during construction. Instead, the \ref sprokit::process::_configure() function
  * should be used to check that a process is ready to run. If there are problems
  * with configurations at this time, exceptions should be thrown from there.
  *
@@ -60,8 +60,8 @@
  *
  * \subsection process_ports Ports
  *
- * Ports on a process are indexed by a \ref vistk::process::port_t. These ports
- * are where \link vistk::edge edges\endlink will be connected to. Processes are
+ * Ports on a process are indexed by a \ref sprokit::process::port_t. These ports
+ * are where \link sprokit::edge edges\endlink will be connected to. Processes are
  * in charge of keeping track of which edges are connected to which ports.
  *
  * Input ports are ports where data will be received from other processes in the
@@ -72,8 +72,8 @@
  * Output ports are ports where data will be available for other processes in
  * the pipeline. There may be many edges connected to a single port, and the
  * same data should be pushed to each edge connected to the port. The
- * \ref vistk::process::push_to_port() and \ref
- * vistk::process::push_datum_to_port() methods may be used to push data to the
+ * \ref sprokit::process::push_to_port() and \ref
+ * sprokit::process::push_datum_to_port() methods may be used to push data to the
  * output ports.
  *
  * \subsubsection process_port_types Types
@@ -81,18 +81,18 @@
  * Ports must declare a type for its ports. There are currently four special
  * types. The first two are static:
  *
- * \ptype{\link vistk::process::type_any any\endlink} The process does not try
+ * \ptype{\link sprokit::process::type_any any\endlink} The process does not try
  * to extract information from the port.
- * \ptype{\link vistk::process::type_none none\endlink} There is never any
+ * \ptype{\link sprokit::process::type_none none\endlink} There is never any
  * information to extract from the port.
  *
  * The other two are "delayed" types.
  *
- * \ptype{\link vistk::process::type_flow_dependent flow_dependent\endlink} The
+ * \ptype{\link sprokit::process::type_flow_dependent flow_dependent\endlink} The
  * process does not try to extract information from the port. If a tag is
  * appended to the type, then when any of the ports gets a type set for it, all
  * of the similarly tagged ports are given the same type.
- * \ptype{\link vistk::process::type_data_dependent data_dependent\endlink} The
+ * \ptype{\link sprokit::process::type_data_dependent data_dependent\endlink} The
  * process can determine the type, but it must be configured before the type can
  * be pinned down. The is usually for processes which read data from a file
  * which it may not know about until after the configuration has been read.
@@ -101,14 +101,14 @@
  * within a pipeline through a process which otherwise does not care about the
  * type of data that it is handling. As an example, a process which just passes
  * data through it can set its input and output ports to have a
- * \code vistk::process::type_flow_dependent + "tag"\endcode type and the
- * \ref vistk::pipeline will call \ref vistk::process::set_input_port_type() (or
- * \ref vistk::process::set_output_port_type()) which the base class will, by
+ * \code sprokit::process::type_flow_dependent + "tag"\endcode type and the
+ * \ref sprokit::pipeline will call \ref sprokit::process::set_input_port_type() (or
+ * \ref sprokit::process::set_output_port_type()) which the base class will, by
  * default, also set the output port to have the same type. This allows the
  * pipeline to check types on ports even when a process which does not care what
  * types it has exists between two processes. A subclass may reimplement the
- * \ref vistk::process::_set_input_port_type() and \ref
- * vistk::process::_set_output_port_type() methods in order to inspect or reject
+ * \ref sprokit::process::_set_input_port_type() and \ref
+ * sprokit::process::_set_output_port_type() methods in order to inspect or reject
  * a port type assignment based on what the type of the connected port is.
  *
  * \subsubsection process_port_flags Flags
@@ -116,16 +116,16 @@
  * There are multiple flags available for a port. The currently understood flags
  * include:
  *
- * \pflag{\link vistk::process::flag_output_const const\endlink} Marks that an
+ * \pflag{\link sprokit::process::flag_output_const const\endlink} Marks that an
  * output is "const" and may not be modified by receivers of the data.
- * \pflag{\link vistk::process::flag_input_mutable mutable\endlink} Marks that
+ * \pflag{\link sprokit::process::flag_input_mutable mutable\endlink} Marks that
  * an input is modified within the process and that other receivers of the data
  * may see the changes if the data is not handled carefully.
- * \pflag{\link vistk::process::flag_input_nodep nodep\endlink} Indicates that
+ * \pflag{\link sprokit::process::flag_input_nodep nodep\endlink} Indicates that
  * the port is expected to be a backwards edge within the pipeline so that when
  * the pipeline is topologically sorted (either for initialization or execution
  * order by a scheduler), the edge can be ignored for such purposes.
- * \pflag{\link vistk::process::flag_required required\endlink} Marks that the
+ * \pflag{\link sprokit::process::flag_required required\endlink} Marks that the
  * port must be connected for the process to run.
  *
  * A "const" output port may \em not be connected to a "mutable" input port.
@@ -163,14 +163,14 @@
  *
  * \subsection process_stepping Step
  *
- * In general, a process' \link vistk::process::_step _step\endlink method
+ * In general, a process' \link sprokit::process::_step _step\endlink method
  * will involve:
  *
  * \li Obtaining data from the input edges.
  * \li Running the algorithm.
  * \li Pushing data out via the output edges.
  *
- * \link vistk::edge Edges\endlink will block if there is no data or they are
+ * \link sprokit::edge Edges\endlink will block if there is no data or they are
  * full. Schedulers should try to ensure that these conditions do not occur.
  *
  * \subsection process_destruction Destruction
@@ -215,11 +215,11 @@
  *
  * Processes are loaded from shared libraries as plugins. When the library is
  * loaded, registration functions are called which lets the
- * \link vistk::process_registry process registry\endlink know about the various
+ * \link sprokit::process_registry process registry\endlink know about the various
  * types of processes available. In order to register a process, a few things
  * are needed. First, there needs to be a function which returns a
- * \ref vistk::process_t pointing to the new process given a
- * \ref vistk::config_t block. The \ref vistk::create_process() function handles
+ * \ref sprokit::process_t pointing to the new process given a
+ * \ref sprokit::config_t block. The \ref sprokit::create_process() function handles
  * the common case. This function must then be added to the registry with a type
  * name. This type name must be globally unique (exceptions will be thrown at a
  * program's start if this is not adhered to). A single process class may be

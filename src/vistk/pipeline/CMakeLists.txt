@@ -1,4 +1,4 @@
-project(vistk_pipeline)
+project(sprokit_pipeline)
 
 set(pipeline_srcs
   config.cxx
@@ -57,10 +57,10 @@ else ()
   set(destdir lib)
 endif ()
 
-set(vistk_default_module_paths
-  "${CMAKE_INSTALL_PREFIX}/${libdir}/vistk")
+set(sprokit_default_module_paths
+  "${CMAKE_INSTALL_PREFIX}/${libdir}/sprokit")
 set(module_output_path
-  "${vistk_binary_dir}/${destdir}/vistk")
+  "${sprokit_binary_dir}/${destdir}/sprokit")
 
 if (WIN32)
   set(path_sep ";")
@@ -68,12 +68,12 @@ else ()
   set(path_sep ":")
 endif ()
 
-cmake_dependent_option(VISTK_USE_BUILD_MODULE_PATHS "Whether to use the build tree for the default module path" ON
-  VISTK_USE_BUILD_TREE OFF)
-mark_as_advanced(VISTK_USE_BUILD_MODULE_PATHS)
-if (VISTK_USE_BUILD_MODULE_PATHS)
-  set(vistk_default_module_paths
-    "${vistk_default_module_paths}${path_sep}${module_output_path}")
+cmake_dependent_option(SPROKIT_USE_BUILD_MODULE_PATHS "Whether to use the build tree for the default module path" ON
+  SPROKIT_USE_BUILD_TREE OFF)
+mark_as_advanced(SPROKIT_USE_BUILD_MODULE_PATHS)
+if (SPROKIT_USE_BUILD_MODULE_PATHS)
+  set(sprokit_default_module_paths
+    "${sprokit_default_module_paths}${path_sep}${module_output_path}")
 endif ()
 
 set(path_prefix)
@@ -82,19 +82,19 @@ if (WIN32)
   set(path_prefix "L")
 endif ()
 
-set(VISTK_DEFAULT_MODULE_PATHS "${vistk_default_module_paths}"
+set(SPROKIT_DEFAULT_MODULE_PATHS "${sprokit_default_module_paths}"
   CACHE STRING "The default paths to search for modules in")
-set(vistk_library_options
-  "DEFAULT_MODULE_PATHS=${path_prefix}\"${VISTK_DEFAULT_MODULE_PATHS}\"")
+set(sprokit_library_options
+  "DEFAULT_MODULE_PATHS=${path_prefix}\"${SPROKIT_DEFAULT_MODULE_PATHS}\"")
 
 set(module_build_options
   "LIBRARY_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
 
 if (WIN32)
-  vistk_configure_file(module-paths.h
+  sprokit_configure_file(module-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
-    VISTK_DEFAULT_MODULE_PATHS
+    SPROKIT_DEFAULT_MODULE_PATHS
     path_prefix)
 
   set(pipeline_private_headers
@@ -103,7 +103,7 @@ if (WIN32)
 else ()
   set(module_build_options
     ${module_build_options}
-    ${vistk_library_options})
+    ${sprokit_library_options})
 endif ()
 
 set(default OFF)
@@ -112,8 +112,8 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(default ON)
 endif ()
 
-option(VISTK_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
-if (VISTK_USE_CONFIGURATION_SUBDIRECTORY)
+option(SPROKIT_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
+if (SPROKIT_USE_CONFIGURATION_SUBDIRECTORY)
   set(module_build_options
     ${module_build_options}
     USE_CONFIGURATION_SUBDIRECTORY)
@@ -150,12 +150,12 @@ set_source_files_properties(scheduler.cxx
 # each have their own instance of the registries and then nothing else can get
 # access to the loaded processes. Splitting out the registries into a separate
 # library might be something for the future.
-vistk_private_header_group(${pipeline_private_headers})
-vistk_add_library(vistk_pipeline SHARED
+sprokit_private_header_group(${pipeline_private_headers})
+sprokit_add_library(sprokit_pipeline SHARED
   ${pipeline_srcs}
   ${pipeline_headers}
   ${pipeline_private_headers})
-target_link_libraries(vistk_pipeline
+target_link_libraries(sprokit_pipeline
   LINK_PRIVATE
     ${Boost_CHRONO_LIBRARY}
     ${Boost_DATE_TIME_LIBRARY}
@@ -164,17 +164,17 @@ target_link_libraries(vistk_pipeline
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT})
-set_target_properties(vistk_pipeline
+set_target_properties(sprokit_pipeline
   PROPERTIES
-    VERSION       ${vistk_version}
+    VERSION       ${sprokit_version}
     SOVERSION     0
-    DEFINE_SYMBOL MAKE_VISTK_PIPELINE_LIB)
+    DEFINE_SYMBOL MAKE_SPROKIT_PIPELINE_LIB)
 
-add_dependencies(vistk_pipeline
+add_dependencies(sprokit_pipeline
   configure-version.h)
 
 if (WIN32)
-  add_dependencies(vistk_pipeline
+  add_dependencies(sprokit_pipeline
     configure-module-paths.h)
 endif ()
 
@@ -182,6 +182,6 @@ create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   pipeline)
 
-vistk_install_headers(vistk/pipeline ${pipeline_headers})
+sprokit_install_headers(sprokit/pipeline ${pipeline_headers})
 
-vistk_configure_pkgconfig(vistk-pipeline)
+sprokit_configure_pkgconfig(sprokit-pipeline)

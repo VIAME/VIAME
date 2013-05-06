@@ -4,13 +4,13 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_TOOLS_HELPERS_PIPELINE_BUILDER_H
-#define VISTK_TOOLS_HELPERS_PIPELINE_BUILDER_H
+#ifndef SPROKIT_TOOLS_HELPERS_PIPELINE_BUILDER_H
+#define SPROKIT_TOOLS_HELPERS_PIPELINE_BUILDER_H
 
-#include <vistk/pipeline_util/path.h>
-#include <vistk/pipeline_util/pipe_bakery.h>
+#include <sprokit/pipeline_util/path.h>
+#include <sprokit/pipeline_util/pipe_bakery.h>
 
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/types.h>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -29,14 +29,14 @@ class pipeline_builder
 
     void load_from_options(boost::program_options::variables_map const& vm);
 
-    void load_supplement(vistk::path_t const& path);
+    void load_supplement(sprokit::path_t const& path);
     void add_setting(std::string const& setting);
 
-    vistk::pipeline_t pipeline() const;
-    vistk::config_t config() const;
-    vistk::pipe_blocks blocks() const;
+    sprokit::pipeline_t pipeline() const;
+    sprokit::config_t config() const;
+    sprokit::pipe_blocks blocks() const;
   private:
-    vistk::pipe_blocks m_blocks;
+    sprokit::pipe_blocks m_blocks;
 };
 
 boost::program_options::options_description pipeline_common_options();
@@ -44,4 +44,4 @@ boost::program_options::options_description pipeline_input_options();
 boost::program_options::options_description pipeline_output_options();
 boost::program_options::options_description pipeline_run_options();
 
-#endif // VISTK_TOOLS_HELPERS_PIPELINE_BUILDER_H
+#endif // SPROKIT_TOOLS_HELPERS_PIPELINE_BUILDER_H

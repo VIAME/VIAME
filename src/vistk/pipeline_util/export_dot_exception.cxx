@@ -14,7 +14,7 @@
  * \brief Implementation of exceptions used when exporting a pipeline to dot.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 export_dot_exception

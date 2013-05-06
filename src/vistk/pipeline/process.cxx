@@ -27,10 +27,10 @@
 /**
  * \file process.cxx
  *
- * \brief Implementation of the base class for \link vistk::process processes\endlink.
+ * \brief Implementation of the base class for \link sprokit::process processes\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 process::property_t const process::property_no_threads = property_t("_no_thread");

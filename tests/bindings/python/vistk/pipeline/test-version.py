@@ -7,13 +7,13 @@
 
 def test_import():
     try:
-        import vistk.pipeline.version
+        import sprokit.pipeline.version
     except:
         test_error("Failed to import the version module")
 
 
 def test_api_calls():
-    from vistk.pipeline import version
+    from sprokit.pipeline import version
 
     version.compile.major
     version.compile.minor
@@ -55,6 +55,6 @@ if __name__ == '__main__':
         , 'api_calls': test_api_calls
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

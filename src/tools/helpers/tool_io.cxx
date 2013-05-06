@@ -13,14 +13,14 @@
 namespace
 {
 
-static vistk::path_t const iostream_path = vistk::path_t("-");
+static sprokit::path_t const iostream_path = sprokit::path_t("-");
 
 }
 
 static void std_stream_dtor(void* ptr);
 
 istream_t
-open_istream(vistk::path_t const& path)
+open_istream(sprokit::path_t const& path)
 {
   istream_t istr;
 
@@ -45,7 +45,7 @@ open_istream(vistk::path_t const& path)
 }
 
 ostream_t
-open_ostream(vistk::path_t const& path)
+open_ostream(sprokit::path_t const& path)
 {
   ostream_t ostr;
 

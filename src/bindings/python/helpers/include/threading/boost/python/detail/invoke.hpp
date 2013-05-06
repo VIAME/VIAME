@@ -20,7 +20,7 @@
 #  include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #  include <boost/python/to_python_value.hpp>
 
-#include <vistk/python/util/python_allow_threads.h>
+#include <sprokit/python/util/python_allow_threads.h>
 #include <boost/call_traits.hpp>
 namespace boost { namespace python { namespace objects {
     template <class NextPolicies, class Iterator> struct iterator_range;
@@ -168,7 +168,7 @@ inline PyObject* invoke(invoke_tag_<false,false> tag, RC const& rc, F& f BOOST_P
 
     typedef return_extract<F> return_info;
 
-    vistk::python::python_allow_threads allow(return_info::GIL);
+    sprokit::python::python_allow_threads allow(return_info::GIL);
 
     typename return_info::result_type ret = f( BOOST_PP_ENUM_BINARY_PARAMS_Z(1, N, a, BOOST_PP_INTERCEPT) );
 
@@ -182,7 +182,7 @@ inline PyObject* invoke(invoke_tag_<true,false>, RC const&, F& f BOOST_PP_ENUM_T
 {
     BOOST_PP_REPEAT(N, CONVERT_ARG, nil)
 
-    vistk::python::python_allow_threads allow;
+    sprokit::python::python_allow_threads allow;
 
     f( BOOST_PP_ENUM_BINARY_PARAMS_Z(1, N, a, BOOST_PP_INTERCEPT) );
 
@@ -198,7 +198,7 @@ inline PyObject* invoke(invoke_tag_<false,true> tag, RC const& rc, F& f, TC& tc 
 
     typedef return_extract<F> return_info;
 
-    vistk::python::python_allow_threads allow(return_info::GIL);
+    sprokit::python::python_allow_threads allow(return_info::GIL);
 
     typename return_info::result_type ret = (tc().*f)(BOOST_PP_ENUM_BINARY_PARAMS_Z(1, N, a, BOOST_PP_INTERCEPT));
 
@@ -212,7 +212,7 @@ inline PyObject* invoke(invoke_tag_<true,true>, RC const&, F& f, TC& tc BOOST_PP
 {
     BOOST_PP_REPEAT(N, CONVERT_ARG, nil)
 
-    vistk::python::python_allow_threads allow;
+    sprokit::python::python_allow_threads allow;
 
     (tc().*f)(BOOST_PP_ENUM_BINARY_PARAMS_Z(1, N, a, BOOST_PP_INTERCEPT));
 

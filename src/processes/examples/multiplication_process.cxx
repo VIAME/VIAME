@@ -14,7 +14,7 @@
  * \brief Implementation of the multiplication process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class multiplication_process::priv

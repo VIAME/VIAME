@@ -3,8 +3,8 @@ exec_prefix=${prefix}
 includedir=${prefix}/include
 libdir=${prefix}/lib@LIB_SUFFIX@
 
-Name: vistk-python_any_conversion
-Description: The vistk-python_any_conversion library
-Version: @vistk_version@
-Requires: vistk = @vistk_version@
-Libs: -lvistk_python_any_conversion
+Name: sprokit-python_any_conversion
+Description: The sprokit-python_any_conversion library
+Version: @sprokit_version@
+Requires: sprokit = @sprokit_version@
+Libs: -lsprokit_python_any_conversion

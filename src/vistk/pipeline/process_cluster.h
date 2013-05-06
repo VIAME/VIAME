@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_PROCESS_CLUSTER_H
-#define VISTK_PIPELINE_PROCESS_CLUSTER_H
+#ifndef SPROKIT_PIPELINE_PROCESS_CLUSTER_H
+#define SPROKIT_PIPELINE_PROCESS_CLUSTER_H
 
 #include "pipeline-config.h"
 
@@ -16,20 +16,20 @@
 /**
  * \file process_cluster.h
  *
- * \brief Header for \link vistk::process_cluster process clusters\endlink.
+ * \brief Header for \link sprokit::process_cluster process clusters\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class process_cluster process_cluster.h <vistk/pipeline/process_cluster.h>
+ * \class process_cluster process_cluster.h <sprokit/pipeline/process_cluster.h>
  *
  * \brief A pre-built collection of processes.
  *
  * \ingroup base_classes
  */
-class VISTK_PIPELINE_EXPORT process_cluster
+class SPROKIT_PIPELINE_EXPORT process_cluster
   : public process
 {
   public:
@@ -172,4 +172,4 @@ class VISTK_PIPELINE_EXPORT process_cluster
 
 }
 
-#endif // VISTK_PIPELINE_PROCESS_CLUSTER_H
+#endif // SPROKIT_PIPELINE_PROCESS_CLUSTER_H

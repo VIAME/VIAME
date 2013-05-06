@@ -1,5 +1,5 @@
-project(vistk_python_processes)
+project(sprokit_python_processes)
 
-if (VISTK_ENABLE_TESTING)
+if (SPROKIT_ENABLE_TESTING)
   add_subdirectory(test)
 endif ()

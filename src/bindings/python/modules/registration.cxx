@@ -8,9 +8,9 @@
 
 #include <python/helpers/python_exceptions.h>
 
-#include <vistk/pipeline/utils.h>
+#include <sprokit/pipeline/utils.h>
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/import.hpp>
 
@@ -18,7 +18,7 @@
 
 using namespace boost::python;
 
-static vistk::envvar_name_t const python_suppress_envvar = vistk::envvar_name_t("VISTK_NO_PYTHON_MODULES");
+static sprokit::envvar_name_t const python_suppress_envvar = sprokit::envvar_name_t("SPROKIT_NO_PYTHON_MODULES");
 
 static void load();
 static bool is_suppressed();
@@ -33,7 +33,7 @@ register_processes()
 
   Py_Initialize();
 
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
@@ -43,7 +43,7 @@ register_processes()
 void
 load()
 {
-  object const modules = import("vistk.modules.modules");
+  object const modules = import("sprokit.modules.modules");
   object const loader = modules.attr("load_python_modules");
 
   loader();
@@ -52,7 +52,7 @@ load()
 bool
 is_suppressed()
 {
-  vistk::envvar_value_t const python_suppress = vistk::get_envvar(python_suppress_envvar);
+  sprokit::envvar_value_t const python_suppress = sprokit::get_envvar(python_suppress_envvar);
 
   bool suppress_python_modules = false;
 

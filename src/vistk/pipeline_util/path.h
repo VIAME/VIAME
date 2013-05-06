@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_PATH_H
-#define VISTK_PIPELINE_UTIL_PATH_H
+#ifndef SPROKIT_PIPELINE_UTIL_PATH_H
+#define SPROKIT_PIPELINE_UTIL_PATH_H
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -29,7 +29,7 @@
  * \brief Types for paths.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /// A path on the filesystem.
@@ -39,4 +39,4 @@ typedef std::vector<path_t> paths_t;
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_PATH_H
+#endif // SPROKIT_PIPELINE_UTIL_PATH_H

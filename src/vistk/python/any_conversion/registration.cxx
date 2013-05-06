@@ -6,7 +6,7 @@
 
 #include "registration.h"
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/converter/registry.hpp>
 #include <boost/python/errors.hpp>
@@ -29,7 +29,7 @@
 
 using namespace boost::python;
 
-namespace vistk
+namespace sprokit
 {
 
 namespace python

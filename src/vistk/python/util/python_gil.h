@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_UTIL_PYTHON_GIL_H
-#define VISTK_PYTHON_UTIL_PYTHON_GIL_H
+#ifndef SPROKIT_PYTHON_UTIL_PYTHON_GIL_H
+#define SPROKIT_PYTHON_UTIL_PYTHON_GIL_H
 
 #include "util-config.h"
 
@@ -19,18 +19,18 @@
  * \brief RAII class for grabbing the Python GIL.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 namespace python
 {
 
 /**
- * \class python_gil python_gil.h <vistk/python/util/python_gil.h>
+ * \class python_gil python_gil.h <sprokit/python/util/python_gil.h>
  *
  * \brief Grabs the Python GIL and uses RAII to ensure it is released.
  */
-class VISTK_PYTHON_UTIL_EXPORT python_gil
+class SPROKIT_PYTHON_UTIL_EXPORT python_gil
   : boost::noncopyable
 {
   public:
@@ -50,4 +50,4 @@ class VISTK_PYTHON_UTIL_EXPORT python_gil
 
 }
 
-#endif // VISTK_PYTHON_UTIL_PYTHON_GIL_H
+#endif // SPROKIT_PYTHON_UTIL_PYTHON_GIL_H

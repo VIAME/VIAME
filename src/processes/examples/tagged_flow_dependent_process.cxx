@@ -6,7 +6,7 @@
 
 #include "tagged_flow_dependent_process.h"
 
-#include <vistk/pipeline/datum.h>
+#include <sprokit/pipeline/datum.h>
 
 /**
  * \file tagged_flow_dependent_process.cxx
@@ -14,7 +14,7 @@
  * \brief Implementation of the flow dependent process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class tagged_flow_dependent_process::priv

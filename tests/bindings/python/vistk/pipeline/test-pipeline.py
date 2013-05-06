@@ -7,14 +7,14 @@
 
 def test_import():
     try:
-        import vistk.pipeline.pipeline
+        import sprokit.pipeline.pipeline
     except:
         test_error("Failed to import the pipeline module")
 
 
 def test_create():
-    from vistk.pipeline import config
-    from vistk.pipeline import pipeline
+    from sprokit.pipeline import config
+    from sprokit.pipeline import pipeline
 
     c = config.empty_config()
 
@@ -23,12 +23,12 @@ def test_create():
 
 
 def test_api_calls():
-    from vistk.pipeline import config
-    from vistk.pipeline import edge
-    from vistk.pipeline import modules
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import process
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import edge
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import process
+    from sprokit.pipeline import process_registry
 
     p = pipeline.Pipeline()
 
@@ -125,6 +125,6 @@ if __name__ == '__main__':
         , 'api_calls': test_api_calls
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

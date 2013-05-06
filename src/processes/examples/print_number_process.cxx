@@ -6,10 +6,10 @@
 
 #include "print_number_process.h"
 
-#include <vistk/pipeline_util/path.h>
+#include <sprokit/pipeline_util/path.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/process_exception.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/process_exception.h>
 
 #include <boost/filesystem/fstream.hpp>
 #include <boost/cstdint.hpp>
@@ -22,7 +22,7 @@
  * \brief Implementation of the number printer process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class print_number_process::priv

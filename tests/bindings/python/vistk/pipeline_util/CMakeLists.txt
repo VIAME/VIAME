@@ -1,37 +1,37 @@
-project(vistk_test_python_vistk_pipeline_util)
+project(sprokit_test_python_sprokit_pipeline_util)
 
-set(vistk_test_pipelines_directory
-  ${vistk_test_data_directory}/pipelines)
+set(sprokit_test_pipelines_directory
+  ${sprokit_test_data_directory}/pipelines)
 
-function (vistk_make_python_load_test name instance)
-  vistk_make_python_test(${name} ${instance}
-    "${vistk_test_pipelines_directory}")
+function (sprokit_make_python_load_test name instance)
+  sprokit_make_python_test(${name} ${instance}
+    "${sprokit_test_pipelines_directory}")
 endfunction ()
 
 ##############################
 # Bake tests
 ##############################
-vistk_build_python_test(bake test-bake.py)
+sprokit_build_python_test(bake test-bake.py)
 
-vistk_make_python_load_test(bake import)
-vistk_make_python_load_test(bake simple_pipeline)
-vistk_make_python_load_test(bake cluster_multiplier)
+sprokit_make_python_load_test(bake import)
+sprokit_make_python_load_test(bake simple_pipeline)
+sprokit_make_python_load_test(bake cluster_multiplier)
 
 ##############################
 # Export tests
 ##############################
-vistk_build_python_test(export_ test-export_.py)
+sprokit_build_python_test(export_ test-export_.py)
 
-vistk_make_python_load_test(export_ import)
-vistk_make_python_load_test(export_ simple_pipeline)
+sprokit_make_python_load_test(export_ import)
+sprokit_make_python_load_test(export_ simple_pipeline)
 
 ##############################
 # Load tests
 ##############################
-vistk_build_python_test(load test-load.py)
+sprokit_build_python_test(load test-load.py)
 
-vistk_make_python_load_test(load import)
-vistk_make_python_load_test(load create)
-vistk_make_python_load_test(load api_calls)
-vistk_make_python_load_test(load simple_pipeline)
-vistk_make_python_load_test(load cluster_multiplier)
+sprokit_make_python_load_test(load import)
+sprokit_make_python_load_test(load create)
+sprokit_make_python_load_test(load api_calls)
+sprokit_make_python_load_test(load simple_pipeline)
+sprokit_make_python_load_test(load cluster_multiplier)

@@ -1,4 +1,4 @@
-project(vistk_extra_vim)
+project(sprokit_extra_vim)
 
 set(VIM_VERSION "73"
   CACHE STRING "The version of Vim to install for")

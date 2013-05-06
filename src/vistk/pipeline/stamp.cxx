@@ -9,10 +9,10 @@
 /**
  * \file stamp.cxx
  *
- * \brief Implementation of \link vistk::stamp stamps\endlink.
+ * \brief Implementation of \link sprokit::stamp stamps\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 stamp_t

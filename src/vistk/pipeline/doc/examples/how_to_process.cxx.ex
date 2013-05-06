@@ -1,8 +1,8 @@
-#include <vistk/pipeline/process.h>
+#include <sprokit/pipeline/process.h>
 
 #include <boost/scoped_ptr.hpp>
 
-using namespace vistk;
+using namespace sprokit;
 
 class compare_string_process
   : public process

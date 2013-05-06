@@ -11,10 +11,10 @@
 /**
  * \file edge_exception.cxx
  *
- * \brief Implementation of exceptions used within \link vistk::edge edges\endlink.
+ * \brief Implementation of exceptions used within \link sprokit::edge edges\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 edge_exception

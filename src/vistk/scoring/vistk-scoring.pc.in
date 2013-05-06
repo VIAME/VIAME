@@ -3,8 +3,8 @@ exec_prefix=${prefix}
 includedir=${prefix}/include
 libdir=${prefix}/lib@LIB_SUFFIX@
 
-Name: vistk-scoring
-Description: The vistk-scoring library
-Version: @vistk_version@
-Requires: vistk = @vistk_version@
-Libs: -lvistk_scoring
+Name: sprokit-scoring
+Description: The sprokit-scoring library
+Version: @sprokit_version@
+Requires: sprokit = @sprokit_version@
+Libs: -lsprokit_scoring

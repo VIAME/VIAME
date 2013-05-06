@@ -11,7 +11,7 @@
 #include "pass_process.h"
 #include "sink_process.h"
 
-#include <vistk/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_registry.h>
 
 /**
  * \file flow/registration.cxx
@@ -19,7 +19,7 @@
  * \brief Register processes for use.
  */
 
-using namespace vistk;
+using namespace sprokit;
 
 void
 register_processes()

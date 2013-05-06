@@ -7,11 +7,11 @@
 #include "modules.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <vistk/pipeline/module-paths.h>
+#include <sprokit/pipeline/module-paths.h>
 #endif
 #include "utils.h"
 
-#include <vistk/pipeline_util/path.h>
+#include <sprokit/pipeline_util/path.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -37,7 +37,7 @@
  * \brief Implementation of module loading.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 namespace
@@ -65,7 +65,7 @@ static bool is_separator(module_path_t::value_type ch);
 static function_name_t const process_function_name = function_name_t("register_processes");
 static function_name_t const scheduler_function_name = function_name_t("register_schedulers");
 static module_path_t const default_module_dirs = module_path_t(DEFAULT_MODULE_PATHS);
-static envvar_name_t const vistk_module_envvar = envvar_name_t("VISTK_MODULE_PATH");
+static envvar_name_t const sprokit_module_envvar = envvar_name_t("SPROKIT_MODULE_PATH");
 static lib_suffix_t const library_suffix = lib_suffix_t(LIBRARY_SUFFIX);
 
 void
@@ -73,7 +73,7 @@ load_known_modules()
 {
   module_paths_t module_dirs;
 
-  envvar_value_t const extra_module_dirs = get_envvar(vistk_module_envvar);
+  envvar_value_t const extra_module_dirs = get_envvar(sprokit_module_envvar);
 
   if (extra_module_dirs)
   {
@@ -93,9 +93,9 @@ load_known_modules()
 #ifdef USE_CONFIGURATION_SUBDIRECTORY
     module_path_t const subdir = module_dir +
 #if defined(_WIN32) || defined(_WIN64)
-      L"/" VISTK_CONFIGURATION_L;
+      L"/" SPROKIT_CONFIGURATION_L;
 #else
-      "/" VISTK_CONFIGURATION;
+      "/" SPROKIT_CONFIGURATION;
 #endif
     ;
 

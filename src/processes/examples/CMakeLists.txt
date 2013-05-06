@@ -1,4 +1,4 @@
-project(vistk_processes_examples)
+project(sprokit_processes_examples)
 
 set(examples_srcs
   const_process.cxx
@@ -45,13 +45,13 @@ set(examples_private_headers
 
 set(suppress_install TRUE)
 
-vistk_private_header_group(${examples_private_headers})
-add_vistk_plugin(processes_examples
-  MAKE_VISTK_PROCESSES_EXAMPLES_LIB
+sprokit_private_header_group(${examples_private_headers})
+add_sprokit_plugin(processes_examples
+  MAKE_SPROKIT_PROCESSES_EXAMPLES_LIB
   ${examples_srcs}
   ${examples_private_headers})
 target_link_libraries(processes_examples
   LINK_PRIVATE
-    vistk_pipeline
+    sprokit_pipeline
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY})

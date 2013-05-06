@@ -6,13 +6,13 @@
 
 #include "sync_scheduler.h"
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/edge.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/scheduler_exception.h>
-#include <vistk/pipeline/utils.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/datum.h>
+#include <sprokit/pipeline/edge.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/scheduler_exception.h>
+#include <sprokit/pipeline/utils.h>
 
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
@@ -34,7 +34,7 @@
  * \brief Implementation of the synchronized scheduler.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 static thread_name_t const thread_name = thread_name_t("sync_scheduler");

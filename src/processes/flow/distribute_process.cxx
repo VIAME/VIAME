@@ -6,10 +6,10 @@
 
 #include "distribute_process.h"
 
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/edge.h>
-#include <vistk/pipeline/process_exception.h>
-#include <vistk/pipeline/stamp.h>
+#include <sprokit/pipeline/datum.h>
+#include <sprokit/pipeline/edge.h>
+#include <sprokit/pipeline/process_exception.h>
+#include <sprokit/pipeline/stamp.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/foreach.hpp>
@@ -23,7 +23,7 @@
  * \brief Implementation of the distribute process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class distribute_process::priv

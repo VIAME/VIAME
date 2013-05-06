@@ -1,15 +1,15 @@
-# Macros to assist with creation of vistk plugins.
+# Macros to assist with creation of sprokit plugins.
 # The following functions are defined:
-#   add_vistk_plugin
-# If Python support is enabled in vistk, the following functions are available:
-#   add_vistk_python_library
+#   add_sprokit_plugin
+# If Python support is enabled in sprokit, the following functions are available:
+#   add_sprokit_python_library
 #   _add_python_module
 #   add_python_module
 #   make_python_init_file
 #   make_python_plugin_init_file
 # Their syntax is:
-#   add_vistk_plugin(name define [source ...])
-#     Creates a vistk plugin and installs it to the proper location.
+#   add_sprokit_plugin(name define [source ...])
+#     Creates a sprokit plugin and installs it to the proper location.
 #   _add_python_module(path modpath module)
 #     Creates a python module by configuring the given path into the correct
 #     directory given the modpath and the module's name (e.g., a module meant to
@@ -23,7 +23,7 @@
 #     as remaining arguments.
 #   make_python_plugin_init_file(modpath)
 #     Create an __init__ module compatible with being an additional
-#     VISTK_PYTHON_MODULES value.
+#     SPROKIT_PYTHON_MODULES value.
 #
 # Values expected to be set for functions include:
 #   copyright_header: A copyright header to put at the top of generated Python
@@ -33,7 +33,7 @@
 #     architecture-independent directory. All modules are put into one namespace
 #     in the build directory.
 
-function (add_vistk_plugin name define)
+function (add_sprokit_plugin name define)
   add_library(${name} SHARED
     ${ARGN})
 
@@ -41,22 +41,22 @@ function (add_vistk_plugin name define)
   set_target_properties(${name}
     PROPERTIES
       DEFINE_SYMBOL            ${define}
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/vistk"
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/vistk"
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/sprokit"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/sprokit"
       PREFIX                   ""
       SUFFIX                   ${CMAKE_SHARED_MODULE_SUFFIX})
 
   install(
     TARGETS       ${name}
     LIBRARY
-      DESTINATION "lib${LIB_SUFFIX}/vistk"
+      DESTINATION "lib${LIB_SUFFIX}/sprokit"
     RUNTIME
       DESTINATION bin
     COMPONENT     runtime)
 endfunction ()
 
-if (VISTK_ENABLE_PYTHON)
-  function (add_vistk_python_library name modpath)
+if (SPROKIT_ENABLE_PYTHON)
+  function (add_sprokit_python_library name modpath)
     string(REPLACE "/" "." safe_modpath ${modpath})
 
     add_library(python-${safe_modpath}-${name} SHARED

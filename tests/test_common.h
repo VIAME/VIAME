@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_TEST_TEST_COMMON_H
-#define VISTK_TEST_TEST_COMMON_H
+#ifndef SPROKIT_TEST_TEST_COMMON_H
+#define SPROKIT_TEST_TEST_COMMON_H
 
 #include <boost/function.hpp>
 
@@ -122,4 +122,4 @@ typedef std::string testname_t;
     return EXIT_SUCCESS;                        \
   } while (false)
 
-#endif // VISTK_TEST_TEST_COMMON_H
+#endif // SPROKIT_TEST_TEST_COMMON_H

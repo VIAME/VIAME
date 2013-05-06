@@ -4,8 +4,8 @@ foreach (config ${CMAKE_CONFIGURATION_TYPES})
   string(TOUPPER "${config}" upper_config)
 
   set(config_defines
-    "VISTK_CONFIGURATION=\"${config}\""
-    "VISTK_CONFIGURATION_L=L\"${config}\"")
+    "SPROKIT_CONFIGURATION=\"${config}\""
+    "SPROKIT_CONFIGURATION_L=L\"${config}\"")
 
   set_directory_properties(
     PROPERTIES

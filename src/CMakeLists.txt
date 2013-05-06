@@ -1,19 +1,19 @@
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-add_subdirectory(vistk)
+add_subdirectory(sprokit)
 
-option(VISTK_ENABLE_TOOLS "Build tools" ON)
-if (VISTK_ENABLE_TOOLS)
+option(SPROKIT_ENABLE_TOOLS "Build tools" ON)
+if (SPROKIT_ENABLE_TOOLS)
   add_subdirectory(tools)
 endif ()
 
-function (add_vistk_plugin name define)
-  set(library_subdir /vistk)
+function (add_sprokit_plugin name define)
+  set(library_subdir /sprokit)
 
   set(no_export ON)
 
-  vistk_add_library(${name} SHARED
+  sprokit_add_library(${name} SHARED
     ${ARGN})
 
   set_target_properties(${name}

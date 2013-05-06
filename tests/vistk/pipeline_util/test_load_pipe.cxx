@@ -6,13 +6,13 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline_util/load_pipe.h>
-#include <vistk/pipeline_util/load_pipe_exception.h>
-#include <vistk/pipeline_util/path.h>
-#include <vistk/pipeline_util/pipe_declaration_types.h>
+#include <sprokit/pipeline_util/load_pipe.h>
+#include <sprokit/pipeline_util/load_pipe_exception.h>
+#include <sprokit/pipeline_util/path.h>
+#include <sprokit/pipeline_util/pipe_declaration_types.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/modules.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/modules.h>
 
 #include <boost/variant.hpp>
 
@@ -22,7 +22,7 @@
 
 #include <cstddef>
 
-#define TEST_ARGS (vistk::path_t const& pipe_file)
+#define TEST_ARGS (sprokit::path_t const& pipe_file)
 
 DECLARE_TEST(empty);
 DECLARE_TEST(comments);
@@ -70,9 +70,9 @@ main(int argc, char* argv[])
   CHECK_ARGS(2);
 
   testname_t const testname = argv[1];
-  vistk::path_t const pipe_dir = argv[2];
+  sprokit::path_t const pipe_dir = argv[2];
 
-  vistk::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
+  sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
 
   DECLARE_TEST_MAP(tests);
 
@@ -134,10 +134,10 @@ class test_visitor
     test_visitor();
     ~test_visitor();
 
-    void operator () (vistk::config_pipe_block const& config_block);
-    void operator () (vistk::process_pipe_block const& process_block);
-    void operator () (vistk::connect_pipe_block const& connect_block);
-    void operator () (vistk::cluster_pipe_block const& cluster_block);
+    void operator () (sprokit::config_pipe_block const& config_block);
+    void operator () (sprokit::process_pipe_block const& process_block);
+    void operator () (sprokit::connect_pipe_block const& connect_block);
+    void operator () (sprokit::cluster_pipe_block const& cluster_block);
 
     void expect(size_t config_expect,
                 size_t process_expect,
@@ -159,7 +159,7 @@ class test_visitor
 
 IMPLEMENT_TEST(empty)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -170,7 +170,7 @@ IMPLEMENT_TEST(empty)
 
 IMPLEMENT_TEST(comments)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -181,7 +181,7 @@ IMPLEMENT_TEST(comments)
 
 IMPLEMENT_TEST(empty_config)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -192,7 +192,7 @@ IMPLEMENT_TEST(empty_config)
 
 IMPLEMENT_TEST(config_block)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -203,7 +203,7 @@ IMPLEMENT_TEST(config_block)
 
 IMPLEMENT_TEST(config_block_notalnum)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -214,7 +214,7 @@ IMPLEMENT_TEST(config_block_notalnum)
 
 IMPLEMENT_TEST(config_value_spaces)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -225,7 +225,7 @@ IMPLEMENT_TEST(config_value_spaces)
 
 IMPLEMENT_TEST(one_process)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -236,7 +236,7 @@ IMPLEMENT_TEST(one_process)
 
 IMPLEMENT_TEST(connected_processes)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -247,7 +247,7 @@ IMPLEMENT_TEST(connected_processes)
 
 IMPLEMENT_TEST(connected_processes_notalnum)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -258,7 +258,7 @@ IMPLEMENT_TEST(connected_processes_notalnum)
 
 IMPLEMENT_TEST(include)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -269,43 +269,43 @@ IMPLEMENT_TEST(include)
 
 IMPLEMENT_TEST(no_exist)
 {
-  EXPECT_EXCEPTION(vistk::file_no_exist_exception,
-                   vistk::load_pipe_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::file_no_exist_exception,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
                    "loading a non-existent file");
 }
 
 IMPLEMENT_TEST(not_a_file)
 {
-  EXPECT_EXCEPTION(vistk::not_a_file_exception,
-                   vistk::load_pipe_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::not_a_file_exception,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
                    "loading a non-file");
 }
 
 IMPLEMENT_TEST(include_no_exist)
 {
-  EXPECT_EXCEPTION(vistk::file_no_exist_exception,
-                   vistk::load_pipe_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::file_no_exist_exception,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
                    "including a non-existent file");
 }
 
 IMPLEMENT_TEST(include_not_a_file)
 {
-  EXPECT_EXCEPTION(vistk::not_a_file_exception,
-                   vistk::load_pipe_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::not_a_file_exception,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
                    "including a non-file");
 }
 
 IMPLEMENT_TEST(no_parse)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_pipe_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
                    "loading an invalid file");
 }
 
 IMPLEMENT_TEST(parse_error)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_pipe_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -317,7 +317,7 @@ IMPLEMENT_TEST(envvar)
 
   sstr << "!include include_test.pipe" << std::endl;
 
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks(sstr);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks(sstr);
 
   test_visitor v;
 
@@ -328,7 +328,7 @@ IMPLEMENT_TEST(envvar)
 
 IMPLEMENT_TEST(cluster_declare)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -339,7 +339,7 @@ IMPLEMENT_TEST(cluster_declare)
 
 IMPLEMENT_TEST(cluster_config)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -350,7 +350,7 @@ IMPLEMENT_TEST(cluster_config)
 
 IMPLEMENT_TEST(cluster_input_map)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -361,7 +361,7 @@ IMPLEMENT_TEST(cluster_input_map)
 
 IMPLEMENT_TEST(cluster_input_multi_map)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -372,7 +372,7 @@ IMPLEMENT_TEST(cluster_input_multi_map)
 
 IMPLEMENT_TEST(cluster_output_map)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -383,7 +383,7 @@ IMPLEMENT_TEST(cluster_output_map)
 
 IMPLEMENT_TEST(cluster_mappings)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -394,7 +394,7 @@ IMPLEMENT_TEST(cluster_mappings)
 
 IMPLEMENT_TEST(cluster_all)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -405,63 +405,63 @@ IMPLEMENT_TEST(cluster_all)
 
 IMPLEMENT_TEST(cluster_missing_config_description)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_cluster_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
 IMPLEMENT_TEST(cluster_missing_input_description)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_cluster_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
 IMPLEMENT_TEST(cluster_missing_output_description)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_cluster_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
 IMPLEMENT_TEST(cluster_missing_type)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_cluster_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
 IMPLEMENT_TEST(cluster_missing_type_description)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_cluster_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
 IMPLEMENT_TEST(cluster_multiple_clusters)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_cluster_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
 IMPLEMENT_TEST(cluster_not_first)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_cluster_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
 IMPLEMENT_TEST(cluster_with_slash)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_cluster_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
 IMPLEMENT_TEST(cluster_input_map_with_slash)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -472,7 +472,7 @@ IMPLEMENT_TEST(cluster_input_map_with_slash)
 
 IMPLEMENT_TEST(cluster_output_map_with_slash)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -483,14 +483,14 @@ IMPLEMENT_TEST(cluster_output_map_with_slash)
 
 IMPLEMENT_TEST(process_with_slash)
 {
-  EXPECT_EXCEPTION(vistk::failed_to_parse,
-                   vistk::load_pipe_blocks_from_file(pipe_file),
+  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
 IMPLEMENT_TEST(connect_input_with_slash)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -501,7 +501,7 @@ IMPLEMENT_TEST(connect_input_with_slash)
 
 IMPLEMENT_TEST(connect_output_with_slash)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -528,7 +528,7 @@ test_visitor
 
 void
 test_visitor
-::operator () (vistk::config_pipe_block const& /*config_block*/)
+::operator () (sprokit::config_pipe_block const& /*config_block*/)
 {
   ++config_count;
   ++total_count;
@@ -538,7 +538,7 @@ test_visitor
 
 void
 test_visitor
-::operator () (vistk::process_pipe_block const& /*process_block*/)
+::operator () (sprokit::process_pipe_block const& /*process_block*/)
 {
   ++process_count;
   ++total_count;
@@ -548,7 +548,7 @@ test_visitor
 
 void
 test_visitor
-::operator () (vistk::connect_pipe_block const& /*connect_block*/)
+::operator () (sprokit::connect_pipe_block const& /*connect_block*/)
 {
   ++connect_count;
   ++total_count;
@@ -558,7 +558,7 @@ test_visitor
 
 void
 test_visitor
-::operator () (vistk::cluster_pipe_block const& /*cluster_block*/)
+::operator () (sprokit::cluster_pipe_block const& /*cluster_block*/)
 {
   ++cluster_count;
   ++total_count;

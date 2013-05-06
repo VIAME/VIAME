@@ -4,9 +4,9 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-from vistk.pipeline import config
-from vistk.pipeline import pipeline
-from vistk.pipeline import scheduler
+from sprokit.pipeline import config
+from sprokit.pipeline import pipeline
+from sprokit.pipeline import scheduler
 
 
 class TestPythonScheduler(scheduler.PythonScheduler):
@@ -14,8 +14,8 @@ class TestPythonScheduler(scheduler.PythonScheduler):
         scheduler.PythonScheduler.__init__(self, conf, pipe)
 
 
-def __vistk_register__():
-    from vistk.pipeline import scheduler_registry
+def __sprokit_register__():
+    from sprokit.pipeline import scheduler_registry
 
     module_name = 'python:test.pythonpath.test'
 

@@ -7,14 +7,14 @@
 
 def test_import():
     try:
-        import vistk.pipeline.edge
+        import sprokit.pipeline.edge
     except:
         test_error("Failed to import the edge module")
 
 
 def test_create():
-    from vistk.pipeline import config
-    from vistk.pipeline import edge
+    from sprokit.pipeline import config
+    from sprokit.pipeline import edge
 
     c = config.empty_config()
 
@@ -24,9 +24,9 @@ def test_create():
 
 
 def test_datum_create():
-    from vistk.pipeline import datum
-    from vistk.pipeline import edge
-    from vistk.pipeline import stamp
+    from sprokit.pipeline import datum
+    from sprokit.pipeline import edge
+    from sprokit.pipeline import stamp
 
     d = datum.complete()
     s = stamp.new_stamp(1)
@@ -37,13 +37,13 @@ def test_datum_create():
 
 
 def test_api_calls():
-    from vistk.pipeline import config
-    from vistk.pipeline import datum
-    from vistk.pipeline import edge
-    from vistk.pipeline import modules
-    from vistk.pipeline import process
-    from vistk.pipeline import process_registry
-    from vistk.pipeline import stamp
+    from sprokit.pipeline import config
+    from sprokit.pipeline import datum
+    from sprokit.pipeline import edge
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import process
+    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import stamp
 
     e = edge.Edge()
 
@@ -81,9 +81,9 @@ def test_api_calls():
 
 
 def test_datum_api_calls():
-    from vistk.pipeline import datum
-    from vistk.pipeline import edge
-    from vistk.pipeline import stamp
+    from sprokit.pipeline import datum
+    from sprokit.pipeline import edge
+    from sprokit.pipeline import stamp
 
     d = datum.complete()
     s = stamp.new_stamp(1)
@@ -118,6 +118,6 @@ if __name__ == '__main__':
         , 'datum_api_calls': test_datum_api_calls
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

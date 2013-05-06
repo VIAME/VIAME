@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H
-#define VISTK_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H
+#ifndef SPROKIT_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H
+#define SPROKIT_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H
 
 #include <boost/python/pointee.hpp>
 #include <boost/get_pointer.hpp>
@@ -40,4 +40,4 @@ using boost::get_pointer;
 
 }
 
-#endif // VISTK_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H
+#endif // SPROKIT_PYTHON_HELPERS_PYTHON_WRAP_CONST_SHARED_PTR_H

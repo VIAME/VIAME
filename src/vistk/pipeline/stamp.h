@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_STAMP_H
-#define VISTK_PIPELINE_STAMP_H
+#ifndef SPROKIT_PIPELINE_STAMP_H
+#define SPROKIT_PIPELINE_STAMP_H
 
 #include "pipeline-config.h"
 
@@ -18,22 +18,22 @@
 /**
  * \file stamp.h
  *
- * \brief Header for \link vistk::stamp stamps\endlink.
+ * \brief Header for \link sprokit::stamp stamps\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class stamp stamp.h <vistk/pipeline/stamp.h>
+ * \class stamp stamp.h <sprokit/pipeline/stamp.h>
  *
  * \brief A class to timestamp data in a \ref pipeline.
  *
  * \ingroup base_classes
  */
-class VISTK_PIPELINE_EXPORT stamp
-  : boost::equality_comparable<vistk::stamp
-  , boost::less_than_comparable1<vistk::stamp
+class SPROKIT_PIPELINE_EXPORT stamp
+  : boost::equality_comparable<sprokit::stamp
+  , boost::less_than_comparable1<sprokit::stamp
   , boost::noncopyable
     > >
 {
@@ -75,7 +75,7 @@ class VISTK_PIPELINE_EXPORT stamp
   private:
     typedef uint64_t index_t;
 
-    VISTK_PIPELINE_NO_EXPORT stamp(increment_t increment, index_t index);
+    SPROKIT_PIPELINE_NO_EXPORT stamp(increment_t increment, index_t index);
 
     increment_t const m_increment;
     index_t const m_index;
@@ -83,4 +83,4 @@ class VISTK_PIPELINE_EXPORT stamp
 
 }
 
-#endif // VISTK_PIPELINE_STAMP_H
+#endif // SPROKIT_PIPELINE_STAMP_H

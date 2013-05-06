@@ -4,17 +4,17 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_registry.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_registry.h>
 
-#include <vistk/config.h>
+#include <sprokit/config.h>
 
 #include <boost/make_shared.hpp>
 
-using namespace vistk;
+using namespace sprokit;
 
-class VISTK_NO_EXPORT test_process
-  : public vistk::process
+class SPROKIT_NO_EXPORT test_process
+  : public sprokit::process
 {
   public:
     test_process(config_t const& config);
@@ -35,7 +35,7 @@ test_process
 extern "C"
 {
 
-VISTK_EXPORT void register_processes();
+SPROKIT_EXPORT void register_processes();
 
 }
 

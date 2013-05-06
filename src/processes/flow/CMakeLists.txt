@@ -1,4 +1,4 @@
-project(vistk_processes_flow)
+project(sprokit_processes_flow)
 
 set(flow_srcs
   collate_process.cxx
@@ -15,11 +15,11 @@ set(flow_private_headers
   registration.h
   sink_process.h)
 
-vistk_private_header_group(${flow_private_headers})
-add_vistk_plugin(processes_flow
-  MAKE_VISTK_PROCESSES_FLOW_LIB
+sprokit_private_header_group(${flow_private_headers})
+add_sprokit_plugin(processes_flow
+  MAKE_SPROKIT_PROCESSES_FLOW_LIB
   ${flow_srcs}
   ${flow_private_headers})
 target_link_libraries(processes_flow
   LINK_PRIVATE
-    vistk_pipeline)
+    sprokit_pipeline)

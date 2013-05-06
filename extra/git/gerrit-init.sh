@@ -10,8 +10,8 @@ source_dir="$PWD"
 [ -e "$source_dir/.git" ] || die "Not at the top of the repository."
 [ -d "$source_dir/.git" ] || die "Not a valid repository."
 
-# Rudimentary check for vistk itself.
-grep -q vistk_check_compiler_flag CMakeLists.txt || die "You do not seem to be in a vistk repository."
+# Rudimentary check for sprokit itself.
+grep -q sprokit_check_compiler_flag CMakeLists.txt || die "You do not seem to be in a sprokit repository."
 
 prompt () {
   msg="$1"
@@ -55,7 +55,7 @@ while [ "$gerrit_ssh_test" -ne 1 ]; do
   prompt "Gerrit username: " "$( git config user.email | sed -e 's|@.*||' )"
   gerrit_user="$input"
 
-  prompt "Gerrit project: " VisTK
+  prompt "Gerrit project: " sprokit
   gerrit_project="$input"
 
   prompt "Gerrit target remote: " origin

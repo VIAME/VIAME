@@ -6,7 +6,7 @@
 
 #include "python_gil.h"
 
-namespace vistk
+namespace sprokit
 {
 
 namespace python

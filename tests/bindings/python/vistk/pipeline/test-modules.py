@@ -7,13 +7,13 @@
 
 def test_import():
     try:
-        import vistk.pipeline.modules
+        import sprokit.pipeline.modules
     except:
         test_error("Failed to import the modules module")
 
 
 def test_load():
-    from vistk.pipeline import modules
+    from sprokit.pipeline import modules
 
     modules.load_known_modules()
 
@@ -37,6 +37,6 @@ if __name__ == '__main__':
         , 'load': test_load
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

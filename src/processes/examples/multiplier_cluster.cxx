@@ -6,7 +6,7 @@
 
 #include "multiplier_cluster.h"
 
-#include <vistk/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_registry.h>
 
 /**
  * \file multiplier_cluster.cxx
@@ -14,7 +14,7 @@
  * \brief Implementation of the multiplier cluster.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class multiplier_cluster::priv

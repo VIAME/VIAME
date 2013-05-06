@@ -57,7 +57,7 @@
  * \brief Implementation of pipeline utilities.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 #ifdef NAME_THREAD_USING_PRCTL

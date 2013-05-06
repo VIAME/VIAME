@@ -4,13 +4,13 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-from vistk.pipeline import config
-from vistk.pipeline import datum
-from vistk.pipeline import edge
-from vistk.pipeline import pipeline
-from vistk.pipeline import process
-from vistk.pipeline import scheduler
-from vistk.pipeline import utils
+from sprokit.pipeline import config
+from sprokit.pipeline import datum
+from sprokit.pipeline import edge
+from sprokit.pipeline import pipeline
+from sprokit.pipeline import process
+from sprokit.pipeline import scheduler
+from sprokit.pipeline import utils
 
 import threading
 

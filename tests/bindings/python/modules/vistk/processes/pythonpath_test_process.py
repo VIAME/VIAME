@@ -4,8 +4,8 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-from vistk.pipeline import config
-from vistk.pipeline import process
+from sprokit.pipeline import config
+from sprokit.pipeline import process
 
 
 class TestPythonProcess(process.PythonProcess):
@@ -13,8 +13,8 @@ class TestPythonProcess(process.PythonProcess):
         process.PythonProcess.__init__(self, conf)
 
 
-def __vistk_register__():
-    from vistk.pipeline import process_registry
+def __sprokit_register__():
+    from sprokit.pipeline import process_registry
 
     module_name = 'python:test.pythonpath.test'
 

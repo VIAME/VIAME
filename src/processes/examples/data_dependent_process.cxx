@@ -6,7 +6,7 @@
 
 #include "data_dependent_process.h"
 
-#include <vistk/pipeline/datum.h>
+#include <sprokit/pipeline/datum.h>
 
 /**
  * \file data_dependent_process.cxx
@@ -14,7 +14,7 @@
  * \brief Implementation of the data dependent process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class data_dependent_process::priv

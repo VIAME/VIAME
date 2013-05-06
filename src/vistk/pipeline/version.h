@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_VERSION_H
-#define VISTK_PIPELINE_VERSION_H
+#ifndef SPROKIT_PIPELINE_VERSION_H
+#define SPROKIT_PIPELINE_VERSION_H
 
 #include "pipeline-config.h"
 
@@ -19,15 +19,15 @@
  * \brief Runtime version checks.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class version "version.h" <vistk/pipeline/version.h>
+ * \class version "version.h" <sprokit/pipeline/version.h>
  *
  * \brief Runtime version information.
  */
-class VISTK_PIPELINE_EXPORT version
+class SPROKIT_PIPELINE_EXPORT version
 {
   public:
     /// The type of version components.
@@ -65,4 +65,4 @@ class VISTK_PIPELINE_EXPORT version
 
 }
 
-#endif // VISTK_PIPELINE_VERSION_H
+#endif // SPROKIT_PIPELINE_VERSION_H

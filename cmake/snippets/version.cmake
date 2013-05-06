@@ -1,6 +1,6 @@
-# Set variables for the vistk version.
+# Set variables for the sprokit version.
 
-set(vistk_version_major 0)
-set(vistk_version_minor 1)
-set(vistk_version_patch 0)
-set(vistk_version "${vistk_version_major}.${vistk_version_minor}.${vistk_version_patch}")
+set(sprokit_version_major 0)
+set(sprokit_version_minor 1)
+set(sprokit_version_patch 0)
+set(sprokit_version "${sprokit_version_major}.${sprokit_version_minor}.${sprokit_version_patch}")

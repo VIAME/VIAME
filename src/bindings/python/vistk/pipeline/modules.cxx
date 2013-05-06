@@ -4,7 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <vistk/pipeline/modules.h>
+#include <sprokit/pipeline/modules.h>
 
 #include <boost/python/def.hpp>
 #include <boost/python/module.hpp>
@@ -19,6 +19,6 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(modules)
 {
-  def("load_known_modules", &vistk::load_known_modules
-    , "Loads vistk modules to populate the process and scheduler registries.");
+  def("load_known_modules", &sprokit::load_known_modules
+    , "Loads sprokit modules to populate the process and scheduler registries.");
 }

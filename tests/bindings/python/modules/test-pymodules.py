@@ -7,15 +7,15 @@
 
 def test_import():
     try:
-        import vistk.modules.modules
+        import sprokit.modules.modules
     except:
         test_error("Failed to import the modules module")
 
 
 def test_load():
-    from vistk.pipeline import config
-    from vistk.pipeline import modules
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import process_registry
 
     modules.load_known_modules()
 
@@ -28,9 +28,9 @@ def test_load():
 
 
 def test_masking():
-    from vistk.pipeline import config
-    from vistk.pipeline import modules
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import process_registry
 
     modules.load_known_modules()
 
@@ -43,9 +43,9 @@ def test_masking():
 
 
 def test_extra_modules():
-    from vistk.pipeline import config
-    from vistk.pipeline import modules
-    from vistk.pipeline import process_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import process_registry
 
     modules.load_known_modules()
 
@@ -58,10 +58,10 @@ def test_extra_modules():
 
 
 def test_pythonpath():
-    from vistk.pipeline import config
-    from vistk.pipeline import modules
-    from vistk.pipeline import process_registry
-    from vistk.pipeline import scheduler_registry
+    from sprokit.pipeline import config
+    from sprokit.pipeline import modules
+    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import scheduler_registry
 
     modules.load_known_modules()
 
@@ -102,6 +102,6 @@ if __name__ == '__main__':
         , 'pythonpath': test_pythonpath
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

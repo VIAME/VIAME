@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_TOOLS_HELPERS_LITERAL_PIPELINE_H
-#define VISTK_TOOLS_HELPERS_LITERAL_PIPELINE_H
+#ifndef SPROKIT_TOOLS_HELPERS_LITERAL_PIPELINE_H
+#define SPROKIT_TOOLS_HELPERS_LITERAL_PIPELINE_H
 
 #define PROCESS(type, name) \
   "process " name "\n"      \
@@ -47,4 +47,4 @@
   "connect from " up_name "." up_port "\n"              \
   "        to   " down_name "." down_port "\n"
 
-#endif // VISTK_TOOLS_HELPERS_LITERAL_PIPELINE_H
+#endif // SPROKIT_TOOLS_HELPERS_LITERAL_PIPELINE_H

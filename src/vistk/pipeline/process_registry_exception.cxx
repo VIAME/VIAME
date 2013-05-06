@@ -11,10 +11,10 @@
 /**
  * \file process_registry_exception.cxx
  *
- * \brief Implementation of exceptions used within the \link vistk::process_registry process registry\endlink.
+ * \brief Implementation of exceptions used within the \link sprokit::process_registry process registry\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 process_registry_exception

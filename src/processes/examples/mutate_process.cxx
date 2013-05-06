@@ -6,7 +6,7 @@
 
 #include "mutate_process.h"
 
-#include <vistk/pipeline/datum.h>
+#include <sprokit/pipeline/datum.h>
 
 /**
  * \file mutate_process.cxx
@@ -14,7 +14,7 @@
  * \brief Implementation of the mutate process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class mutate_process::priv

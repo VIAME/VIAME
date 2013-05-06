@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
-#define VISTK_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
+#ifndef SPROKIT_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
+#define SPROKIT_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
 
 #include "util-config.h"
 
@@ -19,18 +19,18 @@
  * \brief RAII class for calling into non-Python code.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 namespace python
 {
 
 /**
- * \class python_allow_threads python_allow_threads.h <vistk/python/util/python_allow_threads.h>
+ * \class python_allow_threads python_allow_threads.h <sprokit/python/util/python_allow_threads.h>
  *
  * \brief RAII class for calling into non-Python code.
  */
-class VISTK_PYTHON_UTIL_EXPORT python_allow_threads
+class SPROKIT_PYTHON_UTIL_EXPORT python_allow_threads
   : boost::noncopyable
 {
   public:
@@ -57,4 +57,4 @@ class VISTK_PYTHON_UTIL_EXPORT python_allow_threads
 
 }
 
-#endif // VISTK_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
+#endif // SPROKIT_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H

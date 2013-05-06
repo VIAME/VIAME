@@ -10,7 +10,7 @@
 #include "thread_per_process_scheduler.h"
 #include "thread_pool_scheduler.h"
 
-#include <vistk/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_registry.h>
 
 /**
  * \file examples/registration.cxx
@@ -18,7 +18,7 @@
  * \brief Register schedulers for use.
  */
 
-using namespace vistk;
+using namespace sprokit;
 
 void
 register_schedulers()

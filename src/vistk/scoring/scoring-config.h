@@ -4,10 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_SCORING_CONFIG_H_
-#define VISTK_SCORING_CONFIG_H_
+#ifndef SPROKIT_SCORING_CONFIG_H_
+#define SPROKIT_SCORING_CONFIG_H_
 
-#include <vistk/config.h>
+#include <sprokit/config.h>
 
 /**
  * \file scoring-config.h
@@ -15,21 +15,21 @@
  * \brief Defines for symbol visibility in scoring.
  */
 
-#ifndef VISTK_SCORING_EXPORT
-#ifdef MAKE_VISTK_SCORING_LIB
+#ifndef SPROKIT_SCORING_EXPORT
+#ifdef MAKE_SPROKIT_SCORING_LIB
 /// Export the symbol if building the library.
-#define VISTK_SCORING_EXPORT VISTK_EXPORT
+#define SPROKIT_SCORING_EXPORT SPROKIT_EXPORT
 #else
 /// Import the symbol if including the library.
-#define VISTK_SCORING_EXPORT VISTK_IMPORT
-#endif // MAKE_VISTK_SCORING_LIB
+#define SPROKIT_SCORING_EXPORT SPROKIT_IMPORT
+#endif // MAKE_SPROKIT_SCORING_LIB
 /// Hide the symbol from the library interface.
-#define VISTK_SCORING_NO_EXPORT VISTK_NO_EXPORT
-#endif // VISTK_SCORING_EXPORT
+#define SPROKIT_SCORING_NO_EXPORT SPROKIT_NO_EXPORT
+#endif // SPROKIT_SCORING_EXPORT
 
-#ifndef VISTK_SCORING_EXPORT_DEPRECATED
+#ifndef SPROKIT_SCORING_EXPORT_DEPRECATED
 /// Mark as deprecated.
-#define VISTK_SCORING_EXPORT_DEPRECATED VISTK_DEPRECATED VISTK_SCORING_EXPORT
-#endif // VISTK_SCORING_EXPORT_DEPRECATED
+#define SPROKIT_SCORING_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_SCORING_EXPORT
+#endif // SPROKIT_SCORING_EXPORT_DEPRECATED
 
-#endif // VISTK_SCORING_CONFIG_H_
+#endif // SPROKIT_SCORING_CONFIG_H_

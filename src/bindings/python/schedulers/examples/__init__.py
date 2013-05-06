@@ -4,11 +4,11 @@
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
 
 
-from vistk.schedulers.examples import pythread_per_process_scheduler
+from sprokit.schedulers.examples import pythread_per_process_scheduler
 
 
-def __vistk_register__():
-    from vistk.pipeline import scheduler_registry
+def __sprokit_register__():
+    from sprokit.pipeline import scheduler_registry
 
     module_name = 'python:schedulers.examples'
 

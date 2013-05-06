@@ -11,11 +11,11 @@
 #include "pipe_declaration_types.h"
 #include "providers.h"
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_cluster.h>
-#include <vistk/pipeline/process_registry.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_cluster.h>
+#include <sprokit/pipeline/process_registry.h>
 
 #if (__cplusplus < 201103L) && (BOOST_VERSION >= 105000)
 #include <boost/algorithm/cxx11/copy_if.hpp>
@@ -45,7 +45,7 @@
  * \brief Implementation of baking a pipeline.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 namespace
@@ -902,10 +902,10 @@ cluster_creator
     config::keys_t mapped_key_path;
     config::keys_t source_key_path;
 
-    /// \bug Does not work if (vistk::config::block_sep.size() != 1).
-    boost::split(mapped_key_path, key, boost::is_any_of(vistk::config::block_sep));
-    /// \bug Does not work if (vistk::config::block_sep.size() != 1).
-    boost::split(source_key_path, value, boost::is_any_of(vistk::config::block_sep));
+    /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
+    boost::split(mapped_key_path, key, boost::is_any_of(sprokit::config::block_sep));
+    /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
+    boost::split(source_key_path, value, boost::is_any_of(sprokit::config::block_sep));
 
     if (mapped_key_path.size() < 2)
     {
@@ -1368,8 +1368,8 @@ provided_by_cluster
 
   config::keys_t key_path;
 
-  /// \bug Does not work if (vistk::config::block_sep.size() != 1).
-  boost::split(key_path, key, boost::is_any_of(vistk::config::block_sep));
+  /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
+  boost::split(key_path, key, boost::is_any_of(sprokit::config::block_sep));
 
   bool const is_proc = std::count(m_procs.begin(), m_procs.end(), key_path[0]);
 

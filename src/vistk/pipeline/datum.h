@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_DATUM_H
-#define VISTK_PIPELINE_DATUM_H
+#ifndef SPROKIT_PIPELINE_DATUM_H
+#define SPROKIT_PIPELINE_DATUM_H
 
 #include "pipeline-config.h"
 
@@ -18,20 +18,20 @@
 /**
  * \file datum.h
  *
- * \brief Header for a piece of \link vistk::datum data\endlink in the pipeline.
+ * \brief Header for a piece of \link sprokit::datum data\endlink in the pipeline.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class datum datum.h <vistk/pipeline/datum.h>
+ * \class datum datum.h <sprokit/pipeline/datum.h>
  *
  * \brief A wrapper for data that passes through an \ref edge in the \ref pipeline.
  *
  * \ingroup base_classes
  */
-class VISTK_PIPELINE_EXPORT datum
+class SPROKIT_PIPELINE_EXPORT datum
 {
   public:
     /// Information about an error that occurred within a process.
@@ -125,9 +125,9 @@ class VISTK_PIPELINE_EXPORT datum
     template <typename T>
     T get_datum() const;
   private:
-    VISTK_PIPELINE_NO_EXPORT datum(type_t ty);
-    VISTK_PIPELINE_NO_EXPORT datum(error_t const& err);
-    VISTK_PIPELINE_NO_EXPORT datum(boost::any const& dat);
+    SPROKIT_PIPELINE_NO_EXPORT datum(type_t ty);
+    SPROKIT_PIPELINE_NO_EXPORT datum(error_t const& err);
+    SPROKIT_PIPELINE_NO_EXPORT datum(boost::any const& dat);
 
     type_t const m_type;
     error_t const m_error;
@@ -135,13 +135,13 @@ class VISTK_PIPELINE_EXPORT datum
 };
 
 /**
- * \class datum_exception datum.h <vistk/pipeline/datum.h>
+ * \class datum_exception datum.h <sprokit/pipeline/datum.h>
  *
  * \brief The base class for all exceptions thrown from \ref datum.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT datum_exception
+class SPROKIT_PIPELINE_EXPORT datum_exception
   : public pipeline_exception
 {
   public:
@@ -156,13 +156,13 @@ class VISTK_PIPELINE_EXPORT datum_exception
 };
 
 /**
- * \class bad_datum_cast_exception datum.h <vistk/pipeline/datum.h>
+ * \class bad_datum_cast_exception datum.h <sprokit/pipeline/datum.h>
  *
  * \brief Thrown when the \ref datum cannot be converted to the requested type.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT bad_datum_cast_exception
+class SPROKIT_PIPELINE_EXPORT bad_datum_cast_exception
   : public datum_exception
 {
   public:
@@ -227,4 +227,4 @@ datum::get_datum() const
 
 }
 
-#endif // VISTK_PIPELINE_DATUM_H
+#endif // SPROKIT_PIPELINE_DATUM_H

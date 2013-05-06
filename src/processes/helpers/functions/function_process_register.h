@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_REGISTER_H
-#define VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_REGISTER_H
+#ifndef SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_REGISTER_H
+#define SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_REGISTER_H
 
 #include "function_process.h"
 
@@ -24,6 +24,6 @@
  * \param desc A description of the process.
  */
 #define REGISTER_FUNCTION(name, desc) \
-  registry->register_process(#name, vistk::process_registry::description_t(desc), vistk::create_process<CLASS_NAME(name)>)
+  registry->register_process(#name, sprokit::process_registry::description_t(desc), sprokit::create_process<CLASS_NAME(name)>)
 
-#endif // VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_REGISTER_H
+#endif // SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_REGISTER_H

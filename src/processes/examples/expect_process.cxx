@@ -6,9 +6,9 @@
 
 #include "expect_process.h"
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/process_exception.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/datum.h>
+#include <sprokit/pipeline/process_exception.h>
 
 /**
  * \file expect_process.cxx
@@ -16,7 +16,7 @@
  * \brief Implementation of the expect process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class expect_process::priv
@@ -48,17 +48,17 @@ expect_process
 {
   declare_configuration_key(
     priv::config_tunable,
-    vistk::config::value_t(),
-    vistk::config::description_t("A tunable value."),
+    sprokit::config::value_t(),
+    sprokit::config::description_t("A tunable value."),
     true);
   declare_configuration_key(
     priv::config_expect,
-    vistk::config::value_t(),
-    vistk::config::description_t("The expected value."));
+    sprokit::config::value_t(),
+    sprokit::config::description_t("The expected value."));
   declare_configuration_key(
     priv::config_expect_key,
     priv::default_expect_key,
-    vistk::config::description_t("Whether to expect a key or a value."));
+    sprokit::config::description_t("Whether to expect a key or a value."));
 
   port_flags_t const none;
 
@@ -102,7 +102,7 @@ expect_process
 
 void
 expect_process
-::_reconfigure(vistk::config_t const& conf)
+::_reconfigure(sprokit::config_t const& conf)
 {
   if (d->expect_key)
   {

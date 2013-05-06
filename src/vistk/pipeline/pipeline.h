@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_PIPELINE_H
-#define VISTK_PIPELINE_PIPELINE_H
+#ifndef SPROKIT_PIPELINE_PIPELINE_H
+#define SPROKIT_PIPELINE_PIPELINE_H
 
 #include "pipeline-config.h"
 
@@ -18,20 +18,20 @@
 /**
  * \file pipeline.h
  *
- * \brief Header for \link vistk::pipeline pipelines\endlink.
+ * \brief Header for \link sprokit::pipeline pipelines\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class pipeline pipeline.h <vistk/pipeline/pipeline.h>
+ * \class pipeline pipeline.h <sprokit/pipeline/pipeline.h>
  *
  * \brief A collection of interconnected \link process processes\endlink.
  *
  * \ingroup base_classes
  */
-class VISTK_PIPELINE_EXPORT pipeline
+class SPROKIT_PIPELINE_EXPORT pipeline
   : boost::noncopyable
 {
   public:
@@ -442,8 +442,8 @@ class VISTK_PIPELINE_EXPORT pipeline
     edges_t output_edges_for_port(process::name_t const& name, process::port_t const& port) const;
   private:
     friend class scheduler;
-    VISTK_PIPELINE_NO_EXPORT void start();
-    VISTK_PIPELINE_NO_EXPORT void stop();
+    SPROKIT_PIPELINE_NO_EXPORT void start();
+    SPROKIT_PIPELINE_NO_EXPORT void stop();
 
     class priv;
     boost::scoped_ptr<priv> d;
@@ -451,4 +451,4 @@ class VISTK_PIPELINE_EXPORT pipeline
 
 }
 
-#endif // VISTK_PIPELINE_PIPELINE_H
+#endif // SPROKIT_PIPELINE_PIPELINE_H

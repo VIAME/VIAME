@@ -6,17 +6,17 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline_util/load_pipe.h>
-#include <vistk/pipeline_util/path.h>
-#include <vistk/pipeline_util/pipe_bakery.h>
-#include <vistk/pipeline_util/pipe_bakery_exception.h>
+#include <sprokit/pipeline_util/load_pipe.h>
+#include <sprokit/pipeline_util/path.h>
+#include <sprokit/pipeline_util/pipe_bakery.h>
+#include <sprokit/pipeline_util/pipe_bakery_exception.h>
 
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/process_cluster.h>
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/scheduler.h>
-#include <vistk/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/process_cluster.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/scheduler.h>
+#include <sprokit/pipeline/scheduler_registry.h>
 
 #include <boost/lexical_cast.hpp>
 
@@ -28,7 +28,7 @@
 
 #include <cstdlib>
 
-#define TEST_ARGS (vistk::path_t const& pipe_file)
+#define TEST_ARGS (sprokit::path_t const& pipe_file)
 
 DECLARE_TEST(config_block);
 DECLARE_TEST(config_block_notalnum);
@@ -87,9 +87,9 @@ main(int argc, char* argv[])
   CHECK_ARGS(2);
 
   std::string const testname = argv[1];
-  vistk::path_t const pipe_dir = argv[2];
+  sprokit::path_t const pipe_dir = argv[2];
 
-  vistk::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
+  sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
 
   DECLARE_TEST_MAP(tests);
 
@@ -145,13 +145,13 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(config_block)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -163,13 +163,13 @@ IMPLEMENT_TEST(config_block)
 
 IMPLEMENT_TEST(config_block_notalnum)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("my_block:my-key");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("my_block:my-key");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -178,9 +178,9 @@ IMPLEMENT_TEST(config_block_notalnum)
                "Received: " << myvalue);
   }
 
-  vistk::config::key_t const myotherkey = vistk::config::key_t("my-block:my_key");
-  vistk::config::value_t const myothervalue = conf->get_value<vistk::config::value_t>(myotherkey);
-  vistk::config::value_t const otherexpected = vistk::config::value_t("myothervalue");
+  sprokit::config::key_t const myotherkey = sprokit::config::key_t("my-block:my_key");
+  sprokit::config::value_t const myothervalue = conf->get_value<sprokit::config::value_t>(myotherkey);
+  sprokit::config::value_t const otherexpected = sprokit::config::value_t("myothervalue");
 
   if (myothervalue != otherexpected)
   {
@@ -192,13 +192,13 @@ IMPLEMENT_TEST(config_block_notalnum)
 
 IMPLEMENT_TEST(config_value_spaces)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("my value with spaces");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("my value with spaces");
 
   if (myvalue != expected)
   {
@@ -207,9 +207,9 @@ IMPLEMENT_TEST(config_value_spaces)
                "Received: " << myvalue);
   }
 
-  vistk::config::key_t const mytabkey = vistk::config::key_t("myblock:mytabs");
-  vistk::config::value_t const mytabvalue = conf->get_value<vistk::config::value_t>(mytabkey);
-  vistk::config::value_t const tabexpected = vistk::config::value_t("my	value	with	tabs");
+  sprokit::config::key_t const mytabkey = sprokit::config::key_t("myblock:mytabs");
+  sprokit::config::value_t const mytabvalue = conf->get_value<sprokit::config::value_t>(mytabkey);
+  sprokit::config::value_t const tabexpected = sprokit::config::value_t("my	value	with	tabs");
 
   if (mytabvalue != tabexpected)
   {
@@ -221,13 +221,13 @@ IMPLEMENT_TEST(config_value_spaces)
 
 IMPLEMENT_TEST(config_overrides)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myothervalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myothervalue");
 
   if (myvalue != expected)
   {
@@ -239,11 +239,11 @@ IMPLEMENT_TEST(config_overrides)
 
 IMPLEMENT_TEST(config_read_only)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const config = vistk::extract_configuration(blocks);
+  sprokit::config_t const config = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const rokey = vistk::config::key_t("myblock:mykey");
+  sprokit::config::key_t const rokey = sprokit::config::key_t("myblock:mykey");
 
   if (!config->is_read_only(rokey))
   {
@@ -253,31 +253,31 @@ IMPLEMENT_TEST(config_read_only)
 
 IMPLEMENT_TEST(config_not_a_flag)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::unrecognized_config_flag_exception,
-                   vistk::extract_configuration(blocks),
+  EXPECT_EXCEPTION(sprokit::unrecognized_config_flag_exception,
+                   sprokit::extract_configuration(blocks),
                    "using an unknown flag");
 }
 
 IMPLEMENT_TEST(config_read_only_override)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
-                   vistk::extract_configuration(blocks),
+  EXPECT_EXCEPTION(sprokit::set_on_read_only_value_exception,
+                   sprokit::extract_configuration(blocks),
                    "setting a read-only value");
 }
 
 IMPLEMENT_TEST(config_append)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -289,13 +289,13 @@ IMPLEMENT_TEST(config_append)
 
 IMPLEMENT_TEST(config_append_ro)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -312,13 +312,13 @@ IMPLEMENT_TEST(config_append_ro)
 
 IMPLEMENT_TEST(config_append_provided)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -330,13 +330,13 @@ IMPLEMENT_TEST(config_append_provided)
 
 IMPLEMENT_TEST(config_append_provided_ro)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -353,13 +353,13 @@ IMPLEMENT_TEST(config_append_provided_ro)
 
 IMPLEMENT_TEST(config_cappend)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myvalue,othervalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue,othervalue");
 
   if (myvalue != expected)
   {
@@ -371,13 +371,13 @@ IMPLEMENT_TEST(config_cappend)
 
 IMPLEMENT_TEST(config_cappend_empty)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("othervalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("othervalue");
 
   if (myvalue != expected)
   {
@@ -389,14 +389,14 @@ IMPLEMENT_TEST(config_cappend_empty)
 
 IMPLEMENT_TEST(config_pappend)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::path_t const expected_path = vistk::path_t("myvalue") / vistk::path_t("othervalue");
-  vistk::config::value_t const expected = expected_path.string<vistk::config::value_t>();
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::path_t const expected_path = sprokit::path_t("myvalue") / sprokit::path_t("othervalue");
+  sprokit::config::value_t const expected = expected_path.string<sprokit::config::value_t>();
 
   if (myvalue != expected)
   {
@@ -408,14 +408,14 @@ IMPLEMENT_TEST(config_pappend)
 
 IMPLEMENT_TEST(config_pappend_empty)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::path_t const expected_path = vistk::path_t(".") / vistk::path_t("othervalue");
-  vistk::config::value_t const expected = expected_path.string<vistk::config::value_t>();
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::path_t const expected_path = sprokit::path_t(".") / sprokit::path_t("othervalue");
+  sprokit::config::value_t const expected = expected_path.string<sprokit::config::value_t>();
 
   if (myvalue != expected)
   {
@@ -427,49 +427,49 @@ IMPLEMENT_TEST(config_pappend_empty)
 
 IMPLEMENT_TEST(config_append_flag_mismatch_ac)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::config_flag_mismatch_exception,
-                   vistk::extract_configuration(blocks),
+  EXPECT_EXCEPTION(sprokit::config_flag_mismatch_exception,
+                   sprokit::extract_configuration(blocks),
                    "a configuration value has mismatch configuration flags");
 }
 
 IMPLEMENT_TEST(config_append_flag_mismatch_ap)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::config_flag_mismatch_exception,
-                   vistk::extract_configuration(blocks),
+  EXPECT_EXCEPTION(sprokit::config_flag_mismatch_exception,
+                   sprokit::extract_configuration(blocks),
                    "a configuration value has mismatch configuration flags");
 }
 
 IMPLEMENT_TEST(config_append_flag_mismatch_cp)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::config_flag_mismatch_exception,
-                   vistk::extract_configuration(blocks),
+  EXPECT_EXCEPTION(sprokit::config_flag_mismatch_exception,
+                   sprokit::extract_configuration(blocks),
                    "a configuration value has mismatch configuration flags");
 }
 
 IMPLEMENT_TEST(config_append_flag_mismatch_all)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::config_flag_mismatch_exception,
-                   vistk::extract_configuration(blocks),
+  EXPECT_EXCEPTION(sprokit::config_flag_mismatch_exception,
+                   sprokit::extract_configuration(blocks),
                    "a configuration value has mismatch configuration flags");
 }
 
 IMPLEMENT_TEST(config_provider_conf)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myotherblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myotherblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -481,13 +481,13 @@ IMPLEMENT_TEST(config_provider_conf)
 
 IMPLEMENT_TEST(config_provider_conf_dep)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const conf = vistk::extract_configuration(blocks);
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myotherblock:mykey");
-  vistk::config::value_t const myvalue = conf->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("myvalue");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myotherblock:mykey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -496,8 +496,8 @@ IMPLEMENT_TEST(config_provider_conf_dep)
                "Received: " << myvalue);
   }
 
-  vistk::config::key_t const mymidkey = vistk::config::key_t("mymidblock:mykey");
-  vistk::config::value_t const mymidvalue = conf->get_value<vistk::config::value_t>(mymidkey);
+  sprokit::config::key_t const mymidkey = sprokit::config::key_t("mymidblock:mykey");
+  sprokit::config::value_t const mymidvalue = conf->get_value<sprokit::config::value_t>(mymidkey);
 
   if (mymidvalue != expected)
   {
@@ -509,22 +509,22 @@ IMPLEMENT_TEST(config_provider_conf_dep)
 
 IMPLEMENT_TEST(config_provider_conf_circular_dep)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::circular_config_provide_exception,
-                   vistk::extract_configuration(blocks),
+  EXPECT_EXCEPTION(sprokit::circular_config_provide_exception,
+                   sprokit::extract_configuration(blocks),
                    "circular configuration provides exist");
 }
 
 IMPLEMENT_TEST(config_provider_env)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const config = vistk::extract_configuration(blocks);
+  sprokit::config_t const config = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const mykey = vistk::config::key_t("myblock:myenv");
-  vistk::config::value_t const value = config->get_value<vistk::config::value_t>(mykey);
-  vistk::config::value_t const expected = vistk::config::value_t("expected");
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:myenv");
+  sprokit::config::value_t const value = config->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("expected");
 
   if (value != expected)
   {
@@ -536,11 +536,11 @@ IMPLEMENT_TEST(config_provider_env)
 
 IMPLEMENT_TEST(config_provider_read_only)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::config_t const config = vistk::extract_configuration(blocks);
+  sprokit::config_t const config = sprokit::extract_configuration(blocks);
 
-  vistk::config::key_t const rokey = vistk::config::key_t("myblock:mykey");
+  sprokit::config::key_t const rokey = sprokit::config::key_t("myblock:mykey");
 
   if (!config->is_read_only(rokey))
   {
@@ -550,29 +550,29 @@ IMPLEMENT_TEST(config_provider_read_only)
 
 IMPLEMENT_TEST(config_provider_read_only_override)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
-                   vistk::extract_configuration(blocks),
+  EXPECT_EXCEPTION(sprokit::set_on_read_only_value_exception,
+                   sprokit::extract_configuration(blocks),
                    "setting a read-only provided value");
 }
 
 IMPLEMENT_TEST(config_provider_unprovided)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::unrecognized_provider_exception,
-                   vistk::extract_configuration(blocks),
+  EXPECT_EXCEPTION(sprokit::unrecognized_provider_exception,
+                   sprokit::extract_configuration(blocks),
                    "using an unknown provider");
 }
 
 IMPLEMENT_TEST(pipeline_multiplier)
 {
-  vistk::pipe_blocks const blocks = vistk::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_blocks(blocks);
+  sprokit::pipeline_t const pipeline = sprokit::bake_pipe_blocks(blocks);
 
   if (!pipeline)
   {
@@ -591,21 +591,21 @@ IMPLEMENT_TEST(pipeline_multiplier)
 
 IMPLEMENT_TEST(cluster_multiplier)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+  sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
 
-  vistk::process_ctor_t const ctor = info->ctor;
+  sprokit::process_ctor_t const ctor = info->ctor;
 
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  config->set_value("factor", boost::lexical_cast<vistk::config::value_t>(30));
+  config->set_value("factor", boost::lexical_cast<sprokit::config::value_t>(30));
 
-  vistk::process_t const proc = ctor(config);
+  sprokit::process_t const proc = ctor(config);
 
-  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   if (!cluster)
   {
@@ -624,33 +624,33 @@ IMPLEMENT_TEST(cluster_missing_cluster)
 {
   (void)pipe_file;
 
-  vistk::cluster_blocks blocks;
+  sprokit::cluster_blocks blocks;
 
-  vistk::process_pipe_block const pipe_block = vistk::process_pipe_block();
-  vistk::cluster_block const block = pipe_block;
+  sprokit::process_pipe_block const pipe_block = sprokit::process_pipe_block();
+  sprokit::cluster_block const block = pipe_block;
 
   blocks.push_back(block);
 
-  EXPECT_EXCEPTION(vistk::missing_cluster_block_exception,
-                   vistk::bake_cluster_blocks(blocks),
+  EXPECT_EXCEPTION(sprokit::missing_cluster_block_exception,
+                   sprokit::bake_cluster_blocks(blocks),
                    "baking a set of cluster blocks without a cluster");
 }
 
 IMPLEMENT_TEST(cluster_missing_processes)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::cluster_without_processes_exception,
-                   vistk::bake_cluster_blocks(blocks),
+  EXPECT_EXCEPTION(sprokit::cluster_without_processes_exception,
+                   sprokit::bake_cluster_blocks(blocks),
                    "baking a cluster without processes");
 }
 
 IMPLEMENT_TEST(cluster_missing_ports)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(vistk::cluster_without_ports_exception,
-                   vistk::bake_cluster_blocks(blocks),
+  EXPECT_EXCEPTION(sprokit::cluster_without_ports_exception,
+                   sprokit::bake_cluster_blocks(blocks),
                    "baking a cluster without ports");
 }
 
@@ -658,56 +658,56 @@ IMPLEMENT_TEST(cluster_multiple_cluster)
 {
   (void)pipe_file;
 
-  vistk::cluster_blocks blocks;
+  sprokit::cluster_blocks blocks;
 
-  vistk::cluster_pipe_block const cluster_pipe_block = vistk::cluster_pipe_block();
-  vistk::cluster_block const cluster_block = cluster_pipe_block;
+  sprokit::cluster_pipe_block const cluster_pipe_block = sprokit::cluster_pipe_block();
+  sprokit::cluster_block const cluster_block = cluster_pipe_block;
 
   blocks.push_back(cluster_block);
   blocks.push_back(cluster_block);
 
-  EXPECT_EXCEPTION(vistk::multiple_cluster_blocks_exception,
-                   vistk::bake_cluster_blocks(blocks),
+  EXPECT_EXCEPTION(sprokit::multiple_cluster_blocks_exception,
+                   sprokit::bake_cluster_blocks(blocks),
                    "baking a set of cluster blocks without multiple clusters");
 }
 
 IMPLEMENT_TEST(cluster_duplicate_input)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  EXPECT_EXCEPTION(vistk::duplicate_cluster_input_port_exception,
-                   vistk::bake_cluster_blocks(blocks),
+  EXPECT_EXCEPTION(sprokit::duplicate_cluster_input_port_exception,
+                   sprokit::bake_cluster_blocks(blocks),
                    "baking a cluster with duplicate input ports");
 }
 
 IMPLEMENT_TEST(cluster_duplicate_output)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  EXPECT_EXCEPTION(vistk::duplicate_cluster_output_port_exception,
-                   vistk::bake_cluster_blocks(blocks),
+  EXPECT_EXCEPTION(sprokit::duplicate_cluster_output_port_exception,
+                   sprokit::bake_cluster_blocks(blocks),
                    "baking a cluster with duplicate output ports");
 }
 
-static void test_cluster(vistk::process_t const& cluster, std::string const& path);
+static void test_cluster(sprokit::process_t const& cluster, std::string const& path);
 
 IMPLEMENT_TEST(cluster_configuration_default)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+  sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
 
-  vistk::process_ctor_t const ctor = info->ctor;
+  sprokit::process_ctor_t const ctor = info->ctor;
 
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::process_t const cluster = ctor(config);
+  sprokit::process_t const cluster = ctor(config);
 
   std::string const output_path = "test-pipe_bakery-configuration_default.txt";
 
@@ -716,24 +716,24 @@ IMPLEMENT_TEST(cluster_configuration_default)
 
 IMPLEMENT_TEST(cluster_configuration_provide)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+  sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
 
-  vistk::process_ctor_t const ctor = info->ctor;
+  sprokit::process_ctor_t const ctor = info->ctor;
 
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::process_t const cluster = ctor(config);
+  sprokit::process_t const cluster = ctor(config);
 
   std::string const output_path = "test-pipe_bakery-configuration_provide.txt";
 
   test_cluster(cluster, output_path);
 }
 
-static vistk::process_cluster_t setup_map_config_cluster(vistk::process::name_t const& name, vistk::path_t const& pipe_file);
+static sprokit::process_cluster_t setup_map_config_cluster(sprokit::process::name_t const& name, sprokit::path_t const& pipe_file);
 
 IMPLEMENT_TEST(cluster_map_config)
 {
@@ -741,9 +741,9 @@ IMPLEMENT_TEST(cluster_map_config)
   /// leveraging the fact that only mapped configuration get pushed through when
   /// reconfiguring a cluster.
 
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+  sprokit::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
 
   if (!cluster)
   {
@@ -752,26 +752,26 @@ IMPLEMENT_TEST(cluster_map_config)
     return;
   }
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("tunable");
-  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+  sprokit::config::key_t const key = sprokit::config::key_t("tunable");
+  sprokit::config::value_t const tuned_value = sprokit::config::key_t("expected");
 
-  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + key, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(cluster_map_config_tunable)
 {
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+  sprokit::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
 
   if (!cluster)
   {
@@ -780,26 +780,26 @@ IMPLEMENT_TEST(cluster_map_config_tunable)
     return;
   }
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("tunable");
-  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+  sprokit::config::key_t const key = sprokit::config::key_t("tunable");
+  sprokit::config::value_t const tuned_value = sprokit::config::key_t("expected");
 
-  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + key, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(cluster_map_config_redirect)
 {
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+  sprokit::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
 
   if (!cluster)
   {
@@ -808,33 +808,33 @@ IMPLEMENT_TEST(cluster_map_config_redirect)
     return;
   }
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("tunable");
-  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+  sprokit::config::key_t const key = sprokit::config::key_t("tunable");
+  sprokit::config::value_t const tuned_value = sprokit::config::key_t("expected");
 
-  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + key, tuned_value);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
-  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
+  sprokit::config::key_t const new_key = sprokit::config::key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + proc_name + sprokit::config::block_sep + new_key, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(cluster_map_config_modified)
 {
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+  sprokit::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
 
   if (!cluster)
   {
@@ -843,33 +843,33 @@ IMPLEMENT_TEST(cluster_map_config_modified)
     return;
   }
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("tunable");
-  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+  sprokit::config::key_t const key = sprokit::config::key_t("tunable");
+  sprokit::config::value_t const tuned_value = sprokit::config::key_t("expected");
 
-  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + key, tuned_value);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
-  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
+  sprokit::config::key_t const new_key = sprokit::config::key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + proc_name + sprokit::config::block_sep + new_key, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(cluster_map_config_not_read_only)
 {
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+  sprokit::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
 
   if (!cluster)
   {
@@ -878,33 +878,33 @@ IMPLEMENT_TEST(cluster_map_config_not_read_only)
     return;
   }
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("tunable");
-  vistk::config::value_t const tuned_value = vistk::config::key_t("unexpected");
+  sprokit::config::key_t const key = sprokit::config::key_t("tunable");
+  sprokit::config::value_t const tuned_value = sprokit::config::key_t("unexpected");
 
-  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + key, tuned_value);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
-  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
+  sprokit::config::key_t const new_key = sprokit::config::key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + proc_name + sprokit::config::block_sep + new_key, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(cluster_map_config_only_provided)
 {
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+  sprokit::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
 
   if (!cluster)
   {
@@ -913,33 +913,33 @@ IMPLEMENT_TEST(cluster_map_config_only_provided)
     return;
   }
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("tunable");
-  vistk::config::value_t const tuned_value = vistk::config::key_t("unexpected");
+  sprokit::config::key_t const key = sprokit::config::key_t("tunable");
+  sprokit::config::value_t const tuned_value = sprokit::config::key_t("unexpected");
 
-  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + key, tuned_value);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
-  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
+  sprokit::config::key_t const new_key = sprokit::config::key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + proc_name + sprokit::config::block_sep + new_key, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(cluster_map_config_only_conf_provided)
 {
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+  sprokit::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
 
   if (!cluster)
   {
@@ -948,24 +948,24 @@ IMPLEMENT_TEST(cluster_map_config_only_conf_provided)
     return;
   }
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("tunable");
-  vistk::config::value_t const tuned_value = vistk::config::key_t("unexpected");
+  sprokit::config::key_t const key = sprokit::config::key_t("tunable");
+  sprokit::config::value_t const tuned_value = sprokit::config::key_t("unexpected");
 
-  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + key, tuned_value);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
-  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
+  sprokit::config::key_t const new_key = sprokit::config::key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + proc_name + sprokit::config::block_sep + new_key, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
@@ -975,9 +975,9 @@ IMPLEMENT_TEST(cluster_map_config_to_non_process)
   /// \todo This test is poorly designed because there's no check that / the
   /// mapping wasn't actually created.
 
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+  sprokit::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
 
   if (!cluster)
   {
@@ -986,33 +986,33 @@ IMPLEMENT_TEST(cluster_map_config_to_non_process)
     return;
   }
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("tunable");
-  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+  sprokit::config::key_t const key = sprokit::config::key_t("tunable");
+  sprokit::config::value_t const tuned_value = sprokit::config::key_t("expected");
 
-  new_conf->set_value(cluster_name + vistk::config::block_sep + key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + key, tuned_value);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
-  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
+  sprokit::config::key_t const new_key = sprokit::config::key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + proc_name + sprokit::config::block_sep + new_key, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(cluster_map_config_not_from_cluster)
 {
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
+  sprokit::process_cluster_t const cluster = setup_map_config_cluster(cluster_name, pipe_file);
 
   if (!cluster)
   {
@@ -1021,35 +1021,35 @@ IMPLEMENT_TEST(cluster_map_config_not_from_cluster)
     return;
   }
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
-  vistk::config::key_t const new_key = vistk::config::key_t("new_key");
-  vistk::config::value_t const tuned_value = vistk::config::key_t("expected");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
+  sprokit::config::key_t const new_key = sprokit::config::key_t("new_key");
+  sprokit::config::value_t const tuned_value = sprokit::config::key_t("expected");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value(cluster_name + vistk::config::block_sep + proc_name + vistk::config::block_sep + new_key, tuned_value);
+  new_conf->set_value(cluster_name + sprokit::config::block_sep + proc_name + sprokit::config::block_sep + new_key, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 IMPLEMENT_TEST(cluster_override_mapped)
 {
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("expect");
-  vistk::config::key_t const key = vistk::config::key_t("tunable");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
+  sprokit::config::key_t const key = sprokit::config::key_t("tunable");
 
-  vistk::config::key_t const full_key = proc_name + vistk::config::block_sep + key;
-  vistk::config::value_t const value = vistk::config::value_t("unexpected");
+  sprokit::config::key_t const full_key = proc_name + sprokit::config::block_sep + key;
+  sprokit::config::value_t const value = sprokit::config::value_t("unexpected");
 
   // The problem here is that the expect:tunable parameter is meant to be mapped
   // with the map_config call within the cluster. Due to the implementation,
@@ -1058,67 +1058,67 @@ IMPLEMENT_TEST(cluster_override_mapped)
   // variable.
   conf->set_value(full_key, value);
 
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+  sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
 
-  vistk::process_ctor_t const ctor = info->ctor;
+  sprokit::process_ctor_t const ctor = info->ctor;
 
-  EXPECT_EXCEPTION(vistk::set_on_read_only_value_exception,
+  EXPECT_EXCEPTION(sprokit::set_on_read_only_value_exception,
                    ctor(conf),
                    "manually setting a parameter which is mapped in a cluster");
 }
 
-static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
-static vistk::pipeline_t create_pipeline();
+static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config = sprokit::config::empty_config());
+static sprokit::pipeline_t create_pipeline();
 
 void
-test_cluster(vistk::process_t const& cluster, std::string const& path)
+test_cluster(sprokit::process_t const& cluster, std::string const& path)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("print_number");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = cluster->name();
-  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_named = cluster->name();
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
 
   int32_t const start_value = 10;
   int32_t const end_value = 20;
 
   {
-    vistk::config_t const configu = vistk::config::empty_config();
+    sprokit::config_t const configu = sprokit::config::empty_config();
 
-    vistk::config::key_t const start_key = vistk::config::key_t("start");
-    vistk::config::key_t const end_key = vistk::config::key_t("end");
+    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
+    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
 
-    vistk::config::value_t const start_num = boost::lexical_cast<vistk::config::value_t>(start_value);
-    vistk::config::value_t const end_num = boost::lexical_cast<vistk::config::value_t>(end_value);
+    sprokit::config::value_t const start_num = boost::lexical_cast<sprokit::config::value_t>(start_value);
+    sprokit::config::value_t const end_num = boost::lexical_cast<sprokit::config::value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    vistk::config_t const configt = vistk::config::empty_config();
+    sprokit::config_t const configt = sprokit::config::empty_config();
 
-    vistk::config::key_t const output_key = vistk::config::key_t("output");
-    vistk::config::value_t const output_value = vistk::config::value_t(path);
+    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
+    sprokit::config::value_t const output_value = sprokit::config::value_t(path);
 
     configt->set_value(output_key, output_value);
 
-    vistk::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
-    vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+    sprokit::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
+    sprokit::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-    vistk::pipeline_t const pipeline = create_pipeline();
+    sprokit::pipeline_t const pipeline = create_pipeline();
 
     pipeline->add_process(processu);
     pipeline->add_process(cluster);
     pipeline->add_process(processt);
 
-    vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-    vistk::process::port_t const port_namedi = vistk::process::port_t("factor");
-    vistk::process::port_t const port_namedo = vistk::process::port_t("product");
-    vistk::process::port_t const port_namet = vistk::process::port_t("number");
+    sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+    sprokit::process::port_t const port_namedi = sprokit::process::port_t("factor");
+    sprokit::process::port_t const port_namedo = sprokit::process::port_t("product");
+    sprokit::process::port_t const port_namet = sprokit::process::port_t("number");
 
     pipeline->connect(proc_nameu, port_nameu,
                       proc_named, port_namedi);
@@ -1127,9 +1127,9 @@ test_cluster(vistk::process_t const& cluster, std::string const& path)
 
     pipeline->setup_pipeline();
 
-    vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-    vistk::scheduler_t const scheduler = reg->create_scheduler(vistk::scheduler_registry::default_type, pipeline);
+    sprokit::scheduler_t const scheduler = reg->create_scheduler(sprokit::scheduler_registry::default_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -1151,7 +1151,7 @@ test_cluster(vistk::process_t const& cluster, std::string const& path)
   {
     std::getline(fin, line);
 
-    if (vistk::config::value_t(line) != boost::lexical_cast<vistk::config::value_t>(i * factor))
+    if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * factor))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i * factor << " "
@@ -1172,41 +1172,41 @@ test_cluster(vistk::process_t const& cluster, std::string const& path)
   }
 }
 
-vistk::process_t
-create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
+sprokit::process_t
+create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config)
 {
-  static bool const modules_loaded = (vistk::load_known_modules(), true);
-  static vistk::process_registry_t const reg = vistk::process_registry::self();
+  static bool const modules_loaded = (sprokit::load_known_modules(), true);
+  static sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
   (void)modules_loaded;
 
   return reg->create_process(type, name, config);
 }
 
-vistk::pipeline_t
+sprokit::pipeline_t
 create_pipeline()
 {
-  return boost::make_shared<vistk::pipeline>();
+  return boost::make_shared<sprokit::pipeline>();
 }
 
-vistk::process_cluster_t
-setup_map_config_cluster(vistk::process::name_t const& name, vistk::path_t const& pipe_file)
+sprokit::process_cluster_t
+setup_map_config_cluster(sprokit::process::name_t const& name, sprokit::path_t const& pipe_file)
 {
-  vistk::cluster_blocks const blocks = vistk::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::cluster_info_t const info = vistk::bake_cluster_blocks(blocks);
+  sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
 
-  vistk::process_ctor_t const ctor = info->ctor;
+  sprokit::process_ctor_t const ctor = info->ctor;
 
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  config->set_value(vistk::process::config_name, name);
+  config->set_value(sprokit::process::config_name, name);
 
-  vistk::process_t const proc = ctor(config);
+  sprokit::process_t const proc = ctor(config);
 
-  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   return cluster;
 }

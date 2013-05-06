@@ -11,10 +11,10 @@
 /**
  * \file scheduler_exception.cxx
  *
- * \brief Implementation of exceptions used within \link vistk::scheduler schedulers\endlink.
+ * \brief Implementation of exceptions used within \link sprokit::scheduler schedulers\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 scheduler_exception

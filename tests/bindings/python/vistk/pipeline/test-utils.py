@@ -7,19 +7,19 @@
 
 def test_import():
     try:
-        import vistk.pipeline.utils
+        import sprokit.pipeline.utils
     except:
         test_error("Failed to import the utils module")
 
 
 def test_create():
-    from vistk.pipeline import utils
+    from sprokit.pipeline import utils
 
     utils.ThreadName()
 
 
 def test_name_thread():
-    from vistk.pipeline import utils
+    from sprokit.pipeline import utils
 
     utils.name_thread("a_name")
 
@@ -44,6 +44,6 @@ if __name__ == '__main__':
         , 'name_thread': test_name_thread
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

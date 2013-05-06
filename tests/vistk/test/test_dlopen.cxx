@@ -6,7 +6,7 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline_util/path.h>
+#include <sprokit/pipeline_util/path.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define WIN32_LEAN_AND_MEAN
@@ -39,10 +39,10 @@ main(int argc, char* argv[])
 #else
   typedef void* library_t;
 #endif
-  typedef vistk::path_t module_path_t;
+  typedef sprokit::path_t module_path_t;
 
   std::string const library = argv[1];
-  vistk::path_t const path = argv[2];
+  sprokit::path_t const path = argv[2];
 
   library_t handle = NULL;
 

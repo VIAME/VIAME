@@ -6,24 +6,24 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline_util/export_dot.h>
-#include <vistk/pipeline_util/export_dot_exception.h>
-#include <vistk/pipeline_util/path.h>
-#include <vistk/pipeline_util/pipe_bakery.h>
+#include <sprokit/pipeline_util/export_dot.h>
+#include <sprokit/pipeline_util/export_dot_exception.h>
+#include <sprokit/pipeline_util/path.h>
+#include <sprokit/pipeline_util/pipe_bakery.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_cluster.h>
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/pipeline_exception.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_cluster.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/pipeline_exception.h>
 
 #include <boost/make_shared.hpp>
 
 #include <sstream>
 
-#define TEST_ARGS (vistk::path_t const& pipe_file)
+#define TEST_ARGS (sprokit::path_t const& pipe_file)
 
 DECLARE_TEST(pipeline_null);
 DECLARE_TEST(pipeline_empty_name);
@@ -42,9 +42,9 @@ main(int argc, char* argv[])
   CHECK_ARGS(2);
 
   testname_t const testname = argv[1];
-  vistk::path_t const pipe_dir = argv[2];
+  sprokit::path_t const pipe_dir = argv[2];
 
-  vistk::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
+  sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
 
   DECLARE_TEST_MAP(tests);
 
@@ -64,12 +64,12 @@ IMPLEMENT_TEST(pipeline_null)
 {
   (void)pipe_file;
 
-  vistk::pipeline_t const pipeline;
+  sprokit::pipeline_t const pipeline;
 
   std::ostringstream sstr;
 
-  EXPECT_EXCEPTION(vistk::null_pipeline_export_dot_exception,
-                   vistk::export_dot(sstr, pipeline, "(unnamed)"),
+  EXPECT_EXCEPTION(sprokit::null_pipeline_export_dot_exception,
+                   sprokit::export_dot(sstr, pipeline, "(unnamed)"),
                    "exporting a NULL pipeline to dot");
 }
 
@@ -77,101 +77,101 @@ IMPLEMENT_TEST(pipeline_empty_name)
 {
   (void)pipe_file;
 
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const type = vistk::process::type_t("orphan");
-  vistk::process_t const proc = reg->create_process(type, vistk::process::name_t());
+  sprokit::process::type_t const type = sprokit::process::type_t("orphan");
+  sprokit::process_t const proc = reg->create_process(type, sprokit::process::name_t());
 
-  vistk::pipeline_t const pipe = boost::make_shared<vistk::pipeline>();
+  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
   pipe->add_process(proc);
 
   std::ostringstream sstr;
 
-  EXPECT_EXCEPTION(vistk::empty_name_export_dot_exception,
-                   vistk::export_dot(sstr, pipe, "(unnamed)"),
+  EXPECT_EXCEPTION(sprokit::empty_name_export_dot_exception,
+                   sprokit::export_dot(sstr, pipe, "(unnamed)"),
                    "exporting a pipeline with an empty name to dot");
 }
 
 IMPLEMENT_TEST(simple_pipeline)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
+  sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
 
   std::ostringstream sstr;
 
-  vistk::export_dot(sstr, pipeline, "(unnamed)");
+  sprokit::export_dot(sstr, pipeline, "(unnamed)");
 }
 
 IMPLEMENT_TEST(simple_pipeline_setup)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
+  sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
 
   std::ostringstream sstr;
 
-  vistk::export_dot(sstr, pipeline, "(unnamed)");
+  sprokit::export_dot(sstr, pipeline, "(unnamed)");
 }
 
 IMPLEMENT_TEST(simple_pipeline_cluster)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::pipeline_t const pipeline = vistk::bake_pipe_from_file(pipe_file);
+  sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
 
   std::ostringstream sstr;
 
-  vistk::export_dot(sstr, pipeline, "(unnamed)");
+  sprokit::export_dot(sstr, pipeline, "(unnamed)");
 }
 
 IMPLEMENT_TEST(cluster_null)
 {
   (void)pipe_file;
 
-  vistk::process_cluster_t const cluster;
+  sprokit::process_cluster_t const cluster;
 
   std::ostringstream sstr;
 
-  EXPECT_EXCEPTION(vistk::null_cluster_export_dot_exception,
-                   vistk::export_dot(sstr, cluster, "(unnamed)"),
+  EXPECT_EXCEPTION(sprokit::null_cluster_export_dot_exception,
+                   sprokit::export_dot(sstr, cluster, "(unnamed)"),
                    "exporting a NULL cluster to dot");
 }
 
 IMPLEMENT_TEST(cluster_empty_name)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::cluster_info_t const info = vistk::bake_cluster_from_file(pipe_file);
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
-  vistk::process_t const proc = info->ctor(conf);
-  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+  sprokit::process_t const proc = info->ctor(conf);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   std::ostringstream sstr;
 
-  EXPECT_EXCEPTION(vistk::empty_name_export_dot_exception,
-                   vistk::export_dot(sstr, cluster, "(unnamed)"),
+  EXPECT_EXCEPTION(sprokit::empty_name_export_dot_exception,
+                   sprokit::export_dot(sstr, cluster, "(unnamed)"),
                    "exporting a cluster with an empty name to dot");
 }
 
 IMPLEMENT_TEST(cluster_multiplier)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::cluster_info_t const info = vistk::bake_cluster_from_file(pipe_file);
-  vistk::config_t const conf = vistk::config::empty_config();
-  vistk::process::name_t const name = vistk::process::name_t("name");
+  sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
+  sprokit::config_t const conf = sprokit::config::empty_config();
+  sprokit::process::name_t const name = sprokit::process::name_t("name");
 
-  conf->set_value(vistk::process::config_name, name);
+  conf->set_value(sprokit::process::config_name, name);
 
-  vistk::process_t const proc = info->ctor(conf);
-  vistk::process_cluster_t const cluster = boost::dynamic_pointer_cast<vistk::process_cluster>(proc);
+  sprokit::process_t const proc = info->ctor(conf);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   std::ostringstream sstr;
 
-  vistk::export_dot(sstr, cluster, "(unnamed)");
+  sprokit::export_dot(sstr, cluster, "(unnamed)");
 }

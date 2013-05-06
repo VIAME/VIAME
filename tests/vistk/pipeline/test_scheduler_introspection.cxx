@@ -6,30 +6,30 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/scheduler.h>
-#include <vistk/pipeline/scheduler_registry.h>
-#include <vistk/pipeline/scheduler_registry_exception.h>
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/scheduler.h>
+#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_registry_exception.h>
+#include <sprokit/pipeline/types.h>
 
 #include <boost/foreach.hpp>
 
 int
 main()
 {
-  vistk::scheduler_registry_t const reg = vistk::scheduler_registry::self();
+  sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
   try
   {
-    vistk::load_known_modules();
+    sprokit::load_known_modules();
   }
-  catch (vistk::scheduler_type_already_exists_exception const& e)
+  catch (sprokit::scheduler_type_already_exists_exception const& e)
   {
     TEST_ERROR("Duplicate scheduler names: " << e.what());
   }
-  catch (vistk::pipeline_exception const& e)
+  catch (sprokit::pipeline_exception const& e)
   {
     TEST_ERROR("Failed to load modules: " << e.what());
   }
@@ -40,21 +40,21 @@ main()
     return EXIT_FAILURE;
   }
 
-  vistk::scheduler_registry::types_t const types = reg->types();
+  sprokit::scheduler_registry::types_t const types = reg->types();
 
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
-  vistk::pipeline_t const pipe = vistk::pipeline_t(new vistk::pipeline(config));
+  sprokit::pipeline_t const pipe = sprokit::pipeline_t(new sprokit::pipeline(config));
 
-  BOOST_FOREACH (vistk::scheduler_registry::type_t const& type, types)
+  BOOST_FOREACH (sprokit::scheduler_registry::type_t const& type, types)
   {
-    vistk::scheduler_t scheduler;
+    sprokit::scheduler_t scheduler;
 
     try
     {
       scheduler = reg->create_scheduler(type, config, pipe);
     }
-    catch (vistk::no_such_scheduler_type_exception const& e)
+    catch (sprokit::no_such_scheduler_type_exception const& e)
     {
       TEST_ERROR("Failed to create scheduler: " << e.what());
 
@@ -80,13 +80,13 @@ main()
 
   // Check exceptions for unknown types.
   {
-    vistk::scheduler_registry::type_t const non_existent_scheduler = vistk::scheduler_registry::type_t("no_such_scheduler");
+    sprokit::scheduler_registry::type_t const non_existent_scheduler = sprokit::scheduler_registry::type_t("no_such_scheduler");
 
-    EXPECT_EXCEPTION(vistk::no_such_scheduler_type_exception,
+    EXPECT_EXCEPTION(sprokit::no_such_scheduler_type_exception,
                      reg->create_scheduler(non_existent_scheduler, config, pipe),
                      "requesting an non-existent scheduler type");
 
-    EXPECT_EXCEPTION(vistk::no_such_scheduler_type_exception,
+    EXPECT_EXCEPTION(sprokit::no_such_scheduler_type_exception,
                      reg->description(non_existent_scheduler),
                      "requesting an non-existent scheduler type");
   }

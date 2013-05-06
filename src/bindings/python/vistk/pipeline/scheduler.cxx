@@ -6,10 +6,10 @@
 
 #include <python/helpers/python_exceptions.h>
 
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/scheduler.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/scheduler.h>
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
@@ -19,17 +19,17 @@
 /**
  * \file scheduler.cxx
  *
- * \brief Python bindings for \link vistk::scheduler\endlink.
+ * \brief Python bindings for \link sprokit::scheduler\endlink.
  */
 
 using namespace boost::python;
 
 class wrap_scheduler
-  : public vistk::scheduler
-  , public wrapper<vistk::scheduler>
+  : public sprokit::scheduler
+  , public wrapper<sprokit::scheduler>
 {
   public:
-    wrap_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config);
+    wrap_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
     ~wrap_scheduler();
 
     void _start();
@@ -38,7 +38,7 @@ class wrap_scheduler
     void _resume();
     void _stop();
 
-    vistk::pipeline_t _pipeline() const;
+    sprokit::pipeline_t _pipeline() const;
 
     override get_pure_override(char const* name) const;
 };
@@ -48,16 +48,16 @@ BOOST_PYTHON_MODULE(scheduler)
   class_<wrap_scheduler, boost::noncopyable>("PythonScheduler"
     , "The base class for Python schedulers."
     , no_init)
-    .def(init<vistk::pipeline_t, vistk::config_t>())
-    .def("start", &vistk::scheduler::start
+    .def(init<sprokit::pipeline_t, sprokit::config_t>())
+    .def("start", &sprokit::scheduler::start
       , "Start the execution of the pipeline.")
-    .def("wait", &vistk::scheduler::wait
+    .def("wait", &sprokit::scheduler::wait
       , "Wait until the pipeline execution is complete.")
-    .def("pause", &vistk::scheduler::pause
+    .def("pause", &sprokit::scheduler::pause
       , "Pause execution.")
-    .def("resume", &vistk::scheduler::resume
+    .def("resume", &sprokit::scheduler::resume
       , "Resume execution.")
-    .def("stop", &vistk::scheduler::stop
+    .def("stop", &sprokit::scheduler::stop
       , "Stop the execution of the pipeline.")
     .def("pipeline", &wrap_scheduler::_pipeline
       , "The pipeline the scheduler is to run.")
@@ -75,8 +75,8 @@ BOOST_PYTHON_MODULE(scheduler)
 }
 
 wrap_scheduler
-::wrap_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config)
-  : vistk::scheduler(pipe, config)
+::wrap_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config)
+  : sprokit::scheduler(pipe, config)
 {
 }
 
@@ -89,7 +89,7 @@ void
 wrap_scheduler
 ::_start()
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
@@ -100,7 +100,7 @@ void
 wrap_scheduler
 ::_wait()
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
@@ -111,7 +111,7 @@ void
 wrap_scheduler
 ::_pause()
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
@@ -122,7 +122,7 @@ void
 wrap_scheduler
 ::_resume()
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
@@ -133,14 +133,14 @@ void
 wrap_scheduler
 ::_stop()
 {
-  vistk::python::python_gil const gil;
+  sprokit::python::python_gil const gil;
 
   (void)gil;
 
   HANDLE_PYTHON_EXCEPTION(get_pure_override("_stop")())
 }
 
-vistk::pipeline_t
+sprokit::pipeline_t
 wrap_scheduler
 ::_pipeline() const
 {

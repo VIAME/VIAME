@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_CONFIG_H
-#define VISTK_PIPELINE_CONFIG_H
+#ifndef SPROKIT_PIPELINE_CONFIG_H
+#define SPROKIT_PIPELINE_CONFIG_H
 
 #include "pipeline-config.h"
 
@@ -27,20 +27,20 @@
 /**
  * \file config.h
  *
- * \brief Header for \link vistk::config configuration\endlink in the pipeline.
+ * \brief Header for \link sprokit::config configuration\endlink in the pipeline.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class config config.h <vistk/pipeline/config.h>
+ * \class config config.h <sprokit/pipeline/config.h>
  *
  * \brief Stores configuration values for use within a \ref pipeline.
  *
  * \ingroup base_classes
  */
-class VISTK_PIPELINE_EXPORT config
+class SPROKIT_PIPELINE_EXPORT config
   : public boost::enable_shared_from_this<config>
   , boost::noncopyable
 {
@@ -206,10 +206,10 @@ class VISTK_PIPELINE_EXPORT config
     /// The magic group for global parameters.
     static key_t const global_value;
   private:
-    VISTK_PIPELINE_NO_EXPORT config(key_t const& name, config_t parent);
+    SPROKIT_PIPELINE_NO_EXPORT config(key_t const& name, config_t parent);
 
     boost::optional<value_t> find_value(key_t const& key) const;
-    VISTK_PIPELINE_NO_EXPORT value_t get_value(key_t const& key) const;
+    SPROKIT_PIPELINE_NO_EXPORT value_t get_value(key_t const& key) const;
 
     typedef std::map<key_t, value_t> store_t;
     typedef std::set<key_t> ro_list_t;
@@ -221,13 +221,13 @@ class VISTK_PIPELINE_EXPORT config
 };
 
 /**
- * \class configuration_exception config.h <vistk/pipeline/config.h>
+ * \class configuration_exception config.h <sprokit/pipeline/config.h>
  *
  * \brief The base class for all exceptions thrown from \ref config.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT configuration_exception
+class SPROKIT_PIPELINE_EXPORT configuration_exception
   : public pipeline_exception
 {
   public:
@@ -242,13 +242,13 @@ class VISTK_PIPELINE_EXPORT configuration_exception
 };
 
 /**
- * \class bad_configuration_cast config.h <vistk/pipeline/config.h>
+ * \class bad_configuration_cast config.h <sprokit/pipeline/config.h>
  *
  * \brief The inner exception thrown when casting fails.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT bad_configuration_cast
+class SPROKIT_PIPELINE_EXPORT bad_configuration_cast
   : public configuration_exception
 {
   public:
@@ -265,13 +265,13 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast
 };
 
 /**
- * \class no_such_configuration_value_exception config.h <vistk/pipeline/config.h>
+ * \class no_such_configuration_value_exception config.h <sprokit/pipeline/config.h>
  *
  * \brief Thrown when a value is requested for a value which does not exist.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT no_such_configuration_value_exception
+class SPROKIT_PIPELINE_EXPORT no_such_configuration_value_exception
   : public configuration_exception
 {
   public:
@@ -291,13 +291,13 @@ class VISTK_PIPELINE_EXPORT no_such_configuration_value_exception
 };
 
 /**
- * \class bad_configuration_cast_exception config.h <vistk/pipeline/config.h>
+ * \class bad_configuration_cast_exception config.h <sprokit/pipeline/config.h>
  *
  * \brief Thrown when a value cannot be converted to the requested type.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT bad_configuration_cast_exception
+class SPROKIT_PIPELINE_EXPORT bad_configuration_cast_exception
   : public configuration_exception
 {
   public:
@@ -326,13 +326,13 @@ class VISTK_PIPELINE_EXPORT bad_configuration_cast_exception
 };
 
 /**
- * \class set_on_read_only_value_exception config.h <vistk/pipeline/config.h>
+ * \class set_on_read_only_value_exception config.h <sprokit/pipeline/config.h>
  *
  * \brief Thrown when a value is set but is marked as read-only.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT set_on_read_only_value_exception
+class SPROKIT_PIPELINE_EXPORT set_on_read_only_value_exception
   : public configuration_exception
 {
   public:
@@ -358,13 +358,13 @@ class VISTK_PIPELINE_EXPORT set_on_read_only_value_exception
 };
 
 /**
- * \class unset_on_read_only_value_exception config.h <vistk/pipeline/config.h>
+ * \class unset_on_read_only_value_exception config.h <sprokit/pipeline/config.h>
  *
  * \brief Thrown when a value is unset but is marked as read-only.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT unset_on_read_only_value_exception
+class SPROKIT_PIPELINE_EXPORT unset_on_read_only_value_exception
   : public configuration_exception
 {
   public:
@@ -440,7 +440,7 @@ config_cast_inner(config::value_t const& value)
  * \returns The value of \p value in the requested type.
  */
 template <>
-VISTK_PIPELINE_EXPORT bool config_cast_inner(config::value_t const& value);
+SPROKIT_PIPELINE_EXPORT bool config_cast_inner(config::value_t const& value);
 
 /**
  * \brief Cast a configuration value to the requested type.
@@ -498,4 +498,4 @@ config
 
 }
 
-#endif // VISTK_PIPELINE_CONFIG_H
+#endif // SPROKIT_PIPELINE_CONFIG_H

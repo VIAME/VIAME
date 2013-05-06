@@ -4,15 +4,15 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
-#define VISTK_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
+#ifndef SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
+#define SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
 
 #include "pipeline_util-config.h"
 
 #include "pipe_declaration_types.h"
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/types.h>
 
 #include <string>
 
@@ -22,17 +22,17 @@
  * \brief Header for exceptions used when baking a pipeline.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class pipe_bakery_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class pipe_bakery_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The base class for all exceptions thrown when baking a pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT pipe_bakery_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT pipe_bakery_exception
   : public pipeline_exception
 {
   public:
@@ -47,13 +47,13 @@ class VISTK_PIPELINE_UTIL_EXPORT pipe_bakery_exception
 };
 
 /**
- * \class missing_cluster_block_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class missing_cluster_block_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when baking a cluster without a cluster block.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT missing_cluster_block_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT missing_cluster_block_exception
   : public pipe_bakery_exception
 {
   public:
@@ -68,13 +68,13 @@ class VISTK_PIPELINE_UTIL_EXPORT missing_cluster_block_exception
 };
 
 /**
- * \class multiple_cluster_blocks_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class multiple_cluster_blocks_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when baking a cluster with multiple cluster blocks.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT multiple_cluster_blocks_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT multiple_cluster_blocks_exception
   : public pipe_bakery_exception
 {
   public:
@@ -89,13 +89,13 @@ class VISTK_PIPELINE_UTIL_EXPORT multiple_cluster_blocks_exception
 };
 
 /**
- * \class cluster_without_processes_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class cluster_without_processes_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when a cluster does not contain any processes.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT cluster_without_processes_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT cluster_without_processes_exception
   : public pipe_bakery_exception
 {
   public:
@@ -110,13 +110,13 @@ class VISTK_PIPELINE_UTIL_EXPORT cluster_without_processes_exception
 };
 
 /**
- * \class cluster_without_ports_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class cluster_without_ports_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when a cluster does not contain any ports.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT cluster_without_ports_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT cluster_without_ports_exception
   : public pipe_bakery_exception
 {
   public:
@@ -131,13 +131,13 @@ class VISTK_PIPELINE_UTIL_EXPORT cluster_without_ports_exception
 };
 
 /**
- * \class duplicate_cluster_port_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class duplicate_cluster_port_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when a cluster is declared with duplicate ports.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT duplicate_cluster_port_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_port_exception
   : public pipe_bakery_exception
 {
   public:
@@ -155,13 +155,13 @@ class VISTK_PIPELINE_UTIL_EXPORT duplicate_cluster_port_exception
 };
 
 /**
- * \class duplicate_cluster_input_port_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class duplicate_cluster_input_port_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when a cluster is declared with duplicate input ports.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT duplicate_cluster_input_port_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_input_port_exception
   : public duplicate_cluster_port_exception
 {
   public:
@@ -176,13 +176,13 @@ class VISTK_PIPELINE_UTIL_EXPORT duplicate_cluster_input_port_exception
 };
 
 /**
- * \class duplicate_cluster_output_port_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class duplicate_cluster_output_port_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when a cluster is declared with duplicate output ports.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT duplicate_cluster_output_port_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_output_port_exception
   : public duplicate_cluster_port_exception
 {
   public:
@@ -197,13 +197,13 @@ class VISTK_PIPELINE_UTIL_EXPORT duplicate_cluster_output_port_exception
 };
 
 /**
- * \class unrecognized_config_flag_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class unrecognized_config_flag_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when a flag on a configuration is not recognized.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
   : public pipe_bakery_exception
 {
   public:
@@ -226,13 +226,13 @@ class VISTK_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
 };
 
 /**
- * \class config_flag_mismatch_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class config_flag_mismatch_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when flags on a configuration are mismatched.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
   : public pipe_bakery_exception
 {
   public:
@@ -255,13 +255,13 @@ class VISTK_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
 };
 
 /**
- * \class unrecognized_provider_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class unrecognized_provider_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when a configuration provider request key is unknown.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT unrecognized_provider_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_provider_exception
   : public pipe_bakery_exception
 {
   public:
@@ -287,13 +287,13 @@ class VISTK_PIPELINE_UTIL_EXPORT unrecognized_provider_exception
 };
 
 /**
- * \class circular_config_provide_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class circular_config_provide_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when configuration provider requests are circular.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT circular_config_provide_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT circular_config_provide_exception
   : public pipe_bakery_exception
 {
   public:
@@ -308,13 +308,13 @@ class VISTK_PIPELINE_UTIL_EXPORT circular_config_provide_exception
 };
 
 /**
- * \class unrecognized_system_index_exception pipe_bakery_exception.h <vistk/pipeline_util/pipe_bakery_exception.h>
+ * \class unrecognized_system_index_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
  * \brief The exception thrown when the system provider does not know about an index.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT unrecognized_system_index_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_system_index_exception
   : public pipe_bakery_exception
 {
   public:
@@ -333,4 +333,4 @@ class VISTK_PIPELINE_UTIL_EXPORT unrecognized_system_index_exception
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
+#endif // SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H

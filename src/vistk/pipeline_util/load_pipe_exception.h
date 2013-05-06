@@ -4,14 +4,14 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H
-#define VISTK_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H
+#ifndef SPROKIT_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H
+#define SPROKIT_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H
 
 #include "pipeline_util-config.h"
 
 #include "path.h"
 
-#include <vistk/pipeline/types.h>
+#include <sprokit/pipeline/types.h>
 
 #include <string>
 
@@ -23,17 +23,17 @@
  * \brief Header for exceptions used when loading a pipe declaration.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class load_pipe_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ * \class load_pipe_exception load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
  *
  * \brief The base class for all exceptions thrown when loading a pipe declaration.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT load_pipe_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT load_pipe_exception
   : public pipeline_exception
 {
   public:
@@ -48,13 +48,13 @@ class VISTK_PIPELINE_UTIL_EXPORT load_pipe_exception
 };
 
 /**
- * \class file_no_exist_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ * \class file_no_exist_exception load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
  *
  * \brief The exception thrown when a file does not exist.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT file_no_exist_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT file_no_exist_exception
   : public load_pipe_exception
 {
   public:
@@ -74,13 +74,13 @@ class VISTK_PIPELINE_UTIL_EXPORT file_no_exist_exception
 };
 
 /**
- * \class not_a_file_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ * \class not_a_file_exception load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
  *
  * \brief The exception thrown when a path is not a file.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT not_a_file_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT not_a_file_exception
   : public load_pipe_exception
 {
   public:
@@ -100,13 +100,13 @@ class VISTK_PIPELINE_UTIL_EXPORT not_a_file_exception
 };
 
 /**
- * \class file_open_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ * \class file_open_exception load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
  *
  * \brief The exception thrown when a file could not be opened.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT file_open_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT file_open_exception
   : public load_pipe_exception
 {
   public:
@@ -126,13 +126,13 @@ class VISTK_PIPELINE_UTIL_EXPORT file_open_exception
 };
 
 /**
- * \class stream_failure_exception load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ * \class stream_failure_exception load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
  *
  * \brief The exception thrown when a stream has an error.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT stream_failure_exception
+class SPROKIT_PIPELINE_UTIL_EXPORT stream_failure_exception
   : public load_pipe_exception
 {
   public:
@@ -152,13 +152,13 @@ class VISTK_PIPELINE_UTIL_EXPORT stream_failure_exception
 };
 
 /**
- * \class failed_to_parse load_pipe_exception.h <vistk/pipeline_util/load_pipe_exception.h>
+ * \class failed_to_parse load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
  *
  * \brief The exception thrown when a parse error occurred.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_UTIL_EXPORT failed_to_parse
+class SPROKIT_PIPELINE_UTIL_EXPORT failed_to_parse
   : public load_pipe_exception
 {
   public:
@@ -186,4 +186,4 @@ class VISTK_PIPELINE_UTIL_EXPORT failed_to_parse
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H
+#endif // SPROKIT_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H

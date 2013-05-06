@@ -21,10 +21,10 @@
 /**
  * \file process_cluster.cxx
  *
- * \brief Implementation for \link vistk::process_cluster process cluster\endlink.
+ * \brief Implementation for \link sprokit::process_cluster process cluster\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 process::property_t const process_cluster::property_cluster = process::property_t("_cluster");

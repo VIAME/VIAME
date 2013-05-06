@@ -20,10 +20,10 @@
 /**
  * \file edge.cxx
  *
- * \brief Implementation of the \link vistk::edge edge\endlink class.
+ * \brief Implementation of the \link sprokit::edge edge\endlink class.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 edge_datum_t

@@ -9,14 +9,14 @@
 #include "tool_io.h"
 #include "tool_usage.h"
 
-#include <vistk/pipeline_util/load_pipe.h>
-#include <vistk/pipeline_util/path.h>
-#include <vistk/pipeline_util/pipe_bakery.h>
-#include <vistk/pipeline_util/pipe_declaration_types.h>
+#include <sprokit/pipeline_util/load_pipe.h>
+#include <sprokit/pipeline_util/path.h>
+#include <sprokit/pipeline_util/pipe_bakery.h>
+#include <sprokit/pipeline_util/pipe_declaration_types.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/scheduler_registry.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -50,7 +50,7 @@ pipeline_builder
   }
 
   {
-    vistk::path_t const ipath = vm["pipeline"].as<vistk::path_t>();
+    sprokit::path_t const ipath = vm["pipeline"].as<sprokit::path_t>();
 
     istream_t const istr = open_istream(ipath);
 
@@ -77,7 +77,7 @@ void
 pipeline_builder
 ::load_pipeline(std::istream& istr)
 {
-  m_blocks = vistk::load_pipe_blocks(istr, boost::filesystem::current_path());
+  m_blocks = sprokit::load_pipe_blocks(istr, boost::filesystem::current_path());
 }
 
 void
@@ -87,7 +87,7 @@ pipeline_builder
   // Load supplemental configuration files.
   if (vm.count("config"))
   {
-    vistk::paths_t const configs = vm["config"].as<vistk::paths_t>();
+    sprokit::paths_t const configs = vm["config"].as<sprokit::paths_t>();
 
     std::for_each(configs.begin(), configs.end(), boost::bind(&pipeline_builder::load_supplement, this, _1));
   }
@@ -103,9 +103,9 @@ pipeline_builder
 
 void
 pipeline_builder
-::load_supplement(vistk::path_t const& path)
+::load_supplement(sprokit::path_t const& path)
 {
-  vistk::pipe_blocks const supplement = vistk::load_pipe_blocks_from_file(path);
+  sprokit::pipe_blocks const supplement = sprokit::load_pipe_blocks_from_file(path);
 
   m_blocks.insert(m_blocks.end(), supplement.begin(), supplement.end());
 }
@@ -114,9 +114,9 @@ void
 pipeline_builder
 ::add_setting(std::string const& setting)
 {
-  vistk::config_pipe_block block;
+  sprokit::config_pipe_block block;
 
-  vistk::config_value_t value;
+  sprokit::config_value_t value;
 
   size_t const split_pos = setting.find(split_str);
 
@@ -130,22 +130,22 @@ pipeline_builder
     throw std::runtime_error(reason);
   }
 
-  vistk::config::key_t setting_key = setting.substr(0, split_pos);
-  vistk::config::value_t setting_value = setting.substr(split_pos + split_str.size());
+  sprokit::config::key_t setting_key = setting.substr(0, split_pos);
+  sprokit::config::value_t setting_value = setting.substr(split_pos + split_str.size());
 
-  vistk::config::keys_t keys;
+  sprokit::config::keys_t keys;
 
-  if (vistk::config::block_sep.size() != 1)
+  if (sprokit::config::block_sep.size() != 1)
   {
     static std::string const reason = "Error: The block separator is longer than "
                                       "one character and does not work here (this "
-                                      "is a vistk limitation)";
+                                      "is a sprokit limitation)";
 
     throw std::runtime_error(reason);
   }
 
-  /// \bug Does not work if (vistk::config::block_sep.size() != 1).
-  boost::split(keys, setting_key, boost::is_any_of(vistk::config::block_sep));
+  /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
+  boost::split(keys, setting_key, boost::is_any_of(sprokit::config::block_sep));
 
   if (keys.size() < 2)
   {
@@ -168,21 +168,21 @@ pipeline_builder
   m_blocks.push_back(block);
 }
 
-vistk::pipeline_t
+sprokit::pipeline_t
 pipeline_builder
 ::pipeline() const
 {
-  return vistk::bake_pipe_blocks(m_blocks);
+  return sprokit::bake_pipe_blocks(m_blocks);
 }
 
-vistk::config_t
+sprokit::config_t
 pipeline_builder
 ::config() const
 {
-  return vistk::extract_configuration(m_blocks);
+  return sprokit::extract_configuration(m_blocks);
 }
 
-vistk::pipe_blocks
+sprokit::pipe_blocks
 pipeline_builder
 ::blocks() const
 {
@@ -195,9 +195,9 @@ pipeline_common_options()
   boost::program_options::options_description desc("Common options");
 
   desc.add_options()
-    ("config,c", boost::program_options::value<vistk::paths_t>()->value_name("FILE"), "supplemental configuration file")
+    ("config,c", boost::program_options::value<sprokit::paths_t>()->value_name("FILE"), "supplemental configuration file")
     ("setting,s", boost::program_options::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
-    ("include,I", boost::program_options::value<vistk::paths_t>()->value_name("DIR"), "configuration include path")
+    ("include,I", boost::program_options::value<sprokit::paths_t>()->value_name("DIR"), "configuration include path")
   ;
 
   return desc;
@@ -209,7 +209,7 @@ pipeline_input_options()
   boost::program_options::options_description desc("Input options");
 
   desc.add_options()
-    ("pipeline,p", boost::program_options::value<vistk::path_t>()->value_name("FILE"), "pipeline")
+    ("pipeline,p", boost::program_options::value<sprokit::path_t>()->value_name("FILE"), "pipeline")
   ;
 
   return desc;
@@ -221,7 +221,7 @@ pipeline_output_options()
   boost::program_options::options_description desc("Output options");
 
   desc.add_options()
-    ("output,o", boost::program_options::value<vistk::path_t>()->value_name("FILE")->default_value("-"), "output path")
+    ("output,o", boost::program_options::value<sprokit::path_t>()->value_name("FILE")->default_value("-"), "output path")
   ;
 
   return desc;
@@ -233,7 +233,7 @@ pipeline_run_options()
   boost::program_options::options_description desc("Run options");
 
   desc.add_options()
-    ("scheduler,S", boost::program_options::value<vistk::scheduler_registry::type_t>()->value_name("TYPE"), "scheduler type")
+    ("scheduler,S", boost::program_options::value<sprokit::scheduler_registry::type_t>()->value_name("TYPE"), "scheduler type")
   ;
 
   return desc;

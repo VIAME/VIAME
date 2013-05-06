@@ -4,17 +4,17 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_TOOLS_HELPERS_TOOL_MAIN_H
-#define VISTK_TOOLS_HELPERS_TOOL_MAIN_H
+#ifndef SPROKIT_TOOLS_HELPERS_TOOL_MAIN_H
+#define SPROKIT_TOOLS_HELPERS_TOOL_MAIN_H
 
-static int vistk_main(int argc, char* argv[]);
+static int sprokit_main(int argc, char* argv[]);
 
 #define tool_main                                               \
 main(int argc, char* argv[])                                    \
 {                                                               \
   try                                                           \
   {                                                             \
-    return vistk_main(argc, argv);                              \
+    return sprokit_main(argc, argv);                              \
   }                                                             \
   catch (std::exception const& e)                               \
   {                                                             \
@@ -31,6 +31,6 @@ main(int argc, char* argv[])                                    \
 }                                                               \
                                                                 \
 int                                                             \
-vistk_main
+sprokit_main
 
-#endif // VISTK_TOOLS_HELPERS_TOOL_MAIN_H
+#endif // SPROKIT_TOOLS_HELPERS_TOOL_MAIN_H

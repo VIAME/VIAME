@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_ANY_CONVERSION_PROTOTYPES_H
-#define VISTK_PYTHON_ANY_CONVERSION_PROTOTYPES_H
+#ifndef SPROKIT_PYTHON_ANY_CONVERSION_PROTOTYPES_H
+#define SPROKIT_PYTHON_ANY_CONVERSION_PROTOTYPES_H
 
 #include "registration.h"
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/converter/registry.hpp>
 #include <boost/python/extract.hpp>
@@ -22,7 +22,7 @@
  * \brief Prototype functions for converting types to and from boost::any for Python.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 namespace python
@@ -116,4 +116,4 @@ register_type(priority_t priority)
 
 }
 
-#endif // VISTK_PYTHON_ANY_CONVERSION_PROTOTYPES_H
+#endif // SPROKIT_PYTHON_ANY_CONVERSION_PROTOTYPES_H

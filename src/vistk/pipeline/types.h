@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_TYPES_H
-#define VISTK_PIPELINE_TYPES_H
+#ifndef SPROKIT_PIPELINE_TYPES_H
+#define SPROKIT_PIPELINE_TYPES_H
 
 #include "pipeline-config.h"
 
@@ -21,9 +21,9 @@
  */
 
 /**
- * \brief The namespace for all vistk-related symbols.
+ * \brief The namespace for all sprokit-related symbols.
  */
-namespace vistk
+namespace sprokit
 {
 
 /**
@@ -73,13 +73,13 @@ class stamp;
 typedef boost::shared_ptr<stamp const> stamp_t;
 
 /**
- * \class pipeline_exception types.h <vistk/pipeline/types.h>
+ * \class pipeline_exception types.h <sprokit/pipeline/types.h>
  *
  * \brief The base of all exceptions thrown within the pipeline.
  *
  * \ingroup exceptions
  */
-class VISTK_PIPELINE_EXPORT pipeline_exception
+class SPROKIT_PIPELINE_EXPORT pipeline_exception
   : public std::exception
 {
   public:
@@ -105,4 +105,4 @@ class VISTK_PIPELINE_EXPORT pipeline_exception
 
 }
 
-#endif // VISTK_PIPELINE_TYPES_H
+#endif // SPROKIT_PIPELINE_TYPES_H

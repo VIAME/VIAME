@@ -1,8 +1,8 @@
-project(vistk_tools_pipelines_include)
+project(sprokit_tools_pipelines_include)
 
 set(pipeline_includes)
 
 install(
   FILES       ${pipeline_includes}
-  DESTINATION share/vistk/pipelines/include
+  DESTINATION share/sprokit/pipelines/include
   COMPONENT   pipelines)

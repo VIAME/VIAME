@@ -1,57 +1,57 @@
-# Target management functions for the vistk project.
+# Target management functions for the sprokit project.
 # The following functions are defined:
-#   vistk_install
-#   vistk_add_executable
-#   vistk_add_library
-#   vistk_install_headers
+#   sprokit_install
+#   sprokit_add_executable
+#   sprokit_add_library
+#   sprokit_install_headers
 # Their syntax is:
-#   vistk_install([args])
+#   sprokit_install([args])
 #     A wrapper around the install call which can be suppressed by setting the
 #     'suppress_install' variable to a truthy value. Used in the other macros
 #     for use when the product should not be installed.
-#   vistk_add_executable(name [source ...])
+#   sprokit_add_executable(name [source ...])
 #     Creates an executable that is built into the correct directory and is
 #     installed. The 'component' variable can be set to override the default of
 #     installing with the 'runtime' component.
-#   vistk_add_library(name [source ...])
+#   sprokit_add_library(name [source ...])
 #     Creates a library named that is built into the correct directory and
 #     is installed. The 'component' variable can be set to override the default
 #     of installing with the 'runtime' component. Additionally, the
 #     'library_subdir' variable can be set to put the library in the correct
 #     place on DLL systems (see the CMake documentation on
 #     LIBRARY_OUTPUT_DIRECTORY).
-#   vistk_install_headers(subdir [headers ...])
+#   sprokit_install_headers(subdir [headers ...])
 #     Installs the headers stored in the variable under a subdirectory.
 
-set(vistk_libraries CACHE INTERNAL "Libraries built as part of vistk")
+set(sprokit_libraries CACHE INTERNAL "Libraries built as part of sprokit")
 
-set(vistk_export_file
-  "${vistk_binary_dir}/vistk-config-targets.cmake")
+set(sprokit_export_file
+  "${sprokit_binary_dir}/sprokit-config-targets.cmake")
 export(
   TARGETS
-  FILE    "${vistk_export_file}")
+  FILE    "${sprokit_export_file}")
 
-function (vistk_install)
+function (sprokit_install)
   if (NOT suppress_install)
     install(${ARGN})
   endif ()
 endfunction ()
 
-macro (vistk_export name)
+macro (sprokit_export name)
   set(exports)
 
   if (NOT no_export)
     set(exports
-      EXPORT vistk_exports)
+      EXPORT sprokit_exports)
 
     export(
       TARGETS ${name}
       APPEND
-      FILE    "${vistk_export_file}")
+      FILE    "${sprokit_export_file}")
   endif ()
 endmacro ()
 
-function (vistk_compile_pic name)
+function (sprokit_compile_pic name)
   # TODO: Bump minimum CMake version to 2.8.9
   if (CMAKE_VERSION VERSION_GREATER "2.8.9")
     set_target_properties(${name}
@@ -64,35 +64,35 @@ function (vistk_compile_pic name)
   endif ()
 endfunction ()
 
-function (vistk_add_executable name)
+function (sprokit_add_executable name)
   add_executable(${name}
     ${ARGN})
   set_target_properties(${name}
     PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${vistk_binary_dir}/bin")
+      RUNTIME_OUTPUT_DIRECTORY "${sprokit_binary_dir}/bin")
 
   if ("${component}" STREQUAL "")
     set(component
       runtime)
   endif ()
 
-  vistk_export(${name})
+  sprokit_export(${name})
 
-  vistk_install(
+  sprokit_install(
     TARGETS     ${name}
     ${exports}
     DESTINATION bin
     COMPONENT   ${component})
 endfunction ()
 
-function (vistk_add_library name)
+function (sprokit_add_library name)
   add_library(${name}
     ${ARGN})
   set_target_properties(${name}
     PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${vistk_binary_dir}/lib${library_subdir}"
-      LIBRARY_OUTPUT_DIRECTORY "${vistk_binary_dir}/lib${library_subdir}"
-      RUNTIME_OUTPUT_DIRECTORY "${vistk_binary_dir}/bin${library_subdir}")
+      ARCHIVE_OUTPUT_DIRECTORY "${sprokit_binary_dir}/lib${library_subdir}"
+      LIBRARY_OUTPUT_DIRECTORY "${sprokit_binary_dir}/lib${library_subdir}"
+      RUNTIME_OUTPUT_DIRECTORY "${sprokit_binary_dir}/bin${library_subdir}")
 
   add_dependencies(${name}
     configure-config.h)
@@ -108,9 +108,9 @@ function (vistk_add_library name)
 
     set_target_properties(${name}
       PROPERTIES
-        "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${vistk_binary_dir}/lib${subdir}"
-        "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${vistk_binary_dir}/lib${subdir}"
-        "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${vistk_binary_dir}/bin${subdir}")
+        "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${sprokit_binary_dir}/lib${subdir}"
+        "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${sprokit_binary_dir}/lib${subdir}"
+        "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${sprokit_binary_dir}/bin${subdir}")
   endforeach ()
 
   if ("${component}" STREQUAL "")
@@ -122,17 +122,17 @@ function (vistk_add_library name)
     ${name} TYPE)
 
   if (target_type STREQUAL "STATIC_LIBRARY")
-    vistk_compile_pic(${name})
+    sprokit_compile_pic(${name})
   else ()
-    set(vistk_libraries
-      ${vistk_libraries}
+    set(sprokit_libraries
+      ${sprokit_libraries}
       ${name}
-      CACHE INTERNAL "Libraries built as part of vistk")
+      CACHE INTERNAL "Libraries built as part of sprokit")
   endif ()
 
-  vistk_export(${name})
+  sprokit_export(${name})
 
-  vistk_install(
+  sprokit_install(
     TARGETS       ${name}
     ${exports}
     ARCHIVE
@@ -144,37 +144,37 @@ function (vistk_add_library name)
     COMPONENT     ${component})
 endfunction ()
 
-function (vistk_private_header_group)
+function (sprokit_private_header_group)
   source_group("Header Files\\Private"
     FILES ${ARGN})
 endfunction ()
 
-function (vistk_private_template_group)
+function (sprokit_private_template_group)
   source_group("Template Files\\Private"
     FILES ${ARGN})
 endfunction ()
 
-function (vistk_install_headers subdir)
-  vistk_install(
+function (sprokit_install_headers subdir)
+  sprokit_install(
     FILES       ${ARGN}
     DESTINATION "include/${subdir}"
     COMPONENT   development)
 endfunction ()
 
-function (vistk_add_helper_library_sources name sources)
+function (sprokit_add_helper_library_sources name sources)
   add_library(${name} STATIC
     ${${sources}})
   target_link_libraries(${name}
     LINK_PRIVATE
       ${ARGN})
 
-  vistk_compile_pic(${name})
+  sprokit_compile_pic(${name})
 endfunction ()
 
-function (vistk_add_helper_library name)
+function (sprokit_add_helper_library name)
   set(helper_sources
     ${name}.cxx)
 
-  vistk_add_helper_library_sources(${name} helper_sources
+  sprokit_add_helper_library_sources(${name} helper_sources
     ${ARGN})
 endfunction ()

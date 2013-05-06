@@ -6,7 +6,7 @@
 
 #include "thread_pool_scheduler.h"
 
-#include <vistk/pipeline/config.h>
+#include <sprokit/pipeline/config.h>
 
 #include <boost/thread/thread.hpp>
 
@@ -16,7 +16,7 @@
  * \brief Implementation of the thread pool scheduler.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class thread_pool_scheduler::priv

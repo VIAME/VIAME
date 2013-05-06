@@ -1,5 +1,5 @@
-project(vistk_tests_bindings)
+project(sprokit_tests_bindings)
 
-if (VISTK_ENABLE_PYTHON)
+if (SPROKIT_ENABLE_PYTHON)
   add_subdirectory(python)
 endif ()

@@ -25,7 +25,7 @@
 
 namespace ba = boost::accumulators;
 
-namespace vistk
+namespace sprokit
 {
 
 class statistics::priv

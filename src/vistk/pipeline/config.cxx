@@ -19,10 +19,10 @@
 /**
  * \file config.cxx
  *
- * \brief Implementation of \link vistk::config configuration\endlink in the pipeline.
+ * \brief Implementation of \link sprokit::config configuration\endlink in the pipeline.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 config::key_t const config::block_sep = key_t(":");

@@ -7,17 +7,17 @@
 
 def test_import(path_unused):
     try:
-        import vistk.pipeline_util.bake
+        import sprokit.pipeline_util.bake
     except:
         test_error("Failed to import the bake module")
 
 
 def test_simple_pipeline(path):
-    from vistk.pipeline import config
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import modules
-    from vistk.pipeline_util import bake
-    from vistk.pipeline_util import load
+    from sprokit.pipeline import config
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import modules
+    from sprokit.pipeline_util import bake
+    from sprokit.pipeline_util import load
 
     blocks = load.load_pipe_file(path)
 
@@ -31,11 +31,11 @@ def test_simple_pipeline(path):
 
 
 def test_cluster_multiplier(path):
-    from vistk.pipeline import config
-    from vistk.pipeline import pipeline
-    from vistk.pipeline import modules
-    from vistk.pipeline_util import bake
-    from vistk.pipeline_util import load
+    from sprokit.pipeline import config
+    from sprokit.pipeline import pipeline
+    from sprokit.pipeline import modules
+    from sprokit.pipeline_util import bake
+    from sprokit.pipeline_util import load
 
     blocks = load.load_cluster_file(path)
 
@@ -80,6 +80,6 @@ if __name__ == '__main__':
 
     path = os.path.join(pipeline_dir, '%s.pipe' % testname)
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests, path)

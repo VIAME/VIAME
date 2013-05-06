@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_PROCESS_H
-#define VISTK_PIPELINE_PROCESS_H
+#ifndef SPROKIT_PIPELINE_PROCESS_H
+#define SPROKIT_PIPELINE_PROCESS_H
 
 #include "pipeline-config.h"
 
@@ -27,17 +27,17 @@
 /**
  * \file process.h
  *
- * \brief Header for \link vistk::process processes\endlink.
+ * \brief Header for \link sprokit::process processes\endlink.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /// A group of processes.
 typedef std::vector<process_t> processes_t;
 
 /**
- * \class process process.h <vistk/pipeline/process.h>
+ * \class process process.h <sprokit/pipeline/process.h>
  *
  * \brief A node within a \ref pipeline which runs computations on data.
  *
@@ -66,7 +66,7 @@ typedef std::vector<process_t> processes_t;
  *
  * \ingroup base_classes
  */
-class VISTK_PIPELINE_EXPORT process
+class SPROKIT_PIPELINE_EXPORT process
   : boost::noncopyable
 {
   public:
@@ -108,11 +108,11 @@ class VISTK_PIPELINE_EXPORT process
     typedef std::vector<connection_t> connections_t;
 
     /**
-     * \class port_info process.h <vistk/pipeline/process.h>
+     * \class port_info process.h <sprokit/pipeline/process.h>
      *
      * \brief Information about a port.
      */
-    class VISTK_PIPELINE_EXPORT port_info
+    class SPROKIT_PIPELINE_EXPORT port_info
     {
       public:
         /**
@@ -145,11 +145,11 @@ class VISTK_PIPELINE_EXPORT process
     typedef boost::shared_ptr<port_info const> port_info_t;
 
     /**
-     * \class conf_info process.h <vistk/pipeline/process.h>
+     * \class conf_info process.h <sprokit/pipeline/process.h>
      *
      * \brief Information about a configuration parameter.
      */
-    class VISTK_PIPELINE_EXPORT conf_info
+    class SPROKIT_PIPELINE_EXPORT conf_info
     {
       public:
         /**
@@ -178,11 +178,11 @@ class VISTK_PIPELINE_EXPORT process
     typedef boost::shared_ptr<conf_info const> conf_info_t;
 
     /**
-     * \class data_info process.h <vistk/pipeline/process.h>
+     * \class data_info process.h <sprokit/pipeline/process.h>
      *
      * \brief Information about a set of data.
      */
-    class VISTK_PIPELINE_EXPORT data_info
+    class SPROKIT_PIPELINE_EXPORT data_info
     {
       public:
         /**
@@ -824,11 +824,11 @@ class VISTK_PIPELINE_EXPORT process
     static config::key_t const static_input_prefix;
 
     friend class pipeline;
-    VISTK_PIPELINE_NO_EXPORT void set_core_frequency(port_frequency_t const& frequency);
-    VISTK_PIPELINE_NO_EXPORT void reconfigure(config_t const& conf);
+    SPROKIT_PIPELINE_NO_EXPORT void set_core_frequency(port_frequency_t const& frequency);
+    SPROKIT_PIPELINE_NO_EXPORT void reconfigure(config_t const& conf);
 
     friend class process_cluster;
-    VISTK_PIPELINE_NO_EXPORT void reconfigure_with_provides(config_t const& conf);
+    SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(config_t const& conf);
 
     class priv;
     boost::scoped_ptr<priv> d;
@@ -873,4 +873,4 @@ process
 
 }
 
-#endif // VISTK_PIPELINE_PROCESS_H
+#endif // SPROKIT_PIPELINE_PROCESS_H

@@ -6,7 +6,7 @@
 
 #include "shared_process.h"
 
-#include <vistk/pipeline/datum.h>
+#include <sprokit/pipeline/datum.h>
 
 /**
  * \file shared_process.cxx
@@ -14,7 +14,7 @@
  * \brief Implementation of the shared process.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class shared_process::priv

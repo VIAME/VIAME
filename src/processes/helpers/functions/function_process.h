@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_H
-#define VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_H
+#ifndef SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_H
+#define SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_H
 
 /**
  * \file function_process.h
@@ -38,11 +38,11 @@
  * \param name The base name of the class.
  */
 #define DECLARE_FUNCTION_PROCESS(name)               \
-class VISTK_NO_EXPORT CLASS_NAME(name)               \
-  : public vistk::process                            \
+class SPROKIT_NO_EXPORT CLASS_NAME(name)               \
+  : public sprokit::process                            \
 {                                                    \
   public:                                            \
-    CLASS_NAME(name)(vistk::config_t const& config); \
+    CLASS_NAME(name)(sprokit::config_t const& config); \
     CLASS_DTOR(name)();                              \
   protected:                                         \
     void _configure();                               \
@@ -52,4 +52,4 @@ class VISTK_NO_EXPORT CLASS_NAME(name)               \
     boost::scoped_ptr<priv> d;                       \
 }
 
-#endif // VISTK_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_H
+#endif // SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_H

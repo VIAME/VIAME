@@ -6,7 +6,7 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/stamp.h>
+#include <sprokit/pipeline/stamp.h>
 
 #define TEST_ARGS ()
 
@@ -30,26 +30,26 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(equality)
 {
-  vistk::stamp::increment_t const inca = vistk::stamp::increment_t(1);
-  vistk::stamp::increment_t const incb = 2 * inca;
+  sprokit::stamp::increment_t const inca = sprokit::stamp::increment_t(1);
+  sprokit::stamp::increment_t const incb = 2 * inca;
 
-  vistk::stamp_t const stampa = vistk::stamp::new_stamp(inca);
-  vistk::stamp_t const stampb = vistk::stamp::new_stamp(incb);
+  sprokit::stamp_t const stampa = sprokit::stamp::new_stamp(inca);
+  sprokit::stamp_t const stampb = sprokit::stamp::new_stamp(incb);
 
   if (*stampa != *stampb)
   {
     TEST_ERROR("New stamps are not equal");
   }
 
-  vistk::stamp_t const stampc = vistk::stamp::incremented_stamp(stampa);
+  sprokit::stamp_t const stampc = sprokit::stamp::incremented_stamp(stampa);
 
   if (*stampa == *stampc)
   {
     TEST_ERROR("An incremented stamp equals the original stamp");
   }
 
-  vistk::stamp_t const stampd = vistk::stamp::incremented_stamp(stampc);
-  vistk::stamp_t const stampe = vistk::stamp::incremented_stamp(stampb);
+  sprokit::stamp_t const stampd = sprokit::stamp::incremented_stamp(stampc);
+  sprokit::stamp_t const stampe = sprokit::stamp::incremented_stamp(stampb);
 
   if (*stampd != *stampe)
   {
@@ -59,10 +59,10 @@ IMPLEMENT_TEST(equality)
 
 IMPLEMENT_TEST(ordering)
 {
-  vistk::stamp::increment_t const inc = vistk::stamp::increment_t(1);
+  sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
-  vistk::stamp_t const stampa = vistk::stamp::new_stamp(inc);
-  vistk::stamp_t const stampb = vistk::stamp::new_stamp(inc);
+  sprokit::stamp_t const stampa = sprokit::stamp::new_stamp(inc);
+  sprokit::stamp_t const stampb = sprokit::stamp::new_stamp(inc);
 
   if ((*stampa < *stampb) ||
       (*stampb < *stampa))
@@ -80,7 +80,7 @@ IMPLEMENT_TEST(ordering)
     TEST_ERROR("A stamp is greater than itself");
   }
 
-  vistk::stamp_t const stampe = vistk::stamp::incremented_stamp(stampa);
+  sprokit::stamp_t const stampe = sprokit::stamp::incremented_stamp(stampa);
 
   if (*stampe < *stampa)
   {

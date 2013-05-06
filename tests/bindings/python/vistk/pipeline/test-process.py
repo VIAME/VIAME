@@ -7,14 +7,14 @@
 
 def test_import():
     try:
-        import vistk.pipeline.process
+        import sprokit.pipeline.process
     except:
         test_error("Failed to import the process module")
 
 
 def test_create():
-    from vistk.pipeline import datum
-    from vistk.pipeline import process
+    from sprokit.pipeline import datum
+    from sprokit.pipeline import process
 
     process.ProcessType()
     process.ProcessTypes()
@@ -43,8 +43,8 @@ def test_create():
 
 
 def test_api_calls():
-    from vistk.pipeline import datum
-    from vistk.pipeline import process
+    from sprokit.pipeline import datum
+    from sprokit.pipeline import process
 
     a = process.PortAddr()
     a.process
@@ -108,6 +108,6 @@ if __name__ == '__main__':
         , 'api_calls': test_api_calls
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

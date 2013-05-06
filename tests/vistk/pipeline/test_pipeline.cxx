@@ -6,15 +6,15 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/pipeline_exception.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_cluster.h>
-#include <vistk/pipeline/process_exception.h>
-#include <vistk/pipeline/process_registry.h>
-#include <vistk/pipeline/scheduler.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/pipeline_exception.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_cluster.h>
+#include <sprokit/pipeline/process_exception.h>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/scheduler.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/make_shared.hpp>
@@ -137,51 +137,51 @@ main(int argc, char* argv[])
   RUN_TEST(tests, testname);
 }
 
-static vistk::process_t create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config = vistk::config::empty_config());
-static vistk::pipeline_t create_pipeline();
+static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config = sprokit::config::empty_config());
+static sprokit::pipeline_t create_pipeline();
 
 IMPLEMENT_TEST(null_config)
 {
-  vistk::config_t const config;
+  sprokit::config_t const config;
 
-  EXPECT_EXCEPTION(vistk::null_pipeline_config_exception,
-                   boost::make_shared<vistk::pipeline>(config),
+  EXPECT_EXCEPTION(sprokit::null_pipeline_config_exception,
+                   boost::make_shared<sprokit::pipeline>(config),
                    "passing a NULL config to the pipeline");
 }
 
 IMPLEMENT_TEST(null_process)
 {
-  vistk::process_t const process;
+  sprokit::process_t const process;
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
-  EXPECT_EXCEPTION(vistk::null_process_addition_exception,
+  EXPECT_EXCEPTION(sprokit::null_process_addition_exception,
                    pipeline->add_process(process),
                    "adding a NULL process to the pipeline");
 }
 
 IMPLEMENT_TEST(add_process)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  sprokit::process_t const process = create_process(proc_type, sprokit::process::name_t());
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 }
 
 IMPLEMENT_TEST(add_cluster)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("multiplier_cluster");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("multiplier_cluster");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  sprokit::process_t const process = create_process(proc_type, sprokit::process::name_t());
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
-  vistk::process::names_t const names = pipeline->process_names();
+  sprokit::process::names_t const names = pipeline->process_names();
 
   if (names.size() != 2)
   {
@@ -191,80 +191,80 @@ IMPLEMENT_TEST(add_cluster)
 
 IMPLEMENT_TEST(duplicate_process_process)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const dup_process = create_process(proc_type, proc_name);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const dup_process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
-  EXPECT_EXCEPTION(vistk::duplicate_process_name_exception,
+  EXPECT_EXCEPTION(sprokit::duplicate_process_name_exception,
                    pipeline->add_process(dup_process),
                    "adding a duplicate process to the pipeline");
 }
 
 IMPLEMENT_TEST(connect_no_upstream)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("othername");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("othername");
 
   pipeline->add_process(process);
 
-  EXPECT_EXCEPTION(vistk::no_such_process_exception,
-                   pipeline->connect(proc_name2, vistk::process::port_t(),
-                                     proc_name, vistk::process::port_t()),
+  EXPECT_EXCEPTION(sprokit::no_such_process_exception,
+                   pipeline->connect(proc_name2, sprokit::process::port_t(),
+                                     proc_name, sprokit::process::port_t()),
                    "connecting with a non-existent upstream");
 }
 
 IMPLEMENT_TEST(connect_no_downstream)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("othername");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("othername");
 
   pipeline->add_process(process);
 
-  EXPECT_EXCEPTION(vistk::no_such_process_exception,
-                   pipeline->connect(proc_name, vistk::process::port_t(),
-                                     proc_name2, vistk::process::port_t()),
+  EXPECT_EXCEPTION(sprokit::no_such_process_exception,
+                   pipeline->connect(proc_name, sprokit::process::port_t(),
+                                     proc_name2, sprokit::process::port_t()),
                    "connecting with a non-existent downstream");
 }
 
 IMPLEMENT_TEST(connect_untyped_data_connection)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("data_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("sink");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("sink");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
@@ -272,21 +272,21 @@ IMPLEMENT_TEST(connect_untyped_data_connection)
 
 IMPLEMENT_TEST(connect_untyped_flow_connection)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("up");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("down");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("up");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("down");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type, proc_name2);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
@@ -294,24 +294,24 @@ IMPLEMENT_TEST(connect_untyped_flow_connection)
 
 IMPLEMENT_TEST(connect_type_mismatch)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("take_string");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("take_string");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
 
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
 
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_named = vistk::process::port_t("string");
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("string");
 
-  EXPECT_EXCEPTION(vistk::connection_type_mismatch_exception,
+  EXPECT_EXCEPTION(sprokit::connection_type_mismatch_exception,
                    pipeline->connect(proc_nameu, port_nameu,
                                      proc_named, port_named),
                    "connecting type-mismatched ports");
@@ -319,25 +319,25 @@ IMPLEMENT_TEST(connect_type_mismatch)
 
 IMPLEMENT_TEST(connect_flag_shared_no_mutate)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("shared");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("shared");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named1 = vistk::process::name_t("downstream1");
-  vistk::process::name_t const proc_named2 = vistk::process::name_t("downstream2");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_named1 = sprokit::process::name_t("downstream1");
+  sprokit::process::name_t const proc_named2 = sprokit::process::name_t("downstream2");
 
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd1 = create_process(proc_typed, proc_named1);
-  vistk::process_t const processd2 = create_process(proc_typed, proc_named2);
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processd1 = create_process(proc_typed, proc_named1);
+  sprokit::process_t const processd2 = create_process(proc_typed, proc_named2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd1);
   pipeline->add_process(processd2);
 
-  vistk::process::port_t const port_nameu = vistk::process::port_t("shared");
-  vistk::process::port_t const port_named = vistk::process::port_t("sink");
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("shared");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
 
   pipeline->connect(proc_nameu, port_nameu,
                     proc_named1, port_named);
@@ -347,24 +347,24 @@ IMPLEMENT_TEST(connect_flag_shared_no_mutate)
 
 IMPLEMENT_TEST(connect_flag_mismatch_const_mutate)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("const");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("mutate");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("const");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("mutate");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
 
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
 
-  vistk::process::port_t const port_nameu = vistk::process::port_t("const");
-  vistk::process::port_t const port_named = vistk::process::port_t("mutate");
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("const");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("mutate");
 
-  EXPECT_EXCEPTION(vistk::connection_flag_mismatch_exception,
+  EXPECT_EXCEPTION(sprokit::connection_flag_mismatch_exception,
                    pipeline->connect(proc_nameu, port_nameu,
                                      proc_named, port_named),
                    "connecting a const to a mutate port");
@@ -372,32 +372,32 @@ IMPLEMENT_TEST(connect_flag_mismatch_const_mutate)
 
 IMPLEMENT_TEST(connect_flag_mismatch_shared_mutate_first)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("shared");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
-  vistk::process::type_t const proc_typem = vistk::process::type_t("mutate");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("shared");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
+  sprokit::process::type_t const proc_typem = sprokit::process::type_t("mutate");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
-  vistk::process::name_t const proc_namem = vistk::process::name_t("downstream_mutate");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
+  sprokit::process::name_t const proc_namem = sprokit::process::name_t("downstream_mutate");
 
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
-  vistk::process_t const processm = create_process(proc_typem, proc_namem);
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
+  sprokit::process_t const processm = create_process(proc_typem, proc_namem);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
   pipeline->add_process(processm);
 
-  vistk::process::port_t const port_nameu = vistk::process::port_t("shared");
-  vistk::process::port_t const port_named = vistk::process::port_t("sink");
-  vistk::process::port_t const port_namem = vistk::process::port_t("mutate");
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("shared");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
+  sprokit::process::port_t const port_namem = sprokit::process::port_t("mutate");
 
   pipeline->connect(proc_nameu, port_nameu,
                     proc_namem, port_namem);
 
-  EXPECT_EXCEPTION(vistk::connection_flag_mismatch_exception,
+  EXPECT_EXCEPTION(sprokit::connection_flag_mismatch_exception,
                    pipeline->connect(proc_nameu, port_nameu,
                                      proc_named, port_named),
                    "connecting to a shared port already connected to a mutate port");
@@ -405,32 +405,32 @@ IMPLEMENT_TEST(connect_flag_mismatch_shared_mutate_first)
 
 IMPLEMENT_TEST(connect_flag_mismatch_shared_mutate_second)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("shared");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
-  vistk::process::type_t const proc_typem = vistk::process::type_t("mutate");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("shared");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
+  sprokit::process::type_t const proc_typem = sprokit::process::type_t("mutate");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
-  vistk::process::name_t const proc_namem = vistk::process::name_t("downstream_mutate");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
+  sprokit::process::name_t const proc_namem = sprokit::process::name_t("downstream_mutate");
 
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
-  vistk::process_t const processm = create_process(proc_typem, proc_namem);
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
+  sprokit::process_t const processm = create_process(proc_typem, proc_namem);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
   pipeline->add_process(processm);
 
-  vistk::process::port_t const port_nameu = vistk::process::port_t("shared");
-  vistk::process::port_t const port_named = vistk::process::port_t("sink");
-  vistk::process::port_t const port_namem = vistk::process::port_t("mutate");
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("shared");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
+  sprokit::process::port_t const port_namem = sprokit::process::port_t("mutate");
 
   pipeline->connect(proc_nameu, port_nameu,
                     proc_named, port_named);
 
-  EXPECT_EXCEPTION(vistk::connection_flag_mismatch_exception,
+  EXPECT_EXCEPTION(sprokit::connection_flag_mismatch_exception,
                    pipeline->connect(proc_nameu, port_nameu,
                                      proc_namem, port_namem),
                    "connecting a mutate port to a shared port already connected to a port");
@@ -438,22 +438,22 @@ IMPLEMENT_TEST(connect_flag_mismatch_shared_mutate_second)
 
 IMPLEMENT_TEST(connect)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("multiplication");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("upstream");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
 
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
 
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_named = vistk::process::port_t("factor1");
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("factor1");
 
   pipeline->connect(proc_nameu, port_nameu,
                     proc_named, port_named);
@@ -461,51 +461,51 @@ IMPLEMENT_TEST(connect)
 
 IMPLEMENT_TEST(setup_pipeline_no_processes)
 {
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
-  EXPECT_EXCEPTION(vistk::no_processes_exception,
+  EXPECT_EXCEPTION(sprokit::no_processes_exception,
                    pipeline->setup_pipeline(),
                    "setting up an empty pipeline");
 }
 
 IMPLEMENT_TEST(setup_pipeline_orphaned_process)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process::name_t const proc_name1 = vistk::process::name_t("orphan1");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("orphan2");
+  sprokit::process::name_t const proc_name1 = sprokit::process::name_t("orphan1");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("orphan2");
 
-  vistk::process_t const process1 = create_process(proc_type, proc_name1);
-  vistk::process_t const process2 = create_process(proc_type, proc_name2);
+  sprokit::process_t const process1 = create_process(proc_type, proc_name1);
+  sprokit::process_t const process2 = create_process(proc_type, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process1);
   pipeline->add_process(process2);
 
-  EXPECT_EXCEPTION(vistk::orphaned_processes_exception,
+  EXPECT_EXCEPTION(sprokit::orphaned_processes_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline with orphaned processes");
 }
 
 IMPLEMENT_TEST(setup_pipeline_type_force_flow_upstream)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("take_string");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("take");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("take");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("string");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("string");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
@@ -515,22 +515,22 @@ IMPLEMENT_TEST(setup_pipeline_type_force_flow_upstream)
 
 IMPLEMENT_TEST(setup_pipeline_type_force_flow_downstream)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("number");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
@@ -540,26 +540,26 @@ IMPLEMENT_TEST(setup_pipeline_type_force_flow_downstream)
 
 IMPLEMENT_TEST(setup_pipeline_type_force_cascade_up)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("take_string");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("take");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow2");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("take");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type2, proc_name3);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type2, proc_name3);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
   pipeline->add_process(process3);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("string");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_name3 = sprokit::process::port_t("string");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
@@ -568,9 +568,9 @@ IMPLEMENT_TEST(setup_pipeline_type_force_cascade_up)
 
   pipeline->setup_pipeline();
 
-  vistk::process::port_info_t const info = process->output_port_info(port_name);
+  sprokit::process::port_info_t const info = process->output_port_info(port_name);
 
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  if (boost::starts_with(info->type, sprokit::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propagated properly up the pipeline");
   }
@@ -578,26 +578,26 @@ IMPLEMENT_TEST(setup_pipeline_type_force_cascade_up)
 
 IMPLEMENT_TEST(setup_pipeline_type_force_cascade_down)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow2");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("flow2");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type2, proc_name3);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type2, proc_name3);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
   pipeline->add_process(process3);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("number");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("output");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_name3 = sprokit::process::port_t("output");
 
   pipeline->connect(proc_name2, port_name3,
                     proc_name3, port_name2);
@@ -606,9 +606,9 @@ IMPLEMENT_TEST(setup_pipeline_type_force_cascade_down)
 
   pipeline->setup_pipeline();
 
-  vistk::process::port_info_t const info = process3->input_port_info(port_name2);
+  sprokit::process::port_info_t const info = process3->input_port_info(port_name2);
 
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  if (boost::starts_with(info->type, sprokit::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propagated properly down the pipeline");
   }
@@ -616,29 +616,29 @@ IMPLEMENT_TEST(setup_pipeline_type_force_cascade_down)
 
 IMPLEMENT_TEST(setup_pipeline_type_force_cascade_both)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("take_string");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow3");
-  vistk::process::name_t const proc_name4 = vistk::process::name_t("take");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow2");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("flow3");
+  sprokit::process::name_t const proc_name4 = sprokit::process::name_t("take");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type, proc_name3);
-  vistk::process_t const process4 = create_process(proc_type2, proc_name4);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type, proc_name3);
+  sprokit::process_t const process4 = create_process(proc_type2, proc_name4);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
   pipeline->add_process(process3);
   pipeline->add_process(process4);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("string");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_name3 = sprokit::process::port_t("string");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
@@ -649,18 +649,18 @@ IMPLEMENT_TEST(setup_pipeline_type_force_cascade_both)
 
   pipeline->setup_pipeline();
 
-  vistk::process::port_info_t info;
+  sprokit::process::port_info_t info;
 
   info = process->output_port_info(port_name);
 
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  if (boost::starts_with(info->type, sprokit::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propagated properly within the pipeline");
   }
 
   info = process3->input_port_info(port_name2);
 
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  if (boost::starts_with(info->type, sprokit::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propagated properly within the pipeline");
   }
@@ -668,18 +668,18 @@ IMPLEMENT_TEST(setup_pipeline_type_force_cascade_both)
 
 IMPLEMENT_TEST(setup_pipeline_backwards_edge)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("feedback");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("feedback");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("feedback");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("feedback");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name, port_name2);
@@ -689,28 +689,28 @@ IMPLEMENT_TEST(setup_pipeline_backwards_edge)
 
 IMPLEMENT_TEST(setup_pipeline_not_a_dag)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("multiplication");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("multiplication");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow2");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("mult");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow2");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("mult");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type2, proc_name3);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type2, proc_name3);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
   pipeline->add_process(process3);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("factor1");
-  vistk::process::port_t const port_name4 = vistk::process::port_t("factor2");
-  vistk::process::port_t const port_name5 = vistk::process::port_t("product");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_name3 = sprokit::process::port_t("factor1");
+  sprokit::process::port_t const port_name4 = sprokit::process::port_t("factor2");
+  sprokit::process::port_t const port_name5 = sprokit::process::port_t("product");
 
   pipeline->connect(proc_name, port_name,
                     proc_name3, port_name3);
@@ -721,38 +721,38 @@ IMPLEMENT_TEST(setup_pipeline_not_a_dag)
   pipeline->connect(proc_name3, port_name5,
                     proc_name2, port_name2);
 
-  EXPECT_EXCEPTION(vistk::not_a_dag_exception,
+  EXPECT_EXCEPTION(sprokit::not_a_dag_exception,
                    pipeline->setup_pipeline(),
                    "a cycle is in the pipeline graph");
 }
 
 IMPLEMENT_TEST(setup_pipeline_data_dependent_set)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("data_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("sink");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("sink");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
 
   pipeline->setup_pipeline();
 
-  vistk::process::port_info_t const info = process2->input_port_info(port_name2);
+  sprokit::process::port_info_t const info = process2->input_port_info(port_name2);
 
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  if (boost::starts_with(info->type, sprokit::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propagated properly down the pipeline after initialization");
   }
@@ -760,56 +760,56 @@ IMPLEMENT_TEST(setup_pipeline_data_dependent_set)
 
 IMPLEMENT_TEST(setup_pipeline_data_dependent_set_reject)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("data_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("sink");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("sink");
 
-  vistk::config_t conf = vistk::config::empty_config();
+  sprokit::config_t conf = sprokit::config::empty_config();
 
   conf->set_value("reject", "true");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2, conf);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2, conf);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
 
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
+  EXPECT_EXCEPTION(sprokit::connection_dependent_type_exception,
                    pipeline->setup_pipeline(),
                    "a data dependent type propagation gets rejected");
 }
 
 IMPLEMENT_TEST(setup_pipeline_data_dependent_set_cascade)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("data_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow2");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("flow2");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type2, proc_name3);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type2, proc_name3);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
   pipeline->add_process(process3);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
@@ -818,18 +818,18 @@ IMPLEMENT_TEST(setup_pipeline_data_dependent_set_cascade)
 
   pipeline->setup_pipeline();
 
-  vistk::process::port_info_t info;
+  sprokit::process::port_info_t info;
 
   info = process2->input_port_info(port_name2);
 
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  if (boost::starts_with(info->type, sprokit::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propagated properly down the pipeline after initialization");
   }
 
   info = process3->input_port_info(port_name2);
 
-  if (boost::starts_with(info->type, vistk::process::type_flow_dependent))
+  if (boost::starts_with(info->type, sprokit::process::type_flow_dependent))
   {
     TEST_ERROR("Dependent types were not propagated properly down the pipeline after initialization");
   }
@@ -837,128 +837,128 @@ IMPLEMENT_TEST(setup_pipeline_data_dependent_set_cascade)
 
 IMPLEMENT_TEST(setup_pipeline_data_dependent_set_cascade_reject)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("data_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow_reject");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("flow_reject");
 
-  vistk::config_t conf = vistk::config::empty_config();
+  sprokit::config_t conf = sprokit::config::empty_config();
 
   conf->set_value("reject", "true");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type2, proc_name3, conf);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type2, proc_name3, conf);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
   pipeline->add_process(process3);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
   pipeline->connect(proc_name2, port_name,
                     proc_name3, port_name2);
 
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_cascade_exception,
+  EXPECT_EXCEPTION(sprokit::connection_dependent_type_cascade_exception,
                    pipeline->setup_pipeline(),
                    "a data dependent type propagation gets rejected");
 }
 
 IMPLEMENT_TEST(setup_pipeline_type_force_flow_upstream_reject)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("take_string");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("take_string");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("take");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("take");
 
-  vistk::config_t conf = vistk::config::empty_config();
+  sprokit::config_t conf = sprokit::config::empty_config();
 
   conf->set_value("reject", "true");
 
-  vistk::process_t const process = create_process(proc_type, proc_name, conf);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process = create_process(proc_type, proc_name, conf);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("string");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("string");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
 
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
+  EXPECT_EXCEPTION(sprokit::connection_dependent_type_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline where an upstream dependent type that gets rejected");
 }
 
 IMPLEMENT_TEST(setup_pipeline_type_force_flow_downstream_reject)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
 
-  vistk::config_t conf = vistk::config::empty_config();
+  sprokit::config_t conf = sprokit::config::empty_config();
 
   conf->set_value("reject", "true");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2, conf);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2, conf);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("number");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
 
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_exception,
+  EXPECT_EXCEPTION(sprokit::connection_dependent_type_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline with a downstream dependent type that gets rejected");
 }
 
 IMPLEMENT_TEST(setup_pipeline_type_force_cascade_reject)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
-  vistk::process::name_t const proc_name3 = vistk::process::name_t("flow_reject");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("flow_reject");
 
-  vistk::config_t conf = vistk::config::empty_config();
+  sprokit::config_t conf = sprokit::config::empty_config();
 
   conf->set_value("reject", "true");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
-  vistk::process_t const process3 = create_process(proc_type2, proc_name3, conf);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type2, proc_name3, conf);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
   pipeline->add_process(process3);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("number");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
-  vistk::process::port_t const port_name3 = vistk::process::port_t("output");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_name3 = sprokit::process::port_t("output");
 
   pipeline->connect(proc_name2, port_name3,
                     proc_name3, port_name2);
@@ -966,164 +966,164 @@ IMPLEMENT_TEST(setup_pipeline_type_force_cascade_reject)
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
 
-  EXPECT_EXCEPTION(vistk::connection_dependent_type_cascade_exception,
+  EXPECT_EXCEPTION(sprokit::connection_dependent_type_cascade_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline where a dependent type that gets rejected elsewhere");
 }
 
 IMPLEMENT_TEST(setup_pipeline_untyped_data_dependent)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("data_dependent");
-  vistk::process::type_t const proc_type2 = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("data_dependent");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("data");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("flow");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
 
-  vistk::config_t conf = vistk::config::empty_config();
+  sprokit::config_t conf = sprokit::config::empty_config();
 
   conf->set_value("set_on_configure", "false");
 
-  vistk::process_t const process = create_process(proc_type, proc_name, conf);
-  vistk::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process = create_process(proc_type, proc_name, conf);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
 
-  EXPECT_EXCEPTION(vistk::untyped_data_dependent_exception,
+  EXPECT_EXCEPTION(sprokit::untyped_data_dependent_exception,
                    pipeline->setup_pipeline(),
                    "a connected, unresolved data-dependent port exists after initialization");
 }
 
 IMPLEMENT_TEST(setup_pipeline_untyped_connection)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("up");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("down");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("up");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("down");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type, proc_name2);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
 
-  vistk::process::port_t const port_name = vistk::process::port_t("output");
-  vistk::process::port_t const port_name2 = vistk::process::port_t("input");
+  sprokit::process::port_t const port_name = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name2 = sprokit::process::port_t("input");
 
   pipeline->connect(proc_name, port_name,
                     proc_name2, port_name2);
 
-  EXPECT_EXCEPTION(vistk::untyped_connection_exception,
+  EXPECT_EXCEPTION(sprokit::untyped_connection_exception,
                    pipeline->setup_pipeline(),
                    "an untyped connection exists in the pipeline");
 }
 
 IMPLEMENT_TEST(setup_pipeline_missing_required_input_connection)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("take_string");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("take_string");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  sprokit::process_t const process = create_process(proc_type, sprokit::process::name_t());
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
-  EXPECT_EXCEPTION(vistk::missing_connection_exception,
+  EXPECT_EXCEPTION(sprokit::missing_connection_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline with missing required input connections");
 }
 
 IMPLEMENT_TEST(setup_pipeline_missing_required_output_connection)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("numbers");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
-  vistk::process_t const process = create_process(proc_type, vistk::process::name_t());
+  sprokit::process_t const process = create_process(proc_type, sprokit::process::name_t());
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
-  EXPECT_EXCEPTION(vistk::missing_connection_exception,
+  EXPECT_EXCEPTION(sprokit::missing_connection_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline with missing required output connections");
 }
 
 IMPLEMENT_TEST(setup_pipeline_duplicate)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
   pipeline->setup_pipeline();
 
-  EXPECT_EXCEPTION(vistk::pipeline_duplicate_setup_exception,
+  EXPECT_EXCEPTION(sprokit::pipeline_duplicate_setup_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline multiple times");
 }
 
 IMPLEMENT_TEST(setup_pipeline_add_process)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
   pipeline->setup_pipeline();
 
-  EXPECT_EXCEPTION(vistk::add_after_setup_exception,
+  EXPECT_EXCEPTION(sprokit::add_after_setup_exception,
                    pipeline->add_process(process),
                    "adding a process after setup");
 }
 
 IMPLEMENT_TEST(setup_pipeline_connect)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("sink");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
 
-  vistk::process::name_t const proc_nameu = vistk::process::name_t("number");
-  vistk::process::name_t const proc_named = vistk::process::name_t("sink");
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("number");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("sink");
 
-  vistk::process_t const processu = create_process(proc_typeu, proc_nameu);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu);
   pipeline->add_process(processd);
 
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_named = vistk::process::port_t("sink");
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
 
   pipeline->connect(proc_nameu, port_nameu,
                     proc_named, port_named);
 
   pipeline->setup_pipeline();
 
-  vistk::process::port_t const iport_name = vistk::process::port_t("status");
-  vistk::process::port_t const oport_name = vistk::process::port_heartbeat;
+  sprokit::process::port_t const iport_name = sprokit::process::port_t("status");
+  sprokit::process::port_t const oport_name = sprokit::process::port_heartbeat;
 
-  EXPECT_EXCEPTION(vistk::connection_after_setup_exception,
+  EXPECT_EXCEPTION(sprokit::connection_after_setup_exception,
                    pipeline->connect(proc_named, oport_name,
                                      proc_nameu, iport_name),
                    "making a connection after setup");
@@ -1131,39 +1131,39 @@ IMPLEMENT_TEST(setup_pipeline_connect)
 
 IMPLEMENT_TEST(setup_pipeline)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
-  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("multiplication");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("print_number");
 
-  vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
-  vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
-  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+  sprokit::process::name_t const proc_nameu1 = sprokit::process::name_t("upstream1");
+  sprokit::process::name_t const proc_nameu2 = sprokit::process::name_t("upstream2");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
 
-  vistk::config_t const configt = vistk::config::empty_config();
+  sprokit::config_t const configt = sprokit::config::empty_config();
 
-  vistk::config::key_t const output_key = vistk::config::key_t("output");
-  vistk::config::value_t const output_path = vistk::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
+  sprokit::config::key_t const output_key = sprokit::config::key_t("output");
+  sprokit::config::value_t const output_path = sprokit::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
 
   configt->set_value(output_key, output_path);
 
-  vistk::process_t const processu1 = create_process(proc_typeu, proc_nameu1);
-  vistk::process_t const processu2 = create_process(proc_typeu, proc_nameu2);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
-  vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+  sprokit::process_t const processu1 = create_process(proc_typeu, proc_nameu1);
+  sprokit::process_t const processu2 = create_process(proc_typeu, proc_nameu2);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
+  sprokit::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu1);
   pipeline->add_process(processu2);
   pipeline->add_process(processd);
   pipeline->add_process(processt);
 
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_named1 = vistk::process::port_t("factor1");
-  vistk::process::port_t const port_named2 = vistk::process::port_t("factor2");
-  vistk::process::port_t const port_namedo = vistk::process::port_t("product");
-  vistk::process::port_t const port_namet = vistk::process::port_t("number");
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_named1 = sprokit::process::port_t("factor1");
+  sprokit::process::port_t const port_named2 = sprokit::process::port_t("factor2");
+  sprokit::process::port_t const port_namedo = sprokit::process::port_t("product");
+  sprokit::process::port_t const port_namet = sprokit::process::port_t("number");
 
   pipeline->connect(proc_nameu1, port_nameu,
                     proc_named, port_named1);
@@ -1175,29 +1175,29 @@ IMPLEMENT_TEST(setup_pipeline)
   pipeline->setup_pipeline();
 }
 
-static vistk::scheduler_t create_scheduler(vistk::pipeline_t const& pipe);
+static sprokit::scheduler_t create_scheduler(sprokit::pipeline_t const& pipe);
 
 IMPLEMENT_TEST(start_before_setup)
 {
-  vistk::pipeline_t const pipeline = create_pipeline();
-  vistk::scheduler_t const scheduler = create_scheduler(pipeline);
+  sprokit::pipeline_t const pipeline = create_pipeline();
+  sprokit::scheduler_t const scheduler = create_scheduler(pipeline);
 
-  EXPECT_EXCEPTION(vistk::pipeline_not_setup_exception,
+  EXPECT_EXCEPTION(sprokit::pipeline_not_setup_exception,
                    scheduler->start(),
                    "starting a pipeline that has not been setup");
 }
 
 IMPLEMENT_TEST(start_unsuccessful_setup)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
-  vistk::process::name_t const proc_name2 = vistk::process::name_t("orphan2");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("orphan");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("orphan2");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
-  vistk::process_t const process2 = create_process(proc_type, proc_name2);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type, proc_name2);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
   pipeline->add_process(process2);
@@ -1206,32 +1206,32 @@ IMPLEMENT_TEST(start_unsuccessful_setup)
   {
     pipeline->setup_pipeline();
   }
-  catch (vistk::pipeline_exception const&)
+  catch (sprokit::pipeline_exception const&)
   {
   }
 
-  vistk::scheduler_t const scheduler = create_scheduler(pipeline);
+  sprokit::scheduler_t const scheduler = create_scheduler(pipeline);
 
-  EXPECT_EXCEPTION(vistk::pipeline_not_ready_exception,
+  EXPECT_EXCEPTION(sprokit::pipeline_not_ready_exception,
                    scheduler->start(),
                    "starting a pipeline that has not been successfully setup");
 }
 
 IMPLEMENT_TEST(start_and_stop)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
   pipeline->setup_pipeline();
 
-  vistk::scheduler_t const scheduler = create_scheduler(pipeline);
+  sprokit::scheduler_t const scheduler = create_scheduler(pipeline);
 
   scheduler->start();
   scheduler->stop();
@@ -1239,62 +1239,62 @@ IMPLEMENT_TEST(start_and_stop)
 
 IMPLEMENT_TEST(reset_while_running)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("orphan");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("orphan");
 
-  vistk::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(process);
 
   pipeline->setup_pipeline();
 
-  vistk::scheduler_t const scheduler = create_scheduler(pipeline);
+  sprokit::scheduler_t const scheduler = create_scheduler(pipeline);
 
   scheduler->start();
 
-  EXPECT_EXCEPTION(vistk::reset_running_pipeline_exception,
+  EXPECT_EXCEPTION(sprokit::reset_running_pipeline_exception,
                    pipeline->reset(),
                    "resetting a running pipeline");
 }
 
 IMPLEMENT_TEST(reset)
 {
-  vistk::process::type_t const proc_typeu = vistk::process::type_t("numbers");
-  vistk::process::type_t const proc_typed = vistk::process::type_t("multiplication");
-  vistk::process::type_t const proc_typet = vistk::process::type_t("print_number");
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("multiplication");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("print_number");
 
-  vistk::process::name_t const proc_nameu1 = vistk::process::name_t("upstream1");
-  vistk::process::name_t const proc_nameu2 = vistk::process::name_t("upstream2");
-  vistk::process::name_t const proc_named = vistk::process::name_t("downstream");
-  vistk::process::name_t const proc_namet = vistk::process::name_t("terminal");
+  sprokit::process::name_t const proc_nameu1 = sprokit::process::name_t("upstream1");
+  sprokit::process::name_t const proc_nameu2 = sprokit::process::name_t("upstream2");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
 
-  vistk::config_t const configt = vistk::config::empty_config();
+  sprokit::config_t const configt = sprokit::config::empty_config();
 
-  vistk::config::key_t const output_key = vistk::config::key_t("output");
-  vistk::config::value_t const output_path = vistk::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
+  sprokit::config::key_t const output_key = sprokit::config::key_t("output");
+  sprokit::config::value_t const output_path = sprokit::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
 
   configt->set_value(output_key, output_path);
 
-  vistk::process_t const processu1 = create_process(proc_typeu, proc_nameu1);
-  vistk::process_t const processu2 = create_process(proc_typeu, proc_nameu2);
-  vistk::process_t const processd = create_process(proc_typed, proc_named);
-  vistk::process_t const processt = create_process(proc_typet, proc_namet, configt);
+  sprokit::process_t const processu1 = create_process(proc_typeu, proc_nameu1);
+  sprokit::process_t const processu2 = create_process(proc_typeu, proc_nameu2);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
+  sprokit::process_t const processt = create_process(proc_typet, proc_namet, configt);
 
-  vistk::pipeline_t const pipeline = create_pipeline();
+  sprokit::pipeline_t const pipeline = create_pipeline();
 
   pipeline->add_process(processu1);
   pipeline->add_process(processu2);
   pipeline->add_process(processd);
   pipeline->add_process(processt);
 
-  vistk::process::port_t const port_nameu = vistk::process::port_t("number");
-  vistk::process::port_t const port_named1 = vistk::process::port_t("factor1");
-  vistk::process::port_t const port_named2 = vistk::process::port_t("factor2");
-  vistk::process::port_t const port_namedo = vistk::process::port_t("product");
-  vistk::process::port_t const port_namet = vistk::process::port_t("number");
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_named1 = sprokit::process::port_t("factor1");
+  sprokit::process::port_t const port_named2 = sprokit::process::port_t("factor2");
+  sprokit::process::port_t const port_namedo = sprokit::process::port_t("product");
+  sprokit::process::port_t const port_namet = sprokit::process::port_t("number");
 
   pipeline->connect(proc_nameu1, port_nameu,
                     proc_named, port_named1);
@@ -1312,27 +1312,27 @@ IMPLEMENT_TEST(reset)
 
 IMPLEMENT_TEST(remove_process)
 {
-  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
-  vistk::process::type_t const typed = vistk::process::type_t("sink");
-  vistk::process::name_t const nameu = vistk::process::name_t("up");
-  vistk::process::name_t const named = vistk::process::name_t("down");
+  sprokit::process::type_t const typeu = sprokit::process::type_t("orphan");
+  sprokit::process::type_t const typed = sprokit::process::type_t("sink");
+  sprokit::process::name_t const nameu = sprokit::process::name_t("up");
+  sprokit::process::name_t const named = sprokit::process::name_t("down");
 
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const procu = create_process(typeu, nameu);
-  vistk::process_t const procd = create_process(typed, named);
+  sprokit::pipeline_t const pipe = create_pipeline();
+  sprokit::process_t const procu = create_process(typeu, nameu);
+  sprokit::process_t const procd = create_process(typed, named);
 
   pipe->add_process(procu);
   pipe->add_process(procd);
 
-  vistk::process::port_t const portu = vistk::process::port_heartbeat;
-  vistk::process::port_t const portd = vistk::process::port_t("sink");
+  sprokit::process::port_t const portu = sprokit::process::port_heartbeat;
+  sprokit::process::port_t const portd = sprokit::process::port_t("sink");
 
   pipe->connect(nameu, portu,
                 named, portd);
 
   pipe->remove_process(named);
 
-  EXPECT_EXCEPTION(vistk::no_such_process_exception,
+  EXPECT_EXCEPTION(sprokit::no_such_process_exception,
                    pipe->process_by_name(named),
                    "requesting a process after it has been removed");
 
@@ -1344,37 +1344,37 @@ IMPLEMENT_TEST(remove_process)
 
 IMPLEMENT_TEST(remove_process_after_setup)
 {
-  vistk::process::type_t const type = vistk::process::type_t("orphan");
-  vistk::process::name_t const name = vistk::process::name_t("name");
+  sprokit::process::type_t const type = sprokit::process::type_t("orphan");
+  sprokit::process::name_t const name = sprokit::process::name_t("name");
 
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const proc = create_process(type, name);
+  sprokit::pipeline_t const pipe = create_pipeline();
+  sprokit::process_t const proc = create_process(type, name);
 
   pipe->add_process(proc);
 
   pipe->setup_pipeline();
 
-  EXPECT_EXCEPTION(vistk::remove_after_setup_exception,
+  EXPECT_EXCEPTION(sprokit::remove_after_setup_exception,
                    pipe->remove_process(name),
                    "removing a process after the pipeline has been setup");
 }
 
 IMPLEMENT_TEST(disconnect)
 {
-  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
-  vistk::process::type_t const typed = vistk::process::type_t("sink");
-  vistk::process::name_t const nameu = vistk::process::name_t("up");
-  vistk::process::name_t const named = vistk::process::name_t("down");
+  sprokit::process::type_t const typeu = sprokit::process::type_t("orphan");
+  sprokit::process::type_t const typed = sprokit::process::type_t("sink");
+  sprokit::process::name_t const nameu = sprokit::process::name_t("up");
+  sprokit::process::name_t const named = sprokit::process::name_t("down");
 
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const procu = create_process(typeu, nameu);
-  vistk::process_t const procd = create_process(typed, named);
+  sprokit::pipeline_t const pipe = create_pipeline();
+  sprokit::process_t const procu = create_process(typeu, nameu);
+  sprokit::process_t const procd = create_process(typed, named);
 
   pipe->add_process(procu);
   pipe->add_process(procd);
 
-  vistk::process::port_t const portu = vistk::process::port_heartbeat;
-  vistk::process::port_t const portd = vistk::process::port_t("sink");
+  sprokit::process::port_t const portu = sprokit::process::port_heartbeat;
+  sprokit::process::port_t const portd = sprokit::process::port_t("sink");
 
   pipe->connect(nameu, portu,
                 named, portd);
@@ -1389,27 +1389,27 @@ IMPLEMENT_TEST(disconnect)
 
 IMPLEMENT_TEST(disconnect_after_setup)
 {
-  vistk::process::type_t const typeu = vistk::process::type_t("orphan");
-  vistk::process::type_t const typed = vistk::process::type_t("sink");
-  vistk::process::name_t const nameu = vistk::process::name_t("up");
-  vistk::process::name_t const named = vistk::process::name_t("down");
+  sprokit::process::type_t const typeu = sprokit::process::type_t("orphan");
+  sprokit::process::type_t const typed = sprokit::process::type_t("sink");
+  sprokit::process::name_t const nameu = sprokit::process::name_t("up");
+  sprokit::process::name_t const named = sprokit::process::name_t("down");
 
-  vistk::pipeline_t const pipe = create_pipeline();
-  vistk::process_t const procu = create_process(typeu, nameu);
-  vistk::process_t const procd = create_process(typed, named);
+  sprokit::pipeline_t const pipe = create_pipeline();
+  sprokit::process_t const procu = create_process(typeu, nameu);
+  sprokit::process_t const procd = create_process(typed, named);
 
   pipe->add_process(procu);
   pipe->add_process(procd);
 
-  vistk::process::port_t const portu = vistk::process::port_heartbeat;
-  vistk::process::port_t const portd = vistk::process::port_t("sink");
+  sprokit::process::port_t const portu = sprokit::process::port_heartbeat;
+  sprokit::process::port_t const portd = sprokit::process::port_t("sink");
 
   pipe->connect(nameu, portu,
                 named, portd);
 
   pipe->setup_pipeline();
 
-  EXPECT_EXCEPTION(vistk::disconnection_after_setup_exception,
+  EXPECT_EXCEPTION(sprokit::disconnection_after_setup_exception,
                    pipe->disconnect(nameu, portu,
                                     named, portd),
                    "requesting a disconnect after the pipeline has been setup");
@@ -1417,32 +1417,32 @@ IMPLEMENT_TEST(disconnect_after_setup)
 
 IMPLEMENT_TEST(reconfigure_before_setup)
 {
-  vistk::process::type_t const proc_type = vistk::process::type_t("orphan");
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  vistk::process_t const expect = create_process(proc_type, proc_name);
+  sprokit::process_t const expect = create_process(proc_type, proc_name);
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(expect);
 
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
-  EXPECT_EXCEPTION(vistk::reconfigure_before_setup_exception,
+  EXPECT_EXCEPTION(sprokit::reconfigure_before_setup_exception,
                    pipeline->reconfigure(conf),
                    "reconfiguring a pipeline before it was setup");
 }
 
 class check_reconfigure_process
-  : public vistk::process
+  : public sprokit::process
 {
   public:
-    check_reconfigure_process(vistk::config_t const& conf);
+    check_reconfigure_process(sprokit::config_t const& conf);
     ~check_reconfigure_process();
 
-    static vistk::config::key_t const config_should_reconfigure;
+    static sprokit::config::key_t const config_should_reconfigure;
   protected:
-    void _reconfigure(vistk::config_t const& conf);
+    void _reconfigure(sprokit::config_t const& conf);
   private:
     bool m_should_reconfigure;
     bool m_did_reconfigure;
@@ -1450,106 +1450,106 @@ class check_reconfigure_process
 
 IMPLEMENT_TEST(reconfigure)
 {
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
   conf->set_value(check_reconfigure_process::config_should_reconfigure, "true");
-  conf->set_value(vistk::process::config_name, proc_name);
+  conf->set_value(sprokit::process::config_name, proc_name);
 
-  vistk::process_t const check = boost::make_shared<check_reconfigure_process>(conf);
+  sprokit::process_t const check = boost::make_shared<check_reconfigure_process>(conf);
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(check);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("new_key");
-  vistk::config::value_t const value = vistk::config::value_t("old_value");
+  sprokit::config::key_t const key = sprokit::config::key_t("new_key");
+  sprokit::config::value_t const value = sprokit::config::value_t("old_value");
 
-  new_conf->set_value(proc_name + vistk::config::block_sep + key, value);
+  new_conf->set_value(proc_name + sprokit::config::block_sep + key, value);
 
   pipeline->reconfigure(new_conf);
 }
 
 class sample_cluster
-  : public vistk::process_cluster
+  : public sprokit::process_cluster
 {
   public:
-    sample_cluster(vistk::config_t const& conf);
+    sample_cluster(sprokit::config_t const& conf);
     ~sample_cluster();
 
-    void _add_process(name_t const& name_, type_t const& type_, vistk::config_t const& config);
+    void _add_process(name_t const& name_, type_t const& type_, sprokit::config_t const& config);
 };
 
 IMPLEMENT_TEST(reconfigure_only_top_level)
 {
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const proc_type = vistk::process::type_t("check_reconfigure");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("check_reconfigure");
 
-  reg->register_process(proc_type, vistk::process_registry::description_t(), vistk::create_process<check_reconfigure_process>);
+  reg->register_process(proc_type, sprokit::process_registry::description_t(), sprokit::create_process<check_reconfigure_process>);
 
-  vistk::process::name_t const proc_name = vistk::process::name_t("name");
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  vistk::config_t const conf = vistk::config::empty_config();
+  sprokit::config_t const conf = sprokit::config::empty_config();
 
   conf->set_value(check_reconfigure_process::config_should_reconfigure, "false");
-  conf->set_value(vistk::process::config_name, proc_name);
+  conf->set_value(sprokit::process::config_name, proc_name);
 
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
-  vistk::config_t const cluster_conf = vistk::config::empty_config();
+  sprokit::config_t const cluster_conf = sprokit::config::empty_config();
 
-  vistk::process::name_t const cluster_name = vistk::process::name_t("cluster");
+  sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  conf->set_value(vistk::process::config_name, cluster_name);
+  conf->set_value(sprokit::process::config_name, cluster_name);
 
   sample_cluster_t const cluster = boost::make_shared<sample_cluster>(cluster_conf);
 
   cluster->_add_process(proc_name, proc_type, conf);
 
-  vistk::pipeline_t const pipeline = boost::make_shared<vistk::pipeline>(vistk::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  vistk::config_t const new_conf = vistk::config::empty_config();
+  sprokit::config_t const new_conf = sprokit::config::empty_config();
 
-  vistk::config::key_t const key = vistk::config::key_t("new_key");
-  vistk::config::value_t const value = vistk::config::value_t("old_value");
+  sprokit::config::key_t const key = sprokit::config::key_t("new_key");
+  sprokit::config::value_t const value = sprokit::config::value_t("old_value");
 
-  vistk::process::name_t const resolved_name = cluster_name + "/" + proc_name;
+  sprokit::process::name_t const resolved_name = cluster_name + "/" + proc_name;
 
-  new_conf->set_value(resolved_name + vistk::config::block_sep + key, value);
+  new_conf->set_value(resolved_name + sprokit::config::block_sep + key, value);
 
   pipeline->reconfigure(new_conf);
 }
 
-vistk::process_t
-create_process(vistk::process::type_t const& type, vistk::process::name_t const& name, vistk::config_t config)
+sprokit::process_t
+create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config)
 {
-  static bool const modules_loaded = (vistk::load_known_modules(), true);
-  static vistk::process_registry_t const reg = vistk::process_registry::self();
+  static bool const modules_loaded = (sprokit::load_known_modules(), true);
+  static sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
   (void)modules_loaded;
 
   return reg->create_process(type, name, config);
 }
 
-vistk::pipeline_t
+sprokit::pipeline_t
 create_pipeline()
 {
-  return boost::make_shared<vistk::pipeline>();
+  return boost::make_shared<sprokit::pipeline>();
 }
 
 class dummy_scheduler
-  : public vistk::scheduler
+  : public sprokit::scheduler
 {
   public:
-    dummy_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config);
+    dummy_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
     ~dummy_scheduler();
 
     void _start();
@@ -1559,17 +1559,17 @@ class dummy_scheduler
     void _stop();
 };
 
-vistk::scheduler_t
-create_scheduler(vistk::pipeline_t const& pipe)
+sprokit::scheduler_t
+create_scheduler(sprokit::pipeline_t const& pipe)
 {
-  vistk::config_t const config = vistk::config::empty_config();
+  sprokit::config_t const config = sprokit::config::empty_config();
 
   return boost::make_shared<dummy_scheduler>(pipe, config);
 }
 
 dummy_scheduler
-::dummy_scheduler(vistk::pipeline_t const& pipe, vistk::config_t const& config)
-  : vistk::scheduler(pipe, config)
+::dummy_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config)
+  : sprokit::scheduler(pipe, config)
 {
 }
 
@@ -1608,10 +1608,10 @@ dummy_scheduler
 {
 }
 
-vistk::config::key_t const check_reconfigure_process::config_should_reconfigure = vistk::config::key_t("should_reconfigure");
+sprokit::config::key_t const check_reconfigure_process::config_should_reconfigure = sprokit::config::key_t("should_reconfigure");
 
 check_reconfigure_process
-::check_reconfigure_process(vistk::config_t const& conf)
+::check_reconfigure_process(sprokit::config_t const& conf)
   : process(conf)
   , m_did_reconfigure(false)
 {
@@ -1631,14 +1631,14 @@ check_reconfigure_process
 
 void
 check_reconfigure_process
-::_reconfigure(vistk::config_t const& /*conf*/)
+::_reconfigure(sprokit::config_t const& /*conf*/)
 {
   m_did_reconfigure = true;
 }
 
 sample_cluster
-::sample_cluster(vistk::config_t const& conf)
-  : vistk::process_cluster(conf)
+::sample_cluster(sprokit::config_t const& conf)
+  : sprokit::process_cluster(conf)
 {
 }
 
@@ -1649,7 +1649,7 @@ sample_cluster
 
 void
 sample_cluster
-::_add_process(name_t const& name_, type_t const& type_, vistk::config_t const& config)
+::_add_process(name_t const& name_, type_t const& type_, sprokit::config_t const& config)
 {
   add_process(name_, type_, config);
 }

@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PIPELINE_UTIL_LOAD_PIPE_H
-#define VISTK_PIPELINE_UTIL_LOAD_PIPE_H
+#ifndef SPROKIT_PIPELINE_UTIL_LOAD_PIPE_H
+#define SPROKIT_PIPELINE_UTIL_LOAD_PIPE_H
 
 #include "pipeline_util-config.h"
 
@@ -20,7 +20,7 @@
  * \brief Load a pipeline declaration from a stream.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
@@ -30,7 +30,7 @@ namespace vistk
  *
  * \returns A new set of pipeline blocks.
  */
-VISTK_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks_from_file(path_t const& fname);
+SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks_from_file(path_t const& fname);
 
 /**
  * \brief Convert a pipeline description into a pipeline.
@@ -40,7 +40,7 @@ VISTK_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks_from_file(path_t const& 
  *
  * \returns A new set of pipeline blocks.
  */
-VISTK_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks(std::istream& istr, path_t const& inc_root = "");
+SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks(std::istream& istr, path_t const& inc_root = "");
 
 /**
  * \brief Convert a cluster description file into a collection of cluster blocks.
@@ -49,7 +49,7 @@ VISTK_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks(std::istream& istr, path
  *
  * \returns A new set of cluster blocks.
  */
-cluster_blocks VISTK_PIPELINE_UTIL_EXPORT load_cluster_blocks_from_file(path_t const& fname);
+cluster_blocks SPROKIT_PIPELINE_UTIL_EXPORT load_cluster_blocks_from_file(path_t const& fname);
 
 /**
  * \brief Convert a cluster description into a cluster.
@@ -59,8 +59,8 @@ cluster_blocks VISTK_PIPELINE_UTIL_EXPORT load_cluster_blocks_from_file(path_t c
  *
  * \returns A new set of cluster blocks.
  */
-cluster_blocks VISTK_PIPELINE_UTIL_EXPORT load_cluster_blocks(std::istream& istr, path_t const& inc_root = "");
+cluster_blocks SPROKIT_PIPELINE_UTIL_EXPORT load_cluster_blocks(std::istream& istr, path_t const& inc_root = "");
 
 }
 
-#endif // VISTK_PIPELINE_UTIL_LOAD_PIPE_H
+#endif // SPROKIT_PIPELINE_UTIL_LOAD_PIPE_H

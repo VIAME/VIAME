@@ -4,8 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_SCORING_STATISTICS_H
-#define VISTK_SCORING_STATISTICS_H
+#ifndef SPROKIT_SCORING_STATISTICS_H
+#define SPROKIT_SCORING_STATISTICS_H
 
 #include "scoring-config.h"
 
@@ -20,15 +20,15 @@
  * \brief Declaration of a statistics class.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
- * \class statistics statistics.h <vistk/scoring/statistics.h>
+ * \class statistics statistics.h <sprokit/scoring/statistics.h>
  *
  * \brief Statistics about a sample set.
  */
-class VISTK_SCORING_EXPORT statistics
+class SPROKIT_SCORING_EXPORT statistics
 {
   public:
     /// The type of a sample.
@@ -131,4 +131,4 @@ typedef boost::shared_ptr<statistics> statistics_t;
 
 }
 
-#endif // VISTK_SCORING_STATISTICS_H
+#endif // SPROKIT_SCORING_STATISTICS_H

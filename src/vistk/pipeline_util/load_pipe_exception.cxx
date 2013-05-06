@@ -14,7 +14,7 @@
  * \brief Implementation of exceptions used when loading a pipe declaration.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 load_pipe_exception

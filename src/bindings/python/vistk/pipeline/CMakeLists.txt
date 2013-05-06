@@ -1,143 +1,143 @@
-project(vistk_python_vistk_pipeline)
+project(sprokit_python_sprokit_pipeline)
 
-add_vistk_python_library(config
-  vistk/pipeline
+add_sprokit_python_library(config
+  sprokit/pipeline
   config.cxx)
-target_link_libraries(python-vistk.pipeline-config
+target_link_libraries(python-sprokit.pipeline-config
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(datum
-  vistk/pipeline
+add_sprokit_python_library(datum
+  sprokit/pipeline
   datum.cxx)
-target_link_libraries(python-vistk.pipeline-datum
+target_link_libraries(python-sprokit.pipeline-datum
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_any_conversion
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_any_conversion
+    sprokit_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(edge
-  vistk/pipeline
+add_sprokit_python_library(edge
+  sprokit/pipeline
   edge.cxx)
-target_link_libraries(python-vistk.pipeline-edge
+target_link_libraries(python-sprokit.pipeline-edge
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(modules
-  vistk/pipeline
+add_sprokit_python_library(modules
+  sprokit/pipeline
   modules.cxx)
-target_link_libraries(python-vistk.pipeline-modules
+target_link_libraries(python-sprokit.pipeline-modules
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(pipeline
-  vistk/pipeline
+add_sprokit_python_library(pipeline
+  sprokit/pipeline
   pipeline.cxx)
-target_link_libraries(python-vistk.pipeline-pipeline
+target_link_libraries(python-sprokit.pipeline-pipeline
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(process
-  vistk/pipeline
+add_sprokit_python_library(process
+  sprokit/pipeline
   process.cxx)
-target_link_libraries(python-vistk.pipeline-process
+target_link_libraries(python-sprokit.pipeline-process
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(process_cluster
-  vistk/pipeline
+add_sprokit_python_library(process_cluster
+  sprokit/pipeline
   process_cluster.cxx)
-target_link_libraries(python-vistk.pipeline-process_cluster
+target_link_libraries(python-sprokit.pipeline-process_cluster
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(process_registry
-  vistk/pipeline
+add_sprokit_python_library(process_registry
+  sprokit/pipeline
   process_registry.cxx)
-target_link_libraries(python-vistk.pipeline-process_registry
+target_link_libraries(python-sprokit.pipeline-process_registry
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     python_exceptions
     python_threading
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(scheduler
-  vistk/pipeline
+add_sprokit_python_library(scheduler
+  sprokit/pipeline
   scheduler.cxx)
-target_link_libraries(python-vistk.pipeline-scheduler
+target_link_libraries(python-sprokit.pipeline-scheduler
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(scheduler_registry
-  vistk/pipeline
+add_sprokit_python_library(scheduler_registry
+  sprokit/pipeline
   scheduler_registry.cxx)
-target_link_libraries(python-vistk.pipeline-scheduler_registry
+target_link_libraries(python-sprokit.pipeline-scheduler_registry
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     python_threading
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(stamp
-  vistk/pipeline
+add_sprokit_python_library(stamp
+  sprokit/pipeline
   stamp.cxx)
-target_link_libraries(python-vistk.pipeline-stamp
+target_link_libraries(python-sprokit.pipeline-stamp
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(utils
-  vistk/pipeline
+add_sprokit_python_library(utils
+  sprokit/pipeline
   utils.cxx)
-target_link_libraries(python-vistk.pipeline-utils
+target_link_libraries(python-sprokit.pipeline-utils
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(version
-  vistk/pipeline
+add_sprokit_python_library(version
+  sprokit/pipeline
   version.cxx)
-target_link_libraries(python-vistk.pipeline-version
+target_link_libraries(python-sprokit.pipeline-version
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_python_util
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-make_python_init_file(vistk/pipeline)
+make_python_init_file(sprokit/pipeline)
 #  config
 #  datum
 #  edge

@@ -4,12 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
-#define VISTK_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
+#ifndef SPROKIT_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
+#define SPROKIT_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
 
 #include "examples-config.h"
 
-#include <vistk/pipeline/scheduler.h>
+#include <sprokit/pipeline/scheduler.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -19,7 +19,7 @@
  * \brief Declaration of the thread-per-process scheduler.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 /**
@@ -29,7 +29,7 @@ namespace vistk
  *
  * \scheduler Run a thread for each process.
  */
-class VISTK_SCHEDULERS_EXAMPLES_NO_EXPORT thread_per_process_scheduler
+class SPROKIT_SCHEDULERS_EXAMPLES_NO_EXPORT thread_per_process_scheduler
   : public scheduler
 {
   public:
@@ -72,4 +72,4 @@ class VISTK_SCHEDULERS_EXAMPLES_NO_EXPORT thread_per_process_scheduler
 
 }
 
-#endif // VISTK_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
+#endif // SPROKIT_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H

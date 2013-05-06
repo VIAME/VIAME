@@ -7,7 +7,7 @@
 
 def test_import():
     try:
-        import vistk.pipeline.scheduler
+        import sprokit.pipeline.scheduler
     except:
         test_error("Failed to import the scheduler module")
 
@@ -30,6 +30,6 @@ if __name__ == '__main__':
         { 'import': test_import
         }
 
-    from vistk.test.test import *
+    from sprokit.test.test import *
 
     run_test(testname, tests)

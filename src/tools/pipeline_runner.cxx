@@ -8,13 +8,13 @@
 #include "helpers/tool_main.h"
 #include "helpers/tool_usage.h"
 
-#include <vistk/pipeline_util/path.h>
+#include <sprokit/pipeline_util/path.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/scheduler.h>
-#include <vistk/pipeline/scheduler_registry.h>
-#include <vistk/pipeline/pipeline.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/scheduler.h>
+#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/pipeline.h>
 
 #include <boost/program_options/variables_map.hpp>
 
@@ -22,12 +22,12 @@
 
 #include <cstdlib>
 
-static vistk::config::key_t const scheduler_block = vistk::config::key_t("_scheduler");
+static sprokit::config::key_t const scheduler_block = sprokit::config::key_t("_scheduler");
 
 int
 tool_main(int argc, char* argv[])
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
   boost::program_options::options_description desc;
   desc
@@ -40,8 +40,8 @@ tool_main(int argc, char* argv[])
 
   pipeline_builder const builder(vm, desc);
 
-  vistk::pipeline_t const pipe = builder.pipeline();
-  vistk::config_t const conf = builder.config();
+  sprokit::pipeline_t const pipe = builder.pipeline();
+  sprokit::config_t const conf = builder.config();
 
   if (!pipe)
   {
@@ -52,18 +52,18 @@ tool_main(int argc, char* argv[])
 
   pipe->setup_pipeline();
 
-  vistk::scheduler_registry::type_t scheduler_type = vistk::scheduler_registry::default_type;
+  sprokit::scheduler_registry::type_t scheduler_type = sprokit::scheduler_registry::default_type;
 
   if (vm.count("scheduler"))
   {
-    scheduler_type = vm["scheduler"].as<vistk::scheduler_registry::type_t>();
+    scheduler_type = vm["scheduler"].as<sprokit::scheduler_registry::type_t>();
   }
 
-  vistk::config_t const scheduler_config = conf->subblock(scheduler_block + vistk::config::block_sep + scheduler_type);
+  sprokit::config_t const scheduler_config = conf->subblock(scheduler_block + sprokit::config::block_sep + scheduler_type);
 
-  vistk::scheduler_registry_t reg = vistk::scheduler_registry::self();
+  sprokit::scheduler_registry_t reg = sprokit::scheduler_registry::self();
 
-  vistk::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipe, scheduler_config);
+  sprokit::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipe, scheduler_config);
 
   if (!scheduler)
   {

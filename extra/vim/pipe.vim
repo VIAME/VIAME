@@ -1,5 +1,5 @@
 " Vim syntax file
-" Language:	vistk pipeline
+" Language:	sprokit pipeline
 " Maintainer:	Ben Boeckel <ben.boeckel@kitware.com>
 " Last Change:	2012-01-25
 " Credits:	Ben Boeckel <ben.boeckel@kitware.com>

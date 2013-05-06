@@ -6,10 +6,10 @@
 
 #include <test_common.h>
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/modules.h>
-#include <vistk/pipeline/process.h>
-#include <vistk/pipeline/process_registry.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/modules.h>
+#include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_registry.h>
 
 #define TEST_ARGS ()
 
@@ -35,22 +35,22 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(load)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 }
 
 IMPLEMENT_TEST(multiple_load)
 {
-  vistk::load_known_modules();
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
+  sprokit::load_known_modules();
 }
 
 IMPLEMENT_TEST(envvar)
 {
-  vistk::load_known_modules();
+  sprokit::load_known_modules();
 
-  vistk::process_registry_t const reg = vistk::process_registry::self();
+  sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  vistk::process::type_t const proc_type = vistk::process::type_t("test");
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("test");
 
-  reg->create_process(proc_type, vistk::process::name_t());
+  reg->create_process(proc_type, sprokit::process::name_t());
 }

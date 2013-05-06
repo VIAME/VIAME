@@ -6,12 +6,12 @@
 
 #include "thread_per_process_scheduler.h"
 
-#include <vistk/pipeline/config.h>
-#include <vistk/pipeline/datum.h>
-#include <vistk/pipeline/edge.h>
-#include <vistk/pipeline/pipeline.h>
-#include <vistk/pipeline/scheduler_exception.h>
-#include <vistk/pipeline/utils.h>
+#include <sprokit/pipeline/config.h>
+#include <sprokit/pipeline/datum.h>
+#include <sprokit/pipeline/edge.h>
+#include <sprokit/pipeline/pipeline.h>
+#include <sprokit/pipeline/scheduler_exception.h>
+#include <sprokit/pipeline/utils.h>
 
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
@@ -25,7 +25,7 @@
  * \brief Implementation of the thread-per-process scheduler.
  */
 
-namespace vistk
+namespace sprokit
 {
 
 class thread_per_process_scheduler::priv

@@ -1,19 +1,19 @@
-# Test functions for the vistk project
+# Test functions for the sprokit project
 # The following functions are defined:
-#   vistk_declare_test
-#   vistk_build_test
-#   vistk_make_test
+#   sprokit_declare_test
+#   sprokit_build_test
+#   sprokit_make_test
 # Their syntax is:
-#   vistk_declare_test(testname)
+#   sprokit_declare_test(testname)
 #     The first argument is the name of the test group to declare. This adds
 #     Group targets for testing, valgrind, callgrind, and gprof targets (if
 #     available).
-#   vistk_build_test(testname libraries file1 [file2 ...])
+#   sprokit_build_test(testname libraries file1 [file2 ...])
 #     The first argument is the name of the test executable to build and the
 #     second is the name of a variable containing the libraries that it needs
 #     to be linked against. The remaining arguments are the files that are
 #     needed to build the test.
-#   vistk_make_test(testname instance [arg1 ...])
+#   sprokit_make_test(testname instance [arg1 ...])
 #     The first argument is the name of the test and the second is the name of
 #     the instance of the test. It creates a target named
 #     `test-${testname}-${instance}' which runs the test by itself as well as
@@ -24,47 +24,47 @@
 
 add_custom_target(tooling)
 
-cmake_dependent_option(VISTK_ENABLE_CDASH "Enable CDash integration" OFF
-  VISTK_ENABLE_TESTING OFF)
+cmake_dependent_option(SPROKIT_ENABLE_CDASH "Enable CDash integration" OFF
+  SPROKIT_ENABLE_TESTING OFF)
 
-option(VISTK_ADD_TEST_TARGETS "Add targets for tests to the build system" OFF)
-mark_as_advanced(VISTK_ADD_TEST_TARGETS)
-if (VISTK_ADD_TEST_TARGETS)
+option(SPROKIT_ADD_TEST_TARGETS "Add targets for tests to the build system" OFF)
+mark_as_advanced(SPROKIT_ADD_TEST_TARGETS)
+if (SPROKIT_ADD_TEST_TARGETS)
   add_custom_target(tests)
 endif ()
 
 find_program(VALGRIND_EXECUTABLE valgrind)
 
-cmake_dependent_option(VISTK_VALGRIND_GENERATE_SUPPRESSIONS "Output suppression rules for valgrind leak detections" OFF
+cmake_dependent_option(SPROKIT_VALGRIND_GENERATE_SUPPRESSIONS "Output suppression rules for valgrind leak detections" OFF
   VALGRIND_EXECUTABLE OFF)
-cmake_dependent_option(VISTK_VALGRIND_VERBOSE "Make valgrind verbose" OFF
+cmake_dependent_option(SPROKIT_VALGRIND_VERBOSE "Make valgrind verbose" OFF
   VALGRIND_EXECUTABLE OFF)
-cmake_dependent_option(VISTK_VALGRIND_USE_SUPPRESSIONS "Suppress known leaks in valgrind" ON
+cmake_dependent_option(SPROKIT_VALGRIND_USE_SUPPRESSIONS "Suppress known leaks in valgrind" ON
   VALGRIND_EXECUTABLE OFF)
 
 if (VALGRIND_EXECUTABLE)
-  set(vistk_valgrind_arguments)
+  set(sprokit_valgrind_arguments)
 
-  if (VISTK_VALGRIND_GENERATE_SUPPRESSIONS)
-    set(vistk_valgrind_arguments
-        ${vistk_valgrind_arguments}
+  if (SPROKIT_VALGRIND_GENERATE_SUPPRESSIONS)
+    set(sprokit_valgrind_arguments
+        ${sprokit_valgrind_arguments}
         "--gen-suppressions=all")
   endif ()
 
-  if (VISTK_VALGRIND_VERBOSE)
-    set(vistk_valgrind_arguments
-      ${vistk_valgrind_arguments}
+  if (SPROKIT_VALGRIND_VERBOSE)
+    set(sprokit_valgrind_arguments
+      ${sprokit_valgrind_arguments}
       "--verbose")
   endif ()
 
-  if (VISTK_VALGRIND_USE_SUPPRESSIONS)
+  if (SPROKIT_VALGRIND_USE_SUPPRESSIONS)
     file(GLOB
       valgrind_suppressions
-      "${vistk_source_dir}/tests/data/valgrind/*.supp")
+      "${sprokit_source_dir}/tests/data/valgrind/*.supp")
 
     foreach (valgrind_suppression ${valgrind_suppressions})
-      set(vistk_valgrind_arguments
-        ${vistk_valgrind_arguments}
+      set(sprokit_valgrind_arguments
+        ${sprokit_valgrind_arguments}
         "--suppressions=${valgrind_suppression}")
     endforeach ()
   endif ()
@@ -101,14 +101,14 @@ if (GPROF_EXECUTABLE)
 endif ()
 
 set(test_base_output_path
-  "${vistk_binary_dir}/bin")
+  "${sprokit_binary_dir}/bin")
 set(test_output_path
   "${test_base_output_path}/${CMAKE_CFG_INTDIR}")
 set(test_working_path
-  "${vistk_binary_dir}/tests")
+  "${sprokit_binary_dir}/tests")
 
-function (vistk_declare_test testname)
-  if (VISTK_ADD_TEST_TARGETS)
+function (sprokit_declare_test testname)
+  if (SPROKIT_ADD_TEST_TARGETS)
     add_custom_target(tests-${testname})
     add_dependencies(tests
       tests-${testname})
@@ -149,7 +149,7 @@ function (vistk_declare_test testname)
   endif ()
 endfunction ()
 
-macro (vistk_build_test testname libraries)
+macro (sprokit_build_test testname libraries)
   add_executable(test-${testname} ${ARGN})
   set_target_properties(test-${testname}
     PROPERTIES
@@ -157,10 +157,10 @@ macro (vistk_build_test testname libraries)
   target_link_libraries(test-${testname}
     LINK_PRIVATE
       ${${libraries}})
-  vistk_declare_test(${testname})
+  sprokit_declare_test(${testname})
 endmacro ()
 
-function (vistk_make_test testname instance)
+function (sprokit_make_test testname instance)
   if (TARGET test-${testname})
     set(test_path "$<TARGET_FILE:test-${testname}>")
   elseif (CMAKE_CONFIGURATION_TYPES)
@@ -191,7 +191,7 @@ function (vistk_make_test testname instance)
       PROPERTIES
         ENVIRONMENT ${test_environment})
   endif ()
-  if (VISTK_ADD_TEST_TARGETS)
+  if (SPROKIT_ADD_TEST_TARGETS)
     add_custom_target(test-${testname}-${instance})
     add_custom_command(
       TARGET  test-${testname}-${instance}
@@ -217,7 +217,7 @@ function (vistk_make_test testname instance)
               --track-fds=yes
               --track-origins=yes
               --log-file="${test_working_path}/valgrind.log.${testname}.${instance}"
-              ${vistk_valgrind_arguments}
+              ${sprokit_valgrind_arguments}
               ${test_runner}
               "${test_output_path}/test-${testname}"
               ${instance}

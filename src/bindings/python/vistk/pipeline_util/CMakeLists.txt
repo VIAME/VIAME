@@ -1,46 +1,46 @@
-project(vistk_python_vistk_pipeline_util)
+project(sprokit_python_sprokit_pipeline_util)
 
-add_vistk_python_library(bake
-  vistk/pipeline_util
+add_sprokit_python_library(bake
+  sprokit/pipeline_util
   bake.cxx)
-target_link_libraries(python-vistk.pipeline_util-bake
+target_link_libraries(python-sprokit.pipeline_util-bake
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_pipeline_util
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_pipeline_util
+    sprokit_python_util
     pystream
     ${Boost_IOSTREAMS_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(export_
-  vistk/pipeline_util
+add_sprokit_python_library(export_
+  sprokit/pipeline_util
   export.cxx)
-target_link_libraries(python-vistk.pipeline_util-export_
+target_link_libraries(python-sprokit.pipeline_util-export_
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_pipeline_util
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_pipeline_util
+    sprokit_python_util
     pystream
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_vistk_python_library(load
-  vistk/pipeline_util
+add_sprokit_python_library(load
+  sprokit/pipeline_util
   load.cxx)
-target_link_libraries(python-vistk.pipeline_util-load
+target_link_libraries(python-sprokit.pipeline_util-load
   LINK_PRIVATE
-    vistk_pipeline
-    vistk_pipeline_util
-    vistk_python_util
+    sprokit_pipeline
+    sprokit_pipeline_util
+    sprokit_python_util
     pystream
     ${Boost_IOSTREAMS_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-make_python_init_file(vistk/pipeline_util)
+make_python_init_file(sprokit/pipeline_util)
 #  bake
 #  export_
 #  load)

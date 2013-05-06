@@ -4,10 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef VISTK_PYTHON_HELPERS_SET_INDEXING_SUITE_H
-#define VISTK_PYTHON_HELPERS_SET_INDEXING_SUITE_H
+#ifndef SPROKIT_PYTHON_HELPERS_SET_INDEXING_SUITE_H
+#define SPROKIT_PYTHON_HELPERS_SET_INDEXING_SUITE_H
 
-#include <vistk/python/util/python_gil.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/suite/indexing/indexing_suite.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -212,7 +212,7 @@ class set_indexing_suite
     {
       if (container.empty())
       {
-        vistk::python::python_gil const gil;
+        sprokit::python::python_gil const gil;
 
         (void)gil;
 
@@ -236,7 +236,7 @@ class set_indexing_suite
 
       if (i == container.end())
       {
-        vistk::python::python_gil const gil;
+        sprokit::python::python_gil const gil;
 
         (void)gil;
 
@@ -325,7 +325,7 @@ class set_indexing_suite
     static void
     index_error()
     {
-      vistk::python::python_gil const gil;
+      sprokit::python::python_gil const gil;
 
       (void)gil;
 
@@ -338,4 +338,4 @@ class set_indexing_suite
 
 }
 
-#endif // VISTK_PYTHON_HELPERS_SET_INDEXING_SUITE_H
+#endif // SPROKIT_PYTHON_HELPERS_SET_INDEXING_SUITE_H

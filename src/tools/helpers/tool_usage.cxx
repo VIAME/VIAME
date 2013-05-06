@@ -6,7 +6,7 @@
 
 #include "tool_usage.h"
 
-#include <vistk/version.h>
+#include <sprokit/version.h>
 
 #include <boost/program_options/parsers.hpp>
 
@@ -25,18 +25,18 @@ tool_usage(int ret, boost::program_options::options_description const& options)
 void
 tool_version_message()
 {
-  std::cout << "vistk " VISTK_VERSION_FULL << std::endl;
-  std::cout << "Built with vistk: " VISTK_VERSION << std::endl;
+  std::cout << "sprokit " SPROKIT_VERSION_FULL << std::endl;
+  std::cout << "Built with sprokit: " SPROKIT_VERSION << std::endl;
   std::cout << "Built from git:   "
-#ifdef VISTK_BUILT_FROM_GIT
+#ifdef SPROKIT_BUILT_FROM_GIT
     "yes"
 #else
     "no"
 #endif
     << std::endl;
-  std::cout << "Git hash:         " VISTK_GIT_HASH << std::endl;
+  std::cout << "Git hash:         " SPROKIT_GIT_HASH << std::endl;
 
-  char const* const dirty = VISTK_GIT_DIRTY;
+  char const* const dirty = SPROKIT_GIT_DIRTY;
   bool const dirty_is_empty = (*dirty == '\0');
 
   std::cout << "Dirty:            ";

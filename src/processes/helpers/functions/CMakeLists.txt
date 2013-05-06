@@ -1,1 +1,1 @@
-project(vistk_processes_helpers_functions)
+project(sprokit_processes_helpers_functions)

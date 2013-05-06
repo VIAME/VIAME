@@ -1,9 +1,9 @@
-project(vistk_python)
+project(sprokit_python)
 
 set(boost_python_library
   python)
 
-if (VISTK_ENABLE_PYTHON3)
+if (SPROKIT_ENABLE_PYTHON3)
   set(boost_python_library
     python3)
 endif ()
@@ -12,7 +12,7 @@ string(TOUPPER ${boost_python_library} boost_python_library_upper)
 set(boost_python_library_var
   Boost_${boost_python_library_upper}_LIBRARY)
 
-find_package(Boost ${vistk_boost_version} REQUIRED
+find_package(Boost ${sprokit_boost_version} REQUIRED
   COMPONENTS
     iostreams
     ${boost_python_library})
@@ -22,15 +22,15 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
 set(boost_header_targets)
 
-option(VISTK_ENABLE_BOOST_PYTHON_FIXES "Enables fixes for Boost.Python bugs (recommended)" ON)
-mark_as_advanced(VISTK_ENABLE_BOOST_PYTHON_FIXES)
-if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
+option(SPROKIT_ENABLE_BOOST_PYTHON_FIXES "Enables fixes for Boost.Python bugs (recommended)" ON)
+mark_as_advanced(SPROKIT_ENABLE_BOOST_PYTHON_FIXES)
+if (SPROKIT_ENABLE_BOOST_PYTHON_FIXES)
   # Not fixed yet.
   #if (Boost_VERSION LESS 10XX00)
     # Override Boost's invoke.hpp
     set(reldir "helpers/include/threading")
     set(target_name "boost-python-invoke.hpp")
-    vistk_configure_directory(${target_name}
+    sprokit_configure_directory(${target_name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
       "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
     if (NOT BOOST_MANGLE_NAMESPACE STREQUAL "boost")
@@ -46,7 +46,7 @@ if (VISTK_ENABLE_BOOST_PYTHON_FIXES)
     # Override Boost's override.hpp
     set(reldir "helpers/include/exceptions_in_override")
     set(target_name "boost-python-override.hpp")
-    vistk_configure_directory(${target_name}
+    sprokit_configure_directory(${target_name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
       "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
     if (NOT BOOST_MANGLE_NAMESPACE STREQUAL "boost")
@@ -63,7 +63,7 @@ add_subdirectory(helpers)
 
 add_custom_target(python)
 
-function (add_vistk_python_library name modpath)
+function (add_sprokit_python_library name modpath)
   string(REPLACE "/" "." safe_modpath ${modpath})
 
   set(library_subdir /python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath})
@@ -71,7 +71,7 @@ function (add_vistk_python_library name modpath)
 
   set(no_export ON)
 
-  vistk_add_library(python-${safe_modpath}-${name} SHARED
+  sprokit_add_library(python-${safe_modpath}-${name} SHARED
     ${ARGN})
 
   set(pysuffix ${CMAKE_SHARED_MODULE_SUFFIX})
@@ -112,13 +112,13 @@ function (_add_python_module path modpath module)
     endif ()
   endif ()
 
-  vistk_configure_file(python-module-${python_arch}-${safe_modpath}-${module}
+  sprokit_configure_file(python-module-${python_arch}-${safe_modpath}-${module}
     "${path}"
     "${python_output_path}${sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    vistk_configure_file(python-module-${python_arch}-${safe_modpath}-${module}-${config}
+    sprokit_configure_file(python-module-${python_arch}-${safe_modpath}-${module}-${config}
       "${path}"
       "${python_output_path}/${config}${sitepath}/${modpath}/${module}.py"
       PYTHON_EXECUTABLE)
@@ -127,7 +127,7 @@ function (_add_python_module path modpath module)
       python-module-${python_arch}-${safe_modpath}-${module}-${config})
   endforeach ()
 
-  vistk_install(
+  sprokit_install(
     FILES       "${python_output_path}${sitepath}/${modpath}/${module}.py"
     DESTINATION "${python_install_path}/python${PYTHON_VERSION}${python_sitepath}/${modpath}"
     COMPONENT   runtime)
@@ -201,15 +201,15 @@ source_group("Python Files"
 source_group("Python Files"
   REGULAR_EXPRESSION ".*\\.py$")
 
-add_subdirectory(vistk)
+add_subdirectory(sprokit)
 add_subdirectory(modules)
 add_subdirectory(processes)
 add_subdirectory(schedulers)
 
-if (VISTK_ENABLE_TESTING)
+if (SPROKIT_ENABLE_TESTING)
   add_subdirectory(test)
 endif ()
 
 set (python_both_arch TRUE)
 
-make_python_init_file(vistk)
+make_python_init_file(sprokit)

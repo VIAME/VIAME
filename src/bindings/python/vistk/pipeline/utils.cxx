@@ -4,7 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <vistk/pipeline/utils.h>
+#include <sprokit/pipeline/utils.h>
 
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
@@ -20,10 +20,10 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(utils)
 {
-  class_<vistk::thread_name_t>("ThreadName"
+  class_<sprokit::thread_name_t>("ThreadName"
     , "A type for the name of a thread.");
 
-  def("name_thread", &vistk::name_thread
+  def("name_thread", &sprokit::name_thread
     , (arg("name"))
     , "Names the currently running thread.");
 }

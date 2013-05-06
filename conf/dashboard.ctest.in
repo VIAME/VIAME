@@ -24,25 +24,25 @@
 #  IGNORE_PATCHES - Ignore the fact that the release is patched
 
 # Site configuration (options set with CMake)
-set(CTEST_SOURCE_DIRECTORY "@vistk_source_dir@")
-set(CTEST_BINARY_DIRECTORY "@vistk_binary_dir@")
+set(CTEST_SOURCE_DIRECTORY "@sprokit_source_dir@")
+set(CTEST_BINARY_DIRECTORY "@sprokit_binary_dir@")
 set(CTEST_CMAKE_GENERATOR "@CMAKE_GENERATOR@")
 set(CTEST_COMMAND "@CMAKE_CTEST_COMMAND@")
 
-set(vistk_is_in_git "@vistk_is_in_git@")
-set(VISTK_IS_PATCHED "@VISTK_IS_PATCHED@")
+set(sprokit_is_in_git "@sprokit_is_in_git@")
+set(SPROKIT_IS_PATCHED "@SPROKIT_IS_PATCHED@")
 
 set(CTEST_SITE "@CDASH_SITE_NAME@")
 set(CTEST_BUILD_NAME_BASE "@CDASH_BUILD_NAME@")
 
-set(VISTK_ENABLE_COVERAGE "@VISTK_ENABLE_COVERAGE@")
+set(SPROKIT_ENABLE_COVERAGE "@SPROKIT_ENABLE_COVERAGE@")
 
 set(CTEST_COVERAGE_COMMAND "@GCOV_EXECUTABLE@")
 set(CTEST_MEMORYCHECK_COMMAND "@VALGRIND_EXECUTABLE@")
 
 ###############################################################################
 
-if (VISTK_ENABLE_COVERAGE)
+if (SPROKIT_ENABLE_COVERAGE)
   # Valgrind chokes on coverage symbols.
   set(WITH_MEMCHECK "OFF")
 endif ()
@@ -62,7 +62,7 @@ endif ()
 if ("$Format:$" STREQUAL "")
   set(UPDATE FALSE)
   set(BRANCH "$Format:%d$")
-  if (VISTK_IS_PATCHED)
+  if (SPROKIT_IS_PATCHED)
     set(branch_full "${BRANCH}-dirty")
 
     if (PATCH_FILES)
@@ -123,7 +123,7 @@ set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME_BASE}-${branch_full}")
 ctest_start("${TYPE}")
 
 # Update checkout
-if (vistk_is_in_git)
+if (sprokit_is_in_git)
   if (CLEAN_SOURCE)
     execute_process(
       COMMAND           "@GIT_EXECUTABLE@"
@@ -204,7 +204,7 @@ if (WITH_MEMCHECK AND CTEST_MEMORYCHECK_COMMAND)
   ctest_memcheck()
 endif ()
 
-if (VISTK_ENABLE_COVERAGE AND CTEST_COVERAGE_COMMAND)
+if (SPROKIT_ENABLE_COVERAGE AND CTEST_COVERAGE_COMMAND)
   ctest_coverage()
 endif ()
 
