@@ -445,7 +445,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
     SPROKIT_PIPELINE_NO_EXPORT void start();
     SPROKIT_PIPELINE_NO_EXPORT void stop();
 
-    class priv;
+    class SPROKIT_PIPELINE_NO_EXPORT priv;
     boost::scoped_ptr<priv> d;
 };
 

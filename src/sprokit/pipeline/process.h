@@ -830,7 +830,7 @@ class SPROKIT_PIPELINE_EXPORT process
     friend class process_cluster;
     SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(config_t const& conf);
 
-    class priv;
+    class SPROKIT_PIPELINE_NO_EXPORT priv;
     boost::scoped_ptr<priv> d;
 };
 
