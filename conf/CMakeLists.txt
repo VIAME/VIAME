@@ -36,7 +36,10 @@ sprokit_configure_file(sprokit-config.cmake
   SPROKIT_ENABLE_PYTHON
   SPROKIT_ENABLE_PYTHON3
   PYTHON_EXECUTABLE
-  BUILD_SHARED_LIBS)
+  BUILD_SHARED_LIBS
+  Boost_VERSION
+  BOOST_MANGLE_NAMESPACE
+  SPROKIT_ENABLE_CXX11)
 
 set(sprokit_config_install_file "${sprokit_binary_dir}/sprokit-config-install.cmake")
 sprokit_configure_file(sprokit-config-install.cmake
@@ -48,7 +51,10 @@ sprokit_configure_file(sprokit-config-install.cmake
   SPROKIT_ENABLE_PYTHON
   SPROKIT_ENABLE_PYTHON3
   PYTHON_EXECUTABLE
-  BUILD_SHARED_LIBS)
+  BUILD_SHARED_LIBS
+  Boost_VERSION
+  BOOST_MANGLE_NAMESPACE
+  SPROKIT_ENABLE_CXX11)
 
 if (WIN32)
   set(cmakedir cmake)
