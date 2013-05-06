@@ -36,7 +36,7 @@ class thread_per_process_scheduler::priv
 
     void run_process(process_t const& process);
 
-    boost::thread_group process_threads;
+    boost::scoped_ptr<boost::thread_group> process_threads;
 
     typedef boost::shared_mutex mutex_t;
     typedef boost::shared_lock<mutex_t> shared_lock_t;
@@ -79,11 +79,13 @@ thread_per_process_scheduler
   pipeline_t const p = pipeline();
   process::names_t const names = p->process_names();
 
+  d->process_threads.reset(new boost::thread_group);
+
   BOOST_FOREACH (process::name_t const& name, names)
   {
     process_t const process = pipeline()->process_by_name(name);
 
-    d->process_threads.create_thread(boost::bind(&priv::run_process, d.get(), process));
+    d->process_threads->create_thread(boost::bind(&priv::run_process, d.get(), process));
   }
 }
 
@@ -91,7 +93,7 @@ void
 thread_per_process_scheduler
 ::_wait()
 {
-  d->process_threads.join_all();
+  d->process_threads->join_all();
 }
 
 void
@@ -112,7 +114,7 @@ void
 thread_per_process_scheduler
 ::_stop()
 {
-  d->process_threads.interrupt_all();
+  d->process_threads->interrupt_all();
 }
 
 thread_per_process_scheduler::priv
