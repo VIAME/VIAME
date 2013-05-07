@@ -50,16 +50,36 @@ sprokit_configure_file(sprokit-config-install.cmake
   PYTHON_EXECUTABLE
   BUILD_SHARED_LIBS)
 
-if (WIN32)
-  set(cmakedir cmake)
-else ()
-  set(cmakedir lib${LIB_SUFFIX}/cmake/sprokit)
+set(sprokit_macros_file "${sprokit_binary_dir}/sprokit-macros.cmake")
+file(WRITE "${sprokit_macros_file}"
+"# Macros from sprokit.
+
+")
+
+set(macro_files
+  configure
+  targets
+  tests)
+
+if (SPROKIT_ENABLE_PYTHON)
+  set(macro_files
+    ${macro_files}
+    python)
 endif ()
 
-set(sprokit_macros_file "${sprokit_binary_dir}/sprokit-macros.cmake")
-sprokit_configure_file(sprokit-macros.cmake
-  "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-macros.cmake.in"
-  "${sprokit_macros_file}")
+foreach (macro_file ${macro_files})
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-macro-${macro_file}.cmake"
+    "${sprokit_binary_dir}/sprokit-macro-${macro_file}.cmake"
+    COPY_ONLY)
+  install(
+    FILES       "${sprokit_binary_dir}/sprokit-macro-${macro_file}.cmake"
+    DESTINATION "${cmakedir}"
+    COMPONENT   development)
+  file(APPEND "${sprokit_macros_file}"
+"include(\"${CMAKE_CURRENT_LIST_DIR}/sprokit-macro-${macro_file}.cmake\")
+")
+endforeach ()
 
 # Configure the CMake EXPORT file during installation
 install(
@@ -71,10 +91,5 @@ install(
   DESTINATION "${cmakedir}"
   COMPONENT   development
   RENAME      sprokit-config.cmake)
-install(
-  EXPORT      sprokit_exports
-  DESTINATION "${cmakedir}"
-  FILE        sprokit-config-targets.cmake
-  COMPONENT   development)
 
 sprokit_configure_pkgconfig(sprokit)

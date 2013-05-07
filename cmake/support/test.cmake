@@ -1,37 +1,7 @@
-# Test functions for the sprokit project
-# The following functions are defined:
-#   sprokit_declare_test
-#   sprokit_build_test
-#   sprokit_make_test
-# Their syntax is:
-#   sprokit_declare_test(testname)
-#     The first argument is the name of the test group to declare. This adds
-#     Group targets for testing, valgrind, callgrind, and gprof targets (if
-#     available).
-#   sprokit_build_test(testname libraries file1 [file2 ...])
-#     The first argument is the name of the test executable to build and the
-#     second is the name of a variable containing the libraries that it needs
-#     to be linked against. The remaining arguments are the files that are
-#     needed to build the test.
-#   sprokit_make_test(testname instance [arg1 ...])
-#     The first argument is the name of the test and the second is the name of
-#     the instance of the test. It creates a target named
-#     `test-${testname}-${instance}' which runs the test by itself as well as
-#     valgrind, callgrind, and gprof targets (depending on the availability of
-#     the tool) that run the test throught the respective tool. Tests also have
-#     group targets based on `testname'. The test instance is automatically
-#     passed as the first argument to the test.
-
 add_custom_target(tooling)
 
 cmake_dependent_option(SPROKIT_ENABLE_CDASH "Enable CDash integration" OFF
   SPROKIT_ENABLE_TESTING OFF)
-
-option(SPROKIT_ADD_TEST_TARGETS "Add targets for tests to the build system" OFF)
-mark_as_advanced(SPROKIT_ADD_TEST_TARGETS)
-if (SPROKIT_ADD_TEST_TARGETS)
-  add_custom_target(tests)
-endif ()
 
 find_program(VALGRIND_EXECUTABLE valgrind)
 
@@ -41,6 +11,12 @@ cmake_dependent_option(SPROKIT_VALGRIND_VERBOSE "Make valgrind verbose" OFF
   VALGRIND_EXECUTABLE OFF)
 cmake_dependent_option(SPROKIT_VALGRIND_USE_SUPPRESSIONS "Suppress known leaks in valgrind" ON
   VALGRIND_EXECUTABLE OFF)
+
+function (_sprokit_declare_tool_group tool)
+  add_custom_target(${tool})
+  add_dependencies(tooling
+    ${tool})
+endfunction ()
 
 if (VALGRIND_EXECUTABLE)
   set(sprokit_valgrind_arguments)
@@ -69,324 +45,155 @@ if (VALGRIND_EXECUTABLE)
     endforeach ()
   endif ()
 
-  add_custom_target(valgrind)
-  add_custom_target(cachegrind)
-  add_custom_target(callgrind)
-  add_custom_target(helgrind)
-  add_custom_target(drd)
-  add_custom_target(massif)
-  add_custom_target(dhat)
-  add_custom_target(sgcheck)
-  add_custom_target(bbv)
-
-  add_dependencies(tooling
-    valgrind
-    cachegrind
-    callgrind
-    helgrind
-    drd
-    massif
-    dhat
-    sgcheck
-    bbv)
+  _sprokit_declare_tool_group(valgrind)
+  _sprokit_declare_tool_group(cachegrind)
+  _sprokit_declare_tool_group(callgrind)
+  _sprokit_declare_tool_group(helgrind)
+  _sprokit_declare_tool_group(drd)
+  _sprokit_declare_tool_group(massif)
+  _sprokit_declare_tool_group(dhat)
+  _sprokit_declare_tool_group(sgcheck)
+  _sprokit_declare_tool_group(bbv)
 endif ()
 
 find_program(GPROF_EXECUTABLE gprof)
 
 if (GPROF_EXECUTABLE)
-  add_custom_target(gprof)
-
-  add_dependencies(tooling
-    gprof)
+  _sprokit_declare_tool_group(gprof)
 endif ()
 
-set(test_base_output_path
-  "${sprokit_binary_dir}/bin")
-set(test_output_path
-  "${test_base_output_path}/${CMAKE_CFG_INTDIR}")
-set(test_working_path
-  "${sprokit_binary_dir}/tests")
+function (_sprokit_declare_tool_test tool test)
+  add_custom_target(${tool}-${test})
+  add_dependencies(${tool}
+    ${tool}-${test})
+endfunction ()
 
-function (sprokit_declare_test testname)
-  if (SPROKIT_ADD_TEST_TARGETS)
-    add_custom_target(tests-${testname})
-    add_dependencies(tests
-      tests-${testname})
-  endif ()
+function (_sprokit_declare_tooled_test test)
   if (VALGRIND_EXECUTABLE)
-    add_custom_target(valgrind-${testname})
-    add_custom_target(cachegrind-${testname})
-    add_custom_target(callgrind-${testname})
-    add_custom_target(helgrind-${testname})
-    add_custom_target(drd-${testname})
-    add_custom_target(massif-${testname})
-    add_custom_target(dhat-${testname})
-    add_custom_target(sgcheck-${testname})
-    add_custom_target(bbv-${testname})
-    add_dependencies(valgrind
-      valgrind-${testname})
-    add_dependencies(cachegrind
-      cachegrind-${testname})
-    add_dependencies(callgrind
-      callgrind-${testname})
-    add_dependencies(helgrind
-      helgrind-${testname})
-    add_dependencies(drd
-      drd-${testname})
-    add_dependencies(massif
-      massif-${testname})
-    add_dependencies(dhat
-      dhat-${testname})
-    add_dependencies(sgcheck
-      sgcheck-${testname})
-    add_dependencies(bbv
-      bbv-${testname})
+    _sprokit_declare_tool_test(valgrind ${test})
+    _sprokit_declare_tool_test(cachegrind ${test})
+    _sprokit_declare_tool_test(callgrind ${test})
+    _sprokit_declare_tool_test(helgrind ${test})
+    _sprokit_declare_tool_test(drd ${test})
+    _sprokit_declare_tool_test(massif ${test})
+    _sprokit_declare_tool_test(dhat ${test})
+    _sprokit_declare_tool_test(sgcheck ${test})
+    _sprokit_declare_tool_test(bbv ${test})
   endif ()
   if (GPROF_EXECUTABLE)
-    add_custom_target(gprof-${testname})
-    add_dependencies(gprof
-      gprof-${testname})
+    _sprokit_declare_tool_test(gprof ${test})
   endif ()
 endfunction ()
 
-macro (sprokit_build_test testname libraries)
-  add_executable(test-${testname} ${ARGN})
-  set_target_properties(test-${testname}
-    PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${test_base_output_path}")
-  target_link_libraries(test-${testname}
-    LINK_PRIVATE
-      ${${libraries}})
-  sprokit_declare_test(${testname})
-endmacro ()
+function (sprokit_declare_tooled_test test)
+  sprokit_declare_test(${test})
+  _sprokit_declare_tooled_test(${test})
+endfunction ()
 
-function (sprokit_make_test testname instance)
-  if (TARGET test-${testname})
-    set(test_path "$<TARGET_FILE:test-${testname}>")
-  elseif (CMAKE_CONFIGURATION_TYPES)
-    set(test_path "${test_base_output_path}/$<CONFIGURATION>/test-${testname}")
-  else ()
-    set(test_path "${test_base_output_path}/test-${testname}")
-  endif ()
+function (sprokit_build_tooled_test test libraries)
+  sprokit_build_test(${test} ${libraries} ${ARGN})
+  _sprokit_declare_tooled_test(${test})
+endfunction ()
 
-  add_test(
-    NAME    test-${testname}-${instance}
-    COMMAND ${test_runner}
-            "${test_path}"
+function (_sprokit_add_tooled_test tool test instance)
+  add_custom_target(${tool}-${test}-${instance})
+  add_custom_command(
+    TARGET  ${tool}-${test}-${instance}
+    COMMAND ${sprokit_test_environment}
+            ${${${tool}_args}}
+            ${sprokit_test_runner}
+            "${sprokit_test_output_path}/test-${test}"
             ${instance}
-            ${ARGN})
-  set_tests_properties(test-${testname}-${instance}
-    PROPERTIES
-      WORKING_DIRECTORY       "${test_working_path}"
-      FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
+            ${ARGN}
+    WORKING_DIRECTORY
+            "${sprokit_test_working_path}"
+    COMMENT "Running ${tool} on test \"${test}\" instance \"${instance}\"")
+  add_dependencies(${tool}-${test}
+    ${tool}-${test}-${instance})
+endfunction ()
 
-  # TODO: How to get CTest the full path to the test with config subdir?
-  if (NOT CMAKE_CONFIGURATION_TYPES)
-    set_tests_properties(test-${testname}-${instance}
-      PROPERTIES
-        REQUIRED_FILES "${test_output_path}/test-${testname}")
-  endif ()
-  if (test_environment)
-    set_tests_properties(test-${testname}-${instance}
-      PROPERTIES
-        ENVIRONMENT ${test_environment})
-  endif ()
-  if (SPROKIT_ADD_TEST_TARGETS)
-    add_custom_target(test-${testname}-${instance})
-    add_custom_command(
-      TARGET  test-${testname}-${instance}
-      COMMAND ${test_environment}
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(tests-${testname}
-      test-${testname}-${instance})
-  endif ()
+function (sprokit_add_tooled_test test instance)
+  sprokit_add_test(${test} ${instance} ${ARGN})
+
   if (VALGRIND_EXECUTABLE)
-    add_custom_target(valgrind-${testname}-${instance})
-    add_custom_command(
-      TARGET  valgrind-${testname}-${instance}
-      COMMAND ${test_environment}
-              "${VALGRIND_EXECUTABLE}"
-              --leak-check=full
-              --show-reachable=yes
-              --track-fds=yes
-              --track-origins=yes
-              --log-file="${test_working_path}/valgrind.log.${testname}.${instance}"
-              ${sprokit_valgrind_arguments}
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running valgrind on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(valgrind-${testname}
-      valgrind-${testname}-${instance})
-    add_custom_target(cachegrind-${testname}-${instance})
-    add_custom_command(
-      TARGET  cachegrind-${testname}-${instance}
-      COMMAND ${test_environment}
-              "${VALGRIND_EXECUTABLE}"
-              --tool=cachegrind
-              --log-file="${test_working_path}/cachegrind.log.${testname}.${instance}"
-              --cachegrind-out-file="${test_working_path}/cachegrind.out.${testname}.${instance}"
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running cachegrind on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(cachegrind-${testname}
-      cachegrind-${testname}-${instance})
-    add_custom_target(callgrind-${testname}-${instance})
-    add_custom_command(
-      TARGET  callgrind-${testname}-${instance}
-      COMMAND ${test_environment}
-              "${VALGRIND_EXECUTABLE}"
-              --tool=callgrind
-              --dump-instr=yes
-              --log-file="${test_working_path}/callgrind.log.${testname}.${instance}"
-              --callgrind-out-file="${test_working_path}/callgrind.out.${testname}.${instance}"
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running callgrind on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(callgrind-${testname}
-      callgrind-${testname}-${instance})
-    add_custom_target(helgrind-${testname}-${instance})
-    add_custom_command(
-      TARGET  helgrind-${testname}-${instance}
-      COMMAND ${test_environment}
-              "${VALGRIND_EXECUTABLE}"
-              --tool=helgrind
-              --log-file="${test_working_path}/helgrind.log.${testname}.${instance}"
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running helgrind on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(helgrind-${testname}
-      helgrind-${testname}-${instance})
-    add_custom_target(drd-${testname}-${instance})
-    add_custom_command(
-      TARGET  drd-${testname}-${instance}
-      COMMAND ${test_environment}
-              "${VALGRIND_EXECUTABLE}"
-              --tool=drd
-              --log-file="${test_working_path}/drd.log.${testname}.${instance}"
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running drd on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(drd-${testname}
-      drd-${testname}-${instance})
-    add_custom_target(massif-${testname}-${instance})
-    add_custom_command(
-      TARGET  massif-${testname}-${instance}
-      COMMAND ${test_environment}
-              "${VALGRIND_EXECUTABLE}"
-              --tool=massif
-              --stacks=yes
-              --log-file="${test_working_path}/massif.log.${testname}.${instance}"
-              --massif-out-file="${test_working_path}/massif.out.${testname}.${instance}"
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running massif on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(massif-${testname}
-      massif-${testname}-${instance})
-    add_custom_target(dhat-${testname}-${instance})
-    add_custom_command(
-      TARGET  dhat-${testname}-${instance}
-      COMMAND ${test_environment}
-              "${VALGRIND_EXECUTABLE}"
-              --tool=exp-dhat
-              --log-file="${test_working_path}/dhat.log.${testname}.${instance}"
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running dhat on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(dhat-${testname}
-      dhat-${testname}-${instance})
-    add_custom_target(sgcheck-${testname}-${instance})
-    add_custom_command(
-      TARGET  sgcheck-${testname}-${instance}
-      COMMAND ${test_environment}
-              "${VALGRIND_EXECUTABLE}"
-              --tool=exp-ptrcheck
-              --log-file="${test_working_path}/sgcheck.log.${testname}.${instance}"
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running sgcheck on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(sgcheck-${testname}
-      sgcheck-${testname}-${instance})
-    add_custom_target(bbv-${testname}-${instance})
-    add_custom_command(
-      TARGET  bbv-${testname}-${instance}
-      COMMAND ${test_environment}
-              "${VALGRIND_EXECUTABLE}"
-              --tool=exp-bbv
-              --log-file="${test_working_path}/bbv.log.${testname}.${instance}"
-              --bb-out-file="${test_working_path}/bbv.bb.out.${testname}.${instance}"
-              --pc-out-file="${test_working_path}/bbv.pc.log.${testname}.${instance}"
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running bbv on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(bbv-${testname}
-      bbv-${testname}-${instance})
+    set(valgrind_args
+      "${VALGRIND_EXECUTABLE}"
+      --leak-check=full
+      --show-reachable=yes
+      --track-fds=yes
+      --track-origins=yes
+      --log-file="${sprokit_test_working_path}/valgrind.log.${test}.${instance}"
+      ${sprokit_valgrind_arguments})
+    _sprokit_add_tooled_test(valgrind ${test} ${instance} ${ARGN})
+
+    set(cachegrind_args
+      "${VALGRIND_EXECUTABLE}"
+      --tool=cachegrind
+      --log-file="${sprokit_test_working_path}/cachegrind.log.${test}.${instance}"
+      --cachegrind-out-file="${sprokit_test_working_path}/cachegrind.out.${test}.${instance}")
+    _sprokit_add_tooled_test(cachegrind ${test} ${instance} ${ARGN})
+
+    set(callgrind_args
+      "${VALGRIND_EXECUTABLE}"
+      --tool=callgrind
+      --dump-instr=yes
+      --log-file="${sprokit_test_working_path}/callgrind.log.${test}.${instance}"
+      --callgrind-out-file="${sprokit_test_working_path}/callgrind.out.${test}.${instance}")
+    _sprokit_add_tooled_test(callgrind ${test} ${instance} ${ARGN})
+
+    set(helgrind_args
+      "${VALGRIND_EXECUTABLE}"
+      --tool=helgrind
+      --log-file="${sprokit_test_working_path}/helgrind.log.${test}.${instance}")
+    _sprokit_add_tooled_test(helgrind ${test} ${instance} ${ARGN})
+
+    set(drd_args
+      "${VALGRIND_EXECUTABLE}"
+      --tool=drd
+      --log-file="${sprokit_test_working_path}/drd.log.${test}.${instance}")
+    _sprokit_add_tooled_test(drd ${test} ${instance} ${ARGN})
+
+    set(massif_args
+      "${VALGRIND_EXECUTABLE}"
+      --tool=massif
+      --stacks=yes
+      --log-file="${sprokit_test_working_path}/massif.log.${test}.${instance}"
+      --massif-out-file="${sprokit_test_working_path}/massif.out.${test}.${instance}")
+    _sprokit_add_tooled_test(massif ${test} ${instance} ${ARGN})
+
+    set(dhat_args
+      "${VALGRIND_EXECUTABLE}"
+      --tool=exp-dhat
+      --log-file="${sprokit_test_working_path}/dhat.log.${test}.${instance}")
+    _sprokit_add_tooled_test(dhat ${test} ${instance} ${ARGN})
+
+    set(sgcheck_args
+      "${VALGRIND_EXECUTABLE}"
+      --tool=exp-ptrcheck
+      --log-file="${sprokit_test_working_path}/sgcheck.log.${test}.${instance}")
+    _sprokit_add_tooled_test(sgcheck ${test} ${instance} ${ARGN})
+
+    set(bbv_args
+      "${VALGRIND_EXECUTABLE}"
+      --tool=exp-bbv
+      --log-file="${sprokit_test_working_path}/bbv.log.${test}.${instance}"
+      --bb-out-file="${sprokit_test_working_path}/bbv.bb.out.${test}.${instance}"
+      --pc-out-file="${sprokit_test_working_path}/bbv.pc.log.${test}.${instance}")
+    _sprokit_add_tooled_test(bbv ${test} ${instance} ${ARGN})
   endif ()
   if (GPROF_EXECUTABLE)
     set(real_command
-      "${test_working_path}/test-${testname}")
-    if (test_runner)
+      "${sprokit_test_working_path}/test-${test}")
+    if (sprokit_test_runner)
       set(real_command
-        ${test_runner})
+        "${sprokit_test_runner}")
     endif ()
 
-    add_custom_target(gprof-${testname}-${instance})
-    add_custom_command(
-      TARGET  gprof-${testname}-${instance}
-      COMMAND ${test_environment}
-              ${test_runner}
-              "${test_output_path}/test-${testname}"
-              ${instance}
-              ${ARGN}
+    set(gprof_args)
+    _sprokit_add_tooled_test(gprof ${test} ${instance} ${ARGN}
       COMMAND "${GPROF_EXECUTABLE}"
               "${real_command}"
-              "${test_working_path}/gmon.out"
-              > "${test_working_path}/gprof.log.${testname}.${instance}"
-      WORKING_DIRECTORY
-              "${test_working_path}"
-      COMMENT "Running gprof on test \"${testname}\" instance \"${instance}\"")
-    add_dependencies(gprof-${testname}
-      gprof-${testname}-${instance})
+              "${sprokit_test_working_path}/gmon.out"
+              > "${sprokit_test_working_path}/gprof.log.${test}.${instance}")
   endif ()
 endfunction ()

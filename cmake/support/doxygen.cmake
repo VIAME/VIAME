@@ -1,8 +1,8 @@
 # Doxygen functions for the sprokit project
 # The following functions are defined:
-#   create_doxygen
+#   sprokit_create_doxygen
 # Their syntax is:
-#   create_doxygen(inputdir name [tagdep...])
+#   sprokit_create_doxygen(inputdir name [tagdep...])
 #     The first argument is the directory to use as the input directory for
 #     doxygen. The targets `doxygen-${name}-dir', `doxygen-${name}-doxyfile',
 #     `doxygen-${name}-tag', and `doxygen-${name}' will be created. All
@@ -19,7 +19,7 @@ if (DOXYGEN_FOUND)
   add_custom_target(doxygen)
 endif ()
 
-function (create_doxygen inputdir name)
+function (sprokit_create_doxygen inputdir name)
   if (SPROKIT_ENABLE_DOCUMENTATION)
     set(doxy_project_source_dir
       "${inputdir}")

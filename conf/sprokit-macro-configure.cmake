@@ -1,14 +1,18 @@
 # Configure functions for the sprokit project
 # The following functions are defined:
+#
 #   sprokit_configure_file
 #   sprokit_configure_pkgconfig
+#
 # Their syntax is:
+#
 #   sprokit_configure_file(name source dest [variable ...])
 #     The first argument is the name of the file being configured. The next two
 #     parameters are the source and destination paths of the file to be
 #     configured. Any variables that need to be replaced in the file should be
 #     passed as extra arguments. The file will be added to the list of files to
 #     be cleaned.
+#
 #   sprokit_configure_pkgconfig(module)
 #     A convenience function for creating pkgconfig files.
 
@@ -121,23 +125,4 @@ function (sprokit_configure_directory name sourcedir destdir)
     SOURCES ${source_paths})
   add_dependencies(configure
     configure-${name})
-endfunction ()
-
-function (sprokit_configure_pkgconfig module)
-  if (UNIX)
-    set(pkgconfig_file "${sprokit_binary_dir}/lib/pkgconfig/${module}.pc")
-
-    sprokit_configure_file(sprokit-${module}.pc
-      "${CMAKE_CURRENT_SOURCE_DIR}/${module}.pc.in"
-      "${pkgconfig_file}"
-      sprokit_version
-      CMAKE_INSTALL_PREFIX
-      LIB_SUFFIX
-      ${ARGN})
-
-    install(
-      FILES       "${pkgconfig_file}"
-      DESTINATION "lib${LIB_SUFFIX}/pkgconfig"
-      COMPONENT   development)
-  endif ()
 endfunction ()

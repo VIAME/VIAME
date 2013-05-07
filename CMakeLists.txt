@@ -17,10 +17,17 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 include(CMakeDependentOption)
 
+set(sprokit_output_dir
+  "${sprokit_binary_dir}")
+
+# Sprokit macros
+include("${sprokit_source_dir}/conf/sprokit-macro-configure.cmake")
+include("${sprokit_source_dir}/conf/sprokit-macro-targets.cmake")
+include("${sprokit_source_dir}/conf/sprokit-macro-python.cmake")
+
 # Support functions.
-include("${sprokit_source_dir}/cmake/support/configure.cmake")
+include("${sprokit_source_dir}/cmake/support/pkgconfig.cmake")
 include("${sprokit_source_dir}/cmake/support/doxygen.cmake")
-include("${sprokit_source_dir}/cmake/support/targets.cmake")
 
 find_package(Git)
 
@@ -44,6 +51,14 @@ endif ()
 include("${sprokit_source_dir}/cmake/snippets/python.cmake")
 include("${sprokit_source_dir}/cmake/snippets/depends.cmake")
 
+set(export_name
+  sprokit_exports)
+if (WIN32)
+  set(cmakedir cmake)
+else ()
+  set(cmakedir lib${LIB_SUFFIX}/cmake/sprokit)
+endif ()
+
 add_subdirectory(conf)
 add_subdirectory(src)
 
@@ -58,3 +73,10 @@ if (SPROKIT_ENABLE_TESTING)
 
   add_subdirectory(tests)
 endif ()
+
+sprokit_export_targets("${sprokit_binary_dir}/sprokit-config-targets.cmake")
+install(
+  EXPORT      ${export_name}
+  DESTINATION "${cmakedir}"
+  FILE        sprokit-config-targets.cmake
+  COMPONENT   development)
