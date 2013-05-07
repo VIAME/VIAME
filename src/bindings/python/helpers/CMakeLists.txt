@@ -4,7 +4,9 @@ find_package(PythonInterp ${PYTHON_VERSION})
 
 function (add_python_helper_library name)
   set(helper_sources
-    ${name}.cxx)
+    ${name}.cxx
+    ${name}.h)
+  sprokit_private_header_group(${name}.h)
   sprokit_add_helper_library(${name} helper_sources
     ${ARGN})
   if (boost_header_targets)
