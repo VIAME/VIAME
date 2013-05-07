@@ -93,7 +93,7 @@ if (WIN32)
     configure-include-paths.h)
 endif ()
 
-create_doxygen(
+sprokit_create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   pipeline_util
   pipeline)

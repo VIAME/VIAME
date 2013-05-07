@@ -1,6 +1,6 @@
 project(sprokit_python_sprokit_pipeline_util)
 
-add_sprokit_python_library(bake
+_sprokit_add_python_library(bake
   sprokit/pipeline_util
   bake.cxx)
 target_link_libraries(python-sprokit.pipeline_util-bake
@@ -14,7 +14,7 @@ target_link_libraries(python-sprokit.pipeline_util-bake
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(export_
+_sprokit_add_python_library(export_
   sprokit/pipeline_util
   export.cxx)
 target_link_libraries(python-sprokit.pipeline_util-export_
@@ -26,7 +26,7 @@ target_link_libraries(python-sprokit.pipeline_util-export_
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(load
+_sprokit_add_python_library(load
   sprokit/pipeline_util
   load.cxx)
 target_link_libraries(python-sprokit.pipeline_util-load
@@ -40,7 +40,7 @@ target_link_libraries(python-sprokit.pipeline_util-load
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-make_python_init_file(sprokit/pipeline_util)
+sprokit_create_python_init(sprokit/pipeline_util)
 #  bake
 #  export_
 #  load)

@@ -16,7 +16,7 @@ set_target_properties(sprokit_scoring
     SOVERSION     0
     DEFINE_SYMBOL MAKE_SPROKIT_SCORING_LIB)
 
-create_doxygen(
+sprokit_create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   scoring)
 

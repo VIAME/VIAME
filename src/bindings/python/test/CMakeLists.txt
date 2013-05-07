@@ -1,11 +1,11 @@
 project(sprokit_python_test)
 
-set(suppress_install TRUE)
+set(no_install TRUE)
 
 add_subdirectory(python)
 
-add_python_module(test.py
+sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/test.py
   sprokit/test
   test)
 
-make_python_init_file(sprokit/test)
+sprokit_create_python_init(sprokit/test)

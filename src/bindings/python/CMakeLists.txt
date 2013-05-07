@@ -97,4 +97,4 @@ endif ()
 
 set (python_both_arch TRUE)
 
-make_python_init_file(sprokit)
+sprokit_create_python_init(sprokit)

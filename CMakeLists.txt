@@ -53,13 +53,7 @@ include("${sprokit_source_dir}/cmake/snippets/depends.cmake")
 
 set(export_name
   sprokit_exports)
-if (WIN32)
-  set(cmakedir cmake)
-else ()
-  set(cmakedir lib${LIB_SUFFIX}/cmake/sprokit)
-endif ()
 
-add_subdirectory(conf)
 add_subdirectory(src)
 
 option(SPROKIT_ENABLE_EXTRAS "Enable extra files to help with tooling" OFF)
@@ -74,9 +68,4 @@ if (SPROKIT_ENABLE_TESTING)
   add_subdirectory(tests)
 endif ()
 
-sprokit_export_targets("${sprokit_binary_dir}/sprokit-config-targets.cmake")
-install(
-  EXPORT      ${export_name}
-  DESTINATION "${cmakedir}"
-  FILE        sprokit-config-targets.cmake
-  COMPONENT   development)
+add_subdirectory(conf)

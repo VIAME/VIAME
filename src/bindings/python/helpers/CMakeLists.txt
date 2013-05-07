@@ -3,7 +3,9 @@ project(sprokit_python_helpers)
 find_package(PythonInterp ${PYTHON_VERSION})
 
 function (add_python_helper_library name)
-  sprokit_add_helper_library(${name}
+  set(helper_sources
+    ${name}.cxx)
+  sprokit_add_helper_library(${name} helper_sources
     ${ARGN})
   if (boost_header_targets)
     add_dependencies(${name}

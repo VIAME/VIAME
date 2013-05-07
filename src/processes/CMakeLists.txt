@@ -11,7 +11,7 @@ endif ()
 set(DOXY_EXCLUDE_PATTERNS
   "*/examples/* */helpers/*")
 
-create_doxygen(
+sprokit_create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   processes
   pipeline)

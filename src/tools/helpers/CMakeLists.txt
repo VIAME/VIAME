@@ -1,7 +1,9 @@
 project(sprokit_tools_helpers)
 
 function (add_tool_helper_library name)
-  sprokit_add_helper_library(${name}
+  set(tool_sources
+    ${name}.cxx)
+  sprokit_add_helper_library(${name} tool_sources
     ${ARGN})
   if (boost_header_targets)
     add_dependencies(${name}

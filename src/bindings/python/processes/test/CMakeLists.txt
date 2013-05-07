@@ -1,11 +1,11 @@
 project(sprokit_python_processes_test)
 
-set(suppress_install TRUE)
+set(no_install TRUE)
 
-add_python_module(__init__.py
+sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   sprokit/processes/test
   __init__)
 
-add_python_module(examples.py
+sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/examples.py
   sprokit/processes/test
   examples)

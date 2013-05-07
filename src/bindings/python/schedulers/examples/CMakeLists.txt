@@ -1,11 +1,11 @@
 project(sprokit_python_schedulers_examples)
 
-set(suppress_install TRUE)
+set(no_install TRUE)
 
-add_python_module(__init__.py
+sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   sprokit/schedulers/examples
   __init__)
 
-add_python_module(pythread_per_process_scheduler.py
+sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pythread_per_process_scheduler.py
   sprokit/schedulers/examples
   pythread_per_process_scheduler)

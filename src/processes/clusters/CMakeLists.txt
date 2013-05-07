@@ -57,7 +57,7 @@ set_source_files_properties(registration.cxx
     COMPILE_DEFINITIONS "${registration_build_options}")
 
 sprokit_private_header_group(${clusters_private_headers})
-add_sprokit_plugin(processes_clusters
+sprokit_add_plugin(processes_clusters
   MAKE_SPROKIT_PROCESSES_CLUSTERS_LIB
   ${clusters_srcs}
   ${clusters_private_headers})

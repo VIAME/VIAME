@@ -50,6 +50,12 @@ sprokit_configure_file(sprokit-config-install.cmake
   PYTHON_EXECUTABLE
   BUILD_SHARED_LIBS)
 
+if (WIN32)
+  set(cmakedir cmake)
+else ()
+  set(cmakedir lib${LIB_SUFFIX}/cmake/sprokit)
+endif ()
+
 set(sprokit_macros_file "${sprokit_binary_dir}/sprokit-macros.cmake")
 file(WRITE "${sprokit_macros_file}"
 "# Macros from sprokit.
@@ -91,5 +97,11 @@ install(
   DESTINATION "${cmakedir}"
   COMPONENT   development
   RENAME      sprokit-config.cmake)
+sprokit_export_targets("${sprokit_binary_dir}/sprokit-config-targets.cmake")
+install(
+  EXPORT      ${export_name}
+  DESTINATION "${cmakedir}"
+  FILE        sprokit-config-targets.cmake
+  COMPONENT   development)
 
 sprokit_configure_pkgconfig(sprokit)
