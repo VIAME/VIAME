@@ -77,7 +77,7 @@ endfunction ()
 
 set(copyright_header
 "#ckwg +4
-# Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.")
 
