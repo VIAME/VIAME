@@ -147,6 +147,10 @@ set(schedulers
 function (sprokit_add_python_run_test group instance)
   foreach (scheduler ${schedulers})
     sprokit_add_python_test(${group} ${instance}-${scheduler})
+
+    set_tests_properties(test-python-${group}-${instance}-${scheduler}
+      PROPERTIES
+        TIMEOUT 5)
   endforeach ()
 endfunction ()
 
