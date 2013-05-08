@@ -33,6 +33,8 @@ if (SPROKIT_ENABLE_PYTHON)
     "@PYTHON_VERSION@")
   set(SPROKIT_PYTHON_ABIFLAGS
     "@PYTHON_ABIFLAGS@")
+  set(SPROKIT_PYTHONPATH
+    "@sprokit_python_output_path@")
 endif ()
 
 set(SPROKIT_BOOST_VERSION

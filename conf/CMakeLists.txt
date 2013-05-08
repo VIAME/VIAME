@@ -48,6 +48,7 @@ sprokit_configure_file(sprokit-config.cmake
   "${sprokit_config_file}"
   sprokit_source_dir
   sprokit_binary_dir
+  sprokit_python_output_path
   ${config_vars})
 
 set(sprokit_config_install_file "${sprokit_binary_dir}/sprokit-config-install.cmake")

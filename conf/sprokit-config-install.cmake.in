@@ -38,6 +38,15 @@ if (SPROKIT_ENABLE_PYTHON)
     "@PYTHON_VERSION@")
   set(SPROKIT_PYTHON_ABIFLAGS
     "@PYTHON_ABIFLAGS@")
+
+  if (WIN32)
+    set(__sprokit_python_destdir bin)
+  else ()
+    set(__sprokit_python_destdir lib@LIB_SUFFIX@)
+  endif ()
+
+  set(SPROKIT_PYTHONPATH
+    "@CMAKE_INSTALL_PREFIX@/${__sprokit_python_destdir}/python@PYTHON_VERSION@")
 endif ()
 
 set(SPROKIT_BOOST_VERSION
