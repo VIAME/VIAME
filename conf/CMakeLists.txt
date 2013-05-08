@@ -74,18 +74,30 @@ if (SPROKIT_ENABLE_PYTHON)
     python)
 endif ()
 
-foreach (macro_file ${macro_files})
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-macro-${macro_file}.cmake"
-    "${sprokit_binary_dir}/sprokit-macro-${macro_file}.cmake"
-    COPY_ONLY)
-  install(
-    FILES       "${sprokit_binary_dir}/sprokit-macro-${macro_file}.cmake"
+set(fixes_macro_vars
+  sprokit_fixes)
+
+function (sprokit_install_macro_file path)
+  sprokit_install(
+    FILES       "${path}"
     DESTINATION "${cmakedir}"
     COMPONENT   development)
   file(APPEND "${sprokit_macros_file}"
 "include(\"${CMAKE_CURRENT_LIST_DIR}/sprokit-macro-${macro_file}.cmake\")
 ")
+endfunction ()
+
+foreach (macro_file ${macro_files})
+  set(filename "sprokit-macro-${macro_file}.cmake")
+  sprokit_configure_file(macro-${macro_file}
+    "${CMAKE_CURRENT_SOURCE_DIR}/${filename}"
+    "${sprokit_binary_dir}/${filename}"
+    ${${macro_file}_macro_vars})
+  sprokit_install_macro_file("${sprokit_binary_dir}/${filename}")
+endforeach ()
+
+foreach (macro_file ${configured_macro_files})
+  sprokit_install_macro_file("${sprokit_binary_dir}/${filename}")
 endforeach ()
 
 # Configure the CMake EXPORT file during installation

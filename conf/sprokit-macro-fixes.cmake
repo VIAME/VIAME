@@ -9,6 +9,9 @@
 #     Set up future targets to use fixes for Boost used in sprokit.
 #     Does not affect parent directories.
 
+set(SPROKIT_FIXES "@sprokit_fixes@"
+  CACHE INTERNAL "Fixes available from sprokit")
+
 function (sprokit_use_fixes)
   foreach (fix ${ARGN})
     foreach (includedir ${SPROKIT_INCLUDE_DIR})
