@@ -4,15 +4,14 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/python_wrap_const_shared_ptr.h>
-#include <python/helpers/set_indexing_suite.h>
-
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/stamp.h>
 
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
+#include <sprokit/python/util/python_wrap_const_shared_ptr.h>
+#include <sprokit/python/util/set_indexing_suite.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/args.hpp>

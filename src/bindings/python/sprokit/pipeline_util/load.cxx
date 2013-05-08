@@ -4,8 +4,6 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/python_convert_optional.h>
-
 #include <sprokit/pipeline_util/load_pipe.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
@@ -14,6 +12,7 @@
 #include <sprokit/pipeline/process.h>
 
 #include <sprokit/python/util/pystream.h>
+#include <sprokit/python/util/python_convert_optional.h>
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -59,9 +58,9 @@ static sprokit::cluster_blocks load_cluster(object const& stream, std::string co
 
 BOOST_PYTHON_MODULE(load)
 {
-  register_optional_converter<sprokit::config_flags_t>("ConfigFlagsOpt", "An optional config flags.");
-  register_optional_converter<sprokit::config_provider_t>("ConfigProviderOpt", "An optional config provider.");
-  register_optional_converter<sprokit::process::port_flags_t>("PortFlagsOpt", "An optional port flags.");
+  sprokit::python::register_optional_converter<sprokit::config_flags_t>("ConfigFlagsOpt", "An optional config flags.");
+  sprokit::python::register_optional_converter<sprokit::config_provider_t>("ConfigProviderOpt", "An optional config provider.");
+  sprokit::python::register_optional_converter<sprokit::process::port_flags_t>("PortFlagsOpt", "An optional port flags.");
 
   class_<sprokit::token_t>("Token"
     , "A token in the pipeline description.");

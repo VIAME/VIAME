@@ -10,9 +10,12 @@ set(python_util_srcs
 set(python_util_headers
   pystream.h
   python_allow_threads.h
+  python_convert_optional.h
   python_exceptions.h
   python_gil.h
   python_threading.h
+  python_wrap_const_shared_ptr.h
+  set_indexing_suite.h
   util-config.h)
 
 sprokit_add_library(sprokit_python_util
