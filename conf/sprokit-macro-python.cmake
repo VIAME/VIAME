@@ -43,6 +43,13 @@
 #     __init__.py file and added to the SPROKIT_PYTHON_MODULES environment
 #     variable).
 
+add_custom_target(python)
+
+source_group("Python Files"
+  REGULAR_EXPRESSION ".*\\.py\\.in$")
+source_group("Python Files"
+  REGULAR_EXPRESSION ".*\\.py$")
+
 macro (_sprokit_create_safe_modpath modpath result)
   string(REPLACE "/" "." ${result} ${modpath})
 endmacro ()

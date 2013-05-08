@@ -22,8 +22,6 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
 sprokit_use_python_fixes()
 
-add_custom_target(python)
-
 function (_sprokit_add_python_library name modpath)
   _sprokit_create_safe_modpath(${modpath} safe_modpath)
 
@@ -38,11 +36,6 @@ set(copyright_header
 # Copyright 2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.")
-
-source_group("Python Files"
-  REGULAR_EXPRESSION ".*\\.py\\.in$")
-source_group("Python Files"
-  REGULAR_EXPRESSION ".*\\.py$")
 
 add_subdirectory(sprokit)
 add_subdirectory(modules)
