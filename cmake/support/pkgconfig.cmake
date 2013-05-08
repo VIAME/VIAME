@@ -10,7 +10,7 @@ function (sprokit_configure_pkgconfig module)
       LIB_SUFFIX
       ${ARGN})
 
-    install(
+    sprokit_install(
       FILES       "${pkgconfig_file}"
       DESTINATION "lib${LIB_SUFFIX}/pkgconfig"
       COMPONENT   development)
