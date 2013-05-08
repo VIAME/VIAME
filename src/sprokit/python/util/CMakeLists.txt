@@ -4,13 +4,15 @@ set(python_util_srcs
   pystream.cxx
   python_allow_threads.cxx
   python_exceptions.cxx
-  python_gil.cxx)
+  python_gil.cxx
+  python_threading.cxx)
 
 set(python_util_headers
   pystream.h
   python_allow_threads.h
   python_exceptions.h
   python_gil.h
+  python_threading.h
   util-config.h)
 
 sprokit_add_library(sprokit_python_util

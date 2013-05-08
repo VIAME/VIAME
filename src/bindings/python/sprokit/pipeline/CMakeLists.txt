@@ -78,7 +78,6 @@ target_link_libraries(python-sprokit.pipeline-process_registry
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_threading
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
@@ -99,7 +98,6 @@ target_link_libraries(python-sprokit.pipeline-scheduler_registry
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_threading
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 

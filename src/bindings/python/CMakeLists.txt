@@ -22,8 +22,6 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
 sprokit_use_python_fixes()
 
-add_subdirectory(helpers)
-
 add_custom_target(python)
 
 function (_sprokit_add_python_library name modpath)
