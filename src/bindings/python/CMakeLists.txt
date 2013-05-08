@@ -41,10 +41,7 @@ add_subdirectory(sprokit)
 add_subdirectory(modules)
 add_subdirectory(processes)
 add_subdirectory(schedulers)
-
-if (SPROKIT_ENABLE_TESTING)
-  add_subdirectory(test)
-endif ()
+add_subdirectory(test)
 
 set (python_both_arch TRUE)
 
