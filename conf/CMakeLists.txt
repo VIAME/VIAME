@@ -26,20 +26,29 @@ if (SPROKIT_ENABLE_CDASH)
     @ONLY)
 endif ()
 
+set(config_vars
+  sprokit_version
+  SPROKIT_ENABLE_PYTHON
+  SPROKIT_ENABLE_PYTHON3
+  PYTHON_EXECUTABLE
+  PYTHON_VERSION
+  PYTHON_ABIFLAGS
+  BUILD_SHARED_LIBS
+  Boost_MAJOR_VERSION
+  Boost_MINOR_VERSION
+  Boost_SUBMINOR_VERSION
+  BOOST_MANGLE_NAMESPACE
+  Boost_USE_STATIC_LIBS
+  Boost_INCLUDE_DIR
+  SPROKIT_ENABLE_CXX11)
+
 set(sprokit_config_file "${sprokit_binary_dir}/sprokit-config.cmake")
 sprokit_configure_file(sprokit-config.cmake
   "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-config.cmake.in"
   "${sprokit_config_file}"
   sprokit_source_dir
   sprokit_binary_dir
-  sprokit_version
-  SPROKIT_ENABLE_PYTHON
-  SPROKIT_ENABLE_PYTHON3
-  PYTHON_EXECUTABLE
-  BUILD_SHARED_LIBS
-  Boost_VERSION
-  BOOST_MANGLE_NAMESPACE
-  SPROKIT_ENABLE_CXX11)
+  ${config_vars})
 
 set(sprokit_config_install_file "${sprokit_binary_dir}/sprokit-config-install.cmake")
 sprokit_configure_file(sprokit-config-install.cmake
@@ -47,14 +56,7 @@ sprokit_configure_file(sprokit-config-install.cmake
   "${sprokit_config_install_file}"
   CMAKE_INSTALL_PREFIX
   LIB_SUFFIX
-  sprokit_version
-  SPROKIT_ENABLE_PYTHON
-  SPROKIT_ENABLE_PYTHON3
-  PYTHON_EXECUTABLE
-  BUILD_SHARED_LIBS
-  Boost_VERSION
-  BOOST_MANGLE_NAMESPACE
-  SPROKIT_ENABLE_CXX11)
+  ${config_vars})
 
 if (WIN32)
   set(cmakedir cmake)
