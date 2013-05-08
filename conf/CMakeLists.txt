@@ -110,17 +110,17 @@ foreach (macro_file ${configured_macro_files})
 endforeach ()
 
 # Configure the CMake EXPORT file during installation
-install(
+sprokit_install(
   FILES       "${sprokit_macros_file}"
   DESTINATION "${cmakedir}"
   COMPONENT   development)
-install(
+sprokit_install(
   FILES       "${sprokit_config_install_file}"
   DESTINATION "${cmakedir}"
   COMPONENT   development
   RENAME      sprokit-config.cmake)
 sprokit_export_targets("${sprokit_binary_dir}/sprokit-config-targets.cmake")
-install(
+sprokit_install(
   EXPORT      ${export_name}
   DESTINATION "${cmakedir}"
   FILE        sprokit-config-targets.cmake
