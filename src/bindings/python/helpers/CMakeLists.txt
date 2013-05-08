@@ -12,8 +12,5 @@ function (add_python_helper_library name)
   sprokit_require_python_fixes(${name})
 endfunction ()
 
-add_python_helper_library(python_exceptions
-  ${PYTHON_LIBRARIES})
-
 add_python_helper_library(python_threading
   ${PYTHON_LIBRARIES})

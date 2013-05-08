@@ -58,7 +58,6 @@ target_link_libraries(python-sprokit.pipeline-process
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
@@ -69,7 +68,6 @@ target_link_libraries(python-sprokit.pipeline-process_cluster
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
@@ -80,7 +78,6 @@ target_link_libraries(python-sprokit.pipeline-process_registry
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
     python_threading
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
@@ -92,7 +89,6 @@ target_link_libraries(python-sprokit.pipeline-scheduler
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 

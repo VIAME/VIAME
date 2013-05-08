@@ -4,7 +4,6 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/python_exceptions.h>
 #include <python/helpers/python_wrap_const_shared_ptr.h>
 #include <python/helpers/set_indexing_suite.h>
 
@@ -12,6 +11,7 @@
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/stamp.h>
 
+#include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -489,42 +489,42 @@ void
 wrap_process
 ::_base_configure()
 {
-  TRANSLATE_PYTHON_EXCEPTION(process::_configure())
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(process::_configure())
 }
 
 void
 wrap_process
 ::_base_init()
 {
-  TRANSLATE_PYTHON_EXCEPTION(process::_init())
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(process::_init())
 }
 
 void
 wrap_process
 ::_base_reset()
 {
-  TRANSLATE_PYTHON_EXCEPTION(process::_reset())
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(process::_reset())
 }
 
 void
 wrap_process
 ::_base_flush()
 {
-  TRANSLATE_PYTHON_EXCEPTION(process::_flush())
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(process::_flush())
 }
 
 void
 wrap_process
 ::_base_step()
 {
-  TRANSLATE_PYTHON_EXCEPTION(process::_step())
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(process::_step())
 }
 
 void
 wrap_process
 ::_base_reconfigure(sprokit::config_t const& conf)
 {
-  TRANSLATE_PYTHON_EXCEPTION(process::_reconfigure(conf))
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(process::_reconfigure(conf))
 }
 
 sprokit::process::properties_t
@@ -556,42 +556,42 @@ sprokit::process::port_info_t
 wrap_process
 ::_base_input_port_info(port_t const& port)
 {
-  TRANSLATE_PYTHON_EXCEPTION(return process::_input_port_info(port))
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(return process::_input_port_info(port))
 }
 
 sprokit::process::port_info_t
 wrap_process
 ::_base_output_port_info(port_t const& port)
 {
-  TRANSLATE_PYTHON_EXCEPTION(return process::_output_port_info(port))
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(return process::_output_port_info(port))
 }
 
 bool
 wrap_process
 ::_base_set_input_port_type(port_t const& port, port_type_t const& new_type)
 {
-  TRANSLATE_PYTHON_EXCEPTION(return process::_set_input_port_type(port, new_type))
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(return process::_set_input_port_type(port, new_type))
 }
 
 bool
 wrap_process
 ::_base_set_output_port_type(port_t const& port, port_type_t const& new_type)
 {
-  TRANSLATE_PYTHON_EXCEPTION(return process::_set_input_port_type(port, new_type))
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(return process::_set_input_port_type(port, new_type))
 }
 
 sprokit::config::keys_t
 wrap_process
 ::_base_available_config() const
 {
-  TRANSLATE_PYTHON_EXCEPTION(return process::_available_config())
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(return process::_available_config())
 }
 
 sprokit::process::conf_info_t
 wrap_process
 ::_base_config_info(sprokit::config::key_t const& key)
 {
-  TRANSLATE_PYTHON_EXCEPTION(return process::_config_info(key))
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(return process::_config_info(key))
 }
 
 void
@@ -607,7 +607,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(f())
 
       return;
     }
@@ -629,7 +629,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(f())
 
       return;
     }
@@ -651,7 +651,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(f())
 
       return;
     }
@@ -673,7 +673,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(f())
 
       return;
     }
@@ -695,7 +695,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(f())
 
       return;
     }
@@ -717,7 +717,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(f(conf))
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(f(conf))
 
       return;
     }
@@ -739,7 +739,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f())
     }
   }
 
@@ -759,7 +759,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f())
     }
   }
 
@@ -779,7 +779,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f())
     }
   }
 
@@ -799,7 +799,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f(port))
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f(port))
     }
   }
 
@@ -819,7 +819,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f(port))
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f(port))
     }
   }
 
@@ -839,7 +839,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f(port, new_type))
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f(port, new_type))
     }
   }
 
@@ -859,7 +859,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f(port, new_type))
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f(port, new_type))
     }
   }
 
@@ -879,7 +879,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f())
     }
   }
 
@@ -899,7 +899,7 @@ wrap_process
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f(key))
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f(key))
     }
   }
 

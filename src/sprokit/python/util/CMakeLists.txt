@@ -3,11 +3,13 @@ project(sprokit_python_util)
 set(python_util_srcs
   pystream.cxx
   python_allow_threads.cxx
+  python_exceptions.cxx
   python_gil.cxx)
 
 set(python_util_headers
   pystream.h
   python_allow_threads.h
+  python_exceptions.h
   python_gil.h
   util-config.h)
 

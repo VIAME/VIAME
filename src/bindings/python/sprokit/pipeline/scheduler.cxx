@@ -4,11 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/python_exceptions.h>
-
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
 
+#include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/class.hpp>
@@ -93,7 +92,7 @@ wrap_scheduler
 
   (void)gil;
 
-  HANDLE_PYTHON_EXCEPTION(get_pure_override("_start")())
+  SPROKIT_PYTHON_HANDLE_EXCEPTION(get_pure_override("_start")())
 }
 
 void
@@ -104,7 +103,7 @@ wrap_scheduler
 
   (void)gil;
 
-  HANDLE_PYTHON_EXCEPTION(get_pure_override("_wait")())
+  SPROKIT_PYTHON_HANDLE_EXCEPTION(get_pure_override("_wait")())
 }
 
 void
@@ -115,7 +114,7 @@ wrap_scheduler
 
   (void)gil;
 
-  HANDLE_PYTHON_EXCEPTION(get_pure_override("_pause")())
+  SPROKIT_PYTHON_HANDLE_EXCEPTION(get_pure_override("_pause")())
 }
 
 void
@@ -126,7 +125,7 @@ wrap_scheduler
 
   (void)gil;
 
-  HANDLE_PYTHON_EXCEPTION(get_pure_override("_resume")())
+  SPROKIT_PYTHON_HANDLE_EXCEPTION(get_pure_override("_resume")())
 }
 
 void
@@ -137,7 +136,7 @@ wrap_scheduler
 
   (void)gil;
 
-  HANDLE_PYTHON_EXCEPTION(get_pure_override("_stop")())
+  SPROKIT_PYTHON_HANDLE_EXCEPTION(get_pure_override("_stop")())
 }
 
 sprokit::pipeline_t

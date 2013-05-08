@@ -4,12 +4,11 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/python_exceptions.h>
-
 #include <sprokit/pipeline/config.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
 
+#include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/args.hpp>
@@ -230,7 +229,7 @@ wrap_process_cluster
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(return f())
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(return f())
     }
   }
 
@@ -250,7 +249,7 @@ wrap_process_cluster
 
     if (f)
     {
-      HANDLE_PYTHON_EXCEPTION(f(conf))
+      SPROKIT_PYTHON_HANDLE_EXCEPTION(f(conf))
 
       return;
     }

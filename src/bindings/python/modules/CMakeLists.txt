@@ -16,7 +16,6 @@ target_link_libraries(modules_python
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 

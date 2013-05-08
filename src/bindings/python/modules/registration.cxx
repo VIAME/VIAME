@@ -6,10 +6,9 @@
 
 #include "registration.h"
 
-#include <python/helpers/python_exceptions.h>
-
 #include <sprokit/pipeline/utils.h>
 
+#include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/import.hpp>
@@ -37,7 +36,7 @@ register_processes()
 
   (void)gil;
 
-  HANDLE_PYTHON_EXCEPTION_IGNORE(load())
+  SPROKIT_PYTHON_IGNORE_EXCEPTION(load())
 }
 
 void

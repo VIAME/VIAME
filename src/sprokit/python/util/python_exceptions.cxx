@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -7,6 +7,12 @@
 #include "python_exceptions.h"
 
 #include <Python.h>
+
+namespace sprokit
+{
+
+namespace python
+{
 
 void
 python_print_exception()
@@ -31,4 +37,8 @@ python_print_exception()
 
   // Put the error back for everyone else.
   PyErr_Restore(type, value, traceback);
+}
+
+}
+
 }
