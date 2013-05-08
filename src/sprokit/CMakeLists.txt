@@ -76,6 +76,7 @@ set(configure_code)
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)
 add_subdirectory(scoring)
+add_subdirectory(tools)
 
 if (SPROKIT_ENABLE_PYTHON)
   add_subdirectory(python)
