@@ -63,7 +63,7 @@ class config_printer
 };
 
 int
-sprokit_tool_main(int argc, char* argv[])
+sprokit_tool_main(int argc, char const* argv[])
 {
   sprokit::load_known_modules();
 

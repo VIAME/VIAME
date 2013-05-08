@@ -34,7 +34,7 @@ static boost::program_options::options_description pipe_to_dot_cluster_options()
 static boost::program_options::options_description pipe_to_dot_pipeline_options();
 
 int
-sprokit_tool_main(int argc, char* argv[])
+sprokit_tool_main(int argc, char const* argv[])
 {
   sprokit::load_known_modules();
 

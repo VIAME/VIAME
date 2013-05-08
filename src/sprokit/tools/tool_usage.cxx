@@ -60,7 +60,7 @@ tool_common_options()
 }
 
 boost::program_options::variables_map
-tool_parse(int argc, char* argv[], boost::program_options::options_description const& desc)
+tool_parse(int argc, char const* argv[], boost::program_options::options_description const& desc)
 {
   boost::program_options::variables_map vm;
 

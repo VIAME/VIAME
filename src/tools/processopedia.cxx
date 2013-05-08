@@ -29,7 +29,7 @@ static std::string const hidden_prefix = "_";
 static boost::program_options::options_description processopedia_options();
 
 int
-sprokit_tool_main(int argc, char* argv[])
+sprokit_tool_main(int argc, char const* argv[])
 {
   sprokit::load_known_modules();
 

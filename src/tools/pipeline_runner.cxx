@@ -25,7 +25,7 @@
 static sprokit::config::key_t const scheduler_block = sprokit::config::key_t("_scheduler");
 
 int
-sprokit_tool_main(int argc, char* argv[])
+sprokit_tool_main(int argc, char const* argv[])
 {
   sprokit::load_known_modules();
 

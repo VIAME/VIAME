@@ -6,10 +6,10 @@
 
 // No include guard since this file is meant to be included only once.
 
-static int sprokit_main(int argc, char* argv[]);
+static int sprokit_main(int argc, char const* argv[]);
 
 #define sprokit_tool_main                                       \
-main(int argc, char* argv[])                                    \
+main(int argc, char const* argv[])                              \
 {                                                               \
   try                                                           \
   {                                                             \
