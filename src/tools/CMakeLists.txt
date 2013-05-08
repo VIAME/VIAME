@@ -4,8 +4,6 @@ add_subdirectory(pipelines)
 
 sprokit_use_tools_fixes()
 
-add_subdirectory(helpers)
-
 function (add_tool name)
   set(component tool)
 
@@ -32,7 +30,6 @@ function (add_python_tool name)
 endfunction ()
 
 add_tool(pipe_config
-  pipeline_builder
   sprokit_tools
   sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
@@ -40,7 +37,6 @@ add_tool(pipe_config
   ${Boost_SYSTEM_LIBRARY})
 
 add_tool(pipe_to_dot
-  pipeline_builder
   sprokit_tools
   sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
@@ -48,7 +44,6 @@ add_tool(pipe_to_dot
   ${Boost_SYSTEM_LIBRARY})
 
 add_tool(pipeline_runner
-  pipeline_builder
   sprokit_tools
   sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}

@@ -6,8 +6,8 @@
 
 #include "pipeline_builder.h"
 
-#include <sprokit/tools/tool_io.h>
-#include <sprokit/tools/tool_usage.h>
+#include "tool_io.h"
+#include "tool_usage.h"
 
 #include <sprokit/pipeline_util/load_pipe.h>
 #include <sprokit/pipeline_util/path.h>
@@ -31,6 +31,9 @@
 #include <string>
 #include <vector>
 
+namespace sprokit
+{
+
 namespace
 {
 
@@ -46,13 +49,13 @@ pipeline_builder
   {
     std::cerr << "Error: pipeline not set" << std::endl;
 
-    sprokit::tool_usage(EXIT_FAILURE, desc);
+    tool_usage(EXIT_FAILURE, desc);
   }
 
   {
     sprokit::path_t const ipath = vm["pipeline"].as<sprokit::path_t>();
 
-    sprokit::istream_t const istr = sprokit::open_istream(ipath);
+    istream_t const istr = open_istream(ipath);
 
     /// \todo Include paths?
 
@@ -237,4 +240,6 @@ pipeline_run_options()
   ;
 
   return desc;
+}
+
 }

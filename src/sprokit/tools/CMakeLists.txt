@@ -3,10 +3,12 @@ project(sprokit_tools)
 sprokit_use_tools_fixes()
 
 set(tools_srcs
+  pipeline_builder.cxx
   tool_io.cxx
   tool_usage.cxx)
 
 set(tools_headers
+  pipeline_builder.h
   tool_io.h
   tool_usage.h
   tools-config.h)
@@ -16,6 +18,8 @@ sprokit_add_library(sprokit_tools
   ${tools_headers})
 target_link_libraries(sprokit_tools
   LINK_PUBLIC
+    sprokit_pipeline_util
+    sprokit_pipeline
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
   LINK_PRIVATE
     ${Boost_FILESYSTEM_LIBRARY}

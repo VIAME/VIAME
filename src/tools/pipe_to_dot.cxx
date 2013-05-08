@@ -4,9 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "helpers/pipeline_builder.h"
 #include "helpers/tool_main.h"
 
+#include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/tools/tool_io.h>
 #include <sprokit/tools/tool_usage.h>
 
@@ -42,10 +42,10 @@ tool_main(int argc, char* argv[])
   boost::program_options::options_description desc;
   desc
     .add(sprokit::tool_common_options())
-    .add(pipeline_common_options())
-    .add(pipeline_input_options())
+    .add(sprokit::pipeline_common_options())
+    .add(sprokit::pipeline_input_options())
     .add(pipe_to_dot_cluster_options())
-    .add(pipeline_output_options())
+    .add(sprokit::pipeline_output_options())
     .add(pipe_to_dot_pipeline_options());
 
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
@@ -88,7 +88,7 @@ tool_main(int argc, char* argv[])
       return EXIT_FAILURE;
     }
 
-    pipeline_builder builder;
+    sprokit::pipeline_builder builder;
 
     builder.load_from_options(vm);
     sprokit::config_t const conf = builder.config();
@@ -132,7 +132,7 @@ tool_main(int argc, char* argv[])
   }
   else if (have_pipeline)
   {
-    pipeline_builder const builder(vm, desc);
+    sprokit::pipeline_builder const builder(vm, desc);
 
     pipe = builder.pipeline();
 

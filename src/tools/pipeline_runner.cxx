@@ -4,9 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "helpers/pipeline_builder.h"
 #include "helpers/tool_main.h"
 
+#include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline_util/path.h>
@@ -33,13 +33,13 @@ tool_main(int argc, char* argv[])
   boost::program_options::options_description desc;
   desc
     .add(sprokit::tool_common_options())
-    .add(pipeline_common_options())
-    .add(pipeline_input_options())
-    .add(pipeline_run_options());
+    .add(sprokit::pipeline_common_options())
+    .add(sprokit::pipeline_input_options())
+    .add(sprokit::pipeline_run_options());
 
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
 
-  pipeline_builder const builder(vm, desc);
+  sprokit::pipeline_builder const builder(vm, desc);
 
   sprokit::pipeline_t const pipe = builder.pipeline();
   sprokit::config_t const conf = builder.config();
