@@ -1,6 +1,13 @@
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+set(sprokit_fix_source_dir "${CMAKE_CURRENT_SOURCE_DIR}")
+set(sprokit_fix_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
+
+if (SPROKIT_ENABLE_PYTHON)
+  include("${CMAKE_CURRENT_SOURCE_DIR}/fixes/python.cmake")
+endif ()
+
 add_subdirectory(sprokit)
 
 option(SPROKIT_ENABLE_TOOLS "Build tools" ON)

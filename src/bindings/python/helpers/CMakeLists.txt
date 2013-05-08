@@ -9,10 +9,7 @@ function (add_python_helper_library name)
   sprokit_private_header_group(${name}.h)
   sprokit_add_helper_library(${name} helper_sources
     ${ARGN})
-  if (boost_header_targets)
-    add_dependencies(${name}
-      ${boost_header_targets})
-  endif (boost_header_targets)
+  sprokit_require_python_fixes(${name})
 endfunction ()
 
 add_python_helper_library(python_exceptions
