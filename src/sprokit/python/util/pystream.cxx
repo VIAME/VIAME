@@ -1,12 +1,12 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
 #include "pystream.h"
 
-#include <sprokit/python/util/python_gil.h>
+#include "python_gil.h"
 
 #include <boost/python/extract.hpp>
 #include <boost/python/str.hpp>
@@ -15,6 +15,12 @@
 #include <string>
 
 #include <cstddef>
+
+namespace sprokit
+{
+
+namespace python
+{
 
 pyistream_device
 ::pyistream_device(boost::python::object const& obj)
@@ -31,7 +37,7 @@ std::streamsize
 pyistream_device
 ::read(char_type* s, std::streamsize n)
 {
-  sprokit::python::python_gil const gil;
+  python::python_gil const gil;
 
   (void)gil;
 
@@ -68,7 +74,7 @@ std::streamsize
 pyostream_device
 ::write(char_type const* s, std::streamsize n)
 {
-  sprokit::python::python_gil const gil;
+  python::python_gil const gil;
 
   (void)gil;
 
@@ -77,4 +83,8 @@ pyostream_device
   m_obj.attr("write")(bytes);
 
   return n;
+}
+
+}
+
 }

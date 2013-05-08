@@ -1,11 +1,13 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef SPROKIT_PYTHON_HELPERS_PYSTREAM_H
-#define SPROKIT_PYTHON_HELPERS_PYSTREAM_H
+#ifndef SPROKIT_PYTHON_UTIL_PYSTREAM_H
+#define SPROKIT_PYTHON_UTIL_PYSTREAM_H
+
+#include "util-config.h"
 
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -13,7 +15,13 @@
 
 #include <iostream>
 
-class pyistream_device
+namespace sprokit
+{
+
+namespace python
+{
+
+class SPROKIT_PYTHON_UTIL_EXPORT pyistream_device
   : public boost::iostreams::source
 {
   public:
@@ -27,7 +35,7 @@ class pyistream_device
 
 typedef boost::iostreams::stream<pyistream_device> pyistream;
 
-class pyostream_device
+class SPROKIT_PYTHON_UTIL_EXPORT pyostream_device
   : public boost::iostreams::sink
 {
   public:
@@ -41,4 +49,8 @@ class pyostream_device
 
 typedef boost::iostreams::stream<pyostream_device> pyostream;
 
-#endif // SPROKIT_PYTHON_HELPERS_PYSTREAM_H
+}
+
+}
+
+#endif // SPROKIT_PYTHON_UTIL_PYSTREAM_H

@@ -4,7 +4,6 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/pystream.h>
 #include <python/helpers/python_convert_optional.h>
 
 #include <sprokit/pipeline_util/load_pipe.h>
@@ -14,6 +13,7 @@
 
 #include <sprokit/pipeline/process.h>
 
+#include <sprokit/python/util/pystream.h>
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -354,7 +354,7 @@ load_pipe_file(std::string const& path)
 sprokit::pipe_blocks
 load_pipe(object const& stream, std::string const& inc_root)
 {
-  pyistream istr(stream);
+  sprokit::python::pyistream istr(stream);
 
   return sprokit::load_pipe_blocks(istr, sprokit::path_t(inc_root));
 }
@@ -368,7 +368,7 @@ load_cluster_file(std::string const& path)
 sprokit::cluster_blocks
 load_cluster(object const& stream, std::string const& inc_root)
 {
-  pyistream istr(stream);
+  sprokit::python::pyistream istr(stream);
 
   return sprokit::load_cluster_blocks(istr, sprokit::path_t(inc_root));
 }

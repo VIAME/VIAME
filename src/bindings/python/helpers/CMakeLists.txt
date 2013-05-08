@@ -15,12 +15,5 @@ endfunction ()
 add_python_helper_library(python_exceptions
   ${PYTHON_LIBRARIES})
 
-add_python_helper_library(pystream
-  sprokit_python_util
-  ${Boost_IOSTREAMS_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  ${${boost_python_library_var}}
-  ${PYTHON_LIBRARIES})
-
 add_python_helper_library(python_threading
   ${PYTHON_LIBRARIES})

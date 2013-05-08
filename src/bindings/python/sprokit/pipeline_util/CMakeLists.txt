@@ -8,7 +8,6 @@ target_link_libraries(python-sprokit.pipeline_util-bake
     sprokit_pipeline
     sprokit_pipeline_util
     sprokit_python_util
-    pystream
     ${Boost_IOSTREAMS_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${${boost_python_library_var}}
@@ -22,7 +21,6 @@ target_link_libraries(python-sprokit.pipeline_util-export_
     sprokit_pipeline
     sprokit_pipeline_util
     sprokit_python_util
-    pystream
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
@@ -34,7 +32,6 @@ target_link_libraries(python-sprokit.pipeline_util-load
     sprokit_pipeline
     sprokit_pipeline_util
     sprokit_python_util
-    pystream
     ${Boost_IOSTREAMS_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${${boost_python_library_var}}

@@ -12,6 +12,7 @@ set(boost_python_library_var
 
 find_package(Boost ${sprokit_boost_version} REQUIRED
   COMPONENTS
+    iostreams
     ${boost_python_library})
 
 find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
