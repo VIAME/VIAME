@@ -2,19 +2,21 @@
 # The following functions are defined:
 #
 #   sprokit_configure_file
-#   sprokit_configure_pkgconfig
+#   sprokit_configure_directory
 #
 # Their syntax is:
 #
 #   sprokit_configure_file(name source dest [variable ...])
-#     The first argument is the name of the file being configured. The next two
-#     parameters are the source and destination paths of the file to be
-#     configured. Any variables that need to be replaced in the file should be
-#     passed as extra arguments. The file will be added to the list of files to
-#     be cleaned.
+#     The first argument is the name of the file being configured. The
+#     next two parameters are the source and destination paths of the file to
+#     be configured. Any variables that need to be replaced in the file
+#     should be passed as extra arguments. The file will be added to the
+#     list of files to be cleaned.
 #
-#   sprokit_configure_pkgconfig(module)
-#     A convenience function for creating pkgconfig files.
+#   sprokit_configure_directory(name sourcedir destdir)
+#     Configures an entire directory from ${sourcedir} into ${destdir}. Add
+#     a dependency on the configure-${name} to ensure that it is complete
+#     before another target.
 
 add_custom_target(configure ALL)
 

@@ -8,6 +8,9 @@
 #   sprokit_private_header_group
 #   sprokit_private_template_group
 #   sprokit_install_headers
+#   sprokit_install_pipelines
+#   sprokit_install_clusters
+#   sprokit_install_includes
 #   sprokit_add_helper_library
 #   sprokit_add_helper_library_sources
 #
@@ -61,6 +64,12 @@
 #   sprokit_install_headers(subdir [header ...])
 #     Installs the headers stored in the variable under a subdirectory. Headers
 #     are always installed under the 'development' component.
+#
+#   sprokit_install_pipelines([pipeline ...])
+#   sprokit_install_clusters([cluster ...])
+#   sprokit_install_includes([include ...])
+#     Install pipeline files into the correct
+#     location.
 #
 #   sprokit_add_helper_library(name sourcevar [library ...])
 #     Adds a static library which contains code shared between separate
@@ -221,6 +230,27 @@ function (sprokit_install_headers subdir)
     FILES       ${ARGN}
     DESTINATION "include/${subdir}"
     COMPONENT   development)
+endfunction ()
+
+function (sprokit_install_pipelines)
+  sprokit_install(
+    FILES       ${ARGN}
+    DESTINATION share/sprokit/pipelines
+    COMPONENT   pipeline)
+endfunction ()
+
+function (sprokit_install_clusters)
+  sprokit_install(
+    FILES       ${ARGN}
+    DESTINATION share/sprokit/pipelines/clusters
+    COMPONENT   pipeline)
+endfunction ()
+
+function (sprokit_install_includes)
+  sprokit_install(
+    FILES       ${ARGN}
+    DESTINATION share/sprokit/pipelines/include
+    COMPONENT   pipeline)
 endfunction ()
 
 function (sprokit_add_helper_library name sources)
