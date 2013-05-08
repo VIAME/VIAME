@@ -64,6 +64,7 @@ file(WRITE "${sprokit_macros_file}"
 
 set(macro_files
   configure
+  fixes
   targets
   tests)
 
