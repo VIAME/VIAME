@@ -8,8 +8,10 @@ set(tools_srcs
   tool_usage.cxx)
 
 set(tools_headers
+  literal_pipeline.h
   pipeline_builder.h
   tool_io.h
+  tool_main.h
   tool_usage.h
   tools-config.h)
 

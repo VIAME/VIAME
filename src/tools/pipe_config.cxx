@@ -4,10 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "helpers/tool_main.h"
-
 #include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/tools/tool_io.h>
+#include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline_util/path.h>
@@ -64,7 +63,7 @@ class config_printer
 };
 
 int
-tool_main(int argc, char* argv[])
+sprokit_tool_main(int argc, char* argv[])
 {
   sprokit::load_known_modules();
 

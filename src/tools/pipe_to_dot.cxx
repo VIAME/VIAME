@@ -4,10 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "helpers/tool_main.h"
-
 #include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/tools/tool_io.h>
+#include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline_util/export_dot.h>
@@ -35,7 +34,7 @@ static boost::program_options::options_description pipe_to_dot_cluster_options()
 static boost::program_options::options_description pipe_to_dot_pipeline_options();
 
 int
-tool_main(int argc, char* argv[])
+sprokit_tool_main(int argc, char* argv[])
 {
   sprokit::load_known_modules();
 

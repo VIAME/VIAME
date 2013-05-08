@@ -4,17 +4,16 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef SPROKIT_TOOLS_HELPERS_TOOL_MAIN_H
-#define SPROKIT_TOOLS_HELPERS_TOOL_MAIN_H
+// No include guard since this file is meant to be included only once.
 
 static int sprokit_main(int argc, char* argv[]);
 
-#define tool_main                                               \
+#define sprokit_tool_main                                       \
 main(int argc, char* argv[])                                    \
 {                                                               \
   try                                                           \
   {                                                             \
-    return sprokit_main(argc, argv);                              \
+    return sprokit_main(argc, argv);                            \
   }                                                             \
   catch (std::exception const& e)                               \
   {                                                             \
@@ -32,5 +31,3 @@ main(int argc, char* argv[])                                    \
                                                                 \
 int                                                             \
 sprokit_main
-
-#endif // SPROKIT_TOOLS_HELPERS_TOOL_MAIN_H

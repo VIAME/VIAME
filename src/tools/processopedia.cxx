@@ -4,8 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "helpers/tool_main.h"
-
+#include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline/config.h>
@@ -30,7 +29,7 @@ static std::string const hidden_prefix = "_";
 static boost::program_options::options_description processopedia_options();
 
 int
-tool_main(int argc, char* argv[])
+sprokit_tool_main(int argc, char* argv[])
 {
   sprokit::load_known_modules();
 
