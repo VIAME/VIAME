@@ -12,7 +12,6 @@
 #   sprokit_install_clusters
 #   sprokit_install_includes
 #   sprokit_add_helper_library
-#   sprokit_add_helper_library_sources
 #
 # The following variables may be used to control the behavior of the functions:
 #
@@ -54,6 +53,9 @@
 #     is installed. Additionally, the 'library_subdir' variable can be set to
 #     put the library in the correct place on DLL systems (see the CMake
 #     documentation on LIBRARY_OUTPUT_DIRECTORY).
+#
+#   sprokit_add_plugin(name define [source ...])
+#     Creates a plugin for sprokit and installs it to the correct directory.
 #
 #   sprokit_private_header_group([source ...])
 #   sprokit_private_template_group([source ...])
