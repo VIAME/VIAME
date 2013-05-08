@@ -92,7 +92,7 @@ function (sprokit_add_test name instance)
   if (sprokit_test_environment)
     set_tests_properties(test-${name}-${instance}
       PROPERTIES
-        ENVIRONMENT ${sprokit_test_environment})
+        ENVIRONMENT "${sprokit_test_environment}")
   endif ()
   if (SPROKIT_TEST_ADD_TARGETS)
     add_custom_target(test-${name}-${instance})
