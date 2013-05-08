@@ -6,9 +6,8 @@
 
 #include "pipeline_builder.h"
 
-#include "tool_usage.h"
-
 #include <sprokit/tools/tool_io.h>
+#include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline_util/load_pipe.h>
 #include <sprokit/pipeline_util/path.h>
@@ -47,7 +46,7 @@ pipeline_builder
   {
     std::cerr << "Error: pipeline not set" << std::endl;
 
-    tool_usage(EXIT_FAILURE, desc);
+    sprokit::tool_usage(EXIT_FAILURE, desc);
   }
 
   {

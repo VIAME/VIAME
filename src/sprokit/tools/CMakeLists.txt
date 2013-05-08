@@ -3,16 +3,20 @@ project(sprokit_tools)
 sprokit_use_tools_fixes()
 
 set(tools_srcs
-  tool_io.cxx)
+  tool_io.cxx
+  tool_usage.cxx)
 
 set(tools_headers
   tool_io.h
+  tool_usage.h
   tools-config.h)
 
 sprokit_add_library(sprokit_tools
   ${tools_srcs}
   ${tools_headers})
 target_link_libraries(sprokit_tools
+  LINK_PUBLIC
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
   LINK_PRIVATE
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY})

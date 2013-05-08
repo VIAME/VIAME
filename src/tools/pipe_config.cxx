@@ -6,9 +6,9 @@
 
 #include "helpers/pipeline_builder.h"
 #include "helpers/tool_main.h"
-#include "helpers/tool_usage.h"
 
 #include <sprokit/tools/tool_io.h>
+#include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
@@ -70,12 +70,12 @@ tool_main(int argc, char* argv[])
 
   boost::program_options::options_description desc;
   desc
-    .add(tool_common_options())
+    .add(sprokit::tool_common_options())
     .add(pipeline_common_options())
     .add(pipeline_input_options())
     .add(pipeline_output_options());
 
-  boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
 
   pipeline_builder const builder(vm, desc);
 

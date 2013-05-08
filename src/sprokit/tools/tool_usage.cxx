@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -14,6 +14,9 @@
 
 #include <cstdlib>
 
+namespace sprokit
+{
+
 void
 tool_usage(int ret, boost::program_options::options_description const& options)
 {
@@ -27,28 +30,20 @@ tool_version_message()
 {
   std::cout << "sprokit " SPROKIT_VERSION_FULL << std::endl;
   std::cout << "Built with sprokit: " SPROKIT_VERSION << std::endl;
-  std::cout << "Built from git:   "
+  std::cout << "Built from git:     "
 #ifdef SPROKIT_BUILT_FROM_GIT
     "yes"
 #else
     "no"
 #endif
     << std::endl;
-  std::cout << "Git hash:         " SPROKIT_GIT_HASH << std::endl;
+  std::cout << "Git hash:           " SPROKIT_GIT_HASH << std::endl;
 
   char const* const dirty = SPROKIT_GIT_DIRTY;
   bool const dirty_is_empty = (*dirty == '\0');
+  char const* const is_dirty = (dirty_is_empty ? "no" : "yes");
 
-  std::cout << "Dirty:            ";
-
-  if (dirty_is_empty)
-  {
-    std::cout << "no" << std::endl;
-  }
-  else
-  {
-    std::cout << "yes" << std::endl;
-  }
+  std::cout << "Dirty:              " << is_dirty << std::endl;
 }
 
 boost::program_options::options_description
@@ -97,4 +92,6 @@ tool_parse(int argc, char* argv[], boost::program_options::options_description c
   }
 
   return vm;
+}
+
 }

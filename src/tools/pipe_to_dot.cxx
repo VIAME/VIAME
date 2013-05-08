@@ -6,9 +6,9 @@
 
 #include "helpers/pipeline_builder.h"
 #include "helpers/tool_main.h"
-#include "helpers/tool_usage.h"
 
 #include <sprokit/tools/tool_io.h>
+#include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/path.h>
@@ -41,14 +41,14 @@ tool_main(int argc, char* argv[])
 
   boost::program_options::options_description desc;
   desc
-    .add(tool_common_options())
+    .add(sprokit::tool_common_options())
     .add(pipeline_common_options())
     .add(pipeline_input_options())
     .add(pipe_to_dot_cluster_options())
     .add(pipeline_output_options())
     .add(pipe_to_dot_pipeline_options());
 
-  boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
 
   sprokit::process_cluster_t cluster;
   sprokit::pipeline_t pipe;
@@ -148,7 +148,7 @@ tool_main(int argc, char* argv[])
     std::cerr << "Error: One of \'cluster\', \'cluster-type\', or "
                  "\'pipeline\' must be specified" << std::endl;
 
-    tool_usage(EXIT_FAILURE, desc);
+    sprokit::tool_usage(EXIT_FAILURE, desc);
   }
 
   // Make sure we have one, but not both.

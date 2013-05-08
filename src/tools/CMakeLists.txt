@@ -2,10 +2,6 @@ project(sprokit_tools)
 
 add_subdirectory(pipelines)
 
-find_package(Boost ${sprokit_boost_version} REQUIRED
-  COMPONENTS
-    program_options)
-
 sprokit_use_tools_fixes()
 
 add_subdirectory(helpers)
@@ -37,7 +33,6 @@ endfunction ()
 
 add_tool(pipe_config
   pipeline_builder
-  tool_usage
   sprokit_tools
   sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
@@ -46,7 +41,6 @@ add_tool(pipe_config
 
 add_tool(pipe_to_dot
   pipeline_builder
-  tool_usage
   sprokit_tools
   sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
@@ -55,14 +49,14 @@ add_tool(pipe_to_dot
 
 add_tool(pipeline_runner
   pipeline_builder
-  tool_usage
+  sprokit_tools
   sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
 add_tool(processopedia
-  tool_usage
+  sprokit_tools
   sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}

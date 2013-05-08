@@ -10,14 +10,7 @@ function (add_tool_helper_library name)
   sprokit_require_tools_fixes(${name})
 endfunction ()
 
-add_tool_helper_library(tool_usage
-  ${Boost_PROGRAM_OPTIONS_LIBRARY})
-
-add_dependencies(tool_usage
-  configure-version.h)
-
 add_tool_helper_library(pipeline_builder
-  tool_usage
   sprokit_tools
   sprokit_pipeline_util
   sprokit_pipeline

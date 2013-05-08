@@ -20,6 +20,7 @@ find_package(Boost ${sprokit_boost_version} REQUIRED
     chrono
     date_time
     filesystem
+    program_options
     system
     thread)
 
