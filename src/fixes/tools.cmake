@@ -6,7 +6,7 @@ mark_as_advanced(SPROKIT_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
 if (SPROKIT_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
   if (Boost_VERSION LESS 105000)
     # Override Boost's value_semantic.hpp
-    set(reldir "fixes/value_name")
+    set(reldir "value_name")
     set(target_name "boost-program_options-value_semantic.hpp")
     sprokit_configure_directory(${target_name}
       "${sprokit_fix_source_dir}/${reldir}/boost"

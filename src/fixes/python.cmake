@@ -7,7 +7,7 @@ if (SPROKIT_ENABLE_BOOST_PYTHON_FIXES)
   # Not fixed yet.
   #if (Boost_VERSION LESS 10XX00)
     # Override Boost's invoke.hpp
-    set(__sprokit_reldir "fixes/threading")
+    set(__sprokit_reldir "threading")
     set(__sprokit_target_name "boost-python-invoke.hpp")
     sprokit_configure_directory(${__sprokit_target_name}
       "${sprokit_fix_source_dir}/${__sprokit_reldir}/boost"
@@ -22,7 +22,7 @@ if (SPROKIT_ENABLE_BOOST_PYTHON_FIXES)
   # Not fixed yet.
   #if (Boost_VERSION LESS 10XX00)
     # Override Boost's override.hpp
-    set(__sprokit_reldir "fixes/exceptions_in_override")
+    set(__sprokit_reldir "exceptions_in_override")
     set(__sprokit_target_name "boost-python-override.hpp")
     sprokit_configure_directory(${__sprokit_target_name}
       "${sprokit_fix_source_dir}/${__sprokit_reldir}/boost"
