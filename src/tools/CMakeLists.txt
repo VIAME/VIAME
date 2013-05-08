@@ -37,8 +37,8 @@ endfunction ()
 
 add_tool(pipe_config
   pipeline_builder
-  tool_io
   tool_usage
+  sprokit_tools
   sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
@@ -46,8 +46,8 @@ add_tool(pipe_config
 
 add_tool(pipe_to_dot
   pipeline_builder
-  tool_io
   tool_usage
+  sprokit_tools
   sprokit_pipeline
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}

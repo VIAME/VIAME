@@ -6,8 +6,9 @@
 
 #include "pipeline_builder.h"
 
-#include "tool_io.h"
 #include "tool_usage.h"
+
+#include <sprokit/tools/tool_io.h>
 
 #include <sprokit/pipeline_util/load_pipe.h>
 #include <sprokit/pipeline_util/path.h>
@@ -52,7 +53,7 @@ pipeline_builder
   {
     sprokit::path_t const ipath = vm["pipeline"].as<sprokit::path_t>();
 
-    istream_t const istr = open_istream(ipath);
+    sprokit::istream_t const istr = sprokit::open_istream(ipath);
 
     /// \todo Include paths?
 

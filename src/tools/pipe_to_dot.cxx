@@ -5,9 +5,10 @@
  */
 
 #include "helpers/pipeline_builder.h"
-#include "helpers/tool_io.h"
 #include "helpers/tool_main.h"
 #include "helpers/tool_usage.h"
+
+#include <sprokit/tools/tool_io.h>
 
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/path.h>
@@ -96,7 +97,7 @@ tool_main(int argc, char* argv[])
     {
       sprokit::path_t const ipath = vm["cluster"].as<sprokit::path_t>();
 
-      istream_t const istr = open_istream(ipath);
+      sprokit::istream_t const istr = sprokit::open_istream(ipath);
 
       sprokit::cluster_info_t const info = sprokit::bake_cluster(*istr);
 
@@ -160,7 +161,7 @@ tool_main(int argc, char* argv[])
 
   sprokit::path_t const opath = vm["output"].as<sprokit::path_t>();
 
-  ostream_t const ostr = open_ostream(opath);
+  sprokit::ostream_t const ostr = sprokit::open_ostream(opath);
 
   if (cluster)
   {

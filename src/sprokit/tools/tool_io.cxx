@@ -10,6 +10,9 @@
 
 #include <iostream>
 
+namespace sprokit
+{
+
 namespace
 {
 
@@ -73,4 +76,6 @@ void
 std_stream_dtor(void* /*ptr*/)
 {
   // We don't want to delete std::cin or std::cout.
+}
+
 }
