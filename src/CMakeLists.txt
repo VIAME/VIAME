@@ -7,6 +7,7 @@ set(sprokit_fix_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 if (SPROKIT_ENABLE_PYTHON)
   include("${CMAKE_CURRENT_SOURCE_DIR}/fixes/python.cmake")
 endif ()
+include("${CMAKE_CURRENT_SOURCE_DIR}/fixes/tools.cmake")
 
 add_subdirectory(sprokit)
 

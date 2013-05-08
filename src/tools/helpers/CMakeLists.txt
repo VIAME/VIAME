@@ -7,10 +7,7 @@ function (add_tool_helper_library name)
   sprokit_private_header_group(${name}.h)
   sprokit_add_helper_library(${name} tool_sources
     ${ARGN})
-  if (boost_header_targets)
-    add_dependencies(${name}
-      ${boost_header_targets})
-  endif ()
+  sprokit_require_tools_fixes(${name})
 endfunction ()
 
 add_tool_helper_library(tool_usage

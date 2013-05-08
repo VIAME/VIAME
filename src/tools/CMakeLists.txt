@@ -6,27 +6,7 @@ find_package(Boost ${sprokit_boost_version} REQUIRED
   COMPONENTS
     program_options)
 
-set(boost_header_targets)
-
-option(SPROKIT_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES "Enables fixes for boost::program_options bugs (recommended)" ON)
-mark_as_advanced(SPROKIT_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
-if (SPROKIT_ENABLE_BOOST_PROGRAM_OPTIONS_FIXES)
-  if (Boost_VERSION LESS 105000)
-    # Override Boost's value_semantic.hpp
-    set(reldir "helpers/include/value_name")
-    set(target_name "boost-program_options-value_semantic.hpp")
-    sprokit_configure_directory(${target_name}
-      "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
-      "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
-    if (NOT BOOST_MANGLE_NAMESPACE STREQUAL "boost")
-      include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}")
-    endif ()
-    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_BINARY_DIR}/${reldir}")
-    set(boost_header_targets
-      ${boost_header_targets}
-      ${target_name})
-  endif ()
-endif ()
+sprokit_use_tools_fixes()
 
 add_subdirectory(helpers)
 
@@ -38,10 +18,7 @@ function (add_tool name)
   target_link_libraries(${name}
     LINK_PRIVATE
       ${ARGN})
-  if (boost_header_targets)
-    add_dependencies(${name}
-      ${boost_header_targets})
-  endif (boost_header_targets)
+  sprokit_require_tools_fixes(${name})
 endfunction ()
 
 function (add_python_tool name)
