@@ -16,7 +16,7 @@ set(flow_private_headers
   sink_process.h)
 
 sprokit_private_header_group(${flow_private_headers})
-add_sprokit_plugin(processes_flow
+sprokit_add_plugin(processes_flow
   MAKE_SPROKIT_PROCESSES_FLOW_LIB
   ${flow_srcs}
   ${flow_private_headers})

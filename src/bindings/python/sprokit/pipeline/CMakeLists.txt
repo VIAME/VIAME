@@ -1,6 +1,6 @@
 project(sprokit_python_sprokit_pipeline)
 
-add_sprokit_python_library(config
+_sprokit_add_python_library(config
   sprokit/pipeline
   config.cxx)
 target_link_libraries(python-sprokit.pipeline-config
@@ -10,7 +10,7 @@ target_link_libraries(python-sprokit.pipeline-config
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(datum
+_sprokit_add_python_library(datum
   sprokit/pipeline
   datum.cxx)
 target_link_libraries(python-sprokit.pipeline-datum
@@ -21,7 +21,7 @@ target_link_libraries(python-sprokit.pipeline-datum
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(edge
+_sprokit_add_python_library(edge
   sprokit/pipeline
   edge.cxx)
 target_link_libraries(python-sprokit.pipeline-edge
@@ -31,7 +31,7 @@ target_link_libraries(python-sprokit.pipeline-edge
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(modules
+_sprokit_add_python_library(modules
   sprokit/pipeline
   modules.cxx)
 target_link_libraries(python-sprokit.pipeline-modules
@@ -41,7 +41,7 @@ target_link_libraries(python-sprokit.pipeline-modules
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(pipeline
+_sprokit_add_python_library(pipeline
   sprokit/pipeline
   pipeline.cxx)
 target_link_libraries(python-sprokit.pipeline-pipeline
@@ -51,63 +51,57 @@ target_link_libraries(python-sprokit.pipeline-pipeline
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(process
+_sprokit_add_python_library(process
   sprokit/pipeline
   process.cxx)
 target_link_libraries(python-sprokit.pipeline-process
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(process_cluster
+_sprokit_add_python_library(process_cluster
   sprokit/pipeline
   process_cluster.cxx)
 target_link_libraries(python-sprokit.pipeline-process_cluster
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(process_registry
+_sprokit_add_python_library(process_registry
   sprokit/pipeline
   process_registry.cxx)
 target_link_libraries(python-sprokit.pipeline-process_registry
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
-    python_threading
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(scheduler
+_sprokit_add_python_library(scheduler
   sprokit/pipeline
   scheduler.cxx)
 target_link_libraries(python-sprokit.pipeline-scheduler
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(scheduler_registry
+_sprokit_add_python_library(scheduler_registry
   sprokit/pipeline
   scheduler_registry.cxx)
 target_link_libraries(python-sprokit.pipeline-scheduler_registry
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_threading
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(stamp
+_sprokit_add_python_library(stamp
   sprokit/pipeline
   stamp.cxx)
 target_link_libraries(python-sprokit.pipeline-stamp
@@ -117,7 +111,7 @@ target_link_libraries(python-sprokit.pipeline-stamp
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(utils
+_sprokit_add_python_library(utils
   sprokit/pipeline
   utils.cxx)
 target_link_libraries(python-sprokit.pipeline-utils
@@ -127,7 +121,7 @@ target_link_libraries(python-sprokit.pipeline-utils
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_sprokit_python_library(version
+_sprokit_add_python_library(version
   sprokit/pipeline
   version.cxx)
 target_link_libraries(python-sprokit.pipeline-version
@@ -137,7 +131,7 @@ target_link_libraries(python-sprokit.pipeline-version
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-make_python_init_file(sprokit/pipeline)
+sprokit_create_python_init(sprokit/pipeline)
 #  config
 #  datum
 #  edge

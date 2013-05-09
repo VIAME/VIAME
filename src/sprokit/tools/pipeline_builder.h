@@ -1,11 +1,13 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef SPROKIT_TOOLS_HELPERS_PIPELINE_BUILDER_H
-#define SPROKIT_TOOLS_HELPERS_PIPELINE_BUILDER_H
+#ifndef SPROKIT_TOOLS_PIPELINE_BUILDER_H
+#define SPROKIT_TOOLS_PIPELINE_BUILDER_H
+
+#include "tools-config.h"
 
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
@@ -14,11 +16,16 @@
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
+#include <boost/noncopyable.hpp>
 
 #include <istream>
 #include <string>
 
-class pipeline_builder
+namespace sprokit
+{
+
+class SPROKIT_TOOLS_EXPORT pipeline_builder
+  : boost::noncopyable
 {
   public:
     pipeline_builder(boost::program_options::variables_map const& vm, boost::program_options::options_description const& desc);
@@ -39,9 +46,11 @@ class pipeline_builder
     sprokit::pipe_blocks m_blocks;
 };
 
-boost::program_options::options_description pipeline_common_options();
-boost::program_options::options_description pipeline_input_options();
-boost::program_options::options_description pipeline_output_options();
-boost::program_options::options_description pipeline_run_options();
+SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_common_options();
+SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_input_options();
+SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_output_options();
+SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_run_options();
 
-#endif // SPROKIT_TOOLS_HELPERS_PIPELINE_BUILDER_H
+}
+
+#endif // SPROKIT_TOOLS_PIPELINE_BUILDER_H

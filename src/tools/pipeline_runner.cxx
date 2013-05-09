@@ -1,12 +1,12 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "helpers/pipeline_builder.h"
-#include "helpers/tool_main.h"
-#include "helpers/tool_usage.h"
+#include <sprokit/tools/pipeline_builder.h>
+#include <sprokit/tools/tool_main.h>
+#include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline_util/path.h>
 
@@ -25,20 +25,20 @@
 static sprokit::config::key_t const scheduler_block = sprokit::config::key_t("_scheduler");
 
 int
-tool_main(int argc, char* argv[])
+sprokit_tool_main(int argc, char const* argv[])
 {
   sprokit::load_known_modules();
 
   boost::program_options::options_description desc;
   desc
-    .add(tool_common_options())
-    .add(pipeline_common_options())
-    .add(pipeline_input_options())
-    .add(pipeline_run_options());
+    .add(sprokit::tool_common_options())
+    .add(sprokit::pipeline_common_options())
+    .add(sprokit::pipeline_input_options())
+    .add(sprokit::pipeline_run_options());
 
-  boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
 
-  pipeline_builder const builder(vm, desc);
+  sprokit::pipeline_builder const builder(vm, desc);
 
   sprokit::pipeline_t const pipe = builder.pipeline();
   sprokit::config_t const conf = builder.config();

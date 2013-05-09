@@ -4,10 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef SPROKIT_PYTHON_HELPERS_SET_INDEXING_SUITE_H
-#define SPROKIT_PYTHON_HELPERS_SET_INDEXING_SUITE_H
+#ifndef SPROKIT_PYTHON_UTIL_SET_INDEXING_SUITE_H
+#define SPROKIT_PYTHON_UTIL_SET_INDEXING_SUITE_H
 
-#include <sprokit/python/util/python_gil.h>
+#include "python_gil.h"
 
 #include <boost/python/suite/indexing/indexing_suite.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -338,4 +338,4 @@ class set_indexing_suite
 
 }
 
-#endif // SPROKIT_PYTHON_HELPERS_SET_INDEXING_SUITE_H
+#endif // SPROKIT_PYTHON_UTIL_SET_INDEXING_SUITE_H

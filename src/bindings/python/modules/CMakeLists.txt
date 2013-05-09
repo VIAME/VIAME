@@ -8,7 +8,7 @@ set(modules_python_private_headers
   registration.h)
 
 sprokit_private_header_group(${modules_python_private_headers})
-add_sprokit_plugin(modules_python
+sprokit_add_plugin(modules_python
   MAKE_SPROKIT_MODULES_PYTHON_LIB
   ${modules_python_srcs}
   ${modules_python_private_headers})
@@ -16,11 +16,10 @@ target_link_libraries(modules_python
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_python_util
-    python_exceptions
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-add_python_module(modules.py
+sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/modules.py
   sprokit/modules
   modules)
 
@@ -40,15 +39,15 @@ endif ()
 
 option(SPROKIT_ASSUME_STRAIGHT_PLUGIN "Assume the straight.plugin Python module exists (needs >= 1.3.1)" ${default_have_straight})
 if (NOT SPROKIT_ASSUME_STRAIGHT_PLUGIN)
-  add_python_module(loaders.py
+  sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/loaders.py
     sprokit/modules
     loaders)
 endif ()
 
-make_python_init_file(sprokit/modules)
+sprokit_create_python_init(sprokit/modules)
 #  modules)
 
 set (python_both_arch TRUE)
 
-make_python_plugin_init_file(sprokit/processes)
-make_python_plugin_init_file(sprokit/schedulers)
+sprokit_create_python_plugin_init(sprokit/processes)
+sprokit_create_python_plugin_init(sprokit/schedulers)

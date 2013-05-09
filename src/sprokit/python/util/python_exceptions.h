@@ -4,41 +4,49 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef SPROKIT_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H
-#define SPROKIT_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H
+#ifndef SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
+#define SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
+
+#include "util-config.h"
+
+namespace sprokit
+{
+
+namespace python
+{
 
 /// \todo More useful output?
 
-#define HANDLE_PYTHON_EXCEPTION(call)             \
+#define SPROKIT_PYTHON_HANDLE_EXCEPTION(call)     \
   try                                             \
   {                                               \
     call;                                         \
   }                                               \
   catch (boost::python::error_already_set const&) \
   {                                               \
-    python_print_exception();                     \
+    sprokit::python::python_print_exception();    \
                                                   \
     throw;                                        \
   }
 
-#define HANDLE_PYTHON_EXCEPTION_IGNORE(call)       \
+#define SPROKIT_PYTHON_IGNORE_EXCEPTION(call)      \
   try                                              \
   {                                                \
     call;                                          \
   }                                                \
   catch (boost::python::error_already_set const&)  \
   {                                                \
-    python_print_exception();                      \
+    sprokit::python::python_print_exception();     \
   }
 
-#define TRANSLATE_PYTHON_EXCEPTION(call)           \
+#define SPROKIT_PYTHON_TRANSLATE_EXCEPTION(call)   \
   try                                              \
   {                                                \
     call;                                          \
   }                                                \
   catch (std::exception const& e)                  \
   {                                                \
-    sprokit::python::python_gil const gil;           \
+    sprokit::python::python_gil const gil;         \
                                                    \
     (void)gil;                                     \
                                                    \
@@ -47,6 +55,10 @@
     throw;                                         \
   }
 
-void python_print_exception();
+SPROKIT_PYTHON_UTIL_EXPORT void python_print_exception();
 
-#endif // SPROKIT_PYTHON_HELPERS_PYTHON_EXCEPTIONS_H
+}
+
+}
+
+#endif // SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H

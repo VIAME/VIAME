@@ -12,6 +12,7 @@ set(boost_python_library_var
 
 find_package(Boost ${sprokit_boost_version} REQUIRED
   COMPONENTS
+    iostreams
     ${boost_python_library})
 
 find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
@@ -22,6 +23,6 @@ find_package(PythonInterp ${PYTHON_VERSION})
 add_subdirectory(util)
 add_subdirectory(any_conversion)
 
-create_doxygen(
+sprokit_create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   python)

@@ -14,7 +14,7 @@ set(examples_private_headers
   thread_pool_scheduler.h)
 
 sprokit_private_header_group(${examples_private_headers})
-add_sprokit_plugin(schedulers_examples
+sprokit_add_plugin(schedulers_examples
   MAKE_SPROKIT_SCHEDULERS_EXAMPLES_LIB
   ${examples_srcs}
   ${examples_private_headers})

@@ -1,20 +1,33 @@
 project(sprokit_python_util)
 
 set(python_util_srcs
+  pystream.cxx
   python_allow_threads.cxx
-  python_gil.cxx)
+  python_exceptions.cxx
+  python_gil.cxx
+  python_threading.cxx)
 
 set(python_util_headers
-  util-config.h
+  pystream.h
   python_allow_threads.h
-  python_gil.h)
+  python_convert_optional.h
+  python_exceptions.h
+  python_gil.h
+  python_threading.h
+  python_wrap_const_shared_ptr.h
+  set_indexing_suite.h
+  util-config.h)
 
 sprokit_add_library(sprokit_python_util
   ${python_util_srcs}
   ${python_util_headers})
 target_link_libraries(sprokit_python_util
   LINK_PUBLIC
-    ${PYTHON_LIBRARIES})
+    ${${boost_python_library_var}}
+    ${PYTHON_LIBRARIES}
+  LINK_PRIVATE
+    ${Boost_IOSTREAMS_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY})
 set_target_properties(sprokit_python_util
   PROPERTIES
     VERSION       ${sprokit_version}

@@ -4,8 +4,6 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/pystream.h>
-
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
 #include <sprokit/pipeline_util/pipe_bakery_exception.h>
@@ -13,6 +11,7 @@
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process_registry.h>
 
+#include <sprokit/python/util/pystream.h>
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/class.hpp>
@@ -142,7 +141,7 @@ bake_pipe(object stream, std::string const& inc_root)
 
   (void)gil;
 
-  pyistream istr(stream);
+  sprokit::python::pyistream istr(stream);
 
   return sprokit::bake_pipe(istr, sprokit::path_t(inc_root));
 }
@@ -160,7 +159,7 @@ bake_cluster(object stream, std::string const& inc_root)
 
   (void)gil;
 
-  pyistream istr(stream);
+  sprokit::python::pyistream istr(stream);
 
   return sprokit::bake_cluster(istr, sprokit::path_t(inc_root));
 }

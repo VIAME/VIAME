@@ -4,13 +4,12 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/python_exceptions.h>
-#include <python/helpers/python_threading.h>
-
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_registry.h>
 
+#include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
+#include <sprokit/python/util/python_threading.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
@@ -133,7 +132,7 @@ BOOST_PYTHON_MODULE(process_registry)
 }
 
 class python_process_wrapper
-  : python_threading
+  : sprokit::python::python_threading
 {
   public:
     python_process_wrapper(object obj);
@@ -180,7 +179,7 @@ python_process_wrapper
 
   object proc;
 
-  HANDLE_PYTHON_EXCEPTION(proc = m_obj(config))
+  SPROKIT_PYTHON_HANDLE_EXCEPTION(proc = m_obj(config))
 
   return extract<sprokit::process_t>(proc);
 }

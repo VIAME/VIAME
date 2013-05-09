@@ -4,11 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <python/helpers/pystream.h>
-
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/export_dot_exception.h>
 
+#include <sprokit/python/util/pystream.h>
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/def.hpp>
@@ -43,7 +42,7 @@ export_dot(object const& stream, sprokit::pipeline_t const pipe, std::string con
 
   (void)gil;
 
-  pyostream ostr(stream);
+  sprokit::python::pyostream ostr(stream);
 
   return sprokit::export_dot(ostr, pipe, graph_name);
 }

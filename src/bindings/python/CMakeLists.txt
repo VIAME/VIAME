@@ -20,196 +20,29 @@ find_package(Boost ${sprokit_boost_version} REQUIRED
 find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
 include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
-set(boost_header_targets)
+sprokit_use_python_fixes()
 
-option(SPROKIT_ENABLE_BOOST_PYTHON_FIXES "Enables fixes for Boost.Python bugs (recommended)" ON)
-mark_as_advanced(SPROKIT_ENABLE_BOOST_PYTHON_FIXES)
-if (SPROKIT_ENABLE_BOOST_PYTHON_FIXES)
-  # Not fixed yet.
-  #if (Boost_VERSION LESS 10XX00)
-    # Override Boost's invoke.hpp
-    set(reldir "helpers/include/threading")
-    set(target_name "boost-python-invoke.hpp")
-    sprokit_configure_directory(${target_name}
-      "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
-      "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
-    if (NOT BOOST_MANGLE_NAMESPACE STREQUAL "boost")
-      include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}")
-    endif ()
-    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_BINARY_DIR}/${reldir}")
-    set(boost_header_targets
-      ${boost_header_targets}
-      ${target_name})
-  #endif ()
-  # Not fixed yet.
-  #if (Boost_VERSION LESS 10XX00)
-    # Override Boost's override.hpp
-    set(reldir "helpers/include/exceptions_in_override")
-    set(target_name "boost-python-override.hpp")
-    sprokit_configure_directory(${target_name}
-      "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}/boost"
-      "${CMAKE_CURRENT_BINARY_DIR}/${reldir}/${BOOST_MANGLE_NAMESPACE}")
-    if (NOT BOOST_MANGLE_NAMESPACE STREQUAL "boost")
-      include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/${reldir}")
-    endif ()
-    include_directories(BEFORE SYSTEM "${CMAKE_CURRENT_BINARY_DIR}/${reldir}")
-    set(boost_header_targets
-      ${boost_header_targets}
-      ${target_name})
-  #endif ()
-endif ()
+function (_sprokit_add_python_library name modpath)
+  _sprokit_create_safe_modpath(${modpath} safe_modpath)
 
-add_subdirectory(helpers)
-
-add_custom_target(python)
-
-function (add_sprokit_python_library name modpath)
-  string(REPLACE "/" "." safe_modpath ${modpath})
-
-  set(library_subdir /python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath})
-  set(component runtime)
-
-  set(no_export ON)
-
-  sprokit_add_library(python-${safe_modpath}-${name} SHARED
+  sprokit_add_python_library(${name} ${modpath}
     ${ARGN})
 
-  set(pysuffix ${CMAKE_SHARED_MODULE_SUFFIX})
-
-  if (WIN32)
-    set(pysuffix .pyd)
-  endif ()
-
-  set_target_properties(python-${safe_modpath}-${name}
-    PROPERTIES
-      OUTPUT_NAME ${name}
-      PREFIX      ""
-      SUFFIX      ${pysuffix})
-
-  if (boost_header_targets)
-    add_dependencies(python-${safe_modpath}-${name}
-      ${boost_header_targets})
-  endif (boost_header_targets)
-  add_dependencies(python
-    python-${safe_modpath}-${name})
-endfunction ()
-
-function (_add_python_module path modpath module)
-  string(REPLACE "/" "." safe_modpath ${modpath})
-
-  set(python_sitepath)
-  set(python_arch arch)
-
-  if (WIN32)
-    set(python_install_path bin)
-  else ()
-    if (python_noarch)
-      set(python_install_path lib)
-      set(python_sitepath /site-packages)
-      set(python_arch noarch)
-    else ()
-      set(python_install_path lib${LIB_SUFFIX})
-    endif ()
-  endif ()
-
-  sprokit_configure_file(python-module-${python_arch}-${safe_modpath}-${module}
-    "${path}"
-    "${python_output_path}${sitepath}/${modpath}/${module}.py"
-    PYTHON_EXECUTABLE)
-
-  foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    sprokit_configure_file(python-module-${python_arch}-${safe_modpath}-${module}-${config}
-      "${path}"
-      "${python_output_path}/${config}${sitepath}/${modpath}/${module}.py"
-      PYTHON_EXECUTABLE)
-
-    add_dependencies(python
-      python-module-${python_arch}-${safe_modpath}-${module}-${config})
-  endforeach ()
-
-  sprokit_install(
-    FILES       "${python_output_path}${sitepath}/${modpath}/${module}.py"
-    DESTINATION "${python_install_path}/python${PYTHON_VERSION}${python_sitepath}/${modpath}"
-    COMPONENT   runtime)
-
-  add_dependencies(python
-    python-module-${python_arch}-${safe_modpath}-${module})
-
-  if (python_both_arch)
-    set(python_both_arch)
-    set(python_noarch TRUE)
-    set(sitepath /site-packages)
-
-    if (NOT WIN32)
-      _add_python_module(
-        "${path}"
-        ${modpath}
-        ${module})
-    endif ()
-  endif ()
-endfunction ()
-
-function (add_python_module path modpath module)
-  _add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/${path}"
-    ${modpath}
-    ${module})
+  sprokit_require_python_fixes(python-${safe_modpath}-${name})
 endfunction ()
 
 set(copyright_header
 "#ckwg +4
-# Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+# Copyright 2013 by Kitware, Inc. All Rights Reserved. Please refer to
 # KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
 # Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.")
-
-function (make_python_init_file modpath)
-  string(REPLACE "/" "." safe_modpath ${modpath})
-
-  set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
-
-  file(WRITE "${init_template}"
-    "${copyright_header}\n\n")
-
-  foreach (module ${ARGN})
-    file(APPEND "${init_template}"
-      "from ${module} import *\n")
-  endforeach ()
-
-  _add_python_module("${init_template}"
-    ${modpath}
-    __init__)
-endfunction ()
-
-function (make_python_plugin_init_file modpath)
-  string(REPLACE "/" "." safe_modpath ${modpath})
-
-  set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
-
-  file(WRITE "${init_template}"
-    "${copyright_header}\n\n")
-  file(APPEND "${init_template}"
-    "from pkgutil import extend_path\n")
-  file(APPEND "${init_template}"
-    "__path__ = extend_path(__path__, __name__)\n")
-
-  _add_python_module("${init_template}"
-    ${modpath}
-    __init__)
-endfunction ()
-
-source_group("Python Files"
-  REGULAR_EXPRESSION ".*\\.py\\.in$")
-source_group("Python Files"
-  REGULAR_EXPRESSION ".*\\.py$")
 
 add_subdirectory(sprokit)
 add_subdirectory(modules)
 add_subdirectory(processes)
 add_subdirectory(schedulers)
-
-if (SPROKIT_ENABLE_TESTING)
-  add_subdirectory(test)
-endif ()
+add_subdirectory(test)
 
 set (python_both_arch TRUE)
 
-make_python_init_file(sprokit)
+sprokit_create_python_init(sprokit)

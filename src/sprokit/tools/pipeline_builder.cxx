@@ -31,6 +31,9 @@
 #include <string>
 #include <vector>
 
+namespace sprokit
+{
+
 namespace
 {
 
@@ -237,4 +240,6 @@ pipeline_run_options()
   ;
 
   return desc;
+}
+
 }

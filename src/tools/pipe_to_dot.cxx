@@ -4,10 +4,10 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "helpers/pipeline_builder.h"
-#include "helpers/tool_io.h"
-#include "helpers/tool_main.h"
-#include "helpers/tool_usage.h"
+#include <sprokit/tools/pipeline_builder.h>
+#include <sprokit/tools/tool_io.h>
+#include <sprokit/tools/tool_main.h>
+#include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/path.h>
@@ -34,20 +34,20 @@ static boost::program_options::options_description pipe_to_dot_cluster_options()
 static boost::program_options::options_description pipe_to_dot_pipeline_options();
 
 int
-tool_main(int argc, char* argv[])
+sprokit_tool_main(int argc, char const* argv[])
 {
   sprokit::load_known_modules();
 
   boost::program_options::options_description desc;
   desc
-    .add(tool_common_options())
-    .add(pipeline_common_options())
-    .add(pipeline_input_options())
+    .add(sprokit::tool_common_options())
+    .add(sprokit::pipeline_common_options())
+    .add(sprokit::pipeline_input_options())
     .add(pipe_to_dot_cluster_options())
-    .add(pipeline_output_options())
+    .add(sprokit::pipeline_output_options())
     .add(pipe_to_dot_pipeline_options());
 
-  boost::program_options::variables_map const vm = tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
 
   sprokit::process_cluster_t cluster;
   sprokit::pipeline_t pipe;
@@ -87,7 +87,7 @@ tool_main(int argc, char* argv[])
       return EXIT_FAILURE;
     }
 
-    pipeline_builder builder;
+    sprokit::pipeline_builder builder;
 
     builder.load_from_options(vm);
     sprokit::config_t const conf = builder.config();
@@ -96,7 +96,7 @@ tool_main(int argc, char* argv[])
     {
       sprokit::path_t const ipath = vm["cluster"].as<sprokit::path_t>();
 
-      istream_t const istr = open_istream(ipath);
+      sprokit::istream_t const istr = sprokit::open_istream(ipath);
 
       sprokit::cluster_info_t const info = sprokit::bake_cluster(*istr);
 
@@ -131,7 +131,7 @@ tool_main(int argc, char* argv[])
   }
   else if (have_pipeline)
   {
-    pipeline_builder const builder(vm, desc);
+    sprokit::pipeline_builder const builder(vm, desc);
 
     pipe = builder.pipeline();
 
@@ -147,7 +147,7 @@ tool_main(int argc, char* argv[])
     std::cerr << "Error: One of \'cluster\', \'cluster-type\', or "
                  "\'pipeline\' must be specified" << std::endl;
 
-    tool_usage(EXIT_FAILURE, desc);
+    sprokit::tool_usage(EXIT_FAILURE, desc);
   }
 
   // Make sure we have one, but not both.
@@ -160,7 +160,7 @@ tool_main(int argc, char* argv[])
 
   sprokit::path_t const opath = vm["output"].as<sprokit::path_t>();
 
-  ostream_t const ostr = open_ostream(opath);
+  sprokit::ostream_t const ostr = sprokit::open_ostream(opath);
 
   if (cluster)
   {
