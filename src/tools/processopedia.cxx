@@ -63,7 +63,7 @@ sprokit_tool_main(int argc, char const* argv[])
     return EXIT_SUCCESS;
   }
 
-  bool const hidden = vm.count("hidden");
+  bool const hidden = (0 != vm.count("hidden"));
 
   BOOST_FOREACH (sprokit::process::type_t const& proc_type, types)
   {

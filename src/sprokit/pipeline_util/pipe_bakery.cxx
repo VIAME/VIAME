@@ -891,7 +891,7 @@ cluster_creator
     {
       config_flags_t const& flags = *options.flags;
 
-      tunable = std::count(flags.begin(), flags.end(), flag_tunable);
+      tunable = (0 != std::count(flags.begin(), flags.end(), flag_tunable));
     }
 
     cluster->declare_configuration_key(
@@ -1395,7 +1395,7 @@ provided_by_cluster
   /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
   boost::split(key_path, key, boost::is_any_of(sprokit::config::block_sep));
 
-  bool const is_proc = std::count(m_procs.begin(), m_procs.end(), key_path[0]);
+  bool const is_proc = (0 != std::count(m_procs.begin(), m_procs.end(), key_path[0]));
 
   if (!is_proc)
   {

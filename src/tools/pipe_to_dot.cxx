@@ -52,10 +52,10 @@ sprokit_tool_main(int argc, char const* argv[])
   sprokit::process_cluster_t cluster;
   sprokit::pipeline_t pipe;
 
-  bool const have_cluster = vm.count("cluster");
-  bool const have_cluster_type = vm.count("cluster-type");
-  bool const have_pipeline = vm.count("pipeline");
-  bool const have_setup = vm.count("setup");
+  bool const have_cluster = (0 != vm.count("cluster"));
+  bool const have_cluster_type = (0 != vm.count("cluster-type"));
+  bool const have_pipeline = (0 != vm.count("pipeline"));
+  bool const have_setup = (0 != vm.count("setup"));
 
   bool const export_cluster = (have_cluster || have_cluster_type);
 

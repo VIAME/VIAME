@@ -178,7 +178,7 @@ test_process_input_ports(sprokit::process_t const process)
 
     sprokit::process::port_flags_t const& flags = info->flags;
 
-    bool const is_const = flags.count(sprokit::process::flag_output_const);
+    bool const is_const = (0 != flags.count(sprokit::process::flag_output_const));
 
     if (is_const)
     {
@@ -186,7 +186,7 @@ test_process_input_ports(sprokit::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    bool const is_shared = flags.count(sprokit::process::flag_output_shared);
+    bool const is_shared = (0 != flags.count(sprokit::process::flag_output_shared));
 
     if (is_shared)
     {
@@ -250,7 +250,7 @@ test_process_output_ports(sprokit::process_t const process)
 
     sprokit::process::port_flags_t const& flags = info->flags;
 
-    bool const is_mutable = flags.count(sprokit::process::flag_input_mutable);
+    bool const is_mutable = (0 != flags.count(sprokit::process::flag_input_mutable));
 
     if (is_mutable)
     {
@@ -258,7 +258,7 @@ test_process_output_ports(sprokit::process_t const process)
                  "(" << process->type() << "." << port << ")");
     }
 
-    bool const is_nodep = flags.count(sprokit::process::flag_input_nodep);
+    bool const is_nodep = (0 != flags.count(sprokit::process::flag_input_nodep));
 
     if (is_nodep)
     {
