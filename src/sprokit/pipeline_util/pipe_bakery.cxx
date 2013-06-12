@@ -17,8 +17,12 @@
 #include <sprokit/pipeline/process_cluster.h>
 #include <sprokit/pipeline/process_registry.h>
 
-#if (__cplusplus < 201103L) && (BOOST_VERSION >= 105000)
+#if __cplusplus < 201103L
+#include <boost/version.hpp>
+// This header appeared in 1.50.0, but was buggy.
+#if BOOST_VERSION >= 105200
 #include <boost/algorithm/cxx11/copy_if.hpp>
+#endif
 #endif
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -799,10 +803,10 @@ class extract_literal_value
 
 #if __cplusplus >= 201103L
 #define COPY_IF std::copy_if
-#elif BOOST_VERSION >= 105000
-#define COPY_IF boost::copy_if
+#elif BOOST_VERSION >= 105200
+#define COPY_IF boost::algorithm::copy_if
 #else
-#define COPY_IF copy_if
+#define COPY_IF sprokit::copy_if
 
 #define USE_CUSTOM_COPY_IF
 
