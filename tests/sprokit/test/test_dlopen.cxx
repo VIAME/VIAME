@@ -9,8 +9,6 @@
 #include <sprokit/pipeline_util/path.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
 #include <windows.h>
 #else
 #include <dlfcn.h>
