@@ -32,6 +32,8 @@ if (MSVC)
     sprokit_check_compiler_flag(sprokit_warnings /wd4275)
   endif ()
 
+  sprokit_check_compiler_flag(sprokit_warnings /W3)
+
   # -----------------------------------------------------------------------------
   # Disable deprecation warnings for standard C and STL functions in VS2005 and
   # later
