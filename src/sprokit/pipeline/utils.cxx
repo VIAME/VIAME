@@ -230,7 +230,7 @@ set_thread_name(DWORD thread_id, LPCSTR name)
       RaiseException(MS_VC_EXCEPTION,
         0,
         sizeof(info) / sizeof(ULONG_PTR),
-        reinterpret_cast<ULONG_PTR*>&info);
+        reinterpret_cast<ULONG_PTR*>(&info));
    }
    __except(EXCEPTION_EXECUTE_HANDLER)
    {
