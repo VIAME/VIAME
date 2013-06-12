@@ -89,6 +89,7 @@ sync_scheduler
 sync_scheduler
 ::~sync_scheduler()
 {
+  shutdown();
 }
 
 void

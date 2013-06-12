@@ -293,6 +293,7 @@ null_scheduler
 null_scheduler
 ::~null_scheduler()
 {
+  shutdown();
 }
 
 void

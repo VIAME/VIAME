@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -104,6 +104,14 @@ class SPROKIT_PIPELINE_EXPORT scheduler
      * pipeline. Exceptions should be thrown instead.
      */
     virtual void _stop() = 0;
+
+    /**
+     * \brief Shuts down the scheduler.
+     *
+     * \note This should generally be called from the destructor of any
+     * scheduler implementations.
+     */
+    void shutdown();
 
     /**
      * \brief The pipeline that should be run.
