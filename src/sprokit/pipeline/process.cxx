@@ -174,6 +174,7 @@ class process::priv
     input_edge_map_t input_edges;
     output_edge_map_t output_edges;
     mutable output_mutex_map_t output_mutexes;
+    mutable mutex_t output_edges_mut;
 
     process* const q;
     config_t conf;
@@ -536,7 +537,14 @@ process
 ::_reset()
 {
   d->input_edges.clear();
-  d->output_edges.clear();
+
+  {
+    priv::unique_lock_t lock(d->output_edges_mut);
+
+    (void)lock;
+
+    d->output_edges.clear();
+  }
 
   d->configured = false;
   d->initialized = false;
@@ -1022,8 +1030,14 @@ process
   // Remove from known ports.
   d->output_ports.erase(port);
 
-  // Remove all connected edges.
-  d->output_edges.erase(port);
+  {
+    priv::unique_lock_t lock(d->output_edges_mut);
+
+    (void)lock;
+
+    // Remove all connected edges.
+    d->output_edges.erase(port);
+  }
 
   // Remove from bookkeeping structures.
   ports_t::iterator const ri = std::remove(d->required_outputs.begin(), d->required_outputs.end(), port);
@@ -1109,6 +1123,10 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
+  priv::shared_lock_t lock(d->output_edges_mut);
+
+  (void)lock;
+
   priv::output_edge_map_t::const_iterator const e = d->output_edges.find(port);
 
   if (e == d->output_edges.end())
@@ -1118,9 +1136,9 @@ process
 
   priv::mutex_t& mut = d->output_mutexes[port];
 
-  priv::shared_lock_t const lock(mut);
+  priv::shared_lock_t const port_lock(mut);
 
-  (void)lock;
+  (void)port_lock;
 
   priv::output_port_info_t const& info = *e->second;
 
@@ -1171,6 +1189,10 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
+  priv::shared_lock_t lock(d->output_edges_mut);
+
+  (void)lock;
+
   priv::output_edge_map_t::const_iterator const e = d->output_edges.find(port);
 
   if (e == d->output_edges.end())
@@ -1180,9 +1202,9 @@ process
 
   priv::mutex_t& mut = d->output_mutexes[port];
 
-  priv::shared_lock_t const lock(mut);
+  priv::shared_lock_t const port_lock(mut);
 
-  (void)lock;
+  (void)port_lock;
 
   priv::output_port_info_t const& info = *e->second;
 
@@ -1206,6 +1228,10 @@ process
   stamp_t push_stamp;
 
   {
+    priv::shared_lock_t lock(d->output_edges_mut);
+
+    (void)lock;
+
     priv::output_edge_map_t::iterator const e = d->output_edges.find(port);
 
     if (e == d->output_edges.end())
@@ -1215,7 +1241,7 @@ process
 
     priv::mutex_t& mut = d->output_mutexes[port];
 
-    priv::upgrade_lock_t lock(mut);
+    priv::upgrade_lock_t port_lock(mut);
 
     priv::output_port_info_t& info = *e->second;
     stamp_t& port_stamp = info.stamp;
@@ -1228,9 +1254,9 @@ process
     }
 
     {
-      priv::upgrade_to_unique_lock_t const write_lock(lock);
+      priv::upgrade_to_unique_lock_t const port_write_lock(port_lock);
 
-      (void)write_lock;
+      (void)port_write_lock;
 
       push_stamp = port_stamp;
       port_stamp = stamp::incremented_stamp(port_stamp);
@@ -1558,11 +1584,15 @@ process::priv
     throw no_such_port_exception(name, port);
   }
 
-  mutex_t& mut = output_mutexes[port];
-
-  priv::unique_lock_t const lock(mut);
+  unique_lock_t lock(output_edges_mut);
 
   (void)lock;
+
+  mutex_t& mut = output_mutexes[port];
+
+  unique_lock_t const port_lock(mut);
+
+  (void)port_lock;
 
   output_port_info_t& info = output_edges[port];
   edges_t& edges = info.edges;
@@ -1763,6 +1793,10 @@ process::priv
     return false;
   }
 
+  shared_lock_t const lock(output_edges_mut);
+
+  (void)lock;
+
   BOOST_FOREACH (port_t const& port, required_outputs)
   {
     output_edge_map_t::const_iterator const i = output_edges.find(port);
@@ -1774,9 +1808,9 @@ process::priv
 
     mutex_t& mut = output_mutexes[port];
 
-    priv::shared_lock_t const lock(mut);
+    unique_lock_t const port_lock(mut);
 
-    (void)lock;
+    (void)port_lock;
 
     output_port_info_t const& info = *i->second;
     edges_t const& edges = info.edges;
@@ -1849,10 +1883,15 @@ process::priv
     stamp::increment_t const port_increment = port_run_frequency.numerator();
 
     {
-      mutex_t& mut = output_mutexes[port_name];
-      unique_lock_t const lock(mut);
+      unique_lock_t const lock(output_edges_mut);
 
       (void)lock;
+
+      mutex_t& mut = output_mutexes[port_name];
+
+      unique_lock_t const port_lock(mut);
+
+      (void)port_lock;
 
       output_port_info_t& oinfo = output_edges[port_name];
       stamp_t& stamp = oinfo.stamp;
