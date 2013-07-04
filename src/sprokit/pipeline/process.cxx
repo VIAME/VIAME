@@ -1307,23 +1307,23 @@ process
 {
   if (!d->initialized)
   {
-    static std::string const reason = "A process' frequency was set before it was initialized";
+    static std::string const reason = "Internal: A process' frequency was set before it was initialized";
 
-    throw std::runtime_error(reason);
+    throw std::logic_error(reason);
   }
 
   if (d->core_frequency)
   {
-    static std::string const reason = "A process' frequency was set a second time";
+    static std::string const reason = "Internal: A process' frequency was set a second time";
 
-    throw std::runtime_error(reason);
+    throw std::logic_error(reason);
   }
 
   if (frequency.denominator() != 1)
   {
-    static std::string const reason = "A process' frequency is not a whole number";
+    static std::string const reason = "Internal: A process' frequency is not a whole number";
 
-    throw std::runtime_error(reason);
+    throw std::logic_error(reason);
   }
 
   d->core_frequency = frequency;
