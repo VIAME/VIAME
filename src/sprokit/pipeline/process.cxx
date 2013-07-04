@@ -14,6 +14,8 @@
 #include "types.h"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/assign/ptr_map_inserter.hpp>
+#include <boost/ptr_container/ptr_map.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -124,11 +126,29 @@ class process::priv
     typedef boost::unique_lock<mutex_t> unique_lock_t;
     typedef boost::upgrade_to_unique_lock<mutex_t> upgrade_to_unique_lock_t;
 
-    typedef boost::tuple<mutex_t, edges_t, stamp_t> output_port_info;
-    typedef boost::shared_ptr<output_port_info> output_port_info_t;
+    class input_port_info_t
+    {
+      public:
+        input_port_info_t(edge_t const& edge_);
+        ~input_port_info_t();
 
-    typedef std::map<port_t, edge_t> input_edge_map_t;
-    typedef std::map<port_t, output_port_info_t> output_edge_map_t;
+        edge_t const edge;
+    };
+
+    class output_port_info_t
+    {
+      public:
+        output_port_info_t();
+        ~output_port_info_t();
+
+        edges_t edges;
+        stamp_t stamp;
+    };
+
+    typedef boost::ptr_map<port_t, input_port_info_t> input_edge_map_t;
+    typedef boost::ptr_map<port_t, output_port_info_t> output_edge_map_t;
+
+    typedef boost::ptr_map<port_t, mutex_t> output_mutex_map_t;
 
     typedef port_t tag_t;
 
@@ -153,6 +173,8 @@ class process::priv
 
     input_edge_map_t input_edges;
     output_edge_map_t output_edges;
+    mutable output_mutex_map_t output_mutexes;
+    mutable mutex_t output_edges_mut;
 
     process* const q;
     config_t conf;
@@ -516,20 +538,12 @@ process
 {
   d->input_edges.clear();
 
-  BOOST_FOREACH (priv::output_edge_map_t::value_type& oport, d->output_edges)
   {
-    priv::output_port_info_t& info = oport.second;
-    priv::mutex_t& mut = info->get<0>();
-
-    priv::unique_lock_t const lock(mut);
+    priv::unique_lock_t lock(d->output_edges_mut);
 
     (void)lock;
 
-    edges_t& edges = info->get<1>();
-    stamp_t& stamp = info->get<2>();
-
-    edges.clear();
-    stamp.reset();
+    d->output_edges.clear();
   }
 
   d->configured = false;
@@ -890,7 +904,7 @@ process
   }
 
   d->output_ports[port] = info;
-  d->output_edges[port] = boost::make_shared<priv::output_port_info>();
+  boost::assign::ptr_map_insert<priv::mutex_t>(d->output_mutexes)(port);
 
   port_flags_t const& flags = info->flags;
 
@@ -1016,8 +1030,14 @@ process
   // Remove from known ports.
   d->output_ports.erase(port);
 
-  // Remove all connected edges.
-  d->output_edges.erase(port);
+  {
+    priv::unique_lock_t lock(d->output_edges_mut);
+
+    (void)lock;
+
+    // Remove all connected edges.
+    d->output_edges.erase(port);
+  }
 
   // Remove from bookkeeping structures.
   ports_t::iterator const ri = std::remove(d->required_outputs.begin(), d->required_outputs.end(), port);
@@ -1073,9 +1093,10 @@ process
   d->is_complete = true;
 
   // Indicate to input edges that we are complete.
-  BOOST_FOREACH (priv::input_edge_map_t::value_type& port_edge, d->input_edges)
+  BOOST_FOREACH (priv::input_edge_map_t::value_type const& port_edge, d->input_edges)
   {
-    edge_t& edge = port_edge.second;
+    priv::input_port_info_t const& info = *port_edge.second;
+    edge_t const& edge = info.edge;
 
     edge->mark_downstream_as_complete();
   }
@@ -1102,6 +1123,10 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
+  priv::shared_lock_t lock(d->output_edges_mut);
+
+  (void)lock;
+
   priv::output_edge_map_t::const_iterator const e = d->output_edges.find(port);
 
   if (e == d->output_edges.end())
@@ -1109,14 +1134,15 @@ process
     return size_t(0);
   }
 
-  priv::output_port_info_t const& info = e->second;
-  priv::mutex_t& mut = info->get<0>();
+  priv::mutex_t& mut = d->output_mutexes[port];
 
-  priv::shared_lock_t const lock(mut);
+  priv::shared_lock_t const port_lock(mut);
 
-  (void)lock;
+  (void)port_lock;
 
-  edges_t const& edges = info->get<1>();
+  priv::output_port_info_t const& info = *e->second;
+
+  edges_t const& edges = info.edges;
 
   return edges.size();
 }
@@ -1139,7 +1165,8 @@ process
     throw missing_connection_exception(d->name, port, reason);
   }
 
-  edge_t const& edge = e->second;
+  priv::input_port_info_t const& info = *e->second;
+  edge_t const& edge = info.edge;
 
   return edge->get_datum();
 }
@@ -1162,23 +1189,30 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
+  priv::shared_lock_t lock(d->output_edges_mut);
+
+  (void)lock;
+
   priv::output_edge_map_t::const_iterator const e = d->output_edges.find(port);
 
-  if (e != d->output_edges.end())
+  if (e == d->output_edges.end())
   {
-    priv::output_port_info_t const& info = e->second;
-    priv::mutex_t& mut = info->get<0>();
+    return;
+  }
 
-    priv::shared_lock_t const lock(mut);
+  priv::mutex_t& mut = d->output_mutexes[port];
 
-    (void)lock;
+  priv::shared_lock_t const port_lock(mut);
 
-    edges_t const& edges = info->get<1>();
+  (void)port_lock;
 
-    BOOST_FOREACH (edge_t const& edge, edges)
-    {
-      edge->push_datum(dat);
-    }
+  priv::output_port_info_t const& info = *e->second;
+
+  edges_t const& edges = info.edges;
+
+  BOOST_FOREACH (edge_t const& edge, edges)
+  {
+    edge->push_datum(dat);
   }
 }
 
@@ -1186,22 +1220,31 @@ void
 process
 ::push_datum_to_port(port_t const& port, datum_t const& dat) const
 {
+  if (!d->output_ports.count(port))
+  {
+    throw no_such_port_exception(d->name, port);
+  }
+
   stamp_t push_stamp;
 
   {
+    priv::shared_lock_t lock(d->output_edges_mut);
+
+    (void)lock;
+
     priv::output_edge_map_t::iterator const e = d->output_edges.find(port);
 
     if (e == d->output_edges.end())
     {
-      throw no_such_port_exception(d->name, port);
+      return;
     }
 
-    priv::output_port_info_t& info = e->second;
-    priv::mutex_t& mut = info->get<0>();
+    priv::mutex_t& mut = d->output_mutexes[port];
 
-    priv::upgrade_lock_t lock(mut);
+    priv::upgrade_lock_t port_lock(mut);
 
-    stamp_t& port_stamp = info->get<2>();
+    priv::output_port_info_t& info = *e->second;
+    stamp_t& port_stamp = info.stamp;
 
     if (!port_stamp)
     {
@@ -1211,9 +1254,9 @@ process
     }
 
     {
-      priv::upgrade_to_unique_lock_t const write_lock(lock);
+      priv::upgrade_to_unique_lock_t const port_write_lock(port_lock);
 
-      (void)write_lock;
+      (void)port_write_lock;
 
       push_stamp = port_stamp;
       port_stamp = stamp::incremented_stamp(port_stamp);
@@ -1302,23 +1345,23 @@ process
 {
   if (!d->initialized)
   {
-    static std::string const reason = "A process' frequency was set before it was initialized";
+    static std::string const reason = "Internal: A process' frequency was set before it was initialized";
 
-    throw std::runtime_error(reason);
+    throw std::logic_error(reason);
   }
 
   if (d->core_frequency)
   {
-    static std::string const reason = "A process' frequency was set a second time";
+    static std::string const reason = "Internal: A process' frequency was set a second time";
 
-    throw std::runtime_error(reason);
+    throw std::logic_error(reason);
   }
 
   if (frequency.denominator() != 1)
   {
-    static std::string const reason = "A process' frequency is not a whole number";
+    static std::string const reason = "Internal: A process' frequency is not a whole number";
 
-    throw std::runtime_error(reason);
+    throw std::logic_error(reason);
   }
 
   d->core_frequency = frequency;
@@ -1524,12 +1567,12 @@ process::priv
     throw no_such_port_exception(name, port);
   }
 
-  if (input_edges[port])
+  if (input_edges.count(port))
   {
     throw port_reconnect_exception(name, port);
   }
 
-  input_edges[port] = edge;
+  boost::assign::ptr_map_insert<input_port_info_t>(input_edges)(port, edge);
 }
 
 void
@@ -1541,14 +1584,18 @@ process::priv
     throw no_such_port_exception(name, port);
   }
 
-  output_port_info_t const& info = output_edges[port];
-  priv::mutex_t& mut = info->get<0>();
-
-  priv::unique_lock_t const lock(mut);
+  unique_lock_t lock(output_edges_mut);
 
   (void)lock;
 
-  edges_t& edges = info->get<1>();
+  mutex_t& mut = output_mutexes[port];
+
+  unique_lock_t const port_lock(mut);
+
+  (void)port_lock;
+
+  output_port_info_t& info = output_edges[port];
+  edges_t& edges = info.edges;
 
   edges.push_back(edge);
 }
@@ -1575,7 +1622,8 @@ process::priv
       continue;
     }
 
-    edge_t const& iedge = i->second;
+    input_port_info_t const& info = *i->second;
+    edge_t const& iedge = info.edge;
 
     edge_datum_t const first_edat = iedge->peek_datum();
     datum_t const& first_dat = first_edat.datum;
@@ -1590,8 +1638,8 @@ process::priv
       continue;
     }
 
-    port_info_t const& info = q->input_port_info(port);
-    port_frequency_t const& freq = info->frequency;
+    port_info_t const& port_info = q->input_port_info(port);
+    port_frequency_t const& freq = port_info->frequency;
 
     frequency_component_t const rel_count = freq.numerator();
 
@@ -1745,6 +1793,10 @@ process::priv
     return false;
   }
 
+  shared_lock_t const lock(output_edges_mut);
+
+  (void)lock;
+
   BOOST_FOREACH (port_t const& port, required_outputs)
   {
     output_edge_map_t::const_iterator const i = output_edges.find(port);
@@ -1754,14 +1806,14 @@ process::priv
       continue;
     }
 
-    output_port_info_t const& info = i->second;
-    priv::mutex_t& mut = info->get<0>();
+    mutex_t& mut = output_mutexes[port];
 
-    priv::shared_lock_t const lock(mut);
+    unique_lock_t const port_lock(mut);
 
-    (void)lock;
+    (void)port_lock;
 
-    edges_t const& edges = info->get<1>();
+    output_port_info_t const& info = *i->second;
+    edges_t const& edges = info.edges;
 
     BOOST_FOREACH (edge_t const& edge, edges)
     {
@@ -1805,11 +1857,11 @@ void
 process::priv
 ::make_output_stamps()
 {
-  BOOST_FOREACH (output_edge_map_t::value_type& oport, output_edges)
+  BOOST_FOREACH (port_map_t::value_type const& oport, output_ports)
   {
     port_t const& port_name = oport.first;
 
-    port_info_t const info = q->output_port_info(port_name);
+    port_info_t const& info = oport.second;
     port_frequency_t const& port_frequency = info->frequency;
 
     // Skip ports with an unknown port frequency.
@@ -1831,20 +1883,47 @@ process::priv
     stamp::increment_t const port_increment = port_run_frequency.numerator();
 
     {
-      output_port_info_t& oinfo = oport.second;
-      mutex_t& mut = oinfo->get<0>();
-
-      unique_lock_t const lock(mut);
+      unique_lock_t const lock(output_edges_mut);
 
       (void)lock;
 
-      stamp_t& stamp = oinfo->get<2>();
+      mutex_t& mut = output_mutexes[port_name];
+
+      unique_lock_t const port_lock(mut);
+
+      (void)port_lock;
+
+      output_port_info_t& oinfo = output_edges[port_name];
+      stamp_t& stamp = oinfo.stamp;
 
       stamp = stamp::new_stamp(port_increment);
     }
   }
 
   output_stamps_made = true;
+}
+
+process::priv::input_port_info_t
+::input_port_info_t(edge_t const& edge_)
+  : edge(edge_)
+{
+}
+
+process::priv::input_port_info_t
+::~input_port_info_t()
+{
+}
+
+process::priv::output_port_info_t
+::output_port_info_t()
+  : edges()
+  , stamp()
+{
+}
+
+process::priv::output_port_info_t
+::~output_port_info_t()
+{
 }
 
 }
