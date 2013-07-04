@@ -124,10 +124,29 @@ class process::priv
     typedef boost::unique_lock<mutex_t> unique_lock_t;
     typedef boost::upgrade_to_unique_lock<mutex_t> upgrade_to_unique_lock_t;
 
-    typedef boost::tuple<mutex_t, edges_t, stamp_t> output_port_info;
+    class input_port_info
+    {
+      public:
+        input_port_info(edge_t const& edge_);
+        ~input_port_info();
+
+        edge_t const edge;
+    };
+    typedef boost::shared_ptr<input_port_info> input_port_info_t;
+
+    class output_port_info
+    {
+      public:
+        output_port_info();
+        ~output_port_info();
+
+        mutex_t mut;
+        edges_t edges;
+        stamp_t stamp;
+    };
     typedef boost::shared_ptr<output_port_info> output_port_info_t;
 
-    typedef std::map<port_t, edge_t> input_edge_map_t;
+    typedef std::map<port_t, input_port_info_t> input_edge_map_t;
     typedef std::map<port_t, output_port_info_t> output_edge_map_t;
 
     typedef port_t tag_t;
@@ -519,14 +538,14 @@ process
   BOOST_FOREACH (priv::output_edge_map_t::value_type& oport, d->output_edges)
   {
     priv::output_port_info_t& info = oport.second;
-    priv::mutex_t& mut = info->get<0>();
+    priv::mutex_t& mut = info->mut;
 
     priv::unique_lock_t const lock(mut);
 
     (void)lock;
 
-    edges_t& edges = info->get<1>();
-    stamp_t& stamp = info->get<2>();
+    edges_t& edges = info->edges;
+    stamp_t& stamp = info->stamp;
 
     edges.clear();
     stamp.reset();
@@ -1073,9 +1092,10 @@ process
   d->is_complete = true;
 
   // Indicate to input edges that we are complete.
-  BOOST_FOREACH (priv::input_edge_map_t::value_type& port_edge, d->input_edges)
+  BOOST_FOREACH (priv::input_edge_map_t::value_type const& port_edge, d->input_edges)
   {
-    edge_t& edge = port_edge.second;
+    priv::input_port_info_t const& info = port_edge.second;
+    edge_t const& edge = info->edge;
 
     edge->mark_downstream_as_complete();
   }
@@ -1110,13 +1130,13 @@ process
   }
 
   priv::output_port_info_t const& info = e->second;
-  priv::mutex_t& mut = info->get<0>();
+  priv::mutex_t& mut = info->mut;
 
   priv::shared_lock_t const lock(mut);
 
   (void)lock;
 
-  edges_t const& edges = info->get<1>();
+  edges_t const& edges = info->edges;
 
   return edges.size();
 }
@@ -1139,7 +1159,8 @@ process
     throw missing_connection_exception(d->name, port, reason);
   }
 
-  edge_t const& edge = e->second;
+  priv::input_port_info_t const& info = e->second;
+  edge_t const& edge = info->edge;
 
   return edge->get_datum();
 }
@@ -1167,13 +1188,13 @@ process
   if (e != d->output_edges.end())
   {
     priv::output_port_info_t const& info = e->second;
-    priv::mutex_t& mut = info->get<0>();
+    priv::mutex_t& mut = info->mut;
 
     priv::shared_lock_t const lock(mut);
 
     (void)lock;
 
-    edges_t const& edges = info->get<1>();
+    edges_t const& edges = info->edges;
 
     BOOST_FOREACH (edge_t const& edge, edges)
     {
@@ -1202,11 +1223,11 @@ process
     }
 
     priv::output_port_info_t& info = e->second;
-    priv::mutex_t& mut = info->get<0>();
+    priv::mutex_t& mut = info->mut;
 
     priv::upgrade_lock_t lock(mut);
 
-    stamp_t& port_stamp = info->get<2>();
+    stamp_t& port_stamp = info->stamp;
 
     if (!port_stamp)
     {
@@ -1534,7 +1555,7 @@ process::priv
     throw port_reconnect_exception(name, port);
   }
 
-  input_edges[port] = edge;
+  input_edges[port] = boost::make_shared<input_port_info>(edge);
 }
 
 void
@@ -1547,13 +1568,13 @@ process::priv
   }
 
   output_port_info_t const& info = output_edges[port];
-  priv::mutex_t& mut = info->get<0>();
+  priv::mutex_t& mut = info->mut;
 
   priv::unique_lock_t const lock(mut);
 
   (void)lock;
 
-  edges_t& edges = info->get<1>();
+  edges_t& edges = info->edges;
 
   edges.push_back(edge);
 }
@@ -1580,7 +1601,8 @@ process::priv
       continue;
     }
 
-    edge_t const& iedge = i->second;
+    input_port_info_t const& info = i->second;
+    edge_t const& iedge = info->edge;
 
     edge_datum_t const first_edat = iedge->peek_datum();
     datum_t const& first_dat = first_edat.datum;
@@ -1595,8 +1617,8 @@ process::priv
       continue;
     }
 
-    port_info_t const& info = q->input_port_info(port);
-    port_frequency_t const& freq = info->frequency;
+    port_info_t const& port_info = q->input_port_info(port);
+    port_frequency_t const& freq = port_info->frequency;
 
     frequency_component_t const rel_count = freq.numerator();
 
@@ -1760,13 +1782,13 @@ process::priv
     }
 
     output_port_info_t const& info = i->second;
-    priv::mutex_t& mut = info->get<0>();
+    priv::mutex_t& mut = info->mut;
 
     priv::shared_lock_t const lock(mut);
 
     (void)lock;
 
-    edges_t const& edges = info->get<1>();
+    edges_t const& edges = info->edges;
 
     BOOST_FOREACH (edge_t const& edge, edges)
     {
@@ -1837,19 +1859,43 @@ process::priv
 
     {
       output_port_info_t& oinfo = output_edges[port_name];
-      mutex_t& mut = oinfo->get<0>();
+      mutex_t& mut = oinfo->mut;
 
       unique_lock_t const lock(mut);
 
       (void)lock;
 
-      stamp_t& stamp = oinfo->get<2>();
+      stamp_t& stamp = oinfo->stamp;
 
       stamp = stamp::new_stamp(port_increment);
     }
   }
 
   output_stamps_made = true;
+}
+
+process::priv::input_port_info
+::input_port_info(edge_t const& edge_)
+  : edge(edge_)
+{
+}
+
+process::priv::input_port_info
+::~input_port_info()
+{
+}
+
+process::priv::output_port_info
+::output_port_info()
+  : mut()
+  , edges()
+  , stamp()
+{
+}
+
+process::priv::output_port_info
+::~output_port_info()
+{
 }
 
 }
