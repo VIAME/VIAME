@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -49,6 +49,11 @@
  * \def SPROKIT_UNUSED
  *
  * \brief The function may be unreferenced.
+ */
+/**
+ * \def SPROKIT_NOTHROW
+ *
+ * \brief The function may not throw exceptions.
  */
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -103,6 +108,12 @@
 // Unsupported.
 #define SPROKIT_NO_EXPORT
 #endif
+#endif
+
+#if __cplusplus < 201103L
+#define SPROKIT_NOTHROW throw ()
+#else
+#define SPROKIT_NOTHROW noexcept
 #endif
 
 #endif // SPROKIT_CONFIG_H
