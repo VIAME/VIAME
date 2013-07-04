@@ -1187,21 +1187,23 @@ process
 
   priv::output_edge_map_t::iterator const e = d->output_edges.find(port);
 
-  if (e != d->output_edges.end())
+  if (e == d->output_edges.end())
   {
-    priv::output_port_info_t& info = *e->second;
-    priv::mutex_t& mut = info.mut;
+    return;
+  }
 
-    priv::shared_lock_t const lock(mut);
+  priv::output_port_info_t& info = *e->second;
+  priv::mutex_t& mut = info.mut;
 
-    (void)lock;
+  priv::shared_lock_t const lock(mut);
 
-    edges_t const& edges = info.edges;
+  (void)lock;
 
-    BOOST_FOREACH (edge_t const& edge, edges)
-    {
-      edge->push_datum(dat);
-    }
+  edges_t const& edges = info.edges;
+
+  BOOST_FOREACH (edge_t const& edge, edges)
+  {
+    edge->push_datum(dat);
   }
 }
 
