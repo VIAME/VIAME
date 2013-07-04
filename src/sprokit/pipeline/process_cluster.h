@@ -166,7 +166,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      */
     virtual properties_t _properties() const;
   private:
-    class priv;
+    class SPROKIT_PIPELINE_NO_EXPORT priv;
     boost::scoped_ptr<priv> d;
 };
 
