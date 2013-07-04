@@ -535,9 +535,9 @@ process
 {
   d->input_edges.clear();
 
-  BOOST_FOREACH (priv::output_edge_map_t::value_type& oport, d->output_edges)
+  BOOST_FOREACH (priv::output_edge_map_t::value_type const& oport, d->output_edges)
   {
-    priv::output_port_info_t& info = oport.second;
+    priv::output_port_info_t const& info = oport.second;
     priv::mutex_t& mut = info->mut;
 
     priv::unique_lock_t const lock(mut);
