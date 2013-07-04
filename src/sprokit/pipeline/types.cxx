@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011, 2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -16,20 +16,20 @@ namespace sprokit
 {
 
 pipeline_exception
-::pipeline_exception() throw()
+::pipeline_exception() SPROKIT_NOTHROW
   : std::exception()
   , m_what()
 {
 }
 
 pipeline_exception
-::~pipeline_exception() throw()
+::~pipeline_exception() SPROKIT_NOTHROW
 {
 }
 
 char const*
 pipeline_exception
-::what() const throw()
+::what() const SPROKIT_NOTHROW
 {
   return m_what.c_str();
 }

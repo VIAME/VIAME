@@ -18,18 +18,18 @@ namespace sprokit
 {
 
 process_cluster_exception
-::process_cluster_exception() throw()
+::process_cluster_exception() SPROKIT_NOTHROW
   : process_exception()
 {
 }
 
 process_cluster_exception
-::~process_cluster_exception() throw()
+::~process_cluster_exception() SPROKIT_NOTHROW
 {
 }
 
 mapping_after_process_exception
-::mapping_after_process_exception(process::name_t const& name, config::key_t const& key, process::name_t const& mapped_name, config::key_t const& mapped_key) throw()
+::mapping_after_process_exception(process::name_t const& name, config::key_t const& key, process::name_t const& mapped_name, config::key_t const& mapped_key) SPROKIT_NOTHROW
   : process_cluster_exception()
   , m_name(name)
   , m_key(key)
@@ -48,12 +48,12 @@ mapping_after_process_exception
 }
 
 mapping_after_process_exception
-::~mapping_after_process_exception() throw()
+::~mapping_after_process_exception() SPROKIT_NOTHROW
 {
 }
 
 mapping_to_read_only_value_exception
-::mapping_to_read_only_value_exception(process::name_t const& name, config::key_t const& key, config::value_t const& value, process::name_t const& mapped_name, config::key_t const& mapped_key, config::value_t const& ro_value) throw()
+::mapping_to_read_only_value_exception(process::name_t const& name, config::key_t const& key, config::value_t const& value, process::name_t const& mapped_name, config::key_t const& mapped_key, config::value_t const& ro_value) SPROKIT_NOTHROW
   : process_cluster_exception()
   , m_name(name)
   , m_key(key)
@@ -76,7 +76,7 @@ mapping_to_read_only_value_exception
 }
 
 mapping_to_read_only_value_exception
-::~mapping_to_read_only_value_exception() throw()
+::~mapping_to_read_only_value_exception() SPROKIT_NOTHROW
 {
 }
 

@@ -19,18 +19,18 @@ namespace sprokit
 {
 
 pipeline_addition_exception
-::pipeline_addition_exception() throw()
+::pipeline_addition_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 pipeline_addition_exception
-::~pipeline_addition_exception() throw()
+::~pipeline_addition_exception() SPROKIT_NOTHROW
 {
 }
 
 null_pipeline_config_exception
-::null_pipeline_config_exception() throw()
+::null_pipeline_config_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
   std::ostringstream sstr;
@@ -41,12 +41,12 @@ null_pipeline_config_exception
 }
 
 null_pipeline_config_exception
-::~null_pipeline_config_exception() throw()
+::~null_pipeline_config_exception() SPROKIT_NOTHROW
 {
 }
 
 add_after_setup_exception
-::add_after_setup_exception(process::name_t const& name) throw()
+::add_after_setup_exception(process::name_t const& name) SPROKIT_NOTHROW
   : pipeline_addition_exception()
   , m_name(name)
 {
@@ -59,12 +59,12 @@ add_after_setup_exception
 }
 
 add_after_setup_exception
-::~add_after_setup_exception() throw()
+::~add_after_setup_exception() SPROKIT_NOTHROW
 {
 }
 
 null_process_addition_exception
-::null_process_addition_exception() throw()
+::null_process_addition_exception() SPROKIT_NOTHROW
   : pipeline_addition_exception()
 {
   std::ostringstream sstr;
@@ -76,23 +76,23 @@ null_process_addition_exception
 }
 
 null_process_addition_exception
-::~null_process_addition_exception() throw()
+::~null_process_addition_exception() SPROKIT_NOTHROW
 {
 }
 
 pipeline_setup_exception
-::pipeline_setup_exception() throw()
+::pipeline_setup_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 pipeline_setup_exception
-::~pipeline_setup_exception() throw()
+::~pipeline_setup_exception() SPROKIT_NOTHROW
 {
 }
 
 duplicate_process_name_exception
-::duplicate_process_name_exception(process::name_t const& name) throw()
+::duplicate_process_name_exception(process::name_t const& name) SPROKIT_NOTHROW
   : pipeline_addition_exception()
   , m_name(name)
 {
@@ -106,23 +106,23 @@ duplicate_process_name_exception
 }
 
 duplicate_process_name_exception
-::~duplicate_process_name_exception() throw()
+::~duplicate_process_name_exception() SPROKIT_NOTHROW
 {
 }
 
 pipeline_removal_exception
-::pipeline_removal_exception() throw()
+::pipeline_removal_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 pipeline_removal_exception
-::~pipeline_removal_exception() throw()
+::~pipeline_removal_exception() SPROKIT_NOTHROW
 {
 }
 
 remove_after_setup_exception
-::remove_after_setup_exception(process::name_t const& name) throw()
+::remove_after_setup_exception(process::name_t const& name) SPROKIT_NOTHROW
   : pipeline_removal_exception()
   , m_name(name)
 {
@@ -135,12 +135,12 @@ remove_after_setup_exception
 }
 
 remove_after_setup_exception
-::~remove_after_setup_exception() throw()
+::~remove_after_setup_exception() SPROKIT_NOTHROW
 {
 }
 
 reconfigure_before_setup_exception
-::reconfigure_before_setup_exception() throw()
+::reconfigure_before_setup_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
   std::ostringstream sstr;
@@ -151,18 +151,18 @@ reconfigure_before_setup_exception
 }
 
 reconfigure_before_setup_exception
-::~reconfigure_before_setup_exception() throw()
+::~reconfigure_before_setup_exception() SPROKIT_NOTHROW
 {
 }
 
 pipeline_connection_exception
-::pipeline_connection_exception() throw()
+::pipeline_connection_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 pipeline_connection_exception
-::~pipeline_connection_exception() throw()
+::~pipeline_connection_exception() SPROKIT_NOTHROW
 {
 }
 
@@ -170,7 +170,7 @@ connection_after_setup_exception
 ::connection_after_setup_exception(process::name_t const& upstream_name,
                                    process::port_t const& upstream_port,
                                    process::name_t const& downstream_name,
-                                   process::port_t const& downstream_port) throw()
+                                   process::port_t const& downstream_port) SPROKIT_NOTHROW
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -188,7 +188,7 @@ connection_after_setup_exception
 }
 
 connection_after_setup_exception
-::~connection_after_setup_exception() throw()
+::~connection_after_setup_exception() SPROKIT_NOTHROW
 {
 }
 
@@ -196,7 +196,7 @@ disconnection_after_setup_exception
 ::disconnection_after_setup_exception(process::name_t const& upstream_name,
                                       process::port_t const& upstream_port,
                                       process::name_t const& downstream_name,
-                                      process::port_t const& downstream_port) throw()
+                                      process::port_t const& downstream_port) SPROKIT_NOTHROW
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -214,12 +214,12 @@ disconnection_after_setup_exception
 }
 
 disconnection_after_setup_exception
-::~disconnection_after_setup_exception() throw()
+::~disconnection_after_setup_exception() SPROKIT_NOTHROW
 {
 }
 
 no_such_process_exception
-::no_such_process_exception(process::name_t const& name) throw()
+::no_such_process_exception(process::name_t const& name) SPROKIT_NOTHROW
   : pipeline_connection_exception()
   , m_name(name)
 {
@@ -233,7 +233,7 @@ no_such_process_exception
 }
 
 no_such_process_exception
-::~no_such_process_exception() throw()
+::~no_such_process_exception() SPROKIT_NOTHROW
 {
 }
 
@@ -243,7 +243,7 @@ connection_dependent_type_exception
                                       process::name_t const& downstream_name,
                                       process::port_t const& downstream_port,
                                       process::port_type_t const& type,
-                                      bool push_upstream) throw()
+                                      bool push_upstream) SPROKIT_NOTHROW
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -266,7 +266,7 @@ connection_dependent_type_exception
 }
 
 connection_dependent_type_exception
-::~connection_dependent_type_exception() throw()
+::~connection_dependent_type_exception() SPROKIT_NOTHROW
 {
 }
 
@@ -279,7 +279,7 @@ connection_dependent_type_cascade_exception
                                               process::name_t const& downstream_name,
                                               process::port_t const& downstream_port,
                                               process::port_type_t const& cascade_type,
-                                              bool push_upstream) throw()
+                                              bool push_upstream) SPROKIT_NOTHROW
   : pipeline_connection_exception()
   , m_name(name)
   , m_port(port)
@@ -307,7 +307,7 @@ connection_dependent_type_cascade_exception
 }
 
 connection_dependent_type_cascade_exception
-::~connection_dependent_type_cascade_exception() throw()
+::~connection_dependent_type_cascade_exception() SPROKIT_NOTHROW
 {
 }
 
@@ -317,7 +317,7 @@ connection_type_mismatch_exception
                                      process::port_type_t const& upstream_type,
                                      process::name_t const& downstream_name,
                                      process::port_t const& downstream_port,
-                                     process::port_type_t const& downstream_type) throw()
+                                     process::port_type_t const& downstream_type) SPROKIT_NOTHROW
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -339,7 +339,7 @@ connection_type_mismatch_exception
 }
 
 connection_type_mismatch_exception
-::~connection_type_mismatch_exception() throw()
+::~connection_type_mismatch_exception() SPROKIT_NOTHROW
 {
 }
 
@@ -347,7 +347,7 @@ connection_flag_mismatch_exception
 ::connection_flag_mismatch_exception(process::name_t const& upstream_name,
                                      process::port_t const& upstream_port,
                                      process::name_t const& downstream_name,
-                                     process::port_t const& downstream_port) throw()
+                                     process::port_t const& downstream_port) SPROKIT_NOTHROW
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -366,12 +366,12 @@ connection_flag_mismatch_exception
 }
 
 connection_flag_mismatch_exception
-::~connection_flag_mismatch_exception() throw()
+::~connection_flag_mismatch_exception() SPROKIT_NOTHROW
 {
 }
 
 pipeline_duplicate_setup_exception
-::pipeline_duplicate_setup_exception() throw()
+::pipeline_duplicate_setup_exception() SPROKIT_NOTHROW
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -382,12 +382,12 @@ pipeline_duplicate_setup_exception
 }
 
 pipeline_duplicate_setup_exception
-::~pipeline_duplicate_setup_exception() throw()
+::~pipeline_duplicate_setup_exception() SPROKIT_NOTHROW
 {
 }
 
 no_processes_exception
-::no_processes_exception() throw()
+::no_processes_exception() SPROKIT_NOTHROW
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -398,12 +398,12 @@ no_processes_exception
 }
 
 no_processes_exception
-::~no_processes_exception() throw()
+::~no_processes_exception() SPROKIT_NOTHROW
 {
 }
 
 orphaned_processes_exception
-::orphaned_processes_exception() throw()
+::orphaned_processes_exception() SPROKIT_NOTHROW
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -414,12 +414,12 @@ orphaned_processes_exception
 }
 
 orphaned_processes_exception
-::~orphaned_processes_exception() throw()
+::~orphaned_processes_exception() SPROKIT_NOTHROW
 {
 }
 
 not_a_dag_exception
-::not_a_dag_exception() throw()
+::not_a_dag_exception() SPROKIT_NOTHROW
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -432,12 +432,12 @@ not_a_dag_exception
 }
 
 not_a_dag_exception
-::~not_a_dag_exception() throw()
+::~not_a_dag_exception() SPROKIT_NOTHROW
 {
 }
 
 untyped_data_dependent_exception
-::untyped_data_dependent_exception(process::name_t const& name, process::port_t const& port) throw()
+::untyped_data_dependent_exception(process::name_t const& name, process::port_t const& port) SPROKIT_NOTHROW
   : pipeline_setup_exception()
   , m_name(name)
   , m_port(port)
@@ -452,12 +452,12 @@ untyped_data_dependent_exception
 }
 
 untyped_data_dependent_exception
-::~untyped_data_dependent_exception() throw()
+::~untyped_data_dependent_exception() SPROKIT_NOTHROW
 {
 }
 
 untyped_connection_exception
-::untyped_connection_exception() throw()
+::untyped_connection_exception() SPROKIT_NOTHROW
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -469,7 +469,7 @@ untyped_connection_exception
 }
 
 untyped_connection_exception
-::~untyped_connection_exception() throw()
+::~untyped_connection_exception() SPROKIT_NOTHROW
 {
 }
 
@@ -479,7 +479,7 @@ frequency_mismatch_exception
                                process::port_frequency_t const& upstream_frequency,
                                process::name_t const& downstream_name,
                                process::port_t const& downstream_port,
-                               process::port_frequency_t const& downstream_frequency) throw()
+                               process::port_frequency_t const& downstream_frequency) SPROKIT_NOTHROW
   : m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
   , m_upstream_frequency(upstream_frequency)
@@ -500,12 +500,12 @@ frequency_mismatch_exception
 }
 
 frequency_mismatch_exception
-::~frequency_mismatch_exception() throw()
+::~frequency_mismatch_exception() SPROKIT_NOTHROW
 {
 }
 
 reset_running_pipeline_exception
-::reset_running_pipeline_exception() throw()
+::reset_running_pipeline_exception() SPROKIT_NOTHROW
 {
   std::ostringstream sstr;
 
@@ -515,12 +515,12 @@ reset_running_pipeline_exception
 }
 
 reset_running_pipeline_exception
-::~reset_running_pipeline_exception() throw()
+::~reset_running_pipeline_exception() SPROKIT_NOTHROW
 {
 }
 
 pipeline_not_setup_exception
-::pipeline_not_setup_exception() throw()
+::pipeline_not_setup_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
   std::ostringstream sstr;
@@ -531,12 +531,12 @@ pipeline_not_setup_exception
 }
 
 pipeline_not_setup_exception
-::~pipeline_not_setup_exception() throw()
+::~pipeline_not_setup_exception() SPROKIT_NOTHROW
 {
 }
 
 pipeline_not_ready_exception
-::pipeline_not_ready_exception() throw()
+::pipeline_not_ready_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
   std::ostringstream sstr;
@@ -547,7 +547,7 @@ pipeline_not_ready_exception
 }
 
 pipeline_not_ready_exception
-::~pipeline_not_ready_exception() throw()
+::~pipeline_not_ready_exception() SPROKIT_NOTHROW
 {
 }
 

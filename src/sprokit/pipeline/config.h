@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -113,7 +113,7 @@ class SPROKIT_PIPELINE_EXPORT config
      * \returns The value stored within the configuration, or \p def if something goes wrong.
      */
     template <typename T>
-    T get_value(key_t const& key, T const& def) const throw();
+    T get_value(key_t const& key, T const& def) const SPROKIT_NOTHROW;
 
     /**
      * \brief Set a value within the configuration.
@@ -234,11 +234,11 @@ class SPROKIT_PIPELINE_EXPORT configuration_exception
     /**
      * \brief Constructor.
      */
-    configuration_exception() throw();
+    configuration_exception() SPROKIT_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~configuration_exception() throw();
+    virtual ~configuration_exception() SPROKIT_NOTHROW;
 };
 
 /**
@@ -257,11 +257,11 @@ class SPROKIT_PIPELINE_EXPORT bad_configuration_cast
      *
      * \param reason The reason for the bad cast.
      */
-    bad_configuration_cast(char const* reason) throw();
+    bad_configuration_cast(char const* reason) SPROKIT_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~bad_configuration_cast() throw();
+    ~bad_configuration_cast() SPROKIT_NOTHROW;
 };
 
 /**
@@ -280,11 +280,11 @@ class SPROKIT_PIPELINE_EXPORT no_such_configuration_value_exception
      *
      * \param key The key that was requested from the configuration.
      */
-    no_such_configuration_value_exception(config::key_t const& key) throw();
+    no_such_configuration_value_exception(config::key_t const& key) SPROKIT_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~no_such_configuration_value_exception() throw();
+    ~no_such_configuration_value_exception() SPROKIT_NOTHROW;
 
     /// The requested key name.
     config::key_t const m_key;
@@ -309,11 +309,11 @@ class SPROKIT_PIPELINE_EXPORT bad_configuration_cast_exception
      * \param type The type that was requested.
      * \param reason The reason for the bad cast.
      */
-    bad_configuration_cast_exception(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) throw();
+    bad_configuration_cast_exception(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) SPROKIT_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~bad_configuration_cast_exception() throw();
+    ~bad_configuration_cast_exception() SPROKIT_NOTHROW;
 
     /// The requested key name.
     config::key_t const m_key;
@@ -343,11 +343,11 @@ class SPROKIT_PIPELINE_EXPORT set_on_read_only_value_exception
      * \param value The current read-only value of \p key.
      * \param new_value The value that was attempted to be set.
      */
-    set_on_read_only_value_exception(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) throw();
+    set_on_read_only_value_exception(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) SPROKIT_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~set_on_read_only_value_exception() throw();
+    ~set_on_read_only_value_exception() SPROKIT_NOTHROW;
 
     /// The requested key name.
     config::key_t const m_key;
@@ -374,11 +374,11 @@ class SPROKIT_PIPELINE_EXPORT unset_on_read_only_value_exception
      * \param key The key that was requested from the configuration.
      * \param value The current value for \p key.
      */
-    unset_on_read_only_value_exception(config::key_t const& key, config::value_t const& value) throw();
+    unset_on_read_only_value_exception(config::key_t const& key, config::value_t const& value) SPROKIT_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~unset_on_read_only_value_exception() throw();
+    ~unset_on_read_only_value_exception() SPROKIT_NOTHROW;
 
     /// The requested key name.
     config::key_t const m_key;
@@ -484,7 +484,7 @@ config
 template <typename T>
 T
 config
-::get_value(key_t const& key, T const& def) const throw()
+::get_value(key_t const& key, T const& def) const SPROKIT_NOTHROW
 {
   try
   {

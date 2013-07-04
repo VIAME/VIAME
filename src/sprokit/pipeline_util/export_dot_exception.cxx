@@ -18,18 +18,18 @@ namespace sprokit
 {
 
 export_dot_exception
-::export_dot_exception() throw()
+::export_dot_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 export_dot_exception
-::~export_dot_exception() throw()
+::~export_dot_exception() SPROKIT_NOTHROW
 {
 }
 
 null_pipeline_export_dot_exception
-::null_pipeline_export_dot_exception() throw()
+::null_pipeline_export_dot_exception() SPROKIT_NOTHROW
   : export_dot_exception()
 {
   std::stringstream sstr;
@@ -40,12 +40,12 @@ null_pipeline_export_dot_exception
 }
 
 null_pipeline_export_dot_exception
-::~null_pipeline_export_dot_exception() throw()
+::~null_pipeline_export_dot_exception() SPROKIT_NOTHROW
 {
 }
 
 null_cluster_export_dot_exception
-::null_cluster_export_dot_exception() throw()
+::null_cluster_export_dot_exception() SPROKIT_NOTHROW
   : export_dot_exception()
 {
   std::stringstream sstr;
@@ -56,12 +56,12 @@ null_cluster_export_dot_exception
 }
 
 null_cluster_export_dot_exception
-::~null_cluster_export_dot_exception() throw()
+::~null_cluster_export_dot_exception() SPROKIT_NOTHROW
 {
 }
 
 empty_name_export_dot_exception
-::empty_name_export_dot_exception() throw()
+::empty_name_export_dot_exception() SPROKIT_NOTHROW
   : export_dot_exception()
 {
   std::stringstream sstr;
@@ -73,7 +73,7 @@ empty_name_export_dot_exception
 }
 
 empty_name_export_dot_exception
-::~empty_name_export_dot_exception() throw()
+::~empty_name_export_dot_exception() SPROKIT_NOTHROW
 {
 }
 

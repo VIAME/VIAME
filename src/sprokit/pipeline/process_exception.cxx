@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -18,18 +18,18 @@ namespace sprokit
 {
 
 process_exception
-::process_exception() throw()
+::process_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 process_exception
-::~process_exception() throw()
+::~process_exception() SPROKIT_NOTHROW
 {
 }
 
 null_process_config_exception
-::null_process_config_exception() throw()
+::null_process_config_exception() SPROKIT_NOTHROW
   : process_exception()
 {
   std::ostringstream sstr;
@@ -40,12 +40,12 @@ null_process_config_exception
 }
 
 null_process_config_exception
-::~null_process_config_exception() throw()
+::~null_process_config_exception() SPROKIT_NOTHROW
 {
 }
 
 already_initialized_exception
-::already_initialized_exception(process::name_t const& name) throw()
+::already_initialized_exception(process::name_t const& name) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
 {
@@ -58,12 +58,12 @@ already_initialized_exception
 }
 
 already_initialized_exception
-::~already_initialized_exception() throw()
+::~already_initialized_exception() SPROKIT_NOTHROW
 {
 }
 
 unconfigured_exception
-::unconfigured_exception(process::name_t const& name) throw()
+::unconfigured_exception(process::name_t const& name) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
 {
@@ -76,12 +76,12 @@ unconfigured_exception
 }
 
 unconfigured_exception
-::~unconfigured_exception() throw()
+::~unconfigured_exception() SPROKIT_NOTHROW
 {
 }
 
 reconfigured_exception
-::reconfigured_exception(process::name_t const& name) throw()
+::reconfigured_exception(process::name_t const& name) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
 {
@@ -94,12 +94,12 @@ reconfigured_exception
 }
 
 reconfigured_exception
-::~reconfigured_exception() throw()
+::~reconfigured_exception() SPROKIT_NOTHROW
 {
 }
 
 reinitialization_exception
-::reinitialization_exception(process::name_t const& name) throw()
+::reinitialization_exception(process::name_t const& name) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
 {
@@ -112,12 +112,12 @@ reinitialization_exception
 }
 
 reinitialization_exception
-::~reinitialization_exception() throw()
+::~reinitialization_exception() SPROKIT_NOTHROW
 {
 }
 
 null_conf_info_exception
-::null_conf_info_exception(process::name_t const& name, config::key_t const& key) throw()
+::null_conf_info_exception(process::name_t const& name, config::key_t const& key) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
   , m_key(key)
@@ -132,12 +132,12 @@ null_conf_info_exception
 }
 
 null_conf_info_exception
-::~null_conf_info_exception() throw()
+::~null_conf_info_exception() SPROKIT_NOTHROW
 {
 }
 
 null_port_info_exception
-::null_port_info_exception(process::name_t const& name, process::port_t const& port, std::string const& type) throw()
+::null_port_info_exception(process::name_t const& name, process::port_t const& port, std::string const& type) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -153,34 +153,34 @@ null_port_info_exception
 }
 
 null_port_info_exception
-::~null_port_info_exception() throw()
+::~null_port_info_exception() SPROKIT_NOTHROW
 {
 }
 
 null_input_port_info_exception
-::null_input_port_info_exception(process::name_t const& name, process::port_t const& port) throw()
+::null_input_port_info_exception(process::name_t const& name, process::port_t const& port) SPROKIT_NOTHROW
   : null_port_info_exception(name, port, "input")
 {
 }
 
 null_input_port_info_exception
-::~null_input_port_info_exception() throw()
+::~null_input_port_info_exception() SPROKIT_NOTHROW
 {
 }
 
 null_output_port_info_exception
-::null_output_port_info_exception(process::name_t const& name, process::port_t const& port) throw()
+::null_output_port_info_exception(process::name_t const& name, process::port_t const& port) SPROKIT_NOTHROW
   : null_port_info_exception(name, port, "output")
 {
 }
 
 null_output_port_info_exception
-::~null_output_port_info_exception() throw()
+::~null_output_port_info_exception() SPROKIT_NOTHROW
 {
 }
 
 flag_mismatch_exception
-::flag_mismatch_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) throw()
+::flag_mismatch_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -197,12 +197,12 @@ flag_mismatch_exception
 }
 
 flag_mismatch_exception
-::~flag_mismatch_exception() throw()
+::~flag_mismatch_exception() SPROKIT_NOTHROW
 {
 }
 
 set_type_on_initialized_process_exception
-::set_type_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& type) throw()
+::set_type_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& type) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -218,12 +218,12 @@ set_type_on_initialized_process_exception
 }
 
 set_type_on_initialized_process_exception
-::~set_type_on_initialized_process_exception() throw()
+::~set_type_on_initialized_process_exception() SPROKIT_NOTHROW
 {
 }
 
 set_frequency_on_initialized_process_exception
-::set_frequency_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_frequency_t const& frequency) throw()
+::set_frequency_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_frequency_t const& frequency) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -239,12 +239,12 @@ set_frequency_on_initialized_process_exception
 }
 
 set_frequency_on_initialized_process_exception
-::~set_frequency_on_initialized_process_exception() throw()
+::~set_frequency_on_initialized_process_exception() SPROKIT_NOTHROW
 {
 }
 
 uninitialized_exception
-::uninitialized_exception(process::name_t const& name) throw()
+::uninitialized_exception(process::name_t const& name) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
 {
@@ -257,12 +257,12 @@ uninitialized_exception
 }
 
 uninitialized_exception
-::~uninitialized_exception() throw()
+::~uninitialized_exception() SPROKIT_NOTHROW
 {
 }
 
 port_connection_exception
-::port_connection_exception(process::name_t const& name, process::port_t const& port) throw()
+::port_connection_exception(process::name_t const& name, process::port_t const& port) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -270,12 +270,12 @@ port_connection_exception
 }
 
 port_connection_exception
-::~port_connection_exception() throw()
+::~port_connection_exception() SPROKIT_NOTHROW
 {
 }
 
 connect_to_initialized_process_exception
-::connect_to_initialized_process_exception(process::name_t const& name, process::port_t const& port) throw()
+::connect_to_initialized_process_exception(process::name_t const& name, process::port_t const& port) SPROKIT_NOTHROW
   : port_connection_exception(name, port)
 {
   std::ostringstream sstr;
@@ -289,12 +289,12 @@ connect_to_initialized_process_exception
 }
 
 connect_to_initialized_process_exception
-::~connect_to_initialized_process_exception() throw()
+::~connect_to_initialized_process_exception() SPROKIT_NOTHROW
 {
 }
 
 no_such_port_exception
-::no_such_port_exception(process::name_t const& name, process::port_t const& port) throw()
+::no_such_port_exception(process::name_t const& name, process::port_t const& port) SPROKIT_NOTHROW
   : port_connection_exception(name, port)
 {
   std::ostringstream sstr;
@@ -307,12 +307,12 @@ no_such_port_exception
 }
 
 no_such_port_exception
-::~no_such_port_exception() throw()
+::~no_such_port_exception() SPROKIT_NOTHROW
 {
 }
 
 null_edge_port_connection_exception
-::null_edge_port_connection_exception(process::name_t const& name, process::port_t const& port) throw()
+::null_edge_port_connection_exception(process::name_t const& name, process::port_t const& port) SPROKIT_NOTHROW
   : port_connection_exception(name, port)
 {
   std::ostringstream sstr;
@@ -325,12 +325,12 @@ null_edge_port_connection_exception
 }
 
 null_edge_port_connection_exception
-::~null_edge_port_connection_exception() throw()
+::~null_edge_port_connection_exception() SPROKIT_NOTHROW
 {
 }
 
 static_type_reset_exception
-::static_type_reset_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& orig_type, process::port_type_t const& new_type) throw()
+::static_type_reset_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& orig_type, process::port_type_t const& new_type) SPROKIT_NOTHROW
   : port_connection_exception(name, port)
   , m_orig_type(orig_type)
   , m_new_type(new_type)
@@ -347,12 +347,12 @@ static_type_reset_exception
 }
 
 static_type_reset_exception
-::~static_type_reset_exception() throw()
+::~static_type_reset_exception() SPROKIT_NOTHROW
 {
 }
 
 port_reconnect_exception
-::port_reconnect_exception(process::name_t const& name, process::port_t const& port) throw()
+::port_reconnect_exception(process::name_t const& name, process::port_t const& port) SPROKIT_NOTHROW
   : port_connection_exception(name, port)
 {
   std::ostringstream sstr;
@@ -365,12 +365,12 @@ port_reconnect_exception
 }
 
 port_reconnect_exception
-::~port_reconnect_exception() throw()
+::~port_reconnect_exception() SPROKIT_NOTHROW
 {
 }
 
 missing_connection_exception
-::missing_connection_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) throw()
+::missing_connection_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) SPROKIT_NOTHROW
   : port_connection_exception(name, port)
   , m_reason(reason)
 {
@@ -384,23 +384,23 @@ missing_connection_exception
 }
 
 missing_connection_exception
-::~missing_connection_exception() throw()
+::~missing_connection_exception() SPROKIT_NOTHROW
 {
 }
 
 process_configuration_exception
-::process_configuration_exception() throw()
+::process_configuration_exception() SPROKIT_NOTHROW
   : process_exception()
 {
 }
 
 process_configuration_exception
-::~process_configuration_exception() throw()
+::~process_configuration_exception() SPROKIT_NOTHROW
 {
 }
 
 unknown_configuration_value_exception
-::unknown_configuration_value_exception(process::name_t const& name, config::key_t const& key) throw()
+::unknown_configuration_value_exception(process::name_t const& name, config::key_t const& key) SPROKIT_NOTHROW
   : process_configuration_exception()
   , m_name(name)
   , m_key(key)
@@ -415,12 +415,12 @@ unknown_configuration_value_exception
 }
 
 unknown_configuration_value_exception
-::~unknown_configuration_value_exception() throw()
+::~unknown_configuration_value_exception() SPROKIT_NOTHROW
 {
 }
 
 invalid_configuration_value_exception
-::invalid_configuration_value_exception(process::name_t const& name, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw()
+::invalid_configuration_value_exception(process::name_t const& name, config::key_t const& key, config::value_t const& value, config::description_t const& desc) SPROKIT_NOTHROW
   : process_configuration_exception()
   , m_name(name)
   , m_key(key)
@@ -438,12 +438,12 @@ invalid_configuration_value_exception
 }
 
 invalid_configuration_value_exception
-::~invalid_configuration_value_exception() throw()
+::~invalid_configuration_value_exception() SPROKIT_NOTHROW
 {
 }
 
 invalid_configuration_exception
-::invalid_configuration_exception(process::name_t const& name, std::string const& reason) throw()
+::invalid_configuration_exception(process::name_t const& name, std::string const& reason) SPROKIT_NOTHROW
   : process_configuration_exception()
   , m_name(name)
   , m_reason(reason)
@@ -457,7 +457,7 @@ invalid_configuration_exception
 }
 
 invalid_configuration_exception
-::~invalid_configuration_exception() throw()
+::~invalid_configuration_exception() SPROKIT_NOTHROW
 {
 }
 
