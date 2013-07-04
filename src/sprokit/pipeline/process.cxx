@@ -1529,7 +1529,7 @@ process::priv
     throw no_such_port_exception(name, port);
   }
 
-  if (input_edges[port])
+  if (input_edges.count(port))
   {
     throw port_reconnect_exception(name, port);
   }
