@@ -26,6 +26,7 @@ pyistream_device
 ::pyistream_device(boost::python::object const& obj)
   : m_obj(obj)
 {
+  // \todo Check that the object has a "read" attribute and that it is callable.
 }
 
 pyistream_device
@@ -63,6 +64,7 @@ pyostream_device
 ::pyostream_device(boost::python::object const& obj)
   : m_obj(obj)
 {
+  // \todo Check that the object has a "write" attribute and that it is callable.
 }
 
 pyostream_device

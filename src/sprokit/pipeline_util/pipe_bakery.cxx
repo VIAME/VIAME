@@ -17,8 +17,12 @@
 #include <sprokit/pipeline/process_cluster.h>
 #include <sprokit/pipeline/process_registry.h>
 
-#if (__cplusplus < 201103L) && (BOOST_VERSION >= 105000)
+#if __cplusplus < 201103L
+#include <boost/version.hpp>
+// This header appeared in 1.50.0, but was buggy.
+#if BOOST_VERSION >= 105200
 #include <boost/algorithm/cxx11/copy_if.hpp>
+#endif
 #endif
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -799,10 +803,10 @@ class extract_literal_value
 
 #if __cplusplus >= 201103L
 #define COPY_IF std::copy_if
-#elif BOOST_VERSION >= 105000
-#define COPY_IF boost::copy_if
+#elif BOOST_VERSION >= 105200
+#define COPY_IF boost::algorithm::copy_if
 #else
-#define COPY_IF copy_if
+#define COPY_IF sprokit::copy_if
 
 #define USE_CUSTOM_COPY_IF
 
@@ -887,7 +891,7 @@ cluster_creator
     {
       config_flags_t const& flags = *options.flags;
 
-      tunable = std::count(flags.begin(), flags.end(), flag_tunable);
+      tunable = (0 != std::count(flags.begin(), flags.end(), flag_tunable));
     }
 
     cluster->declare_configuration_key(
@@ -1391,7 +1395,7 @@ provided_by_cluster
   /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
   boost::split(key_path, key, boost::is_any_of(sprokit::config::block_sep));
 
-  bool const is_proc = std::count(m_procs.begin(), m_procs.end(), key_path[0]);
+  bool const is_proc = (0 != std::count(m_procs.begin(), m_procs.end(), key_path[0]));
 
   if (!is_proc)
   {

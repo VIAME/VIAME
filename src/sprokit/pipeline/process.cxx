@@ -813,8 +813,8 @@ process
 
   port_flags_t const& flags = info->flags;
 
-  bool const required = flags.count(flag_required);
-  bool const static_ = flags.count(flag_input_static);
+  bool const required = (0 != flags.count(flag_required));
+  bool const static_ = (0 != flags.count(flag_input_static));
 
   if (required && static_)
   {
@@ -833,15 +833,15 @@ process
     d->static_inputs.push_back(port);
   }
 
-  bool const no_dep = flags.count(flag_input_nodep);
+  bool const no_dep = (0 != flags.count(flag_input_nodep));
 
   if (required && !no_dep)
   {
     d->required_inputs.push_back(port);
   }
 
-  bool const is_shared = flags.count(flag_output_shared);
-  bool const is_const = flags.count(flag_output_const);
+  bool const is_shared = (0 != flags.count(flag_output_shared));
+  bool const is_const = (0 != flags.count(flag_output_const));
 
   if (is_shared && is_const)
   {
@@ -1111,7 +1111,7 @@ process
     throw no_such_port_exception(d->name, port);
   }
 
-  return d->input_edges.count(port);
+  return (0 != d->input_edges.count(port));
 }
 
 size_t
@@ -1336,7 +1336,7 @@ bool
 process
 ::is_static_input(port_t const& port) const
 {
-  return std::count(d->static_inputs.begin(), d->static_inputs.end(), port);
+  return (0 != std::count(d->static_inputs.begin(), d->static_inputs.end(), port));
 }
 
 void
@@ -1392,11 +1392,11 @@ process
 
   BOOST_FOREACH (config::key_t const& key, new_keys)
   {
-    bool const for_process = std::count(process_keys.begin(), process_keys.end(), key);
+    bool const for_process = (0 != std::count(process_keys.begin(), process_keys.end(), key));
 
     if (for_process)
     {
-      bool const tunable = std::count(tunable_keys.begin(), tunable_keys.end(), key);
+      bool const tunable = (0 != std::count(tunable_keys.begin(), tunable_keys.end(), key));
 
       if (!tunable)
       {
@@ -1457,7 +1457,7 @@ process
   BOOST_FOREACH (config::key_t const& key, all_keys)
   {
     bool const has_old_value = d->conf->has_value(key);
-    bool const for_process = std::count(process_keys.begin(), process_keys.end(), key);
+    bool const for_process = (0 != std::count(process_keys.begin(), process_keys.end(), key));
 
     if (has_old_value)
     {

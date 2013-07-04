@@ -391,7 +391,7 @@ bool
 process_cluster::priv
 ::has_name(name_t const& name) const
 {
-  return processes.count(name);
+  return (0 != processes.count(name));
 }
 
 void

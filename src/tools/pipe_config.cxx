@@ -304,7 +304,7 @@ config_printer
 
     sprokit::config::description_t const desc = boost::replace_all_copy(info->description, "\n", "\n  #   ");
 
-    bool const is_tunable = std::count(tunable_keys.begin(), tunable_keys.end(), key);
+    bool const is_tunable = (0 != std::count(tunable_keys.begin(), tunable_keys.end(), key));
     std::string const tunable = (is_tunable ? "yes" : "no");
 
     m_ostr << "  # Key: " << key << std::endl;

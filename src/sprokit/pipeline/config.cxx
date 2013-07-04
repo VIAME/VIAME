@@ -124,7 +124,7 @@ bool
 config
 ::is_read_only(key_t const& key) const
 {
-  return m_ro_list.count(key);
+  return (0 != m_ro_list.count(key));
 }
 
 void
@@ -186,7 +186,7 @@ config
     return m_parent->has_value(m_name + block_sep + key);
   }
 
-  return m_store.count(key);
+  return (0 != m_store.count(key));
 }
 
 config

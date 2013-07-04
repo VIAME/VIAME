@@ -319,8 +319,8 @@ pipeline
     d->planned_connections.push_back(connection);
   }
 
-  bool const upstream_is_cluster = d->cluster_map.count(upstream_name);
-  bool const downstream_is_cluster = d->cluster_map.count(downstream_name);
+  bool const upstream_is_cluster = (0 != d->cluster_map.count(upstream_name));
+  bool const downstream_is_cluster = (0 != d->cluster_map.count(downstream_name));
 
   if (upstream_is_cluster || downstream_is_cluster)
   {
@@ -1132,9 +1132,9 @@ bool
 pipeline::priv
 ::check_connection_flags(process::connection_t const& connection, process::port_flags_t const& up_flags, process::port_flags_t const& down_flags)
 {
-  bool const is_const = up_flags.count(process::flag_output_const);
-  bool const is_shared = up_flags.count(process::flag_output_shared);
-  bool const is_mutable = down_flags.count(process::flag_input_mutable);
+  bool const is_const = (0 != up_flags.count(process::flag_output_const));
+  bool const is_shared = (0 != up_flags.count(process::flag_output_shared));
+  bool const is_mutable = (0 != down_flags.count(process::flag_input_mutable));
 
   if (is_const && is_mutable)
   {
@@ -1610,7 +1610,7 @@ pipeline::priv
 
     // Configure the edge.
     {
-      bool const has_nodep = down_flags.count(process::flag_input_nodep);
+      bool const has_nodep = (0 != down_flags.count(process::flag_input_nodep));
 
       edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
       edge_config->mark_read_only(edge::config_dependency);
@@ -1864,8 +1864,8 @@ pipeline::priv
       continue;
     }
 
-    bool const up_in_map = freq_map.count(upstream_name);
-    bool const down_in_map = freq_map.count(downstream_name);
+    bool const up_in_map = (0 != freq_map.count(upstream_name));
+    bool const down_in_map = (0 != freq_map.count(downstream_name));
 
     bool have_upstream = false;
     bool have_downstream = false;

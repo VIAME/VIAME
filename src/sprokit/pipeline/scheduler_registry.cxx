@@ -131,7 +131,7 @@ bool
 scheduler_registry
 ::is_module_loaded(module_t const& module) const
 {
-  return d->loaded_modules.count(module);
+  return (0 != d->loaded_modules.count(module));
 }
 
 scheduler_registry_t

@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -134,13 +134,13 @@ register_processes()
       {
         info = bake_cluster_from_file(path);
       }
-      catch (load_pipe_exception const& e)
+      catch (load_pipe_exception const& /*e*/)
       {
         /// \todo Handle exceptions.
 
         continue;
       }
-      catch (pipe_bakery_exception const& e)
+      catch (pipe_bakery_exception const& /*e*/)
       {
         /// \todo Handle exceptions.
 
