@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -17,7 +17,6 @@
 #include <boost/any.hpp>
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include <map>
 
@@ -37,9 +36,6 @@ namespace python
 
 namespace
 {
-
-class any_converter;
-typedef boost::shared_ptr<any_converter> any_converter_t;
 
 class any_converter
 {
