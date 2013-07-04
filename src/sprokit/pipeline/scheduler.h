@@ -106,6 +106,14 @@ class SPROKIT_PIPELINE_EXPORT scheduler
     virtual void _stop() = 0;
 
     /**
+     * \brief Shuts down the scheduler.
+     *
+     * \note This should generally be called from the destructor of any
+     * scheduler implementations.
+     */
+    void shutdown();
+
+    /**
      * \brief The pipeline that should be run.
      *
      * \returns The pipeline.

@@ -1576,6 +1576,7 @@ dummy_scheduler
 dummy_scheduler
 ::~dummy_scheduler()
 {
+  shutdown();
 }
 
 void

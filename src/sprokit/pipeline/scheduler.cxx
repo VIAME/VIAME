@@ -190,6 +190,20 @@ scheduler
   d->stop();
 }
 
+void
+scheduler
+::shutdown()
+{
+  priv::unique_lock_t const lock(d->mut);
+
+  (void)lock;
+
+  if (d->running)
+  {
+    d->stop();
+  }
+}
+
 pipeline_t
 scheduler
 ::pipeline() const
@@ -219,7 +233,7 @@ scheduler::priv
   // Tell the subclass that we want to stop.
   q->_stop();
 
-  // Unpause the pipeline.
+  // Unpause the scheduler.
   if (paused)
   {
     q->_resume();
@@ -227,6 +241,7 @@ scheduler::priv
     paused = false;
   }
 
+  // Stop the pipeline.
   p->stop();
   running = false;
 }
