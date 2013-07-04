@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -18,18 +18,18 @@ namespace sprokit
 {
 
 scheduler_registry_exception
-::scheduler_registry_exception() throw()
+::scheduler_registry_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 scheduler_registry_exception
-::~scheduler_registry_exception() throw()
+::~scheduler_registry_exception() SPROKIT_NOTHROW
 {
 }
 
 null_scheduler_ctor_exception
-::null_scheduler_ctor_exception(scheduler_registry::type_t const& type) throw()
+::null_scheduler_ctor_exception(scheduler_registry::type_t const& type) SPROKIT_NOTHROW
   : scheduler_registry_exception()
   , m_type(type)
 {
@@ -42,12 +42,12 @@ null_scheduler_ctor_exception
 }
 
 null_scheduler_ctor_exception
-::~null_scheduler_ctor_exception() throw()
+::~null_scheduler_ctor_exception() SPROKIT_NOTHROW
 {
 }
 
 null_scheduler_registry_config_exception
-::null_scheduler_registry_config_exception() throw()
+::null_scheduler_registry_config_exception() SPROKIT_NOTHROW
   : scheduler_registry_exception()
 {
   std::ostringstream sstr;
@@ -58,12 +58,12 @@ null_scheduler_registry_config_exception
 }
 
 null_scheduler_registry_config_exception
-::~null_scheduler_registry_config_exception() throw()
+::~null_scheduler_registry_config_exception() SPROKIT_NOTHROW
 {
 }
 
 null_scheduler_registry_pipeline_exception
-::null_scheduler_registry_pipeline_exception() throw()
+::null_scheduler_registry_pipeline_exception() SPROKIT_NOTHROW
   : scheduler_registry_exception()
 {
   std::ostringstream sstr;
@@ -74,12 +74,12 @@ null_scheduler_registry_pipeline_exception
 }
 
 null_scheduler_registry_pipeline_exception
-::~null_scheduler_registry_pipeline_exception() throw()
+::~null_scheduler_registry_pipeline_exception() SPROKIT_NOTHROW
 {
 }
 
 no_such_scheduler_type_exception
-::no_such_scheduler_type_exception(scheduler_registry::type_t const& type) throw()
+::no_such_scheduler_type_exception(scheduler_registry::type_t const& type) SPROKIT_NOTHROW
   : scheduler_registry_exception()
   , m_type(type)
 {
@@ -92,12 +92,12 @@ no_such_scheduler_type_exception
 }
 
 no_such_scheduler_type_exception
-::~no_such_scheduler_type_exception() throw()
+::~no_such_scheduler_type_exception() SPROKIT_NOTHROW
 {
 }
 
 scheduler_type_already_exists_exception
-::scheduler_type_already_exists_exception(scheduler_registry::type_t const& type) throw()
+::scheduler_type_already_exists_exception(scheduler_registry::type_t const& type) SPROKIT_NOTHROW
   : scheduler_registry_exception()
   , m_type(type)
 {
@@ -110,7 +110,7 @@ scheduler_type_already_exists_exception
 }
 
 scheduler_type_already_exists_exception
-::~scheduler_type_already_exists_exception() throw()
+::~scheduler_type_already_exists_exception() SPROKIT_NOTHROW
 {
 }
 

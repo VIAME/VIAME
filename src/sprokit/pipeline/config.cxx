@@ -230,30 +230,30 @@ config
 }
 
 configuration_exception
-::configuration_exception() throw()
+::configuration_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 configuration_exception
-::~configuration_exception() throw()
+::~configuration_exception() SPROKIT_NOTHROW
 {
 }
 
 bad_configuration_cast
-::bad_configuration_cast(char const* reason) throw()
+::bad_configuration_cast(char const* reason) SPROKIT_NOTHROW
   : configuration_exception()
 {
   m_what = reason;
 }
 
 bad_configuration_cast
-::~bad_configuration_cast() throw()
+::~bad_configuration_cast() SPROKIT_NOTHROW
 {
 }
 
 no_such_configuration_value_exception
-::no_such_configuration_value_exception(config::key_t const& key) throw()
+::no_such_configuration_value_exception(config::key_t const& key) SPROKIT_NOTHROW
   : configuration_exception()
   , m_key(key)
 {
@@ -266,12 +266,12 @@ no_such_configuration_value_exception
 }
 
 no_such_configuration_value_exception
-::~no_such_configuration_value_exception() throw()
+::~no_such_configuration_value_exception() SPROKIT_NOTHROW
 {
 }
 
 bad_configuration_cast_exception
-::bad_configuration_cast_exception(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) throw()
+::bad_configuration_cast_exception(config::key_t const& key, config::value_t const& value, char const* type, char const* reason) SPROKIT_NOTHROW
   : configuration_exception()
   , m_key(key)
   , m_value(value)
@@ -288,12 +288,12 @@ bad_configuration_cast_exception
 }
 
 bad_configuration_cast_exception
-::~bad_configuration_cast_exception() throw()
+::~bad_configuration_cast_exception() SPROKIT_NOTHROW
 {
 }
 
 set_on_read_only_value_exception
-::set_on_read_only_value_exception(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) throw()
+::set_on_read_only_value_exception(config::key_t const& key, config::value_t const& value, config::value_t const& new_value) SPROKIT_NOTHROW
   : configuration_exception()
   , m_key(key)
   , m_value(value)
@@ -310,12 +310,12 @@ set_on_read_only_value_exception
 }
 
 set_on_read_only_value_exception
-::~set_on_read_only_value_exception() throw()
+::~set_on_read_only_value_exception() SPROKIT_NOTHROW
 {
 }
 
 unset_on_read_only_value_exception
-::unset_on_read_only_value_exception(config::key_t const& key, config::value_t const& value) throw()
+::unset_on_read_only_value_exception(config::key_t const& key, config::value_t const& value) SPROKIT_NOTHROW
   : configuration_exception()
   , m_key(key)
   , m_value(value)
@@ -331,7 +331,7 @@ unset_on_read_only_value_exception
 }
 
 unset_on_read_only_value_exception
-::~unset_on_read_only_value_exception() throw()
+::~unset_on_read_only_value_exception() SPROKIT_NOTHROW
 {
 }
 

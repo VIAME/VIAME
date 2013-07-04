@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2011-2012 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2011-2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -18,18 +18,18 @@ namespace sprokit
 {
 
 process_registry_exception
-::process_registry_exception() throw()
+::process_registry_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 process_registry_exception
-::~process_registry_exception() throw()
+::~process_registry_exception() SPROKIT_NOTHROW
 {
 }
 
 null_process_ctor_exception
-::null_process_ctor_exception(process::type_t const& type) throw()
+::null_process_ctor_exception(process::type_t const& type) SPROKIT_NOTHROW
   : process_registry_exception()
   , m_type(type)
 {
@@ -42,12 +42,12 @@ null_process_ctor_exception
 }
 
 null_process_ctor_exception
-::~null_process_ctor_exception() throw()
+::~null_process_ctor_exception() SPROKIT_NOTHROW
 {
 }
 
 null_process_registry_config_exception
-::null_process_registry_config_exception() throw()
+::null_process_registry_config_exception() SPROKIT_NOTHROW
   : process_registry_exception()
 {
   std::ostringstream sstr;
@@ -58,12 +58,12 @@ null_process_registry_config_exception
 }
 
 null_process_registry_config_exception
-::~null_process_registry_config_exception() throw()
+::~null_process_registry_config_exception() SPROKIT_NOTHROW
 {
 }
 
 no_such_process_type_exception
-::no_such_process_type_exception(process::type_t const& type) throw()
+::no_such_process_type_exception(process::type_t const& type) SPROKIT_NOTHROW
   : process_registry_exception()
   , m_type(type)
 {
@@ -76,12 +76,12 @@ no_such_process_type_exception
 }
 
 no_such_process_type_exception
-::~no_such_process_type_exception() throw()
+::~no_such_process_type_exception() SPROKIT_NOTHROW
 {
 }
 
 process_type_already_exists_exception
-::process_type_already_exists_exception(process::type_t const& type) throw()
+::process_type_already_exists_exception(process::type_t const& type) SPROKIT_NOTHROW
   : process_registry_exception()
   , m_type(type)
 {
@@ -94,7 +94,7 @@ process_type_already_exists_exception
 }
 
 process_type_already_exists_exception
-::~process_type_already_exists_exception() throw()
+::~process_type_already_exists_exception() SPROKIT_NOTHROW
 {
 }
 

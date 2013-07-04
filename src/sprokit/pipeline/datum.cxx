@@ -90,20 +90,20 @@ datum
 }
 
 datum_exception
-::datum_exception() throw()
+::datum_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
 datum_exception
-::~datum_exception() throw()
+::~datum_exception() SPROKIT_NOTHROW
 {
 }
 
 static char const* string_for_type(datum::type_t type);
 
 bad_datum_cast_exception
-::bad_datum_cast_exception(std::string const& requested_typeid, std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw()
+::bad_datum_cast_exception(std::string const& requested_typeid, std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) SPROKIT_NOTHROW
   : datum_exception()
   , m_requested_typeid(requested_typeid)
   , m_typeid(typeid_)
@@ -139,7 +139,7 @@ bad_datum_cast_exception
 }
 
 bad_datum_cast_exception
-::~bad_datum_cast_exception() throw()
+::~bad_datum_cast_exception() SPROKIT_NOTHROW
 {
 }
 
