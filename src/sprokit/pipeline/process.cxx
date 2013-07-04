@@ -1810,11 +1810,11 @@ void
 process::priv
 ::make_output_stamps()
 {
-  BOOST_FOREACH (output_edge_map_t::value_type& oport, output_edges)
+  BOOST_FOREACH (port_map_t::value_type const& oport, output_ports)
   {
     port_t const& port_name = oport.first;
 
-    port_info_t const info = q->output_port_info(port_name);
+    port_info_t const& info = oport.second;
     port_frequency_t const& port_frequency = info->frequency;
 
     // Skip ports with an unknown port frequency.
@@ -1836,7 +1836,7 @@ process::priv
     stamp::increment_t const port_increment = port_run_frequency.numerator();
 
     {
-      output_port_info_t& oinfo = oport.second;
+      output_port_info_t& oinfo = output_edges[port_name];
       mutex_t& mut = oinfo->get<0>();
 
       unique_lock_t const lock(mut);
