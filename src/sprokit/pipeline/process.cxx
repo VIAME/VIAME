@@ -1186,6 +1186,11 @@ void
 process
 ::push_datum_to_port(port_t const& port, datum_t const& dat) const
 {
+  if (!d->output_ports.count(port))
+  {
+    throw no_such_port_exception(d->name, port);
+  }
+
   stamp_t push_stamp;
 
   {
@@ -1193,7 +1198,7 @@ process
 
     if (e == d->output_edges.end())
     {
-      throw no_such_port_exception(d->name, port);
+      return;
     }
 
     priv::output_port_info_t& info = e->second;
