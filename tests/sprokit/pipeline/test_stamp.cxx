@@ -12,6 +12,7 @@
 
 DECLARE_TEST(equality);
 DECLARE_TEST(ordering);
+DECLARE_TEST(increment_null);
 
 int
 main(int argc, char* argv[])
@@ -24,6 +25,7 @@ main(int argc, char* argv[])
 
   ADD_TEST(tests, equality);
   ADD_TEST(tests, ordering);
+  ADD_TEST(tests, increment_null);
 
   RUN_TEST(tests, testname);
 }
@@ -91,4 +93,11 @@ IMPLEMENT_TEST(ordering)
   {
     TEST_ERROR("An incremented stamp is greater than the original stamp");
   }
+}
+
+IMPLEMENT_TEST(increment_null)
+{
+  EXPECT_EXCEPTION(std::runtime_error,
+                   sprokit::stamp::incremented_stamp(sprokit::stamp_t()),
+                   "incrementing a NULL stamp");
 }
