@@ -47,6 +47,7 @@ sprokit_build_tooled_test(stamp test_libraries test_stamp.cxx)
 
 sprokit_add_tooled_test(stamp equality)
 sprokit_add_tooled_test(stamp ordering)
+sprokit_add_tooled_test(stamp increment_null)
 
 ##############################
 # Edge tests
