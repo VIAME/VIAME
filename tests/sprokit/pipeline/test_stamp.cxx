@@ -117,3 +117,40 @@ IMPLEMENT_TEST(increment_null)
                    sprokit::stamp::incremented_stamp(sprokit::stamp_t()),
                    "incrementing a NULL stamp");
 }
+
+IMPLEMENT_TEST(increment)
+{
+  sprokit::stamp::increment_t const inca = sprokit::stamp::increment_t(2);
+  sprokit::stamp::increment_t const incb = sprokit::stamp::increment_t(3);
+
+  sprokit::stamp_t const stampa = sprokit::stamp::new_stamp(inca);
+  sprokit::stamp_t const stampb = sprokit::stamp::new_stamp(incb);
+
+  if (*stampa != *stampb)
+  {
+    TEST_ERROR("New stamps with different increments are different");
+  }
+
+  sprokit::stamp_t const stampa2 = sprokit::stamp::incremented_stamp(stampa);
+  sprokit::stamp_t const stampb3 = sprokit::stamp::incremented_stamp(stampb);
+
+  if (*stampb3 < *stampa2)
+  {
+    TEST_ERROR("A stamp with step 3 is not less than than a stamp with step 2 after one step");
+  }
+
+  sprokit::stamp_t const stampa4 = sprokit::stamp::incremented_stamp(stampa2);
+
+  if (*stampa4 < *stampb3)
+  {
+    TEST_ERROR("A stamp with step 2 stepped twice is not less than than a stamp with step 3 after one step");
+  }
+
+  sprokit::stamp_t const stampa6 = sprokit::stamp::incremented_stamp(stampa4);
+  sprokit::stamp_t const stampb6 = sprokit::stamp::incremented_stamp(stampb3);
+
+  if (*stampa6 != *stampb6)
+  {
+    TEST_ERROR("A stamp with step 2 stepped thrice is not equal than than a stamp with step 3 after two steps");
+  }
+}
