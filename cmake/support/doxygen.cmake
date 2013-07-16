@@ -33,11 +33,9 @@ function (sprokit_create_doxygen inputdir name)
     set(tag_targets)
 
     foreach (tag IN LISTS ARGN)
-      set(doxy_tag_files
-        ${doxy_tag_files}
+      list(APPEND doxy_tag_files
         "${sprokit_binary_dir}/doc/${tag}.tag=../${tag}")
-      set(tag_targets
-        ${tag_targets}
+      list(APPEND tag_targets
         doxygen-${tag}-tag)
     endforeach ()
 

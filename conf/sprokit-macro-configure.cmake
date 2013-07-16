@@ -130,11 +130,9 @@ function (sprokit_configure_directory name sourcedir destdir)
       "${source_path}"
       "${dest_path}")
 
-    set(source_paths
-      ${source_paths}
+    list(APPEND source_paths
       "${source_path}")
-    set(dest_paths
-      ${dest_paths}
+    list(APPEND dest_paths
       "${dest_path}")
 
     math(EXPR count "${count} + 1")

@@ -22,14 +22,12 @@ if (VALGRIND_EXECUTABLE)
   set(sprokit_valgrind_arguments)
 
   if (SPROKIT_VALGRIND_GENERATE_SUPPRESSIONS)
-    set(sprokit_valgrind_arguments
-        ${sprokit_valgrind_arguments}
+    list(APPEND sprokit_valgrind_arguments
         "--gen-suppressions=all")
   endif ()
 
   if (SPROKIT_VALGRIND_VERBOSE)
-    set(sprokit_valgrind_arguments
-      ${sprokit_valgrind_arguments}
+    list(APPEND sprokit_valgrind_arguments
       "--verbose")
   endif ()
 
@@ -39,8 +37,7 @@ if (VALGRIND_EXECUTABLE)
       "${sprokit_source_dir}/tests/data/valgrind/*.supp")
 
     foreach (valgrind_suppression IN LISTS valgrind_suppressions)
-      set(sprokit_valgrind_arguments
-        ${sprokit_valgrind_arguments}
+      list(APPEND sprokit_valgrind_arguments
         "--suppressions=${valgrind_suppression}")
     endforeach ()
   endif ()

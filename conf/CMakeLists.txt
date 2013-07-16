@@ -78,8 +78,7 @@ set(macro_files
   tests)
 
 if (SPROKIT_ENABLE_PYTHON)
-  set(macro_files
-    ${macro_files}
+  list(APPEND macro_files
     python)
 endif ()
 

@@ -97,12 +97,10 @@ if (WIN32)
     SPROKIT_DEFAULT_MODULE_PATHS
     path_prefix)
 
-  set(pipeline_private_headers
-    ${pipeline_private_headers}
+  list(APPEND pipeline_private_headers
     module-paths.h.in)
 else ()
-  set(module_build_options
-    ${module_build_options}
+  list(APPEND module_build_options
     ${sprokit_library_options})
 endif ()
 

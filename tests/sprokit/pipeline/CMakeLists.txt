@@ -322,8 +322,7 @@ set(schedulers
   thread_per_process)
 
 if (SPROKIT_ENABLE_PYTHON)
-  set(schedulers
-    ${schedulers}
+  list(APPEND schedulers
     pythread_per_process)
 endif ()
 

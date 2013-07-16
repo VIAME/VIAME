@@ -178,23 +178,22 @@ ctest_build()
 ctest_test()
 
 if (WITH_MEMCHECK AND CTEST_MEMORYCHECK_COMMAND)
-  set(valgrind_arguments "")
+  set(valgrind_arguments)
 
-  set(valgrind_arguments
-    "${valgrind_arguments} --quiet")
-  set(valgrind_arguments
-    "${valgrind_arguments} --leak-check=yes")
-  set(valgrind_arguments
-    "${valgrind_arguments} --show-reachable=yes")
-  set(valgrind_arguments
-    "${valgrind_arguments} --num-callers=50")
+  list(APPEND valgrind_arguments
+    "--quiet")
+  list(APPEND valgrind_arguments
+    "--leak-check=yes")
+  list(APPEND valgrind_arguments
+    "--show-reachable=yes")
+  list(APPEND valgrind_arguments
+    "--num-callers=50")
 
   file(GLOB valgrind_suppressions
     "${CTEST_SOURCE_DIRECTORY}/tests/data/valgrind/*.supp")
 
   foreach (valgrind_suppression IN LISTS valgrind_suppressions)
-    set(valgrind_arguments
-      ${valgrind_arguments}
+    list(APPEND valgrind_arguments
       "--suppressions=${valgrind_suppression}")
   endforeach ()
 
