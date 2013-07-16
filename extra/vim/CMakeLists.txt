@@ -1,9 +1,6 @@
 project(sprokit_extra_vim)
 
-set(VIM_VERSION "73"
-  CACHE STRING "The version of Vim to install for")
-
-set(VIM_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/${PREFIX}/share/vim/vim${VIM_VERSION})
+set(VIM_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/${PREFIX}/share/vim/vimfiles)
 
 install(
   FILES       pipe.vim
