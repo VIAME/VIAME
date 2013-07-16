@@ -38,7 +38,7 @@ if (VALGRIND_EXECUTABLE)
       valgrind_suppressions
       "${sprokit_source_dir}/tests/data/valgrind/*.supp")
 
-    foreach (valgrind_suppression ${valgrind_suppressions})
+    foreach (valgrind_suppression IN LISTS valgrind_suppressions)
       set(sprokit_valgrind_arguments
         ${sprokit_valgrind_arguments}
         "--suppressions=${valgrind_suppression}")

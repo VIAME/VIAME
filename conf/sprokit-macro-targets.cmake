@@ -159,7 +159,7 @@ function (sprokit_add_library name)
   add_dependencies("${name}"
     configure-config.h)
 
-  foreach (config ${CMAKE_CONFIGURATION_TYPES})
+  foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
     set(subdir "${library_subdir}${library_subdir_suffix}")
 
     if (CMAKE_CONFIGURATION_TYPES)
@@ -211,7 +211,7 @@ function (sprokit_add_plugin name define)
 
   set(no_export ON)
 
-  sprokit_add_library(${name} SHARED
+  sprokit_add_library(${name} MODULE
     ${ARGN})
 
   set_target_properties(${name}

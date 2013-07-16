@@ -328,7 +328,7 @@ if (SPROKIT_ENABLE_PYTHON)
 endif ()
 
 function (sprokit_add_tooled_run_test group instance)
-  foreach (scheduler ${schedulers})
+  foreach (scheduler IN LISTS schedulers)
     if (SPROKIT_ENABLE_PYTHON)
       if (scheduler STREQUAL "pythread_per_process" OR
           instance STREQUAL "pysimple_pipeline")

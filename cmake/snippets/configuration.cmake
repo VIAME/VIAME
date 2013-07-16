@@ -1,6 +1,6 @@
 # Add defines for code that care about configuration types.
 
-foreach (config ${CMAKE_CONFIGURATION_TYPES})
+foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
   string(TOUPPER "${config}" upper_config)
 
   set(config_defines

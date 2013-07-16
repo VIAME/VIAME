@@ -151,7 +151,7 @@ function (sprokit_create_python_init modpath)
   file(WRITE "${init_template}"
     "${copyright_header}\n\n")
 
-  foreach (module ${ARGN})
+  foreach (module IN LISTS ARGN)
     file(APPEND "${init_template}"
       "from ${module} import *\n")
   endforeach ()

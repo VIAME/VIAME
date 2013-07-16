@@ -192,7 +192,7 @@ if (WITH_MEMCHECK AND CTEST_MEMORYCHECK_COMMAND)
   file(GLOB valgrind_suppressions
     "${CTEST_SOURCE_DIRECTORY}/tests/data/valgrind/*.supp")
 
-  foreach (valgrind_suppression ${valgrind_suppressions})
+  foreach (valgrind_suppression IN LISTS valgrind_suppressions)
     set(valgrind_arguments
       ${valgrind_arguments}
       "--suppressions=${valgrind_suppression}")

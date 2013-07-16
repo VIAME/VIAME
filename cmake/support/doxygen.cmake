@@ -32,7 +32,7 @@ function (sprokit_create_doxygen inputdir name)
     set(doxy_tag_files)
     set(tag_targets)
 
-    foreach (tag ${ARGN})
+    foreach (tag IN LISTS ARGN)
       set(doxy_tag_files
         ${doxy_tag_files}
         "${sprokit_binary_dir}/doc/${tag}.tag=../${tag}")

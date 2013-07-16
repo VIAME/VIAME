@@ -145,7 +145,7 @@ set(schedulers
   thread_per_process)
 
 function (sprokit_add_python_run_test group instance)
-  foreach (scheduler ${schedulers})
+  foreach (scheduler IN LISTS schedulers)
     sprokit_add_python_test(${group} ${instance}-${scheduler})
 
     set_tests_properties(test-python-${group}-${instance}-${scheduler}
