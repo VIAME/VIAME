@@ -5,6 +5,7 @@
 #  TYPE          - One of "Experimental", "Continuous", or "Nightly"
 #  WITH_MEMCHECK - Set to ON to submit memcheck results (disabled if coverage
 #                  is enabled)
+#  NO_SUBMIT     - Set to ON to not submit the result to the dashboard.
 #
 # Options related to testing a git checkout:
 #
@@ -207,5 +208,7 @@ if (SPROKIT_ENABLE_COVERAGE AND CTEST_COVERAGE_COMMAND)
   ctest_coverage()
 endif ()
 
-# Submit result
-ctest_submit()
+if (NOT NO_SUBMIT)
+  # Submit result
+  ctest_submit()
+endif ()
