@@ -1289,6 +1289,75 @@ IMPLEMENT_TEST(setup_pipeline_frequency_incompatible_via_flow)
                    "setting up a pipeline with an invalid frequency mapping");
 }
 
+IMPLEMENT_TEST(setup_pipeline_frequency_synchronized_fork)
+{
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typef = sprokit::process::type_t("duplicate");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("multiplication");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
+
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namefa2 = sprokit::process::name_t("duplicatea2");
+  sprokit::process::name_t const proc_namefb3 = sprokit::process::name_t("duplicateb3");
+  sprokit::process::name_t const proc_namefa3 = sprokit::process::name_t("duplicatea3");
+  sprokit::process::name_t const proc_namefb2 = sprokit::process::name_t("duplicateb2");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("multiply");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("sink");
+
+  sprokit::config::key_t const key = sprokit::config::key_t("copies");
+  sprokit::config::value_t const copies2 = boost::lexical_cast<sprokit::config::value_t>(1);
+  sprokit::config::value_t const copies3 = boost::lexical_cast<sprokit::config::value_t>(2);
+
+  sprokit::config_t const configf2 = sprokit::config::empty_config();
+  configf2->set_value(key, copies2);
+
+  sprokit::config_t const configf3 = sprokit::config::empty_config();
+  configf3->set_value(key, copies3);
+
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processfa2 = create_process(proc_typef, proc_namefa2, configf2);
+  sprokit::process_t const processfa3 = create_process(proc_typef, proc_namefa3, configf3);
+  sprokit::process_t const processfb3 = create_process(proc_typef, proc_namefb3, configf3);
+  sprokit::process_t const processfb2 = create_process(proc_typef, proc_namefb2, configf2);
+  sprokit::process_t const processt = create_process(proc_typet, proc_namet);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processfa2);
+  pipeline->add_process(processfa3);
+  pipeline->add_process(processfb3);
+  pipeline->add_process(processfb2);
+  pipeline->add_process(processt);
+  pipeline->add_process(processd);
+
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_namefi = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_namefo = sprokit::process::port_t("duplicate");
+  sprokit::process::port_t const port_nameti1 = sprokit::process::port_t("factor1");
+  sprokit::process::port_t const port_nameti2 = sprokit::process::port_t("factor2");
+  sprokit::process::port_t const port_nameto = sprokit::process::port_t("product");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namefa2, port_namefi);
+  pipeline->connect(proc_namefa2, port_namefo,
+                    proc_namefb3, port_namefi);
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namefa3, port_namefi);
+  pipeline->connect(proc_namefa3, port_namefo,
+                    proc_namefb2, port_namefi);
+  pipeline->connect(proc_namefb3, port_namefo,
+                    proc_namet, port_nameti1);
+  pipeline->connect(proc_namefb2, port_namefo,
+                    proc_namet, port_nameti2);
+  pipeline->connect(proc_namet, port_nameto,
+                    proc_named, port_named);
+
+  pipeline->setup_pipeline();
+}
+
 IMPLEMENT_TEST(setup_pipeline_duplicate)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
