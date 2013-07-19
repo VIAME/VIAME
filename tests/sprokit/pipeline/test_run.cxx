@@ -481,6 +481,148 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
   }
 }
 
+IMPLEMENT_TEST(frequency_pipeline)
+{
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typef = sprokit::process::type_t("duplicate");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("multiplication");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("print_number");
+
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namefaa = sprokit::process::name_t("duplicateaa");
+  sprokit::process::name_t const proc_namefba = sprokit::process::name_t("duplicateba");
+  sprokit::process::name_t const proc_namefab = sprokit::process::name_t("duplicateab");
+  sprokit::process::name_t const proc_namefbb = sprokit::process::name_t("duplicatebb");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
+
+  std::string const output_path = "test-run-frequency_pipeline-" + scheduler_type + "-print_number.txt";
+
+  int32_t const start_value = 1;
+  int32_t const end_value = 5;
+
+  size_t const copies_a = 2;
+  size_t const copies_b = 3;
+
+  {
+    sprokit::config_t const configu = sprokit::config::empty_config();
+
+    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
+    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
+
+    sprokit::config::value_t const start_num = boost::lexical_cast<sprokit::config::value_t>(start_value);
+    sprokit::config::value_t const end_num = boost::lexical_cast<sprokit::config::value_t>(end_value);
+
+    configu->set_value(start_key, start_num);
+    configu->set_value(end_key, end_num);
+
+    sprokit::config_t const configfa = sprokit::config::empty_config();
+    sprokit::config_t const configfb = sprokit::config::empty_config();
+
+    sprokit::config::key_t const copies_key = sprokit::config::key_t("copies");
+    sprokit::config::value_t const copiesa = boost::lexical_cast<sprokit::config::value_t>(copies_a - 1);
+    sprokit::config::value_t const copiesb = boost::lexical_cast<sprokit::config::value_t>(copies_b - 1);
+
+    configfa->set_value(copies_key, copiesa);
+    configfb->set_value(copies_key, copiesb);
+
+    sprokit::config_t const configt = sprokit::config::empty_config();
+
+    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
+    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
+
+    configt->set_value(output_key, output_value);
+
+    sprokit::process_t const processu = create_process(proc_typeu, proc_nameu, configu);
+    sprokit::process_t const processfaa = create_process(proc_typef, proc_namefaa, configfa);
+    sprokit::process_t const processfba = create_process(proc_typef, proc_namefba, configfb);
+    sprokit::process_t const processfab = create_process(proc_typef, proc_namefab, configfa);
+    sprokit::process_t const processfbb = create_process(proc_typef, proc_namefbb, configfb);
+    sprokit::process_t const processd = create_process(proc_typed, proc_named);
+    sprokit::process_t const processt = create_process(proc_typet, proc_namet, configt);
+
+    sprokit::pipeline_t const pipeline = create_pipeline();
+
+    pipeline->add_process(processu);
+    pipeline->add_process(processfaa);
+    pipeline->add_process(processfba);
+    pipeline->add_process(processfab);
+    pipeline->add_process(processfbb);
+    pipeline->add_process(processd);
+    pipeline->add_process(processt);
+
+    sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+    sprokit::process::port_t const port_namefi = sprokit::process::port_t("input");
+    sprokit::process::port_t const port_namefo = sprokit::process::port_t("duplicate");
+    sprokit::process::port_t const port_namedi1 = sprokit::process::port_t("factor1");
+    sprokit::process::port_t const port_namedi2 = sprokit::process::port_t("factor2");
+    sprokit::process::port_t const port_namedo = sprokit::process::port_t("product");
+    sprokit::process::port_t const port_namet = sprokit::process::port_t("number");
+
+    pipeline->connect(proc_nameu, port_nameu,
+                      proc_namefaa, port_namefi);
+    pipeline->connect(proc_namefaa, port_namefo,
+                      proc_namefbb, port_namefi);
+    pipeline->connect(proc_nameu, port_nameu,
+                      proc_namefab, port_namefi);
+    pipeline->connect(proc_namefab, port_namefo,
+                      proc_namefba, port_namefi);
+    pipeline->connect(proc_namefbb, port_namefo,
+                      proc_named, port_namedi1);
+    pipeline->connect(proc_namefba, port_namefo,
+                      proc_named, port_namedi2);
+    pipeline->connect(proc_named, port_namedo,
+                      proc_namet, port_namet);
+
+    pipeline->setup_pipeline();
+
+    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
+
+    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+
+    scheduler->start();
+    scheduler->wait();
+  }
+
+  std::ifstream fin(output_path.c_str());
+
+  if (!fin.good())
+  {
+    TEST_ERROR("Could not open the output file");
+  }
+
+  std::string line;
+
+  size_t const total_copies = copies_a * copies_b;
+
+  for (int32_t i = start_value; i < end_value; ++i)
+  {
+    for (size_t j = 0; j < total_copies; ++j)
+    {
+      std::getline(fin, line);
+
+      if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * i))
+      {
+        TEST_ERROR("Did not get expected value: "
+                   "Expected: " << i * i << " "
+                   "Received: " << line);
+      }
+    }
+  }
+
+  std::getline(fin, line);
+
+  if (!line.empty())
+  {
+    TEST_ERROR("Empty line missing");
+  }
+
+  if (!fin.eof())
+  {
+    TEST_ERROR("Not at end of file");
+  }
+}
+
 sprokit::process_t
 create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config)
 {
