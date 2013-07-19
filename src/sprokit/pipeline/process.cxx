@@ -203,9 +203,11 @@ class process::priv
     process* const q;
     config_t conf;
 
-    ports_t static_inputs;
-    ports_t required_inputs;
-    ports_t required_outputs;
+    typedef std::set<port_t> port_set_t;
+
+    port_set_t static_inputs;
+    port_set_t required_inputs;
+    port_set_t required_outputs;
 
     flow_tag_port_type_map_t flow_tag_port_types;
     flow_tag_port_map_t input_flow_tag_ports;
@@ -864,14 +866,14 @@ process
       config::value_t(),
       config::description_t("A default value to use for the \'" + port + "\' port if it is not connected."));
 
-    d->static_inputs.push_back(port);
+    d->static_inputs.insert(port);
   }
 
   bool const no_dep = (0 != flags.count(flag_input_nodep));
 
   if (required && !no_dep)
   {
-    d->required_inputs.push_back(port);
+    d->required_inputs.insert(port);
   }
 
   bool const is_shared = (0 != flags.count(flag_output_shared));
@@ -944,7 +946,7 @@ process
 
   if (flags.count(flag_required))
   {
-    d->required_outputs.push_back(port);
+    d->required_outputs.insert(port);
   }
 }
 
@@ -1030,8 +1032,7 @@ process
   d->input_edges.erase(port);
 
   // Remove from bookkeeping structures.
-  ports_t::iterator const ri = std::remove(d->required_inputs.begin(), d->required_inputs.end(), port);
-  d->required_inputs.erase(ri, d->required_inputs.end());
+  d->required_inputs.erase(port);
 
   priv::port_tag_map_t::const_iterator const t = d->input_port_tags.find(port);
 
@@ -1074,8 +1075,7 @@ process
   }
 
   // Remove from bookkeeping structures.
-  ports_t::iterator const ri = std::remove(d->required_outputs.begin(), d->required_outputs.end(), port);
-  d->required_outputs.erase(ri, d->required_outputs.end());
+  d->required_outputs.erase(port);
 
   priv::port_tag_map_t::const_iterator const t = d->output_port_tags.find(port);
 
@@ -1403,7 +1403,7 @@ bool
 process
 ::is_static_input(port_t const& port) const
 {
-  return (0 != std::count(d->static_inputs.begin(), d->static_inputs.end(), port));
+  return (0 != d->static_inputs.count(port));
 }
 
 void
