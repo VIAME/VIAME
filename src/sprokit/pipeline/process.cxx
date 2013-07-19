@@ -689,24 +689,28 @@ process
 
       BOOST_FOREACH (port_t const& iport, iports)
       {
+        port_info_t const iport_info = input_port_info(iport);
+
         declare_input_port(
           iport,
           new_type,
-          info->flags,
-          info->description,
-          info->frequency);
+          iport_info->flags,
+          iport_info->description,
+          iport_info->frequency);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
 
       BOOST_FOREACH (port_t const& oport, oports)
       {
+        port_info_t const oport_info = output_port_info(oport);
+
         declare_output_port(
           oport,
           new_type,
-          info->flags,
-          info->description,
-          info->frequency);
+          oport_info->flags,
+          oport_info->description,
+          oport_info->frequency);
       }
 
       d->flow_tag_port_types[tag] = new_type;
@@ -756,24 +760,28 @@ process
 
       BOOST_FOREACH (port_t const& iport, iports)
       {
+        port_info_t const iport_info = input_port_info(iport);
+
         declare_input_port(
           iport,
           new_type,
-          info->flags,
-          info->description,
-          info->frequency);
+          iport_info->flags,
+          iport_info->description,
+          iport_info->frequency);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
 
       BOOST_FOREACH (port_t const& oport, oports)
       {
+        port_info_t const oport_info = output_port_info(oport);
+
         declare_output_port(
           oport,
           new_type,
-          info->flags,
-          info->description,
-          info->frequency);
+          oport_info->flags,
+          oport_info->description,
+          oport_info->frequency);
       }
 
       d->flow_tag_port_types[tag] = new_type;
