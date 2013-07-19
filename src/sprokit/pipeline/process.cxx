@@ -430,6 +430,11 @@ process
     throw set_type_on_initialized_process_exception(d->name, port, new_type);
   }
 
+  if (new_type == type_any)
+  {
+    return true;
+  }
+
   return _set_input_port_type(port, new_type);
 }
 
@@ -440,6 +445,11 @@ process
   if (d->initialized)
   {
     throw set_type_on_initialized_process_exception(d->name, port, new_type);
+  }
+
+  if (new_type == type_any)
+  {
+    return true;
   }
 
   return _set_output_port_type(port, new_type);
