@@ -38,13 +38,12 @@ target_link_libraries(processes_test
   LINK_PRIVATE
     sprokit_pipeline)
 
+# Forcefully dump the plugin to the current binary directory.
 set_target_properties(processes_test
   PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    PREFIX                   ""
-    SUFFIX                   ${CMAKE_SHARED_MODULE_SUFFIX})
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load")
 
 sprokit_discover_tests(modules test_libraries test_modules.cxx)
 
