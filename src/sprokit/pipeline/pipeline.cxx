@@ -1922,8 +1922,8 @@ pipeline::priv
 
       if (down_proc_freq != expect_freq)
       {
-        throw frequency_mismatch_exception(upstream_name, upstream_port, up_proc_freq,
-                                           downstream_name, downstream_port, down_proc_freq);
+        throw frequency_mismatch_exception(upstream_name, upstream_port, up_proc_freq, up_port_freq,
+                                           downstream_name, downstream_port, down_proc_freq, down_port_freq);
       }
     }
     // Propagate the frequency downstream.

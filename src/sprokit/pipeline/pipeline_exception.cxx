@@ -501,24 +501,30 @@ frequency_mismatch_exception
 ::frequency_mismatch_exception(process::name_t const& upstream_name,
                                process::port_t const& upstream_port,
                                process::port_frequency_t const& upstream_frequency,
+                               process::port_frequency_t const& upstream_port_frequency,
                                process::name_t const& downstream_name,
                                process::port_t const& downstream_port,
-                               process::port_frequency_t const& downstream_frequency) SPROKIT_NOTHROW
+                               process::port_frequency_t const& downstream_frequency,
+                               process::port_frequency_t const& downstream_port_frequency) SPROKIT_NOTHROW
   : m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
   , m_upstream_frequency(upstream_frequency)
+  , m_upstream_port_frequency(upstream_port_frequency)
   , m_downstream_name(downstream_name)
   , m_downstream_port(downstream_port)
   , m_downstream_frequency(downstream_frequency)
+  , m_downstream_port_frequency(downstream_port_frequency)
 {
   std::ostringstream sstr;
+
+  process::port_frequency_t const up_freq = m_upstream_frequency * m_upstream_port_frequency;
+  process::port_frequency_t const down_freq = m_downstream_frequency * m_downstream_port_frequency;
 
   sstr << "The connection from "
           "\'" << m_upstream_name << "." << m_upstream_port << "\' to "
           "\'" << m_downstream_name << "." << m_downstream_port << "\', "
           "has a frequency mismatch where upstream is at "
-       << m_upstream_frequency << " and downstream is at "
-       << m_downstream_frequency;
+       << up_freq << " and downstream is at " << down_freq;
 
   m_what = sstr.str();
 }
