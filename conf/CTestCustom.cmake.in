@@ -6,11 +6,6 @@ set(CTEST_CUSTOM_MAXIMUM_FAILED_TEST_OUTPUT_SIZE   0)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS        500)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS      500)
 
-# Files to explicitly exclude from code coverage
-list(APPEND CTEST_CUSTOM_COVERAGE_EXCLUDE
- "/src/processes/examples/"
- "/tests/")
-
 # Warnings to explicitly ignore
 list(APPEND CTEST_CUSTOM_WARNING_EXCEPTION
   "LINK : warning LNK4224: /INCREMENTAL:YES is no longer supported;  ignored")
