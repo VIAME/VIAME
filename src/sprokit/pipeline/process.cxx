@@ -1032,6 +1032,8 @@ process
   d->input_edges.erase(port);
 
   // Remove from bookkeeping structures.
+  /// \todo Remove static configuration key as well?
+  d->static_inputs.erase(port);
   d->required_inputs.erase(port);
 
   priv::port_tag_map_t::const_iterator const t = d->input_port_tags.find(port);
