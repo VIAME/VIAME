@@ -441,6 +441,39 @@ IMPLEMENT_TEST(setup_pipeline_type_force_any_upstream)
   pipeline->setup_pipeline();
 }
 
+IMPLEMENT_TEST(setup_pipeline_type_force_any_downstream)
+{
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("any_source");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type3 = sprokit::process::type_t("take_string");
+
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("sink");
+
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type3, proc_name3);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+  pipeline->add_process(process3);
+
+  sprokit::process::port_t const port_name = sprokit::process::port_t("data");
+  sprokit::process::port_t const port_name2i = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_name2o = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name3 = sprokit::process::port_t("string");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2i);
+  pipeline->connect(proc_name2, port_name2o,
+                    proc_name3, port_name3);
+
+  pipeline->setup_pipeline();
+}
+
 IMPLEMENT_TEST(setup_pipeline_type_force_flow_upstream)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");

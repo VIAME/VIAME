@@ -30,8 +30,9 @@
 
 #include "registration.h"
 
-#include "const_number_process.h"
+#include "any_source_process.h"
 #include "const_process.h"
+#include "const_number_process.h"
 #include "data_dependent_process.h"
 #include "expect_process.h"
 #include "feedback_process.h"
@@ -71,6 +72,7 @@ register_processes()
     return;
   }
 
+  registry->register_process("any_source", "A process which creates arbitrary data", create_process<any_source_process>);
   registry->register_process("const", "A process with the const flag", create_process<const_process>);
   registry->register_process("const_number", "Outputs a constant number", create_process<const_number_process>);
   registry->register_process("data_dependent", "A process with a data dependent type", create_process<data_dependent_process>);

@@ -1,6 +1,7 @@
 project(sprokit_processes_examples)
 
 set(examples_srcs
+  any_source_process.cxx
   const_process.cxx
   const_number_process.cxx
   data_dependent_process.cxx
@@ -22,6 +23,7 @@ set(examples_srcs
   tunable_process.cxx)
 
 set(examples_private_headers
+  any_source_process.h
   const_process.h
   const_number_process.h
   data_dependent_process.h
