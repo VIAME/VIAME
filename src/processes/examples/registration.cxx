@@ -34,6 +34,7 @@
 #include "const_process.h"
 #include "const_number_process.h"
 #include "data_dependent_process.h"
+#include "duplicate_process.h"
 #include "expect_process.h"
 #include "feedback_process.h"
 #include "flow_dependent_process.h"
@@ -45,6 +46,7 @@
 #include "orphan_process.h"
 #include "print_number_process.h"
 #include "shared_process.h"
+#include "skip_process.h"
 #include "tagged_flow_dependent_process.h"
 #include "take_number_process.h"
 #include "take_string_process.h"
@@ -76,6 +78,7 @@ register_processes()
   registry->register_process("const", "A process with the const flag", create_process<const_process>);
   registry->register_process("const_number", "Outputs a constant number", create_process<const_number_process>);
   registry->register_process("data_dependent", "A process with a data dependent type", create_process<data_dependent_process>);
+  registry->register_process("duplicate", "A process which duplicates input", create_process<duplicate_process>);
   registry->register_process("expect", "A process which expects some conditions", create_process<expect_process>);
   registry->register_process("feedback", "A process which feeds data into itself", create_process<feedback_process>);
   registry->register_process("flow_dependent", "A process with a flow dependent type", create_process<flow_dependent_process>);
@@ -87,6 +90,7 @@ register_processes()
   registry->register_process("orphan", "A dummy process", create_process<orphan_process>);
   registry->register_process("print_number", "Print numbers to a file", create_process<print_number_process>);
   registry->register_process("shared", "A process with the shared flag", create_process<shared_process>);
+  registry->register_process("skip", "A process which skips input data", create_process<skip_process>);
   registry->register_process("tagged_flow_dependent", "A process with a tagged flow dependent types", create_process<tagged_flow_dependent_process>);
   registry->register_process("take_number", "Print numbers to a file", create_process<take_number_process>);
   registry->register_process("take_string", "Print strings to a file", create_process<take_string_process>);
