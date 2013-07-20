@@ -58,6 +58,16 @@ set_target_properties(schedulers_test
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load")
 
+sprokit_add_plugin(not_a_plugin SHARED
+  not_a_plugin.cxx)
+
+# Forcefully dump the plugin to the current binary directory.
+set_target_properties(not_a_plugin
+  PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/not_a_plugin"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/not_a_plugin"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/not_a_plugin")
+
 sprokit_discover_tests(modules test_libraries test_modules.cxx)
 
 ##############################

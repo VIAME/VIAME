@@ -82,3 +82,15 @@ IMPLEMENT_TEST(envvar)
 
   sreg->create_scheduler(sched_type, pipeline);
 }
+
+TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@/not_a_plugin)
+IMPLEMENT_TEST(not_a_plugin)
+{
+  sprokit::load_known_modules();
+}
+
+TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@)
+IMPLEMENT_TEST(has_directory)
+{
+  sprokit::load_known_modules();
+}
