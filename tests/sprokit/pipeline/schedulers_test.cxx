@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2013 by Kitware, Inc. All Rights Reserved. Please refer to
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,57 +28,90 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
-
-#include <sprokit/pipeline/config.h>
-#include <sprokit/pipeline/modules.h>
-#include <sprokit/pipeline/pipeline.h>
-#include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline/process_registry.h>
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_registry.h>
 
-#define TEST_ARGS ()
+#include <sprokit/config.h>
 
-DECLARE_TEST_MAP();
+#include <boost/make_shared.hpp>
 
-int
-main(int argc, char* argv[])
+using namespace sprokit;
+
+class SPROKIT_NO_EXPORT test_scheduler
+  : public sprokit::scheduler
 {
-  CHECK_ARGS(1);
+  public:
+    test_scheduler(pipeline_t const& pipe, config_t const& config);
+    ~test_scheduler();
+  protected:
+    void _start();
+    void _wait();
+    void _pause();
+    void _resume();
+    void _stop();
+};
 
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+test_scheduler
+::test_scheduler(pipeline_t const& pipe, config_t const& config)
+  : scheduler(pipe, config)
+{
 }
 
-IMPLEMENT_TEST(load)
+test_scheduler
+::~test_scheduler()
 {
-  sprokit::load_known_modules();
 }
 
-IMPLEMENT_TEST(multiple_load)
+void
+test_scheduler
+::_start()
 {
-  sprokit::load_known_modules();
-  sprokit::load_known_modules();
 }
 
-TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@/multiple_load)
-IMPLEMENT_TEST(envvar)
+void
+test_scheduler
+::_wait()
 {
-  sprokit::load_known_modules();
+}
 
-  sprokit::process_registry_t const preg = sprokit::process_registry::self();
+void
+test_scheduler
+::_pause()
+{
+}
 
-  sprokit::process::type_t const proc_type = sprokit::process::type_t("test");
+void
+test_scheduler
+::_resume()
+{
+}
 
-  preg->create_process(proc_type, sprokit::process::name_t());
+void
+test_scheduler
+::_stop()
+{
+}
 
-  sprokit::scheduler_registry_t const sreg = sprokit::scheduler_registry::self();
+extern "C"
+{
 
-  sprokit::scheduler_registry::type_t const sched_type = sprokit::scheduler_registry::type_t("test");
+SPROKIT_EXPORT void register_schedulers();
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>();
+}
 
-  sreg->create_scheduler(sched_type, pipeline);
+void
+register_schedulers()
+{
+  static scheduler_registry::module_t const module_name = scheduler_registry::module_t("test_schedulers");
+
+  scheduler_registry_t const registry = scheduler_registry::self();
+
+  if (registry->is_module_loaded(module_name))
+  {
+    return;
+  }
+
+  registry->register_scheduler("test", "A test scheduler", create_scheduler<test_scheduler>);
+
+  registry->mark_module_as_loaded(module_name);
 }
