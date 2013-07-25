@@ -136,15 +136,15 @@ def test_flags_as_set():
         test_error(".add() added a duplicate item: expected 4, got %d" % len(a))
 
     # adding invalid objects
-    expect_exception('adding a valud of an invalid type', RuntimeError,
+    expect_exception('adding a value of an invalid type', TypeError,
                      process.PortFlags.add, a, True),
 
     # indexing failures
-    expect_exception('getting an item by index', IndexError,
+    expect_exception('getting an item by index', TypeError,
                      process.PortFlags.__getitem__, a, 0)
-    expect_exception('deleting an item by index', IndexError,
+    expect_exception('deleting an item by index', TypeError,
                      process.PortFlags.__delitem__, a, 0)
-    expect_exception('setting an item by index', IndexError,
+    expect_exception('setting an item by index', TypeError,
                      process.PortFlags.__setitem__, a, 0, process.PythonProcess.flag_input_mutable)
 
     # 'in' keyword
