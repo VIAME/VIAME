@@ -23,7 +23,7 @@ if (VALGRIND_EXECUTABLE)
 
   if (SPROKIT_VALGRIND_GENERATE_SUPPRESSIONS)
     list(APPEND sprokit_valgrind_arguments
-        "--gen-suppressions=all")
+      "--gen-suppressions=all")
   endif ()
 
   if (SPROKIT_VALGRIND_VERBOSE)
@@ -178,6 +178,7 @@ function (sprokit_add_tooled_test test instance)
       --pc-out-file="${sprokit_test_working_path}/bbv.pc.log.${test}.${instance}")
     _sprokit_add_tooled_test(bbv ${test} ${instance} ${ARGN})
   endif ()
+
   if (GPROF_EXECUTABLE)
     set(real_command
       "${sprokit_test_working_path}/test-${test}")
