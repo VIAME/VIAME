@@ -102,15 +102,17 @@ endfunction ()
 macro (_sprokit_export name)
   set(exports)
 
-  if (NOT no_export)
-    set(exports
-      EXPORT ${export_name})
-
-    set(__sprokit_export_targets
-      ${__sprokit_export_targets}
-      ${name}
-      CACHE INTERNAL "Targets exported by sprokit")
+  if (no_export)
+    return()
   endif ()
+
+  set(exports
+    EXPORT ${export_name})
+
+  set(__sprokit_export_targets
+    ${__sprokit_export_targets}
+    ${name}
+    CACHE INTERNAL "Targets exported by sprokit")
 endmacro ()
 
 function (sprokit_export_targets file)
@@ -121,9 +123,11 @@ function (sprokit_export_targets file)
 endfunction ()
 
 function (sprokit_install)
-  if (NOT no_install)
-    install(${ARGN})
+  if (no_install)
+    return()
   endif ()
+
+  install(${ARGN})
 endfunction ()
 
 function (sprokit_add_executable name)

@@ -45,11 +45,13 @@ if (SPROKIT_TEST_ADD_TARGETS)
 endif ()
 
 function (sprokit_declare_test name)
-  if (SPROKIT_TEST_ADD_TARGETS)
-    add_custom_target(tests-${name})
-    add_dependencies(tests
-      tests-${name})
+  if (NOT SPROKIT_TEST_ADD_TARGETS)
+    return()
   endif ()
+
+  add_custom_target("tests-${name}")
+  add_dependencies(tests
+    "tests-${name}")
 endfunction ()
 
 function (sprokit_build_test name libraries)
