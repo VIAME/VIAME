@@ -102,20 +102,16 @@ function (_sprokit_add_python_module path modpath module)
     endif ()
   endif ()
 
+  if (CMAKE_CONFIGURATION_TYPES)
+    set(sprokit_configure_cmake_args
+      "\"-Dconfig=${CMAKE_CFG_INTDIR}/\"")
+    set(sprokit_configure_extra_dests
+      "${sprokit_python_output_path}/\${config}${sitepath}${modpath}/${module}.py")
+  endif ()
   sprokit_configure_file("python${python_arch}-${safe_modpath}-${module}"
     "${path}"
     "${sprokit_python_output_path}${sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
-
-  foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    sprokit_configure_file("python${python_arch}-${safe_modpath}-${module}-${config}"
-      "${path}"
-      "${sprokit_python_output_path}/${config}${sitepath}/${modpath}/${module}.py"
-      PYTHON_EXECUTABLE)
-
-    add_dependencies(python
-      "python${python_arch}-${safe_modpath}-${module}-${config}")
-  endforeach ()
 
   sprokit_install(
     FILES       "${sprokit_python_output_path}${sitepath}/${modpath}/${module}.py"
