@@ -88,7 +88,7 @@ function (_sprokit_add_python_module path modpath module)
   _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
   set(python_sitepath)
-  set(python_arch arch)
+  set(python_arch x)
 
   if (WIN32)
     set(python_install_path bin)
@@ -96,25 +96,25 @@ function (_sprokit_add_python_module path modpath module)
     if (python_noarch)
       set(python_install_path lib)
       set(python_sitepath /site-packages)
-      set(python_arch noarch)
+      set(python_arch)
     else ()
       set(python_install_path "lib${LIB_SUFFIX}")
     endif ()
   endif ()
 
-  sprokit_configure_file("python-module-${python_arch}-${safe_modpath}-${module}"
+  sprokit_configure_file("python${python_arch}-${safe_modpath}-${module}"
     "${path}"
     "${sprokit_python_output_path}${sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    sprokit_configure_file("python-module-${python_arch}-${safe_modpath}-${module}-${config}"
+    sprokit_configure_file("python${python_arch}-${safe_modpath}-${module}-${config}"
       "${path}"
       "${sprokit_python_output_path}/${config}${sitepath}/${modpath}/${module}.py"
       PYTHON_EXECUTABLE)
 
     add_dependencies(python
-      "python-module-${python_arch}-${safe_modpath}-${module}-${config}")
+      "python${python_arch}-${safe_modpath}-${module}-${config}")
   endforeach ()
 
   sprokit_install(
@@ -123,7 +123,7 @@ function (_sprokit_add_python_module path modpath module)
     COMPONENT   runtime)
 
   add_dependencies(python
-    "python-module-${python_arch}-${safe_modpath}-${module}")
+    "python${python_arch}-${safe_modpath}-${module}")
 
   if (python_both_arch)
     set(python_both_arch)
