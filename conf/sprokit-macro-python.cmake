@@ -8,6 +8,9 @@
 #
 # The following variables may be used to control the behavior of the functions:
 #
+#   sprokit_python_subdir
+#     The subdirectory to use for Python modules (e.g., python2.7).
+#
 #   sprokit_python_output_path
 #     The base output path for Python modules and libraries.
 #
@@ -57,7 +60,8 @@ endmacro ()
 function (sprokit_add_python_library name modpath)
   _sprokit_create_safe_modpath(${modpath} safe_modpath)
 
-  set(library_subdir /python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath})
+  set(library_subdir "/${sprokit_python_subdir}")
+  set(library_subdir_suffix "/${modpath}")
   set(component runtime)
 
   set(no_export ON)
@@ -116,7 +120,7 @@ function (_sprokit_add_python_module path modpath module)
 
   sprokit_install(
     FILES       "${sprokit_python_output_path}${sitepath}/${modpath}/${module}.py"
-    DESTINATION "${python_install_path}/python${PYTHON_VERSION}${python_sitepath}/${modpath}"
+    DESTINATION "${python_install_path}/${sprokit_python_subdir}${python_sitepath}/${modpath}"
     COMPONENT   runtime)
 
   add_dependencies(python
