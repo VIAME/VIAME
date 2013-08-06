@@ -32,7 +32,7 @@ function (sprokit_add_python_test group instance)
   endif ()
 
   sprokit_add_tooled_test(python-${group} ${instance}
-    "${python_chdir}" "${python_module_path}" ${ARGN})
+    "${python_chdir}" "${python_module_path}/site-packages" ${ARGN})
 endfunction ()
 
 add_subdirectory(test)

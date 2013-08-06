@@ -61,7 +61,7 @@ function (sprokit_add_python_library name modpath)
   _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
   set(library_subdir "/${sprokit_python_subdir}")
-  set(library_subdir_suffix "/${modpath}")
+  set(library_subdir_suffix "/site-packages/${modpath}")
   set(component runtime)
 
   set(no_export ON)
@@ -87,7 +87,7 @@ endfunction ()
 function (_sprokit_add_python_module path modpath module)
   _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
-  set(python_sitepath)
+  set(python_sitepath /site-packages)
   set(python_arch x)
 
   if (WIN32)
@@ -95,7 +95,6 @@ function (_sprokit_add_python_module path modpath module)
   else ()
     if (python_noarch)
       set(python_install_path lib)
-      set(python_sitepath /site-packages)
       set(python_arch)
     else ()
       set(python_install_path "lib${LIB_SUFFIX}")
@@ -106,15 +105,15 @@ function (_sprokit_add_python_module path modpath module)
     set(sprokit_configure_cmake_args
       "\"-Dconfig=${CMAKE_CFG_INTDIR}/\"")
     set(sprokit_configure_extra_dests
-      "${sprokit_python_output_path}/\${config}${sitepath}${modpath}/${module}.py")
+      "${sprokit_python_output_path}/\${config}${python_sitepath}/${modpath}/${module}.py")
   endif ()
   sprokit_configure_file("python${python_arch}-${safe_modpath}-${module}"
     "${path}"
-    "${sprokit_python_output_path}${sitepath}/${modpath}/${module}.py"
+    "${sprokit_python_output_path}${python_sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
   sprokit_install(
-    FILES       "${sprokit_python_output_path}${sitepath}/${modpath}/${module}.py"
+    FILES       "${sprokit_python_output_path}${python_sitepath}/${modpath}/${module}.py"
     DESTINATION "${python_install_path}/${sprokit_python_subdir}${python_sitepath}/${modpath}"
     COMPONENT   runtime)
 
@@ -124,7 +123,6 @@ function (_sprokit_add_python_module path modpath module)
   if (python_both_arch)
     set(python_both_arch)
     set(python_noarch TRUE)
-    set(sitepath /site-packages)
 
     if (NOT WIN32)
       _sprokit_add_python_module(
