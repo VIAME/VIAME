@@ -9,6 +9,9 @@
 #   sprokit_configure_extra_dests
 #     A list of other paths to configure the file into.
 #
+#   sprokit_configure_cmake_args
+#     Extra arguments to pass to CMake when running the generated script.
+#
 # Their syntax is:
 #
 #   sprokit_configure_file(name source dest [variable ...])
@@ -79,6 +82,7 @@ function (sprokit_configure_file name source dest)
     OUTPUT  "${dest}"
             ${extra_output}
     COMMAND "${CMAKE_COMMAND}"
+            ${sprokit_configure_cmake_args}
             -P "${configure_script}"
     MAIN_DEPENDENCY
             "${source}"
