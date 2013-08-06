@@ -148,19 +148,19 @@ function (sprokit_add_executable name)
 endfunction ()
 
 function (sprokit_add_library name)
-  add_library(${name}
+  add_library("${name}"
     ${ARGN})
-  set_target_properties(${name}
+  set_target_properties("${name}"
     PROPERTIES
       ARCHIVE_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
       LIBRARY_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
       RUNTIME_OUTPUT_DIRECTORY "${sprokit_output_dir}/bin${library_subdir}${library_subdir_suffix}")
 
-  add_dependencies(${name}
+  add_dependencies("${name}"
     configure-config.h)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    set(subdir ${library_subdir}${library_subdir_suffix})
+    set(subdir "${library_subdir}${library_subdir_suffix}")
 
     if (CMAKE_CONFIGURATION_TYPES)
       set(subdir "${library_subdir}/${config}${library_subdir_suffix}")
@@ -181,21 +181,21 @@ function (sprokit_add_library name)
   endif ()
 
   get_target_property(target_type
-    ${name} TYPE)
+    "${name}" TYPE)
 
   if (target_type STREQUAL "STATIC_LIBRARY")
-    _sprokit_compile_pic(${name})
+    _sprokit_compile_pic("${name}")
   else ()
     set(sprokit_libraries
       ${sprokit_libraries}
-      ${name}
+      "${name}"
       CACHE INTERNAL "Libraries built as part of sprokit")
   endif ()
 
-  _sprokit_export(${name})
+  _sprokit_export("${name}")
 
   sprokit_install(
-    TARGETS       ${name}
+    TARGETS       "${name}"
     ${exports}
     ARCHIVE
       DESTINATION "lib${LIB_SUFFIX}${library_subdir}"
