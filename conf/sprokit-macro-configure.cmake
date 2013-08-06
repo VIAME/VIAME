@@ -4,6 +4,11 @@
 #   sprokit_configure_file
 #   sprokit_configure_directory
 #
+# The following variables may be used to control the behavior of the functions:
+#
+#   sprokit_configure_extra_dests
+#     A list of other paths to configure the file into.
+#
 # Their syntax is:
 #
 #   sprokit_configure_file(name source dest [variable ...])
@@ -43,8 +48,17 @@ configure_file(
   \"${dest}\"
   COPYONLY)\n")
 
+  foreach (extra_dest IN LISTS sprokit_configure_extra_dests)
+    file(APPEND "${configure_script}" "
+configure_file(
+  \"${configured_path}\"
+  \"${extra_dest}\"
+  COPYONLY)\n")
+  endforeach ()
+
   set(clean_files
     "${dest}"
+    ${sprokit_configure_extra_dests}
     "${configured_path}"
     "${configure_script}")
 
