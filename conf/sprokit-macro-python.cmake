@@ -70,7 +70,7 @@ function (sprokit_add_python_library name modpath)
     ${ARGN})
 
   set(pysuffix "${CMAKE_SHARED_MODULE_SUFFIX}")
-  if (WIN32)
+  if (WIN32 AND NOT CYTWIN)
     set(pysuffix .pyd)
   endif ()
 
