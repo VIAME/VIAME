@@ -66,7 +66,7 @@ function (sprokit_add_python_library name modpath)
 
   set(no_export ON)
 
-  sprokit_add_library("python-${safe_modpath}-${name}" SHARED
+  sprokit_add_library("python-${safe_modpath}-${name}" MODULE
     ${ARGN})
 
   set(pysuffix "${CMAKE_SHARED_MODULE_SUFFIX}")

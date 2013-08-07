@@ -4,14 +4,8 @@ option(SPROKIT_ENABLE_PYTHON "Enable Python bindings" OFF)
 cmake_dependent_option(SPROKIT_ENABLE_PYTHON3 "Use Python3" OFF
   SPROKIT_ENABLE_PYTHON OFF)
 if (SPROKIT_ENABLE_PYTHON)
-  if (WIN32)
-    set(destdir bin)
-  else ()
-    set(destdir lib)
-  endif ()
-
   set(sprokit_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
-  set(sprokit_python_output_path "${sprokit_binary_dir}/${destdir}/${sprokit_python_subdir}")
+  set(sprokit_python_output_path "${sprokit_binary_dir}/lib/${sprokit_python_subdir}")
 
   set(PYTHON_VERSION "2.7"
     CACHE STRING "The version of python to use for bindings")
