@@ -2,8 +2,21 @@ project(sprokit_test_python)
 
 find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 
-set(sprokit_test_runner
-  "${PYTHON_EXECUTABLE}")
+cmake_dependent_option(SPROKIT_ENABLE_COVERAGE_PYTHON "" ON
+  SPROKIT_ENABLE_COVERAGE OFF)
+
+if (SPROKIT_ENABLE_COVERAGE_PYTHON)
+  set(sprokit_test_runner
+    "${PYTHON_EXECUTABLE}"
+    -m trace
+    --count
+    --coverdir "${sprokit_test_working_path}"
+    --ignore-dir="\$prefix"
+    --ignore-dir="\$exec_prefix")
+else ()
+  set(sprokit_test_runner
+    "${PYTHON_EXECUTABLE}")
+endif ()
 
 function (sprokit_build_python_test group input)
   if (CMAKE_CONFIGURATION_TYPES)
