@@ -85,7 +85,11 @@
 #define SPROKIT_DEPRECATED(msg) __attribute__((__deprecated__))
 #endif
 #elif defined(__GNUC__)
+#if (__GNUC__ >= 5) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 5))
 #define SPROKIT_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#else
+#define SPROKIT_DEPRECATED(msg) __attribute__((__deprecated__))
+#endif
 #else
 // Unsupported.
 #define SPROKIT_DEPRECATED(msg)
