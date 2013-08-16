@@ -43,12 +43,10 @@ if (WIN32)
     SPROKIT_DEFAULT_CLUSTER_PATHS
     path_prefix)
 
-  set(clusters_private_headers
-    ${clusters_private_headers}
+  list(APPEND clusters_private_headers
     cluster-paths.h.in)
 else ()
-  set(registration_build_options
-    ${registration_build_options}
+  list(APPEND registration_build_options
     ${cluster_build_options})
 endif ()
 

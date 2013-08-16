@@ -13,9 +13,9 @@ set(SPROKIT_FIXES "@sprokit_fixes@"
   CACHE INTERNAL "Fixes available from sprokit")
 
 function (sprokit_use_fixes)
-  foreach (fix ${ARGN})
-    foreach (includedir ${SPROKIT_INCLUDE_DIR})
+  foreach (fix IN LISTS ARGN)
+    foreach (includedir IN LISTS SPROKIT_INCLUDE_DIR)
       include_directories(BEFORE SYSTEM "${includedir}/fixes/${fix}")
     endforeach ()
   endforeach ()
-endfunction (sprokit_use_fixes)
+endfunction ()

@@ -32,7 +32,7 @@ function (_sprokit_configure_file name source dest)
   file(WRITE "${configure_script}"
     "# Configure script for \"${source}\" -> \"${dest}\"\n")
 
-  foreach (arg ${ARGN})
+  foreach (arg IN LISTS ARGN)
     file(APPEND "${configure_script}"
       "set(${arg} \"${${arg}}\")\n")
   endforeach ()
@@ -120,7 +120,7 @@ function (sprokit_configure_directory name sourcedir destdir)
   set(source_paths)
   set(dest_paths)
 
-  foreach (source ${sources})
+  foreach (source IN LISTS sources)
     set(source_path
       "${sourcedir}/${source}")
     set(dest_path
@@ -130,11 +130,9 @@ function (sprokit_configure_directory name sourcedir destdir)
       "${source_path}"
       "${dest_path}")
 
-    set(source_paths
-      ${source_paths}
+    list(APPEND source_paths
       "${source_path}")
-    set(dest_paths
-      ${dest_paths}
+    list(APPEND dest_paths
       "${dest_path}")
 
     math(EXPR count "${count} + 1")

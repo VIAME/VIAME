@@ -78,8 +78,7 @@ set(macro_files
   tests)
 
 if (SPROKIT_ENABLE_PYTHON)
-  set(macro_files
-    ${macro_files}
+  list(APPEND macro_files
     python)
 endif ()
 
@@ -96,7 +95,7 @@ function (sprokit_install_macro_file path)
 ")
 endfunction ()
 
-foreach (macro_file ${macro_files})
+foreach (macro_file IN LISTS macro_files)
   set(filename "sprokit-macro-${macro_file}.cmake")
   sprokit_configure_file(macro-${macro_file}
     "${CMAKE_CURRENT_SOURCE_DIR}/${filename}"
@@ -105,7 +104,7 @@ foreach (macro_file ${macro_files})
   sprokit_install_macro_file("${sprokit_binary_dir}/${filename}")
 endforeach ()
 
-foreach (macro_file ${configured_macro_files})
+foreach (macro_file IN LISTS configured_macro_files)
   sprokit_install_macro_file("${sprokit_binary_dir}/${filename}")
 endforeach ()
 

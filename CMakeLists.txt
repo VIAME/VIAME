@@ -9,9 +9,8 @@ set(sprokit_source_dir "${CMAKE_CURRENT_SOURCE_DIR}")
 set(sprokit_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Add the cmake directory for CMake modules.
-set(CMAKE_MODULE_PATH
-  "${sprokit_source_dir}/cmake/modules"
-  ${CMAKE_MODULE_PATH})
+list(INSERT CMAKE_MODULE_PATH 0
+  "${sprokit_source_dir}/cmake/modules")
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 

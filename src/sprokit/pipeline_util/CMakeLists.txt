@@ -55,12 +55,10 @@ if (WIN32)
     "${CMAKE_CURRENT_BINARY_DIR}/include-paths.h"
     SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS)
 
-  set(pipeline_util_private_headers
-    ${pipeline_util_private_headers}
+  list(APPEND pipeline_util_private_headers
     include-paths.h.in)
 else ()
-  set(load_pipe_build_options
-    ${load_pipe_build_options}
+  list(APPEND load_pipe_build_options
     ${sprokit_pipe_include_options})
 endif ()
 

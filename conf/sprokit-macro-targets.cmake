@@ -102,15 +102,17 @@ endfunction ()
 macro (_sprokit_export name)
   set(exports)
 
-  if (NOT no_export)
-    set(exports
-      EXPORT ${export_name})
-
-    set(__sprokit_export_targets
-      ${__sprokit_export_targets}
-      ${name}
-      CACHE INTERNAL "Targets exported by sprokit")
+  if (no_export)
+    return()
   endif ()
+
+  set(exports
+    EXPORT ${export_name})
+
+  set(__sprokit_export_targets
+    ${__sprokit_export_targets}
+    ${name}
+    CACHE INTERNAL "Targets exported by sprokit")
 endmacro ()
 
 function (sprokit_export_targets file)
@@ -121,9 +123,11 @@ function (sprokit_export_targets file)
 endfunction ()
 
 function (sprokit_install)
-  if (NOT no_install)
-    install(${ARGN})
+  if (no_install)
+    return()
   endif ()
+
+  install(${ARGN})
 endfunction ()
 
 function (sprokit_add_executable name)
@@ -159,7 +163,7 @@ function (sprokit_add_library name)
   add_dependencies("${name}"
     configure-config.h)
 
-  foreach (config ${CMAKE_CONFIGURATION_TYPES})
+  foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
     set(subdir "${library_subdir}${library_subdir_suffix}")
 
     if (CMAKE_CONFIGURATION_TYPES)
@@ -211,7 +215,7 @@ function (sprokit_add_plugin name define)
 
   set(no_export ON)
 
-  sprokit_add_library(${name} SHARED
+  sprokit_add_library(${name} MODULE
     ${ARGN})
 
   set_target_properties(${name}

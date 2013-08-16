@@ -53,6 +53,6 @@ function (sprokit_install_fix fix)
   sprokit_install_fix_directory("${sprokit_fix_binary_dir}/${fix}")
 endfunction ()
 
-foreach (fix ${sprokit_fixes})
+foreach (fix IN LISTS sprokit_fixes)
   sprokit_install_fix(${fix})
 endforeach ()
