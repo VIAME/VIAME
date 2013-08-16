@@ -32,41 +32,39 @@ sprokit_discover_tests(edge edge_libraries test_edge.cxx)
 ##############################
 # Modules tests
 ##############################
-sprokit_add_plugin(processes_test SHARED
+function (sprokit_add_test_plugin name directory)
+  sprokit_add_plugin("${name}" MAKE_TEST_PLUGIN
+    ${ARGN})
+  target_link_libraries("${name}"
+    LINK_PRIVATE
+      sprokit_pipeline)
+
+  set(output_dir
+    "${CMAKE_CURRENT_BINARY_DIR}/${directory}")
+
+  # Forcefully dump the plugin to the current binary directory.
+  set_target_properties("${name}"
+    PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${output_dir}"
+      LIBRARY_OUTPUT_DIRECTORY "${output_dir}"
+      ARCHIVE_OUTPUT_DIRECTORY "${output_dir}")
+  foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
+    string(TOUPPER "${config}" upper_config)
+
+    set_target_properties(${name}
+      PROPERTIES
+        "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${output_dir}/${config}"
+        "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${output_dir}/${config}"
+        "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${output_dir}/${config}")
+  endforeach ()
+endfunction ()
+
+sprokit_add_test_plugin(processes_test multiple_load
   processes_test.cxx)
-target_link_libraries(processes_test
-  LINK_PRIVATE
-    sprokit_pipeline)
-
-# Forcefully dump the plugin to the current binary directory.
-set_target_properties(processes_test
-  PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load"
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load")
-
-sprokit_add_plugin(schedulers_test SHARED
+sprokit_add_test_plugin(schedulers_test multiple_load
   schedulers_test.cxx)
-target_link_libraries(schedulers_test
-  LINK_PRIVATE
-    sprokit_pipeline)
-
-# Forcefully dump the plugin to the current binary directory.
-set_target_properties(schedulers_test
-  PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load"
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/multiple_load")
-
-sprokit_add_plugin(not_a_plugin SHARED
+sprokit_add_test_plugin(not_a_plugin not_a_plugin
   not_a_plugin.cxx)
-
-# Forcefully dump the plugin to the current binary directory.
-set_target_properties(not_a_plugin
-  PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/not_a_plugin"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/not_a_plugin"
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/not_a_plugin")
 
 sprokit_discover_tests(modules test_libraries test_modules.cxx)
 
