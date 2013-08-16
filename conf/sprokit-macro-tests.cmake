@@ -80,8 +80,12 @@ function (sprokit_add_test name instance)
             ${ARGN})
   set_tests_properties(test-${name}-${instance}
     PROPERTIES
-      WORKING_DIRECTORY       "${sprokit_test_working_path}"
       FAIL_REGULAR_EXPRESSION "^Error: ;\nError: ")
+  if (sprokit_test_working_path)
+    set_tests_properties(test-${name}-${instance}
+      PROPERTIES
+        WORKING_DIRECTORY       "${sprokit_test_working_path}")
+  endif ()
 
   # TODO: How to get CTest the full path to the test with config subdir?
   if (NOT CMAKE_CONFIGURATION_TYPES)
