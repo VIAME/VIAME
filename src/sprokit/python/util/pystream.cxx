@@ -44,7 +44,7 @@ pyistream_device
 
   boost::python::str const bytes = boost::python::str(m_obj.attr("read")(n));
 
-  long const sz = boost::python::len(bytes);
+  boost::python::ssize_t const sz = boost::python::len(bytes);
 
   if (sz)
   {

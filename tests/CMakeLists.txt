@@ -1,9 +1,16 @@
 project(sprokit_tests)
 
-set(sprokit_test_output_path
-  "${sprokit_binary_dir}/tests/bin")
-set(sprokit_test_working_path
-  "${sprokit_binary_dir}/tests")
+if (WIN32)
+  # TODO: Output to a different directory and then use $<CONFIGURATION> in the
+  # working path when generator expressions are supported in test properties.
+  set(sprokit_test_output_path
+    "${sprokit_output_dir}/bin")
+else ()
+  set(sprokit_test_output_path
+    "${sprokit_binary_dir}/tests/bin")
+  set(sprokit_test_working_path
+    "${sprokit_binary_dir}/tests")
+endif ()
 
 include("${sprokit_source_dir}/conf/sprokit-macro-tests.cmake")
 include("${sprokit_source_dir}/cmake/support/test.cmake")

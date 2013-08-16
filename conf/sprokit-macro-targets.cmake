@@ -31,6 +31,10 @@
 #     This is necessary due to the way that systems which use the
 #     CMAKE_BUILD_TYPE as a directory in the output.
 #
+#   library_subdir_suffix
+#     If set, the suffix will be appended to the subdirectory for the target.
+#     This is placed after the CMAKE_BUILD_TYPE subdirectory if necessary.
+#
 #   component
 #     If set, the target will not be installed under this component (the
 #     default is 'runtime').
@@ -144,22 +148,22 @@ function (sprokit_add_executable name)
 endfunction ()
 
 function (sprokit_add_library name)
-  add_library(${name}
+  add_library("${name}"
     ${ARGN})
-  set_target_properties(${name}
+  set_target_properties("${name}"
     PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}"
-      LIBRARY_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}"
-      RUNTIME_OUTPUT_DIRECTORY "${sprokit_output_dir}/bin${library_subdir}")
+      ARCHIVE_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
+      LIBRARY_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
+      RUNTIME_OUTPUT_DIRECTORY "${sprokit_output_dir}/bin${library_subdir}${library_subdir_suffix}")
 
-  add_dependencies(${name}
+  add_dependencies("${name}"
     configure-config.h)
 
   foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    set(subdir ${library_subdir})
+    set(subdir "${library_subdir}${library_subdir_suffix}")
 
     if (CMAKE_CONFIGURATION_TYPES)
-      set(subdir "${subdir}/${config}")
+      set(subdir "${library_subdir}/${config}${library_subdir_suffix}")
     endif ()
 
     string(TOUPPER "${config}" upper_config)
@@ -177,21 +181,21 @@ function (sprokit_add_library name)
   endif ()
 
   get_target_property(target_type
-    ${name} TYPE)
+    "${name}" TYPE)
 
   if (target_type STREQUAL "STATIC_LIBRARY")
-    _sprokit_compile_pic(${name})
+    _sprokit_compile_pic("${name}")
   else ()
     set(sprokit_libraries
       ${sprokit_libraries}
-      ${name}
+      "${name}"
       CACHE INTERNAL "Libraries built as part of sprokit")
   endif ()
 
-  _sprokit_export(${name})
+  _sprokit_export("${name}")
 
   sprokit_install(
-    TARGETS       ${name}
+    TARGETS       "${name}"
     ${exports}
     ARCHIVE
       DESTINATION "lib${LIB_SUFFIX}${library_subdir}"

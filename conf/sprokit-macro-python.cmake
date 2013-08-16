@@ -8,6 +8,9 @@
 #
 # The following variables may be used to control the behavior of the functions:
 #
+#   sprokit_python_subdir
+#     The subdirectory to use for Python modules (e.g., python2.7).
+#
 #   sprokit_python_output_path
 #     The base output path for Python modules and libraries.
 #
@@ -51,99 +54,93 @@ source_group("Python Files"
   REGULAR_EXPRESSION ".*\\.py$")
 
 macro (_sprokit_create_safe_modpath modpath result)
-  string(REPLACE "/" "." ${result} ${modpath})
+  string(REPLACE "/" "." "${result}" "${modpath}")
 endmacro ()
 
 function (sprokit_add_python_library name modpath)
-  _sprokit_create_safe_modpath(${modpath} safe_modpath)
+  _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
-  set(library_subdir /python${PYTHON_VERSION}${PYTHON_ABIFLAGS}/${modpath})
+  set(library_subdir "/${sprokit_python_subdir}")
+  set(library_subdir_suffix "/site-packages/${modpath}")
   set(component runtime)
 
   set(no_export ON)
 
-  sprokit_add_library(python-${safe_modpath}-${name} SHARED
+  sprokit_add_library("python-${safe_modpath}-${name}" MODULE
     ${ARGN})
 
-  set(pysuffix ${CMAKE_SHARED_MODULE_SUFFIX})
-
-  if (WIN32)
+  set(pysuffix "${CMAKE_SHARED_MODULE_SUFFIX}")
+  if (WIN32 AND NOT CYTWIN)
     set(pysuffix .pyd)
   endif ()
 
-  set_target_properties(python-${safe_modpath}-${name}
+  set_target_properties("python-${safe_modpath}-${name}"
     PROPERTIES
-      OUTPUT_NAME ${name}
+      OUTPUT_NAME "${name}"
       PREFIX      ""
-      SUFFIX      ${pysuffix})
+      SUFFIX      "${pysuffix}")
 
   add_dependencies(python
-    python-${safe_modpath}-${name})
+    "python-${safe_modpath}-${name}")
 endfunction ()
 
 function (_sprokit_add_python_module path modpath module)
-  _sprokit_create_safe_modpath(${modpath} safe_modpath)
+  _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
-  set(python_sitepath)
-  set(python_arch arch)
+  set(python_sitepath /site-packages)
+  set(python_arch)
 
   if (WIN32)
     set(python_install_path bin)
   else ()
     if (python_noarch)
       set(python_install_path lib)
-      set(python_sitepath /site-packages)
-      set(python_arch noarch)
+      set(python_arch u)
     else ()
-      set(python_install_path lib${LIB_SUFFIX})
+      set(python_install_path "lib${LIB_SUFFIX}")
     endif ()
   endif ()
 
-  sprokit_configure_file(python-module-${python_arch}-${safe_modpath}-${module}
+  if (CMAKE_CONFIGURATION_TYPES)
+    set(sprokit_configure_cmake_args
+      "\"-Dconfig=${CMAKE_CFG_INTDIR}/\"")
+    set(sprokit_configure_extra_dests
+      "${sprokit_python_output_path}/\${config}${python_sitepath}/${modpath}/${module}.py")
+  endif ()
+  sprokit_configure_file("python${python_arch}-${safe_modpath}-${module}"
     "${path}"
-    "${sprokit_python_output_path}${sitepath}/${modpath}/${module}.py"
+    "${sprokit_python_output_path}${python_sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
-  foreach (config ${CMAKE_CONFIGURATION_TYPES})
-    sprokit_configure_file(python-module-${python_arch}-${safe_modpath}-${module}-${config}
-      "${path}"
-      "${sprokit_python_output_path}/${config}${sitepath}/${modpath}/${module}.py"
-      PYTHON_EXECUTABLE)
-
-    add_dependencies(python
-      python-module-${python_arch}-${safe_modpath}-${module}-${config})
-  endforeach ()
-
   sprokit_install(
-    FILES       "${sprokit_python_output_path}${sitepath}/${modpath}/${module}.py"
-    DESTINATION "${python_install_path}/python${PYTHON_VERSION}${python_sitepath}/${modpath}"
+    FILES       "${sprokit_python_output_path}${python_sitepath}/${modpath}/${module}.py"
+    DESTINATION "${python_install_path}/${sprokit_python_subdir}${python_sitepath}/${modpath}"
     COMPONENT   runtime)
 
   add_dependencies(python
-    python-module-${python_arch}-${safe_modpath}-${module})
+    "python${python_arch}-${safe_modpath}-${module}")
 
   if (python_both_arch)
     set(python_both_arch)
     set(python_noarch TRUE)
-    set(sitepath /site-packages)
 
     if (NOT WIN32)
       _sprokit_add_python_module(
         "${path}"
-        ${modpath}
-        ${module})
+        "${modpath}"
+        "${module}")
     endif ()
   endif ()
 endfunction ()
 
 function (sprokit_add_python_module path modpath module)
   _sprokit_add_python_module("${path}"
-    ${modpath}
-    ${module})
+    "${modpath}"
+    "${module}")
 endfunction ()
 
 function (sprokit_create_python_init modpath)
-  _sprokit_create_safe_modpath(${modpath} safe_modpath)
+  _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
   set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
 
@@ -160,12 +157,12 @@ function (sprokit_create_python_init modpath)
   endforeach ()
 
   _sprokit_add_python_module("${init_template}"
-    ${modpath}
+    "${modpath}"
     __init__)
 endfunction ()
 
 function (sprokit_create_python_plugin_init modpath)
-  _sprokit_create_safe_modpath(${modpath} safe_modpath)
+  _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
   set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")
 
@@ -181,6 +178,6 @@ function (sprokit_create_python_plugin_init modpath)
     "__path__ = extend_path(__path__, __name__)\n")
 
   _sprokit_add_python_module("${init_template}"
-    ${modpath}
+    "${modpath}"
     __init__)
 endfunction ()
