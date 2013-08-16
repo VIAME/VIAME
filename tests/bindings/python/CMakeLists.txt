@@ -2,6 +2,13 @@ project(sprokit_test_python)
 
 find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 
+# TODO: Use "$<CONFIGURATION>" and remove chdir below when generator
+# expressions are supported in test properties.
+if (WIN32)
+  set(sprokit_test_working_path
+    "${sprokit_output_dir}/bin")
+endif ()
+
 cmake_dependent_option(SPROKIT_ENABLE_COVERAGE_PYTHON "" ON
   SPROKIT_ENABLE_COVERAGE OFF)
 
