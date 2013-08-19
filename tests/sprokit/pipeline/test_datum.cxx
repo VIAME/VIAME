@@ -34,11 +34,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(empty);
-DECLARE_TEST(flush);
-DECLARE_TEST(complete);
-DECLARE_TEST(error);
-DECLARE_TEST(new);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -47,15 +43,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, empty);
-  ADD_TEST(tests, flush);
-  ADD_TEST(tests, complete);
-  ADD_TEST(tests, error);
-  ADD_TEST(tests, new);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 IMPLEMENT_TEST(empty)

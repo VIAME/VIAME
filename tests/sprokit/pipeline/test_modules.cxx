@@ -37,9 +37,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(load);
-DECLARE_TEST(multiple_load);
-DECLARE_TEST(envvar);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -48,13 +46,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, load);
-  ADD_TEST(tests, multiple_load);
-  ADD_TEST(tests, envvar);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 IMPLEMENT_TEST(load)

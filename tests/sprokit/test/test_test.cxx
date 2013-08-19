@@ -37,14 +37,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(return_code);
-DECLARE_TEST(error_string);
-DECLARE_TEST(error_string_mid);
-DECLARE_TEST(error_string_stdout);
-DECLARE_TEST(error_string_second_line);
-DECLARE_TEST(expected_exception);
-DECLARE_TEST(unexpected_exception);
-DECLARE_TEST(environment);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -53,18 +46,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, return_code);
-  ADD_TEST(tests, error_string);
-  ADD_TEST(tests, error_string_mid);
-  ADD_TEST(tests, error_string_stdout);
-  ADD_TEST(tests, error_string_second_line);
-  ADD_TEST(tests, expected_exception);
-  ADD_TEST(tests, unexpected_exception);
-  ADD_TEST(tests, environment);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 IMPLEMENT_TEST(return_code)

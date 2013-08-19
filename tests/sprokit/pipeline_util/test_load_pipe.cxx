@@ -48,43 +48,7 @@
 
 #define TEST_ARGS (sprokit::path_t const& pipe_file)
 
-DECLARE_TEST(empty);
-DECLARE_TEST(comments);
-DECLARE_TEST(empty_config);
-DECLARE_TEST(config_block);
-DECLARE_TEST(config_block_notalnum);
-DECLARE_TEST(config_value_spaces);
-DECLARE_TEST(one_process);
-DECLARE_TEST(connected_processes);
-DECLARE_TEST(connected_processes_notalnum);
-DECLARE_TEST(include);
-DECLARE_TEST(no_exist);
-DECLARE_TEST(not_a_file);
-DECLARE_TEST(include_no_exist);
-DECLARE_TEST(include_not_a_file);
-DECLARE_TEST(no_parse);
-DECLARE_TEST(parse_error);
-DECLARE_TEST(envvar);
-DECLARE_TEST(cluster_declare);
-DECLARE_TEST(cluster_config);
-DECLARE_TEST(cluster_input_map);
-DECLARE_TEST(cluster_input_multi_map);
-DECLARE_TEST(cluster_output_map);
-DECLARE_TEST(cluster_mappings);
-DECLARE_TEST(cluster_all);
-DECLARE_TEST(cluster_missing_config_description);
-DECLARE_TEST(cluster_missing_input_description);
-DECLARE_TEST(cluster_missing_output_description);
-DECLARE_TEST(cluster_missing_type);
-DECLARE_TEST(cluster_missing_type_description);
-DECLARE_TEST(cluster_multiple_clusters);
-DECLARE_TEST(cluster_not_first);
-DECLARE_TEST(cluster_with_slash);
-DECLARE_TEST(cluster_input_map_with_slash);
-DECLARE_TEST(cluster_output_map_with_slash);
-DECLARE_TEST(process_with_slash);
-DECLARE_TEST(connect_input_with_slash);
-DECLARE_TEST(connect_output_with_slash);
+DECLARE_TEST_MAP();
 
 static std::string const pipe_ext = ".pipe";
 
@@ -98,47 +62,7 @@ main(int argc, char* argv[])
 
   sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, empty);
-  ADD_TEST(tests, comments);
-  ADD_TEST(tests, empty_config);
-  ADD_TEST(tests, config_block);
-  ADD_TEST(tests, config_block_notalnum);
-  ADD_TEST(tests, config_value_spaces);
-  ADD_TEST(tests, one_process);
-  ADD_TEST(tests, connected_processes);
-  ADD_TEST(tests, connected_processes_notalnum);
-  ADD_TEST(tests, include);
-  ADD_TEST(tests, no_exist);
-  ADD_TEST(tests, not_a_file);
-  ADD_TEST(tests, include_no_exist);
-  ADD_TEST(tests, include_not_a_file);
-  ADD_TEST(tests, no_parse);
-  ADD_TEST(tests, parse_error);
-  ADD_TEST(tests, envvar);
-  ADD_TEST(tests, cluster_declare);
-  ADD_TEST(tests, cluster_config);
-  ADD_TEST(tests, cluster_input_map);
-  ADD_TEST(tests, cluster_input_multi_map);
-  ADD_TEST(tests, cluster_output_map);
-  ADD_TEST(tests, cluster_mappings);
-  ADD_TEST(tests, cluster_all);
-  ADD_TEST(tests, cluster_missing_config_description);
-  ADD_TEST(tests, cluster_missing_input_description);
-  ADD_TEST(tests, cluster_missing_output_description);
-  ADD_TEST(tests, cluster_missing_type);
-  ADD_TEST(tests, cluster_missing_type_description);
-  ADD_TEST(tests, cluster_multiple_clusters);
-  ADD_TEST(tests, cluster_not_first);
-  ADD_TEST(tests, cluster_with_slash);
-  ADD_TEST(tests, cluster_input_map_with_slash);
-  ADD_TEST(tests, cluster_output_map_with_slash);
-  ADD_TEST(tests, process_with_slash);
-  ADD_TEST(tests, connect_input_with_slash);
-  ADD_TEST(tests, connect_output_with_slash);
-
-  RUN_TEST(tests, testname, pipe_file);
+  RUN_TEST(testname, pipe_file);
 }
 
 class test_visitor

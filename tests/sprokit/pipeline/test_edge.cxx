@@ -50,23 +50,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(null_config);
-DECLARE_TEST(makes_dependency);
-DECLARE_TEST(new_has_no_data);
-DECLARE_TEST(new_is_not_full);
-DECLARE_TEST(new_has_count_zero);
-DECLARE_TEST(push_datum);
-DECLARE_TEST(peek_datum);
-DECLARE_TEST(peek_datum_index);
-DECLARE_TEST(pop_datum);
-DECLARE_TEST(get_datum);
-DECLARE_TEST(null_upstream_process);
-DECLARE_TEST(null_downstream_process);
-DECLARE_TEST(set_upstream_process);
-DECLARE_TEST(set_downstream_process);
-DECLARE_TEST(push_data_into_complete);
-DECLARE_TEST(get_data_from_complete);
-DECLARE_TEST(capacity);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -75,27 +59,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, null_config);
-  ADD_TEST(tests, makes_dependency);
-  ADD_TEST(tests, new_has_no_data);
-  ADD_TEST(tests, new_is_not_full);
-  ADD_TEST(tests, new_has_count_zero);
-  ADD_TEST(tests, push_datum);
-  ADD_TEST(tests, peek_datum);
-  ADD_TEST(tests, peek_datum_index);
-  ADD_TEST(tests, pop_datum);
-  ADD_TEST(tests, get_datum);
-  ADD_TEST(tests, null_upstream_process);
-  ADD_TEST(tests, null_downstream_process);
-  ADD_TEST(tests, set_upstream_process);
-  ADD_TEST(tests, set_downstream_process);
-  ADD_TEST(tests, push_data_into_complete);
-  ADD_TEST(tests, get_data_from_complete);
-  ADD_TEST(tests, capacity);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 IMPLEMENT_TEST(null_config)
