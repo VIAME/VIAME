@@ -87,6 +87,30 @@ typedef std::string testname_t;
     }                                       \
   } while (false)
 
+#define DECLARE_TEST_MAP()                                    \
+  namespace                                                   \
+  {                                                           \
+    typedef boost::function<void TEST_ARGS> test_function_t;  \
+    typedef std::map<testname_t, test_function_t> test_map_t; \
+  }                                                           \
+  test_map_t __all_tests;                                     \
+  struct __add_test                                           \
+  {                                                           \
+    __add_test(testname_t const& name,                        \
+               test_function_t const& func)                   \
+    {                                                         \
+      __all_tests[name] = func;                               \
+    }                                                         \
+  }                                                           \
+
+#define IMPLEMENT_TEST(testname)                       \
+  static void                                          \
+  test_##testname TEST_ARGS;                           \
+  static __add_test const                              \
+    __add_test_##testname(#testname, test_##testname); \
+  void                                                 \
+  test_##testname TEST_ARGS
+
 #define CHECK_ARGS(numargs)     \
   do                            \
   {                             \
@@ -100,29 +124,13 @@ typedef std::string testname_t;
     }                           \
   } while (false)
 
-#define DECLARE_TEST(testname) \
-  static void test_##testname TEST_ARGS
-
-#define ADD_TEST(tests, testname) \
-  tests[#testname] = test_##testname
-
-#define IMPLEMENT_TEST(testname) \
-  void                           \
-  test_##testname TEST_ARGS
-
-#define DECLARE_TEST_MAP(tests)                             \
-  typedef boost::function<void TEST_ARGS> test_function_t;  \
-  typedef std::map<testname_t, test_function_t> test_map_t; \
-                                                            \
-  test_map_t tests
-
-#define RUN_TEST(tests, testname, ...)          \
+#define RUN_TEST(testname, ...)                 \
   do                                            \
   {                                             \
     test_map_t::const_iterator const i =        \
-      tests.find(testname);                     \
+      __all_tests.find(testname);               \
                                                 \
-    if (i == tests.end())                       \
+    if (i == __all_tests.end())                 \
     {                                           \
       TEST_ERROR("Unknown test: " << testname); \
                                                 \
