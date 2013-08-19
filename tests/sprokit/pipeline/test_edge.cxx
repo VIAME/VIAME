@@ -399,8 +399,7 @@ IMPLEMENT_TEST(get_data_from_complete)
 
 static void push_datum(sprokit::edge_t edge, sprokit::edge_datum_t edat);
 
-void
-test_capacity()
+IMPLEMENT_TEST(capacity)
 {
   sprokit::config_t const config = sprokit::config::empty_config();
 
