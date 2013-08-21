@@ -39,21 +39,18 @@
  * \brief Defines for symbol visibility in scoring.
  */
 
-#ifndef SPROKIT_TOOLS_EXPORT
 #ifdef MAKE_SPROKIT_TOOLS_LIB
 /// Export the symbol if building the library.
 #define SPROKIT_TOOLS_EXPORT SPROKIT_EXPORT
 #else
 /// Import the symbol if including the library.
 #define SPROKIT_TOOLS_EXPORT SPROKIT_IMPORT
-#endif // MAKE_SPROKIT_TOOLS_LIB
+#endif
+
 /// Hide the symbol from the library interface.
 #define SPROKIT_TOOLS_NO_EXPORT SPROKIT_NO_EXPORT
-#endif // SPROKIT_TOOLS_EXPORT
 
-#ifndef SPROKIT_TOOLS_EXPORT_DEPRECATED
 /// Mark as deprecated.
 #define SPROKIT_TOOLS_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_TOOLS_EXPORT
-#endif // SPROKIT_TOOLS_EXPORT_DEPRECATED
 
 #endif // SPROKIT_TOOLS_CONFIG_H_

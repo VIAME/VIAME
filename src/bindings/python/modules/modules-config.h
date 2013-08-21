@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011 by Kitware, Inc.
+ * Copyright 2011, 2013 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,21 +33,18 @@
 
 #include <sprokit/config.h>
 
-#ifndef SPROKIT_MODULES_PYTHON_EXPORT
 #ifdef MAKE_SPROKIT_MODULES_PYTHON_LIB
 /// Export the symbol if building the library.
 #define SPROKIT_MODULES_PYTHON_EXPORT SPROKIT_EXPORT
 #else
 /// Import the symbol if including the library.
 #define SPROKIT_MODULES_PYTHON_EXPORT SPROKIT_IMPORT
-#endif // MAKE_SPROKIT_MODULES_PYTHON_LIB
+#endif
+
 /// Hide the symbol from the library interface.
 #define SPROKIT_MODULES_PYTHON_NO_EXPORT SPROKIT_NO_EXPORT
-#endif // SPROKIT_MODULES_PYTHON_EXPORT
 
-#ifndef SPROKIT_MODULES_PYTHON_EXPORT_DEPRECATED
 /// Mark as deprecated.
 #define SPROKIT_MODULES_PYTHON_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_MODULES_PYTHON_EXPORT
-#endif // SPROKIT_MODULES_PYTHON_EXPORT_DEPRECATED
 
 #endif // SPROKIT_MODULES_PYTHON_CONFIG_H_

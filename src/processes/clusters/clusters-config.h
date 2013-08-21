@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011 by Kitware, Inc.
+ * Copyright 2011, 2013 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,21 +39,18 @@
  * \brief Defines for symbol visibility in cluster processes.
  */
 
-#ifndef SPROKIT_PROCESSES_CLUSTERS_EXPORT
 #ifdef MAKE_SPROKIT_PROCESSES_CLUSTERS_LIB
 /// Export the symbol if building the library.
 #define SPROKIT_PROCESSES_CLUSTERS_EXPORT SPROKIT_EXPORT
 #else
 /// Import the symbol if including the library.
 #define SPROKIT_PROCESSES_CLUSTERS_EXPORT SPROKIT_IMPORT
-#endif // MAKE_SPROKIT_PROCESSES_CLUSTERS_LIB
+#endif
+
 /// Hide the symbol from the library interface.
 #define SPROKIT_PROCESSES_CLUSTERS_NO_EXPORT SPROKIT_NO_EXPORT
-#endif // SPROKIT_PROCESSES_CLUSTERS_EXPORT
 
-#ifndef SPROKIT_PROCESSES_CLUSTERS_EXPORT_DEPRECATED
 /// Mark as deprecated.
 #define SPROKIT_PROCESSES_CLUSTERS_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_PROCESSES_CLUSTERS_EXPORT
-#endif // SPROKIT_PROCESSES_CLUSTERS_EXPORT_DEPRECATED
 
 #endif // SPROKIT_PROCESSES_CLUSTERS_CONFIG_H_
