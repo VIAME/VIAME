@@ -202,11 +202,11 @@ function (sprokit_add_library name)
     TARGETS       "${name}"
     ${exports}
     ARCHIVE
-      DESTINATION "lib${LIB_SUFFIX}${library_subdir}"
+      DESTINATION "lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
     LIBRARY
-      DESTINATION "lib${LIB_SUFFIX}${library_subdir}"
+      DESTINATION "lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
     RUNTIME
-      DESTINATION "bin${library_subdir}"
+      DESTINATION "bin${library_subdir}${library_subdir_suffix}"
     COMPONENT     ${component})
 endfunction ()
 
