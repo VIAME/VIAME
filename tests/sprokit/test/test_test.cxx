@@ -49,11 +49,13 @@ main(int argc, char* argv[])
   RUN_TEST(testname);
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(return_code)
 {
   exit(EXIT_FAILURE);
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(error_string)
 {
   TEST_ERROR("an error");
@@ -65,11 +67,13 @@ IMPLEMENT_TEST(error_string_mid)
   TEST_ERROR("an error");
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(error_string_stdout)
 {
   std::cout << "Error: an error" << std::endl;
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(error_string_second_line)
 {
   std::cerr << "Not an error" << std::endl;
@@ -83,6 +87,7 @@ IMPLEMENT_TEST(expected_exception)
                     "when throwing an exception");
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(unexpected_exception)
 {
   EXPECT_EXCEPTION(std::runtime_error,
@@ -90,6 +95,7 @@ IMPLEMENT_TEST(unexpected_exception)
                     "when throwing an unexpected exception");
 }
 
+TEST_PROPERTY(ENVIRONMENT, TEST_ENVVAR=test_value)
 IMPLEMENT_TEST(environment)
 {
   sprokit::envvar_name_t const envvar = "TEST_ENVVAR";

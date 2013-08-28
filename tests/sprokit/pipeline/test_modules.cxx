@@ -60,6 +60,7 @@ IMPLEMENT_TEST(multiple_load)
   sprokit::load_known_modules();
 }
 
+TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@)
 IMPLEMENT_TEST(envvar)
 {
   sprokit::load_known_modules();

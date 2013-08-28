@@ -482,6 +482,7 @@ IMPLEMENT_TEST(config_provider_conf_circular_dep)
                    "circular configuration provides exist");
 }
 
+TEST_PROPERTY(ENVIRONMENT, TEST_ENV=expected)
 IMPLEMENT_TEST(config_provider_env)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -901,6 +902,7 @@ IMPLEMENT_TEST(cluster_map_config_only_provided)
   pipeline->reconfigure(new_conf);
 }
 
+TEST_PROPERTY(ENVIRONMENT, TEST_ENV=expected)
 IMPLEMENT_TEST(cluster_map_config_only_conf_provided)
 {
   sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");

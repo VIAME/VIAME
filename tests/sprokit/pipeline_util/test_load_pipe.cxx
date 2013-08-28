@@ -257,6 +257,7 @@ IMPLEMENT_TEST(parse_error)
                    "with an expect error");
 }
 
+TEST_PROPERTY(ENVIRONMENT, SPROKIT_PIPE_INCLUDE_PATH=@CMAKE_CURRENT_SOURCE_DIR@)
 IMPLEMENT_TEST(envvar)
 {
   (void)pipe_file;
