@@ -1189,7 +1189,10 @@ test_cluster(sprokit::process_t const& cluster, std::string const& path)
 
   for (int32_t i = start_value; i < end_value; ++i)
   {
-    std::getline(fin, line);
+    if (!std::getline(fin, line))
+    {
+      TEST_ERROR("Failed to read a line from the file");
+    }
 
     if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * factor))
     {
@@ -1199,11 +1202,9 @@ test_cluster(sprokit::process_t const& cluster, std::string const& path)
     }
   }
 
-  std::getline(fin, line);
-
-  if (!line.empty())
+  if (std::getline(fin, line))
   {
-    TEST_ERROR("Empty line missing");
+    TEST_ERROR("More results than expected in the file");
   }
 
   if (!fin.eof())
