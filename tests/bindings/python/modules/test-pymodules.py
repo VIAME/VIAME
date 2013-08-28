@@ -51,6 +51,7 @@ def test_load():
         test_error("Failed to load Python processes")
 
 
+# TEST_PROPERTY(ENVIRONMENT, SPROKIT_NO_PYTHON_MODULES=)
 def test_masking():
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
@@ -66,6 +67,7 @@ def test_masking():
         test_error("Failed to mask out Python processes")
 
 
+# TEST_PROPERTY(ENVIRONMENT, SPROKIT_PYTHON_MODULES=sprokit.test.python.modules)
 def test_extra_modules():
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
@@ -81,6 +83,7 @@ def test_extra_modules():
         test_error("Failed to load extra Python processes")
 
 
+# TEST_PROPERTY(ENVIRONMENT, PYTHONPATH=@CMAKE_CURRENT_SOURCE_DIR@)
 def test_pythonpath():
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
