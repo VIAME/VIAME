@@ -103,6 +103,8 @@ typedef std::string testname_t;
     }                                                         \
   }                                                           \
 
+#define TEST_PROPERTY(property, value, ...)
+
 #define IMPLEMENT_TEST(testname)                       \
   static void                                          \
   test_##testname TEST_ARGS;                           \
