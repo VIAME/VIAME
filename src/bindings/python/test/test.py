@@ -28,6 +28,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+def find_tests(scope):
+    prefix = 'test_'
+    tests = {}
+
+    for name, obj in scope.items():
+        if name.startswith(prefix) and callable(obj):
+            tests[name[len(prefix):]] = obj
+
+    return tests
+
+
 def test_error(msg):
     import sys
 
