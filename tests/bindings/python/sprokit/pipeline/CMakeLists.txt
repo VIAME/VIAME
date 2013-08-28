@@ -31,7 +31,7 @@ sprokit_add_python_test(datum new)
 sprokit_add_python_test(datum empty)
 sprokit_add_python_test(datum flush)
 sprokit_add_python_test(datum complete)
-sprokit_add_python_test(datum error)
+sprokit_add_python_test(datum error_)
 
 ##############################
 # Edge tests

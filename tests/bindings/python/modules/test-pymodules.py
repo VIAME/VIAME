@@ -118,14 +118,6 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
-    tests = \
-        { 'import': test_import
-        , 'load': test_load
-        , 'masking': test_masking
-        , 'extra_modules': test_extra_modules
-        , 'pythonpath': test_pythonpath
-        }
-
     from sprokit.test.test import *
 
-    run_test(testname, tests)
+    run_test(testname, find_tests(locals()))

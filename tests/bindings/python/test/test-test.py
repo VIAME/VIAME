@@ -103,17 +103,6 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
-    tests = \
-        { 'return_code': test_return_code
-        , 'error_string': test_error_string
-        , 'error_string_mid': test_error_string_mid
-        , 'error_string_stdout': test_error_string_stdout
-        , 'error_string_second_line': test_error_string_second_line
-        , 'expected_exception': test_expected_exception
-        , 'unexpected_exception': test_unexpected_exception
-        , 'environment': test_environment
-        }
-
     from sprokit.test.test import *
 
-    run_test(testname, tests)
+    run_test(testname, find_tests(locals()))

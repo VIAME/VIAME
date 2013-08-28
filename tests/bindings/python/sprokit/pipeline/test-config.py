@@ -412,24 +412,6 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
-    tests = \
-        { 'import': test_import
-        , 'create': test_create
-        , 'api_calls': test_api_calls
-        , 'has_value': test_has_value
-        , 'get_value': test_get_value
-        , 'get_value_nested': test_get_value_nested
-        , 'get_value_no_exist': test_get_value_no_exist
-        , 'unset_value': test_unset_value
-        , 'available_values': test_available_values
-        , 'read_only': test_read_only
-        , 'read_only_unset': test_read_only_unset
-        , 'subblock': test_subblock
-        , 'subblock_view': test_subblock_view
-        , 'merge_config': test_merge_config
-        , 'dict': test_dict
-        }
-
     from sprokit.test.test import *
 
-    run_test(testname, tests)
+    run_test(testname, find_tests(locals()))

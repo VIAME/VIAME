@@ -380,15 +380,6 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
-    tests = \
-        { 'import': test_import
-        , 'create': test_create
-        , 'api_calls': test_api_calls
-        , 'register': test_register
-        , 'register_cluster': test_register_cluster
-        , 'wrapper_api': test_wrapper_api
-        }
-
     from sprokit.test.test import *
 
-    run_test(testname, tests)
+    run_test(testname, find_tests(locals()))

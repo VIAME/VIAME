@@ -238,16 +238,8 @@ if __name__ == '__main__':
 
     pipeline_dir = sys.argv[4]
 
-    tests = \
-        { 'import': test_import
-        , 'create': test_create
-        , 'api_calls': test_api_calls
-        , 'simple_pipeline': test_simple_pipeline
-        , 'cluster_multiplier': test_cluster_multiplier
-        }
-
     path = os.path.join(pipeline_dir, '%s.pipe' % testname)
 
     from sprokit.test.test import *
 
-    run_test(testname, tests, path)
+    run_test(testname, find_tests(locals()), path)
