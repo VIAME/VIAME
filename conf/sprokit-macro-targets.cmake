@@ -99,21 +99,23 @@ function (_sprokit_compile_pic name)
   endif ()
 endfunction ()
 
-macro (_sprokit_export name)
-  set(exports)
+function (_sprokit_export name)
+  set(exports
+    PARENT_SCOPE)
 
   if (no_export)
     return()
   endif ()
 
   set(exports
-    EXPORT ${export_name})
+    EXPORT ${export_name}
+    PARENT_SCOPE)
 
   set(__sprokit_export_targets
     ${__sprokit_export_targets}
     ${name}
     CACHE INTERNAL "Targets exported by sprokit")
-endmacro ()
+endfunction ()
 
 function (sprokit_export_targets file)
   export(
