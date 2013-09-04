@@ -1,36 +1,44 @@
 project(sprokit_fixes)
 
-set(sprokit_fix_source_dir "${CMAKE_CURRENT_SOURCE_DIR}"
-  CACHE INTERNAL "Source fix include directory path")
-set(sprokit_fix_binary_dir "${CMAKE_CURRENT_BINARY_DIR}"
-  CACHE INTERNAL "Configured fix include directory path")
-set(sprokit_fixes
-  CACHE INTERNAL "List of sprokit fixes available")
+set_property(GLOBAL
+  PROPERTY sprokit_fix_source_dir
+  "${CMAKE_CURRENT_SOURCE_DIR}")
+set_property(GLOBAL
+  PROPERTY sprokit_fix_binary_dir
+  "${CMAKE_CURRENT_BINARY_DIR}")
+set_property(GLOBAL
+  PROPERTY sprokit_fixes)
 
-function (sprokit_add_fix fix var)
-  sprokit_configure_directory(fixes-${fix}
+function (sprokit_add_fix fix property)
+  get_property(sprokit_fix_source_dir GLOBAL
+    PROPERTY sprokit_fix_source_dir)
+  get_property(sprokit_fix_binary_dir GLOBAL
+    PROPERTY sprokit_fix_binary_dir)
+  sprokit_configure_directory("fixes-${fix}"
     "${sprokit_fix_source_dir}/${fix}/boost"
     "${sprokit_fix_binary_dir}/${fix}/${BOOST_MANGLE_NAMESPACE}")
-  set(sprokit_fixes
-    ${sprokit_fixes}
-    ${fix}
-    CACHE INTERNAL "List of sprokit fixes available")
-  set(${var}
-    ${${var}}
-    ${fix}
-    CACHE INTERNAL "Internal list of sprokit fixes")
+  set_property(GLOBAL APPEND
+    PROPERTY sprokit_fixes
+    "${fix}")
+  set_property(GLOBAL APPEND
+    PROPERTY "${property}"
+    "${fix}")
 endfunction ()
 
 function (sprokit_use_fix fix)
   if (NOT BOOST_MANGLE_NAMESPACE STREQUAL "boost")
+    get_property(sprokit_fix_source_dir GLOBAL
+      PROPERTY sprokit_fix_source_dir)
     include_directories(BEFORE SYSTEM "${sprokit_fix_source_dir}/${fix}")
   endif ()
+  get_property(sprokit_fix_binary_dir GLOBAL
+    PROPERTY sprokit_fix_binary_dir)
   include_directories(BEFORE SYSTEM "${sprokit_fix_binary_dir}/${fix}")
 endfunction ()
 
 function (sprokit_require_fix target fix)
-  add_dependencies(${target}
-    configure-fixes-${fix})
+  add_dependencies("${target}"
+    "configure-fixes-${fix}")
 endfunction ()
 
 if (SPROKIT_ENABLE_PYTHON)
@@ -48,11 +56,17 @@ endfunction ()
 
 function (sprokit_install_fix fix)
   if (NOT BOOST_MANGLE_NAMESPACE STREQUAL "boost")
+    get_property(sprokit_fix_source_dir GLOBAL
+      PROPERTY sprokit_fix_source_dir)
     sprokit_install_fix_directory("${sprokit_fix_source_dir}/${fix}")
   endif ()
+  get_property(sprokit_fix_binary_dir GLOBAL
+    PROPERTY sprokit_fix_binary_dir)
   sprokit_install_fix_directory("${sprokit_fix_binary_dir}/${fix}")
 endfunction ()
 
-foreach (fix IN LISTS sprokit_fixes)
-  sprokit_install_fix(${fix})
+get_property(fixes GLOBAL
+  PROPERTY sprokit_fixes)
+foreach (fix IN LISTS fixes)
+  sprokit_install_fix("${fix}")
 endforeach ()
