@@ -1,4 +1,35 @@
-include ("${CMAKE_CURRENT_LIST_DIR}/sprokit-config-targets.cmake")
+if (CMAKE_VERSION VERSION_LESS 2.8.8)
+  message(FATAL_ERROR "sprokit requires at least CMake version 2.8.8")
+endif ()
+
+set(subpkg_required)
+if (sprokit_FIND_REQUIRED)
+  set(subpkg_required REQUIRED)
+endif ()
+
+set(SPROKIT_BOOST_VERSION
+  "@Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@.@Boost_SUBMINOR_VERSION@")
+set(SPROKIT_BOOST_MANGLE_NAMESPACE
+  "@BOOST_MANGLE_NAMESPACE@")
+set(SPROKIT_BOOST_USE_STATIC
+  "@Boost_USE_STATIC_LIBS@")
+set(SPROKIT_BOOST_INCLUDE_DIR
+  "@Boost_INCLUDE_DIR@")
+
+if (NOT Boost_INCLUDE_DIR)
+  set(Boost_INCLUDE_DIR
+    "@Boost_INCLUDE_DIR@")
+endif ()
+set(Boost_USE_STATIC_LIBS "${SPROKIT_BOOST_USE_STATIC}")
+find_package(Boost "${SPROKIT_BOOST_VERSION}" EXACT ${subpkg_required}
+  COMPONENTS
+    chrono
+    filesystem
+    program_options
+    system)
+
+# Include the library targets
+include("${CMAKE_CURRENT_LIST_DIR}/sprokit-config-targets.cmake")
 
 set(SPROKIT_VERSION
   "@sprokit_version@")
@@ -9,7 +40,8 @@ set(SPROKIT_BUILT_SHARED
 # sprokit include directory
 set(SPROKIT_INCLUDE_DIR
   "@sprokit_source_dir@/src"
-  "@sprokit_binary_dir@/src")
+  "@sprokit_binary_dir@/src"
+  ${Boost_INCLUDE_DIRS})
 if (WIN32)
   set(SPROKIT_LIBRARY_DIR
     "@sprokit_binary_dir@/bin")
@@ -17,6 +49,8 @@ else ()
   set(SPROKIT_LIBRARY_DIR
     "@sprokit_binary_dir@/lib")
 endif ()
+list(APPEND SPROKIT_LIBRARY_DIR
+  ${Boost_LIBRARY_DIRS})
 set(SPROKIT_MODULE_DIR
   "${SPROKIT_LIBRARY_DIR}/sprokit")
 set(SPROKIT_DOCUMENTATION_DIR
@@ -33,18 +67,10 @@ if (SPROKIT_ENABLE_PYTHON)
     "@PYTHON_VERSION@")
   set(SPROKIT_PYTHON_ABIFLAGS
     "@PYTHON_ABIFLAGS@")
+
   set(SPROKIT_PYTHONPATH
     "@sprokit_python_output_path@")
 endif ()
-
-set(SPROKIT_BOOST_VERSION
-  "@Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@.@Boost_SUBMINOR_VERSION@")
-set(SPROKIT_BOOST_MANGLE_NAMESPACE
-  "@BOOST_MANGLE_NAMESPACE@")
-set(SPROKIT_BOOST_USE_STATIC
-  "@Boost_USE_STATIC_LIBS@")
-set(SPROKIT_BOOST_INCLUDE_DIR
-  "@Boost_INCLUDE_DIR@")
 
 set(SPROKIT_ENABLE_CXX11
   "@SPROKIT_ENABLE_CXX11@")
