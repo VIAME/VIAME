@@ -82,10 +82,17 @@
 #     libraries. The library is neither exported nor installed. The 'sourcevar'
 #     argument is a list of source files for the library.
 
-set(__sprokit_export_targets
-  CACHE INTERNAL "Targets exported by sprokit")
-set(sprokit_libraries
-  CACHE INTERNAL "Shared libraries built as part of sprokit")
+define_property(GLOBAL
+  PROPERTY   sprokit_export_targets
+  BRIEF_DOCS "A list of all targets exported by sprokit_export."
+  FULL_DOCS  "This is intended to be used in a single export() call after all "
+             "targets have been added. This is done by the "
+             "sprokit_export_targets() function.")
+define_property(GLOBAL
+  PROPERTY   sprokit_libraries
+  BRIEF_DOCS "A list of all shared libraries built using sprokit_add_library()."
+  FULL_DOCS  "This list is intended to be used to generate tests which ensure "
+             "that each library can be opened on its own.")
 
 function (_sprokit_compile_pic name)
   if (CMAKE_VERSION VERSION_GREATER "2.8.9")
@@ -111,15 +118,16 @@ function (_sprokit_export name)
     EXPORT ${export_name}
     PARENT_SCOPE)
 
-  set(__sprokit_export_targets
-    ${__sprokit_export_targets}
-    ${name}
-    CACHE INTERNAL "Targets exported by sprokit")
+  set_property(GLOBAL APPEND
+    PROPERTY sprokit_export_targets
+    ${name})
 endfunction ()
 
 function (sprokit_export_targets file)
+  get_property(sprokit_exports GLOBAL
+    PROPERTY sprokit_export_targets)
   export(
-    TARGETS ${__sprokit_export_targets}
+    TARGETS ${sprokit_exports}
     ${ARGN}
     FILE    "${file}")
 endfunction ()
@@ -192,10 +200,9 @@ function (sprokit_add_library name)
   if (target_type STREQUAL "STATIC_LIBRARY")
     _sprokit_compile_pic("${name}")
   else ()
-    set(sprokit_libraries
-      ${sprokit_libraries}
-      "${name}"
-      CACHE INTERNAL "Libraries built as part of sprokit")
+    set_property(GLOBAL APPEND
+      PROPERTY sprokit_libraries
+      "${name}")
   endif ()
 
   _sprokit_export("${name}")
