@@ -39,6 +39,9 @@
 #     If set, the target will not be installed under this component (the
 #     default is 'runtime').
 #
+#   sprokit_output_dir
+#     The base directory to output all targets into.
+#
 # Their syntax is:
 #
 #   sprokit_export_targets(file [APPEND])
