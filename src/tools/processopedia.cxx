@@ -109,11 +109,12 @@ sprokit_tool_main(int argc, char const* argv[])
       sprokit::config::value_t const& def = info->def;
       sprokit::config::description_t const& conf_desc = info->description;
       bool const& tunable = info->tunable;
+      char const* const tunable_str = tunable ? "yes" : "no";
 
       std::cout << "    Name       : " << key << std::endl;
       std::cout << "    Default    : " << def << std::endl;
       std::cout << "    Description: " << conf_desc << std::endl;
-      std::cout << "    Tunable    : " << tunable << std::endl;
+      std::cout << "    Tunable    : " << tunable_str << std::endl;
       std::cout << std::endl;
     }
 
