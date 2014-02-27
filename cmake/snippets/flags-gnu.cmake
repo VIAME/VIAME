@@ -98,6 +98,12 @@ if (SPROKIT_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
   sprokit_check_compiler_flag(sprokit_warnings -fcatch-undefined-behavior)
 endif ()
 
+option(SPROKIT_ENABLE_ASAN "Enable address sanitization" OFF)
+if (SPROKIT_ENABLE_ASAN)
+  sprokit_check_compiler_flag(sprokit_warnings -fsanitize=address)
+  sprokit_check_compiler_flag(sprokit_warnings -fno-omit-frame-pointer)
+endif ()
+
 option(SPROKIT_ENABLE_COVERAGE "Build with coverage testing" OFF)
 if (SPROKIT_ENABLE_COVERAGE)
   set(sprokit_coverage
