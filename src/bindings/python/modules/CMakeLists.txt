@@ -19,7 +19,7 @@ target_link_libraries(modules_python
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
-sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/modules.py
+sprokit_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/modules.py"
   sprokit/modules
   modules)
 
@@ -32,14 +32,13 @@ execute_process(
   ERROR_QUIET)
 
 set(default_have_straight OFF)
-
 if (NOT straight_return)
   set(default_have_straight ON)
 endif ()
 
-option(SPROKIT_ASSUME_STRAIGHT_PLUGIN "Assume the straight.plugin Python module exists (needs >= 1.3.1)" ${default_have_straight})
+option(SPROKIT_ASSUME_STRAIGHT_PLUGIN "Assume the straight.plugin Python module exists (needs >= 1.3.1)" "${default_have_straight}")
 if (NOT SPROKIT_ASSUME_STRAIGHT_PLUGIN)
-  sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/loaders.py
+  sprokit_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/loaders.py"
     sprokit/modules
     loaders)
 endif ()

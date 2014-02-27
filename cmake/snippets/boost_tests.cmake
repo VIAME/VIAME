@@ -34,6 +34,8 @@ main()
     CMAKE_FLAGS         "-DINCLUDE_DIRECTORIES=${Boost_INCLUDE_DIRS}"
     RUN_OUTPUT_VARIABLE boost_detect_mangle_namespace)
   string(STRIP "${boost_detect_mangle_namespace}" boost_detect_mangle_namespace)
+  # The mangled namespace is detected, so make the value INTERNAL to prevent
+  # accidentally changing in in a GUI.
   set(BOOST_MANGLE_NAMESPACE "${boost_detect_mangle_namespace}"
     CACHE INTERNAL "The detected mangled boost namespace")
 endif ()

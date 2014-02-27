@@ -1,5 +1,7 @@
 project(sprokit_tests)
 
+set(no_install TRUE)
+
 if (WIN32)
   # TODO: Output to a different directory and then use $<CONFIGURATION> in the
   # working path when generator expressions are supported in test properties.
