@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011 by Kitware, Inc.
+ * Copyright 2011, 2013-2014 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PYTHON_ANY_CONVERSION_CONFIG_H_
-#define SPROKIT_PYTHON_ANY_CONVERSION_CONFIG_H_
+#ifndef SPROKIT_PYTHON_ANY_CONVERSION_ANY_CONVERSION_CONFIG_H
+#define SPROKIT_PYTHON_ANY_CONVERSION_ANY_CONVERSION_CONFIG_H
 
 #include <sprokit/config.h>
 
@@ -39,21 +39,18 @@
  * \brief Defines for symbol visibility in any_conversion.
  */
 
-#ifndef SPROKIT_PYTHON_ANY_CONVERSION_EXPORT
 #ifdef MAKE_SPROKIT_PYTHON_ANY_CONVERSION_LIB
 /// Export the symbol if building the library.
 #define SPROKIT_PYTHON_ANY_CONVERSION_EXPORT SPROKIT_EXPORT
 #else
 /// Import the symbol if including the library.
 #define SPROKIT_PYTHON_ANY_CONVERSION_EXPORT SPROKIT_IMPORT
-#endif // MAKE_SPROKIT_PYTHON_ANY_CONVERSION_LIB
+#endif
+
 /// Hide the symbol from the library interface.
 #define SPROKIT_PYTHON_ANY_CONVERSION_NO_EXPORT SPROKIT_NO_EXPORT
-#endif // SPROKIT_PYTHON_ANY_CONVERSION_EXPORT
 
-#ifndef SPROKIT_PYTHON_ANY_CONVERSION_EXPORT_DEPRECATED
 /// Mark as deprecated.
 #define SPROKIT_PYTHON_ANY_CONVERSION_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_PYTHON_ANY_CONVERSION_EXPORT
-#endif // SPROKIT_PYTHON_ANY_CONVERSION_EXPORT_DEPRECATED
 
-#endif // SPROKIT_PYTHON_ANY_CONVERSION_CONFIG_H_
+#endif // SPROKIT_PYTHON_ANY_CONVERSION_ANY_CONVERSION_CONFIG_H

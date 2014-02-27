@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2014 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_SCORING_CONFIG_H_
-#define SPROKIT_SCORING_CONFIG_H_
+#ifndef SPROKIT_SCORING_SCORING_CONFIG_H
+#define SPROKIT_SCORING_SCORING_CONFIG_H
 
 #include <sprokit/config.h>
 
@@ -39,21 +39,18 @@
  * \brief Defines for symbol visibility in scoring.
  */
 
-#ifndef SPROKIT_SCORING_EXPORT
 #ifdef MAKE_SPROKIT_SCORING_LIB
 /// Export the symbol if building the library.
 #define SPROKIT_SCORING_EXPORT SPROKIT_EXPORT
 #else
 /// Import the symbol if including the library.
 #define SPROKIT_SCORING_EXPORT SPROKIT_IMPORT
-#endif // MAKE_SPROKIT_SCORING_LIB
+#endif
+
 /// Hide the symbol from the library interface.
 #define SPROKIT_SCORING_NO_EXPORT SPROKIT_NO_EXPORT
-#endif // SPROKIT_SCORING_EXPORT
 
-#ifndef SPROKIT_SCORING_EXPORT_DEPRECATED
 /// Mark as deprecated.
 #define SPROKIT_SCORING_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_SCORING_EXPORT
-#endif // SPROKIT_SCORING_EXPORT_DEPRECATED
 
-#endif // SPROKIT_SCORING_CONFIG_H_
+#endif // SPROKIT_SCORING_SCORING_CONFIG_H
