@@ -51,16 +51,24 @@ def expect_exception(action, kind, func, *args, **kwargs):
     try:
         func(*args, **kwargs)
     except kind:
+        import sys
+
+        t = sys.exc_info()[0]
+        e = sys.exc_info()[1]
+
+        sys.stderr.write("Got expected exception: %s: %s\n" % (str(t.__name__), str(e)))
+
         got_exception = True
     except BaseException:
         import sys
         import traceback
 
+        t = sys.exc_info()[0]
         e = sys.exc_info()[1]
         bt = sys.exc_info()[2]
         bt_str = ''.join(traceback.format_tb(bt))
 
-        test_error("Got unexpected exception: %s:\n%s" % (str(e), bt_str))
+        test_error("Got unexpected exception: %s: %s:\n%s" % (str(t.__name__), str(e), bt_str))
 
         got_exception = True
     except:
