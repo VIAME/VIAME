@@ -37,7 +37,6 @@ main(int argc, char* argv[])
 #else
   typedef void* library_t;
 #endif
-  typedef sprokit::path_t module_path_t;
 
   std::string const library = argv[1];
   sprokit::path_t const path = argv[2];
