@@ -34,7 +34,7 @@
 #include "types.h"
 
 #include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 
@@ -162,19 +162,16 @@ scheduler_registry_t
 scheduler_registry
 ::self()
 {
-  typedef boost::mutex mutex_t;
+  typedef boost::shared_mutex mutex_t;
 
   static mutex_t mut;
+  boost::upgrade_lock<mutex_t> lock(mut);
 
-  if (reg_self)
+  if (!reg_self)
   {
-    return reg_self;
-  }
+    boost::upgrade_to_unique_lock<mutex_t> const write_lock(lock);
 
-  {
-    boost::unique_lock<mutex_t> const lock(mut);
-
-    (void)lock;
+    (void)write_lock;
 
     if (!reg_self)
     {
