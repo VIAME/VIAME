@@ -120,16 +120,28 @@ def test_wrapper_api():
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
     from sprokit.pipeline import pipeline
+    from sprokit.pipeline import process_registry
     from sprokit.pipeline import scheduler_registry
 
     sched_type = 'python_example'
     sched_desc = 'simple description'
+
+    modules.load_known_modules()
 
     reg = scheduler_registry.SchedulerRegistry.self()
 
     reg.register_scheduler(sched_type, sched_desc, example_scheduler(False))
 
     p = pipeline.Pipeline()
+
+    preg = process_registry.ProcessRegistry.self()
+
+    proc_type = 'orphan'
+    proc_name = 'orphan'
+
+    proc = preg.create_process(proc_type, proc_name)
+
+    p.add_process(proc)
 
     def check_scheduler(s):
         if s is None:
@@ -144,6 +156,9 @@ def test_wrapper_api():
         s.wait()
 
         del s
+
+    p.reset()
+    p.setup_pipeline()
 
     s = reg.create_scheduler(sched_type, p)
     check_scheduler(s)
