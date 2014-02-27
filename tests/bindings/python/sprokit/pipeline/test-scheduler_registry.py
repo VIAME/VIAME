@@ -45,16 +45,16 @@ def test_api_calls():
     reg.default_type
 
 
-def example_scheduler():
+def example_scheduler(check_init):
     from sprokit.pipeline import scheduler
 
     class PythonExample(scheduler.PythonScheduler):
         def __init__(self, pipe, conf):
             scheduler.PythonScheduler.__init__(self, pipe, conf)
 
-            self.ran_start = False
-            self.ran_wait = False
-            self.ran_stop = False
+            self.ran_start = check_init
+            self.ran_wait = check_init
+            self.ran_stop = check_init
 
         def start(self):
             self.ran_start = True
@@ -65,7 +65,7 @@ def example_scheduler():
         def stop(self):
             self.ran_stop = True
 
-        def check(self):
+        def __del__(self):
             if not self.ran_start:
                 test_error("start override was not called")
             if not self.ran_wait:
@@ -89,7 +89,7 @@ def test_register():
     sched_type = 'python_example'
     sched_desc = 'simple description'
 
-    reg.register_scheduler(sched_type, sched_desc, example_scheduler())
+    reg.register_scheduler(sched_type, sched_desc, example_scheduler(True))
 
     if not sched_desc == reg.description(sched_type):
         test_error("Description was not preserved when registering")
@@ -115,7 +115,7 @@ def test_wrapper_api():
 
     reg = scheduler_registry.SchedulerRegistry.self()
 
-    reg.register_scheduler(sched_type, sched_desc, example_scheduler())
+    reg.register_scheduler(sched_type, sched_desc, example_scheduler(False))
 
     p = pipeline.Pipeline()
 
@@ -128,7 +128,7 @@ def test_wrapper_api():
         s.wait()
         s.stop()
 
-        s.check()
+        del s
 
     s = reg.create_scheduler(sched_type, p)
     check_scheduler(s)
