@@ -3,6 +3,16 @@
 include(CheckCXXCompilerFlag)
 
 function (sprokit_add_flag flag)
+  #if (ARGN)
+  #  string(REPLACE "," "$<COMMA>" genflag "${flag}")
+  #  string(REPLACE ";" "$<SEMICOLON>" genflag "${genflag}")
+  #  string(REPLACE ">" "$<ANGLE-R>" genflag "${genflag}")
+  #  foreach (config IN LISTS ARGN)
+  #    add_compile_options("$<$<CONFIG:${config}>:${genflag}>")
+  #  endforeach ()
+  #else ()
+  #  add_compile_options("${flag}")
+  #endif ()
   if (ARGN)
     foreach (config IN LISTS ARGN)
       set_property(GLOBAL APPEND_STRING
