@@ -161,12 +161,10 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
     include_dirs.insert(include_dirs.end(), include_dirs_tmp.begin(), include_dirs_tmp.end());
   }
 
-  while (istr.good())
+  std::string line;
+
+  while (std::getline(istr, line))
   {
-    std::string line;
-
-    std::getline(istr, line);
-
     boost::trim_left(line);
 
     if (line.empty())

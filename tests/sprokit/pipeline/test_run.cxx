@@ -151,7 +151,10 @@ IMPLEMENT_TEST(simple_pipeline)
 
   for (int32_t i = start_value; i < end_value; ++i)
   {
-    std::getline(fin, line);
+    if (!std::getline(fin, line))
+    {
+      TEST_ERROR("Failed to read a line from the file");
+    }
 
     if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i))
     {
@@ -161,11 +164,9 @@ IMPLEMENT_TEST(simple_pipeline)
     }
   }
 
-  std::getline(fin, line);
-
-  if (!line.empty())
+  if (std::getline(fin, line))
   {
-    TEST_ERROR("Empty line missing");
+    TEST_ERROR("More results than expected in the file");
   }
 
   if (!fin.eof())
@@ -240,7 +241,10 @@ IMPLEMENT_TEST(pysimple_pipeline)
 
   for (int32_t i = start_value; i < end_value; ++i)
   {
-    std::getline(fin, line);
+    if (!std::getline(fin, line))
+    {
+      TEST_ERROR("Failed to read a line from the file");
+    }
 
     if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i))
     {
@@ -250,11 +254,9 @@ IMPLEMENT_TEST(pysimple_pipeline)
     }
   }
 
-  std::getline(fin, line);
-
-  if (!line.empty())
+  if (std::getline(fin, line))
   {
-    TEST_ERROR("Empty line missing");
+    TEST_ERROR("More results than expected in the file");
   }
 
   if (!fin.eof())
@@ -356,7 +358,10 @@ IMPLEMENT_TEST(multiplier_pipeline)
   for (int32_t i = start_value1, j = start_value2;
        (i < end_value1) && (j < end_value2); ++i, ++j)
   {
-    std::getline(fin, line);
+    if (!std::getline(fin, line))
+    {
+      TEST_ERROR("Failed to read a line from the file");
+    }
 
     if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * j))
     {
@@ -366,11 +371,9 @@ IMPLEMENT_TEST(multiplier_pipeline)
     }
   }
 
-  std::getline(fin, line);
-
-  if (!line.empty())
+  if (std::getline(fin, line))
   {
-    TEST_ERROR("Empty line missing");
+    TEST_ERROR("More results than expected in the file");
   }
 
   if (!fin.eof())
@@ -464,7 +467,10 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
 
   for (int32_t i = start_value; i < end_value; ++i)
   {
-    std::getline(fin, line);
+    if (!std::getline(fin, line))
+    {
+      TEST_ERROR("Failed to read a line from the file");
+    }
 
     if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * factor_value))
     {
@@ -474,11 +480,9 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
     }
   }
 
-  std::getline(fin, line);
-
-  if (!line.empty())
+  if (std::getline(fin, line))
   {
-    TEST_ERROR("Empty line missing");
+    TEST_ERROR("More results than expected in the file");
   }
 
   if (!fin.eof())
