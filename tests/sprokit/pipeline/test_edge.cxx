@@ -41,6 +41,7 @@
 #include <boost/chrono/chrono_io.hpp>
 #include <boost/chrono/duration.hpp>
 #include <boost/chrono/process_cpu_clocks.hpp>
+// XXX(boost): 1.50.0
 #if BOOST_VERSION < 105000
 #include <boost/date_time/posix_time/posix_time.hpp>
 #endif
@@ -462,6 +463,7 @@ test_capacity()
   boost::thread thread = boost::thread(boost::bind(&push_datum, edge, edat2));
 
   // Give the other thread some time.
+  // XXX(boost): 1.50.0
 #if BOOST_VERSION < 105000
   boost::this_thread::sleep(boost::posix_time::seconds(SECONDS_TO_WAIT));
 #else

@@ -17,6 +17,7 @@ sprokit_want_compiler_flag(/W3)
 # Disable deprecation warnings for standard C and STL functions in VS2005 and
 # later
 # -----------------------------------------------------------------------------
+# XXX(msvc): 1400
 if (MSVC_VERSION GREATER 1400 OR
     MSVC_VERSION EQUAL 1400)
   add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)

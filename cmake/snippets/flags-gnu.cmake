@@ -9,6 +9,7 @@ cmake_dependent_option(SPROKIT_ENABLE_CXX11 "Enable compilation with C++11 suppo
 if (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
   set(sprokit_using_clang TRUE)
 else ()
+  # XXX(gcc): 4.7.2
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.7.0" AND
       CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.7.2")
     if (SPROKIT_ENABLE_CXX11)

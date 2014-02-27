@@ -135,6 +135,7 @@ set_source_files_properties(utils.cxx
 
 set(scheduler_build_options)
 
+# XXX(Boost): 1.50.0
 if (Boost_VERSION LESS 105000)
   set(scheduler_build_options
     BOOST_NO_HAVE_REVERSE_LOCK)

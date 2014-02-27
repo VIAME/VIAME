@@ -13,6 +13,7 @@ function (sprokit_add_flag flag)
   #else ()
   #  add_compile_options("${flag}")
   #endif ()
+  # XXX(cmake): 2.8.12
   if (ARGN)
     foreach (config IN LISTS ARGN)
       set_property(GLOBAL APPEND_STRING
@@ -36,6 +37,7 @@ function (sprokit_want_compiler_flag flag)
   endif ()
 endfunction ()
 
+# XXX(cmake): 2.8.12
 foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
   set_property(GLOBAL
     PROPERTY "sprokit_flags_${config}")
@@ -50,10 +52,18 @@ else ()
   include("${CMAKE_CURRENT_LIST_DIR}/flags-gnu.cmake")
 endif ()
 
+foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
+  get_property(sprokit_flags GLOBAL
+    PROPERTY "sprokit_flags_${config}")
+  string(TOUPPER "${config}" upper_config)
+  set("CMAKE_CXX_FLAGS_${upper_config}"
+    "${CMAKE_CXX_FLAGS_${upper_config}}${sprokit_flags}")
+endforeach ()
 get_property(sprokit_flags GLOBAL
   PROPERTY sprokit_flags)
 set(CMAKE_CXX_FLAGS
   "${CMAKE_CXX_FLAGS}${sprokit_flags}")
+# XXX(cmake): 2.8.12
 if (CMAKE_CONFIGURATION_TYPES)
   foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
     get_property(sprokit_flags GLOBAL
