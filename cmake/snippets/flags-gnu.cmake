@@ -24,59 +24,59 @@ include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-fvisibility=hidden SPROKIT_HAVE_GCC_VISIBILITY)
 
 # Hide symbols by default
-sprokit_check_compiler_flag(sprokit_warnings -fvisibility=hidden)
+sprokit_want_compiler_flag(-fvisibility=hidden)
 # Set the standard to C++98
 if (SPROKIT_ENABLE_CXX11)
-  sprokit_check_compiler_flag(sprokit_warnings -std=c++11)
+  sprokit_want_compiler_flag(-std=c++11)
 else ()
-  sprokit_check_compiler_flag(sprokit_warnings -std=c++98)
+  sprokit_want_compiler_flag(-std=c++98)
 endif ()
 # General warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wall)
-sprokit_check_compiler_flag(sprokit_warnings -Wextra)
+sprokit_want_compiler_flag(-Wall)
+sprokit_want_compiler_flag(-Wextra)
 # Class warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wabi)
-sprokit_check_compiler_flag(sprokit_warnings -Wctor-dtor-privacy)
-sprokit_check_compiler_flag(sprokit_warnings -Winit-self)
-sprokit_check_compiler_flag(sprokit_warnings -Woverloaded-virtual)
+sprokit_want_compiler_flag(-Wabi)
+sprokit_want_compiler_flag(-Wctor-dtor-privacy)
+sprokit_want_compiler_flag(-Winit-self)
+sprokit_want_compiler_flag(-Woverloaded-virtual)
 # Pointer warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wpointer-arith)
-sprokit_check_compiler_flag(sprokit_warnings -Wstrict-null-sentinel)
+sprokit_want_compiler_flag(-Wpointer-arith)
+sprokit_want_compiler_flag(-Wstrict-null-sentinel)
 # Enumeration warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wswitch-default)
-sprokit_check_compiler_flag(sprokit_warnings -Wswitch-enum)
+sprokit_want_compiler_flag(-Wswitch-default)
+sprokit_want_compiler_flag(-Wswitch-enum)
 # Formatting warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wformat-security)
-sprokit_check_compiler_flag(sprokit_warnings -Wformat=2)
+sprokit_want_compiler_flag(-Wformat-security)
+sprokit_want_compiler_flag(-Wformat=2)
 # Casting warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wcast-align)
-sprokit_check_compiler_flag(sprokit_warnings -Wcast-qual)
-sprokit_check_compiler_flag(sprokit_warnings -Wdouble-promotion)
-sprokit_check_compiler_flag(sprokit_warnings -Wfloat-equal)
-sprokit_check_compiler_flag(sprokit_warnings -fstrict-overflow)
-sprokit_check_compiler_flag(sprokit_warnings -Wstrict-overflow=5)
+sprokit_want_compiler_flag(-Wcast-align)
+sprokit_want_compiler_flag(-Wcast-qual)
+sprokit_want_compiler_flag(-Wdouble-promotion)
+sprokit_want_compiler_flag(-Wfloat-equal)
+sprokit_want_compiler_flag(-fstrict-overflow)
+sprokit_want_compiler_flag(-Wstrict-overflow=5)
 # TODO: Python triggers warnings with this
-#sprokit_check_compiler_flag(sprokit_warnings -Wold-style-cast)
+#sprokit_want_compiler_flag(-Wold-style-cast)
 # Variable naming warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wshadow)
+sprokit_want_compiler_flag(-Wshadow)
 # C++ 11 compatibility warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wnarrowing)
+sprokit_want_compiler_flag(-Wnarrowing)
 # Exception warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wnoexcept)
+sprokit_want_compiler_flag(-Wnoexcept)
 # Miscellaneous warnings
-sprokit_check_compiler_flag(sprokit_warnings -Wlogical-op)
-sprokit_check_compiler_flag(sprokit_warnings -Wmissing-braces)
-sprokit_check_compiler_flag(sprokit_warnings -Wimplicit-fallthrough)
-sprokit_check_compiler_flag(sprokit_warnings -Wdocumentation)
-sprokit_check_compiler_flag(sprokit_warnings -Wundef)
-sprokit_check_compiler_flag(sprokit_warnings -Wunused-macros)
+sprokit_want_compiler_flag(-Wlogical-op)
+sprokit_want_compiler_flag(-Wmissing-braces)
+sprokit_want_compiler_flag(-Wimplicit-fallthrough)
+sprokit_want_compiler_flag(-Wdocumentation)
+sprokit_want_compiler_flag(-Wundef)
+sprokit_want_compiler_flag(-Wunused-macros)
 
 option(SPROKIT_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
 if (SPROKIT_ENABLE_NITPICK)
-  sprokit_check_compiler_flag(sprokit_warnings -Wunsafe-loop-optimizations)
-  sprokit_check_compiler_flag(sprokit_warnings -Wsign-promo)
-  sprokit_check_compiler_flag(sprokit_warnings -Winline)
-  sprokit_check_compiler_flag(sprokit_warnings -Weffc++)
+  sprokit_want_compiler_flag(-Wunsafe-loop-optimizations)
+  sprokit_want_compiler_flag(-Wsign-promo)
+  sprokit_want_compiler_flag(-Winline)
+  sprokit_want_compiler_flag(-Weffc++)
 endif ()
 
 option(SPROKIT_ENABLE_PEDANTIC "Be pedantic" OFF)
@@ -84,21 +84,21 @@ cmake_dependent_option(SPROKIT_ENABLE_PEDANTIC_ERRORS "Be REALLY pedantic" OFF
   SPROKIT_ENABLE_PEDANTIC OFF)
 if (SPROKIT_ENABLE_PEDANTIC)
   if (SPROKIT_ENABLE_PEDANTIC_ERRORS)
-    sprokit_check_compiler_flag(sprokit_warnings -pedantic-errors)
+    sprokit_want_compiler_flag(-pedantic-errors)
   else ()
-    sprokit_check_compiler_flag(sprokit_warnings -pedantic)
+    sprokit_want_compiler_flag(-pedantic)
   endif ()
 endif ()
 
 option(SPROKIT_ENABLE_WERROR "Treat all warnings as errors" OFF)
 if (SPROKIT_ENABLE_WERROR)
-  sprokit_check_compiler_flag(sprokit_warnings -Werror)
+  sprokit_want_compiler_flag(-Werror)
 endif ()
 
 cmake_dependent_option(SPROKIT_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR "Use clang to flag undefined behavior" OFF
   sprokit_using_clang OFF)
 if (SPROKIT_ENABLE_CLANG_CATCH_UNDEFINED_BEHAVIOR)
-  sprokit_check_compiler_flag(sprokit_warnings -fcatch-undefined-behavior)
+  sprokit_want_compiler_flag(-fcatch-undefined-behavior)
 endif ()
 
 option(SPROKIT_ENABLE_ASAN "Enable address sanitization" OFF)
@@ -109,16 +109,9 @@ endif ()
 
 option(SPROKIT_ENABLE_COVERAGE "Build with coverage testing" OFF)
 if (SPROKIT_ENABLE_COVERAGE)
-  set(sprokit_coverage
-    "")
-
-  sprokit_check_compiler_flag(sprokit_coverage -O0)
-  sprokit_check_compiler_flag(sprokit_coverage -pg)
-  sprokit_check_compiler_flag(sprokit_coverage -ftest-coverage)
-
+  sprokit_want_compiler_flag(-O0 Debug)
+  sprokit_want_compiler_flag(-pg Debug)
+  sprokit_want_compiler_flag(-ftest-coverage Debug)
   # It seems as though the flag isn't detected alone.
-  set(sprokit_coverage
-    "${sprokit_coverage} -fprofile-arcs")
-
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${sprokit_coverage}")
+  sprokit_add_flag(-fprofile-arcs Debug)
 endif ()
