@@ -118,7 +118,7 @@ function (_sprokit_add_python_module path modpath module)
     COMPONENT   runtime)
 
   add_dependencies(python
-    "python${python_arch}-${safe_modpath}-${module}")
+    "configure-python${python_arch}-${safe_modpath}-${module}")
 
   if (python_both_arch)
     set(python_both_arch)
