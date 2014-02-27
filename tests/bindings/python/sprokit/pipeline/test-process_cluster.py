@@ -19,13 +19,19 @@ def test_api_calls():
     from sprokit.pipeline import process
     from sprokit.pipeline import process_cluster
 
+    process_cluster.PythonProcessCluster.property_no_threads
+    process_cluster.PythonProcessCluster.property_no_reentrancy
+    process_cluster.PythonProcessCluster.property_unsync_input
+    process_cluster.PythonProcessCluster.property_unsync_output
     process_cluster.PythonProcessCluster.type_any
     process_cluster.PythonProcessCluster.type_none
     process_cluster.PythonProcessCluster.type_data_dependent
     process_cluster.PythonProcessCluster.type_flow_dependent
     process_cluster.PythonProcessCluster.flag_output_const
+    process_cluster.PythonProcessCluster.flag_output_shared
     process_cluster.PythonProcessCluster.flag_input_static
     process_cluster.PythonProcessCluster.flag_input_mutable
+    process_cluster.PythonProcessCluster.flag_input_nodep
     process_cluster.PythonProcessCluster.flag_required
 
     class BaseProcess(process.PythonProcess):
