@@ -13,7 +13,7 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/python/object.hpp>
 
-#include <iostream>
+#include <iosfwd>
 
 namespace sprokit
 {
