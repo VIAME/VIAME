@@ -67,6 +67,7 @@ sprokit_check_compiler_flag(sprokit_warnings -Wnoexcept)
 sprokit_check_compiler_flag(sprokit_warnings -Wlogical-op)
 sprokit_check_compiler_flag(sprokit_warnings -Wmissing-braces)
 sprokit_check_compiler_flag(sprokit_warnings -Wimplicit-fallthrough)
+sprokit_check_compiler_flag(sprokit_warnings -Wdocumentation)
 
 option(SPROKIT_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
 if (SPROKIT_ENABLE_NITPICK)
