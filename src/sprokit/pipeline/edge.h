@@ -79,7 +79,7 @@ class SPROKIT_PIPELINE_EXPORT edge_datum_t
     /**
      * \brief Compare two \ref edge_datum_t packets.
      *
-     * \param b The second packet.
+     * \param rhs The second packet.
      *
      * \returns True if \p a and \p b are the same, false otherwise.
      */

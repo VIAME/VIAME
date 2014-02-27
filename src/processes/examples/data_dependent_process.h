@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2013 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,7 +95,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
      * \brief Set the type for an output port.
      *
      * \param port The name of the port.
-     * \param type The type of the connected port.
+     * \param new_type The type of the connected port.
      *
      * \returns True if the type can work, false otherwise.
      */
