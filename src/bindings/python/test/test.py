@@ -19,10 +19,13 @@ def expect_exception(action, kind, func, *args, **kwargs):
         got_exception = True
     except BaseException:
         import sys
+        import traceback
 
         e = sys.exc_info()[1]
+        bt = sys.exc_info()[2]
+        bt_str = ''.join(traceback.format_tb(bt))
 
-        test_error("Got unexpected exception: %s" % str(e))
+        test_error("Got unexpected exception: %s:\n%s" % (str(e), bt_str))
 
         got_exception = True
     except:
@@ -46,7 +49,10 @@ def run_test(testname, tests, *args, **kwargs):
         tests[testname](*args, **kwargs)
     except BaseException:
         import sys
+        import traceback
 
         e = sys.exc_info()[1]
+        bt = sys.exc_info()[2]
+        bt_str = ''.join(traceback.format_tb(bt))
 
-        test_error("Unexpected exception: %s" % str(e))
+        test_error("Unexpected exception: %s:\n%s" % (str(e), bt_str))
