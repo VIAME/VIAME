@@ -1,22 +1,23 @@
 option(SPROKIT_ENABLE_DLLHELL_WARNINGS "Enables warnings about DLL visibility" OFF)
 if (NOT SPROKIT_ENABLE_DLLHELL_WARNINGS)
   # C4251: STL interface warnings
-  sprokit_check_compiler_flag(sprokit_warnings /wd4251)
+  sprokit_want_compiler_flag(/wd4251)
   # C4275: Inheritance warnings
-  sprokit_check_compiler_flag(sprokit_warnings /wd4275)
+  sprokit_want_compiler_flag(/wd4275)
 endif ()
 
 option(SPROKIT_ENABLE_ANALYZE "Enables MSVC static analysis" OFF)
 if (SPROKIT_ENABLE_ANALYZE)
-  sprokit_check_compiler_flag(sprokit_warnings /analyze)
+  sprokit_want_compiler_flag(/analyze)
 endif ()
 
-sprokit_check_compiler_flag(sprokit_warnings /W3)
+sprokit_want_compiler_flag(/W3)
 
 # -----------------------------------------------------------------------------
 # Disable deprecation warnings for standard C and STL functions in VS2005 and
 # later
 # -----------------------------------------------------------------------------
+# XXX(msvc): 1400
 if (MSVC_VERSION GREATER 1400 OR
     MSVC_VERSION EQUAL 1400)
   add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)

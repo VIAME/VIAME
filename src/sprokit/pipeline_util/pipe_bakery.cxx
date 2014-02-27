@@ -44,6 +44,7 @@
 #if __cplusplus < 201103L
 #include <boost/version.hpp>
 // This header appeared in 1.50.0, but was buggy.
+// XXX(boost): 1.52.0
 #if BOOST_VERSION >= 105200
 #include <boost/algorithm/cxx11/copy_if.hpp>
 #endif
@@ -827,6 +828,7 @@ class extract_literal_value
 
 #if __cplusplus >= 201103L
 #define COPY_IF std::copy_if
+// XXX(boost): 1.52.0
 #elif BOOST_VERSION >= 105200
 #define COPY_IF boost::algorithm::copy_if
 #else

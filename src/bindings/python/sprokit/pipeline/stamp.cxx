@@ -32,10 +32,12 @@
 
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
+// XXX(python): 2.7
 #if PY_VERSION_HEX >= 0x02070000
 #include <boost/python/import.hpp>
 #endif
 #include <boost/python/module.hpp>
+// XXX(python): 2.7
 #if PY_VERSION_HEX >= 0x02070000
 #include <boost/python/scope.hpp>
 #endif
@@ -70,6 +72,7 @@ BOOST_PYTHON_MODULE(stamp)
   //   @total_ordering
   //   class Stamp(object):
   //       ...
+// XXX(python): 2.7
 #if PY_VERSION_HEX >= 0x02070000
   object const functools = import("functools");
   object const total_ordering = functools.attr("total_ordering");
