@@ -6,6 +6,11 @@ if (NOT SPROKIT_ENABLE_DLLHELL_WARNINGS)
   sprokit_check_compiler_flag(sprokit_warnings /wd4275)
 endif ()
 
+option(SPROKIT_ENABLE_ANALYZE "Enables MSVC static analysis" OFF)
+if (SPROKIT_ENABLE_ANALYZE)
+  sprokit_check_compiler_flag(sprokit_warnings /analyze)
+endif ()
+
 sprokit_check_compiler_flag(sprokit_warnings /W3)
 
 # -----------------------------------------------------------------------------
