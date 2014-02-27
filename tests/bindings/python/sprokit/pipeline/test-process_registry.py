@@ -81,28 +81,32 @@ def test_api_calls():
     process_registry.Process.flag_input_nodep
     process_registry.Process.flag_required
 
+    cluster_bases = process_registry.ProcessCluster.__bases__
+    if not cluster_bases[0] == process_registry.Process:
+        test_error("The cluster class does not inherit from the process class")
 
-def example_process():
+
+def example_process(check_init):
     from sprokit.pipeline import process
 
     class PythonExample(process.PythonProcess):
         def __init__(self, conf):
             process.PythonProcess.__init__(self, conf)
 
-            self.ran_configure = False
-            self.ran_init = False
-            self.ran_reset = False
-            self.ran_step = False
-            self.ran_reconfigure = False
-            self.ran_properties = False
-            self.ran_input_ports = False
-            self.ran_output_ports = False
-            self.ran_input_port_info = False
-            self.ran_output_port_info = False
-            self.ran_set_input_port_type = False
-            self.ran_set_output_port_type = False
-            self.ran_available_config = False
-            self.ran_conf_info = False
+            self.ran_configure = check_init
+            self.ran_init = check_init
+            self.ran_reset = check_init
+            self.ran_step = check_init
+            self.ran_reconfigure = check_init
+            self.ran_properties = check_init
+            self.ran_input_ports = check_init
+            self.ran_output_ports = check_init
+            self.ran_input_port_info = check_init
+            self.ran_output_port_info = check_init
+            self.ran_set_input_port_type = check_init
+            self.ran_set_output_port_type = check_init
+            self.ran_available_config = check_init
+            self.ran_conf_info = check_init
 
         def _configure(self):
             self.ran_configure = True
@@ -174,7 +178,7 @@ def example_process():
 
             return self._base_config_info(key)
 
-        def check(self):
+        def __del__(self):
             if not self.ran_configure:
                 test_error("_configure override was not called")
             if not self.ran_init:
@@ -215,7 +219,7 @@ def base_example_process():
         def __init__(self, conf):
             process.PythonProcess.__init__(self, conf)
 
-        def check(self):
+        def __del__(self):
             pass
 
     return PythonBaseExample
@@ -229,7 +233,7 @@ def base_example_process_cluster():
         def __init__(self, conf):
             process_cluster.PythonProcessCluster.__init__(self, conf)
 
-        def check(self):
+        def __del__(self):
             pass
 
     return PythonBaseClusterExample
@@ -245,7 +249,7 @@ def test_register():
 
     reg = process_registry.ProcessRegistry.self()
 
-    reg.register_process(proc_type, proc_desc, example_process())
+    reg.register_process(proc_type, proc_desc, example_process(True))
 
     if not proc_desc == reg.description(proc_type):
         test_error("Description was not preserved when registering")
@@ -308,7 +312,7 @@ def test_wrapper_api():
 
     reg = process_registry.ProcessRegistry.self()
 
-    reg.register_process(proc_type, proc_desc, example_process())
+    reg.register_process(proc_type, proc_desc, example_process(False))
     reg.register_process(proc_base_type, proc_base_desc, base_example_process())
 
     def check_process(p):
@@ -357,7 +361,7 @@ def test_wrapper_api():
         # p.check when this is fixed.
         #p.reconfigure(reconf)
 
-        p.check()
+        del p
 
     p = reg.create_process(proc_type, process.ProcessName())
     check_process(p)

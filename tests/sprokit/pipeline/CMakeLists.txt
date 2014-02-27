@@ -331,7 +331,7 @@ function (sprokit_add_tooled_run_test group instance)
     if (SPROKIT_ENABLE_PYTHON)
       if (scheduler STREQUAL "pythread_per_process" OR
           instance STREQUAL "pysimple_pipeline")
-        set(sprokit_test_environment "PYTHONPATH=${test_python_path}")
+        set(sprokit_test_environment "PYTHONPATH=${test_python_path}/site-packages")
       endif ()
     endif ()
 

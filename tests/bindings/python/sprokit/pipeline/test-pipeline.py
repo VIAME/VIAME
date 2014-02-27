@@ -52,6 +52,7 @@ def test_api_calls():
     from sprokit.pipeline import modules
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import process
+    from sprokit.pipeline import process_cluster
     from sprokit.pipeline import process_registry
 
     p = pipeline.Pipeline()

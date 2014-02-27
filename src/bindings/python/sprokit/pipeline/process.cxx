@@ -53,8 +53,6 @@
 
 using namespace boost::python;
 
-static sprokit::process::property_t const property_python = sprokit::process::property_t("_python");
-
 /// \todo How to do grab_input_as<>?
 
 class wrap_process
@@ -554,6 +552,8 @@ sprokit::process::properties_t
 wrap_process
 ::_base_properties() const
 {
+  static sprokit::process::property_t const property_python = sprokit::process::property_t("_python");
+
   properties_t consts = process::_properties();
 
   consts.insert(property_python);
