@@ -14,6 +14,10 @@ list(INSERT CMAKE_MODULE_PATH 0
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
+if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
+  message(FATAL_ERROR "Sprokit does not support a relative install prefix (${CMAKE_INSTALL_PREFIX}).")
+endif ()
+
 include(CMakeDependentOption)
 
 set(sprokit_output_dir
