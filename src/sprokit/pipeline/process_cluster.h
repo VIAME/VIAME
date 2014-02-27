@@ -115,7 +115,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      *
      * \param name_ The name of the process.
      * \param type_ The type of the process.
-     * \param conf The base configuration to use.
+     * \param config The base configuration to use.
      */
     void add_process(name_t const& name_, type_t const& type_, config_t const& config = config::empty_config());
     /**
