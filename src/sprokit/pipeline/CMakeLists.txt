@@ -112,8 +112,7 @@ endif ()
 
 option(SPROKIT_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
 if (SPROKIT_USE_CONFIGURATION_SUBDIRECTORY)
-  set(module_build_options
-    ${module_build_options}
+  list(APPEND module_build_options
     USE_CONFIGURATION_SUBDIRECTORY)
 endif ()
 
@@ -125,8 +124,7 @@ set(utils_build_options)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/thread_naming.cmake")
 
-set(utils_build_options
-  ${utils_build_options}
+list(APPEND utils_build_options
   ${thread_naming_defines})
 
 set_source_files_properties(utils.cxx
@@ -137,7 +135,7 @@ set(scheduler_build_options)
 
 # XXX(Boost): 1.50.0
 if (Boost_VERSION LESS 105000)
-  set(scheduler_build_options
+  list(APPEND scheduler_build_options
     BOOST_NO_HAVE_REVERSE_LOCK)
 endif ()
 
