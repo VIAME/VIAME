@@ -34,9 +34,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(equality);
-DECLARE_TEST(ordering);
-DECLARE_TEST(increment_null);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -45,13 +43,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, equality);
-  ADD_TEST(tests, ordering);
-  ADD_TEST(tests, increment_null);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 IMPLEMENT_TEST(equality)

@@ -43,14 +43,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(get_twice);
-DECLARE_TEST(null_config);
-DECLARE_TEST(null_pipeline);
-DECLARE_TEST(load_schedulers);
-DECLARE_TEST(null_ctor);
-DECLARE_TEST(duplicate_types);
-DECLARE_TEST(unknown_types);
-DECLARE_TEST(module_marking);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -59,18 +52,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, get_twice);
-  ADD_TEST(tests, null_config);
-  ADD_TEST(tests, null_pipeline);
-  ADD_TEST(tests, load_schedulers);
-  ADD_TEST(tests, null_ctor);
-  ADD_TEST(tests, duplicate_types);
-  ADD_TEST(tests, unknown_types);
-  ADD_TEST(tests, module_marking);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 IMPLEMENT_TEST(get_twice)

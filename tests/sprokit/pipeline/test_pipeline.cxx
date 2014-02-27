@@ -45,57 +45,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(null_config);
-DECLARE_TEST(null_process);
-DECLARE_TEST(add_process);
-DECLARE_TEST(add_cluster);
-DECLARE_TEST(duplicate_process_process);
-DECLARE_TEST(connect_no_upstream);
-DECLARE_TEST(connect_no_downstream);
-DECLARE_TEST(connect_untyped_data_connection);
-DECLARE_TEST(connect_untyped_flow_connection);
-DECLARE_TEST(connect_type_mismatch);
-DECLARE_TEST(connect_flag_shared_no_mutate);
-DECLARE_TEST(connect_flag_mismatch_const_mutate);
-DECLARE_TEST(connect_flag_mismatch_shared_mutate_first);
-DECLARE_TEST(connect_flag_mismatch_shared_mutate_second);
-DECLARE_TEST(connect);
-DECLARE_TEST(setup_pipeline_no_processes);
-DECLARE_TEST(setup_pipeline_orphaned_process);
-DECLARE_TEST(setup_pipeline_type_force_flow_upstream);
-DECLARE_TEST(setup_pipeline_type_force_flow_downstream);
-DECLARE_TEST(setup_pipeline_type_force_cascade_up);
-DECLARE_TEST(setup_pipeline_type_force_cascade_down);
-DECLARE_TEST(setup_pipeline_type_force_cascade_both);
-DECLARE_TEST(setup_pipeline_backwards_edge);
-DECLARE_TEST(setup_pipeline_not_a_dag);
-DECLARE_TEST(setup_pipeline_data_dependent_set);
-DECLARE_TEST(setup_pipeline_data_dependent_set_reject);
-DECLARE_TEST(setup_pipeline_data_dependent_set_cascade);
-DECLARE_TEST(setup_pipeline_data_dependent_set_cascade_reject);
-DECLARE_TEST(setup_pipeline_type_force_flow_upstream_reject);
-DECLARE_TEST(setup_pipeline_type_force_flow_downstream_reject);
-DECLARE_TEST(setup_pipeline_type_force_cascade_reject);
-DECLARE_TEST(setup_pipeline_untyped_data_dependent);
-DECLARE_TEST(setup_pipeline_untyped_connection);
-DECLARE_TEST(setup_pipeline_missing_required_input_connection);
-DECLARE_TEST(setup_pipeline_missing_required_output_connection);
-DECLARE_TEST(setup_pipeline_duplicate);
-DECLARE_TEST(setup_pipeline_add_process);
-DECLARE_TEST(setup_pipeline_connect);
-DECLARE_TEST(setup_pipeline);
-DECLARE_TEST(start_before_setup);
-DECLARE_TEST(start_unsuccessful_setup);
-DECLARE_TEST(start_and_stop);
-DECLARE_TEST(reset_while_running);
-DECLARE_TEST(reset);
-DECLARE_TEST(remove_process);
-DECLARE_TEST(remove_process_after_setup);
-DECLARE_TEST(disconnect);
-DECLARE_TEST(disconnect_after_setup);
-DECLARE_TEST(reconfigure_before_setup);
-DECLARE_TEST(reconfigure);
-DECLARE_TEST(reconfigure_only_top_level);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -104,61 +54,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, null_config);
-  ADD_TEST(tests, null_process);
-  ADD_TEST(tests, add_process);
-  ADD_TEST(tests, add_cluster);
-  ADD_TEST(tests, duplicate_process_process);
-  ADD_TEST(tests, connect_no_upstream);
-  ADD_TEST(tests, connect_no_downstream);
-  ADD_TEST(tests, connect_untyped_data_connection);
-  ADD_TEST(tests, connect_untyped_flow_connection);
-  ADD_TEST(tests, connect_type_mismatch);
-  ADD_TEST(tests, connect_flag_shared_no_mutate);
-  ADD_TEST(tests, connect_flag_mismatch_const_mutate);
-  ADD_TEST(tests, connect_flag_mismatch_shared_mutate_first);
-  ADD_TEST(tests, connect_flag_mismatch_shared_mutate_second);
-  ADD_TEST(tests, connect);
-  ADD_TEST(tests, setup_pipeline_no_processes);
-  ADD_TEST(tests, setup_pipeline_orphaned_process);
-  ADD_TEST(tests, setup_pipeline_type_force_flow_upstream);
-  ADD_TEST(tests, setup_pipeline_type_force_flow_downstream);
-  ADD_TEST(tests, setup_pipeline_type_force_cascade_up);
-  ADD_TEST(tests, setup_pipeline_type_force_cascade_down);
-  ADD_TEST(tests, setup_pipeline_type_force_cascade_both);
-  ADD_TEST(tests, setup_pipeline_backwards_edge);
-  ADD_TEST(tests, setup_pipeline_not_a_dag);
-  ADD_TEST(tests, setup_pipeline_data_dependent_set);
-  ADD_TEST(tests, setup_pipeline_data_dependent_set_reject);
-  ADD_TEST(tests, setup_pipeline_data_dependent_set_cascade);
-  ADD_TEST(tests, setup_pipeline_data_dependent_set_cascade_reject);
-  ADD_TEST(tests, setup_pipeline_type_force_flow_upstream_reject);
-  ADD_TEST(tests, setup_pipeline_type_force_flow_downstream_reject);
-  ADD_TEST(tests, setup_pipeline_type_force_cascade_reject);
-  ADD_TEST(tests, setup_pipeline_untyped_data_dependent);
-  ADD_TEST(tests, setup_pipeline_untyped_connection);
-  ADD_TEST(tests, setup_pipeline_missing_required_input_connection);
-  ADD_TEST(tests, setup_pipeline_missing_required_output_connection);
-  ADD_TEST(tests, setup_pipeline_duplicate);
-  ADD_TEST(tests, setup_pipeline_add_process);
-  ADD_TEST(tests, setup_pipeline_connect);
-  ADD_TEST(tests, setup_pipeline);
-  ADD_TEST(tests, start_before_setup);
-  ADD_TEST(tests, start_unsuccessful_setup);
-  ADD_TEST(tests, start_and_stop);
-  ADD_TEST(tests, reset_while_running);
-  ADD_TEST(tests, reset);
-  ADD_TEST(tests, remove_process);
-  ADD_TEST(tests, remove_process_after_setup);
-  ADD_TEST(tests, disconnect);
-  ADD_TEST(tests, disconnect_after_setup);
-  ADD_TEST(tests, reconfigure_before_setup);
-  ADD_TEST(tests, reconfigure);
-  ADD_TEST(tests, reconfigure_only_top_level);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config = sprokit::config::empty_config());

@@ -37,14 +37,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(return_code);
-DECLARE_TEST(error_string);
-DECLARE_TEST(error_string_mid);
-DECLARE_TEST(error_string_stdout);
-DECLARE_TEST(error_string_second_line);
-DECLARE_TEST(expected_exception);
-DECLARE_TEST(unexpected_exception);
-DECLARE_TEST(environment);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -53,25 +46,16 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, return_code);
-  ADD_TEST(tests, error_string);
-  ADD_TEST(tests, error_string_mid);
-  ADD_TEST(tests, error_string_stdout);
-  ADD_TEST(tests, error_string_second_line);
-  ADD_TEST(tests, expected_exception);
-  ADD_TEST(tests, unexpected_exception);
-  ADD_TEST(tests, environment);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(return_code)
 {
   exit(EXIT_FAILURE);
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(error_string)
 {
   TEST_ERROR("an error");
@@ -83,11 +67,13 @@ IMPLEMENT_TEST(error_string_mid)
   TEST_ERROR("an error");
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(error_string_stdout)
 {
   std::cout << "Error: an error" << std::endl;
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(error_string_second_line)
 {
   std::cerr << "Not an error" << std::endl;
@@ -101,6 +87,7 @@ IMPLEMENT_TEST(expected_exception)
                     "when throwing an exception");
 }
 
+TEST_PROPERTY(WILL_FAIL, TRUE)
 IMPLEMENT_TEST(unexpected_exception)
 {
   EXPECT_EXCEPTION(std::runtime_error,
@@ -108,6 +95,7 @@ IMPLEMENT_TEST(unexpected_exception)
                     "when throwing an unexpected exception");
 }
 
+TEST_PROPERTY(ENVIRONMENT, TEST_ENVVAR=test_value)
 IMPLEMENT_TEST(environment)
 {
   sprokit::envvar_name_t const envvar = "TEST_ENVVAR";

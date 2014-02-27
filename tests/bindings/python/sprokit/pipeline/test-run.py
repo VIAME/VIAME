@@ -379,13 +379,6 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
-    tests = \
-        { 'python_to_python': test_python_to_python
-        , 'cpp_to_python': test_cpp_to_python
-        , 'python_to_cpp': test_python_to_cpp
-        , 'python_via_cpp': test_python_via_cpp
-        }
-
     from sprokit.test.test import *
 
-    run_test(testname, tests, sched_type)
+    run_test(testname, find_tests(locals()), sched_type)

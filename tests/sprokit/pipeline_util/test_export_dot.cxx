@@ -49,14 +49,7 @@
 
 #define TEST_ARGS (sprokit::path_t const& pipe_file)
 
-DECLARE_TEST(pipeline_null);
-DECLARE_TEST(pipeline_empty_name);
-DECLARE_TEST(simple_pipeline);
-DECLARE_TEST(simple_pipeline_setup);
-DECLARE_TEST(simple_pipeline_cluster);
-DECLARE_TEST(cluster_null);
-DECLARE_TEST(cluster_empty_name);
-DECLARE_TEST(cluster_multiplier);
+DECLARE_TEST_MAP();
 
 static std::string const pipe_ext = ".pipe";
 
@@ -70,18 +63,7 @@ main(int argc, char* argv[])
 
   sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, pipeline_null);
-  ADD_TEST(tests, pipeline_empty_name);
-  ADD_TEST(tests, simple_pipeline);
-  ADD_TEST(tests, simple_pipeline_setup);
-  ADD_TEST(tests, simple_pipeline_cluster);
-  ADD_TEST(tests, cluster_null);
-  ADD_TEST(tests, cluster_empty_name);
-  ADD_TEST(tests, cluster_multiplier);
-
-  RUN_TEST(tests, testname, pipe_file);
+  RUN_TEST(testname, pipe_file);
 }
 
 IMPLEMENT_TEST(pipeline_null)

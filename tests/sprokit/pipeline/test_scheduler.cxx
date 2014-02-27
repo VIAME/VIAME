@@ -44,21 +44,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(null_config);
-DECLARE_TEST(null_pipeline);
-DECLARE_TEST(start_scheduler);
-DECLARE_TEST(pause_scheduler);
-DECLARE_TEST(resume_scheduler);
-DECLARE_TEST(stop_scheduler);
-DECLARE_TEST(stop_paused_scheduler);
-DECLARE_TEST(restart_scheduler);
-DECLARE_TEST(repause_scheduler);
-DECLARE_TEST(pause_before_start_scheduler);
-DECLARE_TEST(wait_before_start_scheduler);
-DECLARE_TEST(stop_before_start_scheduler);
-DECLARE_TEST(resume_before_start_scheduler);
-DECLARE_TEST(resume_unpaused_scheduler);
-DECLARE_TEST(restart);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -67,25 +53,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, null_config);
-  ADD_TEST(tests, null_pipeline);
-  ADD_TEST(tests, start_scheduler);
-  ADD_TEST(tests, pause_scheduler);
-  ADD_TEST(tests, resume_scheduler);
-  ADD_TEST(tests, stop_scheduler);
-  ADD_TEST(tests, stop_paused_scheduler);
-  ADD_TEST(tests, restart_scheduler);
-  ADD_TEST(tests, repause_scheduler);
-  ADD_TEST(tests, pause_before_start_scheduler);
-  ADD_TEST(tests, wait_before_start_scheduler);
-  ADD_TEST(tests, stop_before_start_scheduler);
-  ADD_TEST(tests, resume_before_start_scheduler);
-  ADD_TEST(tests, resume_unpaused_scheduler);
-  ADD_TEST(tests, restart);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 class null_scheduler

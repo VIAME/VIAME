@@ -42,41 +42,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(null_input_edge);
-DECLARE_TEST(null_output_edge);
-DECLARE_TEST(connect_after_init);
-DECLARE_TEST(configure_twice);
-DECLARE_TEST(reinit);
-DECLARE_TEST(reset);
-DECLARE_TEST(step_before_configure);
-DECLARE_TEST(step_before_init);
-DECLARE_TEST(set_static_input_type);
-DECLARE_TEST(set_static_output_type);
-DECLARE_TEST(set_input_type_duplicate);
-DECLARE_TEST(set_output_type_duplicate);
-DECLARE_TEST(set_input_type_after_init);
-DECLARE_TEST(set_output_type_after_init);
-DECLARE_TEST(set_tagged_flow_dependent_port);
-DECLARE_TEST(set_tagged_flow_dependent_port_cascade);
-DECLARE_TEST(set_tagged_flow_dependent_port_cascade_any);
-DECLARE_TEST(add_input_port_after_type_pin);
-DECLARE_TEST(add_output_port_after_type_pin);
-DECLARE_TEST(set_untagged_flow_dependent_port);
-DECLARE_TEST(remove_input_port);
-DECLARE_TEST(remove_output_port);
-DECLARE_TEST(remove_non_exist_input_port);
-DECLARE_TEST(remove_non_exist_output_port);
-DECLARE_TEST(remove_only_tagged_flow_dependent_port);
-DECLARE_TEST(remove_tagged_flow_dependent_port);
-DECLARE_TEST(null_config);
-DECLARE_TEST(null_input_port_info);
-DECLARE_TEST(null_output_port_info);
-DECLARE_TEST(null_conf_info);
-DECLARE_TEST(tunable_config);
-DECLARE_TEST(tunable_config_read_only);
-DECLARE_TEST(reconfigure_tunable);
-DECLARE_TEST(reconfigure_non_tunable);
-DECLARE_TEST(reconfigure_extra_parameters);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -85,45 +51,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, null_input_edge);
-  ADD_TEST(tests, null_output_edge);
-  ADD_TEST(tests, connect_after_init);
-  ADD_TEST(tests, configure_twice);
-  ADD_TEST(tests, reinit);
-  ADD_TEST(tests, reset);
-  ADD_TEST(tests, step_before_configure);
-  ADD_TEST(tests, step_before_init);
-  ADD_TEST(tests, set_static_input_type);
-  ADD_TEST(tests, set_static_output_type);
-  ADD_TEST(tests, set_input_type_duplicate);
-  ADD_TEST(tests, set_output_type_duplicate);
-  ADD_TEST(tests, set_input_type_after_init);
-  ADD_TEST(tests, set_output_type_after_init);
-  ADD_TEST(tests, set_tagged_flow_dependent_port);
-  ADD_TEST(tests, set_tagged_flow_dependent_port_cascade);
-  ADD_TEST(tests, set_tagged_flow_dependent_port_cascade_any);
-  ADD_TEST(tests, add_input_port_after_type_pin);
-  ADD_TEST(tests, add_output_port_after_type_pin);
-  ADD_TEST(tests, set_untagged_flow_dependent_port);
-  ADD_TEST(tests, remove_input_port);
-  ADD_TEST(tests, remove_output_port);
-  ADD_TEST(tests, remove_non_exist_input_port);
-  ADD_TEST(tests, remove_non_exist_output_port);
-  ADD_TEST(tests, remove_only_tagged_flow_dependent_port);
-  ADD_TEST(tests, remove_tagged_flow_dependent_port);
-  ADD_TEST(tests, null_config);
-  ADD_TEST(tests, null_input_port_info);
-  ADD_TEST(tests, null_output_port_info);
-  ADD_TEST(tests, null_conf_info);
-  ADD_TEST(tests, tunable_config);
-  ADD_TEST(tests, tunable_config_read_only);
-  ADD_TEST(tests, reconfigure_tunable);
-  ADD_TEST(tests, reconfigure_non_tunable);
-  ADD_TEST(tests, reconfigure_extra_parameters);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name = sprokit::process::name_t(), sprokit::config_t const& conf = sprokit::config::empty_config());

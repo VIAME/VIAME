@@ -29,12 +29,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+# TEST_PROPERTY(WILL_FAIL, TRUE)
 def test_return_code():
     import sys
 
     sys.exit(1)
 
 
+# TEST_PROPERTY(WILL_FAIL, TRUE)
 def test_error_string():
     test_error('an error')
 
@@ -46,12 +48,14 @@ def test_error_string_mid():
     test_error('an error')
 
 
+# TEST_PROPERTY(WILL_FAIL, TRUE)
 def test_error_string_stdout():
     import sys
 
     sys.stdout.write('Error: an error\n')
 
 
+# TEST_PROPERTY(WILL_FAIL, TRUE)
 def test_error_string_second_line():
     import sys
 
@@ -68,11 +72,13 @@ def test_expected_exception():
                      raise_exception)
 
 
+# TEST_PROPERTY(WILL_FAIL, TRUE)
 def test_unexpected_exception():
     expect_exception('when throwing an unexpected exception', SyntaxError,
                      raise_exception)
 
 
+# TEST_PROPERTY(ENVIRONMENT, TEST_ENVVAR=test_value)
 def test_environment():
     import os
 
@@ -103,17 +109,6 @@ if __name__ == '__main__':
 
     sys.path.append(sys.argv[3])
 
-    tests = \
-        { 'return_code': test_return_code
-        , 'error_string': test_error_string
-        , 'error_string_mid': test_error_string_mid
-        , 'error_string_stdout': test_error_string_stdout
-        , 'error_string_second_line': test_error_string_second_line
-        , 'expected_exception': test_expected_exception
-        , 'unexpected_exception': test_unexpected_exception
-        , 'environment': test_environment
-        }
-
     from sprokit.test.test import *
 
-    run_test(testname, tests)
+    run_test(testname, find_tests(locals()))

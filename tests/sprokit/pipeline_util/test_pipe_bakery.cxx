@@ -54,54 +54,7 @@
 
 #define TEST_ARGS (sprokit::path_t const& pipe_file)
 
-DECLARE_TEST(config_block);
-DECLARE_TEST(config_block_notalnum);
-DECLARE_TEST(config_value_spaces);
-DECLARE_TEST(config_overrides);
-DECLARE_TEST(config_read_only);
-DECLARE_TEST(config_not_a_flag);
-DECLARE_TEST(config_read_only_override);
-DECLARE_TEST(config_append);
-DECLARE_TEST(config_append_ro);
-DECLARE_TEST(config_append_provided);
-DECLARE_TEST(config_append_provided_ro);
-DECLARE_TEST(config_append_comma);
-DECLARE_TEST(config_append_comma_empty);
-DECLARE_TEST(config_append_space);
-DECLARE_TEST(config_append_space_empty);
-DECLARE_TEST(config_append_path);
-DECLARE_TEST(config_append_path_empty);
-DECLARE_TEST(config_append_flag_mismatch_ac);
-DECLARE_TEST(config_append_flag_mismatch_ap);
-DECLARE_TEST(config_append_flag_mismatch_cp);
-DECLARE_TEST(config_append_flag_mismatch_all);
-DECLARE_TEST(config_provider_conf);
-DECLARE_TEST(config_provider_conf_dep);
-DECLARE_TEST(config_provider_conf_circular_dep);
-DECLARE_TEST(config_provider_env);
-DECLARE_TEST(config_provider_read_only);
-DECLARE_TEST(config_provider_read_only_override);
-DECLARE_TEST(config_provider_unprovided);
-DECLARE_TEST(pipeline_multiplier);
-DECLARE_TEST(cluster_multiplier);
-DECLARE_TEST(cluster_missing_cluster);
-DECLARE_TEST(cluster_missing_processes);
-DECLARE_TEST(cluster_missing_ports);
-DECLARE_TEST(cluster_multiple_cluster);
-DECLARE_TEST(cluster_duplicate_input);
-DECLARE_TEST(cluster_duplicate_output);
-DECLARE_TEST(cluster_configuration_default);
-DECLARE_TEST(cluster_configuration_provide);
-DECLARE_TEST(cluster_map_config);
-DECLARE_TEST(cluster_map_config_tunable);
-DECLARE_TEST(cluster_map_config_redirect);
-DECLARE_TEST(cluster_map_config_modified);
-DECLARE_TEST(cluster_map_config_not_read_only);
-DECLARE_TEST(cluster_map_config_only_provided);
-DECLARE_TEST(cluster_map_config_only_conf_provided);
-DECLARE_TEST(cluster_map_config_to_non_process);
-DECLARE_TEST(cluster_map_config_not_from_cluster);
-DECLARE_TEST(cluster_override_mapped);
+DECLARE_TEST_MAP();
 
 /// \todo Add tests for clusters without ports or processes.
 
@@ -117,58 +70,7 @@ main(int argc, char* argv[])
 
   sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, config_block);
-  ADD_TEST(tests, config_block_notalnum);
-  ADD_TEST(tests, config_value_spaces);
-  ADD_TEST(tests, config_overrides);
-  ADD_TEST(tests, config_read_only);
-  ADD_TEST(tests, config_not_a_flag);
-  ADD_TEST(tests, config_read_only_override);
-  ADD_TEST(tests, config_append);
-  ADD_TEST(tests, config_append_ro);
-  ADD_TEST(tests, config_append_provided);
-  ADD_TEST(tests, config_append_provided_ro);
-  ADD_TEST(tests, config_append_comma);
-  ADD_TEST(tests, config_append_comma_empty);
-  ADD_TEST(tests, config_append_space);
-  ADD_TEST(tests, config_append_space_empty);
-  ADD_TEST(tests, config_append_path);
-  ADD_TEST(tests, config_append_path_empty);
-  ADD_TEST(tests, config_append_flag_mismatch_ac);
-  ADD_TEST(tests, config_append_flag_mismatch_ap);
-  ADD_TEST(tests, config_append_flag_mismatch_cp);
-  ADD_TEST(tests, config_append_flag_mismatch_all);
-  ADD_TEST(tests, config_provider_conf);
-  ADD_TEST(tests, config_provider_conf_dep);
-  ADD_TEST(tests, config_provider_conf_circular_dep);
-  ADD_TEST(tests, config_provider_env);
-  ADD_TEST(tests, config_provider_read_only);
-  ADD_TEST(tests, config_provider_read_only_override);
-  ADD_TEST(tests, config_provider_unprovided);
-  ADD_TEST(tests, pipeline_multiplier);
-  ADD_TEST(tests, cluster_multiplier);
-  ADD_TEST(tests, cluster_missing_cluster);
-  ADD_TEST(tests, cluster_missing_processes);
-  ADD_TEST(tests, cluster_missing_ports);
-  ADD_TEST(tests, cluster_multiple_cluster);
-  ADD_TEST(tests, cluster_duplicate_input);
-  ADD_TEST(tests, cluster_duplicate_output);
-  ADD_TEST(tests, cluster_configuration_default);
-  ADD_TEST(tests, cluster_configuration_provide);
-  ADD_TEST(tests, cluster_map_config);
-  ADD_TEST(tests, cluster_map_config_tunable);
-  ADD_TEST(tests, cluster_map_config_redirect);
-  ADD_TEST(tests, cluster_map_config_modified);
-  ADD_TEST(tests, cluster_map_config_not_read_only);
-  ADD_TEST(tests, cluster_map_config_only_provided);
-  ADD_TEST(tests, cluster_map_config_only_conf_provided);
-  ADD_TEST(tests, cluster_map_config_to_non_process);
-  ADD_TEST(tests, cluster_map_config_not_from_cluster);
-  ADD_TEST(tests, cluster_override_mapped);
-
-  RUN_TEST(tests, testname, pipe_file);
+  RUN_TEST(testname, pipe_file);
 }
 
 IMPLEMENT_TEST(config_block)
@@ -580,6 +482,7 @@ IMPLEMENT_TEST(config_provider_conf_circular_dep)
                    "circular configuration provides exist");
 }
 
+TEST_PROPERTY(ENVIRONMENT, TEST_ENV=expected)
 IMPLEMENT_TEST(config_provider_env)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -999,6 +902,7 @@ IMPLEMENT_TEST(cluster_map_config_only_provided)
   pipeline->reconfigure(new_conf);
 }
 
+TEST_PROPERTY(ENVIRONMENT, TEST_ENV=expected)
 IMPLEMENT_TEST(cluster_map_config_only_conf_provided)
 {
   sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");

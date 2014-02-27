@@ -43,34 +43,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(configure);
-DECLARE_TEST(init);
-DECLARE_TEST(step);
-DECLARE_TEST(add_process);
-DECLARE_TEST(duplicate_name);
-DECLARE_TEST(map_config);
-DECLARE_TEST(map_config_after_process);
-DECLARE_TEST(map_config_no_exist);
-DECLARE_TEST(map_config_read_only);
-DECLARE_TEST(map_config_ignore_override);
-DECLARE_TEST(map_input);
-DECLARE_TEST(map_input_twice);
-DECLARE_TEST(map_input_no_exist);
-DECLARE_TEST(map_input_port_no_exist);
-DECLARE_TEST(map_output);
-DECLARE_TEST(map_output_twice);
-DECLARE_TEST(map_output_no_exist);
-DECLARE_TEST(map_output_port_no_exist);
-DECLARE_TEST(connect);
-DECLARE_TEST(connect_upstream_no_exist);
-DECLARE_TEST(connect_upstream_port_no_exist);
-DECLARE_TEST(connect_downstream_no_exist);
-DECLARE_TEST(connect_downstream_port_no_exist);
-DECLARE_TEST(reconfigure_pass_tunable_mappings);
-DECLARE_TEST(reconfigure_no_pass_untunable_mappings);
-DECLARE_TEST(reconfigure_pass_extra);
-DECLARE_TEST(reconfigure_tunable_only_if_mapped);
-DECLARE_TEST(reconfigure_mapped_untunable);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -79,38 +52,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, configure);
-  ADD_TEST(tests, init);
-  ADD_TEST(tests, step);
-  ADD_TEST(tests, add_process);
-  ADD_TEST(tests, duplicate_name);
-  ADD_TEST(tests, map_config);
-  ADD_TEST(tests, map_config_after_process);
-  ADD_TEST(tests, map_config_no_exist);
-  ADD_TEST(tests, map_config_read_only);
-  ADD_TEST(tests, map_config_ignore_override);
-  ADD_TEST(tests, map_input);
-  ADD_TEST(tests, map_input_twice);
-  ADD_TEST(tests, map_input_no_exist);
-  ADD_TEST(tests, map_input_port_no_exist);
-  ADD_TEST(tests, map_output);
-  ADD_TEST(tests, map_output_twice);
-  ADD_TEST(tests, map_output_no_exist);
-  ADD_TEST(tests, map_output_port_no_exist);
-  ADD_TEST(tests, connect);
-  ADD_TEST(tests, connect_upstream_no_exist);
-  ADD_TEST(tests, connect_upstream_port_no_exist);
-  ADD_TEST(tests, connect_downstream_no_exist);
-  ADD_TEST(tests, connect_downstream_port_no_exist);
-  ADD_TEST(tests, reconfigure_pass_tunable_mappings);
-  ADD_TEST(tests, reconfigure_no_pass_untunable_mappings);
-  ADD_TEST(tests, reconfigure_pass_extra);
-  ADD_TEST(tests, reconfigure_tunable_only_if_mapped);
-  ADD_TEST(tests, reconfigure_mapped_untunable);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 class empty_cluster

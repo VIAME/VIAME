@@ -34,26 +34,7 @@
 
 #define TEST_ARGS ()
 
-DECLARE_TEST(block_sep_size);
-DECLARE_TEST(has_value);
-DECLARE_TEST(get_value);
-DECLARE_TEST(get_value_nested);
-DECLARE_TEST(get_value_no_exist);
-DECLARE_TEST(get_value_type_mismatch);
-DECLARE_TEST(bool_conversion);
-DECLARE_TEST(unset_value);
-DECLARE_TEST(available_values);
-DECLARE_TEST(read_only);
-DECLARE_TEST(read_only_unset);
-DECLARE_TEST(subblock);
-DECLARE_TEST(subblock_nested);
-DECLARE_TEST(subblock_match);
-DECLARE_TEST(subblock_prefix_match);
-DECLARE_TEST(subblock_view);
-DECLARE_TEST(subblock_view_nested);
-DECLARE_TEST(subblock_view_match);
-DECLARE_TEST(subblock_view_prefix_match);
-DECLARE_TEST(merge_config);
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])
@@ -62,30 +43,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, block_sep_size);
-  ADD_TEST(tests, has_value);
-  ADD_TEST(tests, get_value);
-  ADD_TEST(tests, get_value_nested);
-  ADD_TEST(tests, get_value_no_exist);
-  ADD_TEST(tests, get_value_type_mismatch);
-  ADD_TEST(tests, bool_conversion);
-  ADD_TEST(tests, unset_value);
-  ADD_TEST(tests, available_values);
-  ADD_TEST(tests, read_only);
-  ADD_TEST(tests, read_only_unset);
-  ADD_TEST(tests, subblock);
-  ADD_TEST(tests, subblock_nested);
-  ADD_TEST(tests, subblock_match);
-  ADD_TEST(tests, subblock_prefix_match);
-  ADD_TEST(tests, subblock_view);
-  ADD_TEST(tests, subblock_view_nested);
-  ADD_TEST(tests, subblock_view_match);
-  ADD_TEST(tests, subblock_view_prefix_match);
-  ADD_TEST(tests, merge_config);
-
-  RUN_TEST(tests, testname);
+  RUN_TEST(testname);
 }
 
 IMPLEMENT_TEST(block_sep_size)

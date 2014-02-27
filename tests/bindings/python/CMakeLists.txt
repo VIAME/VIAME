@@ -55,6 +55,47 @@ function (sprokit_add_python_test group instance)
     "${python_chdir}" "${python_module_path}/site-packages" ${ARGN})
 endfunction ()
 
+function (sprokit_discover_python_tests group file)
+  file(STRINGS "${file}" test_lines)
+  set(properties)
+
+  sprokit_build_python_test("${group}" "${file}")
+
+  foreach (test_line IN LISTS test_lines)
+    set(test_name)
+    set(property)
+
+    string(REGEX MATCH "^def test_([A-Za-z_]+)\\(.*\\):$"
+      match "${test_line}")
+    if (match)
+      set(test_name "${CMAKE_MATCH_1}")
+      sprokit_add_python_test("${group}" "${test_name}"
+        ${ARGN})
+      if (properties)
+        set_tests_properties("test-python-${group}-${test_name}"
+          PROPERTIES
+            ${properties})
+      endif ()
+      set(properties)
+    endif ()
+    string(REGEX MATCHALL "^# TEST_PROPERTY\\(([A-Za-z_]+), (.*)\\)$"
+      match "${test_line}")
+    if (match)
+      set(prop "${CMAKE_MATCH_1}")
+      string(CONFIGURE "${CMAKE_MATCH_2}" prop_value
+        @ONLY)
+      if (prop STREQUAL "ENVIRONMENT")
+        set(sprokit_test_environment
+          "${prop_value}")
+      else ()
+        set(property "${prop}" "${prop_value}")
+        list(APPEND properties
+          "${property}")
+      endif ()
+    endif ()
+  endforeach ()
+endfunction ()
+
 add_subdirectory(test)
 
 add_subdirectory(sprokit)

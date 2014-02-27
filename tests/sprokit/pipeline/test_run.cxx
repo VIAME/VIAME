@@ -46,10 +46,7 @@
 
 #define TEST_ARGS (sprokit::scheduler_registry::type_t const& scheduler_type)
 
-DECLARE_TEST(simple_pipeline);
-DECLARE_TEST(pysimple_pipeline);
-DECLARE_TEST(multiplier_pipeline);
-DECLARE_TEST(multiplier_cluster_pipeline);
+DECLARE_TEST_MAP();
 
 static std::string const test_sep = "-";
 
@@ -72,14 +69,7 @@ main(int argc, char* argv[])
   testname_t const testname = full_testname.substr(0, sep_pos);
   sprokit::scheduler_registry::type_t const scheduler_type = full_testname.substr(sep_pos + test_sep.length());
 
-  DECLARE_TEST_MAP(tests);
-
-  ADD_TEST(tests, simple_pipeline);
-  ADD_TEST(tests, pysimple_pipeline);
-  ADD_TEST(tests, multiplier_pipeline);
-  ADD_TEST(tests, multiplier_cluster_pipeline);
-
-  RUN_TEST(tests, testname, scheduler_type);
+  RUN_TEST(testname, scheduler_type);
 }
 
 static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config = sprokit::config::empty_config());
