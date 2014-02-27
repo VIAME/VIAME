@@ -5,6 +5,7 @@
  */
 
 #include <sprokit/pipeline/process.h>
+#include <sprokit/pipeline/process_cluster.h>
 #include <sprokit/pipeline/process_registry.h>
 
 #include <sprokit/python/util/python_exceptions.h>
@@ -104,6 +105,10 @@ BOOST_PYTHON_MODULE(process_registry)
     , "A collection of processes.")
     .def(vector_indexing_suite<sprokit::processes_t>())
   ;
+
+  class_<sprokit::process_cluster, sprokit::process_cluster_t, bases<sprokit::process>, boost::noncopyable>("ProcessCluster"
+    , "The base class of process clusters."
+    , no_init);
 
   class_<sprokit::process_registry, sprokit::process_registry_t, boost::noncopyable>("ProcessRegistry"
     , "A registry of all known process types."

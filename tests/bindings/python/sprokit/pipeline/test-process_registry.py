@@ -57,6 +57,10 @@ def test_api_calls():
     process_registry.Process.flag_input_nodep
     process_registry.Process.flag_required
 
+    cluster_bases = process_registry.ProcessCluster.__bases__
+    if not cluster_bases[0] == process_registry.Process:
+        test_error("The cluster class does not inherit from the process class")
+
 
 def example_process():
     from sprokit.pipeline import process
