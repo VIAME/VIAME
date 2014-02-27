@@ -55,15 +55,23 @@ def example_scheduler(check_init):
             self.ran_start = check_init
             self.ran_wait = check_init
             self.ran_stop = check_init
+            self.ran_pause = check_init
+            self.ran_resume = check_init
 
-        def start(self):
+        def _start(self):
             self.ran_start = True
 
-        def wait(self):
+        def _wait(self):
             self.ran_wait = True
 
-        def stop(self):
+        def _stop(self):
             self.ran_stop = True
+
+        def _pause(self):
+            self.ran_pause = True
+
+        def _resume(self):
+            self.ran_resume = True
 
         def __del__(self):
             if not self.ran_start:
@@ -72,6 +80,10 @@ def example_scheduler(check_init):
                 test_error("wait override was not called")
             if not self.ran_stop:
                 test_error("stop override was not called")
+            if not self.ran_pause:
+                test_error("pause override was not called")
+            if not self.ran_resume:
+                test_error("resume override was not called")
 
     return PythonExample
 
@@ -125,8 +137,11 @@ def test_wrapper_api():
             return
 
         s.start()
-        s.wait()
+        s.pause()
+        s.resume()
         s.stop()
+        s.start()
+        s.wait()
 
         del s
 
