@@ -203,9 +203,11 @@ class process::priv
     process* const q;
     config_t conf;
 
-    ports_t static_inputs;
-    ports_t required_inputs;
-    ports_t required_outputs;
+    typedef std::set<port_t> port_set_t;
+
+    port_set_t static_inputs;
+    port_set_t required_inputs;
+    port_set_t required_outputs;
 
     flow_tag_port_type_map_t flow_tag_port_types;
     flow_tag_port_map_t input_flow_tag_ports;
@@ -430,6 +432,11 @@ process
     throw set_type_on_initialized_process_exception(d->name, port, new_type);
   }
 
+  if (new_type == type_any)
+  {
+    return true;
+  }
+
   return _set_input_port_type(port, new_type);
 }
 
@@ -440,6 +447,11 @@ process
   if (d->initialized)
   {
     throw set_type_on_initialized_process_exception(d->name, port, new_type);
+  }
+
+  if (new_type == type_any)
+  {
+    return true;
   }
 
   return _set_output_port_type(port, new_type);
@@ -677,24 +689,28 @@ process
 
       BOOST_FOREACH (port_t const& iport, iports)
       {
+        port_info_t const iport_info = input_port_info(iport);
+
         declare_input_port(
           iport,
           new_type,
-          info->flags,
-          info->description,
-          info->frequency);
+          iport_info->flags,
+          iport_info->description,
+          iport_info->frequency);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
 
       BOOST_FOREACH (port_t const& oport, oports)
       {
+        port_info_t const oport_info = output_port_info(oport);
+
         declare_output_port(
           oport,
           new_type,
-          info->flags,
-          info->description,
-          info->frequency);
+          oport_info->flags,
+          oport_info->description,
+          oport_info->frequency);
       }
 
       d->flow_tag_port_types[tag] = new_type;
@@ -744,24 +760,28 @@ process
 
       BOOST_FOREACH (port_t const& iport, iports)
       {
+        port_info_t const iport_info = input_port_info(iport);
+
         declare_input_port(
           iport,
           new_type,
-          info->flags,
-          info->description,
-          info->frequency);
+          iport_info->flags,
+          iport_info->description,
+          iport_info->frequency);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
 
       BOOST_FOREACH (port_t const& oport, oports)
       {
+        port_info_t const oport_info = output_port_info(oport);
+
         declare_output_port(
           oport,
           new_type,
-          info->flags,
-          info->description,
-          info->frequency);
+          oport_info->flags,
+          oport_info->description,
+          oport_info->frequency);
       }
 
       d->flow_tag_port_types[tag] = new_type;
@@ -854,14 +874,14 @@ process
       config::value_t(),
       config::description_t("A default value to use for the \'" + port + "\' port if it is not connected."));
 
-    d->static_inputs.push_back(port);
+    d->static_inputs.insert(port);
   }
 
   bool const no_dep = (0 != flags.count(flag_input_nodep));
 
   if (required && !no_dep)
   {
-    d->required_inputs.push_back(port);
+    d->required_inputs.insert(port);
   }
 
   bool const is_shared = (0 != flags.count(flag_output_shared));
@@ -934,7 +954,7 @@ process
 
   if (flags.count(flag_required))
   {
-    d->required_outputs.push_back(port);
+    d->required_outputs.insert(port);
   }
 }
 
@@ -1020,8 +1040,9 @@ process
   d->input_edges.erase(port);
 
   // Remove from bookkeeping structures.
-  ports_t::iterator const ri = std::remove(d->required_inputs.begin(), d->required_inputs.end(), port);
-  d->required_inputs.erase(ri, d->required_inputs.end());
+  /// \todo Remove static configuration key as well?
+  d->static_inputs.erase(port);
+  d->required_inputs.erase(port);
 
   priv::port_tag_map_t::const_iterator const t = d->input_port_tags.find(port);
 
@@ -1064,8 +1085,7 @@ process
   }
 
   // Remove from bookkeeping structures.
-  ports_t::iterator const ri = std::remove(d->required_outputs.begin(), d->required_outputs.end(), port);
-  d->required_outputs.erase(ri, d->required_outputs.end());
+  d->required_outputs.erase(port);
 
   priv::port_tag_map_t::const_iterator const t = d->output_port_tags.find(port);
 
@@ -1393,7 +1413,7 @@ bool
 process
 ::is_static_input(port_t const& port) const
 {
-  return (0 != std::count(d->static_inputs.begin(), d->static_inputs.end(), port));
+  return (0 != d->static_inputs.count(port));
 }
 
 void

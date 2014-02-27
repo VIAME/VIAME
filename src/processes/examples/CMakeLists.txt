@@ -1,9 +1,11 @@
 project(sprokit_processes_examples)
 
 set(examples_srcs
+  any_source_process.cxx
   const_process.cxx
   const_number_process.cxx
   data_dependent_process.cxx
+  duplicate_process.cxx
   expect_process.cxx
   feedback_process.cxx
   flow_dependent_process.cxx
@@ -16,15 +18,18 @@ set(examples_srcs
   print_number_process.cxx
   registration.cxx
   shared_process.cxx
+  skip_process.cxx
   tagged_flow_dependent_process.cxx
   take_number_process.cxx
   take_string_process.cxx
   tunable_process.cxx)
 
 set(examples_private_headers
+  any_source_process.h
   const_process.h
   const_number_process.h
   data_dependent_process.h
+  duplicate_process.h
   examples-config.h
   expect_process.h
   feedback_process.h
@@ -38,6 +43,7 @@ set(examples_private_headers
   print_number_process.h
   registration.h
   shared_process.h
+  skip_process.h
   tagged_flow_dependent_process.h
   take_number_process.h
   take_string_process.h

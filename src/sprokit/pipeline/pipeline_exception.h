@@ -711,16 +711,20 @@ class SPROKIT_PIPELINE_EXPORT frequency_mismatch_exception
      * \param upstream_name The name of the upstream process requested.
      * \param upstream_port The port on the upstream process requested.
      * \param upstream_frequency The frequency of the upstream process.
+     * \param upstream_port_frequency The frequency of the upstream port.
      * \param downstream_name The name of the downstream process requested.
      * \param downstream_port The port on the downstream process requested.
      * \param downstream_frequency The frequency of the downstream process.
+     * \param downstream_port_frequency The frequency of the downstream port.
      */
     frequency_mismatch_exception(process::name_t const& upstream_name,
                                  process::port_t const& upstream_port,
                                  process::port_frequency_t const& upstream_frequency,
+                                 process::port_frequency_t const& upstream_port_frequency,
                                  process::name_t const& downstream_name,
                                  process::port_t const& downstream_port,
-                                 process::port_frequency_t const& downstream_frequency) throw();
+                                 process::port_frequency_t const& downstream_frequency,
+                                 process::port_frequency_t const& downstream_port_frequency) throw();
     /**
      * \brief Destructor.
      */
@@ -732,12 +736,16 @@ class SPROKIT_PIPELINE_EXPORT frequency_mismatch_exception
     process::port_t const m_upstream_port;
     /// The frequency of the upstream process.
     process::port_frequency_t const m_upstream_frequency;
+    /// The frequency of the upstream port.
+    process::port_frequency_t const m_upstream_port_frequency;
     /// The name of the downstream process requested.
     process::name_t const m_downstream_name;
     /// The port on the downstream process requested.
     process::port_t const m_downstream_port;
     /// The frequency of the downstream process.
     process::port_frequency_t const m_downstream_frequency;
+    /// The frequency of the downstream port.
+    process::port_frequency_t const m_downstream_port_frequency;
 };
 
 /**

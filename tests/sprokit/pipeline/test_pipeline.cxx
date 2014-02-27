@@ -408,6 +408,72 @@ IMPLEMENT_TEST(setup_pipeline_orphaned_process)
                    "setting up a pipeline with orphaned processes");
 }
 
+IMPLEMENT_TEST(setup_pipeline_type_force_any_upstream)
+{
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type3 = sprokit::process::type_t("sink");
+
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("sink");
+
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type3, proc_name3);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+  pipeline->add_process(process3);
+
+  sprokit::process::port_t const port_name = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_name2i = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_name2o = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name3 = sprokit::process::port_t("sink");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2i);
+  pipeline->connect(proc_name2, port_name2o,
+                    proc_name3, port_name3);
+
+  pipeline->setup_pipeline();
+}
+
+IMPLEMENT_TEST(setup_pipeline_type_force_any_downstream)
+{
+  sprokit::process::type_t const proc_type = sprokit::process::type_t("any_source");
+  sprokit::process::type_t const proc_type2 = sprokit::process::type_t("flow_dependent");
+  sprokit::process::type_t const proc_type3 = sprokit::process::type_t("take_string");
+
+  sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
+  sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
+  sprokit::process::name_t const proc_name3 = sprokit::process::name_t("sink");
+
+  sprokit::process_t const process = create_process(proc_type, proc_name);
+  sprokit::process_t const process2 = create_process(proc_type2, proc_name2);
+  sprokit::process_t const process3 = create_process(proc_type3, proc_name3);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(process);
+  pipeline->add_process(process2);
+  pipeline->add_process(process3);
+
+  sprokit::process::port_t const port_name = sprokit::process::port_t("data");
+  sprokit::process::port_t const port_name2i = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_name2o = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_name3 = sprokit::process::port_t("string");
+
+  pipeline->connect(proc_name, port_name,
+                    proc_name2, port_name2i);
+  pipeline->connect(proc_name2, port_name2o,
+                    proc_name3, port_name3);
+
+  pipeline->setup_pipeline();
+}
+
 IMPLEMENT_TEST(setup_pipeline_type_force_flow_upstream)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
@@ -976,6 +1042,320 @@ IMPLEMENT_TEST(setup_pipeline_missing_required_output_connection)
   EXPECT_EXCEPTION(sprokit::missing_connection_exception,
                    pipeline->setup_pipeline(),
                    "setting up a pipeline with missing required output connections");
+}
+
+IMPLEMENT_TEST(setup_pipeline_frequency_connect)
+{
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("duplicate");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
+
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("duplicate");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
+
+  sprokit::config::key_t const key = sprokit::config::key_t("copies");
+  sprokit::config::value_t const copies = boost::lexical_cast<sprokit::config::value_t>(1);
+
+  sprokit::config_t const configt = sprokit::config::empty_config();
+  configt->set_value(key, copies);
+
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processt = create_process(proc_typet, proc_namet, configt);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processt);
+  pipeline->add_process(processd);
+
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_nameti = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_nameto = sprokit::process::port_t("duplicate");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namet, port_nameti);
+  pipeline->connect(proc_namet, port_nameto,
+                    proc_named, port_named);
+
+  pipeline->setup_pipeline();
+}
+
+IMPLEMENT_TEST(setup_pipeline_frequency_linear)
+{
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("duplicate");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
+
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namet1 = sprokit::process::name_t("duplicate1");
+  sprokit::process::name_t const proc_namet2 = sprokit::process::name_t("duplicate2");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
+
+  sprokit::config::key_t const key = sprokit::config::key_t("copies");
+  sprokit::config::value_t const copies1 = boost::lexical_cast<sprokit::config::value_t>(1);
+  sprokit::config::value_t const copies2 = boost::lexical_cast<sprokit::config::value_t>(2);
+
+  sprokit::config_t const configt1 = sprokit::config::empty_config();
+  configt1->set_value(key, copies1);
+
+  sprokit::config_t const configt2 = sprokit::config::empty_config();
+  configt2->set_value(key, copies2);
+
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processt1 = create_process(proc_typet, proc_namet1, configt1);
+  sprokit::process_t const processt2 = create_process(proc_typet, proc_namet2, configt2);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processt1);
+  pipeline->add_process(processt2);
+  pipeline->add_process(processd);
+
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_nameti = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_nameto = sprokit::process::port_t("duplicate");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namet1, port_nameti);
+  pipeline->connect(proc_namet1, port_nameto,
+                    proc_namet2, port_nameti);
+  pipeline->connect(proc_namet2, port_nameto,
+                    proc_named, port_named);
+
+  pipeline->setup_pipeline();
+}
+
+IMPLEMENT_TEST(setup_pipeline_frequency_split_to_outputs)
+{
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("duplicate");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
+
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namet1 = sprokit::process::name_t("duplicate1");
+  sprokit::process::name_t const proc_namet2 = sprokit::process::name_t("duplicate2");
+  sprokit::process::name_t const proc_named1 = sprokit::process::name_t("downstream1");
+  sprokit::process::name_t const proc_named2 = sprokit::process::name_t("downstream2");
+
+  sprokit::config::key_t const key = sprokit::config::key_t("copies");
+  sprokit::config::value_t const copies1 = boost::lexical_cast<sprokit::config::value_t>(1);
+  sprokit::config::value_t const copies2 = boost::lexical_cast<sprokit::config::value_t>(2);
+
+  sprokit::config_t const configt1 = sprokit::config::empty_config();
+  configt1->set_value(key, copies1);
+
+  sprokit::config_t const configt2 = sprokit::config::empty_config();
+  configt2->set_value(key, copies2);
+
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processt1 = create_process(proc_typet, proc_namet1, configt1);
+  sprokit::process_t const processt2 = create_process(proc_typet, proc_namet2, configt2);
+  sprokit::process_t const processd1 = create_process(proc_typed, proc_named1);
+  sprokit::process_t const processd2 = create_process(proc_typed, proc_named2);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processt1);
+  pipeline->add_process(processt2);
+  pipeline->add_process(processd1);
+  pipeline->add_process(processd2);
+
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_nameti = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_nameto = sprokit::process::port_t("duplicate");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namet1, port_nameti);
+  pipeline->connect(proc_namet1, port_nameto,
+                    proc_named1, port_named);
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namet2, port_nameti);
+  pipeline->connect(proc_namet2, port_nameto,
+                    proc_named2, port_named);
+
+  pipeline->setup_pipeline();
+}
+
+IMPLEMENT_TEST(setup_pipeline_frequency_split_to_inputs)
+{
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("skip");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
+
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namet1 = sprokit::process::name_t("skip1");
+  sprokit::process::name_t const proc_namet2 = sprokit::process::name_t("skip2");
+  sprokit::process::name_t const proc_named1 = sprokit::process::name_t("downstream1");
+  sprokit::process::name_t const proc_named2 = sprokit::process::name_t("downstream2");
+
+  sprokit::config::key_t const key = sprokit::config::key_t("skip");
+  sprokit::config::value_t const skip1 = boost::lexical_cast<sprokit::config::value_t>(1);
+  sprokit::config::value_t const skip2 = boost::lexical_cast<sprokit::config::value_t>(2);
+
+  sprokit::config_t const configt1 = sprokit::config::empty_config();
+  configt1->set_value(key, skip1);
+
+  sprokit::config_t const configt2 = sprokit::config::empty_config();
+  configt2->set_value(key, skip2);
+
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processt1 = create_process(proc_typet, proc_namet1, configt1);
+  sprokit::process_t const processt2 = create_process(proc_typet, proc_namet2, configt2);
+  sprokit::process_t const processd1 = create_process(proc_typed, proc_named1);
+  sprokit::process_t const processd2 = create_process(proc_typed, proc_named2);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processt1);
+  pipeline->add_process(processt2);
+  pipeline->add_process(processd1);
+  pipeline->add_process(processd2);
+
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_nameti = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_nameto = sprokit::process::port_t("output");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namet1, port_nameti);
+  pipeline->connect(proc_namet1, port_nameto,
+                    proc_named1, port_named);
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namet2, port_nameti);
+  pipeline->connect(proc_namet2, port_nameto,
+                    proc_named2, port_named);
+
+  pipeline->setup_pipeline();
+}
+
+IMPLEMENT_TEST(setup_pipeline_frequency_incompatible_via_flow)
+{
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typef = sprokit::process::type_t("duplicate");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("multiplication");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
+
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namef = sprokit::process::name_t("duplicate");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("multiply");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("sink");
+
+  sprokit::config::key_t const key = sprokit::config::key_t("copies");
+  sprokit::config::value_t const copies = boost::lexical_cast<sprokit::config::value_t>(1);
+
+  sprokit::config_t const configf = sprokit::config::empty_config();
+  configf->set_value(key, copies);
+
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processf = create_process(proc_typef, proc_namef, configf);
+  sprokit::process_t const processt = create_process(proc_typet, proc_namet);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processf);
+  pipeline->add_process(processt);
+  pipeline->add_process(processd);
+
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_namefi = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_namefo = sprokit::process::port_t("duplicate");
+  sprokit::process::port_t const port_nameti1 = sprokit::process::port_t("factor1");
+  sprokit::process::port_t const port_nameti2 = sprokit::process::port_t("factor2");
+  sprokit::process::port_t const port_nameto = sprokit::process::port_t("product");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namef, port_namefi);
+  pipeline->connect(proc_namef, port_namefo,
+                    proc_namet, port_nameti1);
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namet, port_nameti2);
+  pipeline->connect(proc_namet, port_nameto,
+                    proc_named, port_named);
+
+  EXPECT_EXCEPTION(sprokit::frequency_mismatch_exception,
+                   pipeline->setup_pipeline(),
+                   "setting up a pipeline with an invalid frequency mapping");
+}
+
+IMPLEMENT_TEST(setup_pipeline_frequency_synchronized_fork)
+{
+  sprokit::process::type_t const proc_typeu = sprokit::process::type_t("numbers");
+  sprokit::process::type_t const proc_typef = sprokit::process::type_t("duplicate");
+  sprokit::process::type_t const proc_typet = sprokit::process::type_t("multiplication");
+  sprokit::process::type_t const proc_typed = sprokit::process::type_t("sink");
+
+  sprokit::process::name_t const proc_nameu = sprokit::process::name_t("upstream");
+  sprokit::process::name_t const proc_namefa2 = sprokit::process::name_t("duplicatea2");
+  sprokit::process::name_t const proc_namefb3 = sprokit::process::name_t("duplicateb3");
+  sprokit::process::name_t const proc_namefa3 = sprokit::process::name_t("duplicatea3");
+  sprokit::process::name_t const proc_namefb2 = sprokit::process::name_t("duplicateb2");
+  sprokit::process::name_t const proc_namet = sprokit::process::name_t("multiply");
+  sprokit::process::name_t const proc_named = sprokit::process::name_t("sink");
+
+  sprokit::config::key_t const key = sprokit::config::key_t("copies");
+  sprokit::config::value_t const copies2 = boost::lexical_cast<sprokit::config::value_t>(1);
+  sprokit::config::value_t const copies3 = boost::lexical_cast<sprokit::config::value_t>(2);
+
+  sprokit::config_t const configf2 = sprokit::config::empty_config();
+  configf2->set_value(key, copies2);
+
+  sprokit::config_t const configf3 = sprokit::config::empty_config();
+  configf3->set_value(key, copies3);
+
+  sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
+  sprokit::process_t const processfa2 = create_process(proc_typef, proc_namefa2, configf2);
+  sprokit::process_t const processfa3 = create_process(proc_typef, proc_namefa3, configf3);
+  sprokit::process_t const processfb3 = create_process(proc_typef, proc_namefb3, configf3);
+  sprokit::process_t const processfb2 = create_process(proc_typef, proc_namefb2, configf2);
+  sprokit::process_t const processt = create_process(proc_typet, proc_namet);
+  sprokit::process_t const processd = create_process(proc_typed, proc_named);
+
+  sprokit::pipeline_t const pipeline = create_pipeline();
+
+  pipeline->add_process(processu);
+  pipeline->add_process(processfa2);
+  pipeline->add_process(processfa3);
+  pipeline->add_process(processfb3);
+  pipeline->add_process(processfb2);
+  pipeline->add_process(processt);
+  pipeline->add_process(processd);
+
+  sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
+  sprokit::process::port_t const port_namefi = sprokit::process::port_t("input");
+  sprokit::process::port_t const port_namefo = sprokit::process::port_t("duplicate");
+  sprokit::process::port_t const port_nameti1 = sprokit::process::port_t("factor1");
+  sprokit::process::port_t const port_nameti2 = sprokit::process::port_t("factor2");
+  sprokit::process::port_t const port_nameto = sprokit::process::port_t("product");
+  sprokit::process::port_t const port_named = sprokit::process::port_t("sink");
+
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namefa2, port_namefi);
+  pipeline->connect(proc_namefa2, port_namefo,
+                    proc_namefb3, port_namefi);
+  pipeline->connect(proc_nameu, port_nameu,
+                    proc_namefa3, port_namefi);
+  pipeline->connect(proc_namefa3, port_namefo,
+                    proc_namefb2, port_namefi);
+  pipeline->connect(proc_namefb3, port_namefo,
+                    proc_namet, port_nameti1);
+  pipeline->connect(proc_namefb2, port_namefo,
+                    proc_namet, port_nameti2);
+  pipeline->connect(proc_namet, port_nameto,
+                    proc_named, port_named);
+
+  pipeline->setup_pipeline();
 }
 
 IMPLEMENT_TEST(setup_pipeline_duplicate)
