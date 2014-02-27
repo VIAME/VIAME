@@ -1149,6 +1149,39 @@ process
 
 edge_datum_t
 process
+::peek_at_port(port_t const& port, size_t idx) const
+{
+  if (!d->input_ports.count(port))
+  {
+    throw no_such_port_exception(d->name, port);
+  }
+
+  priv::input_edge_map_t::const_iterator const e = d->input_edges.find(port);
+
+  if (e == d->input_edges.end())
+  {
+    static std::string const reason = "Data was requested from the port";
+
+    throw missing_connection_exception(d->name, port, reason);
+  }
+
+  priv::input_port_info_t const& info = *e->second;
+  edge_t const& edge = info.edge;
+
+  return edge->peek_datum(idx);
+}
+
+datum_t
+process
+::peek_at_datum_on_port(port_t const& port, size_t idx) const
+{
+  edge_datum_t const edat = peek_at_port(port, idx);
+
+  return edat.datum;
+}
+
+edge_datum_t
+process
 ::grab_from_port(port_t const& port) const
 {
   if (!d->input_ports.count(port))

@@ -128,6 +128,8 @@ class wrap_process
     bool _has_input_port_edge(port_t const& port) const;
     size_t _count_output_port_edges(port_t const& port) const;
 
+    sprokit::edge_datum_t _peek_at_port(port_t const& port, size_t idx) const;
+    sprokit::datum_t _peek_at_datum_on_port(port_t const& port, size_t idx) const;
     sprokit::edge_datum_t _grab_from_port(port_t const& port) const;
     sprokit::datum_t _grab_datum_from_port(port_t const& port) const;
     object _grab_value_from_port(port_t const& port) const;
@@ -441,6 +443,12 @@ BOOST_PYTHON_MODULE(process)
     .def("count_output_port_edges", &wrap_process::_count_output_port_edges
       , (arg("port"))
       , "The number of edges that are connected to the port.")
+    .def("peek_at_port", &wrap_process::_peek_at_port
+      , (arg("port"), arg("idx") = 0)
+      , "Peek at a port.")
+    .def("peek_at_datum_on_port", &wrap_process::_peek_at_datum_on_port
+      , (arg("port"), arg("idx") = 0)
+      , "Peek at a datum on a port.")
     .def("grab_from_port", &wrap_process::_grab_from_port
       , (arg("port"))
       , "Grab a datum packet from a port.")
@@ -1014,6 +1022,20 @@ wrap_process
 ::_count_output_port_edges(port_t const& port) const
 {
   return count_output_port_edges(port);
+}
+
+sprokit::edge_datum_t
+wrap_process
+::_peek_at_port(port_t const& port, size_t idx) const
+{
+  return peek_at_port(port, idx);
+}
+
+sprokit::datum_t
+wrap_process
+::_peek_at_datum_on_port(port_t const& port, size_t idx) const
+{
+  return peek_at_datum_on_port(port, idx);
 }
 
 sprokit::edge_datum_t
