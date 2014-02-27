@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2014 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PYTHON_UTIL_CONFIG_H_
-#define SPROKIT_PYTHON_UTIL_CONFIG_H_
+#ifndef SPROKIT_PYTHON_UTIL_UTIL_CONFIG_H
+#define SPROKIT_PYTHON_UTIL_UTIL_CONFIG_H
 
 #include <sprokit/config.h>
 
@@ -53,4 +53,4 @@
 /// Mark as deprecated.
 #define SPROKIT_PYTHON_UTIL_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_PYTHON_UTIL_EXPORT
 
-#endif // SPROKIT_PYTHON_UTIL_CONFIG_H_
+#endif // SPROKIT_PYTHON_UTIL_UTIL_CONFIG_H

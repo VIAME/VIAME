@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011, 2013 by Kitware, Inc.
+ * Copyright 2011, 2013-2014 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PIPELINE_UTIL_CONFIG_H_
-#define SPROKIT_PIPELINE_UTIL_CONFIG_H_
+#ifndef SPROKIT_PIPELINE_UTIL_PIPELINE_UTIL_CONFIG_H
+#define SPROKIT_PIPELINE_UTIL_PIPELINE_UTIL_CONFIG_H
 
 #include <sprokit/config.h>
 
@@ -53,4 +53,4 @@
 /// Mark as deprecated.
 #define SPROKIT_PIPELINE_UTIL_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_PIPELINE_UTIL_EXPORT
 
-#endif // SPROKIT_PIPELINE_UTIL_CONFIG_H_
+#endif // SPROKIT_PIPELINE_UTIL_PIPELINE_UTIL_CONFIG_H
