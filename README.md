@@ -69,7 +69,7 @@ C++
   * Export symbols (or import them if possible)
   * Use braces around all control (even single-line if) blocks
   * Use typedefs
-  * Use exceptions and return values, not error codes and input parameters
+  * Use exceptions and return values, not error codes and output parameters
     - This allows for chaining functions, works with ``<algorithm>`` better,
       and allows more variables to be ``const``
 
