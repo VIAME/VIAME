@@ -1,0 +1,6 @@
+[submodule "Packages/map_tk"]
+	path = Packages/map_tk
+	url = git@kwsource.kitwarein.com:computer-vision/map-tk.git
+[submodule "Packages/sprokit"]
+	path = Packages/sprokit
+	url = git://kwsource.kitwarein.com/sprokit/sprokit.git
