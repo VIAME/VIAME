@@ -101,7 +101,7 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
 #
 include(External_maptk)
 include(External_sprokit)
-
+include(External_VXL)
 
 # ================================================================
 # Install rule if someone decided to local install
