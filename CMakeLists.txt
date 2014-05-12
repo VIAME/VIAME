@@ -99,7 +99,7 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
 # ================================================================
 # Adding external components
 #
-include(External_map_tk)
+include(External_maptk)
 include(External_sprokit)
 
 

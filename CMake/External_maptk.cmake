@@ -1,4 +1,4 @@
-# map_tk External Project
+# maptk External Project
 #
 # Required symbols are:
 #   KWIVER_BUILD_PREFIX - where packages are built
@@ -7,12 +7,12 @@
 #   KWIVER_ARGS_COMMON -
 #
 # Produced symbols are:
-#   KWIVER_ARGS_map_tk -
+#   KWIVER_ARGS_maptk -
 #
 
-ExternalProject_Add(map_tk
+ExternalProject_Add(maptk
   PREFIX ${KWIVER_BUILD_PREFIX}
-  SOURCE_DIR ${KWIVER_PACKAGES_DIR}/map_tk
+  SOURCE_DIR ${KWIVER_PACKAGES_DIR}/maptk
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     ${KWIVER_ARGS_COMMON}
@@ -20,15 +20,15 @@ ExternalProject_Add(map_tk
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(map_tk forcebuild
+ExternalProject_Add_Step(maptk forcebuild
   COMMAND ${CMAKE_COMMAND}
-    -E remove ${KWIVER_BUILD_PREFIX}/src/map_tk-stamp/map_tk-build
+    -E remove ${KWIVER_BUILD_PREFIX}/src/maptk-stamp/maptk-build
   COMMENT "Removing build stamp file for build update (forcebuild)."
   DEPENDEES configure
   DEPENDERS build
   ALWAYS 1
   )
 
-set(KWIVER_ARGS_map_tk
+set(KWIVER_ARGS_maptk
   -Dmaptk_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
   )
