@@ -23,9 +23,24 @@ namespace kwiver
  *
  * \process Writes kw video archive
  *
- * \iports
+ * This process writes a multi-file KW archive of the image stream
+ * received.  The archive directory
  *
+ * \iports
  * \iport{timestamp}
+ * Time associated with current frame
+ *
+ * \iport{image}
+ * Image frame from video being processed
+ *
+ * \iport{src_to_ref_homography}
+ * Homography that will transform current image to reference coordinates
+ *
+ * \iport{corner_points}
+ * Corner points for image in lat/lon coordinates
+ *
+ * \iport{gsd}
+ * Scaling of the image in meters per pixel.
  */
 
 class KWIVER_PROCESSES_NO_EXPORT kw_archive_writer_process
