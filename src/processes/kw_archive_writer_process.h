@@ -11,6 +11,7 @@
 
 #include <boost/scoped_ptr.hpp>
 #include <maptk/core/vector.h>
+#include <processes/kwiver-config.h>
 
 namespace kwiver
 {
@@ -27,7 +28,7 @@ namespace kwiver
  * \iport{timestamp}
  */
 
-class kw_archive_writer_process
+class KWIVER_PROCESSES_NO_EXPORT kw_archive_writer_process
   : public sprokit::process
 {
 public:
