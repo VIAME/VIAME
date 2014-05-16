@@ -171,9 +171,11 @@ kw_archive_writer_process
 void kw_archive_writer_process
 ::_init()
 {
-  std::string index_filename = d->m_base_filename + ".index";
-  std::string meta_filename  = d->m_base_filename + ".meta";
-  std::string data_filename  = d->m_base_filename + ".data";
+  std::string path = d->m_output_directory + "/" + d->m_base_filename;
+
+  std::string index_filename = path + ".index";
+  std::string meta_filename  = path + ".meta";
+  std::string data_filename  = path + ".data";
 
   d->m_index_stream = new std::ofstream( index_filename.c_str(),
                                          std::ios::out | std::ios::trunc );
