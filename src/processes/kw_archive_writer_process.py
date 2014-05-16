@@ -71,12 +71,12 @@ class kw_archive_writer_process(process.PythonProcess):
 
         self.declare_input_port( 'src_to_ref_homography',
                                  'image_to_image_homography',
-                                 process.PortFlags(), #optional
+                                 flags,
                                  'Src to ref homography')
 
         self.declare_input_port( 'corner_points',
                                  'video_metadata',
-                                 flags,
+                                 process.PortFlags(), #optional
                                  'Video metadata defining corner points')
 
         self.declare_input_port( 'world_units_per_pixel',

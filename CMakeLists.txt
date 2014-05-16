@@ -104,6 +104,10 @@ include(External_sprokit)
 include(External_VXL)
 
 # ================================================================
+include_directories( include )
+add_subdirectory( src )
+
+# ================================================================
 # Install rule if someone decided to local install
 #
 install(
