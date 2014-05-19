@@ -4,6 +4,7 @@ SET( sources
   kwiver-config.h
   register_processes.h                      register_processes.cxx
   kw_archive_writer_process.h               kw_archive_writer_process.cxx
+  frame_list_process.h                      frame_list_process.cxx
 )
 
 add_library( processes ${sources} )
@@ -15,5 +16,5 @@ target_link_libraries(processes
     sprokit_pipeline
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
-    vil vul )
+    vil vul vpgl )
 

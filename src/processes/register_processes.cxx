@@ -9,8 +9,13 @@
 
 // -- list processes to register --
 #include "kw_archive_writer_process.h"
+#include "frame_list_process.h"
 
-
+// ----------------------------------------------------------------
+/*! \brief Regsiter processes
+ *
+ *
+ */
 void register_processes()
 {
   static sprokit::process_registry::module_t const module_name =
@@ -28,7 +33,13 @@ void register_processes()
     "kw_archive_writer", "A process to write kw archives",
     sprokit::create_process< kwiver::kw_archive_writer_process > );
 
+  registry->register_process(
+    "frame_list_process",
+    "A process that reads a list of image file names and generates stream "
+    "of images and associated time stamps",
+    sprokit::create_process< kwiver::frame_list_process > );
 
+  // - - - - - - - - - - - - - - - - - - - - - - -
   registry->mark_module_as_loaded( module_name );
 }
 
