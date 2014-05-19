@@ -99,13 +99,14 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
 # ================================================================
 # Adding external components
 #
+include(External_VXL)
 include(External_maptk)
 include(External_sprokit)
-include(External_VXL)
 
 # ================================================================
-include_directories( include )
+include_directories( src/core )
 include_directories( src )
+
 add_subdirectory( src )
 
 # ================================================================
