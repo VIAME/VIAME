@@ -8,6 +8,7 @@
 
 #include <types/maptk.h>
 #include <types/kwiver.h>
+#include <timestamp.h>
 
 #include <maptk/core/image_container.h>
 #include <maptk/core/image.h>
@@ -36,10 +37,6 @@
 namespace kwiver
 {
 
-  // This should be collected into kwiver types.h
-  // define canonical type name for a set of corner points. (ul, ur, lr, ll) (lat, lon)
-  sprokit::process::type_t const kw_archive_writer_process::kwiver_corner_points( "kwiver:corner_points" ); // or "kwiver:corner_points_ul_ur_lr_ll"
-
 //----------------------------------------------------------------
 // Private implementation class
 class kw_archive_writer_process::priv
@@ -48,15 +45,13 @@ public:
   priv();
   ~priv();
 
-  typedef float gsd_t;
-
   void write_frame_data(vsl_b_ostream& stream,
                         bool write_image,
-                        int64_t time,
-                        corner_points_t const& corners,
+                        kwiver::timestamp const& time,
+                        kwiver::corner_points_t const& corners,
                         maptk::image const& img,
                         maptk::f2f_homography const& homog,
-                        double gsd);
+                        kwiver::gsd_t gsd);
 
   static sprokit::process::port_t const port_timestamp;
   static sprokit::process::port_t const port_image;
@@ -124,7 +119,7 @@ sprokit::config::key_t const priv_t::config_compress_image = sprokit::config::ke
 sprokit::config::value_t const priv_t::default_compress_image = sprokit::config::value_t( "true" );
 
 // -- ports --
-  sprokit::process::port_t const priv_t::port_timestamp = sprokit::process::port_t("timestamp");
+sprokit::process::port_t const priv_t::port_timestamp = sprokit::process::port_t("timestamp");
 sprokit::process::port_t const priv_t::port_image = sprokit::process::port_t("image");
 sprokit::process::port_t const priv_t::port_src_to_ref_homography = sprokit::process::port_t("src_to_ref_homography");
 sprokit::process::port_t const priv_t::port_corner_points = sprokit::process::port_t("corner_points");
@@ -136,7 +131,7 @@ sprokit::process::port_t const priv_t::port_gsd = sprokit::process::port_t("gsd"
 kw_archive_writer_process
 ::kw_archive_writer_process( sprokit::config_t const& config )
   : process(config),
-    d( new priv_t )
+    d( new kw_archive_writer_process::priv )
 {
   make_ports();
   make_config();
@@ -168,7 +163,8 @@ kw_archive_writer_process
 
 // ----------------------------------------------------------------
 // Post connection initialization
-void kw_archive_writer_process
+void
+kw_archive_writer_process
 ::_init()
 {
   std::string path = d->m_output_directory + "/" + d->m_base_filename;
@@ -256,31 +252,30 @@ kw_archive_writer_process
 {
 
   // timestamp
-  // TBD
-  int64_t time;
+  kwiver::timestamp frame_time = grab_from_port_as< kwiver::timestamp > ( priv::port_timestamp );
 
   // image
-  maptk::image_container* img = grab_from_port_as< maptk::image_container* > ( priv::port_image );
+  maptk::image_container_sptr img = grab_from_port_as< maptk::image_container_sptr > ( priv::port_image );
   maptk::image image= img->get_image();
 
   // homography
   maptk::f2f_homography homog = grab_from_port_as< maptk::f2f_homography > ( priv::port_src_to_ref_homography );
 
   // corners
-  corner_points_t corners = grab_from_port_as< corner_points_t > ( priv::port_corner_points );
+  kwiver::corner_points_t corners = grab_from_port_as< kwiver::corner_points_t > ( priv::port_corner_points );
 
   // gsd
-  priv::gsd_t gsd = grab_from_port_as< priv::gsd_t > ( priv::port_gsd );
+  kwiver::gsd_t gsd = grab_from_port_as< kwiver::gsd_t > ( priv::port_gsd );
 
 
   *d->m_index_stream
-    << time << " "
+    << static_cast< vxl_int_64 >( frame_time.get_time() ) << " "
     << static_cast< int64_t > ( d->m_data_stream->tellp() )
-    << "\n";
+    << std::endl;
 
   d->write_frame_data( *d->m_data_bstream,
                        /*write image=*/ true,
-                       time, corners, image, homog, gsd );
+                       frame_time, corners, image, homog, gsd );
   if ( ! d->m_data_stream )
   {
     // throw ( ); //+ need general runtime exception
@@ -290,8 +285,8 @@ kw_archive_writer_process
   if ( d->m_meta_bstream )
   {
     d->write_frame_data( *d->m_meta_bstream,
-                         /*write image=*/ false,
-                         time, corners, image, homog, gsd );
+                         /*write48 image=*/ false,
+                         frame_time, corners, image, homog, gsd );
     if ( ! d->m_meta_stream )
     {
       // throw ( );
@@ -315,38 +310,39 @@ kw_archive_writer_process
   // declare input ports
   declare_input_port(
     priv::port_timestamp,
-    kwiver_int_64,
+    kwiver_timestamp,
     required,
-    port_description_t( "Timestamp (frame num, time) for input image." ) );
+    port_description_t( "Timestamp for input image." ) );
 
   declare_input_port(
     priv::port_image,
-    maptk_image,
+    maptk_image_container,
     required,
     port_description_t( "Single frame image." ) );
 
   declare_input_port(
     priv::port_src_to_ref_homography,
-    maptk_f2f_homography,
+    maptk_src_to_ref_homography,
     required,
     port_description_t( "Source image to ref image homography" ) );
 
   declare_input_port(
     priv::port_corner_points,
     kwiver_corner_points,
-    sprokit::process::port_flags_t(),
+    sprokit::process::port_flags_t(), // optional
     port_description_t( "Four corner points for image in lat/lon units." ) );
 
   declare_input_port(
     priv::port_gsd,
-    kwiver_float,
+    kwiver_gsd,
     required,
     port_description_t( "GSD for image in meters per pixel." ) );
 }
 
 
 // ----------------------------------------------------------------
-void kw_archive_writer_process
+void
+kw_archive_writer_process
 ::make_config()
 {
 
@@ -387,14 +383,14 @@ void
 priv_t
 ::write_frame_data(vsl_b_ostream& stream,
                    bool write_image,
-                   int64_t time, // vidtk::timestamp const& ts,
-                   kw_archive_writer_process::corner_points_t const& corner_pts,
+                   kwiver::timestamp const& time,
+                   kwiver::corner_points_t const& corner_pts,
                    maptk::image const& img,
                    maptk::f2f_homography const& s2r_homog,
                    double gsd)
 {
-  int64_t u_seconds = static_cast< int64_t > ( 0 ); // ts.time() );
-  int64_t frame_num = static_cast< int64_t > ( s2r_homog.from_id() );
+  int64_t u_seconds = static_cast< int64_t > ( time.get_time() * 1e6 );
+  int64_t frame_num = static_cast< int64_t > ( time.get_frame() );
   int64_t ref_frame_num = static_cast< int64_t > ( s2r_homog.to_id() );
 
   // convert image in place
@@ -420,11 +416,11 @@ priv_t
     }
   }
 
-  std::vector< vnl_vector_fixed< double, 2 > > corners;
-  corners.push_back( vnl_double_2( corner_pts[0][1], corner_pts[0][0] ) ); // ul
-  corners.push_back( vnl_double_2( corner_pts[1][1], corner_pts[1][0] ) ); // ur
-  corners.push_back( vnl_double_2( corner_pts[2][1], corner_pts[2][0] ) ); // lr
-  corners.push_back( vnl_double_2( corner_pts[3][1], corner_pts[3][0] ) ); // ll
+  std::vector< vnl_vector_fixed< double, 2 > > corners; // (x,y)
+  corners.push_back( vnl_double_2( corner_pts[0].get_longitude(), corner_pts[0].get_latitude() ) ); // ul
+  corners.push_back( vnl_double_2( corner_pts[1].get_longitude(), corner_pts[1].get_latitude() ) ); // ur
+  corners.push_back( vnl_double_2( corner_pts[2].get_longitude(), corner_pts[2].get_latitude() ) ); // lr
+  corners.push_back( vnl_double_2( corner_pts[3].get_longitude(), corner_pts[3].get_latitude() ) ); // ll
 
   stream.clear_serialisation_records();
   vsl_b_write( stream, u_seconds );

@@ -8,10 +8,10 @@
 #define _KWIVER_KW_ARCHIVE_WRITER_PROCESS_H_
 
 #include <sprokit/pipeline/process.h>
+#include <processes/kwiver-config.h>
 
 #include <boost/scoped_ptr.hpp>
 #include <maptk/core/vector.h>
-#include <processes/kwiver-config.h>
 
 namespace kwiver
 {
@@ -47,14 +47,6 @@ class KWIVER_PROCESSES_NO_EXPORT kw_archive_writer_process
   : public sprokit::process
 {
 public:
-  // -- TYPES --
-  //+ would be nice to have accessors - float lat(); float lon();
-  typedef maptk::vector_2_ < float > lat_lon_t; // remember, that's (y,x)
-
-  // points are ordered ul, ur. lr, ll (lat, lon)
-  //+ would be nice to have accessors ul(); ur(); ...
-  typedef maptk::vector_ < 4, lat_lon_t > corner_points_t;
-  static sprokit::process::type_t const kwiver_corner_points;
 
   /**
    * \brief Constructor
