@@ -68,7 +68,7 @@ public:
 
 }; // end priv class
 
-// -- poirts --
+// -- ports --
 sprokit::process::port_t const port_timestamp = sprokit::process::port_t("timestamp");
 sprokit::process::port_t const port_image = sprokit::process::port_t("image");
 
@@ -102,14 +102,16 @@ frame_list_process
 
 
 // ----------------------------------------------------------------
-void
-frame_list_process
+void frame_list_process
 ::_configure()
 {
   // Examine the configuration
   d->m_config_image_list_filename = config_value< std::string > ( frame_list_process::priv::config_image_list_filename );
   d->m_config_image_reader        = config_value< std::string > ( frame_list_process::priv::config_image_reader );
   d->m_config_frame_time          = config_value< double > ( frame_list_process::priv::config_frame_time );
+
+  //+ a better approach is to get the config from this process using get_config()
+  // and pass it to the maptk algorithm
 
   // Create default maptk config block
   maptk::config_block_sptr config = maptk::config_block::empty_config("frame_list_process");

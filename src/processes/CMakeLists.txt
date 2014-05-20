@@ -5,6 +5,7 @@ SET( sources
   register_processes.h                      register_processes.cxx
   kw_archive_writer_process.h               kw_archive_writer_process.cxx
   frame_list_process.h                      frame_list_process.cxx
+  stabilize_image_process.h                 stabilize_image_process.cxx
 )
 
 add_library( processes ${sources} )
