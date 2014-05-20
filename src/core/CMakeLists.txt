@@ -4,6 +4,7 @@ set( kwiver_core_public_headers
   exceptions.h
   timestamp.h
   geo_lat_lon.h
+  config_util.h
 
   types/kwiver.h
   types/maptk.h
@@ -12,7 +13,10 @@ set( kwiver_core_public_headers
 set( kwiver_core_sources
   timestamp.cxx
   geo_lat_lon.cxx
+  config_util.cxx
 )
+
+
 
 add_library( kwiver_core
   ${kwiver_core_public_headers}
@@ -25,3 +29,7 @@ target_link_libraries(kwiver_core
 
 # --- install headers ---
 ### TBD
+
+install( TARGETS kwiver_core
+  DESTINATION ${KWIVER_BUILD_INSTALL_PREFIX}/lib
+)
