@@ -468,6 +468,11 @@ priv_t
 // ================================================================
 kw_archive_writer_process::priv
 ::priv()
+  : m_index_stream(0),
+    m_meta_stream(0),
+    m_meta_bstream(0),
+    m_data_stream(0),
+    m_data_bstream(0)
 {
 }
 
