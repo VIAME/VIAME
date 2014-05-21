@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.8.3)
 enable_testing()
 project(KWIVER)
 
+include(CMakeDependentOption)
+
 ###
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 0)
@@ -45,6 +47,8 @@ else()
   set(LIB_PREFIX ${CMAKE_STATIC_LIBRARY_PREFIX})
   set(LIB_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
+
+set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
 # installing system setup script
 configure_file(${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
@@ -107,15 +111,25 @@ include(External_sprokit)
 include_directories( src/core )
 include_directories( src )
 
+link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
+
 add_subdirectory( src )
+
+# ================================================================
+# build documentation
+# - build doc for src
+# - build doc for sprokit submodule
+# - build doc for maptk submodule
+# TBD
+include(Doxygen)
 
 # ================================================================
 # Install rule if someone decided to local install
 #
-install(
-  DIRECTORY ${KWIVER_BUILD_INSTALL_PREFIX}/
-  DESTINATION .
-  USE_SOURCE_PERMISSIONS
-  )
+#install(
+#  DIRECTORY ${KWIVER_BUILD_INSTALL_PREFIX}/
+#  DESTINATION .
+#  USE_SOURCE_PERMISSIONS
+#  )
 
 
