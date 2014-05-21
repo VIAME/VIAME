@@ -13,3 +13,10 @@ endif ()
 add_subdirectory(bindings)
 add_subdirectory(processes)
 add_subdirectory(schedulers)
+
+# ----------------------------------------------------------------
+# build master documentation
+
+sprokit_create_doxygen(
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  sprokit-master)
