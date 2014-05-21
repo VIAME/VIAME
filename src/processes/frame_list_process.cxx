@@ -10,6 +10,7 @@
 #include <types/kwiver.h>
 #include <core/exceptions.h>
 #include <core/timestamp.h>
+#include <core/config_util.h>
 
 #include <maptk/core/image_container.h>
 #include <maptk/core/image.h>
@@ -69,18 +70,18 @@ public:
 }; // end priv class
 
 // -- ports --
-sprokit::process::port_t const port_timestamp = sprokit::process::port_t("timestamp");
-sprokit::process::port_t const port_image = sprokit::process::port_t("image");
+sprokit::process::port_t const frame_list_process::priv::port_timestamp = sprokit::process::port_t("timestamp");
+sprokit::process::port_t const frame_list_process::priv::port_image = sprokit::process::port_t("image");
 
 // -- config --
-sprokit::config::key_t const config_image_list_filenamey = sprokit::config::key_t( "output_directory" );
-sprokit::config::value_t const default_image_list_filename = sprokit::config::value_t( "" );
+sprokit::config::key_t const frame_list_process::priv::config_image_list_filename = sprokit::config::key_t( "output_directory" );
+sprokit::config::value_t const frame_list_process::priv::default_image_list_filename = sprokit::config::value_t( "" );
 
-sprokit::config::key_t const config_image_reader = sprokit::config::key_t( "image_reader_type" );
-sprokit::config::value_t const default_image_reader = sprokit::config::value_t( "" );
+sprokit::config::key_t const frame_list_process::priv::config_image_reader = sprokit::config::key_t( "image_reader_type" );
+sprokit::config::value_t const frame_list_process::priv::default_image_reader = sprokit::config::value_t( "" );
 
-sprokit::config::key_t const config_frame_time = sprokit::config::key_t( "frame_time" );
-sprokit::config::value_t const default_frame_time = sprokit::config::value_t( "0.03333333333" ); // 30 Hz
+sprokit::config::key_t const frame_list_process::priv::config_frame_time = sprokit::config::key_t( "frame_time" );
+sprokit::config::value_t const frame_list_process::priv::default_frame_time = sprokit::config::value_t( "0.03333333333" ); // 30 Hz
 
 
 // ================================================================
@@ -105,23 +106,20 @@ frame_list_process
 void frame_list_process
 ::_configure()
 {
+
   // Examine the configuration
   d->m_config_image_list_filename = config_value< std::string > ( frame_list_process::priv::config_image_list_filename );
   d->m_config_image_reader        = config_value< std::string > ( frame_list_process::priv::config_image_reader );
   d->m_config_frame_time          = config_value< double > ( frame_list_process::priv::config_frame_time );
 
-  //+ a better approach is to get the config from this process using get_config()
-  // and pass it to the maptk algorithm
+  // Convert sprokit config to maptk config for algorithms
+  sprokit::config_t proc_config = get_config(); // config for process
+  maptk::config_block_sptr algo_config = maptk::config_block::empty_config();
 
-  // Create default maptk config block
-  maptk::config_block_sptr config = maptk::config_block::empty_config("frame_list_process");
-
-
-  // add to config block
-  config->set_value( "image_reader:type", d->m_config_image_reader );
+  convert_config( proc_config, algo_config );
 
   // instantiate image reader and converter based on config type
-  algo::image_io::set_nested_algo_configuration( "image_reader", config, d->m_image_reader);
+  algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
 
   sprokit::process::_configure();
 }

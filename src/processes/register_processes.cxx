@@ -10,6 +10,7 @@
 // -- list processes to register --
 #include "kw_archive_writer_process.h"
 #include "frame_list_process.h"
+#include "stabilize_image_process.h"
 
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -38,6 +39,10 @@ void register_processes()
     "A process that reads a list of image file names and generates stream "
     "of images and associated time stamps",
     sprokit::create_process< kwiver::frame_list_process > );
+
+  registry->register_process(
+    "stabilize_image", "A process to generate current-to-reference homographies",
+    sprokit::create_process< kwiver::stabilize_image_process > );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   registry->mark_module_as_loaded( module_name );

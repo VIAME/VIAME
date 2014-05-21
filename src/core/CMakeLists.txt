@@ -16,12 +16,15 @@ set( kwiver_core_sources
   config_util.cxx
 )
 
-
-
 add_library( kwiver_core
   ${kwiver_core_public_headers}
   ${kwiver_core_sources}
 )
+set_target_properties( kwiver_core PROPERTIES
+  VERSION ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION}
+)
+
+add_dependencies( kwiver_core sprokit maptk VXL )
 
 target_link_libraries(kwiver_core
   ${Boost_LIBRARIES}

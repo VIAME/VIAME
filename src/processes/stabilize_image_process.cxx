@@ -11,6 +11,7 @@
 #include <types/kwiver.h>
 #include <core/exceptions.h>
 #include <core/timestamp.h>
+#include <core/config_util.h>
 
 #include <maptk/core/algo/track_features.h>
 #include <maptk/core/algo/compute_ref_homography.h>
@@ -39,9 +40,9 @@ public:
 
 
   // Configuration values
-  std::string m_config_image_list_filename;
-  static sprokit::config::key_t const config_image_list_filename;
-  static sprokit::config::value_t const default_image_list_filename;
+
+  // There are many config items for the tracking and stabilization that go directly to
+  // the maptk algo.
 
   // feature tracker algorithm - homography source
   maptk::algo::track_features_sptr m_feature_tracker;
@@ -51,11 +52,13 @@ public:
 
 }; // end priv class
 
-// -- ports --
-sprokit::process::port_t const port_timestamp = sprokit::process::port_t("timestamp");
-sprokit::process::port_t const port_image = sprokit::process::port_t("image");
+// -- config --
 
-sprokit::process::port_t const port_homography = sprokit::process::port_t("src_to_ref_homography");
+// -- ports --
+sprokit::process::port_t const stabilize_image_process::priv::port_timestamp = sprokit::process::port_t("timestamp");
+sprokit::process::port_t const stabilize_image_process::priv::port_image = sprokit::process::port_t("image");
+
+sprokit::process::port_t const stabilize_image_process::priv::port_homography = sprokit::process::port_t("src_to_ref_homography");
 
 // ================================================================
 
@@ -79,24 +82,17 @@ stabilize_image_process
 void stabilize_image_process
 ::_configure()
 {
-  // Examine the configuration
-  d->m_config_image_list_filename = config_value< std::string > ( stabilize_image_process::priv::config_image_list_filename );
+  // Convert sprokit config to maptk config for algorithms
+  sprokit::config_t proc_config = get_config(); // config for process
+  maptk::config_block_sptr algo_config = maptk::config_block::empty_config();
 
-  //+ a better approach is to get the config from this process using get_config()
-  // and pass it to the maptk algorithm
-
-  //+ hack - configure file name of maptk config file.
-
-  // Create default maptk config block
-  maptk::config_block_sptr config = maptk::config_block::empty_config("stabilize_image");
-
-
-  // add to config block
-  //+ config->set_value( "image_reader:type", d->m_config_image_reader );
+  convert_config( proc_config, algo_config );
 
   // instantiate image reader and converter based on config type
-  maptk::algo::track_features::set_nested_algo_configuration( "feature_tracker", config, d->m_feature_tracker );
-  maptk::algo::compute_ref_homography::set_nested_algo_configuration( "homog_generator", config,d->m_compute_homog );
+  maptk::algo::track_features::set_nested_algo_configuration( "feature_tracker",
+                                                algo_config, d->m_feature_tracker );
+  maptk::algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator",
+                                                          algo_config, d->m_compute_homog );
 
   sprokit::process::_configure();
 }
@@ -161,12 +157,7 @@ void stabilize_image_process
 void stabilize_image_process
 ::make_config()
 {
-  declare_configuration_key(
-    priv::config_image_list_filename,
-    priv::default_image_list_filename,
-    sprokit::config::description_t( "Name of file that contains list of image file names." ));
 
-  // TBD
 }
 
 
