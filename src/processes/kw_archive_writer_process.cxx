@@ -252,20 +252,20 @@ kw_archive_writer_process
 {
 
   // timestamp
-  kwiver::timestamp frame_time = grab_from_port_as< kwiver::timestamp > ( priv::port_timestamp );
+  kwiver::timestamp frame_time = grab_input_as< kwiver::timestamp > ( priv::port_timestamp );
 
   // image
-  maptk::image_container_sptr img = grab_from_port_as< maptk::image_container_sptr > ( priv::port_image );
+  maptk::image_container_sptr img = grab_input_as< maptk::image_container_sptr > ( priv::port_image );
   maptk::image image= img->get_image();
 
   // homography
-  maptk::f2f_homography homog = grab_from_port_as< maptk::f2f_homography > ( priv::port_src_to_ref_homography );
+  maptk::f2f_homography homog = grab_input_as< maptk::f2f_homography > ( priv::port_src_to_ref_homography );
 
   // corners
-  kwiver::corner_points_t corners = grab_from_port_as< kwiver::corner_points_t > ( priv::port_corner_points );
+  kwiver::corner_points_t corners = grab_input_as< kwiver::corner_points_t > ( priv::port_corner_points );
 
   // gsd
-  kwiver::gsd_t gsd = grab_from_port_as< kwiver::gsd_t > ( priv::port_gsd );
+  kwiver::gsd_t gsd = grab_input_as< kwiver::gsd_t > ( priv::port_gsd );
 
 
   *d->m_index_stream
@@ -307,6 +307,9 @@ kw_archive_writer_process
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
 
+  sprokit::process::port_flags_t opt_static;
+  opt_static.insert( flag_input_static );
+
   // declare input ports
   declare_input_port(
     priv::port_timestamp,
@@ -335,7 +338,7 @@ kw_archive_writer_process
   declare_input_port(
     priv::port_gsd,
     kwiver_gsd,
-    required,
+    opt_static, // optional, possibly static
     port_description_t( "GSD for image in meters per pixel." ) );
 }
 

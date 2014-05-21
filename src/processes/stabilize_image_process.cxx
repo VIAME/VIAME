@@ -105,10 +105,10 @@ void stabilize_image_process
   maptk::f2f_homography_sptr src_to_ref_homography;
 
   // timestamp
-  kwiver::timestamp frame_time = grab_from_port_as< kwiver::timestamp > ( priv::port_timestamp );
+  kwiver::timestamp frame_time = grab_input_as< kwiver::timestamp > ( priv::port_timestamp );
 
   // image
-  maptk::image_container_sptr img = grab_from_port_as< maptk::image_container_sptr > ( priv::port_image );
+  maptk::image_container_sptr img = grab_input_as< maptk::image_container_sptr > ( priv::port_image );
 
   // Get feature trac
   d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
