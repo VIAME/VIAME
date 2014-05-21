@@ -31,7 +31,7 @@ void register_processes()
 
   // ----------------------------------------------------------------
   registry->register_process(
-    "kw_archive_writer", "A process to write kw archives",
+    "kw_archive_writer_process", "A process to write kw archives",
     sprokit::create_process< kwiver::kw_archive_writer_process > );
 
   registry->register_process(
@@ -41,7 +41,7 @@ void register_processes()
     sprokit::create_process< kwiver::frame_list_process > );
 
   registry->register_process(
-    "stabilize_image", "A process to generate current-to-reference homographies",
+    "stabilize_image_process", "A process to generate current-to-reference image homographies",
     sprokit::create_process< kwiver::stabilize_image_process > );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
