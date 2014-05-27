@@ -1,4 +1,8 @@
 # ================================================================
+config common
+  :fixed_gsd 0.5
+
+# ================================================================
 process input
   :: frame_list_process
 # Input file containing new-line separated paths to sequential image
@@ -27,12 +31,12 @@ process stabilize
   :feature_tracker:default:descriptor_extractor:type ocv
 
 # The OpenCV cv::Algorithm type to use for 'extractor'.
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:type      Feature2D.SURF
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D.SURF:extended      false
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D.SURF:hessianThreshold      5000
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D.SURF:nOctaveLayers      3
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D.SURF:nOctaves      4
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D.SURF:upright      true
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:type      SURF
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:extended      false
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:hessianThreshold      5000
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:nOctaveLayers      3
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:nOctaves      4
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:upright      true
 
 
 # Algorithm to use for 'feature_detector'.
@@ -41,12 +45,12 @@ process stabilize
   :feature_tracker:default:feature_detector:type      ocv
 
 # The OpenCV cv::Algorithm type to use for 'detector'.
-  :feature_tracker:default:feature_detector:ocv:detector:type      Feature2D.SURF
-  :feature_tracker:default:feature_detector:ocv:detector:Feature2D.SURF:extended      false
-  :feature_tracker:default:feature_detector:ocv:detector:Feature2D.SURF:hessianThreshold      5000
-  :feature_tracker:default:feature_detector:ocv:detector:Feature2D.SURF:nOctaveLayers      3
-  :feature_tracker:default:feature_detector:ocv:detector:Feature2D.SURF:nOctaves      4
-  :feature_tracker:default:feature_detector:ocv:detector:Feature2D.SURF:upright      true
+  :feature_tracker:default:feature_detector:ocv:detector:type      SURF
+  :feature_tracker:default:feature_detector:ocv:detector:SURF:extended      false
+  :feature_tracker:default:feature_detector:ocv:detector:SURF:hessianThreshold      5000
+  :feature_tracker:default:feature_detector:ocv:detector:SURF:nOctaveLayers      3
+  :feature_tracker:default:feature_detector:ocv:detector:SURF:nOctaves      4
+  :feature_tracker:default:feature_detector:ocv:detector:SURF:upright      true
 
 
 # Algorithm to use for 'feature_matcher'.
@@ -265,7 +269,7 @@ process stabilize
 
 # ================================================================
 process writer
-  ::kw_archive_writer_process
+  :: kw_archive_writer_process
 
 # Configuration for KWA writer. This process writes an archive
 # which consists of several files into the specified directory
@@ -281,14 +285,18 @@ process writer
   :separate_meta      true
 
 # mission ID string to be written to archive header
-  :mission_id      ""
+  :mission_id      none
 
 # stream ID string to be written to archive header
-  :stream_id      ""
+  :stream_id      none
 
 # Option to compress the image portion of the archive. Compressing the
 # images takes less space, but takes longer to retrieve and write.
   :compress_image      true
+
+# Establish a fixed GSD for the 'gsd' port, since we currently have no
+# gsd source
+  :static/gsd       common:fixed_gsd
 
 # ================================================================
 # connections
@@ -298,13 +306,13 @@ connect from input.image
         to   stabilize.image
 
 connect from stabilize.src_to_ref_homography
-        to   writer.src_to_rec_homography
+        to   writer.src_to_ref_homography
 connect from input.timestamp
         to   writer.timestamp
 connect from input.image
         to   writer.image
-# connect from
-#         to   writer.gsd
+
+
 #connect from
 #        to   writer.corner_points
 # -- end of file --
