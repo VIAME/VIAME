@@ -472,11 +472,11 @@ SPROKIT_PIPELINE_EXPORT bool config_cast_inner(config::value_t const& value);
 /**
  * \brief Cast a configuration value to the requested type.
  *
- * \throws bad_configuration_cast Thrown when the conversion fails.
+ * \throw bad_configuration_cast Thrown when the conversion fails.
  *
  * \param value The value to convert.
  *
- * \returns The value of \p value in the requested type.
+ * \return The value of \p value in the requested type.
  */
 template <typename T>
 inline
