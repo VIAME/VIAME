@@ -28,6 +28,7 @@ static sprokit::process::type_t const kwiver_timestamp( "kwiver:timestamp" );
 // -- concrete types --
 typedef double gsd_t;
 typedef std::vector < kwiver::geo_lat_lon > corner_points_t;
+std::istream& operator>> ( std::istream& str, corner_points_t& obj );
 
 } // end namespace
 #endif /* _KWIVER_TYPES_KWIVER_H_ */

@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <ostream>
+#include <istream>
 
 namespace kwiver
 {
@@ -133,6 +134,32 @@ private:
 }; // end class timestamp
 
   std::ostream& operator<< ( std::ostream& str, timestamp const& obj );
+
+
+  /**
+   * \brief Input operator
+   *
+   * Convert object from string representation to native form.  This
+   * is primarily used for object specific behaviour for
+   * boost:lexical_cast when supplying default values for static
+   * ports.
+   *
+   * The expected format for the string representation of a timestamp
+   * is:
+   *
+   * <frame> <time in seconds>
+   *
+   * For example:
+   \code
+   300 10.0
+   \endcode
+   *
+   * @param str input stream
+   * @param obj string to read from
+   *
+   * @return
+   */
+  std::istream& operator>> ( std::istream& str, timestamp& obj );
 
 } // end namespace
 

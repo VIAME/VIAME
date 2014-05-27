@@ -111,5 +111,23 @@ operator<<( std::ostream& str, timestamp const& obj )
   return str;
 }
 
+/*
+ * This is primarily used to supply default behaviour for a timestamp
+ * when getting data from a port.
+ */
+std::istream& operator>> ( std::istream& str, timestamp& obj )
+{
+  timestamp::time_t t;
+  str >> t;
+  obj.set_time( t );
+
+  timestamp::frame_t f;
+  str >> f;
+  obj.set_frame( f );
+
+  return str;
+}
+
+
 } // end namespace
 
