@@ -32,6 +32,20 @@ set(KWIVER_LINKER_FLAGS -L${CMAKE_LIBRARY_PATH})
 # ================================================================
 option(KWIVER_ENABLE_OPENCV "Enable OpenCV-dependent code" "ON" )
 
+find_package(Boost 1.48 REQUIRED
+  COMPONENTS
+    chrono
+    date_time
+    filesystem
+    program_options
+    system
+    thread)
+
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
+
+# ================================================================
 # project global includes
 include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include")
 
