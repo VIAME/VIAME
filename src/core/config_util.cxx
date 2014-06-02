@@ -26,6 +26,9 @@ void convert_config( sprokit::config_t const  from,
       sprokit::config::value_t const val = from->get_value< sprokit::config::value_t > ( key );
       to->set_value( key, val );
 
+      // \todo add log message
+      std::cout << "DEBUG - Processing entry: " << key << " = " << val << std::endl;
+
       // propagate read-only attribute
       if ( from->is_read_only( key ) )
       {
@@ -34,7 +37,8 @@ void convert_config( sprokit::config_t const  from,
     }
     else
     {
-      //+ log warning - could not convert entry "key"
+      // \todo log warning - could not convert entry "key"
+      std::cerr << "WARNING - could not convert read only entry " << key << std::endl;
     }
   } // end foreach
 }
@@ -52,6 +56,10 @@ void convert_config( maptk::config_block_sptr const from,
     if ( ! to->is_read_only( key ) )
     {
       std::string const val = from->get_value< std::string > ( key );
+
+      // \todo add log message
+      std::cout << "DEBUG - Processing entry: " << key << " = " << val << std::endl;
+
       to->set_value( key, val );
 
       // propagate read-only attribute
@@ -63,6 +71,7 @@ void convert_config( maptk::config_block_sptr const from,
     else
     {
       //+ log warning - could not convert entry "key"
+      std::cerr << "WARNING - could not convert read only entry " << key << std::endl;
     }
   } // end foreach
 }
