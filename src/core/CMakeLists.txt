@@ -14,6 +14,8 @@ set( kwiver_core_sources
   timestamp.cxx
   geo_lat_lon.cxx
   config_util.cxx
+
+  types/kwiver.cxx
 )
 
 add_library( kwiver_core
@@ -22,6 +24,7 @@ add_library( kwiver_core
 )
 set_target_properties( kwiver_core PROPERTIES
   VERSION ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION}
+  LIBRARY_OUTPUT_DIRECTORY ${KWIVER_BUILD_INSTALL_PREFIX}/lib
 )
 
 add_dependencies( kwiver_core sprokit maptk VXL )
