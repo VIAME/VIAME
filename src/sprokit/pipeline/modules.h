@@ -44,6 +44,17 @@ namespace sprokit
 
 /**
  * \brief Load modules from the system path.
+ *
+ * This function loads all known modules. That is, all modules that
+ * can be found. Modules are shared objects or DLL's that are in one
+ * of the search paths and have a register_processes() symbol
+ * available.
+ *
+ * The default module path is based on where sprokit will be installed
+ * and points to the \b sprokit subdirectory of the installed libraries.
+ *
+ * Additional modules can be fetched from a path specified in the
+ * environment \b SPROKIT_MODULE_PATH.
  */
 SPROKIT_PIPELINE_EXPORT void load_known_modules();
 
