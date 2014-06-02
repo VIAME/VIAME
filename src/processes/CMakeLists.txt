@@ -35,11 +35,17 @@ set_target_properties( kwiver_processes PROPERTIES
 
 add_dependencies( kwiver_processes sprokit maptk VXL )
 
+set( maptk_libs maptk_core maptk_vxl )
+if (KWIVER_ENABLE_OPENCV)
+  set (maptk_libs ${maptk_libs} maptk_ocv)
+endif()
+
 # depends on VXL sprokit maptk
 target_link_libraries( kwiver_processes
   LINK_PRIVATE
     sprokit_pipeline
-    maptk_core
+    ${maptk_libs}
+    kwiver_core
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
-    vil vul vpgl )
+    vil vul vnl vnl_io )
