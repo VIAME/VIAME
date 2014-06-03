@@ -13,12 +13,25 @@
 #include <core/timestamp.h>
 #include <core/config_util.h>
 
+#include <sprokit/pipeline/process_exception.h>
+
+#include <maptk/modules.h>
 #include <maptk/core/algo/track_features.h>
 #include <maptk/core/algo/compute_ref_homography.h>
 
 #include <maptk/core/image_container.h>
 #include <maptk/core/track_set.h>
 #include <maptk/core/homography.h>
+
+#include <boost/make_shared.hpp>
+
+// -- DEBUG
+#if defined DEBUG
+#include <maptk/ocv/image_container.h>
+#include <opencv2/highgui/highgui.hpp>
+using namespace cv;
+#endif
+
 
 namespace kwiver
 {
@@ -45,7 +58,7 @@ public:
   // the maptk algo.
 
   // feature tracker algorithm - homography source
-  maptk::algo::track_features_sptr m_feature_tracker;
+  maptk::algo::track_features_sptr         m_feature_tracker;
   maptk::algo::compute_ref_homography_sptr m_compute_homog;
 
   maptk::track_set_sptr m_tracks; // last set of tracks
@@ -88,11 +101,22 @@ void stabilize_image_process
 
   convert_config( proc_config, algo_config );
 
-  // instantiate image reader and converter based on config type
+  // Maybe should call check_nested_algo_configuration( "feature_tracker", algo_config );
+  // Maybe should call check_nested_algo_configuration( "homography_generator", algo_config );
+
   maptk::algo::track_features::set_nested_algo_configuration( "feature_tracker",
                                                 algo_config, d->m_feature_tracker );
+  if ( ! d->m_feature_tracker )
+  {
+    throw sprokit::invalid_configuration_exception (name(), "Error configuring \"feature_tracker\"");
+  }
+
   maptk::algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator",
                                                           algo_config, d->m_compute_homog );
+  if ( ! d->m_compute_homog )
+  {
+    throw sprokit::invalid_configuration_exception (name(),"Error configuring \"homography_generator\"");
+  }
 
   sprokit::process::_configure();
 }
@@ -106,12 +130,24 @@ void stabilize_image_process
 
   // timestamp
   kwiver::timestamp frame_time = grab_input_as< kwiver::timestamp > ( priv::port_timestamp );
-  //+ kwiver::timestamp frame_time = grab_from_port_as< kwiver::timestamp > ( priv::port_timestamp );
 
   // image
   //+ maptk::image_container_sptr img = grab_input_as< maptk::image_container_sptr > ( priv::port_image );
   maptk::image_container_sptr img = grab_from_port_as< maptk::image_container_sptr > ( priv::port_image );
 
+  // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
+  std::cerr << "DEBUG - (stab image) Processing frame " << frame_time
+            << std::endl;
+
+  // --- debug
+#if defined DEBUG
+  cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img->get_image() );
+  namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
+  imshow( "Display window", image );                   // Show our image inside it.
+
+  waitKey(0);
+#endif                                        // Wait for a keystroke in the window
+  // -- end debug
   // Get feature trac
   d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
 
