@@ -2,18 +2,20 @@
 config common
   :fixed_gsd 0.5
 
+
 # ================================================================
 process input
   :: frame_list_process
 # Input file containing new-line separated paths to sequential image
 # files.
-  :image_list_file input_image_list.txt
+  :image_list_file ../test_area/input_image_list.txt
 
 # Algorithm to use for 'image_reader'.
 # Must be one of the following options:
 # 	- ocv
 # 	- vxl
-  :image_reader:type vxl
+  :image_reader:type ocv
+
 
 # ================================================================
 process stabilize
@@ -31,12 +33,12 @@ process stabilize
   :feature_tracker:default:descriptor_extractor:type ocv
 
 # The OpenCV cv::Algorithm type to use for 'extractor'.
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:type      SURF
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:extended      false
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:hessianThreshold      5000
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:nOctaveLayers      3
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:nOctaves      4
-  :feature_tracker:default:descriptor_extractor:ocv:extractor:SURF:upright      true
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:type                                Feature2D%SURF
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D%SURF:extended             false
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D%SURF:hessianThreshold     5000
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D%SURF:nOctaveLayers        3
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D%SURF:nOctaves             4
+  :feature_tracker:default:descriptor_extractor:ocv:extractor:Feature2D%SURF:upright              true
 
 
 # Algorithm to use for 'feature_detector'.
@@ -45,12 +47,12 @@ process stabilize
   :feature_tracker:default:feature_detector:type      ocv
 
 # The OpenCV cv::Algorithm type to use for 'detector'.
-  :feature_tracker:default:feature_detector:ocv:detector:type      SURF
-  :feature_tracker:default:feature_detector:ocv:detector:SURF:extended      false
-  :feature_tracker:default:feature_detector:ocv:detector:SURF:hessianThreshold      5000
-  :feature_tracker:default:feature_detector:ocv:detector:SURF:nOctaveLayers      3
-  :feature_tracker:default:feature_detector:ocv:detector:SURF:nOctaves      4
-  :feature_tracker:default:feature_detector:ocv:detector:SURF:upright      true
+  :feature_tracker:default:feature_detector:ocv:detector:type                                Feature2D%SURF
+  :feature_tracker:default:feature_detector:ocv:detector:Feature2D%SURF:extended             false
+  :feature_tracker:default:feature_detector:ocv:detector:Feature2D%SURF:hessianThreshold     5000
+  :feature_tracker:default:feature_detector:ocv:detector:Feature2D%SURF:nOctaveLayers        3
+  :feature_tracker:default:feature_detector:ocv:detector:Feature2D%SURF:nOctaves             4
+  :feature_tracker:default:feature_detector:ocv:detector:Feature2D%SURF:upright              true
 
 
 # Algorithm to use for 'feature_matcher'.
@@ -169,7 +171,7 @@ process stabilize
   :feature_tracker:default:loop_closer:multi_method:method2:vxl_homography_guided:checkpoint_percent_overlap      0.85
 
 # Optional output location for a homography text file.
-  :feature_tracker:default:loop_closer:multi_method:method2:vxl_homography_guided:homography_filename =
+  :feature_tracker:default:loop_closer:multi_method:method2:vxl_homography_guided:homography_filename      homog_file.txt
 
 # Maximum past search distance in terms of number of frames.
   :feature_tracker:default:loop_closer:multi_method:method2:vxl_homography_guided:max_checkpoint_frames      1000
@@ -242,29 +244,29 @@ process stabilize
 # Algorithm to use for 'ref_computer'.
 # Must be one of the following options:
 # 	- default
-  :homography_generator:ref_computer:type      default
+  :homography_generator:type      default
 
 # Backprojection threshold in terms of L2 distance (number of pixels)
-  :homography_generator:ref_computer:default:backproject_threshold      4
+  :homography_generator:default:backproject_threshold      4
 
 # Algorithm to use for 'estimator'.
 # Must be one of the following options:
 # 	- ocv
 # 	- vxl
-  :homography_generator:ref_computer:default:estimator:type      vxl
+  :homography_generator:default:estimator:type      vxl
 
 # After how many frames should we forget all info about a track?
-  :homography_generator:ref_computer:default:forget_track_threshold      5
+  :homography_generator:default:forget_track_threshold      5
 
 # The acceptable error distance (in pixels) between warped and measured points
 # to be considered an inlier match.
-  :homography_generator:ref_computer:default:inlier_scale      10
+  :homography_generator:default:inlier_scale      10
 
 # Minimum track length to use for homography regression
-  :homography_generator:ref_computer:default:min_track_length      1
+  :homography_generator:default:min_track_length      1
 
 # Should we remove extra points if the backproject error is high?
-  :homography_generator:ref_computer:default:use_backproject_error      false
+  :homography_generator:default:use_backproject_error      false
 
 
 # ================================================================
@@ -276,7 +278,7 @@ process writer
 
 # directory for the output files. Relative to where the program
 # is run
-  :output_directory      kwa_1
+  :output_directory      ../test_area/kwa_2
 
 # base name for all files of the archive
   :base_filename      kw_archive
@@ -296,7 +298,17 @@ process writer
 
 # Establish a fixed GSD for the 'gsd' port, since we currently have no
 # gsd source
-  :static/gsd       common:fixed_gsd
+# Static values for input ports are specified in the process config
+# block as follows
+#  :static/<port-name>  <value>
+  :static/gsd[ro]{CONF} common:fixed_gsd
+  :static/corner_points[ro] 0 0 0 0 0 0 0 0
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 10
 
 # ================================================================
 # connections
