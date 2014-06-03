@@ -57,7 +57,7 @@ else()
 endif()
 
 if( KWIVER_ENABLE_OPENCV )
-  find_package( OpenCV REQUIRED )
+  find_package( OpenCV 2.4.6 REQUIRED )
   include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
 endif( KWIVER_ENABLE_OPENCV )
 set( USE_OPENCV_VERSION KWIVER_ENABLE_OPENCV AND OpenCV_FOUND AND OpenCV_VERSION VERSION_GREATER "2.4" )
