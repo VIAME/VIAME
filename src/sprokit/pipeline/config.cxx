@@ -400,4 +400,22 @@ strip_block_name(config::key_t const& subblock, config::key_t const& key)
   return key.substr(subblock.size() + config::block_sep.size());
 }
 
+
+std::ostream& operator<<( std::ostream& str, sprokit::config const& obj )
+{
+  sprokit::config::keys_t all_keys = obj.available_values();
+
+  BOOST_FOREACH( sprokit::config::key_t key, all_keys )
+  {
+    std::string ro;
+
+    sprokit::config::value_t const val = obj.get_value< sprokit::config::value_t > ( key );
+    if (obj.is_read_only( key ) ) ro = "[ro]";
+
+    str << key << ro << " = " << val << std::endl;
+  }
+
+  return str;
 }
+
+} // end namespace

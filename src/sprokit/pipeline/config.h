@@ -566,6 +566,8 @@ config
   }
 }
 
+std::ostream& operator<<(std::ostream&str, sprokit::config const& obj);
+
 }
 
 #endif // SPROKIT_PIPELINE_CONFIG_H
