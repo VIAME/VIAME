@@ -5,6 +5,8 @@
  * file. They provide all of the information necessary to run a pipeline and may
  * be included from other pipeline files.
  *
+ * Lines starting with '#' character are considered comments.
+ *
  * \par Common rules
  *
  * <pre>
@@ -106,13 +108,13 @@
  *   <provider-end>      ::= "}"
  *   <key-provider>      ::= <upper> <key-provider> | <upper>
  *   <key-provider-spec> ::= <provider-start> <key-provider> <provider-end>
- *   <key-options>       ::= <key-flag-decl> | <key-provider> | <key-flag-decl> <key-provider> | ""
+ *   <key-options>       ::= <key-flag-decl> | <key-provider-spec> | <key-flag-decl> <key-provider-spec> | ""
  * </pre>
  *
  * \par Examples
  *
  * <pre>
- * :static/gsd{CONF} common.gsd
+ * :gsd{CONF} common.gsd
  * :tunable[ro]{ENV} TEST_ENV
  * </pre>
  *
@@ -179,19 +181,21 @@
  *   config common
  *     :uncommon  value
  *     :also:uncommon  value
-
- Creates config items:
+ </pre>
+ Creates configuration items:
+ <pre>
      common:uncommon value
      common:also:uncommon value
-
-
  * </pre>
+
+Another example:
  * <pre>
  *   config a:common:path
  *     :uncommon:path:to:key value
  *     :other:uncommon:path:to:key value
-
+ </pre>
  Creates configuration items:
+ <pre>
      a:common:path:uncommon:path:to:key value
      a:common:path:other:uncommon:path:to:key value
 
@@ -199,7 +203,8 @@
  *
  * \subsection process_block Process block
  *
- * A process block adds a process to the pipeline.
+ * A process block adds a process to the pipeline with
+ * optional configuration items.
  *
  * \par Specification
  *
@@ -222,9 +227,28 @@
  * <pre>
  *   process another_process
  *     :: awesome_process
- *     :some_param some_value
+ *        :some_param     some_value
  * </pre>
  *
+ * When a port is declared as static, the value at this port may also be
+ * supplied via the configuration. This is done by using the special static
+ * before the port name. The syntax for specifying static values is
+ *
+ * <pre>
+   :static/<port-name> <key-value>
+ * </pre>
+
+ * A port can not be connected and also have a static value.
+ *
+ * The following is an example of configuring a static port value.
+ *
+ * <pre>
+ *   process my_process
+ *     :: my_process_type
+ *        :static/port     value
+ * </pre>
+
+
  * \subsection connect_block Connect block
  *
  * A connection block declares that two ports will be connected.
@@ -258,7 +282,8 @@
  *
  * A cluster is a collection of processes which can be treated as a single
  * process for connection and configuration purposes. They may be loaded from
- * files and loaded as a single process.
+ * files and loaded as a single process. Note the start of a cluster declaration
+ * is similar to a comment.
  *
  * \par Specification
  *
