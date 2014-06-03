@@ -105,17 +105,17 @@ void stabilize_image_process
   // Maybe should call check_nested_algo_configuration( "homography_generator", algo_config );
 
   maptk::algo::track_features::set_nested_algo_configuration( "feature_tracker",
-                                                algo_config, d->m_feature_tracker );
+                                              algo_config, d->m_feature_tracker );
   if ( ! d->m_feature_tracker )
   {
-    throw sprokit::invalid_configuration_exception (name(), "Error configuring \"feature_tracker\"");
+    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"feature_tracker\"" );
   }
 
   maptk::algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator",
-                                                          algo_config, d->m_compute_homog );
+                                                              algo_config, d->m_compute_homog );
   if ( ! d->m_compute_homog )
   {
-    throw sprokit::invalid_configuration_exception (name(),"Error configuring \"homography_generator\"");
+    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"homography_generator\"" );
   }
 
   sprokit::process::_configure();
@@ -123,7 +123,8 @@ void stabilize_image_process
 
 
 // ----------------------------------------------------------------
-void stabilize_image_process
+void
+stabilize_image_process
 ::_step()
 {
   maptk::f2f_homography_sptr src_to_ref_homography;
@@ -142,10 +143,10 @@ void stabilize_image_process
   // --- debug
 #if defined DEBUG
   cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img->get_image() );
-  namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
+  namedWindow( "Display window", cv::WINDOW_NORMAL ); // Create a window for display.
   imshow( "Display window", image );                   // Show our image inside it.
 
-  waitKey(0);
+  waitKey( 0 );
 #endif                                        // Wait for a keystroke in the window
   // -- end debug
   // Get feature trac
