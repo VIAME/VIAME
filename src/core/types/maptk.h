@@ -15,7 +15,7 @@
  * the types defined in maptk.
  */
 
-static sprokit::process::type_t const maptk_src_to_ref_homography( "maptk:s2r_homography" );
-static sprokit::process::type_t const maptk_image_container( "maptk:image_container_sptr" );
+static sprokit::process::type_t const maptk_src_to_ref_homography( "maptk_s2r_homography" );
+static sprokit::process::type_t const maptk_image_container( "maptk_image_container_sptr" );
 
 #endif /* _KWIVER_TYPES_MAPTK_H_ */
