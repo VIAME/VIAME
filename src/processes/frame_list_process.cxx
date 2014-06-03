@@ -12,6 +12,7 @@
 #include <core/timestamp.h>
 #include <core/config_util.h>
 
+#include <maptk/modules.h>
 #include <maptk/core/image_container.h>
 #include <maptk/core/image.h>
 #include <maptk/core/algo/image_io.h>
@@ -26,6 +27,13 @@
 #include <vector>
 #include <stdint.h>
 #include <fstream>
+
+// -- DEBUG
+#if defined DEBUG
+#include <maptk/ocv/image_container.h>
+#include <opencv2/highgui/highgui.hpp>
+using namespace cv;
+#endif
 
 namespace bfs = boost::filesystem;
 namespace algo = maptk::algo;
@@ -74,7 +82,7 @@ sprokit::process::port_t const frame_list_process::priv::port_timestamp = sproki
 sprokit::process::port_t const frame_list_process::priv::port_image = sprokit::process::port_t("image");
 
 // -- config --
-sprokit::config::key_t const frame_list_process::priv::config_image_list_filename = sprokit::config::key_t( "output_directory" );
+sprokit::config::key_t const frame_list_process::priv::config_image_list_filename = sprokit::config::key_t( "image_list_file" );
 sprokit::config::value_t const frame_list_process::priv::default_image_list_filename = sprokit::config::value_t( "" );
 
 sprokit::config::key_t const frame_list_process::priv::config_image_reader = sprokit::config::key_t( "image_reader_type" );
@@ -91,6 +99,7 @@ frame_list_process
   : process( config ),
     d( new frame_list_process::priv )
 {
+  maptk::register_modules();
   make_ports();
   make_config();
 }
@@ -120,6 +129,11 @@ void frame_list_process
 
   // instantiate image reader and converter based on config type
   algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
+  if (0 == d->m_image_reader )
+  {
+    throw sprokit::invalid_configuration_exception( name(),
+             "Error configuring \"feature_tracker\". Unable to create image reader." );
+  }
 
   sprokit::process::_configure();
 }
@@ -147,7 +161,7 @@ void frame_list_process
     {
       throw maptk::path_not_exists( d->m_files.back() );
     }
-  }
+  } // end for
 
   d->m_current_file = d->m_files.begin();
   d->m_frame_number = 0;
@@ -163,16 +177,28 @@ void frame_list_process
 
   if ( d->m_current_file != d->m_files.end() )
   {
-    ++d->m_current_file;
-
     // still have an image to read
     std::string a_file = d->m_current_file->string();
+
+    // \todo add log message
+    std::cerr << "DEBUG - reading image from file \"" << a_file << "\"\n";
 
     // read image file
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    maptk::image_container_sptr img = d->m_image_reader->load( a_file );
+    maptk::image_container_sptr img;
+    img = d->m_image_reader->load( a_file );
+
+    // --- debug
+#if defined DEBUG
+    cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img->get_image() );
+    namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
+    imshow( "Display window", image );                   // Show our image inside it.
+
+    waitKey(0);                 // Wait for a keystroke in the window
+#endif
+    // -- end debug
 
     // update timestamp
     ++d->m_frame_number;
@@ -182,9 +208,14 @@ void frame_list_process
 
     push_to_port_as< kwiver::timestamp > ( priv::port_timestamp, frame_ts );
     push_to_port_as< maptk::image_container_sptr > ( priv::port_image, img );
+
+    ++d->m_current_file;
   }
   else
   {
+    // \todo log message
+    std::cerr << "DEBUG - end of input reachhed, process terminating\n";
+
     // indicate done
     mark_process_as_complete();
     const sprokit::datum_t dat= sprokit::datum::complete_datum();
