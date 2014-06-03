@@ -10,6 +10,7 @@
 #include <types/kwiver.h>
 #include <timestamp.h>
 
+#include <maptk/modules.h>
 #include <maptk/core/image_container.h>
 #include <maptk/core/image.h>
 #include <maptk/core/homography.h>
@@ -23,16 +24,22 @@
 #include <vul/vul_file.h>
 #include <vsl/vsl_binary_io.h>
 #include <vsl/vsl_vector_io.h>
+
 #include <vil/vil_image_view.h>
 #include <vil/vil_pixel_format.h>
 #include <vil/vil_stream_core.h>
 #include <vil/file_formats/vil_jpeg.h>
+#include <vil/io/vil_io_image_view.h>
 
 #include <vnl/io/vnl_io_matrix_fixed.h>
 #include <vnl/io/vnl_io_vector_fixed.h>
-#include <vil/io/vil_io_image_view.h>
 
 #include <vnl/vnl_double_2.h>
+
+// instantiate vsl vector routine
+#include <vsl/vsl_vector_io.txx>
+VSL_VECTOR_IO_INSTANTIATE( char );
+
 
 namespace kwiver
 {
@@ -85,6 +92,7 @@ public:
   static sprokit::config::key_t const config_compress_image;
   static sprokit::config::value_t const default_compress_image;
 
+  // local storage
   std::ofstream* m_index_stream;
   std::ofstream* m_meta_stream;
   vsl_b_ostream* m_meta_bstream;
@@ -169,25 +177,34 @@ kw_archive_writer_process
 {
   std::string path = d->m_output_directory + "/" + d->m_base_filename;
 
+  // Make sure directory exists
+  vul_file::make_directory_path( d->m_output_directory );
+
   std::string index_filename = path + ".index";
   std::string meta_filename  = path + ".meta";
   std::string data_filename  = path + ".data";
 
   d->m_index_stream = new std::ofstream( index_filename.c_str(),
-                                         std::ios::out | std::ios::trunc );
+                                std::ios::out | std::ios::trunc );
+  if ( ! *d->m_index_stream )
+  {
+    std::string const reason = "Failed to open " + index_filename + " for writing";
+    throw sprokit::invalid_configuration_exception( name(), reason );
+  }
 
   if ( d->m_separate_meta )
   {
     // open metadata stream
-    d->m_meta_stream = new std::ofstream( index_filename.c_str(),
-                std::ios::out | std::ios::trunc | std::ios::binary );
+    d->m_meta_stream = new std::ofstream( meta_filename.c_str(),
+             std::ios::out | std::ios::trunc | std::ios::binary );
 
-    d->m_meta_bstream = new vsl_b_ostream( d->m_meta_stream );
     if ( ! *d->m_meta_stream )
     {
       std::string const reason = "Failed to open " + meta_filename + " for writing";
       throw sprokit::invalid_configuration_exception( name(), reason );
     }
+
+    d->m_meta_bstream = new vsl_b_ostream( d->m_meta_stream );
   }
 
   d->m_data_stream = new std::ofstream( data_filename.c_str(),
@@ -250,29 +267,29 @@ void
 kw_archive_writer_process
 ::_step()
 {
-
   // timestamp
   kwiver::timestamp frame_time = grab_input_as< kwiver::timestamp > ( priv::port_timestamp );
 
   // image
   //+ maptk::image_container_sptr img = grab_input_as< maptk::image_container_sptr > ( priv::port_image );
   maptk::image_container_sptr img = grab_from_port_as< maptk::image_container_sptr > ( priv::port_image );
-  maptk::image image= img->get_image();
+  maptk::image image = img->get_image();
 
   // homography
   //+ maptk::f2f_homography homog = grab_input_as< maptk::f2f_homography > ( priv::port_src_to_ref_homography );
   maptk::f2f_homography homog = grab_from_port_as< maptk::f2f_homography > ( priv::port_src_to_ref_homography );
 
   // corners
-  //+ kwiver::corner_points_t corners = grab_input_as< kwiver::corner_points_t > ( priv::port_corner_points );
-  kwiver::corner_points_t corners = grab_from_port_as< kwiver::corner_points_t > ( priv::port_corner_points );
+  kwiver::corner_points_t corners = grab_input_as< kwiver::corner_points_t > ( priv::port_corner_points );
 
   // gsd
   kwiver::gsd_t gsd = grab_input_as< kwiver::gsd_t > ( priv::port_gsd );
 
+  std::cerr << "DEBUG - (KWA_WRITER) processing frame " << frame_time
+            << std::endl;
 
   *d->m_index_stream
-    << static_cast< vxl_int_64 >( frame_time.get_time() ) << " "
+    << static_cast< vxl_int_64 > ( frame_time.get_time() * 1e6 ) << " " // in micro-seconds
     << static_cast< int64_t > ( d->m_data_stream->tellp() )
     << std::endl;
 
@@ -298,7 +315,9 @@ kw_archive_writer_process
   }
 
   sprokit::process::_step();
-}
+} // kw_archive_writer_process::_step
+
+
 
 
 // ----------------------------------------------------------------
@@ -335,8 +354,8 @@ kw_archive_writer_process
   declare_input_port(
     priv::port_corner_points,
     kwiver_corner_points,
-    sprokit::process::port_flags_t(), // optional
-    port_description_t( "Four corner points for image in lat/lon units." ) );
+    opt_static, // optional. possibly static
+    port_description_t( "Four corner points for image in lat/lon units, ordering ul ur lr ll." ) );
 
   declare_input_port(
     priv::port_gsd,
