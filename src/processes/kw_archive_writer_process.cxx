@@ -433,9 +433,9 @@ priv_t
   vnl_matrix_fixed< double, 3, 3 > homog;
 
   // Copy matrix into vnl format
-  for ( int x = 0; x < 2; ++x )
+  for ( int x = 0; x < 3; ++x )
   {
-    for ( int y = 0; y < 2; ++y )
+    for ( int y = 0; y < 3; ++y )
     {
       homog( x, y ) = matrix( x, y );
     }
