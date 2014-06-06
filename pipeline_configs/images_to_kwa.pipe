@@ -9,6 +9,7 @@ process input
 # Input file containing new-line separated paths to sequential image
 # files.
   :image_list_file ../test_area/input_image_list.txt
+  :frame_time .9
 
 # Algorithm to use for 'image_reader'.
 # Must be one of the following options:
@@ -171,7 +172,7 @@ process stabilize
   :feature_tracker:default:loop_closer:multi_method:method2:vxl_homography_guided:checkpoint_percent_overlap      0.85
 
 # Optional output location for a homography text file.
-  :feature_tracker:default:loop_closer:multi_method:method2:vxl_homography_guided:homography_filename      homog_file.txt
+#  :feature_tracker:default:loop_closer:multi_method:method2:vxl_homography_guided:homography_filename      ../test_area/homog_file.txt
 
 # Maximum past search distance in terms of number of frames.
   :feature_tracker:default:loop_closer:multi_method:method2:vxl_homography_guided:max_checkpoint_frames      1000
@@ -278,7 +279,7 @@ process writer
 
 # directory for the output files. Relative to where the program
 # is run
-  :output_directory      ../test_area/kwa_2
+  :output_directory      ../test_area/kwa_1
 
 # base name for all files of the archive
   :base_filename      kw_archive
