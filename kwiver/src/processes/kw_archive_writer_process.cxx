@@ -6,9 +6,10 @@
 
 #include "kw_archive_writer_process.h"
 
-#include <types/maptk.h>
-#include <types/kwiver.h>
+#include <sprokit_traits.h>
+
 #include <timestamp.h>
+#include <types/kwiver.h>
 
 #include <maptk/modules.h>
 #include <maptk/core/image_container.h>
@@ -43,6 +44,18 @@ VSL_VECTOR_IO_INSTANTIATE( char );
 
 namespace kwiver
 {
+
+//+ TEST CODE
+
+  // -- config items --
+  create_config_trait( output_directory, std::string, ".", "Output directory where KWA will be written" );
+  create_config_trait( base_filename, std::string, "", "Base file name (no extension) for KWA component files" );
+  create_config_trait( separate_meta, bool, "true", "Whether to write separate .meta file" );
+  create_config_trait( mission_id, std::string, "", "Mission ID to store in archive" );
+  create_config_trait( stream_id, std::string, "", "Stream ID to store in archive" );
+  create_config_trait( compress_image, bool, "true", "Whether to compress image data stored in archive" );
+
+// + end TEST CODE
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -333,6 +346,13 @@ kw_archive_writer_process
   opt_static.insert( flag_input_static );
 
   // declare input ports
+  declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( image, required );
+  declare_input_port_using_trait( src_to_ref_homography, required );
+  declare_input_port_using_trait( corner_points, opt_static );
+  declare_input_port_using_trait( gsd, opt_static );
+
+/*
   declare_input_port(
     priv::port_timestamp,
     kwiver_timestamp,
@@ -362,6 +382,8 @@ kw_archive_writer_process
     kwiver_gsd,
     opt_static, // optional, possibly static
     port_description_t( "GSD for image in meters per pixel." ) );
+*/
+
 }
 
 
@@ -370,7 +392,14 @@ void
 kw_archive_writer_process
 ::make_config()
 {
+  declare_config_using_trait( output_directory );
+  declare_config_using_trait( base_filename );
+  declare_config_using_trait( separate_meta );
+  declare_config_using_trait( mission_id );
+  declare_config_using_trait( stream_id );
+  declare_config_using_trait( compress_image );
 
+/*
   declare_configuration_key(
     priv::config_output_directory,
     priv::default_output_directory,
@@ -400,6 +429,7 @@ kw_archive_writer_process
     priv::config_compress_image,
     priv::default_compress_image,
     sprokit::config::description_t( "Whether to compress image data stored in archive" ));
+*/
 }
 
 
