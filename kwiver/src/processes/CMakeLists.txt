@@ -33,7 +33,7 @@ set_target_properties( kwiver_processes PROPERTIES
   VERSION ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION}
 )
 
-add_dependencies( kwiver_processes sprokit maptk VXL )
+add_dependencies( kwiver_processes kwiver_core sprokit maptk VXL )
 
 set( maptk_libs maptk_core maptk_vxl )
 if (KWIVER_ENABLE_OPENCV)
