@@ -6,7 +6,8 @@
 
 #include "frame_list_process.h"
 
-#include <types/maptk.h>
+#include <sprokit_traits.h>
+
 #include <types/kwiver.h>
 #include <core/exceptions.h>
 #include <core/timestamp.h>
@@ -41,6 +42,10 @@ namespace algo = maptk::algo;
 namespace kwiver
 {
 
+  create_config_trait( image_list_filename, std::string, "", "Name of file that contains list of image file names." );
+  create_config_trait( image_reader, std::string, "", "Image reader type. Must be \"ocv\" or \"vxl\"" );
+  create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds" );
+
 //----------------------------------------------------------------
 // Private implementation class
 class frame_list_process::priv
@@ -49,22 +54,10 @@ public:
   priv();
   ~priv();
 
-
-  static sprokit::process::port_t const port_timestamp;
-  static sprokit::process::port_t const port_image;
-
   // Configuration values
   std::string m_config_image_list_filename;
-  static sprokit::config::key_t const config_image_list_filename;
-  static sprokit::config::value_t const default_image_list_filename;
-
   std::string m_config_image_reader;
-  static sprokit::config::key_t const config_image_reader;
-  static sprokit::config::value_t const default_image_reader;
-
   double m_config_frame_time;
-  static sprokit::config::key_t const config_frame_time;
-  static sprokit::config::value_t const default_frame_time;
 
   // process local data
   std::vector < maptk::path_t > m_files;
@@ -76,20 +69,6 @@ public:
   algo::image_io_sptr m_image_reader;
 
 }; // end priv class
-
-// -- ports --
-sprokit::process::port_t const frame_list_process::priv::port_timestamp = sprokit::process::port_t("timestamp");
-sprokit::process::port_t const frame_list_process::priv::port_image = sprokit::process::port_t("image");
-
-// -- config --
-sprokit::config::key_t const frame_list_process::priv::config_image_list_filename = sprokit::config::key_t( "image_list_file" );
-sprokit::config::value_t const frame_list_process::priv::default_image_list_filename = sprokit::config::value_t( "" );
-
-sprokit::config::key_t const frame_list_process::priv::config_image_reader = sprokit::config::key_t( "image_reader_type" );
-sprokit::config::value_t const frame_list_process::priv::default_image_reader = sprokit::config::value_t( "" );
-
-sprokit::config::key_t const frame_list_process::priv::config_frame_time = sprokit::config::key_t( "frame_time" );
-sprokit::config::value_t const frame_list_process::priv::default_frame_time = sprokit::config::value_t( "0.03333333333" ); // 30 Hz
 
 
 // ================================================================
@@ -117,9 +96,9 @@ void frame_list_process
 {
 
   // Examine the configuration
-  d->m_config_image_list_filename = config_value< std::string > ( frame_list_process::priv::config_image_list_filename );
-  d->m_config_image_reader        = config_value< std::string > ( frame_list_process::priv::config_image_reader );
-  d->m_config_frame_time          = config_value< double > ( frame_list_process::priv::config_frame_time );
+  d->m_config_image_list_filename = config_value_using_trait( image_list_filename );
+  d->m_config_image_reader        = config_value_using_trait( image_reader );
+  d->m_config_frame_time          = config_value_using_trait( frame_time );
 
   // Convert sprokit config to maptk config for algorithms
   sprokit::config_t proc_config = get_config(); // config for process
@@ -206,8 +185,8 @@ void frame_list_process
 
     kwiver::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
 
-    push_to_port_as< kwiver::timestamp > ( priv::port_timestamp, frame_ts );
-    push_to_port_as< maptk::image_container_sptr > ( priv::port_image, img );
+    push_to_port_using_trait( timestamp, frame_ts );
+    push_to_port_using_trait( image, img );
 
     ++d->m_current_file;
   }
@@ -220,8 +199,8 @@ void frame_list_process
     mark_process_as_complete();
     const sprokit::datum_t dat= sprokit::datum::complete_datum();
 
-    push_datum_to_port( priv::port_timestamp, dat );
-    push_datum_to_port( priv::port_image, dat );
+    push_datum_to_port_using_trait( timestamp, dat );
+    push_datum_to_port_using_trait( image, dat );
   }
 
   sprokit::process::_step();
@@ -236,17 +215,8 @@ void frame_list_process
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
 
-  declare_output_port(
-    priv::port_timestamp,
-    kwiver_timestamp,
-    required,
-    port_description_t( "Timestamp for input image." ) );
-
-  declare_output_port(
-    priv::port_image,
-    maptk_image_container,
-    required,
-    port_description_t( "Single frame image." ) );
+  declare_output_port_using_trait( timestamp, required );
+  declare_output_port_using_trait( image, required );
 }
 
 
@@ -254,20 +224,9 @@ void frame_list_process
 void frame_list_process
 ::make_config()
 {
-  declare_configuration_key(
-    priv::config_image_list_filename,
-    priv::default_image_list_filename,
-    sprokit::config::description_t( "Name of file that contains list of image file names." ));
-
-  declare_configuration_key(
-    priv::config_image_reader,
-    priv::default_image_reader,
-    sprokit::config::description_t( "Image reader type. Must be \"ocv\" or \"vxl\"" ));
-
-  declare_configuration_key(
-    priv::config_frame_time,
-    priv::default_frame_time,
-    sprokit::config::description_t( "Inter frame time in seconds" ));
+  declare_config_using_trait( image_list_filename );
+  declare_config_using_trait( image_reader );
+  declare_config_using_trait( frame_time );
 }
 
 

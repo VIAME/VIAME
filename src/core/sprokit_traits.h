@@ -82,4 +82,7 @@ grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 #define grab_input_using_trait(PN) grab_input_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 #define grab_from_port_using_trait(PN) grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 
+#define push_to_port_using_trait(PN, VAL) push_to_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name, VAL )
+#define push_datum_to_port_using_trait(PN,VAL) push_datum_to_port( PN ## _port_trait::port_name, VAL )
+
 #endif /* _KWIVER_SPROKIT_TRAITS_H_ */
