@@ -1,8 +1,9 @@
 #
-# Top level build script for KWIVER
+# Top level build script for kwiver-build
 #
 cmake_minimum_required(VERSION 2.8.3)
 enable_testing()
+
 project(KWIVER)
 
 include(CMakeDependentOption)
@@ -30,7 +31,7 @@ set(CMAKE_LIBRARY_PATH ${KWIVER_BUILD_INSTALL_PREFIX}/lib)
 set(KWIVER_LINKER_FLAGS -L${CMAKE_LIBRARY_PATH})
 
 # ================================================================
-option(KWIVER_ENABLE_OPENCV "Enable OpenCV-dependent code" "ON" )
+option(KWIVER_ENABLE_OPENCV "Enable OpenCV-dependent code" ON )
 
 find_package(Boost 1.48 REQUIRED
   COMPONENTS
@@ -140,12 +141,9 @@ include(External_maptk)
 include(External_sprokit)
 
 # ================================================================
-include_directories( src/core )
-include_directories( src )
-
 link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 
-add_subdirectory( src )
+add_subdirectory( kwiver )
 
 # ================================================================
 # build documentation
