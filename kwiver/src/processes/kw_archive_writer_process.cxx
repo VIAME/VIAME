@@ -61,7 +61,7 @@ public:
   void write_frame_data(vsl_b_ostream& stream,
                         bool write_image,
                         kwiver::timestamp const& time,
-                        kwiver::corner_points_t const& corners,
+                        kwiver::geo_polygon_t const& corners,
                         maptk::image const& img,
                         maptk::f2f_homography const& homog,
                         kwiver::gsd_t gsd);
@@ -241,7 +241,7 @@ kw_archive_writer_process
   maptk::f2f_homography homog = grab_from_port_using_trait( src_to_ref_homography );
 
   // corners
-  kwiver::corner_points_t corners = grab_input_using_trait( corner_points );
+  kwiver::geo_polygon_t corners = grab_input_using_trait( corner_points );
 
   // gsd
   kwiver::gsd_t gsd = grab_input_using_trait( gsd );
@@ -322,7 +322,7 @@ priv_t
 ::write_frame_data(vsl_b_ostream& stream,
                    bool write_image,
                    kwiver::timestamp const& time,
-                   kwiver::corner_points_t const& corner_pts,
+                   kwiver::geo_polygon_t const& corner_pts,
                    maptk::image const& img,
                    maptk::f2f_homography const& s2r_homog,
                    double gsd)

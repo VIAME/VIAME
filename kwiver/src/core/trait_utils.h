@@ -4,8 +4,9 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef _KWIVER_SPROKIT_TRAITS_H_
-#define _KWIVER_SPROKIT_TRAITS_H_
+#ifndef _KWIVER_TRAIT_UTILS_H_
+#define _KWIVER_TRAIT_UTILS_H_
+
 
 #include <sprokit/pipeline/process.h>
 
@@ -35,7 +36,7 @@ declare_configuration_key( KEY ## _config_trait::key,           \
 #define config_value_using_trait(KEY) config_value< KEY ## _config_trait::type >( KEY ## _config_trait::key )
 
 
-// Type trait consists of canonical type name and underlying type
+// Type trait consists of canonical type name and concrete type
 #define create_type_trait( TN, TYPE)                                    \
 namespace { struct TN ## _type_trait {                                  \
   static const sprokit::process::type_t name;                           \
@@ -85,4 +86,4 @@ grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 #define push_to_port_using_trait(PN, VAL) push_to_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name, VAL )
 #define push_datum_to_port_using_trait(PN,VAL) push_datum_to_port( PN ## _port_trait::port_name, VAL )
 
-#endif /* _KWIVER_SPROKIT_TRAITS_H_ */
+#endif /* _KWIVER_TRAIT_UTILS_H_ */

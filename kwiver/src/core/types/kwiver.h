@@ -14,7 +14,7 @@
 #include <maptk/core/homography.h>
 #include <maptk/core/image_container.h>
 
-#include <sprokit_traits.h>
+#include <trait_utils.h>
 
 
 namespace kwiver
@@ -28,7 +28,7 @@ namespace kwiver
 
 // -- concrete types --
 typedef double gsd_t;
-typedef std::vector < kwiver::geo_lat_lon > corner_points_t;
+typedef std::vector < kwiver::geo_lat_lon > geo_polygon_t;
 
 
 /**
@@ -37,12 +37,14 @@ typedef std::vector < kwiver::geo_lat_lon > corner_points_t;
  * This operator converts a string to a corner points object. The
  * format of the string is "ul_lat ul_lon ur_lat ur_lon lr_lat lr_lon ll_lat ll_lon"
  *
+ *
+ *
  * @param str Stream to read from
  * @param obj Object to receive values
  *
  * @return
  */
-std::istream& operator>> ( std::istream& str, corner_points_t& obj );
+std::istream& operator>> ( std::istream& str, geo_polygon_t& obj );
 
 
 // ================================================================
@@ -52,7 +54,7 @@ std::istream& operator>> ( std::istream& str, corner_points_t& obj );
 //
 create_type_trait( timestamp, kwiver::timestamp );
 create_type_trait( gsd, gsd_t );
-create_type_trait( corner_points, kwiver::corner_points_t );
+create_type_trait( corner_points, kwiver::geo_polygon_t );
 create_type_trait( image, maptk::image_container_sptr );
 create_type_trait( homography, maptk::f2f_homography );
 

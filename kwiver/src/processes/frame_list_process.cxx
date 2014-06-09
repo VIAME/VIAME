@@ -6,8 +6,6 @@
 
 #include "frame_list_process.h"
 
-#include <sprokit_traits.h>
-
 #include <types/kwiver.h>
 #include <core/exceptions.h>
 #include <core/timestamp.h>

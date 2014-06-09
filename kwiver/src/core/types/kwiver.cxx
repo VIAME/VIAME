@@ -14,7 +14,8 @@ namespace kwiver
 {
 
 // This is not robust and should be rewritten as such.
-std::istream& operator>> ( std::istream& str, corner_points_t& obj )
+// needs to handle a real polygon
+std::istream& operator>> ( std::istream& str, geo_polygon_t& obj )
 {
   double val[8];
 
