@@ -26,10 +26,6 @@ namespace kwiver
  * in the sprokit pipeline.
  */
 
-static sprokit::process::type_t const kwiver_corner_points( "kwiver_corner_points_ul_ur_lr_ll" );
-static sprokit::process::type_t const kwiver_gsd( "kwiver_meters_per_pixel" );
-static sprokit::process::type_t const kwiver_timestamp( "kwiver_timestamp" );
-
 // -- concrete types --
 typedef double gsd_t;
 typedef std::vector < kwiver::geo_lat_lon > corner_points_t;

@@ -42,7 +42,8 @@ namespace algo = maptk::algo;
 namespace kwiver
 {
 
-  create_config_trait( image_list_filename, std::string, "", "Name of file that contains list of image file names." );
+  // (config-key, value-type, default-value, description )
+  create_config_trait( image_list_file, std::string, "", "Name of file that contains list of image file names." );
   create_config_trait( image_reader, std::string, "", "Image reader type. Must be \"ocv\" or \"vxl\"" );
   create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds" );
 
@@ -96,7 +97,7 @@ void frame_list_process
 {
 
   // Examine the configuration
-  d->m_config_image_list_filename = config_value_using_trait( image_list_filename );
+  d->m_config_image_list_filename = config_value_using_trait( image_list_file );
   d->m_config_image_reader        = config_value_using_trait( image_reader );
   d->m_config_frame_time          = config_value_using_trait( frame_time );
 
@@ -224,7 +225,7 @@ void frame_list_process
 void frame_list_process
 ::make_config()
 {
-  declare_config_using_trait( image_list_filename );
+  declare_config_using_trait( image_list_file );
   declare_config_using_trait( image_reader );
   declare_config_using_trait( frame_time );
 }

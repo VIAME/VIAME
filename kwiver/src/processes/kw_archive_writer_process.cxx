@@ -6,9 +6,6 @@
 
 #include "kw_archive_writer_process.h"
 
-#include <sprokit_traits.h>
-
-#include <timestamp.h>
 #include <types/kwiver.h>
 
 #include <maptk/modules.h>
