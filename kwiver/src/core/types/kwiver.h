@@ -7,10 +7,15 @@
 #ifndef _KWIVER_TYPES_KWIVER_H_
 #define _KWIVER_TYPES_KWIVER_H_
 
-#include <sprokit/pipeline/process.h>
-
 #include <vector>
 #include <geo_lat_lon.h>
+#include <timestamp.h>
+
+#include <maptk/core/homography.h>
+#include <maptk/core/image_container.h>
+
+#include <sprokit_traits.h>
+
 
 namespace kwiver
 {
@@ -21,13 +26,10 @@ namespace kwiver
  * in the sprokit pipeline.
  */
 
-static sprokit::process::type_t const kwiver_corner_points( "kwiver_corner_points_ul_ur_lr_ll" );
-static sprokit::process::type_t const kwiver_gsd( "kwiver_meters_per_pixel" );
-static sprokit::process::type_t const kwiver_timestamp( "kwiver_timestamp" );
-
 // -- concrete types --
 typedef double gsd_t;
 typedef std::vector < kwiver::geo_lat_lon > corner_points_t;
+
 
 /**
  * \brief Corner points input operator.
@@ -41,6 +43,30 @@ typedef std::vector < kwiver::geo_lat_lon > corner_points_t;
  * @return
  */
 std::istream& operator>> ( std::istream& str, corner_points_t& obj );
+
+
+// ================================================================
+//
+// Create type traits for common pipeline tipes.
+// ( type-trait-name, concrete-type )
+//
+create_type_trait( timestamp, kwiver::timestamp );
+create_type_trait( gsd, gsd_t );
+create_type_trait( corner_points, kwiver::corner_points_t );
+create_type_trait( image, maptk::image_container_sptr );
+create_type_trait( homography, maptk::f2f_homography );
+
+// ================================================================
+//
+// Create port traits for common port types.
+// ( port-name, type-trait-name, "port-description" )
+//
+create_port_trait( timestamp, timestamp, "Timestamp for input image." );
+create_port_trait( corner_points, corner_points, "Four corner points for image in lat/lon units, ordering ul ur lr ll." );
+create_port_trait( gsd, gsd, "GSD for image in meters per pixel." );
+create_port_trait( image, image, "Single frame image." );
+create_port_trait( src_to_ref_homography, homography, "Source image to ref image homography." );
+
 
 } // end namespace
 #endif /* _KWIVER_TYPES_KWIVER_H_ */

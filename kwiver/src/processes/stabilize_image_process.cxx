@@ -4,10 +4,8 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-
 #include "stabilize_image_process.h"
 
-#include <types/maptk.h>
 #include <types/kwiver.h>
 #include <core/exceptions.h>
 #include <core/timestamp.h>
@@ -32,7 +30,6 @@
 using namespace cv;
 #endif
 
-
 namespace kwiver
 {
 
@@ -43,13 +40,6 @@ class stabilize_image_process::priv
 public:
   priv();
   ~priv();
-
-  // -- inputs --
-  static sprokit::process::port_t const port_timestamp;
-  static sprokit::process::port_t const port_image;
-
-  // -- outputs --
-  static sprokit::process::port_t const port_homography;
 
 
   // Configuration values
@@ -64,14 +54,6 @@ public:
   maptk::track_set_sptr m_tracks; // last set of tracks
 
 }; // end priv class
-
-// -- config --
-
-// -- ports --
-sprokit::process::port_t const stabilize_image_process::priv::port_timestamp = sprokit::process::port_t("timestamp");
-sprokit::process::port_t const stabilize_image_process::priv::port_image = sprokit::process::port_t("image");
-
-sprokit::process::port_t const stabilize_image_process::priv::port_homography = sprokit::process::port_t("src_to_ref_homography");
 
 // ================================================================
 
@@ -130,11 +112,11 @@ stabilize_image_process
   maptk::f2f_homography_sptr src_to_ref_homography;
 
   // timestamp
-  kwiver::timestamp frame_time = grab_input_as< kwiver::timestamp > ( priv::port_timestamp );
+  kwiver::timestamp frame_time = grab_input_using_trait( timestamp );
 
   // image
-  //+ maptk::image_container_sptr img = grab_input_as< maptk::image_container_sptr > ( priv::port_image );
-  maptk::image_container_sptr img = grab_from_port_as< maptk::image_container_sptr > ( priv::port_image );
+  //+ maptk::image_container_sptr img = grab_input_using_trait( image );
+  maptk::image_container_sptr img = grab_from_port_using_trait( image );
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
   std::cerr << "DEBUG - (stab image) Processing frame " << frame_time
@@ -149,14 +131,14 @@ stabilize_image_process
   waitKey( 0 );
 #endif                                        // Wait for a keystroke in the window
   // -- end debug
-  // Get feature trac
+  // Get feature tracks
   d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
 
   // Get stabilization homography
   src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
 
   // return by value
-  push_to_port_as< maptk::f2f_homography > ( priv::port_homography, *src_to_ref_homography );
+  push_to_port_using_trait( src_to_ref_homography, *src_to_ref_homography );
 
   sprokit::process::_step();
 }
@@ -171,24 +153,10 @@ void stabilize_image_process
   required.insert( flag_required );
 
   // -- input --
-  declare_input_port(
-    priv::port_timestamp,
-    kwiver_timestamp,
-    required,
-    port_description_t( "Timestamp for input image." ) );
+  declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( image, required );
 
-  declare_input_port(
-    priv::port_image,
-    maptk_image_container,
-    required,
-    port_description_t( "Single frame image." ) );
-
-  // -- output --
-  declare_output_port(
-    priv::port_homography,
-    maptk_src_to_ref_homography,
-    required,
-    port_description_t( "current to ref image homography." ) );
+  declare_output_port_using_trait( src_to_ref_homography, required );
 }
 
 
