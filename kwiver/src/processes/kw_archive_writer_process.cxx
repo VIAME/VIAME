@@ -45,8 +45,6 @@ VSL_VECTOR_IO_INSTANTIATE( char );
 namespace kwiver
 {
 
-//+ TEST CODE
-
   // -- config items --
   create_config_trait( output_directory, std::string, ".", "Output directory where KWA will be written" );
   create_config_trait( base_filename, std::string, "", "Base file name (no extension) for KWA component files" );
@@ -54,8 +52,6 @@ namespace kwiver
   create_config_trait( mission_id, std::string, "", "Mission ID to store in archive" );
   create_config_trait( stream_id, std::string, "", "Stream ID to store in archive" );
   create_config_trait( compress_image, bool, "true", "Whether to compress image data stored in archive" );
-
-// + end TEST CODE
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -82,28 +78,11 @@ public:
 
   // Configuration values
   std::string m_output_directory;
-  static sprokit::config::key_t const config_output_directory;
-  static sprokit::config::value_t const default_output_directory;
-
   std::string m_base_filename;
-  static sprokit::config::key_t const config_base_filename;
-  static sprokit::config::value_t const default_base_filename;
-
   bool m_separate_meta;
-  static sprokit::config::key_t const config_separate_meta;
-  static sprokit::config::value_t const default_separate_meta;
-
   std::string m_mission_id;
-  static sprokit::config::key_t const config_mission_id;
-  static sprokit::config::value_t const default_mission_id;
-
   std::string m_stream_id;
-  static sprokit::config::key_t const config_stream_id;
-  static sprokit::config::value_t const default_stream_id;
-
   bool m_compress_image;
-  static sprokit::config::key_t const config_compress_image;
-  static sprokit::config::value_t const default_compress_image;
 
   // local storage
   std::ofstream* m_index_stream;
@@ -117,35 +96,7 @@ public:
 
 }; // end priv class
 
-
 #define priv_t kw_archive_writer_process::priv
-
-// -- config --
-sprokit::config::key_t const priv_t::config_output_directory = sprokit::config::key_t( "output_directory" );
-sprokit::config::value_t const priv_t::default_output_directory = sprokit::config::value_t( "." );
-
-sprokit::config::key_t const priv_t::config_base_filename = sprokit::config::key_t( "base_filename" );
-sprokit::config::value_t const priv_t::default_base_filename = sprokit::config::value_t( "kw_archive" );
-
-sprokit::config::key_t const priv_t::config_separate_meta = sprokit::config::key_t( "separate_meta" );
-sprokit::config::value_t const priv_t::default_separate_meta = sprokit::config::value_t( "true" );
-
-sprokit::config::key_t const priv_t::config_mission_id = sprokit::config::key_t( "mission_id" );
-sprokit::config::value_t const priv_t::default_mission_id = sprokit::config::value_t( "" );
-
-sprokit::config::key_t const priv_t::config_stream_id = sprokit::config::key_t( "stream_id" );
-sprokit::config::value_t const priv_t::default_stream_id = sprokit::config::value_t( "" );
-
-sprokit::config::key_t const priv_t::config_compress_image = sprokit::config::key_t( "compress_image" );
-sprokit::config::value_t const priv_t::default_compress_image = sprokit::config::value_t( "true" );
-
-// -- ports --
-sprokit::process::port_t const priv_t::port_timestamp = sprokit::process::port_t("timestamp");
-sprokit::process::port_t const priv_t::port_image = sprokit::process::port_t("image");
-sprokit::process::port_t const priv_t::port_src_to_ref_homography = sprokit::process::port_t("src_to_ref_homography");
-sprokit::process::port_t const priv_t::port_corner_points = sprokit::process::port_t("corner_points");
-sprokit::process::port_t const priv_t::port_gsd = sprokit::process::port_t("gsd");
-
 
 // ================================================================
 
@@ -171,12 +122,12 @@ kw_archive_writer_process
 ::_configure()
 {
   // Examine the configuration
-  d->m_output_directory = config_value< std::string > ( priv_t::config_output_directory );
-  d->m_base_filename    = config_value< std::string > ( priv_t::config_base_filename );
-  d->m_separate_meta    = config_value< bool > ( priv_t::config_separate_meta );
-  d->m_mission_id       = config_value< std::string > ( priv_t::config_mission_id );
-  d->m_stream_id        = config_value< std::string > ( priv_t::config_mission_id );
-  d->m_compress_image   = config_value< bool > ( priv_t::config_compress_image );
+  d->m_output_directory = config_value_using_trait( output_directory );
+  d->m_base_filename    = config_value_using_trait( base_filename );
+  d->m_separate_meta    = config_value_using_trait( separate_meta );
+  d->m_mission_id       = config_value_using_trait( mission_id );
+  d->m_stream_id        = config_value_using_trait( mission_id );
+  d->m_compress_image   = config_value_using_trait( compress_image );
 
   sprokit::process::_configure();
 }
@@ -281,22 +232,22 @@ kw_archive_writer_process
 ::_step()
 {
   // timestamp
-  kwiver::timestamp frame_time = grab_input_as< kwiver::timestamp > ( priv::port_timestamp );
+  kwiver::timestamp frame_time = grab_input_using_trait( timestamp );
 
   // image
   //+ maptk::image_container_sptr img = grab_input_as< maptk::image_container_sptr > ( priv::port_image );
-  maptk::image_container_sptr img = grab_from_port_as< maptk::image_container_sptr > ( priv::port_image );
+  maptk::image_container_sptr img = grab_from_port_using_trait( image );
   maptk::image image = img->get_image();
 
   // homography
   //+ maptk::f2f_homography homog = grab_input_as< maptk::f2f_homography > ( priv::port_src_to_ref_homography );
-  maptk::f2f_homography homog = grab_from_port_as< maptk::f2f_homography > ( priv::port_src_to_ref_homography );
+  maptk::f2f_homography homog = grab_from_port_using_trait( src_to_ref_homography );
 
   // corners
-  kwiver::corner_points_t corners = grab_input_as< kwiver::corner_points_t > ( priv::port_corner_points );
+  kwiver::corner_points_t corners = grab_input_using_trait( corner_points );
 
   // gsd
-  kwiver::gsd_t gsd = grab_input_as< kwiver::gsd_t > ( priv::port_gsd );
+  kwiver::gsd_t gsd = grab_input_using_trait( gsd );
 
   std::cerr << "DEBUG - (KWA_WRITER) processing frame " << frame_time
             << std::endl;
@@ -351,39 +302,6 @@ kw_archive_writer_process
   declare_input_port_using_trait( src_to_ref_homography, required );
   declare_input_port_using_trait( corner_points, opt_static );
   declare_input_port_using_trait( gsd, opt_static );
-
-/*
-  declare_input_port(
-    priv::port_timestamp,
-    kwiver_timestamp,
-    required,
-    port_description_t( "Timestamp for input image." ) );
-
-  declare_input_port(
-    priv::port_image,
-    maptk_image_container,
-    required,
-    port_description_t( "Single frame image." ) );
-
-  declare_input_port(
-    priv::port_src_to_ref_homography,
-    maptk_src_to_ref_homography,
-    required,
-    port_description_t( "Source image to ref image homography" ) );
-
-  declare_input_port(
-    priv::port_corner_points,
-    kwiver_corner_points,
-    opt_static, // optional. possibly static
-    port_description_t( "Four corner points for image in lat/lon units, ordering ul ur lr ll." ) );
-
-  declare_input_port(
-    priv::port_gsd,
-    kwiver_gsd,
-    opt_static, // optional, possibly static
-    port_description_t( "GSD for image in meters per pixel." ) );
-*/
-
 }
 
 
@@ -398,38 +316,6 @@ kw_archive_writer_process
   declare_config_using_trait( mission_id );
   declare_config_using_trait( stream_id );
   declare_config_using_trait( compress_image );
-
-/*
-  declare_configuration_key(
-    priv::config_output_directory,
-    priv::default_output_directory,
-    sprokit::config::description_t( "Output directory where KWA will be written" ));
-
-  declare_configuration_key(
-    priv::config_base_filename,
-    priv::default_base_filename,
-    sprokit::config::description_t( "Base file name (no extension) for KWA component files" ));
-
-  declare_configuration_key(
-    priv::config_separate_meta,
-    priv::default_separate_meta,
-    sprokit::config::description_t( "Whether to write separate .meta file" ));
-
-  declare_configuration_key(
-    priv::config_mission_id,
-    priv::default_mission_id,
-    sprokit::config::description_t( "Mission ID to store in archive" ));
-
-  declare_configuration_key(
-    priv::config_stream_id,
-    priv::default_stream_id,
-    sprokit::config::description_t( "Stream ID to store in archive" ));
-
-  declare_configuration_key(
-    priv::config_compress_image,
-    priv::default_compress_image,
-    sprokit::config::description_t( "Whether to compress image data stored in archive" ));
-*/
 }
 
 
