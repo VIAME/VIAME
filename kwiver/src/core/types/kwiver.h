@@ -28,11 +28,16 @@ namespace kwiver
 
 // -- concrete types --
 typedef double gsd_t;
+
+/// \todo establish and document proper semantics for a polygon.
+/// E.G. generally starts in upper left, proceeds around clockwise.
+/// Is a closed figure, last point is connected back to first point.
+/// Could wrap in a class to provide data abstraction.
 typedef std::vector < kwiver::geo_lat_lon > geo_polygon_t;
 
 
 /**
- * \brief Corner points input operator.
+ * \brief Geo polygon input operator.
  *
  * This operator converts a string to a corner points object. The
  * format of the string is "ul_lat ul_lon ur_lat ur_lon lr_lat lr_lon ll_lat ll_lon"
@@ -49,14 +54,15 @@ std::istream& operator>> ( std::istream& str, geo_polygon_t& obj );
 
 // ================================================================
 //
-// Create type traits for common pipeline tipes.
-// ( type-trait-name, concrete-type )
+// Create type traits for common pipeline types.
+// ( type-trait-name, "canonical_type_name", concrete-type )
 //
-create_type_trait( timestamp, kwiver::timestamp );
-create_type_trait( gsd, gsd_t );
-create_type_trait( corner_points, kwiver::geo_polygon_t );
-create_type_trait( image, maptk::image_container_sptr );
-create_type_trait( homography, maptk::f2f_homography );
+create_type_trait( timestamp, "kwiver:timestamp", kwiver::timestamp );
+create_type_trait( gsd, "kwiver:gsd", gsd_t );
+create_type_trait( corner_points, "corner_points", kwiver::geo_polygon_t );
+create_type_trait( image, "image_container", maptk::image_container_sptr ); // polymorphic type must pass by reference
+create_type_trait( homography, "s2r_homography", maptk::f2f_homography );
+
 
 // ================================================================
 //
