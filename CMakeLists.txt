@@ -32,6 +32,9 @@ set(KWIVER_LINKER_FLAGS -L${CMAKE_LIBRARY_PATH})
 
 # ================================================================
 option(KWIVER_ENABLE_OPENCV "Enable OpenCV-dependent code" ON )
+option(Boost_USE_STATIC_LIBS "Use a statically-linked Boost" OFF)
+
+set(BOOST_ROOT "" CACHE PATH "Location of boost install")
 
 find_package(Boost 1.48 REQUIRED
   COMPONENTS
@@ -45,6 +48,7 @@ find_package(Boost 1.48 REQUIRED
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
+set(BOOST_root ${Boost_LIBRARY_DIR}/..)
 
 # ================================================================
 # project global includes
@@ -112,6 +116,27 @@ set(KWIVER_ARGS_COMMON_COMPILER
   -DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_C_FLAGS_RELWITHDEBINFO}
   )
 
+set(KWIVER_ARGS_COMMON_BOOST
+  # Boost files and options
+  -DBOOST_ROOT=${BOOST_root}
+  -DBoost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}
+  -DBoost_LIBRARY_DIR=${Boost_LIBRARY_DIRS}
+  -DBoost_USE_STATIC_LIBS=${Boost_USE_STATIC_LIBS}
+
+  -DBoost_CHRONO_LIBRARY_DEBUG=${Boost_CHRONO_LIBRARY_DEBUG}
+  -DBoost_CHRONO_LIBRARY_RELEASE=${Boost_CHRONO_LIBRARY_RELEASE}
+  -DBoost_DATE_TIME_LIBRARY_DEBUG=${Boost_DATE_TIME_LIBRARY_DEBUG}
+  -DBoost_DATE_TIME_LIBRARY_RELEASE=${Boost_DATE_TIME_LIBRARY_RELEASE}
+  -DBoost_FILESYSTEM_LIBRARY_DEBUG=${Boost_FILESYSTEM_LIBRARY_DEBUG}
+  -DBoost_FILESYSTEM_LIBRARY_RELEASE=${Boost_FILESYSTEM_LIBRARY_RELEASE}
+  -DBoost_PROGRAM_OPTIONS_LIBRARY_DEBUG=${Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG}
+  -DBoost_PROGRAM_OPTIONS_LIBRARY_RELEASE=${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE}
+  -DBoost_SYSTEM_LIBRARY_DEBUG=${Boost_SYSTEM_LIBRARY_DEBUG}
+  -DBoost_SYSTEM_LIBRARY_RELEASE=${Boost_SYSTEM_LIBRARY_RELEASE}
+  -DBoost_THREAD_LIBRARY_DEBUG=${Boost_THREAD_LIBRARY_DEBUG}
+  -DBoost_THREAD_LIBRARY_RELEASE=${Boost_THREAD_LIBRARY_RELEASE}
+)
+
 set( KWIVER_ARGS_OPENCV )
 
 if( KWIVER_ENABLE_OPENCV )
@@ -131,6 +156,7 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
                        ${KWIVER_ARGS_OPENCV}
                        ${KWIVER_ARGS_COMMON_COMPILER}
                        ${KWIVER_ARGS_COMMON_LINKER}
+                       ${KWIVER_ARGS_COMMON_BOOST}
   )
 
 # ================================================================
