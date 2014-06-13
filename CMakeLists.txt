@@ -31,6 +31,7 @@ set(CMAKE_LIBRARY_PATH ${KWIVER_BUILD_INSTALL_PREFIX}/lib)
 set(KWIVER_LINKER_FLAGS -L${CMAKE_LIBRARY_PATH})
 
 # ================================================================
+option(KWIVER_ENABLE_PYTHON "Enable PYTHON bindings" OFF )
 option(KWIVER_ENABLE_OPENCV "Enable OpenCV-dependent code" ON )
 option(Boost_USE_STATIC_LIBS "Use a statically-linked Boost" OFF)
 
