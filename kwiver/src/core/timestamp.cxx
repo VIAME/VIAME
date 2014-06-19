@@ -6,7 +6,7 @@
 
 #include "timestamp.h"
 
-#include <ostream>
+#include <sstream>
 #include <string>
 #include <cstring>
 #include <ctime>
@@ -57,21 +57,22 @@ timestamp& timestamp
 }
 
 
-std::ostream &
-operator<<( std::ostream& str, timestamp const& obj )
+std::string timestamp
+::pretty_print() const
 {
+  std::stringstream str;
   std::string c_tim( "" );
   char buffer[128];
-  std::time_t tt = static_cast< std::time_t > ( obj.get_time() );
+  std::time_t tt = static_cast< std::time_t > ( this->get_time() );
 
   std::streamsize old_prec = str.precision();
   str.precision(6);
 
   str << "ts(f: ";
 
-  if ( obj.has_valid_frame() )
+  if ( this->has_valid_frame() )
   {
-      str << obj.get_frame();
+      str << this->get_frame();
   }
   else
   {
@@ -80,9 +81,9 @@ operator<<( std::ostream& str, timestamp const& obj )
 
   str << ", t: ";
 
-  if ( obj.has_valid_time() )
+  if ( this->has_valid_time() )
   {
-    char* p = ctime( &tt ); // this may return null if tt is out of range,
+    char* p = ctime( &tt ); // this may return null if <tt> is out of range,
     if ( p )
     {
       c_tim = " (";
@@ -93,7 +94,7 @@ operator<<( std::ostream& str, timestamp const& obj )
       c_tim = c_tim + buffer;
       c_tim = c_tim + ")";
 
-      str << obj.get_time() << c_tim;
+      str << this->get_time() << c_tim;
     }
     else
     {
@@ -108,8 +109,9 @@ operator<<( std::ostream& str, timestamp const& obj )
   str << ")";
 
   str.precision( old_prec );
-  return str;
+  return str.str();
 }
+
 
 /*
  * This is primarily used to supply default behaviour for a timestamp

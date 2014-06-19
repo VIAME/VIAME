@@ -125,6 +125,17 @@ public:
    */
   timestamp& set_invalid();
 
+/**
+ * \brief Format object in a readable manner.
+ *
+ * This method formats a time stamp in a readable and recognisable
+ * manner suitable form debugging and logging.
+ *
+ * @return formatted timestamp
+ */
+  std::string pretty_print() const;
+
+
 private:
   bool m_valid_time; ///< indicates valid timestamp
   bool m_valid_frame;
@@ -133,33 +144,36 @@ private:
   frame_t  m_frame;
 }; // end class timestamp
 
-  std::ostream& operator<< ( std::ostream& str, timestamp const& obj );
+inline std::ostream& operator<< ( std::ostream& str, timestamp const& obj )
+{ str << obj.pretty_print(); return str; }
 
 
-  /**
-   * \brief Input operator
-   *
-   * Convert object from string representation to native form.  This
-   * is primarily used for object specific behaviour for
-   * boost:lexical_cast when supplying default values for static
-   * ports.
-   *
-   * The expected format for the string representation of a timestamp
-   * is:
-   *
-   * <frame> <time in seconds>
-   *
-   * For example:
-   \code
-   300 10.0
-   \endcode
-   *
-   * @param str input stream
-   * @param obj string to read from
-   *
-   * @return
-   */
-  std::istream& operator>> ( std::istream& str, timestamp& obj );
+/**
+ * \brief Input operator
+ *
+ * Convert object from string representation to native form.  This is
+ * primarily used for object specific behaviour for boost:lexical_cast
+ * when supplying default values for static ports.
+ *
+ * The expected format for the string representation of a timestamp
+ * is:
+ *
+ * <frame> <time in seconds>
+ *
+ * For example:
+ \code
+ 300 10.0
+ \endcode
+ *
+ * @param str input stream
+ * @param obj object to initialize
+ *
+ * @return
+ */
+std::istream& operator>> ( std::istream& str, timestamp& obj );
+
+
+
 
 } // end namespace
 
