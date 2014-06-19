@@ -192,7 +192,7 @@ void frame_list_process
   else
   {
     // \todo log message
-    std::cerr << "DEBUG - end of input reachhed, process terminating\n";
+    std::cerr << "DEBUG - end of input reached, process terminating\n";
 
     // indicate done
     mark_process_as_complete();
