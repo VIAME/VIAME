@@ -14,6 +14,9 @@
 #include <maptk/core/homography.h>
 #include <maptk/core/image_container.h>
 
+#include <sprokit/pipeline_util/path.h>
+
+
 #include <trait_utils.h>
 
 
@@ -35,14 +38,14 @@ typedef double gsd_t;
 /// Could wrap in a class to provide data abstraction.
 typedef std::vector < kwiver::geo_lat_lon > geo_polygon_t;
 
+/// \todo make a better corner points class that uses data abstraction
+/// to provide proper semantics.
 
 /**
  * \brief Geo polygon input operator.
  *
- * This operator converts a string to a corner points object. The
+ * This operator converts a string to a geo polygon object. The
  * format of the string is "ul_lat ul_lon ur_lat ur_lon lr_lat lr_lon ll_lat ll_lon"
- *
- *
  *
  * @param str Stream to read from
  * @param obj Object to receive values
@@ -62,6 +65,7 @@ create_type_trait( gsd, "kwiver:gsd", gsd_t );
 create_type_trait( corner_points, "corner_points", kwiver::geo_polygon_t );
 create_type_trait( image, "image_container", maptk::image_container_sptr ); // polymorphic type must pass by reference
 create_type_trait( homography, "s2r_homography", maptk::f2f_homography );
+create_type_trait( image_file_name, "kwiver:image_file_name", sprokit::path_t );
 
 
 // ================================================================
@@ -74,7 +78,7 @@ create_port_trait( corner_points, corner_points, "Four corner points for image i
 create_port_trait( gsd, gsd, "GSD for image in meters per pixel." );
 create_port_trait( image, image, "Single frame image." );
 create_port_trait( src_to_ref_homography, homography, "Source image to ref image homography." );
+create_port_trait( image_file_name, image_file_name, "Name of an image file. Usually a single frame of a video." );
 
-
-} // end namespace
+} // end namespace kwiver
 #endif /* _KWIVER_TYPES_KWIVER_H_ */
