@@ -327,9 +327,9 @@ priv_t
                    maptk::f2f_homography const& s2r_homog,
                    double gsd)
 {
-  int64_t u_seconds = static_cast< int64_t > ( time.get_time() * 1e6 );
-  int64_t frame_num = static_cast< int64_t > ( time.get_frame() );
-  int64_t ref_frame_num = static_cast< int64_t > ( s2r_homog.to_id() );
+  vxl_int_64 u_seconds = static_cast< vxl_int_64 > ( time.get_time() * 1e6 );
+  vxl_int_64 frame_num = static_cast< vxl_int_64 > ( time.get_frame() );
+  vxl_int_64 ref_frame_num = static_cast< vxl_int_64 > ( s2r_homog.to_id() );
 
   // convert image in place
   vil_image_view < vxl_byte > image( img.first_pixel(),
@@ -398,8 +398,8 @@ priv_t
   vsl_b_write( stream, gsd );
   vsl_b_write( stream, frame_num );
   vsl_b_write( stream, ref_frame_num );
-  vsl_b_write( stream, static_cast< int64_t > ( image.ni() ) );
-  vsl_b_write( stream, static_cast< int64_t > ( image.nj() ) );
+  vsl_b_write( stream, static_cast< vxl_int_64 > ( image.ni() ) );
+  vsl_b_write( stream, static_cast< vxl_int_64 > ( image.nj() ) );
 
 }
 
