@@ -500,13 +500,56 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_type_t const type_any;
     /// A type which indicates that no actual data is ever created.
     static port_type_t const type_none;
-    /// A type which indicates that the type is dependent on data.
+
+    /**
+     * \brief A type which indicates that the type is dependent on data.
+     *
+     * The process can determine the type, but it must be configured
+     * before the type can be pinned down. The is usually for
+     * processes which read data from a file which it may not know
+     * about until after the configuration has been read.
+     */
     static port_type_t const type_data_dependent;
-    /// A type which indicates that the type depends on the connected port's type.
+
+    /**
+     *  \brief A type which indicates that the type depends on the
+     *  connected port's type.
+     *
+     * This flag is used when the process wants this port to be typed
+     * based on the type of the port that is connected. This can be
+     * used when data is just passing through a process and the actual
+     * type is not known.
+     *
+     *  If a tag is appended to the type, then when any of the ports
+     *  that use this type name gets a type set for it, all of the
+     *  similarly tagged ports are given the same type.
+     *
+     * Example:
+     * \code
+      process::port_t const port_input = port_t("pass");
+
+      declare_input_port(
+         priv::port_input, // port name
+         type_flow_dependent + "tag",
+         required,
+         port_description_t("The datum to pass."));
+     * \endcode
+     */
     static port_type_t const type_flow_dependent;
-    /// A flag which indicates that the output cannot be modified.
+
+    /**
+     * \brief A flag which indicates that the output cannot be modified.
+     *
+     * Marks that an output is "const" and may not be modified by
+     * receivers of the data.
+     */
     static port_flag_t const flag_output_const;
-    /// A flag which indicates that the output is shared between receivers.
+
+    /**
+     * \brief A flag which indicates that the output is shared between
+     * receivers.
+     *
+     */
     static port_flag_t const flag_output_shared;
 
     /**
@@ -515,7 +558,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * If this port is not connected, the value supplied is taken from
      * a specific config entry. The config entry is automatically
-     * generated with the key "static/port_name". For example, if the
+     * named with the key "static/port_name". For example, if the
      * port with this flag is named "foo", then the config entry for
      * the process will be called "static/foo".
      *
@@ -523,20 +566,43 @@ class SPROKIT_PIPELINE_EXPORT process
      * process with the following entry
      *
      * \code
-     * :static/foo  3.14159
+     process circ
+       :: circle_writer
+          :static/foo  3.14159
      * \endcode
      *
-     * This flag may not be combined with \ref flag_required
+     * This flag may not be combined with \ref flag_required.
+     *
+     * If the port is connected, the value is passed over the edge and
+     * the static config value is not used.
      */
     static port_flag_t const flag_input_static;
 
-    /// A flag which indicates that the input may be modified.
+    /**
+     * \brief A flag which indicates that the input may be modified.
+     *
+     * Marks that an input is modified within the process and that
+     * other receivers of the data may see the changes if the data is
+     * not handled carefully.
+     */
     static port_flag_t const flag_input_mutable;
 
-    /// A flag which indicates that a connection to the port does not imply a dependency.
+    /**
+     * \brief A flag which indicates that a connection to the port
+     * does not imply a dependency.
+     *
+     * Indicates that the port is expected to be a backwards edge
+     * within the pipeline so that when the pipeline is topologically
+     * sorted (either for initialization or execution order by a
+     * scheduler), the edge can be ignored for such purposes.
+     */
     static port_flag_t const flag_input_nodep;
 
-    /// A flag which indicates that the port is required to be connected.
+    /**
+     * \brief A flag which indicates that the port is required to be
+     * connected.
+     *
+     */
     static port_flag_t const flag_required;
 
 
@@ -556,11 +622,23 @@ class SPROKIT_PIPELINE_EXPORT process
 
     /**
      * \brief Pre-connection initialization for subclasses.
+     *
+     * Configuration is where a process is asked to ensure that its
+     * configuration makes sense. Any data-dependent port types must
+     * be set in this step. After this is called, the process will be
+     * have connections made and initialized.
      */
     virtual void _configure();
 
     /**
      * \brief Post-connection initialization for subclasses.
+     *
+     * Initialization is the final step before a process is
+     * stepped. This is where processes should have a chance to get a
+     * first look at the edges that are connected to a port and change
+     * behavior based on them. After this is called, the process will
+     * be stepped until it is either complete or the scheduler is
+     * stopped.
      */
     virtual void _init();
 
@@ -576,11 +654,21 @@ class SPROKIT_PIPELINE_EXPORT process
 
     /**
      * \brief Method where subclass data processing occurs.
+     *
+     * In general, a process' _step method will involve:
+     *
+     * - Obtaining data from the input edges.
+     * - Running the algorithm.
+     * - Pushing data out via the output edges.
+     *
      */
     virtual void _step();
 
     /**
      * \brief Runtime configuration for subclasses.
+     *
+     * This method is called after the process is initially configured
+     * and satrted. A config block with updated values is supplied.
      *
      * \params conf The configuration block to apply.
      */
@@ -800,7 +888,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * Example:
      *
      * \code
-     if (d->fin.eof())
+     if (d->fin.eof()) // end of input detected
      {
        mark_process_as_complete();
        dat = datum::complete_datum();
