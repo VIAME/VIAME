@@ -29,9 +29,7 @@ sprokit_add_plugin( kwiver_processes
   ${private_headers}
 )
 
-set_target_properties( kwiver_processes PROPERTIES
-  VERSION ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION}
-)
+# set_target_properties( kwiver_processes PROPERTIES VERSION ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION})
 
 add_dependencies( kwiver_processes kwiver_core sprokit maptk VXL )
 
@@ -48,4 +46,4 @@ target_link_libraries( kwiver_processes
     kwiver_core
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
-    vil vul vnl vnl_io )
+    vsl vil vul vnl vnl_io vil_io )
