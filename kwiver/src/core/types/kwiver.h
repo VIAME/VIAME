@@ -66,6 +66,7 @@ create_type_trait( corner_points, "corner_points", kwiver::geo_polygon_t );
 create_type_trait( image, "image_container", maptk::image_container_sptr ); // polymorphic type must pass by reference
 create_type_trait( homography, "s2r_homography", maptk::f2f_homography );
 create_type_trait( image_file_name, "kwiver:image_file_name", sprokit::path_t );
+create_type_trait( video_file_name, "kwiver:video_file_name", sprokit::path_t );
 
 
 // ================================================================
@@ -79,6 +80,7 @@ create_port_trait( gsd, gsd, "GSD for image in meters per pixel." );
 create_port_trait( image, image, "Single frame image." );
 create_port_trait( src_to_ref_homography, homography, "Source image to ref image homography." );
 create_port_trait( image_file_name, image_file_name, "Name of an image file. Usually a single frame of a video." );
+create_port_trait( video_file_name, video_file_name, "Name of video file." );
 
 } // end namespace kwiver
 #endif /* _KWIVER_TYPES_KWIVER_H_ */

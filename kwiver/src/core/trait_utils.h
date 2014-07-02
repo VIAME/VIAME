@@ -87,6 +87,9 @@ grab_input_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 #define grab_from_port_using_trait(PN) \
 grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 
+#define grab_datum_from_port_using_trait(PN) \
+  grab_datum_from_port( PN ## _port_trait::port_name )
+
 // Putting data to ports
 #define push_to_port_using_trait(PN, VAL) \
 push_to_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name, VAL )
