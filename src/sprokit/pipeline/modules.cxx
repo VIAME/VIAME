@@ -52,6 +52,7 @@
 #endif
 
 #include <cstddef>
+#include <iostream>
 
 /**
  * \file modules.cxx
