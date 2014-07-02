@@ -7,7 +7,7 @@
 #include "config_util.h"
 
 #include <boost/foreach.hpp>
-
+#include <iostream>
 
 namespace kwiver
 {
