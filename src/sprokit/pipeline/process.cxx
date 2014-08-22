@@ -294,7 +294,6 @@ process
   }
 
   /// \todo Make reentrant.
-
   /// \todo Are there any pre-_step actions?
 
   bool complete = false;
@@ -1720,6 +1719,7 @@ process::priv
 
     frequency_component_t const rel_count = freq.numerator();
 
+    // collect inputs based on frequency value.
     for (frequency_component_t j = 0; j < rel_count; ++j)
     {
       edge_datum_t const edat = iedge->peek_datum(j);
