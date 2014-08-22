@@ -60,6 +60,30 @@
 
 #include <cstdlib>
 
+// Description of this program and why I would want to use it
+static const std::string program_description(
+
+"This tool reads a pipeline configuration file and does some really\n"
+"cool stuff.  At its most basic, this tool will validate a pipeline\n"
+"configuration, but it does so much more.  Specific pipeline\n"
+"configurations can be generated from generic descriptions.\n"
+"\n"
+"Global config sections can ge inserted in the resulting configuration\n"
+"file with the --setting option, with multiple options allowed on the\n"
+"command line. For example, --setting master:value=FOO will generate a\n"
+"config section:\n"
+"\n"
+"config master\n"
+"  :value FOO\n"
+"\n"
+"The --config option specifies a file that contains additional\n"
+"configuration parameters to be merged into the generated\n"
+"configuration.\n"
+"\n"
+"Use the --include option to add additional directories to search for\n"
+"included configuration filies."
+  );
+
 class config_printer
   : public boost::static_visitor<>
 {
@@ -98,7 +122,8 @@ sprokit_tool_main(int argc, char const* argv[])
     .add(sprokit::pipeline_input_options())
     .add(sprokit::pipeline_output_options());
 
-  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc,
+    program_description );
 
   sprokit::pipeline_builder const builder(vm, desc);
 

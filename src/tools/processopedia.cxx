@@ -48,6 +48,12 @@
 
 #include <cstdlib>
 
+// Description of this program and why I would want to use it
+static const std::string program_description(
+"This program loads all available process implementation plug-ins and displays their attributes.\n"
+"The basic output is a list of processes and their description."
+  );
+
 static std::string const hidden_prefix = "_";
 
 static boost::program_options::options_description processopedia_options();
@@ -62,7 +68,8 @@ sprokit_tool_main(int argc, char const* argv[])
     .add(sprokit::tool_common_options())
     .add(processopedia_options());
 
-  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc,
+    program_description );
 
   sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
