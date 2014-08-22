@@ -62,7 +62,6 @@
 
 // Description of this program and why I would want to use it
 static const std::string program_description(
-
 "This tool reads a pipeline configuration file and does some really\n"
 "cool stuff.  At its most basic, this tool will validate a pipeline\n"
 "configuration, but it does so much more.  Specific pipeline\n"
@@ -81,7 +80,7 @@ static const std::string program_description(
 "configuration.\n"
 "\n"
 "Use the --include option to add additional directories to search for\n"
-"included configuration filies."
+"included configuration files."
   );
 
 class config_printer
