@@ -1,9 +1,9 @@
 [submodule "Packages/sprokit"]
-	path = Packages/sprokit
-	url = git://kwsource.kitwarein.com/sprokit/sprokit.git
+        path = Packages/sprokit
+        url =  https://github.com/Kitware/sprokit.git
 [submodule "Packages/VXL"]
-	path = Packages/VXL
-	url = git@kwsource.kitwarein.com:computer-vision/vxl.git
+        path = Packages/VXL
+        url = http://git.code.sf.net/p/vxl/git
 [submodule "Packages/maptk"]
-	path = Packages/maptk
-	url = git@kwsource.kitwarein.com:computer-vision/map-tk.git
+        path = Packages/maptk
+        url = https://github.com/Kitware/maptk.git
