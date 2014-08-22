@@ -78,6 +78,8 @@ void
 process_registry
 ::register_process(process::type_t const& type, description_t const& desc, process_ctor_t ctor)
 {
+  /// \todo Log debug registering process
+  std::cerr <<"DEBUG - Registering process: " << type << " (" << desc << ")\n";
   if (!ctor)
   {
     throw null_process_ctor_exception(type);
