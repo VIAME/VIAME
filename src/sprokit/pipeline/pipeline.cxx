@@ -1066,8 +1066,11 @@ pipeline::priv
   , setup_successful(false)
   , running(false)
 {
-  /// \todo Debug log config
-  std::cerr << "DEBUG - pipeline config:\n" << *config << std::endl;
+  if ( config ) // sometimes config may be null
+  {
+    /// \todo Debug log config
+    std::cerr << "DEBUG - pipeline config:\n" << *config << std::endl;
+  }
 }
 
 pipeline::priv
