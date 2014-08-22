@@ -105,7 +105,7 @@ tool_parse(int argc, char const* argv[], boost::program_options::options_descrip
   if (vm.count("help"))
   {
     tool_version_message();
-    std::cerr << std::endl << program_description << std::endl;
+    std::cerr << program_description << std::endl;
     tool_usage(EXIT_SUCCESS, desc);
   }
 
