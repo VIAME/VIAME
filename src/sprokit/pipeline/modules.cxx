@@ -191,9 +191,7 @@ load_from_module(module_path_t const& path)
 
   if (!library)
   {
-    /// \todo Log an error. Also have system dependent way of getting error.
-    // This is important because libraries used by these modules can cause failure if
-    // they are not found.
+    /// \todo Log an error.
     std::cerr << "ERROR - Unable to load module: " << path
               << "  (" << dlerror() << ")"
               << std::endl;

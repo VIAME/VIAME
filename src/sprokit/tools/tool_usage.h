@@ -47,7 +47,7 @@ SPROKIT_TOOLS_EXPORT boost::program_options::options_description tool_common_opt
 SPROKIT_TOOLS_EXPORT boost::program_options::variables_map tool_parse(
   int argc, char const* argv[],
   boost::program_options::options_description const& desc,
-  std::string const& program_description= "" );
+  std::string const& program_description);
 
 }
 

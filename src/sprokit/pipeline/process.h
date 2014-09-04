@@ -122,17 +122,25 @@ class SPROKIT_PIPELINE_EXPORT process
     /// The type for the component of a frequency.
     typedef size_t frequency_component_t;
 
-    /// \brief The type for the frequency of data on a port. Since
-    /// this is a rational type, the frequency can be more or less
-    /// than one. Frequencies above one should be integers (e.g. 1/1,
-    /// 3/1). Frequencies less than one should have a numerator of one
-    /// (e.g. 1/3, 1/5). Frequencies that are not of the above form,
-    /// but do resolve to one of those forms are not supported
-    /// (e.g. 3/3, 2/4. 4/2).
+    /// \brief The type for the frequency of data on a port.
+    ///
+    /// Basically a process has a single "step" which is 1:1. If one
+    /// port is pulled twice and another thrice, it doesn't matter if
+    /// one is 2:1 and the other 3:1 or one 2:3 and the other 1:1. The
+    /// pipeline takes all of the port frequencies and determines a
+    /// common frequency for the entire pipeline then tells processes
+    /// about it with set_core_frequency so that all vales are whole
+    /// numbers which is also the stamp step value expected/generated
+    /// on the port automatically. So in the end, they will all be
+    /// whole numbers, but the ratio of them to each other is all that
+    /// matters within a single process since the pipeline will figure
+    /// out a global multiplier for all process the same anyways
+    /// (modulo overflowing the uint64_t stamp counter which I hope
+    /// isn't common).
     typedef boost::rational<frequency_component_t> port_frequency_t;
 
     /// The type for a flag on a port.
-    ///@todo Add reference to predefined port flags.
+    ///\todo Add descriptions of predefined port flags.
     typedef std::string port_flag_t;
     /// The type for a group of port flags.
     typedef std::set<port_flag_t> port_flags_t;
@@ -160,8 +168,9 @@ class SPROKIT_PIPELINE_EXPORT process
          * \param flags_ Flags for the port.
          * \param description_ A description of the port.
          * \param frequency_ The frequency of the port relative to the
-         * step.  See process::set_output_port_frequency() or
-         * process::set_input_port_frequency() for details
+         * step.
+         * \sa process::set_output_port_frequency()
+         * \sa process::set_input_port_frequency()
          */
         port_info(port_type_t const& type_,
                   port_flags_t const& flags_,
@@ -252,6 +261,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \note This is only exposed for easier access from bindings.
      *
      * All levels include lower levels.
+     *
      * \sa set_data_checking_level
      */
     typedef enum
@@ -267,7 +277,7 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Pre-connection initialization.
      *
-     * \throw reconfigured_exception Thrown if called multiple times.
+     * \throws reconfigured_exception Thrown if called multiple times.
      *
      * \postconds
      *
@@ -280,8 +290,8 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Post-connection initialization.
      *
-     * \throw unconfigured_exception Thrown if called before \ref configure.
-     * \throw reinitialization_exception Thrown if called multiple times.
+     * \throws unconfigured_exception Thrown if called before \ref configure.
+     * \throws reinitialization_exception Thrown if called multiple times.
      *
      * \postconds
      *
@@ -307,15 +317,15 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \endpreconds
      *
-     * \throw unconfigured_exception Thrown if called before \ref configure.
-     * \throw uninitialized_exception Thrown if called before \ref init.
+     * \throws unconfigured_exception Thrown if called before \ref configure.
+     * \throws uninitialized_exception Thrown if called before \ref init.
      */
     void step();
 
     /**
      * \brief Query for the properties on the process.
      *
-     * \return The set of properties on the process.
+     * \returns The set of properties on the process.
      */
     virtual properties_t properties() const;
 
@@ -330,9 +340,9 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \endpreconds
      *
-     * \throw null_edge_port_connection_exception Thrown when \p edge is \c NULL.
-     * \throw connect_to_initialized_process_exception Thrown if called after \ref init.
-     * \throw no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws null_edge_port_connection_exception Thrown when \p edge is \c NULL.
+     * \throws connect_to_initialized_process_exception Thrown if called after \ref init.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \postconds
      *
@@ -354,8 +364,8 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \endpreconds
      *
-     * \throw null_edge_port_connection_exception Thrown when \p edge is \c NULL.
-     * \throw no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws null_edge_port_connection_exception Thrown when \p edge is \c NULL.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \postconds
      *
@@ -371,13 +381,13 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Query for a list of input ports available on the process.
      *
-     * \return The names of all input ports available.
+     * \returns The names of all input ports available.
      */
     ports_t input_ports() const;
     /**
      * \brief Query for a list of output ports available on the process.
      *
-     * \return The names of all output ports available.
+     * \returns The names of all output ports available.
      */
     ports_t output_ports() const;
 
@@ -387,11 +397,11 @@ class SPROKIT_PIPELINE_EXPORT process
      * \warning The returned pointer is not updated if the information for a
      * port changes.
      *
-     * \throw no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to return information about.
      *
-     * \return Information about the input port.
+     * \returns Information about the input port.
      */
     port_info_t input_port_info(port_t const& port);
     /**
@@ -400,82 +410,78 @@ class SPROKIT_PIPELINE_EXPORT process
      * \warning The returned pointer is not updated if the information for a
      * port changes.
      *
-     * \throw no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
      *
      * \param port The port to return information about.
      *
-     * \return Information about the output port.
+     * \returns Information about the output port.
      */
     port_info_t output_port_info(port_t const& port);
 
     /**
      * \brief Set the type of a flow-dependent input port type.
      *
-     * \throw no_such_port_exception Thrown when \p port does not exist on the process.
-     * \throw static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
-     * \throw set_type_on_initialized_process_exception Thrown when the \p port's type is set after initialization.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
+     * \throws set_type_on_initialized_process_exception Thrown when the \p port's type is set after initialization.
      *
      * \param port The name of the port.
      * \param new_type The type of the port.
      *
-     * \return True if the type can work, false otherwise.
+     * \returns True if the type can work, false otherwise.
      */
     bool set_input_port_type(port_t const& port, port_type_t const& new_type);
 
     /**
      * \brief Set the type of a flow-dependent output port type.
      *
-     * \throw no_such_port_exception Thrown when \p port does not
-     * exist on the process.  \throw static_type_reset_exception
-     * Thrown when the \p port's current type is not dependent on
-     * other types.
-     *
-     * \throw set_type_on_initialized_process_exception Thrown when
-     * the port type is set after initialization.
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws static_type_reset_exception Thrown when the \p port's current type is not dependent on other types.
+     * \throws set_type_on_initialized_process_exception Thrown when the port type is set after initialization.
      *
      * \param port The name of the port.
      * \param new_type The type of the port.
      *
-     * \return True if the type can work, false otherwise.
+     * \returns True if the type can work, false otherwise.
      */
     bool set_output_port_type(port_t const& port, port_type_t const& new_type);
 
     /**
      * \brief Request available configuration options for the process.
      *
-     * \return The names of all available configuration keys.
+     * \returns The names of all available configuration keys.
      */
     config::keys_t available_config() const;
 
     /**
      * \brief Request available tunable configuration options for the process.
      *
-     * \return The names of all available tunable configuration keys.
+     * \returns The names of all available tunable configuration keys.
      */
     config::keys_t available_tunable_config();
 
     /**
      * \brief Retrieve information about a configuration parameter.
      *
-     * \throw unknown_configuration_value_exception Thrown when \p key is not a valid configuration key.
+     * \throws unknown_configuration_value_exception Thrown when \p key is not a valid configuration key.
      *
      * \param key The name of the configuration value.
      *
-     * \return Information about the parameter.
+     * \returns Information about the parameter.
      */
     conf_info_t config_info(config::key_t const& key);
 
     /**
      * \brief The name of the process.
      *
-     * \return The name of the process.
+     * \returns The name of the process.
      */
     name_t name() const;
 
     /**
      * \brief The type of the process.
      *
-     * \return A name for the type of the process.
+     * \returns A name for the type of the process.
      */
     type_t type() const;
 
@@ -506,23 +512,23 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * The process can determine the type, but it must be configured
      * before the type can be pinned down. The is usually for
-     * processes which read data from a file which it may not know
+     * processes which reads data from a file which it may not know
      * about until after the configuration has been read.
      */
     static port_type_t const type_data_dependent;
 
     /**
-     *  \brief A type which indicates that the type depends on the
-     *  connected port's type.
+     * \brief A type which indicates that the type depends on the
+     * connected port's type.
      *
      * This flag is used when the process wants this port to be typed
      * based on the type of the port that is connected. This can be
      * used when data is just passing through a process and the actual
      * type is not known.
      *
-     *  If a tag is appended to the type, then when any of the ports
-     *  that use this type name gets a type set for it, all of the
-     *  similarly tagged ports are given the same type.
+     * If a tag is appended to the type, then when any of the ports
+     * that use this type name gets a type set for it, all of the
+     * similarly tagged ports are given the same type.
      *
      * Example:
      * \code
@@ -549,6 +555,9 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief A flag which indicates that the output is shared between
      * receivers.
      *
+     * A shared port may be connected to exactly one mutable port, any
+     * number of non-mutable ports, or nothing. Any other usage is a
+     * data sharing violation and not allowed.
      */
     static port_flag_t const flag_output_shared;
 
@@ -558,9 +567,9 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * If this port is not connected, the value supplied is taken from
      * a specific config entry. The config entry is automatically
-     * named with the key "static/port_name". For example, if the
-     * port with this flag is named "foo", then the config entry for
-     * the process will be called "static/foo".
+     * named with the key \key "static/port_name". For example, if the
+     * port with this flag is named "radius", then the config entry for
+     * the process will be called "static/radius".
      *
      * You can supply a specific default value in the config for the
      * process with the following entry
@@ -571,7 +580,9 @@ class SPROKIT_PIPELINE_EXPORT process
           :static/foo  3.14159
      * \endcode
      *
-     * This flag may not be combined with \ref flag_required.
+     * This flag may not be combined with \ref flag_required because
+     * it is implied that either the port must be connected or a
+     * static value be provided in the configuration.
      *
      * If the port is connected, the value is passed over the edge and
      * the static config value is not used.
@@ -655,11 +666,11 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Method where subclass data processing occurs.
      *
-     * In general, a process' _step method will involve:
+     * In general, a process' \c _step() method will involve:
      *
-     * - Obtaining data from the input edges.
-     * - Running the algorithm.
-     * - Pushing data out via the output edges.
+     * \li Obtaining data from the input edges.
+     * \li Running the algorithm.
+     * \li Pushing data out via the output edges.
      *
      */
     virtual void _step();
@@ -668,7 +679,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief Runtime configuration for subclasses.
      *
      * This method is called after the process is initially configured
-     * and satrted. A config block with updated values is supplied.
+     * and started. A config block with updated values is supplied.
      *
      * \params conf The configuration block to apply.
      */
@@ -677,20 +688,20 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Subclass property query method.
      *
-     * \return Properties on the subclass.
+     * \returns Properties on the subclass.
      */
     virtual properties_t _properties() const;
 
     /**
      * \brief Subclass input ports.
      *
-     * \return The names of all input ports available in the subclass.
+     * \returns The names of all input ports available in the subclass.
      */
     virtual ports_t _input_ports() const;
     /**
      * \brief Subclass output ports.
      *
-     * \return The names of all output ports available in the subclass.
+     * \returns The names of all output ports available in the subclass.
      */
     virtual ports_t _output_ports() const;
 
@@ -699,7 +710,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param port The port to get information about.
      *
-     * \return Information about an output port.
+     * \returns Information about an output port.
      */
     virtual port_info_t _input_port_info(port_t const& port);
     /**
@@ -707,7 +718,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param port The port to get information about.
      *
-     * \return Information about an output port.
+     * \returns Information about an output port.
      */
     virtual port_info_t _output_port_info(port_t const& port);
 
@@ -717,7 +728,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param port The name of the port.
      * \param new_type The type of the connected port.
      *
-     * \return True if the type can work, false otherwise.
+     * \returns True if the type can work, false otherwise.
      */
     virtual bool _set_input_port_type(port_t const& port, port_type_t const& new_type);
     /**
@@ -726,14 +737,14 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param port The name of the port.
      * \param new_type The type of the connected port.
      *
-     * \return True if the type can work, false otherwise.
+     * \returns True if the type can work, false otherwise.
      */
     virtual bool _set_output_port_type(port_t const& port, port_type_t const& new_type);
 
     /**
      * \brief Subclass available configuration keys.
      *
-     * \return The names of all available configuration keys.
+     * \returns The names of all available configuration keys.
      */
     virtual config::keys_t _available_config() const;
 
@@ -742,14 +753,14 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param key The name of the configuration value.
      *
-     * \return Information about the parameter.
+     * \returns Information about the parameter.
      */
     virtual conf_info_t _config_info(config::key_t const& key);
 
     /**
      * \brief Declare an input port for the process.
      *
-     * \throw null_input_port_info_exception Thrown if \p info is \c NULL.
+     * \throws null_input_port_info_exception Thrown if \p info is \c NULL.
      *
      * \param port The port name.
      * \param info Information about the port.
@@ -758,7 +769,7 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Declare an output port for the process.
      *
-     * \throw null_output_port_info_exception Thrown if \p info is \c NULL.
+     * \throws null_output_port_info_exception Thrown if \p info is \c NULL.
      *
      * \param port The port name.
      * \param info Information about the port.
@@ -801,19 +812,20 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * This method assigns a frequency to the input port. The number
      * specifies how many inputs are to be accumulated between process
-     * step() calls. A frequency of one (the default) will give one
-     * input on the port for each step() call. So requesting a
-     * frequency of 4 will give the step() method 4 values in the
+     * \c _step() calls. A frequency of one (the default) will give one
+     * input on the port for each \c _step() call. So requesting a
+     * frequency of 4 will give the \c _step() method 4 values in the
      * queue for this input.
      *
-     * A frequency of zero is a special case.
+     * Ports with a frequency of 0 are assumed to be non-regular and
+     * handled manually.
      *
-     * \throw no_such_port_exception Thrown when \p port does not exist on the process.
-     * \throw set_frequency_on_initialized_process_exception Thrown
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws set_frequency_on_initialized_process_exception Thrown
      * when the \p port's frequency is set after initialization.
      *
      * \param port The name of the port.
-     * \param new_frequency The frequency of the port, in the range 1..n
+     * \param new_frequency The frequency of the port.
      */
     void set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency);
 
@@ -822,15 +834,15 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * This method assigns a frequency to the output port. The number
      * specifies how many outputs are pushed downstream between
-     * process step() calls. A frequency of one (the default) will
-     * produce one output on the port for each step() call. So
+     * process \c _step() calls. A frequency of 1 (the default) will
+     * produce one output on the port for each \c _step() call. So
      * requesting a frequency of 4 will push 4 values downstream after
-     * the step() call queue for this input.
+     * the \c _step() call queue for this input.
      *
      * A frequency of zero is a special case.
      *
-     * \throw no_such_port_exception Thrown when \p port does not exist on the process.
-     * \throw set_frequency_on_initialized_process_exception Thrown
+     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
+     * \throws set_frequency_on_initialized_process_exception Thrown
      * when the \p port's frequency is set after initialization.
      *
      * \param port The name of the port.
@@ -855,7 +867,7 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Declare a configuration value for the process.
      *
-     * \throw null_conf_info_exception Thrown if \p info is \c NULL.
+     * \throws null_conf_info_exception Thrown if \p info is \c NULL.
      *
      * \param key The configuration key.
      * \param info Information about the port.
@@ -878,12 +890,12 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Mark the process as complete.
      *
-     * Calling this method within the step_() method indicates that
+     * Calling this method within the \c _step() method indicates that
      * the process has determined that it should not be called any
      * more and that it is not going to produce any more data.
      *
-     * It is considered good form to push a \c datum::complete_datum()
-     * element onto each output port.
+     * It is \e required to push a \c datum::complete_datum() element
+     * onto each output port to signal the end of the data stream
      *
      * Example:
      *
@@ -911,7 +923,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param port The port to get the edge for.
      *
-     * \return \b True if there is an edge connected to the \p port,
+     * \returns True if there is an edge connected to the \p port,
      * or false if there is none.
      */
     bool has_input_port_edge(port_t const& port) const;
@@ -921,7 +933,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param port The port to get the count for.
      *
-     * \return The number of edges connected to the \p port.
+     * \returns The number of edges connected to the \p port.
      */
     size_t count_output_port_edges(port_t const& port) const;
 
@@ -949,7 +961,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param port The port to get data from.
      *
-     * \return The datum available on the port.
+     * \returns The datum available on the port.
      */
     edge_datum_t grab_from_port(port_t const& port) const;
 
@@ -961,7 +973,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param port The port to get data from.
      *
-     * \return The datum available on the port.
+     * \returns The datum available on the port.
      */
     datum_t grab_datum_from_port(port_t const& port) const;
 
@@ -969,12 +981,11 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief Grab a datum from a port as a certain type.
      *
      * This method grabs an input value directly from the port with no
-     * handling for static ports. The returned data value is undefined
-     * if there is no input available on the port.
+     * handling for static ports. This call will block until a datum is available.
      *
      * \param port The port to get data from.
      *
-     * \return The datum from the port.
+     * \returns The datum from the port.
      */
     template <typename T>
     T grab_from_port_as(port_t const& port) const;
@@ -987,7 +998,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * behaves the same as grab_from_port_as().
      *
      * If there is no value at the port, then the value taken from the
-     * configuration entry "static/" + port_name is used.
+     * configuration entry \key "static/" + port_name is used.
      *
      * If the templated data type does not have a conversion from a
      * string to an instance of the data type, you will need to
@@ -998,7 +1009,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param port The port to get data from.
      *
-     * \return The input datum.
+     * \returns The input datum.
      */
     template <typename T>
     T grab_input_as(port_t const& port) const;
@@ -1032,23 +1043,22 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief The configuration for the process.
      *
-     * \return The whole configuration for the process.
+     * \returns The whole configuration for the process.
      */
     config_t get_config() const;
 
     /**
-     * \brief Retrieve a configuration key
+     * \brief Retrieve a configuration item.
      *
      * This method returns the configuration value associated with the
      * specified key.  The return value is typed based on the template
      * parameter.
      *
-     * \throw no_such_configuration_key_exception Thrown if \p key
-     * was not declared for the process.
+     * \throws no_such_configuration_key_exception Thrown if \p key was not declared for the process.
      *
      * \param key The key to request for the value.
      *
-     * \return The value of the configuration.
+     * \returns The value of the configuration.
      */
     template <typename T>
     T config_value(config::key_t const& key) const;
@@ -1082,7 +1092,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param data The data to inspect.
      *
-     * \return Information about the data given.
+     * \returns Information about the data given.
      */
     static data_info_t edge_data_info(edge_data_t const& data);
   private:

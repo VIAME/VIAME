@@ -48,9 +48,6 @@
 namespace sprokit
 {
 
-/// \todo need general runtime exception to report generic
-/// errors. Maybe style after std::exception hierarchy
-
 /**
  * \class process_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *

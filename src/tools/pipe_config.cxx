@@ -62,8 +62,9 @@
 
 // Description of this program and why I would want to use it
 static const std::string program_description(
-"This tool reads a pipeline configuration file and does some really\n"
-"cool stuff.  At its most basic, this tool will validate a pipeline\n"
+"This tool reads a pipeline configuration file, applies the program options\n"
+"and generates a \"compiled\" config file.\n"
+"At its most basic, this tool will validate a pipeline\n"
 "configuration, but it does so much more.  Specific pipeline\n"
 "configurations can be generated from generic descriptions.\n"
 "\n"

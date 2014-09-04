@@ -53,6 +53,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include <cstddef>
 
@@ -196,12 +197,12 @@ pipeline
 ::pipeline(config_t const& config)
   : d()
 {
-  d.reset(new priv(this, config));
-
   if (!config)
   {
     throw null_pipeline_config_exception();
   }
+
+  d.reset(new priv(this, config));
 }
 
 pipeline
@@ -1066,11 +1067,11 @@ pipeline::priv
   , setup_successful(false)
   , running(false)
 {
-  if ( config ) // sometimes config may be null
-  {
-    /// \todo Debug log config
-    std::cerr << "DEBUG - pipeline config:\n" << *config << std::endl;
-  }
+  /// \todo Debug log config
+  std::stringstream msg;
+  msg << "DEBUG - pipeline config:\n";
+  config->print(msg);
+  std::cerr << msg;
 }
 
 pipeline::priv
@@ -1647,9 +1648,12 @@ pipeline::priv
     }
 
     /// \todo log edge config
-    std::cerr << "DEBUG - edge config for "
-              << upstream_name << "." << upstream_port << " -> " << downstream_name << "." << downstream_port
-              << "\n" << *edge_config << std::endl;
+    std::stringstream msg;
+    msg << "DEBUG - edge config for "
+        << upstream_name << "." << upstream_port << " -> " << downstream_name << "." << downstream_port
+        << "\n";
+    edge_config->print(msg);
+    std::cerr << msg;
 
     edge_t const e = boost::make_shared<edge>(edge_config);
 

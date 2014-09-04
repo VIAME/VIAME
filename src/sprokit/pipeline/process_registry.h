@@ -83,8 +83,8 @@ class SPROKIT_PIPELINE_EXPORT process_registry
     /**
      * \brief Add a process type to the registry.
      *
-     * \throw null_process_ctor_exception Thrown if \p ctor is \c NULL.
-     * \throw process_type_already_exists_exception Thrown if the type already exists.
+     * \throws null_process_ctor_exception Thrown if \p ctor is \c NULL.
+     * \throws process_type_already_exists_exception Thrown if the type already exists.
      *
      * \see sprokit::create_process
      *
@@ -97,13 +97,13 @@ class SPROKIT_PIPELINE_EXPORT process_registry
     /**
      * \brief Create process of a specific type.
      *
-     * \throw no_such_process_type_exception Thrown if the type is not known.
+     * \throws no_such_process_type_exception Thrown if the type is not known.
      *
      * \param type The type of \ref process to create.
      * \param name The name of the \ref process to create.
      * \param config The configuration to pass the \ref process.
      *
-     * \return A new process of type \p type.
+     * \returns A new process of type \p type.
      */
     process_t create_process(process::type_t const& type, process::name_t const& name, config_t const& config = config::empty_config()) const;
 
@@ -119,7 +119,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
      *
      * \param type The name of the type to description.
      *
-     * \return The description for the type \p type.
+     * \returns The description for the type \p type.
      */
     description_t description(process::type_t const& type) const;
 
@@ -135,14 +135,14 @@ class SPROKIT_PIPELINE_EXPORT process_registry
      *
      * \param module The module to query.
      *
-     * \return True if the module has already been loaded, false otherwise.
+     * \returns True if the module has already been loaded, false otherwise.
      */
     bool is_module_loaded(module_t const& module) const;
 
     /**
      * \brief Accessor to the registry.
      *
-     * \return The instance of the registry to use.
+     * \returns The instance of the registry to use.
      */
     static process_registry_t self();
 
@@ -160,7 +160,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
  *
  * \param conf The configuration to pass to the \ref process.
  *
- * \return The new process.
+ * \returns The new process.
  */
 template <typename T>
 process_t

@@ -77,10 +77,10 @@
  * \par Examples
  *
  * \todo Add some examples.
-*
-* foo[ro] bar
-* foo[append] 1234
-* - results in foo = "bar1234"
+ *
+ * foo[ro] bar
+ * foo[append] 1234
+ * - results in foo = "bar1234"
  *
  * <pre>
  * </pre>
@@ -114,8 +114,8 @@
  * \par Examples
  *
  * <pre>
- * :gsd{CONF} common.gsd
- * :tunable[ro]{ENV} TEST_ENV
+ * :gsd{CONF} common:gsd
+ * :delay[ro]{ENV} TEST_ENV
  * </pre>
  *
  * \subsection configuration_value Configuration value
@@ -181,24 +181,24 @@
  *   config common
  *     :uncommon  value
  *     :also:uncommon  value
- </pre>
- Creates configuration items:
- <pre>
-     common:uncommon value
-     common:also:uncommon value
  * </pre>
-
-Another example:
+ * Creates configuration items:
+ * <pre>
+ *     common:uncommon value
+ *     common:also:uncommon value
+ * </pre>
+ *
+ * Another example:
  * <pre>
  *   config a:common:path
  *     :uncommon:path:to:key value
  *     :other:uncommon:path:to:key value
- </pre>
- Creates configuration items:
- <pre>
-     a:common:path:uncommon:path:to:key value
-     a:common:path:other:uncommon:path:to:key value
-
+ * </pre>
+ * Creates configuration items:
+ * <pre>
+ *     a:common:path:uncommon:path:to:key value
+ *     a:common:path:other:uncommon:path:to:key value
+ *
  * </pre>
  *
  * \subsection process_block Process block
@@ -235,10 +235,10 @@ Another example:
  * before the port name. The syntax for specifying static values is
  *
  * <pre>
-   :static/<port-name> <key-value>
+ *  :static/<port-name> <key-value>
  * </pre>
-
- * A port can not be connected and also have a static value.
+ *
+ * If a port is connected and also has a static value configured, the configured value is ignored.
  *
  * The following is an example of configuring a static port value.
  *
@@ -247,8 +247,8 @@ Another example:
  *     :: my_process_type
  *        :static/port     value
  * </pre>
-
-
+ *
+ *
  * \subsection connect_block Connect block
  *
  * A connection block declares that two ports will be connected.
@@ -270,12 +270,12 @@ Another example:
  * \todo Add some examples.
  *
  * <pre>
- connect from input.timestamp
-         to   stabilize.timestamp
-
- connect from input.timestamp
-         to   writer.timestamp
-
+ *  connect from input.timestamp
+ *        to   stabilize.timestamp
+ *
+ * connect from input.timestamp
+ *         to   writer.timestamp
+ *
  * </pre>
  *
  * \subsection cluster_block Cluster block
@@ -314,67 +314,67 @@ Another example:
  *
  * <pre>
  * </pre>
-
- \subsection edge_config Edge Config
-
-Pipeline edges are configured in a hierarchical manner. First there is
-the _pipeline:_edge config block which establishes the basic
-configuration for all edges. This can be specified as follows:
-
-<pre>
-config _pipeline:_edge
-       :capacity 30
-</pre>
-
-Currently the only attribute that can be configured is "capacity".
-
-The config for the edge type overrides the default configuration so
-that edges used to transport specific data types can be configured as
-a group. This edge type configuration is specified as follows:
-
-<pre>
-config _pipeline:_edge_by_type
-       :image_container:capacity 30
-       :timestamp:capacity 4
-</pre>
-
-Where \b image_container and \b timestamp are the type names used when
-defining process ports.
-
-After this set of configurations have been applied, edges can be
-more specifically configured based on their connection description. An
-edge connection is described in the config as follows:
-
-<pre>
-config _pipeline:_edge_by_conn
-        :<process>:<up_down>:<port>
-
-Where:
-<process> is the name of the process that is being connected.
-<up_down> is the direction of the connection. This is either "up" or "down".
-<port> is the name of the port.
-</pre>
-
-For the example, the following connection
-
-<pre>
-connect from input.timestamp
-        to   stabilize.timestamp
-</pre>
-
-can be described as follows:
-
-<pre>
-config _pipeline:_edge_by_conn
-   :input:up:timestamp:capacity 20
-   :stabilize:down:timestamp:capacity 20
-</pre>
-
-Both of these entries refer to the same edge, so in real life, you
-would only specify one.
-
-These different methods of configuring pipeline edges are applied in a
-hierarchial manner to allow general defaults to be set, and overridden
-using more specific edge attributes.
-
+ *
+ * \subsection edge_config Edge Config
+ *
+ * Pipeline edges are configured in a hierarchical manner. First there is
+ * the _pipeline:_edge config block which establishes the basic
+ * configuration for all edges. This can be specified as follows:
+ *
+ * <pre>
+ * config _pipeline:_edge
+ *        :capacity 30
+ * </pre>
+ *
+ * Currently the only attribute that can be configured is "capacity".
+ *
+ * The config for the edge type overrides the default configuration so
+ * that edges used to transport specific data types can be configured as
+ * a group. This edge type configuration is specified as follows:
+ *
+ * <pre>
+ * config _pipeline:_edge_by_type
+ *        :image_container:capacity 30
+ *        :timestamp:capacity 4
+ * </pre>
+ *
+ * Where \b image_container and \b timestamp are the type names used when
+ * defining process ports.
+ *
+ * After this set of configurations have been applied, edges can be
+ * more specifically configured based on their connection description. An
+ * edge connection is described in the config as follows:
+ *
+ * <pre>
+ * config _pipeline:_edge_by_conn
+ *         :<process>:<up_down>:<port>
+ * </pre>
+ *
+ * Where:
+ * \li <process> is the name of the process that is being connected.
+ * \li <up_down> is the direction of the connection. This is either "up" or "down".
+ * \li <port> is the name of the port.
+ *
+ * For the example, the following connection
+ *
+ * <pre>
+ * connect from input.timestamp
+ *         to   stabilize.timestamp
+ * </pre>
+ *
+ * can be described as follows:
+ *
+ * <pre>
+ * config _pipeline:_edge_by_conn
+ *    :input:up:timestamp:capacity 20
+ *    :stabilize:down:timestamp:capacity 20
+ * </pre>
+ *
+ * Both of these entries refer to the same edge, so in real life, you
+ * would only need one.
+ *
+ * These different methods of configuring pipeline edges are applied in a
+ * hierarchial manner to allow general defaults to be set, and overridden
+ * using more specific edge attributes.
+ *
  */
