@@ -30,62 +30,19 @@
 
 /**
  * \file
- * \brief Defaults plugin algorithm registration plugin interface impl
+ * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <maptk/plugin_interface/algorithm_impl_pl_interface.h>
-
-#include <maptk/plugins/default/close_loops_bad_frames_only.h>
-#include <maptk/plugins/default/close_loops_multi_method.h>
-#include <maptk/plugins/default/compute_ref_homography_default.h>
-#include <maptk/plugins/default/convert_image_default.h>
-#include <maptk/plugins/default/hierarchical_bundle_adjust.h>
-#include <maptk/plugins/default/match_features_homography.h>
 #include <maptk/plugins/default/plugin_default_config.h>
-#include <maptk/plugins/default/track_features_default.h>
+#include <maptk/plugins/default/register_algorithms.h>
+#include <maptk/registrar.h>
 
-#include <iostream>
-
-#include <maptk/logging_macros.h>
-
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+#define MAPTK_ALGO_REGISTER_EXPORT PLUGIN_DEFAULT_EXPORT
+#include <maptk/plugin_interface/algorithm_plugin_interface.h>
 
 
 PLUGIN_DEFAULT_EXPORT
 int register_algo_impls(maptk::registrar &reg)
 {
-  try
-  {
-    LOG_DEBUG( "plugin::default::register_algo_impls",
-               "Registering DEFAULT plugin algo implementations (" << &reg << ")" );
-
-    int registered
-      = maptk::algo::close_loops_bad_frames_only::register_self(reg)
-      + maptk::algo::close_loops_multi_method::register_self(reg)
-      + maptk::algo::compute_ref_homography_default::register_self(reg)
-      + maptk::algo::convert_image_default::register_self(reg)
-      + maptk::algo::hierarchical_bundle_adjust::register_self(reg)
-      + maptk::algo::match_features_homography::register_self(reg)
-      + maptk::algo::track_features_default::register_self(reg)
-      ;
-
-    LOG_DEBUG( "plugin::default::register_algo_impls",
-               "Registered algorithms. Returned: " << registered );
-    return 7 - registered;
-  }
-  catch (...)
-  {
-    LOG_ERROR( "plugin::default::register_algo_impls",
-               "Exception caught during algorithm registrarion" );
-  }
-  return -1;
+  return maptk::defaults::register_algo_impls( reg );
 }
-
-
-#ifdef __cplusplus
-}
-#endif
