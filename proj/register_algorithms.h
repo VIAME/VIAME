@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2014 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,27 @@
 
 /**
  * \file
- * \brief PROJ module configuration header
+ * \brief PROJ algorithm registration function
  */
 
-#ifndef MAPTK_PROJ_PROJ_CONFIG_H
-#define MAPTK_PROJ_PROJ_CONFIG_H
+#ifndef _MAPTK_PLUGINS_PROJ_REGISTER_ALGORITHMS_H_
+#define _MAPTK_PLUGINS_PROJ_REGISTER_ALGORITHMS_H_
 
-#include <maptk/config.h>
+#include <maptk/plugins/proj/proj_config.h>
+#include <maptk/registrar.h>
 
+namespace maptk
+{
 
-/// Define symbol visibility in maptk::proj
-#ifndef MAPTK_PROJ_EXPORT
-# ifdef MAKE_MAPTK_PROJ_LIB
-#   define MAPTK_PROJ_EXPORT MAPTK_EXPORT
-# else
-#   define MAPTK_PROJ_EXPORT MAPTK_IMPORT
-# endif
-/// Marks symbols not to be exported
-# define MATPK_PROJ_NO_EXPORT MAPTK_NO_EXPORT
-#endif
+namespace proj
+{
+
+/// Register PROJ algorithm implementations with the given or global registrar
+MAPTK_PROJ_EXPORT
+int register_algorithms( maptk::registrar &reg = maptk::registrar::instance() );
+
+} // end proj ns
+
+} // end maptk ns
 
 #endif
