@@ -41,6 +41,7 @@
 #endif
 
 #include <maptk/logging_macros.h>
+#include <maptk/plugin_interface/algorithm_plugin_interface_macros.h>
 #include <maptk/plugins/ocv/analyze_tracks.h>
 #include <maptk/plugins/ocv/detect_features.h>
 #include <maptk/plugins/ocv/draw_tracks.h>
@@ -59,36 +60,25 @@ namespace ocv
 /// Register OCV algorithm implementations with the given or global registrar
 int register_algorithms( maptk::registrar &reg )
 {
-  try
-  {
-    LOG_DEBUG( "plugin::ocv::register_algo_impls",
-               "Registering OCV plugin algo implementations" );
+  LOG_DEBUG( "maptk::plugins::ocv::register_algorithms",
+             "Registering OCV plugin algo implementations" );
 
 #ifdef HAVE_OPENCV_NONFREE
-    cv::initModule_nonfree();
+  cv::initModule_nonfree();
 #endif
 
-    int expected = 7,
-        registered
-      = maptk::ocv::analyze_tracks::register_self(reg)
-      + maptk::ocv::detect_features::register_self(reg)
-      + maptk::ocv::draw_tracks::register_self(reg)
-      + maptk::ocv::estimate_homography::register_self(reg)
-      + maptk::ocv::extract_descriptors::register_self(reg)
-      + maptk::ocv::image_io::register_self(reg)
-      + maptk::ocv::match_features::register_self(reg)
-      ;
+  REGISTRATION_INIT( reg );
 
-    LOG_DEBUG( "plugin::ocv::register_algo_impls",
-               "Registered " << registered << " of " << expected << " algorithms" );
-    return expected - registered;
-  }
-  catch (...)
-  {
-    LOG_ERROR( "plugin::ocv::register_algo_impls",
-               "Exception caught during algorithm registration" );
-  }
-  return -1;
+  REGISTER_TYPE( maptk::ocv::analyze_tracks );
+  REGISTER_TYPE( maptk::ocv::detect_features );
+  REGISTER_TYPE( maptk::ocv::draw_tracks );
+  REGISTER_TYPE( maptk::ocv::estimate_homography );
+  REGISTER_TYPE( maptk::ocv::extract_descriptors );
+  REGISTER_TYPE( maptk::ocv::image_io );
+  REGISTER_TYPE( maptk::ocv::match_features );
+
+  REGISTRATION_SUMMARY();
+  return REGISTRATION_FAILURES();
 }
 
 } // end ocv ns
