@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -169,6 +169,7 @@ class common_grammar
 
     qi::rule<Iterator, config_key_options_t()> config_key_options;
 
+    qi::rule<Iterator, config::key_t()> decl_part;
     qi::rule<Iterator, config::key_t()> decl_component;
     qi::rule<Iterator, config::key_t()> config_key;
     qi::rule<Iterator, config::keys_t()> config_key_path;
@@ -310,6 +311,7 @@ common_grammar<Iterator>
   , config_provider()
   , config_provider_decl()
   , config_key_options()
+  , decl_part()
   , decl_component()
   , config_key()
   , config_key_path()
@@ -386,11 +388,20 @@ common_grammar<Iterator>
      > -config_provider_decl
      );
 
-  decl_component.name("decl-component");
-  decl_component %=
+  decl_part.name("decl-part");
+  decl_part %=
     +(  qi::alnum
      |  qi::char_('-')
      |  qi::char_('_')
+     );
+
+  // FIXME: there shouldn't be slashes next to each other. Basically,
+  // decl_part % qi::char_('/') would be nice if it returned a single string
+  // rather than a vector of decl_parts.
+  decl_component.name("decl-component");
+  decl_component %=
+    +(  decl_part
+     |  qi::char_('/')
      );
 
   config_key.name("key-component");
@@ -399,6 +410,7 @@ common_grammar<Iterator>
      |  qi::char_('-')
      |  qi::char_('_')
      |  qi::char_('/')
+     |  qi::char_('.')
      );
 
   config_key_path.name("key-path");
@@ -447,7 +459,7 @@ common_grammar<Iterator>
 
   type_name.name("type-name");
   type_name %=
-     (  decl_component
+     (  decl_part
      );
 
   type_decl.name("type-decl");
@@ -467,7 +479,7 @@ common_grammar<Iterator>
      (  opt_whitespace
      >> qi::lit(process_block_name)
      >  whitespace
-     >  process_name
+     >  type_name
      >  line_end
      >  opt_whitespace
      >  type_decl
@@ -485,7 +497,7 @@ common_grammar<Iterator>
 
   port_addr.name("port-addr");
   port_addr %=
-     (  config_key
+     (  process_name
      >  qi::lit(port_separator)
      >  port_name
      );

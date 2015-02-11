@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -425,6 +425,42 @@ IMPLEMENT_TEST(config_append_flag_mismatch_all)
   EXPECT_EXCEPTION(sprokit::config_flag_mismatch_exception,
                    sprokit::extract_configuration(blocks),
                    "a configuration value has mismatch configuration flags");
+}
+
+IMPLEMENT_TEST(config_dotted_key)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
+
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:dotted.key");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("value");
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration was not read properly: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
+}
+
+IMPLEMENT_TEST(config_dotted_nested_key)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  sprokit::config_t const conf = sprokit::extract_configuration(blocks);
+
+  sprokit::config::key_t const mykey = sprokit::config::key_t("myblock:dotted:nested.key:subkey");
+  sprokit::config::value_t const myvalue = conf->get_value<sprokit::config::value_t>(mykey);
+  sprokit::config::value_t const expected = sprokit::config::value_t("value");
+
+  if (myvalue != expected)
+  {
+    TEST_ERROR("Configuration was not read properly: "
+               "Expected: " << expected << " "
+               "Received: " << myvalue);
+  }
 }
 
 IMPLEMENT_TEST(config_provider_conf)

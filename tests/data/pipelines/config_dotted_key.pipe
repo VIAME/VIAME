@@ -1,0 +1,2 @@
+config myblock
+  :dotted.key value
