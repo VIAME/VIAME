@@ -128,6 +128,7 @@ class SPROKIT_PIPELINE_EXPORT config
      */
     template <typename T>
     T get_value(key_t const& key) const;
+
     /**
      * \brief Cast the value, returning a default value in case of an error.
      *
@@ -179,6 +180,7 @@ class SPROKIT_PIPELINE_EXPORT config
      * \returns True if \p key is read-only, false otherwise.
      */
     bool is_read_only(key_t const& key) const;
+
     /**
      * \brief Set the value within the configuration as read-only.
      *
@@ -229,6 +231,7 @@ class SPROKIT_PIPELINE_EXPORT config
     static key_t const block_sep;
     /// The magic group for global parameters.
     static key_t const global_value;
+
   private:
     SPROKIT_PIPELINE_NO_EXPORT config(key_t const& name, config_t parent);
 

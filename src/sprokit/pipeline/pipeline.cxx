@@ -1066,6 +1066,8 @@ pipeline::priv
   , setup_successful(false)
   , running(false)
 {
+  /// \todo Debug log config
+  std::cerr << "DEBUG - pipeline config:\n" << *config << std::endl;
 }
 
 pipeline::priv
@@ -1603,6 +1605,10 @@ pipeline::priv
     process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
     process::port_flags_t const& down_flags = down_info->flags;
 
+    // Extract the "_edge:" subblock from the supplied config.
+    // This supplies the default or most general config values.
+    // The edge type config will be merged in to override defaults for this edge.
+    // Then the connection based congit will be merged to override.
     config_t edge_config = config->subblock(priv::config_edge);
 
     // Configure the edge based on its type.
@@ -1636,6 +1642,11 @@ pipeline::priv
       edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
       edge_config->mark_read_only(edge::config_dependency);
     }
+
+    /// \todo log edge config
+    std::cerr << "DEBUG - edge config for "
+              << upstream_name << "." << upstream_port << " -> " << downstream_name << "." << downstream_port
+              << "\n" << *edge_config << std::endl;
 
     edge_t const e = boost::make_shared<edge>(edge_config);
 
