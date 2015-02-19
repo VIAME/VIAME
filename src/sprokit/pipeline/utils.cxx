@@ -30,6 +30,8 @@
 
 #include "utils.h"
 
+#include <cxxabi.h>
+
 #ifdef HAVE_PTHREAD_NAMING
 #define NAME_THREAD_USING_PTHREAD
 #ifdef HAVE_PTHREAD_SET_NAME_NP
@@ -46,6 +48,7 @@
 
 #ifdef __linux__
 #define NAME_THREAD_USING_PRCTL
+#define ABI_DEMANGLE_SYMBOL
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -73,6 +76,7 @@
 #include <windows.h>
 #else
 #include <cstdlib>
+#include <cxxabi.h>
 #endif
 
 /**
@@ -261,5 +265,23 @@ set_thread_name(DWORD thread_id, LPCSTR name)
    }
 }
 #endif
+
+std::string _demangle_symbol(std::string const& sym)
+{
+#ifdef ABI_DEMANGLE_SYMBOL
+  std::string tname;
+  int status;
+  char* demangled_name = abi::__cxa_demangle(sym.c_str(), NULL, NULL, &status);
+  if(0 == status)
+  {
+    tname = demangled_name;
+    std::free(demangled_name);
+  }
+  return tname;
+#else
+  return sym;
+#endif
+}
+
 
 }

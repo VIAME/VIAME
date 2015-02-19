@@ -34,6 +34,7 @@
 #include "pipeline-config.h"
 
 #include "types.h"
+#include "utils.h"
 
 #include <boost/optional/optional.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -44,44 +45,9 @@
 #include <set>
 #include <string>
 #include <sstream>
-#include <typeinfo>
 #include <vector>
 
 #include <cstddef>
-
-
-#include <cxxabi.h>
-namespace  {
-
-/// \todo add more complete solution for compiler specific
-/// support for type names
-#if defined(linux)
-
-template<typename T>
-std::string type_name()
-{
-    int status;
-    std::string tname = typeid(T).name();
-    char *demangled_name = abi::__cxa_demangle(tname.c_str(), NULL, NULL, &status);
-    if(status == 0) {
-        tname = demangled_name;
-        std::free(demangled_name);
-    }
-    return tname;
-}
-
-#else
-
-template<typename T>
-std::string type_name()
-{
-    std::string tname = typeid(T).name();
-    return tname;
-}
-
-#endif
-
-} // end namespace
 
 /**
  * \file config.h
@@ -261,6 +227,13 @@ class SPROKIT_PIPELINE_EXPORT config
      * \returns Whether the key exists.
      */
     bool has_value(key_t const& key) const;
+
+    /**
+     * \brief Format configuration block to stream.
+     *
+     * \param str Config is formatted to this stream.
+     */
+    void print(std::ostream& str);
 
     /// The separator between blocks.
     static key_t const block_sep;
@@ -448,13 +421,15 @@ class SPROKIT_PIPELINE_EXPORT unset_on_read_only_value_exception
     config::value_t const m_value;
 };
 
-
 /**
  * \brief Default cast handling of configuration values.
  *
  * \note Do not use this in user code. Use \ref config_cast instead.
  *
  * \param value The value to convert.
+ *
+ * \throws bad_configuration_cast Thrown if lexical cast to
+ * destination type fails.
  *
  * \returns The value of \p value in the requested type.
  */
@@ -469,13 +444,12 @@ config_cast_default(config::value_t const& value)
   }
   catch (boost::bad_lexical_cast const& e)
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << e.what() << " - converting \"" << value << "\" to type \""
        << type_name<T>() << "\"";
     throw bad_configuration_cast( ss.str().c_str() );
   }
 }
-
 
 /**
  * \brief Type-specific casting handling.
@@ -494,7 +468,6 @@ config_cast_inner(config::value_t const& value)
   return config_cast_default<T>(value);
 }
 
-
 /**
  * \brief Type-specific casting handling.
  *
@@ -509,7 +482,6 @@ config_cast_inner(config::value_t const& value)
  */
 template <>
 SPROKIT_PIPELINE_EXPORT bool config_cast_inner(config::value_t const& value);
-
 
 /**
  * \brief Cast a configuration value to the requested type.
@@ -527,7 +499,6 @@ config_cast(config::value_t const& value)
 {
   return config_cast_inner<T>(value);
 }
-
 
 template <typename T>
 T
@@ -565,8 +536,6 @@ config
     return def;
   }
 }
-
-std::ostream& operator<<(std::ostream&str, sprokit::config const& obj);
 
 }
 

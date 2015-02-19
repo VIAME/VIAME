@@ -36,6 +36,7 @@
 #include <boost/optional.hpp>
 
 #include <string>
+#include <typeinfo>
 
 /**
  * \file utils.h
@@ -78,6 +79,25 @@ SPROKIT_PIPELINE_EXPORT bool name_thread(thread_name_t const& name);
  * \returns The value of the environment variable, \c NULL if it was not set.
  */
 SPROKIT_PIPELINE_EXPORT envvar_value_t get_envvar(envvar_name_t const& name);
+
+SPROKIT_PIPELINE_EXPORT std::string _demangle_symbol(std::string const& sym);
+
+/**
+ * \brief Get type as string.
+ *
+ * Convert type into a descriptive string. This is useful for error
+ * messages in templated code where something goes wrong with the type.
+ *
+ * \tparam T type to be converted to string
+ *
+ * \returns type as a string
+ */
+template<typename T>
+std::string type_name()
+{
+    std::string tname = typeid(T).name();
+    return _demangle_symbol(tname);
+}
 
 }
 
