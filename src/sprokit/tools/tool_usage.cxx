@@ -84,7 +84,8 @@ tool_common_options()
 }
 
 boost::program_options::variables_map
-tool_parse(int argc, char const* argv[], boost::program_options::options_description const& desc)
+tool_parse(int argc, char const* argv[], boost::program_options::options_description const& desc,
+           std::string const& program_description)
 {
   boost::program_options::variables_map vm;
 
@@ -104,7 +105,7 @@ tool_parse(int argc, char const* argv[], boost::program_options::options_descrip
   if (vm.count("help"))
   {
     tool_version_message();
-
+    std::cerr << std::endl << program_description << std::endl;
     tool_usage(EXIT_SUCCESS, desc);
   }
 
