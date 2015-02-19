@@ -19,4 +19,4 @@ add_subdirectory(schedulers)
 
 sprokit_create_doxygen(
   "${CMAKE_CURRENT_SOURCE_DIR}"
-  sprokit-master)
+  sprokit-all)
