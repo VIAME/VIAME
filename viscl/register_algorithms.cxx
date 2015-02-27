@@ -53,9 +53,6 @@ namespace vcl
 /// Register VisCL algorithm implementations with the given or global registrar
 int register_algorithms( maptk::registrar &reg )
 {
-  LOG_DEBUG( "maptk::plugins::viscl::register_algorithms",
-             "Registering VISCL algo implementations" );
-
   REGISTRATION_INIT( reg );
 
   REGISTER_TYPE( maptk::vcl::convert_image );
