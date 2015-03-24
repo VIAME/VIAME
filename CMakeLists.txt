@@ -42,10 +42,16 @@ option(KWIVER_ENABLE_PYTHON "Enable PYTHON bindings" OFF )
 option(KWIVER_ENABLE_OPENCV "Enable OpenCV-dependent code" ON )
 option(Boost_USE_STATIC_LIBS "Use a statically-linked Boost" OFF)
 
+if (KWIVER_ENABLE_PYTHON) 
+  set(kwiver_boost_python_package python)
+endif()
+
+
 find_package(Boost 1.48 REQUIRED
   COMPONENTS
     chrono
     date_time
+    ${kwiver_boost_python_package}
     filesystem
     program_options
     system
@@ -54,7 +60,11 @@ find_package(Boost 1.48 REQUIRED
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
-set(BOOST_root ${Boost_LIBRARY_DIR}/..)
+if (DEFINED BOOST_ROOT)
+  set(BOOST_ROOT_ARG ${BOOST_ROOT})
+else()
+  set(BOOST_ROOT_ARG ${Boost_LIBRARY_DIR}/..)
+endif()
 
 # ================================================================
 # project global includes
@@ -73,6 +83,12 @@ if( KWIVER_ENABLE_OPENCV )
 endif( KWIVER_ENABLE_OPENCV )
 set( USE_OPENCV_VERSION KWIVER_ENABLE_OPENCV AND OpenCV_FOUND AND OpenCV_VERSION VERSION_GREATER "2.4" )
 
+
+if (KWIVER_ENABLE_PYTHON)
+    find_package(PythonInterp)
+    find_package(PythonLibs)
+endif()
+
 if(KWIVER_BUILD_SHARED)
   set(LIB_PREFIX ${CMAKE_SHARED_LIBRARY_PREFIX})
   set(LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -85,8 +101,10 @@ set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
 # installing system setup script
 if (fletch_ROOT)
-	set(SET_FLETCH_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH")
+    set(SET_FLETCH_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH")
+    set(SET_FLETCH_PYTHON_PATH "export PYTHONPATH=${fletch_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
 endif()
+
 configure_file(${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_BUILD_INSTALL_PREFIX}/setup_KWIVER.sh )
 
@@ -125,9 +143,10 @@ set(KWIVER_ARGS_COMMON_COMPILER
   -DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_C_FLAGS_RELWITHDEBINFO}
   )
 
+message("Setting Boost Root to ${BOOST_ROOT_ARG}")
 set(KWIVER_ARGS_COMMON_BOOST
   # Boost files and options
-  -DBOOST_ROOT=${BOOST_root}
+  -DBOOST_ROOT=${BOOST_ROOT_ARG}
   -DBoost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}
   -DBoost_LIBRARY_DIR=${Boost_LIBRARY_DIRS}
   -DBoost_USE_STATIC_LIBS=${Boost_USE_STATIC_LIBS}
