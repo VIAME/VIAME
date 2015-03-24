@@ -3,16 +3,16 @@ process numbersource
   :: numbers
 
   # Starting Number
-  :start 1 
+  :start 1
 
   # Ending Number
   :end 100
 
 # ================================================================
 process numbersink
-  :: print_number
+  :: kw_print_number_process
 
-  :output numbers.txt
+  :output numbers_from_python.txt
 
 # ================================================================
 # global pipeline config
@@ -23,6 +23,6 @@ config _pipeline:_edge
 # ================================================================
 # connections
 connect from numbersource.number
-        to   numbersink.number
+        to   numbersink.input
 
 # -- end of file --
