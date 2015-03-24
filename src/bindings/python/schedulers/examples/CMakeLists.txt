@@ -1,6 +1,6 @@
 project(sprokit_python_schedulers_examples)
 
-set(no_install TRUE)
+#set(no_install TRUE)
 
 sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   sprokit/schedulers/examples
