@@ -52,6 +52,7 @@
 #endif
 
 #include <cstddef>
+#include <iostream>
 
 /**
  * \file modules.cxx
@@ -170,6 +171,12 @@ look_in_directory(module_path_t const& directory)
   }
 }
 
+// ----------------------------------------------------------------
+/**
+ * \brief Load single module from shared object / DLL
+ *
+ * @param path Name of module to load.
+ */
 void
 load_from_module(module_path_t const& path)
 {
@@ -178,13 +185,18 @@ load_from_module(module_path_t const& path)
 #if defined(_WIN32) || defined(_WIN64)
   library = LoadLibraryW(path.c_str());
 #else
+  dlerror(); // clear error message
   library = dlopen(path.c_str(), RTLD_GLOBAL | RTLD_LAZY);
 #endif
 
   if (!library)
   {
-    /// \todo Log an error.
-
+    /// \todo Log an error. Also have system dependent way of getting error.
+    // This is important because libraries used by these modules can cause failure if
+    // they are not found.
+    std::cerr << "ERROR - Unable to load module: " << path
+              << "  (" << dlerror() << ")"
+              << std::endl;
     return;
   }
 
@@ -215,6 +227,7 @@ load_from_module(module_path_t const& path)
   if (process_registrar)
   {
     /// \todo Log info that we have loaded processes.
+    std::cerr << "INFO - Processes from module " << path << " loaded\n";
 
     (*process_registrar)();
     functions_found = true;

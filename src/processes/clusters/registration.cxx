@@ -49,6 +49,7 @@
 #include <boost/foreach.hpp>
 
 #include <algorithm>
+#include <iostream>
 
 /**
  * \file clusters/registration.cxx
@@ -115,15 +116,19 @@ register_processes()
 
   BOOST_FOREACH (include_path_t const& include_dir, include_dirs)
   {
+    // log file
+    std::cerr << "DEBUG - loading clusters from directory: " << include_dir << std::endl;
     if (!boost::filesystem::exists(include_dir))
     {
       /// \todo Log error that path doesn't exist.
+      std::cerr << "DEBUG - Path not found loading clusters: " << include_dir << std::endl;
       continue;
     }
 
     if (!boost::filesystem::is_directory(include_dir))
     {
       /// \todo Log error that path isn't a directory.
+      std::cerr << "ERROR - Path not directory loading clusters: " << include_dir << std::endl;
       continue;
     }
 
@@ -146,9 +151,13 @@ register_processes()
         continue;
       }
 
+      // log loading file
+      std::cerr << "DEBUG - Loading cluster from file: " << pstr << std::endl;
+
       if (ent.status().type() != boost::filesystem::regular_file)
       {
         /// \todo Log warning that we found a non-file matching path.
+        std::cerr << "WARNING - found non file loading clusters: \n";
         continue;
       }
 
@@ -158,16 +167,16 @@ register_processes()
       {
         info = bake_cluster_from_file(path);
       }
-      catch (load_pipe_exception const& /*e*/)
+      catch (load_pipe_exception const& e)
       {
         /// \todo Handle exceptions.
-
+        std::cerr << "ERROR - exception caught loading cluster: " << e.what() << std::endl;
         continue;
       }
-      catch (pipe_bakery_exception const& /*e*/)
+      catch (pipe_bakery_exception const& e)
       {
         /// \todo Handle exceptions.
-
+        std::cerr << "ERROR - exception caught loading cluster: " << e.what() << std::endl;
         continue;
       }
 
@@ -184,6 +193,7 @@ register_processes()
         catch (process_type_already_exists_exception const& e)
         {
           /// \todo Print out exception.
+          std::cerr << "ERROR - exception caught loading cluster: " << e.what() << std::endl;
         }
       }
     }

@@ -71,7 +71,7 @@ pipeline_builder
 {
   if (!vm.count("pipeline"))
   {
-    std::cerr << "Error: pipeline not set" << std::endl;
+    std::cerr << "Error: pipeline option not set" << std::endl;
 
     tool_usage(EXIT_FAILURE, desc);
   }

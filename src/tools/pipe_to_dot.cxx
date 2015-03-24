@@ -71,7 +71,7 @@ sprokit_tool_main(int argc, char const* argv[])
     .add(sprokit::pipeline_output_options())
     .add(pipe_to_dot_pipeline_options());
 
-  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc, "");
 
   sprokit::process_cluster_t cluster;
   sprokit::pipeline_t pipe;

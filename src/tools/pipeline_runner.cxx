@@ -60,7 +60,7 @@ sprokit_tool_main(int argc, char const* argv[])
     .add(sprokit::pipeline_input_options())
     .add(sprokit::pipeline_run_options());
 
-  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc);
+  boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc, "");
 
   sprokit::pipeline_builder const builder(vm, desc);
 

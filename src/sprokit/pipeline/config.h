@@ -34,6 +34,7 @@
 #include "pipeline-config.h"
 
 #include "types.h"
+#include "utils.h"
 
 #include <boost/optional/optional.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -43,7 +44,7 @@
 #include <map>
 #include <set>
 #include <string>
-#include <typeinfo>
+#include <sstream>
 #include <vector>
 
 #include <cstddef>
@@ -128,6 +129,7 @@ class SPROKIT_PIPELINE_EXPORT config
      */
     template <typename T>
     T get_value(key_t const& key) const;
+
     /**
      * \brief Cast the value, returning a default value in case of an error.
      *
@@ -179,6 +181,7 @@ class SPROKIT_PIPELINE_EXPORT config
      * \returns True if \p key is read-only, false otherwise.
      */
     bool is_read_only(key_t const& key) const;
+
     /**
      * \brief Set the value within the configuration as read-only.
      *
@@ -225,10 +228,18 @@ class SPROKIT_PIPELINE_EXPORT config
      */
     bool has_value(key_t const& key) const;
 
+    /**
+     * \brief Format configuration block to stream.
+     *
+     * \param str Config is formatted to this stream.
+     */
+    void print(std::ostream& str);
+
     /// The separator between blocks.
     static key_t const block_sep;
     /// The magic group for global parameters.
     static key_t const global_value;
+
   private:
     SPROKIT_PIPELINE_NO_EXPORT config(key_t const& name, config_t parent);
 
@@ -417,6 +428,9 @@ class SPROKIT_PIPELINE_EXPORT unset_on_read_only_value_exception
  *
  * \param value The value to convert.
  *
+ * \throws bad_configuration_cast Thrown if lexical cast to
+ * destination type fails.
+ *
  * \returns The value of \p value in the requested type.
  */
 template <typename T>
@@ -430,7 +444,10 @@ config_cast_default(config::value_t const& value)
   }
   catch (boost::bad_lexical_cast const& e)
   {
-    throw bad_configuration_cast(e.what());
+    std::ostringstream ss;
+    ss << e.what() << " - converting \"" << value << "\" to type \""
+       << type_name<T>() << "\"";
+    throw bad_configuration_cast( ss.str().c_str() );
   }
 }
 

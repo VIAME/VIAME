@@ -213,6 +213,26 @@ config
   return (0 != m_store.count(key));
 }
 
+void
+config
+::print(std::ostream& str)
+{
+  sprokit::config::keys_t all_keys = this->available_values();
+
+  BOOST_FOREACH(sprokit::config::key_t key, all_keys)
+  {
+    std::string ro;
+
+    sprokit::config::value_t const val = this->get_value< sprokit::config::value_t > (key);
+    if (this->is_read_only(key))
+    {
+      ro = "[ro]";
+    }
+
+    str << key << ro << " = " << val << std::endl;
+  }
+}
+
 config
 ::config(key_t const& name, config_t parent)
   : m_parent(parent)
@@ -400,4 +420,4 @@ strip_block_name(config::key_t const& subblock, config::key_t const& key)
   return key.substr(subblock.size() + config::block_sep.size());
 }
 
-}
+} // end namespace

@@ -63,9 +63,12 @@ process::property_t const process::property_no_threads = property_t("_no_thread"
 process::property_t const process::property_no_reentrancy = property_t("_no_reentrant");
 process::property_t const process::property_unsync_input = property_t("_unsync_input");
 process::property_t const process::property_unsync_output = property_t("_unsync_output");
+
 process::port_t const process::port_heartbeat = port_t("_heartbeat");
+
 config::key_t const process::config_name = config::key_t("_name");
 config::key_t const process::config_type = config::key_t("_type");
+
 process::port_type_t const process::type_any = port_type_t("_any");
 process::port_type_t const process::type_none = port_type_t("_none");
 process::port_type_t const process::type_data_dependent = port_type_t("_data_dependent");
@@ -76,6 +79,7 @@ process::port_flag_t const process::flag_input_static = port_flag_t("_static");
 process::port_flag_t const process::flag_input_mutable = port_flag_t("_mutable");
 process::port_flag_t const process::flag_input_nodep = port_flag_t("_nodep");
 process::port_flag_t const process::flag_required = port_flag_t("_required");
+
 config::key_t const process::static_input_prefix = config::key_t("static/");
 
 process::port_info
@@ -294,7 +298,6 @@ process
   }
 
   /// \todo Make reentrant.
-
   /// \todo Are there any pre-_step actions?
 
   bool complete = false;
@@ -1720,6 +1723,7 @@ process::priv
 
     frequency_component_t const rel_count = freq.numerator();
 
+    // collect inputs based on frequency value.
     for (frequency_component_t j = 0; j < rel_count; ++j)
     {
       edge_datum_t const edat = iedge->peek_datum(j);

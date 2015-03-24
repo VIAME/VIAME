@@ -61,6 +61,10 @@ typedef boost::function<process_t (config_t const& config)> process_ctor_t;
  *
  * \brief A registry of processes which can generate processes of a different types.
  *
+ * The process registry is a singleton (accessed by
+ * sprokit::process_registry::self()) that contains all processes that
+ * can be found.
+ *
  * \ingroup registries
  */
 class SPROKIT_PIPELINE_EXPORT process_registry
@@ -89,6 +93,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
      * \param ctor The function which creates the process of the \p type.
      */
     void register_process(process::type_t const& type, description_t const& desc, process_ctor_t ctor);
+
     /**
      * \brief Create process of a specific type.
      *
@@ -108,6 +113,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
      * \returns All available types in the registry.
      */
     process::types_t types() const;
+
     /**
      * \brief Query for a description of a type.
      *
@@ -123,6 +129,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
      * \param module The module to mark as loaded.
      */
     void mark_module_as_loaded(module_t const& module);
+
     /**
      * \brief Query if a module has already been loaded.
      *
@@ -138,6 +145,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
      * \returns The instance of the registry to use.
      */
     static process_registry_t self();
+
   private:
     process_registry();
 
@@ -152,7 +160,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
  *
  * \param conf The configuration to pass to the \ref process.
  *
- * \return The new process.
+ * \returns The new process.
  */
 template <typename T>
 process_t
