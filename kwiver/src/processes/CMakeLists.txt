@@ -5,6 +5,12 @@
 # Sprokit macros
 include("${sprokit_source_dir}/conf/sprokit-macro-targets.cmake")
 
+if (KWIVER_ENABLE_PYTHON)
+  include("${sprokit_source_dir}/conf/sprokit-macro-configure.cmake")
+  include("${sprokit_source_dir}/conf/sprokit-macro-python.cmake")
+endif()
+
+
 SET( sources
   register_processes.cxx
   kw_archive_writer_process.cxx
@@ -47,3 +53,11 @@ target_link_libraries( kwiver_processes
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     vsl vil vul vnl vnl_io vil_io )
+
+if (KWIVER_ENABLE_PYTHON)
+  set(sprokit_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
+  set(sprokit_python_output_path "${KWIVER_BUILD_INSTALL_PREFIX}/lib/${sprokit_python_subdir}")
+  sprokit_create_python_plugin_init(kwiver)
+  sprokit_create_python_plugin_init(kwiver/processes)
+  sprokit_add_python_module(${CMAKE_SOURCE_DIR}/kwiver/src/processes/kw_print_number_process.py kwiver/processes kw_print_number_process)
+endif()
