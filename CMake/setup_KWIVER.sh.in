@@ -9,3 +9,4 @@ export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
 @SET_FLETCH_LD_LIBRARY_PATH@
 @SET_FLETCH_PYTHON_PATH@
 export PYTHONPATH=$this_dir/lib/python/site-packages:$PYTHONPATH
+export SPROKIT_PYTHON_MODULES=kwiver.processes
