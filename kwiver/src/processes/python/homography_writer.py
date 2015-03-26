@@ -14,9 +14,7 @@ import sprokit.pipeline.process_registry
 
 # from libkwiver_python_convert_homography.homograpy import HomograpyTra
 import os.path
-import libkwiver_python_convert_homography as qh
-
-# qh.HomographyTransform
+import libkwiver_python_convert_homography
 
 
 
