@@ -42,7 +42,7 @@ option(KWIVER_ENABLE_PYTHON "Enable PYTHON bindings" OFF )
 option(KWIVER_ENABLE_OPENCV "Enable OpenCV-dependent code" ON )
 option(Boost_USE_STATIC_LIBS "Use a statically-linked Boost" OFF)
 
-if (KWIVER_ENABLE_PYTHON) 
+if (KWIVER_ENABLE_PYTHON)
   set(kwiver_boost_python_package python)
 endif()
 
@@ -143,7 +143,6 @@ set(KWIVER_ARGS_COMMON_COMPILER
   -DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_C_FLAGS_RELWITHDEBINFO}
   )
 
-message("Setting Boost Root to ${BOOST_ROOT_ARG}")
 set(KWIVER_ARGS_COMMON_BOOST
   # Boost files and options
   -DBOOST_ROOT=${BOOST_ROOT_ARG}
@@ -202,5 +201,3 @@ include(Doxygen)
 #  DESTINATION .
 #  USE_SOURCE_PERMISSIONS
 #  )
-
-
