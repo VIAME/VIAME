@@ -10,6 +10,10 @@ project( core_conversions )
 
 include_directories( SYSTEM ${PYTHON_INCLUDE_DIR} )
 
+# need access to sprokit private includes
+include_directories( ${KWIVER_PACKAGES_DIR}/sprokit/src )
+
+# ==========================================
 add_library( kwiver_python_convert_homography
   homography.cxx)
 
@@ -32,7 +36,9 @@ add_dependencies( kwiver_python_convert_homography
 
 
 # make_python_init_file(core/conversions)
-
+####
+# INSTALL
+#
 install( TARGETS kwiver_python_convert_homography
   DESTINATION ${KWIVER_BUILD_INSTALL_PREFIX}/lib/python/site-packages/kwiver/processes
   )

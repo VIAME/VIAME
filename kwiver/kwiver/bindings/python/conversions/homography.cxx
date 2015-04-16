@@ -4,7 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <maptk/core/homography.h>
+#include <core/homography.h>
 
 #include <sprokit/python/any_conversion/prototypes.h>
 #include <sprokit/python/any_conversion/registration.h>

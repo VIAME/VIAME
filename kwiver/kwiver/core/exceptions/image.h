@@ -38,7 +38,7 @@
 
 #include <string>
 
-#include <kwiver/core/core_config.h>
+#include <kwiver/core/core-config.h>
 #include <kwiver/core/exceptions/base.h>
 
 

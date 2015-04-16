@@ -36,7 +36,10 @@
 #ifndef KWIVER_HOMOGRAPHY_H_
 #define KWIVER_HOMOGRAPHY_H_
 
-#include "core_config.h"
+#include "core-config.h"
+
+#include "types.h"
+
 #include "matrix.h"
 #include "vector.h"
 

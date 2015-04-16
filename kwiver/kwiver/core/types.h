@@ -30,58 +30,45 @@
 
 /**
  * \file
- * \brief KWIVER base exception interface
+ * \brief Shared type declarations for the maptk/core module.
  */
 
-#ifndef KWIVER_CORE_EXCEPTIONS_BASE_H
-#define KWIVER_CORE_EXCEPTIONS_BASE_H
+#ifndef MAPTK_CORE_TYPES_H
+#define MAPTK_CORE_TYPES_H
 
-#include <kwiver/core/core_config.h>
 #include <string>
+#include <vector>
 
-namespace kwiver
+#include <boost/filesystem/path.hpp>
+
+
+namespace maptk
 {
 
-/// The base class for all kwiver/core exceptions
-/**
- * \ingroup exceptions
- */
-class KWIVER_CORE_EXPORT kwiver_core_base_exception
-  : public std::exception
-{
-  public:
-    /// Constructor
-    kwiver_core_base_exception() KWIVER_NOTHROW;
-    /// Destructor
-    virtual ~kwiver_core_base_exception() KWIVER_NOTHROW;
+/// The type that represents a configuration value key.
+typedef std::string config_block_key_t;
+/// The type that represents a collection of configuration keys.
+typedef std::vector<config_block_key_t> config_block_keys_t;
+/// The type that represents a stored configuration value.
+typedef std::string config_block_value_t;
+/// The type that represents a description of a configuration key.
+typedef std::string config_block_description_t;
 
-    /// Description of the exception
-    /**
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const KWIVER_NOTHROW;
-  protected:
-    /// descriptive string as to what happened to cause the exception.
-    std::string m_what;
-};
+/// The type to be used for file and directory paths
+typedef boost::filesystem::path path_t;
 
-/// Exception for incorrect input values
-/**
- * \ingroup exceptions
- */
-class KWIVER_CORE_EXPORT invalid_value
-  : public kwiver_core_base_exception
-{
-public:
-  /// Constructor
-  invalid_value(std::string reason) KWIVER_NOTHROW;
-  /// Destructor
-  virtual ~invalid_value() KWIVER_NOTHROW;
-protected:
-  /// Reason for invalidity
-  std::string m_reason;
-};
+/// The type for a static token in the config_block parser
+typedef std::string token_t;
 
-} // end namespace kwiver
+/// The type of a landmark ID number
+typedef unsigned int landmark_id_t;
 
-#endif // KWIVER_CORE_EXCEPTIONS_BASE_H
+/// The type of a track ID number
+typedef unsigned int track_id_t;
+
+/// The type of a frame number or camera ID
+typedef unsigned int frame_id_t;
+
+}
+
+#endif // MAPTK_CORE_TYPES_H

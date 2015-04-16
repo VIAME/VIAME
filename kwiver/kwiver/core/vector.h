@@ -39,7 +39,7 @@
 #ifndef KWIVER_VECTOR_H_
 #define KWIVER_VECTOR_H_
 
-#include "core_config.h"
+#include "core-config.h"
 
 #include <cstring>
 #include <iostream>

@@ -8,6 +8,8 @@
 #ifndef _KWIVER_GEO_LAT_LON_H_
 #define _KWIVER_GEO_LAT_LON_H_
 
+#include "core-config.h"
+
 #include <ostream>
 
 namespace kwiver

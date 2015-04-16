@@ -11,7 +11,7 @@
 #include <ostream>
 #include <istream>
 
-#include <core-config.h>
+#include "core-config.h"
 
 
 namespace kwiver

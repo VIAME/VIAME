@@ -8,15 +8,15 @@
 #define _KWIVER_TYPES_KWIVER_H_
 
 #include <vector>
-#include <kwiver/core/geo_lat_lon.h>
-#include <kwiver/core/timestamp.h>
 
-#include <kwiver/core/homography.h>
-#include <kwiver/core/image_container.h>
+#include <core/geo_lat_lon.h>
+#include <core/timestamp.h>
+#include <core/homography.h>
+#include <core/image_container.h>
+#include <core/trait_utils.h>
 
 #include <sprokit/pipeline_util/path.h>
 
-#include <trait_utils.h>
 
 namespace kwiver
 {

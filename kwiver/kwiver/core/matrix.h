@@ -36,7 +36,7 @@
 #ifndef KWIVER_MATRIX_H_
 #define KWIVER_MATRIX_H_
 
-#include "core_config.h"
+#include "core-config.h"
 
 #include <iostream>
 #include <cstring>
@@ -47,7 +47,7 @@
 
 #include "vector.h"
 #include "vector_cmath.h"
-#include "exceptions.h"
+#include "exceptions/math.h"
 
 
 namespace kwiver
