@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Shared type declarations for the maptk/core module.
+ * \brief Shared type declarations for the kwiver/core module.
  */
 
-#ifndef MAPTK_CORE_TYPES_H
-#define MAPTK_CORE_TYPES_H
+#ifndef KWIVER_CORE_TYPES_H
+#define KWIVER_CORE_TYPES_H
 
 #include <string>
 #include <vector>
@@ -42,7 +42,7 @@
 #include <boost/filesystem/path.hpp>
 
 
-namespace maptk
+namespace kwiver
 {
 
 /// The type that represents a configuration value key.
@@ -71,4 +71,4 @@ typedef unsigned int frame_id_t;
 
 }
 
-#endif // MAPTK_CORE_TYPES_H
+#endif // KWIVER_CORE_TYPES_H
