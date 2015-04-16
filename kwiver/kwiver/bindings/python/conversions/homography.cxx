@@ -4,7 +4,7 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include <core/homography.h>
+#include <kwiver/core/homography.h>
 
 #include <sprokit/python/any_conversion/prototypes.h>
 #include <sprokit/python/any_conversion/registration.h>
@@ -16,23 +16,23 @@
 /**
  * \file homography.cxx
  *
- * \brief Python bindings for \link maptk::homography\endlink.
+ * \brief Python bindings for \link kwiver::homography\endlink.
  */
 
 using namespace boost::python;
 
-static double transform_get(maptk::f2f_homography const& self_, unsigned row, unsigned col);
-static void transform_set(maptk::f2f_homography& self_, unsigned row, unsigned col, double val);
-static unsigned from_id(maptk::f2f_homography& self_ );
-static unsigned to_id(maptk::f2f_homography& self_ );
+static double transform_get(kwiver::f2f_homography const& self_, unsigned row, unsigned col);
+static void transform_set(kwiver::f2f_homography& self_, unsigned row, unsigned col, double val);
+static unsigned from_id(kwiver::f2f_homography& self_ );
+static unsigned to_id(kwiver::f2f_homography& self_ );
 
 // name must match name of .so
-// Should add maptk in the name to differentiate from VidTK homography
+// Should add kwiver in the name to differentiate from VidTK homography
 BOOST_PYTHON_MODULE(libkwiver_python_convert_homography)
 {
   /// \todo Use NumPy instead.
-  class_<maptk::f2f_homography>("HomographyTransform"
-      , "A transformation matrix for a MapTK homography."
+  class_<kwiver::f2f_homography>("HomographyTransform"
+      , "A transformation matrix for a Kwiver homography."
    , no_init)
     .def("get", &transform_get
       , (arg("row"), arg("column"))
@@ -46,27 +46,27 @@ BOOST_PYTHON_MODULE(libkwiver_python_convert_homography)
   ;
 
 /*
-  class_<maptk::f2f_homography_base>("HomographyBase"
+  class_<kwiver::f2f_homography_base>("HomographyBase"
     , "The base class for homographies."
     , no_init)
-    .def("transform", &maptk::f2f_homography_base::transform
+    .def("transform", &kwiver::f2f_homography_base::transform
       , "The transform matrix for the homography."
       , return_internal_reference<1>())
 
-    .def("is_valid", &maptk::f2f_homography_base::is_valid
+    .def("is_valid", &kwiver::f2f_homography_base::is_valid
       , "True if the homography is valid, False otherwise.")
 
-    .def("is_new_reference", &maptk::f2f_homography_base::is_new_reference
+    .def("is_new_reference", &kwiver::f2f_homography_base::is_new_reference
       , "True if the homography is a new reference frame, False otherwise.")
-    .def("set_transform", &maptk::f2f_homography_base::set_transform
+    .def("set_transform", &kwiver::f2f_homography_base::set_transform
       , (arg("transform"))
       , "Sets the transformation matrix.")
-    .def("set_identity", &maptk::f2f_homography_base::set_identity
+    .def("set_identity", &kwiver::f2f_homography_base::set_identity
       , "Sets the homography transformation matrix to identity.")
-    .def("set_valid", &maptk::f2f_homography_base::set_valid
+    .def("set_valid", &kwiver::f2f_homography_base::set_valid
       , (arg("valid"))
       , "Sets whether the homography is valid or not.")
-    .def("set_new_reference", &maptk::f2f_homography_base::set_new_reference
+    .def("set_new_reference", &kwiver::f2f_homography_base::set_new_reference
       , "Sets whether the homography is a new reference or not.")
     .def(self == self)
   ;
@@ -75,7 +75,7 @@ BOOST_PYTHON_MODULE(libkwiver_python_convert_homography)
 #define HOMOGRAPHY_CLASS(type, name, desc)            \
   do                                                  \
   {                                                   \
-    class_<type, bases<maptk::f2f_homography> >(name \
+    class_<type, bases<kwiver::f2f_homography> >(name \
       , desc)                                         \
       .def("source", &type::source                    \
         , "The source plane data.")                   \
@@ -90,10 +90,10 @@ BOOST_PYTHON_MODULE(libkwiver_python_convert_homography)
       .def(self == self)                              \
     ;                                                 \
                                                       \
-    maptk::python::register_type<type>(20);           \
+    kwiver::python::register_type<type>(20);           \
   } while (false)
 
-  HOMOGRAPHY_CLASS(maptk::f2f_homography,
+  HOMOGRAPHY_CLASS(kwiver::f2f_homography,
                    "ImageToImageHomography",
                    "A homography from one image plane to another.");
   /// \todo Wrap up other plane ref types.
@@ -101,30 +101,30 @@ BOOST_PYTHON_MODULE(libkwiver_python_convert_homography)
 #undef HOMOGRAPHY_CLASS
   */
 
-sprokit::python::register_type<maptk::f2f_homography>(20);
+sprokit::python::register_type<kwiver::f2f_homography>(20);
 }
 
 double
-transform_get(maptk::f2f_homography const& self_, unsigned row, unsigned col)
+transform_get(kwiver::f2f_homography const& self_, unsigned row, unsigned col)
 {
   return self_(row, col);
 }
 
 void
-transform_set(maptk::f2f_homography& self_, unsigned row, unsigned col, double val)
+transform_set(kwiver::f2f_homography& self_, unsigned row, unsigned col, double val)
 {
   self_(row, col) = val;
 }
 
 unsigned
-from_id(maptk::f2f_homography& self_ )
+from_id(kwiver::f2f_homography& self_ )
 {
   return self_.from_id();
 }
 
 
 unsigned
-to_id(maptk::f2f_homography& self_ )
+to_id(kwiver::f2f_homography& self_ )
 {
   return self_.to_id();
 }

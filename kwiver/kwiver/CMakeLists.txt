@@ -16,7 +16,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/exim_config.h"
   DESTINATION include/kwiver
   )
 
-include_directories("${KWIVER_SOURCE_DIR}/kwiver/src")
+include_directories("${KWIVER_SOURCE_DIR}/kwiver")
 include_directories("${KWIVER_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
