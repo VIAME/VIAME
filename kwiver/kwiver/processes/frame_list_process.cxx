@@ -6,7 +6,7 @@
 
 #include "frame_list_process.h"
 
-#include <kwiver/core/types/kwiver.h>
+#include <kwiver/pipeline_types/kwiver.h>
 #include <kwiver/core/exceptions.h>
 #include <kwiver/core/timestamp.h>
 #include <kwiver/core/config_util.h>

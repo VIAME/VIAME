@@ -6,7 +6,7 @@
 
 #include "kw_archive_writer_process.h"
 
-#include <kwiver/core/types/kwiver.h>
+#include <kwiver/core/pipeline_types/kwiver.h>
 
 #include <maptk/modules.h>
 #include <kwiver/core/image_container.h>
