@@ -25,12 +25,6 @@ void convert_config( sprokit::config_t const  from,
     {
       sprokit::config::value_t val = from->get_value< sprokit::config::value_t > ( key );
 
-      // Going from sprokit to maptk, convert % -> . because '.' is
-      // not otherwise allowed in a sprokit key, and required by maptk
-      // algorithms
-      std::replace( key.begin(), key.end(), '%', '.'); // replace all '%' to '.'
-      std::replace( val.begin(), val.end(), '%', '.'); // replace all '%' to '.'
-
       // \todo add log message
       std::cout << "DEBUG - Processing entry: " << key << " = " << val << std::endl;
 
