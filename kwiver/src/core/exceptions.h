@@ -39,7 +39,7 @@ private:
 #define KWIVER_THROW(E, MSG) do {               \
     std::stringstream _oss_;                    \
   _oss_ << MSG;                                 \
-  throw E( __file, __line, MSG.str() );          \
+  throw E( __file, __line, MSG.str() );         \
 } while (0)
 
 #endif /* _KWIVER_KWIVER_EXCEPTIONS_H_ */
