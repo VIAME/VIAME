@@ -8,7 +8,7 @@
 #define _KWIVER_KW_ARCHIVE_WRITER_PROCESS_H_
 
 #include <sprokit/pipeline/process.h>
-#include <processes/kwiver-config.h>
+#include "processes-config.h"
 
 #include <boost/scoped_ptr.hpp>
 #include <maptk/core/vector.h>

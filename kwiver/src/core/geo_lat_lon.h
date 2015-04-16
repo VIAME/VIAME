@@ -23,7 +23,7 @@ namespace kwiver
  * -180 .. 0 .. 180. It is up to the application.  If a specific
  * convention must be enforced, make a subclass.
  */
-class geo_lat_lon
+class KWIVER_CORE_EXPORT geo_lat_lon
 {
 public:
   static const double INVALID;    // used to indicate uninitialized value
@@ -44,8 +44,8 @@ public:
 
 
 private:
-  double m_latitude ;
-  double m_longitude ;
+  double m_latitude;
+  double m_longitude;
 };
 
 std::ostream& operator<< (std::ostream& str, kwiver::geo_lat_lon const& obj);

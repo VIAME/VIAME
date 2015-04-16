@@ -3,7 +3,4 @@
 #
 
 # ================================================================
-include_directories( src/core )
-include_directories( src )
-
 add_subdirectory( src )

@@ -1,14 +1,13 @@
 #
 # KWIVER processes
 #
-
 project( kwiver_processes )
 
-# Sprokit macros
+# We are including sprokit macros because we are building
+# sprokit plut-ins.
 include("${sprokit_source_dir}/conf/sprokit-macro-targets.cmake")
 
-
-SET( sources
+set( sources
   register_processes.cxx
   kw_archive_writer_process.cxx
   frame_list_process.cxx
@@ -16,7 +15,7 @@ SET( sources
 )
 
 set( private_headers
-  kwiver-config.h
+  processes-config.h
   register_processes.h
   kw_archive_writer_process.h
   frame_list_process.h

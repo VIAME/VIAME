@@ -7,7 +7,7 @@
 #ifndef _KWIVER_REGISTER_PROCESSES_H_
 #define _KWIVER_REGISTER_PROCESSES_H_
 
-#include "kwiver-config.h"
+#include "processes-config.h"
 
 extern "C"
 {

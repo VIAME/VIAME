@@ -1,7 +1,7 @@
 #
 # Top level build script for kwiver-build
 #
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
 enable_testing()
 
 project(KWIVER)
@@ -15,39 +15,66 @@ set(KWIVER_VERSION_MINOR 1)
 set(KWIVER_VERSION_PATCH 0)
 set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
 
+
+###
+# Add the CMake directory for CMake modules
+#
+list(INSERT CMAKE_MODULE_PATH 0
+  "${MAPTK_SOURCE_DIR}/CMake"
+  )
+
+
 ##
 # Look for and use Fletch to find dependencies
 #
-if (fletch_DIR)
-  find_package(fletch NO_MODULE)
+set( fletch_DIR "" CACHE PATH "Path to FLETCH packages" )
+if ( IS_DIRECTORY ${fletch_DIR} )
+  find_package( fletch NO_MODULE )
 endif()
+
 
 ###
 # project specific directories
-set(KWIVER_PACKAGES_DIR "${CMAKE_SOURCE_DIR}/Packages")
+#
+set(KWIVER_PACKAGES_DIR         "${CMAKE_SOURCE_DIR}/Packages")
 set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/KWIVER_packaging")
 set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/KWIVER_packaging")
-set(KWIVER_CMAKE_DIR "${CMAKE_SOURCE_DIR}/CMake")
+set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
-set(KWIVER_BUILD_PREFIX "${CMAKE_BINARY_DIR}/build")
+set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build")
 set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 
-set(CMAKE_MODULE_PATH ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
-set(CMAKE_FIND_ROOT_PATH ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})
-set(CMAKE_LIBRARY_PATH ${KWIVER_BUILD_INSTALL_PREFIX}/lib)
-set(KWIVER_LINKER_FLAGS -L${CMAKE_LIBRARY_PATH})
+set(CMAKE_MODULE_PATH      ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
+set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})
+set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)
+set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" )
 
 # ================================================================
-option(KWIVER_ENABLE_PYTHON "Enable PYTHON bindings" OFF )
-option(KWIVER_ENABLE_OPENCV "Enable OpenCV-dependent code" ON )
-option(Boost_USE_STATIC_LIBS "Use a statically-linked Boost" OFF)
+option(KWIVER_ENABLE_PYTHON    "Enable PYTHON bindings" OFF )
+option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
 
 if (KWIVER_ENABLE_PYTHON)
   set(kwiver_boost_python_package python)
 endif()
 
 
-find_package(Boost 1.48 REQUIRED
+###
+# KWIVER CMake config
+#
+include(kwiver-utils)
+include(kwiver-flags)
+
+set(kwiver_export_name kwiver_exports)
+
+###
+# Dependencies and Modules
+#
+if(WIN32)
+  set(Boost_USE_STATIC_LIBS TRUE)
+  set(Boost_WIN_MODULES chrono)
+endif()
+
+find_package(Boost 1.55 REQUIRED
   COMPONENTS
     chrono
     date_time
@@ -56,6 +83,8 @@ find_package(Boost 1.48 REQUIRED
     program_options
     system
     thread)
+
+add_definitions(-DBOOST_ALL_NO_LIB)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
@@ -71,18 +100,27 @@ endif()
 include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include")
 
 
+# ==================================================================
+# TODO - should always build shared
+#
 if(NOT WIN32)
   option(KWIVER_BUILD_SHARED "Build KWIVER packages shared or not" ON)
 else()
+  # windows not shared for now
   set(KWIVER_BUILD_SHARED OFF)
 endif()
 
+set( USE_OPENCV False )
 if( KWIVER_ENABLE_OPENCV )
   find_package( OpenCV 2.4.6 REQUIRED )
   include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
-endif( KWIVER_ENABLE_OPENCV )
-set( USE_OPENCV_VERSION KWIVER_ENABLE_OPENCV AND OpenCV_FOUND AND OpenCV_VERSION VERSION_GREATER "2.4" )
 
+  if( OpenCV_VERSION VERSION_GREATER "2.4" )
+    set( USE_OPENCV True )
+  else()
+    message( FATAL_ERROR "OpenCV version must be at least 2.4" )
+  endif()
+endif( KWIVER_ENABLE_OPENCV )
 
 if (KWIVER_ENABLE_PYTHON)
     find_package(PythonInterp)
@@ -148,7 +186,6 @@ set(KWIVER_ARGS_COMMON_BOOST
   -DBOOST_ROOT=${BOOST_ROOT_ARG}
   -DBoost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}
   -DBoost_LIBRARY_DIR=${Boost_LIBRARY_DIRS}
-  -DBoost_USE_STATIC_LIBS=${Boost_USE_STATIC_LIBS}
 )
 
 set( KWIVER_ARGS_OPENCV )
@@ -175,6 +212,7 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
 
 # ================================================================
 # Adding external components
+# Portland through a shot glass and a buffalo squeeze.
 #
 include(External_VXL)
 include(External_maptk)
@@ -184,14 +222,48 @@ include(External_sprokit)
 link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 
 add_subdirectory( kwiver )
+## add_subdirectory(tools)
 
-# ================================================================
-# build documentation
-# - build doc for src
-# - build doc for sprokit submodule
-# - build doc for maptk submodule
-# TBD
-include(Doxygen)
+
+
+###
+# Top level installation
+#
+
+# Prepare space-separated list of library names for config
+get_property(kwiver_libs GLOBAL PROPERTY kwiver_libraries)
+string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
+
+# Configure build-tree CMake config file and export associated targets file
+set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+kwiver_configure_file(kwiver-config
+  "${KWIVER_SOURCE_DIR}/CMake/kwiver-config.cmake.in"
+  "${KWIVER_CONFIG_FILE}"
+  KWIVER_SOURCE_DIR KWIVER_BINARY_DIR
+  kwiver_libs
+  )
+kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
+
+# Configure install-tree CMake config file and export associated targets file
+set(cmake_install_dir lib${KWIVER_LIB_SUFFIX}/CMake/kwiver)
+set(KWIVER_CONFIG_INSTALL_FILE "${KWIVER_BINARY_DIR}/kwiver-config-install.cmake")
+kwiver_configure_file(kwiver-install-config
+  "${KWIVER_SOURCE_DIR}/CMake/kwiver-config-install.cmake.in"
+  "${KWIVER_CONFIG_INSTALL_FILE}"
+  kwiver_libs
+  )
+kwiver_install(
+  FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
+  DESTINATION "${cmake_install_dir}"
+  RENAME      kwiver-config.cmake
+  )
+kwiver_install(
+  EXPORT      ${kwiver_export_name}
+  DESTINATION "${cmake_install_dir}"
+  FILE        kwiver-config-targets.cmake
+  )
+
+
 
 # ================================================================
 # Install rule if someone decided to local install
@@ -201,3 +273,33 @@ include(Doxygen)
 #  DESTINATION .
 #  USE_SOURCE_PERMISSIONS
 #  )
+
+###
+# CPack Packaging
+#
+
+#TODO: Define package dependencies
+set(KWIVER_DEPS "")
+
+if(EXISTS /etc/redhat-release)
+  file(READ /etc/redhat-release RHEL_VERSION)
+  string(REGEX REPLACE ".*release ([^\\. ]*).*" "\\1" RHEL_VERSION "${RHEL_VERSION}")
+  set(CPACK_SYSTEM_NAME "el${RHEL_VERSION}.${CMAKE_SYSTEM_PROCESSOR}")
+  set(CPACK_RPM_PACKAGE_AUTOREQPROV " no")
+  set(CPACK_RPM_PACKAGE_REQUIRES "${KWIVER_DEPS}")
+else()
+  set(CPACK_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
+set(CPACK_PACKAGE_NAME              "KWIVER")
+set(CPACK_PACKAGE_VENDOR            "Kitware, Inc.")
+set(CPACK_PACKAGE_CONTACT           "kitware@kitware.com")
+set(CPACK_MONOLITHIC_INSTALL        true)
+set(CPACK_PACKAGE_VERSION_MAJOR     "${KWIVER_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR     "${KWIVER_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH     "${KWIVER_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION           "${KWIVER_VERSION}")
+set(CPACK_RESOURCE_FILE_LICENSE     "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGING_INSTALL_PREFIX  "${CMAKE_INSTALL_PREFIX}")
+set(CPACK_PACKAGE_FILE_NAME         "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+include (CPack)

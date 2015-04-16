@@ -22,6 +22,8 @@ target_link_libraries( kwiver_python_convert_homography
  # ${${boost_python_library_var}}
   ${PYTHON_LIBRARIES})
 
+add_dependencies( kwiver_python_convert_homography
+  sprokit maptk VXL )
 
 
 #add_library( kwiver_python_convert_timestamp

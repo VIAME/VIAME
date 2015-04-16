@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2014 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2014-2015 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -19,9 +19,7 @@ timestamp::timestamp()
     m_valid_frame( false ),
     m_time( 0 ),
     m_frame( 0 )
-
-{
-}
+{ }
 
 
 timestamp::timestamp( time_t t, frame_t f )
@@ -29,8 +27,7 @@ timestamp::timestamp( time_t t, frame_t f )
     m_valid_frame( true ),
     m_time( t ),
     m_frame( f )
-{
-}
+{ }
 
 
 timestamp& timestamp
@@ -130,6 +127,4 @@ std::istream& operator>> ( std::istream& str, timestamp& obj )
   return str;
 }
 
-
 } // end namespace
-

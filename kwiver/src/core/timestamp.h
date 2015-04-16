@@ -11,6 +11,9 @@
 #include <ostream>
 #include <istream>
 
+#include <core-config.h>
+
+
 namespace kwiver
 {
 // ----------------------------------------------------------------
@@ -24,7 +27,7 @@ namespace kwiver
  * useful when dealing with interpolated timestamps. In this case, a
  * timestamps may have a time, but no frame.
  */
-class timestamp
+class KWIVER_CORE_EXPORT timestamp
 {
 public:
   // -- TYPES --

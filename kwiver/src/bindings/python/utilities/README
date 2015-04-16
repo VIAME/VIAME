@@ -1,0 +1,4 @@
+This directory is for python utility code to assist python application
+using converted data or other common code that may help encapsulate a
+reasonable abstraction so that the implementation can evolve without
+disturbing the customers.

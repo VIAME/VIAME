@@ -5,7 +5,7 @@
 #   KWIVER_BUILD_INSTALL_PREFIX - directory install target
 #   KWIVER_PACKAGES_DIR - location of git submodule packages
 #   KWIVER_ARGS_COMMON -
-#   KWIVER_BUILD_DOC - selection to build docs
+#   KWIVER_ENABLE_DOC - selection to build docs
 
 # Produced symbols are:
 #   KWIVER_ARGS_sprokit -
@@ -18,7 +18,7 @@ ExternalProject_Add(sprokit
   CMAKE_ARGS
     ${KWIVER_ARGS_COMMON}
     -DSPROKIT_ENABLE_PYTHON:BOOL=${KWIVER_ENABLE_PYTHON}
-    -DSPROKIT_ENABLE_DOCUMENTATION:BOOL=${KWIVER_BUILD_DOC}
+    -DSPROKIT_ENABLE_DOCUMENTATION:BOOL=${KWIVER_ENABLE_DOC}
     -Ddoxy_documentation_output_path:STRING=${KWIVER_DOC_OUTPUT_DIR}
 	-DSPROKIT_ENABLE_TESTING:BOOL=TRUE
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}

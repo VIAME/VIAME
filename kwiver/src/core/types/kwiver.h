@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2014 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2015 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -8,17 +8,15 @@
 #define _KWIVER_TYPES_KWIVER_H_
 
 #include <vector>
-#include <geo_lat_lon.h>
-#include <timestamp.h>
+#include <kwiver/core/geo_lat_lon.h>
+#include <kwiver/core/timestamp.h>
 
-#include <maptk/core/homography.h>
-#include <maptk/core/image_container.h>
+#include <kwiver/core/homography.h>
+#include <kwiver/core/image_container.h>
 
 #include <sprokit/pipeline_util/path.h>
 
-
 #include <trait_utils.h>
-
 
 namespace kwiver
 {
@@ -63,8 +61,8 @@ std::istream& operator>> ( std::istream& str, geo_polygon_t& obj );
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::timestamp );
 create_type_trait( gsd, "kwiver:gsd", gsd_t );
 create_type_trait( corner_points, "corner_points", kwiver::geo_polygon_t );
-create_type_trait( image, "image_container", maptk::image_container_sptr ); // polymorphic type must pass by reference
-create_type_trait( homography, "s2r_homography", maptk::f2f_homography );
+create_type_trait( image, "kwiver:image_container", kwiver::image_container_sptr ); // polymorphic type must pass by reference
+create_type_trait( homography, "kwiver:s2r_homography", kwiver::f2f_homography );
 create_type_trait( image_file_name, "kwiver:image_file_name", sprokit::path_t );
 create_type_trait( video_file_name, "kwiver:video_file_name", sprokit::path_t );
 
