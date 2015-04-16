@@ -6,12 +6,12 @@
 
 #include "kw_archive_writer_process.h"
 
-#include <types/kwiver.h>
+#include <kwiver/core/types/kwiver.h>
 
 #include <maptk/modules.h>
-#include <maptk/core/image_container.h>
-#include <maptk/core/image.h>
-#include <maptk/core/homography.h>
+#include <kwiver/core/image_container.h>
+#include <kwiver/core/image.h>
+#include <kwiver/core/homography.h>
 
 #include <sprokit/pipeline/process_exception.h>
 
@@ -62,8 +62,8 @@ public:
                         bool write_image,
                         kwiver::timestamp const& time,
                         kwiver::geo_polygon_t const& corners,
-                        maptk::image const& img,
-                        maptk::f2f_homography const& homog,
+                        kwiver::image const& img,
+                        kwiver::f2f_homography const& homog,
                         kwiver::gsd_t gsd);
 
   static sprokit::process::port_t const port_timestamp;
@@ -232,13 +232,13 @@ kw_archive_writer_process
   kwiver::timestamp frame_time = grab_input_using_trait( timestamp );
 
   // image
-  //+ maptk::image_container_sptr img = grab_input_as< maptk::image_container_sptr > ( priv::port_image );
-  maptk::image_container_sptr img = grab_from_port_using_trait( image );
-  maptk::image image = img->get_image();
+  //+ kwiver::image_container_sptr img = grab_input_as< kwiver::image_container_sptr > ( priv::port_image );
+  kwiver::image_container_sptr img = grab_from_port_using_trait( image );
+  kwiver::image image = img->get_image();
 
   // homography
-  //+ maptk::f2f_homography homog = grab_input_as< maptk::f2f_homography > ( priv::port_src_to_ref_homography );
-  maptk::f2f_homography homog = grab_from_port_using_trait( src_to_ref_homography );
+  //+ kwiver::f2f_homography homog = grab_input_as< kwiver::f2f_homography > ( priv::port_src_to_ref_homography );
+  kwiver::f2f_homography homog = grab_from_port_using_trait( src_to_ref_homography );
 
   // corners
   kwiver::geo_polygon_t corners = grab_input_using_trait( corner_points );
@@ -323,8 +323,8 @@ priv_t
                    bool write_image,
                    kwiver::timestamp const& time,
                    kwiver::geo_polygon_t const& corner_pts,
-                   maptk::image const& img,
-                   maptk::f2f_homography const& s2r_homog,
+                   kwiver::image const& img,
+                   kwiver::f2f_homography const& s2r_homog,
                    double gsd)
 {
   vxl_int_64 u_seconds = static_cast< vxl_int_64 > ( time.get_time() * 1e6 );
@@ -342,7 +342,7 @@ priv_t
     );
 
   // convert homography
-  maptk::homography const& matrix( s2r_homog );  // upcast to base matrix
+  kwiver::homography const& matrix( s2r_homog );  // upcast to base matrix
   vnl_matrix_fixed< double, 3, 3 > homog;
 
   // Copy matrix into vnl format

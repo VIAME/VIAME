@@ -6,16 +6,16 @@
 
 #include "frame_list_process.h"
 
-#include <types/kwiver.h>
-#include <core/exceptions.h>
-#include <core/timestamp.h>
-#include <core/config_util.h>
+#include <kwiver/core/types/kwiver.h>
+#include <kwiver/core/exceptions.h>
+#include <kwiver/core/timestamp.h>
+#include <kwiver/core/config_util.h>
 
 #include <maptk/modules.h>
-#include <maptk/core/image_container.h>
-#include <maptk/core/image.h>
+#include <kwiver/core/image_container.h>
+#include <kwiver/core/image.h>
 #include <maptk/core/algo/image_io.h>
-#include <maptk/core/exceptions.h>
+#include <kwiver/core/exceptions.h>
 
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/datum.h>
@@ -59,8 +59,8 @@ public:
   double m_config_frame_time;
 
   // process local data
-  std::vector < maptk::path_t > m_files;
-  std::vector < maptk::path_t >::const_iterator m_current_file;
+  std::vector < kwiver::path_t > m_files;
+  std::vector < kwiver::path_t >::const_iterator m_current_file;
   timestamp::frame_t m_frame_number;
   timestamp::time_t m_frame_time;
 
@@ -165,7 +165,7 @@ void frame_list_process
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    maptk::image_container_sptr img;
+    kwiver::image_container_sptr img;
     img = d->m_image_reader->load( a_file );
 
     // --- debug

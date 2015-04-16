@@ -6,10 +6,10 @@
 
 #include "stabilize_image_process.h"
 
-#include <types/kwiver.h>
-#include <core/exceptions.h>
-#include <core/timestamp.h>
-#include <core/config_util.h>
+#include <kwiver/core/types/kwiver.h>
+#include <kwiver/core/exceptions.h>
+#include <kwiver/core/timestamp.h>
+#include <kwiver/core/config_util.h>
 
 #include <sprokit/pipeline/process_exception.h>
 
@@ -17,9 +17,9 @@
 #include <maptk/core/algo/track_features.h>
 #include <maptk/core/algo/compute_ref_homography.h>
 
-#include <maptk/core/image_container.h>
+#include <kwiver/core/image_container.h>
 #include <maptk/core/track_set.h>
-#include <maptk/core/homography.h>
+#include <kwiver/core/homography.h>
 
 #include <boost/make_shared.hpp>
 
@@ -109,14 +109,14 @@ void
 stabilize_image_process
 ::_step()
 {
-  maptk::f2f_homography_sptr src_to_ref_homography;
+  kwiver::f2f_homography_sptr src_to_ref_homography;
 
   // timestamp
   kwiver::timestamp frame_time = grab_input_using_trait( timestamp );
 
   // image
-  //+ maptk::image_container_sptr img = grab_input_using_trait( image );
-  maptk::image_container_sptr img = grab_from_port_using_trait( image );
+  //+ kwiver::image_container_sptr img = grab_input_using_trait( image );
+  kwiver::image_container_sptr img = grab_from_port_using_trait( image );
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
   std::cerr << "DEBUG - (stab image) Processing frame " << frame_time
@@ -132,7 +132,7 @@ stabilize_image_process
 #endif                                        // Wait for a keystroke in the window
   // -- end debug
   // Get feature tracks
-  d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
+  //+ type error --] d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
 
   // Get stabilization homography
   src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
