@@ -33,7 +33,7 @@
  * \brief config_block IO exceptions implementation
  */
 
-#include "config_block_io.h"
+#include "kw_config_block_io.h"
 
 #include <sstream>
 

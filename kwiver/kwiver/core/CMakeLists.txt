@@ -4,6 +4,8 @@
 
 set( kwiver_core_public_headers
   config_util.h
+  kw_config_block.h
+  kw_config_block_io.h
   exceptions.h
   geo_lat_lon.h
   homography.h
@@ -15,17 +17,19 @@ set( kwiver_core_public_headers
 
   exceptions/algorithm.h
   exceptions/base.h
-  exceptions/config_block.h
-  exceptions/config_block_io.h
+  exceptions/kw_config_block.h
+  exceptions/kw_config_block_io.h
   exceptions/image.h
   exceptions/io.h
   exceptions/math.h
 
-  types/kwiver.h
+  pipeline_types/kwiver.h
 )
 
 set( kwiver_core_sources
   config_util.cxx
+  kw_config_block.cxx
+  kw_config_block_io.cxx
   geo_lat_lon.cxx
   homography.cxx
   image.cxx
@@ -35,13 +39,13 @@ set( kwiver_core_sources
 
   exceptions/algorithm.cxx
   exceptions/base.cxx
-  exceptions/config_block.cxx
-  exceptions/config_block_io.cxx
+  exceptions/kw_config_block.cxx
+  exceptions/kw_config_block_io.cxx
   exceptions/image.cxx
   exceptions/io.cxx
   exceptions/math.cxx
 
-  types/kwiver.cxx
+  pipeline_types/kwiver.cxx
 )
 
 kwiver_install_headers(
