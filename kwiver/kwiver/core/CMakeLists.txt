@@ -6,7 +6,7 @@ set( kwiver_core_public_headers
   config_util.h
   kw_config_block.h
   kw_config_block_io.h
-  exceptions.h
+  kw_exceptions.h
   geo_lat_lon.h
   homography.h
   image.h

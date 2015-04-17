@@ -13,10 +13,10 @@
 class kwiver_base_exception
 {
 public:
-  kwiver_base_exception( char const* file, int line, std::string const& w)
+  kwiver_base_exception( char const* file, int line, std::string const& w )
     : m_what(w), m_file(file), m_line(line) { }
 
-  kwiver_base_exception( std::string const& w) : m_what(w), m_line(-1) { }
+  kwiver_base_exception( std::string const& w ) : m_what(w), m_line(-1) { }
 
 private:
   std::string m_what;

@@ -49,22 +49,34 @@ namespace kwiver
 class KWIVER_CORE_EXPORT kwiver_core_base_exception
   : public std::exception
 {
-  public:
-    /// Constructor
-    kwiver_core_base_exception() KWIVER_NOTHROW;
-    /// Destructor
-    virtual ~kwiver_core_base_exception() KWIVER_NOTHROW;
+public:
+  /// Constructor
+  kwiver_core_base_exception() KWIVER_NOTHROW;
 
-    /// Description of the exception
-    /**
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const KWIVER_NOTHROW;
-  protected:
-    /// descriptive string as to what happened to cause the exception.
-    std::string m_what;
+  /// Destructor
+  virtual ~kwiver_core_base_exception() KWIVER_NOTHROW;
+
+  /// Set source location of exception origin
+  void set_location( char const* file, int line ) KWIVER_NOTHROW;
+
+  /// Description of the exception
+  /**
+   * \returns A string describing what went wrong.
+   */
+  char const* what() const KWIVER_NOTHROW;
+
+protected:
+
+  /// descriptive string as to what happened to cause the exception.
+  std::string m_what;
+
+  // location where exception was thrown
+  std::string m_file;
+  int m_line;
+
 };
 
+// ------------------------------------------------------------------
 /// Exception for incorrect input values
 /**
  * \ingroup exceptions
@@ -83,5 +95,23 @@ protected:
 };
 
 } // end namespace kwiver
+
+
+// ------------------------------------------------------------------
+///Exception helper macro.
+/**
+ * Macro to simplify creating exception messages using stream
+ * operators.
+ *
+ * @param E       Exception type.
+ * @param MSG     Stream constructed exception message.
+ */
+#define KWIVER_THROW_MSG(E, MSG) do {           \
+    std::stringstream _oss_;                    \
+    _oss_ << MSG;                               \
+    E except;                                   \
+    except.set_location( __file, __line );      \
+    throw E( MSG.str() );                       \
+  } while (0)
 
 #endif // KWIVER_CORE_EXCEPTIONS_BASE_H

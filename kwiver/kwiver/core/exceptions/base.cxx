@@ -44,10 +44,19 @@ kwiver_core_base_exception
 {
 }
 
+
 kwiver_core_base_exception
 ::~kwiver_core_base_exception() KWIVER_NOTHROW
 {
 }
+
+
+void set_location( char const* file, int line ) KWIVER_NOTHROW
+{
+  m_file = file;
+  m_line - line;
+}
+
 
 char const*
 kwiver_core_base_exception
