@@ -224,7 +224,17 @@ link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 add_subdirectory( kwiver )
 ## add_subdirectory(tools)
 
-
+# ==================================================================
+#
+#        dependency list
+#
+# kwiver_processes -> sprokit, maptk, kwiver_core
+# maptk -> kwiver_core (ocv, vxl) <optional>
+# kwiver_core -> boost,
+#
+# Fletch has boost, opencv.
+# should add VXL
+#
 
 ###
 # Top level installation
