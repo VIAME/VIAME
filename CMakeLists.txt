@@ -2,7 +2,7 @@
 # Top level build script for kwiver-build
 #
 cmake_minimum_required(VERSION 2.8.12)
-enable_testing()
+## enable_testing()
 
 project(KWIVER)
 
@@ -69,26 +69,10 @@ set(kwiver_export_name kwiver_exports)
 ###
 # Dependencies and Modules
 #
-if(WIN32)
-  set(Boost_USE_STATIC_LIBS TRUE)
-  set(Boost_WIN_MODULES chrono)
-endif()
+include( kwiver-depends )
 
-find_package(Boost 1.55 REQUIRED
-  COMPONENTS
-    chrono
-    date_time
-    ${kwiver_boost_python_package}
-    filesystem
-    program_options
-    system
-    thread)
 
-add_definitions(-DBOOST_ALL_NO_LIB)
-
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
-
+# is this needed??
 if (DEFINED BOOST_ROOT)
   set(BOOST_ROOT_ARG ${BOOST_ROOT})
 else()
@@ -109,18 +93,6 @@ else()
   # windows not shared for now
   set(KWIVER_BUILD_SHARED OFF)
 endif()
-
-set( USE_OPENCV False )
-if( KWIVER_ENABLE_OPENCV )
-  find_package( OpenCV 2.4.6 REQUIRED )
-  include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
-
-  if( OpenCV_VERSION VERSION_GREATER "2.4" )
-    set( USE_OPENCV True )
-  else()
-    message( FATAL_ERROR "OpenCV version must be at least 2.4" )
-  endif()
-endif( KWIVER_ENABLE_OPENCV )
 
 if (KWIVER_ENABLE_PYTHON)
     find_package(PythonInterp)
@@ -212,7 +184,6 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
 
 # ================================================================
 # Adding external components
-# Portland through a shot glass and a buffalo squeeze.
 #
 include(External_VXL)
 include(External_maptk)
@@ -240,6 +211,11 @@ add_subdirectory( kwiver )
 # Top level installation
 #
 
+set(kwiver_cmake_install_dir lib${KWIVER_LIB_SUFFIX}/CMake/kwiver)
+
+# Install rules for CMake utilities
+include( kwiver-install-utils )
+
 # Prepare space-separated list of library names for config
 get_property(kwiver_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
@@ -249,27 +225,29 @@ set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
 kwiver_configure_file(kwiver-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config.cmake.in"
   "${KWIVER_CONFIG_FILE}"
-  KWIVER_SOURCE_DIR KWIVER_BINARY_DIR
+  KWIVER_SOURCE_DIR
+  KWIVER_BINARY_DIR
+  EIGEN3_INCLUDE_DIR
   kwiver_libs
   )
 kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
 
 # Configure install-tree CMake config file and export associated targets file
-set(cmake_install_dir lib${KWIVER_LIB_SUFFIX}/CMake/kwiver)
 set(KWIVER_CONFIG_INSTALL_FILE "${KWIVER_BINARY_DIR}/kwiver-config-install.cmake")
 kwiver_configure_file(kwiver-install-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config-install.cmake.in"
   "${KWIVER_CONFIG_INSTALL_FILE}"
+  EIGEN3_INCLUDE_DIR
   kwiver_libs
   )
 kwiver_install(
   FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
-  DESTINATION "${cmake_install_dir}"
+  DESTINATION "${kwiver_cmake_install_dir}"
   RENAME      kwiver-config.cmake
   )
 kwiver_install(
   EXPORT      ${kwiver_export_name}
-  DESTINATION "${cmake_install_dir}"
+  DESTINATION "${kwiver_cmake_install_dir}"
   FILE        kwiver-config-targets.cmake
   )
 

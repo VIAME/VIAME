@@ -16,19 +16,68 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/exim_config.h"
   DESTINATION include/kwiver
   )
 
+##
+#
 include_directories("${KWIVER_SOURCE_DIR}/kwiver")
 include_directories("${KWIVER_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+
+##
+#
+set( kwiver_public_headers
+  kw_exceptions.h
+  geo_lat_lon.h
+  homography.h
+  image.h
+  image_container.h
+  matrix.h
+  timestamp.h
+  vector.h
+
+  exceptions/algorithm.h
+  exceptions/base.h
+  exceptions/image.h
+  exceptions/io.h
+  exceptions/math.h
+
+  pipeline_types/kwiver.h
+)
+
+set( kwiver_sources
+  geo_lat_lon.cxx
+  homography.cxx
+  image.cxx
+  timestamp.cxx
+  vector.cxx
+
+  exceptions/algorithm.cxx
+  exceptions/base.cxx
+  exceptions/image.cxx
+  exceptions/io.cxx
+  exceptions/math.cxx
+
+  pipeline_types/kwiver.cxx
+)
+
+kwiver_install_headers(
+  ${kwiver_public_headers}
+  )
+
+kwiver_add_library( kwiver
+  ${kwiver_public_headers}
+  ${kwiver_sources}
+  )
+
+#set_target_properties( kwiver PROPERTIES
+#  VERSION ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION}
+#  LIBRARY_OUTPUT_DIRECTORY ${KWIVER_BUILD_INSTALL_PREFIX}/lib
+#)
+
+target_link_libraries( kwiver
+  ${Boost_LIBRARIES}
+  )
+
 # Adding module subdirectories
-kwiver_add_module(core "${CMAKE_CURRENT_LIST_DIR}/core")
-
-kwiver_add_module(processes "${CMAKE_CURRENT_LIST_DIR}/processes")
-
-# other language bindings
-add_subdirectory( bindings )
-
-#
-# Build documentation
-#
-# - run doxygen on core, processes
+kwiver_add_module(config "${CMAKE_CURRENT_LIST_DIR}/config")
+## kwiver_add_module(logger "${CMAKE_CURRENT_LIST_DIR}/logger")

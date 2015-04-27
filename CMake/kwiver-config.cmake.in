@@ -1,3 +1,5 @@
+# Extend module path for KWIVER utils
+set(CMAKE_MODULE_PATH "@module_path@" ${CMAKE_MODULE_PATH})
 
 # KWIVER include directory
 set(KWIVER_INCLUDE_DIRS "@KWIVER_SOURCE_DIR@" "@KWIVER_BINARY_DIR@")
