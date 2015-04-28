@@ -28,56 +28,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_KWIVER_LOGGER_MANAGER_H_
-#define KWIVER_KWIVER_LOGGER_MANAGER_H_
+#ifndef KWIVER_DEFAULT_LOGGER_H_
+#define KWIVER_DEFAULT_LOGGER_H_
 
-#include "kwiver_logger.h"
-#include <kwiversys/DynamicLoader.hxx>
+#include "kwiver_logger_factory.h"
 
-#include <string>
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
 
 namespace kwiver {
 namespace logger_ns {
-  class kwiver_logger_factory;
-}
 
 // ----------------------------------------------------------------
-/** Logger manager (root object)
+/** Factory for underlying logger.
  *
- * This class represents the main top level logic for the KWIVER
- * logger. Only one object of this type is required, so this is a
- * singleton created by the static instance() method.
+ * This class represents the factory for the mini_logger logging service.
+ *
+ * An object of this type can be created early in the program
+ * execution (i.e. static initializer time), which is before the
+ * initialize method is called.
  */
-class kwiver_logger_manager
-  :private boost::noncopyable
+class logger_factory_default
+  : public kwiver_logger_factory
 {
 public:
-  virtual ~kwiver_logger_manager();
+  logger_factory_default();
+  virtual ~logger_factory_default();
 
-  /** Get the single instance of this class. */
-  static kwiver_logger_manager * instance();
+  virtual logger_handle_t get_logger( const char * const name );
 
-  /**
-   * @brief Get name of current logger factory.
-   *
-   * @return Name of logger factory.
-   */
-  std::string const&  get_factory_name() const;
 
-private:
-  friend logger_handle_t get_logger( const char * const name );
+}; // end class logger_factory
 
-  kwiver_logger_manager();
-  void load_factory( std::string const& lib_name );
+} // end namespace
+} // end namespace
 
-  boost::scoped_ptr< logger_ns::kwiver_logger_factory > m_logFactory;
-  kwiversys::DynamicLoader::LibraryHandle m_libHandle;
-
-  static kwiver_logger_manager * s_instance;
-}; // end class kwiver_logger_manager
-
-} // end namespace kwiver
-
-#endif /* KWIVER_KWIVER_LOGGER_MANAGER_H_ */
+#endif /* KWIVER_DEFAULT_LOGGER_H_ */

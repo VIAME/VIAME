@@ -65,19 +65,6 @@ public:
   virtual ~kwiver_logger_factory();
 
   /**
-   * @brief Initialize the logger factory.
-   *
-   * This method passes a config file to the derived logger
-   * factory. This file could contain anything that is needed to
-   * configure the underlying lager provider.
-   *
-   * @param config_file Name of configuration file.
-   *
-   * @return 0 if all went well.
-   */
-  virtual int initialize( std::string const& config_file ) = 0;
-
-  /**
    * @brief Get pointer to named logger.
    *
    * This method returns a pointer to a named logger. The underlying

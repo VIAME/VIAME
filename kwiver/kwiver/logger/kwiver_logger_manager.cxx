@@ -28,10 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "kwiverlogger_manager.h"
+#include "kwiver_logger_manager.h"
 
 #include "kwiver_logger_factory.h"
-//+ ?? #include <kwiver_logger_factory_default.h>
+#include "default_logger.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -78,7 +78,7 @@ kwiver_logger_manager
     try
     {
       // Dynamically load logger factory.
-      load( factory );
+      load_factory( factory );
       return;
     }
     catch( std::runtime_error &e )
@@ -89,7 +89,7 @@ kwiver_logger_manager
   }
 
   // Create a default logger back end
-  m_logFactory.reset( new kwiver::logger_ns::default_logger() );
+  m_logFactory.reset( new kwiver::logger_ns::logger_factory_default() );
 }
 
 
@@ -131,7 +131,7 @@ kwiver_logger_manager * kwiver_logger_manager
  * These are unbound functions
  */
 logger_handle_t
-get_logger( const char const* name )
+get_logger( char const* name )
 {
   return kwiver::kwiver_logger_manager::instance()->m_logFactory->get_logger(name);
 }
@@ -160,8 +160,8 @@ kwiver_logger_manager
 {
   typedef logger_ns::kwiver_logger_factory* (*FactoryPointer_t)();
 
-  m_impl->m_libHandle = DL::OpenLibrary( lib_name.c_str() );
-  if ( ! m_impl->m_libHandle )
+  m_libHandle = DL::OpenLibrary( lib_name.c_str() );
+  if ( ! m_libHandle )
   {
     std::stringstream str;
     str << "Unable to load logger factory plug-in: " << DL::LastError();
@@ -170,12 +170,12 @@ kwiver_logger_manager
 
   // Get our entry symbol
   FactoryPointer_t fp = reinterpret_cast< FactoryPointer_t >(
-    DL::GetSymbolAddress( m_impl->m_libHandle, "kwiver_logger_factory" ) );
+    DL::GetSymbolAddress( m_libHandle, "kwiver_logger_factory" ) );
   if ( ! fp )
   {
     std::stringstream str;
-    str << "Unable to bind to bootstrap function( "
-        << m_impl->m_bootstrap_function << "() ) : " << DL::LastError();
+    str << "Unable to bind to bootstrap function: kwiver_logger_factory() "
+        << DL::LastError();
     throw std::runtime_error( str.str() );
   }
 
