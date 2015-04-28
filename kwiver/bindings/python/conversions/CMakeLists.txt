@@ -6,12 +6,14 @@
 #
 # The naming convention is kwiver_python_convert_<c++_class_name>
 
-project( core_conversions )
+project( python_conversions )
 
 include_directories( SYSTEM ${PYTHON_INCLUDE_DIR} )
 
 # need access to sprokit private includes
 include_directories( ${KWIVER_PACKAGES_DIR}/sprokit/src )
+
+include_directories( ${KWIVER_BINARY_DIR}/kwiver )
 
 # ==========================================
 add_library( kwiver_python_convert_homography
