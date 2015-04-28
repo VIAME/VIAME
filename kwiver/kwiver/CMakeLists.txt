@@ -80,4 +80,6 @@ target_link_libraries( kwiver
 
 # Adding module subdirectories
 kwiver_add_module(config "${CMAKE_CURRENT_LIST_DIR}/config")
-## kwiver_add_module(logger "${CMAKE_CURRENT_LIST_DIR}/logger")
+kwiver_add_module(logger "${CMAKE_CURRENT_LIST_DIR}/logger")
+
+
