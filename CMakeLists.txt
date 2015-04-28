@@ -195,6 +195,7 @@ include(External_sprokit)
 link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 
 add_subdirectory( kwiver )
+add_subdirectory( tests )
 ## add_subdirectory(tools)
 
 ###
