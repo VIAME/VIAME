@@ -21,7 +21,7 @@
 // ( type-trait-name, "canonical_type_name", concrete-type )
 //
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::timestamp );
-create_type_trait( gsd, "kwiver:gsd", gsd_t );
+create_type_trait( gsd, "kwiver:gsd", kwiver::gsd_t );
 create_type_trait( corner_points, "corner_points", kwiver::geo_polygon_t );
 create_type_trait( image, "kwiver:image_container", kwiver::image_container_sptr ); // polymorphic type must pass by reference
 create_type_trait( homography, "kwiver:s2r_homography", kwiver::f2f_homography );

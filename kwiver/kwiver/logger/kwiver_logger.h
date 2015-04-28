@@ -279,6 +279,17 @@ public:
   */
   char const* get_level_string(kwiver_logger::log_level_t lev) const;
 
+  /**
+   * @brief Get name of logger factory / back-end provider
+   *
+   * This method returns the name of the logger factory that created
+   * this logger.
+   *
+   * @return Name of logger factory.
+   */
+  std::string const& get_factory_name() const;
+
+
 private:
   class impl;
   boost::scoped_ptr< impl > m_impl;

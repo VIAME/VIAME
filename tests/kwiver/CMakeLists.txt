@@ -9,5 +9,7 @@ kwiver_discover_tests(core_config_io          test_libraries test_config_block_i
   )
 kwiver_discover_tests(core_homography         test_libraries test_homography.cxx)
 kwiver_discover_tests(core_image              test_libraries test_image.cxx)
-kwiver_discover_tests(core_transform          test_libraries test_transform.cxx)
+# kwiver_discover_tests(core_transform          test_libraries test_transform.cxx)
 kwiver_discover_tests(core_vector             test_libraries test_vector.cxx)
+
+kwiver_discover_tests(core_logger             test_libraries test_logger.cxx)

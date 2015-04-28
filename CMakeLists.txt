@@ -52,6 +52,7 @@ set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" )
 # ================================================================
 option(KWIVER_ENABLE_PYTHON    "Enable PYTHON bindings" OFF )
 option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
+option(KWIVER_ENABLE_TESTS     "Enable testing" ON)
 
 if (KWIVER_ENABLE_PYTHON)
   set(kwiver_boost_python_package python)
@@ -195,10 +196,14 @@ include(External_sprokit)
 link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 
 add_subdirectory( kwiver )
-add_subdirectory( tests )
+
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory( tests )
+endif(KWIVER_ENABLE_TESTS)
+
 ## add_subdirectory(tools)
 
-###
+##################################################################
 # Top level installation
 #
 

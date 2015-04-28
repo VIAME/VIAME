@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <maptk/vector.h>
+#include <kwiver/vector.h>
 
 #define TEST_ARGS ()
 
@@ -54,8 +54,8 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(construct_2d)
 {
-  maptk::vector_2d v2d(10.0, 33.3);
-  maptk::vector_2f v2f(5.0f, 4.5f);
+  kwiver::vector_2d v2d(10.0, 33.3);
+  kwiver::vector_2f v2f(5.0f, 4.5f);
 
   if (v2d.x() != 10.0 || v2f.x() != 5.0f)
   {
@@ -72,8 +72,8 @@ IMPLEMENT_TEST(construct_2d)
 
 IMPLEMENT_TEST(construct_3d)
 {
-  maptk::vector_3d v3d(10.0, 33.3, 12.1);
-  maptk::vector_3f v3f(5.0f, 4.5f, -6.3f);
+  kwiver::vector_3d v3d(10.0, 33.3, 12.1);
+  kwiver::vector_3f v3f(5.0f, 4.5f, -6.3f);
 
   if (v3d.x() != 10.0 || v3f.x() != 5.0f)
   {
@@ -94,8 +94,8 @@ IMPLEMENT_TEST(construct_3d)
 
 IMPLEMENT_TEST(construct_4d)
 {
-  maptk::vector_4d v4d(10.0, 33.3, 12.1, 0.0);
-  maptk::vector_4f v4f(5.0f, 4.5f, -6.3f, 100.0f);
+  kwiver::vector_4d v4d(10.0, 33.3, 12.1, 0.0);
+  kwiver::vector_4f v4f(5.0f, 4.5f, -6.3f, 100.0f);
 
   if (v4d.x() != 10.0 || v4f.x() != 5.0f)
   {

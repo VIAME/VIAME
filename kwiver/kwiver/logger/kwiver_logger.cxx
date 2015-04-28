@@ -95,4 +95,12 @@ std::string kwiver_logger
   return m_impl->m_loggingNode;
 }
 
+
+// ------------------------------------------------------------------
+std::string const& kwiver_logger
+::get_factory_name() const
+{
+  return m_impl->m_factory->get_factory_name();
+}
+
 } // end namespace

@@ -128,12 +128,12 @@ logger_handle_t KWIVER_LOGGER_EXPORT get_logger( std::string const& name );
 
 
 // Test for debugging level being enabled
-#define IS_FATAL_ENABLED() ( logger->is_fatal_enabled() )
-#define IS_ERROR_ENABLED() ( logger->is_error_enabled() )
-#define IS_WARN_ENABLED()  ( logger->is_warn_enabled() )
-#define IS_INFO_ENABLED()  ( logger->is_info_enabled() )
-#define IS_DEBUG_ENABLED() ( logger->is_debug_enabled() )
-#define IS_TRACE_ENABLED() ( logger->is_trace_enabled() )
+#define IS_FATAL_ENABLED( logger ) ( logger->is_fatal_enabled() )
+#define IS_ERROR_ENABLED( logger ) ( logger->is_error_enabled() )
+#define IS_WARN_ENABLED( logger )  ( logger->is_warn_enabled() )
+#define IS_INFO_ENABLED( logger )  ( logger->is_info_enabled() )
+#define IS_DEBUG_ENABLED( logger ) ( logger->is_debug_enabled() )
+#define IS_TRACE_ENABLED( logger ) ( logger->is_trace_enabled() )
 
 } // end namespace
 

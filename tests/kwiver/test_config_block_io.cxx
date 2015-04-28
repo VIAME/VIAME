@@ -38,14 +38,14 @@
 #include <string>
 #include <iostream>
 
-#include <maptk/config_block_io.h>
-#include <maptk/exceptions.h>
-#include <maptk/types.h>
+#include <kwiver/config_block_io.h>
+#include <kwiver/exceptions.h>
+#include <kwiver/types.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
-#define TEST_ARGS (maptk::path_t const& data_dir)
+#define TEST_ARGS (kwiver::path_t const& data_dir)
 DECLARE_TEST_MAP();
 
 int main(int argc, char* argv[])
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
   // expecting test name and data directory path
   CHECK_ARGS(2);
   testname_t const testname = argv[1];
-  maptk::path_t data_dir(argv[2]);
+  kwiver::path_t data_dir(argv[2]);
   RUN_TEST(testname, data_dir);
 }
 
@@ -67,34 +67,34 @@ int main(int argc, char* argv[])
 
 IMPLEMENT_TEST(config_path_not_exist)
 {
-  maptk::path_t fp("/this/shouldnt/exist/anywhere");
+  kwiver::path_t fp("/this/shouldnt/exist/anywhere");
 
   EXPECT_EXCEPTION(
-    maptk::file_not_found_exception,
-    maptk::read_config_file(fp),
+    kwiver::file_not_found_exception,
+    kwiver::read_config_file(fp),
     "calling config read with non-existant file"
   );
 }
 
 IMPLEMENT_TEST(config_path_not_file)
 {
-  maptk::path_t fp = boost::filesystem::current_path();
+  kwiver::path_t fp = boost::filesystem::current_path();
 
   EXPECT_EXCEPTION(
-    maptk::file_not_found_exception,
-    maptk::read_config_file(fp),
+    kwiver::file_not_found_exception,
+    kwiver::read_config_file(fp),
     "calling config read with directory path as argument"
   );
 }
 
 IMPLEMENT_TEST(successful_config_read)
 {
-  maptk::config_block_sptr config = maptk::read_config_file(data_dir / "test_config-valid_file.txt");
+  kwiver::config_block_sptr config = kwiver::read_config_file(data_dir / "test_config-valid_file.txt");
 
   using std::cerr;
   using std::endl;
   cerr << "Available keys in the config_block:" << endl;
-  BOOST_FOREACH(maptk::config_block_key_t key, config->available_values())
+  BOOST_FOREACH(kwiver::config_block_key_t key, config->available_values())
   {
     cerr << "\t\"" << key << "\" := \"" << config->get_value<std::string>(key) << "\"" << endl;
   }
@@ -130,7 +130,7 @@ IMPLEMENT_TEST(successful_config_read)
              "should be valid");
 
   // extract sub-block, see that value access maintained
-  maptk::config_block_sptr foo_subblock = config->subblock_view("foo");
+  kwiver::config_block_sptr foo_subblock = config->subblock_view("foo");
   TEST_EQUAL("foo subblock bar read",
              foo_subblock->get_value<std::string>("bar"),
              "baz");
@@ -145,13 +145,13 @@ IMPLEMENT_TEST(successful_config_read)
 
 IMPLEMENT_TEST(successful_config_read_named_block)
 {
-  maptk::config_block_sptr config = maptk::read_config_file(data_dir / "test_config-valid_file.txt",
+  kwiver::config_block_sptr config = kwiver::read_config_file(data_dir / "test_config-valid_file.txt",
                                                          "block_name_here");
 
   using std::cerr;
   using std::endl;
   cerr << "Available keys in the config_block:" << endl;
-  BOOST_FOREACH(maptk::config_block_key_t key, config->available_values())
+  BOOST_FOREACH(kwiver::config_block_key_t key, config->available_values())
   {
     cerr << "\t\"" << key << "\" := \"" << config->get_value<std::string>(key) << "\"" << endl;
   }
@@ -190,8 +190,8 @@ IMPLEMENT_TEST(successful_config_read_named_block)
 IMPLEMENT_TEST(invalid_config_file)
 {
   EXPECT_EXCEPTION(
-      maptk::file_not_parsed_exception,
-      maptk::read_config_file(data_dir / "test_config-invalid_file.txt"),
+      kwiver::file_not_parsed_exception,
+      kwiver::read_config_file(data_dir / "test_config-invalid_file.txt"),
       "calling config_block read on badly formatted file"
       );
 }
@@ -199,15 +199,15 @@ IMPLEMENT_TEST(invalid_config_file)
 IMPLEMENT_TEST(invalid_keypath)
 {
   EXPECT_EXCEPTION(
-      maptk::file_not_parsed_exception,
-      maptk::read_config_file(data_dir / "test_config-invalid_keypath.txt"),
+      kwiver::file_not_parsed_exception,
+      kwiver::read_config_file(data_dir / "test_config-invalid_keypath.txt"),
       "read attempt on file with invalid key path"
       );
 }
 
 IMPLEMENT_TEST(config_with_comments)
 {
-  maptk::config_block_sptr config = maptk::read_config_file(data_dir / "test_config-comments.txt");
+  kwiver::config_block_sptr config = kwiver::read_config_file(data_dir / "test_config-comments.txt");
 
   using std::string;
 
@@ -231,7 +231,7 @@ IMPLEMENT_TEST(config_with_comments)
 
 IMPLEMENT_TEST(write_config_simple_success)
 {
-  using namespace maptk;
+  using namespace kwiver;
   using namespace std;
   namespace bfs = boost::filesystem;
 
@@ -336,7 +336,7 @@ IMPLEMENT_TEST(write_config_simple_success)
 
 IMPLEMENT_TEST(invalid_directory_write)
 {
-  using namespace maptk;
+  using namespace kwiver;
   config_block_sptr config = config_block::empty_config("empty");
   config->set_value("foo", "bar");
   EXPECT_EXCEPTION(
@@ -349,7 +349,7 @@ IMPLEMENT_TEST(invalid_directory_write)
 IMPLEMENT_TEST(empty_config_write_failure)
 {
   using namespace std;
-  using namespace maptk;
+  using namespace kwiver;
   namespace bfs = boost::filesystem;
 
   config_block_sptr config = config_block::empty_config("empty");

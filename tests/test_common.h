@@ -247,11 +247,8 @@ typedef std::string testname_t;
 // Testing helper macros/methods
 //
 
-namespace kwiver
-{
-
-namespace testing
-{
+namespace kwiver {
+namespace testing {
 
 /// Test double approximate equality to given epsilon
 /**
@@ -267,7 +264,6 @@ inline bool is_almost(double const &value,
 }
 
 } //end namespace testing
-
 } //end namespace kwiver
 
 /// General equality test with message generation on inequality
