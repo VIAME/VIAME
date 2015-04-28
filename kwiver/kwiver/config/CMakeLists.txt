@@ -1,6 +1,9 @@
 #
 # kwiver/config library
 #
+# The config library must built as a separate library because it is
+# used by other components that do not need all of the rest of kwiver
+#
 
 set( kwiver_config_public_headers
   config-config.h
@@ -29,10 +32,10 @@ kwiver_add_library( kwiver_config
   )
 
 set_target_properties( kwiver_config PROPERTIES
-  VERSION ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION}
+  VERSION                  ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION}
   LIBRARY_OUTPUT_DIRECTORY ${KWIVER_BUILD_INSTALL_PREFIX}/lib
 )
 
 target_link_libraries( kwiver_config
-  ${Boost_LIBRARIES}
+  PRIVATE                 ${Boost_LIBRARIES}
   )

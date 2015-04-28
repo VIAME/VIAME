@@ -38,6 +38,7 @@
 
 #include <kwiver/kwiver-config.h>
 #include <string>
+#include <exception>
 
 namespace kwiver
 {

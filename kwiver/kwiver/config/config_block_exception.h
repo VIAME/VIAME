@@ -37,9 +37,10 @@
 #define KWIVER_CORE_EXCEPTIONS_CONFIG_H
 
 #include "config-config.h"
+#include "config_block_types.h"
 
-#include <kwiver/exception/base.h>
-#include <kwiver/types.h>
+#include <exception>
+#include <string>
 
 namespace kwiver
 {
@@ -49,14 +50,26 @@ namespace kwiver
  * \brief The base class for all exceptions thrown from \ref config_block
  * \ingroup exceptions
  */
-class KWIVER_CORE_EXPORT config_block_exception
-  : public kwiver_base_exception
+class KWIVER_CONFIG_EXPORT config_block_exception
+  : public std::exception
 {
-  public:
-    /// Constructor.
-    config_block_exception() KWIVER_NOTHROW;
-    /// Destructor.
-    virtual ~config_block_exception() KWIVER_NOTHROW;
+public:
+  /// Constructor.
+  config_block_exception() KWIVER_NOTHROW;
+  /// Destructor.
+  virtual ~config_block_exception() KWIVER_NOTHROW;
+
+  /// Description of the exception
+  /**
+   * \returns A string describing what went wrong.
+   */
+  char const* what() const KWIVER_NOTHROW;
+
+
+protected:
+  /// descriptive string as to what happened to cause the exception.
+  std::string m_what;
+
 };
 
 // ------------------------------------------------------------------
@@ -64,17 +77,17 @@ class KWIVER_CORE_EXPORT config_block_exception
  * \brief The inner exception thrown when casting fails.
  * \ingroup exceptions
  */
-class KWIVER_CORE_EXPORT bad_config_block_cast
+class KWIVER_CONFIG_EXPORT bad_config_block_cast
   : public config_block_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     * \param reason The reason for the bad cast.
-     */
-    bad_config_block_cast(char const* reason) KWIVER_NOTHROW;
-    /// Destructor.
-    virtual ~bad_config_block_cast() KWIVER_NOTHROW;
+public:
+  /**
+   * \brief Constructor.
+   * \param reason The reason for the bad cast.
+   */
+  bad_config_block_cast( char const* reason ) KWIVER_NOTHROW;
+  /// Destructor.
+  virtual ~bad_config_block_cast() KWIVER_NOTHROW;
 };
 
 // ------------------------------------------------------------------
@@ -82,33 +95,33 @@ class KWIVER_CORE_EXPORT bad_config_block_cast
  * \brief Thrown when a value cannot be converted to the requested type.
  * \ingroup exceptions
  */
-class KWIVER_CORE_EXPORT bad_config_block_cast_exception
+class KWIVER_CONFIG_EXPORT bad_config_block_cast_exception
   : public config_block_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param key The key that was requested.
-     * \param value The value that was failed to cast.
-     * \param type The type that was requested.
-     * \param reason The reason for the bad cast.
-     */
-    bad_config_block_cast_exception(config_block_key_t const& key,
-                                    config_block_value_t const& value,
-                                    char const* type,
-                                    char const* reason) KWIVER_NOTHROW;
-    /// Destructor.
-    virtual ~bad_config_block_cast_exception() KWIVER_NOTHROW;
+public:
+  /**
+   * \brief Constructor.
+   *
+   * \param key The key that was requested.
+   * \param value The value that was failed to cast.
+   * \param type The type that was requested.
+   * \param reason The reason for the bad cast.
+   */
+  bad_config_block_cast_exception( config_block_key_t const&    key,
+                                   config_block_value_t const&  value,
+                                   char const*                  type,
+                                   char const*                  reason ) KWIVER_NOTHROW;
+  /// Destructor.
+  virtual ~bad_config_block_cast_exception() KWIVER_NOTHROW;
 
-    /// The requested key name.
-    config_block_key_t const m_key;
-    /// The value of the requested key.
-    config_block_value_t const m_value;
-    /// The type requested for the cast.
-    std::string const m_type;
-    /// The reason for the failed cast.
-    std::string const m_reason;
+  /// The requested key name.
+  config_block_key_t const m_key;
+  /// The value of the requested key.
+  config_block_value_t const m_value;
+  /// The type requested for the cast.
+  std::string const m_type;
+  /// The reason for the failed cast.
+  std::string const m_reason;
 };
 
 // ------------------------------------------------------------------
@@ -116,20 +129,20 @@ class KWIVER_CORE_EXPORT bad_config_block_cast_exception
  * \brief Thrown when a value is requested for a value which does not exist.
  * \ingroup exceptions
  */
-class KWIVER_CORE_EXPORT no_such_configuration_value_exception
+class KWIVER_CONFIG_EXPORT no_such_configuration_value_exception
   : public config_block_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     * \param key The key that was requested from the configuration.
-     */
-    no_such_configuration_value_exception(config_block_key_t const& key) KWIVER_NOTHROW;
-    /// Destructor.
-    virtual ~no_such_configuration_value_exception() KWIVER_NOTHROW;
+public:
+  /**
+   * \brief Constructor.
+   * \param key The key that was requested from the configuration.
+   */
+  no_such_configuration_value_exception( config_block_key_t const& key ) KWIVER_NOTHROW;
+  /// Destructor.
+  virtual ~no_such_configuration_value_exception() KWIVER_NOTHROW;
 
-    /// The requested key name.
-    config_block_key_t const m_key;
+  /// The requested key name.
+  config_block_key_t const m_key;
 };
 
 // ------------------------------------------------------------------
@@ -137,31 +150,31 @@ class KWIVER_CORE_EXPORT no_such_configuration_value_exception
  * \brief Thrown when a value is set but is marked as read-only.
  * \ingroup exceptions
  */
-class KWIVER_CORE_EXPORT set_on_read_only_value_exception
+class KWIVER_CONFIG_EXPORT set_on_read_only_value_exception
   : public config_block_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param key The key that was requested from the configuration.
-     * \param value The current read-only value of \p key.
-     * \param new_value The value that was attempted to be set.
-     */
-    set_on_read_only_value_exception(config_block_key_t const& key,
-                                     config_block_value_t const& value,
-                                     config_block_value_t const& new_value) KWIVER_NOTHROW;
-    /**
-     * \brief Destructor.
-     */
-    virtual ~set_on_read_only_value_exception() KWIVER_NOTHROW;
+public:
+  /**
+   * \brief Constructor.
+   *
+   * \param key The key that was requested from the configuration.
+   * \param value The current read-only value of \p key.
+   * \param new_value The value that was attempted to be set.
+   */
+  set_on_read_only_value_exception( config_block_key_t const&   key,
+                                    config_block_value_t const& value,
+                                    config_block_value_t const& new_value ) KWIVER_NOTHROW;
+  /**
+   * \brief Destructor.
+   */
+  virtual ~set_on_read_only_value_exception() KWIVER_NOTHROW;
 
-    /// The requested key name.
-    config_block_key_t const m_key;
-    /// The existing value.
-    config_block_value_t const m_value;
-    /// The new value.
-    config_block_value_t const m_new_value;
+  /// The requested key name.
+  config_block_key_t const m_key;
+  /// The existing value.
+  config_block_value_t const m_value;
+  /// The new value.
+  config_block_value_t const m_new_value;
 };
 
 // ------------------------------------------------------------------
@@ -169,27 +182,27 @@ class KWIVER_CORE_EXPORT set_on_read_only_value_exception
  * \brief Thrown when a value is unset but is marked as read-only.
  * \ingroup exceptions
  */
-class KWIVER_CORE_EXPORT unset_on_read_only_value_exception
+class KWIVER_CONFIG_EXPORT unset_on_read_only_value_exception
   : public config_block_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param key The key that was requested from the configuration.
-     * \param value The current value for \p key.
-     */
-    unset_on_read_only_value_exception(config_block_key_t const& key,
-                                       config_block_value_t const& value) KWIVER_NOTHROW;
-    /**
-     * \brief Destructor.
-     */
-    virtual ~unset_on_read_only_value_exception() KWIVER_NOTHROW;
+public:
+  /**
+   * \brief Constructor.
+   *
+   * \param key The key that was requested from the configuration.
+   * \param value The current value for \p key.
+   */
+  unset_on_read_only_value_exception( config_block_key_t const&   key,
+                                      config_block_value_t const& value ) KWIVER_NOTHROW;
+  /**
+   * \brief Destructor.
+   */
+  virtual ~unset_on_read_only_value_exception() KWIVER_NOTHROW;
 
-    /// The requested key name.
-    config_block_key_t const m_key;
-    /// The existing value.
-    config_block_value_t const m_value;
+  /// The requested key name.
+  config_block_key_t const m_key;
+  /// The existing value.
+  config_block_value_t const m_value;
 };
 
 }

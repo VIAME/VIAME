@@ -62,8 +62,8 @@ namespace kwiver
  *                    underlying name (empty config_block_key_t value).
  * \return A \c config_block object representing the contents of the read-in file.
  */
-config_block_sptr KWIVER_CONFIG_EXPORT read_config_file(path_t const& file_path,
-                    config_block_key_t const& block_name = config_block_key_t());
+config_block_sptr KWIVER_CONFIG_EXPORT read_config_file( path_t const& file_path,
+                     config_block_key_t const& block_name = config_block_key_t() );
 
 // ------------------------------------------------------------------
 /// Output to file the given \c config_block object to the specified file path
@@ -81,8 +81,8 @@ config_block_sptr KWIVER_CONFIG_EXPORT read_config_file(path_t const& file_path,
  * \param config    The \c config_block object to output.
  * \param file_path The path to output the file to.
  */
-void KWIVER_CONFIG_EXPORT write_config_file(config_block_sptr const& config,
-                                         path_t const& file_path);
+void KWIVER_CONFIG_EXPORT write_config_file( config_block_sptr const& config,
+                                             path_t const&            file_path );
 
 }
 

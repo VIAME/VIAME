@@ -43,6 +43,8 @@ typedef std::vector < kwiver::geo_lat_lon > geo_polygon_t;
  * This operator converts a string to a geo polygon object. The
  * format of the string is "ul_lat ul_lon ur_lat ur_lon lr_lat lr_lon ll_lat ll_lon"
  *
+ * This operator is needed to read polygons from the config.
+ *
  * @param str Stream to read from
  * @param obj Object to receive values
  *

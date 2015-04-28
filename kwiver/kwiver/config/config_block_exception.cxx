@@ -43,13 +43,20 @@ namespace kwiver
 // ------------------------------------------------------------------
 config_block_exception
 ::config_block_exception() KWIVER_NOTHROW
-  : kwiver_core_base_exception()
+: std::exception()
 {
 }
 
 config_block_exception
 ::~config_block_exception() KWIVER_NOTHROW
 {
+}
+
+char const*
+config_block_exception
+::what() const KWIVER_NOTHROW
+{
+  return this->m_what.c_str();
 }
 
 

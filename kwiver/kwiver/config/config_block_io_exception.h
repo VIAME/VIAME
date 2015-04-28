@@ -36,7 +36,7 @@
 #ifndef KWIVER_CORE_EXCEPTIONS_CONFIG_IO_H
 #define KWIVER_CORE_EXCEPTIONS_CONFIG_IO_H
 
-#include "base.h"
+#include "config_block_exception.h"
 #include "config_block_types.h"
 
 namespace kwiver
@@ -45,87 +45,90 @@ namespace kwiver
 // ------------------------------------------------------------------
 /// Base config_io exception class
 class KWIVER_CONFIG_EXPORT config_block_io_exception
-  : public kwiver_core_base_exception
+  : public config_block_exception
 {
-  public:
-    ///Constructor
-    /**
-     * \param file_path The path to the file related to this error.
-     * \param reason    Reason for the exception.
-     */
-    config_block_io_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW;
-    /// Deconstructor
-    virtual ~config_block_io_exception() KWIVER_NOTHROW;
+public:
+  ///Constructor
+  /**
+   * \param file_path The path to the file related to this error.
+   * \param reason    Reason for the exception.
+   */
+  config_block_io_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW;
+  /// Deconstructor
+  virtual ~config_block_io_exception() KWIVER_NOTHROW;
 
-    /// Path to file this exception revolves around.
-    path_t m_file_path;
-    /// Reason for exception
-    std::string m_reason;
+  /// Path to file this exception revolves around.
+  config_path_t m_file_path;
+  /// Reason for exception
+  std::string m_reason;
 };
+
 
 // ------------------------------------------------------------------
 /// Exception for when a file could not be found
 class KWIVER_CONFIG_EXPORT file_not_found_exception
   : public config_block_io_exception
 {
-  public:
-    /// Constructor
-    /**
-     * \param file_path The file path that was looked for.
-     * \param reason    The reason the file wasn't found.
-     */
-    file_not_found_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW;
-    /// Deconstructor
-    virtual ~file_not_found_exception() KWIVER_NOTHROW;
+public:
+  /// Constructor
+  /**
+   * \param file_path The file path that was looked for.
+   * \param reason    The reason the file wasn't found.
+   */
+  file_not_found_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW;
+  /// Deconstructor
+  virtual ~file_not_found_exception() KWIVER_NOTHROW;
 };
 
 /// Exception for when a file could not be read for whatever reason.
-class KWIVER_CORE_EXPORT file_not_read_exception
+class KWIVER_CONFIG_EXPORT file_not_read_exception
   : public config_block_io_exception
 {
-  public:
-    ///Constructor
-    /**
-     * \param file_path The file path on which the read was attempted.
-     * \param reason    The reason for the read exception.
-     */
-    file_not_read_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW;
-    /// Deconstructor
-    virtual ~file_not_read_exception() KWIVER_NOTHROW;
+public:
+  ///Constructor
+  /**
+   * \param file_path The file path on which the read was attempted.
+   * \param reason    The reason for the read exception.
+   */
+  file_not_read_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW;
+  /// Deconstructor
+  virtual ~file_not_read_exception() KWIVER_NOTHROW;
 };
+
 
 // ------------------------------------------------------------------
 /// Exception for when a file could not be parsed after being read in
 class KWIVER_CONFIG_EXPORT file_not_parsed_exception
   : public config_block_io_exception
 {
-  public:
-    /// Constructor
-    /**
-     * \param file_path The file path to which the parsing exception occurred.
-     * \param reason    The reason for the parsing exception.
-     */
-    file_not_parsed_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW;
-    /// Deconstructor
-    virtual ~file_not_parsed_exception() KWIVER_NOTHROW;
+public:
+  /// Constructor
+  /**
+   * \param file_path The file path to which the parsing exception occurred.
+   * \param reason    The reason for the parsing exception.
+   */
+  file_not_parsed_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW;
+  /// Deconstructor
+  virtual ~file_not_parsed_exception() KWIVER_NOTHROW;
 };
+
 
 // ------------------------------------------------------------------
 /// Exception for when a file was not able to be written
 class KWIVER_CONFIG_EXPORT file_write_exception
   : public config_block_io_exception
 {
-  public:
-    /// Constructor
-    /**
-     * \param file_path The file path to which the write was attempted.
-     * \param reason    The reason for the write exception
-     */
-    file_write_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW;
-    /// Deconstructor
-    virtual ~file_write_exception() KWIVER_NOTHROW;
+public:
+  /// Constructor
+  /**
+   * \param file_path The file path to which the write was attempted.
+   * \param reason    The reason for the write exception
+   */
+  file_write_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW;
+  /// Deconstructor
+  virtual ~file_write_exception() KWIVER_NOTHROW;
 };
 
-}
+} // end namespace
 
 #endif // KWIVER_CORE_EXCEPTIONS_CONFIG_IO_H

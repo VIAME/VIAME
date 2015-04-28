@@ -42,80 +42,94 @@ namespace kwiver
 
 // ------------------------------------------------------------------
 config_block_io_exception
-::config_block_io_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW
-  : kwiver_core_base_exception()
-  , m_file_path(file_path)
-  , m_reason(reason)
+::config_block_io_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW
+  : config_block_exception(),
+  m_file_path( file_path ),
+  m_reason( reason )
 {
 }
+
 
 config_block_io_exception
 ::~config_block_io_exception() KWIVER_NOTHROW
 {
 }
 
+
 // ------------------------------------------------------------------
 file_not_found_exception
-::file_not_found_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW
-  : config_block_io_exception(file_path, reason)
+::file_not_found_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW
+  : config_block_io_exception( file_path, reason )
 {
   std::ostringstream sstr;
-  sstr << "Could not find file at location \'" << m_file_path.c_str() << "\': "
-          << m_reason;
+
+  sstr  << "Could not find file at location \'" << m_file_path.c_str() << "\': "
+        << m_reason;
   m_what = sstr.str();
 }
+
 
 file_not_found_exception
 ::~file_not_found_exception() KWIVER_NOTHROW
 {
 }
 
+
 // ------------------------------------------------------------------
 file_not_read_exception
-::file_not_read_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW
-  : config_block_io_exception(file_path, reason)
+::file_not_read_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW
+  : config_block_io_exception( file_path, reason )
 {
   std::ostringstream sstr;
-  sstr << "Failed to read from file \'" << m_file_path.c_str() << "\': "
-       << m_reason;
+
+  sstr  << "Failed to read from file \'" << m_file_path.c_str() << "\': "
+        << m_reason;
   m_what = sstr.str();
 }
+
 
 file_not_read_exception
 ::~file_not_read_exception() KWIVER_NOTHROW
 {
 }
 
+
 // ------------------------------------------------------------------
 file_not_parsed_exception
-::file_not_parsed_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW
-  : config_block_io_exception(file_path, reason)
+::file_not_parsed_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW
+  : config_block_io_exception( file_path, reason )
 {
   std::ostringstream sstr;
-  sstr << "Failed to parse file \'" << m_file_path.c_str() << "\': "
-       << m_reason;
+
+  sstr  << "Failed to parse file \'" << m_file_path.c_str() << "\': "
+        << m_reason;
   m_what = sstr.str();
 }
+
 
 file_not_parsed_exception
 ::~file_not_parsed_exception() KWIVER_NOTHROW
 {
 }
 
+
 // ------------------------------------------------------------------
 file_write_exception
-::file_write_exception(path_t const& file_path, char const* reason) KWIVER_NOTHROW
-  : config_block_io_exception(file_path, reason)
+::file_write_exception( config_path_t const& file_path, char const* reason ) KWIVER_NOTHROW
+  : config_block_io_exception( file_path, reason )
 {
   std::ostringstream sstr;
-  sstr << "Failed to write to file \'" << m_file_path.c_str() << "\': "
-       << m_reason;
+
+  sstr  << "Failed to write to file \'" << m_file_path.c_str() << "\': "
+        << m_reason;
   m_what = sstr.str();
 }
+
 
 file_write_exception
 ::~file_write_exception() KWIVER_NOTHROW
 {
 }
 
-}
+
+} // end namespace

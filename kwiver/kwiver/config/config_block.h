@@ -39,7 +39,6 @@
 #include "config-config.h"
 
 #include <cstddef>
-#include <exception>
 #include <map>
 #include <set>
 #include <string>

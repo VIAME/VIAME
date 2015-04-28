@@ -34,14 +34,13 @@
  */
 
 #include "config_block_io.h"
+#include "config_block_io_exception.h"
 
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
-
-#include "config_block_io_exceptions.h"
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -177,7 +176,7 @@ config_block_grammar<Iterator>
 
   config_block_key_path.name("config-key-path");
   config_block_key_path %=
-    config_block_key % qi::lit(kwiver::kw_config_block::block_sep);
+    config_block_key % qi::lit(kwiver::config_block::block_sep);
 
   config_block_value.name("config-value");
   // Works as intended in 1.47.0 and up, but broken for 1.46.1
