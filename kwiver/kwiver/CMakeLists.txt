@@ -18,9 +18,6 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/exim_config.h"
 
 ##
 #
-include_directories("${KWIVER_SOURCE_DIR}/kwiver")
-include_directories("${KWIVER_BINARY_DIR}")
-include_directories("${KWIVER_BINARY_DIR}/kwiver")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 ###
@@ -40,7 +37,7 @@ set( kwiver_public_headers
   exceptions/io.h
   exceptions/math.h
 
-  pipeline_types/kwiver.h
+  sprokit_type_traits.h
 )
 
 set( kwiver_sources
@@ -56,7 +53,7 @@ set( kwiver_sources
   exceptions/io.cxx
   exceptions/math.cxx
 
-  pipeline_types/kwiver.cxx
+  kwiver.cxx
 )
 
 kwiver_install_headers(

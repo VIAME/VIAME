@@ -1,21 +1,43 @@
-/*ckwg +5
- * Copyright 2014 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
+/*ckwg +29
+ * Copyright 2015 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS [yas] elisp error!AS IS''
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "frame_list_process.h"
 
 #include <kwiver/pipeline_types/kwiver.h>
-#include <kwiver/core/exceptions.h>
-#include <kwiver/core/timestamp.h>
-#include <kwiver/core/config_util.h>
+#include <kwiver/timestamp.h>
 
 #include <maptk/modules.h>
-#include <kwiver/core/image_container.h>
-#include <kwiver/core/image.h>
-#include <maptk/core/algo/image_io.h>
-#include <kwiver/core/exceptions.h>
+#include <kwiver/image_container.h>
+#include <kwiver/image.h>
+#include <maptk/algo/image_io.h>
+#include <kwiver/exceptions.h>
 
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/datum.h>
@@ -103,7 +125,7 @@ void frame_list_process
   sprokit::config_t proc_config = get_config(); // config for process
   maptk::config_block_sptr algo_config = maptk::config_block::empty_config();
 
-  convert_config( proc_config, algo_config );
+  //+ convert_config( proc_config, algo_config );
 
   // instantiate image reader and converter based on config type
   algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);

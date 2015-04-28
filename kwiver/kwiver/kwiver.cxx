@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS [yas] elisp error!AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,29 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CORE_CORE_CONFIG_H
-#define KWIVER_CORE_CORE_CONFIG_H
+#include "sprokit_type_traits.h"
 
-#include <kwiver/exim_config.h>
+#include <stdio.h>
+#include <iostream>
 
-/**
- * \file core-config.h
- *
- * \brief Defines for symbol visibility in core.
- */
+namespace kwiver
+{
 
-#ifdef MAKE_KWIVER_CORE_LIB
-/// Export the symbol if building the library.
-#define KWIVER_CORE_EXPORT KWIVER_EXPORT
-#else
-/// Import the symbol if including the library.
-#define KWIVER_CORE_EXPORT KWIVER_IMPORT
-#endif
+// This is not robust and should be rewritten as such.
+// needs to handle a real polygon
+std::istream& operator>> ( std::istream& str, geo_polygon_t& obj )
+{
+  double val[8];
 
-/// Hide the symbol from the library interface.
-#define KWIVER_CORE_NO_EXPORT KWIVER_NO_EXPORT
+  std::string line;
+  std::getline( str, line );
 
-/// Mark as deprecated.
-#define KWIVER_CORE_EXPORT_DEPRECATED KWIVER_DEPRECATED KWIVER_CORE_EXPORT
+  obj.clear();
 
-#endif // KWIVER_CORE_CORE_CONFIG_H
+  // this is ugly (lat lon pairs)
+  sscanf( line.c_str(), "%lf %lf %lf %lf %lf %lf %lf %lf",
+          &val[0], &val[1],
+          &val[2], &val[3],
+          &val[4], &val[5],
+          &val[6], &val[7] );
+
+  // process 4 points
+  for (int i = 0; i < 4; ++i)
+  {
+    obj.push_back( kwiver::geo_lat_lon( val[i*2], val[i*2 +1] ) );
+  } // end for
+
+  return str;
+}
+
+} // end namespace

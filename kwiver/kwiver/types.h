@@ -29,12 +29,16 @@
  */
 
 /**
- * \file
- * \brief Shared type declarations for the kwiver/core module.
+ * @file
+ * @brief Shared type declarations for the kwiver module.
+ * This file contains the canonical type names for KWIVER types used
+ * in the sprokit pipeline.
  */
 
 #ifndef KWIVER_CORE_TYPES_H
 #define KWIVER_CORE_TYPES_H
+
+#include <kwiver/geo_lat_lon.h>
 
 #include <string>
 #include <vector>
@@ -56,6 +60,34 @@ typedef int64_t track_id_t;
 
 /// The type of a frame number or camera ID
 typedef int64_t frame_id_t;
+
+
+// -- concrete types --
+typedef double gsd_t;
+
+/// \todo establish and document proper semantics for a polygon.
+/// E.G. generally starts in upper left, proceeds around clockwise.
+/// Is a closed figure, last point is connected back to first point.
+/// Could wrap in a class to provide data abstraction.
+typedef std::vector < kwiver::geo_lat_lon > geo_polygon_t;
+
+/// \todo make a better corner points class that uses data abstraction
+/// to provide proper semantics.
+
+/**
+ * \brief Geo polygon input operator.
+ *
+ * This operator converts a string to a geo polygon object. The
+ * format of the string is "ul_lat ul_lon ur_lat ur_lon lr_lat lr_lon ll_lat ll_lon"
+ *
+ * This operator is needed to read polygons from the config.
+ *
+ * @param str Stream to read from
+ * @param obj Object to receive values
+ *
+ * @return
+ */
+std::istream& operator>> ( std::istream& str, geo_polygon_t& obj );
 
 }
 

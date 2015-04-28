@@ -31,7 +31,7 @@
 #ifndef KWIVER_PROCESSES_CONFIG_H
 #define KWIVER_PROCESSES_CONFIG_H
 
-#include <exim_config.h>
+#include <kwiver/exim_config.h>
 
 /**
  * \file processes-config.h
