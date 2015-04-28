@@ -20,13 +20,12 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/exim_config.h"
 #
 include_directories("${KWIVER_SOURCE_DIR}/kwiver")
 include_directories("${KWIVER_BINARY_DIR}")
+include_directories("${KWIVER_BINARY_DIR}/kwiver")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-
-##
+###
 #
 set( kwiver_public_headers
-  kw_exceptions.h
   geo_lat_lon.h
   homography.h
   image.h
@@ -69,17 +68,12 @@ kwiver_add_library( kwiver
   ${kwiver_sources}
   )
 
-#set_target_properties( kwiver PROPERTIES
-#  VERSION ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION}
-#  LIBRARY_OUTPUT_DIRECTORY ${KWIVER_BUILD_INSTALL_PREFIX}/lib
-#)
-
 target_link_libraries( kwiver
-  ${Boost_LIBRARIES}
+  PRIVATE       #  ${Boost_LIBRARIES} # be more specific
+                  kwiver_config
+                  kwiver_logger
   )
 
 # Adding module subdirectories
 kwiver_add_module(config "${CMAKE_CURRENT_LIST_DIR}/config")
 kwiver_add_module(logger "${CMAKE_CURRENT_LIST_DIR}/logger")
-
-
