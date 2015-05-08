@@ -20,6 +20,9 @@
 #
 include(CMakeParseArguments)
 
+include (GenerateExportHeader)
+
+
 # Global collection variables
 define_property(GLOBAL PROPERTY kwiver_export_targets
   BRIEF_DOCS "Targets exported by KWIVER"
@@ -148,10 +151,8 @@ function(kwiver_add_library name)
       SOVERSION                0
       DEFINE_SYMBOL            MAKE_${upper_name}_LIB
     )
-
-  add_dependencies( "${name}"
-    configure-exim_config.h
-#??    configure-modules.h
+  generate_export_header( ${name}
+    STATIC_DEFINE  ${upper_name}_BUILD_AS_STATIC
     )
 
   foreach(config IN LISTS CMAKE_CONFIGURATION_TYPES)
@@ -174,7 +175,7 @@ function(kwiver_add_library name)
   endif()
 
   _kwiver_export(${name})
-  # MATPK_LIB_SUFFIX should only apply to installation location, not the build
+  # KWIVER_LIB_SUFFIX should only apply to installation location, not the build
   # locations that properties above this point pertain to.
   kwiver_install(
     TARGETS             "${name}"

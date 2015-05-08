@@ -31,7 +31,7 @@
 #ifndef KWIVER_KWIVER_LOGGER_H_
 #define KWIVER_KWIVER_LOGGER_H_
 
-#include "logger-config.h"
+#include <logger/kwiver_logger_export.h>
 #include "location_info.h"
 
 #include <sstream>

@@ -6,7 +6,6 @@
 #
 
 set( kwiver_config_public_headers
-  config-config.h
   config_block.h
   config_block_types.h
   config_block_io.h
@@ -23,6 +22,7 @@ set( kwiver_config_sources
 
 kwiver_install_headers(
   ${kwiver_config_public_headers}
+  ${CMAKE_CURRENT_BINARY_DIR}/config_export.h
   SUBDIR config
   )
 

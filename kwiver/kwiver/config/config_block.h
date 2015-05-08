@@ -36,7 +36,7 @@
 #ifndef KWIVER_CONFIG_BLOCK_H_
 #define KWIVER_CONFIG_BLOCK_H_
 
-#include "config-config.h"
+#include <config/kwiver_config_export.h>
 
 #include <cstddef>
 #include <map>

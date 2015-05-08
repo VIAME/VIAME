@@ -1,9 +1,7 @@
 #
 # kwiver/logger library
 #
-
 set( kwiver_logger_public_headers
-  logger-config.h
   logger.h
   kwiver_logger.h
   location_info.h
@@ -25,6 +23,7 @@ set( kwiver_logger_sources
 
 kwiver_install_headers(
   ${kwiver_logger_public_headers}
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_logger_export.h
   SUBDIR logger
   )
 

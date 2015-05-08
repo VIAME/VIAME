@@ -29,7 +29,7 @@
  */
 
 
-#include "logger-config.h"
+#include <logger/kwiver_logger_export.h>
 #include "default_logger.h"
 #include "kwiver_logger.h"
 
