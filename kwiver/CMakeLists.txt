@@ -17,7 +17,7 @@ set(KWSYS_INSTALL_LIB_DIR lib)
 set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/kwiversys CACHE INTERNAL "")
 
 include_directories( SYSTEM ${KWSYS_INCLUDE_DIR} )
-add_subdirectory(kwiversys)
+add_subdirectory(kwsys)
 ## export( TARGETS kwiversys APPEND FILE "${KWIVER_EXPORT_FILE}" )
 
 ###
@@ -26,7 +26,7 @@ add_subdirectory( kwiver )
 
 # other language bindings
 add_subdirectory( bindings )
-add_subdirectory( processes )
+## - add_subdirectory( processes ) TEMP disable
 
 # kwiver_add_module(processes "${CMAKE_CURRENT_LIST_DIR}/processes")
 
