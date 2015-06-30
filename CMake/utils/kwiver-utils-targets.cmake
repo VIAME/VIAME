@@ -137,19 +137,28 @@ endfunction()
 # This function will add the library to the set of targets to be exported
 # unless ``no_export`` was set.
 #-
-function(kwiver_add_library name)
+function(kwiver_add_library     name)
   string(TOUPPER "${name}" upper_name)
-  message(STATUS "Making library \"${name}\" with defined symbol \"MAKE_${upper_name}_LIB\"")
+  message(STATUS "Making library \"${name}\"")
 
   add_library("${name}" ${ARGN})
+
+  if ( APPLE )
+    set( props
+      BUNDLE               TRUE
+      )
+  else()
+    set( props
+      VERSION                  ${KWIVER_VERSION}
+      SOVERSION                ${KWIVER_VERSION}
+      )
+  endif()
   set_target_properties("${name}"
     PROPERTIES
       ARCHIVE_OUTPUT_DIRECTORY "${KWIVER_BINARY_DIR}/lib${library_subdir}"
       LIBRARY_OUTPUT_DIRECTORY "${KWIVER_BINARY_DIR}/lib${library_subdir}"
       RUNTIME_OUTPUT_DIRECTORY "${KWIVER_BINARY_DIR}/bin${library_subdir}"
-      VERSION                  ${KWIVER_VERSION}
-      SOVERSION                0
-      DEFINE_SYMBOL            MAKE_${upper_name}_LIB
+      ${props}
     )
   generate_export_header( ${name}
     STATIC_DEFINE  ${upper_name}_BUILD_AS_STATIC
@@ -259,5 +268,25 @@ endfunction()
 function(kwiver_private_template_group)
   source_group("Template Files\\Private"
     ${ARGN}
+    )
+endfunction()
+
+
+####
+# This function creates a target for a loadable plugin.
+#
+function( kwiver_add_plugin        name )
+  set(library_subdir /module)
+
+  kwiver_add_library( ${name} MODULE ${ARGN} )
+
+  set_target_properties(${name}
+    PROPERTIES
+      PREFIX           ""
+      SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX})
+  endif()
+
+  install( TARGETS ${name}
+    LIBRARY DESTINATION lib/modules
     )
 endfunction()

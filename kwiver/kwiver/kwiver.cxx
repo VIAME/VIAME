@@ -47,7 +47,7 @@ std::istream& operator>> ( std::istream& str, geo_polygon_t& obj )
 
   obj.clear();
 
-  // this is ugly (lat lon pairs)
+  //+ this is ugly (lat lon pairs)
   sscanf( line.c_str(), "%lf %lf %lf %lf %lf %lf %lf %lf",
           &val[0], &val[1],
           &val[2], &val[3],

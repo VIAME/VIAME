@@ -1,6 +1,9 @@
 #
 # kwiver/logger library
 #
+
+include( GenerateExportHeader )
+
 set( kwiver_logger_public_headers
   logger.h
   kwiver_logger.h
@@ -27,7 +30,7 @@ kwiver_install_headers(
   SUBDIR logger
   )
 
-kwiver_add_library( kwiver_logger
+kwiver_add_library( kwiver_logger SHARED
   ${kwiver_logger_public_headers}
   ${kwiver_logger_private_headers}
   ${kwiver_logger_sources}
@@ -50,13 +53,21 @@ set( plugin_base_src
 ###
 # Build log4cxx plug-in if configured
 if (KWIVER_ENABLE_LOG4CXX)
+
   set ( log4cxx_lib     ${Log4cxx_LIBRARY} ${ApacheRunTime_LIBRARY} )
   include_directories ( SYSTEM ${Log4cxx_INCLUDE_DIR} ${ApacheRunTime_INCLUDE_DIR} )
 
-  add_library( kwiver_log4cxx_logger SHARED
+  kwiver_add_plugin( kwiver_log4cxx_logger
     ${plugin_base_src} log4cxx_factory.cxx ${log4cxx_lib} )
 
-  set_target_properties( kwiver_log4cxx_logger PROPERTIES
-    PREFIX               "" )
-
 endif(KWIVER_ENABLE_LOG4CXX)
+
+###
+# Add tests if enbled
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory( tests )
+endif()
+
+###
+# Make appropriate export header file
+generate_export_header( kwiver_logger )

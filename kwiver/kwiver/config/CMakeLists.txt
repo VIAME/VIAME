@@ -5,6 +5,8 @@
 # used by other components that do not need all of the rest of kwiver
 #
 
+include( GenerateExportHeader )
+
 set( kwiver_config_public_headers
   config_block.h
   config_block_types.h
@@ -22,20 +24,25 @@ set( kwiver_config_sources
 
 kwiver_install_headers(
   ${kwiver_config_public_headers}
-  ${CMAKE_CURRENT_BINARY_DIR}/config_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_config_export.h
   SUBDIR config
   )
 
-kwiver_add_library( kwiver_config
+kwiver_add_library( kwiver_config SHARED
   ${kwiver_config_public_headers}
   ${kwiver_config_sources}
   )
 
-set_target_properties( kwiver_config PROPERTIES
-  VERSION                  ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION}
-  LIBRARY_OUTPUT_DIRECTORY ${KWIVER_BUILD_INSTALL_PREFIX}/lib
-)
-
 target_link_libraries( kwiver_config
-  PRIVATE                 ${Boost_LIBRARIES}
+  PRIVATE            ${Boost_LIBRARIES}
   )
+
+###
+# Add tests if enbled
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory( tests )
+endif()
+
+###
+# Make appropriate export header file
+generate_export_header( kwiver_config )
