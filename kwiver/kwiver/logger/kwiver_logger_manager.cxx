@@ -72,19 +72,42 @@ kwiver_logger_manager
   // are created by static initializers. we can wait no longer until
   // we provide a method for creating these loggers.
 
-  char* factory = std::getenv("KWIVER_LOGGER_FACTORY");
-  if ( 0 != factory )
+  bool try_default(false);
+  char const* factory = std::getenv("KWIVER_LOGGER_FACTORY");
+  if ( 0 == factory )
   {
-    try
+    try_default = true;
+    // If no special factory is specified, try default name
+#if defined(WIN32)
+    factory = "kwiver_logger_plugin.dll";
+#elif defined(__APPLE__)
+    factory = "kwiver_logger_plugin.dylib";
+#else
+    factory = "kwiver_logger_plugin.so";
+#endif
+  }
+
+  try
+  {
+    // Dynamically load logger factory.
+    load_factory( factory );
+    return;
+  }
+  catch( std::runtime_error &e )
+  {
+    // Only give error if the environment specified logger could not be found
+    if ( ! try_default )
     {
-      // Dynamically load logger factory.
-      load_factory( factory );
-      return;
-    }
-    catch( std::runtime_error &e )
-    {
-      std::cerr << "ERROR in loading logger factory - default to built-in logger.\n"
+      std::cerr << "ERROR: Could not load logger factory as specified in environment variable \"KWIVER_LOGGER_FACTORY\"\n"
+                << "Defaulting to built-in logger.\n"
                 << e.what() << std::endl;
+    }
+    else
+    {
+      std::cerr << "Info: Could not load default logger factory.\n"
+                << "Typical usage: export KWIVER_LOGGER_FACTORY=" << factory << "\n"
+                << "Specify name of shared object, with or without a path. Behaviour depends on host system.\n"
+                << "Defaulting to built-in logger." << std::endl;
     }
   }
 
@@ -174,7 +197,7 @@ kwiver_logger_manager
   if ( ! fp )
   {
     std::stringstream str;
-    str << "Unable to bind to bootstrap function: kwiver_logger_factory() "
+    str << "Unable to bind to function: kwiver_logger_factory() "
         << DL::LastError();
     throw std::runtime_error( str.str() );
   }
