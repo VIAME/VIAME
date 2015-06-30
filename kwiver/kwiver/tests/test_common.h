@@ -54,6 +54,8 @@
 
 typedef std::string testname_t;
 
+
+// ------------------------------------------------------------------
 /// Report an error to stderr.
 /**
  * @param msg The message to report.
@@ -64,6 +66,8 @@ typedef std::string testname_t;
     std::cerr << "Error: " << msg << std::endl; \
   } while (false)
 
+
+// ------------------------------------------------------------------
 /// Attempt a code block that should throw some exception
 /**
  * @param ex      Exception class or type to expect.
@@ -112,6 +116,7 @@ typedef std::string testname_t;
   } while (false)
 
 
+// ------------------------------------------------------------------
 /// Set-up macro defining the test case function map for the current file
 /**
  * This *MUST* be declared once at the top of every file containing test case
@@ -120,6 +125,11 @@ typedef std::string testname_t;
  * \a TEST_ARGS must be defined before this call, declaring the function
  * argument signature for test cases declared in the file, i.e. if cases
  * needed to take in a path to a data directory or the like.
+ * For example:
+ \code
+ #define TEST_ARGS ()  // for a function that takes no args
+ #define TEST_ARGS (sprokit::path_t const& pipe_file)
+ \endcode
  */
 #define DECLARE_TEST_MAP()                                    \
   namespace                                                   \
@@ -137,6 +147,8 @@ typedef std::string testname_t;
     }                                                         \
   }                                                           \
 
+
+// ------------------------------------------------------------------
 /// Macro for displaying tests available
 #define DISPLAY_AVAILABLE_TESTS()                           \
   do                                                        \
@@ -148,6 +160,8 @@ typedef std::string testname_t;
     }                                                       \
   } while (false)
 
+
+// ------------------------------------------------------------------
 /// Add a CMake property to the next test declared
 /**
  * This is a hook for the CMake parsing code to set CTest test properties via
@@ -163,6 +177,8 @@ typedef std::string testname_t;
  */
 #define TEST_PROPERTY(property, value, ...)
 
+
+// ------------------------------------------------------------------
 /// Define a test case
 /**
  * @param testname  The name of the test case to define.
@@ -176,6 +192,8 @@ typedef std::string testname_t;
   void                                                 \
   test_##testname TEST_ARGS
 
+
+// ------------------------------------------------------------------
 /// Check the number of positional arguments given to the top level executable
 /**
  * @param numargs The number of arguments to expect after the name of the
@@ -198,6 +216,8 @@ typedef std::string testname_t;
     }                           \
   } while (false)
 
+
+// ------------------------------------------------------------------
 /// Run the a test case by a given name
 /**
  * Find an run the test function associated with the given testname.
@@ -243,6 +263,7 @@ typedef std::string testname_t;
   } while (false)
 
 
+// ------------------------------------------------------------------
 //
 // Testing helper macros/methods
 //
@@ -266,6 +287,8 @@ inline bool is_almost(double const &value,
 } //end namespace testing
 } //end namespace kwiver
 
+
+// ------------------------------------------------------------------
 /// General equality test with message generation on inequality
 /**
  * Test equality between values with a '!=' expression. This wrapps a standard
@@ -286,6 +309,8 @@ inline bool is_almost(double const &value,
     }                                                           \
   } while(false)
 
+
+// ------------------------------------------------------------------
 /// Test double/float approximate equality to a given epsilon
 /**
  * @param name    An identifying name for the test.

@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <kwiver/config_block.h>
+#include <kwiver/config/config_block.h>
 #include <kwiver/eigen_io.h>
 #include <kwiver/vector.h>
 
@@ -53,6 +53,8 @@ main(int argc, char* argv[])
   RUN_TEST(testname);
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(block_sep_size)
 {
   if (kwiver::config_block::block_sep.size() != 1)
@@ -62,6 +64,8 @@ IMPLEMENT_TEST(block_sep_size)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(has_value)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -84,6 +88,8 @@ IMPLEMENT_TEST(has_value)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(get_value)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -102,6 +108,8 @@ IMPLEMENT_TEST(get_value)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(get_value_nested)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -123,6 +131,8 @@ IMPLEMENT_TEST(get_value_nested)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(get_value_no_exist)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -144,6 +154,8 @@ IMPLEMENT_TEST(get_value_no_exist)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(get_value_type_mismatch)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -167,6 +179,8 @@ IMPLEMENT_TEST(get_value_type_mismatch)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(value_conversion)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -209,6 +223,8 @@ IMPLEMENT_TEST(value_conversion)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(bool_conversion)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -307,6 +323,8 @@ IMPLEMENT_TEST(bool_conversion)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(unset_value)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -334,6 +352,8 @@ IMPLEMENT_TEST(unset_value)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(available_values)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -360,6 +380,8 @@ IMPLEMENT_TEST(available_values)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(read_only)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -385,6 +407,8 @@ IMPLEMENT_TEST(read_only)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(read_only_unset)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -409,6 +433,8 @@ IMPLEMENT_TEST(read_only_unset)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(subblock)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -464,6 +490,8 @@ IMPLEMENT_TEST(subblock)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(subblock_nested)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -512,6 +540,8 @@ IMPLEMENT_TEST(subblock_nested)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(subblock_match)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -532,6 +562,8 @@ IMPLEMENT_TEST(subblock_match)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(subblock_prefix_match)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -554,6 +586,8 @@ IMPLEMENT_TEST(subblock_prefix_match)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(subblock_view)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -625,6 +659,8 @@ IMPLEMENT_TEST(subblock_view)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(subblock_view_nested)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -673,6 +709,8 @@ IMPLEMENT_TEST(subblock_view_nested)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(subblock_view_match)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -693,6 +731,8 @@ IMPLEMENT_TEST(subblock_view_match)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(subblock_view_prefix_match)
 {
   kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
@@ -715,6 +755,8 @@ IMPLEMENT_TEST(subblock_view_prefix_match)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(merge_config)
 {
   kwiver::config_block_sptr const configa = kwiver::config_block::empty_config();
@@ -758,6 +800,8 @@ IMPLEMENT_TEST(merge_config)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_value_description)
 {
   using namespace kwiver;

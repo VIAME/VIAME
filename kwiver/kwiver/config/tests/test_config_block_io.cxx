@@ -38,7 +38,7 @@
 #include <string>
 #include <iostream>
 
-#include <kwiver/config_block_io.h>
+#include <kwiver/config/config_block_io.h>
 #include <kwiver/exceptions.h>
 #include <kwiver/types.h>
 
