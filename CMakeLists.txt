@@ -16,14 +16,6 @@ set(KWIVER_VERSION_PATCH 0)
 set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
 
 
-###
-# Add the CMake directory for CMake modules
-#
-list(INSERT CMAKE_MODULE_PATH 0
-  "${MAPTK_SOURCE_DIR}/CMake"
-  )
-
-
 ##
 # Look for and use Fletch to find dependencies
 #
@@ -44,6 +36,10 @@ set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build")
 set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 
+# root directories
+set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
+set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
+
 set(CMAKE_MODULE_PATH      ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})
 set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)
@@ -57,6 +53,14 @@ option(KWIVER_ENABLE_TESTS     "Enable testing" ON)
 if (KWIVER_ENABLE_PYTHON)
   set(kwiver_boost_python_package python)
 endif()
+
+
+###
+# Add the CMake directory for CMake modules
+#
+list(INSERT CMAKE_MODULE_PATH 0
+  "${KWIVER_SOURCE_DIR}/CMake"
+  )
 
 
 ###
@@ -197,9 +201,11 @@ link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 
 add_subdirectory( kwiver )
 
+###
+# Add tests if enabled
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
-endif(KWIVER_ENABLE_TESTS)
+endif()
 
 ## add_subdirectory(tools)
 
