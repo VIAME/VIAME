@@ -26,6 +26,11 @@ geo_lat_lon(double lat, double lon)
 { }
 
 
+geo_lat_lon::
+~geo_lat_lon()
+{ }
+
+
 geo_lat_lon& geo_lat_lon
 ::set_latitude(double l)
 {
