@@ -37,6 +37,8 @@
 #define KWIVER_CORE_EXCEPTIONS_BASE_H
 
 #include <kwiver/kwiver-config.h>
+#include <kwiver/kwiver_export.h>
+
 #include <string>
 #include <exception>
 
@@ -47,7 +49,7 @@ namespace kwiver
 /**
  * \ingroup exceptions
  */
-class KWIVER_CORE_EXPORT kwiver_core_base_exception
+class KWIVER_EXPORT kwiver_core_base_exception
   : public std::exception
 {
 public:
@@ -73,7 +75,7 @@ protected:
 /**
  * \ingroup exceptions
  */
-class KWIVER_CORE_EXPORT invalid_value
+class KWIVER_EXPORT invalid_value
   : public kwiver_core_base_exception
 {
 public:

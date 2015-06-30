@@ -36,7 +36,7 @@
 #ifndef KWIVER_HOMOGRAPHY_H_
 #define KWIVER_HOMOGRAPHY_H_
 
-#include <kwiver/core-config.h>
+#include <kwiver/kwiver_export.h>
 #include <kwiver/matrix.h>
 #include <kwiver/types.h>
 #include <kwiver/vector.h>
@@ -63,11 +63,11 @@ typedef boost::shared_ptr< homography > homography_sptr;
 // ---------------------------------------------------------------------------
 
 /// Abstract base homography transformation representation class
-class homography
+class KWIVER_EXPORT homography
 {
 public:
   /// Destructor
-  virtual ~homography() {}
+  virtual ~homography() { }
 
   /// Create a clone of this homography object, returning as smart pointer
   /**
@@ -80,7 +80,7 @@ public:
    * \return A copy of the transformation matrix represented in the double
    *         type.
    */
-  virtual Eigen::Matrix<double,3,3> matrix() const = 0;
+  virtual Eigen::Matrix< double, 3, 3 > matrix() const = 0;
 
   /// Get a new \p homography that has been normalized
   /**
@@ -105,8 +105,8 @@ public:
    * \param p Point to map against this homography
    * \return New point in the projected coordinate system.
    */
-  virtual Eigen::Matrix<double,2,1>
-    map( Eigen::Matrix<double,2,1> const &p ) const = 0;
+  virtual Eigen::Matrix< double, 2, 1 >
+  map( Eigen::Matrix< double, 2, 1 > const& p ) const = 0;
 
 };
 
@@ -116,40 +116,46 @@ public:
 // ---------------------------------------------------------------------------
 
 /// Representation of a matrix-based homography transformation
-template <typename T>
-class KWIVER_CORE_EXPORT homography_
-  : public homography
+/**
+ * This class represents a matrix based homography templated on
+ * coordinate point element data type.
+ *
+ * \tparam T Coordinate point data type
+ */
+template < typename T >
+class KWIVER_EXPORT homography_ :
+  public homography
 {
 public:
   typedef T value_type;
-  typedef Eigen::Matrix<T,3,3> matrix_t;
+  typedef Eigen::Matrix< T, 3, 3 > matrix_t;
 
   /// Construct an identity homography
-  homography_<T>();
+  homography_< T > ( );
 
   /// Construct from a provided transformation matrix
   /**
    * \param mat The 3x3 transformation matrix to use.
    */
   explicit
-  homography_<T>( matrix_t const &mat );
+  homography_< T > ( matrix_t const & mat );
 
   /// Conversion Copy constructor
   /**
    * \param other The other homography whose transformation should be copied.
    */
-  template <typename U>
+  template < typename U >
   explicit
-  homography_<T>( homography_<U> const &other )
-    : h_( other.h_.template cast<T>() )
+  homography_< T > ( homography_< U > const & other )
+  : h_( other.h_.template cast< T > () )
   {
   }
 
   /// Construct from a generic homography
   explicit
-  homography_<T>( homography const &base );
+  homography_< T > ( homography const & base );
 
-  // Abstract method definitions ---------------------------------------------
+  // ---- Abstract method definitions ----
 
   /// Create a clone of ourself as a shared pointer
   /**
@@ -162,7 +168,7 @@ public:
    * \return A copy of the transformation matrix represented in the double
    *         type.
    */
-  virtual Eigen::Matrix<double,3,3> matrix() const;
+  virtual Eigen::Matrix< double, 3, 3 > matrix() const;
 
   /// Get a new \p homography that has been normalized
   /**
@@ -188,10 +194,10 @@ public:
    * \param p Point to map against this homography
    * \return New point in the projected coordinate system.
    */
-  virtual Eigen::Matrix<double,2,1>
-    map( Eigen::Matrix<double,2,1> const &p ) const;
+  virtual Eigen::Matrix< double, 2, 1 >
+  map( Eigen::Matrix< double, 2, 1 > const& p ) const;
 
-  // Member Functions --------------------------------------------------------
+  // ---- Member Functions ----
 
   /// Get the underlying matrix transformation
   /**
@@ -208,7 +214,7 @@ public:
    * \param p Point to map against this homography
    * \return New point in the projected coordinate system.
    */
-  Eigen::Matrix<T,2,1> map_point( Eigen::Matrix<T,2,1> const &p ) const;
+  Eigen::Matrix< T, 2, 1 > map_point( Eigen::Matrix< T, 2, 1 > const& p ) const;
 
   /// Custom multiplication operator that multiplies the underlying matrices
   /**
@@ -216,7 +222,8 @@ public:
    * \return New homography object whose transform is the result of
    *         \p this * \p rhs.
    */
-  virtual homography_<T> operator*( homography_<T> const &rhs );
+  virtual homography_< T > operator*( homography_< T > const& rhs );
+
 
 protected:
   /// homography transformation matrix
@@ -229,11 +236,11 @@ protected:
 // ---------------------------------------------------------------------------
 
 /// Output stream operator for \p homography base-class
-KWIVER_CORE_EXPORT std::ostream& operator<<( std::ostream &s, homography const &h );
+KWIVER_EXPORT std::ostream& operator<<( std::ostream& s, homography const& h );
 
 /// homography_<T> output stream operator
-template <typename T>
-KWIVER_CORE_EXPORT std::ostream& operator<<( std::ostream &s, homography_<T> const &h );
+template < typename T >
+KWIVER_EXPORT std::ostream& operator<<( std::ostream& s, homography_< T > const& h );
 
 
 } // end namespace kwiver

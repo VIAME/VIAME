@@ -42,8 +42,9 @@
 namespace kwiver
 {
 
+// ------------------------------------------------------------------
 /// Base class for all algorithm related exceptions
-class KWIVER_CORE_EXPORT algorithm_exception
+class KWIVER_EXPORT algorithm_exception
   : public kwiver_core_base_exception
 {
   public:
@@ -62,8 +63,10 @@ class KWIVER_CORE_EXPORT algorithm_exception
     std::string m_reason;
 };
 
+
+// ------------------------------------------------------------------
 /// Exception for when an algorithm receives an invalid configuration
-class KWIVER_CORE_EXPORT algorithm_configuration_exception
+class KWIVER_EXPORT algorithm_configuration_exception
   : public algorithm_exception
 {
   public:
@@ -75,8 +78,10 @@ class KWIVER_CORE_EXPORT algorithm_configuration_exception
     virtual ~algorithm_configuration_exception() KWIVER_NOTHROW;
 };
 
+
+// ------------------------------------------------------------------
 /// Exception for when checking an invalid impl name against an algo def
-class KWIVER_CORE_EXPORT invalid_name_exception
+class KWIVER_EXPORT invalid_name_exception
   : public algorithm_exception
 {
   public:

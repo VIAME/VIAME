@@ -36,7 +36,9 @@
 #ifndef KWIVER_CORE_EXCEPTIONS_CONFIG_H
 #define KWIVER_CORE_EXCEPTIONS_CONFIG_H
 
-#include <config/kwiver_config_export.h>
+#include <kwiver/config/kwiver_config_export.h>
+#include <kwiver/kwiver-config.h>
+
 #include "config_block_types.h"
 
 #include <exception>

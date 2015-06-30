@@ -8,7 +8,7 @@
 #ifndef _KWIVER_GEO_LAT_LON_H_
 #define _KWIVER_GEO_LAT_LON_H_
 
-#include <kwiver/core-config.h>
+#include <kwiver/kwiver_export.h>
 
 #include <ostream>
 
@@ -25,13 +25,15 @@ namespace kwiver
  * -180 .. 0 .. 180. It is up to the application.  If a specific
  * convention must be enforced, make a subclass.
  */
-class KWIVER_CORE_EXPORT geo_lat_lon
+class KWIVER_EXPORT geo_lat_lon
 {
 public:
   static const double INVALID;    // used to indicate uninitialized value
 
   geo_lat_lon();
   geo_lat_lon( double lat, double lon );
+
+  virtual ~geo_lat_lon();
 
   geo_lat_lon& set_latitude( double l );
   geo_lat_lon& set_longitude( double l );
@@ -44,13 +46,13 @@ public:
   bool operator==( const geo_lat_lon& rhs ) const;
   bool operator!=( const geo_lat_lon& rhs ) const;
 
-
 private:
+
   double m_latitude;
   double m_longitude;
 };
 
-std::ostream& operator<< (std::ostream& str, kwiver::geo_lat_lon const& obj);
+KWIVER_EXPORT std::ostream& operator<< (std::ostream& str, kwiver::geo_lat_lon const& obj);
 
 } // end namespace
 

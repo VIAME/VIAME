@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief KWIVER Exceptions pertaining to math operations
+ * \brief KWIVER Exceptions pertaining to math operations.
  */
 
 #ifndef KWIVER_CORE_EXCEPTIONS_MATH_H
@@ -45,7 +45,7 @@ namespace kwiver
 
 
 /// KWIVER Generic math exception
-class KWIVER_CORE_EXPORT math_exception
+class KWIVER_EXPORT math_exception
   : public kwiver_core_base_exception
 {
 public:
@@ -57,7 +57,7 @@ public:
 
 
 /// Exception for when a matrix is non-invertible
-class KWIVER_CORE_EXPORT non_invertible_matrix
+class KWIVER_EXPORT non_invertible_matrix
   : public math_exception
 {
 public:
@@ -69,7 +69,7 @@ public:
 
 
 /// Exception for when some point maps to infinity
-class KWIVER_CORE_EXPORT point_maps_to_infinity
+class KWIVER_EXPORT point_maps_to_infinity
   : public math_exception
 {
 public:
@@ -81,7 +81,7 @@ public:
 
 
 /// We cannot perfom some operation on a matrix
-class KWIVER_CORE_EXPORT invalid_matrix_operation
+class KWIVER_EXPORT invalid_matrix_operation
   : public math_exception
 {
 public:
@@ -96,7 +96,6 @@ public:
   /// Reason the operation is invalid
   std::string m_reason;
 };
-
 
 } // end kwiver namespace
 

@@ -44,7 +44,7 @@ namespace kwiver
 {
 
 
-class KWIVER_CORE_EXPORT f2w_homography
+class KWIVER_EXPORT f2w_homography
 {
 public:
   /// Construct an identity homography for the given frame

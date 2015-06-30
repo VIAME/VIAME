@@ -30,13 +30,13 @@
 
 /**
  * \file
- * \brief core image class interface
+ * \brief Core image class interface
  */
 
 #ifndef KWIVER_IMAGE_H_
 #define KWIVER_IMAGE_H_
 
-#include "core-config.h"
+#include <kwiver/kwiver_export.h>
 
 #include <cstddef>
 
@@ -45,13 +45,14 @@
 namespace kwiver
 {
 
+// ------------------------------------------------------------------
 /// This class represents a block of image memory on the heap.
 /**
  * The image object use shared pointers to this class.
  * Derived image memory classes can proved access to image memory
  * stored in other forms, such as on the GPU or in 3rd party data structures.
  */
-class KWIVER_CORE_EXPORT image_memory
+class KWIVER_EXPORT image_memory
 {
 public:
   /// Default Constructor
@@ -61,20 +62,20 @@ public:
   /**
    * \param n bytes to allocate
    */
-  image_memory(size_t n);
+  image_memory( size_t n );
 
   /// Copy constructor
   /**
    * \param other The other image_memory to copy from.
    */
-  image_memory(const image_memory& other);
+  image_memory( const image_memory& other );
 
   /// Assignment operator
   /**
    * Other image_memory whose internal data is copied into ours.
    * \param other image_memory to copy from.
    */
-  image_memory& operator=(const image_memory& other);
+  image_memory& operator=( const image_memory& other );
 
   /// Destructor
   virtual ~image_memory();
@@ -85,23 +86,26 @@ public:
   /// The number of bytes allocated
   size_t size() const { return size_; }
 
+
 protected:
   /// The image data
-  void *data_;
+  void* data_;
 
   /// The number of bytes allocated
   size_t size_;
 };
 
 /// Shared pointer for base image_memory type
-typedef boost::shared_ptr<image_memory> image_memory_sptr;
+typedef boost::shared_ptr< image_memory > image_memory_sptr;
 
 
+// ------------------------------------------------------------------
 /// The representation of an in-memory image.
 /**
- * Images share memory using the image_memory class.
+ * Images share memory using the image_memory class.  This is
+ * effectively a view on an image.
  */
-class KWIVER_CORE_EXPORT image
+class KWIVER_EXPORT image
 {
 public:
   /// Convenience typedef for the size of a byte
@@ -111,26 +115,62 @@ public:
   image();
 
   /// Constructor that allocates image memory
-  image(size_t width, size_t height, size_t depth=1, bool interleave=false);
+  /**
+   * Create a new blank (empty) image of specified size.
+   *
+   * \param width Number of pixels in width
+   * \param height Number of pixel rows
+   * \param depth Number of image channels
+   * \param interleave Set if the pixels are interleaved
+   */
+  image( size_t width, size_t height, size_t depth = 1, bool interleave = false );
 
   /// Constructor that points at existing memory
-  image(const byte* first_pixel, size_t width, size_t height, size_t depth,
-        ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step);
+  /**
+   * Create a new image from supplied memory.
+   *
+   * \param first_pixel Address of the first pixel in the image. This
+   * does not have to be the lowest memory address of the image
+   * memory.
+   *
+   * \param width Number of pixels wide
+   * \param height Number of pixels high
+   * \param depth Number of image channels
+   * \param w_step Byte increment to get to next pixel column
+   * \param h_step Byte increment to get to next pixel row
+   * \param d_step Byte increment to get to next image channel
+   */
+  image( const byte* first_pixel, size_t width, size_t height, size_t depth,
+         ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step );
 
   /// Constructor that shares memory with another image
-  image(const image_memory_sptr& mem,
-        const byte* first_pixel, size_t width, size_t height, size_t depth,
-        ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step);
+  /**
+   * Create a new image from existing image.
+   *
+   * \param mem Address of the first pixel in the image. This
+   * does not have to be the lowest memory address of the image
+   * memory.
+   *
+   * \param width Number of pixels wide
+   * \param height Number of pixels high
+   * \param depth Number of image channels
+   * \param w_step Byte increment to get to next pixel column
+   * \param h_step Byte increment to get to next pixel row
+   * \param d_step Byte increment to get to next image channel
+   */
+  image( const image_memory_sptr& mem,
+         const byte* first_pixel, size_t width, size_t height, size_t depth,
+         ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step );
 
   /// Copy Constructor
   /**
    * The new image will share the same memory as the old image
    * \param other The other image.
    */
-  image(const image& other);
+  image( const image& other );
 
   /// Assignment operator
-  const image& operator=(const image& other);
+  const image& operator=( const image& other );
 
   /// Const access to the image memory
   const image_memory_sptr& memory() const { return data_; }
@@ -177,46 +217,52 @@ public:
   /// The the step in memory to next pixel in the depth direction
   ptrdiff_t d_step() const { return d_step_; }
 
+
   /// Access pixels in the first channel of the image
   /**
    * \param i width position (x)
    * \param j height position (y)
    */
-  inline byte& operator()(unsigned i, unsigned j)
+  inline byte& operator()( unsigned i, unsigned j )
   {
-    assert(i < width_);
-    assert(j < height_);
-    return first_pixel_[w_step_*i + h_step_*j];
+    assert( i < width_ );
+    assert( j < height_ );
+    return first_pixel_[w_step_ * i + h_step_ * j];
   }
+
 
   /// Const access pixels in the first channel of the image
-  inline const byte& operator()(unsigned i, unsigned j) const
+  inline const byte& operator()( unsigned i, unsigned j ) const
   {
-    assert(i < width_);
-    assert(j < height_);
-    return first_pixel_[w_step_*i + h_step_*j];
+    assert( i < width_ );
+    assert( j < height_ );
+    return first_pixel_[w_step_ * i + h_step_ * j];
   }
+
 
   /// Access pixels in the image (width, height, channel)
-  inline byte& operator()(unsigned i, unsigned j, unsigned k)
+  inline byte& operator()( unsigned i, unsigned j, unsigned k )
   {
-    assert(i < width_);
-    assert(j < height_);
-    assert(k < depth_);
-    return first_pixel_[w_step_*i + h_step_*j + d_step_*k];
+    assert( i < width_ );
+    assert( j < height_ );
+    assert( k < depth_ );
+    return first_pixel_[w_step_ * i + h_step_ * j + d_step_ * k];
   }
+
 
   /// Const access pixels in the image (width, height, channel)
-  inline const byte& operator()(unsigned i, unsigned j, unsigned k) const
+  inline const byte& operator()( unsigned i, unsigned j, unsigned k ) const
   {
-    assert(i < width_);
-    assert(j < height_);
-    assert(k < depth_);
-    return first_pixel_[w_step_*i + h_step_*j + d_step_*k];
+    assert( i < width_ );
+    assert( j < height_ );
+    assert( k < depth_ );
+    return first_pixel_[w_step_ * i + h_step_ * j + d_step_ * k];
   }
 
+
   /// Deep copy the image data from another image into this one
-  void copy_from(const image& other);
+  void copy_from( const image& other );
+
 
   /// Set the size of the image.
   /**
@@ -226,10 +272,10 @@ public:
    * \param height a new image height
    * \param depth a new image depth
    */
-  void set_size(size_t width, size_t height, size_t depth);
+  void set_size( size_t width, size_t height, size_t depth );
+
 
 protected:
-
   /// Smart pointer to memory viewed by this class
   image_memory_sptr data_;
   /// Pointer to the pixel at the origin
@@ -246,7 +292,6 @@ protected:
   ptrdiff_t h_step_;
   /// Increment to move to the next pixel along the depth direction
   ptrdiff_t d_step_;
-
 };
 
 
@@ -257,10 +302,8 @@ protected:
  * \param img1 first image to compare
  * \param img2 second image to compare
  */
-KWIVER_CORE_EXPORT bool equal_content(const image& img1, const image& img2);
-
+KWIVER_EXPORT bool equal_content( const image& img1, const image& img2 );
 
 } // end namespace kwiver
-
 
 #endif // KWIVER_IMAGE_H_

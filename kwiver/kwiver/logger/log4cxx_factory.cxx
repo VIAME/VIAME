@@ -31,6 +31,7 @@
 
 #include "kwiver_logger_factory.h"
 
+#include <kwiver_logger_export.h>
 
 namespace kwiver {
 namespace logger_ns {

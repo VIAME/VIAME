@@ -31,6 +31,7 @@
 /**
  * @file
  * @brief Shared type declarations for the kwiver module.
+ *
  * This file contains the canonical type names for KWIVER types used
  * in the sprokit pipeline.
  */

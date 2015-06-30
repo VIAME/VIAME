@@ -38,7 +38,6 @@
 
 #include <string>
 
-#include <kwiver/core-config.h>
 #include <kwiver/exceptions/base.h>
 
 
@@ -47,7 +46,7 @@ namespace kwiver
 
 
 /// Generic image exception
-class KWIVER_CORE_EXPORT image_exception
+class KWIVER_EXPORT image_exception
   : public kwiver_core_base_exception
 {
 public:
@@ -62,7 +61,7 @@ public:
 /**
  * For when image shape/size equality must be asserted.
  */
-class KWIVER_CORE_EXPORT image_size_mismatch_exception
+class KWIVER_EXPORT image_size_mismatch_exception
   : public image_exception
 {
 public:

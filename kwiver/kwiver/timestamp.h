@@ -11,7 +11,7 @@
 #include <ostream>
 #include <istream>
 
-#include "core-config.h"
+#include <kwiver/kwiver_export.h>
 
 
 namespace kwiver
@@ -27,7 +27,7 @@ namespace kwiver
  * useful when dealing with interpolated timestamps. In this case, a
  * timestamps may have a time, but no frame.
  */
-class KWIVER_CORE_EXPORT timestamp
+class KWIVER_EXPORT timestamp
 {
 public:
   // -- TYPES --
@@ -173,7 +173,7 @@ inline std::ostream& operator<< ( std::ostream& str, timestamp const& obj )
  *
  * @return
  */
-std::istream& operator>> ( std::istream& str, timestamp& obj );
+KWIVER_EXPORT std::istream& operator>> ( std::istream& str, timestamp& obj );
 
 
 

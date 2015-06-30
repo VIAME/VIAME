@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation for IO exceptions
+ * \brief Implementation for math exceptions.
  */
 
 #include "math.h"

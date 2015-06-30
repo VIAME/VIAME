@@ -41,7 +41,7 @@
 namespace kwiver
 {
 
-/// C-style vector math operatorations
+/// C-style vector math operations
 /**
  * This struct is intended to provided efficient helper
  * functions for basic vector operations.  These functions

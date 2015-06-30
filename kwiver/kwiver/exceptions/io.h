@@ -43,9 +43,9 @@
 namespace kwiver
 {
 
-
+// ------------------------------------------------------------------
 /// KWIVER Generic IO exception
-class KWIVER_CORE_EXPORT io_exception
+class KWIVER_EXPORT io_exception
   : public kwiver_core_base_exception
 {
 public:
@@ -56,8 +56,9 @@ public:
 };
 
 
+// ------------------------------------------------------------------
 /// Exception for when a given path doesn't point to anything on the filesystem
-class KWIVER_CORE_EXPORT path_not_exists
+class KWIVER_EXPORT path_not_exists
   : public io_exception
 {
 public:
@@ -74,8 +75,9 @@ public:
 };
 
 
+// ------------------------------------------------------------------
 /// Exception for when a given path doesn't point to a file.
-class KWIVER_CORE_EXPORT path_not_a_file
+class KWIVER_EXPORT path_not_a_file
   : public io_exception
 {
 public:
@@ -92,8 +94,9 @@ public:
 };
 
 
+// ------------------------------------------------------------------
 /// Exception for when a given path doesn't point to a directory.
-class KWIVER_CORE_EXPORT path_not_a_directory
+class KWIVER_EXPORT path_not_a_directory
   : public io_exception
 {
 public:
@@ -110,8 +113,9 @@ public:
 };
 
 
+// ------------------------------------------------------------------
 /// Exception for an encounter with an invalid file by some metric.
-class KWIVER_CORE_EXPORT invalid_file
+class KWIVER_EXPORT invalid_file
   : public io_exception
 {
 public:
@@ -131,8 +135,9 @@ public:
 };
 
 
+// ------------------------------------------------------------------
 /// Exception for an encounter with invalid data by some metric
-class KWIVER_CORE_EXPORT invalid_data
+class KWIVER_EXPORT invalid_data
   : public io_exception
 {
 public:

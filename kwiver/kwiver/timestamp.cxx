@@ -59,7 +59,6 @@ std::string timestamp
 {
   std::stringstream str;
   std::string c_tim( "" );
-  char buffer[128];
   std::time_t tt = static_cast< std::time_t > ( this->get_time() );
 
   std::streamsize old_prec = str.precision();
@@ -83,6 +82,7 @@ std::string timestamp
     char* p = ctime( &tt ); // this may return null if <tt> is out of range,
     if ( p )
     {
+      char buffer[128];
       c_tim = " (";
       buffer[0] = 0;
       strncpy( buffer, p, sizeof buffer );

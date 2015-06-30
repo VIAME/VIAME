@@ -43,7 +43,7 @@ namespace kwiver
 {
 
 
-class KWIVER_CORE_EXPORT f2f_homography
+class KWIVER_EXPORT f2f_homography
 {
 public:
   /// Construct an identity homography for the given frame
@@ -126,7 +126,7 @@ typedef boost::shared_ptr< f2f_homography > f2f_homography_sptr;
 
 
 /// \p f2f_homography output stream operator
-KWIVER_CORE_EXPORT std::ostream& operator<<( std::ostream &s, f2f_homography const &h );
+KWIVER_EXPORT std::ostream& operator<<( std::ostream &s, f2f_homography const &h );
 
 
 } // end kwiver namespace
