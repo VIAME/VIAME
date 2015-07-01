@@ -62,7 +62,6 @@ list(INSERT CMAKE_MODULE_PATH 0
   "${KWIVER_SOURCE_DIR}/CMake"
   )
 
-
 ###
 # KWIVER CMake config
 #
@@ -76,8 +75,7 @@ set(kwiver_export_name kwiver_exports)
 #
 include( kwiver-depends )
 
-
-# is this needed??
+# define which boost we are using
 if (DEFINED BOOST_ROOT)
   set(BOOST_ROOT_ARG ${BOOST_ROOT})
 else()
@@ -87,10 +85,11 @@ endif()
 # ================================================================
 # project global includes
 include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include")
-include_directories("${KWIVER_SOURCE_DIR}/kwiver")
+include_directories("${KWIVER_SOURCE_DIR}")
+## include_directories("${KWIVER_SOURCE_DIR}/vital")
 include_directories("${KWIVER_BINARY_DIR}")
-include_directories("${KWIVER_BINARY_DIR}/kwiver")
-
+## include_directories("${KWIVER_BINARY_DIR}/vital")
+message ("KWIVER_BINARY_DIR: ${KWIVER_BINARY_DIR}" )
 # ==================================================================
 # TODO - should always build shared
 #
@@ -140,6 +139,8 @@ set(KWIVER_ARGS_COMMON_CMAKE
   -DCMAKE_FIND_ROOT_PATH:PATH=${CMAKE_FIND_ROOT_PATH}
   -DCMAKE_LIBRARY_PATH:PATH=${CMAKE_LIBRARY_PATH}
   -DKWIVER_ENABLE_OPENCV:BOOL=${KWIVER_ENABLE_OPENCV}
+  -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INCLUDE_DIR}
+  -DEIGEN3_VERSION_OK:BOOL=${EIGEN3_VERSION_OK}
   )
 
 set(KWIVER_ARGS_COMMON_COMPILER
@@ -209,13 +210,22 @@ set(KWSYS_INSTALL_LIB_DIR lib)
 set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/kwiversys CACHE INTERNAL "")
 
 include_directories( SYSTEM ${KWSYS_INCLUDE_DIR} )
-add_subdirectory(kwsys)
+add_subdirectory(kwiversys)
+
 ## export( TARGETS kwiversys APPEND FILE "${KWIVER_EXPORT_FILE}" )
 
 # ================================================================
 link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 
-add_subdirectory( kwiver )
+# Adding module subdirectories
+kwiver_add_module( config "${CMAKE_CURRENT_LIST_DIR}/config" )
+kwiver_add_module( logger "${CMAKE_CURRENT_LIST_DIR}/logger" )
+
+# add Video data abstraction layer
+kwiver_add_module( vital "${CMAKE_CURRENT_LIST_DIR}/vital" )
+
+## TEMP removed for a while
+## add_subdirectory( kwiver_util ) # may move to separate repo
 
 ###
 # Add tests if enabled
@@ -223,13 +233,10 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
 
-## add_subdirectory(tools)
-add_subdirectory( bindings )
 
 ##################################################################
 # Top level installation
 #
-
 set(kwiver_cmake_install_dir lib${KWIVER_LIB_SUFFIX}/CMake/kwiver)
 
 # Install rules for CMake utilities
