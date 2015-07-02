@@ -280,11 +280,10 @@ function( kwiver_add_plugin        name )
 
   kwiver_add_library( ${name} MODULE ${ARGN} )
 
-  set_target_properties(${name}
+  set_target_properties( ${name}
     PROPERTIES
       PREFIX           ""
-      SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX})
-  endif()
+      SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX} )
 
   install( TARGETS ${name}
     LIBRARY DESTINATION lib/modules

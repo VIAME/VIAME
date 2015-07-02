@@ -89,16 +89,11 @@ include_directories("${KWIVER_SOURCE_DIR}")
 ## include_directories("${KWIVER_SOURCE_DIR}/vital")
 include_directories("${KWIVER_BINARY_DIR}")
 ## include_directories("${KWIVER_BINARY_DIR}/vital")
-message ("KWIVER_BINARY_DIR: ${KWIVER_BINARY_DIR}" )
+
 # ==================================================================
-# TODO - should always build shared
-#
-if(NOT WIN32)
-  option(KWIVER_BUILD_SHARED "Build KWIVER packages shared or not" ON)
-else()
-  # windows not shared for now
-  set(KWIVER_BUILD_SHARED OFF)
-endif()
+
+# Why would we ever want to build static?
+option(KWIVER_BUILD_SHARED "Build KWIVER packages shared or not" ON)
 
 if (KWIVER_ENABLE_PYTHON)
     find_package(PythonInterp)
@@ -199,33 +194,16 @@ include(External_sprokit)
 
 include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
-###
-# KWSys borrowed from CMake
-#---------------------------------------------------------------------
-# Create the kwsys library for kwiver.
-set(KWSYS_NAMESPACE kwiversys)
-set(KWSYS_USE_DynamicLoader 1)
-set(KWSYS_INSTALL_EXPORT_NAME kwiver)
-set(KWSYS_INSTALL_LIB_DIR lib)
-set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/kwiversys CACHE INTERNAL "")
-
-include_directories( SYSTEM ${KWSYS_INCLUDE_DIR} )
-add_subdirectory(kwiversys)
 
 ## export( TARGETS kwiversys APPEND FILE "${KWIVER_EXPORT_FILE}" )
 
 # ================================================================
 link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 
-# Adding module subdirectories
-kwiver_add_module( config "${CMAKE_CURRENT_LIST_DIR}/config" )
-kwiver_add_module( logger "${CMAKE_CURRENT_LIST_DIR}/logger" )
-
 # add Video data abstraction layer
 kwiver_add_module( vital "${CMAKE_CURRENT_LIST_DIR}/vital" )
 
-## TEMP removed for a while
-## add_subdirectory( kwiver_util ) # may move to separate repo
+add_subdirectory( kwiver_util )
 
 ###
 # Add tests if enabled
@@ -266,11 +244,13 @@ kwiver_configure_file(kwiver-install-config
   EIGEN3_INCLUDE_DIR
   kwiver_libs
   )
+
 kwiver_install(
   FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
   DESTINATION "${kwiver_cmake_install_dir}"
   RENAME      kwiver-config.cmake
   )
+
 kwiver_install(
   EXPORT      ${kwiver_export_name}
   DESTINATION "${kwiver_cmake_install_dir}"

@@ -30,19 +30,34 @@
 
 
 #include "kwiver_logger_factory.h"
+#include <log4cxx/logger.h>
+#include <boost/make_shared.hpp>
 
-#include <kwiver_logger_export.h>
+#include <logger/kwiver_logger_export.h>
 
 namespace kwiver {
 namespace logger_ns {
 
-class log4css_logger :
-  public kwiver_logger
+// ----------------------------------------------------------------
+/**
+ * @brief Log4cxx logger implementation.
+ *
+ * This class is an adapter that bridges from our standard logging API
+ * to the log4cxx API.
+ */
+class log4cxx_logger
+  : public kwiver_logger
 {
 public:
-  log4css_logger( logger_ns::logger_factory_default* p, const char* const name )
-    : kwiver_logger( p, name ),
-    m_loggerImpl( ::log4cxx::Logger::getLogger( realm ) )
+  /**
+   * @brief Create a new log4cxx logger object
+   *
+   * @param fact Pointer to logger factory class.
+   * @param name Name of logging category.
+   */
+  log4cxx_logger( kwiver_logger_factory* fact, const char* const name )
+    : kwiver_logger( fact, name ),
+    m_loggerImpl( ::log4cxx::Logger::getLogger( name ) )
   {  }
 
 
@@ -50,12 +65,12 @@ public:
   virtual bool is_fatal_enabled() const { return this->m_loggerImpl->isFatalEnabled(); }
   virtual bool is_error_enabled() const { return this->m_loggerImpl->isErrorEnabled(); }
   virtual bool is_warn_enabled() const { return this->m_loggerImpl->isWarnEnabled(); }
-  virtual bool is_info_enabled() const { return this->m_loggerImpl->isInfolEnabled(); }
+  virtual bool is_info_enabled() const { return this->m_loggerImpl->isInfoEnabled(); }
   virtual bool is_debug_enabled() const { return this->m_loggerImpl->isDebugEnabled(); }
   virtual bool is_trace_enabled() const { return this->m_loggerImpl->isTraceEnabled(); }
 
   // ------------------------------------------------------------------
-  virtual void set_level( log_level_t lev )
+  virtual void set_level( log_level_t level )
   {
     log4cxx::LevelPtr lvl;
 
@@ -273,14 +288,11 @@ protected:
 }; // end class
 
 
-// ----------------------------------------------------------------
-/** Factory for underlying logger.
+// ==================================================================
+/** Factory for underlying log4cxx logger.
  *
- * This class represents the factory for the mini_logger logging service.
- *
- * An object of this type can be created early in the program
- * execution (i.e. static initializer time), which is before the
- * initialize method is called.
+ * This class represents the factory for the log4cxx logging service.
+ * A logger object is created or reused for the specified name.
  */
 class log4cxx_factory
   : public kwiver_logger_factory
@@ -294,24 +306,22 @@ public:
 
   virtual logger_handle_t get_logger( const char * const name )
   {
-    return boost::make_shared<default_logger>( this, name );
+    return logger_handle_t( new log4cxx_logger ( this, name ) );
   }
 
-}; // end class logger_factory
+}; // end class log4cxx_factory
 
-} // end namespace
-} // end namespace
+} } // end namespace
 
-// ------------------------------------------------------------------
+
+// ==================================================================
 /*
  * Shared object bootstrap function
  */
-extern "C"
-{
-  void* KWIVER_LOGGER_EXPORT kwiver_logger_factory()
-  {
-    kwiver::logger_ns::log4cxx_factory* ptr =  new kwiver::logger_ns::log4cxx_factory;
-    return ptr;
-  }
+extern "C" void* KWIVER_LOGGER_EXPORT kwiver_logger_factory();
 
+void* kwiver_logger_factory()
+{
+  kwiver::logger_ns::log4cxx_factory* ptr =  new kwiver::logger_ns::log4cxx_factory;
+  return ptr;
 }

@@ -273,7 +273,7 @@ logger_handle_t
 logger_factory_default
 ::get_logger( const char * const name )
 {
-  return boost::make_shared<default_logger>( this, name );
+  return boost::make_shared< default_logger >( this, name );
 }
 
 } // end namespace

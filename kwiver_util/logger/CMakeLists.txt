@@ -1,8 +1,9 @@
 #
 # kwiver/logger library
 #
-
 include( GenerateExportHeader )
+
+include_directories("${KWIVER_BINARY_DIR}")
 
 set( kwiver_logger_public_headers
   logger.h
@@ -41,24 +42,33 @@ target_link_libraries( kwiver_logger
                        ${Boost_LIBRARIES}
   )
 
+install( TARGETS kwiver_logger
+  ARCHIVE DESTINATION lib
+  )
+
 ###
 # sources that all plugins need
 set( plugin_base_src
     kwiver_logger_factory.h     kwiver_logger_factory.cxx
     kwiver_logger.h             kwiver_logger.cxx
     location_info.h             location_info.cxx
-
   )
 
 ###
 # Build log4cxx plug-in if configured
 if (KWIVER_ENABLE_LOG4CXX)
 
+  # Should locate log4cxx library and set up access to those files
+
   set ( log4cxx_lib     ${Log4cxx_LIBRARY} ${ApacheRunTime_LIBRARY} )
   include_directories ( SYSTEM ${Log4cxx_INCLUDE_DIR} ${ApacheRunTime_INCLUDE_DIR} )
 
   kwiver_add_plugin( kwiver_log4cxx_logger
     ${plugin_base_src} log4cxx_factory.cxx ${log4cxx_lib} )
+
+  install( TARGET kwiver_log4cxx_logger
+    ARCHIVE DESTINATION lib
+    )
 
 endif(KWIVER_ENABLE_LOG4CXX)
 

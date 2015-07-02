@@ -42,13 +42,21 @@
 
 namespace kwiver {
 namespace logger_ns {
+
   class kwiver_logger_factory;
+
 }
+
 
 // ----------------------------------------------------------------
 /**
  * @brief kwiver logger interface definition
  *
+ * This class is the abstract base class for all loggers. It provides
+ * the interface to the application so it can generate log messages.
+ *
+ * A new logger is created for each named logger category. The
+ * concrete implementation determines how the category name is used.
  */
 class KWIVER_LOGGER_EXPORT kwiver_logger
 {
@@ -62,8 +70,16 @@ public:
     LEVEL_ERROR,
     LEVEL_FATAL };
 
-  kwiver_logger( logger_ns::kwiver_logger_factory* p, const char * const name );
-  kwiver_logger( logger_ns::kwiver_logger_factory* p, std::string const& name );
+  /**
+   * @brief Constructor for logger object
+   *
+   * A new logger object is constructed for the specified category.
+   *
+   * @param fact Pointer to logger factory
+   * @param name Name of logger to create
+   */
+  kwiver_logger( logger_ns::kwiver_logger_factory* fact, const char * const name );
+  kwiver_logger( logger_ns::kwiver_logger_factory* fact, std::string const& name );
   virtual ~kwiver_logger();
 
   // Check to see if level is enabled

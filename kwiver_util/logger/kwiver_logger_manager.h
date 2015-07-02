@@ -40,7 +40,9 @@
 
 namespace kwiver {
 namespace logger_ns {
+
   class kwiver_logger_factory;
+
 }
 
 // ----------------------------------------------------------------

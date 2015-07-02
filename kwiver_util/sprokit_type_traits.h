@@ -4,15 +4,15 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#ifndef _KWIVER_TYPES_KWIVER_H_
-#define _KWIVER_TYPES_KWIVER_H_
+#ifndef _VITAL_TYPES_VITAL_H_
+#define _VITAL_TYPES_VITAL_H_
 
-#include <kwiver/geo_lat_lon.h>
-#include <kwiver/timestamp.h>
-#include <kwiver/homography_f2f.h>
-#include <kwiver/image_container.h>
-#include <kwiver/trait_utils.h>
-#include <kwiver/types.h>
+#include <vital/geo_lat_lon.h>
+#include <vital/timestamp.h>
+#include <vital/homography_f2f.h>
+#include <vital/image_container.h>
+#include <vital/trait_utils.h>
+#include <vital/types.h>
 
 
 // ================================================================
@@ -20,13 +20,13 @@
 // Create type traits for common pipeline types.
 // ( type-trait-name, "canonical_type_name", concrete-type )
 //
-create_type_trait( timestamp, "kwiver:timestamp", kwiver::timestamp );
-create_type_trait( gsd, "kwiver:gsd", kwiver::gsd_t );
-create_type_trait( corner_points, "corner_points", kwiver::geo_polygon_t );
-create_type_trait( image, "kwiver:image_container", kwiver::image_container_sptr ); // polymorphic type must pass by reference
-create_type_trait( homography, "kwiver:s2r_homography", kwiver::f2f_homography );
-create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::path_t );
-create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::path_t );
+create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
+create_type_trait( gsd, "kwiver:gsd", kwiver::vital::gsd_t );
+create_type_trait( corner_points, "corner_points", kwiver::vital::geo_polygon_t );
+create_type_trait( image, "kwiver:image_container", kwiver::vital::image_container_sptr ); // polymorphic type must pass by reference
+create_type_trait( homography, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
+create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
+create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
 
 
 // ================================================================
