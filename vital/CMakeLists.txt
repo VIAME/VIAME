@@ -121,7 +121,7 @@ target_link_libraries( vital
 
 ###
 # Set options
-set(KWIVER_LIB_SUFFIX "" CACHE STRING "String suffix appended to the library directory name we install into.")
+set(VITAL_LIB_SUFFIX "" CACHE STRING "String suffix appended to the library directory name we install into.")
 
 
 ###
@@ -130,7 +130,7 @@ set(KWIVER_LIB_SUFFIX "" CACHE STRING "String suffix appended to the library dir
 # This has to happen after plugin creation so as to be able to statically link
 # in plugin libraries when building static.
 #
-option(KWIVER_USE_BUILD_PLUGIN_DIR
+option(VITAL_USE_BUILD_PLUGIN_DIR
   "Whether to include the build-tree plugin directory to the default plugin path list"
   ON
   )
@@ -138,12 +138,8 @@ option(KWIVER_USE_BUILD_PLUGIN_DIR
 set(vital_apm_headers
   algorithm_plugin_manager.h
   )
-set(vital_apm_headers_private
-  algorithm_plugin_manager_static.h
-  )
 set(vital_apm_sources
   algorithm_plugin_manager.cxx
-  algorithm_plugin_manager_static.cxx
   )
 
 kwiver_install_headers(${vital_apm_headers})
@@ -153,13 +149,17 @@ kwiver_add_library(vital_apm
   ${vital_apm_sources}
   )
 
+target_link_libraries(vital_apm
+  PRIVATE          kwiversys)
+
 # Configuring/Adding compile definitions to target
 # (so we can use generator expressions)
 if (WIN32)  # Windows puts DLLs in bin/CONFIG/
   set(shared_lib_dir "/bin")
+  set(lib_dir_suffix)
 else()  # Other Unix systems
   set(shared_lib_dir "/lib")
-  set(lib_dir_suffix "${KWIVER_LIB_SUFFIX}")
+  set(lib_dir_suffix "${VITAL_LIB_SUFFIX}")
 endif()
 
 if (CMAKE_CONFIGURATION_TYPES)
@@ -176,10 +176,6 @@ macro(boolize var_name)
 endmacro()
 
 boolize(VITAL_USE_BUILD_PLUGIN_DIR)
-boolize(VITAL_ENABLE_OPENCV)
-boolize(VITAL_ENABLE_PROJ)
-boolize(VITAL_ENABLE_VISCL)
-boolize(VITAL_ENABLE_VXL)
 
 target_compile_definitions(vital_apm
   PRIVATE
@@ -188,29 +184,7 @@ target_compile_definitions(vital_apm
     "USE_BUILD_PLUGIN_DIR=${VITAL_USE_BUILD_PLUGIN_DIR}"
     "DEFAULT_PLUGIN_DIR_BUILD=\"${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/vital\""
     "DEFAULT_PLUGIN_DIR_INSTALL=\"${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/vital\""
-    # For static interface
-    # static interface support should be refactored back to maptk
-    "VITAL_ENABLE_OPENCV=${VITAL_ENABLE_OPENCV}"
-    "VITAL_ENABLE_PROJ=${VITAL_ENABLE_PROJ}"
-    "VITAL_ENABLE_VISCL=${VITAL_ENABLE_VISCL}"
-    "VITAL_ENABLE_VXL=${VITAL_ENABLE_VXL}"
   )
-
-if (NOT WIN32)
-  target_link_libraries(vital_apm ${CMAKE_DL_LIBS})
-endif()
-
-# When building static core, also link in static plugin libs
-if(NOT BUILD_SHARED_LIBS)
-  message(STATUS "Static build, linking plugin libraries into APM lib")
-  get_property(plugin_static_libs
-    GLOBAL PROPERTY vital_plugin_libraries
-    )
-  message(STATUS "Static build \"plugin\" libraries: ${plugin_static_libs}")
-  target_link_libraries(vital_apm
-    ${plugin_static_libs}
-    )
-endif()
 
 ###
 #

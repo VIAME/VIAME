@@ -48,10 +48,6 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 
-#ifdef VITAL_APM_BUILD_AS_STATIC
-# include <vital/algorithm_plugin_manager_static.h>
-#endif
-
 #include <map>
 #include <string>
 #include <vector>
@@ -344,17 +340,10 @@ void
 algorithm_plugin_manager
 ::register_plugins( std::string name )
 {
-#ifndef VITAL_APM_BUILD_AS_STATIC
-  // If in dynamic mode, search for libraries to dlopen for algorithm
-  // registration call-back.
+  // Search for libraries to dlopen for algorithm registration
+  // call-back.
   LOG_DEBUG( this->impl_->m_logger, "Dynamically loading plugin impls" );
   this->impl_->load_from_search_paths( name );
-#else
-  // In static mode, so call known registration functions of compiled-in
-  // modules
-  LOG_DEBUG( this->impl_->m_logger, "Statically loading plugin impl" );
-  static_register_algorithms();
-#endif
 }
 
 
