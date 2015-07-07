@@ -33,8 +33,8 @@
  * \brief Common C Interface Utilities
  */
 
-#ifndef MAPTK_C_COMMON_H_
-#define MAPTK_C_COMMON_H_
+#ifndef VITAL_C_COMMON_H_
+#define VITAL_C_COMMON_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -43,36 +43,36 @@ extern "C"
 
 #include <stddef.h>
 
-#include <maptk/c/config.h>
+#include <vital/bindings/c/vital_c_export.h>
 
 
 /// Simple string structure
 typedef struct {
   size_t length;
   char *str;
-} maptk_string_t;
+} vital_string_t;
 
-/// Allocate a new maptk string structure
-MAPTK_C_EXPORT
-maptk_string_t* maptk_string_new(size_t length, char const* s);
+/// Allocate a new vital string structure
+VITAL_C_EXPORT
+vital_string_t* vital_string_new(size_t length, char const* s);
 
 /// Free an alocated string structure
-MAPTK_C_EXPORT
-void maptk_string_free( maptk_string_t *s );
+VITAL_C_EXPORT
+void vital_string_free( vital_string_t *s );
 
 
 /// Common function for freeing string lists
-MAPTK_C_EXPORT
-void maptk_common_free_string_list( size_t length, char **keys );
+VITAL_C_EXPORT
+void vital_common_free_string_list( size_t length, char **keys );
 
 
 /// Other free functions
-MAPTK_C_EXPORT void maptk_free_pointer( void *thing );
-MAPTK_C_EXPORT void maptk_free_double_pointer( size_t length, void **things );
+VITAL_C_EXPORT void vital_free_pointer( void *thing );
+VITAL_C_EXPORT void vital_free_double_pointer( size_t length, void **things );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_COMMON_H_
+#endif // VITAL_C_COMMON_H_

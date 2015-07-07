@@ -30,61 +30,60 @@
 
 /**
  * \file
- * \brief maptk::camera C interface implementation
+ * \brief vital::camera C interface implementation
  */
 
 #include "camera.h"
 
-#include <maptk/camera.h>
-#include <maptk/camera_io.h>
+#include <vital/camera.h>
+#include <vital/camera_io.h>
 
-#include <maptk/c/helpers/c_utils.h>
-#include <maptk/c/helpers/camera.h>
+#include <vital/bindings/c/helpers/c_utils.h>
+#include <vital/bindings/c/helpers/camera.h>
+
+namespace kwiver {
+namespace vital_c {
+
+  SharedPointerCache< kwiver::vital::camera,
+                    vital_camera_t > CAMERA_SPTR_CACHE( "camera" );
+
+} }
 
 
-namespace maptk_c
-{
-
-SharedPointerCache< maptk::camera,
-                    maptk_camera_t > CAMERA_SPTR_CACHE( "camera" );
-
-}
-
-
-/// Destroy a maptk_camera_t instance
-void maptk_camera_destroy( maptk_camera_t *cam,
-                           maptk_error_handle_t *eh )
+/// Destroy a vital_camera_t instance
+void vital_camera_destroy( vital_camera_t *cam,
+                           vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::camera::destroy", eh,
-    maptk_c::CAMERA_SPTR_CACHE.erase( cam );
+    kwiver::vital_c::CAMERA_SPTR_CACHE.erase( cam );
   );
 }
 
 
-/// Read in a KRTD file, producing a new maptk::camera object
-maptk_camera_t* maptk_camera_read_krtd_file( char const *filepath,
-                                             maptk_error_handle_t *eh )
+/// Read in a KRTD file, producing a new vital::camera object
+vital_camera_t* vital_camera_read_krtd_file( char const *filepath,
+                                             vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::camera::read_krtd_file", eh,
-    maptk::camera_sptr c( new maptk::camera_d( maptk::read_krtd_file(filepath) ) );
-    maptk_c::CAMERA_SPTR_CACHE.store( c );
-    return reinterpret_cast<maptk_camera_t*>( c.get() );
+    kwiver::vital::camera_sptr c( new kwiver::vital::camera_d( kwiver::vital::read_krtd_file(filepath) ) );
+    kwiver::vital_c::CAMERA_SPTR_CACHE.store( c );
+    return reinterpret_cast<vital_camera_t*>( c.get() );
   );
   return 0;
 }
 
 
-/// Output the given maptk_camera_t object to the specified file path
-void maptk_camera_write_krtd_file( maptk_camera_t *cam,
+/// Output the given vital_camera_t object to the specified file path
+void vital_camera_write_krtd_file( vital_camera_t *cam,
                                    char const *filepath,
-                                   maptk_error_handle_t *eh )
+                                   vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::camera::write_krtd_file", eh,
-    maptk::camera *m_cam = maptk_c::CAMERA_SPTR_CACHE.get( cam ).get();
-    maptk::write_krtd_file( *m_cam,
+    kwiver::vital::camera *m_cam = kwiver::vital_c::CAMERA_SPTR_CACHE.get( cam ).get();
+    kwiver::vital::write_krtd_file( *m_cam,
                             filepath );
   );
 }

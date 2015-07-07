@@ -39,9 +39,9 @@
 
 
 /// Return a new, empty error handle object.
-maptk_error_handle_t* maptk_eh_new()
+vital_error_handle_t* vital_eh_new()
 {
-  maptk_error_handle_t* eh = (maptk_error_handle_t*)std::malloc(sizeof(maptk_error_handle_t));
+  vital_error_handle_t* eh = (vital_error_handle_t*)std::malloc(sizeof(vital_error_handle_t));
   eh->error_code = 0;
   eh->message = (char*)0;
   return eh;
@@ -49,7 +49,7 @@ maptk_error_handle_t* maptk_eh_new()
 
 
 /// Destroy the given non-null error handle structure pointer
-void maptk_eh_destroy( maptk_error_handle_t *eh )
+void vital_eh_destroy( vital_error_handle_t *eh )
 {
   if( eh )
   {

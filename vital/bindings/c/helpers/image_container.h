@@ -30,28 +30,27 @@
 
 /**
  * \file
- * \brief C++ Helper utilities for C interface of maptk::image_container
+ * \brief C++ Helper utilities for C interface of vital::image_container
  *
  * Private header for use in cxx implementation files.
  */
 
-#ifndef MAPTK_C_HELPERS_IMAGE_CONTAINER_H_
-#define MAPTK_C_HELPERS_IMAGE_CONTAINER_H_
+#ifndef VITAL_C_HELPERS_IMAGE_CONTAINER_H_
+#define VITAL_C_HELPERS_IMAGE_CONTAINER_H_
 
-#include <maptk/image_container.h>
+#include <vital/image_container.h>
 
-#include <maptk/c/image_container.h>
-#include <maptk/c/helpers/c_utils.h>
+#include <vital/bindings/c/image_container.h>
+#include <vital/bindings/c/helpers/c_utils.h>
+
+namespace kwiver {
+namespace vital_c {
+
+/// Declaration of C interface shared_ptr cache of vital::image_container
+extern SharedPointerCache< kwiver::vital::image_container,
+                           vital_image_container_t > IMGC_SPTR_CACHE;
+
+} }
 
 
-namespace maptk_c
-{
-
-/// Declaration of C interface shared_ptr cache of maptk::image_container
-extern SharedPointerCache< maptk::image_container,
-                           maptk_image_container_t > IMGC_SPTR_CACHE;
-
-}
-
-
-#endif //MAPTK_C_HELPERS_IMAGE_CONTAINER_H_
+#endif //VITAL_C_HELPERS_IMAGE_CONTAINER_H_

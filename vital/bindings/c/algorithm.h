@@ -33,8 +33,8 @@
  * \brief C interface to base algorithm/_def/_impl classes
  */
 
-#ifndef MAPTK_C_ALGORITHM_H_
-#define MAPTK_C_ALGORITHM_H_
+#ifndef VITAL_C_ALGORITHM_H_
+#define VITAL_C_ALGORITHM_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -43,15 +43,15 @@ extern "C"
 
 #include <stdbool.h>
 
-#include <maptk/c/common.h>
-#include <maptk/c/config.h>
-#include <maptk/c/config_block.h>
-#include <maptk/c/error_handle.h>
-#include <maptk/c/image_container.h>
+#include <vital/bindings/c/common.h>
+#include <vital/bindings/c/vital_c_export.h>
+#include <vital/bindings/c/config_block.h>
+#include <vital/bindings/c/error_handle.h>
+#include <vital/bindings/c/image_container.h>
 
 
-/// Opaque pointer to a MAPTK Algorithm instance
-typedef struct maptk_algorithm_s maptk_algorithm_t;
+/// Opaque pointer to a VITAL Algorithm instance
+typedef struct vital_algorithm_s vital_algorithm_t;
 
 
 // ===========================================================================
@@ -63,9 +63,9 @@ typedef struct maptk_algorithm_s maptk_algorithm_t;
  * \param algo Opaque pointer to algorithm instance.
  * \return String name of the algorithm type.
  */
-MAPTK_C_EXPORT
-maptk_string_t* maptk_algorithm_type_name( maptk_algorithm_t *algo,
-                                           maptk_error_handle_t *eh );
+VITAL_C_EXPORT
+vital_string_t* vital_algorithm_type_name( vital_algorithm_t *algo,
+                                           vital_error_handle_t *eh );
 
 
 // Return the name of this implementation
@@ -73,32 +73,32 @@ maptk_string_t* maptk_algorithm_type_name( maptk_algorithm_t *algo,
  * \param algo Opaque pointer to algorithm instance.
  * \return String name of the algorithm implementation type.
  */
-MAPTK_C_EXPORT
-maptk_string_t* maptk_algorithm_impl_name( maptk_algorithm_t *algo,
-                                           maptk_error_handle_t *eh );
+VITAL_C_EXPORT
+vital_string_t* vital_algorithm_impl_name( vital_algorithm_t *algo,
+                                           vital_error_handle_t *eh );
 
 
 /// Get an algorithm implementation's configuration block
-MAPTK_C_EXPORT
-maptk_config_block_t*
-maptk_algorithm_get_impl_configuration( maptk_algorithm_t *algo,
-                                        maptk_error_handle_t *eh );
+VITAL_C_EXPORT
+vital_config_block_t*
+vital_algorithm_get_impl_configuration( vital_algorithm_t *algo,
+                                        vital_error_handle_t *eh );
 
 
 /// Set this algorithm implementation's properties via a config block
-MAPTK_C_EXPORT
+VITAL_C_EXPORT
 void
-maptk_algorithm_set_impl_configuration( maptk_algorithm_t *algo,
-                                        maptk_config_block_t *cb,
-                                        maptk_error_handle_t *eh );
+vital_algorithm_set_impl_configuration( vital_algorithm_t *algo,
+                                        vital_config_block_t *cb,
+                                        vital_error_handle_t *eh );
 
 
 /// Check that the algorithm implementation's configuration is valid
-MAPTK_C_EXPORT
+VITAL_C_EXPORT
 bool
-maptk_algorithm_check_impl_configuration( maptk_algorithm_t *algo,
-                                          maptk_config_block_t *cb,
-                                          maptk_error_handle_t *eh );
+vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
+                                          vital_config_block_t *cb,
+                                          vital_error_handle_t *eh );
 
 
 /// Common methods for classes that descend from algorithm_def
@@ -119,33 +119,33 @@ maptk_algorithm_check_impl_configuration( maptk_algorithm_t *algo,
    * Returns NULL if there is no implementation currently associated with the
    * name.
    */                                                                           \
-  MAPTK_C_EXPORT                                                                \
-  maptk_algorithm_t*                                                            \
-  maptk_algorithm_##type##_create( char const *impl_name );                     \
+  VITAL_C_EXPORT                                                                \
+  vital_algorithm_t*                                                            \
+  vital_algorithm_##type##_create( char const *impl_name );                     \
   /* Destroy an algorithm instance of this type */                              \
-  MAPTK_C_EXPORT                                                                \
+  VITAL_C_EXPORT                                                                \
   void                                                                          \
-  maptk_algorithm_##type##_destroy( maptk_algorithm_t *algo,                    \
-                                    maptk_error_handle_t *eh );                 \
+  vital_algorithm_##type##_destroy( vital_algorithm_t *algo,                    \
+                                    vital_error_handle_t *eh );                 \
   /** Get a list of registered implementation names for the given type */       \
-  MAPTK_C_EXPORT                                                                \
+  VITAL_C_EXPORT                                                                \
   void                                                                          \
-  maptk_algorithm_##type##_registered_names( unsigned int *length,              \
+  vital_algorithm_##type##_registered_names( unsigned int *length,              \
                                              char ***names );                   \
   /** Get the configuration for a named algorithm in the given config */        \
   /**
    * NULL may be given for \p algo, which will return a generic
    * configuration for this algorithm type.
    */                                                                           \
-  MAPTK_C_EXPORT                                                                \
+  VITAL_C_EXPORT                                                                \
   void                                                                          \
-  maptk_algorithm_##type##_get_type_config( char const *name,                   \
-                                            maptk_algorithm_t *algo,            \
-                                            maptk_config_block_t *cb, \
-                                            maptk_error_handle_t *eh );         \
+  vital_algorithm_##type##_get_type_config( char const *name,                   \
+                                            vital_algorithm_t *algo,            \
+                                            vital_config_block_t *cb, \
+                                            vital_error_handle_t *eh );         \
   /** Set algorithm properties based on a named configuration in the config */  \
   /**
-   * This creates a new maptk_algorithm_t instance if the given config block
+   * This creates a new vital_algorithm_t instance if the given config block
    * \p cb has a type field for the given \p name and the type is valid, else
    * the \p algo doesn't change (e.g. will remain a NULL pointer of that was
    * what was passed).
@@ -153,18 +153,18 @@ maptk_algorithm_check_impl_configuration( maptk_algorithm_t *algo,
    * If given algorithm pointer is changed due to reconstruction, the
    * original pointer is destroyed.
    */                                                                           \
-  MAPTK_C_EXPORT                                                                \
+  VITAL_C_EXPORT                                                                \
   void                                                                          \
-  maptk_algorithm_##type##_set_type_config( char const *name,                   \
-                                            maptk_config_block_t *cb,           \
-                                            maptk_algorithm_t **algo,           \
-                                            maptk_error_handle_t *eh );         \
+  vital_algorithm_##type##_set_type_config( char const *name,                   \
+                                            vital_config_block_t *cb,           \
+                                            vital_algorithm_t **algo,           \
+                                            vital_error_handle_t *eh );         \
   /** Check the configuration with respect to this algorithm type */            \
-  MAPTK_C_EXPORT                                                                \
+  VITAL_C_EXPORT                                                                \
   bool                                                                          \
-  maptk_algorithm_##type##_check_type_config( char const *name,                 \
-                                              maptk_config_block_t *cb,         \
-                                              maptk_error_handle_t *eh );       \
+  vital_algorithm_##type##_check_type_config( char const *name,                 \
+                                              vital_config_block_t *cb,         \
+                                              vital_error_handle_t *eh );       \
   /* ==================================================================== */    \
   /* Functions on algorithm instances                                     */    \
   /*                                                                      */    \
@@ -174,10 +174,10 @@ maptk_algorithm_check_impl_configuration( maptk_algorithm_t *algo,
   /**
    * If a NULL algorithm pointer is given, a null pointer is returned.
    */ \
-  MAPTK_C_EXPORT                                                                \
-  maptk_algorithm_t*                                                            \
-  maptk_algorithm_##type##_clone( maptk_algorithm_t *algo, \
-                                  maptk_error_handle_t *eh );
+  VITAL_C_EXPORT                                                                \
+  vital_algorithm_t*                                                            \
+  vital_algorithm_##type##_clone( vital_algorithm_t *algo, \
+                                  vital_error_handle_t *eh );
   // TODO: description() method
 
 
@@ -185,4 +185,4 @@ maptk_algorithm_check_impl_configuration( maptk_algorithm_t *algo,
 }
 #endif
 
-#endif //MAPTK_C_ALGORITHM_H_
+#endif //VITAL_C_ALGORITHM_H_

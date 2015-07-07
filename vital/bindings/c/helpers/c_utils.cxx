@@ -35,9 +35,8 @@
 
 #include "c_utils.h"
 
-
-namespace maptk_c
-{
+namespace kwiver {
+namespace vital_c {
 
 
 void make_string_list( std::vector<std::string> const &list,
@@ -53,4 +52,4 @@ void make_string_list( std::vector<std::string> const &list,
 }
 
 
-} // end maptk_c namespace
+} } // end vital_c namespace

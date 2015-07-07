@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief C Interface to maptk::track definition
+ * \brief C Interface to vital::track definition
  */
 
-#ifndef MAPTK_C_TRACK_H_
-#define MAPTK_C_TRACK_H_
+#ifndef VITAL_C_TRACK_H_
+#define VITAL_C_TRACK_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -44,43 +44,43 @@ extern "C"
 #include <stdbool.h>
 #include <stddef.h>
 
-#include <maptk/c/config.h>
-#include <maptk/c/error_handle.h>
+#include <vital/bindings/c/vital_c_export.h>
+#include <vital/bindings/c/error_handle.h>
 
 
-/// Opaque structure for maptk::track instances
-typedef struct maptk_track_s maptk_track_t;
+/// Opaque structure for vital::track instances
+typedef struct vital_track_s vital_track_t;
 
 
 /// Create a new track
-MAPTK_C_EXPORT
-maptk_track_t*
-maptk_track_new();
+VITAL_C_EXPORT
+vital_track_t*
+vital_track_new();
 
 
-/// Destroy a MAPTK track pointer
-MAPTK_C_EXPORT
+/// Destroy a VITAL track pointer
+VITAL_C_EXPORT
 void
-maptk_track_destroy( maptk_track_t *track,
-                     maptk_error_handle_t *eh );
+vital_track_destroy( vital_track_t *track,
+                     vital_error_handle_t *eh );
 
 
 /// Get the number of states in the track
-MAPTK_C_EXPORT
+VITAL_C_EXPORT
 size_t
-maptk_track_size( maptk_track_t *track,
-                  maptk_error_handle_t *eh );
+vital_track_size( vital_track_t *track,
+                  vital_error_handle_t *eh );
 
 
 /// Return whether or not this track has any states
-MAPTK_C_EXPORT
+VITAL_C_EXPORT
 bool
-maptk_track_empty( maptk_track_t *track,
-                   maptk_error_handle_t *eh );
+vital_track_empty( vital_track_t *track,
+                   vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_TRACK_H_
+#endif // VITAL_C_TRACK_H_

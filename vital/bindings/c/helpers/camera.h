@@ -30,26 +30,24 @@
 
 /**
  * \file
- * \brief maptk::camera C interface shared pointer cache declaration
+ * \brief vital::camera C interface shared pointer cache declaration
  *
  * Private header for use in cxx implementation files.
  */
 
-#ifndef MAPTK_C_HELPERS_CAMERA_H_
-#define MAPTK_C_HELPERS_CAMERA_H_
+#ifndef VITAL_C_HELPERS_CAMERA_H_
+#define VITAL_C_HELPERS_CAMERA_H_
 
-#include <maptk/camera.h>
-#include <maptk/c/camera.h>
-#include <maptk/c/helpers/c_utils.h>
+#include <vital/camera.h>
+#include <vital/bindings/c/camera.h>
+#include <vital/bindings/c/helpers/c_utils.h>
 
+namespace kwiver {
+namespace vital_c {
 
-namespace maptk_c
-{
+  extern SharedPointerCache< kwiver::vital::camera,
+                           vital_camera_t > CAMERA_SPTR_CACHE;
 
-extern SharedPointerCache< maptk::camera,
-                           maptk_camera_t > CAMERA_SPTR_CACHE;
+} } // end namespace
 
-}
-
-
-#endif // MAPTK_C_HELPERS_CAMERA_H_
+#endif // VITAL_C_HELPERS_CAMERA_H_

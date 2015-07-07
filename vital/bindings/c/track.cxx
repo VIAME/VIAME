@@ -30,74 +30,71 @@
 
 /**
  * \file
- * \brief C Interface to maptk::track implementation
+ * \brief C Interface to vital::track implementation
  */
 
 #include "track.h"
 
-#include <maptk/c/helpers/c_utils.h>
-#include <maptk/c/helpers/track.h>
+#include <vital/bindings/c/helpers/c_utils.h>
+#include <vital/bindings/c/helpers/track.h>
 
-
-namespace maptk_c
-{
+namespace kwiver {
+namespace vital_c {
 
 /// Cache for saving shared pointer references for pointers in use
-SharedPointerCache< maptk::track, maptk_track_t >
+SharedPointerCache< vital::track, vital_track_t >
   TRACK_SPTR_CACHE( "track" );
 
-}
+} }
 
 
 /// Create a new track
-maptk_track_t*
-maptk_track_new()
+vital_track_t*
+vital_track_new()
 {
   STANDARD_CATCH(
     "C::track::new", NULL,
-    maptk::track_sptr t_sptr = maptk::track_sptr( new maptk::track() );
-    maptk_c::TRACK_SPTR_CACHE.store( t_sptr );
-    return reinterpret_cast<maptk_track_t*>( t_sptr.get() );
+    kwiver::vital::track_sptr t_sptr = kwiver::vital::track_sptr( new kwiver::vital::track() );
+    kwiver::vital_c::TRACK_SPTR_CACHE.store( t_sptr );
+    return reinterpret_cast<vital_track_t*>( t_sptr.get() );
   );
   return 0;
 }
 
 
-/// Destroy a MAPTK track pointer
+/// Destroy a VITAL track pointer
 void
-maptk_track_destroy( maptk_track_t *track,
-                     maptk_error_handle_t *eh )
+vital_track_destroy( vital_track_t *track,
+                     vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::track::destroy", eh,
-    maptk_c::TRACK_SPTR_CACHE.erase( track );
+    kwiver::vital_c::TRACK_SPTR_CACHE.erase( track );
   );
 }
 
 /// Get the number of states in the track
 size_t
-maptk_track_size( maptk_track_t *track,
-                  maptk_error_handle_t *eh )
+vital_track_size( vital_track_t *track,
+                  vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::track::size", eh,
-    using namespace maptk_c;
-    return TRACK_SPTR_CACHE.get( track )->size();
+    return kwiver::vital_c::TRACK_SPTR_CACHE.get( track )->size();
   );
   return 0;
 }
 
 
 /// Return whether or not this track has any states
-MAPTK_C_EXPORT
+VITAL_C_EXPORT
 bool
-maptk_track_empty( maptk_track_t *track,
-                   maptk_error_handle_t *eh )
+vital_track_empty( vital_track_t *track,
+                   vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::track::empty", eh,
-    using namespace maptk_c;
-    return TRACK_SPTR_CACHE.get( track )->empty();
+    return kwiver::vital_c::TRACK_SPTR_CACHE.get( track )->empty();
   );
   return true;
 }

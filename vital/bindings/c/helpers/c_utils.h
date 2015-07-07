@@ -36,8 +36,8 @@
  * their use of C++ structures.
  */
 
-#ifndef MAPTK_C_HELPERS_C_UTILS_H_
-#define MAPTK_C_HELPERS_C_UTILS_H_
+#ifndef VITAL_C_HELPERS_C_UTILS_H_
+#define VITAL_C_HELPERS_C_UTILS_H_
 
 #include <cstdlib>
 #include <cstring>
@@ -49,24 +49,29 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <maptk/c/error_handle.h>
+#include <vital/bindings/c/error_handle.h>
+#include <vital/exceptions/base.h>
 
-#include <maptk/exceptions/base.h>
-#include <maptk/logging_macros.h>
+#include <kwiver_util/logger/logger.h>
 
+// There may be a better way to allocate this other than static CTOR
+static kwiver::logger_handle_t m_logger( kwiver::get_logger( "c_utils" ) );
 
 /// Macro allowing simpler population of an error handle
 /**
  * Only does anything if error handle pointer is non-NULL.
  * \p msg should be a C string (char const*)
+ *
+ * \todo Verify memory management of message string. Memory can leak
+ * if an error handle is used twice.
  */
 #define POPULATE_EH(eh_ptr, ec, msg)                                         \
   do                                                                         \
   {                                                                          \
-    if( reinterpret_cast<maptk_error_handle_t*>(eh_ptr) != NULL )            \
+    if( reinterpret_cast<vital_error_handle_t*>(eh_ptr) != NULL )            \
     {                                                                        \
-      maptk_error_handle_t *PEH_eh_ptr_cast =                                \
-        reinterpret_cast<maptk_error_handle_t*>(eh_ptr);                     \
+      vital_error_handle_t *PEH_eh_ptr_cast =                                \
+        reinterpret_cast<vital_error_handle_t*>(eh_ptr);                     \
       PEH_eh_ptr_cast->error_code = ec;                                      \
       PEH_eh_ptr_cast->message = (char*)malloc(sizeof(char) * strlen(msg));  \
       strcpy(PEH_eh_ptr_cast->message, msg);                                 \
@@ -80,7 +85,7 @@
  * default/failure return after the use of the STANDARD_CATCH macro in case
  * an exception is thrown within the provided code block.
  *
- * Assuming \c eh_ptr points to an initialized maptk_error_handle_t instance.
+ * Assuming \c eh_ptr points to an initialized vital_error_handle_t instance.
    * An arbitrary catch sets a -1 error code and assignes to the message field
    * the same thing that is printed to logging statement.
    */
@@ -95,43 +100,42 @@
       {                                                         \
         std::ostringstream ss;                                  \
         ss << "Caught exception in C interface: " << e.what();  \
-        std::string msg = ss.str();                             \
-        LOG_DEBUG( log_prefix, msg.c_str() );                   \
-        POPULATE_EH( eh_ptr, -1, msg.c_str() );                 \
+        LOG_DEBUG( m_logger,  log_prefix << ss.str() );         \
+        POPULATE_EH( eh_ptr, -1, ss.str().c_str() );            \
       }                                                         \
       catch( char const* e )                                    \
       {                                                         \
         std::ostringstream ss;                                  \
         ss << "Caught error message: " << e;                    \
-        LOG_DEBUG( log_prefix, ss.str().c_str() );              \
+        LOG_DEBUG( m_logger, log_prefix << ss.str() );          \
         POPULATE_EH( eh_ptr, -1, ss.str().c_str() );            \
       }                                                         \
       catch(...)                                                \
       {                                                         \
         std::string msg("Caught other exception");              \
-        LOG_DEBUG( log_prefix, msg );                           \
+        LOG_DEBUG( m_logger, log_prefix << msg );               \
         POPULATE_EH( eh_ptr, -1, msg.c_str() );                 \
       }                                                         \
     } while( 0 )
 
 
-namespace maptk_c
-{
+namespace kwiver {
+namespace vital_c {
 
 
 /// Common shared pointer cache object
-template < typename maptk_t,  // MAPTK type
+template < typename vital_t,  // VITAL type
            typename C_t >     // C Interface opaque type
 class SharedPointerCache
 {
 public:
-  typedef boost::shared_ptr< maptk_t > sptr_t;
-  typedef std::map< maptk_t*, sptr_t > cache_t;
-  typedef std::map< maptk_t*, size_t > ref_count_cache_t;
+  typedef boost::shared_ptr< vital_t > sptr_t;
+  typedef std::map< vital_t*, sptr_t > cache_t;
+  typedef std::map< vital_t*, size_t > ref_count_cache_t;
 
   /// Exception for when a given entry doesn't exist in this cache
   class NoEntryException
-    : public maptk::maptk_core_base_exception
+    : public kwiver::vital::vital_core_base_exception
   {
   public:
     NoEntryException( std::string const &reason )
@@ -142,7 +146,7 @@ public:
 
   /// Exception for when we're asked to do something with a null pointer
   class NullPointerException
-    : public maptk::maptk_core_base_exception
+    : public kwiver::vital::vital_core_base_exception
   {
   public:
     NullPointerException( std::string const &reason)
@@ -186,7 +190,7 @@ public:
   }
 
   /// Access a stored shared pointer based on a supplied pointer
-  sptr_t get( maptk_t *ptr ) const
+  sptr_t get( vital_t *ptr ) const
   {
     if( ptr == NULL )
     {
@@ -212,11 +216,11 @@ public:
   /// Access a stored shared pointer based on the C interface opaque type
   sptr_t get( C_t *ptr ) const
   {
-    return this->get( reinterpret_cast< maptk_t* >( ptr ) );
+    return this->get( reinterpret_cast< vital_t* >( ptr ) );
   }
 
-  /// Erase an entry in the cache by maptk-type pointer
-  void erase( maptk_t *ptr )
+  /// Erase an entry in the cache by vital-type pointer
+  void erase( vital_t *ptr )
   {
     if( ptr == NULL )
     {
@@ -241,7 +245,7 @@ public:
   /// Erase an entry in the cache by C Interface opaque type pointer
   void erase( C_t *ptr )
   {
-    return this->erase( reinterpret_cast< maptk_t* >( ptr ) );
+    return this->erase( reinterpret_cast< vital_t* >( ptr ) );
   }
 
 private:
@@ -258,7 +262,7 @@ private:
   std::string name_;
 
   /// Helper method to generate logging prefix string
-  std::string get_log_prefix( maptk_t *ptr ) const
+  std::string get_log_prefix( vital_t *ptr ) const
   {
     std::ostringstream ss;
     ss << "SharedPointerCache::" << this->name_ << "::" << ptr;
@@ -271,8 +275,6 @@ private:
 void make_string_list( std::vector<std::string> const &list,
                        unsigned int &length, char ** &strings );
 
+} } //end vital_c namespace
 
-} //end maptk_c namespace
-
-
-#endif //MAPTK_C_HELPERS_C_UTILS_H_
+#endif //VITAL_C_HELPERS_C_UTILS_H_

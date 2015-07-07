@@ -30,64 +30,62 @@
 
 /**
  * \file
- * \brief C Interface to maptk::track_set implementation
+ * \brief C Interface to kwiver::vital::track_set implementation
  */
 
 #include "track_set.h"
 
 #include <vector>
 
-#include <maptk/logging_macros.h>
-#include <maptk/track_set.h>
-#include <maptk/track_set_io.h>
+//+ #include <kwiver_util/logger/logger.h>
+#include <vital/track_set.h>
+#include <vital/track_set_io.h>
 
-#include <maptk/c/helpers/c_utils.h>
-#include <maptk/c/helpers/track.h>
-#include <maptk/c/helpers/track_set.h>
+#include <vital/bindings/c/helpers/c_utils.h>
+#include <vital/bindings/c/helpers/track.h>
+#include <vital/bindings/c/helpers/track_set.h>
 
+namespace kwiver {
+namespace vital_c {
 
-namespace maptk_c
-{
-
-SharedPointerCache< maptk::track_set, maptk_trackset_t >
+  SharedPointerCache< kwiver::vital::track_set, vital_trackset_t >
   TRACK_SET_SPTR_CACHE( "track_set" );
 
-}
+} }
 
 
 /// Create a new track set from an array of track instances
-maptk_trackset_t*
-maptk_trackset_new( size_t length, maptk_track_t **tracks )
+vital_trackset_t*
+vital_trackset_new( size_t length, vital_track_t **tracks )
 {
   STANDARD_CATCH(
     "C::track_set::new", NULL,
-    using namespace maptk_c;
 
-    std::vector<maptk::track_sptr> track_vec;
+    std::vector<kwiver::vital::track_sptr> track_vec;
     for( size_t i=0; i < length; ++i )
     {
-      track_vec.push_back( TRACK_SPTR_CACHE.get( tracks[i] ) );
+      track_vec.push_back( kwiver::vital_c::TRACK_SPTR_CACHE.get( tracks[i] ) );
     }
-    maptk::track_set_sptr ts_sptr(
-      new maptk::simple_track_set( track_vec )
+    kwiver::vital::track_set_sptr ts_sptr(
+      new kwiver::vital::simple_track_set( track_vec )
     );
-    TRACK_SET_SPTR_CACHE.store( ts_sptr );
-    return reinterpret_cast<maptk_trackset_t*>( ts_sptr.get() );
+    kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
+    return reinterpret_cast<vital_trackset_t*>( ts_sptr.get() );
   );
   return 0;
 }
 
 
 /// Create a new track set as read from file
-maptk_trackset_t*
-maptk_trackset_new_from_file( char const *filepath,
-                              maptk_error_handle_t *eh )
+vital_trackset_t*
+vital_trackset_new_from_file( char const *filepath,
+                              vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::track_set::new_from_file", eh,
-    maptk::track_set_sptr ts_sptr( maptk::read_track_file( filepath ) );
-    maptk_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
-    return reinterpret_cast<maptk_trackset_t*>( ts_sptr.get() );
+    kwiver::vital::track_set_sptr ts_sptr( kwiver::vital::read_track_file( filepath ) );
+    kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
+    return reinterpret_cast<vital_trackset_t*>( ts_sptr.get() );
   );
   return 0;
 }
@@ -95,40 +93,40 @@ maptk_trackset_new_from_file( char const *filepath,
 
 /// Destroy a track set instance
 void
-maptk_trackset_destroy( maptk_trackset_t *track_set,
-                        maptk_error_handle_t *eh )
+vital_trackset_destroy( vital_trackset_t *track_set,
+                        vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::track_set::destroy", eh,
-    maptk_c::TRACK_SET_SPTR_CACHE.erase( track_set );
+    kwiver::vital_c::TRACK_SET_SPTR_CACHE.erase( track_set );
   );
 }
 
 
 /// Get the size of the track set
 size_t
-maptk_trackset_size( maptk_trackset_t *track_set,
-                     maptk_error_handle_t *eh )
+vital_trackset_size( vital_trackset_t *track_set,
+                     vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::track_set::size", eh,
-    return maptk_c::TRACK_SET_SPTR_CACHE.get( track_set )->size();
+    return kwiver::vital_c::TRACK_SET_SPTR_CACHE.get( track_set )->size();
   );
   return 0;
 }
 
 
 /// Write track set to the given filepath
-MAPTK_C_EXPORT
+VITAL_C_EXPORT
 void
-maptk_trackset_write_track_file( maptk_trackset_t* ts,
+vital_trackset_write_track_file( vital_trackset_t* ts,
                                  char const *filepath,
-                                 maptk_error_handle_t *eh )
+                                 vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::track_set::write_track_file", eh,
-    maptk::write_track_file(
-      maptk_c::TRACK_SET_SPTR_CACHE.get( ts ),
+    kwiver::vital::write_track_file(
+      kwiver::vital_c::TRACK_SET_SPTR_CACHE.get( ts ),
       filepath
     );
   );

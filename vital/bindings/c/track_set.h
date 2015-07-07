@@ -30,24 +30,24 @@
 
 /**
  * \file
- * \brief C Interface to maptk::track_set definition
+ * \brief C Interface to vital::track_set definition
  */
 
-#ifndef MAPTK_C_TRACK_SET_H_
-#define MAPTK_C_TRACK_SET_H_
+#ifndef VITAL_C_TRACK_SET_H_
+#define VITAL_C_TRACK_SET_H_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#include <maptk/c/config.h>
-#include <maptk/c/error_handle.h>
-#include <maptk/c/track.h>
+#include <vital/bindings/c/vital_c_export.h>
+#include <vital/bindings/c/error_handle.h>
+#include <vital/bindings/c/track.h>
 
 
 /// Opaque structure
-typedef struct maptk_trackset_s maptk_trackset_t;
+typedef struct vital_trackset_s vital_trackset_t;
 
 
 /// Create a new track set from an array of track instances
@@ -59,9 +59,9 @@ typedef struct maptk_trackset_s maptk_trackset_t;
  * \param tracks The array of tracks to create a set out of
  * \returns New track set instance containing the provided tracks
  */
-MAPTK_C_EXPORT
-maptk_trackset_t*
-maptk_trackset_new( size_t length, maptk_track_t **tracks );
+VITAL_C_EXPORT
+vital_trackset_t*
+vital_trackset_new( size_t length, vital_track_t **tracks );
 
 
 /// Create a new track set as read from file
@@ -80,10 +80,10 @@ maptk_trackset_new( size_t length, maptk_track_t **tracks );
  * \returns New track set instance containing the tracks defined in the given
  *          file.
  */
-MAPTK_C_EXPORT
-maptk_trackset_t*
-maptk_trackset_new_from_file( char const *filepath,
-                              maptk_error_handle_t *eh );
+VITAL_C_EXPORT
+vital_trackset_t*
+vital_trackset_new_from_file( char const *filepath,
+                              vital_error_handle_t *eh );
 
 
 /// Destroy a track set instance
@@ -91,29 +91,29 @@ maptk_trackset_new_from_file( char const *filepath,
  * \param track_set opaque pointer to track set instance
  * \param eh Error handle instance.
  */
-MAPTK_C_EXPORT
+VITAL_C_EXPORT
 void
-maptk_trackset_destroy( maptk_trackset_t *track_set,
-                        maptk_error_handle_t *eh );
+vital_trackset_destroy( vital_trackset_t *track_set,
+                        vital_error_handle_t *eh );
 
 
 /// Get the size of the track set
-MAPTK_C_EXPORT
+VITAL_C_EXPORT
 size_t
-maptk_trackset_size( maptk_trackset_t *track_set,
-                     maptk_error_handle_t *eh );
+vital_trackset_size( vital_trackset_t *track_set,
+                     vital_error_handle_t *eh );
 
 
 /// Write track set to the given filepath
-MAPTK_C_EXPORT
+VITAL_C_EXPORT
 void
-maptk_trackset_write_track_file( maptk_trackset_t* ts,
+vital_trackset_write_track_file( vital_trackset_t* ts,
                                  char const *filepath,
-                                 maptk_error_handle_t *eh );
+                                 vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_TRACK_SET_H_
+#endif // VITAL_C_TRACK_SET_H_

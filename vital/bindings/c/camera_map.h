@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief C interface for maptk::camera_map
+ * \brief C interface for vital::camera_map
  */
 
-#ifndef MAPTK_C_CAMERA_MAP_H_
-#define MAPTK_C_CAMERA_MAP_H_
+#ifndef VITAL_C_CAMERA_MAP_H_
+#define VITAL_C_CAMERA_MAP_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -43,12 +43,12 @@ extern "C"
 
 #include <stddef.h>
 
-#include <maptk/c/camera.h>
-#include <maptk/c/error_handle.h>
+#include <vital/bindings/c/camera.h>
+#include <vital/bindings/c/error_handle.h>
 
 
-/// Opaque structure for maptk::camera_map class
-typedef struct maptk_camera_map_s maptk_camera_map_t;
+/// Opaque structure for vital::camera_map class
+typedef struct vital_camera_map_s vital_camera_map_t;
 
 
 /// New, simple camera map
@@ -59,41 +59,41 @@ typedef struct maptk_camera_map_s maptk_camera_map_t;
  * If either array is NULL or if length is zero, the returned camera_map will
  * be empty.
  */
-MAPTK_C_EXPORT
-maptk_camera_map_t* maptk_camera_map_new( size_t length,
+VITAL_C_EXPORT
+vital_camera_map_t* vital_camera_map_new( size_t length,
                                           unsigned int *frame_numbers,
-                                          maptk_camera_t **cameras );
+                                          vital_camera_t **cameras );
 
 
 /// Destroy the given camera_map
-MAPTK_C_EXPORT
-void maptk_camera_map_destroy( maptk_camera_map_t *cam_map,
-                               maptk_error_handle_t *eh );
+VITAL_C_EXPORT
+void vital_camera_map_destroy( vital_camera_map_t *cam_map,
+                               vital_error_handle_t *eh );
 
 
 /// Return the number of cameras in the map
-MAPTK_C_EXPORT
-size_t maptk_camera_map_size( maptk_camera_map_t *cam_map,
-                              maptk_error_handle_t *eh );
+VITAL_C_EXPORT
+size_t vital_camera_map_size( vital_camera_map_t *cam_map,
+                              vital_error_handle_t *eh );
 
 
 /// Set pointers to parallel arrays of frame numers and camera instances
-MAPTK_C_EXPORT
-void maptk_camera_map_get_map( maptk_camera_map_t *cam_map,
+VITAL_C_EXPORT
+void vital_camera_map_get_map( vital_camera_map_t *cam_map,
                                size_t *length,
                                unsigned int **frame_numbers,
-                               maptk_camera_t ***cameras,
-                               maptk_error_handle_t *eh );
+                               vital_camera_t ***cameras,
+                               vital_error_handle_t *eh );
 
 // TODO Free method for allocated frame/camera parallel arrays
 /// Free paired frame-to-camera mapping arrays
-//void maptk_camera_map_free_mapping_array( size_t length,
+//void vital_camera_map_free_mapping_array( size_t length,
 //                                          unsigned int *frame_numbers,
-//                                          maptk_camera_t **cameras );
+//                                          vital_camera_t **cameras );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_CAMERA_MAP_H_
+#endif // VITAL_C_CAMERA_MAP_H_

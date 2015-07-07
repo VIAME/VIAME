@@ -39,11 +39,11 @@
 #include <cstring>
 
 
-/// Allocate a new maptk string structure
-maptk_string_t* maptk_string_new(size_t length, char const* s)
+/// Allocate a new vital string structure
+vital_string_t* vital_string_new(size_t length, char const* s)
 {
-  maptk_string_t* n =
-    (maptk_string_t*)malloc(sizeof(maptk_string_t));
+  vital_string_t* n =
+    (vital_string_t*)malloc(sizeof(vital_string_t));
   n->length = length;
   // When length 0, this is just a 1 character string that is just the null
   // byte.
@@ -59,7 +59,7 @@ maptk_string_t* maptk_string_new(size_t length, char const* s)
 
 
 /// Free an alocated string structure
-void maptk_string_free( maptk_string_t *s )
+void vital_string_free( vital_string_t *s )
 {
   free(s->str);
   free(s);
@@ -67,7 +67,7 @@ void maptk_string_free( maptk_string_t *s )
 
 
 /// Common function for freeing string lists
-void maptk_common_free_string_list( size_t length,
+void vital_common_free_string_list( size_t length,
                                     char **keys )
 {
   for( unsigned int i = 0; i < length; i++ )
@@ -78,7 +78,7 @@ void maptk_common_free_string_list( size_t length,
 }
 
 
-void maptk_free_pointer( void *thing )
+void vital_free_pointer( void *thing )
 {
   if( thing )
   {
@@ -87,7 +87,7 @@ void maptk_free_pointer( void *thing )
 }
 
 
-void maptk_free_double_pointer( size_t length, void **things )
+void vital_free_double_pointer( size_t length, void **things )
 {
   if( things )
   {

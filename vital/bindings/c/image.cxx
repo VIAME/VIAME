@@ -30,35 +30,35 @@
 
 /**
  * \file
- * \brief maptk::image C interface implementation
+ * \brief vital::image C interface implementation
  */
 
 #include "image.h"
 
-#include <maptk/image.h>
+#include <vital/image.h>
 
-#include <maptk/c/helpers/c_utils.h>
+#include <vital/bindings/c/helpers/c_utils.h>
 
 
 /// Create a new, empty image
-maptk_image_t* maptk_image_new()
+vital_image_t* vital_image_new()
 {
   STANDARD_CATCH(
     "C::image:new", 0,
-    return reinterpret_cast<maptk_image_t*>( new maptk::image() );
+    return reinterpret_cast<vital_image_t*>( new kwiver::vital::image() );
   );
   return 0;
 }
 
 
 /// Create a new image with dimensions, allocating memory
-maptk_image_t* maptk_image_new_with_dim( size_t width, size_t height,
+vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
                                          size_t depth, bool interleave )
 {
   STANDARD_CATCH(
     "C::image:new_with_dim", 0,
-    return reinterpret_cast<maptk_image_t*>(
-        new maptk::image( width, height, depth, interleave )
+    return reinterpret_cast<vital_image_t*>(
+      new kwiver::vital::image( width, height, depth, interleave )
       );
   );
   return 0;
@@ -66,15 +66,15 @@ maptk_image_t* maptk_image_new_with_dim( size_t width, size_t height,
 
 
 /// Create a new image from existing data
-maptk_image_t* maptk_image_new_from_data( unsigned char const *first_pixel,
+vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
                                           size_t width, size_t height,
                                           size_t depth, ptrdiff_t w_step,
                                           ptrdiff_t h_step, ptrdiff_t d_step )
 {
   STANDARD_CATCH(
     "C::image::new_from_data", 0,
-    return reinterpret_cast<maptk_image_t*>(
-        new maptk::image( first_pixel, width, height, depth,
+    return reinterpret_cast<vital_image_t*>(
+      new kwiver::vital::image( first_pixel, width, height, depth,
                           w_step, h_step, d_step )
       );
   );
@@ -83,12 +83,12 @@ maptk_image_t* maptk_image_new_from_data( unsigned char const *first_pixel,
 
 
 /// Create a new image from an existing image
-maptk_image_t* maptk_image_new_from_image( maptk_image_t *other_image )
+vital_image_t* vital_image_new_from_image( vital_image_t *other_image )
 {
   STANDARD_CATCH(
     "C::image::new_from_data", 0,
-    return reinterpret_cast<maptk_image_t*>(
-        new maptk::image( *reinterpret_cast<maptk::image*>(other_image) )
+    return reinterpret_cast<vital_image_t*>(
+      new kwiver::vital::image( *reinterpret_cast<kwiver::vital::image*>(other_image) )
       );
   );
   return 0;
@@ -96,21 +96,21 @@ maptk_image_t* maptk_image_new_from_image( maptk_image_t *other_image )
 
 
 /// Destroy an image instance
-void maptk_image_destroy( maptk_image_t *image )
+void vital_image_destroy( vital_image_t *image )
 {
   STANDARD_CATCH(
     "C::image::desroy", 0,
-    delete reinterpret_cast<maptk::image*>( image );
+    delete reinterpret_cast<kwiver::vital::image*>( image );
   );
 };
 
 
 /// Get the number of bytes allocated in the given image
-size_t maptk_image_size( maptk_image_t *image )
+size_t vital_image_size( vital_image_t *image )
 {
   STANDARD_CATCH(
     "C::image::size", 0,
-    return reinterpret_cast<maptk::image*>(image)->size();
+    return reinterpret_cast<kwiver::vital::image*>(image)->size();
   );
   return 0;
 }

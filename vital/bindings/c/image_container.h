@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief C interface to maptk::image_container class
+ * \brief C interface to vital::image_container class
  */
 
-#ifndef MAPTK_C_IMAGE_CONTAINER_H_
-#define MAPTK_C_IMAGE_CONTAINER_H_
+#ifndef VITAL_C_IMAGE_CONTAINER_H_
+#define VITAL_C_IMAGE_CONTAINER_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -43,24 +43,24 @@ extern "C"
 
 #include <stddef.h>
 
-#include <maptk/c/config.h>
-#include <maptk/c/error_handle.h>
-#include <maptk/c/image.h>
+#include <vital/bindings/c/vital_c_export.h>
+#include <vital/bindings/c/error_handle.h>
+#include <vital/bindings/c/image.h>
 
 
-/// MAPTK Image opaque structure
-typedef struct maptk_image_container_s maptk_image_container_t;
+/// VITAL Image opaque structure
+typedef struct vital_image_container_s vital_image_container_t;
 
 
 /// Create a new, simple image container around an image
-MAPTK_C_EXPORT
-maptk_image_container_t* maptk_image_container_new_simple( maptk_image_t *img );
+VITAL_C_EXPORT
+vital_image_container_t* vital_image_container_new_simple( vital_image_t *img );
 
 
-/// Destroy a maptk_image_container_t instance
-MAPTK_C_EXPORT
-void maptk_image_container_destroy( maptk_image_container_t *img_container,
-                                    maptk_error_handle_t *eh );
+/// Destroy a vital_image_container_t instance
+VITAL_C_EXPORT
+void vital_image_container_destroy( vital_image_container_t *img_container,
+                                    vital_error_handle_t *eh );
 
 
 /// Get the size in bytes of an image container
@@ -68,32 +68,32 @@ void maptk_image_container_destroy( maptk_image_container_t *img_container,
  * Size includes all allocated image memory, which could be larger than
  * the product of width, height and depth.
  */
-MAPTK_C_EXPORT
-size_t maptk_image_container_size( maptk_image_container_t *img_c );
+VITAL_C_EXPORT
+size_t vital_image_container_size( vital_image_container_t *img_c );
 
 
 /// Get the width of the given image in pixels
-MAPTK_C_EXPORT
-size_t maptk_image_container_width( maptk_image_container_t *img_c );
+VITAL_C_EXPORT
+size_t vital_image_container_width( vital_image_container_t *img_c );
 
 
 /// Get the height of the given image in pixels
-MAPTK_C_EXPORT
-size_t maptk_image_container_height( maptk_image_container_t *img_c );
+VITAL_C_EXPORT
+size_t vital_image_container_height( vital_image_container_t *img_c );
 
 
 /// Get the depth (number of channels) of the image
-MAPTK_C_EXPORT
-size_t maptk_image_container_depth( maptk_image_container_t *img_c );
+VITAL_C_EXPORT
+size_t vital_image_container_depth( vital_image_container_t *img_c );
 
 
 /// Get the in-memory image class to access data
-MAPTK_C_EXPORT
-maptk_image_t* maptk_image_container_get_image( maptk_image_container_t *img_c );
+VITAL_C_EXPORT
+vital_image_t* vital_image_container_get_image( vital_image_container_t *img_c );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_IMAGE_CONTAINER_H_
+#endif // VITAL_C_IMAGE_CONTAINER_H_

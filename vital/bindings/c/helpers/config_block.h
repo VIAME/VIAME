@@ -30,27 +30,26 @@
 
 /**
  * \file
- * \brief C++ Helper utilities for C interface of maptk::config_block
+ * \brief C++ Helper utilities for C interface of vital::config_block
  *
  * Private header for use in cxx implementation files.
  */
 
-#ifndef MAPTK_C_HELPERS_CONFIG_BLOCK_H_
-#define MAPTK_C_HELPERS_CONFIG_BLOCK_H_
+#ifndef VITAL_C_HELPERS_CONFIG_BLOCK_H_
+#define VITAL_C_HELPERS_CONFIG_BLOCK_H_
 
-#include <maptk/config_block.h>
+#include <kwiver_util/config/config_block.h>
 
-#include <maptk/c/config_block.h>
-#include <maptk/c/helpers/c_utils.h>
+#include <vital/bindings/c/config_block.h>
+#include <vital/bindings/c/helpers/c_utils.h>
+
+namespace kwiver {
+namespace vital_c {
+
+extern SharedPointerCache< kwiver::config_block,
+                           vital_config_block_t > CONFIG_BLOCK_SPTR_CACHE;
+
+} }
 
 
-namespace maptk_c
-{
-
-extern SharedPointerCache< maptk::config_block,
-                           maptk_config_block_t > CONFIG_BLOCK_SPTR_CACHE;
-
-}
-
-
-#endif //MAPTK_C_HELPERS_CONFIG_BLOCK_H_
+#endif //VITAL_C_HELPERS_CONFIG_BLOCK_H_

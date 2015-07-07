@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief C interface to maptk::image classes
+ * \brief C interface to vital::image classes
  */
 
-#ifndef MAPTK_C_IMAGE_H_
-#define MAPTK_C_IMAGE_H_
+#ifndef VITAL_C_IMAGE_H_
+#define VITAL_C_IMAGE_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -44,27 +44,27 @@ extern "C"
 #include <stdbool.h>
 #include <stddef.h>
 
-#include <maptk/c/config.h>
+#include <vital/bindings/c/vital_c_export.h>
 
 
-/// MAPTK Image opaque structure
-typedef struct maptk_image_s maptk_image_t;
+/// VITAL Image opaque structure
+typedef struct vital_image_s vital_image_t;
 
 
 /// Create a new, empty image
-MAPTK_C_EXPORT
-maptk_image_t* maptk_image_new();
+VITAL_C_EXPORT
+vital_image_t* vital_image_new();
 
 
 /// Create a new image with dimensions, allocating memory
-MAPTK_C_EXPORT
-maptk_image_t* maptk_image_new_with_dim( size_t width, size_t height,
+VITAL_C_EXPORT
+vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
                                          size_t depth, bool interleave );
 
 
 /// Create a new image from existing data
-MAPTK_C_EXPORT
-maptk_image_t* maptk_image_new_from_data( unsigned char const *first_pixel,
+VITAL_C_EXPORT
+vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
                                           size_t width, size_t height,
                                           size_t depth, ptrdiff_t w_step,
                                           ptrdiff_t h_step, ptrdiff_t d_step );
@@ -74,22 +74,22 @@ maptk_image_t* maptk_image_new_from_data( unsigned char const *first_pixel,
 /**
  * The new image will share the same memory as the old image
  */
-MAPTK_C_EXPORT
-maptk_image_t* maptk_image_new_from_image( maptk_image_t *other_image );
+VITAL_C_EXPORT
+vital_image_t* vital_image_new_from_image( vital_image_t *other_image );
 
 
 /// Destroy an image instance
-MAPTK_C_EXPORT
-void maptk_image_destroy( maptk_image_t *image );
+VITAL_C_EXPORT
+void vital_image_destroy( vital_image_t *image );
 
 
 /// Get the number of bytes allocated in the given image
-MAPTK_C_EXPORT
-size_t maptk_image_size( maptk_image_t *image );
+VITAL_C_EXPORT
+size_t vital_image_size( vital_image_t *image );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_IMAGE_H_
+#endif // VITAL_C_IMAGE_H_

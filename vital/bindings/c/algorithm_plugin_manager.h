@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief C interface to maptk::algorithm_plugin_manager
+ * \brief C interface to vital::algorithm_plugin_manager
  */
 
-#ifndef MAPTK_C_ALGORITHM_PLUGIN_MANAGER_H_
-#define MAPTK_C_ALGORITHM_PLUGIN_MANAGER_H_
+#ifndef VITAL_C_ALGORITHM_PLUGIN_MANAGER_H_
+#define VITAL_C_ALGORITHM_PLUGIN_MANAGER_H_
 
 
 #ifdef __cplusplus
@@ -42,12 +42,12 @@ extern "C"
 {
 #endif
 
-#include <maptk/c/config.h>
+#include <vital/bindings/c/vital_c_export.h>
 
 
 /// (Re)Load plugin modules found along current search paths
-MAPTK_C_EXPORT
-void maptk_apm_register_plugins();
+VITAL_C_EXPORT
+void vital_apm_register_plugins();
 
 
 /// (Re)Load specific plugin module
@@ -55,8 +55,8 @@ void maptk_apm_register_plugins();
  * \param name Find and load the plugins by the given name. If no plugins with
  *             the given name are found, nothing is loaded.
  */
-MAPTK_C_EXPORT
-void maptk_apm_register_single_plugin( char const *name );
+VITAL_C_EXPORT
+void vital_apm_register_single_plugin( char const *name );
 
 
 /// Add an additional directory to search for plugins in
@@ -65,16 +65,16 @@ void maptk_apm_register_single_plugin( char const *name );
  *
  * \param dirpath Path to a directory to add to the plugin search path.
  */
-MAPTK_C_EXPORT
-void maptk_apm_add_search_path( char const *dirpath );
+VITAL_C_EXPORT
+void vital_apm_add_search_path( char const *dirpath );
 
 
 /// Get a list of registered module name strings
 /**
  * A module's name is defined as the filename minus the standard platform
  * module library suffix. For example, on Windows, if a module library was
- * named ``maptk_foo.dll``, the module's name would be "maptk_foo". Similarly
- * on a unix system, ``maptk_bar.so`` would have the name "maptk_bar".
+ * named ``vital_foo.dll``, the module's name would be "vital_foo". Similarly
+ * on a unix system, ``vital_bar.so`` would have the name "vital_bar".
  *
  * We are expecting that the \p length and \p keys parameters will be passed
  * by reference by the user as they are dereferenced within the function for
@@ -85,8 +85,8 @@ void maptk_apm_add_search_path( char const *dirpath );
  * \param[out] names Pointer to a string list into which we allocate and assign
  *                   registered module names.
  */
-MAPTK_C_EXPORT
-void maptk_apm_registered_module_names( unsigned int *length,
+VITAL_C_EXPORT
+void vital_apm_registered_module_names( unsigned int *length,
                                         char ***names );
 
 
@@ -95,4 +95,4 @@ void maptk_apm_registered_module_names( unsigned int *length,
 #endif
 
 
-#endif // MAPTK_C_ALGORITHM_PLUGIN_MANAGER_H_
+#endif // VITAL_C_ALGORITHM_PLUGIN_MANAGER_H_

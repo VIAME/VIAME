@@ -33,39 +33,39 @@
  * \brief C interface common error handle structure
  */
 
-#ifndef MAPTK_C_ERROR_HANDLE_H_
-#define MAPTK_C_ERROR_HANDLE_H_
+#ifndef VITAL_C_ERROR_HANDLE_H_
+#define VITAL_C_ERROR_HANDLE_H_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#include <maptk/c/config.h>
+#include <vital/bindings/c/vital_c_export.h>
 
 
 /// Common error handle structure
-typedef struct maptk_error_handle_s {
+typedef struct vital_error_handle_s {
   int error_code;
   char *message;
-} maptk_error_handle_t;
+} vital_error_handle_t;
 
 
 /// Return a new, empty error handle object.
 /**
  * \returns New error handle whose error code is set to 0 and message to NULL.
  */
-MAPTK_C_EXPORT
-maptk_error_handle_t* maptk_eh_new();
+VITAL_C_EXPORT
+vital_error_handle_t* vital_eh_new();
 
 
 /// Destroy the given non-null error handle structure pointer
-MAPTK_C_EXPORT
-void maptk_eh_destroy( maptk_error_handle_t *eh );
+VITAL_C_EXPORT
+void vital_eh_destroy( vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_ERROR_HANDLE_H_
+#endif // VITAL_C_ERROR_HANDLE_H_

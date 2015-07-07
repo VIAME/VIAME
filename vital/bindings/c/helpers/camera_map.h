@@ -30,25 +30,25 @@
 
 /**
  * \file
- * \brief Internal helpers for C interface of maptk::camera_map
+ * \brief Internal helpers for C interface of vital::camera_map
  *
  * This is intended for use only in C++ implementation files.
  */
 
-#ifndef MAPTK_C_HELPERS_CAMERA_MAP_H_
-#define MAPTK_C_HELPERS_CAMERA_MAP_H_
+#ifndef VITAL_C_HELPERS_CAMERA_MAP_H_
+#define VITAL_C_HELPERS_CAMERA_MAP_H_
 
-#include <maptk/camera_map.h>
-#include <maptk/c/camera_map.h>
-#include <maptk/c/helpers/c_utils.h>
+#include <vital/camera_map.h>
+#include <vital/bindings/c/camera_map.h>
+#include <vital/bindings/c/helpers/c_utils.h>
 
-namespace maptk_c
-{
+namespace kwiver {
+namespace vital_c {
 
-extern SharedPointerCache< maptk::camera_map,
-                           maptk_camera_map_t > CAM_MAP_SPTR_CACHE;
+extern SharedPointerCache< vital::camera_map,
+                           vital_camera_map_t > CAM_MAP_SPTR_CACHE;
 
-}
+} }
 
 
-#endif // MAPTK_C_HELPERS_CAMERA_MAP_H_
+#endif // VITAL_C_HELPERS_CAMERA_MAP_H_

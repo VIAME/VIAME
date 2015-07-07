@@ -30,26 +30,25 @@
 
 /**
  * \file
- * \brief C Interface maptk::track_set helpers
+ * \brief C Interface vital::track_set helpers
  */
 
-#ifndef MAPTK_C_HELPERS_TRACK_H_
-#define MAPTK_C_HELPERS_TRACK_H_
+#ifndef VITAL_C_HELPERS_TRACK_H_
+#define VITAL_C_HELPERS_TRACK_H_
 
-#include <maptk/track_set.h>
+#include <vital/track_set.h>
 
-#include <maptk/c/track_set.h>
-#include <maptk/c/helpers/c_utils.h>
+#include <vital/bindings/c/track_set.h>
+#include <vital/bindings/c/helpers/c_utils.h>
 
-
-namespace maptk_c
-{
+namespace kwiver {
+namespace vital_c {
 
 /// Cache for saving shared pointer references for pointers in use
 extern
-SharedPointerCache< maptk::track_set, maptk_trackset_t >
+SharedPointerCache< vital::track_set, vital_trackset_t >
   TRACK_SET_SPTR_CACHE;
 
-}
+} }
 
-#endif // MAPTK_C_HELPERS_TRACK_H_
+#endif // VITAL_C_HELPERS_TRACK_H_
