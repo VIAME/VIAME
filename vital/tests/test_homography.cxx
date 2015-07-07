@@ -35,10 +35,9 @@
 
 #include <test_common.h>
 
-#include <maptk/exceptions/math.h>
-#include <maptk/homography.h>
-#include <maptk/homography_f2f.h>
-#include <maptk/logging_macros.h>
+#include <vital/exceptions/math.h>
+#include <vital/homography.h>
+#include <vital/homography_f2f.h>
 
 #include <Eigen/LU>
 
@@ -48,7 +47,7 @@ DECLARE_TEST_MAP();
 
 
 #define TEST_LOG( msg ) \
-  LOG_INFO( "test::core::homography", msg )
+  std::cerr << "test::core::homography" << msg
 
 
 int main(int argc, char* argv[])
@@ -70,7 +69,7 @@ namespace // anonymous
 template< typename T >
 static bool test_numeric_invertibility()
 {
-  maptk::homography_<T> invertible,
+  kwiver::vital::homography_<T> invertible,
                         expected_result,
                         noninvertable,
                         ni_result;
@@ -82,7 +81,7 @@ static bool test_numeric_invertibility()
                                   -1.5,  1.5, -0.5,
                                    1.5,  0.5, -0.5;
 
-  maptk::homography_<T> h_inverse( *invertible.inverse() );
+  kwiver::vital::homography_<T> h_inverse( *invertible.inverse() );
   if( ! h_inverse.get_matrix().isApprox( expected_result.get_matrix() ) )
   {
     return false;
@@ -106,12 +105,12 @@ static void test_point_map()
 
   {
   // Where [2,2] = 0
-  maptk::homography_<T> h_0;
+  kwiver::vital::homography_<T> h_0;
   h_0.get_matrix() << 1.0, 0.0, 1.0,
                       0.0, 1.0, 1.0,
                       0.0, 0.0, 0.0;
   EXPECT_EXCEPTION(
-    maptk::point_maps_to_infinity,
+    kwiver::vital::point_maps_to_infinity,
     h_0.map_point( test_p ),
     "Applying point to matrix with 0-value lower-right corner"
     );
@@ -119,12 +118,12 @@ static void test_point_map()
 
   {
   // Where [2,2] = e, which is the approximately-zero threshold
-  maptk::homography_<T> h_e;
+  kwiver::vital::homography_<T> h_e;
   h_e.get_matrix() << 1.0, 0.0, 1.0,
                       0.0, 1.0, 1.0,
                       0.0, 0.0,  e ;
   EXPECT_EXCEPTION(
-    maptk::point_maps_to_infinity,
+    kwiver::vital::point_maps_to_infinity,
     h_e.map_point( test_p ),
     "Applying point to matrix with e-value lower-right corner"
     );
@@ -135,7 +134,7 @@ static void test_point_map()
   //         [ 0 1 1  ]
   //         [ 0 0 .5 ]
   // Where [2,2] = 0.5, which should be valid.
-  maptk::homography_<T> h_half;
+  kwiver::vital::homography_<T> h_half;
   h_half.get_matrix() << 1.0, 0.0, 1.0,
                          0.0, 1.0, 1.0,
                          0.0, 0.0, 0.5;
@@ -167,8 +166,8 @@ IMPLEMENT_TEST(f2f_homography_inversion)
   TEST_LOG( "Testing Frame-to-frame homography functions" );
 
   // testing from and to frame swapping during inversion
-  maptk::matrix_3x3d i( maptk::matrix_3x3d::Identity() );
-  maptk::f2f_homography h( i, 0, 10 ),
+  kwiver::vital::matrix_3x3d i( kwiver::vital::matrix_3x3d::Identity() );
+  kwiver::vital::f2f_homography h( i, 0, 10 ),
                         h_inv(0);
   h_inv = h.inverse();
 
@@ -185,8 +184,8 @@ IMPLEMENT_TEST(map_point)
             "transformation" );
 
   // Identity transformation
-  maptk::homography_<float> h_f;
-  maptk::homography_<double> h_d;
+  kwiver::vital::homography_<float> h_f;
+  kwiver::vital::homography_<double> h_d;
 
   typedef Eigen::Matrix<float,2,1> pf_t;
   typedef Eigen::Matrix<double,2,1> pd_t;

@@ -41,27 +41,25 @@
 #include <Eigen/Core>
 
 
-namespace kwiver
-{
-
-namespace testing
-{
+namespace kwiver {
+namespace testing {
 
 
 /// Near comparison function for vectors
 /**
  * Drop-in compatible with TEST_NEAR. Just need to include this header.
  */
-template <typename T, int M, int N>
-bool is_almost(Eigen::Matrix<T,M,N> const& a,
-               Eigen::Matrix<T,M,N> const& b,
-               double const& epsilon)
+template < typename T, int M, int N >
+bool
+is_almost( Eigen::Matrix< T, M, N > const& a,
+           Eigen::Matrix< T, M, N > const& b,
+           double const& epsilon )
 {
-  for (unsigned i=0; i<M; ++i)
+  for ( unsigned i = 0; i < M; ++i )
   {
-    for (unsigned j=0; j<N; ++j)
+    for ( unsigned j = 0; j < N; ++j )
     {
-      if (fabs(a(i,j) - b(i,j)) > epsilon)
+      if ( fabs( a( i, j ) - b( i, j ) ) > epsilon )
       {
         return false;
       }
@@ -69,6 +67,7 @@ bool is_almost(Eigen::Matrix<T,M,N> const& a,
   }
   return true;
 }
+
 
 }
 }

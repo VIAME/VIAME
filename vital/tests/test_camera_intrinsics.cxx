@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2014 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,53 +30,59 @@
 
 /**
  * \file
- *
- * \brief Functions for creating test points with added random Gaussian noise.
- *
+ * \brief core camera_intrinsics tests
  */
 
-#ifndef KWIVER_TEST_TEST_RANDOM_POINT_H_
-#define KWIVER_TEST_TEST_RANDOM_POINT_H_
+#include <test_common.h>
 
-#include <vital/vector.h>
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
+#include <vital/camera_intrinsics.h>
 
-namespace kwiver
+#define TEST_ARGS ()
+
+DECLARE_TEST_MAP();
+
+int
+main(int argc, char* argv[])
 {
+  CHECK_ARGS(1);
 
-namespace testing
-{
+  testname_t const testname = argv[1];
 
-/// random number generator type
-typedef boost::mt19937 rng_t;
-/// normal distribution
-typedef boost::normal_distribution<> norm_dist_t;
-/// normal distribution random generator type
-typedef boost::variate_generator<rng_t&, norm_dist_t> normal_gen_t;
-
-/// a global random number generator instance
-static rng_t rng;
-
-
-inline
-  kwiver::vital::vector_3d random_point3d(double stdev)
-{
-  normal_gen_t norm(rng, norm_dist_t(0.0, stdev));
-  kwiver::vital::vector_3d v(norm(), norm(), norm());
-  return v;
+  RUN_TEST(testname);
 }
 
 
-inline
-  kwiver::vital::vector_2d random_point2d(double stdev)
+IMPLEMENT_TEST(map)
 {
-  normal_gen_t norm(rng, norm_dist_t(0.0, stdev));
-  kwiver::vital::vector_2d v(norm(), norm());
-  return v;
+  using namespace kwiver::vital;
+  vector_2d pp(300,400);
+  double f = 1000.0;
+  double a = 0.75;
+  double s = 0.1;
+  camera_intrinsics_d K(f, pp, a, s);
+
+  vector_2d origin = K.map(vector_2d(0,0));
+
+  TEST_NEAR("(0,0) maps to principal point",
+            (origin-pp).norm(), 0.0, 1e-12);
+
+  TEST_NEAR("principal point unmaps to (0,0)",
+            K.unmap(pp).norm(), 0.0, 1e-12);
+
+  vector_2d test_pt(1,2);
+  vector_2d mapped_test = K.map(test_pt);
+  vector_2d mapped_test_gt(test_pt.x() * f + test_pt.y() * s + pp.x(),
+                           test_pt.y() * f / a + pp.y());
+  TEST_NEAR("mapped test point at GT location",
+            (mapped_test - mapped_test_gt).norm(), 0.0, 1e-12);
+
+  vector_2d unmapped = K.unmap(mapped_test);
+  TEST_NEAR("unmap is the inverse of map",
+            (unmapped-test_pt).norm(), 0.0, 1e-12);
+
+  vector_3d homg_pt(2.5 * vector_3d(test_pt.x(), test_pt.y(), 1));
+  vector_2d mapped_from_3d = K.map(homg_pt);
+  TEST_NEAR("mapped 3D test point at GT location",
+            (mapped_from_3d - mapped_test_gt).norm(), 0.0, 1e-12);
+
 }
-
-} // end namespace testing
-} // end namespace kwiver
-
-#endif // KWIVER_TEST_TEST_RANDOM_POINT_H_

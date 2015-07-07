@@ -33,32 +33,29 @@
  *
  * \brief Various functions for creating a simple SBA test scene
  *
- * These functions are based on KWIVER core and shared by various tests
+ * These functions are based on VITAL core and shared by various tests
  */
 
-#ifndef KWIVER_TEST_TEST_SCENE_H_
-#define KWIVER_TEST_TEST_SCENE_H_
+#ifndef VITAL_TEST_TEST_SCENE_H_
+#define VITAL_TEST_TEST_SCENE_H_
 
 #include <test_random_point.h>
 
-#include <kwiver/camera_map.h>
-#include <kwiver/landmark_map.h>
-#include <kwiver/track_set.h>
+#include <vital/camera_map.h>
+#include <vital/landmark_map.h>
+#include <vital/track_set.h>
 #include <boost/foreach.hpp>
 
-
-namespace kwiver
-{
-
-namespace testing
-{
+namespace kwiver {
+namespace vital {
+namespace testing {
 
 // construct a map of landmarks at the corners of a cube centered at c
 // with a side length of s
-kwiver::landmark_map_sptr
-cube_corners( double s, const kwiver::vector_3d& c = kwiver::vector_3d(0, 0, 0) )
+kwiver::vital::landmark_map_sptr
+cube_corners( double s, const kwiver::vital::vector_3d& c = kwiver::vital::vector_3d(0, 0, 0) )
 {
-  using namespace kwiver;
+  using namespace kwiver::vital;
 
   // create corners of a cube
   landmark_map::map_landmark_t landmarks;
@@ -77,11 +74,11 @@ cube_corners( double s, const kwiver::vector_3d& c = kwiver::vector_3d(0, 0, 0) 
 
 
 // construct map of landmarks will all locations at c
-kwiver::landmark_map_sptr
-init_landmarks( kwiver::landmark_id_t num_lm,
-                const kwiver::vector_3d& c = kwiver::vector_3d(0, 0, 0) )
+kwiver::vital::landmark_map_sptr
+init_landmarks( kwiver::vital::landmark_id_t num_lm,
+                const kwiver::vital::vector_3d& c = kwiver::vital::vector_3d(0, 0, 0) )
 {
-  using namespace kwiver;
+  using namespace kwiver::vital;
 
   landmark_map::map_landmark_t lm_map;
   for ( landmark_id_t i = 0; i < num_lm; ++i )
@@ -93,11 +90,11 @@ init_landmarks( kwiver::landmark_id_t num_lm,
 
 
 // add Gaussian noise to the landmark positions
-kwiver::landmark_map_sptr
-noisy_landmarks( kwiver::landmark_map_sptr  landmarks,
+kwiver::vital::landmark_map_sptr
+noisy_landmarks( kwiver::vital::landmark_map_sptr  landmarks,
                  double                     stdev = 1.0 )
 {
-  using namespace kwiver;
+  using namespace kwiver::vital;
 
   landmark_map::map_landmark_t lm_map = landmarks->landmarks();
   BOOST_FOREACH( landmark_map::map_landmark_t::value_type & p, lm_map )
@@ -111,10 +108,10 @@ noisy_landmarks( kwiver::landmark_map_sptr  landmarks,
 
 
 // create a camera sequence (elliptical path)
-kwiver::camera_map_sptr
-camera_seq( kwiver::frame_id_t num_cams = 20 )
+kwiver::vital::camera_map_sptr
+camera_seq( kwiver::vital::frame_id_t num_cams = 20 )
 {
-  using namespace kwiver;
+  using namespace kwiver::vital;
   camera_map::map_camera_t cameras;
 
   // create a camera sequence (elliptical path)
@@ -135,10 +132,10 @@ camera_seq( kwiver::frame_id_t num_cams = 20 )
 
 
 // create an initial camera sequence with all cameras at the same location
-kwiver::camera_map_sptr
-init_cameras( kwiver::frame_id_t num_cams = 20 )
+kwiver::vital::camera_map_sptr
+init_cameras( kwiver::vital::frame_id_t num_cams = 20 )
 {
-  using namespace kwiver;
+  using namespace kwiver::vital;
   camera_map::map_camera_t cameras;
 
   // create a camera sequence (elliptical path)
@@ -157,11 +154,11 @@ init_cameras( kwiver::frame_id_t num_cams = 20 )
 
 
 // add positional and rotational Gaussian noise to cameras
-kwiver::camera_map_sptr
-noisy_cameras( kwiver::camera_map_sptr cameras,
+kwiver::vital::camera_map_sptr
+noisy_cameras( kwiver::vital::camera_map_sptr cameras,
                double pos_stdev = 1.0, double rot_stdev = 1.0 )
 {
-  using namespace kwiver;
+  using namespace kwiver::vital;
 
   camera_map::map_camera_t cam_map;
   BOOST_FOREACH( camera_map::map_camera_t::value_type const & p, cameras->cameras() )
@@ -181,10 +178,10 @@ noisy_cameras( kwiver::camera_map_sptr cameras,
 
 
 // randomly drop a fraction of the track states
-kwiver::track_set_sptr
-subset_tracks( kwiver::track_set_sptr in_tracks, double keep_frac = 0.75 )
+kwiver::vital::track_set_sptr
+subset_tracks( kwiver::vital::track_set_sptr in_tracks, double keep_frac = 0.75 )
 {
-  using namespace kwiver;
+  using namespace kwiver::vital;
 
   std::srand( 0 );
   std::vector< track_sptr > tracks = in_tracks->tracks();
@@ -216,10 +213,10 @@ subset_tracks( kwiver::track_set_sptr in_tracks, double keep_frac = 0.75 )
 
 
 // add Gaussian noise to track feature locations
-kwiver::track_set_sptr
-noisy_tracks( kwiver::track_set_sptr in_tracks, double stdev = 1.0 )
+kwiver::vital::track_set_sptr
+noisy_tracks( kwiver::vital::track_set_sptr in_tracks, double stdev = 1.0 )
 {
-  using namespace kwiver;
+  using namespace kwiver::vital;
 
   std::vector< track_sptr > tracks = in_tracks->tracks();
   std::vector< track_sptr > new_tracks;
@@ -241,8 +238,7 @@ noisy_tracks( kwiver::track_set_sptr in_tracks, double stdev = 1.0 )
 }
 
 
-
 } // end namespace testing
-} // end namespace kwiver
+} // end namespace vital
 
-#endif // KWIVER_TEST_TEST_SCENE_H_
+#endif // VITAL_TEST_TEST_SCENE_H_

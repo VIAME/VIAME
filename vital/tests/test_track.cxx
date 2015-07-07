@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2014 by Kitware, Inc.
+ * Copyright 2014 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,53 +30,36 @@
 
 /**
  * \file
- *
- * \brief Functions for creating test points with added random Gaussian noise.
- *
+ * \brief test core track class
  */
 
-#ifndef KWIVER_TEST_TEST_RANDOM_POINT_H_
-#define KWIVER_TEST_TEST_RANDOM_POINT_H_
+#include <test_common.h>
 
-#include <vital/vector.h>
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
+#include <iostream>
+#include <vector>
+#include <vital/track.h>
 
-namespace kwiver
+#define TEST_ARGS ()
+
+DECLARE_TEST_MAP();
+
+int
+main(int argc, char* argv[])
 {
+  CHECK_ARGS(1);
 
-namespace testing
-{
+  testname_t const testname = argv[1];
 
-/// random number generator type
-typedef boost::mt19937 rng_t;
-/// normal distribution
-typedef boost::normal_distribution<> norm_dist_t;
-/// normal distribution random generator type
-typedef boost::variate_generator<rng_t&, norm_dist_t> normal_gen_t;
-
-/// a global random number generator instance
-static rng_t rng;
-
-
-inline
-  kwiver::vital::vector_3d random_point3d(double stdev)
-{
-  normal_gen_t norm(rng, norm_dist_t(0.0, stdev));
-  kwiver::vital::vector_3d v(norm(), norm(), norm());
-  return v;
+  RUN_TEST(testname);
 }
 
 
-inline
-  kwiver::vital::vector_2d random_point2d(double stdev)
+IMPLEMENT_TEST(track_id)
 {
-  normal_gen_t norm(rng, norm_dist_t(0.0, stdev));
-  kwiver::vital::vector_2d v(norm(), norm());
-  return v;
+  using namespace kwiver::vital;
+  track t;
+  TEST_EQUAL("Initial Track ID", t.id(), 0);
+
+  t.set_id(25);
+  TEST_EQUAL("Get/Set Track ID", t.id(), 25);
 }
-
-} // end namespace testing
-} // end namespace kwiver
-
-#endif // KWIVER_TEST_TEST_RANDOM_POINT_H_

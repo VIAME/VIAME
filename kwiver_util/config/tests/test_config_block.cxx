@@ -30,14 +30,12 @@
 
 /**
  * \file
- * \brief core config_block tests
+ * \brief kwiver_util config_block tests
  */
 
-#include <test_common.h>
+#include <tests/test_common.h>
 
-#include <kwiver/config/config_block.h>
-#include <kwiver/eigen_io.h>
-#include <kwiver/vector.h>
+#include <kwiver_util/config/config_block.h>
 
 #define TEST_ARGS ()
 
@@ -200,6 +198,7 @@ IMPLEMENT_TEST(value_conversion)
     TEST_EQUAL("An unsigned int value is not converted to a config value and back again",
                val, 1234567);
   }
+  /*
   {
     kwiver::vector_2d in_val(2.34, 0.0567);
     config->set_value(key, in_val);
@@ -208,6 +207,7 @@ IMPLEMENT_TEST(value_conversion)
     TEST_EQUAL("A vector_2d value is not converted to a config value and back again",
                val, in_val);
   }
+  */
   {
     config->set_value(key, "some string");
     std::string val = config->get_value<std::string>(key);

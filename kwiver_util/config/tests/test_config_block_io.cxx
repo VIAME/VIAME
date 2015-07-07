@@ -38,9 +38,7 @@
 #include <string>
 #include <iostream>
 
-#include <kwiver/config/config_block_io.h>
-#include <kwiver/exceptions.h>
-#include <kwiver/types.h>
+#include <kwiver_util/config/config_block_io.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>

@@ -28,16 +28,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
+#include <tests/test_common.h>
 
-#include <logger/logger.h>
-
+#include <kwiver_util/logger/logger.h>
 
 
 #define TEST_ARGS ()
 
 DECLARE_TEST_MAP();
-
 
 int
 main(int argc, char* argv[])
@@ -53,6 +51,7 @@ main(int argc, char* argv[])
 // Assume basic logger
 //
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(check_levels)
 {
   kwiver::logger_handle_t log2 = kwiver::get_logger( "main.logger2" );
@@ -78,22 +77,24 @@ IMPLEMENT_TEST(check_levels)
   TEST_EQUAL ("Warn level enabled",   IS_WARN_ENABLED(log2), true );
   TEST_EQUAL ("Error level  enabled", IS_ERROR_ENABLED(log2), true );
   TEST_EQUAL ("Fatal level enabled",  IS_FATAL_ENABLED(log2), true );
-
+/*
   // a compiler check, mostly
 
   LOG_ASSERT( log2, true, "This should compile." );
   LOG_ASSERT( log2, false, "This should generate ERROR message." );
-
+*/
   TEST_EQUAL ("Get logger level", log2->get_level(), kwiver::kwiver_logger::LEVEL_DEBUG );
 }
 
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(logger_factory)
 {
   kwiver::logger_handle_t log2 = kwiver::get_logger( "main.logger" );
 
   TEST_EQUAL( "default logger factory name", log2->get_factory_name(), "default_logger factory" );
 }
+
 
 //
 // Need to test

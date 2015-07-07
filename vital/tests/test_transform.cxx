@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2014 by Kitware, Inc.
+ * Copyright 2014 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,55 +28,59 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- *
- * \brief Functions for creating test points with added random Gaussian noise.
- *
- */
+#include <test_common.h>
+#include <test_scene.h>
 
-#ifndef KWIVER_TEST_TEST_RANDOM_POINT_H_
-#define KWIVER_TEST_TEST_RANDOM_POINT_H_
+#include <vital/transform.h>
+#include <vital/metrics.h>
+#include <vital/projected_track_set.h>
 
-#include <vital/vector.h>
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
+#define TEST_ARGS ()
 
-namespace kwiver
+DECLARE_TEST_MAP();
+
+int
+main(int argc, char* argv[])
 {
+  CHECK_ARGS(1);
 
-namespace testing
-{
+  testname_t const testname = argv[1];
 
-/// random number generator type
-typedef boost::mt19937 rng_t;
-/// normal distribution
-typedef boost::normal_distribution<> norm_dist_t;
-/// normal distribution random generator type
-typedef boost::variate_generator<rng_t&, norm_dist_t> normal_gen_t;
-
-/// a global random number generator instance
-static rng_t rng;
-
-
-inline
-  kwiver::vital::vector_3d random_point3d(double stdev)
-{
-  normal_gen_t norm(rng, norm_dist_t(0.0, stdev));
-  kwiver::vital::vector_3d v(norm(), norm(), norm());
-  return v;
+  RUN_TEST(testname);
 }
 
 
-inline
-  kwiver::vital::vector_2d random_point2d(double stdev)
+// add noise to landmarks before input to SBA
+IMPLEMENT_TEST(cameras_landmarks)
 {
-  normal_gen_t norm(rng, norm_dist_t(0.0, stdev));
-  kwiver::vital::vector_2d v(norm(), norm());
-  return v;
+  using namespace kwiver::vital;
+
+  // create landmarks at the corners of a cube
+  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+
+  // create a camera sequence (elliptical path)
+  camera_map_sptr cameras = testing::camera_seq();
+
+  // create tracks from the projections
+  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+
+  double rmse = reprojection_rmse(cameras->cameras(),
+                                  landmarks->landmarks(),
+                                  tracks->tracks());
+
+  TEST_NEAR("sanitiy check: initial RMS error is zero",
+            rmse, 0.0, 1e-14);
+
+  similarity_d sim(22.4, rotation_d(vector_3d(0.1, -1.5, 2.0)),
+                   vector_3d(100,-25,6));
+
+  landmarks = transform(landmarks, sim);
+  cameras = transform(cameras, sim);
+
+  rmse = reprojection_rmse(cameras->cameras(),
+                           landmarks->landmarks(),
+                           tracks->tracks());
+
+  TEST_NEAR("similarity transform does not change projection",
+            rmse, 0.0, 1e-10);
 }
-
-} // end namespace testing
-} // end namespace kwiver
-
-#endif // KWIVER_TEST_TEST_RANDOM_POINT_H_

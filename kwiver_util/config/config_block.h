@@ -241,6 +241,7 @@ class KWIVER_CONFIG_EXPORT config_block
 
     /// The separator between blocks.
     static config_block_key_t const block_sep;
+
     /// The magic group for global parameters.
     static config_block_key_t const global_value;
 

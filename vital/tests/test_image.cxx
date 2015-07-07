@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <maptk/image.h>
+#include <vital/image.h>
 
 #define TEST_ARGS ()
 
@@ -48,13 +48,13 @@ namespace // anonymous
 
   // For use in the transform_image function
 
-  static maptk::image::byte val_zero_op( maptk::image::byte const & /*b*/ )
+  static kwiver::vital::image::byte val_zero_op( kwiver::vital::image::byte const & /*b*/ )
   {
     return 0;
   }
 
-  static maptk::image::byte val_incr_op_i = 0;
-  static maptk::image::byte val_incr_op( maptk::image::byte const &b )
+  static kwiver::vital::image::byte val_incr_op_i = 0;
+  static kwiver::vital::image::byte val_incr_op( kwiver::vital::image::byte const &b )
   {
     return val_incr_op_i++;
   }
@@ -75,7 +75,7 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(default_constructor)
 {
-  maptk::image img;
+  kwiver::vital::image img;
   if (img.size() != 0        ||
       img.first_pixel() != 0 ||
       img.width() != 0       ||
@@ -90,7 +90,7 @@ IMPLEMENT_TEST(default_constructor)
 IMPLEMENT_TEST(constructor)
 {
   {
-    maptk::image img(200,300);
+    kwiver::vital::image img(200,300);
     if (img.width() != 200  ||
         img.height() != 300 ||
         img.depth() != 1 )
@@ -104,7 +104,7 @@ IMPLEMENT_TEST(constructor)
     }
   }
   {
-    maptk::image img(200,300,3);
+    kwiver::vital::image img(200,300,3);
     if (img.width() != 200  ||
         img.height() != 300 ||
         img.depth() != 3 )
@@ -122,8 +122,8 @@ IMPLEMENT_TEST(constructor)
 
 IMPLEMENT_TEST(copy_constructor)
 {
-  maptk::image img(100,75,2);
-  maptk::image img_cpy(img);
+  kwiver::vital::image img(100,75,2);
+  kwiver::vital::image img_cpy(img);
   if (img.width()  != img_cpy.width()  ||
       img.height() != img_cpy.height() ||
       img.depth()  != img_cpy.depth()  ||
@@ -140,7 +140,7 @@ IMPLEMENT_TEST(copy_constructor)
 
 IMPLEMENT_TEST(set_size)
 {
-  maptk::image img(10, 20, 4);
+  kwiver::vital::image img(10, 20, 4);
   unsigned char* data = img.first_pixel();
   img.set_size(10, 20, 4);
   if( img.first_pixel() != data )
@@ -149,7 +149,7 @@ IMPLEMENT_TEST(set_size)
   }
   // keep another copy of the original image to prevent the original memory from
   // being deleted and then reallocated.
-  maptk::image img_copy = img;
+  kwiver::vital::image img_copy = img;
   img.set_size(20, 10, 4);
   if( img.first_pixel() == data )
   {
@@ -165,7 +165,7 @@ IMPLEMENT_TEST(set_size)
 IMPLEMENT_TEST(copy_from)
 {
   unsigned w=100, h=200, d=3;
-  maptk::image img1(w,h,d);
+  kwiver::vital::image img1(w,h,d);
   for(unsigned k=0; k<d; ++k)
   {
     for(unsigned j=0; j<h; ++j)
@@ -177,7 +177,7 @@ IMPLEMENT_TEST(copy_from)
     }
   }
 
-  maptk::image img2;
+  kwiver::vital::image img2;
   img2.copy_from(img1);
   if( img1.first_pixel() == img2.first_pixel() )
   {
@@ -188,9 +188,9 @@ IMPLEMENT_TEST(copy_from)
     TEST_ERROR("Deep copied images should have the same content");
   }
 
-  maptk::image img3(200, 400, 3);
+  kwiver::vital::image img3(200, 400, 3);
   // create a view into the center of img3
-  maptk::image img4(img3.memory(), img3.first_pixel()+50*200 + 50,
+  kwiver::vital::image img4(img3.memory(), img3.first_pixel()+50*200 + 50,
                     w, h, d,
                     1, 200, 200*400);
   // copy data into the view
@@ -210,7 +210,7 @@ IMPLEMENT_TEST(copy_from)
 IMPLEMENT_TEST(equal_content)
 {
   unsigned w=100, h=200, d=3;
-  maptk::image img1(w,h,d), img2(w,h,d,true);
+  kwiver::vital::image img1(w,h,d), img2(w,h,d,true);
   if(img1.memory() == img2.memory())
   {
     TEST_ERROR("Test images should not have the same memory");
@@ -240,14 +240,14 @@ IMPLEMENT_TEST(transform_image)
 {
   // Testing that the transform image traverses pixels in memory order
   unsigned w=3, h=3, d=3;
-  maptk::image img;
+  kwiver::vital::image img;
 
   // an image with traditional stepping ( w < h < d )
   {
-    img = maptk::image( w, h, d , false );
+    img = kwiver::vital::image( w, h, d , false );
 
     // Zeroing image data
-    maptk::transform_image( img, val_zero_op );
+    kwiver::vital::transform_image( img, val_zero_op );
     TEST_EQUAL( "normal-zero (0,0,0)", (unsigned)img(0,0,0), 0 );
     TEST_EQUAL( "normal-zero (1,0,0)", (unsigned)img(1,0,0), 0 );
     TEST_EQUAL( "normal-zero (2,0,0)", (unsigned)img(2,0,0), 0 );
@@ -278,7 +278,7 @@ IMPLEMENT_TEST(transform_image)
 
     // Assinging value
     val_incr_op_i = 0;
-    maptk::transform_image( img, val_incr_op );
+    kwiver::vital::transform_image( img, val_incr_op );
     TEST_EQUAL( "normal (0,0,0)", (unsigned)img(0,0,0), 0 );
     TEST_EQUAL( "normal (1,0,0)", (unsigned)img(1,0,0), 1 );
     TEST_EQUAL( "normal (2,0,0)", (unsigned)img(2,0,0), 2 );
@@ -310,9 +310,9 @@ IMPLEMENT_TEST(transform_image)
 
   // an interleaved image ( d < w < h )
   {
-    img = maptk::image( w, h, d, true );
+    img = kwiver::vital::image( w, h, d, true );
 
-    maptk::transform_image( img, val_zero_op );
+    kwiver::vital::transform_image( img, val_zero_op );
     TEST_EQUAL( "interleaved-zero (0,0,0)", (unsigned)img(0,0,0), 0 );
     TEST_EQUAL( "interleaved-zero (0,0,1)", (unsigned)img(0,0,1), 0 );
     TEST_EQUAL( "interleaved-zero (0,0,2)", (unsigned)img(0,0,2), 0 );
@@ -342,7 +342,7 @@ IMPLEMENT_TEST(transform_image)
     TEST_EQUAL( "interleaved-zero (2,2,2)", (unsigned)img(2,2,2), 0 );
 
     val_incr_op_i = 0;
-    maptk::transform_image( img, val_incr_op );
+    kwiver::vital::transform_image( img, val_incr_op );
     TEST_EQUAL( "interleaved (0,0,0)", (unsigned)img(0,0,0), 0 );
     TEST_EQUAL( "interleaved (0,0,1)", (unsigned)img(0,0,1), 1 );
     TEST_EQUAL( "interleaved (0,0,2)", (unsigned)img(0,0,2), 2 );
@@ -377,12 +377,12 @@ IMPLEMENT_TEST(transform_image)
     ptrdiff_t hStep = 1,
               dStep = h,
               wStep = d*h;
-    maptk::image_memory weird_img_mem( wStep * hStep * dStep );
-    img = maptk::image( (maptk::image::byte*)weird_img_mem.data(),
+    kwiver::vital::image_memory weird_img_mem( wStep * hStep * dStep );
+    img = kwiver::vital::image( (kwiver::vital::image::byte*)weird_img_mem.data(),
                         w, h, d,
                         wStep, hStep, dStep );
 
-    maptk::transform_image( img, val_zero_op );
+    kwiver::vital::transform_image( img, val_zero_op );
     TEST_EQUAL( "weird-zero (0,0,0)", (unsigned)img(0,0,0), 0 );
     TEST_EQUAL( "weird-zero (0,1,0)", (unsigned)img(0,1,0), 0 );
     TEST_EQUAL( "weird-zero (0,2,0)", (unsigned)img(0,2,0), 0 );
@@ -412,7 +412,7 @@ IMPLEMENT_TEST(transform_image)
     TEST_EQUAL( "weird-zero (2,2,2)", (unsigned)img(2,2,2), 0 );
 
     val_incr_op_i = 0;
-    maptk::transform_image( img, val_incr_op );
+    kwiver::vital::transform_image( img, val_incr_op );
     TEST_EQUAL( "weird (0,0,0)", (unsigned)img(0,0,0), 0 );
     TEST_EQUAL( "weird (0,1,0)", (unsigned)img(0,1,0), 1 );
     TEST_EQUAL( "weird (0,2,0)", (unsigned)img(0,2,0), 2 );
@@ -447,12 +447,12 @@ IMPLEMENT_TEST(transform_image)
     ptrdiff_t wStep = 7,
               hStep = w * wStep + 11,
               dStep = h * hStep * 3;
-    maptk::image_memory non_con_img_mem( wStep * hStep * dStep );
-    img = maptk::image( (maptk::image::byte*)non_con_img_mem.data(),
+    kwiver::vital::image_memory non_con_img_mem( wStep * hStep * dStep );
+    img = kwiver::vital::image( (kwiver::vital::image::byte*)non_con_img_mem.data(),
                         w, h, d,
                         wStep, hStep, dStep );
 
-    maptk::transform_image( img, val_zero_op );
+    kwiver::vital::transform_image( img, val_zero_op );
     TEST_EQUAL( "non-contiguous-zero (0,0,0)", (unsigned)img(0,0,0), 0 );
     TEST_EQUAL( "non-contiguous-zero (1,0,0)", (unsigned)img(1,0,0), 0 );
     TEST_EQUAL( "non-contiguous-zero (2,0,0)", (unsigned)img(2,0,0), 0 );
@@ -482,7 +482,7 @@ IMPLEMENT_TEST(transform_image)
     TEST_EQUAL( "non-contiguous-zero (2,2,2)", (unsigned)img(2,2,2), 0 );
 
     val_incr_op_i = 0;
-    maptk::transform_image( img, val_incr_op );
+    kwiver::vital::transform_image( img, val_incr_op );
     TEST_EQUAL( "non-contiguous (0,0,0)", (unsigned)img(0,0,0), 0 );
     TEST_EQUAL( "non-contiguous (1,0,0)", (unsigned)img(1,0,0), 1 );
     TEST_EQUAL( "non-contiguous (2,0,0)", (unsigned)img(2,0,0), 2 );

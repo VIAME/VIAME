@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2014 by Kitware, Inc.
+ * Copyright 2013-2014 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,53 +30,69 @@
 
 /**
  * \file
- *
- * \brief Functions for creating test points with added random Gaussian noise.
- *
+ * \brief core ins_data tests
  */
 
-#ifndef KWIVER_TEST_TEST_RANDOM_POINT_H_
-#define KWIVER_TEST_TEST_RANDOM_POINT_H_
+#include <test_common.h>
 
-#include <vital/vector.h>
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
+#include <sstream>
+#include <iostream>
+#include <vital/ins_data.h>
 
-namespace kwiver
+#define TEST_ARGS ()
+
+DECLARE_TEST_MAP();
+
+int
+main(int argc, char* argv[])
 {
+  CHECK_ARGS(1);
 
-namespace testing
+  testname_t const testname = argv[1];
+
+  RUN_TEST(testname);
+}
+
+static bool test_iostream(const kwiver::vital::ins_data& d)
 {
+  std::cout << "Sample INS data:\n" << d << std::flush;
+  std::stringstream ss;
+  ss << d;
 
-/// random number generator type
-typedef boost::mt19937 rng_t;
-/// normal distribution
-typedef boost::normal_distribution<> norm_dist_t;
-/// normal distribution random generator type
-typedef boost::variate_generator<rng_t&, norm_dist_t> normal_gen_t;
+  // read the data back in
+  kwiver::vital::ins_data d2;
+  ss >> d2;
+  std::cout << "Re-read data as:\n" << d2;
 
-/// a global random number generator instance
-static rng_t rng;
-
-
-inline
-  kwiver::vital::vector_3d random_point3d(double stdev)
-{
-  normal_gen_t norm(rng, norm_dist_t(0.0, stdev));
-  kwiver::vital::vector_3d v(norm(), norm(), norm());
-  return v;
+  return d == d2;
 }
 
 
-inline
-  kwiver::vital::vector_2d random_point2d(double stdev)
+IMPLEMENT_TEST(iostream_low_prec)
 {
-  normal_gen_t norm(rng, norm_dist_t(0.0, stdev));
-  kwiver::vital::vector_2d v(norm(), norm());
-  return v;
+  kwiver::vital::ins_data d(28.2, -37.1, 0.034,
+                    47.9, 82.0, 170.0,
+                    "TEST",
+                    23.0, 345,
+                    0.0, 2.5, 3.0,
+                    3, 8, -1);
+  if( !test_iostream(d) )
+  {
+    TEST_ERROR("Written INS data does not match what is read back in.");
+  }
 }
 
-} // end namespace testing
-} // end namespace kwiver
 
-#endif // KWIVER_TEST_TEST_RANDOM_POINT_H_
+IMPLEMENT_TEST(iostream_high_prec)
+{
+  kwiver::vital::ins_data d(28.29342, -37.19432, 0.00000349,
+                    47.9347286349, 82.033292098, 1700.0,
+                    "VITAL",
+                    23923423.003, 345,
+                    0.0, 2.5, 3.0,
+                    3, 8, -1);
+  if( !test_iostream(d) )
+  {
+    TEST_ERROR("Written INS data does not match what is read back in.");
+  }
+}

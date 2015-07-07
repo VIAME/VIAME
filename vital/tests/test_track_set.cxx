@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2014 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief test core vector functionality
- */
-
 #include <test_common.h>
 
-#include <vital/vector.h>
+#include <iostream>
+#include <vector>
+
+#include <vital/track.h>
+#include <vital/track_set.h>
 
 #define TEST_ARGS ()
 
@@ -52,68 +51,42 @@ main(int argc, char* argv[])
 }
 
 
-IMPLEMENT_TEST(construct_2d)
+IMPLEMENT_TEST(accessor_functions)
 {
-  kwiver::vital::vector_2d v2d(10.0, 33.3);
-  kwiver::vital::vector_2f v2f(5.0f, 4.5f);
+  using namespace kwiver::vital;
 
-  if (v2d.x() != 10.0 || v2f.x() != 5.0f)
-  {
-    TEST_ERROR("X coordinate of vector_2_ not initialized correctly");
-  }
+  unsigned track_id = 0;
 
-  if (v2d.y() != 33.3 || v2f.y() != 4.5f)
-  {
-    TEST_ERROR("Y coordinate of vector_2_ not initialized correctly");
-  }
+  std::vector< track_sptr > test_tracks;
 
-}
+  track::track_state test_state1( 1, feature_sptr(), descriptor_sptr() );
+  track::track_state test_state2( 2, feature_sptr(), descriptor_sptr() );
+  track::track_state test_state3( 3, feature_sptr(), descriptor_sptr() );
 
+  test_tracks.push_back( track_sptr( new track( test_state1 ) ) );
+  test_tracks.back()->set_id( track_id++ );
+  test_tracks.push_back( track_sptr( new track( test_state1 ) ) );
+  test_tracks.back()->set_id( track_id++ );
+  test_tracks.push_back( track_sptr( new track( test_state2 ) ) );
+  test_tracks.back()->set_id( track_id++ );
+  test_tracks.push_back( track_sptr( new track( test_state3 ) ) );
+  test_tracks.back()->set_id( track_id++ );
 
-IMPLEMENT_TEST(construct_3d)
-{
-  kwiver::vital::vector_3d v3d(10.0, 33.3, 12.1);
-  kwiver::vital::vector_3f v3f(5.0f, 4.5f, -6.3f);
+  test_tracks[0]->append( test_state2 );
+  test_tracks[0]->append( test_state3 );
+  test_tracks[1]->append( test_state2 );
+  test_tracks[2]->append( test_state3 );
 
-  if (v3d.x() != 10.0 || v3f.x() != 5.0f)
-  {
-    TEST_ERROR("X coordinate of vector_3_ not initialized correctly");
-  }
+  track_set_sptr test_set( new simple_track_set( test_tracks ) );
 
-  if (v3d.y() != 33.3 || v3f.y() != 4.5f)
-  {
-    TEST_ERROR("Y coordinate of vector_3_ not initialized correctly");
-  }
+  TEST_EQUAL("Total set size", test_set->size(), 4);
 
-  if (v3d.z() != 12.1 || v3f.z() != -6.3f)
-  {
-    TEST_ERROR("Z coordinate of vector_3_ not initialized correctly");
-  }
-}
+  TEST_EQUAL("Active set size 1", test_set->active_tracks(-1)->size(), 3);
+  TEST_EQUAL("Active set size 2", test_set->active_tracks(-2)->size(), 3);
+  TEST_EQUAL("Active set size 3", test_set->active_tracks(-3)->size(), 2);
 
+  TEST_EQUAL("Terminated set size", test_set->terminated_tracks(-1)->size(), 3);
+  TEST_EQUAL("New set size", test_set->new_tracks(-2)->size(), 1);
 
-IMPLEMENT_TEST(construct_4d)
-{
-  kwiver::vital::vector_4d v4d(10.0, 33.3, 12.1, 0.0);
-  kwiver::vital::vector_4f v4f(5.0f, 4.5f, -6.3f, 100.0f);
-
-  if (v4d.x() != 10.0 || v4f.x() != 5.0f)
-  {
-    TEST_ERROR("X coordinate of vector_4_ not initialized correctly");
-  }
-
-  if (v4d.y() != 33.3 || v4f.y() != 4.5f)
-  {
-    TEST_ERROR("Y coordinate of vector_4_ not initialized correctly");
-  }
-
-  if (v4d.z() != 12.1 || v4f.z() != -6.3f)
-  {
-    TEST_ERROR("Z coordinate of vector_4_ not initialized correctly");
-  }
-
-  if (v4d.w() != 0.0 || v4f.w() != 100.0f)
-  {
-    TEST_ERROR("W coordinate of vector_4_ not initialized correctly");
-  }
+  TEST_EQUAL("Percentage tracked", test_set->percentage_tracked(-1,-2), 0.5);
 }

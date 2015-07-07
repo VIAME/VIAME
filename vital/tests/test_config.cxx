@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2011-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,13 @@
 
 /**
  * \file
- * \brief test core vector functionality
+ * \brief core config_block tests
  */
 
-#include <test_common.h>
+#include <tests/test_common.h>
 
+#include <kwiver_util/config/config_block.h>
+#include <vital/eigen_io.h>
 #include <vital/vector.h>
 
 #define TEST_ARGS ()
@@ -52,68 +54,47 @@ main(int argc, char* argv[])
 }
 
 
-IMPLEMENT_TEST(construct_2d)
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(value_conversion)
 {
-  kwiver::vital::vector_2d v2d(10.0, 33.3);
-  kwiver::vital::vector_2f v2f(5.0f, 4.5f);
+  kwiver::config_block_sptr const config = kwiver::config_block::empty_config();
+  kwiver::config_block_key_t const key = kwiver::config_block_key_t("key");
 
-  if (v2d.x() != 10.0 || v2f.x() != 5.0f)
   {
-    TEST_ERROR("X coordinate of vector_2_ not initialized correctly");
+    config->set_value(key, 123.456);
+    double val = config->get_value<double>(key);
+
+    TEST_EQUAL("A double value is not converted to a config value and back again",
+               val, 123.456);
+  }
+  {
+    config->set_value(key, 1234567);
+    unsigned int val = config->get_value<unsigned int>(key);
+
+    TEST_EQUAL("An unsigned int value is not converted to a config value and back again",
+               val, 1234567);
   }
 
-  if (v2d.y() != 33.3 || v2f.y() != 4.5f)
   {
-    TEST_ERROR("Y coordinate of vector_2_ not initialized correctly");
+    kwiver::vital::vector_2d in_val(2.34, 0.0567);
+    config->set_value(key, in_val);
+    kwiver::vital::vector_2d val = config->get_value<kwiver::vital::vector_2d>(key);
+
+    TEST_EQUAL("A vector_2d value is not converted to a config value and back again",
+               val, in_val);
   }
 
-}
-
-
-IMPLEMENT_TEST(construct_3d)
-{
-  kwiver::vital::vector_3d v3d(10.0, 33.3, 12.1);
-  kwiver::vital::vector_3f v3f(5.0f, 4.5f, -6.3f);
-
-  if (v3d.x() != 10.0 || v3f.x() != 5.0f)
   {
-    TEST_ERROR("X coordinate of vector_3_ not initialized correctly");
+    config->set_value(key, "some string");
+    std::string val = config->get_value<std::string>(key);
+    TEST_EQUAL("A std::string value was not converted to a config value and back again",
+               val, "some string");
   }
-
-  if (v3d.y() != 33.3 || v3f.y() != 4.5f)
   {
-    TEST_ERROR("Y coordinate of vector_3_ not initialized correctly");
-  }
-
-  if (v3d.z() != 12.1 || v3f.z() != -6.3f)
-  {
-    TEST_ERROR("Z coordinate of vector_3_ not initialized correctly");
-  }
-}
-
-
-IMPLEMENT_TEST(construct_4d)
-{
-  kwiver::vital::vector_4d v4d(10.0, 33.3, 12.1, 0.0);
-  kwiver::vital::vector_4f v4f(5.0f, 4.5f, -6.3f, 100.0f);
-
-  if (v4d.x() != 10.0 || v4f.x() != 5.0f)
-  {
-    TEST_ERROR("X coordinate of vector_4_ not initialized correctly");
-  }
-
-  if (v4d.y() != 33.3 || v4f.y() != 4.5f)
-  {
-    TEST_ERROR("Y coordinate of vector_4_ not initialized correctly");
-  }
-
-  if (v4d.z() != 12.1 || v4f.z() != -6.3f)
-  {
-    TEST_ERROR("Z coordinate of vector_4_ not initialized correctly");
-  }
-
-  if (v4d.w() != 0.0 || v4f.w() != 100.0f)
-  {
-    TEST_ERROR("W coordinate of vector_4_ not initialized correctly");
+    kwiver::config_block_value_t in_val("Some value string");
+    config->set_value(key, in_val);
+    kwiver::config_block_value_t val = config->get_value<kwiver::config_block_key_t>(key);
+    TEST_EQUAL("A cb_value_t value was not converted to a config value and back again",
+               val, in_val);
   }
 }
