@@ -36,19 +36,11 @@
 
 #include "algorithm_plugin_manager.h"
 
-#include <map>
-#include <string>
-#include <vector>
-
-#if defined(_WIN32) || defined(_WIN64)
-# include <windows.h>
-#else
-# include <dlfcn.h>
-#endif
-
 #include <vital/vital_apm_export.h>
+#include <vital/registrar.h>
 
 #include <kwiver_util/logger/logger.h>
+#include <kwiversys/DynamicLoader.hxx>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
@@ -56,12 +48,13 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include <vital/registrar.h>
-
 #ifdef VITAL_APM_BUILD_AS_STATIC
 # include <vital/algorithm_plugin_manager_static.h>
 #endif
 
+#include <map>
+#include <string>
+#include <vector>
 
 namespace bfs = boost::filesystem;
 
@@ -71,32 +64,10 @@ namespace vital {
 namespace // anonymous
 {
 
+typedef kwiversys::DynamicLoader DL;
+typedef DL::LibraryHandle library_t;
+typedef DL::SymbolPointer function_t;
 
-/// Execute specific code provided based on current platform
-#if defined ( _WIN32 ) || defined ( _WIN64 )
-# define HANDLE_PLATFORM( windows_code, unix_code ) windows_code
-#else
-# define HANDLE_PLATFORM( windows_code, unix_code ) unix_code
-#endif
-
-/// Use __extension__ modifier if using GNUC.
-/// See: https://trac.osgeo.org/qgis/ticket/234#comment:17
-#ifdef __GNUC__
-# define GNUC_EXTENSION __extension__
-#else
-# define GNUC_EXTENSION
-#endif
-
-
-HANDLE_PLATFORM(
-  /* windows */
-  typedef HMODULE library_t;
-  typedef FARPROC function_t;
-  ,
-  /* unix */
-  typedef void* library_t;
-  typedef void* function_t;
-               );
 typedef int (* register_impls_func_t)( registrar& );
 
 
@@ -235,26 +206,11 @@ public:
     //
     // Attempting module load
     //
-    library_t library = NULL;
-    std::string err_str;
-    HANDLE_PLATFORM(
-      /* windows */
-      library = LoadLibrary( module_path.string().c_str() );
-      // TODO: Catch platform specific error string on failure
-      ,
-      /* unix */
-      dlerror();
-      library = dlopen( module_path.string().c_str(), RTLD_LAZY | RTLD_GLOBAL );
-      if ( ! library )
-      {
-        err_str = std::string( dlerror() );
-      }
-                   );
-
+    library_t library = DL::OpenLibrary( module_path.string().c_str() );
     if ( ! library )
     {
-      LOG_ERROR( m_logger, "Failed to open module library " << module_path <<
-                 " (error: " << err_str << ")" );
+      LOG_WARN( m_logger, "Failed to open module library " << module_path <<
+                 " (error: " << DL::LastError() << ")" );
       return false; // TODO: Throw exception here?
     }
 
@@ -273,16 +229,12 @@ public:
       LOG_DEBUG( m_logger, "Looking for algorithm impl registration function: "
                  << register_function_name.c_str() );
       function_t register_func = NULL;
-      HANDLE_PLATFORM(
-        /* Windows */
-        register_func = GetProcAddress( library, register_function_name.c_str() );
-        ,
-        /* Unix */
-        register_func = dlsym( library, register_function_name.c_str() );
-                     );
+
+      // Get our entry symbol
+      register_func =  DL::GetSymbolAddress( library, register_function_name.c_str() );
       LOG_DEBUG( m_logger, "Returned function address: " << register_func );
 
-      GNUC_EXTENSION register_impls_func_t const register_impls =
+      register_impls_func_t const register_impls =
         reinterpret_cast< register_impls_func_t > ( register_func );
 
       // Check for symbol discovery
@@ -308,29 +260,19 @@ public:
       }
     } // end Algorithm Implementation interface
 
-
     if ( ! module_used )
     {
-      HANDLE_PLATFORM(
-        /* Windows */
-        if ( ! FreeLibrary( library ) )
-        {
-          LOG_WARN( m_logger, "Failed to free Windows module library: " << module_path );
-        }
-        ,
-        /* Unix */
-        if ( dlclose( library ) )
-        {
-          LOG_WARN( m_logger, "Failed to free Unix module library: "  << module_path
-                    << " (" << dlerror() << ")" );
-        }
-                     );
+      if ( ! DL::CloseLibrary( library ) )
+      {
+        LOG_WARN( m_logger, "Failed to close module library file : " << module_path );
+      }
     }
 
     return module_used;
   } // register_from_module
 
 
+  // ------------------------------------------------------------------
   /// Get the list of registered modules names
   std::vector< std::string > registered_module_names() const
   {
