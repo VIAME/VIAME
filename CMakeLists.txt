@@ -119,7 +119,7 @@ configure_file(${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_BUILD_INSTALL_PREFIX}/setup_KWIVER.sh )
 
 add_subdirectory( kwiver_util )
-
+include_directories("${KWSYS_INCLUDE_DIR}")
 
 
 # ================================================================
@@ -202,7 +202,7 @@ include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 # ================================================================
 link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 
-# add Video data abstraction layer
+# add VIdeo Types Abstraction Layer
 add_subdirectory( vital )
 
 ###
@@ -257,7 +257,6 @@ kwiver_install(
   DESTINATION "${kwiver_cmake_install_dir}"
   FILE        kwiver-config-targets.cmake
   )
-
 
 
 # ================================================================

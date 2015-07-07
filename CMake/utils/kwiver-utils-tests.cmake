@@ -53,6 +53,7 @@ if (KWIVER_TEST_ADD_TARGETS)
   add_custom_target(tests)
 endif ()
 
+# ------------------------------------------------------------------
 function (kwiver_declare_test name)
   if (NOT KWIVER_TEST_ADD_TARGETS)
     return()
@@ -63,6 +64,7 @@ function (kwiver_declare_test name)
     "tests-${name}")
 endfunction ()
 
+# ------------------------------------------------------------------
 function (kwiver_build_test name libraries)
   add_executable(test-${name} ${ARGN})
   set_target_properties(test-${name}
@@ -74,6 +76,7 @@ function (kwiver_build_test name libraries)
   kwiver_declare_test(${name})
 endfunction ()
 
+# ------------------------------------------------------------------
 function (kwiver_add_test name instance)
   if (TARGET test-${name})
     set(test_path "$<TARGET_FILE:test-${name}>")
@@ -126,6 +129,7 @@ function (kwiver_add_test name instance)
   endif ()
 endfunction ()
 
+# ------------------------------------------------------------------
 function (kwiver_discover_tests group libraries file)
   file(STRINGS "${file}" test_lines)
   set(properties)

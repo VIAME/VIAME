@@ -26,8 +26,8 @@ set(kwiver_test_data_directory
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${KWIVER_SOURCE_DIR}")
-include_directories("${KWIVER_SOURCE_DIR}/kwiver")
+#include_directories("${KWIVER_SOURCE_DIR}/kwiver")
 include_directories("${KWIVER_BINARY_DIR}")
-include_directories("${KWIVER_BINARY_DIR}/kwiver")
+#include_directories("${KWIVER_BINARY_DIR}/kwiver")
 
-include_directories("${KWIVER_CORE_SOURCE_DIR}/tests") # to pick up test_common.h -> there may be a better place for this
+include_directories("${KWIVER_SOURCE_DIR}/tests") # to pick up test_common.h -> there may be a better place for this
