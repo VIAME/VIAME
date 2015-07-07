@@ -46,7 +46,6 @@ set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)
 set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" )
 
 # ================================================================
-option(KWIVER_ENABLE_PYTHON    "Enable PYTHON bindings" OFF )
 option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
 option(KWIVER_ENABLE_TESTS     "Enable testing" ON)
 
@@ -68,10 +67,12 @@ list(INSERT CMAKE_MODULE_PATH 0
 include(kwiver-utils)
 include(kwiver-flags)
 
-set(kwiver_export_name kwiver_exports)
+# set the name for our package exports
+set(kwiver_export_name
+  kwiver_exports)
 
 ###
-# Dependencies and Modules
+# External Dependencies and Modules
 #
 include( kwiver-depends )
 
@@ -86,9 +87,7 @@ endif()
 # project global includes
 include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include")
 include_directories("${KWIVER_SOURCE_DIR}")
-## include_directories("${KWIVER_SOURCE_DIR}/vital")
 include_directories("${KWIVER_BINARY_DIR}")
-## include_directories("${KWIVER_BINARY_DIR}/vital")
 
 # ==================================================================
 
@@ -119,6 +118,10 @@ endif()
 configure_file(${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_BUILD_INSTALL_PREFIX}/setup_KWIVER.sh )
 
+add_subdirectory( kwiver_util )
+
+
+
 # ================================================================
 # Setting up external projects for KWIVER components
 #
@@ -136,6 +139,7 @@ set(KWIVER_ARGS_COMMON_CMAKE
   -DKWIVER_ENABLE_OPENCV:BOOL=${KWIVER_ENABLE_OPENCV}
   -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INCLUDE_DIR}
   -DEIGEN3_VERSION_OK:BOOL=${EIGEN3_VERSION_OK}
+  -Dkwiver_DIR:PATH=${KWIVER_BINARY_DIR}
   )
 
 set(KWIVER_ARGS_COMMON_COMPILER
@@ -195,15 +199,11 @@ include(External_sprokit)
 include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
 
-## export( TARGETS kwiversys APPEND FILE "${KWIVER_EXPORT_FILE}" )
-
 # ================================================================
 link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 
 # add Video data abstraction layer
-kwiver_add_module( vital "${CMAKE_CURRENT_LIST_DIR}/vital" )
-
-add_subdirectory( kwiver_util )
+add_subdirectory( vital )
 
 ###
 # Add tests if enabled
@@ -226,6 +226,7 @@ string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
 
 # Configure build-tree CMake config file and export associated targets file
 set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+
 kwiver_configure_file(kwiver-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config.cmake.in"
   "${KWIVER_CONFIG_FILE}"

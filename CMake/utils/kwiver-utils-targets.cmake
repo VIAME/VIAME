@@ -131,8 +131,6 @@ endfunction()
 # add_library call, so refer to CMake documentation for additional arguments.
 #
 # Library version will be set to that of the current KWIVER version.
-# Additionally defines the symbol "MAKE_<cname>_LIB" where ``cname`` is the
-# ``name`` capitalized.
 #
 # This function will add the library to the set of targets to be exported
 # unless ``no_export`` was set.
@@ -194,6 +192,10 @@ function(kwiver_add_library     name)
     RUNTIME DESTINATION bin${library_subdir}
     COMPONENT           ${component}
     )
+
+  # \todo Need a way to determine if this is a plugin or a library.
+  # Do not append names of MODULES (plugins) to the library list
+  # because they are not linked to.
 
   set_property(GLOBAL APPEND PROPERTY kwiver_libraries ${name})
 endfunction()

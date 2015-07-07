@@ -22,6 +22,10 @@ define_property(GLOBAL PROPERTY kwiver_modules_enabled
 # not affect build dependencies, but ensures that the listed modules are
 # enabled.
 #
+# The intended purpose for modules is ... (what is a module? How does
+# it differ from a library?)
+#
+#
 function(kwiver_add_module name directory)
   # Parsing args
   set(options OPTIONAL)
