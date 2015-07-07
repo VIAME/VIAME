@@ -36,7 +36,7 @@
 #ifndef VITAL_CORE_EXCEPTIONS_BASE_H
 #define VITAL_CORE_EXCEPTIONS_BASE_H
 
-#include <vital/vital-config.h>
+#include <vital/vital_config.h>
 #include <vital/vital_export.h>
 
 #include <string>

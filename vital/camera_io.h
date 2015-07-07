@@ -38,7 +38,7 @@
 #ifndef VITAL_CAMERA_IO_H_
 #define VITAL_CAMERA_IO_H_
 
-#include <vital/vital-config.h>
+//+ #include <vital/vital_config.h>
 #include <vital/vital_export.h>
 #include <vital/vital_types.h>
 
@@ -81,7 +81,7 @@ VITAL_EXPORT read_krtd_file( path_t const& file_path );
  */
 void
 VITAL_EXPORT write_krtd_file( camera const& cam,
-                                  path_t const& file_path );
+                              path_t const& file_path );
 
 } } // end namespace
 

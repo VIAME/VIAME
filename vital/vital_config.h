@@ -53,8 +53,11 @@
 
 #if __cplusplus < 201103L
 #define VITAL_NOTHROW throw ()
+#define VITAL_DEFAULT_DTOR {}
 #else
 #define VITAL_NOTHROW noexcept
+#define VITAL_DEFAULT_DTOR = default
+
 #endif
 
 #endif // VITAL_VITAL_CONFIG_H
