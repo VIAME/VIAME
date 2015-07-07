@@ -5,7 +5,6 @@
 # used by other components that do not need all of the rest of kwiver
 #
 
-include( GenerateExportHeader )
 
 set( kwiver_config_public_headers
   config_block.h
@@ -26,7 +25,7 @@ kwiver_install_headers(
   SUBDIR config
   )
 
-kwiver_add_library( kwiver_config SHARED
+kwiver_add_library( kwiver_config
   ${kwiver_config_public_headers}
   ${kwiver_config_sources}
   )
@@ -40,7 +39,3 @@ target_link_libraries( kwiver_config
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
-
-###
-# Make appropriate export header file
-generate_export_header( kwiver_config )
