@@ -196,6 +196,8 @@ kwiver_logger_manager
     DL::GetSymbolAddress( m_libHandle, "kwiver_logger_factory" ) );
   if ( ! fp )
   {
+    DL::CloseLibrary( m_libHandle );
+
     std::stringstream str;
     str << "Unable to bind to function: kwiver_logger_factory() "
         << DL::LastError();
