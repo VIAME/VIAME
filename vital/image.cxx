@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,27 +41,27 @@ namespace vital {
 
 /// Default Constructor
 image_memory
-  ::image_memory()
+::image_memory()
   : data_( 0 ),
-  size_( 0 )
+    size_( 0 )
 {
 }
 
 
 /// Constructor - allocated n bytes
 image_memory
-  ::image_memory( size_t n )
+::image_memory( size_t n )
   : data_( new char[n] ),
-  size_( n )
+    size_( n )
 {
 }
 
 
 /// Copy Constructor
 image_memory
-  ::image_memory( const image_memory& other )
+::image_memory( const image_memory& other )
   : data_( new char[other.size()] ),
-  size_( other.size() )
+    size_( other.size() )
 {
   std::memcpy( data_, other.data_, size_ );
 }
@@ -69,7 +69,7 @@ image_memory
 
 /// Destructor
 image_memory
-  ::~image_memory()
+::~image_memory()
 {
   delete [] reinterpret_cast< char* > ( data_ );
 }
@@ -78,12 +78,13 @@ image_memory
 /// Assignment operator
 image_memory&
 image_memory
-  ::operator=( const image_memory& other )
+::operator=( const image_memory& other )
 {
   if ( this == &other )
   {
     return *this;
   }
+
   if ( size_ != other.size_ )
   {
     delete [] reinterpret_cast< char* > ( data_ );
@@ -94,6 +95,7 @@ image_memory
     }
     size_ = other.size_;
   }
+
   std::memcpy( data_, other.data_, size_ );
   return *this;
 }
@@ -102,7 +104,7 @@ image_memory
 /// Return a pointer to the allocated memory
 void*
 image_memory
-  ::data()
+::data()
 {
   return data_;
 }
@@ -113,7 +115,7 @@ image_memory
 
 /// Default Constructor
 image
-  ::image()
+::image()
   : data_(),
   first_pixel_( NULL ),
   width_( 0 ),
@@ -128,15 +130,15 @@ image
 
 /// Constructor that allocates image memory
 image
-  ::image( size_t width, size_t height, size_t depth, bool interleave )
+::image( size_t width, size_t height, size_t depth, bool interleave )
   : data_( new image_memory( width * height * depth ) ),
-  first_pixel_( reinterpret_cast< byte* > ( data_->data() ) ),
-  width_( width ),
-  height_( height ),
-  depth_( depth ),
-  w_step_( 1 ),
-  h_step_( width ),
-  d_step_( width * height )
+    first_pixel_( reinterpret_cast< byte* > ( data_->data() ) ),
+    width_( width ),
+    height_( height ),
+    depth_( depth ),
+    w_step_( 1 ),
+    h_step_( width ),
+    d_step_( width * height )
 {
   if ( interleave )
   {
@@ -149,48 +151,48 @@ image
 
 /// Constructor that points at existing memory
 image
-  ::image( const byte* first_pixel, size_t width, size_t height, size_t depth,
+::image( const byte* first_pixel, size_t width, size_t height, size_t depth,
            ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
   : data_(),
-  first_pixel_( const_cast< byte* > ( first_pixel ) ),
-  width_( width ),
-  height_( height ),
-  depth_( depth ),
-  w_step_( w_step ),
-  h_step_( h_step ),
-  d_step_( d_step )
+    first_pixel_( const_cast< byte* > ( first_pixel ) ),
+    width_( width ),
+    height_( height ),
+    depth_( depth ),
+    w_step_( w_step ),
+    h_step_( h_step ),
+    d_step_( d_step )
 {
 }
 
 
 /// Constructor that shares memory with another image
 image
-  ::image( const image_memory_sptr& mem,
-           const byte* first_pixel, size_t width, size_t height, size_t depth,
-           ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
+::image( const image_memory_sptr& mem,
+         const byte* first_pixel, size_t width, size_t height, size_t depth,
+         ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
   : data_( mem ),
-  first_pixel_( const_cast< byte* > ( first_pixel ) ),
-  width_( width ),
-  height_( height ),
-  depth_( depth ),
-  w_step_( w_step ),
-  h_step_( h_step ),
-  d_step_( d_step )
+    first_pixel_( const_cast< byte* > ( first_pixel ) ),
+    width_( width ),
+    height_( height ),
+    depth_( depth ),
+    w_step_( w_step ),
+    h_step_( h_step ),
+    d_step_( d_step )
 {
 }
 
 
 /// Copy Constructor
 image
-  ::image( const image& other )
+::image( const image& other )
   : data_( other.data_ ),
-  first_pixel_( other.first_pixel_ ),
-  width_( other.width_ ),
-  height_( other.height_ ),
-  depth_( other.depth_ ),
-  w_step_( other.w_step_ ),
-  h_step_( other.h_step_ ),
-  d_step_( other.d_step_ )
+    first_pixel_( other.first_pixel_ ),
+    width_( other.width_ ),
+    height_( other.height_ ),
+    depth_( other.depth_ ),
+    w_step_( other.w_step_ ),
+    h_step_( other.h_step_ ),
+    d_step_( other.d_step_ )
 {
 }
 
@@ -198,20 +200,20 @@ image
 /// Assignment operator
 const image&
 image
-  ::operator=( const image& other )
+::operator=( const image& other )
 {
   if ( this == &other )
   {
     return *this;
   }
-  data_ = other.data_;
+  data_        = other.data_;
   first_pixel_ = other.first_pixel_;
-  width_ = other.width_;
-  height_ = other.height_;
-  depth_ = other.depth_;
-  w_step_ = other.w_step_;
-  h_step_ = other.h_step_;
-  d_step_ = other.d_step_;
+  width_       = other.width_;
+  height_      = other.height_;
+  depth_       = other.depth_;
+  w_step_      = other.w_step_;
+  h_step_      = other.h_step_;
+  d_step_      = other.d_step_;
   return *this;
 }
 
@@ -219,7 +221,7 @@ image
 /// The size of the image data in bytes
 size_t
 image
-  ::size() const
+::size() const
 {
   if ( ! data_ )
   {
@@ -232,7 +234,7 @@ image
 /// Deep copy the image data from another image into this one
 void
 image
-  ::copy_from( const image& other )
+::copy_from( const image& other )
 {
   set_size( other.width_, other.height_, other.depth_ );
 
@@ -265,7 +267,7 @@ image
 /// Set the size of the image.
 void
 image
-  ::set_size( size_t width, size_t height, size_t depth )
+::set_size( size_t width, size_t height, size_t depth )
 {
   if ( ( width == width_ ) && ( height == height_ ) && ( depth == depth_ ) )
   {
@@ -312,6 +314,51 @@ equal_content( const image& img1, const image& img2 )
     }
   }
   return true;
+}
+
+
+/// Transform a given image in place given a unary function
+void
+transform_image( image& img,
+                 image::byte ( * op )( image::byte const& ) )
+{
+  // determine which order to traverse dimensions
+  // [0] -> smalled distance between values
+  // [2] -> greatest distance between values
+  size_t side_len[3];
+  ptrdiff_t step_size[3];
+  bool wBh = img.w_step() < img.h_step(),
+       dBh = img.d_step() < img.h_step(),
+       dBw = img.d_step() < img.w_step();
+  size_t w_idx = ( ! wBh ) + dBw,
+         h_idx = wBh + dBh,
+         d_idx = ( ! dBw ) + ( ! dBh );
+
+  side_len[w_idx] = img.width();
+  side_len[h_idx] = img.height();
+  side_len[d_idx] = img.depth();
+  step_size[w_idx] = img.w_step();
+  step_size[h_idx] = img.h_step();
+  step_size[d_idx] = img.d_step();
+
+  // position index with a dimension
+  unsigned i0, i1, i2;
+  // Pointers to the first pixel of the current dimension iteration
+  vital::image::byte* d0_s, * d1_s, * d2_s;
+
+  d2_s = img.first_pixel();
+  for ( i2 = 0; i2 < side_len[2]; ++i2, d2_s += step_size[2] )
+  {
+    d1_s = d2_s;
+    for ( i1 = 0; i1 < side_len[1]; ++i1, d1_s += step_size[1] )
+    {
+      d0_s = d1_s;
+      for ( i0 = 0; i0 < side_len[0]; ++i0, d0_s += step_size[0] )
+      {
+        *d0_s = op( *d0_s );
+      }
+    }
+  }
 }
 
 

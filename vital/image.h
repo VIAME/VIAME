@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Core image class interface
+ * \brief core image class interface
  */
 
 #ifndef VITAL_IMAGE_H_
@@ -45,7 +45,6 @@
 namespace kwiver {
 namespace vital {
 
-// ------------------------------------------------------------------
 /// This class represents a block of image memory on the heap.
 /**
  * The image object use shared pointers to this class.
@@ -99,7 +98,7 @@ protected:
 typedef boost::shared_ptr< image_memory > image_memory_sptr;
 
 
-// ------------------------------------------------------------------
+// ==================================================================
 /// The representation of an in-memory image.
 /**
  * Images share memory using the image_memory class.  This is
@@ -217,7 +216,6 @@ public:
   /// The the step in memory to next pixel in the depth direction
   ptrdiff_t d_step() const { return d_step_; }
 
-
   /// Access pixels in the first channel of the image
   /**
    * \param i width position (x)
@@ -263,7 +261,6 @@ public:
   /// Deep copy the image data from another image into this one
   void copy_from( const image& other );
 
-
   /// Set the size of the image.
   /**
    * If the size has not changed, do nothing.
@@ -292,6 +289,7 @@ protected:
   ptrdiff_t h_step_;
   /// Increment to move to the next pixel along the depth direction
   ptrdiff_t d_step_;
+
 };
 
 
@@ -304,6 +302,18 @@ protected:
  */
 VITAL_EXPORT bool equal_content( const image& img1, const image& img2 );
 
-} } // end namespace vital
+
+/// Transform a given image in place given a unary function
+/**
+ * Apply a given unary function to all pixels in the image. This is guareteed
+ * to traverse the pixels in an optimal order, i.e. in-memory-order traversal.
+ *
+ * \param img Input image reference to transform the data of
+ * \param op Unary function which takes a const byte& and returns a byte
+ */
+VITAL_EXPORT void transform_image( image& img,
+                                   image::byte ( * op )( image::byte const& ) );
+} }   // end namespace vital
+
 
 #endif // VITAL_IMAGE_H_
