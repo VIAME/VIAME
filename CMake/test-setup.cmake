@@ -30,4 +30,5 @@ include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_BINARY_DIR}")
 #include_directories("${KWIVER_BINARY_DIR}/kwiver")
 
+# this sets the data directory relative to the current "tests" directory
 include_directories("${KWIVER_SOURCE_DIR}/tests") # to pick up test_common.h -> there may be a better place for this

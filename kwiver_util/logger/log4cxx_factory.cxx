@@ -33,7 +33,7 @@
 #include <log4cxx/logger.h>
 #include <boost/make_shared.hpp>
 
-#include <logger/kwiver_logger_export.h>
+#include <kwiver_util/logger/kwiver_logger_export.h>
 
 namespace kwiver {
 namespace logger_ns {

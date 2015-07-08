@@ -36,7 +36,7 @@
 #ifndef KWIVER_CONFIG_BLOCK_H_
 #define KWIVER_CONFIG_BLOCK_H_
 
-#include <config/kwiver_config_export.h>
+#include <kwiver_util/config/kwiver_config_export.h>
 
 #include <cstddef>
 #include <map>
@@ -55,8 +55,7 @@
 #include "config_block_exception.h"
 
 
-namespace kwiver
-{
+namespace kwiver {
 
 class config_block;
 

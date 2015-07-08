@@ -23,6 +23,7 @@
 #     Python, this should be set to ${PYTHON_EXECUTABLE} since Python files by
 #     themselves are not executable on all platforms.
 #
+#
 # Their syntax is:
 #
 #   kwiver_declare_test(name)
@@ -107,11 +108,13 @@ function (kwiver_add_test name instance)
       PROPERTIES
       REQUIRED_FILES "${kwiver_test_output_path}/${CMAKE_CFG_INTDIR}/test-${name}")
   endif ()
+
   if (kwiver_test_environment)
     set_tests_properties(test-${name}-${instance}
       PROPERTIES
         ENVIRONMENT "${kwiver_test_environment}")
   endif ()
+
   if (KWIVER_TEST_ADD_TARGETS)
     add_custom_target(test-${name}-${instance})
     add_custom_command(
@@ -140,7 +143,7 @@ function (kwiver_discover_tests group libraries file)
     set(test_name)
     set(property)
 
-    string(REGEX MATCH "^IMPLEMENT_TEST\\(([A-Za-z_0-9]+)\\)$"
+    string(REGEX MATCH "^IMPLEMENT_TEST\\( *([A-Za-z_0-9]+) *\\)$"
       match "${test_line}")
     if (match)
       set(test_name "${CMAKE_MATCH_1}")
@@ -153,7 +156,7 @@ function (kwiver_discover_tests group libraries file)
       set(properties)
       set(kwiver_test_environment)
     endif ()
-    string(REGEX MATCHALL "^TEST_PROPERTY\\(([A-Za-z_0-9]+), (.*)\\)$"
+    string(REGEX MATCHALL "^TEST_PROPERTY\\( *([A-Za-z_0-9]+) *, *(.*) *\\)$"
       match "${test_line}")
     if (match)
       set(prop "${CMAKE_MATCH_1}")

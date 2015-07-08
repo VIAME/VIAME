@@ -2,7 +2,6 @@
 # Top level build script for kwiver-build
 #
 cmake_minimum_required(VERSION 3.0)
-## enable_testing()
 
 project(KWIVER)
 
@@ -48,6 +47,14 @@ set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" )
 # ================================================================
 option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
 option(KWIVER_ENABLE_TESTS     "Enable testing" ON)
+
+if (KWIVER_ENABLE_TESTS)
+  enable_testing()
+  include(CTest)
+  set(BUILD_TESTING    ON)
+  mark_as_advanced(BUILD_TESTING)
+
+endif()
 
 if (KWIVER_ENABLE_PYTHON)
   set(kwiver_boost_python_package python)
@@ -205,6 +212,7 @@ link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 # add VIdeo Types Abstraction Layer
 add_subdirectory( vital )
 
+# ==================================================================
 ###
 # Add tests if enabled
 if (KWIVER_ENABLE_TESTS)

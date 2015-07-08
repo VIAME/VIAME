@@ -38,7 +38,7 @@
 #ifndef KWIVER_CONFIG_BLOCK_IO_H_
 #define KWIVER_CONFIG_BLOCK_IO_H_
 
-#include <config/kwiver_config_export.h>
+#include <kwiver_util/config/kwiver_config_export.h>
 #include "config_block.h"
 #include <boost/filesystem/path.hpp>
 
