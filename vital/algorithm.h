@@ -49,7 +49,6 @@
 
 namespace kwiver {
 namespace vital {
-namespace algo {
 
 /// Forward declaration of algorithm
 class algorithm;
@@ -370,7 +369,6 @@ public:
 };
 
 
-} // end namespace algo
 } // end namespace vital
 } // end namespace kwiver
 

@@ -51,8 +51,6 @@
 
 namespace kwiver {
 namespace vital {
-namespace algo {
-
 
 /// Register instances of this algorithm with a given registrar
 template < typename Self >
@@ -114,7 +112,7 @@ config_block_sptr
 algorithm_def< Self >
 ::get_impl_configurations()
 {
-  config_block_sptr config = config_block::empty_config();
+  kwiver::config_block_sptr config = kwiver::config_block::empty_config();
 
   BOOST_FOREACH( std::string impl_name, algorithm_def< Self >::registered_names() )
   {
@@ -132,9 +130,9 @@ algorithm_def< Self >
 template < typename Self >
 void
 algorithm_def< Self >
-::get_nested_algo_configuration( std::string const& name,
-                                 config_block_sptr  config,
-                                 base_sptr          nested_algo )
+::get_nested_algo_configuration( std::string const&         name,
+                                 kwiver::config_block_sptr  config,
+                                 base_sptr                  nested_algo )
 {
   algorithm::get_nested_algo_configuration( Self::static_type_name(),
                                             name, config, nested_algo );
@@ -145,9 +143,9 @@ algorithm_def< Self >
 template < typename Self >
 void
 algorithm_def< Self >
-::set_nested_algo_configuration( std::string const& name,
-                                 config_block_sptr  config,
-                                 base_sptr&         nested_algo )
+::set_nested_algo_configuration( std::string const&         name,
+                                 kwiver::config_block_sptr  config,
+                                 base_sptr&                 nested_algo )
 {
   algorithm_sptr base_nested_algo =
     boost::static_pointer_cast< algorithm > ( nested_algo );
@@ -162,8 +160,8 @@ algorithm_def< Self >
 template < typename Self >
 bool
 algorithm_def< Self >
-::check_nested_algo_configuration( std::string const& name,
-                                   config_block_sptr  config )
+::check_nested_algo_configuration( std::string const&         name,
+                                   kwiver::config_block_sptr  config )
 {
   return algorithm::check_nested_algo_configuration( Self::static_type_name(),
                                                      name, config );
@@ -171,12 +169,11 @@ algorithm_def< Self >
 
 
 }
-}
 }     // end namespace
 
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_ALGORITHM_DEF( T ) \
-  template class vital::algo::algorithm_def< T >;
+  template class kwiver::vital::algorithm_def< T >;
 /// \endcond
 #endif // VITAL_ALGO_ALGORITHM_TXX_

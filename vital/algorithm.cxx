@@ -37,7 +37,6 @@
 
 namespace kwiver {
 namespace vital {
-namespace algo {
 
 
 /// Get this alg's \link vital::config_block configuration block \endlink
@@ -220,6 +219,5 @@ algorithm
 }
 
 
-}
 }
 }     // end namespace
