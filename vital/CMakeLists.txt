@@ -37,7 +37,7 @@ set( vital_public_headers
   exceptions.h
   feature.h
   feature_set.h
-  geo_lat_lon.h
+  geo_lat_lon.h # needs a better impl
 #  geo_reference_points_io.h
   homography_f2f.h
   homography_f2w.h
@@ -114,9 +114,9 @@ kwiver_add_library( vital SHARED
   )
 
 target_link_libraries( vital
-  PRIVATE       ${Boost_LIBRARIES} # be more specific
-                kwiver_config
-                kwiver_logger
+  ${Boost_LIBRARIES} # be more specific
+  kwiver_config
+  kwiver_logger
   )
 
 ###
