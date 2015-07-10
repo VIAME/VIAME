@@ -38,7 +38,6 @@ set( vital_public_headers
   feature.h
   feature_set.h
   geo_lat_lon.h # needs a better impl
-#  geo_reference_points_io.h
   homography_f2f.h
   homography_f2w.h
   homography.h
@@ -49,7 +48,6 @@ set( vital_public_headers
   landmark.h
   landmark_map.h
   landmark_map_io.h
-#   local_geo_cs.h
   match_set.h
   matrix.h
   registrar.h
@@ -78,7 +76,6 @@ set( vital_sources
   camera_map_io.cxx
   feature.cxx
   geo_lat_lon.cxx
-# geo_reference_points_io.cxx
   homography.cxx
   homography_f2f.cxx
   homography_f2w.cxx
@@ -87,7 +84,6 @@ set( vital_sources
   ins_data_io.cxx
   landmark.cxx
   landmark_map_io.cxx
-  #   local_geo_cs.cxx
   registrar.cxx
   rotation.cxx
   similarity.cxx
