@@ -82,6 +82,9 @@ bool const use_build_plugin_dir = USE_BUILD_PLUGIN_DIR;
 } // end anonymous namespace
 
 
+// ---- Static ---
+algorithm_plugin_manager * algorithm_plugin_manager::s_instance( 0 );
+
 // ===========================================================================
 // PluginManager Private Implementation
 // ---------------------------------------------------------------------------
