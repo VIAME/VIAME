@@ -49,7 +49,7 @@ namespace kwiver {
 namespace vital_c {
 
 /// Global cache for all algorithm instances ever.
-SharedPointerCache< kwiver::vital::algo::algorithm,
+SharedPointerCache< kwiver::vital::algorithm,
                     vital_algorithm_t > ALGORITHM_SPTR_CACHE( "algorithm" );
 
 }

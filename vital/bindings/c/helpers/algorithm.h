@@ -51,7 +51,7 @@
 namespace kwiver {
 namespace vital_c {
 
-extern SharedPointerCache< vital::algo::algorithm,
+  extern SharedPointerCache< kwiver::vital::algorithm,
                            vital_algorithm_t > ALGORITHM_SPTR_CACHE;
 
 
