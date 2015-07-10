@@ -56,7 +56,10 @@ if (KWIVER_ENABLE_LOG4CXX)
   include_directories ( SYSTEM ${Log4cxx_INCLUDE_DIR} ${ApacheRunTime_INCLUDE_DIR} )
 
   kwiver_add_plugin( kwiver_log4cxx_logger
-    ${plugin_base_src} log4cxx_factory.cxx ${log4cxx_lib} )
+    ${plugin_base_src} log4cxx_factory.cxx )
+
+  target_link_libraries( kwiver_log4cxx_logger
+    ${log4cxx_lib} )
 
 endif(KWIVER_ENABLE_LOG4CXX)
 
