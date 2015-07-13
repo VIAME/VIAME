@@ -1,0 +1,209 @@
+#
+# Top level build for VITAL
+#
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag(-fvisibility=hidden KWIVER_HAVE_GCC_VISIBILITY)
+
+include( GenerateExportHeader )
+
+###
+# KWSys borrowed from CMake
+#---------------------------------------------------------------------
+# Create the kwsys library for vital.
+set(KWSYS_NAMESPACE kwiversys)
+set(KWSYS_USE_DynamicLoader 1)
+set(KWSYS_INSTALL_EXPORT_NAME vital)
+set(KWSYS_INSTALL_LIB_DIR lib)
+set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/kwiversys CACHE INTERNAL "")
+
+include_directories( SYSTEM ${KWSYS_INCLUDE_DIR} )
+add_subdirectory(kwiversys)
+_kwiver_export( kwiversys )
+
+
+# ==================================================================
+
+# define generated export header file
+set( lib_export_header "${CMAKE_CURRENT_BINARY_DIR}/vital_export.h" )
+
+###
+#
+set( vital_public_headers
+  registrar.h
+  vital_config.h
+
+  algo/algorithm.txx
+  algo/algorithm.h
+
+  exceptions.h
+  exceptions/algorithm.h
+  exceptions/base.h
+  exceptions/image.h
+  exceptions/io.h
+  exceptions/math.h
+
+  io/camera_io.h
+  io/camera_map_io.h
+  io/eigen_io.h
+  io/landmark_map_io.h
+  io/track_set_io.h
+
+  types/camera.h
+  types/camera_intrinsics.h
+  types/camera_map.h
+  types/covariance.h
+  types/descriptor.h
+  types/descriptor_set.h
+  types/feature.h
+  types/feature_set.h
+  types/geo_lat_lon.h
+  types/homography.h
+  types/homography_f2f.h
+  types/homography_f2w.h
+  types/image.h
+  types/image_container.h
+  types/landmark.h
+  types/landmark_map.h
+  types/match_set.h
+  types/matrix.h
+  types/rotation.h
+  types/similarity.h
+  types/timestamp.h
+  types/track.h
+  types/track_set.h
+  types/transform.h
+  types/vector.h
+)
+
+set( vital_sources
+  registrar.cxx
+
+  algo/algorithm.cxx
+  exceptions/algorithm.cxx
+  exceptions/base.cxx
+  exceptions/image.cxx
+  exceptions/io.cxx
+  exceptions/math.cxx
+
+  io/camera_io.cxx
+  io/camera_map_io.cxx
+  io/landmark_map_io.cxx
+  io/track_set_io.cxx
+
+  types/camera.cxx
+  types/camera_intrinsics.cxx
+  types/feature.cxx
+  types/geo_lat_lon.cxx
+  types/homography.cxx
+  types/homography_f2f.cxx
+  types/homography_f2w.cxx
+  types/image.cxx
+  types/landmark.cxx
+  types/rotation.cxx
+  types/similarity.cxx
+  types/timestamp.cxx
+  types/track.cxx
+  types/track_set.cxx
+  types/transform.cxx
+)
+
+kwiver_install_headers(
+  ${vital_public_headers}
+  )
+
+# install export header
+install(
+  FILES          ${lib_export_header}
+  DESTINATION    include/kwiver/vital
+  )
+
+kwiver_add_library( vital
+  ${vital_public_headers}
+  ${vital_sources}
+  )
+
+target_link_libraries( vital
+  ${Boost_LIBRARIES} # be more specific
+  vital_config
+  vital_logger
+  kwiversys
+  )
+
+
+###
+# Build plugin management library
+#
+# This has to happen after plugin creation so as to be able to statically link
+# in plugin libraries when building static.
+#
+option(KWIVER_USE_BUILD_PLUGIN_DIR
+  "Whether to include the build-tree plugin directory to the default plugin path list"
+  ON
+  )
+
+set(vital_apm_headers
+  algorithm_plugin_manager.h
+  )
+set(vital_apm_sources
+  algorithm_plugin_manager.cxx
+  )
+
+kwiver_install_headers(${vital_apm_headers})
+kwiver_add_library(vital_apm
+  ${vital_apm_headers}
+  ${vital_apm_headers_private}
+  ${vital_apm_sources}
+  )
+
+target_link_libraries(vital_apm
+  PRIVATE          kwiversys)
+
+# Configuring/Adding compile definitions to target
+# (so we can use generator expressions)
+if (WIN32)  # Windows puts DLLs in bin/CONFIG/
+  set(shared_lib_dir "/bin")
+  set(lib_dir_suffix)
+else()  # Other Unix systems
+  set(shared_lib_dir "/lib")
+  set(lib_dir_suffix "${KWIVER_LIB_SUFFIX}")
+endif()
+
+if (CMAKE_CONFIGURATION_TYPES)
+  set(config_subdir "/$<CONFIGURATION>")
+endif()
+
+# Convert use-build-dir switch into 1/0 value
+macro(boolize var_name)
+  if( ${var_name} )
+    set(${var_name} 1)
+  else()
+    set(${var_name} 0)
+  endif()
+endmacro()
+
+boolize(KWIVER_USE_BUILD_PLUGIN_DIR)
+
+target_compile_definitions(vital_apm
+  PRIVATE
+    # For plugin manager
+    "SHARED_LIB_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\""
+    "USE_BUILD_PLUGIN_DIR=${KWIVER_USE_BUILD_PLUGIN_DIR}"
+    "DEFAULT_PLUGIN_DIR_BUILD=\"${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/vital\""
+    "DEFAULT_PLUGIN_DIR_INSTALL=\"${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/vital\""
+  )
+
+###
+#
+add_subdirectory( bindings )
+add_subdirectory( logger )
+add_subdirectory( config )
+
+###
+# Add tests if enabled
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory( tests )
+endif()
+
+###
+# Make appropriate export header file
+generate_export_header( vital )
