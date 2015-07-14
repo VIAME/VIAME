@@ -207,7 +207,7 @@ public:
    */
   bool register_from_module( path_t module_path )
   {
-    LOG_DEBUG( m_logger, "Starting plug-in interfacing for module file: " << module_path );
+    LOG_DEBUG( m_logger, "Loading plugins from module file: " << module_path );
 
     //
     // Attempting module load
@@ -220,61 +220,45 @@ public:
       return false; // TODO: Throw exception here?
     }
 
-    LOG_DEBUG( m_logger, "Loaded module: " << library );
-
     //
     // Attempt to load each available interface here
     //
-    bool module_used = false;
+    // If interface function not found, we assume this plugin doesn't provide
+    // any algorithm implementations and close the library. We otherwise keep
+    // it open if we are going to use things from it.
+    function_t register_func = NULL;
 
-    { // Algorithm Implementation interface
-
-      // If interface function not found, we assume this plugin doesn't provide
-      // any algorithm implementations and close the library. We otherwise keep
-      // it open if we are going to use things from it.
-      LOG_DEBUG( m_logger, "Looking for algorithm impl registration function: "
-                 << register_function_name.c_str() );
-      function_t register_func = NULL;
-
-      // Get our entry symbol
-      register_func =  DL::GetSymbolAddress( library, register_function_name.c_str() );
-      LOG_DEBUG( m_logger, "Returned function address: " << register_func );
-
-      register_impls_func_t const register_impls =
-        reinterpret_cast< register_impls_func_t > ( register_func );
-
-      // Check for symbol discovery
-      if ( ! register_impls )
-      {
-        LOG_DEBUG( m_logger, "Failed to find/load algorithm impl registration function" );
-      }
-      // Call function, check for success
-      else if ( ( *register_impls )( registrar::instance() ) > 0 )
-      {
-        LOG_WARN( m_logger, "Algorithm implementation registration failed for one or "
-                  "more algorithms in plugin module, possibly due to duplicate "
-                  "registration: " << module_path );
-        // TODO: Throw exception here?
-      }
-      else
-      {
-        LOG_DEBUG( m_logger, "Successfully called registration function." );
-        module_used = true;
-
-        // Adding module name to registered list
-        registered_modules_[module_path.stem().string()] = module_path;
-      }
-    } // end Algorithm Implementation interface
-
-    if ( ! module_used )
+    // Get our entry symbol
+    register_func =  DL::GetSymbolAddress( library, register_function_name.c_str() );
+    if ( 0 == register_func )
     {
-      if ( ! DL::CloseLibrary( library ) )
-      {
-        LOG_WARN( m_logger, "Failed to close module library file : " << module_path );
-      }
+      LOG_DEBUG( m_logger, "Failed to find algorithm impl registration function "
+        << register_function_name );
+      DL::CloseLibrary( library );
+      return false;
     }
 
-    return module_used;
+    register_impls_func_t const register_impls =
+      reinterpret_cast< register_impls_func_t > ( register_func );
+
+    if ( ( *register_impls )( registrar::instance() ) > 0 )
+    {
+      LOG_WARN( m_logger, "Algorithm implementation registration failed for one or "
+                "more algorithms in plugin module, possibly due to duplicate "
+                "registration: " << module_path );
+      // TODO: Throw exception here?
+      DL::CloseLibrary( library );
+      return false;
+    }
+    else
+    {
+      LOG_DEBUG( m_logger, "Module registration complete" );
+
+      // Adding module name to registered list
+      registered_modules_[module_path.stem().string()] = module_path;
+    }
+
+    return true;
   } // register_from_module
 
 
