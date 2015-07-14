@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
   desc.add_options()
     ("help", "produce help message")
     ("plugin-name", po::value< std::string >(), "load only these plugins")
-    ("path,I", po::value< std::vector< std::string> >(), "add directory to search path")
+    ("path,I", po::value< std::vector< std::string> >(), "add directory to search")
     ;
 
   po::variables_map vm;
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
   //
   // Use selected plugin name if supplied
   //
-  std::string plugin_name = vm["plugin_name"].as<std::string>();
+  std::string plugin_name;
   if (vm.count( "plugin-name" ) )
   {
     plugin_name = vm["plugin_name"].as<std::string>();
