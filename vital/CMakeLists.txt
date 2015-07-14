@@ -205,8 +205,8 @@ target_compile_definitions(vital_apm
   PRIVATE
     "SHARED_LIB_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\""
     "USE_BUILD_PLUGIN_DIR=${KWIVER_USE_BUILD_PLUGIN_DIR}"
-    "DEFAULT_PLUGIN_DIR_BUILD=\"${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/vital\""
-    "DEFAULT_PLUGIN_DIR_INSTALL=\"${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/vital\""
+    "DEFAULT_PLUGIN_DIR_BUILD=\"${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules\""
+    "DEFAULT_PLUGIN_DIR_INSTALL=\"${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/modules\""
   )
 
 ###
