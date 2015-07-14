@@ -168,7 +168,11 @@ kwiver_install_headers(
   )
 
 target_link_libraries(vital_apm
-  PRIVATE          kwiversys)
+  PRIVATE          kwiversys
+                   vital
+                   vital_logger
+                   boost_filesystem
+  )
 
 # Configuring/Adding compile definitions to target
 # (so we can use generator expressions)
@@ -210,6 +214,7 @@ target_compile_definitions(vital_apm
 add_subdirectory( bindings )
 add_subdirectory( logger )
 add_subdirectory( config )
+add_subdirectory( tools )
 
 ###
 # Add tests if enabled

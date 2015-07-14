@@ -41,6 +41,14 @@
 #include <vital/logger/logger.h>
 #include <kwiversys/DynamicLoader.hxx>
 
+#ifndef BOOST_FILESYSTEM_VERSION
+#define BOOST_FILESYSTEM_VERSION 3
+#else
+#if BOOST_FILESYSTEM_VERSION == 2
+#error "Only boost::filesystem version 3 is supported."
+#endif
+#endif
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
