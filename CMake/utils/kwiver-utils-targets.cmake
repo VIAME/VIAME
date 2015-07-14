@@ -232,48 +232,31 @@ endfunction()
 # A SUBDIR may be provided in order to place the header files in a
 # subdirectory under that. This path must be relative.
 #
+# NOPATH can be specified to ignore leading path components on the
+# files being installed. This is useful when installing CMake
+# generated export headers
+#
 # If the file name has a leading path component, it is appended to the
 # install path to allow installing of headers in subdirectories.
 #
 #-
 function(kwiver_install_headers)
+  set(options NOPATH)
   set(oneValueArgs SUBDIR)
-  cmake_parse_arguments(mih "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  cmake_parse_arguments(mih "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   #kwiver_install(
   #  FILES       ${mih_UNPARSED_ARGUMENTS}
   #  DESTINATION "include/kwiver/${mih_SUBDIR}"
   #  )
   foreach(header IN LISTS mih_UNPARSED_ARGUMENTS)
-    get_filename_component(H_SUBDIR "${header}" DIRECTORY)
+    if(mih_NOPATH)
+      set( H_SUBDIR ) # use empty subdir/path to file
+    else()
+      get_filename_component(H_SUBDIR "${header}" DIRECTORY)
+    endif()
     kwiver_install(
       FILES       "${header}"
       DESTINATION "include/kwiver/${mih_SUBDIR}/${H_SUBDIR}"
-      )
-
-  endforeach()
-endfunction()
-
-
-#+
-#   kwiver_install_header_files(header1 [header2 ...] [SUBDIR dir])
-#
-# Install KWIVER public header files to include/kwiver.
-#
-# A SUBDIR may be provided in order to place the header files in a
-# subdirectory under that. This path must be relative.
-#
-# If there is a subdirectory specified with the file, it is ignored
-# (unlike the kwiver_install_headers function). This function is
-# useful for installing generted ..._export.h files.
-#
-#-
-function(kwiver_install_header_files)
-  set(oneValueArgs SUBDIR)
-  cmake_parse_arguments(mih "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-  foreach(header IN LISTS mih_UNPARSED_ARGUMENTS)
-    kwiver_install(
-      FILES       "${header}"
-      DESTINATION "include/kwiver/${mih_SUBDIR}"
       )
 
   endforeach()
