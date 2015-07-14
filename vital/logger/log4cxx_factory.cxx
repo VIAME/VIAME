@@ -33,9 +33,10 @@
 #include <log4cxx/logger.h>
 #include <boost/make_shared.hpp>
 
-#include <vital/logger/kwiver_logger_export.h>
+#include <vital/logger/vital_logger_export.h>
 
 namespace kwiver {
+namespace vital {
 namespace logger_ns {
 
 // ----------------------------------------------------------------
@@ -132,7 +133,7 @@ public:
 
 
   virtual void log_fatal( std::string const&                      msg,
-                          kwiver::logger_ns::location_info const& location )
+                          kwiver::vital::logger_ns::location_info const& location )
   {
     log4cxx::spi::LocationInfo cxx_location( location.get_file_name_ptr(),
                                              location.get_method_name_ptr(),
@@ -150,7 +151,7 @@ public:
 
 
   virtual void log_error( std::string const&                      msg,
-                          kwiver::logger_ns::location_info const& location )
+                          kwiver::vital::logger_ns::location_info const& location )
   {
     log4cxx::spi::LocationInfo cxx_location( location.get_file_name_ptr(),
                                              location.get_method_name_ptr(),
@@ -167,7 +168,7 @@ public:
   }
 
   virtual void log_warn( std::string const&                       msg,
-                         kwiver::logger_ns::location_info const&  location )
+                         kwiver::vital::logger_ns::location_info const&  location )
   {
     log4cxx::spi::LocationInfo cxx_location( location.get_file_name_ptr(),
                                              location.get_method_name_ptr(),
@@ -184,7 +185,7 @@ public:
 
 
   virtual void log_info( std::string const&                       msg,
-                         kwiver::logger_ns::location_info const&  location )
+                         kwiver::vital::logger_ns::location_info const&  location )
   {
     log4cxx::spi::LocationInfo cxx_location( location.get_file_name_ptr(),
                                              location.get_method_name_ptr(),
@@ -202,7 +203,7 @@ public:
 
 
   virtual void log_debug( std::string const&                      msg,
-                          kwiver::logger_ns::location_info const& location )
+                          kwiver::vital::logger_ns::location_info const& location )
   {
     log4cxx::spi::LocationInfo cxx_location( location.get_file_name_ptr(),
                                              location.get_method_name_ptr(),
@@ -220,7 +221,7 @@ public:
 
 
   virtual void log_trace( std::string const&                      msg,
-                          kwiver::logger_ns::location_info const& location )
+                          kwiver::vital::logger_ns::location_info const& location )
   {
     log4cxx::spi::LocationInfo cxx_location( location.get_file_name_ptr(),
                                              location.get_method_name_ptr(),
@@ -252,7 +253,7 @@ public:
 
 
   virtual void log_message( log_level_t level, std::string const& msg,
-                            kwiver::logger_ns::location_info const& location )
+                            kwiver::vital::logger_ns::location_info const& location )
   {
     log4cxx::spi::LocationInfo cxx_location( location.get_file_name_ptr(),
                                              location.get_method_name_ptr(),
@@ -311,17 +312,17 @@ public:
 
 }; // end class log4cxx_factory
 
-} } // end namespace
+} } } // end namespace
 
 
 // ==================================================================
 /*
  * Shared object bootstrap function
  */
-extern "C" void* KWIVER_LOGGER_EXPORT kwiver_logger_factory();
+extern "C" void* VITAL_LOGGER_EXPORT kwiver_logger_factory();
 
 void* kwiver_logger_factory()
 {
-  kwiver::logger_ns::log4cxx_factory* ptr =  new kwiver::logger_ns::log4cxx_factory;
+  kwiver::vital::logger_ns::log4cxx_factory* ptr =  new kwiver::vital::logger_ns::log4cxx_factory;
   return ptr;
 }
