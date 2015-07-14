@@ -196,7 +196,6 @@ function(kwiver_add_library     name)
   if ( NOT ARGV1 STREQUAL "MODULE" )
     # Do not append names of MODULES (plugins) to the library list
     # because they are not linked to.
-
     set_property(GLOBAL APPEND PROPERTY kwiver_libraries ${name})
   endif()
 endfunction()
@@ -293,7 +292,7 @@ endfunction()
 # This function creates a target for a loadable plugin.
 #
 function( kwiver_add_plugin        name )
-  set(library_subdir "/modules")
+  set(library_subdir "/modules") # put plugins in this subdir
   set(no_export 1)
 
   kwiver_add_library( ${name} MODULE ${ARGN} )

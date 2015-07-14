@@ -35,17 +35,11 @@ set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/VITAL_packaging")
 set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/VITAL_packaging")
 set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
-set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build")
-set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/install/vital")
-
 # root directories
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 
 set(CMAKE_MODULE_PATH      ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
-set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})
-set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)
-set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" )
 
 # ================================================================
 ###
@@ -77,7 +71,7 @@ include(kwiver-flags)
 #
 include( vital-depends )
 
-# set the name for our package exports
+# set the export group name for our package exports
 set(kwiver_export_name
   vital_exports)
 
@@ -120,17 +114,17 @@ if (fletch_ROOT)
 endif()
 
 configure_file(${KWIVER_CMAKE_DIR}/setup_VITAL.sh.in
-  ${KWIVER_BUILD_INSTALL_PREFIX}/setup_VITAL.sh )
+  ${CMAKE_INSTALL_PREFIX}/setup_VITAL.sh )
 
 add_subdirectory( vital )
 
 ##################################################################
 # Top level installation
 #
-set(kwiver_cmake_install_dir lib${KWIVER_LIB_SUFFIX}/CMake/vital)
+set(kwiver_cmake_install_dir "lib${KWIVER_LIB_SUFFIX}/CMake/vital")
 
 # Install rules for CMake utilities
-include( kwiver-install-utils )
+## include( kwiver-install-utils )
 
 # Prepare space-separated list of library names for config
 get_property(vital_libs GLOBAL PROPERTY kwiver_libraries)
@@ -164,9 +158,8 @@ kwiver_install(
   RENAME      vital-config.cmake
   )
 
-
 kwiver_install(
-  FILES       vital-config-targets.cmake
   EXPORT      ${kwiver_export_name}
   DESTINATION "${kwiver_cmake_install_dir}"
+  FILE        vital-config-targets.cmake
   )

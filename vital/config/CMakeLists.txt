@@ -13,10 +13,6 @@ set( vital_config_public_headers
   config_block_exception.h
 )
 
-set( vital_config_private_headers
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_config_export.h
-)
-
 set( vital_config_sources
   config_block.cxx
   config_block_io.cxx
@@ -25,18 +21,19 @@ set( vital_config_sources
 
 kwiver_install_headers(
   ${vital_config_public_headers}
-  SUBDIR config
+  SUBDIR     vital/config
   )
 
-kwiver_install_header_files(
+kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_config_export.h
-  SUBDIR config
+  SUBDIR     vital/config
+  NOPATH
 )
 
 kwiver_add_library( vital_config
   ${vital_config_public_headers}
-  ${vital_config_private_headers}
   ${vital_config_sources}
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_config_export.h
   )
 
 target_link_libraries( vital_config

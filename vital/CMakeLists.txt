@@ -12,19 +12,15 @@ include( GenerateExportHeader )
 # Create the kwsys library for vital.
 set(KWSYS_NAMESPACE kwiversys)
 set(KWSYS_USE_DynamicLoader 1)
-set(KWSYS_INSTALL_EXPORT_NAME vital)
+set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
 set(KWSYS_INSTALL_LIB_DIR lib)
-set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/kwiversys CACHE INTERNAL "")
+set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
 
-include_directories( SYSTEM ${KWSYS_INCLUDE_DIR} )
+include_directories( SYSTEM ${KWSYS_INCLUDE_DIR}/kwiversys )
 add_subdirectory(kwiversys)
-_kwiver_export( kwiversys )
-
+_kwiver_export( ${KWSYS_NAMESPACE} )
 
 # ==================================================================
-
-# define generated export header file
-set( lib_export_header "${CMAKE_CURRENT_BINARY_DIR}/vital_export.h" )
 
 ###
 #
@@ -109,17 +105,20 @@ set( vital_sources
 
 kwiver_install_headers(
   ${vital_public_headers}
+  SUBDIR   vital
   )
 
 # install export header
-install(
-  FILES          ${lib_export_header}
-  DESTINATION    include/kwiver/vital
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
+  SUBDIR   vital
+  NOPATH
   )
 
 kwiver_add_library( vital
   ${vital_public_headers}
   ${vital_sources}
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
   )
 
 target_link_libraries( vital
@@ -147,12 +146,25 @@ set(vital_apm_headers
 set(vital_apm_sources
   algorithm_plugin_manager.cxx
   )
+set(vital_apm_headers_private
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_apm_export.h
+  )
 
-kwiver_install_headers(${vital_apm_headers})
 kwiver_add_library(vital_apm
   ${vital_apm_headers}
   ${vital_apm_headers_private}
   ${vital_apm_sources}
+  )
+
+kwiver_install_headers(
+  ${vital_apm_headers}
+  SUBDIR      vital
+  )
+
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_apm_export.h
+  SUBDIR      vital
+  NOPATH
   )
 
 target_link_libraries(vital_apm
@@ -183,9 +195,10 @@ endmacro()
 
 boolize(KWIVER_USE_BUILD_PLUGIN_DIR)
 
+# plugin manager needs a lot of external info so it can locate plugins
+# and such
 target_compile_definitions(vital_apm
   PRIVATE
-    # For plugin manager
     "SHARED_LIB_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\""
     "USE_BUILD_PLUGIN_DIR=${KWIVER_USE_BUILD_PLUGIN_DIR}"
     "DEFAULT_PLUGIN_DIR_BUILD=\"${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/vital\""

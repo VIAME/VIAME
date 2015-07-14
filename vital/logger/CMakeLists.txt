@@ -27,13 +27,13 @@ set( vital_logger_sources
 
 kwiver_install_headers(
   ${vital_logger_public_headers}
-  vital_logger_export.h
-  SUBDIR logger
+  SUBDIR      vital/logger
   )
 
-kwiver_install_header_files(
+kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_logger_export.h
-  SUBDIR logger
+  NOPATH
+  SUBDIR      vital/logger
   )
 
 kwiver_add_library( vital_logger
@@ -63,12 +63,15 @@ if (KWIVER_ENABLE_LOG4CXX)
   include_directories ( SYSTEM ${Log4cxx_INCLUDE_DIR} ${ApacheRunTime_INCLUDE_DIR} )
 
   kwiver_add_plugin( vital_log4cxx_logger
-    ${plugin_base_src} log4cxx_factory.cxx )
+    ${plugin_base_src}
+    log4cxx_factory.cxx
+    )
 
   target_link_libraries( vital_log4cxx_logger
-    ${log4cxx_lib} )
+    PRIVATE         ${log4cxx_lib}
+    )
 
-endif(KWIVER_ENABLE_LOG4CXX)
+endif()
 
 ###
 # Add tests if enbled

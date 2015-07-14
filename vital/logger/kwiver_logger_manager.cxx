@@ -60,6 +60,8 @@ namespace vital {
 //
 kwiver_logger_manager * kwiver_logger_manager::s_instance = 0;
 
+#define PLUGIN_ENV_VAR "VITAL_LOGGER_FACTORY"
+
 // ----------------------------------------------------------------
 /** Constructor.
  *
@@ -74,17 +76,17 @@ kwiver_logger_manager
   // we provide a method for creating these loggers.
 
   bool try_default(false);
-  char const* factory = std::getenv("KWIVER_LOGGER_FACTORY");
+  char const* factory = std::getenv( PLUGIN_ENV_VAR );
   if ( 0 == factory )
   {
     try_default = true;
     // If no special factory is specified, try default name
 #if defined(WIN32)
-    factory = "kwiver_logger_plugin.dll";
+    factory = "vital_logger_plugin.dll";
 #elif defined(__APPLE__)
-    factory = "kwiver_logger_plugin.dylib";
+    factory = "vital_logger_plugin.dylib";
 #else
-    factory = "kwiver_logger_plugin.so";
+    factory = "vital_logger_plugin.so";
 #endif
   }
 
@@ -99,14 +101,16 @@ kwiver_logger_manager
     // Only give error if the environment specified logger could not be found
     if ( ! try_default )
     {
-      std::cerr << "ERROR: Could not load logger factory as specified in environment variable \"KWIVER_LOGGER_FACTORY\"\n"
+      std::cerr << "ERROR: Could not load logger factory as specified in environment variable \""
+                << PLUGIN_ENV_VAR "\"\n"
                 << "Defaulting to built-in logger.\n"
                 << e.what() << std::endl;
     }
     else
     {
       std::cerr << "Info: Could not load default logger factory.\n"
-                << "Typical usage: export KWIVER_LOGGER_FACTORY=" << factory << "\n"
+                << "Typical usage: export "
+                << PLUGIN_ENV_VAR << "=" << factory << "\n"
                 << "Specify name of shared object, with or without a path. Behaviour depends on host system.\n"
                 << "Defaulting to built-in logger." << std::endl;
     }

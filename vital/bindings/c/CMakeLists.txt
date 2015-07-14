@@ -17,7 +17,6 @@ cmake_dependent_option( VITAL_C_LIB_FORCE_SHARED
 if( VITAL_ENABLE_C_LIB )
 
   set(vital_c_public_headers
-    ${CMAKE_CURRENT_BINARY_DIR}/vital_c_export.h
 
     algorithm.h
     algorithm_plugin_manager.h
@@ -33,6 +32,7 @@ if( VITAL_ENABLE_C_LIB )
     )
 
   set(vital_c_private_headers
+    ${CMAKE_CURRENT_BINARY_DIR}/vital_c_export.h
     helpers/algorithm.h
     helpers/c_utils.h
     helpers/camera.h
@@ -64,16 +64,24 @@ if( VITAL_ENABLE_C_LIB )
 
   kwiver_install_headers(
     ${vital_c_public_headers}
-    SUBDIR c
+    SUBDIR vital/c
     )
+
+  kwiver_install_headers(
+    ${CMAKE_CURRENT_BINARY_DIR}/vital_c_export.h
+    SUBDIR vital/c
+    NOPATH
+    )
+
   kwiver_add_library( vital_c
     ${vital_force_shared_lib}
     ${vital_c_public_headers}
     ${vital_c_private_headers}
     ${vital_c_sources}
     )
+
   target_link_libraries( vital_c
-    vital # maptk_apm
+    vital
     )
 
 endif( VITAL_ENABLE_C_LIB )
