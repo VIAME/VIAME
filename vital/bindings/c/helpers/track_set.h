@@ -36,7 +36,7 @@
 #ifndef VITAL_C_HELPERS_TRACK_H_
 #define VITAL_C_HELPERS_TRACK_H_
 
-#include <vital/track_set.h>
+#include <vital/types/track_set.h>
 
 #include <vital/bindings/c/track_set.h>
 #include <vital/bindings/c/helpers/c_utils.h>

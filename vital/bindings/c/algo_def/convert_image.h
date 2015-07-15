@@ -33,17 +33,17 @@
  * \brief C Interface to convert_image algorithm definition
  */
 
-#ifndef MAPTK_C_ALGO_DEF_CONVERT_IMAGE_H_
-#define MAPTK_C_ALGO_DEF_CONVERT_IMAGE_H_
+#ifndef VITAL_C_ALGO_DEF_CONVERT_IMAGE_H_
+#define VITAL_C_ALGO_DEF_CONVERT_IMAGE_H_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#include <maptk/c/algorithm.h>
-#include <maptk/c/config.h>
-#include <maptk/c/image_container.h>
+#include <vital/bindings/c/algorithm.h>
+#include <vital/bindings/c/vital_c_export.h>
+#include <vital/bindings/c/image_container.h>
 
 
 /// Declare common type-specific functions
@@ -60,15 +60,15 @@ DECLARE_COMMON_ALGO_API( convert_image );
  * \param eh Error handle instance.
  * \return New image container with the converted underlying data.
  */
-MAPTK_C_EXPORT
-maptk_image_container_t*
-maptk_algorithm_convert_image_convert( maptk_algorithm_t *algo,
-                                       maptk_image_container_t *ic,
-                                       maptk_error_handle_t *eh );
+VITAL_C_EXPORT
+vital_image_container_t*
+vital_algorithm_convert_image_convert( vital_algorithm_t *algo,
+                                       vital_image_container_t *ic,
+                                       vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_ALGO_DEF_CONVERT_IMAGE_H_
+#endif // VITAL_C_ALGO_DEF_CONVERT_IMAGE_H_

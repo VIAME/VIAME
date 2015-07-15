@@ -33,19 +33,19 @@
  * \brief C Interface to track_features algorithm definition
  */
 
-#ifndef MAPTK_C_ALGO_DEF_TRACK_FEATURES_H_
-#define MAPTK_C_ALGO_DEF_TRACK_FEATURES_H_
+#ifndef VITAL_C_ALGO_DEF_TRACK_FEATURES_H_
+#define VITAL_C_ALGO_DEF_TRACK_FEATURES_H_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#include <maptk/c/algorithm.h>
-#include <maptk/c/config.h>
-#include <maptk/c/error_handle.h>
-#include <maptk/c/image_container.h>
-#include <maptk/c/track_set.h>
+#include <vital/bindings/c/algorithm.h>
+#include <vital/bindings/c/vital_c_export.h>
+#include <vital/bindings/c/error_handle.h>
+#include <vital/bindings/c/image_container.h>
+#include <vital/bindings/c/track_set.h>
 
 
 /// Common algorithm definition API
@@ -53,28 +53,28 @@ DECLARE_COMMON_ALGO_API( track_features );
 
 
 /// New track set of extended tracks using the current frame
-MAPTK_C_EXPORT
-maptk_trackset_t*
-maptk_algorithm_track_features_track( maptk_algorithm_t *algo,
-                                      maptk_trackset_t *prev_tracks,
+VITAL_C_EXPORT
+vital_trackset_t*
+vital_algorithm_track_features_track( vital_algorithm_t *algo,
+                                      vital_trackset_t *prev_tracks,
                                       unsigned int frame_num,
-                                      maptk_image_container_t *ic,
-                                      maptk_error_handle_t *eh );
+                                      vital_image_container_t *ic,
+                                      vital_error_handle_t *eh );
 
 
 /// New track set of extended tracks using the current frame, masked version
-MAPTK_C_EXPORT
-maptk_trackset_t*
-maptk_algorithm_track_features_track_with_mask( maptk_algorithm_t *algo,
-                                                maptk_trackset_t *prev_tracks,
+VITAL_C_EXPORT
+vital_trackset_t*
+vital_algorithm_track_features_track_with_mask( vital_algorithm_t *algo,
+                                                vital_trackset_t *prev_tracks,
                                                 unsigned int frame_num,
-                                                maptk_image_container_t *ic,
-                                                maptk_image_container_t *mask,
-                                                maptk_error_handle_t *eh );
+                                                vital_image_container_t *ic,
+                                                vital_image_container_t *mask,
+                                                vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_ALGO_DEF_TRACK_FEATURES_H_
+#endif // VITAL_C_ALGO_DEF_TRACK_FEATURES_H_

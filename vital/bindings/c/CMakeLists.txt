@@ -17,7 +17,6 @@ cmake_dependent_option( VITAL_C_LIB_FORCE_SHARED
 if( VITAL_ENABLE_C_LIB )
 
   set(vital_c_public_headers
-
     algorithm.h
     algorithm_plugin_manager.h
     camera.h
@@ -29,6 +28,10 @@ if( VITAL_ENABLE_C_LIB )
     image_container.h
     track.h
     track_set.h
+
+    algo_def/convert_image.h
+    algo_def/image_io.h
+    algo_def/track_features.h
     )
 
   set(vital_c_private_headers
@@ -56,6 +59,10 @@ if( VITAL_ENABLE_C_LIB )
     track.cxx
     track_set.cxx
     helpers/c_utils.cxx
+
+    algo_def/convert_image.cxx
+    algo_def/image_io.cxx
+    algo_def/track_features.cxx
     )
 
   if( VITAL_C_LIB_FORCE_SHARED )

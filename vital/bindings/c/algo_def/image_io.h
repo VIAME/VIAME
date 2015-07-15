@@ -33,17 +33,17 @@
  * \brief C Interface to image_io algorithm definition
  */
 
-#ifndef MAPTK_C_ALGO_DEF_IMAGE_IO_H_
-#define MAPTK_C_ALGO_DEF_IMAGE_IO_H_
+#ifndef VITAL_C_ALGO_DEF_IMAGE_IO_H_
+#define VITAL_C_ALGO_DEF_IMAGE_IO_H_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#include <maptk/c/algorithm.h>
-#include <maptk/c/error_handle.h>
-#include <maptk/c/image_container.h>
+#include <vital/bindings/c/algorithm.h>
+#include <vital/bindings/c/error_handle.h>
+#include <vital/bindings/c/image_container.h>
 
 
 /// Declare common type-specific functions
@@ -59,10 +59,10 @@ DECLARE_COMMON_ALGO_API( image_io );
  * \return New image container instance containing the image memory for the
  *         loaded image file.
  */
-MAPTK_C_EXPORT
-maptk_image_container_t* maptk_algorithm_image_io_load( maptk_algorithm_t *algo,
+VITAL_C_EXPORT
+vital_image_container_t* vital_algorithm_image_io_load( vital_algorithm_t *algo,
                                                         char const *filename,
-                                                        maptk_error_handle_t *eh);
+                                                        vital_error_handle_t *eh);
 
 
 /// Save an image to file
@@ -72,15 +72,15 @@ maptk_image_container_t* maptk_algorithm_image_io_load( maptk_algorithm_t *algo,
  * \param ic The image containing containing the image data to save to file.
  * \param eh Error handle instance.
  */
-MAPTK_C_EXPORT
-void maptk_algorithm_image_io_save( maptk_algorithm_t *algo,
+VITAL_C_EXPORT
+void vital_algorithm_image_io_save( vital_algorithm_t *algo,
                                     char const *filename,
-                                    maptk_image_container_t *ic,
-                                    maptk_error_handle_t *eh );
+                                    vital_image_container_t *ic,
+                                    vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAPTK_C_ALGO_DEF_IMAGE_IO_H_
+#endif // VITAL_C_ALGO_DEF_IMAGE_IO_H_
