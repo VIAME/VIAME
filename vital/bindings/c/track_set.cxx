@@ -37,7 +37,6 @@
 
 #include <vector>
 
-//+ #include <vital/logger/logger.h>
 #include <vital/types/track_set.h>
 #include <vital/io/track_set_io.h>
 
