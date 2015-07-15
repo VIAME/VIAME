@@ -131,24 +131,27 @@ get_property(vital_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " vital_libs "${vital_libs}")
 
 # Configure build-tree CMake config file and export associated targets file
-set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/vital-config.cmake")
+set(KWIVER_CONFIG_FILE         "${KWIVER_BINARY_DIR}/vital-config.cmake")
+set(VITAL_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
+set(VITAL_BINARY_DIR           "${CMAKE_BINARY_DIR}")
+set(module_path                "${KWIVER_CMAKE_DIR}")
 
 kwiver_configure_file(vital-config
   "${KWIVER_SOURCE_DIR}/CMake/vital-config.cmake.in"
   "${KWIVER_CONFIG_FILE}"
-  KWIVER_SOURCE_DIR
-  KWIVER_BINARY_DIR
-  EIGEN3_INCLUDE_DIR
+  VITAL_SOURCE_DIR
+  VITAL_BINARY_DIR
+  module_path
   vital_libs
   )
 kwiver_export_targets("${KWIVER_BINARY_DIR}/vital-config-targets.cmake")
 
 # Configure install-tree CMake config file and export associated targets file
-set(KWIVER_CONFIG_INSTALL_FILE "${KWIVER_BINARY_DIR}/vital-config-install.cmake")
+set(VITAL_CONFIG_INSTALL_FILE "${KWIVER_BINARY_DIR}/vital-config-install.cmake")
 kwiver_configure_file(vital-install-config
-  "${KWIVER_SOURCE_DIR}/CMake/vital-config-install.cmake.in"
-  "${KWIVER_CONFIG_INSTALL_FILE}"
-  EIGEN3_INCLUDE_DIR
+  "${VITAL_SOURCE_DIR}/CMake/vital-config-install.cmake.in"
+  "${VITAL_CONFIG_INSTALL_FILE}"
+  module_path
   vital_libs
   )
 
