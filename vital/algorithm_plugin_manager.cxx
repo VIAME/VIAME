@@ -40,6 +40,7 @@
 #include <vital/registrar.h>
 #include <vital/logger/logger.h>
 #include <kwiversys/DynamicLoader.hxx>
+#include <kwiversys/SystemTools.hxx>
 
 #ifndef BOOST_FILESYSTEM_VERSION
 #define BOOST_FILESYSTEM_VERSION 3
@@ -50,6 +51,7 @@
 #endif
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread/locks.hpp>
@@ -74,6 +76,8 @@ typedef DL::SymbolPointer function_t;
 typedef int (* register_impls_func_t)( registrar& );
 
 
+static char const* environment_variable_name( "VITAL_PLUGIN_PATH" );
+
 // String name of the private interface function.
 // See source file located @ CMake/templates/cxx/plugin_shell.cxx
 static std::string const register_function_name = std::string( "private_register_algo_impls" );
@@ -82,12 +86,14 @@ static std::string const register_function_name = std::string( "private_register
 static std::string const shared_library_suffix = std::string( SHARED_LIB_SUFFIX );
 
 // Default module directory locations. Values defined in CMake configuration.
+// It sould be useful to have a set of paths that could be passed in from CMake interface.
 static vital::path_t const default_plugin_dir_build = vital::path_t( DEFAULT_PLUGIN_DIR_BUILD ),
                            default_plugin_dir_install = vital::path_t( DEFAULT_PLUGIN_DIR_INSTALL );
 bool const use_build_plugin_dir = USE_BUILD_PLUGIN_DIR;
 
 } // end anonymous namespace
 
+static bool is_separator( vital::path_t::value_type ch );
 
 // ---- Static ---
 algorithm_plugin_manager * algorithm_plugin_manager::s_instance( 0 );
@@ -104,7 +110,7 @@ class algorithm_plugin_manager::impl
 public:
   /// Paths in which to search for module libraries
   typedef std::vector< path_t > search_paths_t;
-  search_paths_t search_paths_;
+  search_paths_t m_search_paths;
 
   /// module libraries already loaded, keyed on filename
   typedef std::map< std::string, path_t > registered_modules_t;
@@ -117,26 +123,30 @@ public:
 
 public:
   impl()
-    : search_paths_(),
+    : m_search_paths(),
       m_logger( kwiver::vital::get_logger( "algorithm_plugin_manager" ) )
   { }
 
 
+  // ------------------------------------------------------------------
   /// Attempt loading algorithm implementations from all known search paths
   void load_from_search_paths( std::string name = std::string() )
   {
     LOG_DEBUG( m_logger, "Loading plugins in search paths" );
+
     // \todo: Want a way to hook into an environment variable / config file here
     //       for additional search path extension
     //       - Search order: setInCode -> EnvVar -> configFile -> defaults
-    //       - create separate default_search_paths_ member var for separate storage
-    BOOST_FOREACH( path_t module_dir, this->search_paths_ )
+    //       - create separate default_m_search_paths member var for separate storage
+
+    BOOST_FOREACH( path_t module_dir, this->m_search_paths )
     {
       load_modules_in_directory( module_dir, name );
     }
   }
 
 
+  // ------------------------------------------------------------------
   /// Attempt loading algorithm implementations from all plugin modules in dir
   /**
    * If the given path is not a valid directory, we emit a warning message
@@ -192,6 +202,7 @@ public:
   } // load_modules_in_directory
 
 
+  // ------------------------------------------------------------------
   /// Find and execute algorithm impl registration call-back in the module
   /**
    * If the expected registration function is found, it is executed. If not,
@@ -288,13 +299,27 @@ algorithm_plugin_manager
 ::algorithm_plugin_manager()
   : impl_( new impl() )
 {
-  // craft default search paths
-  if ( use_build_plugin_dir )
+  // craft default search paths. Order of elements in the path has
+  // some effect on how modules are looked up.
+
+  // Check env variable for path specification
+  const char * env_ptr = kwiversys::SystemTools::GetEnv( environment_variable_name );
+  if ( 0 != env_ptr )
   {
-    this->impl_->search_paths_.push_back( default_plugin_dir_build );
+    LOG_INFO( impl_->m_logger, "Adding path " << env_ptr << " from environment" );
+    std::string const extra_module_dirs(env_ptr);
+
+    // ADD paths as they are split from the env data. Note that they
+    // are added, so the vector could have previous contents
+    boost::split( impl_->m_search_paths, extra_module_dirs, is_separator, boost::token_compress_on );
   }
 
-  this->impl_->search_paths_.push_back( default_plugin_dir_install );
+  if ( use_build_plugin_dir )
+  {
+    this->impl_->m_search_paths.push_back( default_plugin_dir_build );
+  }
+
+  this->impl_->m_search_paths.push_back( default_plugin_dir_install );
 }
 
 
@@ -346,7 +371,7 @@ void
 algorithm_plugin_manager
 ::add_search_path( path_t dirpath )
 {
-  this->impl_->search_paths_.push_back( dirpath );
+  this->impl_->m_search_paths.push_back( dirpath );
 }
 
 
@@ -356,6 +381,21 @@ algorithm_plugin_manager
 ::registered_module_names() const
 {
   return this->impl_->registered_module_names();
+}
+
+
+// ------------------------------------------------------------------
+bool
+is_separator( vital::path_t::value_type ch )
+{
+  vital::path_t::value_type const separator =
+#if defined ( _WIN32 ) || defined ( _WIN64 )
+    ';';
+#else
+    ':';
+#endif
+
+    return ( ch == separator );
 }
 
 

@@ -12,6 +12,8 @@ include( GenerateExportHeader )
 # Create the kwsys library for vital.
 set(KWSYS_NAMESPACE kwiversys)
 set(KWSYS_USE_DynamicLoader 1)
+set(KWSYS_USE_SystemTools 1)
+set(KWSYS_USE_RegularExpression 1)
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
 set(KWSYS_INSTALL_LIB_DIR lib)
 set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
