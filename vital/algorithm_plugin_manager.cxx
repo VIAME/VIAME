@@ -243,8 +243,8 @@ public:
     register_func =  DL::GetSymbolAddress( library, register_function_name.c_str() );
     if ( 0 == register_func )
     {
-      LOG_DEBUG( m_logger, "Failed to find algorithm impl registration function "
-        << register_function_name );
+      LOG_DEBUG( m_logger, "Failed to find algorithm impl registration function \""
+                 << register_function_name  << "\"" );
       DL::CloseLibrary( library );
       return false;
     }
@@ -306,7 +306,7 @@ algorithm_plugin_manager
   const char * env_ptr = kwiversys::SystemTools::GetEnv( environment_variable_name );
   if ( 0 != env_ptr )
   {
-    LOG_INFO( impl_->m_logger, "Adding path " << env_ptr << " from environment" );
+    LOG_INFO( impl_->m_logger, "Adding path \"" << env_ptr << "\" from environment" );
     std::string const extra_module_dirs(env_ptr);
 
     // ADD paths as they are split from the env data. Note that they
