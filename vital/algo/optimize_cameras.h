@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,64 +30,58 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief Header defining abstract \link vital::algo::optimize_cameras camera
+ *        optimization \endlink algorithm
  */
 
-#include "image_io.h"
+#ifndef VITAL_ALGO_OPTIMIZE_CAMERAS_H_
+#define VITAL_ALGO_OPTIMIZE_CAMERAS_H_
 
-#include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
+#include <vital/vital_config.h>
 
-#include <boost/filesystem.hpp>
-
-
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
-/// \endcond
+#include <vital/algo/algorithm.h>
+#include <vital/types/camera_map.h>
+#include <vital/types/landmark_map.h>
+#include <vital/types/track_set.h>
 
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-image_container_sptr
-image_io
-::load(std::string const& filename) const
+
+/// Abstract algorithm definition base for optimizing cameras
+class VITAL_EXPORT optimize_cameras
+  : public kwiver::vital::algorithm_def<optimize_cameras>
 {
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
-  {
-    throw path_not_exists(filename);
-  }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
+public:
+  /// Return the name of this algorithm definition
+  static std::string static_type_name() { return "optimize_cameras"; }
 
-  return this->load_(filename);
-}
+  /// Optimize camera parameters given sets of landmarks and tracks
+  /**
+   * We only optimize cameras that have associating tracks and landmarks in
+   * the given maps.
+   *
+   * \throws invalid_value When one or more of the given pointer is Null.
+   *
+   * \param[in,out] cameras   Cameras to optimize.
+   * \param[in]     tracks    The tracks to use as constraints.
+   * \param[in]     landmarks The landmarks the cameras are viewing.
+   */
+  virtual void
+  optimize(kwiver::vital::camera_map_sptr & cameras,
+           kwiver::vital::track_set_sptr tracks,
+           kwiver::vital::landmark_map_sptr landmarks) const = 0;
 
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
-{
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
-  {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
-  }
+};
 
-  this->save_(filename, data);
-}
+
+/// Type definition for shared pointer to an optimize cameras algorithm
+typedef boost::shared_ptr<optimize_cameras> optimize_cameras_sptr;
 
 
 } } } // end namespace
+
+
+#endif // VITAL_ALGO_OPTIMIZE_CAMERAS_H_

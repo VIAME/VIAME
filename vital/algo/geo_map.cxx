@@ -30,64 +30,32 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief geo_map algorithm general helper function
  */
 
-#include "image_io.h"
-
+#include "geo_map.h"
 #include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
-
-#include <boost/filesystem.hpp>
-
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::geo_map);
 /// \endcond
-
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-image_container_sptr
-image_io
-::load(std::string const& filename) const
+/// Return the standard zone number for a Latitude and Longitude
+int
+geo_map
+::latlon_zone(double /*lat*/, double lon) const
 {
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
+  while(lon < -180)
   {
-    throw path_not_exists(filename);
+    lon += 360;
   }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
-
-  return this->load_(filename);
+  // this simplifed implementation ignores the exceptions to the
+  // standard UTM zone rules (e.g. around Norway)
+  return (static_cast<int>((lon + 180) / 6) % 60) + 1;
 }
-
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
-{
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
-  {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
-  }
-
-  this->save_(filename, data);
-}
-
 
 } } } // end namespace

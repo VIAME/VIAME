@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,64 +30,53 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief Header defining abstract \link vital::algo::triangulate_landmarks
+ *        triangulate landmarks \endlink algorithm
  */
 
-#include "image_io.h"
+#ifndef VITAL_ALGO_TRIANGULATE_LANDMARKS_H_
+#define VITAL_ALGO_TRIANGULATE_LANDMARKS_H_
 
-#include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
+#include <vital/vital_config.h>
 
-#include <boost/filesystem.hpp>
-
-
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
-/// \endcond
+#include <vital/algo/algorithm.h>
+#include <vital/types/track_set.h>
+#include <vital/types/camera_map.h>
+#include <vital/types/landmark_map.h>
 
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-image_container_sptr
-image_io
-::load(std::string const& filename) const
+/// An abstract base class for triangulating landmarks
+class VITAL_EXPORT triangulate_landmarks
+: public kwiver::vital::algorithm_def<triangulate_landmarks>
 {
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
-  {
-    throw path_not_exists(filename);
-  }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
+public:
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "triangulate_landmarks"; }
 
-  return this->load_(filename);
-}
+  /// Triangulate the landmark locations given sets of cameras and tracks
+  /**
+   * \param [in] cameras the cameras viewing the landmarks
+   * \param [in] tracks the tracks to use as constraints
+   * \param [in,out] landmarks the landmarks to triangulate
+   *
+   * This function only triangulates the landmarks with indicies in the
+   * landmark map and which have support in the tracks and cameras
+   */
+  virtual void
+  triangulate(kwiver::vital::camera_map_sptr cameras,
+              kwiver::vital::track_set_sptr tracks,
+              kwiver::vital::landmark_map_sptr& landmarks) const = 0;
+};
 
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
-{
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
-  {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
-  }
 
-  this->save_(filename, data);
-}
+/// type definition for shared pointer to a triangulate landmarks algorithm
+typedef boost::shared_ptr<triangulate_landmarks> triangulate_landmarks_sptr;
 
 
 } } } // end namespace
+
+#endif // VITAL_ALGO_TRIANGULATE_LANDMARKS_H_

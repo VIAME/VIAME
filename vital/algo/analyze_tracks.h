@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,66 +28,53 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef VITAL_ALGO_ANALYZE_TRACKS_H_
+#define VITAL_ALGO_ANALYZE_TRACKS_H_
+
+#include <vital/vital_config.h>
+
+#include <vital/algo/algorithm.h>
+#include <vital/types/image_container.h>
+#include <vital/types/track_set.h>
+
+#include <boost/shared_ptr.hpp>
+
+#include <ostream>
+
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief Header defining abstract \link vital::algo::analyze_tracks track
+ *        analyzer \endlink algorithm
  */
-
-#include "image_io.h"
-
-#include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
-
-#include <boost/filesystem.hpp>
-
-
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
-/// \endcond
-
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-image_container_sptr
-image_io
-::load(std::string const& filename) const
+/// Abstract base class for writing out human readable track statistics.
+class VITAL_EXPORT analyze_tracks
+  : public kwiver::vital::algorithm_def<analyze_tracks>
 {
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
-  {
-    throw path_not_exists(filename);
-  }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
+public:
 
-  return this->load_(filename);
-}
+  typedef std::ostream stream_t;
 
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
-{
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
-  {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
-  }
+  /// Return the name of this algorithm.
+  static std::string static_type_name() { return "analyze_tracks"; }
 
-  this->save_(filename, data);
-}
+  /// Output various information about the tracks stored in the input set.
+  /**
+   * \param [in] track_set the tracks to analyze
+   * \param [in] stream an output stream to write data onto
+   */
+  virtual void
+  print_info(kwiver::vital::track_set_sptr track_set,
+             stream_t& stream = std::cout) const = 0;
 
+};
+
+typedef boost::shared_ptr<analyze_tracks> analyze_tracks_sptr;
 
 } } } // end namespace
+
+#endif // VITAL_ALGO_ANALYZE_TRACKS_H_

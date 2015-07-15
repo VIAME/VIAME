@@ -30,64 +30,59 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief detect_features algorithm definition
  */
 
-#include "image_io.h"
+#ifndef VITAL_ALGO_DETECT_FEATURES_H_
+#define VITAL_ALGO_DETECT_FEATURES_H_
 
-#include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
+#include <vital/vital_config.h>
 
-#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 
-
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
-/// \endcond
-
+#include <vital/algo/algorithm.h>
+#include <vital/types/feature_set.h>
+#include <vital/types/image_container.h>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-image_container_sptr
-image_io
-::load(std::string const& filename) const
+/// An abstract base class for detecting feature points
+class VITAL_EXPORT detect_features
+  : public kwiver::vital::algorithm_def<detect_features>
 {
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
-  {
-    throw path_not_exists(filename);
-  }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
+public:
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "detect_features"; }
 
-  return this->load_(filename);
-}
+  /// Extract a set of image features from the provided image
+  /**
+   * A given mask image should be one-channel (mask->depth() == 1). If the
+   * given mask image has more than one channel, only the first will be
+   * considered.
+   *
+   * \throws image_size_mismatch_exception
+   *    When the given non-zero mask image does not match the size of the
+   *    dimensions of the given image data.
+   *
+   * \param image_data contains the image data to process
+   * \param mask Mask image where regions of positive values (boolean true)
+   *             indicate regions to consider. Only the first channel will be
+   *             considered.
+   * \returns a set of image features
+   */
+  virtual kwiver::vital::feature_set_sptr
+  detect(kwiver::vital::image_container_sptr image_data,
+         kwiver::vital::image_container_sptr mask = kwiver::vital::image_container_sptr()) const = 0;
 
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
-{
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
-  {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
-  }
+};
 
-  this->save_(filename, data);
-}
+
+/// Shared pointer for detect_features algorithm definition class
+typedef boost::shared_ptr<detect_features> detect_features_sptr;
 
 
 } } } // end namespace
+
+#endif // VITAL_ALGO_DETECT_FEATURES_H_

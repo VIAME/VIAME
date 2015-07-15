@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,64 +30,52 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief Instantiation of \link vital::algo::algorithm_def algorithm_def<T>
+ *        \endlink for \link vital::algo::filter_features
+ *        filter_features \endlink
  */
 
-#include "image_io.h"
 
+#include <vital/algo/filter_features.h>
 #include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
-
-#include <boost/filesystem.hpp>
-
-
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
-/// \endcond
-
+#include <boost/make_shared.hpp>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-image_container_sptr
-image_io
-::load(std::string const& filename) const
-{
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
-  {
-    throw path_not_exists(filename);
-  }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
 
-  return this->load_(filename);
+feature_set_sptr
+filter_features
+::filter(feature_set_sptr feat) const
+{
+  std::vector<unsigned int> indices;
+  return filter(feat, indices);
 }
 
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
+
+std::pair<feature_set_sptr, descriptor_set_sptr>
+filter_features
+::filter( feature_set_sptr feat, descriptor_set_sptr descr) const
 {
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
+  std::vector<unsigned int> indices;
+  const std::vector<descriptor_sptr> &descr_vec = descr->descriptors();
+
+  feature_set_sptr filt_feat = filter(feat, indices);
+  std::vector<descriptor_sptr> filtered_descr;
+  filtered_descr.reserve(indices.size());
+
+  for (unsigned int i = 0; i < indices.size(); i++)
   {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
+    filtered_descr.push_back(descr_vec[indices[i]]);
   }
 
-  this->save_(filename, data);
+  descriptor_set_sptr filt_descr = boost::make_shared<kwiver::vital::simple_descriptor_set>(
+                                     kwiver::vital::simple_descriptor_set(filtered_descr));
+
+  return std::make_pair(filt_feat, filt_descr);
 }
-
 
 } } } // end namespace
+
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::filter_features);

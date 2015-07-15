@@ -32,9 +32,25 @@ set( vital_public_headers
 
   algo/algorithm.txx
   algo/algorithm.h
+  algo/analyze_tracks.h
+  algo/bundle_adjust.h
+  algo/close_loops.h
+  algo/compute_ref_homography.h
   algo/convert_image.h
+  algo/detect_features.h
+  algo/draw_tracks.h
+  algo/estimate_essential_matrix.h
+  algo/estimate_homography.h
+  algo/estimate_similarity_transform.h
+  algo/extract_descriptors.h
+  algo/filter_features.h
+  algo/geo_map.h
   algo/image_io.h
+  algo/initialize_cameras_landmarks.h
+  algo/match_features.h
+  algo/optimize_cameras.h
   algo/track_features.h
+  algo/triangulate_landmarks.h
 
   exceptions.h
   exceptions/algorithm.h
@@ -80,9 +96,25 @@ set( vital_sources
   registrar.cxx
 
   algo/algorithm.cxx
+  algo/analyze_tracks.cxx
+  algo/bundle_adjust.cxx
+  algo/close_loops.cxx
+  algo/compute_ref_homography.cxx
   algo/convert_image.cxx
+  algo/detect_features.cxx
+  algo/draw_tracks.cxx
+  algo/estimate_essential_matrix.cxx
+  algo/estimate_homography.cxx
+  algo/estimate_similarity_transform.cxx
+  algo/extract_descriptors.cxx
+  algo/filter_features.cxx
+  algo/geo_map.cxx
   algo/image_io.cxx
+  algo/initialize_cameras_landmarks.cxx
+  algo/match_features.cxx
+  algo/optimize_cameras.cxx
   algo/track_features.cxx
+  algo/triangulate_landmarks.cxx
 
   exceptions/algorithm.cxx
   exceptions/base.cxx

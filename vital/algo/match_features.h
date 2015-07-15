@@ -30,64 +30,51 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief match_features algorithm definition interface
  */
 
-#include "image_io.h"
+#ifndef VITAL_ALGO_MATCH_FEATURES_H_
+#define VITAL_ALGO_MATCH_FEATURES_H_
 
-#include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
+#include <vital/vital_config.h>
 
-#include <boost/filesystem.hpp>
-
-
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
-/// \endcond
-
+#include <vital/algo/algorithm.h>
+#include <vital/types/feature_set.h>
+#include <vital/types/descriptor_set.h>
+#include <vital/types/match_set.h>
+#include <boost/shared_ptr.hpp>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-image_container_sptr
-image_io
-::load(std::string const& filename) const
+/// An abstract base class for matching feature points
+class VITAL_EXPORT match_features
+  : public kwiver::vital::algorithm_def<match_features>
 {
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
-  {
-    throw path_not_exists(filename);
-  }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
+public:
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "match_features"; }
 
-  return this->load_(filename);
-}
+  /// Match one set of features and corresponding descriptors to another
+  /**
+   * \param feat1 the first set of features to match
+   * \param desc1 the descriptors corresponding to \a feat1
+   * \param feat2 the second set fof features to match
+   * \param desc2 the descriptors corresponding to \a feat2
+   * \returns a set of matching indices from \a feat1 to \a feat2
+   */
+  virtual kwiver::vital::match_set_sptr
+  match(kwiver::vital::feature_set_sptr feat1, kwiver::vital::descriptor_set_sptr desc1,
+        kwiver::vital::feature_set_sptr feat2, kwiver::vital::descriptor_set_sptr desc2) const = 0;
 
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
-{
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
-  {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
-  }
+};
 
-  this->save_(filename, data);
-}
+
+/// Shared pointer type for match_features algorithm definition class
+typedef boost::shared_ptr<match_features> match_features_sptr;
 
 
 } } } // end namespace
+
+#endif // VITAL_ALGO_MATCH_FEATURES_H_

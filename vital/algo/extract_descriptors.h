@@ -30,64 +30,53 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief extract_descriptors algorithm definition
  */
 
-#include "image_io.h"
+#ifndef VITAL_ALGO_EXTRACT_DESCRIPTORS_H_
+#define VITAL_ALGO_EXTRACT_DESCRIPTORS_H_
 
-#include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
+#include <vital/vital_config.h>
 
-#include <boost/filesystem.hpp>
-
-
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
-/// \endcond
-
+#include <vital/algo/algorithm.h>
+#include <vital/types/image_container.h>
+#include <vital/types/feature_set.h>
+#include <vital/types/descriptor_set.h>
+#include <boost/shared_ptr.hpp>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-image_container_sptr
-image_io
-::load(std::string const& filename) const
+/// An abstract base class for extracting feature descriptors
+class VITAL_EXPORT extract_descriptors
+  : public kwiver::vital::algorithm_def<extract_descriptors>
 {
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
-  {
-    throw path_not_exists(filename);
-  }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
+public:
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "extract_descriptors"; }
 
-  return this->load_(filename);
-}
+  /// Extract from the image a descriptor corresoponding to each feature
+  /**
+   * \param image_data contains the image data to process
+   * \param features the feature locations at which descriptors are extracted
+   * \param image_mask Mask image of the same dimensions as \p image_data where
+   *                   positive values indicate regions of \p image_data to
+   *                   consider.
+   * \returns a set of feature descriptors
+   */
+  virtual kwiver::vital::descriptor_set_sptr
+  extract(kwiver::vital::image_container_sptr image_data,
+          kwiver::vital::feature_set_sptr features,
+          kwiver::vital::image_container_sptr image_mask = kwiver::vital::image_container_sptr()) const = 0;
 
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
-{
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
-  {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
-  }
+};
 
-  this->save_(filename, data);
-}
+
+/// Shared pointer for base extract_descriptors algorithm definition class
+typedef boost::shared_ptr<extract_descriptors> extract_descriptors_sptr;
 
 
 } } } // end namespace
+
+#endif // VITAL_ALGO_EXTRACT_DESCRIPTORS_H_

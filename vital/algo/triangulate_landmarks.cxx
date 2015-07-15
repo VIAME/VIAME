@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,64 +30,15 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief Instantiation of \link vital::algo::algorithm_def algorithm_def<T>
+ *        \endlink for \link vital::algo::triangulate_landmarks
+ *        triangulate_landmarks \endlink
  */
 
-#include "image_io.h"
-
+#include <vital/algo/triangulate_landmarks.h>
 #include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
-
-#include <boost/filesystem.hpp>
 
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::triangulate_landmarks);
 /// \endcond
-
-
-namespace kwiver {
-namespace vital {
-namespace algo {
-
-image_container_sptr
-image_io
-::load(std::string const& filename) const
-{
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
-  {
-    throw path_not_exists(filename);
-  }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
-
-  return this->load_(filename);
-}
-
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
-{
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
-  {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
-  }
-
-  this->save_(filename, data);
-}
-
-
-} } } // end namespace

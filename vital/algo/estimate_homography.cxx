@@ -30,20 +30,15 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief estimate_homography algorithm definition instantiation + implementation
  */
 
-#include "image_io.h"
-
+#include <vital/algo/estimate_homography.h>
 #include <vital/algo/algorithm.txx>
-#include <vital/exceptions/io.h>
-#include <vital/vital_types.h>
-
-#include <boost/filesystem.hpp>
-
+#include <boost/foreach.hpp>
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::estimate_homography);
 /// \endcond
 
 
@@ -51,43 +46,27 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-image_container_sptr
-image_io
-::load(std::string const& filename) const
+
+/// Estimate a homography matrix from corresponding features
+homography_sptr
+estimate_homography
+::estimate(feature_set_sptr feat1,
+           feature_set_sptr feat2,
+           match_set_sptr matches,
+           std::vector<bool>& inliers,
+           double inlier_scale) const
 {
-  // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
-  {
-    throw path_not_exists(filename);
-  }
-  else if (!bfs::is_regular_file(filename))
-  {
-    throw path_not_a_file(filename);
-  }
+  std::vector<feature_sptr> vf1 = feat1->features();
+  std::vector<feature_sptr> vf2 = feat2->features();
+  std::vector<match> mset = matches->matches();
+  std::vector<vector_2d> vv1, vv2;
 
-  return this->load_(filename);
+  BOOST_FOREACH(match m, mset)
+  {
+    vv1.push_back(vf1[m.first]->loc());
+    vv2.push_back(vf2[m.second]->loc());
+  }
+  return this->estimate(vv1, vv2, inliers, inlier_scale);
 }
-
-void
-image_io
-::save(std::string const& filename, image_container_sptr data) const
-{
-  // Make sure that the given file path's containing directory exists and is
-  // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
-  {
-    throw path_not_exists(containing_dir);
-  }
-  else if (!bfs::is_directory(containing_dir))
-  {
-    throw path_not_a_directory(containing_dir);
-  }
-
-  this->save_(filename, data);
-}
-
 
 } } } // end namespace
