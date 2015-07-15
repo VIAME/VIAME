@@ -29,6 +29,7 @@
  */
 
 #include <vital/algorithm_plugin_manager.h>
+#include <vital/algo/algorithm.h>
 #include <vital/registrar.h>
 
 #include <boost/foreach.hpp>
@@ -92,6 +93,15 @@ int main(int argc, char *argv[])
   {
     std::cout << "   " << name << std::endl;
   }
+
+
+  std::cout << "\n---- registered algorithms (type_name:impl_name)\n";
+  BOOST_FOREACH( std::string const& name, kwiver::vital::algorithm::registered_names())
+  {
+    std::cout << "   " << name << std::endl;
+  }
+
+
 
   // Need a way to introspect these modules
 
