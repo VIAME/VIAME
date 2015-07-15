@@ -108,11 +108,11 @@ algorithm_def< Self >
 
 /// Return a \c config_block for all registered implementations
 template < typename Self >
-config_block_sptr
+kwiver::vital::config_block_sptr
 algorithm_def< Self >
 ::get_impl_configurations()
 {
-  kwiver::config_block_sptr config = kwiver::config_block::empty_config();
+  kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config();
 
   BOOST_FOREACH( std::string impl_name, algorithm_def< Self >::registered_names() )
   {
@@ -131,7 +131,7 @@ template < typename Self >
 void
 algorithm_def< Self >
 ::get_nested_algo_configuration( std::string const&         name,
-                                 kwiver::config_block_sptr  config,
+                                 kwiver::vital::config_block_sptr  config,
                                  base_sptr                  nested_algo )
 {
   algorithm::get_nested_algo_configuration( Self::static_type_name(),
@@ -144,7 +144,7 @@ template < typename Self >
 void
 algorithm_def< Self >
 ::set_nested_algo_configuration( std::string const&         name,
-                                 kwiver::config_block_sptr  config,
+                                 kwiver::vital::config_block_sptr  config,
                                  base_sptr&                 nested_algo )
 {
   algorithm_sptr base_nested_algo =
@@ -161,7 +161,7 @@ template < typename Self >
 bool
 algorithm_def< Self >
 ::check_nested_algo_configuration( std::string const&         name,
-                                   kwiver::config_block_sptr  config )
+                                   kwiver::vital::config_block_sptr  config )
 {
   return algorithm::check_nested_algo_configuration( Self::static_type_name(),
                                                      name, config );
