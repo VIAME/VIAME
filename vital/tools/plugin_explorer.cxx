@@ -29,6 +29,7 @@
  */
 
 #include <vital/algorithm_plugin_manager.h>
+#include <vital/registrar.h>
 
 #include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
@@ -36,6 +37,9 @@
 #include <iostream>
 
 namespace po = boost::program_options;
+
+
+
 
 int main(int argc, char *argv[])
 {
@@ -82,7 +86,7 @@ int main(int argc, char *argv[])
 
   apm.register_plugins( plugin_name );
 
-  std::cout << "Registered module names:\n";
+  std::cout << "---- Registered module names:\n";
   std::vector< std::string >module_list = apm.registered_module_names();
   BOOST_FOREACH( std::string const& name, module_list)
   {
@@ -91,6 +95,16 @@ int main(int argc, char *argv[])
 
   // Need a way to introspect these modules
 
+#if 0
+  kwver::vital::registrar& reg = kwiver::vital::registrar::instance();
+
+  std::vector< std::string > reg_list = reg.registered_names< XXX >();
+  std::cout << "\n\n---- Resigtered algorithm names\n";
+  BOOST_FOREACH( std::string const& name, reg_list)
+  {
+    std::cout << "    " << name << std::endl;
+  }
+#endif
 
   return 0;
 }
