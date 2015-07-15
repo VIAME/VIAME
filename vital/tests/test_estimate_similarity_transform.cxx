@@ -32,16 +32,19 @@
 
 #include <vector>
 
-#include <vital/algorithm.h>
+#include <vital/vital_types.h>
+
+#include <vital/config/config_block.h>
+
+#include <vital/algo/algorithm.h>
 #include <vital/algo/estimate_similarity_transform.h>
-#include <vital/camera.h>
-#include <vital/camera_map.h>
-#include <vital/config_block.h>
-#include <vital/landmark.h>
-#include <vital/landmark_map.h>
-#include <vital/similarity.h>
-#include <vital/types.h>
-#include <vital/vector.h>
+
+#include <vital/types/camera.h>
+#include <vital/types/camera_map.h>
+#include <vital/types/landmark.h>
+#include <vital/types/landmark_map.h>
+#include <vital/types/similarity.h>
+#include <vital/types/vector.h>
 
 
 #define TEST_ARGS ()
@@ -53,7 +56,7 @@ namespace
 
 /// Dummy algo impl to test function wrappers
 class dummy_est
-  : public kwiver::vital::algo::algorithm_impl<dummy_est, kwiver::vital::algo::estimate_similarity_transform>
+  : public kwiver::vital::algorithm_impl < dummy_est, kwiver::vital::algo::estimate_similarity_transform>
 {
 public:
   dummy_est()
