@@ -72,6 +72,7 @@ algorithm
   {
     return registrar::instance().registered_names< algorithm > ();
   }
+
   std::vector< std::string > type_reg_names;
   const std::string prefix = type_name + ":";
   BOOST_FOREACH( std::string qual_name,

@@ -32,6 +32,9 @@ set( vital_public_headers
 
   algo/algorithm.txx
   algo/algorithm.h
+  algo/convert_image.h
+  algo/image_io.h
+  algo/track_features.h
 
   exceptions.h
   exceptions/algorithm.h
@@ -77,6 +80,10 @@ set( vital_sources
   registrar.cxx
 
   algo/algorithm.cxx
+  algo/convert_image.cxx
+  algo/image_io.cxx
+  algo/track_features.cxx
+
   exceptions/algorithm.cxx
   exceptions/base.cxx
   exceptions/image.cxx
