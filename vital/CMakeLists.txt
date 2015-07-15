@@ -122,10 +122,10 @@ kwiver_add_library( vital
   )
 
 target_link_libraries( vital
-  ${Boost_LIBRARIES} # be more specific
-  vital_config
-  vital_logger
-  kwiversys
+  PRIVATE         ${Boost_LIBRARIES} # be more specific
+                  kwiversys
+  PUBLIC          vital_config
+                  vital_logger
   )
 
 
