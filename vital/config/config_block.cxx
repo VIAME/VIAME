@@ -104,7 +104,7 @@ config_block
     config_block_key_t const stripped_key_name = strip_block_name(key, key_name);
 
     conf->set_value(stripped_key_name,
-                    m_get_value(key_name),
+                    i_get_value(key_name),
                     get_description(key_name));
   }
 
@@ -210,7 +210,7 @@ config_block
     config_block_value_t const& val = conf->get_value<config_block_value_t>(key);
     config_block_description_t const& descr = conf->get_description(key);
 
-    m_set_value(key, val, descr);
+    i_set_value(key, val, descr);
   }
 }
 
@@ -286,7 +286,7 @@ config_block
     return boost::none;
   }
 
-  return m_get_value(key);
+  return i_get_value(key);
 }
 
 
@@ -294,11 +294,11 @@ config_block
 /// private value getter function
 config_block_value_t
 config_block
-::m_get_value(config_block_key_t const& key) const
+::i_get_value(config_block_key_t const& key) const
 {
   if (m_parent)
   {
-    return m_parent->m_get_value(m_name + block_sep + key);
+    return m_parent->i_get_value(m_name + block_sep + key);
   }
 
   store_t::const_iterator i = m_store.find(key);
@@ -316,7 +316,7 @@ config_block
 /// private key/value setter
 void
 config_block
-::m_set_value(config_block_key_t const& key,
+::i_set_value(config_block_key_t const& key,
               config_block_value_t const& value,
               config_block_description_t const& descr)
 {

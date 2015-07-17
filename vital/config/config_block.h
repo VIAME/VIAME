@@ -261,14 +261,14 @@ class VITAL_CONFIG_EXPORT config_block
      * \param key key to get the associated value to.
      * \returns key's value or an empty config_block_value_t if the key is not found.
      */
-    VITAL_CONFIG_NO_EXPORT config_block_value_t m_get_value(config_block_key_t const& key) const;
+    VITAL_CONFIG_NO_EXPORT config_block_value_t i_get_value(config_block_key_t const& key) const;
     /// private key/value setter
     /**
      * \param key key to set a value to
      * \param value the value as a config_block_value_t
      * \param descr optional description of the key.
      */
-    void m_set_value(config_block_key_t const& key,
+    void i_set_value(config_block_key_t const& key,
                      config_block_value_t const& value,
                      config_block_description_t const& descr = config_block_key_t());
 
@@ -401,7 +401,7 @@ config_block
             T const& value,
             config_block_description_t const& descr)
 {
-  this->m_set_value(key, config_block_cast<config_block_value_t, T>(value), descr);
+  this->i_set_value(key, config_block_cast<config_block_value_t, T>(value), descr);
 }
 
 } }
