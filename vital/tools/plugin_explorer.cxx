@@ -31,17 +31,71 @@
 #include <vital/algorithm_plugin_manager.h>
 #include <vital/algo/algorithm.h>
 #include <vital/registrar.h>
+#include <vital/config/config_block.h>
 
 #include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 #include <iostream>
 
 namespace po = boost::program_options;
 
+// Global options
+bool opt_config(false);
 
 
 
+// ------------------------------------------------------------------
+void print_config( kwiver::vital::config_block_sptr config )
+{
+  kwiver::vital::config_block_keys_t all_keys = config->available_values();
+  std::string indent( "    " );
+
+  std::cout << indent<< "Configuration block contents\n";
+
+  BOOST_FOREACH( kwiver::vital::config_block_key_t key, all_keys )
+  {
+    kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t >( key );
+    std::cout << std::endl
+              << indent << "\"" << key << "\" = \"" << val << "\"\n";
+
+    kwiver::vital::config_block_description_t descr = config->get_description( key );
+    std::cout << indent << "Description: " << descr << std::endl;
+  }
+}
+
+
+// ------------------------------------------------------------------
+void detailed_algo()
+{
+  std::vector< std::string > reg_names =  kwiver::vital::algorithm::registered_names();
+  BOOST_FOREACH( std::string const& name, reg_names )
+  {
+    std::vector< std::string > token;
+    boost::split( token, name, boost::is_any_of( ":" ) );
+
+    // create instance type_name : impl_name
+    kwiver::vital::algorithm_sptr ptr = kwiver::vital::algorithm::create( token[0], token[1] );
+
+    std::cout << "\n---------------------"
+              << "\nDetailed info on type \"" << token[0] << "\" implementation \"" << token[1] << "\""
+              << std::endl;
+
+    // Get configuration
+    kwiver::vital::config_block_sptr config = ptr->get_configuration();
+
+    if ( opt_config )
+    {
+      // print config -- (optional)
+      print_config( config );
+    }
+  }
+}
+
+
+// ------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
   // Declare the supported options.
@@ -50,6 +104,7 @@ int main(int argc, char *argv[])
     ("help", "produce help message")
     ("plugin-name", po::value< std::string >(), "load only these plugins")
     ("path,I", po::value< std::vector< std::string> >(), "add directory to search")
+    ("config", "Display algorithm configuration block")
     ;
 
   po::variables_map vm;
@@ -62,6 +117,10 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  if (vm.count("config"))
+  {
+    opt_config = true;
+  }
 
   kwiver::vital::algorithm_plugin_manager& apm = kwiver::vital::algorithm_plugin_manager::instance();
 
@@ -94,14 +153,14 @@ int main(int argc, char *argv[])
     std::cout << "   " << name << std::endl;
   }
 
-
   std::cout << "\n---- registered algorithms (type_name:impl_name)\n";
   BOOST_FOREACH( std::string const& name, kwiver::vital::algorithm::registered_names())
   {
     std::cout << "   " << name << std::endl;
   }
 
-
+  // currently this is the same as --config option
+  detailed_algo();
 
   // Need a way to introspect these modules
 
