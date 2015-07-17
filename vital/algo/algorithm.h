@@ -155,9 +155,9 @@ public:
    *
    * \param     type_name   The type name of the nested algorithm.
    * \param     name        An identifying name for the nested algorithm
-   * \param[in] config      The \c config_block instance in which to put the
+   * \param     config      The \c config_block instance in which to put the
    *                          nested algorithm's configuration.
-   * \param[in] nested_algo The nested algorithm's sptr variable.
+   * \param     nested_algo The nested algorithm's sptr variable.
    */
   static void get_nested_algo_configuration(std::string const& type_name,
                                             std::string const& name,
@@ -177,7 +177,7 @@ public:
    *
    * \param type_name           The type name of the nested algorithm.
    * \param name                An identifying name for the nested algorithm.
-   * \param[in] config          The \c config_block instance from which we will
+   * \param config              The \c config_block instance from which we will
    *                              draw configuration needed for the nested
    *                              algorithm instance.
    * \param[in,out] nested_algo The nested algorithm's sptr variable.
@@ -199,7 +199,7 @@ public:
    *
    * \param     type_name   The type name of the nested algorithm.
    * \param     name        An identifying name for the nested algorithm.
-   * \param[in] config  The \c config_block to check.
+   * \param     config  The \c config_block to check.
    */
   static bool check_nested_algo_configuration(std::string const& type_name,
                                               std::string const& name,
@@ -275,9 +275,9 @@ public:
    * \link vital::config_block config_block \endlink.
    *
    * \param     name        An identifying name for the nested algorithm
-   * \param[in] config      The \c config_block instance in which to put the
+   * \param     config      The \c config_block instance in which to put the
    *                          nested algorithm's configuration.
-   * \param[in] nested_algo The nested algorithm's sptr variable.
+   * \param     nested_algo The nested algorithm's sptr variable.
    */
   static void get_nested_algo_configuration(std::string const& name,
                                             config_block_sptr config,
@@ -295,7 +295,7 @@ public:
    * \c algorithm_def.
    *
    * \param name                An identifying name for the nested algorithm.
-   * \param[in] config          The \c config_block instance from which we will
+   * \param config              The \c config_block instance from which we will
    *                              draw configuration needed for the nested
    *                              algorithm instance.
    * \param[in,out] nested_algo The nested algorithm's sptr variable.
@@ -315,7 +315,7 @@ public:
    * from.
    *
    * \param     name        An identifying name for the nested algorithm.
-   * \param[in] config  The \c config_block to check.
+   * \param     config      The \c config_block to check.
    */
   static bool check_nested_algo_configuration(std::string const& name,
                                               config_block_sptr config);
