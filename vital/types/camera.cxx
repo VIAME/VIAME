@@ -37,10 +37,10 @@
 #include <vital/types/camera.h>
 #include <vital/io/eigen_io.h>
 #include <vital/types/matrix.h>
-#include "transform.h"
-#include <iomanip>
-#include <typeinfo>
+#include <vital/types/transform.h>
 #include <Eigen/Geometry>
+
+#include <iomanip>
 
 namespace kwiver {
 namespace vital {
@@ -50,10 +50,17 @@ std::ostream&
 operator<<( std::ostream& s, const camera& c )
 {
   using std::setprecision;
+  Eigen::VectorXd d = c.intrinsics().dist_coeffs();
+  // if no distortion coefficients, create a zero entry as a place holder
+  if ( d.rows() == 0 )
+  {
+    d.resize( 1 );
+    d[0] = 0.0;
+  }
   s << setprecision( 12 ) << matrix_3x3d( c.intrinsics() ) << "\n\n"
     << setprecision( 12 ) << matrix_3x3d( c.rotation() ) << "\n\n"
     << setprecision( 12 ) << c.translation().transpose() << "\n\n"
-    << "0\n";
+    << setprecision( 12 ) << d.transpose() << "\n";
   return s;
 }
 
@@ -137,10 +144,17 @@ std::ostream&
 operator<<( std::ostream& s, const camera_< T >& k )
 {
   using std::setprecision;
+  Eigen::Matrix< T, Eigen::Dynamic, 1 > d = k.get_intrinsics().dist_coeffs();
+  // if no distortion coefficients, create a zero entry as a place holder
+  if ( d.rows() == 0 )
+  {
+    d.resize( 1 );
+    d[0] = T( 0 );
+  }
   s << setprecision( 12 ) << Eigen::Matrix< T, 3, 3 > ( k.get_intrinsics() ) << "\n\n"
     << setprecision( 12 ) << Eigen::Matrix< T, 3, 3 > ( k.get_rotation() ) << "\n\n"
     << setprecision( 12 ) << k.get_translation().transpose() << "\n\n"
-    << "0\n";
+    << setprecision( 12 ) << d.transpose() << "\n";
   return s;
 }
 
@@ -152,10 +166,16 @@ operator>>( std::istream& s, camera_< T >& k )
 {
   Eigen::Matrix< T, 3, 3 > K, R;
   Eigen::Matrix< T, 3, 1 > t;
-  double d; // the trailing single 0
+  Eigen::Matrix< T, Eigen::Dynamic, 1 > d;
 
   s >> K >> R >> t >> d;
-  k.set_intrinsics( camera_intrinsics_< T > ( K ) );
+  // a single 0 in d is used as a place holder,
+  // if a single 0 was loaded then clear d
+  if ( ( d.rows() == 1 ) && ( d[0] == T( 0 ) ) )
+  {
+    d.resize( 0 );
+  }
+  k.set_intrinsics( camera_intrinsics_< T > ( K, d ) );
   k.set_rotation( rotation_< T > ( R ) );
   k.set_translation( t );
   return s;
@@ -207,19 +227,19 @@ interpolated_cameras( camera_< T > const&           A,
 
 
 /// \cond DoxygenSuppress
-#define INSTANTIATE_CAMERA( T )                                         \
-  template class VITAL_EXPORT camera_< T >;                             \
-  template VITAL_EXPORT std::ostream&                                   \
-  operator<<( std::ostream& s, const camera_< T >& c );                 \
-  template VITAL_EXPORT std::istream&                                   \
-  operator>>( std::istream& s, camera_< T >& c );                       \
+#define INSTANTIATE_CAMERA( T )                                                      \
+  template class VITAL_EXPORT camera_< T >;                                      \
+  template VITAL_EXPORT std::ostream&                                            \
+  operator<<( std::ostream& s, const camera_< T >& c );                              \
+  template VITAL_EXPORT std::istream&                                            \
+  operator>>( std::istream& s, camera_< T >& c );                                    \
   template VITAL_EXPORT camera_< T > interpolate_camera( camera_< T > const & A, \
-                                                         camera_< T > const & B, \
-                                                         T f );         \
-  template VITAL_EXPORT void interpolated_cameras( camera_< T > const & A, \
-                                                   camera_< T > const & B, \
-                                                   size_t n,            \
-                                                   std::vector< camera_< T > > &interp_cams )
+                                                             camera_< T > const & B, \
+                                                             T f );                  \
+  template VITAL_EXPORT void interpolated_cameras( camera_< T > const & A,       \
+                                                       camera_< T > const & B,       \
+                                                       size_t n,                     \
+                                                       std::vector< camera_< T > > &interp_cams )
 
 INSTANTIATE_CAMERA( double );
 INSTANTIATE_CAMERA( float );
@@ -254,6 +274,4 @@ interpolate_camera( camera_sptr A, camera_sptr B, double f )
   return camera_sptr( new camera_< double > ( c, R, k ) );
 }
 
-
-}
-}   // end namespace vital
+} } // end namespace
