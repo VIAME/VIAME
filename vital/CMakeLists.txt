@@ -178,7 +178,7 @@ target_link_libraries( vital
 #
 option(KWIVER_USE_BUILD_PLUGIN_DIR
   "Whether to include the build-tree plugin directory to the default plugin path list"
-  ON
+  OFF
   )
 
 set(vital_apm_headers
@@ -215,40 +215,52 @@ target_link_libraries(vital_apm
                    boost_filesystem
   )
 
+set(VITAL_MODULE_PATHS "${vidtk_default_module_paths}"
+  CACHE STRING "The extra default paths for module scanning. Separate paths with ';' character.")
+mark_as_advanced( VITAL_MODULE_PATHS )
+
 # Configuring/Adding compile definitions to target
 # (so we can use generator expressions)
 if (WIN32)  # Windows puts DLLs in bin/CONFIG/
   set(shared_lib_dir "/bin")
   set(lib_dir_suffix)
+  set(path_sep ";")
+  set(path_prefix "L")
 else()  # Other Unix systems
   set(shared_lib_dir "/lib")
   set(lib_dir_suffix "${KWIVER_LIB_SUFFIX}")
+  set(path_sep ":")
+  set(path_prefix)
 endif()
+
 
 if (CMAKE_CONFIGURATION_TYPES)
   set(config_subdir "/$<CONFIGURATION>")
 endif()
 
-# Convert use-build-dir switch into 1/0 value
-macro(boolize var_name)
-  if( ${var_name} )
-    set(${var_name} 1)
-  else()
-    set(${var_name} 0)
-  endif()
-endmacro()
+## The modules subdirectory is where the kwiver_add_module() macro generates its product
+set( install_module_paths "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/modules" )
+set( build_module_paths "${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules" )
 
-boolize(KWIVER_USE_BUILD_PLUGIN_DIR)
+# assemle total search path
+set( VITAL_DEFAULT_MODULE_PATHS ${install_module_paths})
 
-# plugin manager needs a lot of external info so it can locate plugins
-# and such
-target_compile_definitions(vital_apm
-  PRIVATE
-    "SHARED_LIB_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\""
-    "USE_BUILD_PLUGIN_DIR=${KWIVER_USE_BUILD_PLUGIN_DIR}"
-    "DEFAULT_PLUGIN_DIR_BUILD=\"${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules\""
-    "DEFAULT_PLUGIN_DIR_INSTALL=\"${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/modules\""
-  )
+# convert CMake list to path specification
+foreach( p IN LISTS VITAL_MODULE_PATHS )
+  set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${p} )
+endforeach(p)
+
+if (KWIVER_USE_BUILD_PLUGIN_DIR)
+  set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${build_module_paths})
+endif()
+
+#
+# This is all to get around the ';' as the path separator.  CMake will
+# split it into two elements when we want it to be ignored.
+#
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/algorithm_plugin_manager_paths.h" )
 
 ###
 #

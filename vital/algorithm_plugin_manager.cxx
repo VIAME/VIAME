@@ -36,9 +36,12 @@
 
 #include "algorithm_plugin_manager.h"
 
+#include <vital/algorithm_plugin_manager_paths.h>
+
 #include <vital/vital_apm_export.h>
 #include <vital/registrar.h>
 #include <vital/logger/logger.h>
+
 #include <kwiversys/DynamicLoader.hxx>
 #include <kwiversys/SystemTools.hxx>
 
@@ -86,10 +89,7 @@ static std::string const register_function_name = std::string( "private_register
 static std::string const shared_library_suffix = std::string( SHARED_LIB_SUFFIX );
 
 // Default module directory locations. Values defined in CMake configuration.
-// It sould be useful to have a set of paths that could be passed in from CMake interface.
-static vital::path_t const default_plugin_dir_build = vital::path_t( DEFAULT_PLUGIN_DIR_BUILD ),
-                           default_plugin_dir_install = vital::path_t( DEFAULT_PLUGIN_DIR_INSTALL );
-bool const use_build_plugin_dir = USE_BUILD_PLUGIN_DIR;
+static std::string const default_module_paths= std::string( DEFAULT_MODULE_PATHS );
 
 } // end anonymous namespace
 
@@ -308,18 +308,12 @@ algorithm_plugin_manager
   {
     LOG_INFO( impl_->m_logger, "Adding path \"" << env_ptr << "\" from environment" );
     std::string const extra_module_dirs(env_ptr);
-
-    // ADD paths as they are split from the env data. Note that they
-    // are added, so the vector could have previous contents
     boost::split( impl_->m_search_paths, extra_module_dirs, is_separator, boost::token_compress_on );
   }
 
-  if ( use_build_plugin_dir )
-  {
-    this->impl_->m_search_paths.push_back( default_plugin_dir_build );
-  }
-
-  this->impl_->m_search_paths.push_back( default_plugin_dir_install );
+  std::vector< path_t > temp;
+  boost::split( temp, default_module_paths, is_separator, boost::token_compress_on );
+  impl_->m_search_paths.insert( impl_->m_search_paths.end(), temp.begin(), temp.end() );
 }
 
 
@@ -388,14 +382,8 @@ algorithm_plugin_manager
 bool
 is_separator( vital::path_t::value_type ch )
 {
-  vital::path_t::value_type const separator =
-#if defined ( _WIN32 ) || defined ( _WIN64 )
-    ';';
-#else
-    ':';
-#endif
-
-    return ( ch == separator );
+  vital::path_t::value_type const separator = PATH_SEPARATOR_CHAR;
+  return ( ch == separator );
 }
 
 
