@@ -37,6 +37,8 @@
 #include "stamp.h"
 #include "types.h"
 
+#include <vital/logger/logger.h>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/assign/ptr_map_inserter.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
@@ -233,6 +235,8 @@ class process::priv
 
     mutex_t reconfigure_mut;
 
+    kwiver::vital::logger_handle_t m_logger;
+
     static config::value_t const default_name;
 };
 
@@ -304,8 +308,8 @@ process
 
   if (d->is_complete)
   {
-    /// \todo Log a warning that a process is being stepped after completion.
     /// \todo What exactly should be done here?
+    LOG_WARN( d->m_logger, "Process " << name() << " is being stepped after completion" );
   }
   else
   {
@@ -1612,6 +1616,7 @@ process::priv
   , is_complete(false)
   , check_input_level(check_valid)
   , stamp_for_inputs()
+  , m_logger( kwiver::vital::get_logger( "sprokit:process" ))
 {
 }
 
@@ -2007,4 +2012,4 @@ process::priv::output_port_info_t
 {
 }
 
-}
+} // end namespace

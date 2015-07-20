@@ -35,6 +35,8 @@
 #include "process_exception.h"
 #include "process_registry.h"
 
+#include <vital/logger/logger.h>
+
 #include <boost/foreach.hpp>
 
 #include <algorithm>
@@ -72,6 +74,7 @@ class process_cluster::priv
     connections_t input_mappings;
     connections_t output_mappings;
     connections_t internal_connections;
+    kwiver::vital::logger_handle_t m_logger;
 };
 
 processes_t
@@ -186,7 +189,7 @@ process_cluster
 
     if (new_conf->has_value(mapped_key))
     {
-      /// \todo Log a warning.
+      LOG_WARN( d->m_logger, "Config item \"" << mapped_key << "\" already has a value. Value will be replaced." );
     }
 
     new_conf->set_value(mapped_key, value);
@@ -403,6 +406,7 @@ process_cluster::priv
   , input_mappings()
   , output_mappings()
   , internal_connections()
+  , m_logger( kwiver::vital::get_logger( "sprokit:process_cluster" ) )
 {
 }
 

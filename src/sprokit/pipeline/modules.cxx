@@ -33,9 +33,11 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <sprokit/pipeline/module-paths.h>
 #endif
+
 #include "utils.h"
 
 #include <sprokit/pipeline_util/path.h>
+#include <vital/logger/logger.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -79,7 +81,7 @@ typedef std::vector<module_path_t> module_paths_t;
 typedef std::string lib_suffix_t;
 typedef std::string function_name_t;
 
-}
+} // end namespace
 
 static void look_in_directory(module_path_t const& directory);
 static void load_from_module(module_path_t const& path);
@@ -90,6 +92,9 @@ static function_name_t const scheduler_function_name = function_name_t("register
 static module_path_t const default_module_dirs = module_path_t(DEFAULT_MODULE_PATHS);
 static envvar_name_t const sprokit_module_envvar = envvar_name_t("SPROKIT_MODULE_PATH");
 static lib_suffix_t const library_suffix = lib_suffix_t(LIBRARY_SUFFIX);
+
+// There may be a better way to get this logger than static CTOR
+static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "sprokit:modules" ) );
 
 void
 load_known_modules()
@@ -137,13 +142,13 @@ look_in_directory(module_path_t const& directory)
 
   if (!boost::filesystem::exists(directory))
   {
-    /// \todo Log error that path doesn't exist.
+    LOG_WARN( m_logger, "Directory \"" << directory << "\" does not exist." );
     return;
   }
 
   if (!boost::filesystem::is_directory(directory))
   {
-    /// \todo Log error that path isn't a directory.
+    LOG_WARN( m_logger, "Path \"" << directory << "\" is not a directory." );
     return;
   }
 
@@ -156,6 +161,7 @@ look_in_directory(module_path_t const& directory)
 
     ++module_dir_iter;
 
+    // Check if file ends with allowable suffix. If not, skip entry.
     if (!boost::ends_with(ent.path().native(), library_suffix))
     {
       continue;
@@ -163,7 +169,8 @@ look_in_directory(module_path_t const& directory)
 
     if (ent.status().type() != boost::filesystem::regular_file)
     {
-      /// \todo Log warning that we found a non-file matching path.
+      // This may happen a lot, but it is interesting.
+      LOG_DEBUG( m_logger, "Directory entry \"" << ent << "\" is not a regular file." );
       continue;
     }
 
@@ -191,12 +198,7 @@ load_from_module(module_path_t const& path)
 
   if (!library)
   {
-    /// \todo Log an error. Also have system dependent way of getting error.
-    // This is important because libraries used by these modules can cause failure if
-    // they are not found.
-    std::cerr << "ERROR - Unable to load module: " << path
-              << "  (" << dlerror() << ")"
-              << std::endl;
+    LOG_ERROR( m_logger, "Unable to load module: " << path << "  (" << dlerror() << ")" );
     return;
   }
 
@@ -226,15 +228,14 @@ load_from_module(module_path_t const& path)
 
   if (process_registrar)
   {
-    /// \todo Log info that we have loaded processes.
-    std::cerr << "INFO - Processes from module " << path << " loaded\n";
+    LOG_INFO( m_logger, "Loading processes from module " << path << " loaded" );
 
     (*process_registrar)();
     functions_found = true;
   }
   if (scheduler_registrar)
   {
-    /// \todo Log info that we have loaded schedulers.
+    LOG_INFO( m_logger, "Loading schedulers from module " << path << " loaded" );
 
     (*scheduler_registrar)();
     functions_found = true;
@@ -247,14 +248,14 @@ load_from_module(module_path_t const& path)
 
     if (!ret)
     {
-      /// \todo Log the error.
+      LOG_WARN( m_logger, "Error returned from freeing loaded library." );
     }
 #else
     int const ret = dlclose(library);
 
     if (ret)
     {
-      /// \todo Log the error.
+      LOG_WARN( m_logger, "Error returned from closing loaded library." );
     }
 #endif
   }

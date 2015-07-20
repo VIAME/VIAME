@@ -35,6 +35,8 @@
 #include "process_exception.h"
 #include "process_cluster.h"
 
+#include <vital/logger/logger.h>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
@@ -150,6 +152,8 @@ class pipeline::priv
     bool setup_in_progress;
     bool setup_successful;
     bool running;
+
+    kwiver::vital::logger_handle_t m_logger;
 
     static bool is_upstream_for(process::port_addr_t const& addr, process::connection_t const& connection);
     static bool is_downstream_for(process::port_addr_t const& addr, process::connection_t const& connection);
@@ -1066,12 +1070,14 @@ pipeline::priv
   , setup_in_progress(false)
   , setup_successful(false)
   , running(false)
+  , m_logger( kwiver::vital::get_logger( "sprokit:pipeline" ) )
 {
-  /// \todo Debug log config
-  std::stringstream msg;
-  msg << "DEBUG - pipeline config:\n";
-  config->print(msg);
-  std::cerr << msg;
+  if ( IS_DEBUG_ENABLED( m_logger ) )
+  {
+    std::stringstream msg;
+    config->print(msg);
+    LOG_DEBUG( m_logger, "pipeline config:\n" << msg );
+  }
 }
 
 pipeline::priv
@@ -1647,13 +1653,16 @@ pipeline::priv
       edge_config->mark_read_only(edge::config_dependency);
     }
 
-    /// \todo log edge config
-    std::stringstream msg;
-    msg << "DEBUG - edge config for "
-        << upstream_name << "." << upstream_port << " -> " << downstream_name << "." << downstream_port
-        << "\n";
-    edge_config->print(msg);
-    std::cerr << msg;
+    if ( IS_DEBUG_ENABLED( m_logger ) )
+    {
+      std::stringstream msg;
+      edge_config->print(msg);
+
+      LOG_DEBUG( m_logger,
+                 "Edge config for "  << upstream_name << "." <<
+                 upstream_port  << " -> " << downstream_name << "." <<
+                 downstream_port << "\n" << msg );
+    }
 
     edge_t const e = boost::make_shared<edge>(edge_config);
 
