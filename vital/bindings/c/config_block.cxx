@@ -52,16 +52,13 @@
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/config_block.h>
 
-
-/// Definition of sptr cache
 namespace kwiver {
 namespace vital_c {
 
 SharedPointerCache< kwiver::vital::config_block, vital_config_block_t >
 CONFIG_BLOCK_SPTR_CACHE( "config_block" );
 
-}
-}
+} }
 
 
 // Static Constant getters

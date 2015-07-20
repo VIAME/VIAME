@@ -56,11 +56,12 @@ config_block_key_t const config_block::global_value = config_block_key_t("_globa
 /// private helper method for determining key path prefixes
 static bool does_not_begin_with(config_block_key_t const& key,
                                 config_block_key_t const& name);
+
 /// private helper method to strip a block name from a key path
 static config_block_key_t strip_block_name(config_block_key_t const& subblock,
                                            config_block_key_t const& key);
 
-/// Create an empty configuration.
+// Create an empty configuration.
 config_block_sptr
 config_block
 ::empty_config(config_block_key_t const& name)
@@ -69,7 +70,7 @@ config_block
   return config_block_sptr(new config_block(name, config_block_sptr()));
 }
 
-/// Destructor
+// Destructor
 config_block
 ::~config_block()
 {
@@ -77,7 +78,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Get the name of this \c config_block instance.
+// Get the name of this \c config_block instance.
 config_block_key_t
 config_block
 ::get_name()
@@ -87,7 +88,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Get a subblock from the configuration.
+// Get a subblock from the configuration.
 config_block_sptr
 config_block
 ::subblock(config_block_key_t const& key) const
@@ -113,7 +114,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Get a subblock view into the configuration.
+// Get a subblock view into the configuration.
 config_block_sptr
 config_block
 ::subblock_view(config_block_key_t const& key)
@@ -143,7 +144,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Remove a value from the configuration.
+// Remove a value from the configuration.
 void
 config_block
 ::unset_value(config_block_key_t const& key)
@@ -178,7 +179,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Query if a value is read-only.
+// Query if a value is read-only.
 bool
 config_block
 ::is_read_only(config_block_key_t const& key) const
@@ -188,7 +189,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Set the value within the configuration as read-only.
+// Set the value within the configuration as read-only.
 void
 config_block
 ::mark_read_only(config_block_key_t const& key)
@@ -198,7 +199,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Merge the values in \p config_block into the current config.
+// Merge the values in \p config_block into the current config.
 void
 config_block
 ::merge_config(config_block_sptr const& conf)
@@ -216,7 +217,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-///Return the values available in the configuration.
+//Return the values available in the configuration.
 config_block_keys_t
 config_block
 ::available_values() const
@@ -248,7 +249,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Check if a value exists for \p key.
+// Check if a value exists for \p key.
 bool
 config_block
 ::has_value(config_block_key_t const& key) const
@@ -263,7 +264,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Internal constructor
+// Internal constructor
 config_block
 ::config_block(config_block_key_t const& name, config_block_sptr parent)
   : m_parent(parent)
@@ -276,7 +277,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// private helper method to extract a value for a key
+// private helper method to extract a value for a key
 boost::optional<config_block_value_t>
 config_block
 ::find_value(config_block_key_t const& key) const
@@ -291,7 +292,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// private value getter function
+// private value getter function
 config_block_value_t
 config_block
 ::i_get_value(config_block_key_t const& key) const
@@ -313,7 +314,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// private key/value setter
+// private key/value setter
 void
 config_block
 ::i_set_value(config_block_key_t const& key,
@@ -346,7 +347,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Type-specific casting handling, bool specialization
+// Type-specific casting handling, bool specialization
 template <>
 bool
 config_block_cast(config_block_value_t const& value)
@@ -372,7 +373,7 @@ config_block_cast(config_block_value_t const& value)
 
 
 // ------------------------------------------------------------------
-/// private helper method for determining key path prefixes
+// private helper method for determining key path prefixes
 /**
  * \param key   The key string to check.
  * \param name  The prefix string to check for. Should not include a trailing
@@ -391,7 +392,7 @@ does_not_begin_with(config_block_key_t const& key, config_block_key_t const& nam
 
 
 // ------------------------------------------------------------------
-/// private helper method to strip a block name from a key path
+// private helper method to strip a block name from a key path
 /**
  * Conditionally strip the given subblock name from the given key path. If the
  * given key doesn't start with the given subblock, the given key is returned

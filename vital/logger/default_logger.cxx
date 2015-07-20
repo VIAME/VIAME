@@ -51,7 +51,10 @@ namespace logger_ns {
 
   // ==================================================================
   // Use 1 mutex per stream.  This needs to be static to allow for multiple
-  // loggers to use the same stream and still have it locked appropriately
+  // loggers to use the same stream and still have it locked appropriately.
+  //
+  // It is not clear that all this structure is needed since we only
+  // use ome file descriptor.
   boost::mutex& get_stream_mtx( const std::ostream& s )
   {
     static boost::shared_mutex stream_mtx_map_mtx;
@@ -86,16 +89,19 @@ logger_factory_default
 { }
 
 
-// ----------------------------------------------------------------
+// ==================================================================
 /**
- * @brief kwiver logger interface
+ * @brief Default kwiver logger implementation.
  *
+ * This class implements a default minimal logger that is instantiated
+ * if there is no other logger back end.
  */
 class default_logger
   : public kwiver_logger
 {
 public:
 
+  /// CTOR
   default_logger( logger_ns::logger_factory_default* p, const char * const name )
     : kwiver_logger( p, name ),
       m_logLevel(kwiver_logger::LEVEL_TRACE)

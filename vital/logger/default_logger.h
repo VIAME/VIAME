@@ -39,7 +39,8 @@ namespace vital {
 namespace logger_ns {
 
 // ----------------------------------------------------------------
-/** Factory for underlying logger.
+/**
+ * @brief Factory for default underlying logger.
  *
  * This class represents the factory for the mini_logger logging service.
  *
@@ -54,8 +55,17 @@ public:
   logger_factory_default();
   virtual ~logger_factory_default();
 
+  /**
+   * @brief Get logger object for \v name.
+   *
+   * This method returns a handle to the named logger. Since this is
+   * the minimal default logger, all loggers are effectively the same.
+   *
+   * @param name Name of the logger.
+   *
+   * @return Handle to desired logger.
+   */
   virtual logger_handle_t get_logger( const char * const name );
-
 
 }; // end class logger_factory
 

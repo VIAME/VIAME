@@ -278,3 +278,8 @@ endif()
 ###
 # Make appropriate export header file
 generate_export_header( vital )
+
+###
+# Marking source root for documentation generation
+#
+kwiver_create_doxygen( vital "${CMAKE_CURRENT_LIST_DIR}" )

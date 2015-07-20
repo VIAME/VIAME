@@ -46,7 +46,7 @@ set(CMAKE_MODULE_PATH      ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 # Set options
 set(KWIVER_LIB_SUFFIX "" CACHE STRING "String suffix appended to the library directory name we install into.")
 
-option(KWIVER_ENABLE_TESTS     "Enable testing" ON)
+option( KWIVER_ENABLE_TESTS     "Enable testing" ON)
 
 if (KWIVER_ENABLE_TESTS)
   enable_testing()
@@ -55,6 +55,8 @@ if (KWIVER_ENABLE_TESTS)
   mark_as_advanced(BUILD_TESTING)
 
 endif()
+
+option( KWIVER_ENABLE_PYTHON   "Enable Python bindings" OFF )
 
 if (KWIVER_ENABLE_PYTHON)
   set(vital_boost_python_package python)

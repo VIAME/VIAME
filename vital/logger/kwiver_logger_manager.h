@@ -49,7 +49,7 @@ namespace logger_ns {
 
 
 // ----------------------------------------------------------------
-/** Logger manager (root object)
+/** Logger manager.
  *
  * This class represents the main top level logic for the KWIVER
  * logger. Only one object of this type is required, so this is a
@@ -66,6 +66,9 @@ public:
 
   /**
    * @brief Get name of current logger factory.
+   *
+   * This method returns the name of the currently active logger
+   * factory.
    *
    * @return Name of logger factory.
    */

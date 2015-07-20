@@ -40,7 +40,7 @@ namespace vital {
 namespace logger_ns {
 
 // ----------------------------------------------------------------
-/**
+/** @class log4cxx_logger
  * @brief Log4cxx logger implementation.
  *
  * This class is an adapter that bridges from our standard logging API

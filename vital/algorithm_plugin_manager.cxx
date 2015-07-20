@@ -325,6 +325,7 @@ algorithm_plugin_manager
 }
 
 
+// ------------------------------------------------------------------
 /// Access singleton instance of this class
 algorithm_plugin_manager&
 algorithm_plugin_manager
@@ -348,6 +349,7 @@ algorithm_plugin_manager
 }
 
 
+// ------------------------------------------------------------------
 /// (Re)Load plugin libraries found along current search paths
 void
 algorithm_plugin_manager

@@ -39,6 +39,8 @@
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace kwiver {
 namespace vital{
@@ -61,6 +63,8 @@ namespace logger_ns {
  * concrete implementation determines how the category name is used.
  */
 class VITAL_LOGGER_EXPORT kwiver_logger
+  : public boost::enable_shared_from_this< kwiver_logger >,
+    private boost::noncopyable
 {
 public:
   enum log_level_t {
@@ -72,16 +76,6 @@ public:
     LEVEL_ERROR,
     LEVEL_FATAL };
 
-  /**
-   * @brief Constructor for logger object
-   *
-   * A new logger object is constructed for the specified category.
-   *
-   * @param fact Pointer to logger factory
-   * @param name Name of logger to create
-   */
-  kwiver_logger( logger_ns::kwiver_logger_factory* fact, const char * const name );
-  kwiver_logger( logger_ns::kwiver_logger_factory* fact, std::string const& name );
   virtual ~kwiver_logger();
 
   // Check to see if level is enabled
@@ -308,7 +302,20 @@ public:
   std::string const& get_factory_name() const;
 
 
+protected:
+    /**
+   * @brief Constructor for logger object
+   *
+   * A new logger object is constructed for the specified category.
+   *
+   * @param fact Pointer to logger factory
+   * @param name Name of logger to create
+   */
+  kwiver_logger( logger_ns::kwiver_logger_factory* fact, const char * const name );
+  kwiver_logger( logger_ns::kwiver_logger_factory* fact, std::string const& name );
+
 private:
+
   class impl;
   boost::scoped_ptr< impl > m_impl;
 
