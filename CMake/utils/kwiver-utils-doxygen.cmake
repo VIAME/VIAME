@@ -37,7 +37,7 @@ function(kwiver_create_doxygen name inputdir)
     # Constants -- could be moved outside this function?
     set(doxy_include_path       "${KWIVER_SOURCE_DIR};${KWIVER_BINARY_DIR}")
     set(doxy_doc_output_path    "${KWIVER_BINARY_DIR}/doc")
-    set(doxy_files_dir "${KWIVER_SOURCE_DIR}/cmake/templates/doxygen")
+    set(doxy_files_dir "${KWIVER_SOURCE_DIR}/CMake/templates/doxygen")
 
     # current project specific variables
     set(doxy_project_name       "${name}")
