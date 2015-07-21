@@ -66,7 +66,7 @@ class SPROKIT_NO_EXPORT CLASS_NAME(name)               \
   : public sprokit::process                            \
 {                                                    \
   public:                                            \
-    CLASS_NAME(name)(sprokit::config_t const& config); \
+    CLASS_NAME(name)(kwiver::vital::config_block_sptr const& config); \
     CLASS_DTOR(name)();                              \
   protected:                                         \
     void _configure();                               \

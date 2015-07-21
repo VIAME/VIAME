@@ -33,7 +33,7 @@
 
 #include "pipeline-config.h"
 
-#include "config.h"
+#include <vital/config/config_block.h>
 #include "process.h"
 #include "types.h"
 
@@ -211,7 +211,7 @@ class SPROKIT_PIPELINE_EXPORT null_conf_info_exception
      * \param name The name of the process.
      * \param key The configuration key with \c NULL information.
      */
-    null_conf_info_exception(process::name_t const& name, config::key_t const& key) throw();
+    null_conf_info_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) throw();
     /**
      * \brief Destructor.
      */
@@ -220,7 +220,7 @@ class SPROKIT_PIPELINE_EXPORT null_conf_info_exception
     /// The name of the \ref process.
     process::name_t const m_name;
     /// The configuration key.
-    config::key_t const m_key;
+    kwiver::vital::config_block_key_t const m_key;
 };
 
 /**
@@ -645,7 +645,7 @@ class SPROKIT_PIPELINE_EXPORT unknown_configuration_value_exception
      * \param name The name of the process.
      * \param key The key requested.
      */
-    unknown_configuration_value_exception(process::name_t const& name, config::key_t const& key) throw();
+    unknown_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) throw();
     /**
      * \brief Destructor.
      */
@@ -654,7 +654,7 @@ class SPROKIT_PIPELINE_EXPORT unknown_configuration_value_exception
     /// The name of the \ref process which was connected to.
     process::name_t const m_name;
     /// The name of the key which was given.
-    config::key_t const m_key;
+    kwiver::vital::config_block_key_t const m_key;
 };
 
 /**
@@ -676,7 +676,7 @@ class SPROKIT_PIPELINE_EXPORT invalid_configuration_value_exception
      * \param value The value given.
      * \param desc A description of the configuration value.
      */
-    invalid_configuration_value_exception(process::name_t const& name, config::key_t const& key, config::value_t const& value, config::description_t const& desc) throw();
+    invalid_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& value, kwiver::vital::config_block_description_t const& desc) throw();
     /**
      * \brief Destructor.
      */
@@ -685,11 +685,11 @@ class SPROKIT_PIPELINE_EXPORT invalid_configuration_value_exception
     /// The name of the \ref process which was connected to.
     process::name_t const m_name;
     /// The name of the key which was given.
-    config::key_t const m_key;
+    kwiver::vital::config_block_key_t const m_key;
     /// The invalid value.
-    config::value_t const m_value;
+    kwiver::vital::config_block_value_t const m_value;
     /// A description of the key.
-    config::description_t const m_desc;
+    kwiver::vital::config_block_description_t const m_desc;
 };
 
 /**

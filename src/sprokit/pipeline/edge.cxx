@@ -77,8 +77,8 @@ edge_datum_t
           (*stamp == *rhs.stamp));
 }
 
-config::key_t const edge::config_dependency = config::key_t("_dependency");
-config::key_t const edge::config_capacity = config::key_t("capacity");
+kwiver::vital::config_block_key_t const edge::config_dependency = kwiver::vital::config_block_key_t("_dependency");
+kwiver::vital::config_block_key_t const edge::config_capacity = kwiver::vital::config_block_key_t("capacity");
 
 class edge::priv
 {
@@ -117,7 +117,7 @@ class edge::priv
 };
 
 edge
-::edge(config_t const& config)
+::edge(kwiver::vital::config_block_sptr const& config)
   : d()
 {
   if (!config)

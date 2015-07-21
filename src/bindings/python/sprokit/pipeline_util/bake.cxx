@@ -56,7 +56,7 @@ using namespace boost::python;
 
 static sprokit::process::type_t cluster_info_type(sprokit::cluster_info_t const& self);
 static sprokit::process_registry::description_t cluster_info_description(sprokit::cluster_info_t const& self);
-static sprokit::process_t cluster_info_create(sprokit::cluster_info_t const& self, sprokit::config_t const& config);
+static sprokit::process_t cluster_info_create(sprokit::cluster_info_t const& self, kwiver::vital::config_block_sptr const& config);
 static sprokit::process_t cluster_info_create_default(sprokit::cluster_info_t const& self);
 static void register_cluster(sprokit::cluster_info_t const& info);
 static sprokit::pipeline_t bake_pipe_file(std::string const& path);
@@ -118,7 +118,7 @@ cluster_info_description(sprokit::cluster_info_t const& self)
 }
 
 sprokit::process_t
-cluster_info_create(sprokit::cluster_info_t const& self, sprokit::config_t const& config)
+cluster_info_create(sprokit::cluster_info_t const& self, kwiver::vital::config_block_sptr const& config)
 {
   sprokit::process_ctor_t const& ctor = self->ctor;
 
@@ -128,7 +128,7 @@ cluster_info_create(sprokit::cluster_info_t const& self, sprokit::config_t const
 sprokit::process_t
 cluster_info_create_default(sprokit::cluster_info_t const& self)
 {
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
   return cluster_info_create(self, conf);
 }

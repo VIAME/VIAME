@@ -78,7 +78,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT tunable_process
      *
      * \param config The configuration for the process.
      */
-    tunable_process(config_t const& config);
+    tunable_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */
@@ -97,7 +97,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT tunable_process
     /**
      * \brief Step the process.
      */
-    void _reconfigure(config_t const& conf);
+    void _reconfigure(kwiver::vital::config_block_sptr const& conf);
   private:
     class priv;
     boost::scoped_ptr<priv> d;

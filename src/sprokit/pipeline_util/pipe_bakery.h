@@ -145,7 +145,7 @@ cluster_info_t SPROKIT_PIPELINE_UTIL_EXPORT bake_cluster_blocks(cluster_blocks c
  *
  * \returns A configuration extracted from \p blocks.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT config_t extract_configuration(pipe_blocks const& blocks);
+SPROKIT_PIPELINE_UTIL_EXPORT kwiver::vital::config_block_sptr extract_configuration(pipe_blocks const& blocks);
 
 }
 

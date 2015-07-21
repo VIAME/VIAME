@@ -55,10 +55,14 @@ namespace sprokit
  * \defgroup registries Registries of different types of pipeline objects.
  * \defgroup exceptions Exceptions thrown within the pipeline.
  */
+//class config_block;
+
+/// Shared pointer for the \c config_block class
+//typedef boost::shared_ptr< config_block > config_T;
+
 
 class config;
-/// A typedef used to handle \link config configurations\endlink.
-typedef boost::shared_ptr<config> config_t;
+//typedef boost::shared_ptr<config> config_t;
 
 class datum;
 /// A typedef used to handle \link datum edge data\endlink.

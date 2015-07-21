@@ -68,7 +68,7 @@ BOOST_PYTHON_MODULE(edge)
     , "A communication channel between processes."
     , no_init)
     .def(init<>())
-    .def(init<sprokit::config_t>())
+    .def(init<kwiver::vital::config_block_sptr>())
     .def("makes_dependency", &sprokit::edge::makes_dependency
       , "Returns True if the edge implies a dependency from downstream on upstream.")
     .def("has_data", &sprokit::edge::has_data

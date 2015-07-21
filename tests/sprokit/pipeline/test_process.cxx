@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
@@ -54,7 +54,7 @@ main(int argc, char* argv[])
   RUN_TEST(testname);
 }
 
-static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name = sprokit::process::name_t(), sprokit::config_t const& conf = sprokit::config::empty_config());
+static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name = sprokit::process::name_t(), kwiver::vital::config_block_sptr const& conf = kwiver::vital::config_block::empty_config());
 static sprokit::edge_t create_edge();
 
 class remove_ports_process
@@ -78,7 +78,7 @@ class null_config_process
   : public sprokit::process
 {
   public:
-    null_config_process(sprokit::config_t const& config);
+    null_config_process(kwiver::vital::config_block_sptr const& config);
     ~null_config_process();
 };
 
@@ -86,7 +86,7 @@ class null_input_info_process
   : public sprokit::process
 {
   public:
-    null_input_info_process(sprokit::config_t const& config);
+    null_input_info_process(kwiver::vital::config_block_sptr const& config);
     ~null_input_info_process();
 };
 
@@ -94,7 +94,7 @@ class null_output_info_process
   : public sprokit::process
 {
   public:
-    null_output_info_process(sprokit::config_t const& config);
+    null_output_info_process(kwiver::vital::config_block_sptr const& config);
     ~null_output_info_process();
 };
 
@@ -102,7 +102,7 @@ class null_conf_info_process
   : public sprokit::process
 {
   public:
-    null_conf_info_process(sprokit::config_t const& config);
+    null_conf_info_process(kwiver::vital::config_block_sptr const& config);
     ~null_conf_info_process();
 };
 
@@ -138,7 +138,7 @@ IMPLEMENT_TEST(connect_after_init)
 
   sprokit::process_t const process = create_process(proc_type);
 
-  sprokit::config_t const config = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
@@ -719,11 +719,11 @@ IMPLEMENT_TEST(tunable_config)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("tunable");
 
-  sprokit::config::key_t const tunable_key = sprokit::config::key_t("tunable");
+  kwiver::vital::config_block_key_t const tunable_key = kwiver::vital::config_block_key_t("tunable");
 
   sprokit::process_t const proc = create_process(proc_type);
 
-  sprokit::config::keys_t const tunable = proc->available_tunable_config();
+  kwiver::vital::config_block_keys_t const tunable = proc->available_tunable_config();
 
   if (tunable.size() != 1)
   {
@@ -746,17 +746,17 @@ IMPLEMENT_TEST(tunable_config_read_only)
   sprokit::process::type_t const proc_type = sprokit::process::type_t("tunable");
   sprokit::process::name_t const proc_name = sprokit::process::name_t(proc_type);
 
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::key_t const tunable_key = sprokit::config::key_t("tunable");
-  sprokit::config::value_t const tunable_value = sprokit::config::value_t("value");
+  kwiver::vital::config_block_key_t const tunable_key = kwiver::vital::config_block_key_t("tunable");
+  kwiver::vital::config_block_value_t const tunable_value = kwiver::vital::config_block_value_t("value");
 
   conf->set_value(tunable_key, tunable_value);
   conf->mark_read_only(tunable_key);
 
   sprokit::process_t const proc = create_process(proc_type, proc_name, conf);
 
-  sprokit::config::keys_t const tunable = proc->available_tunable_config();
+  kwiver::vital::config_block_keys_t const tunable = proc->available_tunable_config();
 
   if (!tunable.empty())
   {
@@ -769,13 +769,13 @@ IMPLEMENT_TEST(reconfigure_tunable)
   sprokit::process::type_t const proc_type = sprokit::process::type_t("expect");
   sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::key_t const key_tunable = sprokit::config::key_t("tunable");
-  sprokit::config::key_t const key_expect = sprokit::config::key_t("expect");
+  kwiver::vital::config_block_key_t const key_tunable = kwiver::vital::config_block_key_t("tunable");
+  kwiver::vital::config_block_key_t const key_expect = kwiver::vital::config_block_key_t("expect");
 
-  sprokit::config::value_t const tunable_value = sprokit::config::value_t("old_value");
-  sprokit::config::value_t const tuned_value = sprokit::config::value_t("new_value");
+  kwiver::vital::config_block_value_t const tunable_value = kwiver::vital::config_block_value_t("old_value");
+  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_value_t("new_value");
 
   conf->set_value(key_tunable, tunable_value);
   conf->set_value(key_expect, tuned_value);
@@ -783,14 +783,14 @@ IMPLEMENT_TEST(reconfigure_tunable)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
 
-  sprokit::config_t const new_conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  new_conf->set_value(proc_name + sprokit::config::block_sep + key_tunable, tuned_value);
+  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep + key_tunable, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
@@ -800,12 +800,12 @@ IMPLEMENT_TEST(reconfigure_non_tunable)
   sprokit::process::type_t const proc_type = sprokit::process::type_t("expect");
   sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::key_t const key_tunable = sprokit::config::key_t("tunable");
-  sprokit::config::key_t const key_expect = sprokit::config::key_t("expect");
+  kwiver::vital::config_block_key_t const key_tunable = kwiver::vital::config_block_key_t("tunable");
+  kwiver::vital::config_block_key_t const key_expect = kwiver::vital::config_block_key_t("expect");
 
-  sprokit::config::value_t const tunable_value = sprokit::config::value_t("old_value");
+  kwiver::vital::config_block_value_t const tunable_value = kwiver::vital::config_block_value_t("old_value");
 
   conf->set_value(key_tunable, tunable_value);
   conf->mark_read_only(key_tunable);
@@ -814,16 +814,16 @@ IMPLEMENT_TEST(reconfigure_non_tunable)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
 
-  sprokit::config_t const new_conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::value_t const tuned_value = sprokit::config::value_t("new_value");
+  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_value_t("new_value");
 
-  new_conf->set_value(proc_name + sprokit::config::block_sep + key_tunable, tuned_value);
+  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep + key_tunable, tuned_value);
 
   pipeline->reconfigure(new_conf);
 }
@@ -833,12 +833,12 @@ IMPLEMENT_TEST(reconfigure_extra_parameters)
   sprokit::process::type_t const proc_type = sprokit::process::type_t("expect");
   sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::key_t const new_key = sprokit::config::key_t("new_key");
+  kwiver::vital::config_block_key_t const new_key = kwiver::vital::config_block_key_t("new_key");
 
-  sprokit::config::key_t const key_expect = sprokit::config::key_t("expect");
-  sprokit::config::key_t const key_expect_key = sprokit::config::key_t("expect_key");
+  kwiver::vital::config_block_key_t const key_expect = kwiver::vital::config_block_key_t("expect");
+  kwiver::vital::config_block_key_t const key_expect_key = kwiver::vital::config_block_key_t("expect_key");
 
   conf->set_value(key_expect, new_key);
   conf->set_value(key_expect_key, "true");
@@ -846,22 +846,22 @@ IMPLEMENT_TEST(reconfigure_extra_parameters)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
 
-  sprokit::config_t const new_conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::value_t const tunable_value = sprokit::config::value_t("old_value");
+  kwiver::vital::config_block_value_t const tunable_value = kwiver::vital::config_block_value_t("old_value");
 
-  new_conf->set_value(proc_name + sprokit::config::block_sep + new_key, tunable_value);
+  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep + new_key, tunable_value);
 
   pipeline->reconfigure(new_conf);
 }
 
 sprokit::process_t
-create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t const& conf)
+create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr const& conf)
 {
   static bool const modules_loaded = (sprokit::load_known_modules(), true);
   static sprokit::process_registry_t const reg = sprokit::process_registry::self();
@@ -874,15 +874,15 @@ create_process(sprokit::process::type_t const& type, sprokit::process::name_t co
 sprokit::edge_t
 create_edge()
 {
-  sprokit::config_t const config = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
   sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
   return edge;
 }
 
 null_config_process
-::null_config_process(sprokit::config_t const& /*config*/)
-  : sprokit::process(sprokit::config_t())
+::null_config_process(kwiver::vital::config_block_sptr const& /*config*/)
+  : sprokit::process(kwiver::vital::config_block_sptr())
 {
 }
 
@@ -892,7 +892,7 @@ null_config_process
 }
 
 null_input_info_process
-::null_input_info_process(sprokit::config_t const& config)
+::null_input_info_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
 {
   name_t const port = name_t("port");
@@ -906,7 +906,7 @@ null_input_info_process
 }
 
 null_output_info_process
-::null_output_info_process(sprokit::config_t const& config)
+::null_output_info_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
 {
   name_t const port = name_t("port");
@@ -920,10 +920,10 @@ null_output_info_process
 }
 
 null_conf_info_process
-::null_conf_info_process(sprokit::config_t const& config)
+::null_conf_info_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
 {
-  sprokit::config::key_t const key = sprokit::config::key_t("key");
+  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("key");
 
   declare_configuration_key(key, conf_info_t());
 }
@@ -935,7 +935,7 @@ null_conf_info_process
 
 remove_ports_process
 ::remove_ports_process(port_type_t const& port_type)
-  : sprokit::process(sprokit::config::empty_config())
+  : sprokit::process(kwiver::vital::config_block::empty_config())
 {
   create_input_port(input_port, port_type);
   create_output_port(output_port, port_type);

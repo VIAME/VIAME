@@ -125,7 +125,7 @@ process::port_t const collate_process::priv::port_coll_prefix = port_t("coll") +
  */
 
 collate_process
-::collate_process(config_t const& config)
+::collate_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

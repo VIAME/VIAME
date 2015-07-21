@@ -30,7 +30,7 @@
 
 #include "duplicate_process.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/process_exception.h>
 
@@ -57,26 +57,26 @@ class duplicate_process::priv
 
     frequency_component_t const copies;
 
-    static config::key_t const config_copies;
-    static config::value_t const default_copies;
+    static kwiver::vital::config_block_key_t const config_copies;
+    static kwiver::vital::config_block_value_t const default_copies;
     static port_t const port_input;
     static port_t const port_duplicate;
 };
 
-config::key_t const duplicate_process::priv::config_copies = config::key_t("copies");
-config::value_t const duplicate_process::priv::default_copies = config::key_t("1");
+kwiver::vital::config_block_key_t const duplicate_process::priv::config_copies = kwiver::vital::config_block_key_t("copies");
+kwiver::vital::config_block_value_t const duplicate_process::priv::default_copies = kwiver::vital::config_block_key_t("1");
 process::port_t const duplicate_process::priv::port_input = port_t("input");
 process::port_t const duplicate_process::priv::port_duplicate = port_t("duplicate");
 
 duplicate_process
-::duplicate_process(config_t const& config)
+::duplicate_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv(1))
 {
   declare_configuration_key(
     priv::config_copies,
     priv::default_copies,
-    config::description_t("The number of copies to make of each input."));
+    kwiver::vital::config_block_description_t("The number of copies to make of each input."));
 
   port_flags_t required;
   port_flags_t required_shared;

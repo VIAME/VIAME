@@ -92,7 +92,7 @@ scheduler_registry
 
 scheduler_t
 scheduler_registry
-::create_scheduler(type_t const& type, pipeline_t const& pipe, config_t const& config) const
+::create_scheduler(type_t const& type, pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config) const
 {
   if (!config)
   {

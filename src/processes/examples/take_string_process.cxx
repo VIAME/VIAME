@@ -32,7 +32,7 @@
 
 #include <sprokit/pipeline_util/path.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/process_exception.h>
 
 #include <string>
@@ -60,7 +60,7 @@ class take_string_process::priv
 process::port_t const take_string_process::priv::port_input = port_t("string");
 
 take_string_process
-::take_string_process(config_t const& config)
+::take_string_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d()
 {

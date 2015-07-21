@@ -54,7 +54,7 @@ class sink_process::priv
 process::port_t const sink_process::priv::port_input = port_t("sink");
 
 sink_process
-::sink_process(config_t const& config)
+::sink_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

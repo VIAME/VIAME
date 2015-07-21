@@ -128,7 +128,7 @@ process::port_t const distribute_process::priv::port_dist_prefix = port_t("dist"
  */
 
 distribute_process
-::distribute_process(config_t const& config)
+::distribute_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

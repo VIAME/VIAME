@@ -72,7 +72,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT mutate_process
      *
      * \param config The configuration for the process.
      */
-    mutate_process(config_t const& config);
+    mutate_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

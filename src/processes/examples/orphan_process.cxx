@@ -40,7 +40,7 @@ namespace sprokit
 {
 
 orphan_process
-::orphan_process(config_t const& config)
+::orphan_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
 {
 }

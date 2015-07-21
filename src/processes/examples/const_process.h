@@ -72,7 +72,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT const_process
      *
      * \param config The configuration for the process.
      */
-    const_process(config_t const& config);
+    const_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

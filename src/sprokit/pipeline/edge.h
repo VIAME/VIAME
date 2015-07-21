@@ -33,7 +33,7 @@
 
 #include "pipeline-config.h"
 
-#include "config.h"
+#include <vital/config/config_block.h>
 #include "types.h"
 
 #include <boost/noncopyable.hpp>
@@ -117,7 +117,7 @@ class SPROKIT_PIPELINE_EXPORT edge
      *
      * \param config Contains configuration for the edge.
      */
-    edge(config_t const& config = config::empty_config());
+  edge(kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config());
     /**
      * \brief Destructor.
      */
@@ -286,9 +286,9 @@ class SPROKIT_PIPELINE_EXPORT edge
     void set_downstream_process(process_t process);
 
     /// Configuration that indicates the edge implies an execution dependency between upstream and downstream.
-    static config::key_t const config_dependency;
+    static kwiver::vital::config_block_key_t const config_dependency;
     /// Configuration for the maximum capacity of an edge.
-    static config::key_t const config_capacity;
+    static kwiver::vital::config_block_key_t const config_capacity;
   private:
     class SPROKIT_PIPELINE_NO_EXPORT priv;
     boost::scoped_ptr<priv> d;

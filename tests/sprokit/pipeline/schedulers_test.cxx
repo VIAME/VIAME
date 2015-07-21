@@ -41,7 +41,7 @@ class SPROKIT_NO_EXPORT test_scheduler
   : public sprokit::scheduler
 {
   public:
-    test_scheduler(pipeline_t const& pipe, config_t const& config);
+    test_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
     ~test_scheduler();
   protected:
     void _start();
@@ -52,7 +52,7 @@ class SPROKIT_NO_EXPORT test_scheduler
 };
 
 test_scheduler
-::test_scheduler(pipeline_t const& pipe, config_t const& config)
+::test_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : scheduler(pipe, config)
 {
 }

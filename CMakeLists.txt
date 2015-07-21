@@ -40,6 +40,11 @@ if (GIT_FOUND)
   endif ()
 endif ()
 
+###
+# required for logger and config
+find_package( vital REQUIRED )
+include_directories( ${VITAL_INCLUDE_DIRS} )
+
 # Project setup.
 include("${sprokit_source_dir}/cmake/snippets/version.cmake")
 include("${sprokit_source_dir}/cmake/snippets/flags.cmake")

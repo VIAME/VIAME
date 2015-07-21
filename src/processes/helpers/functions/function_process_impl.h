@@ -185,8 +185,8 @@
  * \param desc A description of the configuration.
  */
 #define DECLARE_CONF_VARS(cls, name, type, default, desc) \
-  static sprokit::config::key_t const CONF_VAR(name);       \
-  static sprokit::config::value_t const CONF_DEF_VAR(name); \
+  static kwiver::vital::config_block_key_t const CONF_VAR(name);       \
+  static kwiver::vital::config_block_value_t const CONF_DEF_VAR(name); \
   type const CONF_VALUE_VAR(name)
 /**
  * \def DEFINE_CONF_VARS
@@ -200,8 +200,8 @@
  * \param desc A description of the configuration.
  */
 #define DEFINE_CONF_VARS(cls, name, type, default, desc)                                          \
-  sprokit::config::key_t const CLASS_NAME(cls)::priv::CONF_VAR(name) = sprokit::config::key_t(#name); \
-  sprokit::config::value_t const CLASS_NAME(cls)::priv::CONF_DEF_VAR(name) = sprokit::config::value_t(default)
+  kwiver::vital::config_block_key_t const CLASS_NAME(cls)::priv::CONF_VAR(name) = kwiver::vital::config_block_key_t(#name); \
+  kwiver::vital::config_block_value_t const CLASS_NAME(cls)::priv::CONF_DEF_VAR(name) = kwiver::vital::config_block_value_t(default)
 
 /**
  * \def CONFIG_DECLARE_ARGS
@@ -268,7 +268,7 @@
   declare_configuration_key(                           \
     priv::CONF_VAR(name),                              \
     priv::CONF_DEF_VAR(name),                          \
-    sprokit::config::description_t(desc))
+    kwiver::vital::config_block_description_t(desc))
 
 /**
  * \def GRAB_CONFIG_VALUE
@@ -548,9 +548,9 @@ conf(DEFINE_CONF_VARS, LINES)                                         \
 iports(DEFINE_IPORT_VARS, LINES)                                      \
 oports(DEFINE_OPORT_VARS, LINES)                                      \
                                                                       \
-CLASS_NAME(name)                                                      \
-::CLASS_NAME(name)(sprokit::config_t const& config)                     \
-  : sprokit::process(config)                                            \
+CLASS_NAME(name)                                                        \
+::CLASS_NAME(name)(kwiver::vital::config_block_sptr const& config)      \
+                  : sprokit::process(config)                            \
 {                                                                     \
   port_flags_t required;                                              \
                                                                       \

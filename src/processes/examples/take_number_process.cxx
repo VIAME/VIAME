@@ -32,7 +32,7 @@
 
 #include <sprokit/pipeline_util/path.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/process_exception.h>
 
 #include <boost/cstdint.hpp>
@@ -62,7 +62,7 @@ class take_number_process::priv
 process::port_t const take_number_process::priv::port_input = port_t("number");
 
 take_number_process
-::take_number_process(config_t const& config)
+::take_number_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d()
 {

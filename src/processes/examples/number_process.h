@@ -78,7 +78,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT number_process
      *
      * \param config The configuration for the process.
      */
-    number_process(config_t const& config);
+    number_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

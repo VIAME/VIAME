@@ -72,7 +72,7 @@ class SPROKIT_PROCESSES_FLOW_NO_EXPORT sink_process
      *
      * \param config The configuration for the process.
      */
-    sink_process(config_t const& config);
+    sink_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

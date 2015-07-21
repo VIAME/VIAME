@@ -30,7 +30,7 @@
 
 #include "sync_scheduler.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/pipeline.h>
@@ -80,7 +80,7 @@ class sync_scheduler::priv
 };
 
 sync_scheduler
-::sync_scheduler(pipeline_t const& pipe, config_t const& config)
+::sync_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : scheduler(pipe, config)
   , d(new priv)
 {
@@ -164,7 +164,7 @@ sync_scheduler::priv
 }
 
 static process::names_t sorted_names(pipeline_t const& pipe);
-static config_t monitor_edge_config();
+static kwiver::vital::config_block_sptr monitor_edge_config();
 
 void
 sync_scheduler::priv
@@ -176,7 +176,7 @@ sync_scheduler::priv
   std::queue<process_t> processes;
   std::map<process::name_t, edge_t> monitor_edges;
 
-  config_t const edge_conf = monitor_edge_config();
+  kwiver::vital::config_block_sptr const edge_conf = monitor_edge_config();
 
   BOOST_FOREACH (process::name_t const& name, names)
   {
@@ -316,10 +316,10 @@ sorted_names(pipeline_t const& pipe)
   return names;
 }
 
-config_t
+kwiver::vital::config_block_sptr
 monitor_edge_config()
 {
-  config_t conf = config::empty_config();
+  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
   return conf;
 }

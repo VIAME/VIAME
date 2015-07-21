@@ -33,7 +33,7 @@
 
 #include "pipeline_util-config.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -74,7 +74,7 @@ class SPROKIT_PIPELINE_UTIL_NO_EXPORT provider
      *
      * \returns The dereferenced value for the \p index.
      */
-    virtual config::value_t operator () (config::value_t const& index) const = 0;
+    virtual kwiver::vital::config_block_value_t operator () (kwiver::vital::config_block_value_t const& index) const = 0;
 };
 
 /**
@@ -91,7 +91,7 @@ class SPROKIT_PIPELINE_UTIL_NO_EXPORT config_provider
      *
      * \param conf The configuration to use as a lookup.
      */
-    config_provider(config_t const conf);
+    config_provider(kwiver::vital::config_block_sptr const conf);
     /**
      * \brief Destructor.
      */
@@ -104,9 +104,9 @@ class SPROKIT_PIPELINE_UTIL_NO_EXPORT config_provider
      *
      * \returns The dereferenced value for the \p index.
      */
-    config::value_t operator () (config::value_t const& index) const;
+    kwiver::vital::config_block_value_t operator () (kwiver::vital::config_block_value_t const& index) const;
   private:
-    config_t const m_config;
+    kwiver::vital::config_block_sptr const m_config;
 };
 
 /**
@@ -134,7 +134,7 @@ class SPROKIT_PIPELINE_UTIL_NO_EXPORT system_provider
      *
      * \returns The dereferenced value for the \p index.
      */
-    config::value_t operator () (config::value_t const& index) const;
+    kwiver::vital::config_block_value_t operator () (kwiver::vital::config_block_value_t const& index) const;
 };
 
 /**
@@ -162,7 +162,7 @@ class SPROKIT_PIPELINE_UTIL_NO_EXPORT environment_provider
      *
      * \returns The dereferenced value for the \p index.
      */
-    config::value_t operator () (config::value_t const& index) const;
+    kwiver::vital::config_block_value_t operator () (kwiver::vital::config_block_value_t const& index) const;
 };
 
 }

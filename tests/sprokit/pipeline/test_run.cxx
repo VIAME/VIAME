@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
@@ -72,7 +72,7 @@ main(int argc, char* argv[])
   RUN_TEST(testname, scheduler_type);
 }
 
-static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config = sprokit::config::empty_config());
+static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config());
 static sprokit::pipeline_t create_pipeline();
 
 IMPLEMENT_TEST(simple_pipeline)
@@ -89,20 +89,20 @@ IMPLEMENT_TEST(simple_pipeline)
   int32_t const end_value = 20;
 
   {
-    sprokit::config_t const configu = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configu = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
-    sprokit::config::value_t const start_num = boost::lexical_cast<sprokit::config::value_t>(start_value);
-    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
-    sprokit::config::value_t const end_num = boost::lexical_cast<sprokit::config::value_t>(end_value);
+    kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
+    kwiver::vital::config_block_value_t const start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
+    kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
+    kwiver::vital::config_block_value_t const end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    sprokit::config_t const configt = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
-    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
+    kwiver::vital::config_block_key_t const output_key = kwiver::vital::config_block_key_t("output");
+    kwiver::vital::config_block_value_t const output_value = kwiver::vital::config_block_value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
@@ -146,7 +146,7 @@ IMPLEMENT_TEST(simple_pipeline)
       TEST_ERROR("Failed to read a line from the file");
     }
 
-    if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i))
+    if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i << " "
@@ -179,20 +179,20 @@ IMPLEMENT_TEST(pysimple_pipeline)
   int32_t const end_value = 20;
 
   {
-    sprokit::config_t const configu = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configu = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
-    sprokit::config::value_t const start_num = boost::lexical_cast<sprokit::config::value_t>(start_value);
-    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
-    sprokit::config::value_t const end_num = boost::lexical_cast<sprokit::config::value_t>(end_value);
+    kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
+    kwiver::vital::config_block_value_t const start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
+    kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
+    kwiver::vital::config_block_value_t const end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    sprokit::config_t const configt = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
-    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
+    kwiver::vital::config_block_key_t const output_key = kwiver::vital::config_block_key_t("output");
+    kwiver::vital::config_block_value_t const output_value = kwiver::vital::config_block_value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
@@ -236,7 +236,7 @@ IMPLEMENT_TEST(pysimple_pipeline)
       TEST_ERROR("Failed to read a line from the file");
     }
 
-    if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i))
+    if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i << " "
@@ -275,29 +275,29 @@ IMPLEMENT_TEST(multiplier_pipeline)
   int32_t const end_value2= 30;
 
   {
-    sprokit::config_t const configu1 = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configu1 = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
-    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
+    kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
+    kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
 
-    sprokit::config::value_t const start_num1 = boost::lexical_cast<sprokit::config::value_t>(start_value1);
-    sprokit::config::value_t const end_num1 = boost::lexical_cast<sprokit::config::value_t>(end_value1);
+    kwiver::vital::config_block_value_t const start_num1 = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value1);
+    kwiver::vital::config_block_value_t const end_num1 = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value1);
 
     configu1->set_value(start_key, start_num1);
     configu1->set_value(end_key, end_num1);
 
-    sprokit::config_t const configu2 = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configu2 = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::value_t const start_num2 = boost::lexical_cast<sprokit::config::value_t>(start_value2);
-    sprokit::config::value_t const end_num2 = boost::lexical_cast<sprokit::config::value_t>(end_value2);
+    kwiver::vital::config_block_value_t const start_num2 = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value2);
+    kwiver::vital::config_block_value_t const end_num2 = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value2);
 
     configu2->set_value(start_key, start_num2);
     configu2->set_value(end_key, end_num2);
 
-    sprokit::config_t const configt = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
-    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
+    kwiver::vital::config_block_key_t const output_key = kwiver::vital::config_block_key_t("output");
+    kwiver::vital::config_block_value_t const output_value = kwiver::vital::config_block_value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
@@ -353,7 +353,7 @@ IMPLEMENT_TEST(multiplier_pipeline)
       TEST_ERROR("Failed to read a line from the file");
     }
 
-    if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * j))
+    if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i * j))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i * j << " "
@@ -390,29 +390,29 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
   int32_t const factor_value = 20;
 
   {
-    sprokit::config_t const configu = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configu = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
-    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
+    kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
+    kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
 
-    sprokit::config::value_t const start_num = boost::lexical_cast<sprokit::config::value_t>(start_value);
-    sprokit::config::value_t const end_num = boost::lexical_cast<sprokit::config::value_t>(end_value);
+    kwiver::vital::config_block_value_t const start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
+    kwiver::vital::config_block_value_t const end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    sprokit::config_t const configd = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configd = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const factor_key = sprokit::config::key_t("factor");
+    kwiver::vital::config_block_key_t const factor_key = kwiver::vital::config_block_key_t("factor");
 
-    sprokit::config::value_t const factor = boost::lexical_cast<sprokit::config::value_t>(factor_value);
+    kwiver::vital::config_block_value_t const factor = boost::lexical_cast<kwiver::vital::config_block_value_t>(factor_value);
 
     configd->set_value(factor_key, factor);
 
-    sprokit::config_t const configt = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
-    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
+    kwiver::vital::config_block_key_t const output_key = kwiver::vital::config_block_key_t("output");
+    kwiver::vital::config_block_value_t const output_value = kwiver::vital::config_block_value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
@@ -462,7 +462,7 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
       TEST_ERROR("Failed to read a line from the file");
     }
 
-    if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * factor_value))
+    if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i * factor_value))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i * factor_value << " "
@@ -505,31 +505,31 @@ IMPLEMENT_TEST(frequency_pipeline)
   size_t const copies_b = 3;
 
   {
-    sprokit::config_t const configu = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configu = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const start_key = sprokit::config::key_t("start");
-    sprokit::config::key_t const end_key = sprokit::config::key_t("end");
+    kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
+    kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
 
-    sprokit::config::value_t const start_num = boost::lexical_cast<sprokit::config::value_t>(start_value);
-    sprokit::config::value_t const end_num = boost::lexical_cast<sprokit::config::value_t>(end_value);
+    kwiver::vital::config_block_value_t const start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
+    kwiver::vital::config_block_value_t const end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    sprokit::config_t const configfa = sprokit::config::empty_config();
-    sprokit::config_t const configfb = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configfa = kwiver::vital::config_block::empty_config();
+    kwiver::vital::config_block_sptr const configfb = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const copies_key = sprokit::config::key_t("copies");
-    sprokit::config::value_t const copiesa = boost::lexical_cast<sprokit::config::value_t>(copies_a - 1);
-    sprokit::config::value_t const copiesb = boost::lexical_cast<sprokit::config::value_t>(copies_b - 1);
+    kwiver::vital::config_block_key_t const copies_key = kwiver::vital::config_block_key_t("copies");
+    kwiver::vital::config_block_value_t const copiesa = boost::lexical_cast<kwiver::vital::config_block_value_t>(copies_a - 1);
+    kwiver::vital::config_block_value_t const copiesb = boost::lexical_cast<kwiver::vital::config_block_value_t>(copies_b - 1);
 
     configfa->set_value(copies_key, copiesa);
     configfb->set_value(copies_key, copiesb);
 
-    sprokit::config_t const configt = sprokit::config::empty_config();
+    kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
 
-    sprokit::config::key_t const output_key = sprokit::config::key_t("output");
-    sprokit::config::value_t const output_value = sprokit::config::value_t(output_path);
+    kwiver::vital::config_block_key_t const output_key = kwiver::vital::config_block_key_t("output");
+    kwiver::vital::config_block_value_t const output_value = kwiver::vital::config_block_value_t(output_path);
 
     configt->set_value(output_key, output_value);
 
@@ -601,7 +601,7 @@ IMPLEMENT_TEST(frequency_pipeline)
     {
       std::getline(fin, line);
 
-      if (sprokit::config::value_t(line) != boost::lexical_cast<sprokit::config::value_t>(i * i))
+      if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i * i))
       {
         TEST_ERROR("Did not get expected value: "
                    "Expected: " << i * i << " "
@@ -624,7 +624,7 @@ IMPLEMENT_TEST(frequency_pipeline)
 }
 
 sprokit::process_t
-create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config)
+create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config)
 {
   static bool const modules_loaded = (sprokit::load_known_modules(), true);
   static sprokit::process_registry_t const reg = sprokit::process_registry::self();

@@ -162,7 +162,7 @@ duplicate_cluster_output_port_exception
 }
 
 unrecognized_config_flag_exception
-::unrecognized_config_flag_exception(config::key_t const& key, config_flag_t const& flag) SPROKIT_NOTHROW
+::unrecognized_config_flag_exception(kwiver::vital::config_block_key_t const& key, config_flag_t const& flag) SPROKIT_NOTHROW
   : pipe_bakery_exception()
   , m_key(key)
   , m_flag(flag)
@@ -182,7 +182,7 @@ unrecognized_config_flag_exception
 }
 
 config_flag_mismatch_exception
-::config_flag_mismatch_exception(config::key_t const& key, std::string const& reason) SPROKIT_NOTHROW
+::config_flag_mismatch_exception(kwiver::vital::config_block_key_t const& key, std::string const& reason) SPROKIT_NOTHROW
   : pipe_bakery_exception()
   , m_key(key)
   , m_reason(reason)
@@ -202,7 +202,9 @@ config_flag_mismatch_exception
 }
 
 unrecognized_provider_exception
-::unrecognized_provider_exception(config::key_t const& key, config_provider_t const& provider, config::value_t const& index) SPROKIT_NOTHROW
+::unrecognized_provider_exception(kwiver::vital::config_block_key_t const& key,
+                                  config_provider_t const& provider,
+                                  kwiver::vital::config_block_value_t const& index) SPROKIT_NOTHROW
   : pipe_bakery_exception()
   , m_key(key)
   , m_provider(provider)
@@ -239,7 +241,7 @@ circular_config_provide_exception
 }
 
 unrecognized_system_index_exception
-::unrecognized_system_index_exception(config::value_t const& index) SPROKIT_NOTHROW
+::unrecognized_system_index_exception(kwiver::vital::config_block_value_t const& index) SPROKIT_NOTHROW
   : pipe_bakery_exception()
   , m_index(index)
 {

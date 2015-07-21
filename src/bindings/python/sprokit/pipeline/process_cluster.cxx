@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
 
@@ -55,20 +55,20 @@ class wrap_process_cluster
   , public wrapper<sprokit::process_cluster>
 {
   public:
-    wrap_process_cluster(sprokit::config_t const& config);
+    wrap_process_cluster(kwiver::vital::config_block_sptr const& config);
     ~wrap_process_cluster();
 
     properties_t _base_properties() const;
 
-    void _base_reconfigure(sprokit::config_t const& conf);
+    void _base_reconfigure(kwiver::vital::config_block_sptr const& conf);
 
     sprokit::processes_t processes() const;
     connections_t input_mappings() const;
     connections_t output_mappings() const;
     connections_t internal_connections() const;
 
-    void _map_config(sprokit::config::key_t const& key, name_t const& name_, sprokit::config::key_t const& mapped_key);
-    void _add_process(name_t const& name_, type_t const& type_, sprokit::config_t const& config);
+    void _map_config(kwiver::vital::config_block_key_t const& key, name_t const& name_, kwiver::vital::config_block_key_t const& mapped_key);
+    void _add_process(name_t const& name_, type_t const& type_, kwiver::vital::config_block_sptr const& config);
     void _map_input(port_t const& port, name_t const& name_, port_t const& mapped_port);
     void _map_output(port_t const& port, name_t const& name_, port_t const& mapped_port);
     void _connect(name_t const& upstream_name, port_t const& upstream_port,
@@ -76,7 +76,7 @@ class wrap_process_cluster
 
     properties_t _properties() const;
 
-    void _reconfigure(sprokit::config_t const& conf);
+    void _reconfigure(kwiver::vital::config_block_sptr const& conf);
 
     void _declare_input_port(port_t const& port, port_info_t const& info);
     void _declare_input_port_1(port_t const& port,
@@ -91,10 +91,10 @@ class wrap_process_cluster
                                 port_description_t const& description_,
                                 port_frequency_t const& frequency_);
 
-    void _declare_configuration_key(sprokit::config::key_t const& key, conf_info_t const& info);
-    void _declare_configuration_key_1(sprokit::config::key_t const& key,
-                                      sprokit::config::value_t const& def_,
-                                      sprokit::config::description_t const& description_);
+    void _declare_configuration_key(kwiver::vital::config_block_key_t const& key, conf_info_t const& info);
+    void _declare_configuration_key_1(kwiver::vital::config_block_key_t const& key,
+                                      kwiver::vital::config_block_value_t const& def_,
+                                      kwiver::vital::config_block_description_t const& description_);
 };
 
 static object cluster_from_process(sprokit::process_t const& process);
@@ -104,7 +104,7 @@ BOOST_PYTHON_MODULE(process_cluster)
   class_<wrap_process_cluster, boost::noncopyable>("PythonProcessCluster"
     , "The base class for Python process clusters."
     , no_init)
-    .def(init<sprokit::config_t>())
+    .def(init<kwiver::vital::config_block_sptr>())
     .def("name", &sprokit::process::name
       , "Returns the name of the process.")
     .def("type", &sprokit::process::type
@@ -132,7 +132,7 @@ BOOST_PYTHON_MODULE(process_cluster)
       , (arg("key"), arg("name"), arg("mapped_key"))
       , "Map a configuration value to a process.")
     .def("add_process", &wrap_process_cluster::_add_process
-      , (arg("name"), arg("type"), arg("config") = sprokit::config::empty_config())
+      , (arg("name"), arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
       , "Add a process to the cluster.")
     .def("map_input", &wrap_process_cluster::_map_input
       , (arg("port"), arg("name"), arg("mapped_port"))
@@ -184,7 +184,7 @@ BOOST_PYTHON_MODULE(process_cluster)
 }
 
 wrap_process_cluster
-::wrap_process_cluster(sprokit::config_t const& config)
+::wrap_process_cluster(kwiver::vital::config_block_sptr const& config)
   : sprokit::process_cluster(config)
 {
 }
@@ -203,21 +203,21 @@ wrap_process_cluster
 
 void
 wrap_process_cluster
-::_base_reconfigure(sprokit::config_t const& conf)
+::_base_reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
   return process_cluster::_reconfigure(conf);
 }
 
 void
 wrap_process_cluster
-::_map_config(sprokit::config::key_t const& key, name_t const& name_, sprokit::config::key_t const& mapped_key)
+::_map_config(kwiver::vital::config_block_key_t const& key, name_t const& name_, kwiver::vital::config_block_key_t const& mapped_key)
 {
   map_config(key, name_, mapped_key);
 }
 
 void
 wrap_process_cluster
-::_add_process(name_t const& name_, type_t const& type_, sprokit::config_t const& conf)
+::_add_process(name_t const& name_, type_t const& type_, kwiver::vital::config_block_sptr const& conf)
 {
   add_process(name_, type_, conf);
 }
@@ -267,7 +267,7 @@ wrap_process_cluster
 
 void
 wrap_process_cluster
-::_reconfigure(sprokit::config_t const& conf)
+::_reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
   {
     sprokit::python::python_gil const gil;
@@ -325,16 +325,16 @@ wrap_process_cluster
 
 void
 wrap_process_cluster
-::_declare_configuration_key(sprokit::config::key_t const& key, conf_info_t const& info)
+::_declare_configuration_key(kwiver::vital::config_block_key_t const& key, conf_info_t const& info)
 {
   declare_configuration_key(key, info);
 }
 
 void
 wrap_process_cluster
-::_declare_configuration_key_1(sprokit::config::key_t const& key,
-                               sprokit::config::value_t const& def_,
-                               sprokit::config::description_t const& description_)
+::_declare_configuration_key_1(kwiver::vital::config_block_key_t const& key,
+                               kwiver::vital::config_block_value_t const& def_,
+                               kwiver::vital::config_block_description_t const& description_)
 {
   declare_configuration_key(key, def_, description_);
 }

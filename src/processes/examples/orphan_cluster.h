@@ -62,7 +62,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT orphan_cluster
      *
      * \param config The configuration for the process.
      */
-    orphan_cluster(config_t const& config);
+    orphan_cluster(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

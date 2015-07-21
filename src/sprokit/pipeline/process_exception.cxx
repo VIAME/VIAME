@@ -141,7 +141,7 @@ reinitialization_exception
 }
 
 null_conf_info_exception
-::null_conf_info_exception(process::name_t const& name, config::key_t const& key) SPROKIT_NOTHROW
+::null_conf_info_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) SPROKIT_NOTHROW
   : process_exception()
   , m_name(name)
   , m_key(key)
@@ -424,7 +424,7 @@ process_configuration_exception
 }
 
 unknown_configuration_value_exception
-::unknown_configuration_value_exception(process::name_t const& name, config::key_t const& key) SPROKIT_NOTHROW
+::unknown_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) SPROKIT_NOTHROW
   : process_configuration_exception()
   , m_name(name)
   , m_key(key)
@@ -444,7 +444,10 @@ unknown_configuration_value_exception
 }
 
 invalid_configuration_value_exception
-::invalid_configuration_value_exception(process::name_t const& name, config::key_t const& key, config::value_t const& value, config::description_t const& desc) SPROKIT_NOTHROW
+::invalid_configuration_value_exception(process::name_t const& name,
+                                        kwiver::vital::config_block_key_t const& key,
+                                        kwiver::vital::config_block_value_t const& value,
+                                        kwiver::vital::config_block_description_t const& desc) SPROKIT_NOTHROW
   : process_configuration_exception()
   , m_name(name)
   , m_key(key)

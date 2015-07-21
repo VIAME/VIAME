@@ -59,7 +59,7 @@ process::port_t const multiplication_process::priv::port_factor2 = port_t("facto
 process::port_t const multiplication_process::priv::port_output = port_t("product");
 
 multiplication_process
-::multiplication_process(config_t const& config)
+::multiplication_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

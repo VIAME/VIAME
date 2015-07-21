@@ -51,26 +51,26 @@ class flow_dependent_process::priv
 
     typedef port_t tag_t;
 
-    static config::key_t const config_reject;
-    static config::value_t const default_reject;
+    static kwiver::vital::config_block_key_t const config_reject;
+    static kwiver::vital::config_block_value_t const default_reject;
     static port_t const port_input;
     static port_t const port_output;
 };
 
-config::key_t const flow_dependent_process::priv::config_reject = config::key_t("reject");
-config::value_t const flow_dependent_process::priv::default_reject = config::value_t("false");
+kwiver::vital::config_block_key_t const flow_dependent_process::priv::config_reject = kwiver::vital::config_block_key_t("reject");
+kwiver::vital::config_block_value_t const flow_dependent_process::priv::default_reject = kwiver::vital::config_block_value_t("false");
 process::port_t const flow_dependent_process::priv::port_input = port_t("input");
 process::port_t const flow_dependent_process::priv::port_output = port_t("output");
 
 flow_dependent_process
-::flow_dependent_process(config_t const& config)
+::flow_dependent_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_reject,
     priv::default_reject,
-    config::description_t("Whether to reject type setting requests or not."));
+    kwiver::vital::config_block_description_t("Whether to reject type setting requests or not."));
 
   bool const reject = config_value<bool>(priv::config_reject);
 

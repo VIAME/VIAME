@@ -30,7 +30,7 @@
 
 #include "thread_pool_scheduler.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 
 #include <boost/thread/thread.hpp>
 
@@ -55,13 +55,13 @@ class thread_pool_scheduler::priv
 
     boost::thread_group thread_pool;
 
-    static config::key_t const config_num_threads;
+    static kwiver::vital::config_block_key_t const config_num_threads;
 };
 
-config::key_t const thread_pool_scheduler::priv::config_num_threads = config::key_t("num_threads");
+kwiver::vital::config_block_key_t const thread_pool_scheduler::priv::config_num_threads = kwiver::vital::config_block_key_t("num_threads");
 
 thread_pool_scheduler
-::thread_pool_scheduler(pipeline_t const& pipe, config_t const& config)
+::thread_pool_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : scheduler(pipe, config)
   , d()
 {

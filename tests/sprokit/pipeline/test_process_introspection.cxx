@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/process.h>
@@ -151,9 +151,9 @@ test_process_properties(sprokit::process_t const process)
 void
 test_process_configuration(sprokit::process_t const process)
 {
-  sprokit::config::keys_t const keys = process->available_config();
+  kwiver::vital::config_block_keys_t const keys = process->available_config();
 
-  BOOST_FOREACH (sprokit::config::key_t const& key, keys)
+  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
   {
     try
     {
@@ -162,13 +162,13 @@ test_process_configuration(sprokit::process_t const process)
     catch (sprokit::unknown_configuration_value_exception const& e)
     {
       TEST_ERROR("Failed to get a default for "
-                 << process->type() << sprokit::config::block_sep << key
+                 << process->type() << kwiver::vital::config_block::block_sep << key
                  << ": " << e.what());
     }
     catch (std::exception const& e)
     {
       TEST_ERROR("Unexpected exception when querying for default "
-                 "(" << process->type() << sprokit::config::block_sep
+                 "(" << process->type() << kwiver::vital::config_block::block_sep
                  << key << "): " << e.what());
     }
   }
@@ -177,7 +177,7 @@ test_process_configuration(sprokit::process_t const process)
 void
 test_process_input_ports(sprokit::process_t const process)
 {
-  static sprokit::config_t const config = sprokit::config::empty_config();
+  static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   sprokit::process::ports_t const ports = process->input_ports();
 
@@ -249,7 +249,7 @@ test_process_input_ports(sprokit::process_t const process)
 void
 test_process_output_ports(sprokit::process_t const process)
 {
-  static sprokit::config_t const config = sprokit::config::empty_config();
+  static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   sprokit::process::ports_t const ports = process->output_ports();
 
@@ -309,7 +309,7 @@ test_process_output_ports(sprokit::process_t const process)
 void
 test_process_invalid_configuration(sprokit::process_t const process)
 {
-  sprokit::config::key_t const non_existent_config = sprokit::config::key_t("does_not_exist");
+  kwiver::vital::config_block_key_t const non_existent_config = kwiver::vital::config_block_key_t("does_not_exist");
 
   EXPECT_EXCEPTION(sprokit::unknown_configuration_value_exception,
                    process->config_info(non_existent_config),
@@ -320,7 +320,7 @@ void
 test_process_invalid_input_port(sprokit::process_t const process)
 {
   static sprokit::process::port_t const non_existent_port = sprokit::process::port_t("does_not_exist");
-  static sprokit::config_t const config = sprokit::config::empty_config();
+  static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    process->input_port_info(non_existent_port),
@@ -337,7 +337,7 @@ void
 test_process_invalid_output_port(sprokit::process_t const process)
 {
   static sprokit::process::port_t const non_existent_port = sprokit::process::port_t("does_not_exist");
-  static sprokit::config_t const config = sprokit::config::empty_config();
+  static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   // Output ports.
   EXPECT_EXCEPTION(sprokit::no_such_port_exception,

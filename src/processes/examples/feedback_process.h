@@ -76,7 +76,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT feedback_process
      *
      * \param config The configuration for the process.
      */
-    feedback_process(config_t const& config);
+    feedback_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

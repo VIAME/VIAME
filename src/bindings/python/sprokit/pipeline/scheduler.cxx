@@ -52,7 +52,7 @@ class wrap_scheduler
   , public wrapper<sprokit::scheduler>
 {
   public:
-    wrap_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
+    wrap_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
     ~wrap_scheduler();
 
     void _start();
@@ -71,7 +71,7 @@ BOOST_PYTHON_MODULE(scheduler)
   class_<wrap_scheduler, boost::noncopyable>("PythonScheduler"
     , "The base class for Python schedulers."
     , no_init)
-    .def(init<sprokit::pipeline_t, sprokit::config_t>())
+    .def(init<sprokit::pipeline_t, kwiver::vital::config_block_sptr>())
     .def("start", &sprokit::scheduler::start
       , "Start the execution of the pipeline.")
     .def("wait", &sprokit::scheduler::wait
@@ -98,7 +98,7 @@ BOOST_PYTHON_MODULE(scheduler)
 }
 
 wrap_scheduler
-::wrap_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config)
+::wrap_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : sprokit::scheduler(pipe, config)
 {
 }

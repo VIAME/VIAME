@@ -35,7 +35,7 @@
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 
 #include <boost/variant.hpp>

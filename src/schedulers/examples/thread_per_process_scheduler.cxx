@@ -30,7 +30,7 @@
 
 #include "thread_per_process_scheduler.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/pipeline.h>
@@ -69,7 +69,7 @@ class thread_per_process_scheduler::priv
 };
 
 thread_per_process_scheduler
-::thread_per_process_scheduler(pipeline_t const& pipe, config_t const& config)
+::thread_per_process_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : scheduler(pipe, config)
   , d(new priv)
 {
@@ -154,13 +154,13 @@ thread_per_process_scheduler::priv
 {
 }
 
-static config_t monitor_edge_config();
+static kwiver::vital::config_block_sptr monitor_edge_config();
 
 void
 thread_per_process_scheduler::priv
 ::run_process(process_t const& process)
 {
-  config_t const edge_conf = monitor_edge_config();
+  kwiver::vital::config_block_sptr const edge_conf = monitor_edge_config();
 
   name_thread(process->name());
   edge_t monitor_edge = boost::make_shared<edge>(edge_conf);
@@ -192,10 +192,10 @@ thread_per_process_scheduler::priv
   }
 }
 
-config_t
+kwiver::vital::config_block_sptr
 monitor_edge_config()
 {
-  config_t conf = config::empty_config();
+  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
   return conf;
 }

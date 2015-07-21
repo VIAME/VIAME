@@ -30,7 +30,7 @@
 
 #include "const_number_process.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 
 #include <boost/cstdint.hpp>
 
@@ -53,24 +53,24 @@ class const_number_process::priv
 
     number_t const value;
 
-    static config::key_t const config_value;
-    static config::value_t const default_value;
+    static kwiver::vital::config_block_key_t const config_value;
+    static kwiver::vital::config_block_value_t const default_value;
     static port_t const port_output;
 };
 
-config::key_t const const_number_process::priv::config_value = config::key_t("value");
-config::value_t const const_number_process::priv::default_value = config::value_t("0");
+kwiver::vital::config_block_key_t const const_number_process::priv::config_value = kwiver::vital::config_block_key_t("value");
+kwiver::vital::config_block_value_t const const_number_process::priv::default_value = kwiver::vital::config_block_value_t("0");
 process::port_t const const_number_process::priv::port_output = port_t("number");
 
 const_number_process
-::const_number_process(config_t const& config)
+::const_number_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_value,
     priv::default_value,
-    config::description_t("The value to start counting at."));
+    kwiver::vital::config_block_description_t("The value to start counting at."));
 
   port_flags_t required;
 

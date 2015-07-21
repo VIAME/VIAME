@@ -40,7 +40,7 @@ namespace sprokit
 {
 
 orphan_cluster
-::orphan_cluster(config_t const& config)
+::orphan_cluster(kwiver::vital::config_block_sptr const& config)
   : process_cluster(config)
 {
 }

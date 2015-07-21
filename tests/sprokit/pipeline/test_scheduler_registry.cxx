@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
@@ -70,7 +70,7 @@ IMPLEMENT_TEST(null_config)
 {
   sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-  sprokit::config_t const config;
+  kwiver::vital::config_block_sptr const config;
   sprokit::pipeline_t const pipe;
 
   EXPECT_EXCEPTION(sprokit::null_scheduler_registry_config_exception,
@@ -82,7 +82,7 @@ IMPLEMENT_TEST(null_pipeline)
 {
   sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
 
-  sprokit::config_t const config = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
   sprokit::pipeline_t const pipe;
 
   EXPECT_EXCEPTION(sprokit::null_scheduler_registry_pipeline_exception,
@@ -149,7 +149,7 @@ IMPLEMENT_TEST(null_ctor)
                    "requesting an non-existent scheduler type");
 }
 
-static sprokit::scheduler_t null_scheduler(sprokit::pipeline_t const& pipeline, sprokit::config_t const& config);
+static sprokit::scheduler_t null_scheduler(sprokit::pipeline_t const& pipeline, kwiver::vital::config_block_sptr const& config);
 
 IMPLEMENT_TEST(duplicate_types)
 {
@@ -203,7 +203,7 @@ IMPLEMENT_TEST(module_marking)
 }
 
 sprokit::scheduler_t
-null_scheduler(sprokit::pipeline_t const& /*pipeline*/, sprokit::config_t const& /*config*/)
+null_scheduler(sprokit::pipeline_t const& /*pipeline*/, kwiver::vital::config_block_sptr const& /*config*/)
 {
   return sprokit::scheduler_t();
 }

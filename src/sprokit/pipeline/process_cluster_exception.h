@@ -87,7 +87,10 @@ class SPROKIT_PIPELINE_EXPORT mapping_after_process_exception
      * \param mapped_name The name of the process.
      * \param mapped_key The name of the configuration.
      */
-    mapping_after_process_exception(process::name_t const& name, config::key_t const& key, process::name_t const& mapped_name, config::key_t const& mapped_key) throw();
+    mapping_after_process_exception(process::name_t const& name,
+                                    kwiver::vital::config_block_key_t const& key,
+                                    process::name_t const& mapped_name,
+                                    kwiver::vital::config_block_key_t const& mapped_key) throw();
     /**
      * \brief Destructor.
      */
@@ -96,11 +99,11 @@ class SPROKIT_PIPELINE_EXPORT mapping_after_process_exception
     /// The name of the \ref process_cluster the mapping occurred in.
     process::name_t const m_name;
     /// The key of the configuration on the cluster.
-    config::key_t const m_key;
+    kwiver::vital::config_block_key_t const m_key;
     /// The name of the \ref process which was being mapped to.
     process::name_t const m_mapped_name;
     /// The key of the configuration on the \ref process being mapped to.
-    config::key_t const m_mapped_key;
+    kwiver::vital::config_block_key_t const m_mapped_key;
 };
 
 /**
@@ -122,7 +125,12 @@ class SPROKIT_PIPELINE_EXPORT mapping_to_read_only_value_exception
      * \param mapped_name The name of the process.
      * \param mapped_key The name of the configuration.
      */
-    mapping_to_read_only_value_exception(process::name_t const& name, config::key_t const& key, config::value_t const& value, process::name_t const& mapped_name, config::key_t const& mapped_key, config::value_t const& ro_value) throw();
+    mapping_to_read_only_value_exception(process::name_t const& name,
+                                         kwiver::vital::config_block_key_t const& key,
+                                         kwiver::vital::config_block_value_t const& value,
+                                         process::name_t const& mapped_name,
+                                         kwiver::vital::config_block_key_t const& mapped_key,
+                                         kwiver::vital::config_block_value_t const& ro_value) throw();
     /**
      * \brief Destructor.
      */
@@ -131,15 +139,15 @@ class SPROKIT_PIPELINE_EXPORT mapping_to_read_only_value_exception
     /// The name of the \ref process_cluster the mapping occurred in.
     process::name_t const m_name;
     /// The key of the configuration on the cluster.
-    config::key_t const m_key;
+    kwiver::vital::config_block_key_t const m_key;
     /// The value of the configuration on the cluster.
-    config::value_t const m_value;
+    kwiver::vital::config_block_value_t const m_value;
     /// The name of the \ref process which was being mapped to.
     process::name_t const m_mapped_name;
     /// The key of the configuration on the \ref process being mapped to.
-    config::key_t const m_mapped_key;
+    kwiver::vital::config_block_key_t const m_mapped_key;
     /// The value of the configuration given.
-    config::value_t const m_ro_value;
+    kwiver::vital::config_block_value_t const m_ro_value;
 };
 
 }

@@ -41,12 +41,12 @@ class SPROKIT_NO_EXPORT test_process
   : public sprokit::process
 {
   public:
-    test_process(config_t const& config);
+    test_process(kwiver::vital::config_block_sptr const& config);
     ~test_process();
 };
 
 test_process
-::test_process(config_t const& config)
+::test_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
 {
 }

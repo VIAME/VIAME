@@ -60,7 +60,7 @@ class wrap_process
   , public wrapper<sprokit::process>
 {
   public:
-    wrap_process(sprokit::config_t const& config);
+    wrap_process(kwiver::vital::config_block_sptr const& config);
     ~wrap_process();
 
     void _base_configure();
@@ -73,7 +73,7 @@ class wrap_process
 
     void _base_step();
 
-    void _base_reconfigure(sprokit::config_t const& conf);
+    void _base_reconfigure(kwiver::vital::config_block_sptr const& conf);
 
     properties_t _base_properties() const;
 
@@ -86,9 +86,9 @@ class wrap_process
     bool _base_set_input_port_type(port_t const& port, port_type_t const& new_type);
     bool _base_set_output_port_type(port_t const& port, port_type_t const& new_type);
 
-    sprokit::config::keys_t _base_available_config() const;
+    kwiver::vital::config_block_keys_t _base_available_config() const;
 
-    conf_info_t _base_config_info(sprokit::config::key_t const& key);
+    conf_info_t _base_config_info(kwiver::vital::config_block_key_t const& key);
 
     void _configure();
 
@@ -100,7 +100,7 @@ class wrap_process
 
     void _step();
 
-    void _reconfigure(sprokit::config_t const& conf);
+    void _reconfigure(kwiver::vital::config_block_sptr const& conf);
 
     properties_t _properties() const;
 
@@ -113,9 +113,9 @@ class wrap_process
     bool _set_input_port_type(port_t const& port, port_type_t const& new_type);
     bool _set_output_port_type(port_t const& port, port_type_t const& new_type);
 
-    sprokit::config::keys_t _available_config() const;
+    kwiver::vital::config_block_keys_t _available_config() const;
 
-    conf_info_t _config_info(sprokit::config::key_t const& key);
+    conf_info_t _config_info(kwiver::vital::config_block_key_t const& key);
 
     void _declare_input_port(port_t const& port, port_info_t const& info);
     void _declare_input_port_1(port_t const& port,
@@ -136,13 +136,13 @@ class wrap_process
     void _remove_input_port(port_t const& port);
     void _remove_output_port(port_t const& port);
 
-    void _declare_configuration_key(sprokit::config::key_t const& key, conf_info_t const& info);
-    void _declare_configuration_key_1(sprokit::config::key_t const& key,
-                                      sprokit::config::value_t const& def_,
-                                      sprokit::config::description_t const& description_);
-    void _declare_configuration_key_2(sprokit::config::key_t const& key,
-                                      sprokit::config::value_t const& def_,
-                                      sprokit::config::description_t const& description_,
+    void _declare_configuration_key(kwiver::vital::config_block_key_t const& key, conf_info_t const& info);
+    void _declare_configuration_key_1(kwiver::vital::config_block_key_t const& key,
+                                      kwiver::vital::config_block_value_t const& def_,
+                                      kwiver::vital::config_block_description_t const& description_);
+    void _declare_configuration_key_2(kwiver::vital::config_block_key_t const& key,
+                                      kwiver::vital::config_block_value_t const& def_,
+                                      kwiver::vital::config_block_description_t const& description_,
                                       bool tunable_);
 
     void _mark_process_as_complete();
@@ -159,8 +159,8 @@ class wrap_process
     void _push_datum_to_port(port_t const& port, sprokit::datum_t const& dat) const;
     void _push_value_to_port(port_t const& port, object const& obj) const;
 
-    sprokit::config_t _get_config() const;
-    sprokit::config::value_t _config_value(sprokit::config::key_t const& key) const;
+    kwiver::vital::config_block_sptr _get_config() const;
+    kwiver::vital::config_block_value_t _config_value(kwiver::vital::config_block_key_t const& key) const;
 
     void _set_data_checking_level(data_check_t check);
 
@@ -257,7 +257,7 @@ BOOST_PYTHON_MODULE(process)
   class_<sprokit::process::conf_info, sprokit::process::conf_info_t>("ConfInfo"
     , "Information about a configuration on a process."
     , no_init)
-    .def(init<sprokit::config::value_t, sprokit::config::description_t, bool>())
+    .def(init<kwiver::vital::config_block_value_t, kwiver::vital::config_block_description_t, bool>())
     .def_readonly("default", &sprokit::process::conf_info::def)
     .def_readonly("description", &sprokit::process::conf_info::description)
     .def_readonly("tunable", &sprokit::process::conf_info::tunable)
@@ -285,7 +285,7 @@ BOOST_PYTHON_MODULE(process)
   class_<wrap_process, boost::noncopyable>("PythonProcess"
     , "The base class for Python processes."
     , no_init)
-    .def(init<sprokit::config_t>())
+    .def(init<kwiver::vital::config_block_sptr>())
     .def("configure", &sprokit::process::configure
       , "Configure the process.")
     .def("init", &sprokit::process::init
@@ -504,7 +504,7 @@ BOOST_PYTHON_MODULE(process)
 }
 
 wrap_process
-::wrap_process(sprokit::config_t const& config)
+::wrap_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
 {
 }
@@ -551,7 +551,7 @@ wrap_process
 
 void
 wrap_process
-::_base_reconfigure(sprokit::config_t const& conf)
+::_base_reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
   SPROKIT_PYTHON_TRANSLATE_EXCEPTION(process::_reconfigure(conf))
 }
@@ -611,7 +611,7 @@ wrap_process
   SPROKIT_PYTHON_TRANSLATE_EXCEPTION(return process::_set_input_port_type(port, new_type))
 }
 
-sprokit::config::keys_t
+kwiver::vital::config_block_keys_t
 wrap_process
 ::_base_available_config() const
 {
@@ -620,7 +620,7 @@ wrap_process
 
 sprokit::process::conf_info_t
 wrap_process
-::_base_config_info(sprokit::config::key_t const& key)
+::_base_config_info(kwiver::vital::config_block_key_t const& key)
 {
   SPROKIT_PYTHON_TRANSLATE_EXCEPTION(return process::_config_info(key))
 }
@@ -737,7 +737,7 @@ wrap_process
 
 void
 wrap_process
-::_reconfigure(sprokit::config_t const& conf)
+::_reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
   {
     sprokit::python::python_gil const gil;
@@ -897,7 +897,7 @@ wrap_process
   return _base_set_output_port_type(port, new_type);
 }
 
-sprokit::config::keys_t
+kwiver::vital::config_block_keys_t
 wrap_process
 ::_available_config() const
 {
@@ -919,7 +919,7 @@ wrap_process
 
 sprokit::process::conf_info_t
 wrap_process
-::_config_info(sprokit::config::key_t const& key)
+::_config_info(kwiver::vital::config_block_key_t const& key)
 {
   {
     sprokit::python::python_gil const gil;
@@ -1003,25 +1003,25 @@ wrap_process
 
 void
 wrap_process
-::_declare_configuration_key(sprokit::config::key_t const& key, conf_info_t const& info)
+::_declare_configuration_key(kwiver::vital::config_block_key_t const& key, conf_info_t const& info)
 {
   declare_configuration_key(key, info);
 }
 
 void
 wrap_process
-::_declare_configuration_key_1(sprokit::config::key_t const& key,
-                               sprokit::config::value_t const& def_,
-                               sprokit::config::description_t const& description_)
+::_declare_configuration_key_1(kwiver::vital::config_block_key_t const& key,
+                               kwiver::vital::config_block_value_t const& def_,
+                               kwiver::vital::config_block_description_t const& description_)
 {
   declare_configuration_key(key, def_, description_);
 }
 
 void
 wrap_process
-::_declare_configuration_key_2(sprokit::config::key_t const& key,
-                               sprokit::config::value_t const& def_,
-                               sprokit::config::description_t const& description_,
+::_declare_configuration_key_2(kwiver::vital::config_block_key_t const& key,
+                               kwiver::vital::config_block_value_t const& def_,
+                               kwiver::vital::config_block_description_t const& description_,
                                bool tunable_)
 {
   declare_configuration_key(key, def_, description_, tunable_);
@@ -1118,18 +1118,18 @@ wrap_process
   return push_datum_to_port(port, dat);
 }
 
-sprokit::config_t
+kwiver::vital::config_block_sptr
 wrap_process
 ::_get_config() const
 {
   return get_config();
 }
 
-sprokit::config::value_t
+kwiver::vital::config_block_value_t
 wrap_process
-::_config_value(sprokit::config::key_t const& key) const
+::_config_value(kwiver::vital::config_block_key_t const& key) const
 {
-  return config_value<sprokit::config::value_t>(key);
+  return config_value<kwiver::vital::config_block_value_t>(key);
 }
 
 void

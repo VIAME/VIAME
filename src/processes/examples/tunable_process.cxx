@@ -30,7 +30,7 @@
 
 #include "tunable_process.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/process_exception.h>
 
@@ -56,31 +56,31 @@ class tunable_process::priv
     std::string tunable;
     std::string const non_tunable;
 
-    static config::key_t const config_tunable;
-    static config::key_t const config_non_tunable;
+    static kwiver::vital::config_block_key_t const config_tunable;
+    static kwiver::vital::config_block_key_t const config_non_tunable;
     static port_t const port_tunable;
     static port_t const port_non_tunable;
 };
 
-config::key_t const tunable_process::priv::config_tunable = config::key_t("tunable");
-config::key_t const tunable_process::priv::config_non_tunable = config::key_t("non_tunable");
+kwiver::vital::config_block_key_t const tunable_process::priv::config_tunable = kwiver::vital::config_block_key_t("tunable");
+kwiver::vital::config_block_key_t const tunable_process::priv::config_non_tunable = kwiver::vital::config_block_key_t("non_tunable");
 process::port_t const tunable_process::priv::port_tunable = process::port_t("tunable");
 process::port_t const tunable_process::priv::port_non_tunable = process::port_t("non_tunable");
 
 tunable_process
-::tunable_process(config_t const& config)
+::tunable_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_tunable,
-    config::value_t(),
-    config::description_t("The tunable output."),
+    kwiver::vital::config_block_value_t(),
+    kwiver::vital::config_block_description_t("The tunable output."),
     true);
   declare_configuration_key(
     priv::config_non_tunable,
-    config::value_t(),
-    config::description_t("The non-tunable output."));
+    kwiver::vital::config_block_value_t(),
+    kwiver::vital::config_block_description_t("The non-tunable output."));
 
   port_flags_t const none;
 
@@ -130,7 +130,7 @@ tunable_process
 
 void
 tunable_process
-::_reconfigure(config_t const& conf)
+::_reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
   d->tunable = config_value<std::string>(priv::config_tunable);
 

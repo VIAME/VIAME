@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 
 #include <sprokit/python/util/python_gil.h>
 
@@ -49,31 +49,31 @@
 
 using namespace boost::python;
 
-static sprokit::config::value_t config_get_value(sprokit::config_t self, sprokit::config::key_t const& key);
-static sprokit::config::value_t config_get_value_with_default(sprokit::config_t self, sprokit::config::key_t const& key, sprokit::config::value_t const& def);
-static size_t config_len(sprokit::config_t self);
-static sprokit::config::value_t config_getitem(sprokit::config_t self, sprokit::config::key_t const& key);
-static void config_setitem(sprokit::config_t self, sprokit::config::key_t const& key, object const& value);
-static void config_delitem(sprokit::config_t self, sprokit::config::key_t const& key);
+static kwiver::vital::config_block_value_t config_get_value(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key);
+static kwiver::vital::config_block_value_t config_get_value_with_default(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& def);
+static size_t config_len(kwiver::vital::config_block_sptr self);
+static kwiver::vital::config_block_value_t config_getitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key);
+static void config_setitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key, object const& value);
+static void config_delitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key);
 
 BOOST_PYTHON_MODULE(config)
 {
-  def("empty_config", &sprokit::config::empty_config
-    , (arg("name") = sprokit::config::key_t())
+  def("empty_config", &kwiver::vital::config_block::empty_config
+    , (arg("name") = kwiver::vital::config_block_key_t())
     , "Returns an empty configuration.");
 
-  class_<sprokit::config::key_t>("ConfigKey"
+  class_<kwiver::vital::config_block_key_t>("ConfigKey"
     , "A key for a configuration.");
-  class_<sprokit::config::keys_t>("ConfigKeys"
+  class_<kwiver::vital::config_block_keys_t>("ConfigKeys"
     , "A collection of keys for a configuration.")
-    .def(vector_indexing_suite<sprokit::config::keys_t>())
+    .def(vector_indexing_suite<kwiver::vital::config_block_keys_t>())
   ;
-  class_<sprokit::config::description_t>("ConfigDescription"
+  class_<kwiver::vital::config_block_description_t>("ConfigDescription"
     , "A description of a configuration key.");
-  class_<sprokit::config::value_t>("ConfigValue"
+  class_<kwiver::vital::config_block_value_t>("ConfigValue"
     , "A value in the configuration.");
 
-  class_<sprokit::config, sprokit::config_t, boost::noncopyable>("Config"
+  class_<sprokit::config, kwiver::vital::config_block_sptr, boost::noncopyable>("Config"
     , "A key-value store of configuration values"
     , no_init)
     .def("subblock", &sprokit::config::subblock
@@ -108,7 +108,7 @@ BOOST_PYTHON_MODULE(config)
     .def("has_value", &sprokit::config::has_value
       , (arg("key"))
       , "Returns True if the key is set.")
-    .def_readonly("block_sep", &sprokit::config::block_sep
+    .def_readonly("block_sep", &kwiver::vital::config_block::block_sep
       , "The string which separates block names from key names.")
     .def_readonly("global_value", &sprokit::config::global_value
       , "A special key which is automatically inherited on subblock requests.")
@@ -120,28 +120,28 @@ BOOST_PYTHON_MODULE(config)
   ;
 }
 
-sprokit::config::value_t
-config_get_value(sprokit::config_t self, sprokit::config::key_t const& key)
+kwiver::vital::config_block_value_t
+config_get_value(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key)
 {
-  return self->get_value<sprokit::config::value_t>(key);
+  return self->get_value<kwiver::vital::config_block_value_t>(key);
 }
 
-sprokit::config::value_t
-config_get_value_with_default(sprokit::config_t self, sprokit::config::key_t const& key, sprokit::config::value_t const& def)
+kwiver::vital::config_block_value_t
+config_get_value_with_default(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& def)
 {
-  return self->get_value<sprokit::config::value_t>(key, def);
+  return self->get_value<kwiver::vital::config_block_value_t>(key, def);
 }
 
 size_t
-config_len(sprokit::config_t self)
+config_len(kwiver::vital::config_block_sptr self)
 {
   return self->available_values().size();
 }
 
-sprokit::config::value_t
-config_getitem(sprokit::config_t self, sprokit::config::key_t const& key)
+kwiver::vital::config_block_value_t
+config_getitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key)
 {
-  sprokit::config::value_t val;
+  kwiver::vital::config_block_value_t val;
 
   try
   {
@@ -165,17 +165,17 @@ config_getitem(sprokit::config_t self, sprokit::config::key_t const& key)
 }
 
 void
-config_setitem(sprokit::config_t self, sprokit::config::key_t const& key, object const& value)
+config_setitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key, object const& value)
 {
   sprokit::python::python_gil const gil;
 
   (void)gil;
 
-  self->set_value(key, extract<sprokit::config::value_t>(str(value)));
+  self->set_value(key, extract<kwiver::vital::config_block_value_t>(str(value)));
 }
 
 void
-config_delitem(sprokit::config_t self, sprokit::config::key_t const& key)
+config_delitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key)
 {
   try
   {

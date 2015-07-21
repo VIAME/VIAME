@@ -63,7 +63,7 @@ class SPROKIT_SCHEDULERS_EXAMPLES_NO_EXPORT thread_per_process_scheduler
      * \param config Contains config for the edge.
      * \param pipe The pipeline to scheduler.
      */
-    thread_per_process_scheduler(pipeline_t const& pipe, config_t const& config);
+    thread_per_process_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

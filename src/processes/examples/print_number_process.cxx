@@ -32,7 +32,7 @@
 
 #include <sprokit/pipeline_util/path.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/process_exception.h>
 
 #include <boost/filesystem/fstream.hpp>
@@ -61,22 +61,22 @@ class print_number_process::priv
 
     boost::filesystem::ofstream fout;
 
-    static config::key_t const config_path;
+    static kwiver::vital::config_block_key_t const config_path;
     static port_t const port_input;
 };
 
-config::key_t const print_number_process::priv::config_path = config::key_t("output");
+kwiver::vital::config_block_key_t const print_number_process::priv::config_path = kwiver::vital::config_block_key_t("output");
 process::port_t const print_number_process::priv::port_input = port_t("number");
 
 print_number_process
-::print_number_process(config_t const& config)
+::print_number_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_path,
-    config::value_t(),
-    config::description_t("The path of the file to output to."));
+    kwiver::vital::config_block_value_t(),
+    kwiver::vital::config_block_description_t("The path of the file to output to."));
 
   port_flags_t required;
 
@@ -108,7 +108,7 @@ print_number_process
   if (d->path.empty())
   {
     static std::string const reason = "The path given was empty";
-    config::value_t const value = d->path.string<config::value_t>();
+    kwiver::vital::config_block_value_t const value = d->path.string<kwiver::vital::config_block_value_t>();
 
     throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
   }

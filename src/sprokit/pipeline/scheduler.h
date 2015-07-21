@@ -34,6 +34,7 @@
 #include "pipeline-config.h"
 
 #include "types.h"
+#include <vital/config/config_block.h>
 
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -100,7 +101,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler
      * \param pipe The pipeline to run.
      * \param config Contains configuration for the edge.
      */
-    scheduler(pipeline_t const& pipe, config_t const& config);
+    scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
 
     /**
      * \brief Start execution.

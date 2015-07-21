@@ -36,7 +36,7 @@
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
@@ -88,7 +88,7 @@ class config_printer
   : public boost::static_visitor<>
 {
   public:
-    config_printer(std::ostream& ostr, sprokit::pipeline_t const& pipe, sprokit::config_t const& conf);
+    config_printer(std::ostream& ostr, sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& conf);
     ~config_printer();
 
     void operator () (sprokit::config_pipe_block const& config_block);
@@ -106,7 +106,7 @@ class config_printer
 
     std::ostream& m_ostr;
     sprokit::pipeline_t const m_pipe;
-    sprokit::config_t const m_config;
+    kwiver::vital::config_block_sptr const m_config;
     process_set_t m_visited;
 };
 
@@ -128,7 +128,7 @@ sprokit_tool_main(int argc, char const* argv[])
   sprokit::pipeline_builder const builder(vm, desc);
 
   sprokit::pipeline_t const pipe = builder.pipeline();
-  sprokit::config_t const config = builder.config();
+  kwiver::vital::config_block_sptr const config = builder.config();
   sprokit::pipe_blocks const blocks = builder.blocks();
 
   if (!pipe)
@@ -152,7 +152,7 @@ sprokit_tool_main(int argc, char const* argv[])
 }
 
 config_printer
-::config_printer(std::ostream& ostr, sprokit::pipeline_t const& pipe, sprokit::config_t const& conf)
+::config_printer(std::ostream& ostr, sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& conf)
   : m_ostr(ostr)
   , m_pipe(pipe)
   , m_config(conf)
@@ -181,10 +181,10 @@ void
 config_printer
 ::operator () (sprokit::config_pipe_block const& config_block)
 {
-  sprokit::config::keys_t const& keys = config_block.key;
+  kwiver::vital::config_block_keys_t const& keys = config_block.key;
   sprokit::config_values_t const& values = config_block.values;
 
-  sprokit::config::key_t const key_path = boost::join(keys, sprokit::config::block_sep);
+  kwiver::vital::config_block_key_t const key_path = boost::join(keys, kwiver::vital::config_block::block_sep);
 
   m_ostr << "config " << key_path << std::endl;
 
@@ -336,11 +336,11 @@ config_printer
 ::output_process(sprokit::process_t const& proc)
 {
   sprokit::process::name_t const name = proc->name();
-  sprokit::config::keys_t const keys = proc->available_config();
-  sprokit::config::keys_t const tunable_keys = proc->available_tunable_config();
+  kwiver::vital::config_block_keys_t const keys = proc->available_config();
+  kwiver::vital::config_block_keys_t const tunable_keys = proc->available_tunable_config();
   sprokit::process::name_t const norm_name = normalize_name(name);
 
-  BOOST_FOREACH (sprokit::config::key_t const& key, keys)
+  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
   {
     if (boost::starts_with(key, "_"))
     {
@@ -351,7 +351,7 @@ config_printer
 
     sprokit::process::conf_info_t const& info = proc->config_info(key);
 
-    sprokit::config::description_t const desc = boost::replace_all_copy(info->description, "\n", "\n  #   ");
+    kwiver::vital::config_block_description_t const desc = boost::replace_all_copy(info->description, "\n", "\n  #   ");
 
     bool const is_tunable = (0 != std::count(tunable_keys.begin(), tunable_keys.end(), key));
     std::string const tunable = (is_tunable ? "yes" : "no");
@@ -360,7 +360,7 @@ config_printer
     m_ostr << "  # Description: " << desc << std::endl;
     m_ostr << "  # Tunable: " << tunable << std::endl;
 
-    sprokit::config::value_t const& def = info->def;
+    kwiver::vital::config_block_value_t const& def = info->def;
 
     if (def.empty())
     {
@@ -371,11 +371,11 @@ config_printer
       m_ostr << "  # Default value: " << def << std::endl;
     }
 
-    sprokit::config::key_t const resolved_key = norm_name + sprokit::config::block_sep + key;
+    kwiver::vital::config_block_key_t const resolved_key = norm_name + kwiver::vital::config_block::block_sep + key;
 
     if (m_config->has_value(resolved_key))
     {
-      sprokit::config::value_t const cur_value = m_config->get_value<sprokit::config::value_t>(resolved_key);
+      kwiver::vital::config_block_value_t const cur_value = m_config->get_value<kwiver::vital::config_block_value_t>(resolved_key);
 
       m_ostr << "  # Current value: " << cur_value << std::endl;
     }
@@ -406,17 +406,17 @@ key_printer
 ::operator () (sprokit::config_value_t const& config_value) const
 {
   sprokit::config_key_t const& key = config_value.key;
-  sprokit::config::value_t const& value = config_value.value;
+  kwiver::vital::config_block_value_t const& value = config_value.value;
 
-  sprokit::config::keys_t const& keys = key.key_path;
+  kwiver::vital::config_block_keys_t const& keys = key.key_path;
   sprokit::config_key_options_t const& options = key.options;
 
-  sprokit::config::key_t const key_path = boost::join(keys, sprokit::config::block_sep);
+  kwiver::vital::config_block_key_t const key_path = boost::join(keys, kwiver::vital::config_block::block_sep);
 
   boost::optional<sprokit::config_flags_t> const& flags = options.flags;
   boost::optional<sprokit::config_provider_t> const& provider = options.provider;
 
-  m_ostr << "  " << sprokit::config::block_sep << key_path;
+  m_ostr << "  " << kwiver::vital::config_block::block_sep << key_path;
 
   if (flags)
   {

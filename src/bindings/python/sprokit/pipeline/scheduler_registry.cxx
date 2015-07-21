@@ -87,7 +87,7 @@ BOOST_PYTHON_MODULE(scheduler_registry)
       , (arg("type"), arg("description"), arg("ctor"))
       , "Registers a function which creates a scheduler of the given type.")
     .def("create_scheduler", &sprokit::scheduler_registry::create_scheduler
-      , (arg("type"), arg("pipeline"), arg("config") = sprokit::config::empty_config())
+      , (arg("type"), arg("pipeline"), arg("config") = kwiver::vital::config_block::empty_config())
       , "Creates a new scheduler of the given type.")
     .def("types", &sprokit::scheduler_registry::types
       , "A list of known scheduler types.")
@@ -112,7 +112,7 @@ class python_scheduler_wrapper
     python_scheduler_wrapper(object obj);
     ~python_scheduler_wrapper();
 
-    sprokit::scheduler_t operator () (sprokit::pipeline_t const& pipeline, sprokit::config_t const& config);
+    sprokit::scheduler_t operator () (sprokit::pipeline_t const& pipeline, kwiver::vital::config_block_sptr const& config);
   private:
     object const m_obj;
 };
@@ -145,7 +145,7 @@ python_scheduler_wrapper
 
 sprokit::scheduler_t
 python_scheduler_wrapper
-::operator () (sprokit::pipeline_t const& pipeline, sprokit::config_t const& config)
+::operator () (sprokit::pipeline_t const& pipeline, kwiver::vital::config_block_sptr const& config)
 {
   sprokit::python::python_gil const gil;
 

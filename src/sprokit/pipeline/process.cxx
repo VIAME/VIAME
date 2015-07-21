@@ -31,7 +31,7 @@
 #include "process.h"
 #include "process_exception.h"
 
-#include "config.h"
+#include <vital/config/config_block.h>
 #include "datum.h"
 #include "edge.h"
 #include "stamp.h"
@@ -68,8 +68,8 @@ process::property_t const process::property_unsync_output = property_t("_unsync_
 
 process::port_t const process::port_heartbeat = port_t("_heartbeat");
 
-config::key_t const process::config_name = config::key_t("_name");
-config::key_t const process::config_type = config::key_t("_type");
+kwiver::vital::config_block_key_t const process::config_name = kwiver::vital::config_block_key_t("_name");
+kwiver::vital::config_block_key_t const process::config_type = kwiver::vital::config_block_key_t("_type");
 
 process::port_type_t const process::type_any = port_type_t("_any");
 process::port_type_t const process::type_none = port_type_t("_none");
@@ -82,7 +82,7 @@ process::port_flag_t const process::flag_input_mutable = port_flag_t("_mutable")
 process::port_flag_t const process::flag_input_nodep = port_flag_t("_nodep");
 process::port_flag_t const process::flag_required = port_flag_t("_required");
 
-config::key_t const process::static_input_prefix = config::key_t("static/");
+kwiver::vital::config_block_key_t const process::static_input_prefix = kwiver::vital::config_block_key_t("static/");
 
 process::port_info
 ::port_info(port_type_t const& type_,
@@ -102,8 +102,8 @@ process::port_info
 }
 
 process::conf_info
-::conf_info(config::value_t const& def_,
-            config::description_t const& description_,
+::conf_info(kwiver::vital::config_block_value_t const& def_,
+            kwiver::vital::config_block_description_t const& description_,
             bool tunable_)
   : def(def_)
   , description(description_)
@@ -132,7 +132,7 @@ process::data_info
 class process::priv
 {
   public:
-    priv(process* proc, config_t const& c);
+    priv(process* proc,kwiver::vital::config_block_sptr const& c);
     ~priv();
 
     void run_heartbeat();
@@ -148,7 +148,7 @@ class process::priv
     type_t type;
 
     typedef std::map<port_t, port_info_t> port_map_t;
-    typedef std::map<config::key_t, conf_info_t> conf_map_t;
+    typedef std::map<kwiver::vital::config_block_key_t, conf_info_t> conf_map_t;
 
     typedef boost::shared_mutex mutex_t;
     typedef boost::shared_lock<mutex_t> shared_lock_t;
@@ -207,7 +207,7 @@ class process::priv
     mutable mutex_t output_edges_mut;
 
     process* const q;
-    config_t conf;
+   kwiver::vital::config_block_sptr conf;
 
     typedef std::set<port_t> port_set_t;
 
@@ -237,10 +237,10 @@ class process::priv
 
     kwiver::vital::logger_handle_t m_logger;
 
-    static config::value_t const default_name;
+    static kwiver::vital::config_block_value_t const default_name;
 };
 
-config::value_t const process::priv::default_name = "(unnamed)";
+kwiver::vital::config_block_value_t const process::priv::default_name = "(unnamed)";
 
 void
 process
@@ -464,15 +464,15 @@ process
   return _set_output_port_type(port, new_type);
 }
 
-config::keys_t
+kwiver::vital::config_block_keys_t
 process
 ::available_config() const
 {
-  config::keys_t keys = _available_config();
+  kwiver::vital::config_block_keys_t keys = _available_config();
 
   BOOST_FOREACH (priv::conf_map_t::value_type const& conf, d->config_keys)
   {
-    config::key_t const& key = conf.first;
+    kwiver::vital::config_block_key_t const& key = conf.first;
 
     keys.push_back(key);
   }
@@ -480,14 +480,14 @@ process
   return keys;
 }
 
-config::keys_t
+kwiver::vital::config_block_keys_t
 process
 ::available_tunable_config()
 {
-  config::keys_t const all_keys = available_config();
-  config::keys_t keys;
+  kwiver::vital::config_block_keys_t const all_keys = available_config();
+  kwiver::vital::config_block_keys_t keys;
 
-  BOOST_FOREACH (config::key_t const& key, all_keys)
+  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, all_keys)
   {
     // Read-only parameters aren't tunable.
     if (d->conf->is_read_only(key))
@@ -508,7 +508,7 @@ process
 
 process::conf_info_t
 process
-::config_info(config::key_t const& key)
+::config_info(kwiver::vital::config_block_key_t const& key)
 {
   return _config_info(key);
 }
@@ -528,7 +528,7 @@ process
 }
 
 process
-::process(config_t const& config)
+::process(kwiver::vital::config_block_sptr const& config)
   : d()
 {
   if (!config)
@@ -540,12 +540,12 @@ process
 
   declare_configuration_key(
     config_name,
-    config::value_t(),
-    config::description_t("The name of the process."));
+    kwiver::vital::config_block_value_t(),
+    kwiver::vital::config_block_description_t("The name of the process."));
   declare_configuration_key(
     config_type,
-    config::value_t(),
-    config::description_t("The type of the process."));
+    kwiver::vital::config_block_value_t(),
+    kwiver::vital::config_block_description_t("The type of the process."));
 
   d->name = config_value<name_t>(config_name);
   d->type = config_value<type_t>(config_type);
@@ -608,7 +608,7 @@ process
 
 void
 process
-::_reconfigure(config_t const& /*conf*/)
+::_reconfigure(kwiver::vital::config_block_sptr const& /*conf*/)
 {
 }
 
@@ -807,16 +807,16 @@ process
   return true;
 }
 
-config::keys_t
+kwiver::vital::config_block_keys_t
 process
 ::_available_config() const
 {
-  return config::keys_t();
+  return kwiver::vital::config_block_keys_t();
 }
 
 process::conf_info_t
 process
-::_config_info(config::key_t const& key)
+::_config_info(kwiver::vital::config_block_key_t const& key)
 {
   priv::conf_map_t::iterator i = d->config_keys.find(key);
 
@@ -878,8 +878,8 @@ process
   {
     declare_configuration_key(
       static_input_prefix + port,
-      config::value_t(),
-      config::description_t("A default value to use for the \'" + port + "\' port if it is not connected."));
+      kwiver::vital::config_block_value_t(),
+      kwiver::vital::config_block_description_t("A default value to use for the \'" + port + "\' port if it is not connected."));
 
     d->static_inputs.insert(port);
   }
@@ -1114,7 +1114,7 @@ process
 
 void
 process
-::declare_configuration_key(config::key_t const& key, conf_info_t const& info)
+::declare_configuration_key(kwiver::vital::config_block_key_t const& key, conf_info_t const& info)
 {
   if (!info)
   {
@@ -1126,9 +1126,9 @@ process
 
 void
 process
-::declare_configuration_key(config::key_t const& key,
-                            config::value_t const& def_,
-                            config::description_t const& description_,
+::declare_configuration_key(kwiver::vital::config_block_key_t const& key,
+                            kwiver::vital::config_block_value_t const& def_,
+                            kwiver::vital::config_block_description_t const& description_,
                             bool tunable_)
 {
   declare_configuration_key(key, boost::make_shared<conf_info>(
@@ -1350,7 +1350,7 @@ process
   push_to_port(port, edge_datum_t(dat, push_stamp));
 }
 
-config_t
+kwiver::vital::config_block_sptr
 process
 ::get_config() const
 {
@@ -1395,9 +1395,9 @@ process
   return boost::make_shared<data_info>(in_sync, max_type);
 }
 
-config::value_t
+kwiver::vital::config_block_value_t
 process
-::config_value_raw(config::key_t const& key) const
+::config_value_raw(kwiver::vital::config_block_key_t const& key) const
 {
   priv::conf_map_t::const_iterator const i = d->config_keys.find(key);
 
@@ -1408,7 +1408,7 @@ process
 
   if (d->conf->has_value(key))
   {
-    return d->conf->get_value<config::value_t>(key);
+    return d->conf->get_value<kwiver::vital::config_block_value_t>(key);
   }
 
   conf_info_t const& info = i->second;
@@ -1455,7 +1455,7 @@ process
 
 void
 process
-::reconfigure(config_t const& conf)
+::reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
   if (!d->configured)
   {
@@ -1464,17 +1464,20 @@ process
     throw std::logic_error(reason);
   }
 
-  config::keys_t const new_keys = conf->available_values();
+  kwiver::vital::config_block_keys_t const new_keys = conf->available_values();
 
   if (new_keys.empty())
   {
     return;
   }
 
-  config::keys_t const process_keys = available_config();
-  config::keys_t const tunable_keys = available_tunable_config();
+  kwiver::vital::config_block_keys_t const process_keys = available_config();
+  kwiver::vital::config_block_keys_t const tunable_keys = available_tunable_config();
 
-  BOOST_FOREACH (config::key_t const& key, new_keys)
+  // Loop over all entires in the supplied config block and select all
+  // entries that are for this process and are flagged as tunable.
+  // Then update the process config with the new value.
+  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, new_keys)
   {
     bool const for_process = (0 != std::count(process_keys.begin(), process_keys.end(), key));
 
@@ -1488,8 +1491,8 @@ process
       }
     }
 
-    config::value_t const value = conf->get_value<config::value_t>(key);
-
+    kwiver::vital::config_block_value_t const value = conf->get_value<kwiver::vital::config_block_value_t>(key);
+    LOG_DEBUG(d->m_logger, "Reconfiguring process \"" << name() << "\": "  << key << " = " << value );
     d->conf->set_value(key, value);
   }
 
@@ -1503,7 +1506,7 @@ process
 
 void
 process
-::reconfigure_with_provides(config_t const& conf)
+::reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf)
 {
   if (!d->configured)
   {
@@ -1512,7 +1515,7 @@ process
     throw std::logic_error(reason);
   }
 
-  config::keys_t const new_keys = conf->available_values();
+  kwiver::vital::config_block_keys_t const new_keys = conf->available_values();
 
   if (new_keys.empty())
   {
@@ -1526,19 +1529,19 @@ process
   // only called by process_cluster and it only sets values which are mapped to
   // this process by it. This allows cluster parameters to be tunable and
   // provided as read-only to the process.
-  config::keys_t const process_keys = available_config();
-  config::keys_t const current_keys = d->conf->available_values();
+  kwiver::vital::config_block_keys_t const process_keys = available_config();
+  kwiver::vital::config_block_keys_t const current_keys = d->conf->available_values();
 
-  typedef std::set<config::key_t> key_set_t;
+  typedef std::set<kwiver::vital::config_block_key_t> key_set_t;
 
   key_set_t all_keys;
 
   all_keys.insert(current_keys.begin(), current_keys.end());
   all_keys.insert(new_keys.begin(), new_keys.end());
 
-  config_t const new_conf = config::empty_config();
+ kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  BOOST_FOREACH (config::key_t const& key, all_keys)
+  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, all_keys)
   {
     bool const has_old_value = d->conf->has_value(key);
     bool const for_process = (0 != std::count(process_keys.begin(), process_keys.end(), key));
@@ -1546,7 +1549,7 @@ process
     if (has_old_value)
     {
       // Pass the value down as-is.
-      config::value_t const value = d->conf->get_value<config::value_t>(key);
+      kwiver::vital::config_block_value_t const value = d->conf->get_value<kwiver::vital::config_block_value_t>(key);
 
       new_conf->set_value(key, value);
     }
@@ -1567,7 +1570,7 @@ process
 
     if (can_override && has_new_value)
     {
-      config::value_t const value = conf->get_value<config::value_t>(key);
+      kwiver::vital::config_block_value_t const value = conf->get_value<kwiver::vital::config_block_value_t>(key);
 
       new_conf->set_value(key, value);
     }
@@ -1591,7 +1594,7 @@ process
 }
 
 process::priv
-::priv(process* proc, config_t const& c)
+::priv(process* proc,kwiver::vital::config_block_sptr const& c)
   : name()
   , type()
   , input_ports()

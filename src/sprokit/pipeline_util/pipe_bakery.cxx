@@ -35,7 +35,7 @@
 #include "pipe_declaration_types.h"
 #include "providers.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
@@ -80,7 +80,7 @@ namespace sprokit
 namespace
 {
 
-static config::key_t const config_pipeline_key = config::key_t("_pipeline");
+static kwiver::vital::config_block_key_t const config_pipeline_key = kwiver::vital::config_block_key_t("_pipeline");
 
 static config_flag_t const flag_read_only = config_flag_t("ro");
 static config_flag_t const flag_append = config_flag_t("append");
@@ -113,8 +113,8 @@ class bakery_base
      * names, etc.)
      */
 
-    typedef std::pair<config_provider_t, config::value_t> provider_request_t;
-    typedef boost::variant<config::value_t, provider_request_t> config_reference_t;
+    typedef std::pair<config_provider_t, kwiver::vital::config_block_value_t> provider_request_t;
+    typedef boost::variant<kwiver::vital::config_block_value_t, provider_request_t> config_reference_t;
     class config_info_t
     {
       public:
@@ -136,7 +136,7 @@ class bakery_base
         bool read_only;
         append_t append;
     };
-    typedef std::pair<config::key_t, config_info_t> config_decl_t;
+    typedef std::pair<kwiver::vital::config_block_key_t, config_info_t> config_decl_t;
     typedef std::vector<config_decl_t> config_decls_t;
 
     typedef std::pair<process::name_t, process::type_t> process_decl_t;
@@ -146,7 +146,7 @@ class bakery_base
     process_decls_t m_processes;
     process::connections_t m_connections;
   protected:
-    void register_config_value(config::key_t const& root_key, config_value_t const& value);
+    void register_config_value(kwiver::vital::config_block_key_t const& root_key, config_value_t const& value);
 };
 
 pipeline_t
@@ -171,7 +171,7 @@ class pipe_bakery
     using bakery_base::operator ();
 };
 
-static config_t extract_configuration_from_decls(bakery_base::config_decls_t& configs);
+static kwiver::vital::config_block_sptr extract_configuration_from_decls(bakery_base::config_decls_t& configs);
 
 pipeline_t
 bake_pipe_blocks(pipe_blocks const& blocks)
@@ -183,10 +183,10 @@ bake_pipe_blocks(pipe_blocks const& blocks)
   std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(bakery));
 
   bakery_base::config_decls_t& configs = bakery.m_configs;
-  config_t global_conf = extract_configuration_from_decls(configs);
+  kwiver::vital::config_block_sptr global_conf = extract_configuration_from_decls(configs);
 
   // Create pipeline.
-  config_t const pipeline_conf = global_conf->subblock_view(config_pipeline_key);
+  kwiver::vital::config_block_sptr const pipeline_conf = global_conf->subblock_view(config_pipeline_key);
 
   pipe = boost::make_shared<pipeline>(pipeline_conf);
 
@@ -198,7 +198,7 @@ bake_pipe_blocks(pipe_blocks const& blocks)
     {
       process::name_t const& proc_name = decl.first;
       process::type_t const& proc_type = decl.second;
-      config_t const proc_conf = global_conf->subblock_view(proc_name);
+      kwiver::vital::config_block_sptr const proc_conf = global_conf->subblock_view(proc_name);
 
       process_t const proc = reg->create_process(proc_type, proc_name, proc_conf);
 
@@ -291,11 +291,11 @@ class cluster_creator
     cluster_creator(cluster_bakery const& bakery);
     ~cluster_creator();
 
-    process_t operator () (config_t const& config) const;
+    process_t operator () (kwiver::vital::config_block_sptr const& config) const;
 
     cluster_bakery const m_bakery;
   private:
-    config_t m_default_config;
+    kwiver::vital::config_block_sptr m_default_config;
 };
 
 cluster_info_t
@@ -338,7 +338,7 @@ bake_cluster_blocks(cluster_blocks const& blocks)
   return info;
 }
 
-config_t
+kwiver::vital::config_block_sptr
 extract_configuration(pipe_blocks const& blocks)
 {
   pipe_bakery bakery;
@@ -355,10 +355,10 @@ class provider_dereferencer
 {
   public:
     provider_dereferencer();
-    provider_dereferencer(config_t const conf);
+    provider_dereferencer(kwiver::vital::config_block_sptr const conf);
     ~provider_dereferencer();
 
-    bakery_base::config_reference_t operator () (config::value_t const& value) const;
+    bakery_base::config_reference_t operator () (kwiver::vital::config_block_value_t const& value) const;
     bakery_base::config_reference_t operator () (bakery_base::provider_request_t const& request) const;
   private:
     typedef std::map<config_provider_t, provider_t> provider_map_t;
@@ -366,17 +366,17 @@ class provider_dereferencer
 };
 
 class ensure_provided
-  : public boost::static_visitor<config::value_t>
+  : public boost::static_visitor<kwiver::vital::config_block_value_t>
 {
   public:
     ensure_provided();
     ~ensure_provided();
 
-    config::value_t operator () (config::value_t const& value) const;
-    config::value_t operator () (bakery_base::provider_request_t const& request) const;
+    kwiver::vital::config_block_value_t operator () (kwiver::vital::config_block_value_t const& value) const;
+    kwiver::vital::config_block_value_t operator () (bakery_base::provider_request_t const& request) const;
 };
 
-static void set_config_value(config_t conf, bakery_base::config_info_t const& flags, config::key_t const& key, config::value_t const& value);
+static void set_config_value(kwiver::vital::config_block_sptr conf, bakery_base::config_info_t const& flags, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& value);
 
 class config_provider_sorter
   : public boost::static_visitor<>
@@ -385,10 +385,10 @@ class config_provider_sorter
     config_provider_sorter();
     ~config_provider_sorter();
 
-    void operator () (config::key_t const& key, config::value_t const& value) const;
-    void operator () (config::key_t const& key, bakery_base::provider_request_t const& request);
+    void operator () (kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& value) const;
+    void operator () (kwiver::vital::config_block_key_t const& key, bakery_base::provider_request_t const& request);
 
-    config::keys_t sorted() const;
+    kwiver::vital::config_block_keys_t sorted() const;
   private:
     class node_t
     {
@@ -397,36 +397,36 @@ class config_provider_sorter
         ~node_t();
 
         bool deref;
-        config::key_t name;
+        kwiver::vital::config_block_key_t name;
     };
 
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, node_t> config_graph_t;
     typedef boost::graph_traits<config_graph_t>::vertex_descriptor vertex_t;
     typedef std::vector<vertex_t> vertices_t;
-    typedef std::map<config::key_t, vertex_t> vertex_map_t;
+    typedef std::map<kwiver::vital::config_block_key_t, vertex_t> vertex_map_t;
     typedef vertex_map_t::value_type vertex_entry_t;
 
     vertex_map_t m_vertex_map;
     config_graph_t m_graph;
 };
 
-config_t
+kwiver::vital::config_block_sptr
 extract_configuration_from_decls(bakery_base::config_decls_t& configs)
 {
   dereference_static_providers(configs);
 
-  config_t tmp_conf = config::empty_config();
+  kwiver::vital::config_block_sptr tmp_conf = kwiver::vital::config_block::empty_config();
 
   ensure_provided const ensure;
 
   {
-    typedef std::set<config::key_t> unprovided_keys_t;
+    typedef std::set<kwiver::vital::config_block_key_t> unprovided_keys_t;
 
     unprovided_keys_t unprovided_keys;
 
     BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
     {
-      config::key_t const& key = decl.first;
+      kwiver::vital::config_block_key_t const& key = decl.first;
 
       if (unprovided_keys.count(key))
       {
@@ -436,7 +436,7 @@ extract_configuration_from_decls(bakery_base::config_decls_t& configs)
       bakery_base::config_info_t const& info = decl.second;
       bakery_base::config_reference_t const& ref = info.reference;
 
-      config::value_t val;
+      kwiver::vital::config_block_value_t val;
 
       // Only add provided configurations to the configuration.
       try
@@ -460,28 +460,28 @@ extract_configuration_from_decls(bakery_base::config_decls_t& configs)
 
     BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
     {
-      config::key_t const& key = decl.first;
+      kwiver::vital::config_block_key_t const& key = decl.first;
       bakery_base::config_info_t const& info = decl.second;
       bakery_base::config_reference_t const& ref = info.reference;
 
       /// \bug Why must this be done?
-      typedef boost::variant<config::key_t> dummy_variant;
+      typedef boost::variant<kwiver::vital::config_block_key_t> dummy_variant;
 
       dummy_variant const var = key;
 
       boost::apply_visitor(sorter, var, ref);
     }
 
-    config::keys_t const keys = sorter.sorted();
+    kwiver::vital::config_block_keys_t const keys = sorter.sorted();
 
     provider_dereferencer const deref(tmp_conf);
 
     /// \todo This is algorithmically naive, but I'm not sure if there's a better way.
-    BOOST_FOREACH (config::key_t const& key, keys)
+    BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
     {
       BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
       {
-        config::key_t const& cur_key = decl.first;
+        kwiver::vital::config_block_key_t const& cur_key = decl.first;
 
         if (key != cur_key)
         {
@@ -493,22 +493,22 @@ extract_configuration_from_decls(bakery_base::config_decls_t& configs)
 
         ref = boost::apply_visitor(deref, ref);
 
-        config::value_t const val = boost::apply_visitor(ensure, ref);
+        kwiver::vital::config_block_value_t const val = boost::apply_visitor(ensure, ref);
 
         set_config_value(tmp_conf, info, key, val);
       }
     }
   }
 
-  config_t conf = config::empty_config();
+  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
   BOOST_FOREACH (bakery_base::config_decl_t& decl, configs)
   {
-    config::key_t const& key = decl.first;
+    kwiver::vital::config_block_key_t const& key = decl.first;
     bakery_base::config_info_t const& info = decl.second;
     bakery_base::config_reference_t const& ref = info.reference;
 
-    config::value_t val;
+    kwiver::vital::config_block_value_t val;
 
     try
     {
@@ -553,13 +553,13 @@ bakery_base
 {
 }
 
-static config::key_t flatten_keys(config::keys_t const& keys);
+static kwiver::vital::config_block_key_t flatten_keys(kwiver::vital::config_block_keys_t const& keys);
 
 void
 bakery_base
 ::operator () (config_pipe_block const& config_block)
 {
-  config::key_t const root_key = flatten_keys(config_block.key);
+  kwiver::vital::config_block_key_t const root_key = flatten_keys(config_block.key);
 
   config_values_t const& values = config_block.values;
 
@@ -592,11 +592,11 @@ bakery_base
 
 void
 bakery_base
-::register_config_value(config::key_t const& root_key, config_value_t const& value)
+::register_config_value(kwiver::vital::config_block_key_t const& root_key, config_value_t const& value)
 {
   config_key_t const key = value.key;
 
-  config::key_t const subkey = flatten_keys(key.key_path);
+  kwiver::vital::config_block_key_t const subkey = flatten_keys(key.key_path);
 
   config_reference_t c_value;
 
@@ -609,7 +609,7 @@ bakery_base
     c_value = value.value;
   }
 
-  config::key_t const full_key = root_key + config::block_sep + subkey;
+  kwiver::vital::config_block_key_t const full_key = root_key + kwiver::vital::config_block::block_sep + subkey;
 
   bool is_readonly = false;
   config_info_t::append_t append = config_info_t::append_none;
@@ -797,7 +797,7 @@ class loaded_cluster
   : public process_cluster
 {
   public:
-    loaded_cluster(config_t const& config);
+    loaded_cluster(kwiver::vital::config_block_sptr const& config);
     ~loaded_cluster();
 
     friend class cluster_creator;
@@ -816,14 +816,14 @@ class provided_by_cluster
 };
 
 class extract_literal_value
-  : public boost::static_visitor<config::value_t>
+  : public boost::static_visitor<kwiver::vital::config_block_value_t>
 {
   public:
     extract_literal_value();
     ~extract_literal_value();
 
-    config::value_t operator () (config::value_t const& value) const;
-    config::value_t operator () (bakery_base::provider_request_t const& request) const;
+    kwiver::vital::config_block_value_t operator () (kwiver::vital::config_block_value_t const& value) const;
+    kwiver::vital::config_block_value_t operator () (bakery_base::provider_request_t const& request) const;
 };
 
 #if __cplusplus >= 201103L
@@ -842,7 +842,7 @@ static OutputIterator copy_if(InputIterator first, InputIterator last, OutputIte
 
 process_t
 cluster_creator
-::operator () (config_t const& config) const
+::operator () (kwiver::vital::config_block_sptr const& config) const
 {
   bakery_base::config_decls_t all_configs = m_bakery.m_configs;
 
@@ -865,25 +865,26 @@ cluster_creator
   COPY_IF(all_configs.begin(), all_configs.end(), std::back_inserter(mapped_decls), mapping_filter);
 
   // Append the given configuration to the declarations from the parsed blocks.
-  config::keys_t const& keys = config->available_values();
-  BOOST_FOREACH (config::key_t const& key, keys)
+  kwiver::vital::config_block_keys_t const& keys = config->available_values();
+  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
   {
-    config::value_t const value = config->get_value<config::value_t>(key);
+    kwiver::vital::config_block_value_t const value = config->get_value<kwiver::vital::config_block_value_t>(key);
     bakery_base::config_reference_t const ref = bakery_base::config_reference_t(value);
     bool const is_read_only = config->is_read_only(key);
     bakery_base::config_info_t const info = bakery_base::config_info_t(ref, is_read_only, bakery_base::config_info_t::append_none);
-    config::key_t const full_key = config::key_t(type) + config::block_sep + key;
+    kwiver::vital::config_block_key_t const full_key = kwiver::vital::config_block_key_t(type) +
+      kwiver::vital::config_block::block_sep + key;
     bakery_base::config_decl_t const decl = bakery_base::config_decl_t(full_key, info);
 
     all_configs.push_back(decl);
   }
 
-  config_t const full_config = extract_configuration_from_decls(all_configs);
+  kwiver::vital::config_block_sptr const full_config = extract_configuration_from_decls(all_configs);
 
   typedef boost::shared_ptr<loaded_cluster> loaded_cluster_t;
 
   // Pull out the main config block to the top-level.
-  config_t const cluster_config = full_config->subblock_view(type);
+  kwiver::vital::config_block_sptr const cluster_config = full_config->subblock_view(type);
   full_config->merge_config(cluster_config);
 
   loaded_cluster_t const cluster = boost::make_shared<loaded_cluster>(full_config);
@@ -899,17 +900,17 @@ cluster_creator
 
   cluster_bakery::cluster_component_info_t const& info = *opt_info;
 
-  config_t const main_config = m_default_config->subblock_view(type);
+  kwiver::vital::config_block_sptr const main_config = m_default_config->subblock_view(type);
 
   // Declare configuration values.
   BOOST_FOREACH (cluster_config_t const& conf, info.m_configs)
   {
     config_value_t const& config_value = conf.config_value;
     config_key_t const& config_key = config_value.key;
-    config::keys_t const& key_path = config_key.key_path;
-    config::key_t const& key = flatten_keys(key_path);
-    config::value_t const& value = main_config->get_value<config::value_t>(key);
-    config::description_t const& description = conf.description;
+    kwiver::vital::config_block_keys_t const& key_path = config_key.key_path;
+    kwiver::vital::config_block_key_t const& key = flatten_keys(key_path);
+    kwiver::vital::config_block_value_t const& value = main_config->get_value<kwiver::vital::config_block_value_t>(key);
+    kwiver::vital::config_block_description_t const& description = conf.description;
     config_key_options_t const& options = config_key.options;
     bool tunable = false;
 
@@ -932,19 +933,19 @@ cluster_creator
   // Add config mappings.
   BOOST_FOREACH (bakery_base::config_decl_t const& decl, mapped_decls)
   {
-    config::key_t const& key = decl.first;
+    kwiver::vital::config_block_key_t const& key = decl.first;
     bakery_base::config_info_t const& mapping_info = decl.second;
     bakery_base::config_reference_t const& ref = mapping_info.reference;
 
-    config::value_t const value = boost::apply_visitor(literal_value, ref);
+    kwiver::vital::config_block_value_t const value = boost::apply_visitor(literal_value, ref);
 
-    config::keys_t mapped_key_path;
-    config::keys_t source_key_path;
+    kwiver::vital::config_block_keys_t mapped_key_path;
+    kwiver::vital::config_block_keys_t source_key_path;
 
-    /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
-    boost::split(mapped_key_path, key, boost::is_any_of(sprokit::config::block_sep));
-    /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
-    boost::split(source_key_path, value, boost::is_any_of(sprokit::config::block_sep));
+    /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
+    boost::split(mapped_key_path, key, boost::is_any_of(kwiver::vital::config_block::block_sep));
+    /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
+    boost::split(source_key_path, value, boost::is_any_of(kwiver::vital::config_block::block_sep));
 
     if (mapped_key_path.size() < 2)
     {
@@ -960,13 +961,13 @@ cluster_creator
       continue;
     }
 
-    config::key_t const mapped_name = mapped_key_path[0];
+    kwiver::vital::config_block_key_t const mapped_name = mapped_key_path[0];
     mapped_key_path.erase(mapped_key_path.begin());
 
-    config::key_t const mapped_key = flatten_keys(mapped_key_path);
+    kwiver::vital::config_block_key_t const mapped_key = flatten_keys(mapped_key_path);
 
     source_key_path.erase(source_key_path.begin());
-    config::key_t const source_key = flatten_keys(source_key_path);
+    kwiver::vital::config_block_key_t const source_key = flatten_keys(source_key_path);
 
     cluster->map_config(source_key, mapped_name, mapped_key);
   }
@@ -977,7 +978,7 @@ cluster_creator
     process::name_t const& proc_name = proc_decl.first;
     process::type_t const& proc_type = proc_decl.second;
 
-    config_t const proc_config = full_config->subblock_view(proc_name);
+    kwiver::vital::config_block_sptr const proc_config = full_config->subblock_view(proc_name);
 
     cluster->add_process(proc_name, proc_type, proc_config);
   }
@@ -1068,7 +1069,7 @@ provider_dereferencer
 }
 
 provider_dereferencer
-::provider_dereferencer(config_t const conf)
+::provider_dereferencer(kwiver::vital::config_block_sptr const conf)
   : m_providers()
 {
   m_providers[provider_config] = boost::make_shared<config_provider>(conf);
@@ -1081,7 +1082,7 @@ provider_dereferencer
 
 bakery_base::config_reference_t
 provider_dereferencer
-::operator () (config::value_t const& value) const
+::operator () (kwiver::vital::config_block_value_t const& value) const
 {
   return value;
 }
@@ -1099,7 +1100,7 @@ provider_dereferencer
   }
 
   provider_t const& provider = i->second;
-  config::value_t const& value = request.second;
+  kwiver::vital::config_block_value_t const& value = request.second;
 
   return (*provider)(value);
 }
@@ -1114,29 +1115,29 @@ ensure_provided
 {
 }
 
-config::value_t
+kwiver::vital::config_block_value_t
 ensure_provided
-::operator () (config::value_t const& value) const
+::operator () (kwiver::vital::config_block_value_t const& value) const
 {
   return value;
 }
 
-config::value_t
+kwiver::vital::config_block_value_t
 ensure_provided
 ::operator () (bakery_base::provider_request_t const& request) const
 {
   config_provider_t const& provider = request.first;
-  config::value_t const& value = request.second;
+  kwiver::vital::config_block_value_t const& value = request.second;
 
   throw unrecognized_provider_exception("(unknown)", provider, value);
 }
 
 void
-set_config_value(config_t conf, bakery_base::config_info_t const& flags, config::key_t const& key, config::value_t const& value)
+set_config_value(kwiver::vital::config_block_sptr conf, bakery_base::config_info_t const& flags, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& value)
 {
-  config::value_t val = value;
+  kwiver::vital::config_block_value_t val = value;
 
-  config::value_t const cur_val = conf->get_value(key, config::value_t());
+  kwiver::vital::config_block_value_t const cur_val = conf->get_value(key, kwiver::vital::config_block_value_t());
   bool const has_cur_val = !cur_val.empty();
 
   switch (flags.append)
@@ -1162,7 +1163,7 @@ set_config_value(config_t conf, bakery_base::config_info_t const& flags, config:
         path_t const val_path = path_t(val);
         path_t const new_path = base_path / val_path;
 
-        val = new_path.string<config::value_t>();
+        val = new_path.string<kwiver::vital::config_block_value_t>();
       }
       break;
     case bakery_base::config_info_t::append_none:
@@ -1190,7 +1191,7 @@ config_provider_sorter
 {
 }
 
-config::keys_t
+kwiver::vital::config_block_keys_t
 config_provider_sorter
 ::sorted() const
 {
@@ -1205,7 +1206,7 @@ config_provider_sorter
     throw circular_config_provide_exception();
   }
 
-  config::keys_t keys;
+  kwiver::vital::config_block_keys_t keys;
 
   BOOST_FOREACH (vertex_t const& vertex, vertices)
   {
@@ -1222,23 +1223,23 @@ config_provider_sorter
 
 void
 config_provider_sorter
-::operator () (config::key_t const& /*key*/, config::value_t const& /*value*/) const
+::operator () (kwiver::vital::config_block_key_t const& /*key*/, kwiver::vital::config_block_value_t const& /*value*/) const
 {
 }
 
 void
 config_provider_sorter
-::operator () (config::key_t const& key, bakery_base::provider_request_t const& request)
+::operator () (kwiver::vital::config_block_key_t const& key, bakery_base::provider_request_t const& request)
 {
   config_provider_t const& provider = request.first;
-  config::value_t const& value = request.second;
+  kwiver::vital::config_block_value_t const& value = request.second;
 
   if (provider != provider_config)
   {
     return;
   }
 
-  config::key_t const& target_key = config::key_t(value);
+  kwiver::vital::config_block_key_t const& target_key = kwiver::vital::config_block_key_t(value);
 
   typedef std::pair<vertex_map_t::iterator, bool> insertion_t;
 
@@ -1283,10 +1284,10 @@ config_provider_sorter::node_t
 {
 }
 
-config::key_t
-flatten_keys(config::keys_t const& keys)
+kwiver::vital::config_block_key_t
+flatten_keys(kwiver::vital::config_block_keys_t const& keys)
 {
-  return boost::join(keys, config::block_sep);
+  return boost::join(keys, kwiver::vital::config_block::block_sep);
 }
 
 cluster_splitter
@@ -1340,7 +1341,7 @@ cluster_splitter
 }
 
 loaded_cluster
-::loaded_cluster(config_t const& config)
+::loaded_cluster(kwiver::vital::config_block_sptr const& config)
   : process_cluster(config)
 {
 }
@@ -1369,7 +1370,7 @@ class check_provider
     check_provider(config_provider_t const& provider);
     ~check_provider();
 
-    bool operator () (config::value_t const& value) const;
+    bool operator () (kwiver::vital::config_block_value_t const& value) const;
     bool operator () (bakery_base::provider_request_t const& request) const;
   private:
     config_provider_t const m_provider;
@@ -1400,10 +1401,10 @@ provided_by_cluster
 
   extract_literal_value const literal_value = extract_literal_value();
 
-  config::value_t const value = boost::apply_visitor(literal_value, ref);
+  kwiver::vital::config_block_value_t const value = boost::apply_visitor(literal_value, ref);
 
   // It must be mapped to the the actual cluster.
-  if (!boost::starts_with(value, m_name + config::block_sep))
+  if (!boost::starts_with(value, m_name + kwiver::vital::config_block::block_sep))
   {
     return false;
   }
@@ -1414,12 +1415,12 @@ provided_by_cluster
    * work as intended.
    */
 
-  config::key_t const& key = decl.first;
+  kwiver::vital::config_block_key_t const& key = decl.first;
 
-  config::keys_t key_path;
+  kwiver::vital::config_block_keys_t key_path;
 
-  /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
-  boost::split(key_path, key, boost::is_any_of(sprokit::config::block_sep));
+  /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
+  boost::split(key_path, key, boost::is_any_of(kwiver::vital::config_block::block_sep));
 
   bool const is_proc = (0 != std::count(m_procs.begin(), m_procs.end(), key_path[0]));
 
@@ -1442,18 +1443,18 @@ extract_literal_value
 {
 }
 
-config::value_t
+kwiver::vital::config_block_value_t
 extract_literal_value
-::operator () (config::value_t const& value) const
+::operator () (kwiver::vital::config_block_value_t const& value) const
 {
   return value;
 }
 
-config::value_t
+kwiver::vital::config_block_value_t
 extract_literal_value
 ::operator () (bakery_base::provider_request_t const& request) const
 {
-  config::value_t const& value = request.second;
+  kwiver::vital::config_block_value_t const& value = request.second;
 
   return value;
 }
@@ -1491,7 +1492,7 @@ check_provider
 
 bool
 check_provider
-::operator () (config::value_t const& /*value*/) const
+::operator () (kwiver::vital::config_block_value_t const& /*value*/) const
 {
   return false;
 }

@@ -61,7 +61,7 @@ class process_cluster::priv
     priv();
     ~priv();
 
-    typedef std::pair<config::key_t, config::key_t> config_mapping_t;
+    typedef std::pair<kwiver::vital::config_block_key_t, kwiver::vital::config_block_key_t> config_mapping_t;
     typedef std::vector<config_mapping_t> config_mappings_t;
     typedef std::map<process::name_t, config_mappings_t> config_map_t;
     typedef std::map<process::name_t, process_t> process_map_t;
@@ -115,7 +115,7 @@ process_cluster
 }
 
 process_cluster
-::process_cluster(config_t const& config)
+::process_cluster(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {
@@ -130,7 +130,7 @@ static process::name_t convert_name(process::name_t const& cluster_name, process
 
 void
 process_cluster
-::map_config(config::key_t const& key, name_t const& name_, config::key_t const& mapped_key)
+::map_config(kwiver::vital::config_block_key_t const& key, name_t const& name_, kwiver::vital::config_block_key_t const& mapped_key)
 {
   if (d->has_name(name_))
   {
@@ -145,23 +145,23 @@ process_cluster
 
 void
 process_cluster
-::add_process(name_t const& name_, type_t const& type_, config_t const& conf)
+::add_process(name_t const& name_, type_t const& type_, kwiver::vital::config_block_sptr const& conf)
 {
   if (d->processes.count(name_))
   {
     throw duplicate_process_name_exception(name_);
   }
 
-  typedef std::set<config::key_t> key_set_t;
+  typedef std::set<kwiver::vital::config_block_key_t> key_set_t;
 
-  config::keys_t const cur_keys = conf->available_values();
+  kwiver::vital::config_block_keys_t const cur_keys = conf->available_values();
   key_set_t ro_keys;
 
-  config_t const new_conf = config::empty_config();
+  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  BOOST_FOREACH (config::key_t const& key, cur_keys)
+  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, cur_keys)
   {
-    config::value_t const value = conf->get_value<config::value_t>(key);
+    kwiver::vital::config_block_value_t const value = conf->get_value<kwiver::vital::config_block_value_t>(key);
 
     new_conf->set_value(key, value);
 
@@ -175,14 +175,14 @@ process_cluster
 
   BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
   {
-    config::key_t const& key = mapping.first;
-    config::key_t const& mapped_key = mapping.second;
+    kwiver::vital::config_block_key_t const& key = mapping.first;
+    kwiver::vital::config_block_key_t const& mapped_key = mapping.second;
 
-    config::value_t const value = config_value<config::value_t>(key);
+    kwiver::vital::config_block_value_t const value = config_value<kwiver::vital::config_block_value_t>(key);
 
     if (ro_keys.count(mapped_key))
     {
-      config::value_t const new_value = new_conf->get_value<config::value_t>(mapped_key);
+      kwiver::vital::config_block_value_t const new_value = new_conf->get_value<kwiver::vital::config_block_value_t>(mapped_key);
 
       throw mapping_to_read_only_value_exception(name(), key, value, name_, mapped_key, new_value);
     }
@@ -198,7 +198,7 @@ process_cluster
     new_conf->mark_read_only(mapped_key);
   }
 
-  BOOST_FOREACH (config::key_t const& key, ro_keys)
+  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, ro_keys)
   {
     new_conf->mark_read_only(key);
   }
@@ -347,29 +347,29 @@ process_cluster
 
 void
 process_cluster
-::_reconfigure(config_t const& conf)
+::_reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
-  config::keys_t const tunable_keys = available_tunable_config();
+  kwiver::vital::config_block_keys_t const tunable_keys = available_tunable_config();
 
   BOOST_FOREACH (priv::config_map_t::value_type const& config_mapping, d->config_map)
   {
     name_t const& name_ = config_mapping.first;
     priv::config_mappings_t const& mappings = config_mapping.second;
 
-    config_t const provide_conf = config::empty_config();
+    kwiver::vital::config_block_sptr const provide_conf = kwiver::vital::config_block::empty_config();
 
     BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
     {
-      config::key_t const& key = mapping.first;
+      kwiver::vital::config_block_key_t const& key = mapping.first;
 
       if (!std::count(tunable_keys.begin(), tunable_keys.end(), key))
       {
         continue;
       }
 
-      config::key_t const& mapped_key = mapping.second;
+      kwiver::vital::config_block_key_t const& mapped_key = mapping.second;
 
-      config::value_t const& value = config_value<config::value_t>(key);
+      kwiver::vital::config_block_value_t const& value = config_value<kwiver::vital::config_block_value_t>(key);
 
       provide_conf->set_value(mapped_key, value);
     }
@@ -377,7 +377,7 @@ process_cluster
     process_t const proc = d->processes[name_];
 
     // Grab the new subblock for the process.
-    config_t const proc_conf = conf->subblock(name_);
+    kwiver::vital::config_block_sptr const proc_conf = conf->subblock(name_);
 
     // Reconfigure the given process normally.
     proc->reconfigure(proc_conf);

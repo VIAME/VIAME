@@ -35,7 +35,7 @@
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
@@ -152,7 +152,7 @@ IMPLEMENT_TEST(cluster_empty_name)
   sprokit::load_known_modules();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
   sprokit::process_t const proc = info->ctor(conf);
   sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
@@ -169,7 +169,7 @@ IMPLEMENT_TEST(cluster_multiplier)
   sprokit::load_known_modules();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
   sprokit::process::name_t const name = sprokit::process::name_t("name");
 
   conf->set_value(sprokit::process::config_name, name);

@@ -33,7 +33,7 @@
 
 #include "pipeline-config.h"
 
-#include "config.h"
+#include <vital/config/config_block.h>
 #include "process.h"
 #include "types.h"
 
@@ -54,7 +54,7 @@ namespace sprokit
 {
 
 /// A function which returns a \ref process.
-typedef boost::function<process_t (config_t const& config)> process_ctor_t;
+typedef boost::function<process_t (kwiver::vital::config_block_sptr const& config)> process_ctor_t;
 
 /**
  * \class process_registry process_registry.h <sprokit/pipeline/process_registry.h>
@@ -105,7 +105,9 @@ class SPROKIT_PIPELINE_EXPORT process_registry
      *
      * \returns A new process of type \p type.
      */
-    process_t create_process(process::type_t const& type, process::name_t const& name, config_t const& config = config::empty_config()) const;
+    process_t create_process(process::type_t const& type,
+                             process::name_t const& name,
+                             kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config()) const;
 
     /**
      * \brief Query for all available types.
@@ -164,7 +166,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
  */
 template <typename T>
 process_t
-create_process(config_t const& conf)
+create_process(kwiver::vital::config_block_sptr const& conf)
 {
   return boost::make_shared<T>(conf);
 }

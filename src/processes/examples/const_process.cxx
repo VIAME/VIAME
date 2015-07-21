@@ -53,7 +53,7 @@ class const_process::priv
 process::port_t const const_process::priv::port_output = port_t("const");
 
 const_process
-::const_process(config_t const& config)
+::const_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

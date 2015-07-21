@@ -76,7 +76,7 @@ class SPROKIT_PROCESSES_FLOW_NO_EXPORT pass_process
      *
      * \param config The configuration for the process.
      */
-    pass_process(config_t const& config);
+    pass_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

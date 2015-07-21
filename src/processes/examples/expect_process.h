@@ -72,7 +72,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT expect_process
      *
      * \param config The configuration for the process.
      */
-    expect_process(config_t const& config);
+    expect_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */
@@ -80,7 +80,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT expect_process
   protected:
     void _configure();
     void _step();
-    void _reconfigure(config_t const& conf);
+    void _reconfigure(kwiver::vital::config_block_sptr const& conf);
   private:
     class priv;
     boost::scoped_ptr<priv> d;

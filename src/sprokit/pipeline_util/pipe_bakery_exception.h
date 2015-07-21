@@ -35,7 +35,7 @@
 
 #include "pipe_declaration_types.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/types.h>
 
 #include <string>
@@ -237,14 +237,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
      * \param key The key the flag was on.
      * \param flag The unrecognized flag.
      */
-    unrecognized_config_flag_exception(config::key_t const& key, config_flag_t const& flag) throw();
+    unrecognized_config_flag_exception(kwiver::vital::config_block_key_t const& key, config_flag_t const& flag) throw();
     /**
      * \brief Destructor.
      */
     ~unrecognized_config_flag_exception() throw();
 
     /// The key the flag was on.
-    config::key_t const m_key;
+    kwiver::vital::config_block_key_t const m_key;
     /// The unrecognized flag.
     config_flag_t const m_flag;
 };
@@ -266,14 +266,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
      * \param key The key the flag was on.
      * \param reason The reason for the mismatch.
      */
-    config_flag_mismatch_exception(config::key_t const& key, std::string const& reason) throw();
+    config_flag_mismatch_exception(kwiver::vital::config_block_key_t const& key, std::string const& reason) throw();
     /**
      * \brief Destructor.
      */
     ~config_flag_mismatch_exception() throw();
 
     /// The key the flag was on.
-    config::key_t const m_key;
+    kwiver::vital::config_block_key_t const m_key;
     /// The reason for the mismatch.
     std::string const m_reason;
 };
@@ -296,18 +296,18 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_provider_exception
      * \param provider The unrecognized provider.
      * \param index The index requested from the provider.
      */
-    unrecognized_provider_exception(config::key_t const& key, config_provider_t const& provider, config::value_t const& index) throw();
+    unrecognized_provider_exception(kwiver::vital::config_block_key_t const& key, config_provider_t const& provider, kwiver::vital::config_block_value_t const& index) throw();
     /**
      * \brief Destructor.
      */
     ~unrecognized_provider_exception() throw();
 
     /// The key the flag was on.
-    config::key_t const m_key;
+    kwiver::vital::config_block_key_t const m_key;
     /// The unrecognized provider.
     config_provider_t const m_provider;
     /// The index requested from the provider.
-    config::value_t const m_index;
+    kwiver::vital::config_block_value_t const m_index;
 };
 
 /**
@@ -345,14 +345,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_system_index_exception
     /**
      * \brief Constructor.
      */
-    unrecognized_system_index_exception(config::value_t const& index) throw();
+    unrecognized_system_index_exception(kwiver::vital::config_block_value_t const& index) throw();
     /**
      * \brief Destructor.
      */
     ~unrecognized_system_index_exception() throw();
 
     /// The index that was requested.
-    config::value_t const m_index;
+    kwiver::vital::config_block_value_t const m_index;
 };
 
 }

@@ -33,7 +33,7 @@
 #include "path.h"
 #include "pipe_bakery_exception.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/utils.h>
 
 #include <boost/filesystem/operations.hpp>
@@ -68,7 +68,7 @@ provider
 }
 
 config_provider
-::config_provider(config_t const conf)
+::config_provider(kwiver::vital::config_block_sptr const conf)
   : m_config(conf)
 {
 }
@@ -78,11 +78,11 @@ config_provider
 {
 }
 
-config::value_t
+kwiver::vital::config_block_value_t
 config_provider
-::operator () (config::value_t const& index) const
+::operator () (kwiver::vital::config_block_value_t const& index) const
 {
-  return m_config->get_value<config::value_t>(index);
+  return m_config->get_value<kwiver::vital::config_block_value_t>(index);
 }
 
 system_provider
@@ -95,15 +95,15 @@ system_provider
 {
 }
 
-config::value_t
+kwiver::vital::config_block_value_t
 system_provider
-::operator () (config::value_t const& index) const
+::operator () (kwiver::vital::config_block_value_t const& index) const
 {
-  config::value_t value;
+  kwiver::vital::config_block_value_t value;
 
   if (index == "processors")
   {
-    value = boost::lexical_cast<config::value_t>(boost::thread::hardware_concurrency());
+    value = boost::lexical_cast<kwiver::vital::config_block_value_t>(boost::thread::hardware_concurrency());
   }
   else if (index == "homedir")
   {
@@ -117,7 +117,7 @@ system_provider
 
     if (home)
     {
-      value = config::value_t(*home);
+      value = kwiver::vital::config_block_value_t(*home);
     }
   }
   else if (index == "curdir")
@@ -127,7 +127,7 @@ system_provider
 
     /// \todo Check ec.
 
-    value = curdir.string<config::value_t>();
+    value = curdir.string<kwiver::vital::config_block_value_t>();
   }
   else if (index == "pid")
   {
@@ -137,7 +137,7 @@ system_provider
     pid_t const pid = getpid();
 #endif
 
-    value = boost::lexical_cast<config::value_t>(pid);
+    value = boost::lexical_cast<kwiver::vital::config_block_value_t>(pid);
   }
   else
   {
@@ -157,18 +157,18 @@ environment_provider
 {
 }
 
-config::value_t
+kwiver::vital::config_block_value_t
 environment_provider
-::operator () (config::value_t const& index) const
+::operator () (kwiver::vital::config_block_value_t const& index) const
 {
   envvar_name_t const envvar_name = index.c_str();
   envvar_value_t const envvar_value = get_envvar(envvar_name);
 
-  config::value_t value;
+  kwiver::vital::config_block_value_t value;
 
   if (envvar_value)
   {
-    value = config::value_t(*envvar_value);
+    value = kwiver::vital::config_block_value_t(*envvar_value);
   }
 
   return value;

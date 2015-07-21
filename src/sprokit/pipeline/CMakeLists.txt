@@ -1,7 +1,7 @@
 project(sprokit_pipeline)
 
 set(pipeline_srcs
-  config.cxx
+##  config.cxx
   datum.cxx
   edge.cxx
   edge_exception.cxx
@@ -24,7 +24,7 @@ set(pipeline_srcs
   version.cxx)
 
 set(pipeline_headers
-  config.h
+##  config.h
   datum.h
   edge.h
   edge_exception.h

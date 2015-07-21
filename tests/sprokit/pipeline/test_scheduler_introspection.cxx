@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
@@ -66,7 +66,7 @@ main()
 
   sprokit::scheduler_registry::types_t const types = reg->types();
 
-  sprokit::config_t const config = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   sprokit::pipeline_t const pipe = sprokit::pipeline_t(new sprokit::pipeline(config));
 

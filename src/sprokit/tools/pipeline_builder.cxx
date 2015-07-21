@@ -38,7 +38,7 @@
 #include <sprokit/pipeline_util/pipe_bakery.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler_registry.h>
 
@@ -157,12 +157,12 @@ pipeline_builder
     throw std::runtime_error(reason);
   }
 
-  sprokit::config::key_t setting_key = setting.substr(0, split_pos);
-  sprokit::config::value_t setting_value = setting.substr(split_pos + split_str.size());
+  kwiver::vital::config_block_key_t setting_key = setting.substr(0, split_pos);
+  kwiver::vital::config_block_value_t setting_value = setting.substr(split_pos + split_str.size());
 
-  sprokit::config::keys_t keys;
+  kwiver::vital::config_block_keys_t keys;
 
-  if (sprokit::config::block_sep.size() != 1)
+  if (kwiver::vital::config_block::block_sep.size() != 1)
   {
     static std::string const reason = "Error: The block separator is longer than "
                                       "one character and does not work here (this "
@@ -171,8 +171,8 @@ pipeline_builder
     throw std::runtime_error(reason);
   }
 
-  /// \bug Does not work if (sprokit::config::block_sep.size() != 1).
-  boost::split(keys, setting_key, boost::is_any_of(sprokit::config::block_sep));
+  /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
+  boost::split(keys, setting_key, boost::is_any_of(kwiver::vital::config_block::block_sep));
 
   if (keys.size() < 2)
   {
@@ -202,7 +202,7 @@ pipeline_builder
   return sprokit::bake_pipe_blocks(m_blocks);
 }
 
-sprokit::config_t
+kwiver::vital::config_block_sptr
 pipeline_builder
 ::config() const
 {

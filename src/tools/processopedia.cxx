@@ -31,7 +31,7 @@
 #include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_registry.h>
@@ -130,9 +130,9 @@ sprokit_tool_main(int argc, char const* argv[])
 
     std::cout << "  Configuration:" << std::endl;
 
-    sprokit::config::keys_t const keys = proc->available_config();
+    kwiver::vital::config_block_keys_t const keys = proc->available_config();
 
-    BOOST_FOREACH (sprokit::config::key_t const& key, keys)
+    BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
     {
       if (!hidden && boost::starts_with(key, hidden_prefix))
       {
@@ -141,8 +141,8 @@ sprokit_tool_main(int argc, char const* argv[])
 
       sprokit::process::conf_info_t const info = proc->config_info(key);
 
-      sprokit::config::value_t const& def = info->def;
-      sprokit::config::description_t const& conf_desc = info->description;
+      kwiver::vital::config_block_value_t const& def = info->def;
+      kwiver::vital::config_block_description_t const& conf_desc = info->description;
       bool const& tunable = info->tunable;
       char const* const tunable_str = tunable ? "yes" : "no";
 

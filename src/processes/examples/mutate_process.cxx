@@ -53,7 +53,7 @@ class mutate_process::priv
 process::port_t const mutate_process::priv::port_input = port_t("mutate");
 
 mutate_process
-::mutate_process(config_t const& config)
+::mutate_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

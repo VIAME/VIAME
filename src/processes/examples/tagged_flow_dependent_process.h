@@ -74,7 +74,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT tagged_flow_dependent_process
      *
      * \param config The configuration for the process.
      */
-    tagged_flow_dependent_process(config_t const& config);
+    tagged_flow_dependent_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

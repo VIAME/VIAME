@@ -60,7 +60,7 @@ process::port_t const pass_process::priv::port_output = port_t("pass");
 pass_process::priv::tag_t const pass_process::priv::tag = tag_t("pass");
 
 pass_process
-::pass_process(config_t const& config)
+::pass_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

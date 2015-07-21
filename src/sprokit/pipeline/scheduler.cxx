@@ -78,7 +78,7 @@ scheduler
 }
 
 scheduler
-::scheduler(pipeline_t const& pipe, config_t const& config)
+::scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : d()
 {
   if (!config)

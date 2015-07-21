@@ -34,7 +34,7 @@
 
 #include <sprokit/pipeline_util/path.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_registry.h>
@@ -46,7 +46,7 @@
 
 #include <cstdlib>
 
-static sprokit::config::key_t const scheduler_block = sprokit::config::key_t("_scheduler");
+static kwiver::vital::config_block_key_t const scheduler_block = kwiver::vital::config_block_key_t("_scheduler");
 
 int
 sprokit_tool_main(int argc, char const* argv[])
@@ -65,7 +65,7 @@ sprokit_tool_main(int argc, char const* argv[])
   sprokit::pipeline_builder const builder(vm, desc);
 
   sprokit::pipeline_t const pipe = builder.pipeline();
-  sprokit::config_t const conf = builder.config();
+  kwiver::vital::config_block_sptr const conf = builder.config();
 
   if (!pipe)
   {
@@ -83,7 +83,8 @@ sprokit_tool_main(int argc, char const* argv[])
     scheduler_type = vm["scheduler"].as<sprokit::scheduler_registry::type_t>();
   }
 
-  sprokit::config_t const scheduler_config = conf->subblock(scheduler_block + sprokit::config::block_sep + scheduler_type);
+  kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
+                                              kwiver::vital::config_block::block_sep + scheduler_type);
 
   sprokit::scheduler_registry_t reg = sprokit::scheduler_registry::self();
 

@@ -64,7 +64,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT multiplier_cluster
      *
      * \param config The configuration for the process.
      */
-    multiplier_cluster(config_t const& config);
+    multiplier_cluster(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

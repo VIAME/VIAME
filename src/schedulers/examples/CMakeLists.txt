@@ -19,8 +19,9 @@ sprokit_add_plugin(schedulers_examples
   ${examples_srcs}
   ${examples_private_headers})
 target_link_libraries(schedulers_examples
-  LINK_PRIVATE
+  PRIVATE
     sprokit_pipeline
+    vital_config
     ${Boost_CHRONO_LIBRARY}
     ${Boost_DATE_TIME_LIBRARY}
     ${Boost_THREAD_LIBRARY}

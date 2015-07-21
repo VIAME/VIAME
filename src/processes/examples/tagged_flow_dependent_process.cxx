@@ -61,7 +61,7 @@ process::port_t const tagged_flow_dependent_process::priv::port_untagged_output 
 process::port_t const tagged_flow_dependent_process::priv::port_tagged_output = port_t("tagged_output");
 
 tagged_flow_dependent_process
-::tagged_flow_dependent_process(config_t const& config)
+::tagged_flow_dependent_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

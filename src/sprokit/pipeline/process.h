@@ -34,7 +34,7 @@
 #include "pipeline-config.h"
 
 #include "edge.h"
-#include "config.h"
+#include <vital/config/config_block.h>
 #include "datum.h"
 #include "types.h"
 
@@ -208,8 +208,8 @@ class SPROKIT_PIPELINE_EXPORT process
          * \param description_ A description of the value.
          * \param tunable_ Whether the parameter is tunable or not.
          */
-        conf_info(config::value_t const& def_,
-                  config::description_t const& description_,
+        conf_info(kwiver::vital::config_block_value_t const& def_,
+                  kwiver::vital::config_block_description_t const& description_,
                   bool tunable_);
         /**
          * \brief Destructor.
@@ -217,9 +217,9 @@ class SPROKIT_PIPELINE_EXPORT process
         ~conf_info();
 
         /// The default value for the parameter.
-        config::value_t const def;
+        kwiver::vital::config_block_value_t const def;
         /// A description of the value.
-        config::description_t const description;
+        kwiver::vital::config_block_description_t const description;
         /// Whether the parameter is tunable or not.
         bool const tunable;
     };
@@ -456,14 +456,14 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns The names of all available configuration keys.
      */
-    config::keys_t available_config() const;
+    kwiver::vital::config_block_keys_t available_config() const;
 
     /**
      * \brief Request available tunable configuration options for the process.
      *
      * \returns The names of all available tunable configuration keys.
      */
-    config::keys_t available_tunable_config();
+    kwiver::vital::config_block_keys_t available_tunable_config();
 
     /**
      * \brief Retrieve information about a configuration parameter.
@@ -474,7 +474,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns Information about the parameter.
      */
-    conf_info_t config_info(config::key_t const& key);
+    conf_info_t config_info(kwiver::vital::config_block_key_t const& key);
 
     /**
      * \brief The name of the process.
@@ -503,9 +503,9 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_t const port_heartbeat;
 
     /// The name of the configuration value for the name.
-    static config::key_t const config_name;
+    static kwiver::vital::config_block_key_t const config_name;
     /// The name of the configuration value for the type.
-    static config::key_t const config_type;
+    static kwiver::vital::config_block_key_t const config_type;
 
     /// A type which means that the type of the data is irrelevant.
     static port_type_t const type_any;
@@ -630,7 +630,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param config Contains configuration for the process.
      */
-    process(config_t const& config);
+    process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */
@@ -688,7 +688,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \params conf The configuration block to apply.
      */
-    virtual void _reconfigure(config_t const& conf);
+    virtual void _reconfigure(kwiver::vital::config_block_sptr const& conf);
 
     /**
      * \brief Subclass property query method.
@@ -751,7 +751,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns The names of all available configuration keys.
      */
-    virtual config::keys_t _available_config() const;
+    virtual kwiver::vital::config_block_keys_t _available_config() const;
 
     /**
      * \brief Subclass configuration information.
@@ -760,7 +760,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns Information about the parameter.
      */
-    virtual conf_info_t _config_info(config::key_t const& key);
+    virtual conf_info_t _config_info(kwiver::vital::config_block_key_t const& key);
 
     /**
      * \brief Declare an input port for the process.
@@ -877,7 +877,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param key The configuration key.
      * \param info Information about the port.
      */
-    void declare_configuration_key(config::key_t const& key, conf_info_t const& info);
+    void declare_configuration_key(kwiver::vital::config_block_key_t const& key, conf_info_t const& info);
 
     /**
      * \brief Declare a configuration value for the process.
@@ -887,9 +887,9 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param description_ A description of the value.
      * \param tunable_ Whether the parameter is tunable or not.
      */
-    void declare_configuration_key(config::key_t const& key,
-                                   config::value_t const& def_,
-                                   config::description_t const& description_,
+    void declare_configuration_key(kwiver::vital::config_block_key_t const& key,
+                                   kwiver::vital::config_block_value_t const& def_,
+                                   kwiver::vital::config_block_description_t const& description_,
                                    bool tunable_ = false);
 
     /**
@@ -1050,7 +1050,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns The whole configuration for the process.
      */
-    config_t get_config() const;
+    kwiver::vital::config_block_sptr get_config() const;
 
     /**
      * \brief Retrieve a configuration item.
@@ -1067,7 +1067,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns The value of the configuration.
      */
     template <typename T>
-    T config_value(config::key_t const& key) const;
+    T config_value(kwiver::vital::config_block_key_t const& key) const;
 
     /**
      * \brief Set whether synchronization checking is enabled before stepping.
@@ -1102,17 +1102,17 @@ class SPROKIT_PIPELINE_EXPORT process
      */
     static data_info_t edge_data_info(edge_data_t const& data);
   private:
-    config::value_t config_value_raw(config::key_t const& key) const;
+    kwiver::vital::config_block_value_t config_value_raw(kwiver::vital::config_block_key_t const& key) const;
 
     bool is_static_input(port_t const& port) const;
-    static config::key_t const static_input_prefix;
+    static kwiver::vital::config_block_key_t const static_input_prefix;
 
     friend class pipeline;
     SPROKIT_PIPELINE_NO_EXPORT void set_core_frequency(port_frequency_t const& frequency);
-    SPROKIT_PIPELINE_NO_EXPORT void reconfigure(config_t const& conf);
+    SPROKIT_PIPELINE_NO_EXPORT void reconfigure(kwiver::vital::config_block_sptr const& conf);
 
     friend class process_cluster;
-    SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(config_t const& conf);
+    SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf);
 
     class SPROKIT_PIPELINE_NO_EXPORT priv;
     boost::scoped_ptr<priv> d;
@@ -1121,9 +1121,9 @@ class SPROKIT_PIPELINE_EXPORT process
 template <typename T>
 T
 process
-::config_value(config::key_t const& key) const
+::config_value(kwiver::vital::config_block_key_t const& key) const
 {
-  return config_cast<T>(config_value_raw(key));
+  return kwiver::vital::config_block_cast<T>(config_value_raw(key));
 }
 
 template <typename T>

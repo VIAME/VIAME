@@ -53,7 +53,7 @@ class multiplier_cluster::priv
     static type_t const type_const;
     static type_t const type_multiplication;
 
-    static config::key_t const config_factor;
+    static kwiver::vital::config_block_key_t const config_factor;
     static port_t const port_factor;
     static port_t const port_output;
 };
@@ -62,19 +62,19 @@ process::name_t const multiplier_cluster::priv::name_const = name_t("const");
 process::name_t const multiplier_cluster::priv::name_multiplication = name_t("multiplication");
 process::type_t const multiplier_cluster::priv::type_const = type_t("const_number");
 process::type_t const multiplier_cluster::priv::type_multiplication = type_t("multiplication");
-config::key_t const multiplier_cluster::priv::config_factor = config::key_t("factor");
+kwiver::vital::config_block_key_t const multiplier_cluster::priv::config_factor = kwiver::vital::config_block_key_t("factor");
 process::port_t const multiplier_cluster::priv::port_factor = port_t("factor");
 process::port_t const multiplier_cluster::priv::port_output = port_t("product");
 
 multiplier_cluster
-::multiplier_cluster(config_t const& config)
+::multiplier_cluster(kwiver::vital::config_block_sptr const& config)
   : process_cluster(config)
   , d(new priv)
 {
   declare_configuration_key(
     priv::config_factor,
-    config::value_t(),
-    config::description_t("The value to start counting at."));
+    kwiver::vital::config_block_value_t(),
+    kwiver::vital::config_block_description_t("The value to start counting at."));
 
   port_flags_t required;
 
@@ -91,7 +91,7 @@ multiplier_cluster
     required,
     port_description_t("Where the product will be available."));
 
-  config::key_t const const_key = config::key_t("value");
+  kwiver::vital::config_block_key_t const const_key = kwiver::vital::config_block_key_t("value");
 
   map_config(priv::config_factor, priv::name_const, const_key);
 

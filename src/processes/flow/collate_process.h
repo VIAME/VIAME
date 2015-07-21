@@ -90,7 +90,7 @@ class SPROKIT_PROCESSES_FLOW_NO_EXPORT collate_process
      *
      * \param config The configuration for the process.
      */
-    collate_process(config_t const& config);
+    collate_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

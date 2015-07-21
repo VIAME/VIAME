@@ -31,6 +31,7 @@
 #include "utils.h"
 
 #include <cxxabi.h>
+#include <vital/logger/logger.h>
 
 #ifdef HAVE_PTHREAD_NAMING
 #define NAME_THREAD_USING_PTHREAD
@@ -87,6 +88,8 @@
 
 namespace sprokit
 {
+
+static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "pipeline_utilities" ) );
 
 #ifdef NAME_THREAD_USING_PRCTL
 static bool name_thread_prctl(thread_name_t const& name);
@@ -160,9 +163,10 @@ get_envvar(envvar_name_t const& name)
     value = envvalue.get();
   }
 
-  if (!sz)
+  // Check return code
+  if ( 0 == sz)
   {
-    /// \todo Log error that the environment reading failed.
+    LOG_ERROR( m_logger, "Error reading environment");
   }
 #else
   char const* const envvalue = getenv(name.c_str());

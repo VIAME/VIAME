@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
@@ -60,7 +60,7 @@ class null_scheduler
   : public sprokit::scheduler
 {
   public:
-    null_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
+    null_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
     virtual ~null_scheduler();
 
     void reset_pipeline() const;
@@ -76,7 +76,7 @@ class null_config_scheduler
   : public null_scheduler
 {
   public:
-    null_config_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
+    null_config_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
     ~null_config_scheduler();
 };
 
@@ -84,7 +84,7 @@ class null_pipeline_scheduler
   : public null_scheduler
 {
   public:
-    null_pipeline_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
+    null_pipeline_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
     ~null_pipeline_scheduler();
 };
 
@@ -269,7 +269,7 @@ create_minimal_scheduler()
   pipe->add_process(proc);
   pipe->setup_pipeline();
 
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
   sprokit::scheduler_t const sched = boost::make_shared<null_scheduler>(pipe, conf);
 
@@ -277,7 +277,7 @@ create_minimal_scheduler()
 }
 
 null_scheduler
-::null_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config)
+::null_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : sprokit::scheduler(pipe, config)
 {
 }
@@ -327,8 +327,8 @@ null_scheduler
 }
 
 null_config_scheduler
-::null_config_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& /*config*/)
-  : null_scheduler(pipe, sprokit::config_t())
+::null_config_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& /*config*/)
+  : null_scheduler(pipe, kwiver::vital::config_block_sptr())
 {
 }
 
@@ -338,7 +338,7 @@ null_config_scheduler
 }
 
 null_pipeline_scheduler
-::null_pipeline_scheduler(sprokit::pipeline_t const& /*pipe*/, sprokit::config_t const& config)
+::null_pipeline_scheduler(sprokit::pipeline_t const& /*pipe*/, kwiver::vital::config_block_sptr const& config)
   : null_scheduler(sprokit::pipeline_t(), config)
 {
 }

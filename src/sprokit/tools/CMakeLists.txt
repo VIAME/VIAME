@@ -19,13 +19,14 @@ sprokit_add_library(sprokit_tools
   ${tools_srcs}
   ${tools_headers})
 target_link_libraries(sprokit_tools
-  LINK_PUBLIC
-    sprokit_pipeline_util
-    sprokit_pipeline
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  LINK_PRIVATE
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY})
+  PUBLIC       sprokit_pipeline_util
+               sprokit_pipeline
+               ${Boost_PROGRAM_OPTIONS_LIBRARY}
+
+  PRIVATE      ${Boost_FILESYSTEM_LIBRARY}
+               ${Boost_SYSTEM_LIBRARY}
+               vital_config
+  )
 set_target_properties(sprokit_tools
   PROPERTIES
     VERSION       ${sprokit_version}

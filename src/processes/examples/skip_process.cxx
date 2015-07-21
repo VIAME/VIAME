@@ -30,7 +30,7 @@
 
 #include "skip_process.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/process_exception.h>
 
@@ -58,34 +58,34 @@ class skip_process::priv
     frequency_component_t const skip;
     frequency_component_t const offset;
 
-    static config::key_t const config_skip;
-    static config::value_t const default_skip;
-    static config::key_t const config_offset;
-    static config::value_t const default_offset;
+    static kwiver::vital::config_block_key_t const config_skip;
+    static kwiver::vital::config_block_value_t const default_skip;
+    static kwiver::vital::config_block_key_t const config_offset;
+    static kwiver::vital::config_block_value_t const default_offset;
     static port_t const port_input;
     static port_t const port_output;
 };
 
-config::key_t const skip_process::priv::config_skip = config::key_t("skip");
-config::value_t const skip_process::priv::default_skip = config::key_t("1");
-config::key_t const skip_process::priv::config_offset = config::key_t("offset");
-config::value_t const skip_process::priv::default_offset = config::key_t("0");
+kwiver::vital::config_block_key_t const skip_process::priv::config_skip = kwiver::vital::config_block_key_t("skip");
+kwiver::vital::config_block_value_t const skip_process::priv::default_skip = kwiver::vital::config_block_key_t("1");
+kwiver::vital::config_block_key_t const skip_process::priv::config_offset = kwiver::vital::config_block_key_t("offset");
+kwiver::vital::config_block_value_t const skip_process::priv::default_offset = kwiver::vital::config_block_key_t("0");
 process::port_t const skip_process::priv::port_input = port_t("input");
 process::port_t const skip_process::priv::port_output = port_t("output");
 
 skip_process
-::skip_process(config_t const& config)
+::skip_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv(1, 0))
 {
   declare_configuration_key(
     priv::config_skip,
     priv::default_skip,
-    config::description_t("The number of inputs to skip for each output."));
+    kwiver::vital::config_block_description_t("The number of inputs to skip for each output."));
   declare_configuration_key(
     priv::config_offset,
     priv::default_offset,
-    config::description_t("The offset from the first datum to use as the output."));
+    kwiver::vital::config_block_description_t("The offset from the first datum to use as the output."));
 
   port_flags_t required;
 

@@ -31,9 +31,10 @@
 #include "process_registry.h"
 #include "process_registry_exception.h"
 
-#include "config.h"
+#include <vital/config/config_block.h>
 #include "process.h"
 #include "types.h"
+#include <vital/logger/logger.h>
 
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
@@ -65,6 +66,8 @@ class process_registry::priv
 
     typedef std::set<module_t> loaded_modules_t;
     loaded_modules_t loaded_modules;
+
+    kwiver::vital::logger_handle_t m_logger;
 };
 
 static process_registry_t reg_self = process_registry_t();
@@ -78,8 +81,8 @@ void
 process_registry
 ::register_process(process::type_t const& type, description_t const& desc, process_ctor_t ctor)
 {
-  /// \todo Log debug registering process
-  std::cerr <<"DEBUG - Registering process: " << type << " (" << desc << ")\n";
+  LOG_DEBUG( d->m_logger,  "Registering process: " << type << " (" << desc << ")" );
+
   if (!ctor)
   {
     throw null_process_ctor_exception(type);
@@ -95,7 +98,8 @@ process_registry
 
 process_t
 process_registry
-::create_process(process::type_t const& type, process::name_t const& name, config_t const& config) const
+::create_process(process::type_t const& type, process::name_t const& name,
+                 kwiver::vital::config_block_sptr const& config) const
 {
   if (!config)
   {
@@ -109,8 +113,8 @@ process_registry
     throw no_such_process_type_exception(type);
   }
 
-  config->set_value(process::config_type, config::value_t(type));
-  config->set_value(process::config_name, config::value_t(name));
+  config->set_value(process::config_type, kwiver::vital::config_block_value_t(type));
+  config->set_value(process::config_name, kwiver::vital::config_block_value_t(name));
 
   return i->second.get<1>()(config);
 }
@@ -193,6 +197,7 @@ process_registry::priv
 ::priv()
   : registry()
   , loaded_modules()
+  , m_logger( kwiver::vital::get_logger( "process_registry" ))
 {
 }
 

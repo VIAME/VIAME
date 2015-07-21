@@ -59,7 +59,7 @@ process::port_t const feedback_process::priv::port_output = port_t("output");
 process::port_type_t const feedback_process::priv::type_custom_feedback = port_type_t("__feedback");
 
 feedback_process
-::feedback_process(config_t const& config)
+::feedback_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

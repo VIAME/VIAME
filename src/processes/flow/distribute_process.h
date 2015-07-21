@@ -89,7 +89,7 @@ class SPROKIT_PROCESSES_FLOW_NO_EXPORT distribute_process
      *
      * \param config The configuration for the process.
      */
-    distribute_process(config_t const& config);
+    distribute_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

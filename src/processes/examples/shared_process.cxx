@@ -53,7 +53,7 @@ class shared_process::priv
 process::port_t const shared_process::priv::port_output = port_t("shared");
 
 shared_process
-::shared_process(config_t const& config)
+::shared_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

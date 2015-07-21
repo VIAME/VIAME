@@ -72,7 +72,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      *
      * \param config Contains configuration for the pipeline.
      */
-    pipeline(config_t const& config = config::empty_config());
+    pipeline(kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config());
     /**
      * \brief Destructor.
      */
@@ -246,7 +246,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * same time; any synchronization is best handled at the cluster level if
      * needed.
      */
-    void reconfigure(config_t const& conf) const;
+    void reconfigure(kwiver::vital::config_block_sptr const& conf) const;
 
     /**
      * \brief Get a list of processes in the pipeline.

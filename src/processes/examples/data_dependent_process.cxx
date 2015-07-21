@@ -52,32 +52,32 @@ class data_dependent_process::priv
     bool configuring;
     bool type_set;
 
-    static config::key_t const config_reject;
-    static config::key_t const config_set_on_configure;
-    static config::value_t const default_reject;
-    static config::value_t const default_set_on_configure;
+    static kwiver::vital::config_block_key_t const config_reject;
+    static kwiver::vital::config_block_key_t const config_set_on_configure;
+    static kwiver::vital::config_block_value_t const default_reject;
+    static kwiver::vital::config_block_value_t const default_set_on_configure;
     static port_t const port_output;
 };
 
-config::key_t const data_dependent_process::priv::config_reject = config::key_t("reject");
-config::key_t const data_dependent_process::priv::config_set_on_configure = config::key_t("set_on_configure");
-config::value_t const data_dependent_process::priv::default_reject = config::value_t("false");
-config::value_t const data_dependent_process::priv::default_set_on_configure = config::value_t("true");
+kwiver::vital::config_block_key_t const data_dependent_process::priv::config_reject = kwiver::vital::config_block_key_t("reject");
+kwiver::vital::config_block_key_t const data_dependent_process::priv::config_set_on_configure = kwiver::vital::config_block_key_t("set_on_configure");
+kwiver::vital::config_block_value_t const data_dependent_process::priv::default_reject = kwiver::vital::config_block_value_t("false");
+kwiver::vital::config_block_value_t const data_dependent_process::priv::default_set_on_configure = kwiver::vital::config_block_value_t("true");
 process::port_t const data_dependent_process::priv::port_output = port_t("output");
 
 data_dependent_process
-::data_dependent_process(config_t const& config)
+::data_dependent_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_reject,
     priv::default_reject,
-    config::description_t("Whether to reject type setting requests or not."));
+    kwiver::vital::config_block_description_t("Whether to reject type setting requests or not."));
   declare_configuration_key(
     priv::config_set_on_configure,
     priv::default_set_on_configure,
-    config::description_t("Whether to set the type on configure or not."));
+    kwiver::vital::config_block_description_t("Whether to set the type on configure or not."));
 
   bool const reject = config_value<bool>(priv::config_reject);
   bool const set_on_configure = config_value<bool>(priv::config_set_on_configure);

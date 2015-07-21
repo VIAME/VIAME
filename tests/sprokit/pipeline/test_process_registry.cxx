@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/process_cluster.h>
 #include <sprokit/pipeline/process_registry.h>
@@ -68,7 +68,7 @@ IMPLEMENT_TEST(null_config)
 {
   sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
-  sprokit::config_t const config;
+  kwiver::vital::config_block_sptr const config;
 
   EXPECT_EXCEPTION(sprokit::null_process_registry_config_exception,
                    reg->create_process(sprokit::process::type_t(), sprokit::process::name_t(), config),
@@ -128,7 +128,7 @@ IMPLEMENT_TEST(null_ctor)
                    "requesting an non-existent process type");
 }
 
-static sprokit::process_t null_process(sprokit::config_t const& config);
+static sprokit::process_t null_process(kwiver::vital::config_block_sptr const& config);
 
 IMPLEMENT_TEST(duplicate_types)
 {
@@ -186,7 +186,7 @@ IMPLEMENT_TEST(register_cluster)
   sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
   sprokit::process::type_t const cluster_type = sprokit::process::type_t("orphan_cluster");
-  sprokit::config_t const config = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   sprokit::process_t const cluster_from_reg = reg->create_process(cluster_type, sprokit::process::name_t(), config);
 
@@ -210,7 +210,7 @@ IMPLEMENT_TEST(register_cluster)
 }
 
 sprokit::process_t
-null_process(sprokit::config_t const& /*config*/)
+null_process(kwiver::vital::config_block_sptr const& /*config*/)
 {
   return sprokit::process_t();
 }

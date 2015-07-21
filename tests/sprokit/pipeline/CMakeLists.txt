@@ -1,12 +1,13 @@
 project(sprokit_test_pipeline)
 
 set(test_libraries
+  vital_config
   sprokit_pipeline)
 
 ##############################
 # Config tests
 ##############################
-sprokit_discover_tests(config test_libraries test_config.cxx)
+#+  sprokit_discover_tests(config test_libraries test_config.cxx)
 
 ##############################
 # Datum tests

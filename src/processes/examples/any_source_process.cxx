@@ -30,7 +30,7 @@
 
 #include "any_source_process.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 
 #include <boost/cstdint.hpp>
 
@@ -55,7 +55,7 @@ class any_source_process::priv
 process::port_t const any_source_process::priv::port_output = port_t("data");
 
 any_source_process
-::any_source_process(config_t const& config)
+::any_source_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

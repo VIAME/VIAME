@@ -64,7 +64,7 @@ class SPROKIT_TOOLS_EXPORT pipeline_builder
     void add_setting(std::string const& setting);
 
     sprokit::pipeline_t pipeline() const;
-    sprokit::config_t config() const;
+    kwiver::vital::config_block_sptr config() const;
     sprokit::pipe_blocks blocks() const;
   private:
     sprokit::pipe_blocks m_blocks;

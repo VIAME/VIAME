@@ -3,6 +3,7 @@ project(sprokit_test_pipeline_util)
 set(test_libraries
   sprokit_pipeline_util
   sprokit_pipeline
+  vital_config
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 

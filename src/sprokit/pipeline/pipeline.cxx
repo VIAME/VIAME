@@ -36,6 +36,7 @@
 #include "process_cluster.h"
 
 #include <vital/logger/logger.h>
+#include <vital/config/config_block.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>
@@ -71,7 +72,7 @@ namespace sprokit
 class pipeline::priv
 {
   public:
-    priv(pipeline* pipe, config_t conf);
+    priv(pipeline* pipe, kwiver::vital::config_block_sptr conf);
     ~priv();
 
     void check_duplicate_name(process::name_t const& name);
@@ -129,7 +130,7 @@ class pipeline::priv
     void ensure_setup() const;
 
     pipeline* const q;
-    config_t const config;
+    kwiver::vital::config_block_sptr const config;
 
     process::connections_t planned_connections;
     process::connections_t connections;
@@ -184,21 +185,21 @@ class pipeline::priv
         bool const m_push_upstream;
     };
   private:
-    static config::key_t const config_edge;
-    static config::key_t const config_edge_type;
-    static config::key_t const config_edge_conn;
-    static config::key_t const upstream_subblock;
-    static config::key_t const downstream_subblock;
+    static kwiver::vital::config_block_key_t const config_edge;
+    static kwiver::vital::config_block_key_t const config_edge_type;
+    static kwiver::vital::config_block_key_t const config_edge_conn;
+    static kwiver::vital::config_block_key_t const upstream_subblock;
+    static kwiver::vital::config_block_key_t const downstream_subblock;
 };
 
-config::key_t const pipeline::priv::config_edge = config::key_t("_edge");
-config::key_t const pipeline::priv::config_edge_type = config::key_t("_edge_by_type");
-config::key_t const pipeline::priv::config_edge_conn = config::key_t("_edge_by_conn");
-config::key_t const pipeline::priv::upstream_subblock = config::key_t("up");
-config::key_t const pipeline::priv::downstream_subblock = config::key_t("down");
+kwiver::vital::config_block_key_t const pipeline::priv::config_edge = kwiver::vital::config_block_key_t("_edge");
+kwiver::vital::config_block_key_t const pipeline::priv::config_edge_type = kwiver::vital::config_block_key_t("_edge_by_type");
+kwiver::vital::config_block_key_t const pipeline::priv::config_edge_conn = kwiver::vital::config_block_key_t("_edge_by_conn");
+kwiver::vital::config_block_key_t const pipeline::priv::upstream_subblock = kwiver::vital::config_block_key_t("up");
+kwiver::vital::config_block_key_t const pipeline::priv::downstream_subblock = kwiver::vital::config_block_key_t("down");
 
 pipeline
-::pipeline(config_t const& config)
+::pipeline(kwiver::vital::config_block_sptr const& config)
   : d()
 {
   if (!config)
@@ -538,7 +539,7 @@ pipeline
 
 void
 pipeline
-::reconfigure(config_t const& conf) const
+::reconfigure(kwiver::vital::config_block_sptr const& conf) const
 {
   if (!d->setup)
   {
@@ -558,7 +559,7 @@ pipeline
     }
 
     process_t const& proc = proc_entry.second;
-    config_t const proc_conf = conf->subblock_view(name);
+    kwiver::vital::config_block_sptr const proc_conf = conf->subblock_view(name);
 
     proc->reconfigure(proc_conf);
   }
@@ -576,7 +577,7 @@ pipeline
     }
 
     process_cluster_t const& cluster = cluster_entry.second;
-    config_t const proc_conf = conf->subblock_view(name);
+    kwiver::vital::config_block_sptr const proc_conf = conf->subblock_view(name);
 
     cluster->reconfigure(proc_conf);
   }
@@ -1055,7 +1056,7 @@ pipeline
 }
 
 pipeline::priv
-::priv(pipeline* pipe, config_t conf)
+::priv(pipeline* pipe, kwiver::vital::config_block_sptr conf)
   : q(pipe)
   , config(conf)
   , planned_connections()
@@ -1619,13 +1620,13 @@ pipeline::priv
     // This supplies the default or most general config values.
     // The edge type config will be merged in to override defaults for this edge.
     // Then the connection based congit will be merged to override.
-    config_t edge_config = config->subblock(priv::config_edge);
+    kwiver::vital::config_block_sptr edge_config = config->subblock(priv::config_edge);
 
     // Configure the edge based on its type.
     {
       process::port_type_t const& down_type = down_info->type;
-      config_t const type_config = config->subblock(priv::config_edge_type);
-      config_t const edge_type_config = type_config->subblock(down_type);
+      kwiver::vital::config_block_sptr const type_config = config->subblock(priv::config_edge_type);
+      kwiver::vital::config_block_sptr const edge_type_config = type_config->subblock(down_type);
 
       edge_config->merge_config(edge_type_config);
     }
@@ -1637,9 +1638,14 @@ pipeline::priv
 
     // Configure the edge based on the connected ports.
     {
-      config_t const conn_config = config->subblock(priv::config_edge_conn);
-      config_t const up_config = conn_config->subblock(upstream_name + config::block_sep + upstream_subblock + config::block_sep + upstream_port);
-      config_t const down_config = conn_config->subblock(downstream_name + config::block_sep + downstream_subblock + config::block_sep + downstream_port);
+      kwiver::vital::config_block_sptr const conn_config = config->subblock(priv::config_edge_conn);
+      kwiver::vital::config_block_sptr const up_config =
+        conn_config->subblock(upstream_name + kwiver::vital::config_block::block_sep +
+                              upstream_subblock + kwiver::vital::config_block::block_sep + upstream_port);
+
+      kwiver::vital::config_block_sptr const down_config =
+        conn_config->subblock(downstream_name + kwiver::vital::config_block::block_sep +
+                              downstream_subblock + kwiver::vital::config_block::block_sep + downstream_port);
 
       edge_config->merge_config(up_config);
       edge_config->merge_config(down_config);

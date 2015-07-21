@@ -33,7 +33,7 @@
 
 #include "pipeline-config.h"
 
-#include "config.h"
+#include <vital/config/config_block.h>
 #include "types.h"
 
 #include <boost/function.hpp>
@@ -53,7 +53,7 @@ namespace sprokit
 {
 
 /// A function which returns a \ref scheduler.
-typedef boost::function<scheduler_t (pipeline_t const& pipe, config_t const& config)> scheduler_ctor_t;
+typedef boost::function<scheduler_t (pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)> scheduler_ctor_t;
 
 /**
  * \class scheduler_registry scheduler_registry.h <sprokit/pipeline/scheduler_registry.h>
@@ -103,7 +103,9 @@ class SPROKIT_PIPELINE_EXPORT scheduler_registry
      *
      * \returns A new scheduler of type \p type.
      */
-    scheduler_t create_scheduler(type_t const& type, pipeline_t const& pipe, config_t const& config = config::empty_config()) const;
+    scheduler_t create_scheduler(type_t const& type,
+                                 pipeline_t const& pipe,
+                                 kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config()) const;
 
     /**
      * \brief Query for all available types.
@@ -163,7 +165,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler_registry
  */
 template <typename T>
 scheduler_t
-create_scheduler(pipeline_t const& pipe, config_t const& conf)
+create_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& conf)
 {
   return boost::make_shared<T>(pipe, conf);
 }

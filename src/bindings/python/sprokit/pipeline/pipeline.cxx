@@ -48,7 +48,7 @@ BOOST_PYTHON_MODULE(pipeline)
     , "A data structure for a collection of connected processes."
     , no_init)
     .def(init<>())
-    .def(init<sprokit::config_t>())
+    .def(init<kwiver::vital::config_block_sptr>())
     .def("add_process", &sprokit::pipeline::add_process
       , (arg("process"))
       , "Add a process to the pipeline.")

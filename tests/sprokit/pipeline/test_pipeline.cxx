@@ -1,4 +1,4 @@
-/*ckwg +29
+/*keg +29
  * Copyright 2011-2013 by Kitware, Inc.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
@@ -57,12 +57,12 @@ main(int argc, char* argv[])
   RUN_TEST(testname);
 }
 
-static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config = sprokit::config::empty_config());
+static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config());
 static sprokit::pipeline_t create_pipeline();
 
 IMPLEMENT_TEST(null_config)
 {
-  sprokit::config_t const config;
+  kwiver::vital::config_block_sptr const config;
 
   EXPECT_EXCEPTION(sprokit::null_pipeline_config_exception,
                    boost::make_shared<sprokit::pipeline>(config),
@@ -752,7 +752,7 @@ IMPLEMENT_TEST(setup_pipeline_data_dependent_set_reject)
   sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
   sprokit::process::name_t const proc_name2 = sprokit::process::name_t("sink");
 
-  sprokit::config_t conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
   conf->set_value("reject", "true");
 
@@ -830,7 +830,7 @@ IMPLEMENT_TEST(setup_pipeline_data_dependent_set_cascade_reject)
   sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
   sprokit::process::name_t const proc_name3 = sprokit::process::name_t("flow_reject");
 
-  sprokit::config_t conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
   conf->set_value("reject", "true");
 
@@ -865,7 +865,7 @@ IMPLEMENT_TEST(setup_pipeline_type_force_flow_upstream_reject)
   sprokit::process::name_t const proc_name = sprokit::process::name_t("flow");
   sprokit::process::name_t const proc_name2 = sprokit::process::name_t("take");
 
-  sprokit::config_t conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
   conf->set_value("reject", "true");
 
@@ -896,7 +896,7 @@ IMPLEMENT_TEST(setup_pipeline_type_force_flow_downstream_reject)
   sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
   sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
 
-  sprokit::config_t conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
   conf->set_value("reject", "true");
 
@@ -928,7 +928,7 @@ IMPLEMENT_TEST(setup_pipeline_type_force_cascade_reject)
   sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
   sprokit::process::name_t const proc_name3 = sprokit::process::name_t("flow_reject");
 
-  sprokit::config_t conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
   conf->set_value("reject", "true");
 
@@ -965,7 +965,7 @@ IMPLEMENT_TEST(setup_pipeline_untyped_data_dependent)
   sprokit::process::name_t const proc_name = sprokit::process::name_t("data");
   sprokit::process::name_t const proc_name2 = sprokit::process::name_t("flow");
 
-  sprokit::config_t conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
   conf->set_value("set_on_configure", "false");
 
@@ -1054,10 +1054,10 @@ IMPLEMENT_TEST(setup_pipeline_frequency_connect)
   sprokit::process::name_t const proc_namet = sprokit::process::name_t("duplicate");
   sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
 
-  sprokit::config::key_t const key = sprokit::config::key_t("copies");
-  sprokit::config::value_t const copies = boost::lexical_cast<sprokit::config::value_t>(1);
+  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("copies");
+  kwiver::vital::config_block_value_t const copies = boost::lexical_cast<kwiver::vital::config_block_value_t>(1);
 
-  sprokit::config_t const configt = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
   configt->set_value(key, copies);
 
   sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
@@ -1094,14 +1094,14 @@ IMPLEMENT_TEST(setup_pipeline_frequency_linear)
   sprokit::process::name_t const proc_namet2 = sprokit::process::name_t("duplicate2");
   sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
 
-  sprokit::config::key_t const key = sprokit::config::key_t("copies");
-  sprokit::config::value_t const copies1 = boost::lexical_cast<sprokit::config::value_t>(1);
-  sprokit::config::value_t const copies2 = boost::lexical_cast<sprokit::config::value_t>(2);
+  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("copies");
+  kwiver::vital::config_block_value_t const copies1 = boost::lexical_cast<kwiver::vital::config_block_value_t>(1);
+  kwiver::vital::config_block_value_t const copies2 = boost::lexical_cast<kwiver::vital::config_block_value_t>(2);
 
-  sprokit::config_t const configt1 = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configt1 = kwiver::vital::config_block::empty_config();
   configt1->set_value(key, copies1);
 
-  sprokit::config_t const configt2 = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configt2 = kwiver::vital::config_block::empty_config();
   configt2->set_value(key, copies2);
 
   sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
@@ -1143,14 +1143,14 @@ IMPLEMENT_TEST(setup_pipeline_frequency_split_to_outputs)
   sprokit::process::name_t const proc_named1 = sprokit::process::name_t("downstream1");
   sprokit::process::name_t const proc_named2 = sprokit::process::name_t("downstream2");
 
-  sprokit::config::key_t const key = sprokit::config::key_t("copies");
-  sprokit::config::value_t const copies1 = boost::lexical_cast<sprokit::config::value_t>(1);
-  sprokit::config::value_t const copies2 = boost::lexical_cast<sprokit::config::value_t>(2);
+  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("copies");
+  kwiver::vital::config_block_value_t const copies1 = boost::lexical_cast<kwiver::vital::config_block_value_t>(1);
+  kwiver::vital::config_block_value_t const copies2 = boost::lexical_cast<kwiver::vital::config_block_value_t>(2);
 
-  sprokit::config_t const configt1 = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configt1 = kwiver::vital::config_block::empty_config();
   configt1->set_value(key, copies1);
 
-  sprokit::config_t const configt2 = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configt2 = kwiver::vital::config_block::empty_config();
   configt2->set_value(key, copies2);
 
   sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
@@ -1196,14 +1196,14 @@ IMPLEMENT_TEST(setup_pipeline_frequency_split_to_inputs)
   sprokit::process::name_t const proc_named1 = sprokit::process::name_t("downstream1");
   sprokit::process::name_t const proc_named2 = sprokit::process::name_t("downstream2");
 
-  sprokit::config::key_t const key = sprokit::config::key_t("skip");
-  sprokit::config::value_t const skip1 = boost::lexical_cast<sprokit::config::value_t>(1);
-  sprokit::config::value_t const skip2 = boost::lexical_cast<sprokit::config::value_t>(2);
+  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("skip");
+  kwiver::vital::config_block_value_t const skip1 = boost::lexical_cast<kwiver::vital::config_block_value_t>(1);
+  kwiver::vital::config_block_value_t const skip2 = boost::lexical_cast<kwiver::vital::config_block_value_t>(2);
 
-  sprokit::config_t const configt1 = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configt1 = kwiver::vital::config_block::empty_config();
   configt1->set_value(key, skip1);
 
-  sprokit::config_t const configt2 = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configt2 = kwiver::vital::config_block::empty_config();
   configt2->set_value(key, skip2);
 
   sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
@@ -1249,10 +1249,10 @@ IMPLEMENT_TEST(setup_pipeline_frequency_incompatible_via_flow)
   sprokit::process::name_t const proc_namet = sprokit::process::name_t("multiply");
   sprokit::process::name_t const proc_named = sprokit::process::name_t("sink");
 
-  sprokit::config::key_t const key = sprokit::config::key_t("copies");
-  sprokit::config::value_t const copies = boost::lexical_cast<sprokit::config::value_t>(1);
+  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("copies");
+  kwiver::vital::config_block_value_t const copies = boost::lexical_cast<kwiver::vital::config_block_value_t>(1);
 
-  sprokit::config_t const configf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configf = kwiver::vital::config_block::empty_config();
   configf->set_value(key, copies);
 
   sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
@@ -1304,14 +1304,14 @@ IMPLEMENT_TEST(setup_pipeline_frequency_synchronized_fork)
   sprokit::process::name_t const proc_namet = sprokit::process::name_t("multiply");
   sprokit::process::name_t const proc_named = sprokit::process::name_t("sink");
 
-  sprokit::config::key_t const key = sprokit::config::key_t("copies");
-  sprokit::config::value_t const copies2 = boost::lexical_cast<sprokit::config::value_t>(1);
-  sprokit::config::value_t const copies3 = boost::lexical_cast<sprokit::config::value_t>(2);
+  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("copies");
+  kwiver::vital::config_block_value_t const copies2 = boost::lexical_cast<kwiver::vital::config_block_value_t>(1);
+  kwiver::vital::config_block_value_t const copies3 = boost::lexical_cast<kwiver::vital::config_block_value_t>(2);
 
-  sprokit::config_t const configf2 = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configf2 = kwiver::vital::config_block::empty_config();
   configf2->set_value(key, copies2);
 
-  sprokit::config_t const configf3 = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configf3 = kwiver::vital::config_block::empty_config();
   configf3->set_value(key, copies3);
 
   sprokit::process_t const processu = create_process(proc_typeu, proc_nameu);
@@ -1440,10 +1440,10 @@ IMPLEMENT_TEST(setup_pipeline)
   sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
   sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
 
-  sprokit::config_t const configt = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::key_t const output_key = sprokit::config::key_t("output");
-  sprokit::config::value_t const output_path = sprokit::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
+  kwiver::vital::config_block_key_t const output_key = kwiver::vital::config_block_key_t("output");
+  kwiver::vital::config_block_value_t const output_path = kwiver::vital::config_block_value_t("test-pipeline-setup_pipeline-print_number.txt");
 
   configt->set_value(output_key, output_path);
 
@@ -1571,10 +1571,10 @@ IMPLEMENT_TEST(reset)
   sprokit::process::name_t const proc_named = sprokit::process::name_t("downstream");
   sprokit::process::name_t const proc_namet = sprokit::process::name_t("terminal");
 
-  sprokit::config_t const configt = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::key_t const output_key = sprokit::config::key_t("output");
-  sprokit::config::value_t const output_path = sprokit::config::value_t("test-pipeline-setup_pipeline-print_number.txt");
+  kwiver::vital::config_block_key_t const output_key = kwiver::vital::config_block_key_t("output");
+  kwiver::vital::config_block_value_t const output_path = kwiver::vital::config_block_value_t("test-pipeline-setup_pipeline-print_number.txt");
 
   configt->set_value(output_key, output_path);
 
@@ -1722,11 +1722,11 @@ IMPLEMENT_TEST(reconfigure_before_setup)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name);
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
 
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
   EXPECT_EXCEPTION(sprokit::reconfigure_before_setup_exception,
                    pipeline->reconfigure(conf),
@@ -1737,12 +1737,12 @@ class check_reconfigure_process
   : public sprokit::process
 {
   public:
-    check_reconfigure_process(sprokit::config_t const& conf);
+    check_reconfigure_process(kwiver::vital::config_block_sptr const& conf);
     ~check_reconfigure_process();
 
-    static sprokit::config::key_t const config_should_reconfigure;
+    static kwiver::vital::config_block_key_t const config_should_reconfigure;
   protected:
-    void _reconfigure(sprokit::config_t const& conf);
+    void _reconfigure(kwiver::vital::config_block_sptr const& conf);
   private:
     bool m_should_reconfigure;
     bool m_did_reconfigure;
@@ -1752,24 +1752,24 @@ IMPLEMENT_TEST(reconfigure)
 {
   sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
   conf->set_value(check_reconfigure_process::config_should_reconfigure, "true");
   conf->set_value(sprokit::process::config_name, proc_name);
 
   sprokit::process_t const check = boost::make_shared<check_reconfigure_process>(conf);
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(check);
   pipeline->setup_pipeline();
 
-  sprokit::config_t const new_conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::key_t const key = sprokit::config::key_t("new_key");
-  sprokit::config::value_t const value = sprokit::config::value_t("old_value");
+  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("new_key");
+  kwiver::vital::config_block_value_t const value = kwiver::vital::config_block_value_t("old_value");
 
-  new_conf->set_value(proc_name + sprokit::config::block_sep + key, value);
+  new_conf->set_value(proc_name + kwiver::vital::config_block::block_sep + key, value);
 
   pipeline->reconfigure(new_conf);
 }
@@ -1778,10 +1778,10 @@ class sample_cluster
   : public sprokit::process_cluster
 {
   public:
-    sample_cluster(sprokit::config_t const& conf);
+    sample_cluster(kwiver::vital::config_block_sptr const& conf);
     ~sample_cluster();
 
-    void _add_process(name_t const& name_, type_t const& type_, sprokit::config_t const& config);
+    void _add_process(name_t const& name_, type_t const& type_, kwiver::vital::config_block_sptr const& config);
 };
 
 IMPLEMENT_TEST(reconfigure_only_top_level)
@@ -1794,14 +1794,14 @@ IMPLEMENT_TEST(reconfigure_only_top_level)
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t("name");
 
-  sprokit::config_t const conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
   conf->set_value(check_reconfigure_process::config_should_reconfigure, "false");
   conf->set_value(sprokit::process::config_name, proc_name);
 
   typedef boost::shared_ptr<sample_cluster> sample_cluster_t;
 
-  sprokit::config_t const cluster_conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const cluster_conf = kwiver::vital::config_block::empty_config();
 
   sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
@@ -1811,25 +1811,25 @@ IMPLEMENT_TEST(reconfigure_only_top_level)
 
   cluster->_add_process(proc_name, proc_type, conf);
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(sprokit::config::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  sprokit::config_t const new_conf = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  sprokit::config::key_t const key = sprokit::config::key_t("new_key");
-  sprokit::config::value_t const value = sprokit::config::value_t("old_value");
+  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("new_key");
+  kwiver::vital::config_block_value_t const value = kwiver::vital::config_block_value_t("old_value");
 
   sprokit::process::name_t const resolved_name = cluster_name + "/" + proc_name;
 
-  new_conf->set_value(resolved_name + sprokit::config::block_sep + key, value);
+  new_conf->set_value(resolved_name + kwiver::vital::config_block::block_sep + key, value);
 
   pipeline->reconfigure(new_conf);
 }
 
 sprokit::process_t
-create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, sprokit::config_t config)
+create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config)
 {
   static bool const modules_loaded = (sprokit::load_known_modules(), true);
   static sprokit::process_registry_t const reg = sprokit::process_registry::self();
@@ -1849,7 +1849,7 @@ class dummy_scheduler
   : public sprokit::scheduler
 {
   public:
-    dummy_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config);
+    dummy_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
     ~dummy_scheduler();
 
     void _start();
@@ -1862,13 +1862,13 @@ class dummy_scheduler
 sprokit::scheduler_t
 create_scheduler(sprokit::pipeline_t const& pipe)
 {
-  sprokit::config_t const config = sprokit::config::empty_config();
+  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   return boost::make_shared<dummy_scheduler>(pipe, config);
 }
 
 dummy_scheduler
-::dummy_scheduler(sprokit::pipeline_t const& pipe, sprokit::config_t const& config)
+::dummy_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : sprokit::scheduler(pipe, config)
 {
 }
@@ -1909,10 +1909,10 @@ dummy_scheduler
 {
 }
 
-sprokit::config::key_t const check_reconfigure_process::config_should_reconfigure = sprokit::config::key_t("should_reconfigure");
+kwiver::vital::config_block_key_t const check_reconfigure_process::config_should_reconfigure = kwiver::vital::config_block_key_t("should_reconfigure");
 
 check_reconfigure_process
-::check_reconfigure_process(sprokit::config_t const& conf)
+::check_reconfigure_process(kwiver::vital::config_block_sptr const& conf)
   : process(conf)
   , m_did_reconfigure(false)
 {
@@ -1932,13 +1932,13 @@ check_reconfigure_process
 
 void
 check_reconfigure_process
-::_reconfigure(sprokit::config_t const& /*conf*/)
+::_reconfigure(kwiver::vital::config_block_sptr const& /*conf*/)
 {
   m_did_reconfigure = true;
 }
 
 sample_cluster
-::sample_cluster(sprokit::config_t const& conf)
+::sample_cluster(kwiver::vital::config_block_sptr const& conf)
   : sprokit::process_cluster(conf)
 {
 }
@@ -1950,7 +1950,7 @@ sample_cluster
 
 void
 sample_cluster
-::_add_process(name_t const& name_, type_t const& type_, sprokit::config_t const& config)
+::_add_process(name_t const& name_, type_t const& type_, kwiver::vital::config_block_sptr const& config)
 {
   add_process(name_, type_, config);
 }

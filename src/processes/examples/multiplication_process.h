@@ -77,7 +77,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT multiplication_process
      *
      * \param config The configuration for the process.
      */
-    multiplication_process(config_t const& config);
+    multiplication_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

@@ -36,7 +36,7 @@
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/path.h>
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
@@ -114,7 +114,7 @@ sprokit_tool_main(int argc, char const* argv[])
     sprokit::pipeline_builder builder;
 
     builder.load_from_options(vm);
-    sprokit::config_t const conf = builder.config();
+    kwiver::vital::config_block_sptr const conf = builder.config();
 
     if (have_cluster)
     {

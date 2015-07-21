@@ -72,7 +72,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT shared_process
      *
      * \param config The configuration for the process.
      */
-    shared_process(config_t const& config);
+    shared_process(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */

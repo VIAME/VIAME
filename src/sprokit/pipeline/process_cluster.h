@@ -92,7 +92,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      *
      * \param config Contains configuration for the process.
      */
-    process_cluster(config_t const& config);
+    process_cluster(kwiver::vital::config_block_sptr const& config);
     /**
      * \brief Destructor.
      */
@@ -107,7 +107,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      * \param name_ The process to map the configuration to.
      * \param mapped_key The key to map the configuration to.
      */
-    void map_config(config::key_t const& key, name_t const& name_, config::key_t const& mapped_key);
+    void map_config(kwiver::vital::config_block_key_t const& key, name_t const& name_, kwiver::vital::config_block_key_t const& mapped_key);
     /**
      * \brief Add a process to the cluster.
      *
@@ -117,7 +117,9 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      * \param type_ The type of the process.
      * \param config The base configuration to use.
      */
-    void add_process(name_t const& name_, type_t const& type_, config_t const& config = config::empty_config());
+    void add_process(name_t const& name_,
+                     type_t const& type_,
+                     kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config());
     /**
      * \brief Map a port to an input on the cluster.
      *
@@ -181,7 +183,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      *
      * \params conf The configuration block to apply.
      */
-    virtual void _reconfigure(config_t const& conf);
+    virtual void _reconfigure(kwiver::vital::config_block_sptr const& conf);
 
     /**
      * \brief Subclass property query method.

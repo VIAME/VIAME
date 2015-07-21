@@ -144,7 +144,7 @@ BOOST_PYTHON_MODULE(process_registry)
       , (arg("type"), arg("name"), arg("description"), arg("ctor"))
       , "Registers a function which creates a process of the given type.")
     .def("create_process", &sprokit::process_registry::create_process
-      , (arg("type"), arg("config") = sprokit::config::empty_config())
+      , (arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
       , "Creates a new process of the given type.")
     .def("types", &sprokit::process_registry::types
       , "A list of known process types.")
@@ -167,7 +167,7 @@ class python_process_wrapper
     python_process_wrapper(object obj);
     ~python_process_wrapper();
 
-    sprokit::process_t operator () (sprokit::config_t const& config);
+    sprokit::process_t operator () (kwiver::vital::config_block_sptr const& config);
   private:
     object const m_obj;
 };
@@ -200,7 +200,7 @@ python_process_wrapper
 
 sprokit::process_t
 python_process_wrapper
-::operator () (sprokit::config_t const& config)
+::operator () (kwiver::vital::config_block_sptr const& config)
 {
   sprokit::python::python_gil const gil;
 

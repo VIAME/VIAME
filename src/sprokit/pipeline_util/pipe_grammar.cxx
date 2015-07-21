@@ -62,19 +62,19 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
   sprokit::config_key_t,
-  (sprokit::config::keys_t, key_path)
+  (kwiver::vital::config_block_keys_t, key_path)
   (sprokit::config_key_options_t, options)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
   sprokit::config_value_t,
   (sprokit::config_key_t, key)
-  (sprokit::config::value_t, value)
+  (kwiver::vital::config_block_value_t, value)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
   sprokit::config_pipe_block,
-  (sprokit::config::keys_t, key)
+  (kwiver::vital::config_block_keys_t, key)
   (sprokit::config_values_t, values)
 )
 
@@ -93,7 +93,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
   sprokit::cluster_config_t,
-  (sprokit::config::description_t, description)
+  (kwiver::vital::config_block_description_t, description)
   (sprokit::config_value_t, config_value)
 )
 
@@ -138,7 +138,7 @@ static token_t const to_name = token_t("to");
 static token_t const type_token = token_t("::");
 static token_t const description_token = token_t(":#");
 
-static token_t const config_path_separator = token_t(config::block_sep);
+static token_t const config_path_separator = token_t(kwiver::vital::config_block::block_sep);
 static token_t const port_separator = token_t(".");
 static token_t const flag_separator = token_t(",");
 static token_t const flag_decl_open = token_t("[");
@@ -169,11 +169,11 @@ class common_grammar
 
     qi::rule<Iterator, config_key_options_t()> config_key_options;
 
-    qi::rule<Iterator, config::key_t()> decl_part;
-    qi::rule<Iterator, config::key_t()> decl_component;
-    qi::rule<Iterator, config::key_t()> config_key;
-    qi::rule<Iterator, config::keys_t()> config_key_path;
-    qi::rule<Iterator, config::value_t()> config_value;
+    qi::rule<Iterator, kwiver::vital::config_block_key_t()> decl_part;
+    qi::rule<Iterator, kwiver::vital::config_block_key_t()> decl_component;
+    qi::rule<Iterator, kwiver::vital::config_block_key_t()> config_key;
+    qi::rule<Iterator, kwiver::vital::config_block_keys_t()> config_key_path;
+    qi::rule<Iterator, kwiver::vital::config_block_value_t()> config_value;
 
     qi::rule<Iterator, config_key_t()> config_key_full;
 

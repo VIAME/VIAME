@@ -30,7 +30,7 @@
 
 #include "number_process.h"
 
-#include <sprokit/pipeline/config.h>
+#include <vital/config/config_block.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/process_exception.h>
 
@@ -60,32 +60,32 @@ class number_process::priv
 
     number_t current;
 
-    static config::key_t const config_start;
-    static config::key_t const config_end;
-    static config::value_t const default_start;
-    static config::value_t const default_end;
+    static kwiver::vital::config_block_key_t const config_start;
+    static kwiver::vital::config_block_key_t const config_end;
+    static kwiver::vital::config_block_value_t const default_start;
+    static kwiver::vital::config_block_value_t const default_end;
     static port_t const port_output;
 };
 
-config::key_t const number_process::priv::config_start = config::key_t("start");
-config::key_t const number_process::priv::config_end = config::key_t("end");
-config::value_t const number_process::priv::default_start = config::value_t("0");
-config::value_t const number_process::priv::default_end = config::value_t("100");
+kwiver::vital::config_block_key_t const number_process::priv::config_start = kwiver::vital::config_block_key_t("start");
+kwiver::vital::config_block_key_t const number_process::priv::config_end = kwiver::vital::config_block_key_t("end");
+kwiver::vital::config_block_value_t const number_process::priv::default_start = kwiver::vital::config_block_value_t("0");
+kwiver::vital::config_block_value_t const number_process::priv::default_end = kwiver::vital::config_block_value_t("100");
 process::port_t const number_process::priv::port_output = port_t("number");
 
 number_process
-::number_process(config_t const& config)
+::number_process(kwiver::vital::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_start,
     priv::default_start,
-    config::description_t("The value to start counting at."));
+    kwiver::vital::config_block_description_t("The value to start counting at."));
   declare_configuration_key(
     priv::config_end,
     priv::default_end,
-    config::description_t("The value to stop counting at."));
+    kwiver::vital::config_block_description_t("The value to stop counting at."));
 
   port_flags_t required;
 
