@@ -37,7 +37,7 @@ kwiver_add_library( vital_config
   )
 
 target_link_libraries( vital_config
-  PRIVATE            ${Boost_LIBRARIES}
+  PUBLIC             ${Boost_SYSTEM_LIBRARY}
   )
 
 ###
