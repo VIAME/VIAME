@@ -52,8 +52,8 @@ namespace vital {
  * \brief The base class for all exceptions thrown from \ref config_block
  * \ingroup exceptions
  */
-class VITAL_CONFIG_EXPORT config_block_exception :
-  public std::exception
+class VITAL_CONFIG_EXPORT config_block_exception
+  : public std::exception
 {
 public:
   /// Constructor.
@@ -79,8 +79,8 @@ protected:
  * \brief The inner exception thrown when casting fails.
  * \ingroup exceptions
  */
-class VITAL_CONFIG_EXPORT bad_config_block_cast :
-  public config_block_exception
+class VITAL_CONFIG_EXPORT bad_config_block_cast
+  : public config_block_exception
 {
 public:
   /**
@@ -97,8 +97,8 @@ public:
  * \brief Thrown when a value cannot be converted to the requested type.
  * \ingroup exceptions
  */
-class VITAL_CONFIG_EXPORT bad_config_block_cast_exception :
-  public config_block_exception
+class VITAL_CONFIG_EXPORT bad_config_block_cast_exception
+  : public config_block_exception
 {
 public:
   /**
@@ -131,8 +131,8 @@ public:
  * \brief Thrown when a value is requested for a value which does not exist.
  * \ingroup exceptions
  */
-class VITAL_CONFIG_EXPORT no_such_configuration_value_exception :
-  public config_block_exception
+class VITAL_CONFIG_EXPORT no_such_configuration_value_exception
+  : public config_block_exception
 {
 public:
   /**
@@ -152,8 +152,8 @@ public:
  * \brief Thrown when a value is set but is marked as read-only.
  * \ingroup exceptions
  */
-class VITAL_CONFIG_EXPORT set_on_read_only_value_exception :
-  public config_block_exception
+class VITAL_CONFIG_EXPORT set_on_read_only_value_exception
+  : public config_block_exception
 {
 public:
   /**
@@ -184,8 +184,8 @@ public:
  * \brief Thrown when a value is unset but is marked as read-only.
  * \ingroup exceptions
  */
-class VITAL_CONFIG_EXPORT unset_on_read_only_value_exception :
-  public config_block_exception
+class VITAL_CONFIG_EXPORT unset_on_read_only_value_exception
+  : public config_block_exception
 {
 public:
   /**
@@ -209,9 +209,70 @@ public:
 
 
 // ------------------------------------------------------------------
+/**
+ * \brief The inner exception thrown when casting fails.
+ *
+ * \ingroup exceptions
+ */
+class VITAL_CONFIG_EXPORT bad_configuration_cast
+  : public config_block_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param reason The reason for the bad cast.
+     */
+    bad_configuration_cast(char const* reason) VITAL_NOTHROW;
+    /**
+     * \brief Destructor.
+     */
+    ~bad_configuration_cast() VITAL_NOTHROW;
+};
+
+
+// ------------------------------------------------------------------
+/// Thrown when a value cannot be converted to the requested type.
+/**
+ *
+ * \ingroup exceptions
+ */
+class VITAL_CONFIG_EXPORT bad_configuration_cast_exception
+  : public config_block_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param key The key that was requested.
+     * \param value The value that was failed to cast.
+     * \param type The type that was requested.
+     * \param reason The reason for the bad cast.
+     */
+    bad_configuration_cast_exception(kwiver::vital::config_block_key_t const& key,
+                                     kwiver::vital::config_block_value_t const& value,
+                                     char const* type,
+                                     char const* reason) VITAL_NOTHROW;
+    /**
+     * \brief Destructor.
+     */
+    ~bad_configuration_cast_exception() VITAL_NOTHROW;
+
+    /// The requested key name.
+    kwiver::vital::config_block_key_t const m_key;
+    /// The value of the requested key.
+    kwiver::vital::config_block_value_t const m_value;
+    /// The type requested for the cast.
+    std::string const m_type;
+    /// The reason for the failed cast.
+    std::string const m_reason;
+};
+
+
+// ------------------------------------------------------------------
 /// Base config_io exception class
-class VITAL_CONFIG_EXPORT config_block_io_exception :
-  public config_block_exception
+class VITAL_CONFIG_EXPORT config_block_io_exception
+  : public config_block_exception
 {
 public:
   ///Constructor
@@ -233,8 +294,8 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a file could not be found
-class VITAL_CONFIG_EXPORT config_file_not_found_exception :
-  public config_block_io_exception
+class VITAL_CONFIG_EXPORT config_file_not_found_exception
+  : public config_block_io_exception
 {
 public:
   /// Constructor
@@ -251,8 +312,8 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a file could not be read for whatever reason.
-class VITAL_CONFIG_EXPORT config_file_not_read_exception :
-  public config_block_io_exception
+class VITAL_CONFIG_EXPORT config_file_not_read_exception
+  : public config_block_io_exception
 {
 public:
   ///Constructor
@@ -269,8 +330,8 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a file could not be parsed after being read in
-class VITAL_CONFIG_EXPORT config_file_not_parsed_exception :
-  public config_block_io_exception
+class VITAL_CONFIG_EXPORT config_file_not_parsed_exception
+  : public config_block_io_exception
 {
 public:
   /// Constructor
@@ -287,8 +348,8 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a file was not able to be written
-class VITAL_CONFIG_EXPORT config_file_write_exception :
-  public config_block_io_exception
+class VITAL_CONFIG_EXPORT config_file_write_exception
+  : public config_block_io_exception
 {
 public:
   /// Constructor

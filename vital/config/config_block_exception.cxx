@@ -192,6 +192,47 @@ config_block_io_exception
 
 
 // ------------------------------------------------------------------
+bad_configuration_cast
+::bad_configuration_cast(char const* reason) VITAL_NOTHROW
+  : config_block_exception()
+{
+  m_what = reason;
+}
+
+bad_configuration_cast
+::~bad_configuration_cast() VITAL_NOTHROW
+{
+}
+
+
+// ------------------------------------------------------------------
+bad_configuration_cast_exception
+::bad_configuration_cast_exception(kwiver::vital::config_block_key_t const& key,
+                                   kwiver::vital::config_block_value_t const& value,
+                                   char const* type,
+                                   char const* reason) VITAL_NOTHROW
+  : config_block_exception()
+  , m_key(key)
+  , m_value(value)
+  , m_type(type)
+  , m_reason(reason)
+{
+  std::ostringstream sstr;
+
+  sstr << "Failed to cast key \'" << m_key << "\' "
+          "with value \'" << m_value << "\' as "
+          "a \'" << m_type << "\': " << m_reason << ".";
+
+  m_what = sstr.str();
+}
+
+bad_configuration_cast_exception
+::~bad_configuration_cast_exception() VITAL_NOTHROW
+{
+}
+
+
+// ------------------------------------------------------------------
 config_file_not_found_exception
 ::config_file_not_found_exception( config_path_t const& file_path, std::string const& reason ) VITAL_NOTHROW
   : config_block_io_exception( file_path, reason )
@@ -265,6 +306,7 @@ config_file_write_exception
 ::~config_file_write_exception() VITAL_NOTHROW
 {
 }
+
 
 
 } } // end namespace
