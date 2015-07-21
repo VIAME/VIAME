@@ -50,6 +50,8 @@ function (sprokit_create_doxygen inputdir name)
       COMMAND "${CMAKE_COMMAND}" -E make_directory
               "${sprokit_binary_dir}/doc/${name}"
       COMMENT "Creating documentation directory for ${name}")
+
+    # Doxyfile.common.in contains sprokit specific stuff
     sprokit_configure_file(${name}-doxyfile.common
       "${doxygen_files_dir}/Doxyfile.common.in"
       "${sprokit_binary_dir}/doc/${name}/Doxyfile.common"
@@ -59,23 +61,32 @@ function (sprokit_create_doxygen inputdir name)
       doxy_project_name
       doxy_tag_files
       doxy_exclude_patterns)
+
     sprokit_configure_file(${name}-doxyfile.tag
       "${doxygen_files_dir}/Doxyfile.tag.in"
       "${sprokit_binary_dir}/doc/${name}/Doxyfile.tag"
       doxy_documentation_output_path
       doxy_project_name)
+
     add_dependencies(configure-${name}-doxyfile.tag
       configure-${name}-doxyfile.common)
+
     sprokit_configure_file(${name}-doxyfile
       "${doxygen_files_dir}/Doxyfile.in"
       "${sprokit_binary_dir}/doc/${name}/Doxyfile"
+      doxy_project_source_dir
+      doxy_include_path
       doxy_documentation_output_path
-      doxy_project_name)
+      doxy_project_name
+      doxy_tag_files
+      doxy_exclude_patterns)
+
     add_dependencies(configure-${name}-doxyfile
       configure-${name}-doxyfile.common)
     add_custom_target(doxygen-${name}-tag)
     add_dependencies(doxygen-${name}-tag
       configure-${name}-doxyfile.tag)
+
     add_custom_command(
       TARGET  doxygen-${name}-tag
       COMMAND "${DOXYGEN_EXECUTABLE}"
@@ -83,11 +94,13 @@ function (sprokit_create_doxygen inputdir name)
       WORKING_DIRECTORY
               "${sprokit_binary_dir}/doc/${name}"
       COMMENT "Creating tag for ${name}")
+
     add_custom_target(doxygen-${name})
     add_dependencies(doxygen-${name}
       configure-${name}-doxyfile
       doxygen-${name}-tag
       ${tag_targets})
+
     add_custom_command(
       TARGET  doxygen-${name}
       COMMAND "${DOXYGEN_EXECUTABLE}"
@@ -95,6 +108,7 @@ function (sprokit_create_doxygen inputdir name)
       WORKING_DIRECTORY
               "${sprokit_binary_dir}/doc/${name}"
       COMMENT "Creating documentation for ${name}")
+
     add_dependencies(doxygen
       doxygen-${name})
 

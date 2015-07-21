@@ -1076,7 +1076,7 @@ pipeline::priv
   {
     std::stringstream msg;
     config->print(msg);
-    LOG_DEBUG( m_logger, "pipeline config:\n" << msg );
+    LOG_DEBUG( m_logger, "pipeline config:\n" << msg.str() );
   }
 }
 
@@ -1661,7 +1661,7 @@ pipeline::priv
       LOG_DEBUG( m_logger,
                  "Edge config for "  << upstream_name << "." <<
                  upstream_port  << " -> " << downstream_name << "." <<
-                 downstream_port << "\n" << msg );
+                 downstream_port << "\n" << msg.str() );
     }
 
     edge_t const e = boost::make_shared<edge>(edge_config);
