@@ -41,6 +41,7 @@
 #include <vital/config/vital_config_export.h>
 #include "config_block.h"
 #include <boost/filesystem/path.hpp>
+#include <ostream>
 
 namespace kwiver {
 namespace vital {
@@ -50,6 +51,8 @@ typedef boost::filesystem::path path_t;
 // ------------------------------------------------------------------
 /// Read in a configuration file, producing a \c config_block object
 /**
+ *
+ *
  * \throws config_file_not_found_exception
  *    Thrown when the file could not be found on the file system.
  * \throws config_file_not_read_exception
@@ -71,6 +74,11 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file( path_t const& file_path,
 // ------------------------------------------------------------------
 /// Output to file the given \c config_block object to the specified file path
 /**
+ * This function writes the specified config block to the specified
+ * file.  If a key has an associated description, it will be written
+ * as a comment.  The key and value strings are written in a format
+ * that can be read by the read_config_file() function.
+ *
  * If a file exists at the target location, it will be overwritten. If the
  * containing directory of the given path does not exist, it will be created
  * before the file is opened for writing.
@@ -85,7 +93,26 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file( path_t const& file_path,
  * \param file_path The path to output the file to.
  */
 void VITAL_CONFIG_EXPORT write_config_file( config_block_sptr const& config,
-                                             path_t const&            file_path );
+                                            path_t const&            file_path );
+
+
+// ------------------------------------------------------------------
+/// Output to file the given \c config_block object to the specified stream.
+/**
+ * This function writes the specified config block to the specified
+ * stream.  If a key has an associated description, it will be written
+ * as a comment.  The key and value strings are written in a format
+ * that can be read by the read_config_file() function or it can be
+ * displayed.
+ *
+ * \throws config_file_write_exception
+ *    Thrown when something prevents output of the file.
+ *
+ * \param config    The \c config_block object to output.
+ * \param str       The output stream.
+ */
+void VITAL_CONFIG_EXPORT write_config( config_block_sptr const& config,
+                                       std::ostream&            str );
 
 } }
 

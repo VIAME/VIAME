@@ -57,17 +57,17 @@ namespace phoenix = boost::phoenix;
 namespace kwiver {
 namespace vital {
 
-/// Basic configuration key/value encapsulation structure
+// Basic configuration key/value encapsulation structure
 struct config_block_value_s
 {
-  /// the configuration path within the block structure
+  // the configuration path within the block structure
   config_block_keys_t key_path;
 
-  /// value associated with the given key
+  // value associated with the given key
   config_block_value_t value;
 };
 
-/// The type that represents multiple stored configuration values.
+// The type that represents multiple stored configuration values.
 typedef std::vector< config_block_value_s > config_block_value_set_t;
 
 } }
@@ -83,14 +83,17 @@ namespace kwiver {
 namespace vital {
 namespace {
 
-/// Token representing the beginning of a block declaration
+// Token representing the beginning of a block declaration
 static token_t const config_block_start = token_t( "block" );
-/// Token representing the end of a block declaration
+
+// Token representing the end of a block declaration
 static token_t const config_block_end = token_t( "endblock" );
-/// Token representing the start of a comment
+
+// Token representing the start of a comment
 static token_t const config_comment_start = token_t( "#" );
 
-/// Grammar definition for configuration files
+// ------------------------------------------------------------------
+// Grammar definition for configuration files
 template < typename Iterator >
 class config_block_grammar :
   public qi::grammar< Iterator, config_block_value_set_t() >
@@ -101,33 +104,33 @@ public:
 
 
 private:
-  /// Optional whitespace (spaces/tabs)
+  // Optional whitespace (spaces/tabs)
   qi::rule< Iterator > opt_whitespace;
-  /// Required whitespace (at least one space/tab)
+  // Required whitespace (at least one space/tab)
   qi::rule< Iterator > whitespace;
-  /// End-of-line rule (single EoL)
+  // End-of-line rule (single EoL)
   qi::rule< Iterator > eol;
-  /// Optional eol rule (0 or more)
+  // Optional eol rule (0 or more)
   qi::rule< Iterator > opt_line_end;
-  /// Required eol rule (1 or more)
+  // Required eol rule (1 or more)
   qi::rule< Iterator > line_end;
 
-  /// Matches a single config_block key element
+  // Matches a single config_block key element
   qi::rule< Iterator, config_block_key_t() > config_block_key;
-  /// Matches full config_block key path
+  // Matches full config_block key path
   qi::rule< Iterator, config_block_keys_t() > config_block_key_path;
-  /// Matches any valid "value" (printable characters with joining spaces)
-  qi::rule< Iterator, config_block_value_t() > config_block_value; ///< excludes '#'s
-  /// A key/value pair
+  // Matches any valid "value" (printable characters with joining spaces)
+  qi::rule< Iterator, config_block_value_t() > config_block_value; //< excludes '#'s
+  // A key/value pair
   qi::rule< Iterator, config_block_value_s() > config_block_value_full;
 
-  /// A comment within the config file
-  qi::rule< Iterator, config_block_value_t() > comment_value; ///< includes '#''s
+  // A comment within the config file
+  qi::rule< Iterator, config_block_value_t() > comment_value; //< includes '#''s
   qi::rule< Iterator, config_block_value_t() > comment;
   // TODO: (advanced) include logic for slurping up comment values into
   //       config_block structure as key descriptions.
 
-  /// Result set of config block key/value pairs
+  // Result set of config block key/value pairs
   qi::rule< Iterator, config_block_value_set_t() > config_block_value_set;
 };
 
@@ -227,7 +230,7 @@ config_block_grammar< Iterator >
 }
 
 
-/// Return a string repeated \c n times.
+// Return a string repeated \c n times.
 config_block_description_t
 operator*( config_block_description_t const& s, size_t n )
 {
@@ -243,7 +246,7 @@ operator*( config_block_description_t const& s, size_t n )
 
 
 // ------------------------------------------------------------------
-/// Helper method to write out a comment to a configuration file ostream
+// Helper method to write out a comment to a configuration file ostream
 /**
  * Makes sure there is no trailing white-space printed to file.
  */
@@ -315,12 +318,12 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
   }
 } // write_cb_comment
 
-
 } //end anonymous namespace
 
 
 // ------------------------------------------------------------------
-/// Read in a configuration file, producing a \c config_block object
+// Read in a configuration file, producing a \c config_block object
+
 config_block_sptr
 read_config_file( path_t const&             file_path,
                   config_block_key_t const& block_name )
@@ -332,17 +335,20 @@ read_config_file( path_t const&             file_path,
   }
   else if ( ! boost::filesystem::is_regular_file( file_path ) )
   {
-    throw config_file_not_found_exception( file_path, "Path given doesn't point to "
-                                               "a regular file!" );
+    throw config_file_not_found_exception( file_path,
+              "Path given doesn't point to a regular file!" );
   }
 
   // Reading in input file data
   std::ifstream input_stream( file_path.c_str(), std::fstream::in );
   if ( ! input_stream )
   {
-    throw config_file_not_read_exception( file_path, "Could not open file at given "
-                                              "path." );
+    throw config_file_not_read_exception( file_path,
+           "Could not open file at given path." );
   }
+
+  // This will not scale well since the whole config must be in memory
+
   std::string storage;
   input_stream.unsetf( std::ios::skipws );
   std::copy( std::istream_iterator< char > ( input_stream ),
@@ -409,7 +415,7 @@ read_config_file( path_t const&             file_path,
 
 
 // ------------------------------------------------------------------
-/// Output to file the given \c config_block object to the specified file path
+// Output to file the given \c config_block object to the specified file path
 void
 write_config_file( config_block_sptr const& config,
                    path_t const&            file_path )
@@ -418,18 +424,11 @@ write_config_file( config_block_sptr const& config,
   using std::endl;
   namespace bfs = boost::filesystem;
 
-  // If there are no config parameters in the given config_block, throw
-  if ( ! config->available_values().size() )
-  {
-    throw config_file_write_exception( file_path, "No parameters in the given "
-                                           "config_block!" );
-  }
-
   // If the given path is a directory, we obviously can't write to it.
   if ( bfs::is_directory( file_path ) )
   {
-    throw config_file_write_exception( file_path, "Path given is a directory, to "
-                                           "which we clearly can't write." );
+    throw config_file_write_exception( file_path,
+          "Path given is a directory, to which we clearly can't write." );
   }
 
   // Check that the directory of the given filepath exists, creating necessary
@@ -440,19 +439,36 @@ write_config_file( config_block_sptr const& config,
     //std::cerr << "at least one containing directory not found, creating them..." << std::endl;
     if ( ! bfs::create_directories( parent_dir ) )
     {
-      throw config_file_write_exception( parent_dir, "Attempted directory creation, "
-                                              "but no directory created! No "
-                                              "idea what happened here..." );
+      throw config_file_write_exception( parent_dir,
+            "Attempted directory creation, but no directory created! No idea what happened here..." );
     }
   }
 
-  // Gather available keys and sort them alphanumerically for a sensibly laidout
+  // open output file and write each key/value to a line.
+  std::ofstream ofile( file_path.c_str() );
+
+  write_config( config, ofile );
+  ofile.close();
+}
+
+
+// ------------------------------------------------------------------
+void write_config( config_block_sptr const& config,
+                   std::ostream&            str )
+{
+  // If there are no config parameters in the given config_block, throw
+  if ( ! config->available_values().size() )
+  {
+    throw config_file_write_exception( file_path,
+          "No parameters in the given config_block!" );
+  }
+
+  // Gather available keys and sort them alphanumerically for a sensibly layout
   // file.
   config_block_keys_t avail_keys = config->available_values();
   std::sort( avail_keys.begin(), avail_keys.end() );
 
-  // open output file and write each key/value to a line.
-  std::ofstream ofile( file_path.c_str() );
+
   bool prev_had_descr = false;  // for additional spacing
   BOOST_FOREACH( config_block_key_t key, avail_keys )
   {
@@ -480,9 +496,6 @@ write_config_file( config_block_sptr const& config,
     ofile << key << " = " << config->get_value< config_block_value_t > ( key ) << "\n";
   }
   ofile.flush();
-  ofile.close();
 } // write_config_file
 
-
-}
-}   // end namespace
+} }   // end namespace

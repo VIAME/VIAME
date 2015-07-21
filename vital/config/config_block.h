@@ -77,6 +77,24 @@ typedef boost::shared_ptr< config_block > config_block_sptr;
  * modified (unless set to read-only).
  *
  * The associated shared pointer for this object is \c config_block_sptr
+ *
+ * When creating a new config block call the static method
+ * empty_config() to get a managed config block.
+ *
+ * A config block contains a logical block or configuration
+ * information.  The block may contain sub-blocks of configuration to
+ * create a hierarchical configuration space. The levels of the
+ * hierarchy are represented in the key name. For example "A:B:C"
+ * represents a three layered nested block.
+ *
+ * Sub-blocks are created from all the entries that match the key
+ * prefix.  For example given a block structure A:B:C:D", the
+ * sub-block "A:B" would only contain the entries "C:D" that were
+ * prefixed with "A:B".
+ *
+ * The block name is user defined unless the config_block is a
+ * sub-block. In that case, the name (get_name()) contains the prefix
+ * portion of the key.
  */
 
 class VITAL_CONFIG_EXPORT config_block
@@ -319,11 +337,24 @@ private:
   typedef std::map< config_block_key_t, config_block_value_t > store_t;
   typedef std::set< config_block_key_t > ro_list_t;
 
-  // Used to manage views of config blocks.
+  // Used to manage views of config blocks. If a parent is specified,
+  // then this is a view of that config block.
   config_block_sptr m_parent;
+
+  // Name of this config block. This is used when is sub-block is
+  // created to hold the higher levels of the config key.
+  //
+  // Example: given config block a:b:c:d
+  // request sub-block a:b, m_name becomes "a:b"
   config_block_key_t m_name;
+
+  // key => string value map
   store_t m_store;
+
+  // key => to description map
   store_t m_descr_store;
+
+  // list of keys that are read-only
   ro_list_t m_ro_list;
 };
 
