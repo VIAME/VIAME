@@ -413,4 +413,28 @@ strip_block_name(config_block_key_t const& subblock, config_block_key_t const& k
   return key.substr(subblock.size() + config_block::block_sep.size());
 }
 
+
+// ------------------------------------------------------------------
+/// Format config block in a printable stream
+void
+config_block::
+print( std::ostream& str)
+{
+    kwiver::vital::config_block_keys_t all_keys = this->available_values();
+
+  BOOST_FOREACH(kwiver::vital::config_block_key_t key, all_keys)
+  {
+    std::string ro;
+
+    kwiver::vital::config_block_value_t const val = this->get_value< kwiver::vital::config_block_value_t > (key);
+    if (this->is_read_only(key))
+    {
+      ro = "[ro]";
+    }
+
+    str << key << ro << " = " << val << std::endl;
+  }
+}
+
+
 } } // end namesapce

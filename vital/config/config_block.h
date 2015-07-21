@@ -44,6 +44,7 @@
 #include <string>
 #include <typeinfo>
 #include <vector>
+#include <ostream>
 
 #include <boost/optional/optional.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -281,6 +282,13 @@ public:
   /// The magic group for global parameters.
   static config_block_key_t const global_value;
 
+  /// Format config in printable form
+  /**
+   * This method formats the config entries onto the supplied stream.
+   *
+   * \paaram str Stream to accept formated text.
+   */
+  void print( std::ostream & str );
 
 private:
   /// Internal constructor
