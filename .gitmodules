@@ -7,3 +7,6 @@
 [submodule "Packages/maptk"]
         path = Packages/maptk
         url = https://github.com/Kitware/maptk.git
+[submodule "Packages/vital"]
+	path = Packages/vital
+	url = git@kwgitlab.kitware.com:computer-vision/vital.git

@@ -22,7 +22,7 @@ add_custom_target(configure ALL)
 # configuration.
 #
 # This functions by generating custom configuration files for each call that
-# controlls the configuration. Generated files are marked for cleaning.
+# controls the configuration. Generated files are marked for cleaning.
 #
 # If ``no_configure_target`` is NOT set, this creates a target of the form
 # ``configure-<name>`` for this configuration step.

@@ -60,14 +60,6 @@ if (KWIVER_ENABLE_PYTHON)
   set(kwiver_boost_python_package python)
 endif()
 
-
-###
-# Add the CMake directory for CMake modules
-#
-list(INSERT CMAKE_MODULE_PATH 0
-  "${KWIVER_SOURCE_DIR}/CMake"
-  )
-
 ###
 # KWIVER CMake config
 #
@@ -80,7 +72,7 @@ set(kwiver_export_name
 
 ###
 # External Dependencies and Modules
-#
+# Will be supplied by Fletch
 include( kwiver-depends )
 
 # define which boost we are using
@@ -144,6 +136,8 @@ set(KWIVER_ARGS_COMMON_CMAKE
   -DCMAKE_FIND_ROOT_PATH:PATH=${CMAKE_FIND_ROOT_PATH}
   -DCMAKE_LIBRARY_PATH:PATH=${CMAKE_LIBRARY_PATH}
   -DKWIVER_ENABLE_OPENCV:BOOL=${KWIVER_ENABLE_OPENCV}
+  -DKWIVER_ENABLE_DOCS:BOOL=${KWIVER_ENABLE_DOCS}
+  -DKWIVER_ENABLE_TESTS:BOOL=${KWIVER_ENABLE_TESTS}
   -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INCLUDE_DIR}
   -DEIGEN3_VERSION_OK:BOOL=${EIGEN3_VERSION_OK}
   -Dkwiver_DIR:PATH=${KWIVER_BINARY_DIR}
@@ -199,6 +193,7 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
 # ================================================================
 # Adding external components
 #
+include(External_vital)
 include(External_VXL)
 include(External_maptk)
 include(External_sprokit)
@@ -234,6 +229,7 @@ string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
 
 # Configure build-tree CMake config file and export associated targets file
 set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+set(KWIVER_LIBRARY_DIR          "${KWIVER_BINARY_DIR}/lib") ##? TEMP
 
 kwiver_configure_file(kwiver-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config.cmake.in"
@@ -267,16 +263,7 @@ kwiver_install(
   )
 
 
-# ================================================================
-# Install rule if someone decided to local install
-#
-#install(
-#  DIRECTORY ${KWIVER_BUILD_INSTALL_PREFIX}/
-#  DESTINATION .
-#  USE_SOURCE_PERMISSIONS
-#  )
-
-###
+# ==================================================================
 # CPack Packaging
 #
 

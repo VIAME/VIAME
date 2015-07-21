@@ -193,11 +193,12 @@ function(kwiver_add_library     name)
     COMPONENT           ${component}
     )
 
-  # \todo Need a way to determine if this is a plugin or a library.
-  # Do not append names of MODULES (plugins) to the library list
-  # because they are not linked to.
+  if ( NOT ARGV1 STREQUAL "MODULE" )
+    # Do not append names of MODULES (plugins) to the library list
+    # because they are not linked to.
 
-  set_property(GLOBAL APPEND PROPERTY kwiver_libraries ${name})
+    set_property(GLOBAL APPEND PROPERTY kwiver_libraries ${name})
+  endif()
 endfunction()
 
 
@@ -239,7 +240,7 @@ function(kwiver_install_headers)
   #  DESTINATION "include/kwiver/${mih_SUBDIR}"
   #  )
   foreach(header IN LISTS mih_UNPARSED_ARGUMENTS)
-    get_filename_component(H_SUBDIR "${header}" PATH)
+    get_filename_component(H_SUBDIR "${header}" DIRECTORY)
     kwiver_install(
       FILES       "${header}"
       DESTINATION "include/kwiver/${mih_SUBDIR}/${H_SUBDIR}"
@@ -278,7 +279,8 @@ endfunction()
 # This function creates a target for a loadable plugin.
 #
 function( kwiver_add_plugin        name )
-  set(library_subdir /module)
+  set(library_subdir "/modules")
+  set(no_export 1)
 
   kwiver_add_library( ${name} MODULE ${ARGN} )
 
