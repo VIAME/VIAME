@@ -1,0 +1,8 @@
+# Build the appropriate include directory
+# This file currently being installed to: {install_root}/lib/cmake/vital/
+get_filename_component(VITAL_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
+set(VITAL_INCLUDE_DIRS "${VITAL_ROOT}/include")
+set(VITAL_LIBRARIES @vital_libs@)
+
+# Include the library targets
+include("${CMAKE_CURRENT_LIST_DIR}/kwiver-config-targets.cmake")
