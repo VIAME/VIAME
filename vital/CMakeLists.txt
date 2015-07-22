@@ -13,7 +13,9 @@ include( GenerateExportHeader )
 set(KWSYS_NAMESPACE kwiversys)
 set(KWSYS_USE_DynamicLoader 1)
 set(KWSYS_USE_SystemTools 1)
+set(KWSYS_USE_System 1)
 set(KWSYS_USE_RegularExpression 1)
+set(KWSYS_USE_SystemInformation 1)
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
 set(KWSYS_INSTALL_LIB_DIR lib)
 set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
@@ -23,7 +25,6 @@ add_subdirectory(kwiversys)
 _kwiver_export( ${KWSYS_NAMESPACE} )
 
 # ==================================================================
-
 ###
 #
 set( vital_public_headers

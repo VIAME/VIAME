@@ -454,12 +454,12 @@ write_config_file( config_block_sptr const& config,
 
 // ------------------------------------------------------------------
 void write_config( config_block_sptr const& config,
-                   std::ostream&            str )
+                   std::ostream&            ofile )
 {
   // If there are no config parameters in the given config_block, throw
   if ( ! config->available_values().size() )
   {
-    throw config_file_write_exception( file_path,
+    throw config_file_write_exception( "<stream>",
           "No parameters in the given config_block!" );
   }
 
