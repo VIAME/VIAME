@@ -370,6 +370,14 @@ public:
         std::string val;
         val = m_token_expander.expand_token( token.value );
 
+        // prepend our current directory if this is a path
+        if ( rel_path )
+        {
+          config_path_t file = val;
+          config_path_t full = config_file_dir / file;
+          val = full.string();
+        }
+
         // Add key/value to config
         LOG_DEBUG( m_logger, "Adding entry to config: \"" << key << "\" = \"" << val << "\"" );
         m_config_block->set_value( key, val );
