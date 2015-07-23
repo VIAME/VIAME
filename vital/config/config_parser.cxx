@@ -220,7 +220,7 @@ public:
          */
         const int current_line( m_line_number ); // save current line number
 
-        LOG_INFO( m_logger, "Including file \"" << m_token_line << "\" at "
+        LOG_DEBUG( m_logger, "Including file \"" << m_token_line << "\" at "
                   << file_path.string() << ":" << m_line_number );
 
         config_path_t filename = m_token_line;
@@ -264,7 +264,7 @@ public:
 
         m_current_context += token.value + kwiver::vital::config_block::block_sep;
 
-        LOG_INFO( m_logger, "Starting new block \"" << m_current_context
+        LOG_DEBUG( m_logger, "Starting new block \"" << m_current_context
                   << "\" at " << file_path.string() << ":" << m_line_number );
 
         m_block_stack.push_back( block_ctxt );
