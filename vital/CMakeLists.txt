@@ -219,7 +219,7 @@ target_link_libraries(vital_apm
   PRIVATE          kwiversys
                    vital
                    vital_logger
-                   boost_filesystem
+                   ${Boost_FILESYSTEM_LIBRARY}
   )
 
 set(VITAL_MODULE_PATHS "${vidtk_default_module_paths}"

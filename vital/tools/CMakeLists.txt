@@ -10,7 +10,7 @@ target_link_libraries( plugin_explorer
   vital
   vital_apm
   vital_logger
-  boost_program_options
-  boost_filesystem
-  boost_system
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
   )
