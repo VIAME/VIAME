@@ -103,7 +103,7 @@ IMPLEMENT_TEST( successful_config_read )
 
   TEST_EQUAL( "num config params",
               config->available_values().size(),
-              23 );
+              24 );
   TEST_EQUAL( "foo:bar read",
               config->get_value< std::string > ( "foo:bar" ),
               "baz" );
@@ -170,7 +170,7 @@ IMPLEMENT_TEST( successful_config_read_named_block )
 
   TEST_EQUAL( "num config params",
               config->available_values().size(),
-              8 );
+              24 );
   TEST_EQUAL( "foo:bar read",
               config->get_value< std::string > ( "foo:bar" ),
               "baz" );
@@ -197,6 +197,32 @@ IMPLEMENT_TEST( successful_config_read_named_block )
   TEST_EQUAL( "tabbed:value read",
               config->get_value< std::string > ( "tabbed:value" ),
               "should be valid" );
+}
+
+IMPLEMENT_TEST( include_files )
+{
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir / "test_config-include-a.txt",
+                                                              "block_name_here" );
+  using std::cerr;
+  using std::endl;
+  cerr << "Available keys in the config_block:" << endl;
+  BOOST_FOREACH( config_block_key_t key, config->available_values() )
+  {
+    cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
+  }
+
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              6 );
+  TEST_EQUAL( "a:var outer",
+              config->get_value< std::string > ( "a:var" ),
+              "outer" );
+  TEST_EQUAL( "outer_block key",
+              config->get_value< std::string > ( "outer_block:b:key" ),
+              "val" );
+  TEST_EQUAL( "outer_block logging",
+              config->get_value< std::string > ( "outer_block:general:logging" ),
+              "on" );
 }
 
 IMPLEMENT_TEST( invalid_config_file )

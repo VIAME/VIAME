@@ -19,8 +19,10 @@ block second_block
   name = $SYSENV{domainname}
   descrip = $SYSENV{osdescription}
   mem = $SYSENV{totalvirtualmemory}  # in KB
+  relativepath file = options/test_Data.txt
 
 endblock
+
 
 # A comment over parameters
 global_var = 3.14
