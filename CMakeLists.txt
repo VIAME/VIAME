@@ -116,7 +116,7 @@ if (fletch_ROOT)
 endif()
 
 configure_file(${KWIVER_CMAKE_DIR}/setup_VITAL.sh.in
-  ${CMAKE_INSTALL_PREFIX}/setup_VITAL.sh )
+  ${KWIVER_BINARY_DIR}/setup_VITAL.sh )
 
 add_subdirectory( vital )
 
