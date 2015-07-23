@@ -1,0 +1,11 @@
+#
+# Input file for testing includes
+#
+
+a:var = outer
+
+block outer_block
+
+include test_config-include-b.txt
+
+endblock

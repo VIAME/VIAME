@@ -12,8 +12,10 @@ find_package(Boost 1.55 REQUIRED
     ${kwiver_boost_python_package}
     filesystem
     program_options
+    regex
     system
-    thread)
+    thread
+    )
 
 add_definitions(-DBOOST_ALL_NO_LIB)
 

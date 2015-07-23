@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,74 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
-#define KWIVER_CONFIG_BLOCK_TYPES_H_
+#ifndef KWIVER_VITAL_CONFIG_PARSER_H
+#define KWIVER_VITAL_CONFIG_PARSER_H
 
-#include <boost/filesystem/path.hpp>
+#include <vital/config/config_block.h>
 
-//
-// Define config block supporting types
-//
+#include <boost/noncopyable.hpp>
+#include <boost/scoped_ptr.hpp>
+
 
 namespace kwiver {
 namespace vital {
 
-/// The type that represents a configuration value key.
-typedef std::string config_block_key_t;
 
-/// The type that represents a collection of configuration keys.
-typedef std::vector<config_block_key_t> config_block_keys_t;
+// ----------------------------------------------------------------
+/**
+ * \brief Config file parser.
+ *
+ * This class converts config file contents into a config block.  The
+ * intent is that this parser converts one input file into one config
+ * block.  Delete the object when done. Allocate another if another
+ * file needs to be processed.
+ *
+ */
+class config_parser
+  : private boost::noncopyable
+{
+public:
 
-/// The type that represents a stored configuration value.
-typedef std::string config_block_value_t;
+  /**
+   * \brief Create object
+   *
+   * \param file_path Name of file to parse and convert to config block.
+   *
+   */
+  config_parser( config_path_t const& file_path );
+  ~config_parser();
 
-/// The type that represents a description of a configuration key.
-typedef std::string config_block_description_t;
 
-class config_block;
-/// Shared pointer for the \c config_block class
-typedef boost::shared_ptr<config_block> config_block_sptr;
+  /**
+   * \brief Parse file into a config block
+   *
+   * The file specified by the CTOR is read and parsed
+   *
+   * \throws config_file_not_parsed_exception
+   *
+   * \throws config_file_not_found_exception
+   */
+  void parse_config();
 
-/// The type to be used for file and directory paths
-typedef boost::filesystem::path config_path_t;
+  /**
+   * \brief Get processed config block.
+   *
+   * This method returns a sptr to the processed config block.
+   *
+   * \return Pointer to config block
+   */
+  kwiver::vital::config_block_sptr get_config() const;
 
-} }
+  // method to add token classes
 
-#endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
+private:
+
+  class priv;
+
+  config_path_t m_config_file;
+  boost::scoped_ptr< priv > m_priv;
+};
+
+} } // end namespace
+
+#endif /* KWIVER_VITAL_CONFIG_PARSER_H */

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
-#define KWIVER_CONFIG_BLOCK_TYPES_H_
-
-#include <boost/filesystem/path.hpp>
-
-//
-// Define config block supporting types
-//
+#include "token_type_config.h"
 
 namespace kwiver {
 namespace vital {
 
-/// The type that represents a configuration value key.
-typedef std::string config_block_key_t;
+// ----------------------------------------------------------------
+token_type_config::
+token_type_config( kwiver::vital::config_block * blk )
+  : token_type ("CONFIG")
+  , m_config( blk )
+{ }
 
-/// The type that represents a collection of configuration keys.
-typedef std::vector<config_block_key_t> config_block_keys_t;
 
-/// The type that represents a stored configuration value.
-typedef std::string config_block_value_t;
+// ----------------------------------------------------------------
+token_type_config::
+ ~token_type_config()
+{ }
 
-/// The type that represents a description of a configuration key.
-typedef std::string config_block_description_t;
 
-class config_block;
-/// Shared pointer for the \c config_block class
-typedef boost::shared_ptr<config_block> config_block_sptr;
+// ----------------------------------------------------------------
+bool
+token_type_config::
+lookup_entry (kwiver::vital::config_block_key_t const& name,
+              std::string& result)
+{
+  bool retcode( true );
 
-/// The type to be used for file and directory paths
-typedef boost::filesystem::path config_path_t;
+  try
+  {
+    result = m_config->get_value< std::string >( name );
+  }
+  catch ( kwiver::vital::config_block_exception & e)
+  {
+    retcode = false; // not found
+  }
+  catch ( ... )
+  {
+    retcode = false; // not found
+  }
 
-} }
+  return retcode;
+}
 
-#endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
+} } // end namespace

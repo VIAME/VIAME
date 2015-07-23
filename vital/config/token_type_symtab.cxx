@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,58 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
-#define KWIVER_CONFIG_BLOCK_TYPES_H_
+#include "token_type_symtab.h"
 
-#include <boost/filesystem/path.hpp>
-
-//
-// Define config block supporting types
-//
 
 namespace kwiver {
 namespace vital {
 
-/// The type that represents a configuration value key.
-typedef std::string config_block_key_t;
+// ----------------------------------------------------------------
+token_type_symtab::
+token_type_symtab(std::string const& name)
+  : token_type( name )
+{ }
 
-/// The type that represents a collection of configuration keys.
-typedef std::vector<config_block_key_t> config_block_keys_t;
 
-/// The type that represents a stored configuration value.
-typedef std::string config_block_value_t;
+// ----------------------------------------------------------------
+token_type_symtab::
+ ~token_type_symtab()
+{ }
 
-/// The type that represents a description of a configuration key.
-typedef std::string config_block_description_t;
 
-class config_block;
-/// Shared pointer for the \c config_block class
-typedef boost::shared_ptr<config_block> config_block_sptr;
+// ----------------------------------------------------------------
+void
+token_type_symtab::
+add_entry (std::string const& name, std::string const& value)
+{
+  m_table[name] = value;
+}
 
-/// The type to be used for file and directory paths
-typedef boost::filesystem::path config_path_t;
 
-} }
+// ----------------------------------------------------------------
+void
+token_type_symtab::
+remove_entry (std::string const& name)
+{
+  m_table.erase (name);
+}
 
-#endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
+
+// ----------------------------------------------------------------
+bool
+token_type_symtab::
+lookup_entry (std::string const& name, std::string& result)
+{
+  bool retcode( false );
+  result.clear();
+
+  if ( m_table.count( name ) )
+  {
+    result = m_table[name];
+    retcode = true;
+  }
+
+  return retcode;
+}
+
+} } // end namespace

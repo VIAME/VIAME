@@ -48,321 +48,359 @@ DECLARE_TEST_MAP();
 
 using namespace kwiver::vital;
 
-int main(int argc, char* argv[])
+int
+main( int argc, char* argv[] )
 {
   // expecting test name and data directory path
-  CHECK_ARGS(2);
+  CHECK_ARGS( 2 );
   testname_t const testname = argv[1];
-  path_t data_dir(argv[2]);
-  RUN_TEST(testname, data_dir);
+  path_t data_dir( argv[2] );
+  RUN_TEST( testname, data_dir );
 }
 
-#define print_config(config) \
-  BOOST_FOREACH( config_block_key_t key, config->available_values() ) \
-  { \
-    std::cerr << "\t" \
-              << key << " = " << config->get_value<config_block_key_t>(key) \
-              << std::endl; \
+
+#define print_config( config )                                                   \
+  BOOST_FOREACH( config_block_key_t key, config->available_values() )            \
+  {                                                                              \
+    std::cerr << "\t"                                                            \
+              << key << " = " << config->get_value< config_block_key_t > ( key ) \
+              << std::endl;                                                      \
   }
 
-IMPLEMENT_TEST(config_path_not_exist)
+IMPLEMENT_TEST( config_path_not_exist )
 {
-  path_t fp("/this/shouldnt/exist/anywhere");
+  path_t fp( "/this/shouldnt/exist/anywhere" );
 
   EXPECT_EXCEPTION(
     kwiver::vital::config_file_not_found_exception,
-    kwiver::vital::read_config_file(fp),
+    kwiver::vital::read_config_file( fp ),
     "calling config read with non-existant file"
-  );
+                  );
 }
 
-IMPLEMENT_TEST(config_path_not_file)
+IMPLEMENT_TEST( config_path_not_file )
 {
   path_t fp = boost::filesystem::current_path();
 
   EXPECT_EXCEPTION(
     kwiver::vital::config_file_not_found_exception,
-    kwiver::vital::read_config_file(fp),
+    kwiver::vital::read_config_file( fp ),
     "calling config read with directory path as argument"
-  );
+                  );
 }
 
-IMPLEMENT_TEST(successful_config_read)
+IMPLEMENT_TEST( successful_config_read )
 {
-  config_block_sptr config = kwiver::vital::read_config_file(data_dir / "test_config-valid_file.txt");
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir / "test_config-valid_file.txt" );
 
   using std::cerr;
   using std::endl;
   cerr << "Available keys in the config_block:" << endl;
-  BOOST_FOREACH(config_block_key_t key, config->available_values())
+  BOOST_FOREACH( config_block_key_t key, config->available_values() )
   {
-    cerr << "\t\"" << key << "\" := \"" << config->get_value<std::string>(key) << "\"" << endl;
+    cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
   }
 
-  TEST_EQUAL("num config params",
-             config->available_values().size(),
-             8);
-  TEST_EQUAL("foo:bar read",
-             config->get_value<std::string>("foo:bar"),
-             "baz");
-  TEST_EQUAL("foo:things read",
-             config->get_value<std::string>("foo:things"),
-             "stuff");
-  TEST_EQUAL("foo:sublevel:value read",
-             config->get_value<std::string>("foo:sublevel:value"),
-             "cool things and stuff");
-  TEST_EQUAL("second_block:has read",
-             config->get_value<std::string>("second_block:has"),
-             "a value    with  spaces");
-  TEST_EQUAL("second_block:mode read",
-             config->get_value<std::string>("second_block:more"),
-             "has a trailing comment");
-  TEST_NEAR("global_var read",
-            config->get_value<float>("global_var"),
-            3.14,
-            0.000001);
-  TEST_NEAR("global_var2 read",
-            config->get_value<double>("global_var2"),
-            1.12,
-            0.000001);
-  TEST_EQUAL("tabbed:value read",
-             config->get_value<std::string>("tabbed:value"),
-             "should be valid");
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              24 );
+  TEST_EQUAL( "foo:bar read",
+              config->get_value< std::string > ( "foo:bar" ),
+              "baz" );
+  TEST_EQUAL( "foo:things read",
+              config->get_value< std::string > ( "foo:things" ),
+              "stuff" );
+  TEST_EQUAL( "foo:sublevel:value read",
+              config->get_value< std::string > ( "foo:sublevel:value" ),
+              "cool things and stuff" );
+  TEST_EQUAL( "second_block:has read",
+              config->get_value< std::string > ( "second_block:has" ),
+              "a value    with  spaces" );
+  TEST_EQUAL( "second_block:mode read",
+              config->get_value< std::string > ( "second_block:more" ),
+              "has a trailing comment" );
+  TEST_NEAR( "global_var read",
+             config->get_value< float > ( "global_var" ),
+             3.14,
+             0.000001 );
+  TEST_NEAR( "global_var2 read",
+             config->get_value< double > ( "global_var2" ),
+             1.12,
+             0.000001 );
+  TEST_EQUAL( "tabbed:value read",
+              config->get_value< std::string > ( "tabbed:value" ),
+              "should be valid" );
 
   // extract sub-block, see that value access maintained
-  config_block_sptr foo_subblock = config->subblock_view("foo");
-  TEST_EQUAL("foo subblock bar read",
-             foo_subblock->get_value<std::string>("bar"),
-             "baz");
-  TEST_EQUAL("foo subblock sublevel read",
-             foo_subblock->get_value<std::string>("sublevel:value"),
-             "cool things and stuff");
-  TEST_EQUAL("foo nested extraction",
-             config->subblock_view("foo")->subblock_view("sublevel")
-                                         ->get_value<std::string>("value"),
-             "cool things and stuff");
+  config_block_sptr foo_subblock = config->subblock_view( "foo" );
+  TEST_EQUAL( "foo subblock bar read",
+              foo_subblock->get_value< std::string > ( "bar" ),
+              "baz" );
+  TEST_EQUAL( "foo subblock sublevel read",
+              foo_subblock->get_value< std::string > ( "sublevel:value" ),
+              "cool things and stuff" );
+  TEST_EQUAL( "foo nested extraction",
+              config->subblock_view( "foo" )->subblock_view( "sublevel" )
+                ->get_value< std::string > ( "value" ),
+              "cool things and stuff" );
+
+  TEST_EQUAL( "Local value from macro",
+              config->get_value< std::string > ( "local" ),
+              "new value" );
+
+  TEST_EQUAL( "nested blocks",
+              config->get_value< std::string > ( "new_block:next_level:has" ),
+              "a value    with  spaces" );
+
+
 }
 
-IMPLEMENT_TEST(successful_config_read_named_block)
+IMPLEMENT_TEST( successful_config_read_named_block )
 {
-  config_block_sptr config = kwiver::vital::read_config_file(data_dir / "test_config-valid_file.txt",
-                                                         "block_name_here");
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir / "test_config-valid_file.txt",
+                                                              "block_name_here" );
 
   using std::cerr;
   using std::endl;
   cerr << "Available keys in the config_block:" << endl;
-  BOOST_FOREACH(config_block_key_t key, config->available_values())
+  BOOST_FOREACH( config_block_key_t key, config->available_values() )
   {
-    cerr << "\t\"" << key << "\" := \"" << config->get_value<std::string>(key) << "\"" << endl;
+    cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
   }
 
-  TEST_EQUAL("num config params",
-             config->available_values().size(),
-             8);
-  TEST_EQUAL("foo:bar read",
-             config->get_value<std::string>("foo:bar"),
-             "baz");
-  TEST_EQUAL("foo:things read",
-             config->get_value<std::string>("foo:things"),
-             "stuff");
-  TEST_EQUAL("foo:sublevel:value read",
-             config->get_value<std::string>("foo:sublevel:value"),
-             "cool things and stuff");
-  TEST_EQUAL("second_block:has read",
-             config->get_value<std::string>("second_block:has"),
-             "a value    with  spaces");
-  TEST_EQUAL("second_block:mode read",
-             config->get_value<std::string>("second_block:more"),
-             "has a trailing comment");
-  TEST_NEAR("global_var read",
-            config->get_value<float>("global_var"),
-            3.14,
-            0.000001);
-  TEST_NEAR("global_var2 read",
-            config->get_value<double>("global_var2"),
-            1.12,
-            0.000001);
-  TEST_EQUAL("tabbed:value read",
-             config->get_value<std::string>("tabbed:value"),
-             "should be valid");
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              24 );
+  TEST_EQUAL( "foo:bar read",
+              config->get_value< std::string > ( "foo:bar" ),
+              "baz" );
+  TEST_EQUAL( "foo:things read",
+              config->get_value< std::string > ( "foo:things" ),
+              "stuff" );
+  TEST_EQUAL( "foo:sublevel:value read",
+              config->get_value< std::string > ( "foo:sublevel:value" ),
+              "cool things and stuff" );
+  TEST_EQUAL( "second_block:has read",
+              config->get_value< std::string > ( "second_block:has" ),
+              "a value    with  spaces" );
+  TEST_EQUAL( "second_block:mode read",
+              config->get_value< std::string > ( "second_block:more" ),
+              "has a trailing comment" );
+  TEST_NEAR( "global_var read",
+             config->get_value< float > ( "global_var" ),
+             3.14,
+             0.000001 );
+  TEST_NEAR( "global_var2 read",
+             config->get_value< double > ( "global_var2" ),
+             1.12,
+             0.000001 );
+  TEST_EQUAL( "tabbed:value read",
+              config->get_value< std::string > ( "tabbed:value" ),
+              "should be valid" );
 }
 
-IMPLEMENT_TEST(invalid_config_file)
+IMPLEMENT_TEST( include_files )
+{
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir / "test_config-include-a.txt",
+                                                              "block_name_here" );
+  using std::cerr;
+  using std::endl;
+  cerr << "Available keys in the config_block:" << endl;
+  BOOST_FOREACH( config_block_key_t key, config->available_values() )
+  {
+    cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
+  }
+
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              6 );
+  TEST_EQUAL( "a:var outer",
+              config->get_value< std::string > ( "a:var" ),
+              "outer" );
+  TEST_EQUAL( "outer_block key",
+              config->get_value< std::string > ( "outer_block:b:key" ),
+              "val" );
+  TEST_EQUAL( "outer_block logging",
+              config->get_value< std::string > ( "outer_block:general:logging" ),
+              "on" );
+}
+
+IMPLEMENT_TEST( invalid_config_file )
 {
   EXPECT_EXCEPTION(
     kwiver::vital::config_file_not_parsed_exception,
-      kwiver::vital::read_config_file(data_dir / "test_config-invalid_file.txt"),
-      "calling config_block read on badly formatted file"
-      );
+    kwiver::vital::read_config_file( data_dir / "test_config-invalid_file.txt" ),
+    "calling config_block read on badly formatted file"
+                  );
 }
 
-IMPLEMENT_TEST(invalid_keypath)
+IMPLEMENT_TEST( invalid_keypath )
 {
   EXPECT_EXCEPTION(
     kwiver::vital::config_file_not_parsed_exception,
-    kwiver::vital::read_config_file(data_dir / "test_config-invalid_keypath.txt"),
-      "read attempt on file with invalid key path"
-      );
+    kwiver::vital::read_config_file( data_dir / "test_config-invalid_keypath.txt" ),
+    "read attempt on file with invalid key path"
+                  );
 }
 
-IMPLEMENT_TEST(config_with_comments)
+IMPLEMENT_TEST( config_with_comments )
 {
-  config_block_sptr config = kwiver::vital::read_config_file(data_dir / "test_config-comments.txt");
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir / "test_config-comments.txt" );
 
   using std::string;
 
-  TEST_EQUAL("num config params",
-             config->available_values().size(),
-             4);
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              4 );
 
-  TEST_EQUAL("general:logging param",
-             config->get_value<string>("general:logging"),
-             "on");
-  TEST_EQUAL("general:another_var param",
-             config->get_value<string>("general:another_var"),
-             "foo");
-  TEST_EQUAL("general:yet_more param",
-             config->get_value<string>("general:yet_more"),
-             "bar");
-  TEST_EQUAL("final:value param",
-             config->get_value<string>("final:value"),
-             "things and stuff");
+  TEST_EQUAL( "general:logging param",
+              config->get_value< string > ( "general:logging" ),
+              "on" );
+  TEST_EQUAL( "general:another_var param",
+              config->get_value< string > ( "general:another_var" ),
+              "foo" );
+  TEST_EQUAL( "general:yet_more param",
+              config->get_value< string > ( "general:yet_more" ),
+              "bar" );
+  TEST_EQUAL( "final:value param",
+              config->get_value< string > ( "final:value" ),
+              "things and stuff" );
 }
 
-IMPLEMENT_TEST(write_config_simple_success)
+IMPLEMENT_TEST( write_config_simple_success )
 {
   using namespace kwiver;
   using namespace std;
   namespace bfs = boost::filesystem;
 
-  config_block_sptr orig_config = config_block::empty_config("simple_test");
+  config_block_sptr orig_config = config_block::empty_config( "simple_test" );
 
-  config_block_key_t keyA = config_block_key_t("test_key_1");
-  config_block_key_t keyB = config_block_key_t("test_key_2");
-  config_block_key_t keyC = config_block_key_t("test_key_3");
-  config_block_key_t keyD = config_block_key_t("test_key_4");
-  config_block_key_t keyE = config_block_key_t("test_key_5");
-  config_block_key_t keyF = config_block_key_t("test_key_6");
-  config_block_key_t keyG = config_block_key_t("test_key_7");
+  config_block_key_t keyA = config_block_key_t( "test_key_1" );
+  config_block_key_t keyB = config_block_key_t( "test_key_2" );
+  config_block_key_t keyC = config_block_key_t( "test_key_3" );
+  config_block_key_t keyD = config_block_key_t( "test_key_4" );
+  config_block_key_t keyE = config_block_key_t( "test_key_5" );
+  config_block_key_t keyF = config_block_key_t( "test_key_6" );
+  config_block_key_t keyG = config_block_key_t( "test_key_7" );
 
-  config_block_value_t valueA = config_block_value_t("test_value_a");
-  config_block_value_t valueB = config_block_value_t("test_value_b");
-  config_block_value_t valueC = config_block_value_t("test_value_c");
-  config_block_value_t valueD = config_block_value_t("test_value_d");
-  config_block_value_t valueE = config_block_value_t("test_value_e");
-  config_block_value_t valueF = config_block_value_t("test_value_f");
-  config_block_value_t valueG = config_block_value_t("test_value_g");
+  config_block_value_t valueA = config_block_value_t( "test_value_a" );
+  config_block_value_t valueB = config_block_value_t( "test_value_b" );
+  config_block_value_t valueC = config_block_value_t( "test_value_c" );
+  config_block_value_t valueD = config_block_value_t( "test_value_d" );
+  config_block_value_t valueE = config_block_value_t( "test_value_e" );
+  config_block_value_t valueF = config_block_value_t( "test_value_f" );
+  config_block_value_t valueG = config_block_value_t( "test_value_g" );
 
-  config_block_description_t descrD = config_block_description_t("Test descr 1");
+  config_block_description_t descrD = config_block_description_t( "Test descr 1" );
   config_block_description_t descrE = config_block_description_t(
-      "This is a really long description that should probably span multiple "
-      "lines because it exceeds the defined character width we would like "
-      "in order to make output files more readable."
-      );
+    "This is a really long description that should probably span multiple "
+    "lines because it exceeds the defined character width we would like "
+    "in order to make output files more readable."
+                                                                );
   config_block_description_t descrF = config_block_description_t(
-      "this is a comment\n"
-      "that has manual new-line splits\n"
-      "that should be preserved\n"
-      "\n"
-      "Pretend list:\n"
-      "  - foo\n"
-      "    - bar\n"
-      );
+    "this is a comment\n"
+    "that has manual new-line splits\n"
+    "that should be preserved\n"
+    "\n"
+    "Pretend list:\n"
+    "  - foo\n"
+    "    - bar\n"
+                                                                );
   config_block_description_t descrG = config_block_description_t(
-      "This has a # in it"
-      );
+    "This has a # in it"
+                                                                );
 
-  config_block_key_t subblock_name = config_block_key_t("subblock");
-  config_block_sptr subblock = orig_config->subblock_view(subblock_name);
+  config_block_key_t subblock_name = config_block_key_t( "subblock" );
+  config_block_sptr subblock = orig_config->subblock_view( subblock_name );
 
-  orig_config->set_value(keyA, valueA);
-  orig_config->set_value(keyB, valueB);
-  subblock->set_value(keyC, valueC);
-  orig_config->set_value(keyD, valueD, descrD);
-  orig_config->set_value(keyE, valueE, descrE);
-  orig_config->set_value(keyF, valueF, descrF);
-  orig_config->set_value(keyG, valueG, descrG);
+  orig_config->set_value( keyA, valueA );
+  orig_config->set_value( keyB, valueB );
+  subblock->set_value( keyC, valueC );
+  orig_config->set_value( keyD, valueD, descrD );
+  orig_config->set_value( keyE, valueE, descrE );
+  orig_config->set_value( keyF, valueF, descrF );
+  orig_config->set_value( keyG, valueG, descrG );
 
   cerr << "ConfigBlock for writing:" << endl;
-  print_config(orig_config);
+  print_config( orig_config );
 
   path_t base_path = bfs::temp_directory_path() / bfs::unique_path();
   cerr << "Working in temporary directory: " << base_path << endl;
-  bfs::create_directory(base_path);
+  bfs::create_directory( base_path );
 
   path_t output_path_1 = base_path / "test_config_output.conf";
   cerr << "Writing config_block to: " << output_path_1 << endl;
-  write_config_file(orig_config, output_path_1);
+  write_config_file( orig_config, output_path_1 );
 
   path_t output_path_2 = base_path / "subdir" / "test_config_output.conf";
   cerr << "Writing config_block to: " << output_path_2 << endl;
-  write_config_file(orig_config, output_path_2);
+  write_config_file( orig_config, output_path_2 );
 
   // Read files back in, confirning output is readable and the same as
   // what we should have output.
-  std::vector<config_block_sptr> configs;
-  configs.push_back(read_config_file(output_path_1));
-  configs.push_back(read_config_file(output_path_2));
+  std::vector< config_block_sptr > configs;
+  configs.push_back( read_config_file( output_path_1 ) );
+  configs.push_back( read_config_file( output_path_2 ) );
 
-  BOOST_FOREACH( config_block_sptr config, configs)
+  BOOST_FOREACH( config_block_sptr config, configs )
   {
-    TEST_EQUAL("num params", config->available_values().size(), 7);
-    TEST_EQUAL("key-A read",
-               config->get_value<config_block_value_t>(keyA),
-               valueA);
-    TEST_EQUAL("key-B read",
-               config->get_value<config_block_value_t>(keyB),
-               valueB);
-    TEST_EQUAL("subblock key-C read",
-               config->get_value<config_block_value_t>(subblock_name + config_block::block_sep + keyC),
-               valueC);
-    TEST_EQUAL("key-D read",
-               config->get_value<config_block_value_t>(keyD),
-               valueD);
-    TEST_EQUAL("key-E read",
-               config->get_value<config_block_value_t>(keyE),
-               valueE);
-    TEST_EQUAL("key-F read",
-               config->get_value<config_block_value_t>(keyF),
-               valueF);
-    TEST_EQUAL("key-G read",
-               config->get_value<config_block_value_t>(keyG),
-               valueG);
+    TEST_EQUAL( "num params", config->available_values().size(), 7 );
+    TEST_EQUAL( "key-A read",
+                config->get_value< config_block_value_t > ( keyA ),
+                valueA );
+    TEST_EQUAL( "key-B read",
+                config->get_value< config_block_value_t > ( keyB ),
+                valueB );
+    TEST_EQUAL( "subblock key-C read",
+                config->get_value< config_block_value_t > ( subblock_name + config_block::block_sep + keyC ),
+                valueC );
+    TEST_EQUAL( "key-D read",
+                config->get_value< config_block_value_t > ( keyD ),
+                valueD );
+    TEST_EQUAL( "key-E read",
+                config->get_value< config_block_value_t > ( keyE ),
+                valueE );
+    TEST_EQUAL( "key-F read",
+                config->get_value< config_block_value_t > ( keyF ),
+                valueF );
+    TEST_EQUAL( "key-G read",
+                config->get_value< config_block_value_t > ( keyG ),
+                valueG );
   }
 
   cerr << "Cleaning up temp directory: " << base_path << endl;
-  bfs::remove_all(base_path);
+  bfs::remove_all( base_path );
 }
 
-IMPLEMENT_TEST(invalid_directory_write)
+IMPLEMENT_TEST( invalid_directory_write )
 {
   using namespace kwiver;
-  config_block_sptr config = config_block::empty_config("empty");
-  config->set_value("foo", "bar");
+  config_block_sptr config = config_block::empty_config( "empty" );
+  config->set_value( "foo", "bar" );
   EXPECT_EXCEPTION(
-      config_file_write_exception,
-      write_config_file(config, data_dir),
-      "attempting write on a directory path"
-      );
+    config_file_write_exception,
+    write_config_file( config, data_dir ),
+    "attempting write on a directory path"
+                  );
 }
 
-IMPLEMENT_TEST(empty_config_write_failure)
+IMPLEMENT_TEST( empty_config_write_failure )
 {
-  using namespace std;
   using namespace kwiver;
+  using namespace std;
   namespace bfs = boost::filesystem;
 
-  config_block_sptr config = config_block::empty_config("empty");
+  config_block_sptr config = config_block::empty_config( "empty" );
   path_t output_file = bfs::temp_directory_path() / bfs::unique_path();
   EXPECT_EXCEPTION(
-      config_file_write_exception,
-      write_config_file(config, output_file),
-      "attempted write of a config with nothing in it"
-      );
+    config_file_write_exception,
+    write_config_file( config, output_file ),
+    "attempted write of a config with nothing in it"
+                  );
   // If the test failed, clean-up the file created.
-  if(bfs::is_regular_file(output_file))
+  if ( bfs::is_regular_file( output_file ) )
   {
     cerr << "Test failed and output file created. Removing." << endl;
-    bfs::remove(output_file);
+    bfs::remove( output_file );
   }
 }

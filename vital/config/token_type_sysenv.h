@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
-#define KWIVER_CONFIG_BLOCK_TYPES_H_
+#ifndef _TOKEN_TYPE_SYSENV_H_
+#define _TOKEN_TYPE_SYSENV_H_
 
-#include <boost/filesystem/path.hpp>
+#include "token_type.h"
 
-//
-// Define config block supporting types
-//
+#include <kwiversys/SystemInformation.hxx>
+
 
 namespace kwiver {
 namespace vital {
 
-/// The type that represents a configuration value key.
-typedef std::string config_block_key_t;
+// ----------------------------------------------------------------
+/** System attributes resolver.
+ *
+ *
+ */
+class token_type_sysenv
+  : public token_type
+{
+public:
+  token_type_sysenv();
+  virtual ~token_type_sysenv();
 
-/// The type that represents a collection of configuration keys.
-typedef std::vector<config_block_key_t> config_block_keys_t;
+  /** Lookup name in token type resolver.
+   */
+  virtual bool lookup_entry (std::string const& name, std::string& result);
 
-/// The type that represents a stored configuration value.
-typedef std::string config_block_value_t;
+  kwiversys::SystemInformation m_sysinfo;
 
-/// The type that represents a description of a configuration key.
-typedef std::string config_block_description_t;
+}; // end class token_type_sysenv
 
-class config_block;
-/// Shared pointer for the \c config_block class
-typedef boost::shared_ptr<config_block> config_block_sptr;
+} // end namespace
+} // end namespace
 
-/// The type to be used for file and directory paths
-typedef boost::filesystem::path config_path_t;
-
-} }
-
-#endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
+#endif /* _TOKEN_TYPE_SYSENV_H_ */

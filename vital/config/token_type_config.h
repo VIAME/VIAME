@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,57 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
-#define KWIVER_CONFIG_BLOCK_TYPES_H_
+#ifndef _TOKEN_TYPE_CONFIG_H_
+#define _TOKEN_TYPE_CONFIG_H_
 
-#include <boost/filesystem/path.hpp>
+#include "token_type.h"
 
-//
-// Define config block supporting types
-//
+#include <vital/config/config_block.h>
+
 
 namespace kwiver {
 namespace vital {
 
-/// The type that represents a configuration value key.
-typedef std::string config_block_key_t;
+// ----------------------------------------------------------------
+/** Config token type.
+ *
+ * This class implements token_expander access to a config block. The
+ * name of the config entry is replaced with its contents.
+ *
+ * The config entry passed to the constructor is still under the
+ * control of the originator and will not be deleted by this class.
+ *
+ * Example:
+\code
+kwiver::vital::config_block block;
 
-/// The type that represents a collection of configuration keys.
-typedef std::vector<config_block_key_t> config_block_keys_t;
 
-/// The type that represents a stored configuration value.
-typedef std::string config_block_value_t;
 
-/// The type that represents a description of a configuration key.
-typedef std::string config_block_description_t;
+\endcode
+ */
+class token_type_config
+  : public token_type
+{
+public:
+  /** Constructor. A token type object is created that has access to
+   * the supplied config block. The ownership of this config block
+   * remains with the creator.
+   *
+   * @param[in] blk - config block
+   */
+  token_type_config( kwiver::vital::config_block* blk );
+  virtual ~token_type_config();
 
-class config_block;
-/// Shared pointer for the \c config_block class
-typedef boost::shared_ptr<config_block> config_block_sptr;
+  /** Lookup name in token type resolver.
+   */
+  virtual bool lookup_entry (std::string const& name, std::string& result);
 
-/// The type to be used for file and directory paths
-typedef boost::filesystem::path config_path_t;
 
-} }
+private:
+  kwiver::vital::config_block* m_config;
 
-#endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
+}; // end class token_type_config
+
+} } // end namespace
+
+#endif /* _TOKEN_TYPE_CONFIG_H_ */

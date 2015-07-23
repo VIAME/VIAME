@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
-#define KWIVER_CONFIG_BLOCK_TYPES_H_
 
-#include <boost/filesystem/path.hpp>
+#ifndef _TOKEN_TYPE_H_
+#define _TOKEN_TYPE_H_
 
-//
-// Define config block supporting types
-//
+#include <string>
 
 namespace kwiver {
 namespace vital {
 
-/// The type that represents a configuration value key.
-typedef std::string config_block_key_t;
+// ----------------------------------------------------------------
+/** Abstract base class for token types.
+ *
+ *
+ */
+class token_type
+{
+public:
+  virtual ~token_type();
 
-/// The type that represents a collection of configuration keys.
-typedef std::vector<config_block_key_t> config_block_keys_t;
+  /** Return our token type name. This is used to retrieve the name of
+   * this token type when it is added to the token expander.
+   */
+  std::string const& token_type_name() const;
 
-/// The type that represents a stored configuration value.
-typedef std::string config_block_value_t;
 
-/// The type that represents a description of a configuration key.
-typedef std::string config_block_description_t;
+  /** Lookup name in token type resolver.
+   * @param[in] name Name to look up
+   * @param[out] result Translated string
+   * @return TRUE if name found in table; false otherwise
+   */
+  virtual bool lookup_entry (std::string const& name, std::string& result) = 0;
 
-class config_block;
-/// Shared pointer for the \c config_block class
-typedef boost::shared_ptr<config_block> config_block_sptr;
 
-/// The type to be used for file and directory paths
-typedef boost::filesystem::path config_path_t;
+protected:
+  token_type(std::string const& name);
 
-} }
 
-#endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
+private:
+  std::string m_typeName;
+
+}; // end class token_type
+
+} } // end namespace
+
+#endif /* _TOKEN_TYPE_H_ */

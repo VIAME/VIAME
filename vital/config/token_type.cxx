@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
-#define KWIVER_CONFIG_BLOCK_TYPES_H_
+#include "token_type.h"
 
-#include <boost/filesystem/path.hpp>
-
-//
-// Define config block supporting types
-//
 
 namespace kwiver {
 namespace vital {
 
-/// The type that represents a configuration value key.
-typedef std::string config_block_key_t;
 
-/// The type that represents a collection of configuration keys.
-typedef std::vector<config_block_key_t> config_block_keys_t;
+// ----------------------------------------------------------------
+/** Constructor
+ *
+ *
+ */
+token_type::
+token_type(std::string const& name)
+  : m_typeName(name)
+{ }
 
-/// The type that represents a stored configuration value.
-typedef std::string config_block_value_t;
 
-/// The type that represents a description of a configuration key.
-typedef std::string config_block_description_t;
+token_type::
+~token_type()
+{ }
 
-class config_block;
-/// Shared pointer for the \c config_block class
-typedef boost::shared_ptr<config_block> config_block_sptr;
 
-/// The type to be used for file and directory paths
-typedef boost::filesystem::path config_path_t;
+// ----------------------------------------------------------------
+/** Return token type name.
+ *
+ *
+ */
+std::string const&
+token_type::
+token_type_name() const
+{
+  return m_typeName;
+}
 
-} }
-
-#endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
+} } // end namespace
