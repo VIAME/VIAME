@@ -24,6 +24,11 @@ include_directories( SYSTEM ${KWSYS_INCLUDE_DIR}/kwiversys )
 add_subdirectory(kwiversys)
 _kwiver_export( ${KWSYS_NAMESPACE} )
 
+if (APPLE)
+  set_target_properties( ${KWSYS_NAMESPACE}
+    MACOSX_RPATH          TRUE)
+endif()
+
 # ==================================================================
 ###
 #
