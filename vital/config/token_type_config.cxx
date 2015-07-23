@@ -55,13 +55,18 @@ lookup_entry (kwiver::vital::config_block_key_t const& name,
 {
   bool retcode( true );
 
-  try {
+  try
+  {
     result = m_config->get_value< std::string >( name );
+  }
+  catch ( kwiver::vital::config_block_exception & e)
+  {
+    retcode = false; // not found
   }
   catch ( ... )
   {
     retcode = false; // not found
- }
+  }
 
   return retcode;
 }

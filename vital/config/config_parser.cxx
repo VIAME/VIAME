@@ -54,6 +54,7 @@
 #include <cerrno>
 #include <vector>
 #include <fstream>
+#include <cctype>
 
 namespace kwiver {
 namespace vital {
@@ -85,6 +86,21 @@ trim( std::string& s )
   return ltrim( rtrim( s ) );
 }
 
+// ------------------------------------------------------------------
+
+struct token_t
+{
+  enum type {
+    TK_LHS = 1,
+    TK_RHS,
+    TK_ASSIGN,
+    TK_EOL,
+    TK_EOF
+  };
+
+  type type;
+  std::string value;
+};
 
 
 // ------------------------------------------------------------------
@@ -113,14 +129,15 @@ public:
     : m_line_number( 0 ),
       m_file_count( 0 ),
       m_parse_error( false ),
-      m_symtab( "LOCAL" ),
-      m_config_block( kwiver::vital::config_block::empty_config() ),
-      m_logger( kwiver::vital::get_logger( "config_parser" ) )
+      m_symtab( new kwiver::vital::token_type_symtab( "LOCAL" ) ),
+      m_config_block( kwiver::vital::config_block::empty_config() ), //+ nay need to set a name
+      m_logger( kwiver::vital::get_logger( "config_parser" ) ),
+      m_token_state(0)
   {
     m_token_expander.add_token_type( new kwiver::vital::token_type_env() );
     m_token_expander.add_token_type( new kwiver::vital::token_type_sysenv() );
     m_token_expander.add_token_type( new kwiver::vital::token_type_config( m_config_block.get() ) );
-    m_token_expander.add_token_type( &m_symtab );
+    m_token_expander.add_token_type( m_symtab );
   }
 
 
@@ -136,6 +153,13 @@ public:
    */
   void process_file( config_path_t const&  file_path)
   {
+    // Reset token parser since we are starting a new file
+    m_token_state = 0;
+    m_token_line.clear();
+
+    m_line_number = 0;
+
+    // Try to open the file
     std::ifstream in_stream( file_path.c_str() );
     if ( ! in_stream )
     {
@@ -151,8 +175,10 @@ public:
     while ( true )
     {
       // Get next non-blank line. We are done of EOF is found.
-      std::string line;
-      if ( ! get_line( in_stream, line ) )
+      token_t token;
+      get_token( in_stream, token );
+
+      if ( token.type == token_t::TK_EOF )
       { // EOF found
         --m_file_count;
 
@@ -186,28 +212,19 @@ public:
         return;
       }
 
-      // Split line into tokens
-      // May need a more robust tokenizer of we support quoted strings
-      std::vector< std::string > token;
-      boost::split( token, line, boost::is_any_of( "\t " ) );
-
-      if ( token.size() < 2 )
-      {
-        LOG_ERROR( m_logger, "Syntax error in config file at "
-                   << file_path.string() << ":" << m_line_number );
-        m_parse_error = true;
-      }
-
-      if ( token[0] == "include" )
+      // ------------------------------------------------------------------
+      if ( token.value == "include" )
       {
         /*
          * Handle "include" <file-path>
          */
-        const int current_line( m_line_number );
-        LOG_INFO( m_logger, "Including file \"" << token[1] << "\" at "
+        const int current_line( m_line_number ); // save current line number
+
+        LOG_INFO( m_logger, "Including file \"" << m_token_line << "\" at "
                   << file_path.string() << ":" << m_line_number );
 
-        config_path_t filename = token[1];
+        config_path_t filename = m_token_line;
+        flush_line(); // force read of new line
 
         // Prepend current directory if file specified is not absolute.
         if ( ! boost::filesystem::path( filename ).is_absolute() )
@@ -215,36 +232,56 @@ public:
           filename = config_file_dir /filename;
         }
 
-        m_line_number = 0;
-        process_file( filename );
-        m_line_number = current_line;
+        process_file( filename ); // process included file
+        m_line_number = current_line; // restore line number
         continue;
       }
 
-      if ( token[0] == "block" )
+      // ------------------------------------------------------------------
+      if ( token.value == "block" )
       {
         /*
          * Handle "block" <block-name>
          */
+        get_token( in_stream, token ); // get block name
+        if ( token.type != token_t::TK_LHS )
+        {
+          // Unexpected token - syntax error
+          LOG_ERROR( m_logger, "Invalid syntax in line \"" << m_last_line <<
+                     "\" at " << file_path.string() << ":" << m_line_number );
+          m_parse_error = true;
+
+          flush_line(); // force starting a new line
+          continue;
+        }
+
+        // Save current block context and start another
         block_context_t* block_ctxt = new block_context_t();
-        block_ctxt->m_block_name = token[1];
+        block_ctxt->m_block_name = token.value; // block name
         block_ctxt->m_file_name = file_path.string(); // current file name
         block_ctxt->m_start_line = m_line_number;
         block_ctxt->m_previous_context = m_current_context;
-        m_current_context += kwiver::vital::config_block::block_sep + token[1];
+
+        m_current_context += token.value + kwiver::vital::config_block::block_sep;
 
         LOG_INFO( m_logger, "Starting new block \"" << m_current_context
                   << "\" at " << file_path.string() << ":" << m_line_number );
 
         m_block_stack.push_back( block_ctxt );
+
+        flush_line(); // force starting a new line
+
         continue;
       }
 
-      if ( token[0] == "endblock" )
+      // ------------------------------------------------------------------
+      if ( token.value == "endblock" )
       {
         /*
          * Handled "endblock" keyword
          */
+        flush_line(); // force starting a new line
+
         if ( m_block_stack.empty() )
         {
           std::stringstream reason;
@@ -260,63 +297,82 @@ public:
         continue;
       }
 
-      if ( token.size() >= 3 )
+      bool rel_path(false);
+      if ( token.value == "relativepath" )
       {
-        bool rel_path(false);
-        if ( token[0] == "relativepath" )
-        {
-          /*
-           * Handle "relatiepath" <key> = <filepath>
-           * This is a modifier for a config entry
-           */
-          rel_path = true;
-
-          token.erase( token.begin() ); // shift tokens
-        }
-
-        // Now that we have processed all keywords, this must be a key_value set.
-        std::string lhs = token[0];
-        std::string op = token[1];
-        std::string rhs = token[2];
-
-        std::vector< std::string >::iterator tok_iter = (token.begin() + 3);
-        while ( tok_iter != token.end() )
-        {
-          rhs += " " + *tok_iter++;
-        }
-
-        if ( op == ":=" )
-        {
-          /*
-           * Handle local symbol definition
-           * <lhs> := <rhs>
-           */
-          m_symtab.add_entry( lhs, rhs );
-        }
-
-        if ( op == "=" )
-        {
-          /*
-           * Handle config entry definition
-           * <key> = <value>
-           */
-          kwiver::vital::config_block_key_t key = m_current_context +
-            kwiver::vital::config_block::block_sep + lhs;
-
-          std::string val;
-          val = m_token_expander.expand_token( rhs );
-
-          // Add key/value to config
-          m_config_block->set_value( lhs, val );
-        }
+        /*
+         * Handle "relatiepath" <key> = <filepath>
+         * This is a modifier for a config entry
+         */
+        rel_path = true;
+        get_token( in_stream, token ); // get next token
       }
-      else
+
+      // This is supposed to be an LHS token
+      if ( token.type != token_t::TK_LHS )
       {
-        // log file syntax error
-        std::stringstream reason;
-        LOG_ERROR( m_logger, "Invalid syntax in line \"" << line <<
+        // Unexpected token - syntax error
+        LOG_ERROR( m_logger, "Invalid syntax in line \"" << m_last_line <<
                    "\" at " << file_path.string() << ":" << m_line_number );
-          m_parse_error = true;
+        m_parse_error = true;
+
+        flush_line(); // force starting a new line
+        continue;
+      }
+
+      const std::string lhs( token.value );
+      get_token( in_stream, token ); // get next token
+
+      // This is supposed to be an assignment operator
+      if ( token.type != token_t::TK_ASSIGN )
+      {
+        // Unexpected token - syntax error
+        LOG_ERROR( m_logger, "Invalid syntax in line \"" << m_last_line <<
+                   "\" at " << file_path.string() << ":" << m_line_number );
+        m_parse_error = true;
+
+        flush_line(); // force starting a new line
+        continue;
+      }
+
+      const std::string op( token.value ); // save operator string
+      get_token( in_stream, token ); // get next token
+
+      // This is supposed to be the RHS
+      if ( token.type != token_t::TK_RHS )
+      {
+        // Unexpected token - syntax error
+        LOG_ERROR( m_logger, "Invalid syntax in line \"" << m_last_line <<
+                   "\" at " << file_path.string() << ":" << m_line_number );
+        m_parse_error = true;
+
+        flush_line(); // force starting a new line
+        continue;
+      }
+
+      if ( op == ":=" )
+      {
+        /*
+         * Handle local symbol definition
+         * <lhs> := <rhs>
+         */
+        std::string val;
+        val = m_token_expander.expand_token( token.value );
+        m_symtab->add_entry( lhs, val );
+      }
+      else if ( op == "=" )
+      {
+        /*
+         * Handle config entry definition
+         * <key> = <value>
+         */
+        kwiver::vital::config_block_key_t key = m_current_context + lhs;
+        std::string val;
+        val = m_token_expander.expand_token( token.value );
+
+        // Add key/value to config
+        LOG_DEBUG( m_logger, "Adding entry to config: \"" << key << "\" = \"" << val << "\"" );
+        m_config_block->set_value( key, val );
       }
 
     } // end while
@@ -347,8 +403,9 @@ public:
       }
 
       ++ m_line_number; // count line number
+      m_last_line = line; // save for error reporting
 
-      trim( line );
+      trim( line ); // trim off spaces
 
       if ( line.size() == 0 )
       {
@@ -357,14 +414,18 @@ public:
       }
 
       // remove # comments
-      line.erase( line.find_first_of( "#" ) );
-      trim( line );
-
-      // We may have made a blank line
-      if ( line.size() == 0 )
+      size_t idx = line.find_first_of( "#" );
+      if ( idx != std::string::npos )
       {
-        // skip blank line
-        continue;
+        line.erase( line.find_first_of( "#" ) );
+        trim( line );
+
+        // We may have made a blank line
+        if ( line.size() == 0 )
+        {
+          // skip blank line
+          continue;
+        }
       }
 
       // There appears to be something left after removing comments
@@ -376,13 +437,153 @@ public:
   }
 
 
+
+  // ------------------------------------------------------------------
+  /**
+   * @brief Get next token from the input stream.
+   *
+   * @param[in] str Stream to read from
+   * @param token[out] next token from line
+   */
+  void get_token( std::istream& str, token_t & token )
+  {
+    // Test for end of line while processing
+    if ( (m_token_line.size() == 0) && (m_token_state != 0) )
+    {
+      token.type = token_t::TK_EOL; // end of line
+      token.value.clear();
+      m_token_state = 0;
+      return;
+    }
+
+    switch (m_token_state)
+    {
+    case 0: // initial m_token_state, need input
+      if ( ! get_line( str, m_token_line ) )
+      {
+        token.type = token_t::TK_EOF;
+        token.value.clear();
+        m_token_state = 0;
+        return;
+      }
+      // FALL THROUGH
+
+    case 1: // get next token LHS
+    {
+      // Chunk off next item in line. There could be multiple words
+      // before '=' or no '=' on this line
+      //+ problem with := matches foo:bar if terminates on : not :=
+      // extend token
+
+      // find ":="
+      std::string::size_type idx = m_token_line.find_first_of( " \t=" );
+      if (idx == m_token_line.npos ) // did not find delimiter
+      {
+        idx = m_token_line.size(); // use the whole string
+      }
+
+      // Look for ':=' operator
+      if ( (idx > 1) && (m_token_line[idx-1] == ':' ) && (m_token_line[idx] == '=' ) )
+      {
+        --idx;
+      }
+
+      token.value = m_token_line.substr( 0, idx ); // get LHS token
+      token.type = token_t::TK_LHS;
+
+      m_token_line = m_token_line.substr( idx ); // remove token from input
+      ltrim( m_token_line ); // get rid of leading spaces
+
+      if ( ! isalnum( m_token_line[0] ) )
+      {
+        // have found an operator.
+        m_token_state = 2;
+      }
+      else
+      {
+        m_token_state = 1;
+      }
+    }
+    break;
+
+    case 2: // expecting operator first char is non alnum and not space
+    {
+      std::string::size_type idx(0);
+      if ( m_token_line[0] == ':' )
+      {
+        token.type = token_t::TK_ASSIGN;
+        token.value = ":=";
+        idx = 2;
+      }
+      else if ( m_token_line[0] == '=' )
+      {
+        token.type = token_t::TK_ASSIGN;
+        token.value = "=";
+        idx = 1;
+      }
+      else
+      { // this is unexpected
+        std::string::size_type idx = m_token_line.find_first_of( " \t" );
+        if (idx == m_token_line.npos ) // did not find delimiter
+        {
+          idx = m_token_line.size(); // use the whole string
+        }
+
+        token.value = m_token_line.substr( 0, idx );
+
+        ltrim( m_token_line ); // get rid of leading spaces
+        token.type = token_t::TK_LHS;
+        m_token_line = m_token_line.substr( idx ); // remove token from input
+      }
+
+      m_token_line = m_token_line.substr( idx ); // remove token from input
+      ltrim( m_token_line ); // get rid of leading spaces
+
+      m_token_state = 3; // go to RHS state
+    }
+    break;
+
+    case 3: // process rhs
+    {
+      // RHS comes after assignment op and takes all remaining characters
+      token.value = m_token_line;
+      token.type = token_t::TK_RHS;
+
+      // Clear input line and go to init state.
+      m_token_line.clear();
+      m_token_state = 0;
+    }
+    break;
+
+    } // end switch
+
+    //+ std::cout << "--- state: " << m_token_state << "   returning token: \"" << token.value<<"\"\n";
+  }
+
+
+  /**
+   * @brief Flush remaining line in parser.
+   *
+   * This method causes a new line to be read from the file.
+   */
+  void flush_line()
+  {
+    m_token_state = 0;
+  }
+
+
   // ------------------------------------------------------------------
   // -- member data --
+
+
   // nested block stack
   boost::ptr_vector< block_context_t > m_block_stack;
 
-  // current block context
+  // current block context with trailing sep ':'
   std::string m_current_context;
+
+  // Last line read  from file - used for error reporting
+  std::string m_last_line;
 
   // current line number of input file
   int m_line_number;
@@ -396,12 +597,16 @@ public:
 
   // macro provider
   token_expander m_token_expander;
-  token_type_symtab m_symtab;
+  token_type_symtab* m_symtab;
 
   // config block being created
   kwiver::vital::config_block_sptr m_config_block;
 
   kwiver::vital::logger_handle_t m_logger;
+
+  // -- token extractor data
+  int m_token_state;
+  std::string m_token_line;
 };
 
 

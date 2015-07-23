@@ -66,7 +66,7 @@ token_expander::
 add_token_type (kwiver::vital::token_type * tt)
 {
   std::string name( tt->token_type_name() );
-  result_t res = m_typeList.insert ( name, tt );
+  result_t res = m_typeList.insert( name, tt );
 
   return res.second;
 }
@@ -89,7 +89,7 @@ token_expander::
 expand_token( std::string const& initial_string )
 {
   std::string new_value;
-  static const boost::regex exp( "\\$([a-zA-Z][a-zA-Z0-9_]*)\\{([a-zA-Z0-9_]+)?\\}" );
+  static const boost::regex exp( "\\$([a-zA-Z][a-zA-Z0-9_]*)\\{([a-zA-Z0-9_:]+)?\\}" );
 
   boost::match_results< std::string::const_iterator > what;
   std::string::const_iterator start, end;

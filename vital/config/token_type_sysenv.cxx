@@ -39,7 +39,11 @@ namespace vital {
 token_type_sysenv::
 token_type_sysenv()
   : token_type ("SYSENV")
-{ }
+{
+  m_sysinfo.RunCPUCheck();
+  m_sysinfo.RunOSCheck();
+  m_sysinfo.RunMemoryCheck();
+}
 
 
 // ----------------------------------------------------------------
@@ -79,8 +83,37 @@ lookup_entry (std::string const& name, std::string& result)
   // ----------------------------------------------------------------
   else if ("numproc" == name)   // number of processors/cores
   {
-    unsigned int numCPU = m_sysinfo.GetNumberOfPhysicalCPU();
+    unsigned int numCPU = m_sysinfo.GetNumberOfLogicalCPU();
+    // unsigned int numCPU = m_sysinfo.GetNumberOfPhysicalCPU();
     result = boost::lexical_cast< std::string > ( numCPU );
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("totalvirtualmemory" == name)
+  {
+    result = boost::lexical_cast< std::string > ( m_sysinfo.GetTotalVirtualMemory() );
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("availablevirtualmemory" == name)
+  {
+    result = boost::lexical_cast< std::string > ( m_sysinfo.GetAvailableVirtualMemory() );
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("totalphysicalmemory" == name)
+  {
+    result = boost::lexical_cast< std::string > ( m_sysinfo.GetTotalPhysicalMemory() );
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("availablephysicalmemory" == name)
+  {
+    result = boost::lexical_cast< std::string > ( m_sysinfo.GetAvailablePhysicalMemory() );
     return true;
   }
 
@@ -101,15 +134,92 @@ lookup_entry (std::string const& name, std::string& result)
   // ----------------------------------------------------------------
   else if ("osname" == name)
   {
-    result = m_sysinfo.GetOSName();\
+    result = m_sysinfo.GetOSName();
     return true;
   }
 
-  /*
-  const char * GetOSRelease();
-  const char * GetOSVersion();
-  const char * GetOSPlatform();
-  */
+  // ----------------------------------------------------------------
+  else if ("osdescription" == name)
+  {
+    result = m_sysinfo.GetOSDescription();
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("osplatform" == name)
+  {
+    result = m_sysinfo.GetOSPlatform();
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("osversion" == name)
+  {
+    result = m_sysinfo.GetOSVersion();
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("is64bits" == name)
+  {
+    if ( 1 == m_sysinfo.Is64Bits())
+    {
+      result = "TRUE";
+    }
+    else
+    {
+      result = "FALSE";
+    }
+
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("iswindows" == name)
+  {
+    if ( 1 == m_sysinfo.GetOSIsWindows())
+    {
+      result = "TRUE";
+    }
+    else
+    {
+      result = "FALSE";
+    }
+
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("islinux" == name)
+  {
+    if ( 1 == m_sysinfo.GetOSIsLinux())
+    {
+      result = "TRUE";
+    }
+    else
+    {
+      result = "FALSE";
+    }
+
+    return true;
+  }
+
+  // ----------------------------------------------------------------
+  else if ("isapple" == name)
+  {
+    if ( 1 == m_sysinfo.GetOSIsApple())
+    {
+      result = "TRUE";
+    }
+    else
+    {
+      result = "FALSE";
+    }
+
+    return true;
+  }
+
+
   // ----------------------------------------------------------------
 //+  else if ("date" == name)
 //  {

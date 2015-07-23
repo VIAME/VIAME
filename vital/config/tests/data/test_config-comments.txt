@@ -12,4 +12,4 @@ general:yet_more = bar
 
     # A comment with spaces in front of it. Because
 
-final:value = things and stuff
+final:value = things and stuff  # trailing comment
