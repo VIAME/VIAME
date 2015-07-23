@@ -144,6 +144,7 @@ function(kwiver_add_library     name)
   if ( APPLE )
     set( props
       BUNDLE               TRUE
+      MACOSX_RPATH         TRUE
       )
   else()
     set( props
