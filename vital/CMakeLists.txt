@@ -26,6 +26,7 @@ _kwiver_export( ${KWSYS_NAMESPACE} )
 
 if (APPLE)
   set_target_properties( ${KWSYS_NAMESPACE}
+    PROPERTIES
     MACOSX_RPATH          TRUE)
 endif()
 
