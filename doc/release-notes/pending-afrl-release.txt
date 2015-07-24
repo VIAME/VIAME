@@ -22,7 +22,8 @@ refactored and moved from MAPTK to VITAL.
 - Algorithm configuration classes as modified for VITAL
 
 
-The following has been taken from publicly available CMake source code
+The following has been taken from publicly available source code
+copied from CMake project.
 
 - kwiversys library which provides an OS Abstraction Layer
 

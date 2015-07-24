@@ -118,6 +118,10 @@ endif()
 configure_file(${KWIVER_CMAKE_DIR}/setup_VITAL.sh.in
   ${KWIVER_BINARY_DIR}/setup_VITAL.sh )
 
+# install set up script
+install( PROGRAMS   ${KWIVER_BINARY_DIR}/setup_VITAL.sh
+  DESTINATION ${CMAKE_INSTALL_PREFIX} )
+
 add_subdirectory( vital )
 
 ##################################################################

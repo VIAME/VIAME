@@ -83,7 +83,9 @@ The solution is to specify the location of these external files relative to the 
 
 `relativepath data_file = ../data/online_dat.dat`
 
-If the current configuration file is `/home/vital/project/config/blue/foo.config`, the resulting config entry for *data_file* will be `/home/vital/project/config/blue/../data/online.dat`
+If the current configuration file is `/home/vital/project/config/blue/foo.config`, the resulting config entry for **data_file** will be `/home/vital/project/config/blue/../data/online.dat`
+
+The *relativepath* modifier can be applied to any configuration entry, but it only makes sense to use it with relative file specifications.
 
 ## Macro Substitution
 
