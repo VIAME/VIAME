@@ -22,7 +22,7 @@ ExternalProject_Add( sprokit
     -Ddoxy_documentation_output_path:STRING=${KWIVER_DOC_OUTPUT_DIR}
 	-DSPROKIT_ENABLE_TESTING:BOOL=TRUE
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}
-  DEPENDS kwiver_config kwiver_logger
+  DEPENDS vital
   )
 
 ExternalProject_Add_Step( sprokit forcebuild

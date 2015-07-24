@@ -11,7 +11,6 @@
 #
 
 ExternalProject_Add(vital
-  DEPENDS VXL
   PREFIX ${KWIVER_BUILD_PREFIX}
   SOURCE_DIR ${KWIVER_PACKAGES_DIR}/vital
   CMAKE_GENERATOR ${gen}

@@ -117,7 +117,6 @@ endif()
 configure_file(${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_BUILD_INSTALL_PREFIX}/setup_KWIVER.sh )
 
-add_subdirectory( kwiver_util )
 include_directories("${KWSYS_INCLUDE_DIR}")
 
 
@@ -193,8 +192,8 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
 # ================================================================
 # Adding external components
 #
-include(External_vital)
 include(External_VXL)
+include(External_vital)
 include(External_maptk)
 include(External_sprokit)
 
@@ -203,9 +202,6 @@ include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # ================================================================
 link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
-
-# add VIdeo Types Abstraction Layer
-add_subdirectory( vital )
 
 # ==================================================================
 ###

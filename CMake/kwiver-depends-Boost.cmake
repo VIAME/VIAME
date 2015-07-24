@@ -12,6 +12,7 @@ find_package(Boost 1.55 REQUIRED
     ${kwiver_boost_python_package}
     filesystem
     program_options
+    regex
     system
     thread)
 
