@@ -4,16 +4,16 @@
 
 find_package(Doxygen)
 
-cmake_dependent_option(KWIVER_ENABLE_DOCS
+cmake_dependent_option(${CMAKE_PROJECT_NAME}_ENABLE_DOCS
   "Build KWIVER documentation via Doxygen." OFF
   DOXYGEN_FOUND OFF
   )
 cmake_dependent_option(KWIVER_INSTALL_DOCS
   "Install built Doxygen documentation." OFF
-  KWIVER_ENABLE_DOCS OFF
+  ${CMAKE_PROJECT_NAME}_ENABLE_DOCS OFF
   )
 
-if(KWIVER_ENABLE_DOCS)
+if(${CMAKE_PROJECT_NAME}_ENABLE_DOCS)
   add_custom_target(doxygen ALL)
 endif()
 
@@ -31,7 +31,7 @@ endif()
 # be built, period.
 #-
 function(kwiver_create_doxygen name inputdir)
-  if(KWIVER_ENABLE_DOCS)
+  if(${CMAKE_PROJECT_NAME}_ENABLE_DOCS)
     message(STATUS "[doxy-${name}] Creating doxygen targets")
 
     # Constants -- could be moved outside this function?

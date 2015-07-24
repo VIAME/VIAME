@@ -278,7 +278,7 @@ add_subdirectory( tools )
 
 ###
 # Add tests if enabled
-if (KWIVER_ENABLE_TESTS)
+if (VITAL_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
 

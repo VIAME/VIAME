@@ -43,9 +43,9 @@ set(CMAKE_MODULE_PATH      ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 # Set options
 set(KWIVER_LIB_SUFFIX "" CACHE STRING "String suffix appended to the library directory name we install into.")
 
-option( KWIVER_ENABLE_TESTS     "Enable testing" ON)
+option( VITAL_ENABLE_TESTS     "Enable testing" ON)
 
-if (KWIVER_ENABLE_TESTS)
+if (VITAL_ENABLE_TESTS)
   enable_testing()
   include(CTest)
   set(BUILD_TESTING    ON)
@@ -53,9 +53,9 @@ if (KWIVER_ENABLE_TESTS)
 
 endif()
 
-option( KWIVER_ENABLE_PYTHON   "Enable Python bindings" OFF )
+option( VITAL_ENABLE_PYTHON   "Enable Python bindings" OFF )
 
-if (KWIVER_ENABLE_PYTHON)
+if (VITAL_ENABLE_PYTHON)
   set(vital_boost_python_package python)
 endif()
 
@@ -91,7 +91,7 @@ include_directories("${KWIVER_BINARY_DIR}")
 # Why would we ever want to build static?
 option(KWIVER_BUILD_SHARED "Build VITAL packages shared or not" ON)
 
-if (KWIVER_ENABLE_PYTHON)
+if (VITAL_ENABLE_PYTHON)
     find_package(PythonInterp)
     find_package(PythonLibs)
 endif()

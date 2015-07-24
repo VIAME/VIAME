@@ -2,8 +2,8 @@
 # Compiler flags specific to MSVC
 #
 
-option(KWIVER_ENABLE_DLL_WARNINGS "Enable warnings about DLL visibility." OFF)
-if (NOT KWIVER_ENABLE_DLL_WARNINGS)
+option( ${CMAKE_PROJECT_NAME}_ENABLE_DLL_WARNINGS "Enable warnings about DLL visibility." OFF)
+if (NOT ${CMAKE_PROJECT_NAME}_ENABLE_DLL_WARNINGS)
   kwiver_check_compiler_flag(/wd4251)
   kwiver_check_compiler_flag(/wd4275)
 endif()

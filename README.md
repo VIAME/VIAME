@@ -37,10 +37,10 @@ where the path above is the location of your vital source tree.  The ccmake tool
 * CMAKE_BUILD_TYPE -- The compiler mode, usually Debug or Release
 * CMAKE_INSTALL_PREFIX -- The path to where you want the vital build products to install
 * KWIVER_BUILD_SHARED -- Build shared or static libraries
-* KWIVER_ENABLE_DOCS -- Turn on building the Doxygen documentation
-* KWIVER_ENABLE_LOG4CXX -- Enable log4cxx logger back end
-* KWIVER_ENABLE_PYTHON -- Enable the python bindings
-* KWIVER_ENABLE_TESTS -- Build the unit tests
+* VITAL_ENABLE_DOCS -- Turn on building the Doxygen documentation
+* VITAL_ENABLE_LOG4CXX -- Enable log4cxx logger back end
+* VITAL_ENABLE_PYTHON -- Enable the python bindings
+* VITAL_ENABLE_TESTS -- Build the unit tests
 * KWIVER_LIB_SUFFIX -- String suffix appended to the library directory name we install into.
 * KWIVER_USE_BUILD_PLUGIN_DIR -- When building the plugin manager, wether to include the build directory in the sesarch path.
 * VITAL_ENABLE_C_LIB -- Whether to build the c bindings
