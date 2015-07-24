@@ -87,14 +87,14 @@ include_directories("${KWIVER_BINARY_DIR}")
 # ==================================================================
 
 # Why would we ever want to build static?
-option(KWIVER_BUILD_SHARED "Build VITAL packages shared or not" ON)
+option(VITAL_BUILD_SHARED "Build VITAL packages shared or not" ON)
 
 if (VITAL_ENABLE_PYTHON)
     find_package(PythonInterp)
     find_package(PythonLibs)
 endif()
 
-if(KWIVER_BUILD_SHARED)
+if(VITAL_BUILD_SHARED)
   set(LIB_PREFIX ${CMAKE_SHARED_LIBRARY_PREFIX})
   set(LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
 else()
@@ -102,7 +102,7 @@ else()
   set(LIB_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 
-set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
+set(BUILD_SHARED_LIBS ${VITAL_BUILD_SHARED})
 
 # installing system setup script
 if (fletch_ROOT)

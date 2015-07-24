@@ -36,7 +36,7 @@ where the path above is the location of your vital source tree.  The ccmake tool
 
 * CMAKE_BUILD_TYPE -- The compiler mode, usually Debug or Release
 * CMAKE_INSTALL_PREFIX -- The path to where you want the vital build products to install
-* KWIVER_BUILD_SHARED -- Build shared or static libraries
+* VITAL_BUILD_SHARED -- Build shared or static libraries
 * VITAL_ENABLE_DOCS -- Turn on building the Doxygen documentation
 * VITAL_ENABLE_LOG4CXX -- Enable log4cxx logger back end
 * VITAL_ENABLE_PYTHON -- Enable the python bindings
