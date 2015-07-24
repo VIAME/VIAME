@@ -143,7 +143,7 @@ function(kwiver_create_doxygen name inputdir)
       message(STATUS "[doxy-${name}] marking for install")
       kwiver_install(
         DIRECTORY   "${doxy_doc_output_path}/${name}/"
-        DESTINATION "share/doc/kwiver-${KWIVER_VERSION}/${name}"
+        DESTINATION "share/doc/${CMAKE_PROJECT_NAME}-${${CMAKE_PROJECT_NAME}_VERSION}/${name}"
         COMPONENT   documentation
         )
     endif()

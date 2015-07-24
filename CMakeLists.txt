@@ -5,20 +5,17 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-project(KWIVER-VITAL)
+project(VITAL)
 
 include(CMakeDependentOption)
 
 ###
 # VITAL version
 #
-# These symbols need to be "KWIVER" to work with the CMake infrastructure.
-# Other symbole below too.
-#
-set(KWIVER_VERSION_MAJOR 0)
-set(KWIVER_VERSION_MINOR 1)
-set(KWIVER_VERSION_PATCH 0)
-set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
+set(VITAL_VERSION_MAJOR 0)
+set(VITAL_VERSION_MINOR 1)
+set(VITAL_VERSION_PATCH 0)
+set(VITAL_VERSION "${VITAL_VERSION_MAJOR}.${VITAL_VERSION_MINOR}.${VITAL_VERSION_PATCH}")
 
 ##
 # Look for and use Fletch to find dependencies

@@ -148,8 +148,8 @@ function(kwiver_add_library     name)
       )
   else()
     set( props
-      VERSION                  ${KWIVER_VERSION}
-      SOVERSION                ${KWIVER_VERSION}
+      VERSION                  ${$CMAKE_PROJECT_NAME}_VERSION}
+      SOVERSION                ${$CMAKE_PROJECT_NAME}_VERSION}
       )
   endif()
   set_target_properties("${name}"
