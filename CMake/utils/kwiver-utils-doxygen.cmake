@@ -8,7 +8,7 @@ cmake_dependent_option(${CMAKE_PROJECT_NAME}_ENABLE_DOCS
   "Build KWIVER documentation via Doxygen." OFF
   DOXYGEN_FOUND OFF
   )
-cmake_dependent_option(KWIVER_INSTALL_DOCS
+cmake_dependent_option(${CMAKE_PROJECT_NAME}_INSTALL_DOCS
   "Install built Doxygen documentation." OFF
   ${CMAKE_PROJECT_NAME}_ENABLE_DOCS OFF
   )
@@ -139,7 +139,7 @@ function(kwiver_create_doxygen name inputdir)
       doxygen-${name}
       )
 
-    if(KWIVER_INSTALL_DOCS)
+    if(${CMAKE_PROJECT_NAME}_INSTALL_DOCS)
       message(STATUS "[doxy-${name}] marking for install")
       kwiver_install(
         DIRECTORY   "${doxy_doc_output_path}/${name}/"
