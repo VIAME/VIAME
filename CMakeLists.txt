@@ -32,10 +32,6 @@ set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/VITAL_packaging")
 set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/VITAL_packaging")
 set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
-# root directories
-set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
-set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
-
 set(CMAKE_MODULE_PATH      ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 
 # ================================================================
@@ -81,8 +77,8 @@ endif()
 
 # ================================================================
 # project global includes
-include_directories("${KWIVER_SOURCE_DIR}")
-include_directories("${KWIVER_BINARY_DIR}")
+include_directories("${VITAL_SOURCE_DIR}")
+include_directories("${VITAL_BINARY_DIR}")
 
 # ==================================================================
 
@@ -111,10 +107,10 @@ if (fletch_ROOT)
 endif()
 
 configure_file(${KWIVER_CMAKE_DIR}/setup_VITAL.sh.in
-  ${KWIVER_BINARY_DIR}/setup_VITAL.sh )
+  ${VITAL_BINARY_DIR}/setup_VITAL.sh )
 
 # install set up script
-install( PROGRAMS   ${KWIVER_BINARY_DIR}/setup_VITAL.sh
+install( PROGRAMS   ${VITAL_BINARY_DIR}/setup_VITAL.sh
   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 add_subdirectory( vital )
@@ -132,23 +128,23 @@ get_property(vital_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " vital_libs "${vital_libs}")
 
 # Configure build-tree CMake config file and export associated targets file
-set(KWIVER_CONFIG_FILE         "${KWIVER_BINARY_DIR}/vital-config.cmake")
+set(KWIVER_CONFIG_FILE         "${VITAL_BINARY_DIR}/vital-config.cmake")
 set(VITAL_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(VITAL_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 set(module_path                "${KWIVER_CMAKE_DIR}")
 
 kwiver_configure_file(vital-config
-  "${KWIVER_SOURCE_DIR}/CMake/vital-config.cmake.in"
+  "${VITAL_SOURCE_DIR}/CMake/vital-config.cmake.in"
   "${KWIVER_CONFIG_FILE}"
   VITAL_SOURCE_DIR
   VITAL_BINARY_DIR
   module_path
   vital_libs
   )
-kwiver_export_targets("${KWIVER_BINARY_DIR}/vital-config-targets.cmake")
+kwiver_export_targets("${VITAL_BINARY_DIR}/vital-config-targets.cmake")
 
 # Configure install-tree CMake config file and export associated targets file
-set(VITAL_CONFIG_INSTALL_FILE "${KWIVER_BINARY_DIR}/vital-config-install.cmake")
+set(VITAL_CONFIG_INSTALL_FILE "${VITAL_BINARY_DIR}/vital-config-install.cmake")
 kwiver_configure_file(vital-install-config
   "${VITAL_SOURCE_DIR}/CMake/vital-config-install.cmake.in"
   "${VITAL_CONFIG_INSTALL_FILE}"
