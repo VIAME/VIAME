@@ -183,13 +183,13 @@ function(kwiver_add_library     name)
   endif()
 
   _kwiver_export(${name})
-  # KWIVER_LIB_SUFFIX should only apply to installation location, not the build
+  # LIB_SUFFIX should only apply to installation location, not the build
   # locations that properties above this point pertain to.
   kwiver_install(
     TARGETS             "${name}"
     ${exports}
-    ARCHIVE DESTINATION lib${KWIVER_LIB_SUFFIX}${library_subdir}
-    LIBRARY DESTINATION lib${KWIVER_LIB_SUFFIX}${library_subdir}
+    ARCHIVE DESTINATION lib${LIB_SUFFIX}${library_subdir}
+    LIBRARY DESTINATION lib${LIB_SUFFIX}${library_subdir}
     RUNTIME DESTINATION bin${library_subdir}
     COMPONENT           ${component}
     )

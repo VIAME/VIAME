@@ -41,8 +41,6 @@ set(CMAKE_MODULE_PATH      ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 # ================================================================
 ###
 # Set options
-set(KWIVER_LIB_SUFFIX "" CACHE STRING "String suffix appended to the library directory name we install into.")
-
 option( VITAL_ENABLE_TESTS     "Enable testing" ON)
 
 if (VITAL_ENABLE_TESTS)
@@ -124,7 +122,7 @@ add_subdirectory( vital )
 ##################################################################
 # Top level installation
 #
-set(kwiver_cmake_install_dir "lib${KWIVER_LIB_SUFFIX}/CMake/vital")
+set(kwiver_cmake_install_dir "lib${LIB_SUFFIX}/CMake/vital")
 
 # Install rules for CMake utilities
 ## include( kwiver-install-utils )
