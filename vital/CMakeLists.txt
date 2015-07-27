@@ -183,7 +183,7 @@ target_link_libraries( vital
 # This has to happen after plugin creation so as to be able to statically link
 # in plugin libraries when building static.
 #
-option(KWIVER_USE_BUILD_PLUGIN_DIR
+option(VITAL_USE_BUILD_PLUGIN_DIR
   "Whether to include the build-tree plugin directory to the default plugin path list"
   OFF
   )
@@ -257,7 +257,7 @@ foreach( p IN LISTS VITAL_MODULE_PATHS )
   set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${p} )
 endforeach(p)
 
-if (KWIVER_USE_BUILD_PLUGIN_DIR)
+if (VITAL_USE_BUILD_PLUGIN_DIR)
   set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${build_module_paths})
 endif()
 

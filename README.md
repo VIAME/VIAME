@@ -41,7 +41,7 @@ where the path above is the location of your vital source tree.  The ccmake tool
 * VITAL_ENABLE_LOG4CXX -- Enable log4cxx logger back end
 * VITAL_ENABLE_PYTHON -- Enable the python bindings
 * VITAL_ENABLE_TESTS -- Build the unit tests
-* KWIVER_USE_BUILD_PLUGIN_DIR -- When building the plugin manager, wether to include the build directory in the sesarch path.
+* VITAL_USE_BUILD_PLUGIN_DIR -- When building the plugin manager, wether to include the build directory in the sesarch path.
 * VITAL_ENABLE_C_LIB -- Whether to build the c bindings
 * fletch_DIR -- Build directory for the Fletch support packages.
 
