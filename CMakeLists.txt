@@ -128,14 +128,14 @@ get_property(vital_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " vital_libs "${vital_libs}")
 
 # Configure build-tree CMake config file and export associated targets file
-set(KWIVER_CONFIG_FILE         "${VITAL_BINARY_DIR}/vital-config.cmake")
+set(VITAL_CONFIG_FILE         "${VITAL_BINARY_DIR}/vital-config.cmake")
 set(VITAL_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(VITAL_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 set(module_path                "${KWIVER_CMAKE_DIR}")
 
 kwiver_configure_file(vital-config
   "${VITAL_SOURCE_DIR}/CMake/vital-config.cmake.in"
-  "${KWIVER_CONFIG_FILE}"
+  "${VITAL_CONFIG_FILE}"
   VITAL_SOURCE_DIR
   VITAL_BINARY_DIR
   module_path
@@ -153,7 +153,7 @@ kwiver_configure_file(vital-install-config
   )
 
 kwiver_install(
-  FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
+  FILES       "${VITAL_CONFIG_INSTALL_FILE}"
   DESTINATION "${kwiver_cmake_install_dir}"
   RENAME      vital-config.cmake
   )
