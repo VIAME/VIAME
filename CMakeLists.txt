@@ -30,9 +30,9 @@ endif()
 #
 set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/VITAL_packaging")
 set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/VITAL_packaging")
-set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
+set(VITAL_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
-set(CMAKE_MODULE_PATH      ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH      ${VITAL_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 
 # ================================================================
 ###
@@ -106,7 +106,7 @@ if (fletch_ROOT)
     set(SET_FLETCH_PYTHON_PATH "export PYTHONPATH=${fletch_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
 endif()
 
-configure_file(${KWIVER_CMAKE_DIR}/setup_VITAL.sh.in
+configure_file(${VITAL_CMAKE_DIR}/setup_VITAL.sh.in
   ${VITAL_BINARY_DIR}/setup_VITAL.sh )
 
 # install set up script
@@ -131,7 +131,7 @@ string(REPLACE ";" " " vital_libs "${vital_libs}")
 set(VITAL_CONFIG_FILE         "${VITAL_BINARY_DIR}/vital-config.cmake")
 set(VITAL_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(VITAL_BINARY_DIR           "${CMAKE_BINARY_DIR}")
-set(module_path                "${KWIVER_CMAKE_DIR}")
+set(module_path                "${VITAL_CMAKE_DIR}")
 
 kwiver_configure_file(vital-config
   "${VITAL_SOURCE_DIR}/CMake/vital-config.cmake.in"
