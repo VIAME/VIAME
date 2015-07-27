@@ -28,8 +28,6 @@ endif()
 ###
 # project specific directories
 #
-set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/VITAL_packaging")
-set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/VITAL_packaging")
 set(VITAL_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
 set(CMAKE_MODULE_PATH      ${VITAL_CMAKE_DIR} ${CMAKE_MODULE_PATH})
