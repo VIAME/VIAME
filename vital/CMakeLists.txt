@@ -1,9 +1,6 @@
 #
 # Top level build for VITAL
 #
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-fvisibility=hidden KWIVER_HAVE_GCC_VISIBILITY)
-
 include( GenerateExportHeader )
 
 ###
