@@ -244,7 +244,7 @@ endif()
 
 ## The modules subdirectory is where the kwiver_add_module() macro generates its product
 set( install_module_paths "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/modules" )
-set( build_module_paths "${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules" )
+set( build_module_paths "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules" )
 
 # assemle total search path
 set( VITAL_DEFAULT_MODULE_PATHS ${install_module_paths})

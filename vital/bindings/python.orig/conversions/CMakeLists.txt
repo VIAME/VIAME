@@ -13,7 +13,7 @@ include_directories( SYSTEM ${PYTHON_INCLUDE_DIR} )
 # need access to sprokit private includes
 include_directories( ${KWIVER_PACKAGES_DIR}/sprokit/src )
 
-include_directories( ${KWIVER_BINARY_DIR}/kwiver )
+include_directories( ${VITAL_BINARY_DIR}/kwiver )
 
 # ==========================================
 add_library( kwiver_python_convert_homography
@@ -42,5 +42,5 @@ add_dependencies( kwiver_python_convert_homography
 # INSTALL
 #
 install( TARGETS kwiver_python_convert_homography
-  DESTINATION ${KWIVER_BUILD_INSTALL_PREFIX}/lib/python/site-packages/kwiver/processes
+  DESTINATION ${VITAL_BUILD_INSTALL_PREFIX}/lib/python/site-packages/kwiver/processes
   )
