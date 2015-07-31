@@ -45,7 +45,7 @@
 #include <vital/algo/algorithm.h>
 #include <vital/types/feature_set.h>
 #include <vital/types/match_set.h>
-#include <vital/types/matrix.h>
+#include <vital/types/essential_matrix.h>
 #include <vital/types/camera_intrinsics.h>
 
 namespace kwiver {
@@ -72,7 +72,7 @@ public:
    * \param [in]  inlier_scale error distance tolerated for matches to be inliers
    */
   virtual
-  kwiver::vital::matrix_3x3d
+  kwiver::vital::essential_matrix_sptr
   estimate(kwiver::vital::feature_set_sptr feat1,
            kwiver::vital::feature_set_sptr feat2,
            kwiver::vital::match_set_sptr matches,
@@ -92,7 +92,7 @@ public:
    * \param [in]  inlier_scale error distance tolerated for matches to be inliers
    */
   virtual
-  kwiver::vital::matrix_3x3d
+  kwiver::vital::essential_matrix_sptr
   estimate(kwiver::vital::feature_set_sptr feat1,
            kwiver::vital::feature_set_sptr feat2,
            kwiver::vital::match_set_sptr matches,
@@ -110,7 +110,7 @@ public:
    * \param [in]  inlier_scale error distance tolerated for matches to be inliers
    */
   virtual
-  kwiver::vital::matrix_3x3d
+  kwiver::vital::essential_matrix_sptr
   estimate(const std::vector<kwiver::vital::vector_2d>& pts1,
            const std::vector<kwiver::vital::vector_2d>& pts2,
            const kwiver::vital::camera_intrinsics_d &cal,
@@ -128,7 +128,7 @@ public:
    * \param [in]  inlier_scale error distance tolerated for matches to be inliers
    */
   virtual
-  kwiver::vital::matrix_3x3d
+  kwiver::vital::essential_matrix_sptr
   estimate(const std::vector<kwiver::vital::vector_2d>& pts1,
            const std::vector<kwiver::vital::vector_2d>& pts2,
            const kwiver::vital::camera_intrinsics_d &cal1,
