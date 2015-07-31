@@ -1,8 +1,0 @@
-# Build the appropriate include directory
-# This file currently being installed to: {install_root}/lib/cmake/kwiver/
-get_filename_component(KWIVER_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
-set(KWIVER_INCLUDE_DIRS "${KWIVER_ROOT}/include")
-set(KWIVER_LIBRARIES @kwiver_libs@)
-
-# Include the library targets
-include("${CMAKE_CURRENT_LIST_DIR}/kwiver-config-targets.cmake")

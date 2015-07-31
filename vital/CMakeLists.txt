@@ -1,9 +1,6 @@
 #
 # Top level build for VITAL
 #
-include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-fvisibility=hidden KWIVER_HAVE_GCC_VISIBILITY)
-
 include( GenerateExportHeader )
 
 ###
@@ -185,7 +182,7 @@ target_link_libraries( vital
 # This has to happen after plugin creation so as to be able to statically link
 # in plugin libraries when building static.
 #
-option(KWIVER_USE_BUILD_PLUGIN_DIR
+option(VITAL_USE_BUILD_PLUGIN_DIR
   "Whether to include the build-tree plugin directory to the default plugin path list"
   OFF
   )
@@ -237,7 +234,7 @@ if (WIN32)  # Windows puts DLLs in bin/CONFIG/
   set(path_prefix "L")
 else()  # Other Unix systems
   set(shared_lib_dir "/lib")
-  set(lib_dir_suffix "${KWIVER_LIB_SUFFIX}")
+  set(lib_dir_suffix "${LIB_SUFFIX}")
   set(path_sep ":")
   set(path_prefix)
 endif()
@@ -249,7 +246,7 @@ endif()
 
 ## The modules subdirectory is where the kwiver_add_module() macro generates its product
 set( install_module_paths "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/modules" )
-set( build_module_paths "${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules" )
+set( build_module_paths "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules" )
 
 # assemle total search path
 set( VITAL_DEFAULT_MODULE_PATHS ${install_module_paths})
@@ -259,7 +256,7 @@ foreach( p IN LISTS VITAL_MODULE_PATHS )
   set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${p} )
 endforeach(p)
 
-if (KWIVER_USE_BUILD_PLUGIN_DIR)
+if (VITAL_USE_BUILD_PLUGIN_DIR)
   set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${build_module_paths})
 endif()
 
@@ -280,7 +277,7 @@ add_subdirectory( tools )
 
 ###
 # Add tests if enabled
-if (KWIVER_ENABLE_TESTS)
+if (VITAL_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
 

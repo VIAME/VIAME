@@ -63,6 +63,6 @@ target_link_libraries( vital_config
 
 ###
 # Add tests if enbled
-if (KWIVER_ENABLE_TESTS)
+if (VITAL_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()

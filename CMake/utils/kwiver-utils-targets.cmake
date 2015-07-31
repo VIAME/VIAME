@@ -105,7 +105,7 @@ function(kwiver_add_executable name)
   add_executable(${name} ${ARGN})
   set_target_properties(${name}
     PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${KWIVER_BINARY_DIR}/bin"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
   if(NOT component)
@@ -148,15 +148,15 @@ function(kwiver_add_library     name)
       )
   else()
     set( props
-      VERSION                  ${KWIVER_VERSION}
-      SOVERSION                ${KWIVER_VERSION}
+      VERSION                  ${${CMAKE_PROJECT_NAME}_VERSION}
+      SOVERSION                ${${CMAKE_PROJECT_NAME}_VERSION}
       )
   endif()
   set_target_properties("${name}"
     PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${KWIVER_BINARY_DIR}/lib${library_subdir}"
-      LIBRARY_OUTPUT_DIRECTORY "${KWIVER_BINARY_DIR}/lib${library_subdir}"
-      RUNTIME_OUTPUT_DIRECTORY "${KWIVER_BINARY_DIR}/bin${library_subdir}"
+      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${library_subdir}"
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${library_subdir}"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}"
       ${props}
     )
   generate_export_header( ${name}
@@ -167,9 +167,9 @@ function(kwiver_add_library     name)
     string(TOUPPER "${config}" upper_config)
     set_target_properties("${name}"
       PROPERTIES
-        "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${KWIVER_BINARY_DIR}/lib/${config}${library_subdir}"
-        "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${KWIVER_BINARY_DIR}/lib/${config}${library_subdir}"
-        "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${KWIVER_BINARY_DIR}/bin/${config}${library_subdir}"
+        "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib/${config}${library_subdir}"
+        "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib/${config}${library_subdir}"
+        "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/bin/${config}${library_subdir}"
       )
   endforeach()
 
@@ -183,13 +183,13 @@ function(kwiver_add_library     name)
   endif()
 
   _kwiver_export(${name})
-  # KWIVER_LIB_SUFFIX should only apply to installation location, not the build
+  # LIB_SUFFIX should only apply to installation location, not the build
   # locations that properties above this point pertain to.
   kwiver_install(
     TARGETS             "${name}"
     ${exports}
-    ARCHIVE DESTINATION lib${KWIVER_LIB_SUFFIX}${library_subdir}
-    LIBRARY DESTINATION lib${KWIVER_LIB_SUFFIX}${library_subdir}
+    ARCHIVE DESTINATION lib${LIB_SUFFIX}${library_subdir}
+    LIBRARY DESTINATION lib${LIB_SUFFIX}${library_subdir}
     RUNTIME DESTINATION bin${library_subdir}
     COMPONENT           ${component}
     )

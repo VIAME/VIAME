@@ -56,7 +56,7 @@ function(kwiver_configure_file name source dest)
             "-D__SOURCE_PATH__:PATH=${source}"
             "-D__TEMP_PATH__:PATH=${temp_file}"
             "-D__OUTPUT_PATH__:PATH=${dest}"
-            -P "${KWIVER_SOURCE_DIR}/CMake/tools/kwiver-configure-helper.cmake"
+            -P "${CMAKE_SOURCE_DIR}/CMake/tools/kwiver-configure-helper.cmake"
     DEPENDS
             "${source}" ${mcf_DEPENDS}
     WORKING_DIRECTORY
