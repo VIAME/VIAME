@@ -49,7 +49,7 @@ namespace algo {
 
 
 /// Estimate an essential matrix from corresponding features
-matrix_3x3d
+essential_matrix_sptr
 estimate_essential_matrix
 ::estimate(feature_set_sptr feat1,
            feature_set_sptr feat2,
@@ -74,7 +74,7 @@ estimate_essential_matrix
 
 
 /// Estimate an essential matrix from corresponding features
-matrix_3x3d
+essential_matrix_sptr
 estimate_essential_matrix
 ::estimate(feature_set_sptr feat1,
            feature_set_sptr feat2,
@@ -88,7 +88,7 @@ estimate_essential_matrix
 
 
 /// Estimate an essential matrix from corresponding features
-matrix_3x3d
+essential_matrix_sptr
 estimate_essential_matrix
 ::estimate(const std::vector<vector_2d>& pts1,
            const std::vector<vector_2d>& pts2,

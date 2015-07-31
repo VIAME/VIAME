@@ -78,6 +78,7 @@ set( vital_public_headers
   types/covariance.h
   types/descriptor.h
   types/descriptor_set.h
+  types/essential_matrix.h
   types/feature.h
   types/feature_set.h
   types/geo_lat_lon.h
@@ -136,6 +137,7 @@ set( vital_sources
 
   types/camera.cxx
   types/camera_intrinsics.cxx
+  types/essential_matrix.cxx
   types/feature.cxx
   types/geo_lat_lon.cxx
   types/homography.cxx
