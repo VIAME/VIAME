@@ -44,7 +44,6 @@
 
 #include "covariance.h"
 #include "vector.h"
-#include "similarity.h"
 
 namespace kwiver {
 namespace vital {
@@ -70,18 +69,12 @@ public:
   /// Create a clone of this landmark object
   virtual landmark_sptr clone() const = 0;
 
-  /// Access the type info of the underlying data (double or float)
-  virtual const std::type_info& data_type() const = 0;
-
   /// Accessor for the world coordinates
   virtual vector_3d loc() const = 0;
   /// Accessor for the landmark scale
   virtual double scale() const = 0;
   /// Accessor for the covariance
   virtual covariance_3d covar() const = 0;
-
-  /// Apply a similarity transformation to the landmark in place
-  virtual void transform( const similarity_d& xform ) = 0;
 };
 
 /// output stream operator for a base class landmark
@@ -113,10 +106,7 @@ public:
   { return landmark_sptr( new landmark_< T > ( *this ) ); }
 
   /// Access staticly available type of underlying data (double or float)
-  static const std::type_info& static_data_type() { return typeid( T ); }
-
-  /// Access the type info of the underlying data (double or float)
-  virtual const std::type_info& data_type() const { return typeid( T ); }
+  static const std::type_info& data_type() { return typeid( T ); }
 
   /// Accessor for the world coordinates using underlying data type
   const Eigen::Matrix< T, 3, 1 >& get_loc() const { return loc_; }
@@ -147,14 +137,6 @@ public:
 
   /// Set the covariance matrix of the landmark location
   void set_covar( const covariance_< 3, T >& covar ) { covar_ = covar; }
-
-  /// Apply a similarity transformation to the landmark in place
-  virtual void transform( const similarity_d& xform )
-  { apply_transform( similarity_< T > ( xform ) ); }
-
-  /// Transform the landmark by applying a similarity transformation in place
-  landmark_< T >& apply_transform( const similarity_< T >& xform );
-
 
 protected:
   /// A vector representing the 3D position of the landmark

@@ -37,7 +37,6 @@
 #include <vital/types/camera.h>
 #include <vital/io/eigen_io.h>
 #include <vital/types/matrix.h>
-#include <vital/types/transform.h>
 #include <Eigen/Geometry>
 
 #include <iomanip>
@@ -136,19 +135,6 @@ camera_<T>
 }
 
 
-/// Transform the camera by applying a similarity transformation in place
-template < typename T >
-camera_< T >&
-camera_< T >
-::apply_transform( const similarity_< T >& xform )
-{
-  this->center_ = xform * this->center_;
-  this->orientation_ = this->orientation_ * xform.rotation().inverse();
-  this->center_covar_ = vital::transform( this->center_covar_, xform );
-  return *this;
-}
-
-
 template < typename T >
 std::ostream&
 operator<<( std::ostream& s, const camera_< T >& k )
@@ -192,96 +178,18 @@ operator>>( std::istream& s, camera_< T >& k )
 }
 
 
-/// Generate an interpolated camera between \c A and \c B by a given fraction \c f
-template < typename T >
-camera_< T > interpolate_camera( camera_< T > const& A, camera_< T > const& B, T f )
-{
-  T f1 = static_cast< T > ( 1.0 ) - f;
-
-  // interpolate intrinsics
-  camera_intrinsics_< T > k1 = A.get_intrinsics(),
-                          k2 = B.get_intrinsics(),
-                          k;
-
-  T focal_len = f1 * k1.focal_length() + f * k2.focal_length();
-  Eigen::Matrix< T, 2, 1 > principal_point = f1 * k1.principal_point() + f * k2.principal_point();
-  T aspect_ratio = f1 * k1.aspect_ratio() + f * k2.aspect_ratio();
-  T skew = f1 * k1.skew() + f * k2.skew();
-  k = camera_intrinsics_< T > ( focal_len, principal_point, aspect_ratio, skew );
-
-  // interpolate center
-  Eigen::Matrix< T, 3, 1 > c = f1 * A.get_center() + f * B.get_center();
-
-  // interpolate rotation
-  rotation_< T > R = interpolate_rotation( A.get_rotation(), B.get_rotation(), f );
-
-  return camera_< T > ( c, R, k );
-}
-
-
-/// Generate N evenly interpolated cameras in between \c A and \c B
-template < typename T >
-void
-interpolated_cameras( camera_< T > const&           A,
-                      camera_< T > const&           B,
-                      size_t                        n,
-                      std::vector< camera_< T > >&  interp_cams )
-{
-  interp_cams.reserve( interp_cams.capacity() + n );
-  size_t denom = n + 1;
-  for ( size_t i = 1; i < denom; ++i )
-  {
-    interp_cams.push_back( interpolate_camera< T > ( A, B, static_cast< T > ( i ) / denom ) );
-  }
-}
-
-
 /// \cond DoxygenSuppress
 #define INSTANTIATE_CAMERA( T )                                                      \
   template class VITAL_EXPORT camera_< T >;                                      \
   template VITAL_EXPORT std::ostream&                                            \
   operator<<( std::ostream& s, const camera_< T >& c );                              \
   template VITAL_EXPORT std::istream&                                            \
-  operator>>( std::istream& s, camera_< T >& c );                                    \
-  template VITAL_EXPORT camera_< T > interpolate_camera( camera_< T > const & A, \
-                                                             camera_< T > const & B, \
-                                                             T f );                  \
-  template VITAL_EXPORT void interpolated_cameras( camera_< T > const & A,       \
-                                                       camera_< T > const & B,       \
-                                                       size_t n,                     \
-                                                       std::vector< camera_< T > > &interp_cams )
+  operator>>( std::istream& s, camera_< T >& c );
 
 INSTANTIATE_CAMERA( double );
 INSTANTIATE_CAMERA( float );
 
 #undef INSTANTIATE_CAMERA
 /// \endcond
-
-
-/// Genreate an interpolated camera from sptrs
-camera_sptr
-interpolate_camera( camera_sptr A, camera_sptr B, double f )
-{
-  double f1 = 1.0 - f;
-
-  // interpolate intrinsics
-  camera_intrinsics_d k1 = A->intrinsics(),
-                      k2 = B->intrinsics(),
-                      k;
-  double focal_len = f1 * k1.focal_length() + f * k2.focal_length();
-  vector_2d principal_point = f1 * k1.principal_point() + f * k2.principal_point();
-  double aspect_ratio = f1 * k1.aspect_ratio() + f * k2.aspect_ratio();
-  double skew = f1 * k1.skew() + f * k2.skew();
-
-  k = camera_intrinsics_d( focal_len, principal_point, aspect_ratio, skew );
-
-  // interpolate center
-  vector_3d c = f1 * A->center() + f * B->center();
-
-  // interpolate rotation
-  rotation_d R = interpolate_rotation( A->rotation(), B->rotation(), f );
-
-  return camera_sptr( new camera_< double > ( c, R, k ) );
-}
 
 } } // end namespace

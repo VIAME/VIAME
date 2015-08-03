@@ -89,9 +89,6 @@ public:
   virtual rotation_d rotation() const = 0;
   /// Accessor for the intrinsics
   virtual camera_intrinsics_d intrinsics() const = 0;
-
-  /// Apply a similarity transformation to the camera in place
-  virtual void transform( const similarity_d& xform ) = 0;
 };
 
 /// output stream operator for a base class camera
@@ -226,14 +223,6 @@ public:
    */
   T depth(const Eigen::Matrix<T, 3, 1>& pt) const;
 
-  /// Apply a similarity transformation to the camera in place
-  virtual void transform( const similarity_d& xform )
-  { apply_transform( similarity_< T > ( xform ) ); }
-
-  /// Transform the camera by applying a similarity transformation in place
-  camera_< T >& apply_transform( const similarity_< T >& xform );
-
-
 protected:
   /// The camera center of project
   Eigen::Matrix< T, 3, 1 > center_;
@@ -267,44 +256,6 @@ VITAL_EXPORT std::ostream& operator<<( std::ostream& s, const camera_< T >& c );
  */
 template < typename T >
 VITAL_EXPORT std::istream& operator>>( std::istream& s, camera_< T >& c );
-
-
-/// Generate an interpolated camera between \c A and \c B by a given fraction \c f
-/**
- * \c f should be 0 < \c f < 1. A value outside this range is valid, but \c f
- * must not be 0.
- *
- * \param A Camera to interpolate from.
- * \param B Camera to interpolate to.
- * \param f Decimal fraction in between A and B for the returned camera to represent.
- */
-template < typename T >
-VITAL_EXPORT
-camera_< T > interpolate_camera( camera_< T > const& A, camera_< T > const& B, T f );
-
-
-/// Genreate an interpolated camera from sptrs
-/**
- * \relatesalso interpolate_camera
- *
- * TODO: Deprecate this function by replacing its use with a tiered dynamic
- * cast to either camera_<double> or camera_<float>, using the one that
- * doesn't produce a NULL pointer.
- */
-VITAL_EXPORT
-camera_sptr interpolate_camera( camera_sptr A, camera_sptr B, double f );
-
-
-/// Generate N evenly interpolated cameras in between \c A and \c B
-/**
- * \c n must be >= 1.
- */
-template < typename T >
-VITAL_EXPORT
-void interpolated_cameras( camera_< T > const&          A,
-                           camera_< T > const&          B,
-                           size_t                       n,
-                           std::vector< camera_< T > >& interp_cams );
 
 
 }
