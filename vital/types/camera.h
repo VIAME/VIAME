@@ -88,7 +88,7 @@ public:
   /// Accessor for the rotation
   virtual rotation_d rotation() const = 0;
   /// Accessor for the intrinsics
-  virtual camera_intrinsics_d intrinsics() const = 0;
+  virtual camera_intrinsics_sptr intrinsics() const = 0;
 };
 
 /// output stream operator for a base class camera
@@ -108,16 +108,34 @@ public:
   camera_< T > ( )
   : center_( T( 0 ), T( 0 ), T( 0 ) ),
   orientation_(),
-  intrinsics_()
+  intrinsics_( new simple_camera_intrinsics() )
   { }
 
   /// Constructor - from camera center, rotation, and intrinsics
+  /**
+   *  This constructor keeps a shared pointer to the camera intrinsics object
+   *  passed in, unless it is null.  If null it creates a new simple_camera_intrinsics
+   */
   camera_< T > ( const Eigen::Matrix< T, 3, 1 > &center,
                  const rotation_< T > &rotation,
-                 const camera_intrinsics_< T >& intrinsics = camera_intrinsics_< T > () )
+                 camera_intrinsics_sptr intrinsics = camera_intrinsics_sptr() )
   : center_( center ),
   orientation_( rotation ),
-  intrinsics_( intrinsics )
+  intrinsics_( !intrinsics
+               ? camera_intrinsics_sptr(new simple_camera_intrinsics())
+               : intrinsics )
+  { }
+
+  /// Constructor - from camera center, rotation, and intrinsics
+  /**
+   *  This constructor make a clone of the camera intrinsics object passed in
+   */
+  camera_< T > ( const Eigen::Matrix< T, 3, 1 > &center,
+                 const rotation_< T > &rotation,
+                 const camera_intrinsics& intrinsics )
+  : center_( center ),
+  orientation_( rotation ),
+  intrinsics_( intrinsics.clone() )
   { }
 
   /// Constructor - from base class
@@ -125,7 +143,7 @@ public:
   : center_( base.center().template cast< T >() ),
     center_covar_( static_cast< covariance_< 3, T> >( base.center_covar() ) ),
     orientation_( static_cast< rotation_< T > >( base.rotation() ) ),
-    intrinsics_( static_cast< camera_intrinsics_< T > >( base.intrinsics() ) )
+    intrinsics_( base.intrinsics() )
   {}
 
   /// Copy Constructor from another type
@@ -134,7 +152,7 @@ public:
   : center_( other.get_center().template cast< T > () ),
   center_covar_( static_cast< covariance_< 3, T > > ( other.get_center_covar() ) ),
   orientation_( static_cast< rotation_< T > > ( other.get_rotation() ) ),
-  intrinsics_( static_cast< camera_intrinsics_< T > > ( other.get_intrinsics() ) )
+  intrinsics_( other.get_intrinsics() )
   { }
 
   /// Create a clone of this camera object
@@ -164,8 +182,8 @@ public:
   { return static_cast< rotation_d > ( orientation_ ); }
 
   /// Accessor for the intrinsics
-  virtual camera_intrinsics_d intrinsics() const
-  { return static_cast< camera_intrinsics_d > ( intrinsics_ ); }
+  virtual camera_intrinsics_sptr intrinsics() const
+  { return intrinsics_; }
 
   /// Accessor for the camera center of projection using underlying data type
   const Eigen::Matrix< T, 3, 1 >& get_center() const { return center_; }
@@ -180,7 +198,7 @@ public:
   const rotation_< T >& get_rotation() const { return orientation_; }
 
   /// Accessor for the intrinsics using underlying data type
-  const camera_intrinsics_< T >& get_intrinsics() const { return intrinsics_; }
+  camera_intrinsics_sptr get_intrinsics() const { return intrinsics_; }
 
   /// Set the camera center of projection
   void set_center( const Eigen::Matrix< T, 3, 1 >& center ) { center_ = center; }
@@ -199,7 +217,12 @@ public:
   void set_rotation( const rotation_< T >& rotation ) { orientation_ = rotation; }
 
   /// Set the intrinsics
-  void set_intrinsics( const camera_intrinsics_< T >& intrinsics ) { intrinsics_ = intrinsics; }
+  void set_intrinsics( const camera_intrinsics_sptr& intrinsics )
+  {
+    intrinsics_ = ! intrinsics
+                  ? camera_intrinsics_sptr(new simple_camera_intrinsics())
+                  : intrinsics;
+  }
 
   /// Rotate the camera about its center such that it looks at the given point.
   /**
@@ -231,7 +254,7 @@ protected:
   /// The camera rotation
   rotation_< T > orientation_;
   /// The camera intrinics
-  camera_intrinsics_< T > intrinsics_;
+  camera_intrinsics_sptr intrinsics_;
 };
 
 

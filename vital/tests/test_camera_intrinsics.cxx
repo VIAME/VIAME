@@ -59,7 +59,7 @@ IMPLEMENT_TEST(map)
   double f = 1000.0;
   double a = 0.75;
   double s = 0.1;
-  camera_intrinsics_d K(f, pp, a, s);
+  simple_camera_intrinsics K(f, pp, a, s);
 
   vector_2d origin = K.map(vector_2d(0,0));
 

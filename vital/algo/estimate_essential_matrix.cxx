@@ -53,8 +53,8 @@ estimate_essential_matrix
 ::estimate(feature_set_sptr feat1,
            feature_set_sptr feat2,
            match_set_sptr matches,
-           const camera_intrinsics_d &cal1,
-           const camera_intrinsics_d &cal2,
+           const camera_intrinsics_sptr cal1,
+           const camera_intrinsics_sptr cal2,
            std::vector<bool>& inliers,
            double inlier_scale) const
 {
@@ -78,7 +78,7 @@ estimate_essential_matrix
 ::estimate(feature_set_sptr feat1,
            feature_set_sptr feat2,
            match_set_sptr matches,
-           const camera_intrinsics_d &cal,
+           const camera_intrinsics_sptr cal,
            std::vector<bool>& inliers,
            double inlier_scale) const
 {
@@ -91,7 +91,7 @@ essential_matrix_sptr
 estimate_essential_matrix
 ::estimate(const std::vector<vector_2d>& pts1,
            const std::vector<vector_2d>& pts2,
-           const camera_intrinsics_d &cal,
+           const camera_intrinsics_sptr cal,
            std::vector<bool>& inliers,
            double inlier_scale) const
 {

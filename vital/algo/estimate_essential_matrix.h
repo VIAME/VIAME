@@ -72,11 +72,11 @@ public:
    */
   virtual
   kwiver::vital::essential_matrix_sptr
-  estimate(kwiver::vital::feature_set_sptr feat1,
-           kwiver::vital::feature_set_sptr feat2,
-           kwiver::vital::match_set_sptr matches,
-           const kwiver::vital::camera_intrinsics_d &cal1,
-           const kwiver::vital::camera_intrinsics_d &cal2,
+  estimate(const kwiver::vital::feature_set_sptr feat1,
+           const kwiver::vital::feature_set_sptr feat2,
+           const kwiver::vital::match_set_sptr matches,
+           const kwiver::vital::camera_intrinsics_sptr cal1,
+           const kwiver::vital::camera_intrinsics_sptr cal2,
            std::vector<bool>& inliers,
            double inlier_scale = 1.0) const;
 
@@ -92,10 +92,10 @@ public:
    */
   virtual
   kwiver::vital::essential_matrix_sptr
-  estimate(kwiver::vital::feature_set_sptr feat1,
-           kwiver::vital::feature_set_sptr feat2,
-           kwiver::vital::match_set_sptr matches,
-           const kwiver::vital::camera_intrinsics_d &cal,
+  estimate(const kwiver::vital::feature_set_sptr feat1,
+           const kwiver::vital::feature_set_sptr feat2,
+           const kwiver::vital::match_set_sptr matches,
+           const kwiver::vital::camera_intrinsics_sptr cal,
            std::vector<bool>& inliers,
            double inlier_scale = 1.0) const;
 
@@ -112,7 +112,7 @@ public:
   kwiver::vital::essential_matrix_sptr
   estimate(const std::vector<kwiver::vital::vector_2d>& pts1,
            const std::vector<kwiver::vital::vector_2d>& pts2,
-           const kwiver::vital::camera_intrinsics_d &cal,
+           const kwiver::vital::camera_intrinsics_sptr cal,
            std::vector<bool>& inliers,
            double inlier_scale = 1.0) const;
 
@@ -130,8 +130,8 @@ public:
   kwiver::vital::essential_matrix_sptr
   estimate(const std::vector<kwiver::vital::vector_2d>& pts1,
            const std::vector<kwiver::vital::vector_2d>& pts2,
-           const kwiver::vital::camera_intrinsics_d &cal1,
-           const kwiver::vital::camera_intrinsics_d &cal2,
+           const kwiver::vital::camera_intrinsics_sptr cal1,
+           const kwiver::vital::camera_intrinsics_sptr cal2,
            std::vector<bool>& inliers,
            double inlier_scale = 1.0) const = 0;
 

@@ -64,7 +64,7 @@ IMPLEMENT_TEST(KRTD_format_read)
   expected_intrinsics << 1, 2, 3,
                          0, 5, 6,
                          0, 0, 1;
-  Eigen::Matrix<double,3,3> K( read_camera.get_intrinsics() );
+  Eigen::Matrix<double,3,3> K( read_camera.get_intrinsics()->as_matrix() );
   std::cerr << "Read in K: " << K << std::endl;
   TEST_EQUAL( "read camera intrinsics",
               K.isApprox( expected_intrinsics ), true );

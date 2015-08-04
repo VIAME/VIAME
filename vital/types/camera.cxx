@@ -49,7 +49,7 @@ std::ostream&
 operator<<( std::ostream& s, const camera& c )
 {
   using std::setprecision;
-  std::vector<double> dc = c.intrinsics().dist_coeffs();
+  std::vector<double> dc = c.intrinsics()->dist_coeffs();
   Eigen::VectorXd d = Eigen::VectorXd::Map(dc.data(), dc.size());
   // if no distortion coefficients, create a zero entry as a place holder
   if ( d.rows() == 0 )
@@ -57,7 +57,7 @@ operator<<( std::ostream& s, const camera& c )
     d.resize( 1 );
     d[0] = 0.0;
   }
-  s << setprecision( 12 ) << matrix_3x3d( c.intrinsics() ) << "\n\n"
+  s << setprecision( 12 ) << c.intrinsics()->as_matrix() << "\n\n"
     << setprecision( 12 ) << matrix_3x3d( c.rotation() ) << "\n\n"
     << setprecision( 12 ) << c.translation().transpose() << "\n\n"
     << setprecision( 12 ) << d.transpose() << "\n";
@@ -108,7 +108,7 @@ camera_< T >
 {
   Eigen::Matrix< T, 3, 4 > P;
   Eigen::Matrix< T, 3, 3 > R( this->get_rotation() );
-  Eigen::Matrix< T, 3, 3 > K( this->get_intrinsics() );
+  Eigen::Matrix< T, 3, 3 > K( this->get_intrinsics()->as_matrix().template cast<T>() );
   Eigen::Matrix< T, 3, 1 > t( this->get_translation() );
   P.template block< 3, 3 > ( 0, 0 ) = R;
   P.template block< 3, 1 > ( 0, 3 ) = t;
@@ -122,7 +122,8 @@ Eigen::Matrix< T, 2, 1 >
 camera_< T >
 ::project( const Eigen::Matrix< T, 3, 1 >& pt ) const
 {
-  return this->intrinsics_.map( this->orientation_ * ( pt - this->center_ ) );
+  vector_3d p3 = (this->orientation_ * ( pt - this->center_ )).template cast<double>();
+  return this->intrinsics_->map( p3 ).template cast<T>();
 }
 
 
@@ -138,19 +139,20 @@ camera_<T>
 
 template < typename T >
 std::ostream&
-operator<<( std::ostream& s, const camera_< T >& k )
+operator<<( std::ostream& s, const camera_< T >& c )
 {
   using std::setprecision;
-  Eigen::Matrix< T, Eigen::Dynamic, 1 > d = k.get_intrinsics().get_dist_coeffs();
+  std::vector<double> dc = c.get_intrinsics()->dist_coeffs();
+  Eigen::VectorXd d = Eigen::VectorXd::Map(dc.data(), dc.size());
   // if no distortion coefficients, create a zero entry as a place holder
   if ( d.rows() == 0 )
   {
     d.resize( 1 );
     d[0] = T( 0 );
   }
-  s << setprecision( 12 ) << Eigen::Matrix< T, 3, 3 > ( k.get_intrinsics() ) << "\n\n"
-    << setprecision( 12 ) << Eigen::Matrix< T, 3, 3 > ( k.get_rotation() ) << "\n\n"
-    << setprecision( 12 ) << k.get_translation().transpose() << "\n\n"
+  s << setprecision( 12 ) << c.get_intrinsics()->as_matrix() << "\n\n"
+    << setprecision( 12 ) << Eigen::Matrix< T, 3, 3 > ( c.get_rotation() ) << "\n\n"
+    << setprecision( 12 ) << c.get_translation().transpose() << "\n\n"
     << setprecision( 12 ) << d.transpose() << "\n";
   return s;
 }
@@ -161,18 +163,19 @@ template < typename T >
 std::istream&
 operator>>( std::istream& s, camera_< T >& k )
 {
-  Eigen::Matrix< T, 3, 3 > K, R;
+  matrix_3x3d K;
+  Eigen::Matrix< T, 3, 3 > R;
   Eigen::Matrix< T, 3, 1 > t;
-  Eigen::Matrix< T, Eigen::Dynamic, 1 > d;
+  Eigen::VectorXd d;
 
   s >> K >> R >> t >> d;
   // a single 0 in d is used as a place holder,
   // if a single 0 was loaded then clear d
-  if ( ( d.rows() == 1 ) && ( d[0] == T( 0 ) ) )
+  if ( ( d.rows() == 1 ) && ( d[0] ==  0.0 ) )
   {
     d.resize( 0 );
   }
-  k.set_intrinsics( camera_intrinsics_< T > ( K, d ) );
+  k.set_intrinsics( camera_intrinsics_sptr(new simple_camera_intrinsics( K, d ) ) );
   k.set_rotation( rotation_< T > ( R ) );
   k.set_translation( t );
   return s;
