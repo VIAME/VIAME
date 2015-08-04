@@ -122,8 +122,8 @@ IMPLEMENT_TEST(vector_of_cameras)
   vector<camera_sptr> from_cams, to_cams;
   for(size_t i=0; i<N; ++i)
   {
-    from_cams.push_back(camera_sptr(new camera_d()));
-    to_cams.push_back(camera_sptr(new camera_d()));
+    from_cams.push_back(camera_sptr(new simple_camera()));
+    to_cams.push_back(camera_sptr(new simple_camera()));
   }
 
   algo::estimate_similarity_transform_sptr est(new dummy_est(N));
@@ -153,8 +153,8 @@ IMPLEMENT_TEST(sync_camera_map)
   camera_map::map_camera_t from_map, to_map;
   for(frame_id_t i=0; i<static_cast<frame_id_t>(N); ++i)
   {
-    from_map[i] = camera_sptr(new camera_d());
-    to_map[i] = camera_sptr(new camera_d());
+    from_map[i] = camera_sptr(new simple_camera());
+    to_map[i] = camera_sptr(new simple_camera());
   }
   camera_map_sptr from_cmap(new simple_camera_map(from_map)),
                   to_cmap(new simple_camera_map(to_map));
@@ -174,11 +174,11 @@ IMPLEMENT_TEST(disjoint_camera_maps)
   camera_map::map_camera_t from_map, to_map;
   for(frame_id_t i=i_b; i<i_e; ++i)
   {
-    from_map[i] = camera_sptr(new camera_d());
+    from_map[i] = camera_sptr(new simple_camera());
   }
   for(frame_id_t j=j_b; j<j_e; ++j)
   {
-    to_map[j] = camera_sptr(new camera_d());
+    to_map[j] = camera_sptr(new simple_camera());
   }
   camera_map_sptr from_cmap(new simple_camera_map(from_map)),
                   to_cmap(new simple_camera_map(to_map));
@@ -190,20 +190,20 @@ IMPLEMENT_TEST(disjoint_camera_maps)
   // disjoint overlap
   from_map = camera_map::map_camera_t();
   to_map = camera_map::map_camera_t();
-  from_map[0] = camera_sptr(new camera_d());
-  from_map[1] = camera_sptr(new camera_d());
-  from_map[3] = camera_sptr(new camera_d());
-  from_map[4] = camera_sptr(new camera_d());
-  from_map[5] = camera_sptr(new camera_d());
-  from_map[9] = camera_sptr(new camera_d());
-  to_map  [1] = camera_sptr(new camera_d());
-  to_map  [2] = camera_sptr(new camera_d());
-  to_map  [3] = camera_sptr(new camera_d());
-  to_map  [5] = camera_sptr(new camera_d());
-  to_map  [6] = camera_sptr(new camera_d());
-  to_map  [9] = camera_sptr(new camera_d());
-  to_map [11] = camera_sptr(new camera_d());
-  to_map [94] = camera_sptr(new camera_d());
+  from_map[0] = camera_sptr(new simple_camera());
+  from_map[1] = camera_sptr(new simple_camera());
+  from_map[3] = camera_sptr(new simple_camera());
+  from_map[4] = camera_sptr(new simple_camera());
+  from_map[5] = camera_sptr(new simple_camera());
+  from_map[9] = camera_sptr(new simple_camera());
+  to_map  [1] = camera_sptr(new simple_camera());
+  to_map  [2] = camera_sptr(new simple_camera());
+  to_map  [3] = camera_sptr(new simple_camera());
+  to_map  [5] = camera_sptr(new simple_camera());
+  to_map  [6] = camera_sptr(new simple_camera());
+  to_map  [9] = camera_sptr(new simple_camera());
+  to_map [11] = camera_sptr(new simple_camera());
+  to_map [94] = camera_sptr(new simple_camera());
   camera_map_sptr from_cmap2(new simple_camera_map(from_map)),
                   to_cmap2(new simple_camera_map(to_map));
 

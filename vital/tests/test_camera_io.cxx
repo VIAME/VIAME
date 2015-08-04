@@ -58,13 +58,13 @@ int main(int argc, char** argv)
 IMPLEMENT_TEST(KRTD_format_read)
 {
   kwiver::vital::path_t test_read_file = data_dir + "/test_camera_io-valid_format.krtd";
-  kwiver::vital::camera_d read_camera = kwiver::vital::read_krtd_file( test_read_file );
+  kwiver::vital::camera_sptr read_camera = kwiver::vital::read_krtd_file( test_read_file );
 
   Eigen::Matrix<double,3,3> expected_intrinsics;
   expected_intrinsics << 1, 2, 3,
                          0, 5, 6,
                          0, 0, 1;
-  Eigen::Matrix<double,3,3> K( read_camera.get_intrinsics()->as_matrix() );
+  Eigen::Matrix<double,3,3> K( read_camera->intrinsics()->as_matrix() );
   std::cerr << "Read in K: " << K << std::endl;
   TEST_EQUAL( "read camera intrinsics",
               K.isApprox( expected_intrinsics ), true );
@@ -73,14 +73,14 @@ IMPLEMENT_TEST(KRTD_format_read)
   expected_rotation << 1, 0, 0,
                        0, 1, 0,
                        0, 0, 1;
-  Eigen::Matrix<double,3,3> R( read_camera.get_rotation() );
+  Eigen::Matrix<double,3,3> R( read_camera->rotation() );
   std::cerr << "Read in R: " << R << std::endl;
   TEST_EQUAL( "read camera rotation",
               R.isApprox( expected_rotation ), true );
 
   Eigen::Matrix<double,3,1> expected_translation;
   expected_translation << 1, 2, 3;
-  Eigen::Matrix<double,3,1> T( read_camera.get_translation() );
+  Eigen::Matrix<double,3,1> T( read_camera->translation() );
   std::cerr << "Read in T: " << T << std::endl;
   TEST_EQUAL( "read camera translation",
               T.isApprox( expected_translation ), true );
@@ -102,7 +102,7 @@ IMPLEMENT_TEST(invalid_file_content)
   kwiver::vital::path_t invalid_content_file = data_dir + "/test_camera_io-invalid_file.krtd";
   EXPECT_EXCEPTION(
       kwiver::vital::invalid_data,
-      kwiver::vital::camera_d cam = kwiver::vital::read_krtd_file( invalid_content_file ),
+      kwiver::vital::camera_sptr cam = kwiver::vital::read_krtd_file( invalid_content_file ),
       "tried loading a file with invalid data"
       );
 }
@@ -110,11 +110,11 @@ IMPLEMENT_TEST(invalid_file_content)
 
 IMPLEMENT_TEST(output_format_test)
 {
-  kwiver::vital::camera_d cam;
+  kwiver::vital::simple_camera cam;
   std::cerr << "Default constructed camera\n" << cam << std::endl;
-  std::cerr << "cam.get_center()     : " << Eigen::Matrix<double,3,1>(cam.get_center()).transpose() << std::endl;
+  std::cerr << "cam.get_center()     : " << kwiver::vital::vector_3d(cam.get_center()).transpose() << std::endl;
   std::cerr << "cam.get_rotation()   : " << cam.get_rotation() << std::endl;
-  std::cerr << "cam.get_translation(): " << cam.get_translation() << std::endl;
+  std::cerr << "cam.get_translation(): " << cam.translation() << std::endl;
 
   // We're expecting -0's as this is what Eigen likes to output when a zero
   // vector is negated.

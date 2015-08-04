@@ -76,9 +76,6 @@ public:
   /// Create a clone of this camera object
   virtual camera_sptr clone() const = 0;
 
-  /// Access the type info of the underlying data (double or float)
-  virtual const std::type_info& data_type() const = 0;
-
   /// Accessor for the camera center of projection (position)
   virtual vector_3d center() const = 0;
   /// Accessor for the translation vector
@@ -99,14 +96,13 @@ VITAL_EXPORT std::ostream& operator<<( std::ostream& s, const camera& c );
 /**
  * Contains camera location, orientation, and intrinsics
  */
-template < typename T >
-class VITAL_EXPORT camera_ :
+class VITAL_EXPORT simple_camera :
   public camera
 {
 public:
   /// Default Constructor
-  camera_< T > ( )
-  : center_( T( 0 ), T( 0 ), T( 0 ) ),
+  simple_camera ( )
+  : center_( 0.0, 0.0, 0.0 ),
   orientation_(),
   intrinsics_( new simple_camera_intrinsics() )
   { }
@@ -116,9 +112,9 @@ public:
    *  This constructor keeps a shared pointer to the camera intrinsics object
    *  passed in, unless it is null.  If null it creates a new simple_camera_intrinsics
    */
-  camera_< T > ( const Eigen::Matrix< T, 3, 1 > &center,
-                 const rotation_< T > &rotation,
-                 camera_intrinsics_sptr intrinsics = camera_intrinsics_sptr() )
+  simple_camera ( const vector_3d &center,
+                  const rotation_d &rotation,
+                  camera_intrinsics_sptr intrinsics = camera_intrinsics_sptr() )
   : center_( center ),
   orientation_( rotation ),
   intrinsics_( !intrinsics
@@ -130,91 +126,73 @@ public:
   /**
    *  This constructor make a clone of the camera intrinsics object passed in
    */
-  camera_< T > ( const Eigen::Matrix< T, 3, 1 > &center,
-                 const rotation_< T > &rotation,
-                 const camera_intrinsics& intrinsics )
+  simple_camera ( const vector_3d &center,
+                  const rotation_d &rotation,
+                  const camera_intrinsics& intrinsics )
   : center_( center ),
   orientation_( rotation ),
   intrinsics_( intrinsics.clone() )
   { }
 
   /// Constructor - from base class
-  camera_< T >( const camera &base )
-  : center_( base.center().template cast< T >() ),
-    center_covar_( static_cast< covariance_< 3, T> >( base.center_covar() ) ),
-    orientation_( static_cast< rotation_< T > >( base.rotation() ) ),
+  simple_camera( const camera &base )
+  : center_( base.center() ),
+    center_covar_( base.center_covar() ),
+    orientation_( base.rotation() ),
     intrinsics_( base.intrinsics() )
   {}
 
-  /// Copy Constructor from another type
-  template < typename U >
-  explicit camera_< T > ( const camera_< U > &other )
-  : center_( other.get_center().template cast< T > () ),
-  center_covar_( static_cast< covariance_< 3, T > > ( other.get_center_covar() ) ),
-  orientation_( static_cast< rotation_< T > > ( other.get_rotation() ) ),
-  intrinsics_( other.get_intrinsics() )
-  { }
-
   /// Create a clone of this camera object
   virtual camera_sptr clone() const
-  { return camera_sptr( new camera_< T > ( *this ) ); }
-
-  /// Access staticly available type of underlying data (double or float)
-  static const std::type_info& static_data_type() { return typeid( T ); }
-
-  /// Access the type info of the underlying data (double or float)
-  virtual const std::type_info& data_type() const { return typeid( T ); }
+  { return camera_sptr( new simple_camera( *this ) ); }
 
   /// Accessor for the camera center of projection (position)
   virtual vector_3d center() const
-  { return center_.template cast< double > (); }
+  { return center_; }
 
   /// Accessor for the translation vector
   virtual vector_3d translation() const
-  { return get_translation().template cast< double > (); }
+  { return -( orientation_ * center_ ); }
 
   /// Accessor for the covariance of camera center
   virtual covariance_3d center_covar() const
-  { return static_cast< covariance_3d > ( center_covar_ ); }
+  { return center_covar_; }
 
   /// Accessor for the rotation
   virtual rotation_d rotation() const
-  { return static_cast< rotation_d > ( orientation_ ); }
+  { return orientation_; }
 
   /// Accessor for the intrinsics
   virtual camera_intrinsics_sptr intrinsics() const
   { return intrinsics_; }
 
   /// Accessor for the camera center of projection using underlying data type
-  const Eigen::Matrix< T, 3, 1 >& get_center() const { return center_; }
-
-  /// Accessor for the translation vector using underlying data type
-  Eigen::Matrix< T, 3, 1 > get_translation() const { return -( orientation_ * center_ ); }
+  const vector_3d& get_center() const { return center_; }
 
   /// Accessor for the covariance of camera center using underlying data type
-  const covariance_< 3, T >& get_center_covar() const { return center_covar_; }
+  const covariance_3d& get_center_covar() const { return center_covar_; }
 
   /// Accessor for the rotation using underlying data type
-  const rotation_< T >& get_rotation() const { return orientation_; }
+  const rotation_d& get_rotation() const { return orientation_; }
 
   /// Accessor for the intrinsics using underlying data type
   camera_intrinsics_sptr get_intrinsics() const { return intrinsics_; }
 
   /// Set the camera center of projection
-  void set_center( const Eigen::Matrix< T, 3, 1 >& center ) { center_ = center; }
+  void set_center( const vector_3d& center ) { center_ = center; }
 
   /// Set the translation vector (relative to current rotation)
-  void set_translation( const Eigen::Matrix< T, 3, 1 >& translation )
+  void set_translation( const vector_3d& translation )
   {
     center_ = -( orientation_.inverse() * translation );
   }
 
 
   /// Set the covariance matrix of the feature
-  void set_center_covar( const covariance_< 3, T >& center_covar ) { center_covar_ = center_covar; }
+  void set_center_covar( const covariance_3d& center_covar ) { center_covar_ = center_covar; }
 
   /// Set the rotation
-  void set_rotation( const rotation_< T >& rotation ) { orientation_ = rotation; }
+  void set_rotation( const rotation_d& rotation ) { orientation_ = rotation; }
 
   /// Set the intrinsics
   void set_intrinsics( const camera_intrinsics_sptr& intrinsics )
@@ -231,54 +209,43 @@ public:
    * \param [in] stare_point the location at which the camera is oriented to point
    * \param [in] up_direction the vector which is "up" in the world (defaults to Z-axis)
    */
-  void look_at( const Eigen::Matrix< T, 3, 1 >& stare_point,
-                const Eigen::Matrix< T, 3, 1 >& up_direction = Eigen::Vector3d::UnitZ() );
+  void look_at( const vector_3d& stare_point,
+                const vector_3d& up_direction = vector_3d::UnitZ() );
 
   /// Convert to a 3x4 homogeneous projection matrix
-  operator Eigen::Matrix< T, 3, 4 > () const;
+  /**
+   *  \note This matrix representation does not account for lens distortion
+   *  models that may be used in the camera_intrinsics
+   */
+  operator matrix_3x4d () const;
 
   /// Project a 3D point into a 2D image point
-  Eigen::Matrix< T, 2, 1 > project( const Eigen::Matrix< T, 3, 1 >& pt ) const;
+  vector_2d project( const vector_3d& pt ) const;
 
   /// Compute the distance of the 3D point to the image plane
   /**
    *  Points with negative depth are behind the camera
    */
-  T depth(const Eigen::Matrix<T, 3, 1>& pt) const;
+  double depth(const vector_3d& pt) const;
 
 protected:
   /// The camera center of project
-  Eigen::Matrix< T, 3, 1 > center_;
+  vector_3d center_;
   /// The covariance of the camera center location
-  covariance_< 3, T > center_covar_;
+  covariance_3d center_covar_;
   /// The camera rotation
-  rotation_< T > orientation_;
+  rotation_d orientation_;
   /// The camera intrinics
   camera_intrinsics_sptr intrinsics_;
 };
 
-
-/// Double-precision camera type
-typedef camera_< double > camera_d;
-/// Single-precision camera type
-typedef camera_< float > camera_f;
-
-
-/// output stream operator for a camera
-/**
- * \param s output stream
- * \param c camera to stream
- */
-template < typename T >
-VITAL_EXPORT std::ostream& operator<<( std::ostream& s, const camera_< T >& c );
 
 /// input stream operator for a camera
 /**
  * \param s input stream
  * \param c camera to stream into
  */
-template < typename T >
-VITAL_EXPORT std::istream& operator>>( std::istream& s, camera_< T >& c );
+VITAL_EXPORT std::istream& operator>>( std::istream& s, simple_camera& c );
 
 
 }

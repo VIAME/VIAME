@@ -54,30 +54,13 @@ main(int argc, char* argv[])
 }
 
 
-IMPLEMENT_TEST(casting)
-{
-  using namespace kwiver::vital;
-  vector_2d pp(300,400);
-  simple_camera_intrinsics K(1000, pp);
-  vector_3d center(3, -4, 7);
-  rotation_d rot(vector_3d(-1, 2, 3));
-  camera_d cam_d(center, rot, K);
-
-  camera_f cam_f(cam_d);
-  TEST_EQUAL("center cast", cam_f.get_center(), center.cast<float>());
-  TEST_EQUAL("rotation cast", cam_f.get_rotation(), rotation_f(rot));
-  TEST_EQUAL("intrinsic cast", cam_f.get_intrinsics()->as_matrix(),
-                               K.as_matrix());
-}
-
-
 IMPLEMENT_TEST(look_at)
 {
   using namespace kwiver::vital;
   vector_2d pp(300,400);
   simple_camera_intrinsics K(1000, pp);
   vector_3d focus(0, 1, -2);
-  kwiver::vital::camera_d cam(vector_3d(3, -4, 7), rotation_d(), K);
+  kwiver::vital::simple_camera cam(vector_3d(3, -4, 7), rotation_d(), K);
   cam.look_at(focus);
 
   vector_2d ifocus = cam.project(focus);
@@ -100,7 +83,7 @@ IMPLEMENT_TEST(projection)
   vector_2d pp(300,400);
   simple_camera_intrinsics K(1000, pp);
   vector_3d focus(0, 1, -2);
-  kwiver::vital::camera_d cam(vector_3d(3, -4, 7), rotation_d(), K);
+  kwiver::vital::simple_camera cam(vector_3d(3, -4, 7), rotation_d(), K);
   cam.look_at(focus);
 
   matrix_3x4d P(cam);

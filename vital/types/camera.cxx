@@ -30,8 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link vital::camera_ camera_<T> \endlink class
- *        for \c T = { \c float, \c double }
+ * \brief Implementation of \link vital::camera camera \endlink class
  */
 
 #include <vital/types/camera.h>
@@ -66,20 +65,19 @@ operator<<( std::ostream& s, const camera& c )
 
 
 /// Rotate the camera about its center such that it looks at the given point.
-template < typename T >
 void
-camera_< T >
-::look_at( const Eigen::Matrix< T, 3, 1 >& stare_point,
-             const Eigen::Matrix< T, 3, 1 >& up_direction )
+simple_camera
+::look_at( const vector_3d& stare_point,
+           const vector_3d& up_direction )
 {
   // a unit vector in the up direction
-  const Eigen::Matrix< T, 3, 1 > up = up_direction.normalized();
+  const vector_3d up = up_direction.normalized();
   // a unit vector in the look direction (camera Z-axis)
-  const Eigen::Matrix< T, 3, 1 > z = ( stare_point - get_center() ).normalized();
+  const vector_3d z = ( stare_point - get_center() ).normalized();
 
   // the X-axis of the camera is perpendicular to up and z
-  Eigen::Matrix< T, 3, 1 > x = -up.cross( z );
-  T x_mag = x.norm();
+  vector_3d x = -up.cross( z );
+  double x_mag = x.norm();
 
   // if the cross product magnitude is small then the up and z vectors are
   // nearly parallel and the up direction is poorly defined.
@@ -90,82 +88,55 @@ camera_< T >
   }
 
   x /= x_mag;
-  Eigen::Matrix< T, 3, 1 > y = z.cross( x ).normalized();
+  vector_3d y = z.cross( x ).normalized();
 
-  Eigen::Matrix< T, 3, 3 > R;
+  matrix_3x3d R;
   R << x.x(), x.y(), x.z(),
     y.x(), y.y(), y.z(),
     z.x(), z.y(), z.z();
 
-  this->set_rotation( rotation_< T > ( R ) );
+  this->set_rotation( rotation_d ( R ) );
 }
 
 
 /// Convert to a 3x4 homogeneous projection matrix
-template < typename T >
-camera_< T >
-::operator Eigen::Matrix< T, 3, 4 > () const
+simple_camera
+::operator matrix_3x4d () const
 {
-  Eigen::Matrix< T, 3, 4 > P;
-  Eigen::Matrix< T, 3, 3 > R( this->get_rotation() );
-  Eigen::Matrix< T, 3, 3 > K( this->get_intrinsics()->as_matrix().template cast<T>() );
-  Eigen::Matrix< T, 3, 1 > t( this->get_translation() );
-  P.template block< 3, 3 > ( 0, 0 ) = R;
-  P.template block< 3, 1 > ( 0, 3 ) = t;
+  matrix_3x4d P;
+  matrix_3x3d R( this->get_rotation() );
+  matrix_3x3d K( this->get_intrinsics()->as_matrix() );
+  vector_3d t( this->translation() );
+  P.block< 3, 3 > ( 0, 0 ) = R;
+  P.block< 3, 1 > ( 0, 3 ) = t;
   return K * P;
 }
 
 
 /// Project a 3D point into a 2D image point
-template < typename T >
-Eigen::Matrix< T, 2, 1 >
-camera_< T >
-::project( const Eigen::Matrix< T, 3, 1 >& pt ) const
+vector_2d
+simple_camera
+::project( const vector_3d& pt ) const
 {
-  vector_3d p3 = (this->orientation_ * ( pt - this->center_ )).template cast<double>();
-  return this->intrinsics_->map( p3 ).template cast<T>();
+  return this->intrinsics_->map( this->orientation_ * ( pt - this->center_ ));
 }
 
 
 /// Compute the distance of the 3D point to the image plane
-template <typename T>
-T
-camera_<T>
-::depth(const Eigen::Matrix<T, 3, 1>& pt) const
+double
+simple_camera
+::depth(const vector_3d& pt) const
 {
   return (this->orientation_ * (pt - this->center_)).z();
 }
 
 
-template < typename T >
-std::ostream&
-operator<<( std::ostream& s, const camera_< T >& c )
-{
-  using std::setprecision;
-  std::vector<double> dc = c.get_intrinsics()->dist_coeffs();
-  Eigen::VectorXd d = Eigen::VectorXd::Map(dc.data(), dc.size());
-  // if no distortion coefficients, create a zero entry as a place holder
-  if ( d.rows() == 0 )
-  {
-    d.resize( 1 );
-    d[0] = T( 0 );
-  }
-  s << setprecision( 12 ) << c.get_intrinsics()->as_matrix() << "\n\n"
-    << setprecision( 12 ) << Eigen::Matrix< T, 3, 3 > ( c.get_rotation() ) << "\n\n"
-    << setprecision( 12 ) << c.get_translation().transpose() << "\n\n"
-    << setprecision( 12 ) << d.transpose() << "\n";
-  return s;
-}
-
-
 /// input stream operator for a camera intrinsics
-template < typename T >
 std::istream&
-operator>>( std::istream& s, camera_< T >& k )
+operator>>( std::istream& s, simple_camera& k )
 {
-  matrix_3x3d K;
-  Eigen::Matrix< T, 3, 3 > R;
-  Eigen::Matrix< T, 3, 1 > t;
+  matrix_3x3d K, R;
+  vector_3d t;
   Eigen::VectorXd d;
 
   s >> K >> R >> t >> d;
@@ -176,24 +147,10 @@ operator>>( std::istream& s, camera_< T >& k )
     d.resize( 0 );
   }
   k.set_intrinsics( camera_intrinsics_sptr(new simple_camera_intrinsics( K, d ) ) );
-  k.set_rotation( rotation_< T > ( R ) );
+  k.set_rotation( rotation_d ( R ) );
   k.set_translation( t );
   return s;
 }
 
-
-/// \cond DoxygenSuppress
-#define INSTANTIATE_CAMERA( T )                                                      \
-  template class VITAL_EXPORT camera_< T >;                                      \
-  template VITAL_EXPORT std::ostream&                                            \
-  operator<<( std::ostream& s, const camera_< T >& c );                              \
-  template VITAL_EXPORT std::istream&                                            \
-  operator>>( std::istream& s, camera_< T >& c );
-
-INSTANTIATE_CAMERA( double );
-INSTANTIATE_CAMERA( float );
-
-#undef INSTANTIATE_CAMERA
-/// \endcond
 
 } } // end namespace
