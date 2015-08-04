@@ -40,6 +40,8 @@
 #include <vital/vital_export.h>
 
 #include <iostream>
+#include <vector>
+#include <memory>
 
 #include <vital/types/matrix.h>
 #include <vital/types/vector.h>
@@ -48,9 +50,50 @@
 namespace kwiver {
 namespace vital {
 
+/// forward declaration of camera intrinsics class
+class camera_intrinsics;
+/// typedef for a camera intrinsics shared pointer
+typedef std::shared_ptr< camera_intrinsics > camera_intrinsics_sptr;
+
+
+// ------------------------------------------------------------------
+/// An abstract representation of camera intrinsics
+/**
+ * The base class of camera intrinsics is abstract and provides a
+ * double precision interface.  The templated derived class
+ * can store values in either single or double precision.
+ */
+class camera_intrinsics
+{
+public:
+  /// Destructor
+  virtual ~camera_intrinsics() { }
+
+  /// Create a clone of this object
+  virtual camera_intrinsics_sptr clone() const = 0;
+
+  /// Access the focal length
+  virtual double focal_length() const = 0;
+  /// Access the principal point
+  virtual vector_2d principal_point() const = 0;
+  /// Access the aspect ratio
+  virtual double aspect_ratio() const = 0;
+  /// Access the skew
+  virtual double skew() const = 0;
+  /// Access the distortion coefficients
+  virtual std::vector<double> dist_coeffs() const = 0;
+};
+
+/// output stream operator for a base class camera_intrinsics
+VITAL_EXPORT
+std::ostream& operator<<( std::ostream& s, const camera_intrinsics& c );
+
+
+
 /// A representation of camera intrinsic parameters
 template <typename T>
-class VITAL_EXPORT camera_intrinsics_
+class VITAL_EXPORT camera_intrinsics_ :
+  public camera_intrinsics
 {
 public:
   /// typedef for Eigen dynamic vector of type T
@@ -78,15 +121,31 @@ public:
     dist_coeffs_(dist_coeffs)
   {}
 
+  /// Constructor from the base class
+  explicit camera_intrinsics_<T>(const camera_intrinsics& base)
+  : focal_length_(static_cast<T>(base.focal_length())),
+    principal_point_(base.principal_point().template cast<T>()),
+    aspect_ratio_(static_cast<T>(base.aspect_ratio())),
+    skew_(static_cast<T>(base.skew()))
+  {
+    std::vector<double> dc = base.dist_coeffs();
+    dist_coeffs_ = Eigen::VectorXd::Map(dc.data(), dc.size()).template cast<T>();
+  }
+
+
   /// Copy Constructor from another type
   template <typename U>
   explicit camera_intrinsics_<T>(const camera_intrinsics_<U>& other)
-  : focal_length_(static_cast<T>(other.focal_length())),
-    principal_point_(other.principal_point().template cast<T>()),
-    aspect_ratio_(static_cast<T>(other.aspect_ratio())),
-    skew_(static_cast<T>(other.skew())),
-    dist_coeffs_(other.dist_coeffs().template cast<T>())
+  : focal_length_(static_cast<T>(other.get_focal_length())),
+    principal_point_(other.get_principal_point().template cast<T>()),
+    aspect_ratio_(static_cast<T>(other.get_aspect_ratio())),
+    skew_(static_cast<T>(other.get_skew())),
+    dist_coeffs_(other.get_dist_coeffs().template cast<T>())
   {}
+
+  /// Create a clone of this object
+  virtual camera_intrinsics_sptr clone() const
+  { return camera_intrinsics_sptr( new camera_intrinsics_< T > ( *this ) ); }
 
   /// Constructor - from a calibration matrix
   /**
@@ -97,15 +156,29 @@ public:
                                  const vector_t& d=vector_t());
 
   /// Access the focal length
-  const T& focal_length() const { return focal_length_; }
+  virtual double focal_length() const { return static_cast<double>(focal_length_); }
   /// Access the principal point
-  const Eigen::Matrix<T,2,1>& principal_point() const { return principal_point_; }
+  virtual vector_2d principal_point() const { return principal_point_.template cast<double>(); }
   /// Access the aspect ratio
-  const T& aspect_ratio() const { return aspect_ratio_; }
+  virtual double aspect_ratio() const { return static_cast<double>(aspect_ratio_); }
   /// Access the skew
-  const T& skew() const { return skew_; }
+  virtual double skew() const { return static_cast<double>(skew_); }
   /// Access the distortion coefficients
-  const vector_t& dist_coeffs() const { return dist_coeffs_; }
+  virtual std::vector<double> dist_coeffs() const
+  {
+    return std::vector<double>(dist_coeffs_.data(), dist_coeffs_.data() + dist_coeffs_.size());
+  }
+
+  /// Access the focal length
+  const T& get_focal_length() const { return focal_length_; }
+  /// Access the principal point
+  const Eigen::Matrix<T,2,1>& get_principal_point() const { return principal_point_; }
+  /// Access the aspect ratio
+  const T& get_aspect_ratio() const { return aspect_ratio_; }
+  /// Access the skew
+  const T& get_skew() const { return skew_; }
+  /// Access the distortion coefficients
+  const vector_t& get_dist_coeffs() const { return dist_coeffs_; }
 
   /// Set the focal length
   void set_focal_length(const T& focal_length) { focal_length_ = focal_length; }

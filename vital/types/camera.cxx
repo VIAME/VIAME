@@ -49,7 +49,8 @@ std::ostream&
 operator<<( std::ostream& s, const camera& c )
 {
   using std::setprecision;
-  Eigen::VectorXd d = c.intrinsics().dist_coeffs();
+  std::vector<double> dc = c.intrinsics().dist_coeffs();
+  Eigen::VectorXd d = Eigen::VectorXd::Map(dc.data(), dc.size());
   // if no distortion coefficients, create a zero entry as a place holder
   if ( d.rows() == 0 )
   {
@@ -140,7 +141,7 @@ std::ostream&
 operator<<( std::ostream& s, const camera_< T >& k )
 {
   using std::setprecision;
-  Eigen::Matrix< T, Eigen::Dynamic, 1 > d = k.get_intrinsics().dist_coeffs();
+  Eigen::Matrix< T, Eigen::Dynamic, 1 > d = k.get_intrinsics().get_dist_coeffs();
   // if no distortion coefficients, create a zero entry as a place holder
   if ( d.rows() == 0 )
   {

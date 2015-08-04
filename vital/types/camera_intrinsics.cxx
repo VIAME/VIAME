@@ -36,7 +36,10 @@
  */
 
 #include <vital/types/camera_intrinsics.h>
+#include <vital/io/eigen_io.h>
 #include <Eigen/Dense>
+
+#include <iomanip>
 
 namespace kwiver {
 namespace vital {
@@ -285,12 +288,32 @@ camera_intrinsics_< T >
 }
 
 
+/// output stream operator for a base class camera_intrinsics
+std::ostream&
+operator<<( std::ostream& s, const camera_intrinsics& k )
+{
+  using std::setprecision;
+  s << camera_intrinsics_d(k);
+  return s;
+}
+
+
 /// output stream operator for a camera intrinsics
 template < typename T >
 std::ostream&
 operator<<( std::ostream& s, const camera_intrinsics_< T >& k )
 {
-  // TODO: implement me
+  using std::setprecision;
+  Eigen::Matrix< T, Eigen::Dynamic, 1 > d = k.get_dist_coeffs();
+  // if no distortion coefficients, create a zero entry as a place holder
+  if ( d.rows() == 0 )
+  {
+    d.resize( 1 );
+    d[0] = T( 0 );
+  }
+  s << setprecision( 12 ) << Eigen::Matrix< T, 3, 3 > ( k ) << "\n\n"
+    << setprecision( 12 ) << d.transpose() << "\n";
+
   return s;
 }
 
@@ -300,7 +323,17 @@ template < typename T >
 std::istream&
 operator>>( std::istream& s, camera_intrinsics_< T >& k )
 {
-  // TODO: implement me
+  Eigen::Matrix< T, 3, 3 > K;
+  Eigen::Matrix< T, Eigen::Dynamic, 1 > d;
+
+  s >> K >> d;
+  // a single 0 in d is used as a place holder,
+  // if a single 0 was loaded then clear d
+  if ( ( d.rows() == 1 ) && ( d[0] == T( 0 ) ) )
+  {
+    d.resize( 0 );
+  }
+  k = camera_intrinsics_< T > ( K, d );
   return s;
 }
 
