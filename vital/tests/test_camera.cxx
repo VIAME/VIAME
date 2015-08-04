@@ -86,7 +86,7 @@ IMPLEMENT_TEST(projection)
   kwiver::vital::simple_camera cam(vector_3d(3, -4, 7), rotation_d(), K);
   cam.look_at(focus);
 
-  matrix_3x4d P(cam);
+  matrix_3x4d P(cam.as_matrix());
   vector_3d test_pt(1,2,3);
   vector_4d test_hpt(test_pt.x(), test_pt.y(), test_pt.z(), 1.0);
 

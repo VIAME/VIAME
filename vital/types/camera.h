@@ -67,7 +67,7 @@ typedef std::shared_ptr< camera > camera_sptr;
  * double precision interface.  The templated derived class
  * can store values in either single or double precision.
  */
-class camera
+class VITAL_EXPORT camera
 {
 public:
   /// Destructor
@@ -86,6 +86,22 @@ public:
   virtual rotation_d rotation() const = 0;
   /// Accessor for the intrinsics
   virtual camera_intrinsics_sptr intrinsics() const = 0;
+
+  /// Convert to a 3x4 homogeneous projection matrix
+  /**
+   *  \note This matrix representation does not account for lens distortion
+   *  models that may be used in the camera_intrinsics
+   */
+  virtual matrix_3x4d as_matrix() const;
+
+  /// Project a 3D point into a 2D image point
+  virtual vector_2d project( const vector_3d& pt ) const;
+
+  /// Compute the distance of the 3D point to the image plane
+  /**
+   *  Points with negative depth are behind the camera
+   */
+  virtual double depth(const vector_3d& pt) const;
 };
 
 /// output stream operator for a base class camera
@@ -187,7 +203,6 @@ public:
     center_ = -( orientation_.inverse() * translation );
   }
 
-
   /// Set the covariance matrix of the feature
   void set_center_covar( const covariance_3d& center_covar ) { center_covar_ = center_covar; }
 
@@ -211,22 +226,6 @@ public:
    */
   void look_at( const vector_3d& stare_point,
                 const vector_3d& up_direction = vector_3d::UnitZ() );
-
-  /// Convert to a 3x4 homogeneous projection matrix
-  /**
-   *  \note This matrix representation does not account for lens distortion
-   *  models that may be used in the camera_intrinsics
-   */
-  operator matrix_3x4d () const;
-
-  /// Project a 3D point into a 2D image point
-  vector_2d project( const vector_3d& pt ) const;
-
-  /// Compute the distance of the 3D point to the image plane
-  /**
-   *  Points with negative depth are behind the camera
-   */
-  double depth(const vector_3d& pt) const;
 
 protected:
   /// The camera center of project

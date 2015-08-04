@@ -43,6 +43,40 @@
 namespace kwiver {
 namespace vital {
 
+
+/// Convert to a 3x4 homogeneous projection matrix
+matrix_3x4d
+camera
+::as_matrix() const
+{
+  matrix_3x4d P;
+  matrix_3x3d R( this->rotation() );
+  matrix_3x3d K( this->intrinsics()->as_matrix() );
+  vector_3d t( this->translation() );
+  P.block< 3, 3 > ( 0, 0 ) = R;
+  P.block< 3, 1 > ( 0, 3 ) = t;
+  return K * P;
+}
+
+
+/// Project a 3D point into a 2D image point
+vector_2d
+camera
+::project( const vector_3d& pt ) const
+{
+  return this->intrinsics()->map( this->rotation() * ( pt - this->center() ));
+}
+
+
+/// Compute the distance of the 3D point to the image plane
+double
+camera
+::depth(const vector_3d& pt) const
+{
+  return (this->rotation() * (pt - this->center())).z();
+}
+
+
 /// output stream operator for a base class camera
 std::ostream&
 operator<<( std::ostream& s, const camera& c )
@@ -96,38 +130,6 @@ simple_camera
     z.x(), z.y(), z.z();
 
   this->set_rotation( rotation_d ( R ) );
-}
-
-
-/// Convert to a 3x4 homogeneous projection matrix
-simple_camera
-::operator matrix_3x4d () const
-{
-  matrix_3x4d P;
-  matrix_3x3d R( this->get_rotation() );
-  matrix_3x3d K( this->get_intrinsics()->as_matrix() );
-  vector_3d t( this->translation() );
-  P.block< 3, 3 > ( 0, 0 ) = R;
-  P.block< 3, 1 > ( 0, 3 ) = t;
-  return K * P;
-}
-
-
-/// Project a 3D point into a 2D image point
-vector_2d
-simple_camera
-::project( const vector_3d& pt ) const
-{
-  return this->intrinsics_->map( this->orientation_ * ( pt - this->center_ ));
-}
-
-
-/// Compute the distance of the 3D point to the image plane
-double
-simple_camera
-::depth(const vector_3d& pt) const
-{
-  return (this->orientation_ * (pt - this->center_)).z();
 }
 
 
