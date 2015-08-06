@@ -67,8 +67,8 @@ include(kwiver-utils)
 include(kwiver-flags)
 
 # set the name for our package exports
-set(kwiver_export_name
-  kwiver_exports)
+set(kwiver_export_name 
+	kwiver_exports)
 
 ###
 # External Dependencies and Modules
@@ -117,7 +117,7 @@ endif()
 configure_file(${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_BUILD_INSTALL_PREFIX}/setup_KWIVER.sh )
 
-include_directories("${KWSYS_INCLUDE_DIR}")
+#include_directories("${KWSYS_INCLUDE_DIR}")
 
 
 # ================================================================
@@ -140,6 +140,7 @@ set(KWIVER_ARGS_COMMON_CMAKE
   -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INCLUDE_DIR}
   -DEIGEN3_VERSION_OK:BOOL=${EIGEN3_VERSION_OK}
   -Dkwiver_DIR:PATH=${KWIVER_BINARY_DIR}
+  -Dvital_DIR:PATH=${KWIVER_BUILD_PREFIX}/src/vital-build
   )
 
 set(KWIVER_ARGS_COMMON_COMPILER
@@ -187,6 +188,7 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
                        ${KWIVER_ARGS_COMMON_COMPILER}
                        ${KWIVER_ARGS_COMMON_LINKER}
                        ${KWIVER_ARGS_COMMON_BOOST}
+					   ${KWIVER_ARGS_COMMON_EIGEN}
   )
 
 # ================================================================
