@@ -4,16 +4,16 @@
 
 find_package(Doxygen)
 
-cmake_dependent_option(KWIVER_ENABLE_DOCS
+cmake_dependent_option(${CMAKE_PROJECT_NAME}_ENABLE_DOCS
   "Build KWIVER documentation via Doxygen." OFF
   DOXYGEN_FOUND OFF
   )
-cmake_dependent_option(KWIVER_INSTALL_DOCS
+cmake_dependent_option(${CMAKE_PROJECT_NAME}_INSTALL_DOCS
   "Install built Doxygen documentation." OFF
-  KWIVER_ENABLE_DOCS OFF
+  ${CMAKE_PROJECT_NAME}_ENABLE_DOCS OFF
   )
 
-if(KWIVER_ENABLE_DOCS)
+if(${CMAKE_PROJECT_NAME}_ENABLE_DOCS)
   add_custom_target(doxygen ALL)
 endif()
 
@@ -31,13 +31,13 @@ endif()
 # be built, period.
 #-
 function(kwiver_create_doxygen name inputdir)
-  if(KWIVER_ENABLE_DOCS)
+  if(${CMAKE_PROJECT_NAME}_ENABLE_DOCS)
     message(STATUS "[doxy-${name}] Creating doxygen targets")
 
     # Constants -- could be moved outside this function?
-    set(doxy_include_path       "${KWIVER_SOURCE_DIR};${KWIVER_BINARY_DIR}")
-    set(doxy_doc_output_path    "${KWIVER_BINARY_DIR}/doc")
-    set(doxy_files_dir "${KWIVER_SOURCE_DIR}/CMake/templates/doxygen")
+    set(doxy_include_path       "${CMAKE_SOURCE_DIR};${CMAKE_BINARY_DIR}")
+    set(doxy_doc_output_path    "${CMAKE_BINARY_DIR}/doc")
+    set(doxy_files_dir "${CMAKE_SOURCE_DIR}/CMake/templates/doxygen")
 
     # current project specific variables
     set(doxy_project_name       "${name}")
@@ -139,11 +139,11 @@ function(kwiver_create_doxygen name inputdir)
       doxygen-${name}
       )
 
-    if(KWIVER_INSTALL_DOCS)
+    if(${CMAKE_PROJECT_NAME}_INSTALL_DOCS)
       message(STATUS "[doxy-${name}] marking for install")
       kwiver_install(
         DIRECTORY   "${doxy_doc_output_path}/${name}/"
-        DESTINATION "share/doc/kwiver-${KWIVER_VERSION}/${name}"
+        DESTINATION "share/doc/${CMAKE_PROJECT_NAME}-${${CMAKE_PROJECT_NAME}_VERSION}/${name}"
         COMPONENT   documentation
         )
     endif()

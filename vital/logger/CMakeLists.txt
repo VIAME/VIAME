@@ -59,7 +59,7 @@ set( plugin_base_src
 
 ###
 # Build log4cxx plug-in if configured
-if (KWIVER_ENABLE_LOG4CXX)
+if (VITAL_ENABLE_LOG4CXX)
 
   set ( log4cxx_lib     ${Log4cxx_LIBRARY} ${ApacheRunTime_LIBRARY} )
   include_directories ( SYSTEM ${Log4cxx_INCLUDE_DIR} ${ApacheRunTime_INCLUDE_DIR} )
@@ -77,6 +77,6 @@ endif()
 
 ###
 # Add tests if enbled
-if (KWIVER_ENABLE_TESTS)
+if (VITAL_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()

@@ -5,20 +5,17 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-project(KWIVER-VITAL)
+project(VITAL)
 
 include(CMakeDependentOption)
 
 ###
 # VITAL version
 #
-# These symbols need to be "KWIVER" to work with the CMake infrastructure.
-# Other symbole below too.
-#
-set(KWIVER_VERSION_MAJOR 0)
-set(KWIVER_VERSION_MINOR 1)
-set(KWIVER_VERSION_PATCH 0)
-set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
+set(VITAL_VERSION_MAJOR 0)
+set(VITAL_VERSION_MINOR 1)
+set(VITAL_VERSION_PATCH 0)
+set(VITAL_VERSION "${VITAL_VERSION_MAJOR}.${VITAL_VERSION_MINOR}.${VITAL_VERSION_PATCH}")
 
 ##
 # Look for and use Fletch to find dependencies
@@ -31,24 +28,16 @@ endif()
 ###
 # project specific directories
 #
-set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/VITAL_packaging")
-set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/VITAL_packaging")
-set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
+set(VITAL_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
-# root directories
-set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
-set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
-
-set(CMAKE_MODULE_PATH      ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH      ${VITAL_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 
 # ================================================================
 ###
 # Set options
-set(KWIVER_LIB_SUFFIX "" CACHE STRING "String suffix appended to the library directory name we install into.")
+option( VITAL_ENABLE_TESTS     "Enable testing" ON)
 
-option( KWIVER_ENABLE_TESTS     "Enable testing" ON)
-
-if (KWIVER_ENABLE_TESTS)
+if (VITAL_ENABLE_TESTS)
   enable_testing()
   include(CTest)
   set(BUILD_TESTING    ON)
@@ -56,9 +45,9 @@ if (KWIVER_ENABLE_TESTS)
 
 endif()
 
-option( KWIVER_ENABLE_PYTHON   "Enable Python bindings" OFF )
+option( VITAL_ENABLE_PYTHON   "Enable Python bindings" OFF )
 
-if (KWIVER_ENABLE_PYTHON)
+if (VITAL_ENABLE_PYTHON)
   set(vital_boost_python_package python)
 endif()
 
@@ -86,20 +75,20 @@ endif()
 
 # ================================================================
 # project global includes
-include_directories("${KWIVER_SOURCE_DIR}")
-include_directories("${KWIVER_BINARY_DIR}")
+include_directories("${VITAL_SOURCE_DIR}")
+include_directories("${VITAL_BINARY_DIR}")
 
 # ==================================================================
 
 # Why would we ever want to build static?
-option(KWIVER_BUILD_SHARED "Build VITAL packages shared or not" ON)
+option(VITAL_BUILD_SHARED "Build VITAL packages shared or not" ON)
 
-if (KWIVER_ENABLE_PYTHON)
+if (VITAL_ENABLE_PYTHON)
     find_package(PythonInterp)
     find_package(PythonLibs)
 endif()
 
-if(KWIVER_BUILD_SHARED)
+if(VITAL_BUILD_SHARED)
   set(LIB_PREFIX ${CMAKE_SHARED_LIBRARY_PREFIX})
   set(LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
 else()
@@ -107,7 +96,7 @@ else()
   set(LIB_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 
-set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
+set(BUILD_SHARED_LIBS ${VITAL_BUILD_SHARED})
 
 # installing system setup script
 if (fletch_ROOT)
@@ -115,11 +104,11 @@ if (fletch_ROOT)
     set(SET_FLETCH_PYTHON_PATH "export PYTHONPATH=${fletch_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
 endif()
 
-configure_file(${KWIVER_CMAKE_DIR}/setup_VITAL.sh.in
-  ${KWIVER_BINARY_DIR}/setup_VITAL.sh )
+configure_file(${VITAL_CMAKE_DIR}/setup_VITAL.sh.in
+  ${VITAL_BINARY_DIR}/setup_VITAL.sh )
 
 # install set up script
-install( PROGRAMS   ${KWIVER_BINARY_DIR}/setup_VITAL.sh
+install( PROGRAMS   ${VITAL_BINARY_DIR}/setup_VITAL.sh
   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 add_subdirectory( vital )
@@ -127,7 +116,7 @@ add_subdirectory( vital )
 ##################################################################
 # Top level installation
 #
-set(kwiver_cmake_install_dir "lib${KWIVER_LIB_SUFFIX}/CMake/vital")
+set(kwiver_cmake_install_dir "lib${LIB_SUFFIX}/CMake/vital")
 
 # Install rules for CMake utilities
 ## include( kwiver-install-utils )
@@ -137,23 +126,23 @@ get_property(vital_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " vital_libs "${vital_libs}")
 
 # Configure build-tree CMake config file and export associated targets file
-set(KWIVER_CONFIG_FILE         "${KWIVER_BINARY_DIR}/vital-config.cmake")
+set(VITAL_CONFIG_FILE         "${VITAL_BINARY_DIR}/vital-config.cmake")
 set(VITAL_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(VITAL_BINARY_DIR           "${CMAKE_BINARY_DIR}")
-set(module_path                "${KWIVER_CMAKE_DIR}")
+set(module_path                "${VITAL_CMAKE_DIR}")
 
 kwiver_configure_file(vital-config
-  "${KWIVER_SOURCE_DIR}/CMake/vital-config.cmake.in"
-  "${KWIVER_CONFIG_FILE}"
+  "${VITAL_SOURCE_DIR}/CMake/vital-config.cmake.in"
+  "${VITAL_CONFIG_FILE}"
   VITAL_SOURCE_DIR
   VITAL_BINARY_DIR
   module_path
   vital_libs
   )
-kwiver_export_targets("${KWIVER_BINARY_DIR}/vital-config-targets.cmake")
+kwiver_export_targets("${VITAL_BINARY_DIR}/vital-config-targets.cmake")
 
 # Configure install-tree CMake config file and export associated targets file
-set(VITAL_CONFIG_INSTALL_FILE "${KWIVER_BINARY_DIR}/vital-config-install.cmake")
+set(VITAL_CONFIG_INSTALL_FILE "${VITAL_BINARY_DIR}/vital-config-install.cmake")
 kwiver_configure_file(vital-install-config
   "${VITAL_SOURCE_DIR}/CMake/vital-config-install.cmake.in"
   "${VITAL_CONFIG_INSTALL_FILE}"
@@ -162,7 +151,7 @@ kwiver_configure_file(vital-install-config
   )
 
 kwiver_install(
-  FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
+  FILES       "${VITAL_CONFIG_INSTALL_FILE}"
   DESTINATION "${kwiver_cmake_install_dir}"
   RENAME      vital-config.cmake
   )
