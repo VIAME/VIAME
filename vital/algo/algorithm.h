@@ -70,8 +70,8 @@ public:
   /// Returns an optional descriptive string for an implementation
   virtual std::string description() const = 0;
 
-  /// Returns a clone of this algorithm
-  virtual algorithm_sptr clone() const = 0;
+  /// Returns a clone of this algorithm as a base class shared pointer
+  virtual algorithm_sptr base_clone() const = 0;
 
   /// Factory method to make an instance of an algorithm by type_name and impl_name
   static algorithm_sptr create(std::string const& type_name,
@@ -233,6 +233,9 @@ public:
 
   virtual ~algorithm_def() VITAL_DEFAULT_DTOR;
 
+  /// Returns a clone of this algorithm as a specific algorithm pointer
+  virtual base_sptr clone() const = 0;
+
   /// Register instances of this algorithm with a given registrar
   static bool register_instance(registrar &reg, base_sptr inst);
 
@@ -348,10 +351,16 @@ public:
 
   virtual ~algorithm_impl() VITAL_DEFAULT_DTOR;
 
-  /// Returns a clone of this algorithm
-  virtual algorithm_sptr clone() const
+  /// Returns a clone of this algorithm as a generic algorithm pointer
+  virtual algorithm_sptr base_clone() const
   {
     return algorithm_sptr(new Self(static_cast<const Self&>(*this)));
+  }
+
+  /// Returns a clone of this algorithm as a specific algorithm pointer
+  virtual base_sptr clone() const
+  {
+    return base_sptr(new Self(static_cast<const Self&>(*this)));
   }
 
   /// Return an optional descriptive string for an implementation
