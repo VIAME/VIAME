@@ -198,6 +198,7 @@ include(External_VXL)
 include(External_vital)
 include(External_maptk)
 include(External_sprokit)
+include(External_vibrant)
 
 include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
