@@ -49,7 +49,8 @@
 
 #include <boost/optional/optional.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/noncopyable.hpp>
+
+#include <vital/noncopyable.h>
 
 #include "config_block_types.h"
 #include "config_block_exception.h"
@@ -98,7 +99,7 @@ typedef std::shared_ptr< config_block > config_block_sptr;
 
 class VITAL_CONFIG_EXPORT config_block
   : public std::enable_shared_from_this< config_block >,
-    private boost::noncopyable
+    private kwiver::vital::noncopyable
 {
 public:
   /// Create an empty configuration.

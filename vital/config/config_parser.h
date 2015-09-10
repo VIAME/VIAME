@@ -33,8 +33,8 @@
 
 #include <vital/config/config_block.h>
 
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
+#include <vital/noncopyable.h>
+#include <memory>
 
 
 namespace kwiver {
@@ -52,7 +52,7 @@ namespace vital {
  *
  */
 class config_parser
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
 public:
 

@@ -39,7 +39,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/noncopyable.hpp>
+#include <vital/noncopyable.h>
 
 #include <vital/vital_export.h>
 #include <vital/vital_types.h>
@@ -52,7 +52,7 @@ namespace vital {
  * Plugin Manager for algorithm implementation extensions
  */
 class VITAL_EXPORT algorithm_plugin_manager
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
 public:
   /// Get the reference to the singleton instance of this class

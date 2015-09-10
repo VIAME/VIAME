@@ -60,7 +60,7 @@ namespace vital {
  * methods.
  * \todo Revisit instance() implementation to see if local static
  * is needed. As it is, there could be a static CTOR race condition.
- * Also look into the use of boost::noncopyable.
+ * Also look into the use of kwiver::vital::noncopyable.
  */
 class VITAL_EXPORT registrar
 {

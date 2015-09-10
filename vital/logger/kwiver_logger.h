@@ -36,9 +36,9 @@
 
 #include <sstream>
 #include <cstdlib>
+#include <memory>
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/noncopyable.hpp>
+#include <vital/noncopyable.h>
 
 namespace kwiver {
 namespace vital{
@@ -62,7 +62,7 @@ namespace logger_ns {
  */
 class VITAL_LOGGER_EXPORT kwiver_logger
   : public std::enable_shared_from_this< kwiver_logger >,
-    private boost::noncopyable
+  private kwiver::vital::noncopyable
 {
 public:
   enum log_level_t {

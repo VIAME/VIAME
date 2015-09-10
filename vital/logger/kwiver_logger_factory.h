@@ -32,7 +32,7 @@
 #define KWIVER_KWIVER_LOGGER_FACTORY_H_
 
 #include "kwiver_logger.h"
-#include <boost/noncopyable.hpp>
+#include <vital/noncopyable.h>
 
 namespace kwiver {
 namespace vital {
@@ -49,7 +49,7 @@ namespace logger_ns {
  * initialize method is called.
  */
 class kwiver_logger_factory
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
 public:
   /**
