@@ -47,10 +47,6 @@ endif()
 
 option( VITAL_ENABLE_PYTHON   "Enable Python bindings" OFF )
 
-if (VITAL_ENABLE_PYTHON)
-  set(vital_boost_python_package python)
-endif()
-
 ###
 # KWIVER CMake config
 #
