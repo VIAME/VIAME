@@ -53,6 +53,10 @@ option( VITAL_ENABLE_PYTHON   "Enable Python bindings" OFF )
 include(kwiver-utils)
 include(kwiver-flags)
 
+##
+# set compiler specific flags
+set (CMAKE_CXX_FLAGS "-std=c++0x" ) # only support g++ for now
+
 ###
 # External Dependencies and Modules
 #
