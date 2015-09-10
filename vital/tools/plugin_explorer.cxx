@@ -33,7 +33,6 @@
 #include <vital/registrar.h>
 #include <vital/config/config_block.h>
 
-#include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -55,7 +54,7 @@ void print_config( kwiver::vital::config_block_sptr config )
 
   std::cout << indent<< "Configuration block contents\n";
 
-  BOOST_FOREACH( kwiver::vital::config_block_key_t key, all_keys )
+  for ( kwiver::vital::config_block_key_t key : all_keys )
   {
     kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t >( key );
     std::cout << std::endl
@@ -71,7 +70,7 @@ void print_config( kwiver::vital::config_block_sptr config )
 void detailed_algo()
 {
   std::vector< std::string > reg_names =  kwiver::vital::algorithm::registered_names();
-  BOOST_FOREACH( std::string const& name, reg_names )
+  for ( std::string const& name : reg_names )
   {
     std::vector< std::string > token;
     boost::split( token, name, boost::is_any_of( ":" ) );
@@ -129,7 +128,7 @@ int main(int argc, char *argv[])
   //
   if (vm.count( "path" ) )
   {
-    BOOST_FOREACH( std::string const& p, vm["path"].as<std::vector< std::string > >() )
+    for ( std::string const& p : vm["path"].as<std::vector< std::string > >() )
     {
       apm.add_search_path( p );
     }
@@ -144,17 +143,18 @@ int main(int argc, char *argv[])
     plugin_name = vm["plugin_name"].as<std::string>();
   }
 
+  // locate all plugins
   apm.register_plugins( plugin_name );
 
   std::cout << "---- Registered module names:\n";
   std::vector< std::string >module_list = apm.registered_module_names();
-  BOOST_FOREACH( std::string const& name, module_list)
+  for ( std::string const& name : module_list)
   {
     std::cout << "   " << name << std::endl;
   }
 
   std::cout << "\n---- registered algorithms (type_name:impl_name)\n";
-  BOOST_FOREACH( std::string const& name, kwiver::vital::algorithm::registered_names())
+  for ( std::string const& name : kwiver::vital::algorithm::registered_names())
   {
     std::cout << "   " << name << std::endl;
   }
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
   std::vector< std::string > reg_list = reg.registered_names< XXX >();
   std::cout << "\n\n---- Resigtered algorithm names\n";
-  BOOST_FOREACH( std::string const& name, reg_list)
+  for ( std::string const& name : reg_list)
   {
     std::cout << "    " << name << std::endl;
   }

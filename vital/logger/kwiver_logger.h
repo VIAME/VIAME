@@ -38,8 +38,6 @@
 #include <cstdlib>
 
 #include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 
 namespace kwiver {
@@ -63,7 +61,7 @@ namespace logger_ns {
  * concrete implementation determines how the category name is used.
  */
 class VITAL_LOGGER_EXPORT kwiver_logger
-  : public boost::enable_shared_from_this< kwiver_logger >,
+  : public std::enable_shared_from_this< kwiver_logger >,
     private boost::noncopyable
 {
 public:
@@ -325,7 +323,7 @@ private:
 /**
  * @brief Handle for kwiver logger objects.
  */
-typedef boost::shared_ptr< kwiver_logger > logger_handle_t;
+typedef std::shared_ptr< kwiver_logger > logger_handle_t;
 
 } } // end namespace
 

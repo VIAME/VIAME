@@ -40,8 +40,7 @@
 
 #include <vector>
 #include <set>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "descriptor.h"
 #include "feature.h"
@@ -153,7 +152,7 @@ protected:
 
 
 /// Shared pointer for general track type
-typedef boost::shared_ptr< track > track_sptr;
+typedef std::shared_ptr< track > track_sptr;
 
 } } // end namespace vital
 

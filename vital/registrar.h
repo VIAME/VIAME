@@ -43,10 +43,6 @@
 #include <vector>
 
 #include <vital/logger/logger.h>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/foreach.hpp>
-
 #include <vital/vital_export.h>
 
 namespace kwiver {
@@ -73,7 +69,7 @@ protected:
   class reg_type
   {
   public:
-    typedef std::map< std::string, boost::shared_ptr< T > > map;
+    typedef std::map< std::string, std::shared_ptr< T > > map;
     typedef typename map::value_type pair;
     typedef typename map::const_iterator const_itr;
   };
@@ -102,7 +98,7 @@ public:
    *          inserted, and false if not.
    */
   template < typename T >
-  bool register_item( std::string const& name, boost::shared_ptr< T > item )
+  bool register_item( std::string const& name, std::shared_ptr< T > item )
   {
     if ( ! item )
     {
@@ -133,7 +129,7 @@ public:
   {
     std::vector< std::string > names;
 
-    BOOST_FOREACH( typename reg_type< T >::pair i, this->get_item_map< T > () )
+    for ( typename reg_type< T >::pair i : this->get_item_map< T > () )
     {
       names.push_back( i.first );
     }
@@ -164,13 +160,13 @@ public:
    *          If no algorithm is found, an empty shared pointer is returned.
    */
   template < typename T >
-  boost::shared_ptr< T > find( const std::string& name )
+  std::shared_ptr< T > find( const std::string& name )
   {
     typename reg_type< T >::map& im = this->get_item_map< T > ();
     typename reg_type< T >::const_itr it = im.find( name );
     if ( it == im.end() )
     {
-      return boost::shared_ptr< T > ();
+      return std::shared_ptr< T > ();
     }
     return it->second;
   }

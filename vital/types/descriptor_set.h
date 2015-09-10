@@ -38,7 +38,6 @@
 
 
 #include "descriptor.h"
-#include <boost/shared_ptr.hpp>
 
 namespace kwiver {
 namespace vital {
@@ -63,7 +62,7 @@ public:
 };
 
 /// Shared pointer for base descriptor_set type
-typedef boost::shared_ptr< descriptor_set > descriptor_set_sptr;
+typedef std::shared_ptr< descriptor_set > descriptor_set_sptr;
 
 
 /// A concrete descriptor set that simply wraps a vector of descriptors.

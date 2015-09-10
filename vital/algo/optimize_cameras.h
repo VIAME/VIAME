@@ -78,7 +78,7 @@ public:
 
 
 /// Type definition for shared pointer to an optimize cameras algorithm
-typedef boost::shared_ptr<optimize_cameras> optimize_cameras_sptr;
+typedef std::shared_ptr<optimize_cameras> optimize_cameras_sptr;
 
 
 } } } // end namespace

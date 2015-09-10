@@ -75,8 +75,8 @@ algorithm
 
   std::vector< std::string > type_reg_names;
   const std::string prefix = type_name + ":";
-  BOOST_FOREACH( std::string qual_name,
-                 registrar::instance().registered_names< algorithm > () )
+  for ( std::string qual_name :
+        registrar::instance().registered_names< algorithm > () )
   {
     // if prefix is a prefix of qual_name, add it to the vector
     if ( ( qual_name.length() >= prefix.length() ) &&
@@ -124,7 +124,7 @@ algorithm
   ;
   std::string tmp_d;
 
-  BOOST_FOREACH( std::string reg_name, algorithm::registered_names( type_name ) )
+  for ( std::string reg_name : algorithm::registered_names( type_name ) )
   {
     type_comment += "\n\t- " + reg_name;
     std::string qualified_name = type_name + ":" + reg_name;
@@ -199,7 +199,7 @@ algorithm
     std::cerr << "Configuration Failure: invalid option\n"
               << "   " << type_key << " = " << iname << "\n"
               << "   valid options are";
-    BOOST_FOREACH( std::string reg_name, algorithm::registered_names( type_name ) )
+    for ( std::string reg_name : algorithm::registered_names( type_name ) )
     {
       std::cerr << "\n      " << reg_name;
     }

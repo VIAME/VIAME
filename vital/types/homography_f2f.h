@@ -122,7 +122,7 @@ protected:
 
 
 /// Shared pointer for \p f2f_homography
-typedef boost::shared_ptr< f2f_homography > f2f_homography_sptr;
+typedef std::shared_ptr< f2f_homography > f2f_homography_sptr;
 
 
 /// \p f2f_homography output stream operator

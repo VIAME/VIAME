@@ -42,7 +42,6 @@
 #include <vital/types/essential_matrix.h>
 
 #include <Eigen/SVD>
-#include <boost/foreach.hpp>
 #include <boost/math/constants/constants.hpp>
 
 

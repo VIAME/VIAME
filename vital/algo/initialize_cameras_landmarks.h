@@ -75,7 +75,7 @@ public:
 
 
 /// type definition for shared pointer to an initialization algorithm
-typedef boost::shared_ptr<initialize_cameras_landmarks>
+typedef std::shared_ptr<initialize_cameras_landmarks>
             initialize_cameras_landmarks_sptr;
 
 

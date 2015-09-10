@@ -46,8 +46,6 @@
 #include <map>
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
-
 namespace kwiver {
 namespace vital {
 
@@ -55,7 +53,7 @@ namespace vital {
 // Forward declarations of abstract homography class
 class homography;
 // typedef for a homography shared pointer
-typedef boost::shared_ptr< homography > homography_sptr;
+typedef std::shared_ptr< homography > homography_sptr;
 
 
 // ===========================================================================

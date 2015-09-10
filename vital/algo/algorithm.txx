@@ -47,7 +47,6 @@
 #include <vital/registrar.h>
 
 #include <boost/algorithm/string/join.hpp>
-#include <boost/foreach.hpp>
 
 namespace kwiver {
 namespace vital {
@@ -56,12 +55,13 @@ namespace vital {
 template < typename Self >
 bool
 algorithm_def< Self >
-::register_instance( registrar& reg, boost::shared_ptr< Self > inst )
+::register_instance( registrar& reg, std::shared_ptr< Self > inst )
 {
   if ( ! inst )
   {
     return false;
   }
+
   std::string qualified_name = inst->type_name() + ":" + inst->impl_name();
   return reg.register_item< algorithm > ( qualified_name, inst ) &&
          reg.register_item< Self > ( inst->impl_name(), inst );
@@ -70,17 +70,18 @@ algorithm_def< Self >
 
 /// Factory method to make an instance of this algorithm by impl_name
 template < typename Self >
-boost::shared_ptr< Self >
+std::shared_ptr< Self >
 algorithm_def< Self >
 ::create( const std::string& impl_name )
 {
-  boost::shared_ptr< Self > inst = registrar::instance().find< Self > ( impl_name );
+  std::shared_ptr< Self > inst = registrar::instance().find< Self > ( impl_name );
 
   if ( ! inst )
   {
     return inst;
   }
-  return boost::dynamic_pointer_cast< Self > ( inst->clone() );
+
+  return std::dynamic_pointer_cast< Self > ( inst->clone() );
 }
 
 
@@ -114,14 +115,15 @@ algorithm_def< Self >
 {
   kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config();
 
-  BOOST_FOREACH( std::string impl_name, algorithm_def< Self >::registered_names() )
+  for ( auto const& impl_name : algorithm_def< Self >::registered_names() )
   {
     // create a clone of the impl in order to get access to its configuration,
     // merging it with the main config_block under a subblock that is the name
     // of the impl.
     config->subblock_view( impl_name )
-      ->merge_config( registrar::instance().find< Self > ( impl_name )->get_configuration() );
+      ->merge_config( registrar::instance().find< Self >( impl_name )->get_configuration() );
   }
+
   return config;
 }
 
@@ -130,9 +132,9 @@ algorithm_def< Self >
 template < typename Self >
 void
 algorithm_def< Self >
-::get_nested_algo_configuration( std::string const&         name,
+::get_nested_algo_configuration( std::string const&                name,
                                  kwiver::vital::config_block_sptr  config,
-                                 base_sptr                  nested_algo )
+                                 base_sptr                         nested_algo )
 {
   algorithm::get_nested_algo_configuration( Self::static_type_name(),
                                             name, config, nested_algo );
@@ -143,16 +145,16 @@ algorithm_def< Self >
 template < typename Self >
 void
 algorithm_def< Self >
-::set_nested_algo_configuration( std::string const&         name,
+::set_nested_algo_configuration( std::string const&                name,
                                  kwiver::vital::config_block_sptr  config,
-                                 base_sptr&                 nested_algo )
+                                 base_sptr&                        nested_algo )
 {
   algorithm_sptr base_nested_algo =
-    boost::static_pointer_cast< algorithm > ( nested_algo );
+    std::static_pointer_cast< algorithm > ( nested_algo );
   algorithm::set_nested_algo_configuration( Self::static_type_name(),
                                             name, config, base_nested_algo );
 
-  nested_algo = boost::dynamic_pointer_cast< Self > ( base_nested_algo );
+  nested_algo = std::dynamic_pointer_cast< Self > ( base_nested_algo );
 }
 
 
@@ -160,7 +162,7 @@ algorithm_def< Self >
 template < typename Self >
 bool
 algorithm_def< Self >
-::check_nested_algo_configuration( std::string const&         name,
+::check_nested_algo_configuration( std::string const&                name,
                                    kwiver::vital::config_block_sptr  config )
 {
   return algorithm::check_nested_algo_configuration( Self::static_type_name(),

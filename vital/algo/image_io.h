@@ -41,8 +41,6 @@
 
 #include <string>
 
-#include <boost/shared_ptr.hpp>
-
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
 
@@ -117,7 +115,7 @@ private:
 
 
 /// Shared pointer type for generic image_io definition type.
-typedef boost::shared_ptr<image_io> image_io_sptr;
+typedef std::shared_ptr<image_io> image_io_sptr;
 
 
 } } } // end namespace

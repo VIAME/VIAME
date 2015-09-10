@@ -38,8 +38,9 @@
 
 #include <vital/vital_types.h>
 #include "landmark.h"
+
 #include <map>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -63,7 +64,7 @@ public:
 };
 
 /// typedef for a landmark shared pointer
-typedef boost::shared_ptr< landmark_map > landmark_map_sptr;
+typedef std::shared_ptr< landmark_map > landmark_map_sptr;
 
 
 // ------------------------------------------------------------------

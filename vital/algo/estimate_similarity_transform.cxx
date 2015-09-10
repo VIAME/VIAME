@@ -34,8 +34,6 @@
  *        estimation algorithm definition.
  */
 
-#include <boost/foreach.hpp>
-
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/estimate_similarity_transform.h>
 
@@ -57,11 +55,12 @@ estimate_similarity_transform
                      std::vector<camera_sptr> const& to) const
 {
   std::vector<vector_3d> from_pts, to_pts;
-  BOOST_FOREACH(camera_sptr c, from)
+  for (camera_sptr c : from)
   {
     from_pts.push_back(c->center());
   }
-  BOOST_FOREACH(camera_sptr c, to)
+
+  for (camera_sptr c : to)
   {
     to_pts.push_back(c->center());
   }
@@ -77,11 +76,12 @@ estimate_similarity_transform
                      std::vector<landmark_sptr> const& to) const
 {
   std::vector<vector_3d> from_pts, to_pts;
-  BOOST_FOREACH(landmark_sptr l, from)
+  for (landmark_sptr l : from)
   {
     from_pts.push_back(l->loc());
   }
-  BOOST_FOREACH(landmark_sptr l, to)
+
+  for (landmark_sptr l : to)
   {
     to_pts.push_back(l->loc());
   }
@@ -95,9 +95,9 @@ namespace
 // ------------------------------------------------------------------
 /// Helper function for assigning camera/landmark map contents to point vectors
 /**
- * \tparam M      Map type whose value_type::second_type is a boost::shared_ptr
+ * \tparam M      Map type whose value_type::second_type is a std::shared_ptr
  * \tparam afunc  Pointer to the accessor function in the object that is
- *                contained in the boost::shared_ptr.
+ *                contained in the std::shared_ptr.
  *
  * \param from_map      map of type M of objects at \c from position
  * \param to_map        map of type M of objects at \c to position

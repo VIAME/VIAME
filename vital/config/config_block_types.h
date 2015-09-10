@@ -54,7 +54,7 @@ typedef std::string config_block_description_t;
 
 class config_block;
 /// Shared pointer for the \c config_block class
-typedef boost::shared_ptr<config_block> config_block_sptr;
+typedef std::shared_ptr<config_block> config_block_sptr;
 
 /// The type to be used for file and directory paths
 typedef boost::filesystem::path config_path_t;

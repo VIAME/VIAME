@@ -41,8 +41,6 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
-
 namespace kwiver {
 namespace vital {
 
@@ -80,7 +78,7 @@ public:
 };
 
 /// Shared pointer for base descriptor type
-typedef boost::shared_ptr< descriptor > descriptor_sptr;
+typedef std::shared_ptr< descriptor > descriptor_sptr;
 
 
 // ------------------------------------------------------------------

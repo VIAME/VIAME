@@ -47,11 +47,8 @@
 #include <string>
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
-
 #include <vital/bindings/c/error_handle.h>
 #include <vital/exceptions/base.h>
-
 #include <vital/logger/logger.h>
 
 // There may be a better way to allocate this other than static CTOR
@@ -129,7 +126,7 @@ template < typename vital_t,  // VITAL type
 class SharedPointerCache
 {
 public:
-  typedef boost::shared_ptr< vital_t > sptr_t;
+  typedef std::shared_ptr< vital_t > sptr_t;
   typedef std::map< vital_t*, sptr_t > cache_t;
   typedef std::map< vital_t*, size_t > ref_count_cache_t;
 

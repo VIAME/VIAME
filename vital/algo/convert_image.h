@@ -34,8 +34,7 @@
 #include <vital/vital_config.h>
 
 #include <string>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
@@ -62,7 +61,7 @@ public:
 
 };
 
-typedef boost::shared_ptr<convert_image> convert_image_sptr;
+typedef std::shared_ptr<convert_image> convert_image_sptr;
 
 } } } // end namespace
 

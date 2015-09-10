@@ -56,7 +56,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 
@@ -139,7 +138,7 @@ public:
     //       - Search order: setInCode -> EnvVar -> configFile -> defaults
     //       - create separate default_m_search_paths member var for separate storage
 
-    BOOST_FOREACH( path_t module_dir, this->m_search_paths )
+    for ( path_t module_dir : this->m_search_paths )
     {
       load_modules_in_directory( module_dir, name );
     }
@@ -265,7 +264,8 @@ public:
     {
       LOG_DEBUG( m_logger, "Module registration complete" );
 
-      // Adding module name to registered list
+      // Adding module name to registered list. Note that existing
+      // modules will be replaced.
       registered_modules_[module_path.stem().string()] = module_path;
     }
 
@@ -279,7 +279,7 @@ public:
   {
     std::vector< std::string > r_vec;
 
-    BOOST_FOREACH( registered_modules_t::value_type p, registered_modules_ )
+    for ( registered_modules_t::value_type p : registered_modules_ )
     {
       r_vec.push_back( p.first );
     }

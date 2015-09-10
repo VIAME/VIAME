@@ -41,14 +41,13 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 
 #include <vital/types/camera_intrinsics.h>
 #include <vital/types/covariance.h>
 #include <vital/types/rotation.h>
 #include <vital/types/vector.h>
 #include <vital/types/similarity.h>
-
-#include <boost/shared_ptr.hpp>
 
 
 namespace kwiver {
@@ -57,7 +56,7 @@ namespace vital {
 /// forward declaration of camera class
 class camera;
 /// typedef for a camera shared pointer
-typedef boost::shared_ptr< camera > camera_sptr;
+typedef std::shared_ptr< camera > camera_sptr;
 
 
 // ------------------------------------------------------------------

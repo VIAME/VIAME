@@ -37,9 +37,8 @@
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
 
-#include <boost/shared_ptr.hpp>
-
 #include <ostream>
+#include <memory>
 
 /**
  * \file
@@ -73,7 +72,7 @@ public:
 
 };
 
-typedef boost::shared_ptr<analyze_tracks> analyze_tracks_sptr;
+typedef std::shared_ptr<analyze_tracks> analyze_tracks_sptr;
 
 } } } // end namespace
 

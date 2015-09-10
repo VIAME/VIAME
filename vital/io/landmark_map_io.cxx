@@ -44,7 +44,6 @@
 #include <vital/exceptions.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 
 namespace kwiver {
 namespace vital {
@@ -100,7 +99,7 @@ write_ply_file( landmark_map_sptr const&  landmarks,
 
   landmark_map::map_landmark_t lm_map = landmarks->landmarks();
   typedef  landmark_map::map_landmark_t::value_type lm_map_val_t;
-  BOOST_FOREACH( lm_map_val_t const & p, lm_map )
+  for ( lm_map_val_t const& p : lm_map )
   {
     vector_3d loc = p.second->loc();
 

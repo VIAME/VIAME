@@ -38,8 +38,6 @@
 
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
-
 #include "feature.h"
 
 namespace kwiver {
@@ -65,7 +63,7 @@ public:
 };
 
 /// Shared pointer for base feature_set type
-typedef boost::shared_ptr< feature_set > feature_set_sptr;
+typedef std::shared_ptr< feature_set > feature_set_sptr;
 
 
 /// A concrete feature set that simply wraps a vector of features.

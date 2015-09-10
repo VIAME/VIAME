@@ -32,7 +32,6 @@
 #define VITAL_ALGO_DRAW_TRACKS_H_
 
 #include <vital/vital_config.h>
-#include <boost/shared_ptr.hpp>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
@@ -84,7 +83,7 @@ public:
 
 
 /// A smart pointer to a draw_tracks instance.
-typedef boost::shared_ptr<draw_tracks> draw_tracks_sptr;
+typedef std::shared_ptr<draw_tracks> draw_tracks_sptr;
 
 
 } } } // end namespace algo

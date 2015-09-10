@@ -34,9 +34,8 @@
 #include "kwiver_logger.h"
 
 #include <map>
+#include <memory>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/shared_mutex.hpp>
@@ -263,7 +262,7 @@ logger_handle_t
 logger_factory_default
 ::get_logger( const char * const name )
 {
-  return boost::make_shared< default_logger >( this, name );
+  return std::make_shared< default_logger >( this, name );
 }
 
 } } } // end namespace

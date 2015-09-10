@@ -41,7 +41,6 @@
 #include <vital/config/config_block_io.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 
 #define TEST_ARGS (kwiver::vital::path_t const& data_dir)
 DECLARE_TEST_MAP();
@@ -59,12 +58,12 @@ main( int argc, char* argv[] )
 }
 
 
-#define print_config( config )                                                   \
-  BOOST_FOREACH( config_block_key_t key, config->available_values() )            \
-  {                                                                              \
-    std::cerr << "\t"                                                            \
+#define print_config( config )                                          \
+  for ( config_block_key_t key : config->available_values() )           \
+  {                                                                     \
+    std::cerr << "\t"                                                   \
               << key << " = " << config->get_value< config_block_key_t > ( key ) \
-              << std::endl;                                                      \
+              << std::endl;                                             \
   }
 
 IMPLEMENT_TEST( config_path_not_exist )
@@ -96,7 +95,7 @@ IMPLEMENT_TEST( successful_config_read )
   using std::cerr;
   using std::endl;
   cerr << "Available keys in the config_block:" << endl;
-  BOOST_FOREACH( config_block_key_t key, config->available_values() )
+  for ( config_block_key_t key : config->available_values() )
   {
     cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
   }
@@ -163,7 +162,7 @@ IMPLEMENT_TEST( successful_config_read_named_block )
   using std::cerr;
   using std::endl;
   cerr << "Available keys in the config_block:" << endl;
-  BOOST_FOREACH( config_block_key_t key, config->available_values() )
+  for ( config_block_key_t key : config->available_values() )
   {
     cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
   }
@@ -206,7 +205,7 @@ IMPLEMENT_TEST( include_files )
   using std::cerr;
   using std::endl;
   cerr << "Available keys in the config_block:" << endl;
-  BOOST_FOREACH( config_block_key_t key, config->available_values() )
+  for ( config_block_key_t key : config->available_values() )
   {
     cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
   }
@@ -342,7 +341,7 @@ IMPLEMENT_TEST( write_config_simple_success )
   configs.push_back( read_config_file( output_path_1 ) );
   configs.push_back( read_config_file( output_path_2 ) );
 
-  BOOST_FOREACH( config_block_sptr config, configs )
+  for ( config_block_sptr config : configs )
   {
     TEST_EQUAL( "num params", config->available_values().size(), 7 );
     TEST_EQUAL( "key-A read",

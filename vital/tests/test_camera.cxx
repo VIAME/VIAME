@@ -37,7 +37,6 @@
 
 #include <iostream>
 
-#include <boost/foreach.hpp>
 #include <boost/math/constants/constants.hpp>
 
 #include <vital/types/camera.h>
@@ -167,7 +166,7 @@ IMPLEMENT_TEST(multiple_interpolations)
 
   cerr << "Vector size: " << cams.size() << endl;
   TEST_EQUAL("vector size", cams.size(), 5);
-  BOOST_FOREACH(camera_d cam, cams)
+  for (camera_d cam : cams)
   {
     cerr << "\t" << cam.center() << " :: " << cam.rotation().axis() << " " << cam.rotation().angle() << endl;
   }

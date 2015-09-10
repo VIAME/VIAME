@@ -46,7 +46,6 @@
 #include <vital/exceptions.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 
 namespace kwiver {
 namespace vital {
@@ -145,7 +144,7 @@ write_track_file( track_set_sptr const& tracks,
   // open output file and write the tracks
   std::ofstream ofile( file_path.c_str() );
   std::vector< vital::track_sptr > trks = tracks->tracks();
-  BOOST_FOREACH( vital::track_sptr t, trks )
+  for ( vital::track_sptr t : trks )
   {
     typedef vital::track::history_const_itr state_itr;
     for ( state_itr si = t->begin(); si != t->end(); ++si )

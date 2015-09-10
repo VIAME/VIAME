@@ -40,8 +40,6 @@
 
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
-
 #include <vital/algo/algorithm.h>
 #include <vital/types/track_set.h>
 #include <vital/types/image_container.h>
@@ -93,7 +91,7 @@ public:
 
 
 /// Shared pointer type of base compute_ref_homography algorithm definition class
-typedef boost::shared_ptr<compute_ref_homography> compute_ref_homography_sptr;
+typedef std::shared_ptr<compute_ref_homography> compute_ref_homography_sptr;
 
 
 } } } // end namespace

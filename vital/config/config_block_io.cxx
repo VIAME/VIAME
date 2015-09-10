@@ -45,7 +45,6 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 
 
@@ -207,7 +206,7 @@ void write_config( config_block_sptr const& config,
 
 
   bool prev_had_descr = false;  // for additional spacing
-  BOOST_FOREACH( config_block_key_t key, avail_keys )
+  for ( config_block_key_t key : avail_keys )
   {
     // Each key may or may not have an associated description string. If there
     // is one, write that out as a comment.

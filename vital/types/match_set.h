@@ -38,7 +38,7 @@
 
 
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -62,7 +62,7 @@ public:
 };
 
 /// Shared pointer of base match_set type
-typedef boost::shared_ptr< match_set > match_set_sptr;
+typedef std::shared_ptr< match_set > match_set_sptr;
 
 
 // ------------------------------------------------------------------

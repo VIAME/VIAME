@@ -145,7 +145,7 @@ public:
 
 
 /// Shared pointer for similarity transformation algorithms
-typedef boost::shared_ptr<estimate_similarity_transform> estimate_similarity_transform_sptr;
+typedef std::shared_ptr<estimate_similarity_transform> estimate_similarity_transform_sptr;
 
 
 } } } // end namespace

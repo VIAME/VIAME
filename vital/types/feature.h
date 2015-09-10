@@ -40,8 +40,7 @@
 
 #include <iostream>
 #include <typeinfo>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "covariance.h"
 #include "vector.h"
@@ -77,7 +76,7 @@ public:
 };
 
 /// Shared pointer for base feature type
-typedef boost::shared_ptr< feature > feature_sptr;
+typedef std::shared_ptr< feature > feature_sptr;
 
 /// output stream operator for base class feature
 /**

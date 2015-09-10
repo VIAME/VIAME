@@ -34,11 +34,9 @@
  */
 
 #include "track.h"
-#include <boost/foreach.hpp>
 
 
-namespace
-{
+namespace {
 
 class compare_state_frame
 {
@@ -165,7 +163,7 @@ track
 {
   std::set< frame_id_t > ids;
 
-  BOOST_FOREACH( const track_state &ts, this->history_ )
+  for ( track_state const& ts : this->history_ )
   {
     ids.insert( ts.frame_id );
   }

@@ -42,7 +42,6 @@
 #include <vital/exceptions.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 
 namespace kwiver {
 namespace vital {

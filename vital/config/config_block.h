@@ -45,12 +45,11 @@
 #include <typeinfo>
 #include <vector>
 #include <ostream>
+#include <memory>
 
 #include <boost/optional/optional.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "config_block_types.h"
 #include "config_block_exception.h"
@@ -62,7 +61,7 @@ namespace vital {
 class config_block;
 
 /// Shared pointer for the \c config_block class
-typedef boost::shared_ptr< config_block > config_block_sptr;
+typedef std::shared_ptr< config_block > config_block_sptr;
 
 // ----------------------------------------------------------------
 /**
@@ -98,7 +97,7 @@ typedef boost::shared_ptr< config_block > config_block_sptr;
  */
 
 class VITAL_CONFIG_EXPORT config_block
-  : public boost::enable_shared_from_this< config_block >,
+  : public std::enable_shared_from_this< config_block >,
     private boost::noncopyable
 {
 public:

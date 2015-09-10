@@ -39,7 +39,7 @@
 #include "camera.h"
 #include <vital/vital_types.h>
 #include <map>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -62,7 +62,7 @@ public:
 };
 
 /// typedef for a camera shared pointer
-typedef boost::shared_ptr< camera_map > camera_map_sptr;
+typedef std::shared_ptr< camera_map > camera_map_sptr;
 
 
 /// A concrete camera_map that simply wraps a std::map.

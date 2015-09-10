@@ -35,7 +35,7 @@
  */
 
 #include "transform.h"
-#include <boost/foreach.hpp>
+
 #include <Eigen/Geometry>
 
 namespace kwiver {
@@ -75,7 +75,7 @@ transform( camera_map_sptr      cameras,
 {
   camera_map::map_camera_t cam_map = cameras->cameras();
 
-  BOOST_FOREACH( camera_map::map_camera_t::value_type & p, cam_map )
+  for ( camera_map::map_camera_t::value_type& p : cam_map )
   {
     p.second = transform( p.second, xform );
   }
@@ -102,7 +102,7 @@ transform( landmark_map_sptr    landmarks,
 {
   landmark_map::map_landmark_t lm_map = landmarks->landmarks();
 
-  BOOST_FOREACH( landmark_map::map_landmark_t::value_type & p, lm_map )
+  for ( landmark_map::map_landmark_t::value_type& p : lm_map )
   {
     p.second = transform( p.second, xform );
   }
@@ -120,7 +120,7 @@ canonical_transform( vital::camera_map_sptr   cameras,
   typedef landmark_map::map_landmark_t lm_map_t;
   vector_3d center( 0, 0, 0 );
   double s = 0.0;
-  BOOST_FOREACH( const lm_map_t::value_type & p, landmarks->landmarks() )
+  for ( const lm_map_t::value_type& p : landmarks->landmarks() )
   {
     vector_3d c = p.second->loc();
 
@@ -136,7 +136,7 @@ canonical_transform( vital::camera_map_sptr   cameras,
   vector_3d cam_center( 0, 0, 0 );
   vector_3d cam_up( 0, 0, 0 );
   typedef camera_map::map_camera_t cam_map_t;
-  BOOST_FOREACH( const cam_map_t::value_type & p, cameras->cameras() )
+  for ( const cam_map_t::value_type& p : cameras->cameras() )
   {
     cam_center += p.second->center();
     cam_up += p.second->rotation().inverse() * vector_3d( 0, 1, 0 );

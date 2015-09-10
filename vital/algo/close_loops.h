@@ -33,7 +33,6 @@
 
 #include <vital/vital_config.h>
 
-#include <boost/shared_ptr.hpp>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
@@ -82,7 +81,7 @@ public:
 
 };
 
-typedef boost::shared_ptr<close_loops> close_loops_sptr;
+typedef std::shared_ptr<close_loops> close_loops_sptr;
 
 } } } // end namespace
 

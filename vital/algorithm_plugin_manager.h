@@ -39,7 +39,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
 #include <vital/vital_export.h>
@@ -61,16 +60,25 @@ public:
 
   /// (Re)Load plugin libraries found along current search paths
   /**
+   * This method loads or reloads plugins. This method must be called
+   * to get the plugins since this is not done by the CTOR.
+   *
+   * In the case of reloading plugins, existing plugins will be
+   * replaced with newer ones.
+   *
    * \param name If a name is provided, we will only load plugins whose name
    *             corresponds to the name given. If no plugins with the given
-   *             name are found, nothing is loaded. NOTE: This argument is not
-   *             used in static builds. As plugins are already baked into the
-   *             library, all are loaded.
+   *             name are found, nothing is loaded.
    */
   void register_plugins( std::string name = std::string() );
 
   /// Add an additional directory to search for plugins in.
   /**
+   * This method adds the specified directory to the list used when
+   * loading plugins. This method can be called multiple times to add
+   * multiple directories. Call the register_plugins() method to load
+   * plugins after you have added all additional directories.
+   *
    * Directory paths that don't exist will simply be ignored.
    *
    * \param dirpath Path to the directory to add to the plugin search path

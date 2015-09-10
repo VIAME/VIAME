@@ -35,7 +35,6 @@
 
 #include <vital/algo/estimate_essential_matrix.h>
 #include <vital/algo/algorithm.txx>
-#include <boost/foreach.hpp>
 
 
 /// \cond DoxygenSuppress
@@ -64,7 +63,7 @@ estimate_essential_matrix
   std::vector<match> mset = matches->matches();
   std::vector<vector_2d> vv1, vv2;
 
-  BOOST_FOREACH(match m, mset)
+  for (match m : mset)
   {
     vv1.push_back(vf1[m.first]->loc());
     vv2.push_back(vf2[m.second]->loc());

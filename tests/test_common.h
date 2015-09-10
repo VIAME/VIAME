@@ -40,7 +40,6 @@
 #ifndef KWIVER_TEST_TEST_COMMON_H_
 #define KWIVER_TEST_TEST_COMMON_H_
 
-#include <boost/foreach.hpp>
 #include <boost/function.hpp>
 
 #include <exception>
@@ -154,7 +153,7 @@ typedef std::string testname_t;
   do                                                        \
   {                                                         \
     std::cerr << "Available tests:" << std::endl;           \
-    BOOST_FOREACH( test_map_t::value_type p, __all_tests )  \
+    for ( test_map_t::value_type p : __all_tests )         \
     {                                                       \
       std::cerr << "\t" << p.first << std::endl;            \
     }                                                       \

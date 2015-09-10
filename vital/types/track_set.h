@@ -42,8 +42,7 @@
 
 #include <vector>
 #include <set>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "descriptor_set.h"
 #include "feature_set.h"
@@ -54,7 +53,7 @@ namespace vital {
 
 class track_set;
 /// Shared pointer for base track_set type
-typedef boost::shared_ptr< track_set > track_set_sptr;
+typedef std::shared_ptr< track_set > track_set_sptr;
 
 /// A collection of 2D feature point tracks
 class VITAL_EXPORT track_set

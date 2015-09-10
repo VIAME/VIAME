@@ -31,7 +31,7 @@
 
 #include "kwiver_logger_factory.h"
 #include <log4cxx/logger.h>
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include <vital/logger/vital_logger_export.h>
 

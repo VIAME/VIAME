@@ -37,9 +37,6 @@
 #define VITAL_ALGO_DETECT_FEATURES_H_
 
 #include <vital/vital_config.h>
-
-#include <boost/shared_ptr.hpp>
-
 #include <vital/algo/algorithm.h>
 #include <vital/types/feature_set.h>
 #include <vital/types/image_container.h>
@@ -80,7 +77,7 @@ public:
 
 
 /// Shared pointer for detect_features algorithm definition class
-typedef boost::shared_ptr<detect_features> detect_features_sptr;
+typedef std::shared_ptr<detect_features> detect_features_sptr;
 
 
 } } } // end namespace
