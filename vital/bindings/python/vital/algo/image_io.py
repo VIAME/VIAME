@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-MAPTK image_io algorithm interface
+VITAL image_io algorithm interface
 
 """
 # -*- coding: utf-8 -*-
@@ -38,14 +38,14 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk import ImageContainer
-from maptk.algo import MaptkAlgorithm
-from maptk.util import MaptkErrorHandle
+from vital import ImageContainer
+from vital.algo import VitalAlgorithm
+from vital.util import VitalErrorHandle
 
 
-class ImageIo (MaptkAlgorithm):
+class ImageIo (VitalAlgorithm):
     """
-    maptk::algo::image_io interface
+    vital::algo::image_io interface
     """
 
     TYPE_NAME = 'image_io'
@@ -61,11 +61,11 @@ class ImageIo (MaptkAlgorithm):
         :rtype: ImageContainer
 
         """
-        iio_load = self.MAPTK_LIB.maptk_algorithm_image_io_load
+        iio_load = self.VITAL_LIB.vital_algorithm_image_io_load
         iio_load.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
-                             MaptkErrorHandle.C_TYPE_PTR]
+                             VitalErrorHandle.C_TYPE_PTR]
         iio_load.restype = ImageContainer.C_TYPE_PTR
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             ic_ptr = iio_load(self, filepath, eh)
         return ImageContainer.from_c_pointer(ic_ptr)
 
@@ -80,9 +80,9 @@ class ImageIo (MaptkAlgorithm):
         :type filepath: str
 
         """
-        iio_save = self.MAPTK_LIB.maptk_algorithm_image_io_save
+        iio_save = self.VITAL_LIB.vital_algorithm_image_io_save
         iio_save.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
                              ImageContainer.C_TYPE_PTR,
-                             MaptkErrorHandle.C_TYPE_PTR]
-        with MaptkErrorHandle() as eh:
+                             VitalErrorHandle.C_TYPE_PTR]
+        with VitalErrorHandle() as eh:
             iio_save(self, filepath, image_container, eh)

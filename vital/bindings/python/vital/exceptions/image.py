@@ -30,15 +30,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-MAPTK image related exceptions
+VITAL image related exceptions
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
-from .base import MaptkBaseException
+from .base import VitalBaseException
 
 
-class MaptkImageSizeMismatchException (MaptkBaseException):
+class VitalImageSizeMismatchException (VitalBaseException):
     """ When an image is of an incorrect size by some metric """
     pass

@@ -30,35 +30,35 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-MaptkConfigBlock IO related exceptions
+VitalConfigBlock IO related exceptions
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
-from .base import MaptkBaseException
+from .base import VitalBaseException
 
 
-class MaptkConfigBlockIoException (MaptkBaseException):
+class VitalConfigBlockIoException (VitalBaseException):
     """ Base class for ConfigBlock IO related exceptions """
     pass
 
 
-class MaptkConfigBlockIoFileNotFoundException (MaptkConfigBlockIoException):
+class VitalConfigBlockIoFileNotFoundException (VitalConfigBlockIoException):
     """ Wen a file could not be found """
     pass
 
 
-class MaptkConfigBlockIoFileNotReadException (MaptkConfigBlockIoException):
+class VitalConfigBlockIoFileNotReadException (VitalConfigBlockIoException):
     """ When a file could not be read """
     pass
 
 
-class MaptkConfigBlockIoFileNotParsed (MaptkConfigBlockIoException):
+class VitalConfigBlockIoFileNotParsed (VitalConfigBlockIoException):
     """ When a read file could not be parsed """
     pass
 
 
-class MaptkConfigBlockIoFileWriteException (MaptkConfigBlockIoException):
+class VitalConfigBlockIoFileWriteException (VitalConfigBlockIoException):
     """ When a config block could not be written to file """
     pass

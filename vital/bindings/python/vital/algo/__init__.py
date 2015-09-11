@@ -30,14 +30,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Base MAPTK algorithm structure
+Base VITAL algorithm structure
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
 # Convenience imports of algorithm definition types to the module level
-from .algorithm import MaptkAlgorithm
+from .algorithm import VitalAlgorithm
 from .convert_image import ConvertImage
 from .image_io import ImageIo
 from .track_features import TrackFeatures

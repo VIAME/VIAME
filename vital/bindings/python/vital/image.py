@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Interface to MAPTK image class.
+Interface to VITAL image class.
 
 """
 # -*- coding: utf-8 -*-
@@ -38,12 +38,12 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk.util import MaptkObject
+from vital.util import VitalObject
 
 
-class Image (MaptkObject):
+class Image (VitalObject):
     """
-    maptk::image interface class
+    vital::image interface class
     """
 
     @classmethod
@@ -58,7 +58,7 @@ class Image (MaptkObject):
         :rtype: Image
 
         """
-        img_new = cls.MAPTK_LIB.maptk_image_new_from_image
+        img_new = cls.VITAL_LIB.vital_image_new_from_image
         img_new.argtypes = [cls.C_TYPE_PTR]
         img_new.restype = cls.C_TYPE_PTR
         return Image.from_c_pointer(img_new(other_image._inst_ptr))
@@ -73,11 +73,11 @@ class Image (MaptkObject):
         super(Image, self).__init__()
 
         if width is None or height is None:
-            img_new = self.MAPTK_LIB.maptk_image_new
+            img_new = self.VITAL_LIB.vital_image_new
             img_new.restype = self.C_TYPE_PTR
             self._inst_ptr = img_new()
         else:
-            img_new = self.MAPTK_LIB.maptk_image_new_with_dim
+            img_new = self.VITAL_LIB.vital_image_new_with_dim
             img_new.argtypes = [ctypes.c_size_t, ctypes.c_size_t,
                                 ctypes.c_size_t, ctypes.c_bool]
             img_new.restype = self.C_TYPE_PTR
@@ -87,7 +87,7 @@ class Image (MaptkObject):
             raise RuntimeError("Failed to construct Image instance")
 
     def _destroy(self):
-        img_destroy = self.MAPTK_LIB.maptk_image_destroy
+        img_destroy = self.VITAL_LIB.vital_image_destroy
         img_destroy.argtypes = [self.C_TYPE_PTR]
         img_destroy(self._inst_ptr)
 
@@ -98,7 +98,7 @@ class Image (MaptkObject):
         :rtype: int
 
         """
-        img_size = self.MAPTK_LIB.maptk_image_size
+        img_size = self.VITAL_LIB.vital_image_size
         img_size.argtypes = [self.C_TYPE_PTR]
         img_size.restype = ctypes.c_size_t
         return img_size(self._inst_ptr)

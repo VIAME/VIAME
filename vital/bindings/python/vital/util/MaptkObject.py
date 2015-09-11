@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Base class for all MAPTK Python interface classes
+Base class for all VITAL Python interface classes
 
 """
 # -*- coding: utf-8 -*-
@@ -39,13 +39,13 @@ __author__ = 'purg'
 import abc
 import ctypes
 
-from maptk.util import find_maptk_library
-from maptk.util.string import maptk_string_t
+from vital.util import find_vital_library
+from vital.util.string import vital_string_t
 
 
-class MaptkClassMeta (abc.ABCMeta):
+class VitalClassMeta (abc.ABCMeta):
     """
-    Metaclass for Maptk object types.
+    Metaclass for Vital object types.
 
     Ensures that C_TYPE and C_TYPE_PTR are defined in derived classes.
     """
@@ -61,29 +61,29 @@ class MaptkClassMeta (abc.ABCMeta):
             attrs['C_TYPE'] = OpaqueStruct
             attrs['C_TYPE_PTR'] = ctypes.POINTER(OpaqueStruct)
 
-        return super(MaptkClassMeta, cls).__new__(cls, name, bases, attrs)
+        return super(VitalClassMeta, cls).__new__(cls, name, bases, attrs)
 
 
-class MaptkObject (object):
+class VitalObject (object):
     """
-    Basic MAPTK python interface class.
+    Basic VITAL python interface class.
     """
-    __metaclass__ = MaptkClassMeta
+    __metaclass__ = VitalClassMeta
 
-    MAPTK_LIB = find_maptk_library()
+    VITAL_LIB = find_vital_library()
 
     # C API opaque structure + pointer
     C_TYPE = None
     C_TYPE_PTR = None
 
     # Common string structure stuff
-    MST_TYPE = maptk_string_t
-    MST_TYPE_PTR = maptk_string_t.PTR_t
-    MST_NEW = MAPTK_LIB['maptk_string_new']
+    MST_TYPE = vital_string_t
+    MST_TYPE_PTR = vital_string_t.PTR_t
+    MST_NEW = VITAL_LIB['vital_string_new']
     MST_NEW.argtypes = [ctypes.c_size_t, ctypes.c_char_p]
-    MST_NEW.restype = maptk_string_t.PTR_t
-    MST_FREE = MAPTK_LIB['maptk_string_free']
-    MST_FREE.argtypes = [maptk_string_t.PTR_t]
+    MST_NEW.restype = vital_string_t.PTR_t
+    MST_FREE = VITAL_LIB['vital_string_free']
+    MST_FREE.argtypes = [vital_string_t.PTR_t]
 
     @classmethod
     def from_c_pointer(cls, ptr, shallow_copy_of=None):
@@ -96,14 +96,14 @@ class MaptkObject (object):
         is not destroyed prematurely.
 
         :param ptr: C API opaque structure pointer type instance
-        :type ptr: MaptkAlgorithm.C_TYPE_PTR
+        :type ptr: VitalAlgorithm.C_TYPE_PTR
 
         :param shallow_copy_of: Optional parent object instance when the ptr
             given is coming from an existing python object.
-        :type shallow_copy_of: MaptkObject or None
+        :type shallow_copy_of: VitalObject or None
 
         :return: New Python object using the given underlying C object pointer.
-        :rtype: MaptkObject
+        :rtype: VitalObject
 
         """
         # As this is a generalized method, make sure that the derived class
@@ -178,5 +178,5 @@ class MaptkObject (object):
     @abc.abstractmethod
     def _destroy(self):
         """ Call C API destructor for derived class """
-        raise NotImplementedError("Calling MaptkObject class abstract _destroy "
+        raise NotImplementedError("Calling VitalObject class abstract _destroy "
                                   "function.")

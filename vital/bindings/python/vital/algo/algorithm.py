@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Base MAPTK algorithm structure
+Base VITAL algorithm structure
 
 """
 # -*- coding: utf-8 -*-
@@ -38,25 +38,25 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk import ConfigBlock
-from maptk.exceptions.base import MaptkNullPointerException
-from maptk.util import MaptkObject, MaptkErrorHandle
+from vital import ConfigBlock
+from vital.exceptions.base import VitalNullPointerException
+from vital.util import VitalObject, VitalErrorHandle
 
 
 # noinspection PyPep8Naming
-class _maptk_algorithm_t (ctypes.Structure):
+class _vital_algorithm_t (ctypes.Structure):
     """
     Opaque structure type used in C interface.
     """
     pass
 
 
-class MaptkAlgorithm (MaptkObject):
+class VitalAlgorithm (VitalObject):
     """
-    Base class for MAPTK algorithms
+    Base class for VITAL algorithms
     """
     # Subclass defined type string as would be returned by
-    # maptk::algo::*::type_name. This allows this base class to know how to
+    # vital::algo::*::type_name. This allows this base class to know how to
     # automatically call common algorithm_def level methods.
     TYPE_NAME = None
 
@@ -75,21 +75,21 @@ class MaptkAlgorithm (MaptkObject):
         name.
 
         :param ptr: C API opaque structure pointer type instance
-        :type ptr: MaptkAlgorithm.C_TYPE_PTR
+        :type ptr: VitalAlgorithm.C_TYPE_PTR
 
         :param shallow_copy_of: Optional parent object instance when the ptr
             given is coming from an existing python object.
-        :type shallow_copy_of: MaptkAlgorithm or None
+        :type shallow_copy_of: VitalAlgorithm or None
 
         :param name: Name of the new algorithm. This must be provided if this is
             not a copy of another algorithm instance.
         :type name: str or None
 
         :return: New Python object using the given underlying C object pointer.
-        :rtype: MaptkAlgorithm
+        :rtype: VitalAlgorithm
 
         """
-        n = super(MaptkAlgorithm, cls).from_c_pointer(ptr, shallow_copy_of)
+        n = super(VitalAlgorithm, cls).from_c_pointer(ptr, shallow_copy_of)
 
         if shallow_copy_of is None and not name:
             raise ValueError("Empty name given.")
@@ -123,9 +123,9 @@ class MaptkAlgorithm (MaptkObject):
         """
         :return: list of string implementation names currently registered
         """
-        algo_reg_names = cls.MAPTK_LIB['maptk_algorithm_%s_registered_names'
+        algo_reg_names = cls.VITAL_LIB['vital_algorithm_%s_registered_names'
                                        % cls.type_name()]
-        sl_free = cls.MAPTK_LIB.maptk_common_free_string_list
+        sl_free = cls.VITAL_LIB.vital_common_free_string_list
 
         algo_reg_names.argtypes = [ctypes.POINTER(ctypes.c_uint),
                                    ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p))]
@@ -166,14 +166,14 @@ class MaptkAlgorithm (MaptkObject):
         :rtype: cls
 
         """
-        algo_create = cls.MAPTK_LIB['maptk_algorithm_%s_create'
+        algo_create = cls.VITAL_LIB['vital_algorithm_%s_create'
                                     % cls.type_name()]
         algo_create.argtypes = [ctypes.c_char_p]
         algo_create.restype = cls.C_TYPE_PTR
 
         inst_ptr = algo_create(impl_name)
         if not bool(inst_ptr):
-            raise MaptkNullPointerException(
+            raise VitalNullPointerException(
                 "Failed to construct algorithm instance"
             )
 
@@ -192,7 +192,7 @@ class MaptkAlgorithm (MaptkObject):
             class
 
         """
-        super(MaptkAlgorithm, self).__init__()
+        super(VitalAlgorithm, self).__init__()
         # Initialize to NULL pointer
         self._inst_ptr = self.C_TYPE_PTR()
 
@@ -230,11 +230,11 @@ class MaptkAlgorithm (MaptkObject):
         Destroy internal instance
         """
         if self._inst_ptr:
-            algo_destroy = self.MAPTK_LIB["maptk_algorithm_%s_destroy"
+            algo_destroy = self.VITAL_LIB["vital_algorithm_%s_destroy"
                                           % self.type_name()]
             algo_destroy.argtypes = [self.C_TYPE_PTR,
-                                     MaptkErrorHandle.C_TYPE_PTR]
-            with MaptkErrorHandle() as eh:
+                                     VitalErrorHandle.C_TYPE_PTR]
+            with VitalErrorHandle() as eh:
                 algo_destroy(self, eh)
 
     def impl_name(self):
@@ -244,11 +244,11 @@ class MaptkAlgorithm (MaptkObject):
         :rtype: str
         """
         if self._inst_ptr:
-            algo_impl_name = self.MAPTK_LIB.maptk_algorithm_impl_name
+            algo_impl_name = self.VITAL_LIB.vital_algorithm_impl_name
             algo_impl_name.argtypes = [self.C_TYPE_PTR,
-                                       MaptkErrorHandle.C_TYPE_PTR]
+                                       VitalErrorHandle.C_TYPE_PTR]
             algo_impl_name.restype = self.MST_TYPE_PTR
-            with MaptkErrorHandle() as eh:
+            with VitalErrorHandle() as eh:
                 s_ptr = algo_impl_name(self, eh)
                 s = s_ptr.contents.str
                 self.MST_FREE(s_ptr)
@@ -262,13 +262,13 @@ class MaptkAlgorithm (MaptkObject):
         :type new_name: str
 
         :return: A new copy of this algorithm
-        :rtype: MaptkAlgorithm
+        :rtype: VitalAlgorithm
         """
-        algo_clone = self.MAPTK_LIB['maptk_algorithm_%s_clone'
+        algo_clone = self.VITAL_LIB['vital_algorithm_%s_clone'
                                     % self.type_name()]
-        algo_clone.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
+        algo_clone.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
         algo_clone.restype = self.C_TYPE_PTR
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             return self.from_c_pointer(algo_clone(self, eh),
                                        name=(new_name or self.name))
 
@@ -286,20 +286,20 @@ class MaptkAlgorithm (MaptkObject):
 
         :return: This named algorithm's current configuration. If a config block
             was given to this method, the same config block is returned.
-        :rtype: maptk.ConfigBlock
+        :rtype: vital.ConfigBlock
 
         """
-        algo_gtc = self.MAPTK_LIB['maptk_algorithm_%s_get_type_config'
+        algo_gtc = self.VITAL_LIB['vital_algorithm_%s_get_type_config'
                                   % self.type_name()]
         algo_gtc.argtypes = [ctypes.c_char_p, self.C_TYPE_PTR,
                              ConfigBlock.C_TYPE_PTR,
-                             MaptkErrorHandle.C_TYPE_PTR]
+                             VitalErrorHandle.C_TYPE_PTR]
         algo_gtc.restype = ConfigBlock.C_TYPE_PTR
 
         if cb is None:
             cb = ConfigBlock()
 
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             algo_gtc(self.name, self, cb, eh)
 
         return cb
@@ -322,12 +322,12 @@ class MaptkAlgorithm (MaptkObject):
         :type cb: ConfigBlock
 
         """
-        algo_stc = self.MAPTK_LIB['maptk_algorithm_%s_set_type_config'
+        algo_stc = self.VITAL_LIB['vital_algorithm_%s_set_type_config'
                                   % self.type_name()]
         algo_stc.argtypes = [ctypes.c_char_p, ConfigBlock.C_TYPE_PTR,
                              ctypes.POINTER(self.C_TYPE_PTR),
-                             MaptkErrorHandle.C_TYPE_PTR]
-        with MaptkErrorHandle() as eh:
+                             VitalErrorHandle.C_TYPE_PTR]
+        with VitalErrorHandle() as eh:
             algo_stc(self.name, cb, ctypes.byref(self.c_pointer), eh)
 
     def check_config(self, cb):
@@ -342,11 +342,11 @@ class MaptkAlgorithm (MaptkObject):
         :rtype: bool
 
         """
-        algo_ctc = self.MAPTK_LIB['maptk_algorithm_%s_check_type_config'
+        algo_ctc = self.VITAL_LIB['vital_algorithm_%s_check_type_config'
                                   % self.type_name()]
         algo_ctc.argtypes = [ctypes.c_char_p,
                              ConfigBlock.C_TYPE_PTR,
-                             MaptkErrorHandle.C_TYPE_PTR]
+                             VitalErrorHandle.C_TYPE_PTR]
         algo_ctc.restype = ctypes.c_bool
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             return algo_ctc(self.name, cb, eh)

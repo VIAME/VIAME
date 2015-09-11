@@ -30,19 +30,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Tests for Python interface to maptk::track_set
+Tests for Python interface to vital::track_set
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
-from maptk import Track
-from maptk import TrackSet
+from vital import Track
+from vital import TrackSet
 
 import nose.tools as nt
 
 
-class TestMaptkTrackSet (object):
+class TestVitalTrackSet (object):
 
     def test_new(self):
         ts = TrackSet()

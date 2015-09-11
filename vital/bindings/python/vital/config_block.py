@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Interface to MAPTK config_block class.
+Interface to VITAL config_block class.
 
 """
 # -*- coding: utf-8 -*-
@@ -38,24 +38,24 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk.exceptions.config_block import MaptkConfigBlockNoSuchValueException
-from maptk.exceptions.config_block_io import (
-    MaptkConfigBlockIoException,
-    MaptkConfigBlockIoFileNotFoundException,
-    MaptkConfigBlockIoFileNotReadException,
-    MaptkConfigBlockIoFileNotParsed,
-    MaptkConfigBlockIoFileWriteException,
+from vital.exceptions.config_block import VitalConfigBlockNoSuchValueException
+from vital.exceptions.config_block_io import (
+    VitalConfigBlockIoException,
+    VitalConfigBlockIoFileNotFoundException,
+    VitalConfigBlockIoFileNotReadException,
+    VitalConfigBlockIoFileNotParsed,
+    VitalConfigBlockIoFileWriteException,
 )
-from maptk.util import MaptkObject, MaptkErrorHandle
-from maptk.util.string import maptk_string_t
+from vital.util import VitalObject, VitalErrorHandle
+from vital.util.string import vital_string_t
 
 import os
 import tempfile
 
 
-class ConfigBlock (MaptkObject):
+class ConfigBlock (VitalObject):
     """
-    maptk::config_block interface class
+    vital::config_block interface class
     """
 
     # ConfigBlock Constants -- initialized later in file
@@ -68,7 +68,7 @@ class ConfigBlock (MaptkObject):
         Return a new ConfigBlock object based on the given configuration
         file
 
-        :raises MaptkBaseException: Error occurred in reading from configuration
+        :raises VitalBaseException: Error occurred in reading from configuration
             file path given.
 
         :param filepath: Path to a configuration file
@@ -78,15 +78,15 @@ class ConfigBlock (MaptkObject):
         :rtype: ConfigBlock
 
         """
-        cb_read = cls.MAPTK_LIB.maptk_config_block_file_read
-        cb_read.argtypes = [ctypes.c_char_p, MaptkErrorHandle.C_TYPE_PTR]
+        cb_read = cls.VITAL_LIB.vital_config_block_file_read
+        cb_read.argtypes = [ctypes.c_char_p, VitalErrorHandle.C_TYPE_PTR]
         cb_read.restype = cls.C_TYPE_PTR
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             eh.set_exception_map({
-                -1: MaptkConfigBlockIoException,
-                1: MaptkConfigBlockIoFileNotFoundException,
-                2: MaptkConfigBlockIoFileNotReadException,
-                3: MaptkConfigBlockIoFileNotParsed
+                -1: VitalConfigBlockIoException,
+                1: VitalConfigBlockIoFileNotFoundException,
+                2: VitalConfigBlockIoFileNotReadException,
+                3: VitalConfigBlockIoFileNotParsed
             })
 
             return cls.from_c_pointer(
@@ -104,19 +104,19 @@ class ConfigBlock (MaptkObject):
         super(ConfigBlock, self).__init__()
 
         if name:
-            cb_new = self.MAPTK_LIB.maptk_config_block_new_named
+            cb_new = self.VITAL_LIB.vital_config_block_new_named
             cb_new.argtypes = [ctypes.c_char_p]
             cb_new.restype = self.C_TYPE_PTR
             self._inst_ptr = cb_new(str(name))
         else:
-            cb_new = self.MAPTK_LIB.maptk_config_block_new
+            cb_new = self.VITAL_LIB.vital_config_block_new
             cb_new.restype = self.C_TYPE_PTR
             self._inst_ptr = cb_new()
 
     def _destroy(self):
         # print "Destroying CB: \"%s\" %d" % (self.name, self._inst_ptr)
         if self.c_pointer:
-            self.MAPTK_LIB.maptk_config_block_destroy(self)
+            self.VITAL_LIB.vital_config_block_destroy(self)
 
     @property
     def name(self):
@@ -124,7 +124,7 @@ class ConfigBlock (MaptkObject):
         :return: The name assigned to this ConfigBlock instance.
         :rtype: str
         """
-        cb_get_name = self.MAPTK_LIB.maptk_config_block_get_name
+        cb_get_name = self.VITAL_LIB.vital_config_block_get_name
         cb_get_name.argtypes = [self.C_TYPE_PTR]
         cb_get_name.restype = self.MST_TYPE_PTR
 
@@ -143,7 +143,7 @@ class ConfigBlock (MaptkObject):
         :rtype: ConfigBlock
 
         """
-        cb_subblock = self.MAPTK_LIB.maptk_config_block_subblock
+        cb_subblock = self.VITAL_LIB.vital_config_block_subblock
         cb_subblock.argtypes = [self.C_TYPE_PTR]
         cb_subblock.restype = self.C_TYPE_PTR
         return ConfigBlock.from_c_pointer(
@@ -162,7 +162,7 @@ class ConfigBlock (MaptkObject):
         :rtype: ConfigBlock
 
         """
-        cb_subblock_view = self.MAPTK_LIB.maptk_config_block_subblock_view
+        cb_subblock_view = self.VITAL_LIB.vital_config_block_subblock_view
         cb_subblock_view.argtypes = [self.C_TYPE_PTR]
         cb_subblock_view.restype = self.C_TYPE_PTR
         return ConfigBlock.from_c_pointer(
@@ -190,7 +190,7 @@ class ConfigBlock (MaptkObject):
         # Not using the get_value_default C API call since the string version
         # getter handily returns a None value (yay ctypes), providing a simpler
         # code path than calling the C API default func.
-        cb_get_value = self.MAPTK_LIB.maptk_config_block_get_value
+        cb_get_value = self.VITAL_LIB.vital_config_block_get_value
         cb_get_value.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
         cb_get_value.restype = self.MST_TYPE_PTR
 
@@ -204,7 +204,7 @@ class ConfigBlock (MaptkObject):
     def get_value_bool(self, key, default=None):
         """ Get the boolean value for a key
 
-        :raises MaptkConfigBlockNoSuchValueException: the given key doesn't
+        :raises VitalConfigBlockNoSuchValueException: the given key doesn't
             exist in the configuration and no default was provided.
 
         :param key: The index of the configuration value to retrieve.
@@ -221,19 +221,19 @@ class ConfigBlock (MaptkObject):
         cb_get_bool_argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
         cb_get_bool_args = [self, key]
         if default is None:
-            cb_get_bool = self.MAPTK_LIB['maptk_config_block_'
+            cb_get_bool = self.VITAL_LIB['vital_config_block_'
                                          'get_value_bool']
         else:
-            cb_get_bool = self.MAPTK_LIB['maptk_config_block_'
+            cb_get_bool = self.VITAL_LIB['vital_config_block_'
                                          'get_value_default_bool']
             cb_get_bool_argtypes.append(ctypes.c_bool)
             cb_get_bool_args.append(default)
-        cb_get_bool_argtypes.append(MaptkErrorHandle.C_TYPE_PTR)
+        cb_get_bool_argtypes.append(VitalErrorHandle.C_TYPE_PTR)
         cb_get_bool.argtypes = cb_get_bool_argtypes
         cb_get_bool.restype = ctypes.c_bool
 
-        with MaptkErrorHandle() as eh:
-            eh.set_exception_map({-1: MaptkConfigBlockNoSuchValueException})
+        with VitalErrorHandle() as eh:
+            eh.set_exception_map({-1: VitalConfigBlockNoSuchValueException})
             cb_get_bool_args.append(eh)
             return cb_get_bool(*cb_get_bool_args)
 
@@ -254,7 +254,7 @@ class ConfigBlock (MaptkObject):
         :rtype: str or None
 
         """
-        cb_get_descr = self.MAPTK_LIB.maptk_config_block_get_description
+        cb_get_descr = self.VITAL_LIB.vital_config_block_get_description
         cb_get_descr.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
         cb_get_descr.restype = self.MST_TYPE_PTR
 
@@ -288,12 +288,12 @@ class ConfigBlock (MaptkObject):
 
         """
         if description is None:
-            cb_set_value = self.MAPTK_LIB.maptk_config_block_set_value
+            cb_set_value = self.VITAL_LIB.vital_config_block_set_value
             cb_set_value.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
                                      ctypes.c_char_p]
             cb_set_value(self, str(key), str(value))
         else:
-            cb_set_value = self.MAPTK_LIB.maptk_config_block_set_value_descr
+            cb_set_value = self.VITAL_LIB.vital_config_block_set_value_descr
             cb_set_value.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
                                      ctypes.c_char_p, ctypes.c_char_p]
             cb_set_value(self, str(key), str(value), str(description))
@@ -308,7 +308,7 @@ class ConfigBlock (MaptkObject):
         :type key: str
 
         """
-        cb_unset_value = self.MAPTK_LIB.maptk_config_block_unset_value
+        cb_unset_value = self.VITAL_LIB.vital_config_block_unset_value
         cb_unset_value.argtypes = [self.C_TYPE_PTR]
         cb_unset_value(self, key)
 
@@ -324,7 +324,7 @@ class ConfigBlock (MaptkObject):
         :rtype: bool
 
         """
-        cb_is_ro = self.MAPTK_LIB.maptk_config_block_is_read_only
+        cb_is_ro = self.VITAL_LIB.vital_config_block_is_read_only
         cb_is_ro.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
         cb_is_ro.restype = ctypes.c_bool
         return cb_is_ro(self, key)
@@ -340,7 +340,7 @@ class ConfigBlock (MaptkObject):
         :type key: str
 
         """
-        cb_mark_ro = self.MAPTK_LIB.maptk_config_block_mark_read_only
+        cb_mark_ro = self.VITAL_LIB.vital_config_block_mark_read_only
         cb_mark_ro.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
         cb_mark_ro(self, key)
 
@@ -356,7 +356,7 @@ class ConfigBlock (MaptkObject):
         :type other: ConfigBlock
 
         """
-        cb_merge = self.MAPTK_LIB.maptk_config_block_merge_config
+        cb_merge = self.VITAL_LIB.vital_config_block_merge_config
         cb_merge.argtypes = [self.C_TYPE_PTR, self.C_TYPE_PTR]
         cb_merge(self, other)
 
@@ -371,7 +371,7 @@ class ConfigBlock (MaptkObject):
         :rtype: bool
 
         """
-        cb_has_value = self.MAPTK_LIB.maptk_config_block_has_value
+        cb_has_value = self.VITAL_LIB.vital_config_block_has_value
         cb_has_value.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
         cb_has_value.restype = ctypes.c_bool
         return cb_has_value(self, key)
@@ -380,8 +380,8 @@ class ConfigBlock (MaptkObject):
         """
         Return a list of available keys in this configuration instance.
         """
-        cb_ak = self.MAPTK_LIB.maptk_config_block_available_values
-        sl_free = self.MAPTK_LIB.maptk_common_free_string_list
+        cb_ak = self.VITAL_LIB.vital_config_block_available_values
+        sl_free = self.VITAL_LIB.vital_common_free_string_list
 
         cb_ak.argtypes = [self.C_TYPE_PTR, ctypes.POINTER(ctypes.c_uint),
                           ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p))]
@@ -417,19 +417,19 @@ class ConfigBlock (MaptkObject):
         """
         Output this configuration to the specified file path
 
-        :raises MaptkBaseException: Error occurred in writing configuration to
+        :raises VitalBaseException: Error occurred in writing configuration to
             the given file path.
 
         :param filepath: Output file path.
 
         """
-        cb_write = self.MAPTK_LIB.maptk_config_block_file_write
+        cb_write = self.VITAL_LIB.vital_config_block_file_write
         cb_write.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
-                             MaptkErrorHandle.C_TYPE_PTR]
-        with MaptkErrorHandle() as eh:
+                             VitalErrorHandle.C_TYPE_PTR]
+        with VitalErrorHandle() as eh:
             eh.set_exception_map({
-                -1: MaptkConfigBlockIoException,
-                1: MaptkConfigBlockIoFileWriteException
+                -1: VitalConfigBlockIoException,
+                1: VitalConfigBlockIoFileWriteException
             })
 
             cb_write(self, filepath, eh)
@@ -468,13 +468,13 @@ class ConfigBlock (MaptkObject):
 
 def _initialize_cb_statics():
     """ Initialize ConfigBlock class variables from library """
-    MaptkObject.MAPTK_LIB.maptk_config_block_block_sep.restype = \
-        maptk_string_t.PTR_t
-    MaptkObject.MAPTK_LIB.maptk_config_block_global_value.restype = \
-        maptk_string_t.PTR_t
+    VitalObject.VITAL_LIB.vital_config_block_block_sep.restype = \
+        vital_string_t.PTR_t
+    VitalObject.VITAL_LIB.vital_config_block_global_value.restype = \
+        vital_string_t.PTR_t
     ConfigBlock.BLOCK_SEP = \
-        MaptkObject.MAPTK_LIB.maptk_config_block_block_sep().contents.str
+        VitalObject.VITAL_LIB.vital_config_block_block_sep().contents.str
     ConfigBlock.GLOBAL_VALUE = \
-        MaptkObject.MAPTK_LIB.maptk_config_block_global_value().contents.str
+        VitalObject.VITAL_LIB.vital_config_block_global_value().contents.str
 
 _initialize_cb_statics()

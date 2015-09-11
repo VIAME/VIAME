@@ -30,18 +30,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-MAPTK convert_image algorithm interface
+VITAL convert_image algorithm interface
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
-from maptk import ImageContainer
-from maptk.algo import MaptkAlgorithm
-from maptk.util import MaptkErrorHandle
+from vital import ImageContainer
+from vital.algo import VitalAlgorithm
+from vital.util import VitalErrorHandle
 
 
-class ConvertImage (MaptkAlgorithm):
+class ConvertImage (VitalAlgorithm):
 
     TYPE_NAME = 'convert_image'
 
@@ -54,11 +54,11 @@ class ConvertImage (MaptkAlgorithm):
         :rtype: ImageContainer
 
         """
-        ci_convert = self.MAPTK_LIB['maptk_algorithm_convert_image_convert']
+        ci_convert = self.VITAL_LIB['vital_algorithm_convert_image_convert']
         ci_convert.argtypes = [self.C_TYPE_PTR, ImageContainer.C_TYPE_PTR,
-                               MaptkErrorHandle.C_TYPE_PTR]
+                               VitalErrorHandle.C_TYPE_PTR]
         ci_convert.restype = ImageContainer.C_TYPE_PTR
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             return ImageContainer.from_c_pointer(
                 ci_convert(self, image_container, eh)
             )

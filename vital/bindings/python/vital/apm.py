@@ -30,20 +30,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Interface to MAPTK algorithm_plugin_manager class.
+Interface to VITAL algorithm_plugin_manager class.
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
 import ctypes
-from maptk.util import MaptkObject
+from vital.util import VitalObject
 
 
 # This class doesn't get instantiated, so we don't care about abstract instance
 # method implementations missing.
 # noinspection PyAbstractClass
-class AlgorithmPluginManager (MaptkObject):
+class AlgorithmPluginManager (VitalObject):
     """ Interface to singleton APM class """
 
     @staticmethod
@@ -60,10 +60,10 @@ class AlgorithmPluginManager (MaptkObject):
 
         """
         if name is None:
-            apm_reg_plugins = MaptkObject.MAPTK_LIB.maptk_apm_register_plugins
+            apm_reg_plugins = VitalObject.VITAL_LIB.vital_apm_register_plugins
             apm_reg_plugins()
         else:
-            apm_reg_plugins = MaptkObject.MAPTK_LIB.maptk_apm_register_single_plugin
+            apm_reg_plugins = VitalObject.VITAL_LIB.vital_apm_register_single_plugin
             apm_reg_plugins.argtypes = [ctypes.c_char_p]
             apm_reg_plugins(name)
 
@@ -76,7 +76,7 @@ class AlgorithmPluginManager (MaptkObject):
         :type dirpath: str
 
         """
-        apm_add_sp = MaptkObject.MAPTK_LIB.maptk_apm_add_search_path
+        apm_add_sp = VitalObject.VITAL_LIB.vital_apm_add_search_path
         apm_add_sp.argtypes = [ctypes.c_char_p]
         apm_add_sp(dirpath)
 
@@ -86,16 +86,16 @@ class AlgorithmPluginManager (MaptkObject):
 
         A module's name is defined as the filename minus the standard platform
         module library suffix. For example, on Windows, if a module library was
-        named ``maptk_foo.dll``, the module's name would be "maptk_foo".
-        Similarly on a unix system, ``maptk_bar.so`` would have the name
-        "maptk_bar".
+        named ``vital_foo.dll``, the module's name would be "vital_foo".
+        Similarly on a unix system, ``vital_bar.so`` would have the name
+        "vital_bar".
 
         :return: List of registered module names
         :rtype: list of str
 
         """
-        apm_reg_names = MaptkObject.MAPTK_LIB.maptk_apm_registered_module_names
-        sl_free = MaptkObject.MAPTK_LIB.maptk_common_free_string_list
+        apm_reg_names = VitalObject.VITAL_LIB.vital_apm_registered_module_names
+        sl_free = VitalObject.VITAL_LIB.vital_common_free_string_list
 
         apm_reg_names.argtypes = [ctypes.POINTER(ctypes.c_uint),
                                   ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p))]

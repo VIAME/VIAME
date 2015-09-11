@@ -30,23 +30,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-MAPTK basic exceptions
+VITAL basic exceptions
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
 
-class MaptkBaseException(Exception):
-    """ Base MAPTK Exception class """
+class VitalBaseException(Exception):
+    """ Base VITAL Exception class """
     pass
 
 
-class MaptkInvalidValue(MaptkBaseException):
+class VitalInvalidValue(VitalBaseException):
     """ Exception for when an invalid value is used """
     pass
 
 
-class MaptkNullPointerException (MaptkBaseException):
+class VitalNullPointerException (VitalBaseException):
     """ When an error occurs due to use of a NULL pointer """
     pass
