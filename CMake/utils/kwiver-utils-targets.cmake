@@ -143,7 +143,6 @@ function(kwiver_add_library     name)
 
   if ( APPLE )
     set( props
-      BUNDLE               TRUE
       MACOSX_RPATH         TRUE
       )
   else()
@@ -244,10 +243,7 @@ function(kwiver_install_headers)
   set(options NOPATH)
   set(oneValueArgs SUBDIR)
   cmake_parse_arguments(mih "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-  #kwiver_install(
-  #  FILES       ${mih_UNPARSED_ARGUMENTS}
-  #  DESTINATION "include/kwiver/${mih_SUBDIR}"
-  #  )
+
   foreach(header IN LISTS mih_UNPARSED_ARGUMENTS)
     if(mih_NOPATH)
       set( H_SUBDIR ) # use empty subdir/path to file
@@ -260,6 +256,20 @@ function(kwiver_install_headers)
       )
 
   endforeach()
+endfunction()
+
+
+#+
+#   kwiver_install_plugin_headers( plugin_name header1 [header2 ...] )
+#
+# Instal kwiver plugin public header files to the "include/.../plugins/"
+# sub-directory in the configured installation location.
+#-
+function(kwiver_install_plugin_headers plugin_name)
+  kwiver_install_headers(
+    SUBDIR "plugins/${plugin_name}"
+    ${ARGN}
+    )
 endfunction()
 
 
