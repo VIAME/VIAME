@@ -19,8 +19,3 @@ install(
             "${utils_dir}/tools"
   DESTINATION "${kwiver_cmake_install_dir}"
   )
-
-install(
-  DIRECTORY "${utils_dir}/templates/cxx"
-  DESTINATION "${kwiver_cmake_install_dir}/templates"
-  )
