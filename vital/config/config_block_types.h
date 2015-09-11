@@ -31,7 +31,7 @@
 #ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
 #define KWIVER_CONFIG_BLOCK_TYPES_H_
 
-#include <boost/filesystem/path.hpp>
+#include <string>
 
 //
 // Define config block supporting types
@@ -57,7 +57,7 @@ class config_block;
 typedef std::shared_ptr<config_block> config_block_sptr;
 
 /// The type to be used for file and directory paths
-typedef boost::filesystem::path config_path_t;
+typedef std::string config_path_t;
 
 } }
 

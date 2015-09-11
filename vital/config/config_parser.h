@@ -93,7 +93,7 @@ private:
   class priv;
 
   config_path_t m_config_file;
-  boost::scoped_ptr< priv > m_priv;
+  std::auto_ptr< priv > m_priv;
 };
 
 } } // end namespace

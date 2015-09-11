@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 
 IMPLEMENT_TEST(KRTD_format_read)
 {
-  kwiver::vital::path_t test_read_file = data_dir / "test_camera_io-valid_format.krtd";
+  kwiver::vital::path_t test_read_file = data_dir + "/test_camera_io-valid_format.krtd";
   kwiver::vital::camera_d read_camera = kwiver::vital::read_krtd_file( test_read_file );
 
   Eigen::Matrix<double,3,3> expected_intrinsics;
@@ -91,7 +91,7 @@ IMPLEMENT_TEST(invalid_file_path)
 {
   EXPECT_EXCEPTION(
       kwiver::vital::file_not_found_exception,
-      kwiver::vital::read_krtd_file( data_dir / "not_a_file.blob" ),
+      kwiver::vital::read_krtd_file( data_dir + "/not_a_file.blob" ),
       "tried loading an invalid file path"
       );
 }
@@ -99,7 +99,7 @@ IMPLEMENT_TEST(invalid_file_path)
 
 IMPLEMENT_TEST(invalid_file_content)
 {
-  kwiver::vital::path_t invalid_content_file = data_dir / "test_camera_io-invalid_file.krtd";
+  kwiver::vital::path_t invalid_content_file = data_dir + "/test_camera_io-invalid_file.krtd";
   EXPECT_EXCEPTION(
       kwiver::vital::invalid_data,
       kwiver::vital::camera_d cam = kwiver::vital::read_krtd_file( invalid_content_file ),

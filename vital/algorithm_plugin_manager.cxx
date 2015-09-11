@@ -45,25 +45,24 @@
 #include <kwiversys/DynamicLoader.hxx>
 #include <kwiversys/SystemTools.hxx>
 
+// Need boost filesystem until we can find a simple alternative for
+// iterating through a directory.
 #ifndef BOOST_FILESYSTEM_VERSION
-#define BOOST_FILESYSTEM_VERSION 3
+ #define BOOST_FILESYSTEM_VERSION 3
 #else
-#if BOOST_FILESYSTEM_VERSION == 2
-#error "Only boost::filesystem version 3 is supported."
-#endif
+ #if BOOST_FILESYSTEM_VERSION == 2
+  #error "Only boost::filesystem version 3 is supported."
+ #endif
 #endif
 
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
+namespace bfs = boost::filesystem;
+
 
 #include <map>
 #include <string>
 #include <vector>
-
-namespace bfs = boost::filesystem;
+#include <mutex>
 
 namespace kwiver {
 namespace vital {
@@ -71,6 +70,7 @@ namespace vital {
 namespace // anonymous
 {
 
+typedef kwiversys::SystemTools ST;
 typedef kwiversys::DynamicLoader DL;
 typedef DL::LibraryHandle library_t;
 typedef DL::SymbolPointer function_t;
@@ -92,7 +92,6 @@ static std::string const default_module_paths= std::string( DEFAULT_MODULE_PATHS
 
 } // end anonymous namespace
 
-static bool is_separator( vital::path_t::value_type ch );
 
 // ---- Static ---
 algorithm_plugin_manager * algorithm_plugin_manager::s_instance( 0 );
@@ -160,12 +159,12 @@ public:
       LOG_DEBUG( m_logger, "Empty directory in the search path. Ignoring." );
       return;
     }
-    if ( ! bfs::exists( dir_path ) )
+    if ( ! ST::FileExists( dir_path ) )
     {
       LOG_DEBUG( m_logger, "Path " << dir_path << " doesn't exist. Ignoring." );
       return;
     }
-    if ( ! bfs::is_directory( dir_path ) )
+    if ( ! ST::FileIsDirectory( dir_path ) )
     {
       LOG_DEBUG( m_logger, "Path " << dir_path << " is not a directory. Ignoring." );
       return;
@@ -181,13 +180,14 @@ public:
 
       // Accept this file as a module to check if it has the correct library
       // suffix and matches a provided module name if one was provided.
-      if ( boost::ends_with( e.path().string(), shared_library_suffix ) &&
-           ( ( name.size() == 0 ) || ( e.path().stem().string() == name ) ) )
+
+      if ( ( ST::GetFilenameLastExtension( e.path().string() ) == shared_library_suffix ) &&
+           ( ( name.size() == 0 ) || ( ST::GetFilenameWithoutExtension( e.path().string() ) == name ) ) )
       {
         // Check that we're looking a file
         if ( e.status().type() == bfs::regular_file )
         {
-          register_from_module( e.path() );
+          register_from_module( e.path().string() );
         }
         else
         {
@@ -222,7 +222,7 @@ public:
     //
     // Attempting module load
     //
-    library_t library = DL::OpenLibrary( module_path.string().c_str() );
+    library_t library = DL::OpenLibrary( module_path.c_str() );
     if ( ! library )
     {
       LOG_WARN( m_logger, "Failed to open module library " << module_path <<
@@ -266,7 +266,8 @@ public:
 
       // Adding module name to registered list. Note that existing
       // modules will be replaced.
-      registered_modules_[module_path.stem().string()] = module_path;
+      std::string key = ST::GetFilenameName( ST::GetFilenameWithoutLastExtension( module_path ) );
+      registered_modules_[key] = module_path;
     }
 
     return true;
@@ -285,8 +286,6 @@ public:
     }
     return r_vec;
   }
-
-
 };
 
 
@@ -308,12 +307,12 @@ algorithm_plugin_manager
   {
     LOG_INFO( impl_->m_logger, "Adding path \"" << env_ptr << "\" from environment" );
     std::string const extra_module_dirs(env_ptr);
-    boost::split( impl_->m_search_paths, extra_module_dirs, is_separator, boost::token_compress_on );
+
+    // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
+    ST::Split( extra_module_dirs, impl_->m_search_paths, PATH_SEPARATOR_CHAR );
   }
 
-  std::vector< path_t > temp;
-  boost::split( temp, default_module_paths, is_separator, boost::token_compress_on );
-  impl_->m_search_paths.insert( impl_->m_search_paths.end(), temp.begin(), temp.end() );
+  ST::Split( default_module_paths, impl_->m_search_paths, PATH_SEPARATOR_CHAR );
 }
 
 
@@ -331,14 +330,14 @@ algorithm_plugin_manager&
 algorithm_plugin_manager
 ::instance()
 {
-  static boost::mutex local_lock;          // synchronization lock
+  static std::mutex local_lock;          // synchronization lock
 
   if (0 != s_instance)
   {
     return *s_instance;
   }
 
-  boost::lock_guard<boost::mutex> lock(local_lock);
+  std::lock_guard<std::mutex> lock(local_lock);
   if (0 == s_instance)
   {
     // create new object
@@ -362,6 +361,7 @@ algorithm_plugin_manager
 }
 
 
+// ------------------------------------------------------------------
 /// Add an additional directory to search for plugins in.
 void
 algorithm_plugin_manager
@@ -371,6 +371,7 @@ algorithm_plugin_manager
 }
 
 
+// ------------------------------------------------------------------
 /// Get the list currently registered module names.
 std::vector< std::string >
 algorithm_plugin_manager
@@ -378,15 +379,5 @@ algorithm_plugin_manager
 {
   return this->impl_->registered_module_names();
 }
-
-
-// ------------------------------------------------------------------
-bool
-is_separator( vital::path_t::value_type ch )
-{
-  vital::path_t::value_type const separator = PATH_SEPARATOR_CHAR;
-  return ( ch == separator );
-}
-
 
 } } // end namespace

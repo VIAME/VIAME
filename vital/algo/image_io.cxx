@@ -39,8 +39,7 @@
 #include <vital/exceptions/io.h>
 #include <vital/vital_types.h>
 
-#include <boost/filesystem.hpp>
-
+#include <kwiversys/SystemTools.hxx>
 
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_io);
@@ -56,12 +55,11 @@ image_io
 ::load(std::string const& filename) const
 {
   // Make sure that the given file path exists and is a file.
-  namespace bfs = boost::filesystem;
-  if (!bfs::exists(filename))
+  if ( ! kwiversys::SystemTools::FileExists( filename ) )
   {
     throw path_not_exists(filename);
   }
-  else if (!bfs::is_regular_file(filename))
+  else if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
     throw path_not_a_file(filename);
   }
@@ -69,21 +67,23 @@ image_io
   return this->load_(filename);
 }
 
+
 void
 image_io
 ::save(std::string const& filename, image_container_sptr data) const
 {
   // Make sure that the given file path's containing directory exists and is
   // actually a directory.
-  namespace bfs = boost::filesystem;
-  path_t containing_dir = bfs::absolute(path_t(filename)).parent_path();
-  if (!bfs::exists(containing_dir))
+  std::string containing_dir = kwiversys::SystemTools::GetFilenamePath(
+    kwiversys::SystemTools::CollapseFullPath( filename ) );
+
+  if ( ! kwiversys::SystemTools::FileExists( containing_dir ) )
   {
     throw path_not_exists(containing_dir);
   }
-  else if (!bfs::is_directory(containing_dir))
+  else if ( ! kwiversys::SystemTools::FileIsDirectory( containing_dir ) )
   {
-    throw path_not_a_directory(containing_dir);
+    throw path_not_a_directory( containing_dir );
   }
 
   this->save_(filename, data);

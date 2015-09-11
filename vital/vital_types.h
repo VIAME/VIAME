@@ -44,13 +44,11 @@
 #include <vector>
 #include <stdint.h>
 
-#include <boost/filesystem/path.hpp>
-
 namespace kwiver {
 namespace vital {
 
 /// The type to be used for file and directory paths
-typedef boost::filesystem::path path_t;
+typedef std::string path_t;
 
 /// The type of a landmark ID number
 typedef int64_t landmark_id_t;

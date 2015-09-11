@@ -36,9 +36,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-
-#include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 
 /*
@@ -135,14 +133,14 @@ kwiver_logger_manager
 kwiver_logger_manager * kwiver_logger_manager
 ::instance()
 {
-  static boost::mutex local_lock;          // synchronization lock
+  static std::mutex local_lock;          // synchronization lock
 
   if (0 != s_instance)
   {
     return s_instance;
   }
 
-  boost::lock_guard<boost::mutex> lock(local_lock);
+  std::lock_guard<std::mutex> lock(local_lock);
   if (0 == s_instance)
   {
     // create new object

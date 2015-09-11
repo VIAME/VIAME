@@ -40,8 +40,7 @@
 #include <fstream>
 
 #include <vital/exceptions.h>
-
-#include <boost/filesystem.hpp>
+#include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
 namespace vital {
@@ -52,14 +51,14 @@ camera_d
 read_krtd_file( path_t const& file_path )
 {
   // Check that file exists
-  if ( ! boost::filesystem::exists( file_path ) )
+  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
   {
     throw file_not_found_exception( file_path, "File does not exist." );
   }
-  else if ( ! boost::filesystem::is_regular_file( file_path ) )
+  else if (  kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw file_not_found_exception( file_path, "Path given doesn't point to "
-                                               "a regular file!" );
+    throw file_not_found_exception( file_path,
+          "Path given doesn't point to a regular file!" );
   }
 
   // Reading in input file data
@@ -82,28 +81,26 @@ void
 write_krtd_file( camera const&  cam,
                  path_t const&  file_path )
 {
-  namespace bfs = boost::filesystem;
 
   // If the given path is a directory, we obviously can't write to it.
-  if ( bfs::is_directory( file_path ) )
+  if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw file_write_exception( file_path, "Path given is a directory, "
-                                           "can not write file." );
+    throw file_write_exception( file_path,
+          "Path given is a directory, can not write file." );
   }
 
   // Check that the directory of the given filepath exists, creating necessary
   // directories where needed.
-  path_t parent_dir = bfs::absolute( file_path.parent_path() );
-  if ( ! bfs::is_directory( parent_dir ) )
+  std::string parent_dir = kwiversys::SystemTools::GetFilenamePath(
+    kwiversys::SystemTools::CollapseFullPath( file_path ));
+  if ( ! kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
   {
-    if ( ! bfs::create_directories( parent_dir ) )
+    if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
-      throw file_write_exception( parent_dir, "Attempted directory creation, "
-                                              "but no directory created! No "
-                                              "idea what happened here..." );
+      throw file_write_exception( parent_dir,
+           "Attempted directory creation, but no directory created! No idea what happened here..." );
     }
   }
-
 
   // open output file and write the ins_data
   std::ofstream ofile( file_path.c_str() );

@@ -33,58 +33,42 @@
 #include "default_logger.h"
 #include "kwiver_logger.h"
 
-#include <map>
 #include <memory>
+#include <mutex>
+#include <chrono>
+#include <iomanip>
+#include <iostream>
+#include <string.h>
 
-#include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/shared_mutex.hpp>
-#include <boost/date_time.hpp>
-#include <boost/ptr_container/ptr_map.hpp>
-
-using namespace boost::posix_time;
 
 namespace kwiver {
 namespace vital {
 namespace logger_ns {
 
-  // ==================================================================
-  // Use 1 mutex per stream.  This needs to be static to allow for multiple
-  // loggers to use the same stream and still have it locked appropriately.
-  //
-  // It is not clear that all this structure is needed since we only
-  // use ome file descriptor.
-  boost::mutex& get_stream_mtx( const std::ostream& s )
-  {
-    static boost::shared_mutex stream_mtx_map_mtx;
-    static boost::ptr_map< const std::ostream*, boost::mutex > stream_mtx_map;
 
-    boost::shared_lock< boost::shared_mutex > stream_mtx_map_lock( stream_mtx_map_mtx );
+static void
+writeTime( std::ostream& os, time_t const& tc )
+{
+  using namespace std;
 
-    // create a new mutex if not already there
-    if ( 0 == stream_mtx_map.count( &s ) )
-    {
-      boost::upgrade_lock< boost::shared_mutex > lock( stream_mtx_map_mtx );
-      const std::ostream* tsp = &s;
-      stream_mtx_map.insert( tsp, new boost::mutex() );
-    }
-
-    return stream_mtx_map[&s];
-  }
-
-
+  // alternative to put_time iomanip
+  locale loc;
+  const time_put< char >& tp = use_facet < time_put < char > > ( loc );
+  const char* pat = "%F %T";
+  tp.put( os, os, ' ', localtime( &tc ), pat, pat + strlen( pat ) );
+}
 
 
 // ------------------------------------------------------------------
 logger_factory_default
-::logger_factory_default()
+  ::logger_factory_default()
   : kwiver_logger_factory( "default_logger factory" )
 {
 }
 
 
 logger_factory_default
-::~logger_factory_default()
+  ::~logger_factory_default()
 { }
 
 
@@ -95,157 +79,174 @@ logger_factory_default
  * This class implements a default minimal logger that is instantiated
  * if there is no other logger back end.
  */
-class default_logger
-  : public kwiver_logger
+class default_logger :
+  public kwiver_logger
 {
 public:
-
   /// CTOR
-  default_logger( logger_ns::logger_factory_default* p, const char * const name )
+  default_logger( logger_ns::logger_factory_default* p, const char* const name )
     : kwiver_logger( p, name ),
-      m_logLevel(kwiver_logger::LEVEL_TRACE)
+    m_logLevel( kwiver_logger::LEVEL_TRACE )
   { }
 
   virtual ~default_logger() { }
 
   // Check to see if level is enabled
-  virtual bool is_fatal_enabled() const { return (m_logLevel <= kwiver_logger::LEVEL_FATAL); }
-  virtual bool is_error_enabled() const { return (m_logLevel <= kwiver_logger::LEVEL_ERROR); }
-  virtual bool is_warn_enabled()  const { return (m_logLevel <= kwiver_logger::LEVEL_WARN); }
-  virtual bool is_info_enabled()  const { return (m_logLevel <= kwiver_logger::LEVEL_INFO); }
-  virtual bool is_debug_enabled() const { return (m_logLevel <= kwiver_logger::LEVEL_DEBUG); }
-  virtual bool is_trace_enabled() const { return (m_logLevel <= kwiver_logger::LEVEL_TRACE); }
+  virtual bool is_fatal_enabled() const { return m_logLevel <= kwiver_logger::LEVEL_FATAL;  }
 
-  virtual void set_level( log_level_t lev) { m_logLevel = lev; }
+  virtual bool is_error_enabled() const { return m_logLevel <= kwiver_logger::LEVEL_ERROR;  }
+
+  virtual bool is_warn_enabled()  const { return m_logLevel <= kwiver_logger::LEVEL_WARN;  }
+
+  virtual bool is_info_enabled()  const { return m_logLevel <= kwiver_logger::LEVEL_INFO;  }
+
+  virtual bool is_debug_enabled() const { return m_logLevel <= kwiver_logger::LEVEL_DEBUG;  }
+
+  virtual bool is_trace_enabled() const { return m_logLevel <= kwiver_logger::LEVEL_TRACE;  }
+
+  virtual void set_level( log_level_t lev ) { m_logLevel = lev; }
+
   virtual log_level_t get_level() const { return m_logLevel; }
 
-  virtual void log_fatal (std::string const & msg)
+  virtual void log_fatal( std::string const& msg )
   {
-    if (is_fatal_enabled()) { log_message (LEVEL_FATAL, msg); }
+    if ( is_fatal_enabled() ) { log_message( LEVEL_FATAL, msg ); }
   }
 
-  virtual void log_fatal (std::string const & msg,
-                          logger_ns::location_info const & location)
+
+  virtual void log_fatal( std::string const&              msg,
+                          logger_ns::location_info const& location )
   {
-    if (is_fatal_enabled()) { log_message (LEVEL_FATAL, msg, location); }
+    if ( is_fatal_enabled() ) { log_message( LEVEL_FATAL, msg, location ); }
   }
 
-  virtual void log_error (std::string const & msg)
+
+  virtual void log_error( std::string const& msg )
   {
-    if (is_error_enabled()) { log_message (LEVEL_ERROR, msg); }
+    if ( is_error_enabled() ) { log_message( LEVEL_ERROR, msg ); }
   }
 
-  virtual void log_error (std::string const & msg,
-                          logger_ns::location_info const & location)
+
+  virtual void log_error( std::string const&              msg,
+                          logger_ns::location_info const& location )
   {
-    if (is_error_enabled()) { log_message (LEVEL_ERROR, msg, location); }
+    if ( is_error_enabled() ) { log_message( LEVEL_ERROR, msg, location ); }
   }
 
-  virtual void log_warn (std::string const & msg)
+
+  virtual void log_warn( std::string const& msg )
   {
-    if (is_warn_enabled()) { log_message (LEVEL_WARN, msg); }
-  }
-  virtual void log_warn (std::string const & msg,
-                         logger_ns::location_info const & location)
-  {
-    if (is_warn_enabled()) { log_message (LEVEL_WARN, msg, location); }
+    if ( is_warn_enabled() ) { log_message( LEVEL_WARN, msg ); }
   }
 
-  virtual void log_info (std::string const & msg)
+
+  virtual void log_warn( std::string const&               msg,
+                         logger_ns::location_info const&  location )
   {
-    if (is_info_enabled()) { log_message (LEVEL_INFO, msg); }
+    if ( is_warn_enabled() ) { log_message( LEVEL_WARN, msg, location ); }
   }
 
-  virtual void log_info (std::string const & msg,
-                         logger_ns::location_info const & location)
+
+  virtual void log_info( std::string const& msg )
   {
-    if (is_info_enabled()) { log_message (LEVEL_INFO, msg, location); }
+    if ( is_info_enabled() ) { log_message( LEVEL_INFO, msg ); }
   }
 
-  virtual void log_debug (std::string const & msg)
+
+  virtual void log_info( std::string const&               msg,
+                         logger_ns::location_info const&  location )
   {
-    if (is_debug_enabled()) { log_message (LEVEL_DEBUG, msg); }
+    if ( is_info_enabled() ) { log_message( LEVEL_INFO, msg, location ); }
   }
 
-  virtual void log_debug (std::string const & msg,
-                          logger_ns::location_info const & location)
+
+  virtual void log_debug( std::string const& msg )
   {
-    if (is_debug_enabled()) { log_message (LEVEL_DEBUG, msg, location); }
+    if ( is_debug_enabled() ) { log_message( LEVEL_DEBUG, msg ); }
   }
 
-  virtual void log_trace (std::string const & msg)
+
+  virtual void log_debug( std::string const&              msg,
+                          logger_ns::location_info const& location )
   {
-    if (is_trace_enabled()) { log_message (LEVEL_TRACE, msg); }
+    if ( is_debug_enabled() ) { log_message( LEVEL_DEBUG, msg, location ); }
   }
 
-  virtual void log_trace (std::string const & msg,
-                          logger_ns::location_info const & location)
+
+  virtual void log_trace( std::string const& msg )
   {
-    if (is_trace_enabled()) { log_message (LEVEL_TRACE, msg, location); }
+    if ( is_trace_enabled() ) { log_message( LEVEL_TRACE, msg ); }
   }
+
+
+  virtual void log_trace( std::string const&              msg,
+                          logger_ns::location_info const& location )
+  {
+    if ( is_trace_enabled() ) { log_message( LEVEL_TRACE, msg, location ); }
+  }
+
 
 private:
-
   // ------------------------------------------------------------------
-  virtual void log_message (log_level_t level,
-                            std::string const& msg)
+  virtual void log_message( log_level_t         level,
+                            std::string const&  msg )
   {
+    static std::mutex lock;
+
+    using namespace std::chrono;
+
     // Format this message on the stream
 
     // Get the current time in milliseconds, creating a formatted
     // string for log message.
-    ptime now = microsec_clock::local_time();
+    high_resolution_clock::time_point p = high_resolution_clock::now();
+
+    milliseconds ms = duration_cast<milliseconds>(p.time_since_epoch());
+
+    seconds s = duration_cast<seconds>(ms);
+    std::time_t t = s.count();
+    std::size_t fractional_seconds = ms.count() % 1000;
 
     // Ensure that multi-line messages still get the time and level prefix
-    std::string level_str = get_level_string(level);
+    std::string  const level_str = get_level_string( level );
     std::string msg_part;
-    std::istringstream ss(msg);
+    std::istringstream ss( msg );
 
-    std::ostream *s = &get_stream();
     {
-      boost::lock_guard<boost::mutex> stream_lock(get_stream_mtx(*s));
-      while(getline(ss, msg_part))
+      std::lock_guard< std::mutex > guard( lock ); // serialize access to stream
+      std::ostream* s = &get_stream();
+      while ( getline( ss, msg_part ) )
       {
-        *s << now << ' ' << level_str << ' ' << msg_part << '\n';
+        writeTime( *s, t );
+        *s
+          // << std::put_time(std::localtime(&t), "%F %T")
+           << '.' << fractional_seconds
+           << ' ' << level_str << ' ' << msg_part << '\n';
       }
     }
   }
 
+
   // ------------------------------------------------------------------
-  virtual void log_message (log_level_t level,
-                            std::string const& msg,
-                            logger_ns::location_info const & location)
+  virtual void log_message( log_level_t                     level,
+                            std::string const&              msg,
+                            logger_ns::location_info const& location )
   {
     log_message( level, msg );
   }
 
+
   // ------------------------------------------------------------------
   std::ostream& get_stream()
   {
-    // Make sure that any given stream only get's "imbued" once
-    static std::map<std::ostream*, bool> is_imbued;
-    static boost::mutex ctor_mtx;
-    boost::lock_guard<boost::mutex> ctor_lock( ctor_mtx );
-
-    if (!is_imbued[s_output_stream])
-    {
-      // Configure timestamp formatting
-      time_facet* f = new time_facet("%Y-%m-%d %H:%M:%s");
-      std::locale loc(std::locale(), f);
-      {
-        boost::lock_guard<boost::mutex> stream_lock( get_stream_mtx( *s_output_stream ) );
-        s_output_stream->imbue(loc);
-      }
-      is_imbued[s_output_stream] = true;
-    }
-
     return *s_output_stream;
   }
+
 
   // ##################################################################
   log_level_t                  m_logLevel;       // current logging level
 
-  boost::mutex                 m_formatter_mtx;
+  std::mutex                   m_formatter_mtx;
 
   static std::ostream*         s_output_stream;
 
@@ -260,9 +261,12 @@ std::ostream* default_logger::s_output_stream = &std::cerr;
 // ==================================================================
 logger_handle_t
 logger_factory_default
-::get_logger( const char * const name )
+  ::get_logger( const char* const name )
 {
-  return std::make_shared< default_logger >( this, name );
+  return std::make_shared< default_logger > ( this, name );
 }
 
-} } } // end namespace
+
+}
+}
+}     // end namespace

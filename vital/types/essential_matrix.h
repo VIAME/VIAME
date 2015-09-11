@@ -46,6 +46,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -54,7 +55,7 @@ namespace vital {
 // Forward declarations of abstract essential matrix class
 class essential_matrix;
 // typedef for a essential_matrix shared pointer
-typedef boost::shared_ptr< essential_matrix > essential_matrix_sptr;
+typedef std::shared_ptr< essential_matrix > essential_matrix_sptr;
 
 
 // ===========================================================================

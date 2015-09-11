@@ -80,7 +80,7 @@ private:
   kwiver_logger_manager();
   void load_factory( std::string const& lib_name );
 
-  boost::scoped_ptr< logger_ns::kwiver_logger_factory > m_logFactory;
+  std::auto_ptr< logger_ns::kwiver_logger_factory > m_logFactory;
   kwiversys::DynamicLoader::LibraryHandle m_libHandle;
 
   static kwiver_logger_manager * s_instance;

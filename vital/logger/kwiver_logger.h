@@ -315,7 +315,7 @@ protected:
 private:
 
   class impl;
-  boost::scoped_ptr< impl > m_impl;
+  std::auto_ptr< impl > m_impl;
 
 }; // end class logger
 

@@ -38,14 +38,19 @@
 #include <string>
 #include <iostream>
 
+#include <vital/vital_types.h>
 #include <vital/config/config_block_io.h>
+#include <kwiversys/SystemTools.hxx>
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 
-#define TEST_ARGS (kwiver::vital::path_t const& data_dir)
+#define TEST_ARGS (kwiver::vital::config_path_t const& data_dir)
 DECLARE_TEST_MAP();
 
 using namespace kwiver::vital;
+namespace bfs = boost::filesystem;
+typedef kwiversys::SystemTools ST;
 
 int
 main( int argc, char* argv[] )
@@ -53,7 +58,7 @@ main( int argc, char* argv[] )
   // expecting test name and data directory path
   CHECK_ARGS( 2 );
   testname_t const testname = argv[1];
-  path_t data_dir( argv[2] );
+  config_path_t data_dir( argv[2] );
   RUN_TEST( testname, data_dir );
 }
 
@@ -79,7 +84,7 @@ IMPLEMENT_TEST( config_path_not_exist )
 
 IMPLEMENT_TEST( config_path_not_file )
 {
-  path_t fp = boost::filesystem::current_path();
+  path_t fp = ST::GetCurrentWorkingDirectory();
 
   EXPECT_EXCEPTION(
     kwiver::vital::config_file_not_found_exception,
@@ -90,7 +95,7 @@ IMPLEMENT_TEST( config_path_not_file )
 
 IMPLEMENT_TEST( successful_config_read )
 {
-  config_block_sptr config = kwiver::vital::read_config_file( data_dir / "test_config-valid_file.txt" );
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt" );
 
   using std::cerr;
   using std::endl;
@@ -156,7 +161,7 @@ IMPLEMENT_TEST( successful_config_read )
 
 IMPLEMENT_TEST( successful_config_read_named_block )
 {
-  config_block_sptr config = kwiver::vital::read_config_file( data_dir / "test_config-valid_file.txt",
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt",
                                                               "block_name_here" );
 
   using std::cerr;
@@ -200,7 +205,7 @@ IMPLEMENT_TEST( successful_config_read_named_block )
 
 IMPLEMENT_TEST( include_files )
 {
-  config_block_sptr config = kwiver::vital::read_config_file( data_dir / "test_config-include-a.txt",
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-include-a.txt",
                                                               "block_name_here" );
   using std::cerr;
   using std::endl;
@@ -228,7 +233,7 @@ IMPLEMENT_TEST( invalid_config_file )
 {
   EXPECT_EXCEPTION(
     kwiver::vital::config_file_not_parsed_exception,
-    kwiver::vital::read_config_file( data_dir / "test_config-invalid_file.txt" ),
+    kwiver::vital::read_config_file( data_dir + "/test_config-invalid_file.txt" ),
     "calling config_block read on badly formatted file"
                   );
 }
@@ -237,14 +242,14 @@ IMPLEMENT_TEST( invalid_keypath )
 {
   EXPECT_EXCEPTION(
     kwiver::vital::config_file_not_parsed_exception,
-    kwiver::vital::read_config_file( data_dir / "test_config-invalid_keypath.txt" ),
+    kwiver::vital::read_config_file( data_dir + "/test_config-invalid_keypath.txt" ),
     "read attempt on file with invalid key path"
                   );
 }
 
 IMPLEMENT_TEST( config_with_comments )
 {
-  config_block_sptr config = kwiver::vital::read_config_file( data_dir / "test_config-comments.txt" );
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-comments.txt" );
 
   using std::string;
 
@@ -323,23 +328,23 @@ IMPLEMENT_TEST( write_config_simple_success )
   cerr << "ConfigBlock for writing:" << endl;
   print_config( orig_config );
 
-  path_t base_path = bfs::temp_directory_path() / bfs::unique_path();
+  bfs::path base_path = bfs::temp_directory_path() / bfs::unique_path();
   cerr << "Working in temporary directory: " << base_path << endl;
-  bfs::create_directory( base_path );
+  ST::MakeDirectory( base_path.string().c_str() );
 
-  path_t output_path_1 = base_path / "test_config_output.conf";
+  bfs::path output_path_1 = base_path / "test_config_output.conf";
   cerr << "Writing config_block to: " << output_path_1 << endl;
-  write_config_file( orig_config, output_path_1 );
+  write_config_file( orig_config, output_path_1.string() );
 
-  path_t output_path_2 = base_path / "subdir" / "test_config_output.conf";
+  bfs::path output_path_2 = base_path / "subdir" / "test_config_output.conf";
   cerr << "Writing config_block to: " << output_path_2 << endl;
-  write_config_file( orig_config, output_path_2 );
+  write_config_file( orig_config, output_path_2.string() );
 
   // Read files back in, confirning output is readable and the same as
   // what we should have output.
   std::vector< config_block_sptr > configs;
-  configs.push_back( read_config_file( output_path_1 ) );
-  configs.push_back( read_config_file( output_path_2 ) );
+  configs.push_back( read_config_file( output_path_1.string() ) );
+  configs.push_back( read_config_file( output_path_2.string() ) );
 
   for ( config_block_sptr config : configs )
   {
@@ -390,10 +395,10 @@ IMPLEMENT_TEST( empty_config_write_failure )
   namespace bfs = boost::filesystem;
 
   config_block_sptr config = config_block::empty_config( "empty" );
-  path_t output_file = bfs::temp_directory_path() / bfs::unique_path();
+  bfs::path output_file = bfs::temp_directory_path() / bfs::unique_path();
   EXPECT_EXCEPTION(
     config_file_write_exception,
-    write_config_file( config, output_file ),
+    write_config_file( config, output_file.string() ),
     "attempted write of a config with nothing in it"
                   );
   // If the test failed, clean-up the file created.

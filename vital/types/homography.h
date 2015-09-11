@@ -45,6 +45,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
