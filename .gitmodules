@@ -10,3 +10,12 @@
 [submodule "Packages/vital"]
 	path = Packages/vital
 	url = git@kwgitlab.kitware.com:computer-vision/vital.git
+[submodule "Packages/kwant"]
+	path = Packages/kwant
+	url = git@kwgitlab.kitware.com:keith.fieldhouse/kwant.git
+[submodule "Packages/vivia"]
+	path = Packages/vivia
+	url = git@github.com:kfieldho/vivia.git
+[submodule "Packages/vibrant"]
+	path = Packages/vibrant
+	url = git@kwgitlab.kitware.com:keith.fieldhouse/vidtk.git
