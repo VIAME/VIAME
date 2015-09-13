@@ -68,7 +68,7 @@ include(kwiver-flags)
 
 # set the name for our package exports
 set(kwiver_export_name 
-	kwiver_exports)
+    kwiver_exports)
 
 ###
 # External Dependencies and Modules
@@ -141,7 +141,14 @@ set(KWIVER_ARGS_COMMON_CMAKE
   -DEIGEN3_VERSION_OK:BOOL=${EIGEN3_VERSION_OK}
   -Dkwiver_DIR:PATH=${KWIVER_BINARY_DIR}
   -Dvital_DIR:PATH=${KWIVER_BUILD_PREFIX}/src/vital-build
-  )
+  -Dvidtk_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
+  -DPROJ4_ROOT:PATH=${PROJ4_ROOT}
+  -DKML_DIR:PATH=${LIBKML_ROOT}/lib/cmake
+  -DGeographicLib_ROOT:PATH=${GeographicLib_ROOT}
+  -DTinyXML_ROOT:PATH=${TinyXML_ROOT}
+  -DLIBJSON_ROOT:PATH=${LIBJSON_ROOT}
+  -DSHAPELIB_ROOT:PATH=${SHAPELIB_ROOT}
+)
 
 set(KWIVER_ARGS_COMMON_COMPILER
   # Compiler options
@@ -188,8 +195,24 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
                        ${KWIVER_ARGS_COMMON_COMPILER}
                        ${KWIVER_ARGS_COMMON_LINKER}
                        ${KWIVER_ARGS_COMMON_BOOST}
-					   ${KWIVER_ARGS_COMMON_EIGEN}
+                       ${KWIVER_ARGS_COMMON_EIGEN}
   )
+
+
+#
+# Which applications to enable in ViVIA
+#
+set(KWIVER_ARGS_VIVIA_APPS
+    "-DVISGUI_ENABLE_VIQUI:BOOL=FALSE"  
+    "-DVISGUI_ENABLE_VPVIEW:BOOL=FALSE" 
+    "-DVISGUI_ENABLE_VSPLAY:BOOL=TRUE"  
+    )
+
+set(KWIVER_ARGS_VIVIA_DEPS
+    "-DQT_QMAKE_EXECUTABLE:PATH=${QT_QMAKE_EXECUTABLE}"
+    "-DVTK_DIR:PATH=${VTK_ROOT}/lib/cmake/vtk-6.1"
+
+    )
 
 # ================================================================
 # Adding external components
@@ -199,6 +222,8 @@ include(External_vital)
 include(External_maptk)
 include(External_sprokit)
 include(External_vibrant)
+include(External_kwant)
+include(External_vivia)
 
 include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
@@ -213,6 +238,11 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
 
+option(KWIVER_BUILD_KWIVER_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF)
+
+if (KWIVER_BUILD_KWIVER_PROCESSES)
+add_subdirectory(kwiver_util)
+endif()
 
 ##################################################################
 # Top level installation
