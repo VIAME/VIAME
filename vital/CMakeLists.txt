@@ -14,12 +14,14 @@ set(KWSYS_USE_System 1)
 set(KWSYS_USE_RegularExpression 1)
 set(KWSYS_USE_SystemInformation 1)
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
+set(KWSYS_INSTALL_INCLUDE_DIR "include/kwiver")
 set(KWSYS_INSTALL_LIB_DIR lib)
 set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
 
 include_directories( SYSTEM ${KWSYS_INCLUDE_DIR}/kwiversys )
 add_subdirectory(kwiversys)
 _kwiver_export( ${KWSYS_NAMESPACE} )
+set_property(GLOBAL APPEND PROPERTY kwiver_libraries kwiversys)
 
 if (APPLE)
   set_target_properties( ${KWSYS_NAMESPACE}
@@ -33,6 +35,8 @@ endif()
 set( vital_public_headers
   registrar.h
   vital_config.h
+  vital_types.h
+  noncopyable.h
 
   algo/algorithm.txx
   algo/algorithm.h
