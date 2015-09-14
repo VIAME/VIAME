@@ -198,6 +198,19 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
                        ${KWIVER_ARGS_COMMON_EIGEN}
   )
 
+# 
+# Work out which Packages to build based on user choice and their
+# interdependencies
+#
+option(KWIVER_ENABLE_MAPTK "Enable building MapTK" FALSE)
+option(KWIVER_ENABLE_VIBRANT "Enable building VIBRANT" FALSE)
+option(KWIVER_ENABLE_KWANT "Enable building ViVIA" FALSE)
+option(KWIVER_ENABLE_VIVIA "Enable building ViVIA" FALSE)
+
+if (KWIVER_ENABLE_VIVIA)
+    set(KWIVER_ENABLE_KWANT TRUE CACHE BOOL "" FORCE)
+    set(KWIVER_ENABLE_VIBRANT TRUE CACHE BOOL "" FORCE)
+endif()
 
 #
 # Which applications to enable in ViVIA
@@ -219,11 +232,23 @@ set(KWIVER_ARGS_VIVIA_DEPS
 #
 include(External_VXL)
 include(External_vital)
-include(External_maptk)
 include(External_sprokit)
-include(External_vibrant)
-include(External_kwant)
-include(External_vivia)
+
+if (KWIVER_ENABLE_MAPTK)
+    include(External_maptk)
+endif()
+
+if (KWIVER_ENABLE_VIBRANT)
+    include(External_vibrant)
+endif()
+
+if (KWIVER_ENABLE_KWANT)
+    include(External_kwant)
+endif()
+
+if (KWIVER_ENABLE_VIVIA)
+    include(External_vivia)
+endif()
 
 include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
