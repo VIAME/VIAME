@@ -44,6 +44,7 @@
 
 #include <vital/logger/logger.h>
 #include <vital/vital_export.h>
+#include <vital/noncopyable.h>
 
 namespace kwiver {
 namespace vital {
@@ -58,11 +59,9 @@ namespace vital {
  * libraries have unique static varaible spaces, and thus to not share a
  * singleton instance. Only use the registrar passed to the C interface
  * methods.
- * \todo Revisit instance() implementation to see if local static
- * is needed. As it is, there could be a static CTOR race condition.
- * Also look into the use of kwiver::vital::noncopyable.
  */
 class VITAL_EXPORT registrar
+  : private kwiver::vital::noncopyable
 {
 protected:
   template < typename T >
