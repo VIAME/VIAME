@@ -40,6 +40,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
