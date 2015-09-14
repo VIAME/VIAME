@@ -37,11 +37,24 @@ namespace vital {
 class noncopyable
 {
 protected:
+
+#if 01
+
   noncopyable() = default;
   ~noncopyable() = default;
 
   noncopyable( const noncopyable& ) = delete;
   noncopyable& operator=( const noncopyable& ) = delete;
+
+#else
+
+  noncopyable() {}
+  ~noncopyable() {}
+private:  // emphasize the following members are private
+  noncopyable( const noncopyable& );
+  noncopyable& operator=( const noncopyable& );
+
+#endif
 };
 
 } }
