@@ -1,5 +1,8 @@
 set(sprokit_using_clang FALSE)
 
+include(CheckCXXCompilerFlag)
+
+check_cxx_compiler_flag(-std=c++0x has_cxx01x_flags)
 check_cxx_compiler_flag(-std=c++11 has_cxx11_flags)
 
 cmake_dependent_option(SPROKIT_ENABLE_CXX11 "Enable compilation with C++11 support" OFF
@@ -21,16 +24,15 @@ else ()
 endif ()
 
 # Check for GCC-compatible visibility settings
-include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag(-fvisibility=hidden SPROKIT_HAVE_GCC_VISIBILITY)
 
 # Hide symbols by default
 sprokit_want_compiler_flag(-fvisibility=hidden)
-# Set the standard to C++98
+# Set the standard to C++0x
 if (SPROKIT_ENABLE_CXX11)
   sprokit_want_compiler_flag(-std=c++11)
 else ()
-  sprokit_want_compiler_flag(-std=c++98)
+  sprokit_want_compiler_flag(-std=c++0x)
 endif ()
 # General warnings
 sprokit_want_compiler_flag(-Wall)
