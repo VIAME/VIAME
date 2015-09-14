@@ -83,17 +83,13 @@ include_directories("${VITAL_BINARY_DIR}")
 # Why would we ever want to build static?
 option(VITAL_BUILD_SHARED "Build VITAL packages shared or not" ON)
 
+set( LIB_SUFFIX "" CACHE STRING
+  "Library directory suffix. e.g. suffix=\"vital\" will install libraries in \"libvital\" rather than \"lib\"")
+mark_as_advanced( LIB_SUFFIX )
+
 if (VITAL_ENABLE_PYTHON)
     find_package(PythonInterp)
     find_package(PythonLibs)
-endif()
-
-if(VITAL_BUILD_SHARED)
-  set(LIB_PREFIX ${CMAKE_SHARED_LIBRARY_PREFIX})
-  set(LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
-else()
-  set(LIB_PREFIX ${CMAKE_STATIC_LIBRARY_PREFIX})
-  set(LIB_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 
 set(BUILD_SHARED_LIBS ${VITAL_BUILD_SHARED})
