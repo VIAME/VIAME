@@ -56,7 +56,7 @@ namespace vital {
 //
 // Pointer to our single instance.
 //
-kwiver_logger_manager * kwiver_logger_manager::s_instance = 0;
+kwiver_logger_manager* kwiver_logger_manager::s_instance = 0;
 
 #define PLUGIN_ENV_VAR "VITAL_LOGGER_FACTORY"
 
