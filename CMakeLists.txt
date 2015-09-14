@@ -157,3 +157,6 @@ kwiver_install(
   DESTINATION "${kwiver_cmake_install_dir}"
   FILE        vital-config-targets.cmake
   )
+
+# only needed for install
+add_subdirectory( CMake )
