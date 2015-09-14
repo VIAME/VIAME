@@ -556,6 +556,9 @@ cluster_grammar<Iterator>
   , cluster_block()
   , cluster_block_set()
 {
+#if 0
+  // This is not ideal, but leaving this code in causes a compiler error.
+  // Only a short term solution until we get a better compiler
   description_decl.name("description-decl");
   description_decl %=
      (  qi::lit(description_token)
@@ -570,6 +573,7 @@ cluster_grammar<Iterator>
      >> common.line_end
      >> common.partial_config_value_decl
      );
+#endif
 
   cluster_input_target.name("cluster-input-target");
   cluster_input_target %=
