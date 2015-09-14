@@ -61,8 +61,6 @@ namespace vital {
 
 class config_block;
 
-/// Shared pointer for the \c config_block class
-typedef std::shared_ptr< config_block > config_block_sptr;
 
 // ----------------------------------------------------------------
 /**

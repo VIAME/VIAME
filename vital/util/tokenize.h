@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,41 +28,53 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
-#define KWIVER_CONFIG_BLOCK_TYPES_H_
 
-#include <string>
-#include <memory>
-#include <vector>
-
-//
-// Define config block supporting types
-//
+#ifndef VITAL_TOKENIZE_H
+#define VITAL_TOKENIZE_H
 
 namespace kwiver {
 namespace vital {
 
-class config_block;
+template < class ContainerT >
+void
+tokenize( std::string const& str, // i: string to tokenize
+          ContainerT& tokens, // o: list of tokens
+          std::string const& delimiters = " ",
+          bool trimEmpty = false )
+{
+  std::string::size_type pos, lastPos = 0;
 
-/// The type that represents a configuration value key.
-typedef std::string config_block_key_t;
+  typedef typename ContainerT::size_type size_type;
+  typedef typename ContainerT::value_type value_type;
 
-/// The type that represents a collection of configuration keys.
-typedef std::vector<config_block_key_t> config_block_keys_t;
+  while ( true )
+  {
+    pos = str.find_first_of( delimiters, lastPos );
+    if ( pos == std::string::npos )
+    {
+      pos = str.length();
 
-/// The type that represents a stored configuration value.
-typedef std::string config_block_value_t;
+      if ( ( pos != lastPos ) || ! trimEmpty )
+      {
+        tokens.push_back( value_type( str.data() + lastPos,
+                                      (size_type)pos - lastPos ) );
+      }
 
-/// The type that represents a description of a configuration key.
-typedef std::string config_block_description_t;
+      break;
+    }
+    else
+    {
+      if ( ( pos != lastPos ) || ! trimEmpty )
+      {
+        tokens.push_back( value_type( str.data() + lastPos,
+                                      (size_type)pos - lastPos ) );
+      }
+    }
 
-class config_block;
-/// Shared pointer for the \c config_block class
-typedef std::shared_ptr<config_block> config_block_sptr;
+    lastPos = pos + 1;
+  }
+}
 
-/// The type to be used for file and directory paths
-typedef std::string config_path_t;
+} } // end namesapce
 
-} }
-
-#endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
+#endif /* VITAL_TOKENIZE_H */

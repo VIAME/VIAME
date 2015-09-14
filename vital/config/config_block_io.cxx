@@ -70,7 +70,6 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
   // preserve manually specified new-lines in the comment string, adding a
   // trailing new-line
   std::list< cbd_t > blocks;
-  //+ boost::algorithm::split( blocks, comment, boost::is_any_of( "\n" ) );
   tokenize( comment, blocks, "\n" );
   while ( blocks.size() > 0 )
   {
@@ -90,7 +89,6 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
     // adjacent spaces, like in bullited lists. This, however, leaves open
     // the appearance of empty-string words in the loop, which are handled.
     //boost::algorithm::split(words, cur_block, boost::is_any_of(" "), boost::token_compress_on);
-    //+ boost::algorithm::split( words, cur_block, boost::is_any_of( " " ) );
     tokenize( cur_block, words );
     while ( words.size() > 0 )
     {
