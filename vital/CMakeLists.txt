@@ -1,7 +1,6 @@
 #
 # Top level build for VITAL
 #
-include( GenerateExportHeader )
 
 ###
 # KWSys borrowed from CMake
@@ -284,10 +283,6 @@ add_subdirectory( tools )
 if (VITAL_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
-
-###
-# Make appropriate export header file
-generate_export_header( vital )
 
 ###
 # Marking source root for documentation generation
