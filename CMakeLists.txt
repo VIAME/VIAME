@@ -70,8 +70,7 @@ include(kwiver-utils)
 include(kwiver-flags)
 
 # set the name for our package exports
-set(kwiver_export_name 
-    kwiver_exports)
+set(kwiver_export_name      kwiver_exports)
 
 ###
 # External Dependencies and Modules
@@ -201,7 +200,7 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
                        ${KWIVER_ARGS_COMMON_EIGEN}
   )
 
-# 
+#
 # Work out which Packages to build based on user choice and their
 # interdependencies
 #
@@ -219,9 +218,9 @@ endif()
 # Which applications to enable in ViVIA
 #
 set(KWIVER_ARGS_VIVIA_APPS
-    "-DVISGUI_ENABLE_VIQUI:BOOL=FALSE"  
-    "-DVISGUI_ENABLE_VPVIEW:BOOL=FALSE" 
-    "-DVISGUI_ENABLE_VSPLAY:BOOL=TRUE"  
+    "-DVISGUI_ENABLE_VIQUI:BOOL=FALSE"
+    "-DVISGUI_ENABLE_VPVIEW:BOOL=FALSE"
+    "-DVISGUI_ENABLE_VSPLAY:BOOL=TRUE"
     )
 
 set(KWIVER_ARGS_VIVIA_DEPS
@@ -313,11 +312,13 @@ kwiver_install(
   RENAME      kwiver-config.cmake
   )
 
-kwiver_install(
-  EXPORT      ${kwiver_export_name}
-  DESTINATION "${kwiver_cmake_install_dir}"
-  FILE        kwiver-config-targets.cmake
-  )
+# generates CMake Error: INSTALL(EXPORT) given unknown export "kwiver_exports"
+# FIXME - need to fix this. Happens when nothing has been exported.
+#kwiver_install(
+#  EXPORT      ${kwiver_export_name}
+#  DESTINATION "${kwiver_cmake_install_dir}"
+#  FILE        kwiver-config-targets.cmake
+#  )
 
 
 # ==================================================================
