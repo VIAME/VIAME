@@ -44,10 +44,45 @@
 #include <algorithm>
 #include <iterator>
 #include <sstream>
+#include <functional>
+#include <cctype>
+#include <locale>
 
 
 namespace kwiver {
 namespace vital {
+
+namespace {
+
+// trim from start
+static inline std::string&
+ltrim( std::string& s )
+{
+  s.erase( s.begin(), std::find_if( s.begin(), s.end(), std::not1( std::ptr_fun< int, int > ( std::isspace ) ) ) );
+  return s;
+}
+
+
+// trim from end
+static inline std::string&
+rtrim( std::string& s )
+{
+  s.erase( std::find_if( s.rbegin(), s.rend(), std::not1( std::ptr_fun< int, int > ( std::isspace ) ) ).base(), s.end() );
+  return s;
+}
+
+
+// trim from both ends
+static inline std::string&
+trim( std::string& s )
+{
+  return ltrim( rtrim( s ) );
+}
+
+
+}
+
+
 
 config_block_key_t const config_block::block_sep = config_block_key_t( ":" );
 config_block_key_t const config_block::global_value = config_block_key_t( "_global" );
@@ -337,7 +372,8 @@ config_block
       throw set_on_read_only_value_exception( key, current_value, value );
     }
 
-    m_store[key] = value;
+    config_block_value_t temp( value );
+    m_store[key] = trim( temp ); // trim value in place
 
     // Only assign the description given if there is no stored description
     // for this key, or the given description is non-zero.
