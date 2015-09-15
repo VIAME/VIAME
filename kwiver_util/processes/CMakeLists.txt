@@ -9,6 +9,8 @@ include( GenerateExportHeader )
 # sprokit plug-ins.
 include("${sprokit_source_dir}/conf/sprokit-macro-targets.cmake")
 
+# or include( "${sprokit_build_dir}/sprokit-macro-targets.cmake")
+
 set( sources
   register_processes.cxx
   kw_archive_writer_process.cxx
@@ -25,18 +27,16 @@ set( private_headers
 
 sprokit_private_header_group( ${private_headers} )
 
+include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
+
 # need sprokit macro to correctly process the plugin
-sprokit_add_plugin( kwiver_processes
-  MAKE_KWIVER_PROCESSES_LIB
+kwiver_add_plugin( kwiver_processes
   ${sources}
   ${private_headers}
 )
 
-## this may be done by the magic macros
-# set_target_properties( kwiver_processes PROPERTIES VERSION ${KWIVER_VERSION} SOVERSION ${KWIVER_VERSION})
-
 add_dependencies( kwiver_processes
-  kwiver sprokit maptk VXL )
+  vital sprokit maptk VXL )
 
 set( maptk_libs      maptk_core maptk_vxl )
 if (KWIVER_ENABLE_OPENCV)
@@ -47,7 +47,7 @@ endif()
 target_link_libraries( kwiver_processes
   PRIVATE              sprokit_pipeline
                      ${maptk_libs}
-                       kwiver
+                       ${VITAL_LIBRARIES} kwiversys
                      ${Boost_FILESYSTEM_LIBRARY}
                      ${Boost_SYSTEM_LIBRARY}
                        vsl vil vul vnl vnl_io vil_io )

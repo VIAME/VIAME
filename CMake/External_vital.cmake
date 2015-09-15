@@ -30,6 +30,8 @@ ExternalProject_Add_Step(vital forcebuild
   ALWAYS 1
   )
 
+include_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/include/kwiver)
+
 set(KWIVER_ARGS_vital
   -Dvital_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
   )

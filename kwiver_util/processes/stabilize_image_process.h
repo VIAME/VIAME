@@ -33,7 +33,7 @@ class KWIVER_PROCESSES_NO_EXPORT stabilize_image_process
   : public sprokit::process
 {
   public:
-    stabilize_image_process( sprokit::config_t const& config );
+  stabilize_image_process( kwiver::vital::config_block_sptr const& config );
     virtual ~stabilize_image_process();
 
   protected:

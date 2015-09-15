@@ -30,12 +30,13 @@
 
 #include "kw_archive_writer_process.h"
 
-#include <kwiver/pipeline_types/kwiver.h>
+#include <kwiver/vital/algorithm_plugin_manager.h>
+#include <kwiver/vital/vital_types.h>
+#include <kwiver/vital/types/image_container.h>
+#include <kwiver/vital/types/image.h>
+#include <kwiver/vital/types/homography.h>
 
-#include <maptk/modules.h>
-#include <kwiver/image_container.h>
-#include <kwiver/image.h>
-#include <kwiver/homography.h>
+#include <kwiver_util/sprokit_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 
@@ -84,11 +85,11 @@ public:
 
   void write_frame_data(vsl_b_ostream& stream,
                         bool write_image,
-                        kwiver::timestamp const& time,
-                        kwiver::geo_polygon_t const& corners,
-                        kwiver::image const& img,
-                        kwiver::f2f_homography const& homog,
-                        kwiver::gsd_t gsd);
+                        kwiver::vital::timestamp const& time,
+                        kwiver::vital::corner_points_t const& corners,
+                        kwiver::vital::image const& img,
+                        kwiver::vital::f2f_homography const& homog,
+                        kwiver::vital::gsd_t gsd);
 
   static sprokit::process::port_t const port_timestamp;
   static sprokit::process::port_t const port_image;
@@ -122,10 +123,11 @@ public:
 // ================================================================
 
 kw_archive_writer_process
-::kw_archive_writer_process( sprokit::config_t const& config )
+::kw_archive_writer_process( kwiver::vital::config_block_sptr const& config )
   : process(config),
     d( new kw_archive_writer_process::priv )
 {
+  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
   make_ports();
   make_config();
 }
@@ -253,22 +255,22 @@ kw_archive_writer_process
 ::_step()
 {
   // timestamp
-  kwiver::timestamp frame_time = grab_input_using_trait( timestamp );
+  kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
 
   // image
-  //+ kwiver::image_container_sptr img = grab_input_as< kwiver::image_container_sptr > ( priv::port_image );
-  kwiver::image_container_sptr img = grab_from_port_using_trait( image );
-  kwiver::image image = img->get_image();
+  //+ kwiver::vital::image_container_sptr img = grab_input_as< kwiver::vital::image_container_sptr > ( priv::port_image );
+  kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
+  kwiver::vital::image image = img->get_image();
 
   // homography
-  //+ kwiver::f2f_homography homog = grab_input_as< kwiver::f2f_homography > ( priv::port_src_to_ref_homography );
-  kwiver::f2f_homography homog = grab_from_port_using_trait( src_to_ref_homography );
+  //+ kwiver::f2f_homography homog = grab_input_as< kwiver::vital::f2f_homography > ( priv::port_src_to_ref_homography );
+  kwiver::vital::f2f_homography homog = grab_from_port_using_trait( src_to_ref_homography );
 
   // corners
-  kwiver::geo_polygon_t corners = grab_input_using_trait( corner_points );
+  kwiver::vital::corner_points_t corners = grab_input_using_trait( corner_points );
 
   // gsd
-  kwiver::gsd_t gsd = grab_input_using_trait( gsd );
+  kwiver::vital::gsd_t gsd = grab_input_using_trait( gsd );
 
   std::cerr << "DEBUG - (KWA_WRITER) processing frame " << frame_time
             << std::endl;
@@ -345,10 +347,10 @@ void
 priv_t
 ::write_frame_data(vsl_b_ostream& stream,
                    bool write_image,
-                   kwiver::timestamp const& time,
-                   kwiver::geo_polygon_t const& corner_pts,
-                   kwiver::image const& img,
-                   kwiver::f2f_homography const& s2r_homog,
+                   kwiver::vital::timestamp const& time,
+                   kwiver::vital::corner_points_t const& corner_pts,
+                   kwiver::vital::image const& img,
+                   kwiver::vital::f2f_homography const& s2r_homog,
                    double gsd)
 {
   vxl_int_64 u_seconds = static_cast< vxl_int_64 > ( time.get_time() * 1e6 );
@@ -366,7 +368,8 @@ priv_t
     );
 
   // convert homography
-  kwiver::homography const& matrix( s2r_homog );  // upcast to base matrix
+  //+ kwiver::vital::homography_sptr const matrix= s2r_homog.homography();
+  Eigen::Matrix< double, 3, 3 > matrix= s2r_homog.homography()->matrix();
   vnl_matrix_fixed< double, 3, 3 > homog;
 
   // Copy matrix into vnl format

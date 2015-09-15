@@ -11,7 +11,6 @@
 #include "kwiver_processes_export.h"
 
 #include <boost/scoped_ptr.hpp>
-#include <maptk/core/vector.h>
 
 namespace kwiver
 {
@@ -55,7 +54,7 @@ public:
    *
    * @return
    */
-  kw_archive_writer_process(sprokit::config_t const& config);
+  kw_archive_writer_process( kwiver::vital::config_block_sptr const& config );
 
   /**
    * \brief Destructor

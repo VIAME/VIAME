@@ -30,20 +30,20 @@
 
 #include "frame_list_process.h"
 
-#include <kwiver/pipeline_types/kwiver.h>
-#include <kwiver/timestamp.h>
+#include <kwiver/vital/algorithm_plugin_manager.h>
+#include <kwiver/vital/vital_types.h>
+#include <kwiver/vital/types/timestamp.h>
+#include <kwiver/vital/types/image_container.h>
+#include <kwiver/vital/types/image.h>
+#include <kwiver/vital/algo/image_io.h>
+#include <kwiver/vital/exceptions.h>
 
-#include <maptk/modules.h>
-#include <kwiver/image_container.h>
-#include <kwiver/image.h>
-#include <maptk/algo/image_io.h>
-#include <kwiver/exceptions.h>
+#include <kwiver_util/sprokit_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/datum.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
 
 #include <vector>
 #include <stdint.h>
@@ -57,7 +57,7 @@ using namespace cv;
 #endif
 
 namespace bfs = boost::filesystem;
-namespace algo = maptk::algo;
+namespace algo = kwiver::vital::algo;
 
 namespace kwiver
 {
@@ -81,10 +81,10 @@ public:
   double m_config_frame_time;
 
   // process local data
-  std::vector < kwiver::path_t > m_files;
-  std::vector < kwiver::path_t >::const_iterator m_current_file;
-  timestamp::frame_t m_frame_number;
-  timestamp::time_t m_frame_time;
+  std::vector < kwiver::vital::path_t > m_files;
+  std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
+  kwiver::vital::timestamp::frame_t m_frame_number;
+  kwiver::vital::timestamp::time_t m_frame_time;
 
   // processing classes
   algo::image_io_sptr m_image_reader;
@@ -95,11 +95,11 @@ public:
 // ================================================================
 
 frame_list_process
-::frame_list_process( sprokit::config_t const& config )
+::frame_list_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
     d( new frame_list_process::priv )
 {
-  maptk::register_modules();
+  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
   make_ports();
   make_config();
 }
@@ -121,11 +121,8 @@ void frame_list_process
   d->m_config_image_reader        = config_value_using_trait( image_reader );
   d->m_config_frame_time          = config_value_using_trait( frame_time );
 
-  // Convert sprokit config to maptk config for algorithms
-  sprokit::config_t proc_config = get_config(); // config for process
-  maptk::config_block_sptr algo_config = maptk::config_block::empty_config();
-
-  //+ convert_config( proc_config, algo_config );
+  kwiver::vital::config_block_sptr proc_config = get_config(); // config for process
+  kwiver::vital::config_block_sptr algo_config = kwiver::vital::config_block::empty_config();
 
   // instantiate image reader and converter based on config type
   algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
@@ -159,7 +156,7 @@ void frame_list_process
     d->m_files.push_back( line );
     if ( ! bfs::exists( d->m_files.back() ) )
     {
-      throw maptk::path_not_exists( d->m_files.back() );
+      throw kwiver::vital::path_not_exists( d->m_files.back() );
     }
   } // end for
 
@@ -178,7 +175,7 @@ void frame_list_process
   if ( d->m_current_file != d->m_files.end() )
   {
     // still have an image to read
-    std::string a_file = d->m_current_file->string();
+    std::string a_file = *d->m_current_file;
 
     // \todo add log message
     std::cerr << "DEBUG - reading image from file \"" << a_file << "\"\n";
@@ -187,7 +184,7 @@ void frame_list_process
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    kwiver::image_container_sptr img;
+    kwiver::vital::image_container_sptr img;
     img = d->m_image_reader->load( a_file );
 
     // --- debug
@@ -204,7 +201,7 @@ void frame_list_process
     ++d->m_frame_number;
     d->m_frame_time += d->m_config_frame_time;
 
-    kwiver::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
+    kwiver::vital::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
 
     push_to_port_using_trait( timestamp, frame_ts );
     push_to_port_using_trait( image, img );
