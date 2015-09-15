@@ -349,6 +349,31 @@ algorithm_plugin_manager
 
 
 // ------------------------------------------------------------------
+ bool
+ algorithm_plugin_manager
+ ::load_plugins_once()
+ {
+   static bool first( true );
+   static std::mutex local_lock;          // synchronization lock
+
+   if ( ! first )
+   {
+     return false;
+   }
+
+   std::lock_guard<std::mutex> lock(local_lock);
+   if ( first )
+   {
+     instance().register_plugins();
+     first = false;
+     return true;
+   }
+
+   return false;
+ }
+
+
+// ------------------------------------------------------------------
 /// (Re)Load plugin libraries found along current search paths
 void
 algorithm_plugin_manager

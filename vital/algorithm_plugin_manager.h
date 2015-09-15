@@ -58,6 +58,26 @@ public:
   /// Get the reference to the singleton instance of this class
   static algorithm_plugin_manager& instance();
 
+  /// Load all plugins on first call.
+  /**
+   * This static method loads all plugins on the first call and does
+   * nothing on all subsequent calls. This is designed to load plugins
+   * in a concurrent application where the first thread to start is
+   * non-deterministic. All threads would call this method on starting
+   * and the first one that completes has loaded all plugins and the
+   * other callers will return.
+   *
+   * If you must reload plugins after this method has been called, use
+   * the register_plugins() method.
+   *
+   * If the singleton has not been created prior to this call, is is
+   * created by this call.
+   *
+   * @return \b true if plugins were loaded, \b false if plugins were
+   * already loaded.
+   */
+  static bool load_plugins_once();
+
   /// (Re)Load plugin libraries found along current search paths
   /**
    * This method loads or reloads plugins. This method must be called
