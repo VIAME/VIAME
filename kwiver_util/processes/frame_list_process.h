@@ -31,7 +31,7 @@ class KWIVER_PROCESSES_NO_EXPORT frame_list_process
   : public sprokit::process
 {
 public:
-  frame_list_process( sprokit::config_t const& config );
+  frame_list_process( kwiver::vital::config_block_sptr const& config );
   virtual ~frame_list_process();
 
 

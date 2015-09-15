@@ -30,20 +30,19 @@
 
 #include "stabilize_image_process.h"
 
-#include <kwiver/pipeline_types/kwiver.h>
-#include <kwiver/timestamp.h>
+#include <kwiver/vital/algorithm_plugin_manager.h>
+#include <kwiver/vital/vital_types.h>
+#include <kwiver/vital/types/timestamp.h>
+#include <kwiver/vital/types/image_container.h>
+#include <kwiver/vital/types/track_set.h>
+#include <kwiver/vital/types/homography.h>
+
+#include <kwiver/vital/algo/track_features.h>
+#include <kwiver/vital/algo/compute_ref_homography.h>
+
+#include <kwiver_util/sprokit_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
-
-#include <maptk/modules.h>
-#include <maptk/algo/track_features.h>
-#include <maptk/algo/compute_ref_homography.h>
-
-#include <kwiver/image_container.h>
-#include <maptk/track_set.h>
-#include <kwiver/homography.h>
-
-#include <boost/make_shared.hpp>
 
 // -- DEBUG
 #if defined DEBUG
@@ -51,6 +50,8 @@
 #include <opencv2/highgui/highgui.hpp>
 using namespace cv;
 #endif
+
+namespace algo = kwiver::vital::algo;
 
 namespace kwiver
 {
@@ -70,20 +71,21 @@ public:
   // the maptk algo.
 
   // feature tracker algorithm - homography source
-  maptk::algo::track_features_sptr         m_feature_tracker;
-  maptk::algo::compute_ref_homography_sptr m_compute_homog;
+  algo::track_features_sptr         m_feature_tracker;
+  algo::compute_ref_homography_sptr m_compute_homog;
 
-  maptk::track_set_sptr m_tracks; // last set of tracks
+  kwiver::vital::track_set_sptr m_tracks; // last set of tracks
 
 }; // end priv class
 
 // ================================================================
 
 stabilize_image_process
-::stabilize_image_process( sprokit::config_t const& config )
+::stabilize_image_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
     d( new stabilize_image_process::priv )
 {
+  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
   make_ports();
   make_config();
 }
@@ -99,23 +101,20 @@ stabilize_image_process
 void stabilize_image_process
 ::_configure()
 {
-  // Convert sprokit config to maptk config for algorithms
-  sprokit::config_t proc_config = get_config(); // config for process
-  maptk::config_block_sptr algo_config = maptk::config_block::empty_config();
-
-  //+ convert_config( proc_config, algo_config );
+  kwiver::vital::config_block_sptr proc_config = get_config(); // config for process
+  kwiver::vital::config_block_sptr algo_config = kwiver::vital::config_block::empty_config();
 
   // Maybe should call check_nested_algo_configuration( "feature_tracker", algo_config );
   // Maybe should call check_nested_algo_configuration( "homography_generator", algo_config );
 
-  maptk::algo::track_features::set_nested_algo_configuration( "feature_tracker",
+  algo::track_features::set_nested_algo_configuration( "feature_tracker",
                                               algo_config, d->m_feature_tracker );
   if ( ! d->m_feature_tracker )
   {
     throw sprokit::invalid_configuration_exception( name(), "Error configuring \"feature_tracker\"" );
   }
 
-  maptk::algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator",
+  algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator",
                                                               algo_config, d->m_compute_homog );
   if ( ! d->m_compute_homog )
   {
@@ -131,14 +130,14 @@ void
 stabilize_image_process
 ::_step()
 {
-  kwiver::f2f_homography_sptr src_to_ref_homography;
+  kwiver::vital::f2f_homography_sptr src_to_ref_homography;
 
   // timestamp
-  kwiver::timestamp frame_time = grab_input_using_trait( timestamp );
+  kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
 
   // image
-  //+ kwiver::image_container_sptr img = grab_input_using_trait( image );
-  kwiver::image_container_sptr img = grab_from_port_using_trait( image );
+  //+ kwiver::vital::image_container_sptr img = grab_input_using_trait( image );
+  kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
   std::cerr << "DEBUG - (stab image) Processing frame " << frame_time
