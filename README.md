@@ -18,6 +18,8 @@ To build Fletch, clone the Fletch repository:
 
 	git clone https://github.com/Kitware/fletch.git
 
+	git submodule update --init
+
 Then, create a build directory and run the following `cmake` command:
 
 	cmake -DFLETCH_BUILD_WITH_PYTHON:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -Dfletch_ENABLE_Boost:BOOL=TRUE -Dfletch_ENABLE_OpenCV:BOOL=TRUE  /path/to/fletch/source/directory
