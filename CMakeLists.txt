@@ -112,7 +112,7 @@ add_subdirectory( vital )
 ##################################################################
 # Top level installation
 #
-set(kwiver_cmake_install_dir "lib${LIB_SUFFIX}/CMake/vital")
+set(kwiver_cmake_install_dir "lib${LIB_SUFFIX}/cmake/vital")
 
 # Install rules for CMake utilities
 ## include( kwiver-install-utils )
