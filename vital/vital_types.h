@@ -38,8 +38,6 @@
 #ifndef KWIVER_CORE_TYPES_H
 #define KWIVER_CORE_TYPES_H
 
-//+ #include <kwiver/geo_lat_lon.h>
-
 #include <string>
 #include <vector>
 #include <stdint.h>
