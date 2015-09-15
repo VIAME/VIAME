@@ -3,7 +3,7 @@
 #
 project( kwiver_processes )
 
-include( GenerateExportHeader )
+## include( GenerateExportHeader )
 
 # We are including sprokit macros because we are building
 # sprokit plug-ins.
@@ -36,7 +36,7 @@ kwiver_add_plugin( kwiver_processes
 )
 
 add_dependencies( kwiver_processes
-  vital sprokit maptk VXL )
+  vital_proj sprokit_proj maptk_proj VXL )
 
 set( maptk_libs      maptk_core maptk_vxl )
 if (KWIVER_ENABLE_OPENCV)
@@ -47,7 +47,7 @@ endif()
 target_link_libraries( kwiver_processes
   PRIVATE              sprokit_pipeline
                      ${maptk_libs}
-                       ${VITAL_LIBRARIES} kwiversys
+                     vital
                      ${Boost_FILESYSTEM_LIBRARY}
                      ${Boost_SYSTEM_LIBRARY}
                        vsl vil vul vnl vnl_io vil_io )
@@ -58,4 +58,4 @@ endif()
 
 ###
 # Make appropriate export header file
-generate_export_header( kwiver_processes )
+## generate_export_header( kwiver_processes )
