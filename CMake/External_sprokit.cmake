@@ -11,7 +11,7 @@
 #   KWIVER_ARGS_sprokit -
 #
 
-ExternalProject_Add( sprokit
+ExternalProject_Add( sprokit_proj
   PREFIX ${KWIVER_BUILD_PREFIX}
   SOURCE_DIR ${KWIVER_PACKAGES_DIR}/sprokit
   CMAKE_GENERATOR ${gen}
@@ -22,10 +22,10 @@ ExternalProject_Add( sprokit
     -Ddoxy_documentation_output_path:STRING=${KWIVER_DOC_OUTPUT_DIR}
 	-DSPROKIT_ENABLE_TESTING:BOOL=TRUE
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}
-  DEPENDS vital
+  DEPENDS vital_proj
   )
 
-ExternalProject_Add_Step( sprokit forcebuild
+ExternalProject_Add_Step( sprokit_proj forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${KWIVER_BUILD_PREFIX}/src/sprokit-stamp/sprokit-build
   COMMENT "Removing build stamp file for build update (forcebuild)."

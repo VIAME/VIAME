@@ -10,7 +10,7 @@
 #   KWIVER_ARGS_vatal -
 #
 
-ExternalProject_Add(vital
+ExternalProject_Add(vital_proj
   PREFIX ${KWIVER_BUILD_PREFIX}
   SOURCE_DIR ${KWIVER_PACKAGES_DIR}/vital
   CMAKE_GENERATOR ${gen}
@@ -21,7 +21,7 @@ ExternalProject_Add(vital
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(vital forcebuild
+ExternalProject_Add_Step(vital_proj forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${KWIVER_BUILD_PREFIX}/src/vital-stamp/vital-build
   COMMENT "Removing build stamp file for build update (forcebuild)."

@@ -10,8 +10,8 @@
 #   KWIVER_ARGS_maptk -
 #
 
-ExternalProject_Add(maptk
-  DEPENDS VXL vital
+ExternalProject_Add(maptk_proj
+  DEPENDS VXL vital_proj
   PREFIX ${KWIVER_BUILD_PREFIX}
   SOURCE_DIR ${KWIVER_PACKAGES_DIR}/maptk
   CMAKE_GENERATOR ${gen}
@@ -24,7 +24,7 @@ ExternalProject_Add(maptk
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(maptk forcebuild
+ExternalProject_Add_Step(maptk_proj forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${KWIVER_BUILD_PREFIX}/src/maptk-stamp/maptk-build
   COMMENT "Removing build stamp file for build update (forcebuild)."
