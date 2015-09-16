@@ -49,7 +49,6 @@
 #include <stdint.h>
 #include <fstream>
 
-#define DEBUG
 // -- DEBUG
 #if defined DEBUG
 #include <maptk/plugins/ocv/image_container.h>
@@ -124,7 +123,6 @@ void frame_list_process
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
-  //+ kwiver::vital::algorithm::check_nested_algo_configuration( "image_io", "image_reader", algo_config ); // TEMP
 
   // instantiate image reader and converter based on config type
   algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
@@ -232,11 +230,10 @@ void frame_list_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  required.insert( flag_required );
+  sprokit::process::port_flags_t optional;
 
-  declare_output_port_using_trait( timestamp, required );
-  declare_output_port_using_trait( image, required );
+  declare_output_port_using_trait( timestamp, optional );
+  declare_output_port_using_trait( image, optional );
 }
 
 
