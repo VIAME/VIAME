@@ -112,6 +112,9 @@ int main(int argc, char *argv[])
 
   if (vm.count("help"))
   {
+    std::cout << "This program loads and displays MapTK algorithms.\n"
+              << "Additional paths can be specified in \"VITAL_PLUGIN_PATH\" environment variable\n";
+
     std::cout << desc << "\n";
     return 1;
   }
@@ -145,6 +148,10 @@ int main(int argc, char *argv[])
 
   // locate all plugins
   apm.register_plugins( plugin_name );
+
+  std::cout << "---- Algorithm search path\n"
+            << apm.get_search_path()
+            << std::endl << std::endl;
 
   std::cout << "---- Registered module names:\n";
   std::vector< std::string >module_list = apm.registered_module_names();

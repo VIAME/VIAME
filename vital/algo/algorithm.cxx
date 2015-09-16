@@ -38,7 +38,7 @@
 namespace kwiver {
 namespace vital {
 
-
+// ------------------------------------------------------------------
 /// Get this alg's \link vital::config_block configuration block \endlink
 config_block_sptr
 algorithm
@@ -48,6 +48,7 @@ algorithm
 }
 
 
+// ------------------------------------------------------------------
 algorithm_sptr
 algorithm
 ::create( const std::string&  type_name,
@@ -64,6 +65,7 @@ algorithm
 }
 
 
+// ------------------------------------------------------------------
 std::vector< std::string >
 algorithm
 ::registered_names( const std::string& type_name )
@@ -89,6 +91,7 @@ algorithm
 }
 
 
+// ------------------------------------------------------------------
 bool
 algorithm
 ::has_type_name( const std::string& type_name )
@@ -99,6 +102,7 @@ algorithm
 }
 
 
+// ------------------------------------------------------------------
 bool
 algorithm
 ::has_impl_name( const std::string& type_name,
@@ -110,6 +114,7 @@ algorithm
 }
 
 
+// ------------------------------------------------------------------
 /// Helper function for properly getting a nested algorithm's configuration
 void
 algorithm
@@ -152,7 +157,8 @@ algorithm
 }
 
 
-/// Helper macro for properly setting a nested algorithm's configuration
+// ------------------------------------------------------------------
+/// Helper method for properly setting a nested algorithm's configuration
 void
 algorithm
 ::set_nested_algo_configuration( std::string const& type_name,
@@ -176,8 +182,8 @@ algorithm
   }
 }
 
-
-/// Helper macro for checking that basic nested algorithm configuration is valid
+// ------------------------------------------------------------------
+/// Helper method for checking that basic nested algorithm configuration is valid
 bool
 algorithm
 ::check_nested_algo_configuration( std::string const& type_name,

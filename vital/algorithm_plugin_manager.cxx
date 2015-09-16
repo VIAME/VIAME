@@ -135,7 +135,6 @@ public:
     // \todo: Want a way to hook into an environment variable / config file here
     //       for additional search path extension
     //       - Search order: setInCode -> EnvVar -> configFile -> defaults
-    //       - create separate default_m_search_paths member var for separate storage
 
     for ( path_t module_dir : this->m_search_paths )
     {
@@ -296,7 +295,7 @@ public:
 /// Private constructor
 algorithm_plugin_manager
 ::algorithm_plugin_manager()
-  : impl_( new impl() )
+  : m_impl( new impl() )
 {
   // craft default search paths. Order of elements in the path has
   // some effect on how modules are looked up.
@@ -305,22 +304,21 @@ algorithm_plugin_manager
   const char * env_ptr = kwiversys::SystemTools::GetEnv( environment_variable_name );
   if ( 0 != env_ptr )
   {
-    LOG_INFO( impl_->m_logger, "Adding path \"" << env_ptr << "\" from environment" );
+    LOG_INFO( m_impl->m_logger, "Adding path \"" << env_ptr << "\" from environment" );
     std::string const extra_module_dirs(env_ptr);
 
     // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
-    ST::Split( extra_module_dirs, impl_->m_search_paths, PATH_SEPARATOR_CHAR );
+    ST::Split( extra_module_dirs, m_impl->m_search_paths, PATH_SEPARATOR_CHAR );
   }
 
-  ST::Split( default_module_paths, impl_->m_search_paths, PATH_SEPARATOR_CHAR );
+  ST::Split( default_module_paths, m_impl->m_search_paths, PATH_SEPARATOR_CHAR );
 }
 
 
-/// Private destructor
+// Private destructor
 algorithm_plugin_manager
 ::~algorithm_plugin_manager()
 {
-  delete this->impl_;
 }
 
 
@@ -381,8 +379,8 @@ algorithm_plugin_manager
 {
   // Search for libraries to dlopen for algorithm registration
   // call-back.
-  LOG_DEBUG( this->impl_->m_logger, "Dynamically loading plugin impls" );
-  this->impl_->load_from_search_paths( name );
+  LOG_DEBUG( this->m_impl->m_logger, "Dynamically loading plugin impls" );
+  this->m_impl->load_from_search_paths( name );
 }
 
 
@@ -392,7 +390,22 @@ void
 algorithm_plugin_manager
 ::add_search_path( path_t dirpath )
 {
-  this->impl_->m_search_paths.push_back( dirpath );
+  this->m_impl->m_search_paths.push_back( dirpath );
+}
+
+
+// ------------------------------------------------------------------
+std::string
+algorithm_plugin_manager
+::get_search_path() const
+{
+  std::string path_string;
+  for ( std::string module_dir : this->m_impl->m_search_paths )
+  {
+    path_string += module_dir + ":";
+  }
+
+  return path_string;
 }
 
 
@@ -402,7 +415,7 @@ std::vector< std::string >
 algorithm_plugin_manager
 ::registered_module_names() const
 {
-  return this->impl_->registered_module_names();
+  return this->m_impl->registered_module_names();
 }
 
 } } // end namespace

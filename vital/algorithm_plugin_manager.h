@@ -38,6 +38,8 @@
 
 #include <string>
 #include <vector>
+#include <memory>
+
 
 #include <vital/noncopyable.h>
 
@@ -105,6 +107,14 @@ public:
    */
   void add_search_path(path_t dirpath);
 
+  /// Get plugin manager search path
+  /**
+   *  This method returns the search path used to load algorithms.
+   *
+   * @return the colon delimited search path.
+   */
+  std::string get_search_path() const;
+
   /// Get the list currently registered module names.
   /**
    * A module's name is defined as the filename minus the standard platform
@@ -116,7 +126,7 @@ public:
 
 private:
   class impl;
-  impl *impl_;
+  std::auto_ptr< impl > m_impl;
 
   /// Private constructor
   /**
@@ -130,7 +140,6 @@ private:
 
   static algorithm_plugin_manager* s_instance;
 };
-
 
 } } // end namespace
 
