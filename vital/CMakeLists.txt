@@ -248,8 +248,12 @@ if (CMAKE_CONFIGURATION_TYPES)
 endif()
 
 ## The modules subdirectory is where the kwiver_add_module() macro generates its product
-set( install_module_paths "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/modules" )
-set( build_module_paths "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules" )
+## Note that maptk has a different place where it installs plugins
+set( install_module_paths
+  "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/modules${path_sep}${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/maptk" )
+
+set( build_module_paths
+  "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules${path_sep}${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/maptk" )
 
 # assemle total search path
 set( VITAL_DEFAULT_MODULE_PATHS ${install_module_paths})
