@@ -44,9 +44,6 @@ kwiver_add_library( vital_logger
 
 target_link_libraries( vital_logger
   PRIVATE              kwiversys
-                       ${Boost_FILESYSTEM_LIBRARY}
-                       ${Boost_THREAD_LIBRARY}
-                       ${Boost_SYSTEM_LIBRARY}
   )
 
 ###
