@@ -3,7 +3,7 @@
 #
 
 
-kwiver_check_compiler_flag( -std=c++0x )
+kwiver_check_compiler_flag( -std=c++11 -std=c++0x )
 kwiver_check_compiler_flag( -fvisibility=hidden )
 kwiver_check_compiler_flag( -Wall )
 kwiver_check_compiler_flag( -Werror=return-type )
