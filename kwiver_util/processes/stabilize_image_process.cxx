@@ -46,7 +46,7 @@
 
 // -- DEBUG
 #if defined DEBUG
-#include <maptk/ocv/image_container.h>
+#include <maptk/plugins/ocv/image_container.h>
 #include <opencv2/highgui/highgui.hpp>
 using namespace cv;
 #endif
@@ -101,24 +101,24 @@ stabilize_image_process
 void stabilize_image_process
 ::_configure()
 {
-  kwiver::vital::config_block_sptr proc_config = get_config(); // config for process
-  kwiver::vital::config_block_sptr algo_config = kwiver::vital::config_block::empty_config();
+  kwiver::vital::config_block_sptr algo_config = get_config();
 
-  // Maybe should call check_nested_algo_configuration( "feature_tracker", algo_config );
-  // Maybe should call check_nested_algo_configuration( "homography_generator", algo_config );
+  // Check config so it will give run-time diagnostic of config problems
+  algo::track_features::check_nested_algo_configuration( "track_features", algo_config );
 
-  algo::track_features::set_nested_algo_configuration( "feature_tracker",
-                                              algo_config, d->m_feature_tracker );
+  algo::track_features::set_nested_algo_configuration( "track_features", algo_config, d->m_feature_tracker );
   if ( ! d->m_feature_tracker )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"feature_tracker\"" );
+    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"track_features\"" );
   }
 
-  algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator",
-                                                              algo_config, d->m_compute_homog );
+  // Check config so it will give run-time diagnostic of config problems
+  algo::compute_ref_homography::check_nested_algo_configuration("homography_generator", algo_config );
+
+  algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator", algo_config, d->m_compute_homog );
   if ( ! d->m_compute_homog )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"homography_generator\"" );
+    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"compute_ref_homography\"" );
   }
 
   sprokit::process::_configure();
@@ -152,8 +152,9 @@ stabilize_image_process
   waitKey( 0 );
 #endif                                        // Wait for a keystroke in the window
   // -- end debug
+
   // Get feature tracks
-  //+ type error --] d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
+  d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
 
   // Get stabilization homography
   src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
@@ -170,6 +171,7 @@ void stabilize_image_process
 ::make_ports()
 {
   // Set up for required ports
+  sprokit::process::port_flags_t optional;
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
 
@@ -177,7 +179,7 @@ void stabilize_image_process
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
 
-  declare_output_port_using_trait( src_to_ref_homography, required );
+  declare_output_port_using_trait( src_to_ref_homography, optional );
 }
 
 
