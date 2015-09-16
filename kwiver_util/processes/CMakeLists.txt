@@ -47,7 +47,7 @@ endif()
 target_link_libraries( kwiver_processes
   PRIVATE              sprokit_pipeline
                      ${maptk_libs}
-                     vital
+                     vital vital_apm vital_logger vital_config
                      ${Boost_FILESYSTEM_LIBRARY}
                      ${Boost_SYSTEM_LIBRARY}
                        vsl vil vul vnl vnl_io vil_io )
