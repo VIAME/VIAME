@@ -54,9 +54,10 @@ DECLARE_TEST_MAP();
 namespace
 {
 
+
 /// Dummy algo impl to test function wrappers
 class dummy_est
-  : public kwiver::vital::algorithm_impl < dummy_est, kwiver::vital::algo::estimate_similarity_transform>
+  : public kwiver::vital::algorithm_impl < dummy_est, kwiver::vital::algo::estimate_similarity_transform >
 {
 public:
   dummy_est()
@@ -74,7 +75,9 @@ public:
   void set_configuration(kwiver::vital::config_block_sptr config) {}
   bool check_configuration(kwiver::vital::config_block_sptr config) const {return true;}
 
-  kwiver::vital::similarity_d
+  using kwiver::vital::algo::estimate_similarity_transform::estimate_transform;
+
+  virtual kwiver::vital::similarity_d
   estimate_transform(std::vector<kwiver::vital::vector_3d> const& from,
                      std::vector<kwiver::vital::vector_3d> const& to) const
   {
