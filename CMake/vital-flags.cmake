@@ -6,9 +6,9 @@
 include(CheckCXXCompilerFlag)
 
 if (MSVC)
-  include( kwiver-flags-msvc )
+  include( vital-flags-msvc )
 else()
-  include( kwiver-flags-gnu )
+  include( vital-flags-gnu )
 endif()
 
 get_property(kwiver_cxx_flags GLOBAL PROPERTY kwiver_warnings)

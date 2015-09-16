@@ -51,7 +51,7 @@ option( VITAL_ENABLE_PYTHON   "Enable Python bindings" OFF )
 # KWIVER CMake config
 #
 include(kwiver-utils)
-include(kwiver-flags)
+include(vital-flags) # vital specific CXX flags
 
 ###
 # External Dependencies and Modules
