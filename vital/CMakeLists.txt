@@ -247,13 +247,15 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(config_subdir "/$<CONFIGURATION>")
 endif()
 
+#
+# This is all to get around the ';' as the path separator.  CMake will
+# split it into two elements when we want it to be ignored.
+#
+
 ## The modules subdirectory is where the kwiver_add_module() macro generates its product
 ## Note that maptk has a different place where it installs plugins
-set( install_module_paths
-  "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/modules${path_sep}${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/maptk" )
-
-set( build_module_paths
-  "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules${path_sep}${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/maptk" )
+set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/maptk" )
+set( build_module_paths   "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/maptk" )
 
 # assemle total search path
 set( VITAL_DEFAULT_MODULE_PATHS ${install_module_paths})
@@ -267,10 +269,6 @@ if (VITAL_USE_BUILD_PLUGIN_DIR)
   set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${build_module_paths})
 endif()
 
-#
-# This is all to get around the ';' as the path separator.  CMake will
-# split it into two elements when we want it to be ignored.
-#
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/algorithm_plugin_manager_paths.h" )
