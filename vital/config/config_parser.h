@@ -50,6 +50,13 @@ namespace vital {
  * block.  Delete the object when done. Allocate another if another
  * file needs to be processed.
  *
+ * Example code:
+\code
+std::auto< kwiver::vital::config_parser> input_config( new kwiver::vital::config_parser(filename) );
+input_config->parse_config();
+kwiver::vital::config_block_sptr blk = input_config->get_config();
+\endcode
+ *
  */
 class config_parser
   : private kwiver::vital::noncopyable
@@ -69,7 +76,8 @@ public:
   /**
    * \brief Parse file into a config block
    *
-   * The file specified by the CTOR is read and parsed
+   * The file specified by the CTOR is read and parsed. The resulting
+   * config block is available via the get_config() method.
    *
    * \throws config_file_not_parsed_exception
    *
