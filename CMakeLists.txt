@@ -274,7 +274,7 @@ endif()
 ##################################################################
 # Top level installation
 #
-set(kwiver_cmake_install_dir lib${KWIVER_LIB_SUFFIX}/CMake/kwiver)
+set(kwiver_cmake_install_dir lib${KWIVER_LIB_SUFFIX}/cmake/kwiver)
 
 # Install rules for CMake utilities
 include( kwiver-install-utils )
