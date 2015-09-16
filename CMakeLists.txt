@@ -111,7 +111,7 @@ add_subdirectory( vital )
 set(kwiver_cmake_install_dir "lib${LIB_SUFFIX}/cmake/vital")
 
 # Install rules for CMake utilities
-## include( kwiver-install-utils )
+include( kwiver-install-utils )
 
 # Prepare space-separated list of library names for config
 get_property(vital_libs GLOBAL PROPERTY kwiver_libraries)
@@ -153,6 +153,3 @@ kwiver_install(
   DESTINATION "${kwiver_cmake_install_dir}"
   FILE        vital-config-targets.cmake
   )
-
-# only needed for install
-add_subdirectory( CMake )
