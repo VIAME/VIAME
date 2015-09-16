@@ -59,6 +59,8 @@ public:
   /// Copy Constructor
   f2w_homography( f2w_homography const &h );
 
+  virtual ~f2w_homography() {}
+
   /// Get the homography transformation
   virtual homography_sptr homography() const;
 
