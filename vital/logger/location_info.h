@@ -31,6 +31,8 @@
 #ifndef KWIVER_LOGGER_LOCATION_INFO_H_
 #define KWIVER_LOGGER_LOCATION_INFO_H_
 
+#include <vital/logger/vital_logger_export.h>
+
 #include <string>
 
 namespace kwiver {
@@ -43,7 +45,7 @@ namespace logger_ns {
  * This class represents the location of the logging call.
  *
  */
-class location_info
+class VITAL_LOGGER_EXPORT location_info
 {
 public:
   /** Constructor. Create a default of unknown location */

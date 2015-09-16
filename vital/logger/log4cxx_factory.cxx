@@ -319,7 +319,7 @@ public:
 /*
  * Shared object bootstrap function
  */
-extern "C" void* VITAL_LOGGER_EXPORT kwiver_logger_factory();
+extern "C" VITAL_LOGGER_EXPORT void* kwiver_logger_factory();
 
 void* kwiver_logger_factory()
 {

@@ -32,6 +32,7 @@
 #define KWIVER_KWIVER_LOGGER_MANAGER_H_
 
 #include "kwiver_logger.h"
+#include <vital/logger/vital_logger_export.h>
 #include <kwiversys/DynamicLoader.hxx>
 
 #include <string>
@@ -55,7 +56,7 @@ namespace logger_ns {
  * logger. Only one object of this type is required, so this is a
  * singleton created by the static instance() method.
  */
-class kwiver_logger_manager
+class VITAL_LOGGER_EXPORT kwiver_logger_manager
   :private kwiver::vital::noncopyable
 {
 public:

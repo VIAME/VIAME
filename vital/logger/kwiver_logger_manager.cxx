@@ -156,6 +156,7 @@ kwiver_logger_manager * kwiver_logger_manager
  *
  * These are unbound functions
  */
+VITAL_LOGGER_EXPORT
 logger_handle_t
 get_logger( char const* name )
 {
@@ -163,6 +164,7 @@ get_logger( char const* name )
 }
 
 
+VITAL_LOGGER_EXPORT
 logger_handle_t
 get_logger( std::string const& name )
 {
