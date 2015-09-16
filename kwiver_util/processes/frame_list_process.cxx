@@ -49,9 +49,10 @@
 #include <stdint.h>
 #include <fstream>
 
+#define DEBUG
 // -- DEBUG
 #if defined DEBUG
-#include <maptk/ocv/image_container.h>
+#include <maptk/plugins/ocv/image_container.h>
 #include <opencv2/highgui/highgui.hpp>
 using namespace cv;
 #endif
@@ -121,15 +122,16 @@ void frame_list_process
   d->m_config_image_reader        = config_value_using_trait( image_reader );
   d->m_config_frame_time          = config_value_using_trait( frame_time );
 
-  kwiver::vital::config_block_sptr proc_config = get_config(); // config for process
-  kwiver::vital::config_block_sptr algo_config = kwiver::vital::config_block::empty_config();
+  kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+
+  //+ kwiver::vital::algorithm::check_nested_algo_configuration( "image_io", "image_reader", algo_config ); // TEMP
 
   // instantiate image reader and converter based on config type
   algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
   if (0 == d->m_image_reader )
   {
     throw sprokit::invalid_configuration_exception( name(),
-             "Error configuring \"feature_tracker\". Unable to create image reader." );
+             "Error configuring. Unable to create image reader." );
   }
 
   sprokit::process::_configure();
