@@ -59,6 +59,8 @@ timestamp& timestamp
 {
   m_time = t;
   m_valid_time = true;
+
+  return *this;
 }
 
 
@@ -67,6 +69,8 @@ timestamp& timestamp
 {
   m_frame = f;
   m_valid_frame = true;
+
+  return *this;
 }
 
 
@@ -75,6 +79,8 @@ timestamp& timestamp
 {
   m_valid_time = false;
   m_valid_frame = false;
+
+  return *this;
 }
 
 
