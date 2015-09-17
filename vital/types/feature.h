@@ -37,6 +37,7 @@
 #define VITAL_FEATURE_H_
 
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 
 #include <iostream>
 #include <typeinfo>
@@ -58,7 +59,7 @@ class feature
 {
 public:
   /// Destructor
-  virtual ~feature() { }
+  virtual ~feature() VITAL_DEFAULT_DTOR
 
   /// Access the type info of the underlying data (double or float)
   virtual const std::type_info& data_type() const = 0;

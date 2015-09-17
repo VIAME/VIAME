@@ -31,6 +31,8 @@
 #ifndef VITAL_NONCOPYABLE_H
 #define VITAL_NONCOPYABLE_H
 
+#include <vital/vital_config.h>
+
 namespace kwiver {
 namespace vital {
 
@@ -38,7 +40,7 @@ class noncopyable
 {
 protected:
 
-#if 01
+#if VITAL_USE_CPP_DEFAULT_CTOR
 
   noncopyable() = default;
   ~noncopyable() = default;

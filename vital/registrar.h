@@ -191,7 +191,7 @@ private:
   registrar();
 
   /// Private destructor (this class is a singleton)
-  ~registrar() { }
+  ~registrar() VITAL_DEFAULT_DTOR;
 
   /// Private copy constructor (this class is a singleton)
   registrar( const registrar& );

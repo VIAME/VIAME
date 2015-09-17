@@ -36,7 +36,6 @@
 #ifndef VITAL_HOMOGRAPHY_F2W_H
 #define VITAL_HOMOGRAPHY_F2W_H
 
-#include <vital/vital_export.h>
 #include <vital/types/homography.h>
 
 namespace kwiver {
@@ -59,7 +58,7 @@ public:
   /// Copy Constructor
   f2w_homography( f2w_homography const &h );
 
-  virtual ~f2w_homography() {}
+  virtual ~f2w_homography() VITAL_DEFAULT_DTOR
 
   /// Get the homography transformation
   virtual homography_sptr homography() const;

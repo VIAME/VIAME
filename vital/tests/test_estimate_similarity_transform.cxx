@@ -33,6 +33,7 @@
 #include <vector>
 
 #include <vital/vital_types.h>
+#include <vital/vital_config.h>
 
 #include <vital/config/config_block.h>
 
@@ -68,7 +69,7 @@ public:
     : expected_size(expected_size)
   {}
 
-  virtual ~dummy_est() {}
+  virtual ~dummy_est() VITAL_DEFAULT_DTOR
 
   std::string impl_name() const { return "dummy_est"; }
 

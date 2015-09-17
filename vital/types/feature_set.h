@@ -36,9 +36,11 @@
 #ifndef VITAL_FEATURE_SET_H_
 #define VITAL_FEATURE_SET_H_
 
-#include <vector>
-
 #include "feature.h"
+
+#include <vital/vital_config.h>
+
+#include <vector>
 
 namespace kwiver {
 namespace vital {
@@ -53,7 +55,7 @@ class feature_set
 {
 public:
   /// Destructor
-  virtual ~feature_set() { }
+  virtual ~feature_set() VITAL_DEFAULT_DTOR
 
   /// Return the number of features in the set
   virtual size_t size() const = 0;

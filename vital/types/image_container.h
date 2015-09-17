@@ -36,8 +36,11 @@
 #ifndef VITAL_IMAGE_CONTAINER_H_
 #define VITAL_IMAGE_CONTAINER_H_
 
-#include <vector>
 #include "image.h"
+
+#include <vital/vital_config.h>
+
+#include <vector>
 
 namespace kwiver {
 namespace vital {
@@ -55,7 +58,7 @@ class image_container
 public:
 
   /// Destructor
-  virtual ~image_container() {}
+  virtual ~image_container() VITAL_DEFAULT_DTOR
 
   /// The size of the image data in bytes
   /**

@@ -38,7 +38,7 @@
 #ifndef VITAL_CAMERA_IO_H_
 #define VITAL_CAMERA_IO_H_
 
-//+ #include <vital/vital_config.h>
+#include <vital/vital_config.h>
 #include <vital/vital_export.h>
 #include <vital/vital_types.h>
 

@@ -67,11 +67,6 @@ logger_factory_default
 }
 
 
-logger_factory_default
-  ::~logger_factory_default()
-{ }
-
-
 // ==================================================================
 /**
  * @brief Default kwiver logger implementation.
@@ -89,7 +84,7 @@ public:
     m_logLevel( kwiver_logger::LEVEL_TRACE )
   { }
 
-  virtual ~default_logger() { }
+  virtual ~default_logger() VITAL_DEFAULT_DTOR
 
   // Check to see if level is enabled
   virtual bool is_fatal_enabled() const { return m_logLevel <= kwiver_logger::LEVEL_FATAL;  }

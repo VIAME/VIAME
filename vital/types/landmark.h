@@ -37,6 +37,7 @@
 #define VITAL_LANDMARK_H_
 
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 
 #include <iostream>
 #include <memory>
@@ -64,7 +65,7 @@ class landmark
 {
 public:
   /// Destructor
-  virtual ~landmark() { }
+  virtual ~landmark() VITAL_DEFAULT_DTOR
 
   /// Create a clone of this landmark object
   virtual landmark_sptr clone() const = 0;

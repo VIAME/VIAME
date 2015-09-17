@@ -36,15 +36,16 @@
 #ifndef VITAL_TRACK_H_
 #define VITAL_TRACK_H_
 
+#include "descriptor.h"
+#include "feature.h"
+
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
+#include <vital/vital_types.h>
 
 #include <vector>
 #include <set>
 #include <memory>
-
-#include "descriptor.h"
-#include "feature.h"
-#include <vital/vital_types.h>
 
 namespace kwiver {
 namespace vital {
@@ -85,6 +86,8 @@ public:
 
   /// Copy Constructor
   track( const track& other );
+
+  ~track() VITAL_DEFAULT_DTOR
 
   /// Construct a track from a single track state
   explicit track( const track_state& ts );

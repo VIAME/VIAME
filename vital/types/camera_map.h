@@ -37,7 +37,10 @@
 #define VITAL_CAMERA_MAP_H_
 
 #include "camera.h"
+
 #include <vital/vital_types.h>
+#include <vital/vital_config.h>
+
 #include <map>
 #include <memory>
 
@@ -52,7 +55,7 @@ public:
   typedef std::map< frame_id_t, camera_sptr > map_camera_t;
 
   /// Destructor
-  virtual ~camera_map() { }
+  virtual ~camera_map() VITAL_DEFAULT_DTOR
 
   /// Return the number of cameras in the map
   virtual size_t size() const = 0;

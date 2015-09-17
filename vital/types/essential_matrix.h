@@ -37,6 +37,7 @@
 #define VITAL_ESSENTIAL_MATRIX_H_
 
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 #include <vital/vital_types.h>
 
 #include <vital/types/matrix.h>
@@ -67,7 +68,7 @@ class VITAL_EXPORT essential_matrix
 {
 public:
   /// Destructor
-  virtual ~essential_matrix() { }
+  virtual ~essential_matrix() VITAL_DEFAULT_DTOR
 
   /// Create a clone of this essential_matrix object, returning as smart pointer
   /**

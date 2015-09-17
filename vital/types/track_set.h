@@ -38,15 +38,16 @@
 #ifndef VITAL_TRACK_SET_H_
 #define VITAL_TRACK_SET_H_
 
+#include "descriptor_set.h"
+#include "feature_set.h"
+#include "track.h"
+
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 
 #include <vector>
 #include <set>
 #include <memory>
-
-#include "descriptor_set.h"
-#include "feature_set.h"
-#include "track.h"
 
 namespace kwiver {
 namespace vital {
@@ -60,7 +61,7 @@ class VITAL_EXPORT track_set
 {
 public:
   /// Destructor
-  virtual ~track_set() { }
+  virtual ~track_set() VITAL_DEFAULT_DTOR
 
   /// Return the number of tracks in the set
   virtual size_t size() const;

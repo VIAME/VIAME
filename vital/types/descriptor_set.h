@@ -38,6 +38,7 @@
 
 
 #include "descriptor.h"
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace vital {
@@ -52,7 +53,7 @@ class descriptor_set
 {
 public:
   /// Destructor
-  virtual ~descriptor_set() { }
+  virtual ~descriptor_set() VITAL_DEFAULT_DTOR
 
   /// Return the number of descriptors in the set
   virtual size_t size() const = 0;

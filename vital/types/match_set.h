@@ -36,6 +36,7 @@
 #ifndef VITAL_MATCH_SET_H_
 #define VITAL_MATCH_SET_H_
 
+#include <vital/vital_config.h>
 
 #include <vector>
 #include <memory>
@@ -52,7 +53,7 @@ class match_set
 {
 public:
   /// Destructor
-  virtual ~match_set() { }
+  virtual ~match_set() VITAL_DEFAULT_DTOR
 
   /// Return the number of matches in the set
   virtual size_t size() const = 0;

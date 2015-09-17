@@ -43,6 +43,7 @@
 #include <vector>
 #include <memory>
 
+#include <vital/vital_config.h>
 #include <vital/types/camera_intrinsics.h>
 #include <vital/types/covariance.h>
 #include <vital/types/rotation.h>
@@ -70,7 +71,7 @@ class camera
 {
 public:
   /// Destructor
-  virtual ~camera() { }
+  virtual ~camera() VITAL_DEFAULT_DTOR
 
   /// Create a clone of this camera object
   virtual camera_sptr clone() const = 0;

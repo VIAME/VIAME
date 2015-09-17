@@ -37,6 +37,7 @@
 #define VITAL_HOMOGRAPHY_H_
 
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 #include <vital/vital_types.h>
 
 #include <vital/types/matrix.h>
@@ -66,7 +67,7 @@ class VITAL_EXPORT homography
 {
 public:
   /// Destructor
-  virtual ~homography() { }
+  virtual ~homography() VITAL_DEFAULT_DTOR
 
   /// Create a clone of this homography object, returning as smart pointer
   /**
