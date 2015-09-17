@@ -91,7 +91,7 @@ bad_config_block_cast_exception
 {
   std::ostringstream sstr;
 
-  sstr << "Failed to cast \'" << m_key << "\' with value \'"
+  sstr << "Failed to cast key \'" << m_key << "\' with value \'"
        << m_value << "\' as a \'" << m_type << "\': " << m_reason << ".";
   m_what = sstr.str();
 }

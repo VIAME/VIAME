@@ -117,6 +117,14 @@ public:
    */
   time_t get_time() const { return m_time; }
 
+  /**
+   * \brief Get time in seconds.
+   *
+   * The time portion of the timestamp is returned in seconds and fractions.
+   *
+   * \return time in seconds.
+   */
+  double get_time_seconds() const;
 
   /**
    * \brief Get frame number from timestamp.
@@ -173,6 +181,11 @@ private:
 
   time_t m_time; ///< frame time in seconds
   frame_t  m_frame;
+
+  ///\todo Convert time to  int64 microseconds, add unique field to denote reference.
+  /// The concept is to prevent comparing timestamps that have a different reference
+  /// (e.g. from a different video stream or having a different start time offset).
+
 }; // end class timestamp
 
 inline std::ostream& operator<< ( std::ostream& str, timestamp const& obj )
