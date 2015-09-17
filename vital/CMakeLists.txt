@@ -273,6 +273,14 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/algorithm_plugin_manager_paths.h" )
 
+##
+# check compiler support
+include( kwiver-configcheck )
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital_config.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital_config.h" )
+
 ###
 #
 add_subdirectory( bindings )

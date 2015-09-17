@@ -51,13 +51,22 @@
 #define VITAL_UNUSED
 #endif
 
-#if __cplusplus < 201103L
-#define VITAL_NOTHROW throw ()
-#define VITAL_DEFAULT_DTOR {}
-#else
-#define VITAL_NOTHROW noexcept
-#define VITAL_DEFAULT_DTOR = default
+#cmakedefine01  VITAL_USE_CPP_AUTO
+#cmakedefine01  VITAL_USE_CPP_RANGE_FOR
+#cmakedefine01  VITAL_USE_CPP_DEFAULT_CTOR
+#cmakedefine01  VITAL_USE_CPP_NOEXCEPT
 
+
+#if VITAL_USE_CPP_NOEXCEPT
+  #define VITAL_NOTHROW noexcept
+#else
+  #define VITAL_NOTHROW throw()
+#endif
+
+#if VITAL_USE_CPP_DEFAULT_CTOR // also DTOR
+  #define VITAL_DEFAULT_DTOR {}
+#else
+  #define VITAL_DEFAULT_DTOR = default
 #endif
 
 #endif // VITAL_VITAL_CONFIG_H
