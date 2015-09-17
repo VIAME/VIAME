@@ -62,7 +62,7 @@ read_krtd_files( std::vector< path_t > const& img_files, path_t const& dir )
                              + ".krtd" );
   }
 
-  for ( frame_id_t fid = 0; fid < files_to_read.size(); fid++ )
+  for ( size_t fid = 0; fid < files_to_read.size(); fid++ )
   {
     try
     {
