@@ -54,9 +54,6 @@ namespace vital {
  *
  * \throws file_write_exception
  *    Thrown when something prevents output of the file.
- * \throws boost::filesystem::filesystem:error
- *    Thrown when an underlying boost::filesystem call fails for system
- *    reasons.
  *
  * \param landmarks The \c landmark_map object to output.
  * \param file_path The path to output the file to.
@@ -73,9 +70,6 @@ VITAL_EXPORT write_ply_file( landmark_map_sptr const& landmarks,
  *
  * \throws file_read_exception
  *    Thrown when something prevents input of the file.
- * \throws boost::filesystem::filesystem:error
- *    Thrown when an underlying boost::filesystem call fails for system
- *    reasons.
  *
  * \param file_path The path to output the file to.
  */

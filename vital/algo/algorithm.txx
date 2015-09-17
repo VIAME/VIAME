@@ -46,8 +46,6 @@
 #include <vital/exceptions/algorithm.h>
 #include <vital/registrar.h>
 
-#include <boost/algorithm/string/join.hpp>
-
 namespace kwiver {
 namespace vital {
 

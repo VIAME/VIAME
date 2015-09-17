@@ -53,9 +53,6 @@ namespace vital {
  *    Thrown when the file could not be found on the file system.
  * \throws file_not_read_exception
  *    Thrown when the file could not be read or parsed for whatever reason.
- * \throws boost::filesystem::filesystem_error
- *    Boost exception thrown if something goes wrong with the underlying file
- *    read.
  *
  * \param file_path   The path to the file to read in.
  * \return A \c camera_d object representing the contents of the read-in file.
@@ -72,9 +69,6 @@ VITAL_EXPORT read_krtd_file( path_t const& file_path );
  *
  * \throws file_write_exception
  *    Thrown when something prevents output of the file.
- * \throws boost::filesystem::filesystem:error
- *    Thrown when an underlying boost::filesystem call failes for system
- *    reasons.
  *
  * \param cam       The \c camera object to output.
  * \param file_path The path to output the file to.

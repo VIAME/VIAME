@@ -55,11 +55,8 @@ kwiver_add_library( vital_config
   )
 
 target_link_libraries( vital_config
-  PUBLIC             ${Boost_SYSTEM_LIBRARY}
-                     ${Boost_FILESYSTEM_LIBRARY}
-                     ${Boost_REGEX_LIBRARY}
-                     vital_logger
-  PRIVATE            kwiversys
+  PRIVATE              kwiversys
+                       vital_logger
   )
 
 ###

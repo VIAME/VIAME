@@ -30,7 +30,7 @@
 
 #include "token_type_sysenv.h"
 
-#include <boost/lexical_cast.hpp>
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
@@ -83,37 +83,47 @@ lookup_entry (std::string const& name, std::string& result)
   // ----------------------------------------------------------------
   else if ("numproc" == name)   // number of processors/cores
   {
+    std::stringstream sval;
     unsigned int numCPU = m_sysinfo.GetNumberOfLogicalCPU();
     // unsigned int numCPU = m_sysinfo.GetNumberOfPhysicalCPU();
-    result = boost::lexical_cast< std::string > ( numCPU );
+    sval << numCPU;
+    result = sval.str();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("totalvirtualmemory" == name)
   {
-    result = boost::lexical_cast< std::string > ( m_sysinfo.GetTotalVirtualMemory() );
+    std::stringstream sval;
+    sval <<  m_sysinfo.GetTotalVirtualMemory();
+    result = sval.str();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("availablevirtualmemory" == name)
   {
-    result = boost::lexical_cast< std::string > ( m_sysinfo.GetAvailableVirtualMemory() );
+    std::stringstream sval;
+    sval << m_sysinfo.GetAvailableVirtualMemory();
+    result = sval.str();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("totalphysicalmemory" == name)
   {
-    result = boost::lexical_cast< std::string > ( m_sysinfo.GetTotalPhysicalMemory() );
+    std::stringstream sval;
+    sval << m_sysinfo.GetTotalPhysicalMemory();
+    result = sval.str();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("availablephysicalmemory" == name)
   {
-    result = boost::lexical_cast< std::string > ( m_sysinfo.GetAvailablePhysicalMemory() );
+    std::stringstream sval;
+    sval << m_sysinfo.GetAvailablePhysicalMemory();
+    result = sval.str();
     return true;
   }
 

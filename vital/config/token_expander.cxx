@@ -65,10 +65,10 @@ bool
 token_expander::
 add_token_type (kwiver::vital::token_type * tt)
 {
-  std::string name( tt->token_type_name() );
-  result_t res = m_typeList.insert( name, tt );
+  const std::string name( tt->token_type_name() );
+  m_typeList[name] = std::shared_ptr< kwiver::vital::token_type > ( tt );
 
-  return res.second;
+  return true;
 }
 
 

@@ -88,7 +88,6 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
     // Not using token-compress in case there is purposeful use of multiple
     // adjacent spaces, like in bullited lists. This, however, leaves open
     // the appearance of empty-string words in the loop, which are handled.
-    //boost::algorithm::split(words, cur_block, boost::is_any_of(" "), boost::token_compress_on);
     tokenize( cur_block, words );
     while ( words.size() > 0 )
     {

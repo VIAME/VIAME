@@ -47,7 +47,6 @@
 #include <ostream>
 #include <memory>
 
-#include <boost/optional/optional.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <vital/noncopyable.h>
@@ -312,16 +311,19 @@ private:
 
   /// Private helper method to extract a value for a key
   /**
-   * \param key key to find the associated value to.
-   * \returns boost::none if the key doesn't exist or the key's value.
+   * \param[in] key key to find the associated value to.
+   * \param[out] val value associated with key
+   * \returns \b true if key is found and value returned, \b false if key not found.
    */
-  boost::optional< config_block_value_t > find_value( config_block_key_t const& key ) const;
+  bool find_value( config_block_key_t const& key,  config_block_value_t& val ) const;
+
   /// private value getter function
   /**
    * \param key key to get the associated value to.
    * \returns key's value or an empty config_block_value_t if the key is not found.
    */
   VITAL_CONFIG_NO_EXPORT config_block_value_t i_get_value( config_block_key_t const& key ) const;
+
   /// private key/value setter
   /**
    * \param key key to set a value to
@@ -448,20 +450,19 @@ T
 config_block
   ::get_value( config_block_key_t const& key ) const
 {
-  boost::optional< config_block_value_t > value = find_value( key );
-
-  if ( ! value )
+  config_block_value_t value;
+  if ( ! find_value(key, value ) )
   {
     throw no_such_configuration_value_exception( key );
   }
 
   try
   {
-    return config_block_cast< T, config_block_value_t > ( *value );
+    return config_block_cast< T, config_block_value_t > ( value );
   }
   catch ( bad_config_block_cast const& e )
   {
-    throw bad_config_block_cast_exception( key, *value, typeid( T ).name(), e.what() );
+    throw bad_config_block_cast_exception( key, value, typeid( T ).name(), e.what() );
   }
 }
 

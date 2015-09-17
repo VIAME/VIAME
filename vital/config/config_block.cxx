@@ -36,11 +36,6 @@
 
 #include "config_block.h"
 
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/bind.hpp>
-#include <boost/none.hpp>
-
 #include <algorithm>
 #include <iterator>
 #include <sstream>
@@ -80,6 +75,11 @@ trim( std::string& s )
 }
 
 
+bool starts_with( std::string const& str, std::string const& pfx )
+{
+  return ( str.substr( 0, pfx.size()) == pfx );
+}
+
 }
 
 
@@ -100,7 +100,7 @@ config_block_sptr
 config_block
 ::empty_config( config_block_key_t const& name )
 {
-  // remember, config_block_sptr is a boost shared pointer
+  // remember, config_block_sptr is a shared pointer
   // Create a new config block with no parent.
   return config_block_sptr( new config_block( name, config_block_sptr() ) );
 }
@@ -258,6 +258,7 @@ config_block_keys_t
 config_block
 ::available_values() const
 {
+  using namespace std::placeholders;  // for _1, _2, _3...
   config_block_keys_t keys;
 
   if ( m_parent )
@@ -265,12 +266,12 @@ config_block
     config_block_keys_t parent_keys = m_parent->available_values();
 
     config_block_keys_t::iterator const i = std::remove_if( parent_keys.begin(), parent_keys.end(),
-                                                            boost::bind( does_not_begin_with, _1, m_name ) );
+                                                            std::bind( does_not_begin_with, _1, m_name ) );
 
     parent_keys.erase( i, parent_keys.end() );
 
     std::transform( parent_keys.begin(), parent_keys.end(),
-                    std::back_inserter( keys ), boost::bind( strip_block_name, m_name, _1 ) );
+                    std::back_inserter( keys ), std::bind( strip_block_name, m_name, _1 ) );
   }
   else
   {
@@ -316,16 +317,17 @@ config_block
 
 // ------------------------------------------------------------------
 // private helper method to extract a value for a key
-boost::optional< config_block_value_t >
+bool
 config_block
-::find_value( config_block_key_t const& key ) const
+::find_value( config_block_key_t const& key, config_block_value_t& val ) const
 {
   if ( ! has_value( key ) )
   {
-    return boost::none;
+    return false;
   }
 
-  return i_get_value( key );
+  val = i_get_value( key );
+  return true;
 }
 
 
@@ -396,7 +398,8 @@ config_block_cast( config_block_value_t const& value )
   static config_block_value_t const yes_string = config_block_value_t( "yes" );
   static config_block_value_t const no_string = config_block_value_t( "no" );
 
-  config_block_value_t const value_lower = boost::to_lower_copy( value );
+  config_block_value_t value_lower = value;
+  std::transform( value_lower.begin(), value_lower.end(), value_lower.begin(), ::tolower );
 
   if ( ( value_lower == true_string ) || ( value_lower == yes_string ) )
   {
@@ -425,8 +428,8 @@ does_not_begin_with( config_block_key_t const& key, config_block_key_t const& na
 {
   static config_block_key_t const global_start = config_block::global_value + config_block::block_sep;
 
-  return ! boost::starts_with( key, name + config_block::block_sep ) &&
-         ! boost::starts_with( key, global_start );
+  return ! starts_with( key, name + config_block::block_sep ) &&
+         ! starts_with( key, global_start );
 }
 
 
@@ -444,7 +447,7 @@ does_not_begin_with( config_block_key_t const& key, config_block_key_t const& na
 config_block_key_t
 strip_block_name( config_block_key_t const& subblock, config_block_key_t const& key )
 {
-  if ( ! boost::starts_with( key, subblock + config_block::block_sep ) )
+  if ( ! starts_with( key, subblock + config_block::block_sep ) )
   {
     return key;
   }

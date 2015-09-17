@@ -32,10 +32,9 @@
 #include <vital/algo/algorithm.h>
 #include <vital/registrar.h>
 #include <vital/config/config_block.h>
+#include <vital/util/tokenize.h>
 
 #include <boost/program_options.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 #include <iostream>
 
@@ -69,11 +68,11 @@ void print_config( kwiver::vital::config_block_sptr config )
 // ------------------------------------------------------------------
 void detailed_algo()
 {
-  std::vector< std::string > reg_names =  kwiver::vital::algorithm::registered_names();
+  const std::vector< std::string > reg_names =  kwiver::vital::algorithm::registered_names();
   for ( std::string const& name : reg_names )
   {
     std::vector< std::string > token;
-    boost::split( token, name, boost::is_any_of( ":" ) );
+    kwiver::vital::tokenize( name, token, ":" );
 
     // create instance type_name : impl_name
     kwiver::vital::algorithm_sptr ptr = kwiver::vital::algorithm::create( token[0], token[1] );
