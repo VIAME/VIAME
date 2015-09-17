@@ -35,6 +35,9 @@
 
 #include "algorithm.h"
 
+#include <vital/logger/logger.h>
+#include <sstream>
+
 namespace kwiver {
 namespace vital {
 
@@ -190,36 +193,38 @@ algorithm
                                    std::string const& name,
                                    config_block_sptr  config )
 {
+  static  kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "algorithm" );
   const std::string type_key = name + config_block::block_sep + "type";
 
   if ( ! config->has_value( type_key ) )
   {
-    std::cerr << "Configuration Failure: missing value "
-              << type_key << std::endl;
+    LOG_WARN( logger, "Configuration Failure: missing value: " << type_key );
     return false;
   }
 
-  std::string iname = config->get_value< std::string > ( type_key );
+  const std::string iname = config->get_value< std::string > ( type_key );
   if ( ! algorithm::has_impl_name( type_name, iname ) )
   {
-    std::cerr << "Configuration Failure: invalid option\n"
-              << "   " << type_key << " = " << iname << "\n"
-              << "   valid options are";
+    std::stringstream msg;
+    msg << "Configuration Failure: invalid option\n"
+        << "   " << type_key << " = " << iname << "\n"
+        << "   valid options are";
     for ( std::string reg_name : algorithm::registered_names( type_name ) )
     {
-      std::cerr << "\n      " << reg_name;
+      msg << "\n      " << reg_name;
     }
-    std::cerr << std::endl;
+
+    LOG_WARN( logger, msg.str() );
     return false;
   }
 
   // retursively check the configuration of the sub-algorithm
-  std::string qualified_name = type_name + ":" + iname;
+  const std::string qualified_name = type_name + ":" + iname;
   if ( ! registrar::instance().find< algorithm > ( qualified_name )->check_configuration(
          config->subblock_view( name + config_block::block_sep + iname ) ) )
   {
-    std::cerr << "Configuration Failure Backtrace: "
-              << name + config_block::block_sep + iname << std::endl;
+    LOG_WARN( logger,  "Configuration Failure Backtrace: "
+              << name + config_block::block_sep + iname );
     return false;
   }
   return true;
