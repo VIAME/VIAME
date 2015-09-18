@@ -37,6 +37,10 @@
 #define KWIVER_CONFIG_BLOCK_H_
 
 #include <vital/config/vital_config_export.h>
+#include <vital/noncopyable.h>
+
+#include "config_block_types.h"
+#include "config_block_exception.h"
 
 #include <cstddef>
 #include <map>
@@ -46,14 +50,8 @@
 #include <vector>
 #include <ostream>
 #include <memory>
-
-#include <boost/lexical_cast.hpp>
-
-#include <vital/noncopyable.h>
-
-#include "config_block_types.h"
-#include "config_block_exception.h"
-
+#include <exception>
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
@@ -363,27 +361,41 @@ private:
 /// Default cast handling of configuration values.
 /**
  * The specified value is converted into a form suitable for this
- * config block, i.e.a string. boost::lexical_cast does the work of
- * converting the value. If the type is something other than a simple
- * type, then an input and output operator must be available for that
- * type.
+ * config block. If the type is something other than a simple type,
+ * then an input and output operator must be available for that type.
+ *
+ * Relying on input and output operators can be unfortunate if they
+ * have already been implemented with a more wordy format.
  *
  * \note Do not use this in user code. Use \ref config_block_cast instead.
+ *
  * \param value The value to convert.
  * \tparam R Type returned.
- * \tparam T Parameter type.
  * \returns The value of \p value in the requested type.
  */
-template < typename R, typename T >
+template < typename R >
 inline
 R
-config_block_cast_default( T const& value )
+config_block_cast_default( config_block_value_t const& value )
 {
+  // replace boost::lexical_cast
+  // Currently a problem dealing with values with embedded white space
+  // e.g. "one two" will only have the first work converted.
   try
   {
-    return boost::lexical_cast< R > ( value );
+    std::stringstream interpreter;
+    interpreter << value; // string value
+
+    R result;
+    interpreter >> result;
+    if( interpreter.fail() )
+    {
+      throw bad_config_block_cast( "failed to convert from string representation \"" + value + "\"" );
+    }
+
+    return result;
   }
-  catch ( boost::bad_lexical_cast const& e )
+  catch( std::exception& e )
   {
     throw bad_config_block_cast( e.what() );
   }
@@ -393,18 +405,22 @@ config_block_cast_default( T const& value )
 // ------------------------------------------------------------------
 /// Cast a configuration value to the requested type.
 /**
+ *
+ * This method converts the supplied value from the passed type to the
+ * desired type. Typically either the source or destination type is a
+ * std::string.
+ *
  * \throws bad_configuration_cast Thrown when the conversion fails.
  * \param value The value to convert.
  * \tparam R Type returned.
- * \tparam T Parameter type.
  * \returns The value of \p value in the requested type.
  */
-template < typename R, typename T >
+template < typename R >
 inline
 R
-config_block_cast( T const& value )
+config_block_cast( config_block_value_t const& value )
 {
-  return config_block_cast_default< R, T > ( value );
+  return config_block_cast_default< R > ( value );
 }
 
 
@@ -424,23 +440,11 @@ VITAL_CONFIG_EXPORT
 bool config_block_cast( config_block_value_t const& value );
 
 
-// ------------------------------------------------------------------
-/// Type-specific casting handling, bool->cb_value_t specialization
-/**
- * This is the \c config_block_value_t to \c bool specialization that outputs
- * \c true and \c false literals instead of 1 or 0.
- *
- * \note Do not use this in user code. Use \ref config_block_cast instead.
- * \param value The value to convert.
- * \returns The value of \p value as either "true" or "false".
- */
 template < >
-inline
-config_block_value_t
-config_block_cast( bool const& value )
-{
-  return value ? "true" : "false";
-}
+VITAL_CONFIG_EXPORT
+std::string
+config_block
+::get_value( config_block_key_t const& key ) const;
 
 
 // ------------------------------------------------------------------
@@ -448,7 +452,7 @@ config_block_cast( bool const& value )
 template < typename T >
 T
 config_block
-  ::get_value( config_block_key_t const& key ) const
+::get_value( config_block_key_t const& key ) const
 {
   config_block_value_t value;
   if ( ! find_value(key, value ) )
@@ -458,10 +462,12 @@ config_block
 
   try
   {
-    return config_block_cast< T, config_block_value_t > ( value );
+    // Convert config block value to requested type
+    return config_block_cast< T > ( value );
   }
   catch ( bad_config_block_cast const& e )
   {
+    // Upgrade exception by adding more known details.
     throw bad_config_block_cast_exception( key, value, typeid( T ).name(), e.what() );
   }
 }
@@ -472,7 +478,7 @@ config_block
 template < typename T >
 T
 config_block
-  ::get_value( config_block_key_t const& key, T const& def ) const VITAL_NOTHROW
+::get_value( config_block_key_t const& key, T const& def ) const VITAL_NOTHROW
 {
   try
   {
@@ -490,12 +496,44 @@ config_block
 template < typename T >
 void
 config_block
-  ::set_value( config_block_key_t const&          key,
-               T const&                           value,
-               config_block_description_t const&  descr )
+::set_value( config_block_key_t const&          key,
+             T const&                           value,
+             config_block_description_t const&  descr )
 {
-  this->i_set_value( key, config_block_cast< config_block_value_t, T > ( value ), descr );
+  // Need to convert value (type T) to string
+  std::stringstream val_str;
+
+  // It is unfortunate that we have to rely on the output operator to
+  // do the conversion It would be better to have a convert function
+
+  // This used to rely on boost (before being banned) so it would get
+  // some level of QC and exception if error detected (even if the
+  // messages were not very helpful).
+
+  val_str << value;
+  this->i_set_value( key,  val_str.str(), descr ); // we know that the value is a string
 }
+
+// ------------------------------------------------------------------
+/// Type-specific handling, bool->cb_value_t specialization
+/**
+ * This is the \c config_block_value_t to \c bool specialization that outputs
+ * \c true and \c false literals instead of 1 or 0.
+ *
+ * \param value The value to convert.
+ * \returns The value of \p value as either "true" or "false".
+ */
+template < >
+inline
+void
+config_block
+::set_value( config_block_key_t const&          key,
+             bool const&                        value,
+             config_block_description_t const&  descr )
+{
+  this->i_set_value( key, (value ? "true" : "false"), descr );
+}
+
 
 
 }

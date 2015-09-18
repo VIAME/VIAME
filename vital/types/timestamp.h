@@ -196,7 +196,7 @@ inline std::ostream& operator<< ( std::ostream& str, timestamp const& obj )
  * \brief Input operator
  *
  * Convert object from string representation to native form.  This is
- * primarily used for object specific behaviour for boost:lexical_cast
+ * primarily used for object specific behaviour for the configuration.
  * when supplying default values for static ports.
  *
  * The expected format for the string representation of a timestamp

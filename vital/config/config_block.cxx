@@ -390,6 +390,7 @@ config_block
 
 // ------------------------------------------------------------------
 // Type-specific casting handling, bool specialization
+// cast value to bool
 template < >
 bool
 config_block_cast( config_block_value_t const& value )
@@ -398,20 +399,52 @@ config_block_cast( config_block_value_t const& value )
   static config_block_value_t const false_string = config_block_value_t( "false" );
   static config_block_value_t const yes_string = config_block_value_t( "yes" );
   static config_block_value_t const no_string = config_block_value_t( "no" );
+  static config_block_value_t const one_string = config_block_value_t( "1" );
+  static config_block_value_t const zero_string = config_block_value_t( "0" );
+
+  // Could also support "on" "off",
+  // "oui" "non",
+  // "ja" "nein",
+  // "si" "no",
+  // "sim" "não",
+  // "da" "net" (Да нет)
 
   config_block_value_t value_lower = value;
   std::transform( value_lower.begin(), value_lower.end(), value_lower.begin(), ::tolower );
 
-  if ( ( value_lower == true_string ) || ( value_lower == yes_string ) )
+  if ( ( value_lower == true_string )
+       || ( value_lower == yes_string )
+       || ( value_lower == one_string ) )
   {
     return true;
   }
-  else if ( ( value_lower == false_string ) || ( value_lower == no_string ) )
+  else if ( ( value_lower == false_string )
+            || ( value_lower == no_string )
+            || ( value_lower == zero_string ) )
   {
     return false;
   }
 
-  return config_block_cast_default< bool, config_block_value_t > ( value );
+  throw bad_config_block_cast( "failed to convert from string representation \""
+                                + value + "\" to boolean" );
+}
+
+
+// ------------------------------------------------------------------
+//   Type specific get_value for string
+template < >
+std::string
+config_block
+::get_value( config_block_key_t const& key ) const
+{
+  config_block_value_t value;
+  if ( ! find_value(key, value ) )
+  {
+    throw no_such_configuration_value_exception( key );
+  }
+
+  // We know config_block_value_t is a string
+  return value;
 }
 
 

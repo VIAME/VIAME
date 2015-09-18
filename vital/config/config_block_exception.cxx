@@ -192,7 +192,7 @@ config_block_io_exception
 
 // ------------------------------------------------------------------
 bad_configuration_cast
-::bad_configuration_cast(char const* reason) VITAL_NOTHROW
+::bad_configuration_cast(std::string const& reason) VITAL_NOTHROW
   : config_block_exception()
 {
   m_what = reason;

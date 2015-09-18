@@ -223,7 +223,7 @@ class VITAL_CONFIG_EXPORT bad_configuration_cast
      *
      * \param reason The reason for the bad cast.
      */
-    bad_configuration_cast(char const* reason) VITAL_NOTHROW;
+  bad_configuration_cast(std::string const& reason) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
@@ -304,7 +304,7 @@ public:
    * \param reason    The reason the file wasn't found.
    */
   config_file_not_found_exception( config_path_t const&  file_path,
-                            std::string const&    reason ) VITAL_NOTHROW;
+                                   std::string const&    reason ) VITAL_NOTHROW;
   /// Deconstructor
   virtual ~config_file_not_found_exception() VITAL_NOTHROW;
 };
@@ -322,7 +322,7 @@ public:
    * \param reason    The reason for the read exception.
    */
   config_file_not_read_exception( config_path_t const& file_path,
-                           std::string const&   reason ) VITAL_NOTHROW;
+                                  std::string const&   reason ) VITAL_NOTHROW;
   /// Deconstructor
   virtual ~config_file_not_read_exception() VITAL_NOTHROW;
 };
@@ -340,7 +340,7 @@ public:
    * \param reason    The reason for the parsing exception.
    */
   config_file_not_parsed_exception( config_path_t const& file_path,
-                             std::string const&   reason ) VITAL_NOTHROW;
+                                    std::string const&   reason ) VITAL_NOTHROW;
   /// Deconstructor
   virtual ~config_file_not_parsed_exception() VITAL_NOTHROW;
 };
@@ -358,7 +358,7 @@ public:
    * \param reason    The reason for the write exception
    */
   config_file_write_exception( config_path_t const&  file_path,
-                        std::string const&    reason ) VITAL_NOTHROW;
+                               std::string const&    reason ) VITAL_NOTHROW;
   /// Deconstructor
   virtual ~config_file_write_exception() VITAL_NOTHROW;
 };
