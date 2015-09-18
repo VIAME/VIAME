@@ -44,6 +44,7 @@
 #include <vector>
 #include <fstream>
 #include <cctype>
+#include <algorithm>
 
 namespace kwiver {
 namespace vital {

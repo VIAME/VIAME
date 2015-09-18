@@ -37,7 +37,9 @@
 
 #include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
+
 #include <sstream>
+#include <algorithm>
 
 namespace kwiver {
 namespace vital {
