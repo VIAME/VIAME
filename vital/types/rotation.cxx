@@ -37,9 +37,17 @@
 #include "rotation.h"
 #include <vital/io/eigen_io.h>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+#if defined M_PIl
+#define LOCAL_PI M_PIl
+#else
+#define LOCAL_PI M_PI
+#endif
+
 #include <cmath>
 #include <limits>
-#include <boost/math/constants/constants.hpp>
 
 namespace kwiver {
 namespace vital {
@@ -79,11 +87,12 @@ rotation_< T >
 {
   using std::cos;
   using std::sin;
+  static const double root_two = std::sqrt( static_cast<double>(2.0) );
+  static const T inv_root_two = static_cast< T > ( 1.0 / root_two );
+
   // compute the rotation from North-East-Down (NED) coordinates to
   // East-North-Up coordinates (ENU). It is a 180 degree rotation about
   // the axis [1/sqrt(2), 1/sqrt(2), 0]
-  const double root_two = boost::math::constants::root_two< double > ();
-  const T inv_root_two = static_cast< T > ( 1.0 / root_two );
   const rotation_< T > Rned2enu( Eigen::Quaternion< T > ( 0, inv_root_two, inv_root_two, 0 ) );
   const double half_x = 0.5 * static_cast< double > ( -roll );
   const double half_y = 0.5 * static_cast< double > ( -pitch );
@@ -140,11 +149,12 @@ T
 rotation_< T >
 ::angle() const
 {
+  static const T pi( LOCAL_PI );
+  static const T two_pi = static_cast< T > ( 2 ) * LOCAL_PI;
+
   const double i = Eigen::Matrix< T, 3, 1 > ( q_.x(), q_.y(), q_.z() ).norm();
   const double r = q_.w();
   T a = static_cast< T > ( 2.0 * std::atan2( i, r ) );
-  const T pi = boost::math::constants::pi< T > ();
-  const T two_pi = static_cast< T > ( 2 ) * boost::math::constants::pi< T > ();
 
   // make sure computed angle lies within a sensible range,
   // i.e. -pi/2 < a < pi/2
