@@ -43,7 +43,7 @@ namespace po = boost::program_options;
 
 // Global options
 bool opt_config(false);
-
+bool opt_detail(false);
 
 
 // ------------------------------------------------------------------
@@ -82,11 +82,11 @@ void detailed_algo()
               << "\nDetailed info on type \"" << token[0] << "\" implementation \"" << token[1] << "\""
               << std::endl;
 
-    // Get configuration
-    kwiver::vital::config_block_sptr config = ptr->get_configuration();
-
-    if ( opt_config )
+//     if ( opt_config )
     {
+      // Get configuration
+      kwiver::vital::config_block_sptr config = ptr->get_configuration();
+
       // print config -- (optional)
       print_config( config );
     }
@@ -103,6 +103,7 @@ int main(int argc, char *argv[])
     ("help", "produce help message")
     ("plugin-name", po::value< std::string >(), "load only these plugins")
     ("path,I", po::value< std::vector< std::string> >(), "add directory to search")
+    ("detail,d", "Displag algorithm details")
     ("config", "Display algorithm configuration block")
     ;
 
@@ -122,6 +123,11 @@ int main(int argc, char *argv[])
   if (vm.count("config"))
   {
     opt_config = true;
+  }
+
+  if (vm.count("detail"))
+  {
+    opt_detail = true;
   }
 
   kwiver::vital::algorithm_plugin_manager& apm = kwiver::vital::algorithm_plugin_manager::instance();
@@ -167,7 +173,10 @@ int main(int argc, char *argv[])
   }
 
   // currently this is the same as --config option
-  detailed_algo();
+  if (opt_detail)
+  {
+    detailed_algo();
+  }
 
   // Need a way to introspect these modules
 
