@@ -32,11 +32,12 @@ endif()
 
 # ==================================================================
 ###
+# These headers are installed
 #
 set( vital_public_headers
   registrar.h
-  vital_config.h
   vital_types.h
+  vital_foreach.h
   noncopyable.h
 
   algo/algorithm.txx
@@ -163,6 +164,7 @@ kwiver_install_headers(
 # install export header
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
   SUBDIR   vital
   NOPATH
   )
@@ -171,6 +173,7 @@ kwiver_add_library( vital
   ${vital_public_headers}
   ${vital_sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
   )
 
 target_link_libraries( vital
