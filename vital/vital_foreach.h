@@ -33,7 +33,7 @@
 
 #include <vital/vital_config.h>
 
-#if 0 //+ defined VITAL_USE_CPP_RANGE_FOR
+#if defined VITAL_USE_CPP_RANGE_FOR
 
 #define VITAL_FOREACH(decl, container)    for( decl : container )
 
