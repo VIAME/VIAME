@@ -35,6 +35,7 @@
 
 #include "algorithm.h"
 
+#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <sstream>
 
@@ -80,7 +81,7 @@ algorithm
 
   std::vector< std::string > type_reg_names;
   const std::string prefix = type_name + ":";
-  for ( std::string qual_name :
+  VITAL_FOREACH( std::string qual_name,
         registrar::instance().registered_names< algorithm > () )
   {
     // if prefix is a prefix of qual_name, add it to the vector
@@ -132,7 +133,7 @@ algorithm
   ;
   std::string tmp_d;
 
-  for ( std::string reg_name : algorithm::registered_names( type_name ) )
+  VITAL_FOREACH( std::string reg_name, algorithm::registered_names( type_name ) )
   {
     type_comment += "\n\t- " + reg_name;
     std::string qualified_name = type_name + ":" + reg_name;
@@ -209,7 +210,7 @@ algorithm
     msg << "Configuration Failure: invalid option\n"
         << "   " << type_key << " = " << iname << "\n"
         << "   valid options are";
-    for ( std::string reg_name : algorithm::registered_names( type_name ) )
+    VITAL_FOREACH( std::string reg_name, algorithm::registered_names( type_name ) )
     {
       msg << "\n      " << reg_name;
     }

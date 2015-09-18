@@ -36,6 +36,7 @@
 
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/estimate_similarity_transform.h>
+#include <vital/vital_foreach.h>
 
 
 /// \cond DoxygenSuppress
@@ -55,12 +56,12 @@ estimate_similarity_transform
                      std::vector<camera_sptr> const& to) const
 {
   std::vector<vector_3d> from_pts, to_pts;
-  for (camera_sptr c : from)
+  VITAL_FOREACH( camera_sptr c, from)
   {
     from_pts.push_back(c->center());
   }
 
-  for (camera_sptr c : to)
+  VITAL_FOREACH(camera_sptr c, to)
   {
     to_pts.push_back(c->center());
   }
@@ -76,12 +77,12 @@ estimate_similarity_transform
                      std::vector<landmark_sptr> const& to) const
 {
   std::vector<vector_3d> from_pts, to_pts;
-  for (landmark_sptr l : from)
+  VITAL_FOREACH(landmark_sptr l, from)
   {
     from_pts.push_back(l->loc());
   }
 
-  for (landmark_sptr l : to)
+  VITAL_FOREACH( landmark_sptr l, to)
   {
     to_pts.push_back(l->loc());
   }

@@ -36,6 +36,8 @@
 
 #include "config_block.h"
 
+#include <vital/vital_foreach.h>
+
 #include <algorithm>
 #include <iterator>
 #include <sstream>
@@ -128,10 +130,9 @@ config_block_sptr
 config_block
 ::subblock( config_block_key_t const& key ) const
 {
-  //+ config_block_sptr conf = empty_config(key); //+
   config_block_sptr conf( new config_block( key, config_block_sptr() ) );
 
-  for ( config_block_key_t const& key_name : available_values() )
+  VITAL_FOREACH( config_block_key_t const& key_name, available_values() )
   {
     if ( does_not_begin_with( key_name, key ) )
     {
@@ -242,7 +243,7 @@ config_block
 {
   config_block_keys_t const keys = conf->available_values();
 
-  for ( config_block_key_t const & key : keys )
+  VITAL_FOREACH( config_block_key_t const & key, keys )
   {
     config_block_value_t const& val = conf->get_value< config_block_value_t > ( key );
     config_block_description_t const& descr = conf->get_description( key );
@@ -275,7 +276,7 @@ config_block
   }
   else
   {
-    for ( store_t::value_type const& value : m_store )
+    VITAL_FOREACH( store_t::value_type const& value, m_store )
     {
       config_block_key_t const& key = value.first;
 
@@ -464,7 +465,7 @@ config_block::
 {
   kwiver::vital::config_block_keys_t all_keys = this->available_values();
 
-  for ( kwiver::vital::config_block_key_t key : all_keys )
+  VITAL_FOREACH( kwiver::vital::config_block_key_t key, all_keys )
   {
     std::string ro;
 

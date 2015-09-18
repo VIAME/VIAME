@@ -42,6 +42,7 @@
 #include <sstream>
 
 #include <vital/exceptions.h>
+#include <vital/vital_foreach.h>
 #include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
@@ -95,7 +96,7 @@ write_ply_file( landmark_map_sptr const&  landmarks,
 
   landmark_map::map_landmark_t lm_map = landmarks->landmarks();
   typedef  landmark_map::map_landmark_t::value_type lm_map_val_t;
-  for ( lm_map_val_t const& p : lm_map )
+  VITAL_FOREACH( lm_map_val_t const& p, lm_map )
   {
     vector_3d loc = p.second->loc();
 

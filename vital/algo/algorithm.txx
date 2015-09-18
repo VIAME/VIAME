@@ -113,7 +113,7 @@ algorithm_def< Self >
 {
   kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config();
 
-  for ( auto const& impl_name : algorithm_def< Self >::registered_names() )
+  VITAL_FOREACH( auto const& impl_name, algorithm_def< Self >::registered_names() )
   {
     // create a clone of the impl in order to get access to its configuration,
     // merging it with the main config_block under a subblock that is the name

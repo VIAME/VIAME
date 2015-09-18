@@ -42,8 +42,10 @@
 #include <string>
 #include <vector>
 
-#include <vital/logger/logger.h>
+#include <vital/vital_config.h>
 #include <vital/vital_export.h>
+#include <vital/vital_foreach.h>
+#include <vital/logger/logger.h>
 #include <vital/noncopyable.h>
 
 namespace kwiver {
@@ -127,8 +129,8 @@ public:
   std::vector< std::string > registered_names()
   {
     std::vector< std::string > names;
-
-    for ( typename reg_type< T >::pair i : this->get_item_map< T > () )
+    typedef typename reg_type< T >::pair pair_t;
+    VITAL_FOREACH( pair_t i, this->get_item_map< T >() )
     {
       names.push_back( i.first );
     }

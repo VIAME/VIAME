@@ -45,6 +45,7 @@
 
 #include <kwiversys/SystemTools.hxx>
 #include <vital/util/tokenize.h>
+#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {
@@ -203,7 +204,7 @@ void write_config( config_block_sptr const& config,
 
 
   bool prev_had_descr = false;  // for additional spacing
-  for ( config_block_key_t key : avail_keys )
+  VITAL_FOREACH( config_block_key_t key, avail_keys )
   {
     // Each key may or may not have an associated description string. If there
     // is one, write that out as a comment.

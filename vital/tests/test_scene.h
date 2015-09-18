@@ -41,6 +41,7 @@
 
 #include <test_random_point.h>
 
+#include <vital/vital_foreach.h>
 #include <vital/camera_map.h>
 #include <vital/landmark_map.h>
 #include <vital/track_set.h>
@@ -96,7 +97,7 @@ noisy_landmarks( kwiver::vital::landmark_map_sptr  landmarks,
   using namespace kwiver::vital;
 
   landmark_map::map_landmark_t lm_map = landmarks->landmarks();
-  for ( landmark_map::map_landmark_t::value_type& p : lm_map )
+  VITAL_FOREACH( landmark_map::map_landmark_t::value_type& p, lm_map )
   {
     landmark_d& lm = dynamic_cast< landmark_d& > ( *p.second );
 
@@ -160,7 +161,7 @@ noisy_cameras( kwiver::vital::camera_map_sptr cameras,
   using namespace kwiver::vital;
 
   camera_map::map_camera_t cam_map;
-  for ( camera_map::map_camera_t::value_type const& p : cameras->cameras() )
+  VITAL_FOREACH( camera_map::map_camera_t::value_type const& p, cameras->cameras() )
   {
     camera_sptr c = p.second->clone();
 
@@ -186,7 +187,7 @@ subset_tracks( kwiver::vital::track_set_sptr in_tracks, double keep_frac = 0.75 
   std::vector< track_sptr > tracks = in_tracks->tracks();
   std::vector< track_sptr > new_tracks;
   const int rand_thresh = static_cast< int > ( keep_frac * RAND_MAX );
-  for ( const track_sptr &t : tracks )
+  VITAL_FOREACH( const track_sptr &t, tracks )
   {
     track_sptr nt( new track );
 
@@ -219,7 +220,7 @@ noisy_tracks( kwiver::vital::track_set_sptr in_tracks, double stdev = 1.0 )
 
   std::vector< track_sptr > tracks = in_tracks->tracks();
   std::vector< track_sptr > new_tracks;
-  for ( const track_sptr &t : tracks )
+  VITAL_FOREACH( const track_sptr &t, tracks )
   {
     track_sptr nt( new track );
 

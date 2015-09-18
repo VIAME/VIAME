@@ -33,6 +33,7 @@
 #include <vital/registrar.h>
 #include <vital/config/config_block.h>
 #include <vital/util/tokenize.h>
+#include <vital/vital_foreach.h>
 
 #include <boost/program_options.hpp>
 
@@ -53,7 +54,7 @@ void print_config( kwiver::vital::config_block_sptr config )
 
   std::cout << indent<< "Configuration block contents\n";
 
-  for ( kwiver::vital::config_block_key_t key : all_keys )
+  VITAL_FOREACH( kwiver::vital::config_block_key_t key, all_keys )
   {
     kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t >( key );
     std::cout << std::endl
@@ -69,7 +70,7 @@ void print_config( kwiver::vital::config_block_sptr config )
 void detailed_algo()
 {
   const std::vector< std::string > reg_names =  kwiver::vital::algorithm::registered_names();
-  for ( std::string const& name : reg_names )
+  VITAL_FOREACH( std::string const& name, reg_names )
   {
     std::vector< std::string > token;
     kwiver::vital::tokenize( name, token, ":" );
@@ -130,7 +131,7 @@ int main(int argc, char *argv[])
   //
   if (vm.count( "path" ) )
   {
-    for ( std::string const& p : vm["path"].as<std::vector< std::string > >() )
+    VITAL_FOREACH( std::string const& p, vm["path"].as<std::vector< std::string > >() )
     {
       apm.add_search_path( p );
     }
@@ -154,13 +155,13 @@ int main(int argc, char *argv[])
 
   std::cout << "---- Registered module names:\n";
   std::vector< std::string >module_list = apm.registered_module_names();
-  for ( std::string const& name : module_list)
+  VITAL_FOREACH( std::string const& name, module_list)
   {
     std::cout << "   " << name << std::endl;
   }
 
   std::cout << "\n---- registered algorithms (type_name:impl_name)\n";
-  for ( std::string const& name : kwiver::vital::algorithm::registered_names())
+  VITAL_FOREACH( std::string const& name, kwiver::vital::algorithm::registered_names())
   {
     std::cout << "   " << name << std::endl;
   }
@@ -175,7 +176,7 @@ int main(int argc, char *argv[])
 
   std::vector< std::string > reg_list = reg.registered_names< XXX >();
   std::cout << "\n\n---- Resigtered algorithm names\n";
-  for ( std::string const& name : reg_list)
+  VITAL_FOREACH( std::string const& name, reg_list)
   {
     std::cout << "    " << name << std::endl;
   }

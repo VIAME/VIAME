@@ -41,6 +41,7 @@
 #include <vital/vital_apm_export.h>
 #include <vital/registrar.h>
 #include <vital/logger/logger.h>
+#include <vital/vital_foreach.h>
 
 #include <kwiversys/DynamicLoader.hxx>
 #include <kwiversys/SystemTools.hxx>
@@ -136,7 +137,7 @@ public:
     //       for additional search path extension
     //       - Search order: setInCode -> EnvVar -> configFile -> defaults
 
-    for ( path_t module_dir : this->m_search_paths )
+    VITAL_FOREACH( path_t module_dir, this->m_search_paths )
     {
       load_modules_in_directory( module_dir, name );
     }
@@ -279,7 +280,7 @@ public:
   {
     std::vector< std::string > r_vec;
 
-    for ( registered_modules_t::value_type p : registered_modules_ )
+    VITAL_FOREACH( registered_modules_t::value_type p, registered_modules_ )
     {
       r_vec.push_back( p.first );
     }
@@ -400,7 +401,7 @@ algorithm_plugin_manager
 ::get_search_path() const
 {
   std::string path_string;
-  for ( std::string module_dir : this->m_impl->m_search_paths )
+  VITAL_FOREACH( std::string module_dir, this->m_impl->m_search_paths )
   {
     path_string += module_dir + ":";
   }

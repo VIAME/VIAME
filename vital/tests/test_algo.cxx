@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 }
 
 #define print_config(config) \
-  for ( auto const& key : config->available_values() )  \
+  VITAL_FOREACH( auto const& key, config->available_values() )  \
   { \
     cerr << "\t" \
          << key << " = " << config->get_value<kwiver::vital::config_block_key_t>(key) \
@@ -75,14 +75,14 @@ IMPLEMENT_TEST(registered_names)
   kwiver::vital::algorithm_plugin_manager::instance().register_plugins();
 
   cout << "registered algorithms (type_name:impl_name)\n";
-  for ( auto const& name :  kwiver::vital::algorithm::registered_names() )
+  VITAL_FOREACH( auto const& name,  kwiver::vital::algorithm::registered_names() )
   {
     cout << "  " << name << endl;
   }
 
   vector<string> mf_names = kwiver::vital::algorithm::registered_names("match_features");
   cout << "registered \"match_features\" implementations\n";
-  for (auto const& name : mf_names)
+  VITAL_FOREACH( auto const& name, mf_names)
   {
     cout << "  " << name << endl;
   }

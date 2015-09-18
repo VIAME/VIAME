@@ -28,45 +28,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief estimate_homography algorithm definition instantiation + implementation
- */
+#ifndef VITAL_FOREACH_H
+#define VITAL_FOREACH_H
 
-#include <vital/algo/estimate_homography.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/vital_foreach.h>
+#include <vital/vital_config.h>
 
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::estimate_homography);
-/// \endcond
+#if 0 //+ defined VITAL_USE_CPP_RANGE_FOR
 
+#define VITAL_FOREACH(decl, container)    for( decl : container )
 
-namespace kwiver {
-namespace vital {
-namespace algo {
+#elif defined VITAL_USE_BOOST_FOREACH
 
+#include <boost/foreach.hpp>
+#define VITAL_FOREACH(decl, container)    BOOST_FOREACH(decl, container)
 
-/// Estimate a homography matrix from corresponding features
-homography_sptr
-estimate_homography
-::estimate(feature_set_sptr feat1,
-           feature_set_sptr feat2,
-           match_set_sptr matches,
-           std::vector<bool>& inliers,
-           double inlier_scale) const
-{
-  std::vector<feature_sptr> vf1 = feat1->features();
-  std::vector<feature_sptr> vf2 = feat2->features();
-  std::vector<match> mset = matches->matches();
-  std::vector<vector_2d> vv1, vv2;
+#else
 
-  VITAL_FOREACH( match m, mset)
-  {
-    vv1.push_back(vf1[m.first]->loc());
-    vv2.push_back(vf2[m.second]->loc());
-  }
-  return this->estimate(vv1, vv2, inliers, inlier_scale);
-}
+#define VITAL_FOREACH(decl, container)                                  \
+  for (auto _oguard = 1; _oguard;)                                      \
+    for (auto&& _container = (container); _oguard; _oguard = 0)         \
+      for (auto _iter = _container.begin(), _end = _container.end(),    \
+             _iguard = _container.begin(); _iguard != _end; ++_iguard)  \
+        for (decl = *_iter; _iter == _iguard; ++_iter)
 
-} } } // end namespace
+#endif
+
+#endif /* VITAL_FOREACH_H */

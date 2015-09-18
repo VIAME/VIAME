@@ -35,6 +35,7 @@
 
 #include "track.h"
 
+#include <vital/vital_foreach.h>
 
 namespace {
 
@@ -163,7 +164,7 @@ track
 {
   std::set< frame_id_t > ids;
 
-  for ( track_state const& ts : this->history_ )
+  VITAL_FOREACH( track_state const& ts, this->history_ )
   {
     ids.insert( ts.frame_id );
   }
