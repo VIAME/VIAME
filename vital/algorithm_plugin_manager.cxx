@@ -45,19 +45,7 @@
 
 #include <kwiversys/DynamicLoader.hxx>
 #include <kwiversys/SystemTools.hxx>
-
-// Need boost filesystem until we can find a simple alternative for
-// iterating through a directory.
-#ifndef BOOST_FILESYSTEM_VERSION
- #define BOOST_FILESYSTEM_VERSION 3
-#else
- #if BOOST_FILESYSTEM_VERSION == 2
-  #error "Only boost::filesystem version 3 is supported."
- #endif
-#endif
-
-#include <boost/filesystem.hpp>
-namespace bfs = boost::filesystem;
+#include <kwiversys/Directory.hxx>
 
 
 #include <map>
@@ -173,31 +161,34 @@ public:
     // Iterate over search-path directories, attempting module load on elements
     // that end in the configured library suffix.
     LOG_DEBUG( m_logger, "Loading modules from directory: " << dir_path );
-    bfs::directory_iterator dir_it( dir_path );
-    while ( dir_it != bfs::directory_iterator() )
+
+    kwiversys::Directory dir;
+    dir.Load( dir_path );
+    unsigned long num_files = dir.GetNumberOfFiles();
+
+    for (unsigned long i = 0; i < num_files; ++i )
     {
-      bfs::directory_entry const e = *dir_it;
+      std::string file = dir.GetPath();
+      file += "/" + std::string( dir.GetFile( i ) );
 
       // Accept this file as a module to check if it has the correct library
       // suffix and matches a provided module name if one was provided.
 
-      if ( ( ST::GetFilenameLastExtension( e.path().string() ) == shared_library_suffix ) &&
-           ( ( name.size() == 0 ) || ( ST::GetFilenameWithoutExtension( e.path().string() ) == name ) ) )
+      if ( ( ST::GetFilenameLastExtension( file ) == shared_library_suffix ) &&
+           ( ( name.size() == 0 ) || ( ST::GetFilenameWithoutExtension( file ) == name ) ) )
       {
         // Check that we're looking a file
-        if ( e.status().type() == bfs::regular_file )
+        if ( ! ST::FileIsDirectory( file ) )
         {
-          register_from_module( e.path().string() );
+          register_from_module( file );
         }
         else
         {
-          LOG_WARN( m_logger, "Encountered a directory entry " << e.path() <<
+          LOG_WARN( m_logger, "Encountered a directory entry " << file <<
                     " which ends with the expected suffix, but is not a file" );
         }
       }
-
-      ++dir_it;
-    }
+    } // end for
   } // load_modules_in_directory
 
 
