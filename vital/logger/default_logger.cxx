@@ -61,7 +61,7 @@ writeTime( std::ostream& os, time_t const& tc )
 
 // ------------------------------------------------------------------
 logger_factory_default
-  ::logger_factory_default()
+::logger_factory_default()
   : kwiver_logger_factory( "default_logger factory" )
 {
 }
