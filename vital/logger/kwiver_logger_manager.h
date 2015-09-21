@@ -33,7 +33,6 @@
 
 #include "kwiver_logger.h"
 #include <vital/logger/vital_logger_export.h>
-#include <kwiversys/DynamicLoader.hxx>
 
 #include <string>
 #include <memory>
@@ -41,12 +40,6 @@
 
 namespace kwiver {
 namespace vital {
-
-namespace logger_ns {
-
-  class kwiver_logger_factory;
-
-}
 
 
 // ----------------------------------------------------------------
@@ -60,7 +53,7 @@ class VITAL_LOGGER_EXPORT kwiver_logger_manager
   :private kwiver::vital::noncopyable
 {
 public:
-  virtual ~kwiver_logger_manager();
+  ~kwiver_logger_manager();
 
   /** Get the single instance of this class. */
   static kwiver_logger_manager * instance();
@@ -81,8 +74,8 @@ private:
   kwiver_logger_manager();
   void load_factory( std::string const& lib_name );
 
-  std::auto_ptr< logger_ns::kwiver_logger_factory > m_logFactory;
-  kwiversys::DynamicLoader::LibraryHandle m_libHandle;
+  class impl;
+  const std::unique_ptr< impl > m_impl;
 
   static kwiver_logger_manager * s_instance;
 }; // end class kwiver_logger_manager

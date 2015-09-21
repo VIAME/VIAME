@@ -32,6 +32,7 @@
 
 #include "kwiver_logger_factory.h"
 #include "default_logger.h"
+#include <kwiversys/DynamicLoader.hxx>
 
 #include <cstdlib>
 #include <cstring>
@@ -53,12 +54,38 @@ typedef kwiversys::DynamicLoader DL;
 namespace kwiver {
 namespace vital {
 
+namespace logger_ns {
+
+  class kwiver_logger_factory;
+
+}
+
+
 //
 // Pointer to our single instance.
 //
 kwiver_logger_manager* kwiver_logger_manager::s_instance = 0;
 
 #define PLUGIN_ENV_VAR "VITAL_LOGGER_FACTORY"
+
+// ------------------------------------------------------------------
+/*
+ * Private implememtation
+ *
+ */
+class kwiver_logger_manager::impl
+{
+public:
+  impl() VITAL_DEFAULT_CTOR
+  ~impl() VITAL_DEFAULT_DTOR
+
+  std::unique_ptr< logger_ns::kwiver_logger_factory > m_logFactory;
+
+  // Current library handle
+  kwiversys::DynamicLoader::LibraryHandle m_libHandle;
+
+};
+
 
 // ----------------------------------------------------------------
 /** Constructor.
@@ -67,7 +94,7 @@ kwiver_logger_manager* kwiver_logger_manager::s_instance = 0;
  */
 kwiver_logger_manager
 ::kwiver_logger_manager()
-  : m_logFactory(0)
+  : m_impl( new impl )
 {
   // Need to create a factory class at this point because loggers
   // are created by static initializers. we can wait no longer until
@@ -82,7 +109,7 @@ kwiver_logger_manager
 #if defined(WIN32)
     factory = "vital_logger_plugin.dll";
 #elif defined(__APPLE__)
-    factory = "vital_logger_plugin.dylib";
+    factory = "vital_logger_plugin.so";
 #else
     factory = "vital_logger_plugin.so";
 #endif
@@ -115,7 +142,7 @@ kwiver_logger_manager
   }
 
   // Create a default logger back end
-  m_logFactory.reset( new logger_ns::logger_factory_default() );
+  m_impl->m_logFactory.reset( new logger_ns::logger_factory_default() );
 }
 
 
@@ -160,7 +187,7 @@ VITAL_LOGGER_EXPORT
 logger_handle_t
 get_logger( char const* name )
 {
-  return kwiver_logger_manager::instance()->m_logFactory->get_logger(name);
+  return kwiver_logger_manager::instance()->m_impl->m_logFactory->get_logger(name);
 }
 
 
@@ -177,7 +204,7 @@ std::string const&
 kwiver_logger_manager
 ::get_factory_name() const
 {
-  return m_logFactory->get_factory_name();
+  return m_impl->m_logFactory->get_factory_name();
 }
 
 
@@ -188,8 +215,8 @@ kwiver_logger_manager
 {
   typedef logger_ns::kwiver_logger_factory* (*FactoryPointer_t)();
 
-  m_libHandle = DL::OpenLibrary( lib_name.c_str() );
-  if ( ! m_libHandle )
+  m_impl->m_libHandle = DL::OpenLibrary( lib_name.c_str() );
+  if ( ! m_impl->m_libHandle )
   {
     std::stringstream str;
     str << "Unable to load logger factory plug-in: " << DL::LastError();
@@ -198,10 +225,10 @@ kwiver_logger_manager
 
   // Get our entry symbol
   FactoryPointer_t fp = reinterpret_cast< FactoryPointer_t >(
-    DL::GetSymbolAddress( m_libHandle, "kwiver_logger_factory" ) );
+    DL::GetSymbolAddress( m_impl->m_libHandle, "kwiver_logger_factory" ) );
   if ( ! fp )
   {
-    DL::CloseLibrary( m_libHandle );
+    DL::CloseLibrary( m_impl->m_libHandle );
 
     std::stringstream str;
     str << "Unable to bind to function: kwiver_logger_factory() "
@@ -210,7 +237,7 @@ kwiver_logger_manager
   }
 
   // Get pointer to new logger factory object
-  m_logFactory.reset( fp() );
+  m_impl->m_logFactory.reset( fp() );
 }
 
 } } // end namespace
