@@ -37,7 +37,14 @@
 
 #include <iostream>
 
-#include <boost/math/constants/constants.hpp>
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+#if defined M_PIl
+#define LOCAL_PI M_PIl
+#else
+#define LOCAL_PI M_PI
+#endif
 
 #include <vital/vital_foreach.h>
 #include <vital/types/camera.h>
@@ -124,7 +131,7 @@ IMPLEMENT_TEST(interpolation)
   using namespace kwiver::vital;
   using namespace std;
 
-  double pi = boost::math::constants::pi<double>();
+  const double pi = LOCAL_PI;
   camera_d a(vector_3d(-1, -1, -1),
              rotation_d(vector_4d(0, 0, 0, 1))),  // no rotation
            b(vector_3d(3, 3, 3),
@@ -154,7 +161,7 @@ IMPLEMENT_TEST(multiple_interpolations)
   using namespace kwiver::vital;
   using namespace std;
 
-  double pi = boost::math::constants::pi<double>();
+  const double pi = LOCAL_PI;
   camera_d a(vector_3d(-1, -1, -1),
              rotation_d(vector_4d(0, 0, 0, 1))),        // no rotation
            b(vector_3d(3, 3, 3),

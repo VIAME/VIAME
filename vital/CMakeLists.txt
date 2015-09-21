@@ -177,8 +177,7 @@ kwiver_add_library( vital
   )
 
 target_link_libraries( vital
-  PRIVATE         ${Boost_LIBRARIES} # be more specific
-                  kwiversys
+  PRIVATE         kwiversys
   PUBLIC          vital_config
                   vital_logger
   )
@@ -226,7 +225,6 @@ target_link_libraries(vital_apm
   PRIVATE          kwiversys
                    vital
                    vital_logger
-                   ${Boost_FILESYSTEM_LIBRARY}
   )
 
 set(VITAL_MODULE_PATHS "${vidtk_default_module_paths}"
