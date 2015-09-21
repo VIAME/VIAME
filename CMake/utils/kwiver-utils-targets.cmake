@@ -129,7 +129,7 @@ endfunction()
 # Remaining arguments passed to this function are given to the underlying
 # add_library call, so refer to CMake documentation for additional arguments.
 #
-# Library version will be set to that of the current KWIVER version.
+# Library version will be set to that of the current PROJECT version.
 #
 # This function will add the library to the set of targets to be exported
 # unless ``no_export`` was set.
