@@ -29,11 +29,14 @@
  */
 
 #include "token_type_sysenv.h"
+#include <kwiversys/SystemTools.hxx>
 
 #include <sstream>
 
 namespace kwiver {
 namespace vital {
+
+typedef kwiversys::SystemTools ST;
 
 // ----------------------------------------------------------------
 token_type_sysenv::
@@ -60,23 +63,7 @@ lookup_entry (std::string const& name, std::string& result)
 
   if ("cwd" == name) // current directory
   {
-    // This just-in-time caching approach may give unexpected results
-    // if the program changes CWD dynamically.
-    static std::string s_cwd;
-
-    if ( s_cwd.empty() )
-    {
-      // current directory
-      char path[FILENAME_MAX];
-
-      if ( getcwd( path, sizeof(path) ) )
-      {
-        path[sizeof(path) - 1] = '\0'; // force end of string
-        s_cwd = path;
-      }
-    }
-
-    result = s_cwd;
+    result = ST::GetCurrentWorkingDirectory( );
     return true;
   }
 
