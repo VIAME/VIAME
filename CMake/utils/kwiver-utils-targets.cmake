@@ -150,13 +150,15 @@ function(kwiver_add_library     name)
       SOVERSION                ${${CMAKE_PROJECT_NAME}_VERSION}
       )
   endif()
+
   set_target_properties("${name}"
     PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${library_subdir}"
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${library_subdir}"
+      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}"
       ${props}
-    )
+      )
+
   generate_export_header( ${name}
     STATIC_DEFINE  ${upper_name}_BUILD_AS_STATIC
     )
@@ -165,8 +167,8 @@ function(kwiver_add_library     name)
     string(TOUPPER "${config}" upper_config)
     set_target_properties("${name}"
       PROPERTIES
-        "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib/${config}${library_subdir}"
-        "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib/${config}${library_subdir}"
+        "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}/${config}${library_subdir}"
+        "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}/${config}${library_subdir}"
         "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/bin/${config}${library_subdir}"
       )
   endforeach()
