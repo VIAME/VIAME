@@ -11,6 +11,9 @@ install(
   FILES "${utils_dir}/kwiver-utils.cmake"
         "${utils_dir}/FindEigen3.cmake"
         "${utils_dir}/FindLog4cxx.cmake"
+        "${utils_dir}/vital-flags.cmake"
+        "${utils_dir}/vital-flags-gnu.cmake"
+        "${utils_dir}/vital-flags-msvc.cmake"
   DESTINATION "${kwiver_cmake_install_dir}"
   )
 

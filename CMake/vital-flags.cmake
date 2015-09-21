@@ -3,7 +3,7 @@
 # circumstances.
 #
 
-include(CheckCXXCompilerFlag)
+include( utils/kwiver-utils-flags )
 
 if (MSVC)
   include( vital-flags-msvc )
