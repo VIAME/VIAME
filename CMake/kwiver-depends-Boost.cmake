@@ -7,13 +7,9 @@ endif()
 
 find_package(Boost 1.55 REQUIRED
   COMPONENTS
-    chrono
-    date_time
     filesystem
     program_options
-    regex
     system
-    thread
     )
 
 add_definitions(-DBOOST_ALL_NO_LIB)
