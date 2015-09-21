@@ -248,10 +248,11 @@ function(kwiver_install_headers)
       set( H_SUBDIR ) # use empty subdir/path to file
     else()
       get_filename_component(H_SUBDIR "${header}" DIRECTORY)
+      set( H_SUBDIR "/${H_SUBDIR}" )
     endif()
     kwiver_install(
       FILES       "${header}"
-      DESTINATION "include/kwiver/${mih_SUBDIR}/${H_SUBDIR}"
+      DESTINATION "include/${mih_SUBDIR}${H_SUBDIR}"
       )
 
   endforeach()
