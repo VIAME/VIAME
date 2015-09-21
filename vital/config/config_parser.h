@@ -101,7 +101,7 @@ private:
   class priv;
 
   config_path_t m_config_file;
-  std::auto_ptr< priv > m_priv;
+  const std::unique_ptr< priv > m_priv;
 };
 
 } } // end namespace

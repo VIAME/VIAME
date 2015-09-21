@@ -126,7 +126,7 @@ public:
 
 private:
   class impl;
-  std::auto_ptr< impl > m_impl;
+  const std::unique_ptr< impl > m_impl;
 
   /// Private constructor
   /**
