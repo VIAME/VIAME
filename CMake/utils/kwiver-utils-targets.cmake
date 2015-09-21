@@ -259,20 +259,6 @@ endfunction()
 
 
 #+
-#   kwiver_install_plugin_headers( plugin_name header1 [header2 ...] )
-#
-# Instal kwiver plugin public header files to the "include/.../plugins/"
-# sub-directory in the configured installation location.
-#-
-function(kwiver_install_plugin_headers plugin_name)
-  kwiver_install_headers(
-    SUBDIR "plugins/${plugin_name}"
-    ${ARGN}
-    )
-endfunction()
-
-
-#+
 # Add files to the private header source group
 #
 #   kwiver_private_header_group(file1 [file2 ...])
