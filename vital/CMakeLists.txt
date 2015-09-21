@@ -289,7 +289,10 @@ configure_file(
 add_subdirectory( bindings )
 add_subdirectory( logger )
 add_subdirectory( config )
-add_subdirectory( tools )
+
+if (VITAL_ENABLE_TOOLS)
+  add_subdirectory( tools )
+endif()
 
 ###
 # Add tests if enabled
