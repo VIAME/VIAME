@@ -3,12 +3,12 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk.util.MaptkObject import MaptkObject
-from maptk.exceptions.base import MaptkBaseException
+from vital.util.VitalObject import VitalObject
+from vital.exceptions.base import VitalBaseException
 
 
 # noinspection PyPep8Naming
-class MaptkErrorHandle (MaptkObject):
+class VitalErrorHandle (VitalObject):
     """ Error handling structure used in C interface """
 
     # noinspection PyPep8Naming
@@ -27,9 +27,9 @@ class MaptkErrorHandle (MaptkObject):
         """
         Create a new error handle instance
         """
-        super(MaptkErrorHandle, self).__init__()
+        super(VitalErrorHandle, self).__init__()
 
-        eh_new = self.MAPTK_LIB['maptk_eh_new']
+        eh_new = self.VITAL_LIB['vital_eh_new']
         eh_new.restype = self.C_TYPE_PTR
         self._inst_ptr = eh_new()
         if not self._inst_ptr:
@@ -38,7 +38,7 @@ class MaptkErrorHandle (MaptkObject):
         self._ec_exception_map = {}
 
     def _destroy(self):
-        eh_del = self.MAPTK_LIB['maptk_eh_destroy']
+        eh_del = self.VITAL_LIB['vital_eh_destroy']
         eh_del.argtypes = [self.C_TYPE_PTR]
         eh_del(self._inst_ptr)
 
@@ -69,7 +69,7 @@ class MaptkErrorHandle (MaptkObject):
         Raise appropriate Python exception if our current error code is non-zero
 
         By default, if a non-zero error code is observed, a generic
-        MaptkBaseException is raised with the provided error handle message.
+        VitalBaseException is raised with the provided error handle message.
 
         If an exception map was set via set_exception_map(...) and the error
         code matches an entry, that will be raised instead.
@@ -80,4 +80,4 @@ class MaptkErrorHandle (MaptkObject):
             if c_ptr[0].error_code in self._ec_exception_map:
                 raise self._ec_exception_map[c_ptr[0].error_code](c_ptr[0].message)
             else:
-                raise MaptkBaseException(c_ptr[0].message)
+                raise VitalBaseException(c_ptr[0].message)

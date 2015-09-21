@@ -36,11 +36,11 @@
 #ifndef VITAL_FEATURE_SET_H_
 #define VITAL_FEATURE_SET_H_
 
-#include <vector>
-
-#include <boost/shared_ptr.hpp>
-
 #include "feature.h"
+
+#include <vital/vital_config.h>
+
+#include <vector>
 
 namespace kwiver {
 namespace vital {
@@ -55,7 +55,7 @@ class feature_set
 {
 public:
   /// Destructor
-  virtual ~feature_set() { }
+  virtual ~feature_set() VITAL_DEFAULT_DTOR
 
   /// Return the number of features in the set
   virtual size_t size() const = 0;
@@ -65,7 +65,7 @@ public:
 };
 
 /// Shared pointer for base feature_set type
-typedef boost::shared_ptr< feature_set > feature_set_sptr;
+typedef std::shared_ptr< feature_set > feature_set_sptr;
 
 
 /// A concrete feature set that simply wraps a vector of features.

@@ -42,7 +42,6 @@
 #include <vital/types/feature_set.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/types/match_set.h>
-#include <boost/shared_ptr.hpp>
 
 namespace kwiver {
 namespace vital {
@@ -72,7 +71,7 @@ public:
 
 
 /// Shared pointer type for match_features algorithm definition class
-typedef boost::shared_ptr<match_features> match_features_sptr;
+typedef std::shared_ptr<match_features> match_features_sptr;
 
 
 } } } // end namespace

@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Interface to maptk::camera_map class.
+Interface to vital::camera_map class.
 
 """
 # -*- coding: utf-8 -*-
@@ -38,22 +38,22 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk import Camera
-from maptk.util import MaptkObject, MaptkErrorHandle
+from vital import Camera
+from vital.util import VitalObject, VitalErrorHandle
 
 
-class CameraMap (MaptkObject):
-    """ maptk::camera_map interface class """
+class CameraMap (VitalObject):
+    """ vital::camera_map interface class """
 
     def __init__(self, frame2cam_map):
         """
         :param frame2cam_map: Association of frame number to camera instance
-        :type frame2cam_map: dict of (int, maptk.Camera)
+        :type frame2cam_map: dict of (int, vital.Camera)
 
         """
         super(CameraMap, self).__init__()
 
-        cm_new = self.MAPTK_LIB.maptk_camera_map_new
+        cm_new = self.VITAL_LIB.vital_camera_map_new
         cm_new.argtypes = [ctypes.c_size_t, ctypes.POINTER(ctypes.c_uint),
                            ctypes.POINTER(Camera.C_TYPE_PTR)]
         cm_new.restype = self.C_TYPE_PTR
@@ -79,9 +79,9 @@ class CameraMap (MaptkObject):
                                "instance")
 
     def _destroy(self):
-        cm_del = self.MAPTK_LIB.maptk_camera_map_destroy
-        cm_del.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
-        with MaptkErrorHandle() as eh:
+        cm_del = self.VITAL_LIB.vital_camera_map_destroy
+        cm_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
+        with VitalErrorHandle() as eh:
             cm_del(self, eh)
 
     def size(self):
@@ -89,8 +89,8 @@ class CameraMap (MaptkObject):
         :return: Number of elements in this mapping.
         :rtype: int
         """
-        cm_size = self.MAPTK_LIB.maptk_camera_map_size
-        cm_size.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
+        cm_size = self.VITAL_LIB.vital_camera_map_size
+        cm_size.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
         cm_size.restype = ctypes.c_size_t
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             return cm_size(self, eh)

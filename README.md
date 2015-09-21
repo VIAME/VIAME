@@ -54,7 +54,6 @@ modules adds additional capabilities as well as additional dependencies.
 
 These dependencies are supplied (or will be supplied) by the Fletch package of 3rd party dependencies.
 
-[Boost](http://www.boost.org/) (>= v1.55)
 [Eigen](http://eigen.tuxfamily.org/) (>= 3.0)
 [log4cxx] (https://logging.apache.org/log4cxx/) (>= 0.10.0)
 [Apache Runtime] (https://apr.apache.org/)

@@ -78,7 +78,7 @@ public:
   f2f_homography( f2f_homography const& h );
 
   /// Destructor
-  virtual ~f2f_homography();
+  virtual ~f2f_homography() VITAL_DEFAULT_DTOR
 
   /// Get the sptr of the contained homography transformation
   virtual homography_sptr homography() const;
@@ -122,7 +122,7 @@ protected:
 
 
 /// Shared pointer for \p f2f_homography
-typedef boost::shared_ptr< f2f_homography > f2f_homography_sptr;
+typedef std::shared_ptr< f2f_homography > f2f_homography_sptr;
 
 
 /// \p f2f_homography output stream operator

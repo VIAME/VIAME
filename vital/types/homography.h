@@ -37,6 +37,7 @@
 #define VITAL_HOMOGRAPHY_H_
 
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 #include <vital/vital_types.h>
 
 #include <vital/types/matrix.h>
@@ -45,8 +46,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -55,7 +55,7 @@ namespace vital {
 // Forward declarations of abstract homography class
 class homography;
 // typedef for a homography shared pointer
-typedef boost::shared_ptr< homography > homography_sptr;
+typedef std::shared_ptr< homography > homography_sptr;
 
 
 // ===========================================================================
@@ -67,7 +67,7 @@ class VITAL_EXPORT homography
 {
 public:
   /// Destructor
-  virtual ~homography() { }
+  virtual ~homography() VITAL_DEFAULT_DTOR
 
   /// Create a clone of this homography object, returning as smart pointer
   /**

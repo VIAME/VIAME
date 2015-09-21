@@ -75,7 +75,7 @@ path_not_exists
 path_not_a_file
 ::path_not_a_file( path_t const& path ) VITAL_NOTHROW
 {
-  m_what = "Path does not point to a file: " + path.string();
+  m_what = "Path does not point to a file: " + path;
 }
 
 
@@ -89,7 +89,7 @@ path_not_a_file
 path_not_a_directory
 ::path_not_a_directory( path_t const& path ) VITAL_NOTHROW
 {
-  m_what = "Path does not point to a directory: " + path.string();
+  m_what = "Path does not point to a directory: " + path;
 }
 
 
@@ -105,7 +105,7 @@ invalid_file
 {
   std::ostringstream ss;
 
-  ss << "Invalid file " << path.string() << ": " << reason;
+  ss << "Invalid file " << path << ": " << reason;
   m_what = ss.str();
 }
 

@@ -38,9 +38,10 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/noncopyable.hpp>
+
+#include <vital/noncopyable.h>
 
 #include <vital/vital_export.h>
 #include <vital/vital_types.h>
@@ -53,29 +54,66 @@ namespace vital {
  * Plugin Manager for algorithm implementation extensions
  */
 class VITAL_EXPORT algorithm_plugin_manager
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
 public:
   /// Get the reference to the singleton instance of this class
   static algorithm_plugin_manager& instance();
 
+  /// Load all plugins on first call.
+  /**
+   * This static method loads all plugins on the first call and does
+   * nothing on all subsequent calls. This is designed to load plugins
+   * in a concurrent application where the first thread to start is
+   * non-deterministic. All threads would call this method on starting
+   * and the first one that completes has loaded all plugins and the
+   * other callers will return.
+   *
+   * If you must reload plugins after this method has been called, use
+   * the register_plugins() method.
+   *
+   * If the singleton has not been created prior to this call, is is
+   * created by this call.
+   *
+   * @return \b true if plugins were loaded, \b false if plugins were
+   * already loaded.
+   */
+  static bool load_plugins_once();
+
   /// (Re)Load plugin libraries found along current search paths
   /**
+   * This method loads or reloads plugins. This method must be called
+   * to get the plugins since this is not done by the CTOR.
+   *
+   * In the case of reloading plugins, existing plugins will be
+   * replaced with newer ones.
+   *
    * \param name If a name is provided, we will only load plugins whose name
    *             corresponds to the name given. If no plugins with the given
-   *             name are found, nothing is loaded. NOTE: This argument is not
-   *             used in static builds. As plugins are already baked into the
-   *             library, all are loaded.
+   *             name are found, nothing is loaded.
    */
   void register_plugins( std::string name = std::string() );
 
   /// Add an additional directory to search for plugins in.
   /**
+   * This method adds the specified directory to the list used when
+   * loading plugins. This method can be called multiple times to add
+   * multiple directories. Call the register_plugins() method to load
+   * plugins after you have added all additional directories.
+   *
    * Directory paths that don't exist will simply be ignored.
    *
    * \param dirpath Path to the directory to add to the plugin search path
    */
   void add_search_path(path_t dirpath);
+
+  /// Get plugin manager search path
+  /**
+   *  This method returns the search path used to load algorithms.
+   *
+   * @return the colon delimited search path.
+   */
+  std::string get_search_path() const;
 
   /// Get the list currently registered module names.
   /**
@@ -88,7 +126,7 @@ public:
 
 private:
   class impl;
-  impl *impl_;
+  const std::unique_ptr< impl > m_impl;
 
   /// Private constructor
   /**
@@ -102,7 +140,6 @@ private:
 
   static algorithm_plugin_manager* s_instance;
 };
-
 
 } } // end namespace
 

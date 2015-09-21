@@ -30,13 +30,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Tests for maptk::algorithm_plugin_manager interface
+Tests for vital::algorithm_plugin_manager interface
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
-from maptk import AlgorithmPluginManager
+from vital import AlgorithmPluginManager
 
 import nose.tools
 
@@ -48,7 +48,7 @@ class Test_AlgorithmPluginManager (object):
         AlgorithmPluginManager.register_plugins()
 
     def test_load_named(self):
-        AlgorithmPluginManager.register_plugins("maptk_core")
+        AlgorithmPluginManager.register_plugins("vital_core")
 
     def test_add_search_path(self):
         AlgorithmPluginManager.add_search_path("/")
@@ -59,6 +59,6 @@ class Test_AlgorithmPluginManager (object):
         self.test_load_named()
 
     def test_registered_names(self):
-        AlgorithmPluginManager.register_plugins('maptk_core')
-        nose.tools.assert_in('maptk_core',
+        AlgorithmPluginManager.register_plugins('vital_core')
+        nose.tools.assert_in('vital_core',
                              AlgorithmPluginManager.registered_module_names())

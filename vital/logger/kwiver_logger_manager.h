@@ -32,20 +32,14 @@
 #define KWIVER_KWIVER_LOGGER_MANAGER_H_
 
 #include "kwiver_logger.h"
-#include <kwiversys/DynamicLoader.hxx>
+#include <vital/logger/vital_logger_export.h>
 
 #include <string>
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
+#include <memory>
+#include <vital/noncopyable.h>
 
 namespace kwiver {
 namespace vital {
-
-namespace logger_ns {
-
-  class kwiver_logger_factory;
-
-}
 
 
 // ----------------------------------------------------------------
@@ -55,11 +49,11 @@ namespace logger_ns {
  * logger. Only one object of this type is required, so this is a
  * singleton created by the static instance() method.
  */
-class kwiver_logger_manager
-  :private boost::noncopyable
+class VITAL_LOGGER_EXPORT kwiver_logger_manager
+  :private kwiver::vital::noncopyable
 {
 public:
-  virtual ~kwiver_logger_manager();
+  ~kwiver_logger_manager();
 
   /** Get the single instance of this class. */
   static kwiver_logger_manager * instance();
@@ -80,8 +74,8 @@ private:
   kwiver_logger_manager();
   void load_factory( std::string const& lib_name );
 
-  boost::scoped_ptr< logger_ns::kwiver_logger_factory > m_logFactory;
-  kwiversys::DynamicLoader::LibraryHandle m_libHandle;
+  class impl;
+  const std::unique_ptr< impl > m_impl;
 
   static kwiver_logger_manager * s_instance;
 }; // end class kwiver_logger_manager

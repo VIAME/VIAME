@@ -80,10 +80,10 @@ bad_config_block_cast
 // ------------------------------------------------------------------
 bad_config_block_cast_exception
 ::bad_config_block_cast_exception( config_block_key_t const&    key,
-                                     config_block_value_t const&  value,
-                                     std::string const&           type,
-                                     std::string const&           reason ) VITAL_NOTHROW
-  : config_block_exception(),
+                                   config_block_value_t const&  value,
+                                   std::string const&           type,
+                                   std::string const&           reason ) VITAL_NOTHROW
+: config_block_exception(),
   m_key( key ),
   m_value( value ),
   m_type( type ),
@@ -91,9 +91,8 @@ bad_config_block_cast_exception
 {
   std::ostringstream sstr;
 
-  sstr << "Failed to cast \'" << m_key << "\' "
-                                          "with value \'" << m_value << "\' as "
-                                                                        "a \'" << m_type << "\': " << m_reason << ".";
+  sstr << "Failed to cast key \'" << m_key << "\' with value \'"
+       << m_value << "\' as a \'" << m_type << "\': " << m_reason << ".";
   m_what = sstr.str();
 }
 
@@ -193,7 +192,7 @@ config_block_io_exception
 
 // ------------------------------------------------------------------
 bad_configuration_cast
-::bad_configuration_cast(char const* reason) VITAL_NOTHROW
+::bad_configuration_cast(std::string const& reason) VITAL_NOTHROW
   : config_block_exception()
 {
   m_what = reason;

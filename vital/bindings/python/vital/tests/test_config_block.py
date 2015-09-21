@@ -30,21 +30,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Tests for the Python interface to MAPTK class config_block.
+Tests for the Python interface to VITAL class config_block.
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
-from maptk import ConfigBlock
-from maptk.exceptions.config_block import *
-from maptk.exceptions.config_block_io import *
+from vital import ConfigBlock
+from vital.exceptions.config_block import *
+from vital.exceptions.config_block_io import *
 
 import nose.tools
 
 
 # noinspection PyMethodMayBeStatic
-class TestMaptkConfigBlock (object):
+class TestVitalConfigBlock (object):
     """
     Python version of test_config_block.cxx
     """
@@ -118,7 +118,7 @@ class TestMaptkConfigBlock (object):
         cb = ConfigBlock()
 
         nose.tools.assert_raises(
-            MaptkConfigBlockNoSuchValueException,
+            VitalConfigBlockNoSuchValueException,
             cb.get_value_bool, 'not-a-key'
         )
 
@@ -390,7 +390,7 @@ class TestMaptkConfigBlock (object):
         nose.tools.assert_equal(cb.get_description(kc), "")
 
     def test_read_no_file(self):
-        nose.tools.assert_raises(MaptkConfigBlockIoFileNotFoundException,
+        nose.tools.assert_raises(VitalConfigBlockIoFileNotFoundException,
                                  ConfigBlock.from_file,
                                  'not-a-file.foobar')
 
@@ -398,6 +398,6 @@ class TestMaptkConfigBlock (object):
         cb = ConfigBlock()
         cb.set_value('foo', 'bar')
 
-        nose.tools.assert_raises(MaptkConfigBlockIoException,
+        nose.tools.assert_raises(VitalConfigBlockIoException,
                                  cb.write,
                                  '/not/valid')

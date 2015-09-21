@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Interface to MAPTK image_container class.
+Interface to VITAL image_container class.
 
 """
 # -*- coding: utf-8 -*-
@@ -38,14 +38,14 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk import Image
-from maptk.util import MaptkObject
-from maptk.util import MaptkErrorHandle
+from vital import Image
+from vital.util import VitalObject
+from vital.util import VitalErrorHandle
 
 
-class ImageContainer (MaptkObject):
+class ImageContainer (VitalObject):
     """
-    maptk::image_container interface class
+    vital::image_container interface class
     """
 
     def __init__(self, image):
@@ -58,7 +58,7 @@ class ImageContainer (MaptkObject):
         """
         super(ImageContainer, self).__init__()
 
-        imgc_new = self.MAPTK_LIB.maptk_image_container_new_simple
+        imgc_new = self.VITAL_LIB.vital_image_container_new_simple
         imgc_new.argtypes = [Image.C_TYPE_PTR]
         imgc_new.restype = self.C_TYPE_PTR
         self._inst_ptr = imgc_new(image.c_pointer)
@@ -68,9 +68,9 @@ class ImageContainer (MaptkObject):
                                "instance.")
 
     def _destroy(self):
-        imgc_del = self.MAPTK_LIB.maptk_image_container_destroy
-        imgc_del.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
-        with MaptkErrorHandle() as eh:
+        imgc_del = self.VITAL_LIB.vital_image_container_destroy
+        imgc_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
+        with VitalErrorHandle() as eh:
             imgc_del(self, eh)
 
     def size(self):
@@ -84,7 +84,7 @@ class ImageContainer (MaptkObject):
         :rtype: long
 
         """
-        ic_size = self.MAPTK_LIB.maptk_image_container_size
+        ic_size = self.VITAL_LIB.vital_image_container_size
         ic_size.argtypes = [self.C_TYPE_PTR]
         ic_size.restype = ctypes.c_size_t
         return ic_size(self)
@@ -94,7 +94,7 @@ class ImageContainer (MaptkObject):
         :return: The pixel width of the image
         :rtype: long
         """
-        ic_width = self.MAPTK_LIB.maptk_image_container_width
+        ic_width = self.VITAL_LIB.vital_image_container_width
         ic_width.argtypes = [self.C_TYPE_PTR]
         ic_width.restype = ctypes.c_size_t
         return ic_width(self)
@@ -104,7 +104,7 @@ class ImageContainer (MaptkObject):
         :return: The pixel height of the image
         :rtype: long
         """
-        ic_height = self.MAPTK_LIB.maptk_image_container_height
+        ic_height = self.VITAL_LIB.vital_image_container_height
         ic_height.argtypes = [self.C_TYPE_PTR]
         ic_height.restype = ctypes.c_size_t
         return ic_height(self)
@@ -114,7 +114,7 @@ class ImageContainer (MaptkObject):
         :return: The depth (number of channels) of the image
         :rtype: long
         """
-        ic_depth = self.MAPTK_LIB.maptk_image_container_depth
+        ic_depth = self.VITAL_LIB.vital_image_container_depth
         ic_depth.argtypes = [self.C_TYPE_PTR]
         ic_depth.restype = ctypes.c_size_t
         return ic_depth(self)
@@ -128,7 +128,7 @@ class ImageContainer (MaptkObject):
         :rtype: ImageContainer
 
         """
-        ic_getimg = self.MAPTK_LIB['maptk_image_container_get_image']
+        ic_getimg = self.VITAL_LIB['vital_image_container_get_image']
         ic_getimg.argtypes = [self.C_TYPE_PTR]
         ic_getimg.restype = Image.C_TYPE_PTR
         return Image.from_c_pointer(ic_getimg(self))

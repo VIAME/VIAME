@@ -30,17 +30,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-maptk.util module
+vital.util module
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
 try:
-    from .find_maptk_library import find_maptk_library
+    from .find_vital_library import find_vital_library
 except ImportError:
     raise ImportError("Failed to import library finder module, must not have "
                       "enabled Python in CMake.")
 
-from .MaptkObject import MaptkObject
-from .error_handle import MaptkErrorHandle
+from .VitalObject import VitalObject
+from .error_handle import VitalErrorHandle

@@ -40,8 +40,9 @@
 #ifndef KWIVER_TEST_TEST_COMMON_H_
 #define KWIVER_TEST_TEST_COMMON_H_
 
-#include <boost/foreach.hpp>
 #include <boost/function.hpp>
+
+#include <vital/vital_foreach.h>
 
 #include <exception>
 #include <iostream>
@@ -150,14 +151,14 @@ typedef std::string testname_t;
 
 // ------------------------------------------------------------------
 /// Macro for displaying tests available
-#define DISPLAY_AVAILABLE_TESTS()                           \
-  do                                                        \
-  {                                                         \
-    std::cerr << "Available tests:" << std::endl;           \
-    BOOST_FOREACH( test_map_t::value_type p, __all_tests )  \
-    {                                                       \
-      std::cerr << "\t" << p.first << std::endl;            \
-    }                                                       \
+#define DISPLAY_AVAILABLE_TESTS()                                       \
+  do                                                                    \
+  {                                                                     \
+    std::cerr << "Available tests:" << std::endl;                       \
+    VITAL_FOREACH( test_map_t::value_type const& p, __all_tests )       \
+    {                                                                   \
+      std::cerr << "\t" << p.first << std::endl;                        \
+    }                                                                   \
   } while (false)
 
 

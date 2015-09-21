@@ -37,11 +37,11 @@
 #define VITAL_DESCRIPTOR_H_
 
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 
 #include <iostream>
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -55,7 +55,7 @@ class descriptor
 {
 public:
   /// Destructor
-  virtual ~descriptor() { }
+  virtual ~descriptor() VITAL_DEFAULT_DTOR
 
   /// The number of elements of the underlying type
   virtual std::size_t size() const = 0;
@@ -80,7 +80,7 @@ public:
 };
 
 /// Shared pointer for base descriptor type
-typedef boost::shared_ptr< descriptor > descriptor_sptr;
+typedef std::shared_ptr< descriptor > descriptor_sptr;
 
 
 // ------------------------------------------------------------------

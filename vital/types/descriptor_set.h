@@ -38,7 +38,7 @@
 
 
 #include "descriptor.h"
-#include <boost/shared_ptr.hpp>
+#include <vital/vital_config.h>
 
 namespace kwiver {
 namespace vital {
@@ -53,7 +53,7 @@ class descriptor_set
 {
 public:
   /// Destructor
-  virtual ~descriptor_set() { }
+  virtual ~descriptor_set() VITAL_DEFAULT_DTOR
 
   /// Return the number of descriptors in the set
   virtual size_t size() const = 0;
@@ -63,7 +63,7 @@ public:
 };
 
 /// Shared pointer for base descriptor_set type
-typedef boost::shared_ptr< descriptor_set > descriptor_set_sptr;
+typedef std::shared_ptr< descriptor_set > descriptor_set_sptr;
 
 
 /// A concrete descriptor set that simply wraps a vector of descriptors.

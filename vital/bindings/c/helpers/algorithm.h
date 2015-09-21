@@ -208,7 +208,7 @@ public:
       if( algo )                                                        \
       {                                                                 \
         kwiver::vital::algo::type##_sptr new_sptr =                     \
-          boost::dynamic_pointer_cast<kwiver::vital::algo::type>(       \
+          std::dynamic_pointer_cast<kwiver::vital::algo::type>(       \
             kwiver::vital_c::ALGORITHM_##type##_SPTR_CACHE.get( algo )->clone()); \
         if( new_sptr )                                                  \
         {                                                               \

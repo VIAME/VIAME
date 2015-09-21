@@ -12,7 +12,7 @@ set( vital_logger_public_headers
 
 set( vital_logger_private_headers
   kwiver_logger_factory.h
-  kwiver_logger_manager.cxx
+  kwiver_logger_manager.h
   default_logger.h
   ${CMAKE_CURRENT_BINARY_DIR}/vital_logger_export.h
   )
@@ -44,9 +44,6 @@ kwiver_add_library( vital_logger
 
 target_link_libraries( vital_logger
   PRIVATE              kwiversys
-                       ${Boost_FILESYSTEM_LIBRARY}
-                       ${Boost_THREAD_LIBRARY}
-                       ${Boost_SYSTEM_LIBRARY}
   )
 
 ###
@@ -65,13 +62,12 @@ if (VITAL_ENABLE_LOG4CXX)
   include_directories ( SYSTEM ${Log4cxx_INCLUDE_DIR} ${ApacheRunTime_INCLUDE_DIR} )
 
   kwiver_add_plugin( vital_log4cxx_logger
-    ${plugin_base_src}
-    log4cxx_factory.cxx
+    SOURCES          ${plugin_base_src}
+                     log4cxx_factory.cxx
+    PRIVATE          ${log4cxx_lib}
+    SUBDIR           modules
     )
 
-  target_link_libraries( vital_log4cxx_logger
-    PRIVATE         ${log4cxx_lib}
-    )
 
 endif()
 

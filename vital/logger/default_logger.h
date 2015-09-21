@@ -31,6 +31,7 @@
 #ifndef KWIVER_DEFAULT_LOGGER_H_
 #define KWIVER_DEFAULT_LOGGER_H_
 
+#include <vital/vital_config.h>
 #include "kwiver_logger_factory.h"
 
 
@@ -53,7 +54,7 @@ class logger_factory_default
 {
 public:
   logger_factory_default();
-  virtual ~logger_factory_default();
+  virtual ~logger_factory_default() VITAL_DEFAULT_DTOR
 
   /**
    * @brief Get logger object for \v name.

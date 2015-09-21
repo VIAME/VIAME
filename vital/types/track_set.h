@@ -38,30 +38,30 @@
 #ifndef VITAL_TRACK_SET_H_
 #define VITAL_TRACK_SET_H_
 
-#include <vital/vital_export.h>
-
-#include <vector>
-#include <set>
-
-#include <boost/shared_ptr.hpp>
-
 #include "descriptor_set.h"
 #include "feature_set.h"
 #include "track.h"
+
+#include <vital/vital_export.h>
+#include <vital/vital_config.h>
+
+#include <vector>
+#include <set>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
 
 class track_set;
 /// Shared pointer for base track_set type
-typedef boost::shared_ptr< track_set > track_set_sptr;
+typedef std::shared_ptr< track_set > track_set_sptr;
 
 /// A collection of 2D feature point tracks
 class VITAL_EXPORT track_set
 {
 public:
   /// Destructor
-  virtual ~track_set() { }
+  virtual ~track_set() VITAL_DEFAULT_DTOR
 
   /// Return the number of tracks in the set
   virtual size_t size() const;

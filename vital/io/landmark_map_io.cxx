@@ -42,45 +42,41 @@
 #include <sstream>
 
 #include <vital/exceptions.h>
-
-#include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
+#include <vital/vital_foreach.h>
+#include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
 namespace vital {
-
 
 /// Output the given \c landmark_map object to the specified PLY file path
 void
 write_ply_file( landmark_map_sptr const&  landmarks,
                 path_t const&             file_path )
 {
-  namespace bfs = boost::filesystem;
-
   // If the landmark map is empty, throw
   if ( ! landmarks || ( landmarks->size() == 0 ) )
   {
-    throw file_write_exception( file_path, "No landmarks in the given "
-                                           "landmark map!" );
+    throw file_write_exception( file_path,
+         "No landmarks in the given landmark map!" );
   }
 
   // If the given path is a directory, we obviously can't write to it.
-  if ( bfs::is_directory( file_path ) )
+  if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw file_write_exception( file_path, "Path given is a directory, "
-                                           "can not write file." );
+    throw file_write_exception( file_path,
+         "Path given is a directory, can not write file." );
   }
 
   // Check that the directory of the given filepath exists, creating necessary
   // directories where needed.
-  path_t parent_dir = bfs::absolute( file_path.parent_path() );
-  if ( ! bfs::is_directory( parent_dir ) )
+  std::string parent_dir =  kwiversys::SystemTools::GetFilenamePath(
+    kwiversys::SystemTools::CollapseFullPath( file_path ) );
+  if ( ! kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
   {
-    if ( ! bfs::create_directories( parent_dir ) )
+    if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
-      throw file_write_exception( parent_dir, "Attempted directory creation, "
-                                              "but no directory created! No "
-                                              "idea what happened here..." );
+      throw file_write_exception( parent_dir,
+            "Attempted directory creation, but no directory created! No idea what happened here..." );
     }
   }
 
@@ -100,7 +96,7 @@ write_ply_file( landmark_map_sptr const&  landmarks,
 
   landmark_map::map_landmark_t lm_map = landmarks->landmarks();
   typedef  landmark_map::map_landmark_t::value_type lm_map_val_t;
-  BOOST_FOREACH( lm_map_val_t const & p, lm_map )
+  VITAL_FOREACH( lm_map_val_t const& p, lm_map )
   {
     vector_3d loc = p.second->loc();
 
@@ -115,9 +111,7 @@ write_ply_file( landmark_map_sptr const&  landmarks,
 landmark_map_sptr
 read_ply_file( path_t const& file_path )
 {
-  namespace bfs = boost::filesystem;
-
-  if ( ! bfs::exists( file_path ) )
+  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
   {
     throw file_not_found_exception( file_path, "Cannot find file." );
   }
@@ -160,6 +154,5 @@ read_ply_file( path_t const& file_path )
 
   return landmark_map_sptr( new simple_landmark_map( landmarks ) );
 } // read_ply_file
-
 
 } } // end namespace

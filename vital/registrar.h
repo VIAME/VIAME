@@ -42,12 +42,11 @@
 #include <string>
 #include <vector>
 
-#include <vital/logger/logger.h>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/foreach.hpp>
-
+#include <vital/vital_config.h>
 #include <vital/vital_export.h>
+#include <vital/vital_foreach.h>
+#include <vital/logger/logger.h>
+#include <vital/noncopyable.h>
 
 namespace kwiver {
 namespace vital {
@@ -62,18 +61,16 @@ namespace vital {
  * libraries have unique static varaible spaces, and thus to not share a
  * singleton instance. Only use the registrar passed to the C interface
  * methods.
- * \todo Revisit instance() implementation to see if local static
- * is needed. As it is, there could be a static CTOR race condition.
- * Also look into the use of boost::noncopyable.
  */
 class VITAL_EXPORT registrar
+  : private kwiver::vital::noncopyable
 {
 protected:
   template < typename T >
   class reg_type
   {
   public:
-    typedef std::map< std::string, boost::shared_ptr< T > > map;
+    typedef std::map< std::string, std::shared_ptr< T > > map;
     typedef typename map::value_type pair;
     typedef typename map::const_iterator const_itr;
   };
@@ -102,7 +99,7 @@ public:
    *          inserted, and false if not.
    */
   template < typename T >
-  bool register_item( std::string const& name, boost::shared_ptr< T > item )
+  bool register_item( std::string const& name, std::shared_ptr< T > item )
   {
     if ( ! item )
     {
@@ -132,8 +129,8 @@ public:
   std::vector< std::string > registered_names()
   {
     std::vector< std::string > names;
-
-    BOOST_FOREACH( typename reg_type< T >::pair i, this->get_item_map< T > () )
+    typedef typename reg_type< T >::pair pair_t;
+    VITAL_FOREACH( pair_t i, this->get_item_map< T >() )
     {
       names.push_back( i.first );
     }
@@ -164,13 +161,13 @@ public:
    *          If no algorithm is found, an empty shared pointer is returned.
    */
   template < typename T >
-  boost::shared_ptr< T > find( const std::string& name )
+  std::shared_ptr< T > find( const std::string& name )
   {
     typename reg_type< T >::map& im = this->get_item_map< T > ();
     typename reg_type< T >::const_itr it = im.find( name );
     if ( it == im.end() )
     {
-      return boost::shared_ptr< T > ();
+      return std::shared_ptr< T > ();
     }
     return it->second;
   }
@@ -196,7 +193,7 @@ private:
   registrar();
 
   /// Private destructor (this class is a singleton)
-  ~registrar() { }
+  ~registrar() VITAL_DEFAULT_DTOR;
 
   /// Private copy constructor (this class is a singleton)
   registrar( const registrar& );

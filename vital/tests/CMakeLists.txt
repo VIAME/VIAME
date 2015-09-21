@@ -2,7 +2,7 @@ project(kwiver_core_tests)
 
 include(vital-test-setup)
 
-set( test_libraries vital vital_apm ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} )
+set( test_libraries vital vital_apm )
 
 ##############################
 # Core tests

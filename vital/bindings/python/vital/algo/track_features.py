@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-MAPTK track_features algorithm interface
+VITAL track_features algorithm interface
 
 """
 # -*- coding: utf-8 -*-
@@ -38,14 +38,14 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk import ImageContainer, TrackSet
-from maptk.algo import MaptkAlgorithm
-from maptk.util import MaptkErrorHandle
+from vital import ImageContainer, TrackSet
+from vital.algo import VitalAlgorithm
+from vital.util import VitalErrorHandle
 
 
-class TrackFeatures (MaptkAlgorithm):
+class TrackFeatures (VitalAlgorithm):
     """
-    maptk::algo::track_features interface
+    vital::algo::track_features interface
     """
 
     TYPE_NAME = "track_features"
@@ -72,18 +72,18 @@ class TrackFeatures (MaptkAlgorithm):
         tf_track_restype = TrackSet.C_TYPE_PTR
 
         if mask:
-            tf_track = self.MAPTK_LIB['maptk_algorithm_track_features_'
+            tf_track = self.VITAL_LIB['vital_algorithm_track_features_'
                                       'track_with_mask']
             tf_track_argtypes.append(ImageContainer.C_TYPE_PTR)
             tf_track_args.append(mask)
         else:
-            tf_track = self.MAPTK_LIB['maptk_algorithm_track_features_track']
-        tf_track_argtypes.append(MaptkErrorHandle.C_TYPE_PTR)
+            tf_track = self.VITAL_LIB['vital_algorithm_track_features_track']
+        tf_track_argtypes.append(VitalErrorHandle.C_TYPE_PTR)
 
         tf_track.argtypes = tf_track_argtypes
         tf_track.restype = tf_track_restype
 
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             tf_track_args.append(eh)
             return TrackSet.from_c_pointer(
                 tf_track(*tf_track_args)

@@ -37,32 +37,32 @@
 #include "camera_io.h"
 #include <vital/exceptions.h>
 
-#include <boost/filesystem.hpp>
+#include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
 namespace vital {
-
 
 /// Load a camera map from krtd files stored in a directory.
 camera_map_sptr
 read_krtd_files( std::vector< path_t > const& img_files, path_t const& dir )
 {
-  if ( ! boost::filesystem::exists( dir ) )
+  if ( ! kwiversys::SystemTools::FileExists( dir ) )
   {
     throw path_not_exists( dir );
   }
 
-  std::vector< path_t > files_to_read;
+  std::vector< std::string > files_to_read;
   camera_map::map_camera_t cameras;
 
-  for ( unsigned i = 0; i < img_files.size(); i++ )
+  for ( size_t i = 0; i < img_files.size(); i++ )
   {
-    files_to_read.push_back( dir / img_files[i].stem() );
-    std::string adj_path = files_to_read[i].string();
-    files_to_read[i] = boost::filesystem::path( adj_path.append( ".krtd" ) );
+    files_to_read.push_back( dir
+                             + "/"
+                             +  kwiversys::SystemTools::GetFilenameWithoutLastExtension( img_files[i] )
+                             + ".krtd" );
   }
 
-  for ( frame_id_t fid = 0; fid < files_to_read.size(); fid++ )
+  for ( size_t fid = 0; fid < files_to_read.size(); fid++ )
   {
     try
     {
@@ -82,6 +82,5 @@ read_krtd_files( std::vector< path_t > const& img_files, path_t const& dir )
 
   return camera_map_sptr( new simple_camera_map( cameras ) );
 }
-
 
 } } // end namespace vital

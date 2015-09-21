@@ -37,10 +37,10 @@
 #define VITAL_LANDMARK_H_
 
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 
 #include <iostream>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "covariance.h"
 #include "vector.h"
@@ -53,7 +53,7 @@ namespace vital {
 /// forward declaration of landmark class
 class landmark;
 /// typedef for a landmark shared pointer
-typedef boost::shared_ptr< landmark > landmark_sptr;
+typedef std::shared_ptr< landmark > landmark_sptr;
 
 /// An abstract representation of a 3D world point.
 /**
@@ -65,7 +65,7 @@ class landmark
 {
 public:
   /// Destructor
-  virtual ~landmark() { }
+  virtual ~landmark() VITAL_DEFAULT_DTOR
 
   /// Create a clone of this landmark object
   virtual landmark_sptr clone() const = 0;

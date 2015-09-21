@@ -30,18 +30,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Tests for maptk::algo::image_io
+Tests for vital::algo::image_io
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
-from maptk import (
+from vital import (
     AlgorithmPluginManager,
     ConfigBlock,
 )
-from maptk.algo import ImageIo
-from maptk.tests import TEST_DATA_DIR
+from vital.algo import ImageIo
+from vital.tests import TEST_DATA_DIR
 
 import nose.tools as nt
 import os
@@ -49,7 +49,7 @@ import os.path as osp
 import tempfile
 
 
-class TestMaptkAlgoImageIo (object):
+class TestVitalAlgoImageIo (object):
 
     @classmethod
     def setup_class(cls):

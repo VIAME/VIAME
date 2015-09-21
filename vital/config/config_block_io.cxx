@@ -41,13 +41,11 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <vector>
+#include <list>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/foreach.hpp>
-#include <boost/filesystem.hpp>
-
+#include <kwiversys/SystemTools.hxx>
+#include <vital/util/tokenize.h>
+#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {
@@ -73,7 +71,7 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
   // preserve manually specified new-lines in the comment string, adding a
   // trailing new-line
   std::list< cbd_t > blocks;
-  boost::algorithm::split( blocks, comment, boost::is_any_of( "\n" ) );
+  tokenize( comment, blocks, "\n" );
   while ( blocks.size() > 0 )
   {
     cbd_t cur_block = blocks.front();
@@ -91,8 +89,7 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
     // Not using token-compress in case there is purposeful use of multiple
     // adjacent spaces, like in bullited lists. This, however, leaves open
     // the appearance of empty-string words in the loop, which are handled.
-    //boost::algorithm::split(words, cur_block, boost::is_any_of(" "), boost::token_compress_on);
-    boost::algorithm::split( words, cur_block, boost::is_any_of( " " ) );
+    tokenize( cur_block, words );
     while ( words.size() > 0 )
     {
       cbd_t cur_word = words.front();
@@ -131,15 +128,15 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
 
 // ------------------------------------------------------------------
 config_block_sptr
-read_config_file( config_path_t const&             file_path,
+read_config_file( config_path_t const&      file_path,
                   config_block_key_t const& block_name )
 {
   // Check that file exists
-  if ( ! boost::filesystem::exists( file_path ) )
+  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
   {
     throw config_file_not_found_exception( file_path, "File does not exist." );
   }
-  else if ( ! boost::filesystem::is_regular_file( file_path ) )
+  else if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
     throw config_file_not_found_exception( file_path,
               "Path given doesn't point to a regular file!" );
@@ -159,10 +156,9 @@ write_config_file( config_block_sptr const& config,
 {
   using std::cerr;
   using std::endl;
-  namespace bfs = boost::filesystem;
 
   // If the given path is a directory, we obviously can't write to it.
-  if ( bfs::is_directory( file_path ) )
+  if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
     throw config_file_write_exception( file_path,
           "Path given is a directory, to which we clearly can't write." );
@@ -170,11 +166,12 @@ write_config_file( config_block_sptr const& config,
 
   // Check that the directory of the given filepath exists, creating necessary
   // directories where needed.
-  config_path_t parent_dir = bfs::absolute( file_path.parent_path() );
-  if ( ! bfs::is_directory( parent_dir ) )
+  config_path_t parent_dir = kwiversys::SystemTools::GetFilenamePath(
+    kwiversys::SystemTools::CollapseFullPath( file_path ) );
+  if ( ! kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
   {
     //std::cerr << "at least one containing directory not found, creating them..." << std::endl;
-    if ( ! bfs::create_directories( parent_dir ) )
+    if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
       throw config_file_write_exception( parent_dir,
             "Attempted directory creation, but no directory created! No idea what happened here..." );
@@ -207,7 +204,7 @@ void write_config( config_block_sptr const& config,
 
 
   bool prev_had_descr = false;  // for additional spacing
-  BOOST_FOREACH( config_block_key_t key, avail_keys )
+  VITAL_FOREACH( config_block_key_t key, avail_keys )
   {
     // Each key may or may not have an associated description string. If there
     // is one, write that out as a comment.

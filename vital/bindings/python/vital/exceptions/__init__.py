@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-MAPTK exceptions sub-module
+VITAL exceptions sub-module
 
 """
 # -*- coding: utf-8 -*-

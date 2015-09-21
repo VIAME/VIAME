@@ -38,7 +38,6 @@
 
 #include <vital/algo/filter_features.h>
 #include <vital/algo/algorithm.txx>
-#include <boost/make_shared.hpp>
 
 namespace kwiver {
 namespace vital {
@@ -70,7 +69,7 @@ filter_features
     filtered_descr.push_back(descr_vec[indices[i]]);
   }
 
-  descriptor_set_sptr filt_descr = boost::make_shared<kwiver::vital::simple_descriptor_set>(
+  descriptor_set_sptr filt_descr = std::make_shared<kwiver::vital::simple_descriptor_set>(
                                      kwiver::vital::simple_descriptor_set(filtered_descr));
 
   return std::make_pair(filt_feat, filt_descr);

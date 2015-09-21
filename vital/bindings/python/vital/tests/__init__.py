@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-maptk.tests module
+vital.tests module
 
 This module should not be installed and is only run-able from the Source/Build
 trees due to the required test data (which is of course not installed).

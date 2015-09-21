@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Tests for maptk::algo::convert_image and general algorithm tests
+Tests for vital::algo::convert_image and general algorithm tests
 
 """
 # -*- coding: utf-8 -*-
@@ -38,14 +38,14 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk import (
+from vital import (
     AlgorithmPluginManager,
     ConfigBlock,
     Image,
     ImageContainer,
 )
-from maptk.algo import ConvertImage
-from maptk.exceptions.base import MaptkNullPointerException
+from vital.algo import ConvertImage
+from vital.exceptions.base import VitalNullPointerException
 
 import nose.tools as nt
 
@@ -54,7 +54,7 @@ def mem_address(inst_ptr):
     return int(bool(inst_ptr)) and ctypes.addressof(inst_ptr.contents)
 
 
-class TestMaptkAlgoConvertImage (object):
+class TestVitalAlgoConvertImage (object):
     """
     Doubles as the tests for generic algorithm and algorithm_def methods as this
     is an algorithm with a core implementation.
@@ -93,7 +93,7 @@ class TestMaptkAlgoConvertImage (object):
 
     def test_create_invalid(self):
         nt.assert_raises(
-            MaptkNullPointerException,
+            VitalNullPointerException,
             ConvertImage.create,
             'ci', 'notAnImpl'
         )

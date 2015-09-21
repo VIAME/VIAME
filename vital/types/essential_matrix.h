@@ -37,6 +37,7 @@
 #define VITAL_ESSENTIAL_MATRIX_H_
 
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 #include <vital/vital_types.h>
 
 #include <vital/types/matrix.h>
@@ -46,9 +47,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -57,7 +56,7 @@ namespace vital {
 // Forward declarations of abstract essential matrix class
 class essential_matrix;
 // typedef for a essential_matrix shared pointer
-typedef boost::shared_ptr< essential_matrix > essential_matrix_sptr;
+typedef std::shared_ptr< essential_matrix > essential_matrix_sptr;
 
 
 // ===========================================================================
@@ -69,7 +68,7 @@ class VITAL_EXPORT essential_matrix
 {
 public:
   /// Destructor
-  virtual ~essential_matrix() { }
+  virtual ~essential_matrix() VITAL_DEFAULT_DTOR
 
   /// Create a clone of this essential_matrix object, returning as smart pointer
   /**

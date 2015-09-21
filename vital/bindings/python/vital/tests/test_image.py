@@ -30,18 +30,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Test Python interface to maptk::image
+Test Python interface to vital::image
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
-from maptk import Image
+from vital import Image
 
 import nose.tools
 
 
-class TestMaptkImage (object):
+class TestVitalImage (object):
 
     def test_new(self):
         img = Image()

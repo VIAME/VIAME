@@ -49,16 +49,14 @@ kwiver_install_headers(
 
 kwiver_add_library( vital_config
   ${vital_config_public_headers}
+  ${vital_config_private_headers}
   ${vital_config_sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_config_export.h
   )
 
 target_link_libraries( vital_config
-  PUBLIC             ${Boost_SYSTEM_LIBRARY}
-                     ${Boost_FILESYSTEM_LIBRARY}
-                     ${Boost_REGEX_LIBRARY}
-                     vital_logger
-  PRIVATE            kwiversys
+  PRIVATE              kwiversys
+                       vital_logger
   )
 
 ###

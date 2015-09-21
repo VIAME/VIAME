@@ -39,8 +39,7 @@
 #include <vital/vital_config.h>
 
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/feature_set.h>
@@ -139,10 +138,8 @@ public:
 
 };
 
-
 /// Shared pointer type of base estimate_homography algorithm definition class
-typedef boost::shared_ptr<estimate_essential_matrix> estimate_essential_matrix_sptr;
-
+typedef std::shared_ptr<estimate_essential_matrix> estimate_essential_matrix_sptr;
 
 } } } // end namespace
 

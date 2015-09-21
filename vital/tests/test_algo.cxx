@@ -45,8 +45,6 @@
 #include <vital/algo/track_features.h>
 #include <vital/algo/match_features.h>
 
-#include <boost/foreach.hpp>
-
 using namespace kwiver::vital;
 
 #define TEST_ARGS ()
@@ -63,7 +61,7 @@ int main(int argc, char* argv[])
 }
 
 #define print_config(config) \
-  BOOST_FOREACH( kwiver::vital::config_block_key_t key, config->available_values() ) \
+  VITAL_FOREACH( auto const& key, config->available_values() )  \
   { \
     cerr << "\t" \
          << key << " = " << config->get_value<kwiver::vital::config_block_key_t>(key) \
@@ -77,14 +75,14 @@ IMPLEMENT_TEST(registered_names)
   kwiver::vital::algorithm_plugin_manager::instance().register_plugins();
 
   cout << "registered algorithms (type_name:impl_name)\n";
-  BOOST_FOREACH(const string& name, kwiver::vital::algorithm::registered_names())
+  VITAL_FOREACH( auto const& name,  kwiver::vital::algorithm::registered_names() )
   {
     cout << "  " << name << endl;
   }
 
   vector<string> mf_names = kwiver::vital::algorithm::registered_names("match_features");
   cout << "registered \"match_features\" implementations\n";
-  BOOST_FOREACH(const string& name, mf_names)
+  VITAL_FOREACH( auto const& name, mf_names)
   {
     cout << "  " << name << endl;
   }
@@ -119,7 +117,7 @@ IMPLEMENT_TEST(create_from_name)
   kwiver::vital::algorithm_sptr valid = kwiver::vital::algorithm::create("match_features", "homography_guided");
   TEST_EQUAL("create valid algorithm", !valid, false);
 
-  kwiver::vital::algo::match_features_sptr mf = boost::dynamic_pointer_cast<kwiver::vital::algo::match_features>(valid);
+  kwiver::vital::algo::match_features_sptr mf = std::dynamic_pointer_cast<kwiver::vital::algo::match_features>(valid);
   TEST_EQUAL("create correct type", !mf, false);
 
   TEST_EQUAL("create correct impl", mf->impl_name(), "homography_guided");

@@ -31,7 +31,7 @@
 
 #include "kwiver_logger_factory.h"
 #include <log4cxx/logger.h>
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include <vital/logger/vital_logger_export.h>
 
@@ -303,7 +303,7 @@ public:
     : kwiver_logger_factory( "log4cxx factory" )
   { }
 
-  virtual ~log4cxx_factory() { }
+  virtual ~log4cxx_factory() VITAL_DEFAULT_DTOR
 
   virtual logger_handle_t get_logger( const char * const name )
   {
@@ -319,7 +319,7 @@ public:
 /*
  * Shared object bootstrap function
  */
-extern "C" void* VITAL_LOGGER_EXPORT kwiver_logger_factory();
+extern "C" VITAL_LOGGER_EXPORT void* kwiver_logger_factory();
 
 void* kwiver_logger_factory()
 {

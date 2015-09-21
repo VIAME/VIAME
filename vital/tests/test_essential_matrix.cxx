@@ -39,11 +39,18 @@
 #include <iostream>
 #include <vector>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+#if defined M_PIl
+#define LOCAL_PI M_PIl
+#else
+#define LOCAL_PI M_PI
+#endif
+
 #include <vital/types/essential_matrix.h>
 
 #include <Eigen/SVD>
-#include <boost/foreach.hpp>
-#include <boost/math/constants/constants.hpp>
 
 
 #define TEST_ARGS ()
@@ -132,7 +139,7 @@ IMPLEMENT_TEST(twisted_pair)
   vector_3d t1 = em.translation();
   vector_3d t2 = -t1;
 
-  rotation_d rot_t_180(boost::math::constants::pi<double>(),
+  rotation_d rot_t_180( LOCAL_PI,
                        t.normalized().eval());
   TEST_NEAR("twisted pair rotation should be 180 degree rotation around t",
             matrix_3x3d(R2), matrix_3x3d(rot_t_180 * R1), epsilon);

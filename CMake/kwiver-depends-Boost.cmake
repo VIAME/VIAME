@@ -9,7 +9,6 @@ find_package(Boost 1.55 REQUIRED
   COMPONENTS
     chrono
     date_time
-    ${kwiver_boost_python_package}
     filesystem
     program_options
     regex

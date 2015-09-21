@@ -31,7 +31,9 @@
 #ifndef KWIVER_CONFIG_BLOCK_TYPES_H_
 #define KWIVER_CONFIG_BLOCK_TYPES_H_
 
-#include <boost/filesystem/path.hpp>
+#include <string>
+#include <memory>
+#include <vector>
 
 //
 // Define config block supporting types
@@ -39,6 +41,8 @@
 
 namespace kwiver {
 namespace vital {
+
+class config_block;
 
 /// The type that represents a configuration value key.
 typedef std::string config_block_key_t;
@@ -54,10 +58,10 @@ typedef std::string config_block_description_t;
 
 class config_block;
 /// Shared pointer for the \c config_block class
-typedef boost::shared_ptr<config_block> config_block_sptr;
+typedef std::shared_ptr<config_block> config_block_sptr;
 
 /// The type to be used for file and directory paths
-typedef boost::filesystem::path config_path_t;
+typedef std::string config_path_t;
 
 } }
 

@@ -36,10 +36,12 @@
 #ifndef VITAL_LANDMARK_MAP_H_
 #define VITAL_LANDMARK_MAP_H_
 
-#include <vital/vital_types.h>
 #include "landmark.h"
+
+#include <vital/vital_types.h>
+
 #include <map>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -53,7 +55,7 @@ public:
   typedef std::map< landmark_id_t, landmark_sptr > map_landmark_t;
 
   /// Destructor
-  virtual ~landmark_map() { }
+  virtual ~landmark_map() VITAL_DEFAULT_DTOR
 
   /// Return the number of landmarks in the map
   virtual size_t size() const = 0;
@@ -63,7 +65,7 @@ public:
 };
 
 /// typedef for a landmark shared pointer
-typedef boost::shared_ptr< landmark_map > landmark_map_sptr;
+typedef std::shared_ptr< landmark_map > landmark_map_sptr;
 
 
 // ------------------------------------------------------------------

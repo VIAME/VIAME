@@ -33,9 +33,9 @@
 
 #include <vital/vital_config.h>
 
-#include <boost/shared_ptr.hpp>
 #include <utility>
 #include <vector>
+#include <memory>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/feature_set.h>
@@ -97,7 +97,7 @@ protected:
 };
 
 /// type definition for shared pointer to a filter_features algorithm
-typedef boost::shared_ptr<filter_features> filter_features_sptr;
+typedef std::shared_ptr<filter_features> filter_features_sptr;
 
 } } } // end namespace
 

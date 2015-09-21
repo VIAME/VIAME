@@ -36,8 +36,7 @@
 
 #include <map>
 #include <string>
-
-#include <boost/ptr_container/ptr_map.hpp>
+#include <memory>
 
 
 namespace kwiver {
@@ -150,9 +149,8 @@ text = kwiver::vital::token_expander::instance()->expand_token( text );
   std::string expand_token(  std::string const& initial_string );
 
 private:
-  typedef boost::ptr_map < std::string, kwiver::vital::token_type > map_t;
+  typedef std::map < std::string, std::shared_ptr< kwiver::vital::token_type > > map_t;
   typedef map_t::iterator iterator_t;
-  typedef std::pair < iterator_t, bool > result_t;
 
   map_t m_typeList;
 

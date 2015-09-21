@@ -9,8 +9,8 @@ set(utils_dir "${CMAKE_CURRENT_LIST_DIR}")
 
 install(
   FILES "${utils_dir}/kwiver-utils.cmake"
-        "${utils_dir}/FindPROJ.cmake"
         "${utils_dir}/FindEigen3.cmake"
+        "${utils_dir}/FindLog4cxx.cmake"
   DESTINATION "${kwiver_cmake_install_dir}"
   )
 
@@ -18,9 +18,4 @@ install(
   DIRECTORY "${utils_dir}/utils"
             "${utils_dir}/tools"
   DESTINATION "${kwiver_cmake_install_dir}"
-  )
-
-install(
-  DIRECTORY "${utils_dir}/templates/cxx"
-  DESTINATION "${kwiver_cmake_install_dir}/templates"
   )

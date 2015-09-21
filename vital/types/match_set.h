@@ -36,9 +36,10 @@
 #ifndef VITAL_MATCH_SET_H_
 #define VITAL_MATCH_SET_H_
 
+#include <vital/vital_config.h>
 
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -52,7 +53,7 @@ class match_set
 {
 public:
   /// Destructor
-  virtual ~match_set() { }
+  virtual ~match_set() VITAL_DEFAULT_DTOR
 
   /// Return the number of matches in the set
   virtual size_t size() const = 0;
@@ -62,7 +63,7 @@ public:
 };
 
 /// Shared pointer of base match_set type
-typedef boost::shared_ptr< match_set > match_set_sptr;
+typedef std::shared_ptr< match_set > match_set_sptr;
 
 
 // ------------------------------------------------------------------

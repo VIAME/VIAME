@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-MAPTK Python version of track features tool, primarily for example Python
+VITAL Python version of track features tool, primarily for example Python
 interface usage.
 
 """
@@ -42,12 +42,12 @@ import logging
 import os
 import os.path
 
-from maptk import (
+from vital import (
     AlgorithmPluginManager,
     ConfigBlock,
     TrackSet
 )
-from maptk.algo import (
+from vital.algo import (
     ConvertImage,
     ImageIo,
     TrackFeatures

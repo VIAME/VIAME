@@ -41,8 +41,7 @@
 
 #include <string>
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <vital/config/config_block.h>
 #include <vital/registrar.h>
@@ -53,7 +52,7 @@ namespace vital {
 /// Forward declaration of algorithm
 class algorithm;
 /// Shared pointer to an algorithm
-typedef boost::shared_ptr< algorithm > algorithm_sptr;
+typedef std::shared_ptr< algorithm > algorithm_sptr;
 
 /// An abstract base class for all algorithms
 class VITAL_EXPORT algorithm
@@ -229,7 +228,7 @@ class VITAL_EXPORT algorithm_def
 {
 public:
   /// Shared pointer type of the templated vital::algorithm_def class
-  typedef boost::shared_ptr<Self> base_sptr;
+  typedef std::shared_ptr<Self> base_sptr;
 
   virtual ~algorithm_def() VITAL_DEFAULT_DTOR;
 
@@ -347,7 +346,7 @@ class algorithm_impl
 {
 public:
   /// shared pointer type of this impl's base vital::algorithm_def class.
-  typedef boost::shared_ptr<Base> base_sptr;
+  typedef std::shared_ptr<Base> base_sptr;
 
   virtual ~algorithm_impl() VITAL_DEFAULT_DTOR;
 

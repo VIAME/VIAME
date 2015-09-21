@@ -35,12 +35,10 @@
 
 #include "camera_map.h"
 
-#include <boost/foreach.hpp>
-
 #include <vital/types/camera_map.h>
+#include <vital/vital_foreach.h>
 
 #include <vital/bindings/c/camera.h>
-
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/camera.h>
 #include <vital/bindings/c/helpers/camera_map.h>
@@ -119,7 +117,7 @@ void vital_camera_map_get_map( vital_camera_map_t *cam_map,
     *frame_numbers = (unsigned int*)malloc(sizeof(unsigned int) * *length);
     *cameras = (vital_camera_t**)malloc(sizeof(vital_camera_t*) * *length);
     size_t i=0;
-    BOOST_FOREACH( vital::camera_map::map_camera_t::value_type const &p, map_cams )
+    VITAL_FOREACH( vital::camera_map::map_camera_t::value_type const& p, map_cams )
     {
       (*frame_numbers)[i] = p.first;
       vital_c::CAMERA_SPTR_CACHE.store( p.second );

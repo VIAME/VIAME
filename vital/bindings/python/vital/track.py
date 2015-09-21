@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Interface to MAPTK track class.
+Interface to VITAL track class.
 
 """
 # -*- coding: utf-8 -*-
@@ -38,18 +38,18 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk.util import MaptkObject, MaptkErrorHandle
+from vital.util import VitalObject, VitalErrorHandle
 
 
-class Track (MaptkObject):
+class Track (VitalObject):
     """
-    maptk::track interface class
+    vital::track interface class
     """
 
     def __init__(self):
         super(Track, self).__init__()
 
-        t_new = self.MAPTK_LIB['maptk_track_new']
+        t_new = self.VITAL_LIB['vital_track_new']
         t_new.restype = self.C_TYPE_PTR
         self._inst_ptr = t_new()
 
@@ -58,9 +58,9 @@ class Track (MaptkObject):
                                "pointer returned)")
 
     def _destroy(self):
-        t_del = self.MAPTK_LIB['maptk_track_destroy']
-        t_del.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
-        with MaptkErrorHandle() as eh:
+        t_del = self.VITAL_LIB['vital_track_destroy']
+        t_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
+        with VitalErrorHandle() as eh:
             t_del(self, eh)
 
     def __len__(self):
@@ -68,10 +68,10 @@ class Track (MaptkObject):
         :return: The number of states in this track
         :rtype: int
         """
-        t_size = self.MAPTK_LIB['maptk_track_size']
-        t_size.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
+        t_size = self.VITAL_LIB['vital_track_size']
+        t_size.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
         t_size.restype = ctypes.c_size_t
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             return t_size(self, eh)
 
     @property
@@ -88,8 +88,8 @@ class Track (MaptkObject):
         :return: If this track has no track states or not
         :rtype: bool
         """
-        t_empty = self.MAPTK_LIB['maptk_track_empty']
-        t_empty.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
+        t_empty = self.VITAL_LIB['vital_track_empty']
+        t_empty.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
         t_empty.restype = ctypes.c_bool
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             return t_empty(self, eh)

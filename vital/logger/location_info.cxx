@@ -30,11 +30,13 @@
 
 #include "location_info.h"
 
-#include <boost/filesystem/path.hpp>
+#include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
 namespace vital {
 namespace logger_ns {
+
+typedef kwiversys::SystemTools ST;
 
 /**
    When location information is not available the constant
@@ -76,8 +78,7 @@ location_info
 std::string location_info
 ::get_file_name() const
 {
-  boost::filesystem::path file = m_fileName;
-  return file.filename().string();
+  return ST::GetFilenameName( m_fileName );
 }
 
 
@@ -85,8 +86,7 @@ std::string location_info
 std::string location_info
 ::get_file_path() const
 {
-  boost::filesystem::path file = m_fileName;
-  return file.root_path().string();
+  return ST::GetFilenamePath( m_fileName );
 }
 
 

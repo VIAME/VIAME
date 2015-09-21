@@ -39,8 +39,8 @@
 #include <vital/vital_export.h>
 
 #include <cstddef>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
+#include <cassert>
 
 namespace kwiver {
 namespace vital {
@@ -95,7 +95,7 @@ protected:
 };
 
 /// Shared pointer for base image_memory type
-typedef boost::shared_ptr< image_memory > image_memory_sptr;
+typedef std::shared_ptr< image_memory > image_memory_sptr;
 
 
 // ==================================================================

@@ -37,11 +37,11 @@
 #define VITAL_FEATURE_H_
 
 #include <vital/vital_export.h>
+#include <vital/vital_config.h>
 
 #include <iostream>
 #include <typeinfo>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "covariance.h"
 #include "vector.h"
@@ -59,7 +59,7 @@ class feature
 {
 public:
   /// Destructor
-  virtual ~feature() { }
+  virtual ~feature() VITAL_DEFAULT_DTOR
 
   /// Access the type info of the underlying data (double or float)
   virtual const std::type_info& data_type() const = 0;
@@ -77,7 +77,7 @@ public:
 };
 
 /// Shared pointer for base feature type
-typedef boost::shared_ptr< feature > feature_sptr;
+typedef std::shared_ptr< feature > feature_sptr;
 
 /// output stream operator for base class feature
 /**

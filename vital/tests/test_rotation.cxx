@@ -38,10 +38,18 @@
 #include <iostream>
 #include <vector>
 
-#include <vital/types/rotation.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
-#include <boost/foreach.hpp>
-#include <boost/math/constants/constants.hpp>
+#if defined M_PIl
+#define LOCAL_PI M_PIl
+#else
+#define LOCAL_PI M_PI
+#endif
+
+
+#include <vital/vital_foreach.h>
+#include <vital/types/rotation.h>
 
 
 #define TEST_ARGS ()
@@ -235,7 +243,7 @@ IMPLEMENT_TEST(interpolation)
 {
   using namespace kwiver::vital;
 
-  double pi = boost::math::constants::pi<double>();
+  static const double pi( LOCAL_PI );
   rotation_d x(0, vector_3d(1, 0, 0)),
              y(pi / 2, vector_3d(0, 1, 0)),
              z;
@@ -258,7 +266,7 @@ IMPLEMENT_TEST(multiple_interpolations)
   using namespace kwiver::vital;
   using namespace std;
 
-  double pi = boost::math::constants::pi<double>();
+  static const double pi( LOCAL_PI );
   rotation_d x(0, vector_3d(1, 0, 0)),
              y(pi / 2, vector_3d(0, 1, 0));
   vector<rotation_d> rots;
@@ -269,7 +277,7 @@ IMPLEMENT_TEST(multiple_interpolations)
 
   cerr << "Vector size: " << rots.size() << endl;
   TEST_EQUAL("vector size", rots.size(), 5);
-  BOOST_FOREACH(rotation_d rot, rots)
+  VITAL_FOREACH( rotation_d rot, rots)
   {
     cerr << "\t" << rot.axis() << ' ' << rot.angle() << endl;
   }

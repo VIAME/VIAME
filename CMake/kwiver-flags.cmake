@@ -5,20 +5,6 @@
 
 include(CheckCXXCompilerFlag)
 
-define_property(GLOBAL PROPERTY kwiver_warnings
-  BRIEF_DOCS "Warning flags for KWIVER build"
-  FULL_DOCS "List of warning flags KWIVER will build with."
-  )
-
-# Helper function for adding compiler flags
-function(kwiver_check_compiler_flag flag)
-  string(REPLACE "+" "plus" safeflag "${flag}")
-  check_cxx_compiler_flag("${flag}" "has_compiler_flag-${safeflag}")
-  if ( has_compiler_flag-${safeflag} )
-    set_property(GLOBAL APPEND PROPERTY kwiver_warnings "${flag}")
-  endif()
-endfunction ()
-
 if (MSVC)
   include( kwiver-flags-msvc )
 else()

@@ -40,8 +40,6 @@
 
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
-
 #include <vital/algo/algorithm.h>
 #include <vital/types/feature_set.h>
 #include <vital/types/match_set.h>
@@ -99,7 +97,7 @@ public:
 
 
 /// Shared pointer type of base estimate_homography algorithm definition class
-typedef boost::shared_ptr<estimate_homography> estimate_homography_sptr;
+typedef std::shared_ptr<estimate_homography> estimate_homography_sptr;
 
 
 } } } // end namespace

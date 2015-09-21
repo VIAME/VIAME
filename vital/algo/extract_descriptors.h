@@ -42,7 +42,6 @@
 #include <vital/types/image_container.h>
 #include <vital/types/feature_set.h>
 #include <vital/types/descriptor_set.h>
-#include <boost/shared_ptr.hpp>
 
 namespace kwiver {
 namespace vital {
@@ -74,7 +73,7 @@ public:
 
 
 /// Shared pointer for base extract_descriptors algorithm definition class
-typedef boost::shared_ptr<extract_descriptors> extract_descriptors_sptr;
+typedef std::shared_ptr<extract_descriptors> extract_descriptors_sptr;
 
 
 } } } // end namespace

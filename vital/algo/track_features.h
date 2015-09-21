@@ -37,7 +37,6 @@
 #ifndef VITAL_ALGO_TRACK_FEATURES_H_
 #define VITAL_ALGO_TRACK_FEATURES_H_
 
-#include <boost/shared_ptr.hpp>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
@@ -81,7 +80,7 @@ public:
 
 
 /// Shared pointer for generic track_features definition type.
-typedef boost::shared_ptr<track_features> track_features_sptr;
+typedef std::shared_ptr<track_features> track_features_sptr;
 
 } } } // end namespace
 

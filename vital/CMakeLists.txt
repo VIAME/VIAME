@@ -1,7 +1,6 @@
 #
 # Top level build for VITAL
 #
-include( GenerateExportHeader )
 
 ###
 # KWSys borrowed from CMake
@@ -13,13 +12,17 @@ set(KWSYS_USE_SystemTools 1)
 set(KWSYS_USE_System 1)
 set(KWSYS_USE_RegularExpression 1)
 set(KWSYS_USE_SystemInformation 1)
+set(KWSYS_USE_Directory 1)
+
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
+set(KWSYS_INSTALL_INCLUDE_DIR "include/kwiver")
 set(KWSYS_INSTALL_LIB_DIR lib)
 set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
 
 include_directories( SYSTEM ${KWSYS_INCLUDE_DIR}/kwiversys )
 add_subdirectory(kwiversys)
 _kwiver_export( ${KWSYS_NAMESPACE} )
+set_property(GLOBAL APPEND PROPERTY kwiver_libraries kwiversys)
 
 if (APPLE)
   set_target_properties( ${KWSYS_NAMESPACE}
@@ -29,10 +32,13 @@ endif()
 
 # ==================================================================
 ###
+# These headers are installed
 #
 set( vital_public_headers
   registrar.h
-  vital_config.h
+  vital_types.h
+  vital_foreach.h
+  noncopyable.h
 
   algo/algorithm.txx
   algo/algorithm.h
@@ -158,6 +164,7 @@ kwiver_install_headers(
 # install export header
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
   SUBDIR   vital
   NOPATH
   )
@@ -166,11 +173,11 @@ kwiver_add_library( vital
   ${vital_public_headers}
   ${vital_sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
   )
 
 target_link_libraries( vital
-  PRIVATE         ${Boost_LIBRARIES} # be more specific
-                  kwiversys
+  PRIVATE         kwiversys
   PUBLIC          vital_config
                   vital_logger
   )
@@ -218,7 +225,6 @@ target_link_libraries(vital_apm
   PRIVATE          kwiversys
                    vital
                    vital_logger
-                   ${Boost_FILESYSTEM_LIBRARY}
   )
 
 set(VITAL_MODULE_PATHS "${vidtk_default_module_paths}"
@@ -244,9 +250,15 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(config_subdir "/$<CONFIGURATION>")
 endif()
 
+#
+# This is all to get around the ';' as the path separator.  CMake will
+# split it into two elements when we want it to be ignored.
+#
+
 ## The modules subdirectory is where the kwiver_add_module() macro generates its product
-set( install_module_paths "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/modules" )
-set( build_module_paths "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules" )
+## Note that maptk has a different place where it installs plugins
+set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/maptk" )
+set( build_module_paths   "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/maptk" )
 
 # assemle total search path
 set( VITAL_DEFAULT_MODULE_PATHS ${install_module_paths})
@@ -260,13 +272,17 @@ if (VITAL_USE_BUILD_PLUGIN_DIR)
   set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${build_module_paths})
 endif()
 
-#
-# This is all to get around the ';' as the path separator.  CMake will
-# split it into two elements when we want it to be ignored.
-#
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/algorithm_plugin_manager_paths.h" )
+
+##
+# check compiler support
+include( kwiver-configcheck )
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital_config.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital_config.h" )
 
 ###
 #
@@ -280,10 +296,6 @@ add_subdirectory( tools )
 if (VITAL_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
-
-###
-# Make appropriate export header file
-generate_export_header( vital )
 
 ###
 # Marking source root for documentation generation

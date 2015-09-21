@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Interface to MAPTK track_set class.
+Interface to VITAL track_set class.
 
 """
 # -*- coding: utf-8 -*-
@@ -38,13 +38,13 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk import Track
-from maptk.util import MaptkObject, MaptkErrorHandle
+from vital import Track
+from vital.util import VitalObject, VitalErrorHandle
 
 
-class TrackSet (MaptkObject):
+class TrackSet (VitalObject):
     """
-    maptk::track_set interface class
+    vital::track_set interface class
     """
 
     @classmethod
@@ -58,12 +58,12 @@ class TrackSet (MaptkObject):
         :rtype: TrackSet
 
         """
-        ts_new_from_file = cls.MAPTK_LIB['maptk_trackset_new_from_file']
+        ts_new_from_file = cls.VITAL_LIB['vital_trackset_new_from_file']
         ts_new_from_file.argtypes = [ctypes.c_char_p,
-                                     MaptkErrorHandle.C_TYPE_PTR]
+                                     VitalErrorHandle.C_TYPE_PTR]
         ts_new_from_file.restype = cls.C_TYPE_PTR
 
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             return TrackSet.from_c_pointer(ts_new_from_file(filepath, eh))
 
     def __init__(self, track_list=None):
@@ -78,7 +78,7 @@ class TrackSet (MaptkObject):
         """
         super(TrackSet, self).__init__()
 
-        ts_new = self.MAPTK_LIB['maptk_trackset_new']
+        ts_new = self.VITAL_LIB['vital_trackset_new']
         ts_new.argtypes = [ctypes.c_size_t,
                            ctypes.POINTER(Track.C_TYPE_PTR)]
         ts_new.restype = self.C_TYPE_PTR
@@ -95,16 +95,16 @@ class TrackSet (MaptkObject):
                                "(NULL pointer returned)")
 
     def _destroy(self):
-        ts_del = self.MAPTK_LIB['maptk_trackset_destroy']
-        ts_del.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
-        with MaptkErrorHandle() as eh:
+        ts_del = self.VITAL_LIB['vital_trackset_destroy']
+        ts_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
+        with VitalErrorHandle() as eh:
             ts_del(self, eh)
 
     def __len__(self):
-        ts_size = self.MAPTK_LIB['maptk_trackset_size']
-        ts_size.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
+        ts_size = self.VITAL_LIB['vital_trackset_size']
+        ts_size.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
         ts_size.restype = ctypes.c_size_t
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             return ts_size(self, eh)
 
     def size(self):
@@ -118,9 +118,9 @@ class TrackSet (MaptkObject):
         :type filepath: str
 
         """
-        ts_write = self.MAPTK_LIB['maptk_trackset_write_track_file']
+        ts_write = self.VITAL_LIB['vital_trackset_write_track_file']
         ts_write.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
-                             MaptkErrorHandle.C_TYPE_PTR]
+                             VitalErrorHandle.C_TYPE_PTR]
 
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             ts_write(self, filepath, eh)

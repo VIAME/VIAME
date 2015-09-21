@@ -30,13 +30,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-maptk module
+vital module
 
 """
 # -*- coding: utf-8 -*-
 __author__ = 'purg'
 
-# Common MAPTK Components for easy access
+# Common VITAL Components for easy access
 from .apm import AlgorithmPluginManager
 from .camera import Camera
 from .camera_map import CameraMap

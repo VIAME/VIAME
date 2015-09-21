@@ -36,18 +36,7 @@
 #include "token_type_config.h"
 
 #include <vital/logger/logger.h>
-
-#ifndef BOOST_FILESYSTEM_VERSION
-#define BOOST_FILESYSTEM_VERSION 3
-#else
-#if BOOST_FILESYSTEM_VERSION == 2
-#error "Only boost::filesystem version 3 is supported."
-#endif
-#endif
-
-#include <boost/filesystem.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
-#include <boost/algorithm/string.hpp>
+#include <kwiversys/SystemTools.hxx>
 
 #include <string>
 #include <cstring>
@@ -55,6 +44,7 @@
 #include <vector>
 #include <fstream>
 #include <cctype>
+#include <algorithm>
 
 namespace kwiver {
 namespace vital {
@@ -170,7 +160,7 @@ public:
     ++m_file_count;
 
     // Get directory part of the input file
-    const config_path_t config_file_dir( file_path.parent_path() );
+    const config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( file_path ) );
 
     while ( true )
     {
@@ -221,15 +211,16 @@ public:
         const int current_line( m_line_number ); // save current line number
 
         LOG_DEBUG( m_logger, "Including file \"" << m_token_line << "\" at "
-                  << file_path.string() << ":" << m_line_number );
+                  << file_path << ":" << m_line_number );
 
         config_path_t filename = m_token_line;
         flush_line(); // force read of new line
 
         // Prepend current directory if file specified is not absolute.
-        if ( ! boost::filesystem::path( filename ).is_absolute() )
+        config_path_t dir_part = kwiversys::SystemTools::GetFilenamePath( filename );
+        if ( dir_part[0] != '/' )
         {
-          filename = config_file_dir /filename;
+          filename = config_file_dir + "/" + filename;
         }
 
         process_file( filename ); // process included file
@@ -248,7 +239,7 @@ public:
         {
           // Unexpected token - syntax error
           LOG_ERROR( m_logger, "Invalid syntax in line \"" << m_last_line <<
-                     "\" at " << file_path.string() << ":" << m_line_number );
+                     "\" at " << file_path << ":" << m_line_number );
           m_parse_error = true;
 
           flush_line(); // force starting a new line
@@ -256,16 +247,16 @@ public:
         }
 
         // Save current block context and start another
-        block_context_t* block_ctxt = new block_context_t();
-        block_ctxt->m_block_name = token.value; // block name
-        block_ctxt->m_file_name = file_path.string(); // current file name
-        block_ctxt->m_start_line = m_line_number;
-        block_ctxt->m_previous_context = m_current_context;
+        block_context_t block_ctxt;
+        block_ctxt.m_block_name = token.value; // block name
+        block_ctxt.m_file_name = file_path; // current file name
+        block_ctxt.m_start_line = m_line_number;
+        block_ctxt.m_previous_context = m_current_context;
 
         m_current_context += token.value + kwiver::vital::config_block::block_sep;
 
         LOG_DEBUG( m_logger, "Starting new block \"" << m_current_context
-                  << "\" at " << file_path.string() << ":" << m_line_number );
+                  << "\" at " << file_path << ":" << m_line_number );
 
         m_block_stack.push_back( block_ctxt );
 
@@ -286,7 +277,7 @@ public:
         {
           std::stringstream reason;
           reason << "\"endblock\" found without matching \"block\" at "
-                 << file_path.string() << ":" << m_line_number;
+                 << file_path << ":" << m_line_number;
 
           throw config_file_not_parsed_exception( file_path, reason.str() );
         }
@@ -313,7 +304,7 @@ public:
       {
         // Unexpected token - syntax error
         LOG_ERROR( m_logger, "Invalid syntax in line \"" << m_last_line <<
-                   "\" at " << file_path.string() << ":" << m_line_number );
+                   "\" at " << file_path << ":" << m_line_number );
         m_parse_error = true;
 
         flush_line(); // force starting a new line
@@ -328,7 +319,7 @@ public:
       {
         // Unexpected token - syntax error
         LOG_ERROR( m_logger, "Invalid syntax in line \"" << m_last_line <<
-                   "\" at " << file_path.string() << ":" << m_line_number );
+                   "\" at " << file_path << ":" << m_line_number );
         m_parse_error = true;
 
         flush_line(); // force starting a new line
@@ -343,7 +334,7 @@ public:
       {
         // Unexpected token - syntax error
         LOG_ERROR( m_logger, "Invalid syntax in line \"" << m_last_line <<
-                   "\" at " << file_path.string() << ":" << m_line_number );
+                   "\" at " << file_path << ":" << m_line_number );
         m_parse_error = true;
 
         flush_line(); // force starting a new line
@@ -373,9 +364,8 @@ public:
         // prepend our current directory if this is a path
         if ( rel_path )
         {
-          config_path_t file = val;
-          config_path_t full = config_file_dir / file;
-          val = full.string();
+          config_path_t full = config_file_dir + "/" + val;
+          val = full;
         }
 
         // Add key/value to config
@@ -585,7 +575,7 @@ public:
 
 
   // nested block stack
-  boost::ptr_vector< block_context_t > m_block_stack;
+  std::vector< block_context_t > m_block_stack;
 
   // current block context with trailing sep ':'
   std::string m_current_context;

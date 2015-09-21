@@ -41,30 +41,17 @@
 #include <vital/vital_apm_export.h>
 #include <vital/registrar.h>
 #include <vital/logger/logger.h>
+#include <vital/vital_foreach.h>
 
 #include <kwiversys/DynamicLoader.hxx>
 #include <kwiversys/SystemTools.hxx>
+#include <kwiversys/Directory.hxx>
 
-#ifndef BOOST_FILESYSTEM_VERSION
-#define BOOST_FILESYSTEM_VERSION 3
-#else
-#if BOOST_FILESYSTEM_VERSION == 2
-#error "Only boost::filesystem version 3 is supported."
-#endif
-#endif
-
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
-#include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
 
 #include <map>
 #include <string>
 #include <vector>
-
-namespace bfs = boost::filesystem;
+#include <mutex>
 
 namespace kwiver {
 namespace vital {
@@ -72,6 +59,7 @@ namespace vital {
 namespace // anonymous
 {
 
+typedef kwiversys::SystemTools ST;
 typedef kwiversys::DynamicLoader DL;
 typedef DL::LibraryHandle library_t;
 typedef DL::SymbolPointer function_t;
@@ -93,7 +81,6 @@ static std::string const default_module_paths= std::string( DEFAULT_MODULE_PATHS
 
 } // end anonymous namespace
 
-static bool is_separator( vital::path_t::value_type ch );
 
 // ---- Static ---
 algorithm_plugin_manager * algorithm_plugin_manager::s_instance( 0 );
@@ -137,9 +124,8 @@ public:
     // \todo: Want a way to hook into an environment variable / config file here
     //       for additional search path extension
     //       - Search order: setInCode -> EnvVar -> configFile -> defaults
-    //       - create separate default_m_search_paths member var for separate storage
 
-    BOOST_FOREACH( path_t module_dir, this->m_search_paths )
+    VITAL_FOREACH( path_t module_dir, this->m_search_paths )
     {
       load_modules_in_directory( module_dir, name );
     }
@@ -161,12 +147,12 @@ public:
       LOG_DEBUG( m_logger, "Empty directory in the search path. Ignoring." );
       return;
     }
-    if ( ! bfs::exists( dir_path ) )
+    if ( ! ST::FileExists( dir_path ) )
     {
       LOG_DEBUG( m_logger, "Path " << dir_path << " doesn't exist. Ignoring." );
       return;
     }
-    if ( ! bfs::is_directory( dir_path ) )
+    if ( ! ST::FileIsDirectory( dir_path ) )
     {
       LOG_DEBUG( m_logger, "Path " << dir_path << " is not a directory. Ignoring." );
       return;
@@ -175,30 +161,34 @@ public:
     // Iterate over search-path directories, attempting module load on elements
     // that end in the configured library suffix.
     LOG_DEBUG( m_logger, "Loading modules from directory: " << dir_path );
-    bfs::directory_iterator dir_it( dir_path );
-    while ( dir_it != bfs::directory_iterator() )
+
+    kwiversys::Directory dir;
+    dir.Load( dir_path );
+    unsigned long num_files = dir.GetNumberOfFiles();
+
+    for (unsigned long i = 0; i < num_files; ++i )
     {
-      bfs::directory_entry const e = *dir_it;
+      std::string file = dir.GetPath();
+      file += "/" + std::string( dir.GetFile( i ) );
 
       // Accept this file as a module to check if it has the correct library
       // suffix and matches a provided module name if one was provided.
-      if ( boost::ends_with( e.path().string(), shared_library_suffix ) &&
-           ( ( name.size() == 0 ) || ( e.path().stem().string() == name ) ) )
+
+      if ( ( ST::GetFilenameLastExtension( file ) == shared_library_suffix ) &&
+           ( ( name.size() == 0 ) || ( ST::GetFilenameWithoutExtension( file ) == name ) ) )
       {
         // Check that we're looking a file
-        if ( e.status().type() == bfs::regular_file )
+        if ( ! ST::FileIsDirectory( file ) )
         {
-          register_from_module( e.path() );
+          register_from_module( file );
         }
         else
         {
-          LOG_WARN( m_logger, "Encountered a directory entry " << e.path() <<
+          LOG_WARN( m_logger, "Encountered a directory entry " << file <<
                     " which ends with the expected suffix, but is not a file" );
         }
       }
-
-      ++dir_it;
-    }
+    } // end for
   } // load_modules_in_directory
 
 
@@ -223,7 +213,7 @@ public:
     //
     // Attempting module load
     //
-    library_t library = DL::OpenLibrary( module_path.string().c_str() );
+    library_t library = DL::OpenLibrary( module_path.c_str() );
     if ( ! library )
     {
       LOG_WARN( m_logger, "Failed to open module library " << module_path <<
@@ -265,8 +255,10 @@ public:
     {
       LOG_DEBUG( m_logger, "Module registration complete" );
 
-      // Adding module name to registered list
-      registered_modules_[module_path.stem().string()] = module_path;
+      // Adding module name to registered list. Note that existing
+      // modules will be replaced.
+      std::string key = ST::GetFilenameName( ST::GetFilenameWithoutLastExtension( module_path ) );
+      registered_modules_[key] = module_path;
     }
 
     return true;
@@ -279,14 +271,12 @@ public:
   {
     std::vector< std::string > r_vec;
 
-    BOOST_FOREACH( registered_modules_t::value_type p, registered_modules_ )
+    VITAL_FOREACH( registered_modules_t::value_type p, registered_modules_ )
     {
       r_vec.push_back( p.first );
     }
     return r_vec;
   }
-
-
 };
 
 
@@ -297,7 +287,7 @@ public:
 /// Private constructor
 algorithm_plugin_manager
 ::algorithm_plugin_manager()
-  : impl_( new impl() )
+  : m_impl( new impl() )
 {
   // craft default search paths. Order of elements in the path has
   // some effect on how modules are looked up.
@@ -306,22 +296,21 @@ algorithm_plugin_manager
   const char * env_ptr = kwiversys::SystemTools::GetEnv( environment_variable_name );
   if ( 0 != env_ptr )
   {
-    LOG_INFO( impl_->m_logger, "Adding path \"" << env_ptr << "\" from environment" );
+    LOG_INFO( m_impl->m_logger, "Adding path \"" << env_ptr << "\" from environment" );
     std::string const extra_module_dirs(env_ptr);
-    boost::split( impl_->m_search_paths, extra_module_dirs, is_separator, boost::token_compress_on );
+
+    // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
+    ST::Split( extra_module_dirs, m_impl->m_search_paths, PATH_SEPARATOR_CHAR );
   }
 
-  std::vector< path_t > temp;
-  boost::split( temp, default_module_paths, is_separator, boost::token_compress_on );
-  impl_->m_search_paths.insert( impl_->m_search_paths.end(), temp.begin(), temp.end() );
+  ST::Split( default_module_paths, m_impl->m_search_paths, PATH_SEPARATOR_CHAR );
 }
 
 
-/// Private destructor
+// Private destructor
 algorithm_plugin_manager
 ::~algorithm_plugin_manager()
 {
-  delete this->impl_;
 }
 
 
@@ -331,14 +320,14 @@ algorithm_plugin_manager&
 algorithm_plugin_manager
 ::instance()
 {
-  static boost::mutex local_lock;          // synchronization lock
+  static std::mutex local_lock;          // synchronization lock
 
   if (0 != s_instance)
   {
     return *s_instance;
   }
 
-  boost::lock_guard<boost::mutex> lock(local_lock);
+  std::lock_guard<std::mutex> lock(local_lock);
   if (0 == s_instance)
   {
     // create new object
@@ -350,6 +339,31 @@ algorithm_plugin_manager
 
 
 // ------------------------------------------------------------------
+ bool
+ algorithm_plugin_manager
+ ::load_plugins_once()
+ {
+   static bool first( true );
+   static std::mutex local_lock;          // synchronization lock
+
+   if ( ! first )
+   {
+     return false;
+   }
+
+   std::lock_guard<std::mutex> lock(local_lock);
+   if ( first )
+   {
+     instance().register_plugins();
+     first = false;
+     return true;
+   }
+
+   return false;
+ }
+
+
+// ------------------------------------------------------------------
 /// (Re)Load plugin libraries found along current search paths
 void
 algorithm_plugin_manager
@@ -357,36 +371,43 @@ algorithm_plugin_manager
 {
   // Search for libraries to dlopen for algorithm registration
   // call-back.
-  LOG_DEBUG( this->impl_->m_logger, "Dynamically loading plugin impls" );
-  this->impl_->load_from_search_paths( name );
+  LOG_DEBUG( this->m_impl->m_logger, "Dynamically loading plugin impls" );
+  this->m_impl->load_from_search_paths( name );
 }
 
 
+// ------------------------------------------------------------------
 /// Add an additional directory to search for plugins in.
 void
 algorithm_plugin_manager
 ::add_search_path( path_t dirpath )
 {
-  this->impl_->m_search_paths.push_back( dirpath );
+  this->m_impl->m_search_paths.push_back( dirpath );
 }
 
 
+// ------------------------------------------------------------------
+std::string
+algorithm_plugin_manager
+::get_search_path() const
+{
+  std::string path_string;
+  VITAL_FOREACH( std::string module_dir, this->m_impl->m_search_paths )
+  {
+    path_string += module_dir + ":";
+  }
+
+  return path_string;
+}
+
+
+// ------------------------------------------------------------------
 /// Get the list currently registered module names.
 std::vector< std::string >
 algorithm_plugin_manager
 ::registered_module_names() const
 {
-  return this->impl_->registered_module_names();
+  return this->m_impl->registered_module_names();
 }
-
-
-// ------------------------------------------------------------------
-bool
-is_separator( vital::path_t::value_type ch )
-{
-  vital::path_t::value_type const separator = PATH_SEPARATOR_CHAR;
-  return ( ch == separator );
-}
-
 
 } } // end namespace

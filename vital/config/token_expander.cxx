@@ -33,10 +33,7 @@
 
 #include "token_type.h"
 
-#include <boost/regex.hpp>
-
-#include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
+#include <kwiversys/RegularExpression.hxx>
 
 namespace kwiver {
 namespace vital {
@@ -65,10 +62,10 @@ bool
 token_expander::
 add_token_type (kwiver::vital::token_type * tt)
 {
-  std::string name( tt->token_type_name() );
-  result_t res = m_typeList.insert( name, tt );
+  const std::string name( tt->token_type_name() );
+  m_typeList[name] = std::shared_ptr< kwiver::vital::token_type > ( tt );
 
-  return res.second;
+  return true;
 }
 
 
@@ -89,32 +86,36 @@ token_expander::
 expand_token( std::string const& initial_string )
 {
   std::string new_value;
-  static const boost::regex exp( "\\$([a-zA-Z][a-zA-Z0-9_]*)\\{([a-zA-Z0-9_:]+)?\\}" );
+  static kwiversys::RegularExpression exp( "\\$([a-zA-Z][a-zA-Z0-9_]*)\\{([a-zA-Z0-9_:]+)?\\}" );
 
-  boost::match_results< std::string::const_iterator > what;
   std::string::const_iterator start, end;
   start = initial_string.begin();
   end = initial_string.end();
 
-  // while ( boost::regex_search( new_value, what, exp ) )
-  while ( boost::regex_search( start, end, what, exp ) )
+  while ( true)
   {
-    // what[0] - whole match
-    // what[1] - token type
-    // what[2] - optional name
+    std::string working_str( start, end );
+    if ( ! exp.find( working_str ) )
+    {
+      break; // not found
+    }
+
+    // exp.match(0) - whole match
+    // exp.match(1) - token type
+    // exp.match(2) - optional name
 
     // look for the specified token type
-    iterator_t ix = m_typeList.find( what[1] );
+    iterator_t ix = m_typeList.find( exp.match(1) );
     if ( ix != m_typeList.end() )
     {
       // lookup token value
       std::string result;
-      ix->second->lookup_entry( what[2], result );
+      ix->second->lookup_entry( exp.match(2), result );
 
-      LOG_DEBUG( m_logger, "Substituting: " << "\"" << what.str() << "\" -> \"" << result << "\"" );
+      LOG_DEBUG( m_logger, "Substituting: " << "\"" << exp.match(0) << "\" -> \"" << result << "\"" );
 
       // append everything up to the match
-      new_value.append( start, start + what.position() );
+      new_value.append( start, start + exp.start(0) );
 
       // Append the replacement string
       new_value.append( result );
@@ -122,11 +123,11 @@ expand_token( std::string const& initial_string )
     else
     {
       // no substitution, copy forward original text
-      new_value.append( start, start + what.position() + what.length() );
+      new_value.append( start, start + exp.end(0) );
     }
 
     // Update matching pointers
-    start += what.position() + what.length();
+    start += exp.end();
 
   } // end while
 

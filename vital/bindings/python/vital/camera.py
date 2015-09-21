@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Interface to maptk::camera class.
+Interface to vital::camera class.
 
 """
 # -*- coding: utf-8 -*-
@@ -38,11 +38,11 @@ __author__ = 'purg'
 
 import ctypes
 
-from maptk.util import MaptkObject, MaptkErrorHandle
+from vital.util import VitalObject, VitalErrorHandle
 
 
-class Camera (MaptkObject):
-    """ maptk::camera interface class """
+class Camera (VitalObject):
+    """ vital::camera interface class """
 
     @classmethod
     def from_krtd_file(cls, filepath):
@@ -50,20 +50,20 @@ class Camera (MaptkObject):
         :return: New Camera instance from a KRTD format file
         :rtype: Camera
         """
-        cam_read_krtd = cls.MAPTK_LIB.maptk_camera_read_krtd_file
-        cam_read_krtd.argtypes = [ctypes.c_char_p, MaptkErrorHandle.C_TYPE_PTR]
+        cam_read_krtd = cls.VITAL_LIB.vital_camera_read_krtd_file
+        cam_read_krtd.argtypes = [ctypes.c_char_p, VitalErrorHandle.C_TYPE_PTR]
         cam_read_krtd.restype = cls.C_TYPE_PTR
 
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             return cls.from_c_pointer( cam_read_krtd(filepath, eh) )
 
     def _destroy(self):
         """ Delete instance through C API """
         if self._inst_ptr:
-            cam_del = self.MAPTK_LIB.maptk_camera_destroy
-            cam_del.argtypes = [self.C_TYPE_PTR, MaptkErrorHandle.C_TYPE_PTR]
+            cam_del = self.VITAL_LIB.vital_camera_destroy
+            cam_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
 
-            with MaptkErrorHandle() as eh:
+            with VitalErrorHandle() as eh:
                 cam_del(self, eh)
 
     def write_krtd_file(self, filepath):
@@ -74,9 +74,9 @@ class Camera (MaptkObject):
         :type filepath: str
 
         """
-        cam_write_krtd = self.MAPTK_LIB.maptk_camera_write_krtd_file
+        cam_write_krtd = self.VITAL_LIB.vital_camera_write_krtd_file
         cam_write_krtd.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
-                                   MaptkErrorHandle.C_TYPE_PTR]
+                                   VitalErrorHandle.C_TYPE_PTR]
 
-        with MaptkErrorHandle() as eh:
+        with VitalErrorHandle() as eh:
             cam_write_krtd(self, filepath, eh)

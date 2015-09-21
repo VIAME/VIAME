@@ -71,12 +71,6 @@ f2f_homography
 {
 }
 
-/// Destructor
-f2f_homography
-::~f2f_homography()
-{
-}
-
 /// Get the homography transformation
 homography_sptr
 f2f_homography

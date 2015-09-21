@@ -44,9 +44,8 @@
 #include <map>
 
 #include <vital/exceptions.h>
-
-#include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
+#include <vital/vital_foreach.h>
+#include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
 namespace vital {
@@ -57,22 +56,22 @@ track_set_sptr
 read_track_file( path_t const& file_path )
 {
   // Check that file exists
-  if ( ! boost::filesystem::exists( file_path ) )
+  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
   {
     throw file_not_found_exception( file_path, "File does not exist." );
   }
-  else if ( ! boost::filesystem::is_regular_file( file_path ) )
+  else if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw file_not_found_exception( file_path, "Path given doesn't point to "
-                                               "a regular file!" );
+    throw file_not_found_exception( file_path,
+         "Path given doesn't point to a regular file!" );
   }
 
   // Reading in input file data
   std::ifstream input_stream( file_path.c_str(), std::fstream::in );
   if ( ! input_stream )
   {
-    throw file_not_read_exception( file_path, "Could not open file at given "
-                                              "path." );
+    throw file_not_read_exception( file_path,
+          "Could not open file at given path." );
   }
 
   // Read the file
@@ -112,32 +111,30 @@ void
 write_track_file( track_set_sptr const& tracks,
                   path_t const&         file_path )
 {
-  namespace bfs = boost::filesystem;
-
   // If the track set is empty, throw
   if ( ! tracks || ( tracks->size() == 0 ) )
   {
-    throw file_write_exception( file_path, "No tracks in the given "
-                                           "track_set!" );
+    throw file_write_exception( file_path,
+          "No tracks in the given track_set!" );
   }
 
   // If the given path is a directory, we obviously can't write to it.
-  if ( bfs::is_directory( file_path ) )
+  if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw file_write_exception( file_path, "Path given is a directory, "
-                                           "can not write file." );
+    throw file_write_exception( file_path,
+          "Path given is a directory, can not write file." );
   }
 
   // Check that the directory of the given filepath exists, creating necessary
   // directories where needed.
-  path_t parent_dir = bfs::absolute( file_path.parent_path() );
-  if ( ! bfs::is_directory( parent_dir ) )
+  std::string parent_dir = kwiversys::SystemTools::GetFilenamePath(
+    kwiversys::SystemTools::CollapseFullPath( file_path ) );
+  if ( ! kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
   {
-    if ( ! bfs::create_directories( parent_dir ) )
+    if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
-      throw file_write_exception( parent_dir, "Attempted directory creation, "
-                                              "but no directory created! No "
-                                              "idea what happened here..." );
+      throw file_write_exception( parent_dir,
+            "Attempted directory creation, but no directory created! No idea what happened here..." );
     }
   }
 
@@ -145,7 +142,7 @@ write_track_file( track_set_sptr const& tracks,
   // open output file and write the tracks
   std::ofstream ofile( file_path.c_str() );
   std::vector< vital::track_sptr > trks = tracks->tracks();
-  BOOST_FOREACH( vital::track_sptr t, trks )
+  VITAL_FOREACH( vital::track_sptr t, trks )
   {
     typedef vital::track::history_const_itr state_itr;
     for ( state_itr si = t->begin(); si != t->end(); ++si )

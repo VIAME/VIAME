@@ -36,12 +36,10 @@
 
 #include "track_set.h"
 
-#include <boost/foreach.hpp>
+#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {
-
-
 
 /// Return the number of tracks in the set
 size_t
@@ -69,7 +67,7 @@ track_set
   std::set<frame_id_t> ids;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     std::set<frame_id_t> t_ids = t->all_frame_ids();
     ids.insert(t_ids.begin(), t_ids.end());
@@ -87,7 +85,7 @@ track_set
   std::set<track_id_t> ids;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     ids.insert(t->id());
   }
@@ -104,7 +102,7 @@ track_set
   frame_id_t last_frame = 0;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->last_frame() > last_frame )
     {
@@ -124,7 +122,7 @@ track_set
   frame_id_t first_frame = 0;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->first_frame() < first_frame )
     {
@@ -143,7 +141,7 @@ track_set
 {
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->id() == tid )
     {
@@ -163,7 +161,7 @@ track_set
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> active_tracks;
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->find(frame_number) != t->end() )
     {
@@ -184,7 +182,7 @@ track_set
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> inactive_tracks;
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->find(frame_number) == t->end() )
     {
@@ -205,7 +203,7 @@ track_set
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> new_tracks;
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->first_frame() == frame_number )
     {
@@ -226,7 +224,7 @@ track_set
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> terminated_tracks;
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->last_frame() == frame_number )
     {
@@ -249,7 +247,7 @@ track_set
   const std::vector<track_sptr> all_tracks = this->tracks();
   unsigned total_tracks = 0, tracks_both = 0;
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t , all_tracks)
   {
     const bool found_on_f1 = t->find(frame_number1) != t->end();
     const bool found_on_f2 = t->find(frame_number2) != t->end();
@@ -275,7 +273,7 @@ track_set
   std::vector<feature_sptr> last_features;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->last_frame() == last_frame )
     {
@@ -296,7 +294,7 @@ track_set
   std::vector<descriptor_sptr> last_descriptors;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->last_frame() == last_frame )
     {
@@ -317,7 +315,7 @@ track_set
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<feature_sptr> features;
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     track::history_const_itr itr = t->find(frame_number);
     if( itr != t->end() )
@@ -339,7 +337,7 @@ track_set
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<descriptor_sptr> descriptors;
 
-  BOOST_FOREACH(track_sptr t, all_tracks)
+  VITAL_FOREACH( track_sptr t, all_tracks)
   {
     track::history_const_itr itr = t->find(frame_number);
     if( itr != t->end() )

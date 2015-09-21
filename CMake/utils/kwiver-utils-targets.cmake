@@ -19,7 +19,6 @@
 #     CMAKE_BUILD_TYPE as a directory in the output path.
 #
 include(CMakeParseArguments)
-
 include (GenerateExportHeader)
 
 
@@ -143,7 +142,6 @@ function(kwiver_add_library     name)
 
   if ( APPLE )
     set( props
-      BUNDLE               TRUE
       MACOSX_RPATH         TRUE
       )
   else()
@@ -194,7 +192,7 @@ function(kwiver_add_library     name)
     COMPONENT           ${component}
     )
 
-  if ( NOT ARGV1 STREQUAL "MODULE" )
+  if (target_type STREQUAL "MODULE_LIBRARY")
     # Do not append names of MODULES (plugins) to the library list
     # because they are not linked to.
     set_property(GLOBAL APPEND PROPERTY kwiver_libraries ${name})
@@ -244,10 +242,7 @@ function(kwiver_install_headers)
   set(options NOPATH)
   set(oneValueArgs SUBDIR)
   cmake_parse_arguments(mih "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-  #kwiver_install(
-  #  FILES       ${mih_UNPARSED_ARGUMENTS}
-  #  DESTINATION "include/kwiver/${mih_SUBDIR}"
-  #  )
+
   foreach(header IN LISTS mih_UNPARSED_ARGUMENTS)
     if(mih_NOPATH)
       set( H_SUBDIR ) # use empty subdir/path to file
@@ -260,6 +255,20 @@ function(kwiver_install_headers)
       )
 
   endforeach()
+endfunction()
+
+
+#+
+#   kwiver_install_plugin_headers( plugin_name header1 [header2 ...] )
+#
+# Instal kwiver plugin public header files to the "include/.../plugins/"
+# sub-directory in the configured installation location.
+#-
+function(kwiver_install_plugin_headers plugin_name)
+  kwiver_install_headers(
+    SUBDIR "plugins/${plugin_name}"
+    ${ARGN}
+    )
 endfunction()
 
 
@@ -292,18 +301,34 @@ endfunction()
 ####
 # This function creates a target for a loadable plugin.
 #
+# Options are:
+# SOURCES - list of source files needed to create the plugin.
+# PUBLIC - list of libraries the plugin will publically link against.
+# PRIVATE - list of libraries the plugin will privately link against.
+# SUBDIR - subdirectory in lib where plugin will be installed.
+#
 function( kwiver_add_plugin        name )
-  set(library_subdir "/modules") # put plugins in this subdir
-  set(no_export 1)
+  set(options)
+  set(oneValueArgs SUBDIR)
+  set(multiValueArgs SOURCES PUBLIC PRIVATE)
+  cmake_parse_arguments(PLUGIN "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
-  kwiver_add_library( ${name} MODULE ${ARGN} )
+  if ( PLUGIN_SUBDIR )
+    set(library_subdir "/${PLUGIN_SUBDIR}") # put plugins in this subdir
+  endif()
+
+  set(no_export 1) # do not export this product
+
+  kwiver_add_library( ${name} MODULE ${PLUGIN_SOURCES} )
+
+  target_link_libraries( ${name}
+    PUBLIC        ${PLUGIN_PUBLIC}
+    PRIVATE       ${PLUGIN_PRIVATE}
+    )
 
   set_target_properties( ${name}
     PROPERTIES
       PREFIX           ""
       SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX} )
 
-  install( TARGETS ${name}
-    LIBRARY DESTINATION lib/modules
-    )
 endfunction()

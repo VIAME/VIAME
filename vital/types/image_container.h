@@ -36,9 +36,11 @@
 #ifndef VITAL_IMAGE_CONTAINER_H_
 #define VITAL_IMAGE_CONTAINER_H_
 
-#include <vector>
-#include <boost/shared_ptr.hpp>
 #include "image.h"
+
+#include <vital/vital_config.h>
+
+#include <vector>
 
 namespace kwiver {
 namespace vital {
@@ -56,7 +58,7 @@ class image_container
 public:
 
   /// Destructor
-  virtual ~image_container() {}
+  virtual ~image_container() VITAL_DEFAULT_DTOR
 
   /// The size of the image data in bytes
   /**
@@ -81,7 +83,7 @@ public:
 
 
 /// Shared pointer for base image_container type
-typedef boost::shared_ptr<image_container> image_container_sptr;
+typedef std::shared_ptr<image_container> image_container_sptr;
 
 
 /// List of image_container shared pointers

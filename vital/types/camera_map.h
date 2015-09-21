@@ -37,9 +37,12 @@
 #define VITAL_CAMERA_MAP_H_
 
 #include "camera.h"
+
 #include <vital/vital_types.h>
+#include <vital/vital_config.h>
+
 #include <map>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -52,7 +55,7 @@ public:
   typedef std::map< frame_id_t, camera_sptr > map_camera_t;
 
   /// Destructor
-  virtual ~camera_map() { }
+  virtual ~camera_map() VITAL_DEFAULT_DTOR
 
   /// Return the number of cameras in the map
   virtual size_t size() const = 0;
@@ -62,7 +65,7 @@ public:
 };
 
 /// typedef for a camera shared pointer
-typedef boost::shared_ptr< camera_map > camera_map_sptr;
+typedef std::shared_ptr< camera_map > camera_map_sptr;
 
 
 /// A concrete camera_map that simply wraps a std::map.

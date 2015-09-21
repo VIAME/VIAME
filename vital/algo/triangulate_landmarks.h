@@ -74,7 +74,7 @@ public:
 
 
 /// type definition for shared pointer to a triangulate landmarks algorithm
-typedef boost::shared_ptr<triangulate_landmarks> triangulate_landmarks_sptr;
+typedef std::shared_ptr<triangulate_landmarks> triangulate_landmarks_sptr;
 
 
 } } } // end namespace
