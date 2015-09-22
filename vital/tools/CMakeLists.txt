@@ -10,5 +10,5 @@ target_link_libraries( plugin_explorer
   vital
   vital_apm
   vital_logger
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  kwiversys
   )

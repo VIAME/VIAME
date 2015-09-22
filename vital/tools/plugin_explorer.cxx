@@ -34,29 +34,31 @@
 #include <vital/config/config_block.h>
 #include <vital/util/tokenize.h>
 #include <vital/vital_foreach.h>
-
-#include <boost/program_options.hpp>
+#include <kwiversys/CommandLineArguments.hxx>
 
 #include <iostream>
-
-namespace po = boost::program_options;
+#include <vector>
+#include <string>
 
 // Global options
-bool opt_config(false);
-bool opt_detail(false);
+bool opt_config( false );
+bool opt_detail( false );
+bool opt_help( false );
+std::vector< std::string > opt_path;
 
 
 // ------------------------------------------------------------------
-void print_config( kwiver::vital::config_block_sptr config )
+void
+print_config( kwiver::vital::config_block_sptr config )
 {
   kwiver::vital::config_block_keys_t all_keys = config->available_values();
   std::string indent( "    " );
 
-  std::cout << indent<< "Configuration block contents\n";
+  std::cout << indent << "Configuration block contents\n";
 
   VITAL_FOREACH( kwiver::vital::config_block_key_t key, all_keys )
   {
-    kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t >( key );
+    kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t > ( key );
     std::cout << std::endl
               << indent << "\"" << key << "\" = \"" << val << "\"\n";
 
@@ -67,9 +69,11 @@ void print_config( kwiver::vital::config_block_sptr config )
 
 
 // ------------------------------------------------------------------
-void detailed_algo()
+void
+detailed_algo()
 {
   const std::vector< std::string > reg_names =  kwiver::vital::algorithm::registered_names();
+
   VITAL_FOREACH( std::string const& name, reg_names )
   {
     std::vector< std::string > token;
@@ -95,61 +99,74 @@ void detailed_algo()
 
 
 // ------------------------------------------------------------------
-int main(int argc, char *argv[])
+void
+print_help()
 {
-  // Declare the supported options.
-  po::options_description desc("Allowed options");
-  desc.add_options()
-    ("help", "produce help message")
-    ("plugin-name", po::value< std::string >(), "load only these plugins")
-    ("path,I", po::value< std::vector< std::string> >(), "add directory to search")
-    ("detail,d", "Displag algorithm details")
-    ("config", "Display algorithm configuration block")
-    ;
+  std::cout << "This program loads Map-TK plugins and displays their data.\n"
+            << "Additional paths can be specified in \"VITAL_PLUGIN_PATH\" environment variable\n"
+            << "\n"
+            << "Options are:\n"
+            << "  --help           displays usage information\n"
+            << "  --plugin-name    load only these plugins\n"
+            << "  --path name      also load plugins from this directory (can appear multiple times)\n"
+            << "  -Iname           also load plugins from this directory (can appear multiple times)\n"
+            << "  --detail  -d     generate detailed listing\n"
+            << "  --config         display plugin configuration\n"
+  ;
 
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
+  return;
+}
 
-  if (vm.count("help"))
+
+// ------------------------------------------------------------------
+int
+path_callback( const char*  argument,   // name of argument
+               const char*  value,      // value of argument
+               void*        call_data ) // data from register call
+{
+  const std::string p( value );
+
+  opt_path.push_back( p );
+  return 1;   // return true for OK
+}
+
+
+// ------------------------------------------------------------------
+int
+main( int argc, char* argv[] )
+{
+  std::string plugin_name;
+
+  kwiversys::CommandLineArguments arg;
+
+  arg.Initialize( argc, argv );
+  typedef kwiversys::CommandLineArguments argT;
+
+  arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
+  arg.AddArgument( "--plugin-name", argT::SPACE_ARGUMENT, &plugin_name, "Display usage information" );
+  arg.AddArgument( "--detail",      argT::NO_ARGUMENT, &opt_detail, "Display detailed information about plugins" );
+  arg.AddArgument( "-d",            argT::NO_ARGUMENT, &opt_detail, "Display detailed information about plugins" );
+  arg.AddArgument( "--config",      argT::NO_ARGUMENT, &opt_config, "Display configuration information needed by plugins" );
+  arg.AddCallback( "--path",        argT::SPACE_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
+  arg.AddCallback( "-I",            argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
+
+  if ( ! arg.Parse() )
   {
-    std::cout << "This program loads and displays MapTK algorithms.\n"
-              << "Additional paths can be specified in \"VITAL_PLUGIN_PATH\" environment variable\n";
-
-    std::cout << desc << "\n";
-    return 1;
+    std::cerr << "Problem parsing arguments" << std::endl;
+    exit( 0 );
   }
 
-  if (vm.count("config"))
+  if ( opt_help )
   {
-    opt_config = true;
-  }
-
-  if (vm.count("detail"))
-  {
-    opt_detail = true;
+    print_help();
+    exit( 0 );
   }
 
   kwiver::vital::algorithm_plugin_manager& apm = kwiver::vital::algorithm_plugin_manager::instance();
 
-  //
-  // Add any commane line specified path components
-  //
-  if (vm.count( "path" ) )
+  VITAL_FOREACH( std::string const& path, opt_path )
   {
-    VITAL_FOREACH( std::string const& p, vm["path"].as<std::vector< std::string > >() )
-    {
-      apm.add_search_path( p );
-    }
-  }
-
-  //
-  // Use selected plugin name if supplied
-  //
-  std::string plugin_name;
-  if (vm.count( "plugin-name" ) )
-  {
-    plugin_name = vm["plugin_name"].as<std::string>();
+    apm.add_search_path( path );
   }
 
   // locate all plugins
@@ -160,20 +177,20 @@ int main(int argc, char *argv[])
             << std::endl << std::endl;
 
   std::cout << "---- Registered module names:\n";
-  std::vector< std::string >module_list = apm.registered_module_names();
-  VITAL_FOREACH( std::string const& name, module_list)
+  std::vector< std::string > module_list = apm.registered_module_names();
+  VITAL_FOREACH( std::string const& name, module_list )
   {
     std::cout << "   " << name << std::endl;
   }
 
   std::cout << "\n---- registered algorithms (type_name:impl_name)\n";
-  VITAL_FOREACH( std::string const& name, kwiver::vital::algorithm::registered_names())
+  VITAL_FOREACH( std::string const& name, kwiver::vital::algorithm::registered_names() )
   {
     std::cout << "   " << name << std::endl;
   }
 
   // currently this is the same as --config option
-  if (opt_detail)
+  if ( opt_detail )
   {
     detailed_algo();
   }
@@ -183,13 +200,13 @@ int main(int argc, char *argv[])
 #if 0
   kwver::vital::registrar& reg = kwiver::vital::registrar::instance();
 
-  std::vector< std::string > reg_list = reg.registered_names< XXX >();
+  std::vector< std::string > reg_list = reg.registered_names< XXX > ();
   std::cout << "\n\n---- Resigtered algorithm names\n";
-  VITAL_FOREACH( std::string const& name, reg_list)
+  VITAL_FOREACH( std::string const& name, reg_list )
   {
     std::cout << "    " << name << std::endl;
   }
 #endif
 
   return 0;
-}
+} // main

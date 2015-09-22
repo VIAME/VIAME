@@ -9,7 +9,6 @@ if (VITAL_USE_BOOST)
   find_package(Boost 1.55 REQUIRED
     COMPONENTS
     filesystem
-    program_options
     system
     )
 
