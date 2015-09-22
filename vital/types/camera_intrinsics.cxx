@@ -36,10 +36,69 @@
  */
 
 #include <vital/types/camera_intrinsics.h>
+#include <vital/io/eigen_io.h>
 #include <Eigen/Dense>
+
+#include <iomanip>
 
 namespace kwiver {
 namespace vital {
+
+
+/// Convert to a 3x3 calibration matrix
+matrix_3x3d
+camera_intrinsics
+::as_matrix() const
+{
+  matrix_3x3d K;
+  const double f = this->focal_length();
+  const vector_2d pp = this->principal_point();
+  K << f, this->skew(), pp.x(),
+    0, f / this->aspect_ratio(), pp.y(),
+    0, 0, 1;
+  return K;
+}
+
+
+/// Map normalized image coordinates into actual image coordinates
+vector_2d
+camera_intrinsics
+::map( const vector_2d& point ) const
+{
+  // apply radial and tangential distortion if coefficients are provided
+  const vector_2d pt = this->distort( point );
+  const vector_2d pp = this->principal_point();
+  const double f = this->focal_length();
+
+  return vector_2d( pt.x() * f + pt.y() * this->skew() + pp.x(),
+                    pt.y() * f / this->aspect_ratio() + pp.y() );
+}
+
+
+/// Map a 3D point in camera coordinates into actual image coordinates
+vector_2d
+camera_intrinsics
+::map( const vector_3d& norm_hpt ) const
+{
+  return this->map( vector_2d( norm_hpt[0] / norm_hpt[2],
+                               norm_hpt[1] / norm_hpt[2] ) );
+}
+
+
+/// Unmap actual image coordinates back into normalized image coordinates
+vector_2d
+camera_intrinsics
+::unmap( const vector_2d& pt ) const
+{
+  const double f = this->focal_length();
+  const vector_2d p0 = pt - this->principal_point();
+  const double y = p0.y() * this->aspect_ratio() / f;
+  const double x = ( p0.x() - y * this->skew() ) / f;
+
+  return this->undistort( vector_2d( x, y ) );
+}
+
+
 
 namespace // anonymous namespace
 {
@@ -51,8 +110,8 @@ namespace // anonymous namespace
  */
 template < typename T >
 T
-radial_distortion_scale( const T                                            r2,
-                         const typename camera_intrinsics_< T >::vector_t&  d )
+radial_distortion_scale( const T                r2,
+                         const Eigen::VectorXd&  d )
 {
   T scale = T( 1 );
 
@@ -88,7 +147,7 @@ radial_distortion_scale( const T                                            r2,
 template < typename T >
 void
 distortion_scale_offset( const Eigen::Matrix< T, 2, 1 >& pt,
-                         const typename camera_intrinsics_< T >::vector_t& d,
+                         const Eigen::VectorXd& d,
                          T& scale, Eigen::Matrix< T, 2, 1 >& offset )
 {
   const T x2 = pt.x() * pt.x();
@@ -109,8 +168,8 @@ distortion_scale_offset( const Eigen::Matrix< T, 2, 1 >& pt,
 /// Compute the derivative of the radial distortion as a function of \p r2
 template < typename T >
 T
-radial_distortion_deriv( const T                                            r2,
-                         const typename camera_intrinsics_< T >::vector_t&  d )
+radial_distortion_deriv( const T                r2,
+                         const Eigen::VectorXd&  d )
 {
   T deriv = T( 0 );
 
@@ -143,7 +202,7 @@ radial_distortion_deriv( const T                                            r2,
 template < typename T >
 Eigen::Matrix< T, 2, 2 >
 distortion_jacobian( const Eigen::Matrix< T, 2, 1 >& pt,
-                     const typename camera_intrinsics_< T >::vector_t& d )
+                     const Eigen::VectorXd& d )
 {
   const T x2 = pt.x() * pt.x();
   const T y2 = pt.y() * pt.y();
@@ -174,10 +233,9 @@ distortion_jacobian( const Eigen::Matrix< T, 2, 1 >& pt,
 
 
 /// Constructor - from a calibration matrix
-template < typename T >
-camera_intrinsics_< T >
-::camera_intrinsics_( const Eigen::Matrix< T, 3, 3 >& K,
-                        const vector_t& d )
+simple_camera_intrinsics
+::simple_camera_intrinsics( const matrix_3x3d& K,
+                            const vector_t& d )
   : focal_length_( K( 0, 0 ) ),
   principal_point_( K( 0, 2 ), K( 1, 2 ) ),
   aspect_ratio_( K( 0, 0 ) / K( 1, 1 ) ),
@@ -187,67 +245,13 @@ camera_intrinsics_< T >
 }
 
 
-/// Convert to a 3x3 calibration matrix
-template < typename T >
-camera_intrinsics_< T >
-::operator Eigen::Matrix< T, 3, 3 > () const
-{
-  Eigen::Matrix< T, 3, 3 > K;
-  K << focal_length_, skew_, principal_point_.x(),
-    0, focal_length_ / aspect_ratio_, principal_point_.y(),
-    0, 0, 1;
-  return K;
-}
-
-
-/// Map normalized image coordinates into actual image coordinates
-template < typename T >
-Eigen::Matrix< T, 2, 1 >
-camera_intrinsics_< T >
-::map( const Eigen::Matrix< T, 2, 1 >& point ) const
-{
-  // apply radial and tangential distortion if coefficients are provided
-  const Eigen::Matrix< T, 2, 1 > pt = distort( point );
-  const Eigen::Matrix< T, 2, 1 >& pp = principal_point_;
-
-  return Eigen::Matrix< T, 2, 1 > ( pt.x() * focal_length_ + pt.y() * skew_ + pp.x(),
-                                    pt.y() * focal_length_ / aspect_ratio_ + pp.y() );
-}
-
-
-/// Map a 3D point in camera coordinates into actual image coordinates
-template < typename T >
-Eigen::Matrix< T, 2, 1 >
-camera_intrinsics_< T >
-::map( const Eigen::Matrix< T, 3, 1 >& norm_hpt ) const
-{
-  return this->map( Eigen::Matrix< T, 2, 1 > ( norm_hpt[0] / norm_hpt[2],
-                                               norm_hpt[1] / norm_hpt[2] ) );
-}
-
-
-/// Unmap actual image coordinates back into normalized image coordinates
-template < typename T >
-Eigen::Matrix< T, 2, 1 >
-camera_intrinsics_< T >
-::unmap( const Eigen::Matrix< T, 2, 1 >& pt ) const
-{
-  Eigen::Matrix< T, 2, 1 > p0 = pt - principal_point_;
-  const T y = p0.y() * aspect_ratio_ / focal_length_;
-  const T x = ( p0.x() - y * skew_ ) / focal_length_;
-
-  return undistort( Eigen::Matrix< T, 2, 1 > ( x, y ) );
-}
-
-
 /// Map normalized image coordinates into distorted coordinates
-template < typename T >
-Eigen::Matrix< T, 2, 1 >
-camera_intrinsics_< T >
-::distort( const Eigen::Matrix< T, 2, 1 >& norm_pt ) const
+vector_2d
+simple_camera_intrinsics
+::distort( const vector_2d& norm_pt ) const
 {
-  T scale;
-  Eigen::Matrix< T, 2, 1 > offset;
+  double scale;
+  vector_2d offset;
 
   distortion_scale_offset( norm_pt, dist_coeffs_, scale, offset );
   return scale * norm_pt + offset;
@@ -255,14 +259,13 @@ camera_intrinsics_< T >
 
 
 /// Unnap distorted normalized coordinates into normalized coordinates
-template < typename T >
-Eigen::Matrix< T, 2, 1 >
-camera_intrinsics_< T >
-::undistort( const Eigen::Matrix< T, 2, 1 >& dist_pt ) const
+vector_2d
+simple_camera_intrinsics
+::undistort( const vector_2d& dist_pt ) const
 {
-  T scale;
-  Eigen::Matrix< T, 2, 1 > offset, residual;
-  Eigen::Matrix< T, 2, 1 > norm_pt = dist_pt;
+  double scale;
+  vector_2d offset, residual;
+  vector_2d norm_pt = dist_pt;
 
   // iteratively solve for the undistorted point
   for ( unsigned int i = 0; i < 5; ++i )
@@ -272,7 +275,7 @@ camera_intrinsics_< T >
     // an alternative is a fixed point iteration as used by OpenCV:
     //   norm_pt = (dist_pt - offset) / scale;
     // Gauss-Newton seems to have faster convergence
-    Eigen::Matrix< T, 2, 2 > J = distortion_jacobian( norm_pt, dist_coeffs_ );
+    matrix_2x2d J = distortion_jacobian( norm_pt, dist_coeffs_ );
     residual = norm_pt * scale + offset - dist_pt;
     // check the maximum absolution residual to test convergence
     if ( residual.cwiseAbs().maxCoeff() < 1e-12 )
@@ -285,38 +288,45 @@ camera_intrinsics_< T >
 }
 
 
-/// output stream operator for a camera intrinsics
-template < typename T >
+/// output stream operator for a base class camera_intrinsics
 std::ostream&
-operator<<( std::ostream& s, const camera_intrinsics_< T >& k )
+operator<<( std::ostream& s, const camera_intrinsics& k )
 {
-  // TODO: implement me
+  using std::setprecision;
+  std::vector<double> d = k.dist_coeffs();
+  // if no distortion coefficients, create a zero entry as a place holder
+  if ( d.empty() )
+  {
+    d.push_back(0.0);
+  }
+  s << setprecision( 12 ) << k.as_matrix() << "\n\n";
+  for(unsigned i=0; i<d.size(); ++i)
+  {
+    s << setprecision( 12 ) << d[i] << " ";
+  }
+  s << "\n";
+
   return s;
 }
 
 
 /// input stream operator for a camera intrinsics
-template < typename T >
 std::istream&
-operator>>( std::istream& s, camera_intrinsics_< T >& k )
+operator>>( std::istream& s, simple_camera_intrinsics& k )
 {
-  // TODO: implement me
+  matrix_3x3d K;
+  Eigen::VectorXd d;
+
+  s >> K >> d;
+  // a single 0 in d is used as a place holder,
+  // if a single 0 was loaded then clear d
+  if ( ( d.rows() == 1 ) && ( d[0] == 0.0 ) )
+  {
+    d.resize( 0 );
+  }
+  k = simple_camera_intrinsics( K, d );
   return s;
 }
 
-
-/// \cond DoxygenSuppress
-#define INSTANTIATE_CAMERA_INTRINSICS( T )                         \
-  template class VITAL_EXPORT camera_intrinsics_< T >;             \
-  template VITAL_EXPORT std::ostream&                              \
-  operator<<( std::ostream& s, const camera_intrinsics_< T >& k ); \
-  template VITAL_EXPORT std::istream&                              \
-  operator>>( std::istream& s, camera_intrinsics_< T >& k )
-
-INSTANTIATE_CAMERA_INTRINSICS( double );
-INSTANTIATE_CAMERA_INTRINSICS( float );
-
-#undef INSTANTIATE_CAMERA_INTRINSICS
-/// \endcond
 
 } } // end namespace

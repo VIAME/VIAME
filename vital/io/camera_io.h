@@ -57,7 +57,7 @@ namespace vital {
  * \param file_path   The path to the file to read in.
  * \return A \c camera_d object representing the contents of the read-in file.
  */
-camera_d
+camera_sptr
 VITAL_EXPORT read_krtd_file( path_t const& file_path );
 
 

@@ -66,8 +66,7 @@ read_krtd_files( std::vector< path_t > const& img_files, path_t const& dir )
   {
     try
     {
-      camera_d new_camera = read_krtd_file( files_to_read[fid] );
-      cameras[fid] = camera_sptr( new camera_d( new_camera ) );
+      cameras[fid] = read_krtd_file( files_to_read[fid] );
     }
     catch ( file_not_found_exception )
     {

@@ -36,7 +36,6 @@
 
 #include "landmark.h"
 #include <vital/io/eigen_io.h>
-#include "transform.h"
 
 namespace kwiver {
 namespace vital {
@@ -70,19 +69,6 @@ landmark_< T >
   : loc_( loc ),
   scale_( scale )
 {
-}
-
-
-/// Transform the landmark by applying a similarity transformation in place
-template < typename T >
-landmark_< T >&
-landmark_< T >
-::apply_transform( const similarity_< T >& xform )
-{
-  this->loc_ = xform * this->loc_;
-  this->scale_ *= xform.scale();
-  this->covar_ = vital::transform( this->covar_, xform );
-  return *this;
 }
 
 

@@ -100,7 +100,6 @@ set( vital_public_headers
   types/timestamp.h
   types/track.h
   types/track_set.h
-  types/transform.h
   types/vector.h
 )
 
@@ -154,7 +153,6 @@ set( vital_sources
   types/timestamp.cxx
   types/track.cxx
   types/track_set.cxx
-  types/transform.cxx
 )
 
 kwiver_install_headers(
