@@ -356,18 +356,21 @@ private:
   ro_list_t m_ro_list;
 };
 
-
+// ==================================================================
+// ---- get value group ----
 // ------------------------------------------------------------------
-/// Default cast handling of configuration values.
+/// Default cast handling for getting configuration values.
 /**
  * The specified value is converted into a form suitable for this
  * config block. If the type is something other than a simple type,
  * then an input and output operator must be available for that type.
  *
  * Relying on input and output operators can be unfortunate if they
- * have already been implemented with a more wordy format.
+ * have already been implemented with a more wordy format. To get
+ * around this problem define a specialized version of
+ * config_block_get_value_cast<>() for your specific type.
  *
- * \note Do not use this in user code. Use \ref config_block_cast instead.
+ * \note Do not use this in user code. Use \ref config_block_get_value_cast instead.
  *
  * \param value The value to convert.
  * \tparam R Type returned.
@@ -376,7 +379,7 @@ private:
 template < typename R >
 inline
 R
-config_block_cast_default( config_block_value_t const& value )
+config_block_get_value_cast_default( config_block_value_t const& value )
 {
   // replace boost::lexical_cast
   // Currently a problem dealing with values with embedded white space
@@ -406,9 +409,12 @@ config_block_cast_default( config_block_value_t const& value )
 /// Cast a configuration value to the requested type.
 /**
  *
- * This method converts the supplied value from the passed type to the
- * desired type. Typically either the source or destination type is a
- * std::string.
+ * This method converts the config block value from its native string
+ * representation to the desired type.
+ *
+ * If the default implementation (using input operator) does not work
+ * for your data type, then write a specialized version of this
+ * function to do the conversion.
  *
  * \throws bad_configuration_cast Thrown when the conversion fails.
  * \param value The value to convert.
@@ -418,9 +424,9 @@ config_block_cast_default( config_block_value_t const& value )
 template < typename R >
 inline
 R
-config_block_cast( config_block_value_t const& value )
+config_block_get_value_cast( config_block_value_t const& value )
 {
-  return config_block_cast_default< R > ( value );
+  return config_block_get_value_cast_default< R > ( value );
 }
 
 
@@ -431,20 +437,18 @@ config_block_cast( config_block_value_t const& value )
  * \c true, \c false, \c yes and \c no literal conversion versus just
  * \c 1 and \c 0 (1 and 0 still handled if provided).
  *
- * \note Do not use this in user code. Use \ref config_block_cast instead.
+ * \note Do not use this in user code. Use \ref config_block_get_value_cast() instead.
  * \param value The value to convert.
  * \returns The value of \p value in the requested type.
  */
 template < >
 VITAL_CONFIG_EXPORT
-bool config_block_cast( config_block_value_t const& value );
+bool config_block_get_value_cast( config_block_value_t const& value );
 
 
 template < >
 VITAL_CONFIG_EXPORT
-std::string
-config_block
-::get_value( config_block_key_t const& key ) const;
+std::string config_block_get_value_cast( config_block_value_t const& value );
 
 
 // ------------------------------------------------------------------
@@ -463,7 +467,7 @@ config_block
   try
   {
     // Convert config block value to requested type
-    return config_block_cast< T > ( value );
+    return config_block_get_value_cast< T > ( value );
   }
   catch ( bad_config_block_cast const& e )
   {
@@ -490,10 +494,79 @@ config_block
   }
 }
 
+// ==================================================================
+//  ---- set value group ----
+// ------------------------------------------------------------------
+/// Default cast handling for setting config values
+/**
+ * The supplied value is converted from its native type to a string
+ * using the output operator.
+ *
+ * Relying on input and output operators can be unfortunate if they
+ * have already been implemented with a more wordy format. To get
+ * around this problem define a specialized version of
+ * config_block_set_value_cast<>() for your specific type.
+ *
+ * \note Do not use this in user code. Use \ref config_block_set_value_cast instead.
+ *
+ * \param value   Value to be converted to string representation.
+ * \tparam T Type to be converted.
+ *
+ * \return String representation of the input value.
+ */
+template < typename T >
+inline
+config_block_value_t
+config_block_set_value_cast_default( T const& value )
+{
+  std::stringstream val_str;
+
+  try
+  {
+    val_str << value;
+    if ( val_str.fail() )
+    {
+      throw bad_config_block_cast( "failed to convert value to string representation" );
+    }
+
+    return val_str.str();
+  }
+    catch( std::exception& e )
+  {
+    throw bad_config_block_cast( e.what() );
+  }
+}
+
+
+// ------------------------------------------------------------------
+/// Cast a configuration value to the requested type.
+/**
+ *
+ * This method converts the user supplied value from its native form
+ * to a string representation to the desired type.
+ *
+ * If the default implementation (using output operator) does not work
+ * for your data type, then write a specialized version of this
+ * function to do the conversion.
+ *
+ * \throws bad_configuration_cast Thrown when the conversion fails.
+ * \param value The value to convert.
+ * \tparam T Type to be converted.
+ * \returns The value of \p value as a string.
+ */
+template < typename T >
+inline
+config_block_value_t
+config_block_set_value_cast( T const& value )
+{
+  return config_block_set_value_cast_default< T > ( value );
+}
+
 
 // ------------------------------------------------------------------
 // Set a value within the configuration.
 template < typename T >
+inline
 void
 config_block
 ::set_value( config_block_key_t const&          key,
@@ -501,18 +574,11 @@ config_block
              config_block_description_t const&  descr )
 {
   // Need to convert value (type T) to string
-  std::stringstream val_str;
+  config_block_value_t val_str = config_block_set_value_cast< T > ( value );
 
-  // It is unfortunate that we have to rely on the output operator to
-  // do the conversion It would be better to have a convert function
-
-  // This used to rely on boost (before being banned) so it would get
-  // some level of QC and exception if error detected (even if the
-  // messages were not very helpful).
-
-  val_str << value;
-  this->i_set_value( key,  val_str.str(), descr ); // we know that the value is a string
+  this->i_set_value( key,  val_str, descr ); // we know that the value is a string
 }
+
 
 // ------------------------------------------------------------------
 /// Type-specific handling, bool->cb_value_t specialization
@@ -534,6 +600,26 @@ config_block
   this->i_set_value( key, (value ? "true" : "false"), descr );
 }
 
+
+// ------------------------------------------------------------------
+/// Type-specific handling, string->cb_value_t specialization
+/**
+ * This is the \c config_block_value_t to \c string specialization that outputs
+ * the value string directly.
+ *
+ * \param value The value to convert.
+ * \returns The value of \p value as either "true" or "false".
+ */
+template < >
+inline
+void
+config_block
+::set_value( config_block_key_t const&          key,
+             std::string const&                 value,
+             config_block_description_t const&  descr )
+{
+  this->i_set_value( key, value, descr );
+}
 
 
 }
