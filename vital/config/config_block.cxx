@@ -82,7 +82,7 @@ bool starts_with( std::string const& str, std::string const& pfx )
   return ( str.substr( 0, pfx.size()) == pfx );
 }
 
-}
+} // end namespace
 
 
 
@@ -393,7 +393,7 @@ config_block
 // cast value to bool
 template < >
 bool
-config_block_cast( config_block_value_t const& value )
+config_block_get_value_cast( config_block_value_t const& value )
 {
   static config_block_value_t const true_string = config_block_value_t( "true" );
   static config_block_value_t const false_string = config_block_value_t( "false" );
@@ -434,15 +434,8 @@ config_block_cast( config_block_value_t const& value )
 //   Type specific get_value for string
 template < >
 std::string
-config_block
-::get_value( config_block_key_t const& key ) const
+config_block_get_value_cast( config_block_value_t const& value )
 {
-  config_block_value_t value;
-  if ( ! find_value(key, value ) )
-  {
-    throw no_such_configuration_value_exception( key );
-  }
-
   // We know config_block_value_t is a string
   return value;
 }
