@@ -39,8 +39,7 @@
 #define KWIVER_TEST_TEST_RANDOM_POINT_H_
 
 #include <vital/vector.h>
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
+#include <random>
 
 namespace kwiver
 {
@@ -49,11 +48,11 @@ namespace testing
 {
 
 /// random number generator type
-typedef boost::mt19937 rng_t;
+typedef std::mt19937 rng_t;
 /// normal distribution
-typedef boost::normal_distribution<> norm_dist_t;
+typedef std::normal_distribution<> norm_dist_t;
 /// normal distribution random generator type
-typedef boost::variate_generator<rng_t&, norm_dist_t> normal_gen_t;
+typedef std::variate_generator<rng_t&, norm_dist_t> normal_gen_t;
 
 /// a global random number generator instance
 static rng_t rng;
