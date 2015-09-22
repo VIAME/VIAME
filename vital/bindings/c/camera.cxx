@@ -67,7 +67,7 @@ vital_camera_t* vital_camera_read_krtd_file( char const *filepath,
 {
   STANDARD_CATCH(
     "C::camera::read_krtd_file", eh,
-    kwiver::vital::camera_sptr c( new kwiver::vital::camera_d( kwiver::vital::read_krtd_file(filepath) ) );
+    kwiver::vital::camera_sptr c( kwiver::vital::read_krtd_file(filepath) );
     kwiver::vital_c::CAMERA_SPTR_CACHE.store( c );
     return reinterpret_cast<vital_camera_t*>( c.get() );
   );
