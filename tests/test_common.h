@@ -40,8 +40,6 @@
 #ifndef KWIVER_TEST_TEST_COMMON_H_
 #define KWIVER_TEST_TEST_COMMON_H_
 
-#include <boost/function.hpp>
-
 #include <vital/vital_foreach.h>
 
 #include <exception>
@@ -135,7 +133,7 @@ typedef std::string testname_t;
 #define DECLARE_TEST_MAP()                                    \
   namespace                                                   \
   {                                                           \
-    typedef boost::function<void TEST_ARGS> test_function_t;  \
+    typedef std::function<void TEST_ARGS> test_function_t;    \
     typedef std::map<testname_t, test_function_t> test_map_t; \
   }                                                           \
   test_map_t __all_tests;                                     \

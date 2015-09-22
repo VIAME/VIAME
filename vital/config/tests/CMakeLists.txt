@@ -2,9 +2,8 @@ project(kwiver_config_tests)
 
 include(vital-test-setup)
 
-set( test_libraries vital_config kwiversys
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY} )
+set( test_libraries vital_config kwiversys )
+
 
 
 ##############################

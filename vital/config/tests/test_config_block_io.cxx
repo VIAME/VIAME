@@ -37,6 +37,7 @@
 
 #include <string>
 #include <iostream>
+#include <stdlib.h>
 
 #include <vital/vital_types.h>
 #include <vital/config/config_block_io.h>
@@ -44,14 +45,10 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-
 #define TEST_ARGS (kwiver::vital::config_path_t const& data_dir)
 DECLARE_TEST_MAP();
 
 using namespace kwiver::vital;
-namespace bfs = boost::filesystem;
 typedef kwiversys::SystemTools ST;
 
 int
@@ -277,7 +274,6 @@ IMPLEMENT_TEST( write_config_simple_success )
 {
   using namespace kwiver;
   using namespace std;
-  namespace bfs = boost::filesystem;
 
   config_block_sptr orig_config = config_block::empty_config( "simple_test" );
 
@@ -330,23 +326,27 @@ IMPLEMENT_TEST( write_config_simple_success )
   cerr << "ConfigBlock for writing:" << endl;
   print_config( orig_config );
 
-  bfs::path base_path = bfs::temp_directory_path() / bfs::unique_path();
-  cerr << "Working in temporary directory: " << base_path << endl;
-  ST::MakeDirectory( base_path.string().c_str() );
+  char output_path_1[128] = "test_config_output_1.conf.XXXXXX";
+  int fd1 = mkstemp( output_path_1 );
+  close( fd1 );
+  ST::RemoveFile( output_path_1 );
 
-  bfs::path output_path_1 = base_path / "test_config_output.conf";
   cerr << "Writing config_block to: " << output_path_1 << endl;
-  write_config_file( orig_config, output_path_1.string() );
+  write_config_file( orig_config, std::string( output_path_1 ) );
 
-  bfs::path output_path_2 = base_path / "subdir" / "test_config_output.conf";
+  char output_path_2[128] =  "test_config_output_2.conf.XXXXXX";
+  int fd2 = mkstemp( output_path_2 );
+  close( fd2 );
+  ST::RemoveFile( output_path_2 );
+
   cerr << "Writing config_block to: " << output_path_2 << endl;
-  write_config_file( orig_config, output_path_2.string() );
+  write_config_file( orig_config, std::string( output_path_2 ) );
 
   // Read files back in, confirning output is readable and the same as
   // what we should have output.
   std::vector< config_block_sptr > configs;
-  configs.push_back( read_config_file( output_path_1.string() ) );
-  configs.push_back( read_config_file( output_path_2.string() ) );
+  configs.push_back( read_config_file( output_path_1 ) );
+  configs.push_back( read_config_file( output_path_2 ) );
 
   VITAL_FOREACH( config_block_sptr config, configs )
   {
@@ -373,9 +373,6 @@ IMPLEMENT_TEST( write_config_simple_success )
                 config->get_value< config_block_value_t > ( keyG ),
                 valueG );
   }
-
-  cerr << "Cleaning up temp directory: " << base_path << endl;
-  bfs::remove_all( base_path );
 }
 
 IMPLEMENT_TEST( invalid_directory_write )
@@ -394,19 +391,21 @@ IMPLEMENT_TEST( empty_config_write_failure )
 {
   using namespace kwiver;
   using namespace std;
-  namespace bfs = boost::filesystem;
 
   config_block_sptr config = config_block::empty_config( "empty" );
-  bfs::path output_file = bfs::temp_directory_path() / bfs::unique_path();
+  char output_file[128] = "test_config_output_1.conf.XXXXXX";
+  int fd1 = mkstemp( output_file );
+  close( fd1 );
+  ST::RemoveFile( output_file );
+
   EXPECT_EXCEPTION(
     config_file_write_exception,
-    write_config_file( config, output_file.string() ),
+    write_config_file( config, output_file ),
     "attempted write of a config with nothing in it"
                   );
   // If the test failed, clean-up the file created.
-  if ( bfs::is_regular_file( output_file ) )
+  if ( 0 == ST::RemoveFile( output_file ) )
   {
     cerr << "Test failed and output file created. Removing." << endl;
-    bfs::remove( output_file );
   }
 }
