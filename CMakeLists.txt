@@ -35,8 +35,8 @@ set(CMAKE_MODULE_PATH      ${VITAL_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 # ================================================================
 ###
 # Set options
-option( VITAL_ENABLE_TESTS     "Enable testing (requires Boost libs)" ON)
-option( VITAL_ENABLE_TOOLS     "Enable tools (requires Boost libs)" ON)
+option( VITAL_ENABLE_TESTS     "Enable testing" ON)
+option( VITAL_ENABLE_TOOLS     "Enable tools" ON)
 
 if (VITAL_ENABLE_TESTS)
   enable_testing()
@@ -47,14 +47,6 @@ if (VITAL_ENABLE_TESTS)
 endif()
 
 option( VITAL_ENABLE_PYTHON   "Enable Python bindings" OFF )
-
-##
-# Currently boost is needed for tests and tools
-if ( VITAL_ENABLE_TESTS OR VITAL_ENABLE_TOOLS )
-  set( VITAL_USE_BOOST    TRUE )
-else()
-  set( VITAL_USE_BOOST    FALSE )
-endif()
 
 ###
 # KWIVER CMake config
@@ -70,15 +62,6 @@ include( vital-depends )
 # set the export group name for our package exports
 set(kwiver_export_name
   vital_exports)
-
-if (VITAL_USE_BOOST)
-  # define which boost we are using
-  if (DEFINED BOOST_ROOT)
-    set(BOOST_ROOT_ARG ${BOOST_ROOT})
-  else()
-    set(BOOST_ROOT_ARG ${Boost_LIBRARY_DIR}/..)
-  endif()
-endif()
 
 # ================================================================
 # project global includes
