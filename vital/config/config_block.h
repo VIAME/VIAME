@@ -29,7 +29,7 @@
  */
 
 /**
- * \file
+ * @file
  * \brief Header for \link kwiver::config_block configuration \endlink object
  */
 
@@ -96,6 +96,9 @@ class config_block;
  * representation. More complicated data can be supported by
  * specializing the config_block_set_value_cast() and
  * config_block_get_value_cast() functions.
+ *
+ * \sa config_block_get_value_cast()
+ * \sa config_block_set_value_cast()
  */
 
 class VITAL_CONFIG_EXPORT config_block
