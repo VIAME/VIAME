@@ -89,6 +89,7 @@ if( VITAL_ENABLE_C_LIB )
 
   target_link_libraries( vital_c
     vital
+    vital_apm
     )
 
 endif( VITAL_ENABLE_C_LIB )
