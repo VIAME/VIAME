@@ -74,9 +74,11 @@ function(kwiver_configure_file name source dest)
       DEPENDS "${dest}"
       SOURCES "${source}"   # Addding source for IDE purposes
       )
+
     source_group("Configured Files"
       FILES "${source}"
       )
+
     add_dependencies(kwiver_configure
       configure-${name}
       )

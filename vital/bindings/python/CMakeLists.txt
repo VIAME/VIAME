@@ -1,39 +1,38 @@
 # KWIVER Python interface support
 
-include(CMakeDependentOption)
-
-cmake_dependent_option( VITAL_ENABLE_PYTHON
-  "Enable configuration and installation of KWIVER Python bindings based on C interface"
-  ON                  # Default value
-  VITAL_ENABLE_C_LIB  # Dependency expression
-  OFF                 # State when dependency expression is false
+find_package(PythonLibs)
+find_package(PythonInterp REQUIRED)
+execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='')"
+  RESULT_VARIABLE proc_success
+  OUTPUT_VARIABLE python_site_packages
   )
 
-cmake_dependent_option( VITAL_PYTHON_SEARCH_BUILD_DIR
-  "Include build directory in search paths when python looks for C interface library."
-  ON
-  "VITAL_ENABLE_PYTHON;BUILD_SHARED_LIBS OR VITAL_C_LIB_FORCE_SHARED"
-  OFF
+if(NOT ${proc_success} EQUAL 0)
+  message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
+else()
+  string(STRIP "${python_site_packages}" python_site_packages)
+  message(STATUS "Python site-packages to install into: ${python_site_packages}")
+endif()
+
+if( VITAL_PYTHON_SEARCH_BUILD_DIR )
+  set(VITAL_BUILD_DIRECTORY "${VITAL_BINARY_DIR}")
+endif()
+
+##
+# add our python path to setup script
+file( APPEND ${VITAL_SETUP_SCRIPT_FILE}
+  "export PYTHONPATH=$this_dir/${python_site_packages}:$PYTHONPATH\n"
   )
 
+kwiver_configure_file(python-find_vital_libraray.py
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital/util/find_vital_library.py.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/util/find_vital_library.py"  #? this may not be the correct place
+  VITAL_BUILD_DIRECTORY
+  )
 
-if( VITAL_ENABLE_PYTHON )
-  if( BUILD_SHARED_LIBS    OR     VITAL_C_LIB_FORCE_SHARED )
-    if( VITAL_PYTHON_SEARCH_BUILD_DIR )
-      set(VITAL_BUILD_DIRECTORY "${VITAL_BINARY_DIR}")
-    endif()
+kwiver_install( DIRECTORY      vital
+  DESTINATION                  ${python_site_packages}
+  )
 
-    kwiver_configure_file(python-find_vital_libraray.py
-      "${CMAKE_CURRENT_SOURCE_DIR}/vital/util/find_vital_library.py.in"
-      "${CMAKE_CURRENT_SOURCE_DIR}/vital/util/find_vital_library.py"
-      VITAL_BUILD_DIRECTORY
-      )
-
-    #TODO: Install rules for python module and files
-  else()
-    message(WARNING
-      "Halting Python bindings processing due to not building shared "
-      "libraries. Python cannot load static libraries."
-      )
-  endif()
-endif( VITAL_ENABLE_PYTHON )
+# install find_vital_library.py ??

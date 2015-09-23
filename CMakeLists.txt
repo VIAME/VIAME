@@ -46,8 +46,6 @@ if (VITAL_ENABLE_TESTS)
 
 endif()
 
-option( VITAL_ENABLE_PYTHON   "Enable Python bindings" OFF )
-
 ###
 # KWIVER CMake config
 #
@@ -70,28 +68,28 @@ include_directories("${VITAL_BINARY_DIR}")
 
 # ==================================================================
 
-# Why would we ever want to build static?
-option(VITAL_BUILD_SHARED "Build VITAL packages shared or not" ON)
-
 set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"vital\" will install libraries in \"libvital\" rather than \"lib\"")
 mark_as_advanced( LIB_SUFFIX )
 
-if (VITAL_ENABLE_PYTHON)
-    find_package(PythonInterp)
-    find_package(PythonLibs)
-endif()
-
-set(BUILD_SHARED_LIBS ${VITAL_BUILD_SHARED})
+set(BUILD_SHARED_LIBS TRUE)
 
 # installing system setup script
+find_package(PythonInterp)      # needed for PYTHON_VERSION_MAJOR et al
 if (fletch_ROOT)
     set(SET_FLETCH_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH")
-    set(SET_FLETCH_PYTHON_PATH "export PYTHONPATH=${fletch_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
+    set(SET_FLETCH_PYTHON_PATH "export PYTHONPATH=${fletch_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages:$PYTHONPATH")
 endif()
 
-configure_file(${VITAL_CMAKE_DIR}/setup_VITAL.sh.in
-  ${VITAL_BINARY_DIR}/setup_VITAL.sh )
+##
+# Create initial setup script
+set(VITAL_SETUP_SCRIPT_FILE  ${VITAL_BINARY_DIR}/setup_VITAL.sh )
+
+configure_file(
+  ${VITAL_CMAKE_DIR}/setup_VITAL.sh.in
+  ${VITAL_SETUP_SCRIPT_FILE}
+  )
+
 
 # install set up script
 install( PROGRAMS   ${VITAL_BINARY_DIR}/setup_VITAL.sh

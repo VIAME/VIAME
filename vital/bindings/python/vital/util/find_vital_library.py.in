@@ -111,7 +111,7 @@ def _system_path_separator():
 
 def _find_vital_library_path():
     """
-    Discover the path to a MATPK C interface library based on the directory
+    Discover the path to a VITAL C interface library based on the directory
     structure this file is in, and then to system directories in the PATH
     (NOT python's sys.path, the actual OS environment PATH).
 
