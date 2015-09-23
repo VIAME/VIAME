@@ -28,115 +28,75 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "timestamp.h"
+#ifndef _VITAL_TYPES_TIMESTAMP_CONFIG_H
+#define _VITAL_TYPES_TIMESTAMP_CONFIG_H
+
+#include <vital/types/timestamp.h>
+#include <vital/config/config_block.h>
 
 #include <sstream>
-#include <string>
-#include <cstring>
-#include <ctime>
 
 namespace kwiver {
 namespace vital {
 
-timestamp::timestamp()
-  : m_valid_time( false ),
-    m_valid_frame( false ),
-    m_time( 0 ),
-    m_frame( 0 )
-{ }
-
-
-timestamp::timestamp( time_t t, frame_t f )
-  : m_valid_time( true ),
-    m_valid_frame( true ),
-    m_time( t ),
-    m_frame( f )
-{ }
-
-
-timestamp& timestamp
-::set_time( time_t t )
+/**
+ * @brief Convert string to timestamp for config block.
+ *
+ * This function is a specialization of the config type converter. It
+ * converts a string to a native timestamp object.
+ *
+ * This is primarily used to supply *default* behaviour for a
+ * timestamp when getting data from the confiug.
+ *
+ * @param value String representation of timestamp.
+ *
+ * @return Native timestamp.
+ */
+template<>
+inline
+timestamp
+config_block_get_value_cast( config_block_value_t const& value )
 {
-  m_time = t;
-  m_valid_time = true;
+  timestamp obj;
 
-  return *this;
+  std::stringstream str; // add string to stream
+  str << value;
+
+  timestamp::time_t t;
+  str >> t;
+  obj.set_time( t );
+
+  timestamp::frame_t f;
+  str >> f;
+  obj.set_frame( f );
+
+  return obj
 }
 
 
-timestamp& timestamp
-::set_frame( frame_t f)
-{
-  m_frame = f;
-  m_valid_frame = true;
-
-  return *this;
-}
-
-
-timestamp& timestamp
-::set_invalid()
-{
-  m_valid_time = false;
-  m_valid_frame = false;
-
-  return *this;
-}
-
-
-std::string timestamp
-::pretty_print() const
+/**
+ * @brief Convert timestamp to string for config block.
+ *
+ * This function is a specialization of the config type converter. It
+ * converts a timestamp to a string representation for use in a config
+ * block.
+ *
+ * @param value Timestamp to be converted to a string.
+ *
+ * @return String representation of timestamp.
+ */
+template<>
+inline
+config_block_value_t
+config_block_set_value_cast( timestamp const& value )
 {
   std::stringstream str;
-  std::string c_tim( "" );
-  std::time_t tt = static_cast< std::time_t > ( this->get_time() );
 
-  std::streamsize old_prec = str.precision();
-  str.precision(6);
+  str << value.get_time() << " " << value.get_frame();
 
-  str << "ts(f: ";
-
-  if ( this->has_valid_frame() )
-  {
-      str << this->get_frame();
-  }
-  else
-  {
-    str << "<inv>";
-  }
-
-  str << ", t: ";
-
-  if ( this->has_valid_time() )
-  {
-    char* p = ctime( &tt ); // this may return null if <tt> is out of range,
-    if ( p )
-    {
-      char buffer[128];
-      c_tim = " (";
-      buffer[0] = 0;
-      strncpy( buffer, p, sizeof buffer );
-      buffer[std::strlen( buffer ) - 1] = 0; // remove NL
-
-      c_tim = c_tim + buffer;
-      c_tim = c_tim + ")";
-
-      str << this->get_time() << c_tim;
-    }
-    else
-    {
-      str << " (time " << tt << " out of bounds?)";
-    }
-  }
-  else
-  {
-    str << "<inv>";
-  }
-
-  str << ")";
-
-  str.precision( old_prec );
   return str.str();
 }
 
-} } // end namespace
+} } // end namesapce
+
+#endif /* _VITAL_TYPES_TIMESTAMP_CONFIG_H */

@@ -38,6 +38,7 @@
 #include <string>
 #include <iostream>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <vital/vital_types.h>
 #include <vital/config/config_block_io.h>
