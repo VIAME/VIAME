@@ -188,33 +188,9 @@ private:
 
 }; // end class timestamp
 
+
 inline std::ostream& operator<< ( std::ostream& str, timestamp const& obj )
 { str << obj.pretty_print(); return str; }
-
-
-/**
- * \brief Input operator
- *
- * Convert object from string representation to native form.  This is
- * primarily used for object specific behaviour for the configuration.
- * when supplying default values for static ports.
- *
- * The expected format for the string representation of a timestamp
- * is:
- *
- * <frame> <time in seconds>
- *
- * For example:
- \code
- 300 10.0
- \endcode
- *
- * @param str input stream
- * @param obj object to initialize
- *
- * @return Reference to the stream operator for chained output.
- */
-VITAL_EXPORT std::istream& operator>> ( std::istream& str, timestamp& obj );
 
 } } // end namespace
 

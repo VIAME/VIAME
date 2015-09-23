@@ -90,6 +90,12 @@ class config_block;
  * The block name is user defined unless the config_block is a
  * sub-block. In that case, the name (get_name()) contains the prefix
  * portion of the key.
+ *
+ * config_block supports simple data types by using the input and
+ * output operators for conversions to/from a string
+ * representation. More complicated data can be supported by
+ * specializing the config_block_set_value_cast() and
+ * config_block_get_value_cast() functions.
  */
 
 class VITAL_CONFIG_EXPORT config_block
@@ -416,6 +422,27 @@ config_block_get_value_cast_default( config_block_value_t const& value )
  * for your data type, then write a specialized version of this
  * function to do the conversion.
  *
+ * Example:
+\code
+template<>
+timestamp
+config_block_get_value_cast( config_block_value_t const& value )
+{
+  std::stringstream str;
+  str << value;
+
+  timestamp::time_t t;
+  str >> t;
+  obj.set_time( t );
+
+  timestamp::frame_t f;
+  str >> f;
+  obj.set_frame( f );
+
+  return str;
+}
+\endcode
+ *
  * \throws bad_configuration_cast Thrown when the conversion fails.
  * \param value The value to convert.
  * \tparam R Type returned.
@@ -548,6 +575,20 @@ config_block_set_value_cast_default( T const& value )
  * If the default implementation (using output operator) does not work
  * for your data type, then write a specialized version of this
  * function to do the conversion.
+ *
+ * Example:
+\code
+template<>
+config_block_value_t
+config_block_set_value_cast( timestamp const& value )
+{
+  std::stringstream str;
+
+  str << value.get_time() << " " << value.get_frame();
+
+  return str.str();
+}
+\endcode
  *
  * \throws bad_configuration_cast Thrown when the conversion fails.
  * \param value The value to convert.
