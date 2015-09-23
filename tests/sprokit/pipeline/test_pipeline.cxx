@@ -42,6 +42,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/lexical_cast.hpp>
 
 #define TEST_ARGS ()
 

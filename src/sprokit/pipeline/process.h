@@ -1123,7 +1123,7 @@ T
 process
 ::config_value(kwiver::vital::config_block_key_t const& key) const
 {
-  return kwiver::vital::config_block_cast<T>(config_value_raw(key));
+  return kwiver::vital::config_block_get_value_cast<T>(config_value_raw(key));
 }
 
 template <typename T>
