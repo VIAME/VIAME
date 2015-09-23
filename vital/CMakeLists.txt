@@ -279,6 +279,8 @@ configure_file(
 # check compiler support
 include( kwiver-configcheck )
 
+###
+# configure our CMake config
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vital_config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/vital_config.h" )
