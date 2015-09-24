@@ -33,11 +33,11 @@
 
 #include <vital/vital_config.h>
 
-#if defined VITAL_USE_CPP_RANGE_FOR
+#if VITAL_USE_CPP_RANGE_FOR
 
 #define VITAL_FOREACH(decl, container)    for( decl : container )
 
-#elif defined VITAL_USE_BOOST_FOREACH
+#elif VITAL_USE_BOOST_FOREACH
 
 #include <boost/foreach.hpp>
 #define VITAL_FOREACH(decl, container)    BOOST_FOREACH(decl, container)
