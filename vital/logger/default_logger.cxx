@@ -39,7 +39,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string.h>
-
+#include <locale>
 
 namespace kwiver {
 namespace vital {
