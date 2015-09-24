@@ -232,6 +232,7 @@ public:
    */
   void unset_value( config_block_key_t const& key );
 
+
   /// Query if a value is read-only.
   /**
    *
@@ -239,6 +240,7 @@ public:
    * \returns True if \p key is read-only, false otherwise.
    */
   bool is_read_only( config_block_key_t const& key ) const;
+
 
   /// Set the value within the configuration as read-only.
   /**
@@ -254,6 +256,7 @@ public:
    * \param key The key of the value to mark as read-only.
    */
   void mark_read_only( config_block_key_t const& key );
+
 
   /// Merge the values in \p config into the current config.
   /**
@@ -281,6 +284,7 @@ public:
    */
   void merge_config( config_block_sptr const& config );
 
+
   ///Return the values available in the configuration.
   /**
    * This method returns a list of all config entry keys available
@@ -290,6 +294,7 @@ public:
    * \returns All of the keys available within the block.
    */
   config_block_keys_t available_values() const;
+
 
   /// Check if a value exists for \p key.
   /**
@@ -304,11 +309,12 @@ public:
   /// The magic group for global parameters.
   static config_block_key_t const global_value;
 
+
   /// Format config in printable form
   /**
    * This method formats the config entries onto the supplied stream.
    *
-   * \paaram str Stream to accept formated text.
+   * \param str Stream to accept formated text.
    */
   void print( std::ostream & str );
 
@@ -476,6 +482,15 @@ VITAL_CONFIG_EXPORT
 bool config_block_get_value_cast( config_block_value_t const& value );
 
 
+// ------------------------------------------------------------------
+/// Type-specific cast handling for config_block_value_t->string specialization
+/**
+ * This function converts from a string to a string.
+ *
+ * @param value String to be converted
+ *
+ * @return Resulting string
+ */
 template < >
 VITAL_CONFIG_EXPORT
 std::string config_block_get_value_cast( config_block_value_t const& value );

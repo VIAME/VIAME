@@ -75,7 +75,7 @@ function(kwiver_create_doxygen name inputdir)
 
     # Configuring template files and linking known target names
     # Make sure targets get made, else this can't connect the dependency chain
-    #set(no_configure_target TRUE)
+    set(no_configure_target TRUE)
     message(STATUS "[doxy-${name}] Configuring Doxyfile.common")
     kwiver_configure_file(${name}-doxyfile.common
       "${doxy_files_dir}/Doxyfile.common.in"
