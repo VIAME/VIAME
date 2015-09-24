@@ -86,7 +86,7 @@ token_expander::
 expand_token( std::string const& initial_string )
 {
   std::string new_value;
-  static kwiversys::RegularExpression exp( "\\$([a-zA-Z][a-zA-Z0-9_]*)\\{([a-zA-Z0-9_:]+)?\\}" );
+  static kwiversys::RegularExpression exp( "\\$([a-zA-Z][a-zA-Z0-9_]*)\\{([a-zA-Z0-9._:]+)?\\}" );
 
   std::string::const_iterator start, end;
   start = initial_string.begin();
