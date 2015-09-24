@@ -64,11 +64,11 @@
 #endif
 
 #if VITAL_USE_CPP_DEFAULT_CTOR // also DTOR
-  #define VITAL_DEFAULT_CTOR {}
-  #define VITAL_DEFAULT_DTOR {}
-#else
   #define VITAL_DEFAULT_CTOR = default;
   #define VITAL_DEFAULT_DTOR = default;
+#else
+  #define VITAL_DEFAULT_CTOR {}
+  #define VITAL_DEFAULT_DTOR {}
 #endif
 
 #endif // VITAL_VITAL_CONFIG_H
