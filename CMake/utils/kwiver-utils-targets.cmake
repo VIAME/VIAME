@@ -256,8 +256,13 @@ function(kwiver_install_headers)
       FILES       "${header}"
       DESTINATION "include/${mih_SUBDIR}${H_SUBDIR}"
       )
-
   endforeach()
+
+  # for IDE support
+  source_group("Header Files\\Public"
+    FILES ${mih_UNPARSED_ARGUMENTS}
+    )
+
 endfunction()
 
 
