@@ -30,8 +30,8 @@
 
 /**
  * \file
- * \brief Header for \link vital::camera camera \endlink and
- *        \link vital::camera_ camera_<T> \endlink classes
+ * \brief Header for \link kwiver::vital::camera camera \endlink and
+ *        \link kwiver::vital::camera_ camera_<T> \endlink classes
  */
 
 #ifndef VITAL_CAMERA_H_

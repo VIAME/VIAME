@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header for \link vital::landmark landmark \endlink objects
+ * \brief Header for \link kwiver::vital::landmark landmark \endlink objects
  */
 
 #ifndef VITAL_LANDMARK_H_

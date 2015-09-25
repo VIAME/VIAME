@@ -30,7 +30,7 @@
 
 /**
  * @file
- * \brief Header for \link kwiver::config_block configuration \endlink object
+ * \brief Header for \link kwiver::vital::config_block configuration \endlink object
  */
 
 #ifndef KWIVER_CONFIG_BLOCK_H_
@@ -385,7 +385,7 @@ private:
  * around this problem define a specialized version of
  * config_block_get_value_cast<>() for your specific type.
  *
- * \note Do not use this in user code. Use \ref config_block_get_value_cast instead.
+ * \note Do not use this in user code. Use config_block_get_value_cast() instead.
  *
  * \param value The value to convert.
  * \tparam R Type returned.
@@ -473,7 +473,7 @@ config_block_get_value_cast( config_block_value_t const& value )
  * \c true, \c false, \c yes and \c no literal conversion versus just
  * \c 1 and \c 0 (1 and 0 still handled if provided).
  *
- * \note Do not use this in user code. Use \ref config_block_get_value_cast() instead.
+ * \note Do not use this in user code. Use config_block_get_value_cast() instead.
  * \param value The value to convert.
  * \returns The value of \p value in the requested type.
  */
@@ -552,7 +552,7 @@ config_block
  * around this problem define a specialized version of
  * config_block_set_value_cast<>() for your specific type.
  *
- * \note Do not use this in user code. Use \ref config_block_set_value_cast instead.
+ * \note Do not use this in user code. Use config_block_set_value_cast() instead.
  *
  * \param value   Value to be converted to string representation.
  * \tparam T Type to be converted.
@@ -645,7 +645,10 @@ config_block
  * This is the \c config_block_value_t to \c bool specialization that outputs
  * \c true and \c false literals instead of 1 or 0.
  *
+ * \param key The configuration key string
  * \param value The value to convert.
+ * \param descr Configuration item descrription
+ *
  * \returns The value of \p value as either "true" or "false".
  */
 template < >
@@ -666,7 +669,10 @@ config_block
  * This is the \c config_block_value_t to \c string specialization that outputs
  * the value string directly.
  *
+ * \param key The configuration key string
  * \param value The value to convert.
+ * \param descr Configuration item descrription
+ *
  * \returns The value of \p value as either "true" or "false".
  */
 template < >

@@ -30,8 +30,8 @@
 
 /**
  * \file
- * \brief Header file for an abstract \link vital::track_set track_set
- *        \endlink and a concrete \link vital::simple_track_set
+ * \brief Header file for an abstract \link kwiver::vital::track_set track_set
+ *        \endlink and a concrete \link kwiver::vital::simple_track_set
  *        simple_track_set \endlink
  */
 

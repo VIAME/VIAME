@@ -30,8 +30,8 @@
 
 /**
  * \file
- * \brief Instantiation of \link vital::algo::algorithm_def algorithm_def<T>
- *        \endlink for \link vital::algo::triangulate_landmarks
+ * \brief Instantiation of \link kwiver::vital::algo::algorithm_def algorithm_def<T>
+ *        \endlink for \link kwiver::vital::algo::triangulate_landmarks
  *        triangulate_landmarks \endlink
  */
 

@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header defining abstract \link vital::algo::track_features feature
+ * \brief Header defining abstract \link kwiver::vital::algo::track_features feature
  *        tracking \endlink algorithm
  */
 

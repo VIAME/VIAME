@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link vital::track_set track_set \endlink
+ * \brief Implementation of \link kwiver::vital::track_set track_set \endlink
  *        member functions
  */
 

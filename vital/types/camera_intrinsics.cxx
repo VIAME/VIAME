@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link vital::camera_intrinsics_
+ * \brief Implementation of \link kwiver::vital::camera_intrinsics_
  *        camera_intrinsics_<T> \endlink class
  *        for \c T = { \c float, \c double }
  */

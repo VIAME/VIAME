@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief File IO functions for a \ref vital::track_set
+ * \brief File IO functions for a \ref kwiver::vital::track_set
  *
  * \todo Describe format here.
  */

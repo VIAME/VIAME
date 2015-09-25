@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header for \link vital::track track \endlink objects
+ * \brief Header for \link kwiver::vital::track track \endlink objects
  */
 
 #ifndef VITAL_TRACK_H_

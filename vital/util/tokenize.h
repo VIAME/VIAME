@@ -48,7 +48,7 @@ namespace vital {
  *
  * @param[in] str String to split
  * @param[in,out] tokens Container tokens are added to
- * @param[in] delimeters List of delimiters used for splitting
+ * @param[in] delimiters List of delimiters used for splitting
  * @param[in] trimEmpty \b false will add empty tokens to container
  * @tparam ContainerT Any container that supports push_back()
  */

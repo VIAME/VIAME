@@ -30,8 +30,8 @@
 
 /**
  * \file
- * \brief Instantiation of \link vital::algo::algorithm_def algorithm_def<T>
- *        \endlink for \link vital::algo::optimize_cameras
+ * \brief Instantiation of \link kwiver::vital::algo::algorithm_def algorithm_def<T>
+ *        \endlink for \link kwiver::vital::algo::optimize_cameras
  *        optimize_cameras \endlink
  */
 

@@ -30,8 +30,8 @@
 
 /**
  * \file
- * \brief Instantiation of \link vital::algo::algorithm_def algorithm_def<T>
- *        \endlink for \link vital::algo::bundle_adjust bundle_adjust \endlink
+ * \brief Instantiation of \link kwiver::vital::algo::algorithm_def algorithm_def<T>
+ *        \endlink for \link kwiver::vital::algo::bundle_adjust bundle_adjust \endlink
  */
 
 #include <vital/algo/bundle_adjust.h>

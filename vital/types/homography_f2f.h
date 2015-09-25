@@ -47,12 +47,15 @@ class VITAL_EXPORT f2f_homography
 public:
   /// Construct an identity homography for the given frame
   /**
-   * \tparam T Data type for the underlying homography transformation
+   * \param frame_id
    */
   explicit f2f_homography( frame_id_t const frame_id );
 
   /// Construct a frame to frame homography using a matrix
   /**
+   * \param h
+   * \param from_id
+   * \param to_id
    * \tparam T Data type for the underlying homography transformation
    */
   template < typename T >
@@ -69,6 +72,10 @@ public:
   /**
    * The given homography sptr is cloned into this object so we retain a unique
    * copy.
+   *
+   * \param h
+   * \param from_id
+   * \param to_id
    */
   explicit f2f_homography( homography_sptr const& h,
                            frame_id_t const       from_id,

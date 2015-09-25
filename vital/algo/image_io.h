@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Interface for image_io \link vital::algo::algorithm_def algorithm
+ * \brief Interface for image_io \link kwiver::vital::algo::algorithm_def algorithm
  *        definition \endlink.
  */
 

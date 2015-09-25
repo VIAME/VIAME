@@ -34,7 +34,8 @@
 #include "kwiver_logger.h"
 
 /**
- * @file This file defines the main user interface to the kwiver logger.
+ * @file
+ * This file defines the main user interface to the kwiver logger.
  */
 
 

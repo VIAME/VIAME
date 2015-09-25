@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header defining abstract \link vital::algo::triangulate_landmarks
+ * \brief Header defining abstract \link kwiver::vital::algo::triangulate_landmarks
  *        triangulate landmarks \endlink algorithm
  */
 

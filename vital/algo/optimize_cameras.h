@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header defining abstract \link vital::algo::optimize_cameras camera
+ * \brief Header defining abstract \link kwiver::vital::algo::optimize_cameras camera
  *        optimization \endlink algorithm
  */
 

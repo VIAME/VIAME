@@ -31,7 +31,7 @@
 /**
  * \file
  * \brief Implementation and template instantiation for
- * \link vital::landmark landmark \endlink objects
+ * \link kwiver::vital::landmark landmark \endlink objects
  */
 
 #include "landmark.h"

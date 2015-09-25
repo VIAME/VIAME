@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief File IO functions for a \ref vital::camera
+ * \brief File IO functions for a \ref kwiver::vital::camera
  *
  * File format is the KRTD file.
  */

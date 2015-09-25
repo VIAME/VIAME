@@ -41,7 +41,7 @@
 
 /**
  * \file
- * \brief Header defining an abstract \link vital::algo::draw_tracks track
+ * \brief Header defining an abstract \link kwiver::vital::algo::draw_tracks track
  *        drawing \endlink algorithm
  */
 

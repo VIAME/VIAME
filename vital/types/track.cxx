@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link vital::track track \endlink
+ * \brief Implementation of \link kwiver::vital::track track \endlink
  */
 
 #include "track.h"

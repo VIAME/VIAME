@@ -31,7 +31,7 @@
 /**
  * \file
  *
- * \brief Implementation of \link kwiver::config_block configuration \endlink object
+ * \brief Implementation of \link kwiver::vital::config_block configuration \endlink object
  */
 
 #include "config_block.h"

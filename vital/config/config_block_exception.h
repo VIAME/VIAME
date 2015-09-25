@@ -49,7 +49,7 @@ namespace vital {
 
 // ------------------------------------------------------------------
 /**
- * \brief The base class for all exceptions thrown from \ref config_block
+ * \brief The base class for all exceptions thrown from \ref kwiver::vital::config_block
  * \ingroup exceptions
  */
 class VITAL_CONFIG_EXPORT config_block_exception

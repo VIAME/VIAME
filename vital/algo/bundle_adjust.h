@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header defining abstract \link vital::algo::bundle_adjust
+ * \brief Header defining abstract \link kwiver::vital::algo::bundle_adjust
  *        bundle adjustment \endlink algorithm
  */
 

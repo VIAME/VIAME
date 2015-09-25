@@ -45,7 +45,7 @@ namespace kwiver {
 namespace vital {
 
 // ------------------------------------------------------------------
-/// Get this alg's \link vital::config_block configuration block \endlink
+/// Get this alg's \link kwiver::vital::config_block configuration block \endlink
 config_block_sptr
 algorithm
 ::get_configuration() const

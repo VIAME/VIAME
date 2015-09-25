@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header defining abstract \link vital::algo::initialize_cameras_landmarks
+ * \brief Header defining abstract \link kwiver::vital::algo::initialize_cameras_landmarks
  *        bundle adjustment \endlink algorithm
  */
 

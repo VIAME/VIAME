@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header for \link vital::camera_intrinsics camera_intrinsics
+ * \brief Header for \link kwiver::vital::camera_intrinsics camera_intrinsics
  *        \endlink class
  */
 

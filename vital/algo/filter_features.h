@@ -43,7 +43,7 @@
 
 /**
  * \file
- * \brief Header defining abstract \link vital::algo::filter_features
+ * \brief Header defining abstract \link kwiver::vital::algo::filter_features
  *        filter features \endlink algorithm
  */
 

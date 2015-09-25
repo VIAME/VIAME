@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header for \link vital::similarity_ similarity_<T> \endlink class
+ * \brief Header for \link kwiver::vital::similarity_ similarity_<T> \endlink class
  *        for similarity transformations
  */
 

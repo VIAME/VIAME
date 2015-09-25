@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header for \link vital::rotation_ rotation_<T> \endlink class
+ * \brief Header for \link kwiver::vital::rotation_ rotation_<T> \endlink class
  */
 
 #ifndef VITAL_ROTATION_H_
@@ -202,7 +202,7 @@ interpolate_rotation( rotation_< T > const& A, rotation_< T > const& B, T f );
  *
  * \param[in]   A           Rotation we are interpolating from.
  * \param[in]   B           Rotation we are interpolating towards,
- * \paran[in]   n           Number of even interpolations in between A and B to generate.
+ * \param[in]   n           Number of even interpolations in between A and B to generate.
  * \param[out]  interp_rots Interpolated rotations are added to this vector in
  *                          in order of generation in the A -> B direction.
  *

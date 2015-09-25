@@ -42,7 +42,7 @@
 
 /**
  * \file
- * \brief Header defining abstract \link vital::algo::close_loops track
+ * \brief Header defining abstract \link kwiver::vital::algo::close_loops track
  *        analyzer \endlink algorithm
  */
 

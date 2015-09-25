@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link vital::similarity_ similarity_<T> \endlink
+ * \brief Implementation of \link kwiver::vital::similarity_ similarity_<T> \endlink
  *        for \c T = { \c float, \c double }
  */
 

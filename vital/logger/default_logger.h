@@ -57,7 +57,7 @@ public:
   virtual ~logger_factory_default() VITAL_DEFAULT_DTOR
 
   /**
-   * @brief Get logger object for \v name.
+   * @brief Get logger object for /c name.
    *
    * This method returns a handle to the named logger. Since this is
    * the minimal default logger, all loggers are effectively the same.

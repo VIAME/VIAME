@@ -32,6 +32,7 @@ endif()
 #-
 function(kwiver_create_doxygen name inputdir)
   if(${CMAKE_PROJECT_NAME}_ENABLE_DOCS)
+
     message(STATUS "[doxy-${name}] Creating doxygen targets")
 
     # Constants -- could be moved outside this function?

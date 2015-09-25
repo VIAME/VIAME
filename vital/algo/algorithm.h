@@ -109,7 +109,7 @@ public:
                             std::string const& impl_name);
 
 
-  /// Get this algorithm's \link vital::config_block configuration block \endlink
+  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   /**
    * This base virtual function implementation returns an empty configuration
    * block whose name is set to \c this->type_name.
@@ -148,9 +148,9 @@ public:
   /**
    * Adds a configurable algorithm implementation switch for this algorithm.
    * If the variable pointed to by \c nested_algo is a defined sptr to an
-   * implementation, its \link vital::config_block configuration \endlink
+   * implementation, its \link kwiver::vital::config_block configuration \endlink
    * parameters are merged with the given
-   * \link vital::config_block config_block \endlink.
+   * \link kwiver::vital::config_block config_block \endlink.
    *
    * \param     type_name   The type name of the nested algorithm.
    * \param     name        An identifying name for the nested algorithm
@@ -272,9 +272,9 @@ public:
   /**
    * Adds a configurable algorithm implementation switch for this algorithm_def.
    * If the variable pointed to by \c nested_algo is a defined sptr to an
-   * implementation, its \link vital::config_block configuration \endlink
+   * implementation, its \link kwiver::vital::config_block configuration \endlink
    * parameters are merged with the given
-   * \link vital::config_block config_block \endlink.
+   * \link kwiver::vital::config_block config_block \endlink.
    *
    * \param     name        An identifying name for the nested algorithm
    * \param     config      The \c config_block instance in which to put the

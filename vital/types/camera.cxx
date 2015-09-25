@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link vital::camera camera \endlink class
+ * \brief Implementation of \link kwiver::vital::camera camera \endlink class
  */
 
 #include <vital/types/camera.h>

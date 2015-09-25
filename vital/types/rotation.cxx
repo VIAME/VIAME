@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link vital::rotation_ rotation_<T> \endlink
+ * \brief Implementation of \link kwiver::vital::rotation_ rotation_<T> \endlink
  *        for \c T = { \c float, \c double }
  */
 

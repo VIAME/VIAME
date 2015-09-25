@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of file IO functions for a \ref vital::landmark_map
+ * \brief Implementation of file IO functions for a \ref kwiver::vital::landmark_map
  *
  * Uses the PLY file format
  */
