@@ -1,0 +1,53 @@
+VITAL Release Notes for changes pending release approval by AFRL
+================================================================
+
+This file documents release notes for changes made to VITAL which require
+public release approval from AFRL.  After approval, the changes and
+corresponding notes below will be encorporated into a public numbered
+release version, and the content of this file will be reset.
+
+Removed boost libraries as dependencies. The vital libraries no longer
+require boost to build. Requiring boost was problematic because it was
+difficult to build a sufficient version on all the platforms we
+support.
+
+Replaced boost supplied features with those from std and kwiversys OS
+Abstraction Layer. Using the std boost equivalent features required
+compiling with C++ 0x standard support. The cmake build system now
+tests for required compiler flags.
+
+Test vital builds on CentOS 5, OSX
+
+Add method to algorithm plugin manager to load plugins on the first
+call.  This is used by sprokit processes to optimize plugin
+loading. Previously, each process would (re)load all plugins. This new
+method reduces startup time considerably.
+
+More compiler warning flags have been added to catch programming
+errors and questionable practices. Code has been modified to compile
+without warnings.
+
+Added build time checks to determine which language features are
+available with the current compiler. More advanced language features
+are used in place of older work-arounds, such as range based for in
+place of more complicated FOREACH macros.
+
+Improved documentation and added examples in the documentation.
+
+Vital now installs a standard set of CMake support functions and
+macros intended to simplify and unify building packages that depend on vital.
+
+Standardized install directory structure so that vital, maptk and
+sprokit can all install into the same install-root directory.
+
+Modified the approach to handling custom data types in the
+config. Since the internal config structure holds values as strings,
+the conversion to and from the c++ type has been simplified and
+documented.  This conversion is done with two user supplied templated
+specializations of the default conversion functions.
+
+Refactored camera related data types by moving code between Map-TK and
+vital.
+
+The C bindings used for the python interface have been converted to
+vital namespace, are built and tested.
