@@ -201,6 +201,7 @@ config_block
 
     store_t::iterator const i = m_store.find( key );
     store_t::iterator const j = m_descr_store.find( key );
+    location_t::iterator const k = m_def_store.find( key );
 
     // value and descr stores managed in parallel, so if key doesn't exist in
     // value store, there will be no parallel value in the descr store.
@@ -211,6 +212,11 @@ config_block
 
     m_store.erase( i );
     m_descr_store.erase( j );
+
+    if ( k != m_def_store.end() )
+    {
+      m_def_store.erase( k );
+    }
   }
 }
 
@@ -311,7 +317,8 @@ config_block
     m_name( name ),
     m_store(),
     m_descr_store(),
-    m_ro_list()
+    m_ro_list(),
+    m_def_store()
 {
 }
 
@@ -376,7 +383,7 @@ config_block
     }
 
     config_block_value_t temp( value );
-    m_store[key] = trim( temp ); // trim value in place
+    m_store[key] = trim( temp ); // trim value in place. Leading and trailing blanks are evil!
 
     // Only assign the description given if there is no stored description
     // for this key, or the given description is non-zero.
@@ -385,6 +392,34 @@ config_block
       m_descr_store[key] = descr;
     }
   }
+}
+
+
+// ------------------------------------------------------------------
+void
+config_block
+::set_location( config_block_key_t const& key, std::shared_ptr< std::string > file, int line )
+{
+  m_def_store[key] = source_location( file, line );
+}
+
+
+// ------------------------------------------------------------------
+bool
+config_block
+::get_location( config_block_key_t const& key,
+                std::string& file,
+                int line) const
+{
+  location_t::const_iterator i = m_def_store.find( key );
+  if ( i != m_def_store.end() )
+  {
+    file = i->second.file();
+    line = i->second.line();
+    return true;
+  }
+
+  return false;
 }
 
 
@@ -499,10 +534,20 @@ config_block::
 
     if ( this->is_read_only( key ) )
     {
-      ro = "[ro]";
+      ro = "[RO]";
     }
 
-    str << key << ro << " = " << val << std::endl;
+    str << key << ro << " = " << val;
+
+    // Add location information if available
+    std::string file;
+    int line(0);
+    if ( get_location( key, file, line ) )
+    {
+      str << "  (" << file << ":" << line << ")";
+    }
+
+    str << std::endl;
   }
 }
 
