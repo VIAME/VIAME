@@ -209,11 +209,11 @@ private:
 
     {
       std::lock_guard< std::mutex > guard( lock ); // serialize access to stream
-      std::ostream* s = &get_stream();
+      std::ostream* str = &get_stream();
       while ( getline( ss, msg_part ) )
       {
-        writeTime( *s, t );
-        *s
+        writeTime( *str, t );
+        *str
           // << std::put_time(std::localtime(&t), "%F %T")
            << '.' << fractional_seconds
            << ' ' << level_str << ' ' << msg_part << '\n';
