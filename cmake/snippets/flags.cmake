@@ -32,7 +32,7 @@ function (sprokit_want_compiler_flag flag)
 
   check_cxx_compiler_flag("${flag}" "have_compiler_flag-${safeflag}")
 
-  if ("have_compiler_flag-${safeflag}")
+  if (have_compiler_flag-${safeflag})
     sprokit_add_flag("${flag}" ${ARGN})
   endif ()
 endfunction ()
