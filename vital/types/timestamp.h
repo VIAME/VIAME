@@ -55,7 +55,7 @@ class VITAL_EXPORT timestamp
 {
 public:
   // -- TYPES --
-  typedef double time_t;
+  typedef int64_t time_t; // in micro-seconds
   typedef int64_t frame_t;
 
   /**
@@ -109,13 +109,15 @@ public:
   /**
    * \brief Get time from timestamp.
    *
-   * The time portion of the timestamp is returned in seconds. The
-   * value will be undetermined if the timestamp does not have a valid time.
+   * The time portion of the timestamp is returned in
+   * micro-seconds. The value will be undetermined if the timestamp
+   * does not have a valid time.
+   *
    * \sa has_valid_time()
    *
-   * @return Frame time in seconds
+   * @return Frame time in micro-seconds
    */
-  time_t get_time() const { return m_time; }
+  time_t get_time_usec() const { return m_time; }
 
   /**
    * \brief Get time in seconds.
@@ -145,7 +147,7 @@ public:
    *
    * @param t Time for frame.
    */
-  timestamp& set_time( time_t t );
+  timestamp& set_time_usec( time_t t );
 
 
   /**
@@ -182,7 +184,7 @@ private:
   time_t m_time; ///< frame time in seconds
   frame_t  m_frame;
 
-  ///\todo Convert time to  int64 microseconds, add unique field to denote reference.
+  ///\todo Add unique field to denote reference.
   /// The concept is to prevent comparing timestamps that have a different reference
   /// (e.g. from a different video stream or having a different start time offset).
 

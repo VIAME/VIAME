@@ -55,7 +55,7 @@ timestamp::timestamp( time_t t, frame_t f )
 
 
 timestamp& timestamp
-::set_time( time_t t )
+::set_time_usec( time_t t )
 {
   m_time = t;
   m_valid_time = true;
@@ -84,15 +84,22 @@ timestamp& timestamp
 }
 
 
+double timestamp
+::get_time_seconds() const
+{
+  return static_cast< double > (m_time) * 1e-6; // convert from usec to sec
+}
+
+
 std::string timestamp
 ::pretty_print() const
 {
   std::stringstream str;
   std::string c_tim( "" );
-  std::time_t tt = static_cast< std::time_t > ( this->get_time() );
+  std::time_t tt = static_cast< std::time_t > ( this->get_time_seconds() );
 
   std::streamsize old_prec = str.precision();
-  str.precision(6);
+  str.precision(16);
 
   str << "ts(f: ";
 
@@ -121,7 +128,7 @@ std::string timestamp
       c_tim = c_tim + buffer;
       c_tim = c_tim + ")";
 
-      str << this->get_time() << c_tim;
+      str << this->get_time_usec() << c_tim;
     }
     else
     {
