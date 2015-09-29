@@ -102,12 +102,21 @@ IMPLEMENT_TEST( successful_config_read )
   cerr << "Available keys in the config_block:" << endl;
   VITAL_FOREACH( config_block_key_t key, config->available_values() )
   {
-    cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
+    std::string file( "undefined" );
+    int line(0);
+    config->get_location( key, file, line );
+    cerr << "\t\"" << key
+         << ( config->is_read_only( key ) ? "[RO] " : "" )
+         << "\" := \"" << config->get_value< std::string > ( key ) << "\""
+         << endl
+         << "\t   Defined at: " << file << ":" << line
+         << endl
+      ;
   }
 
   TEST_EQUAL( "num config params",
               config->available_values().size(),
-              24 );
+              25 );
   TEST_EQUAL( "foo:bar read",
               config->get_value< std::string > ( "foo:bar" ),
               "baz" );
@@ -125,8 +134,11 @@ IMPLEMENT_TEST( successful_config_read )
               "has a trailing comment" );
   TEST_NEAR( "global_var read",
              config->get_value< float > ( "global_var" ),
-             3.14,
+             3.14159,
              0.000001 );
+
+  TEST_EQUAL( "Read only entry", config->is_read_only( "global_var" ), true );
+
   TEST_NEAR( "global_var2 read",
              config->get_value< double > ( "global_var2" ),
              1.12,
@@ -169,12 +181,15 @@ IMPLEMENT_TEST( successful_config_read_named_block )
   cerr << "Available keys in the config_block:" << endl;
   VITAL_FOREACH( config_block_key_t key, config->available_values() )
   {
-    cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
+    cerr << "\t\"" << key
+         << ( config->is_read_only( key ) ? "[RO] " : "" )
+         << "\" := \"" << config->get_value< std::string > ( key ) << "\""
+         << endl;
   }
 
   TEST_EQUAL( "num config params",
               config->available_values().size(),
-              24 );
+              25 );
   TEST_EQUAL( "foo:bar read",
               config->get_value< std::string > ( "foo:bar" ),
               "baz" );
@@ -192,7 +207,7 @@ IMPLEMENT_TEST( successful_config_read_named_block )
               "has a trailing comment" );
   TEST_NEAR( "global_var read",
              config->get_value< float > ( "global_var" ),
-             3.14,
+             3.14159,
              0.000001 );
   TEST_NEAR( "global_var2 read",
              config->get_value< double > ( "global_var2" ),
@@ -212,7 +227,10 @@ IMPLEMENT_TEST( include_files )
   cerr << "Available keys in the config_block:" << endl;
   VITAL_FOREACH( config_block_key_t key, config->available_values() )
   {
-    cerr << "\t\"" << key << "\" := \"" << config->get_value< std::string > ( key ) << "\"" << endl;
+    cerr << "\t\"" << key
+         << ( config->is_read_only( key ) ? "[RO] " : "" )
+         << "\" := \"" << config->get_value< std::string > ( key ) << "\""
+         << endl;
   }
 
   TEST_EQUAL( "num config params",

@@ -36,6 +36,14 @@ by prepending the block/subblock name before the name with a ":" separator. All 
 foo:bar:baz:arf:mode = blue
 ```
 
+A configuration entry can be made read-only bp appending *[RO]* to the key string. Once an entry has been declared a read only, it cannot be assigned another value or deleted from the config.
+
+```
+simple[RO] = value
+
+```
+
+
 ### Comments
 
 Comments start wth the '#' character and continue to the end of line. When a comment appears after a configuration value,
