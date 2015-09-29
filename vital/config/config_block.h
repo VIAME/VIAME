@@ -318,6 +318,34 @@ public:
    */
   void print( std::ostream & str );
 
+  /// Set source file location where entry is defined.
+  /**
+   * This method adds the source file location where a config entry
+   * originated.
+   *
+   * \param key Config entry key string
+   * \param file Name of defining file
+   * \param line Line number in file
+   */
+  void set_location( config_block_key_t const& key, std::shared_ptr< std::string > file, int line );
+
+  /// Get file location where config key was defined.
+  /**
+   * This method returns the location where the specified config entry
+   * was defined. If it is not known where the entry was defined,
+   * "unknown" is returned as the file name.
+   *
+   * \param[in] key Name of the config entry
+   * \param[out] file Name of the last file where this symbol was defined
+   * \param[out] line Line number in file of definition
+   *
+   * \return \b true if the symbol definition is available.
+   */
+  bool get_location( config_block_key_t const& key,
+                     std::string& file,
+                     int line) const;
+
+
 private:
   /// Internal constructor
   VITAL_CONFIG_NO_EXPORT config_block( config_block_key_t const& name, config_block_sptr parent );
@@ -369,6 +397,31 @@ private:
 
   // list of keys that are read-only
   ro_list_t m_ro_list;
+
+  /**
+   * This structure contains the source location where a config entry
+   * was defined. The file is managed by smart pointer so that all
+   * entries, and there could be a lot of them, share the same string.
+   */
+  class source_location
+  {
+  public:
+    source_location() : m_line(0) { }
+    source_location( std::shared_ptr< std::string > file, int line )
+      : m_file( file ), m_line( line ) { }
+
+    std::string file() const { return *m_file; }
+    int line() const { return m_line; }
+
+  private:
+    std::shared_ptr< std::string > m_file;
+    int m_line;
+  };
+
+  typedef std::map< config_block_key_t, source_location > location_t;
+
+  // location where key was defined.
+  location_t m_def_store;
 };
 
 // ==================================================================
