@@ -81,7 +81,9 @@ static const std::string program_description(
 "configuration.\n"
 "\n"
 "Use the --include option to add additional directories to search for\n"
-"included configuration files."
+"included configuration files.\n"
+"\n"
+"The --pipeline option specifies the file that contains the main pipeline specification"
   );
 
 class config_printer

@@ -222,9 +222,10 @@ pipeline_common_options()
   boost::program_options::options_description desc("Common options");
 
   desc.add_options()
-    ("config,c", boost::program_options::value<sprokit::paths_t>()->value_name("FILE"), "supplemental configuration file")
+    ("config,c", boost::program_options::value<sprokit::paths_t>()->value_name("FILE"), "File containing supplemental configuration entries. ")
     ("setting,s", boost::program_options::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
-    ("include,I", boost::program_options::value<sprokit::paths_t>()->value_name("DIR"), "configuration include path")
+    ("include,I", boost::program_options::value<sprokit::paths_t>()->value_name("DIR"),
+     "a directory to be added to configuration include path")
   ;
 
   return desc;
@@ -236,7 +237,8 @@ pipeline_input_options()
   boost::program_options::options_description desc("Input options");
 
   desc.add_options()
-    ("pipeline,p", boost::program_options::value<sprokit::path_t>()->value_name("FILE"), "pipeline")
+    ("pipeline,p", boost::program_options::value<sprokit::path_t>()->value_name("FILE"),
+     "Main input pipeline description file")
   ;
 
   return desc;
