@@ -30,15 +30,16 @@
 
 #include "stabilize_image_process.h"
 
-#include <kwiver/vital/algorithm_plugin_manager.h>
-#include <kwiver/vital/vital_types.h>
-#include <kwiver/vital/types/timestamp.h>
-#include <kwiver/vital/types/image_container.h>
-#include <kwiver/vital/types/track_set.h>
-#include <kwiver/vital/types/homography.h>
+#include <vital/algorithm_plugin_manager.h>
+#include <vital/vital_types.h>
+#include <vital/types/timestamp.h>
+#include <vital/types/timestamp_config.h>
+#include <vital/types/image_container.h>
+#include <vital/types/track_set.h>
+#include <vital/types/homography.h>
 
-#include <kwiver/vital/algo/track_features.h>
-#include <kwiver/vital/algo/compute_ref_homography.h>
+#include <vital/algo/track_features.h>
+#include <vital/algo/compute_ref_homography.h>
 
 #include <kwiver_util/sprokit_type_traits.h>
 
@@ -160,7 +161,7 @@ stabilize_image_process
   src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
 
   // return by value
-  push_to_port_using_trait( src_to_ref_homography, *src_to_ref_homography );
+  push_to_port_using_trait( homography_src_to_ref, *src_to_ref_homography );
 
   sprokit::process::_step();
 }
@@ -179,7 +180,7 @@ void stabilize_image_process
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
 
-  declare_output_port_using_trait( src_to_ref_homography, optional );
+  declare_output_port_using_trait( homography_src_to_ref, optional );
 }
 
 

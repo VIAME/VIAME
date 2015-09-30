@@ -30,11 +30,13 @@
 
 #include "kw_archive_writer_process.h"
 
-#include <kwiver/vital/algorithm_plugin_manager.h>
-#include <kwiver/vital/vital_types.h>
-#include <kwiver/vital/types/image_container.h>
-#include <kwiver/vital/types/image.h>
-#include <kwiver/vital/types/homography.h>
+#include <vital/algorithm_plugin_manager.h>
+#include <vital/vital_types.h>
+#include <vital/types/image_container.h>
+#include <vital/types/image.h>
+#include <vital/types/timestamp.h>
+#include <vital/types/timestamp_config.h>
+#include <vital/types/homography.h>
 
 #include <kwiver_util/sprokit_type_traits.h>
 
@@ -149,7 +151,7 @@ kw_archive_writer_process
   d->m_base_filename    = config_value_using_trait( base_filename );
   d->m_separate_meta    = config_value_using_trait( separate_meta );
   d->m_mission_id       = config_value_using_trait( mission_id );
-  d->m_stream_id        = config_value_using_trait( mission_id );
+  d->m_stream_id        = config_value_using_trait( stream_id );
   d->m_compress_image   = config_value_using_trait( compress_image );
 
   sprokit::process::_configure();
@@ -264,7 +266,7 @@ kw_archive_writer_process
 
   // homography
   //+ kwiver::f2f_homography homog = grab_input_as< kwiver::vital::f2f_homography > ( priv::port_src_to_ref_homography );
-  kwiver::vital::f2f_homography homog = grab_from_port_using_trait( src_to_ref_homography );
+  kwiver::vital::f2f_homography homog = grab_from_port_using_trait( homography_src_to_ref );
 
   // corners
   kwiver::vital::corner_points_t corners = grab_input_using_trait( corner_points );
@@ -276,7 +278,7 @@ kw_archive_writer_process
             << std::endl;
 
   *d->m_index_stream
-    << static_cast< vxl_int_64 > ( frame_time.get_time() * 1e6 ) << " " // in micro-seconds
+    << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
     << static_cast< int64_t > ( d->m_data_stream->tellp() )
     << std::endl;
 
@@ -322,7 +324,7 @@ kw_archive_writer_process
   // declare input ports
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
-  declare_input_port_using_trait( src_to_ref_homography, required );
+  declare_input_port_using_trait( homography_src_to_ref, required );
   declare_input_port_using_trait( corner_points, opt_static );
   declare_input_port_using_trait( gsd, opt_static );
 }
@@ -353,7 +355,7 @@ priv_t
                    kwiver::vital::f2f_homography const& s2r_homog,
                    double gsd)
 {
-  vxl_int_64 u_seconds = static_cast< vxl_int_64 > ( time.get_time() * 1e6 );
+  vxl_int_64 u_seconds = static_cast< vxl_int_64 > ( time.get_time_usec() );
   vxl_int_64 frame_num = static_cast< vxl_int_64 > ( time.get_frame() );
   vxl_int_64 ref_frame_num = static_cast< vxl_int_64 > ( s2r_homog.to_id() );
 
