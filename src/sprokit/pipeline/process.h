@@ -951,6 +951,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns The datum available on the port.
      */
     edge_datum_t peek_at_port(port_t const& port, size_t idx = 0) const;
+
     /**
      * \brief Peek at a datum packet from a port.
      *
@@ -960,6 +961,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns The datum available on the port.
      */
     datum_t peek_at_datum_on_port(port_t const& port, size_t idx = 0) const;
+
     /**
      * \brief Grab an edge datum packet from a port.
      *
@@ -1007,10 +1009,8 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * If the templated data type does not have a conversion from a
      * string to an instance of the data type, you will need to
-     * provide one in the form of  an input operator.
-     \code
-     std::istream& operator>> ( std::istream& str, <type>& obj );
-     \endcode
+     * provide one in the form of
+     * kwiver::vital::config_block_get_value_cast()
      *
      * \param port The port to get data from.
      *
