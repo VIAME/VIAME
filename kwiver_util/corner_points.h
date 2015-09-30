@@ -31,31 +31,31 @@
 #ifndef KWIVER_CORNER_PTS_H
 #define KWIVER_CORNER_PTS_H
 
-#include <kwiver/vital/types/geo_lat_lon.h>
+#include <vital/types/geo_lat_lon.h>
+#include <vital/config/config_block.h>
+#include <vital/vital_foreach.h>
 
 #include <vector>
 #include <stdio.h>
 #include <iostream>
-
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
 
 typedef std::vector < kwiver::vital::geo_lat_lon > corner_points_t;
 
-// This is not robust and should be rewritten as such.
+template<>
 inline
-std::istream& operator>> ( std::istream& str, corner_points_t& obj )
+corner_points_t
+config_block_get_value_cast( config_block_value_t const& value )
 {
+  // This is not robust and should be rewritten as such.
   double val[8];
-
-  std::string line;
-  std::getline( str, line );
-
-  obj.clear();
+  corner_points_t obj;
 
   // this is ugly (lat lon pairs)
-  sscanf( line.c_str(), "%lf %lf %lf %lf %lf %lf %lf %lf",
+  sscanf( value.c_str(), "%lf %lf %lf %lf %lf %lf %lf %lf",
           &val[0], &val[1],
           &val[2], &val[3],
           &val[4], &val[5],
@@ -67,7 +67,26 @@ std::istream& operator>> ( std::istream& str, corner_points_t& obj )
     obj.push_back( kwiver::vital::geo_lat_lon( val[i*2], val[i*2 +1] ) );
   } // end for
 
-  return str;
+  return obj;
+}
+
+
+// ------------------------------------------------------------------
+template<>
+inline
+config_block_value_t
+config_block_set_value_cast( corner_points_t const& value )
+{
+  std::stringstream str_result;
+
+  str_result.precision( 20 );
+
+  VITAL_FOREACH( geo_lat_lon const& pt, value )
+  {
+    str_result << pt.get_latitude() << " " << pt.get_longitude() << " ";
+  }
+
+  return str_result.str();
 }
 
 } } // end namespace
