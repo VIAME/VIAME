@@ -62,9 +62,9 @@ public:
   ~kw_archive_writer_process();
 
 protected:
-  void _configure();
-  void _init();
-  void _step();
+  virtual void _configure();
+  virtual void _init();
+  virtual void _step();
 
 private:
   void make_ports();

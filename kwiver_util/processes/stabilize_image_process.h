@@ -34,11 +34,11 @@ class KWIVER_PROCESSES_NO_EXPORT stabilize_image_process
 {
   public:
   stabilize_image_process( kwiver::vital::config_block_sptr const& config );
-    virtual ~stabilize_image_process();
+  virtual ~stabilize_image_process();
 
   protected:
-    void _configure();
-    void _step();
+    virtual void _configure();
+    virtual void _step();
 
   private:
     void make_ports();

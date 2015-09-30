@@ -36,7 +36,8 @@
 #include <vital/types/image.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
-#include <vital/types/homography.h>
+#include <vital/types/homography_f2f.h>
+#include <vital/logger/logger.h>
 
 #include <kwiver_util/sprokit_type_traits.h>
 
@@ -84,6 +85,8 @@ class kw_archive_writer_process::priv
 public:
   priv();
   ~priv();
+
+  vital::logger_handle_t m_logger;
 
   void write_frame_data(vsl_b_ostream& stream,
                         bool write_image,
@@ -274,8 +277,7 @@ kw_archive_writer_process
   // gsd
   kwiver::vital::gsd_t gsd = grab_input_using_trait( gsd );
 
-  std::cerr << "DEBUG - (KWA_WRITER) processing frame " << frame_time
-            << std::endl;
+  LOG_DEBUG( d->m_logger, "processing frame " << frame_time );
 
   *d->m_index_stream
     << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
@@ -305,8 +307,6 @@ kw_archive_writer_process
 
   sprokit::process::_step();
 } // kw_archive_writer_process::_step
-
-
 
 
 // ----------------------------------------------------------------
@@ -435,7 +435,8 @@ priv_t
 // ================================================================
 kw_archive_writer_process::priv
 ::priv()
-  : m_index_stream(0),
+  : m_logger( vital::get_logger( "kw_archive_writer_process" ) ),
+    m_index_stream(0),
     m_meta_stream(0),
     m_meta_bstream(0),
     m_data_stream(0),

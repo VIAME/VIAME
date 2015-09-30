@@ -37,6 +37,7 @@
 #include <vital/types/image.h>
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
+#include <vital/logger/logger.h>
 
 #include <kwiver_util/sprokit_type_traits.h>
 
@@ -74,6 +75,8 @@ class frame_list_process::priv
 public:
   priv();
   ~priv();
+
+  vital::logger_handle_t m_logger;
 
   // Configuration values
   std::string m_config_image_list_filename;
@@ -177,8 +180,7 @@ void frame_list_process
     // still have an image to read
     std::string a_file = *d->m_current_file;
 
-    // \todo add log message
-    std::cerr << "DEBUG - reading image from file \"" << a_file << "\"\n";
+    LOG_DEBUG( d->m_logger, "reading image from file \"" << a_file << "\"" );
 
     // read image file
     //
@@ -211,7 +213,7 @@ void frame_list_process
   else
   {
     // \todo log message
-    std::cerr << "DEBUG - end of input reached, process terminating\n";
+    LOG_DEBUG( d->m_logger, "end of input reached, process terminating" );
 
     // indicate done
     mark_process_as_complete();
@@ -250,8 +252,9 @@ void frame_list_process
 // ================================================================
 frame_list_process::priv
 ::priv()
-  :m_frame_number(1),
-   m_frame_time(0)
+  : m_logger( vital::get_logger( "frame_list_process" ) ),
+    m_frame_number( 1 ),
+    m_frame_time( 0 )
 {
 }
 

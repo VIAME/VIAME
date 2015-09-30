@@ -37,6 +37,7 @@
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
 #include <vital/types/homography.h>
+#include <vital/logger/logger.h>
 
 #include <vital/algo/track_features.h>
 #include <vital/algo/compute_ref_homography.h>
@@ -65,6 +66,7 @@ public:
   priv();
   ~priv();
 
+  vital::logger_handle_t m_logger;
 
   // Configuration values
 
@@ -75,7 +77,7 @@ public:
   algo::track_features_sptr         m_feature_tracker;
   algo::compute_ref_homography_sptr m_compute_homog;
 
-  kwiver::vital::track_set_sptr m_tracks; // last set of tracks
+  vital::track_set_sptr m_tracks; // last set of tracks
 
 }; // end priv class
 
@@ -137,12 +139,10 @@ stabilize_image_process
   kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
 
   // image
-  //+ kwiver::vital::image_container_sptr img = grab_input_using_trait( image );
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  std::cerr << "DEBUG - (stab image) Processing frame " << frame_time
-            << std::endl;
+  LOG_DEBUG( d->m_logger, "Processing frame " << frame_time );
 
   // --- debug
 #if defined DEBUG
@@ -195,6 +195,7 @@ void stabilize_image_process
 // ================================================================
 stabilize_image_process::priv
 ::priv()
+  : m_logger( vital::get_logger( "stabilize_image_process" ) )
 {
 }
 
