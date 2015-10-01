@@ -54,7 +54,10 @@ static const std::string program_description(
 "The basic output is a list of processes and their description.\n\n"
 "Modules/Processes are loaded from the \"sprokit\" subdirectory in the runtime libraries directory.\n"
 "Additionally modules are loaded from the path specified by the \"SPROKIT_MODULE_PATH\" environment\n"
-"variable."
+"variable. Schedulers are loaded from the same paths as processes.\n\n"
+"Clusters are loaded from the \"share/sprokit/pipelines/clusters\" subdirectory of the install location.\n"
+"All files of the form *.cluster are loaded as cluster definitions.\n"
+"Additionally clusters are loaded from the path specified by the \"SPROKIT_CLUSTER_PATH\" environment\n"
   );
 
 static std::string const hidden_prefix = "_";
