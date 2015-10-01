@@ -48,8 +48,10 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/foreach.hpp>
 
+#include <vital/logger/logger.h>
+
 #include <algorithm>
-#include <iostream>
+//+ #include <iostream>
 
 /**
  * \file clusters/registration.cxx
@@ -76,10 +78,13 @@ static std::string const pipe_suffix = std::string(".cluster");
 
 static bool is_separator(cluster_path_t::value_type ch);
 
+
+// ------------------------------------------------------------------
 void
 register_processes()
 {
   static process_registry::module_t const module_name = process_registry::module_t("cluster_processes");
+  static kwiver::vital::logger_handle_t s_logger = kwiver::vital::get_logger( "sprokit:register_cluster" );
 
   process_registry_t const registry = process_registry::self();
 
@@ -117,18 +122,16 @@ register_processes()
   BOOST_FOREACH (include_path_t const& include_dir, include_dirs)
   {
     // log file
-    std::cerr << "DEBUG - loading clusters from directory: " << include_dir << std::endl;
+    LOG_DEBUG( s_logger, "Loading clusters from directory: " << include_dir );
     if (!boost::filesystem::exists(include_dir))
     {
-      /// \todo Log error that path doesn't exist.
-      std::cerr << "DEBUG - Path not found loading clusters: " << include_dir << std::endl;
+      LOG_WARN( s_logger, "Path not found loading clusters: " << include_dir );
       continue;
     }
 
     if (!boost::filesystem::is_directory(include_dir))
     {
-      /// \todo Log error that path isn't a directory.
-      std::cerr << "ERROR - Path not directory loading clusters: " << include_dir << std::endl;
+      LOG_WARN( s_logger, "Path not directory loading clusters: " << include_dir );
       continue;
     }
 
@@ -152,12 +155,11 @@ register_processes()
       }
 
       // log loading file
-      std::cerr << "DEBUG - Loading cluster from file: " << pstr << std::endl;
+      LOG_DEBUG( s_logger, "Loading cluster from file: " << pstr );
 
       if (ent.status().type() != boost::filesystem::regular_file)
       {
-        /// \todo Log warning that we found a non-file matching path.
-        std::cerr << "WARNING - found non file loading clusters: \n";
+        LOG_WARN( s_logger, "Found non-file loading clusters: " << pstr );
         continue;
       }
 
@@ -169,14 +171,12 @@ register_processes()
       }
       catch (load_pipe_exception const& e)
       {
-        /// \todo Handle exceptions.
-        std::cerr << "ERROR - exception caught loading cluster: " << e.what() << std::endl;
+        LOG_ERROR( s_logger, "Exception caught loading cluster: " << e.what() );
         continue;
       }
       catch (pipe_bakery_exception const& e)
       {
-        /// \todo Handle exceptions.
-        std::cerr << "ERROR - exception caught loading cluster: " << e.what() << std::endl;
+        LOG_ERROR( s_logger, "Exception caught loading cluster: " << e.what() );
         continue;
       }
 
@@ -192,8 +192,7 @@ register_processes()
         }
         catch (process_type_already_exists_exception const& e)
         {
-          /// \todo Print out exception.
-          std::cerr << "ERROR - exception caught loading cluster: " << e.what() << std::endl;
+          LOG_ERROR( s_logger, "Exception caught loading cluster: " << e.what() );
         }
       }
     }
@@ -202,6 +201,8 @@ register_processes()
   registry->mark_module_as_loaded(module_name);
 }
 
+
+// ------------------------------------------------------------------
 bool
 is_separator(cluster_path_t::value_type ch)
 {
