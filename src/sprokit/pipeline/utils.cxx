@@ -89,7 +89,7 @@
 namespace sprokit
 {
 
-static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "pipeline_utilities" ) );
+static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "sprokit:pipeline_utilities" ) );
 
 #ifdef NAME_THREAD_USING_PRCTL
 static bool name_thread_prctl(thread_name_t const& name);
