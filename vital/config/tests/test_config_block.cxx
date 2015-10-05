@@ -36,6 +36,7 @@
 #include <tests/test_common.h>
 
 #include <vital/config/config_block.h>
+#include <functional>
 
 #define TEST_ARGS ()
 
