@@ -43,7 +43,7 @@
 
 #include <vital/noncopyable.h>
 
-#include <vital/vital_export.h>
+#include <vital/vital_apm_export.h>
 #include <vital/vital_types.h>
 
 namespace kwiver {
@@ -53,7 +53,7 @@ namespace vital {
 /**
  * Plugin Manager for algorithm implementation extensions
  */
-class VITAL_EXPORT algorithm_plugin_manager
+class VITAL_APM_EXPORT algorithm_plugin_manager
   : private kwiver::vital::noncopyable
 {
 public:
