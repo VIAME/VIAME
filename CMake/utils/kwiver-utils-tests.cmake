@@ -21,7 +21,8 @@
 #     A top-level executable (possibly with arguments) to run the main
 #     test-name executable under. As an example, for any tests which are
 #     Python, this should be set to ${PYTHON_EXECUTABLE} since Python files by
-#     themselves are not executable on all platforms.
+#     themselves are not executable on all platforms. For c++ test this symbol
+#     is left empty since the test is already executable.
 #
 #
 # Their syntax is:
@@ -89,7 +90,7 @@ function (kwiver_add_test name instance)
 
   add_test(
     NAME    test-${name}-${instance}
-    COMMAND test-${name}
+    COMMAND ${kwiver_test_runner}
             "${test_path}"
             ${instance}
             ${ARGN})
