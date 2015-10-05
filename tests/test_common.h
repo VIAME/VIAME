@@ -42,6 +42,7 @@
 
 #include <vital/vital_foreach.h>
 
+#include <functional>
 #include <exception>
 #include <iostream>
 #include <map>

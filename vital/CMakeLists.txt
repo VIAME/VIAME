@@ -237,12 +237,10 @@ if (WIN32)  # Windows puts DLLs in bin/CONFIG/
   set(shared_lib_dir "/bin")
   set(lib_dir_suffix)
   set(path_sep ";")
-  set(path_prefix "L")
 else()  # Other Unix systems
   set(shared_lib_dir "/lib")
   set(lib_dir_suffix "${LIB_SUFFIX}")
   set(path_sep ":")
-  set(path_prefix)
 endif()
 
 

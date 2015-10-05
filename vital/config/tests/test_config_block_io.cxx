@@ -38,13 +38,28 @@
 #include <string>
 #include <iostream>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include <vital/vital_types.h>
 #include <vital/config/config_block_io.h>
 #include <vital/vital_foreach.h>
 
 #include <kwiversys/SystemTools.hxx>
+#include <functional>
+
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+int mkstemp(char *tmpl)
+{
+  int ret=-1;
+
+  _mktemp(tmpl);
+  ret=open(tmpl,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED,
+           _S_IREAD|_S_IWRITE);
+  return ret;
+}
+#endif
+
 
 #define TEST_ARGS (kwiver::vital::config_path_t const& data_dir)
 DECLARE_TEST_MAP();

@@ -21,7 +21,8 @@
 #     A top-level executable (possibly with arguments) to run the main
 #     test-name executable under. As an example, for any tests which are
 #     Python, this should be set to ${PYTHON_EXECUTABLE} since Python files by
-#     themselves are not executable on all platforms.
+#     themselves are not executable on all platforms. For c++ test this symbol
+#     is left empty since the test is already executable.
 #
 #
 # Their syntax is:
@@ -104,9 +105,9 @@ function (kwiver_add_test name instance)
 
   # TODO: How to get CTest the full path to the test with config subdir?
   if (NOT CMAKE_CONFIGURATION_TYPES)
-    set_tests_properties(test-${name}-${instance}
-      PROPERTIES
-      REQUIRED_FILES "${kwiver_test_output_path}/${CMAKE_CFG_INTDIR}/test-${name}")
+#    set_tests_properties(test-${name}-${instance}
+#      PROPERTIES
+#      REQUIRED_FILES "${kwiver_test_output_path}/${CMAKE_CFG_INTDIR}/test-${name}")
   endif ()
 
   if (kwiver_test_environment)

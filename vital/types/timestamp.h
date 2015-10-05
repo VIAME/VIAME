@@ -190,7 +190,7 @@ private:
 
 
 inline std::ostream& operator<< ( std::ostream& str, timestamp const& obj )
-{ str << obj.pretty_print(); return str; }
+{ str << obj.pretty_print().c_str(); return str; }
 
 } } // end namespace
 

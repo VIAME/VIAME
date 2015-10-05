@@ -32,6 +32,8 @@
 
 #include <vital/logger/logger.h>
 
+#include <functional>
+#include <algorithm>
 
 #define TEST_ARGS ()
 
