@@ -46,7 +46,8 @@
 #include <kwiversys/SystemTools.hxx>
 #include <functional>
 
-#ifdef _WIN32
+#if defined _WIN32
+
 #include <fcntl.h>
 #include <io.h>
 int mkstemp(char *tmpl)
@@ -58,6 +59,11 @@ int mkstemp(char *tmpl)
            _S_IREAD|_S_IWRITE);
   return ret;
 }
+
+#else
+
+#include <unistd.h>
+
 #endif
 
 
