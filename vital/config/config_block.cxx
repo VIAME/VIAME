@@ -408,14 +408,14 @@ config_block
 bool
 config_block
 ::get_location( config_block_key_t const& key,
-                std::string& file,
-                int line) const
+                std::string& f,
+                int l) const
 {
   location_t::const_iterator i = m_def_store.find( key );
   if ( i != m_def_store.end() )
   {
-    file = i->second.file();
-    line = i->second.line();
+    f = i->second.file();
+    l = i->second.line();
     return true;
   }
 

@@ -332,8 +332,8 @@ public:
   /// Get file location where config key was defined.
   /**
    * This method returns the location where the specified config entry
-   * was defined. If it is not known where the entry was defined,
-   * "unknown" is returned as the file name.
+   * was defined. If it is no location for the definition of the
+   * symbol, the output parameters are unchanged.
    *
    * \param[in] key Name of the config entry
    * \param[out] file Name of the last file where this symbol was defined
@@ -407,8 +407,8 @@ private:
   {
   public:
     source_location() : m_line(0) { }
-    source_location( std::shared_ptr< std::string > file, int line )
-      : m_file( file ), m_line( line ) { }
+    source_location( std::shared_ptr< std::string > f, int l )
+      : m_file( f ), m_line( l ) { }
 
     std::string file() const { return *m_file; }
     int line() const { return m_line; }
