@@ -84,7 +84,7 @@ void
 register_processes()
 {
   static process_registry::module_t const module_name = process_registry::module_t("cluster_processes");
-  static kwiver::vital::logger_handle_t s_logger = kwiver::vital::get_logger( "sprokit:register_cluster" );
+  static kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "sprokit:register_cluster" );
 
   process_registry_t const registry = process_registry::self();
 
@@ -122,16 +122,16 @@ register_processes()
   BOOST_FOREACH (include_path_t const& include_dir, include_dirs)
   {
     // log file
-    LOG_DEBUG( s_logger, "Loading clusters from directory: " << include_dir );
+    LOG_DEBUG( logger, "Loading clusters from directory: " << include_dir );
     if (!boost::filesystem::exists(include_dir))
     {
-      LOG_WARN( s_logger, "Path not found loading clusters: " << include_dir );
+      LOG_WARN( logger, "Path not found loading clusters: " << include_dir );
       continue;
     }
 
     if (!boost::filesystem::is_directory(include_dir))
     {
-      LOG_WARN( s_logger, "Path not directory loading clusters: " << include_dir );
+      LOG_WARN( logger, "Path not directory loading clusters: " << include_dir );
       continue;
     }
 
@@ -155,11 +155,11 @@ register_processes()
       }
 
       // log loading file
-      LOG_DEBUG( s_logger, "Loading cluster from file: " << pstr );
+      LOG_DEBUG( logger, "Loading cluster from file: " << pstr );
 
       if (ent.status().type() != boost::filesystem::regular_file)
       {
-        LOG_WARN( s_logger, "Found non-file loading clusters: " << pstr );
+        LOG_WARN( logger, "Found non-file loading clusters: " << pstr );
         continue;
       }
 
@@ -171,12 +171,12 @@ register_processes()
       }
       catch (load_pipe_exception const& e)
       {
-        LOG_ERROR( s_logger, "Exception caught loading cluster: " << e.what() );
+        LOG_ERROR( logger, "Exception caught loading cluster: " << e.what() );
         continue;
       }
       catch (pipe_bakery_exception const& e)
       {
-        LOG_ERROR( s_logger, "Exception caught loading cluster: " << e.what() );
+        LOG_ERROR( logger, "Exception caught loading cluster: " << e.what() );
         continue;
       }
 
@@ -192,7 +192,7 @@ register_processes()
         }
         catch (process_type_already_exists_exception const& e)
         {
-          LOG_ERROR( s_logger, "Exception caught loading cluster: " << e.what() );
+          LOG_ERROR( logger, "Exception caught loading cluster: " << e.what() );
         }
       }
     }
