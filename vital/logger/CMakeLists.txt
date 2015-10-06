@@ -65,6 +65,7 @@ if (VITAL_ENABLE_LOG4CXX)
     SOURCES          ${plugin_base_src}
                      log4cxx_factory.cxx
     PRIVATE          ${log4cxx_lib}
+                     kwiversys
     SUBDIR           modules
     )
 
