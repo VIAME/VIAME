@@ -7,8 +7,6 @@ project(KWIVER)
 
 include(CMakeDependentOption)
 
-set(CMAKE_CXX_FLAGS "-std=c++0x")
-
 ###
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 0)
@@ -69,7 +67,13 @@ endif()
 # KWIVER CMake config
 #
 include(kwiver-utils)
-include(kwiver-flags)
+
+#
+# Be careful establishing compiler/linker options at this
+# level. Component packages may not perform well (or build at all)
+# with aggressive warnings.
+#
+
 
 # set the name for our package exports
 set(kwiver_export_name      kwiver_exports)
@@ -100,14 +104,6 @@ option(KWIVER_BUILD_SHARED "Build KWIVER packages shared or not" ON)
 if (KWIVER_ENABLE_PYTHON)
     find_package(PythonInterp)
     find_package(PythonLibs)
-endif()
-
-if(KWIVER_BUILD_SHARED)
-  set(LIB_PREFIX ${CMAKE_SHARED_LIBRARY_PREFIX})
-  set(LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
-else()
-  set(LIB_PREFIX ${CMAKE_STATIC_LIBRARY_PREFIX})
-  set(LIB_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
@@ -275,7 +271,7 @@ endif()
 ##################################################################
 # Top level installation
 #
-set(kwiver_cmake_install_dir lib${KWIVER_LIB_SUFFIX}/CMake/kwiver)
+set(kwiver_cmake_install_dir lib${LIB_SUFFIX}/cmake/kwiver)
 
 # Install rules for CMake utilities
 include( kwiver-install-utils )

@@ -4,6 +4,7 @@
 
 project( kwiver_util )
 
+include( kwiver-flags )
 
 include_directories( ${CMAKE_CURRENT_LIST_DIR} )
 
