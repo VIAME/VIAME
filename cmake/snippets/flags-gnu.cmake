@@ -34,6 +34,7 @@ if (SPROKIT_ENABLE_CXX11)
 else ()
   sprokit_want_compiler_flag(-std=c++0x)
 endif ()
+
 # General warnings
 sprokit_want_compiler_flag(-Wall)
 sprokit_want_compiler_flag(-Wextra)
@@ -73,6 +74,9 @@ sprokit_want_compiler_flag(-Wimplicit-fallthrough)
 sprokit_want_compiler_flag(-Wdocumentation)
 sprokit_want_compiler_flag(-Wundef)
 sprokit_want_compiler_flag(-Wunused-macros)
+# Linker warnings
+sprokit_want_compiler_flag( -Wl,--no-undefined )
+# sprokit_want_compiler_flag( -Wl,--copy-dt-needed-entries )
 
 option(SPROKIT_ENABLE_NITPICK "Generate warnings about nitpicky things" OFF)
 if (SPROKIT_ENABLE_NITPICK)
