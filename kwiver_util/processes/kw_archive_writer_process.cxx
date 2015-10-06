@@ -370,7 +370,6 @@ priv_t
     );
 
   // convert homography
-  //+ kwiver::vital::homography_sptr const matrix= s2r_homog.homography();
   Eigen::Matrix< double, 3, 3 > matrix= s2r_homog.homography()->matrix();
   vnl_matrix_fixed< double, 3, 3 > homog;
 
