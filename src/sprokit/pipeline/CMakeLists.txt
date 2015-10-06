@@ -1,7 +1,6 @@
 project(sprokit_pipeline)
 
 set(pipeline_srcs
-##  config.cxx
   datum.cxx
   edge.cxx
   edge_exception.cxx
@@ -24,7 +23,6 @@ set(pipeline_srcs
   version.cxx)
 
 set(pipeline_headers
-##  config.h
   datum.h
   edge.h
   edge_exception.h
@@ -153,15 +151,16 @@ sprokit_add_library(sprokit_pipeline SHARED
   ${pipeline_headers}
   ${pipeline_private_headers})
 target_link_libraries(sprokit_pipeline
-  PRIVATE
-    vital_logger vital_config
-    ${Boost_CHRONO_LIBRARY}
-    ${Boost_DATE_TIME_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
-    ${CMAKE_DL_LIBS}
-    ${CMAKE_THREAD_LIBS_INIT})
+  PUBLIC              vital_config
+  PRIVATE             vital_logger
+                    ${Boost_CHRONO_LIBRARY}
+                    ${Boost_DATE_TIME_LIBRARY}
+                    ${Boost_FILESYSTEM_LIBRARY}
+                    ${Boost_SYSTEM_LIBRARY}
+                    ${Boost_THREAD_LIBRARY}
+                    ${CMAKE_DL_LIBS}
+                    ${CMAKE_THREAD_LIBS_INIT})
+
 set_target_properties(sprokit_pipeline
   PROPERTIES
     VERSION       ${sprokit_version}

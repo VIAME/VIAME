@@ -60,7 +60,9 @@ sprokit_add_plugin(processes_clusters
   ${clusters_srcs}
   ${clusters_private_headers})
 target_link_libraries(processes_clusters
-  sprokit_pipeline_util
-  sprokit_pipeline
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
+  PUBLIC              vital_logger
+
+  PRIVATE             sprokit_pipeline_util
+                      sprokit_pipeline
+                      ${Boost_FILESYSTEM_LIBRARY}
+                      ${Boost_SYSTEM_LIBRARY})

@@ -73,13 +73,13 @@ sprokit_add_library(sprokit_pipeline_util
   ${pipeline_util_private_headers})
 target_link_libraries(sprokit_pipeline_util
   PUBLIC      sprokit_pipeline
-              ${Boost_FILESYSTEM_LIBRARY}
-              ${Boost_SYSTEM_LIBRARY}
-
-  PRIVATE     ${Boost_CHRONO_LIBRARY}
-              ${Boost_THREAD_LIBRARY}
-              ${CMAKE_THREAD_LIBS_INIT}
-              )
+            ${Boost_FILESYSTEM_LIBRARY}
+            ${Boost_SYSTEM_LIBRARY}
+  PRIVATE     vital_config
+            ${Boost_CHRONO_LIBRARY}
+            ${Boost_THREAD_LIBRARY}
+            ${CMAKE_THREAD_LIBS_INIT}
+ )
 set_target_properties(sprokit_pipeline_util
   PROPERTIES
     VERSION       ${sprokit_version}
