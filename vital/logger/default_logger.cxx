@@ -278,7 +278,10 @@ logger_factory_default
     return it->second;
   }
 
-  return std::make_shared< default_logger > ( this, name );
+  logger_handle_t log = std::make_shared< default_logger > ( this, name );
+  m_active_loggers[name] = log;
+
+  return log;
 }
 
 
