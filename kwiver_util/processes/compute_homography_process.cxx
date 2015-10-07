@@ -148,6 +148,7 @@ void compute_homography_process
   required.insert( flag_required );
 
   // -- input --
+  declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( track_set, required );
 
   // -- output --

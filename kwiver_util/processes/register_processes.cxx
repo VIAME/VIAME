@@ -47,9 +47,9 @@ void register_processes()
     "stabilize_image", "Generate current-to-reference image homographies",
     sprokit::create_process< kwiver::stabilize_image_process > );
 
-  // registry->register_process(
-  //   "kw_archive_writer", "Write kw archives",
-  //   sprokit::create_process< kwiver::kw_archive_writer_process > );
+  registry->register_process(
+    "kw_archive_writer", "Write kw archives",
+    sprokit::create_process< kwiver::kw_archive_writer_process > );
 
 
   registry->register_process(

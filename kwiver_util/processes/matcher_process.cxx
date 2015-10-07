@@ -111,15 +111,15 @@ void matcher_process
   algo::match_features::check_nested_algo_configuration( "feature_matcher", algo_config );
 
   // Instantiate the configured algorithm
-  algo::match_features::set_nested_algo_configuration( "extract_features", algo_config, d->m_matcher );
+  algo::match_features::set_nested_algo_configuration( "feature_matcher", algo_config, d->m_matcher );
   if ( ! d->m_matcher )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"extract_features\"" );
+    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"feature_matcher\"" );
   }
 
   // - Loop closure algorithm
   algo::close_loops::check_nested_algo_configuration( "loop_closer", algo_config );
-  algo::close_loops::get_nested_algo_configuration( "loop_closer", algo_config, d->m_closer );
+  algo::close_loops::set_nested_algo_configuration( "loop_closer", algo_config, d->m_closer );
   if ( ! d->m_closer )
   {
     throw sprokit::invalid_configuration_exception( name(), "Error configuring \"loop_closer\"" );
