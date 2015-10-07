@@ -79,7 +79,7 @@ class default_logger :
 {
 public:
   /// CTOR
-  default_logger( logger_ns::logger_factory_default* p, const char* const name )
+  default_logger( logger_ns::logger_factory_default* p, std::string const& name )
     : kwiver_logger( p, name ),
     m_logLevel( kwiver_logger::LEVEL_TRACE )
   { }
@@ -256,8 +256,15 @@ std::ostream* default_logger::s_output_stream = &std::cerr;
 // ==================================================================
 logger_handle_t
 logger_factory_default
-  ::get_logger( const char* const name )
+::get_logger( std::string const& name )
 {
+  // look for logger in the map
+  std::map< std::string, logger_handle_t >::iterator it = m_active_loggers.find( name );
+  if (it != m_active_loggers.end() )
+  {
+    return it->second;
+  }
+
   return std::make_shared< default_logger > ( this, name );
 }
 

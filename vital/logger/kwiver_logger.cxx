@@ -53,12 +53,6 @@ public:
 
 // ------------------------------------------------------------------
 kwiver_logger
-::kwiver_logger( logger_ns::kwiver_logger_factory* p, const char * const node )
-  : m_impl( new kwiver_logger::impl( p, node ) )
-{ }
-
-
-kwiver_logger
 ::kwiver_logger( logger_ns::kwiver_logger_factory* p, std::string const& node )
   : m_impl( new kwiver_logger::impl( p, node ) )
 { }
