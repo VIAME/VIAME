@@ -30,13 +30,14 @@
 
 #include "frame_list_process.h"
 
-#include <kwiver/vital/algorithm_plugin_manager.h>
-#include <kwiver/vital/vital_types.h>
-#include <kwiver/vital/types/timestamp.h>
-#include <kwiver/vital/types/image_container.h>
-#include <kwiver/vital/types/image.h>
-#include <kwiver/vital/algo/image_io.h>
-#include <kwiver/vital/exceptions.h>
+#include <vital/algorithm_plugin_manager.h>
+#include <vital/vital_types.h>
+#include <vital/types/timestamp.h>
+#include <vital/types/image_container.h>
+#include <vital/types/image.h>
+#include <vital/algo/image_io.h>
+#include <vital/exceptions.h>
+#include <vital/logger/logger.h>
 
 #include <kwiver_util/sprokit_type_traits.h>
 
@@ -75,10 +76,12 @@ public:
   priv();
   ~priv();
 
+  vital::logger_handle_t m_logger;
+
   // Configuration values
   std::string m_config_image_list_filename;
   std::string m_config_image_reader;
-  double m_config_frame_time;
+  kwiver::vital::timestamp::time_t m_config_frame_time;
 
   // process local data
   std::vector < kwiver::vital::path_t > m_files;
@@ -119,7 +122,7 @@ void frame_list_process
   // Examine the configuration
   d->m_config_image_list_filename = config_value_using_trait( image_list_file );
   d->m_config_image_reader        = config_value_using_trait( image_reader );
-  d->m_config_frame_time          = config_value_using_trait( frame_time );
+  d->m_config_frame_time          = config_value_using_trait( frame_time ) * 1e6; // in usec
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
@@ -177,8 +180,7 @@ void frame_list_process
     // still have an image to read
     std::string a_file = *d->m_current_file;
 
-    // \todo add log message
-    std::cerr << "DEBUG - reading image from file \"" << a_file << "\"\n";
+    LOG_DEBUG( d->m_logger, "reading image from file \"" << a_file << "\"" );
 
     // read image file
     //
@@ -211,7 +213,7 @@ void frame_list_process
   else
   {
     // \todo log message
-    std::cerr << "DEBUG - end of input reached, process terminating\n";
+    LOG_DEBUG( d->m_logger, "end of input reached, process terminating" );
 
     // indicate done
     mark_process_as_complete();
@@ -250,8 +252,9 @@ void frame_list_process
 // ================================================================
 frame_list_process::priv
 ::priv()
-  :m_frame_number(1),
-   m_frame_time(0)
+  : m_logger( vital::get_logger( "frame_list_process" ) ),
+    m_frame_number( 1 ),
+    m_frame_time( 0 )
 {
 }
 

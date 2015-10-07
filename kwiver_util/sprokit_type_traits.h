@@ -31,14 +31,24 @@
 #ifndef _VITAL_TYPES_VITAL_H_
 #define _VITAL_TYPES_VITAL_H_
 
-#include <kwiver/vital/types/geo_lat_lon.h>
-#include <kwiver/vital/types/timestamp.h>
-#include <kwiver/vital/types/homography_f2f.h>
-#include <kwiver/vital/types/image_container.h>
-#include <kwiver/vital/vital_types.h>
+#include <vital/vital_types.h>
+#include <vital/types/geo_lat_lon.h>
+#include <vital/types/image_container.h>
+#include <vital/types/feature_set.h>
+#include <vital/types/descriptor_set.h>
+#include <vital/types/track_set.h>
 
 #include <kwiver_util/corner_points.h>
+
 #include <kwiver_util/trait_utils.h>
+
+namespace kwiver {
+namespace vital {
+
+  class timestamp;
+  class f2f_homography;
+
+} }
 
 
 // ================================================================
@@ -50,7 +60,12 @@ create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
 create_type_trait( gsd, "kwiver:gsd", kwiver::vital::gsd_t );
 create_type_trait( corner_points, "corner_points", kwiver::vital::corner_points_t );
 create_type_trait( image, "kwiver:image_container", kwiver::vital::image_container_sptr ); // polymorphic type must pass by reference
-create_type_trait( homography, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
+create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
+create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
+create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
+
+create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
+create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
 create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
 create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
 
@@ -64,7 +79,11 @@ create_port_trait( timestamp, timestamp, "Timestamp for input image." );
 create_port_trait( corner_points, corner_points, "Four corner points for image in lat/lon units, ordering ul ur lr ll." );
 create_port_trait( gsd, gsd, "GSD for image in meters per pixel." );
 create_port_trait( image, image, "Single frame image." );
-create_port_trait( src_to_ref_homography, homography, "Source image to ref image homography." );
+create_port_trait( feature_set, feature_set, "Set of detected image features" );
+create_port_trait( descriptor_set, descriptor_set, "Set of feature descriptors" );
+create_port_trait( track_set, track_set, "Set of feature tracks for stabilization" );
+
+create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
 create_port_trait( image_file_name, image_file_name, "Name of an image file. Usually a single frame of a video." );
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
 

@@ -10,7 +10,7 @@
 #include <sprokit/pipeline/process.h>
 #include "kwiver_processes_export.h"
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 namespace kwiver
 {
@@ -62,16 +62,16 @@ public:
   ~kw_archive_writer_process();
 
 protected:
-  void _configure();
-  void _init();
-  void _step();
+  virtual void _configure();
+  virtual void _init();
+  virtual void _step();
 
 private:
   void make_ports();
   void make_config();
 
   class priv;
-  boost::scoped_ptr<priv> d;
+  const std::unique_ptr<priv> d;
 };
 
 } // end namespace kwiver

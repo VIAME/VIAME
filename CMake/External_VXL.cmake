@@ -89,9 +89,9 @@ ExternalProject_Add_Step(VXL forcebuild
   ALWAYS 1
   )
 
-include_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/include/vxl
-                     ${KWIVER_BUILD_INSTALL_PREFIX}/include/vxl/vcl
-                     ${KWIVER_BUILD_INSTALL_PREFIX}/include/vxl/core )
+include_directories( SYSTEM ${KWIVER_BUILD_INSTALL_PREFIX}/include/vxl
+                            ${KWIVER_BUILD_INSTALL_PREFIX}/include/vxl/vcl
+                            ${KWIVER_BUILD_INSTALL_PREFIX}/include/vxl/core )
 
 set(KWIVER_ARGS_VXL
   #-DVXL_DIR=${KWIVER_BUILD_PREFIX}/src/VXL-build

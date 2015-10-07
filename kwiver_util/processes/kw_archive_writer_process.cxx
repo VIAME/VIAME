@@ -30,11 +30,14 @@
 
 #include "kw_archive_writer_process.h"
 
-#include <kwiver/vital/algorithm_plugin_manager.h>
-#include <kwiver/vital/vital_types.h>
-#include <kwiver/vital/types/image_container.h>
-#include <kwiver/vital/types/image.h>
-#include <kwiver/vital/types/homography.h>
+#include <vital/algorithm_plugin_manager.h>
+#include <vital/vital_types.h>
+#include <vital/types/image_container.h>
+#include <vital/types/image.h>
+#include <vital/types/timestamp.h>
+#include <vital/types/timestamp_config.h>
+#include <vital/types/homography_f2f.h>
+#include <vital/logger/logger.h>
 
 #include <kwiver_util/sprokit_type_traits.h>
 
@@ -82,6 +85,8 @@ class kw_archive_writer_process::priv
 public:
   priv();
   ~priv();
+
+  vital::logger_handle_t m_logger;
 
   void write_frame_data(vsl_b_ostream& stream,
                         bool write_image,
@@ -149,7 +154,7 @@ kw_archive_writer_process
   d->m_base_filename    = config_value_using_trait( base_filename );
   d->m_separate_meta    = config_value_using_trait( separate_meta );
   d->m_mission_id       = config_value_using_trait( mission_id );
-  d->m_stream_id        = config_value_using_trait( mission_id );
+  d->m_stream_id        = config_value_using_trait( stream_id );
   d->m_compress_image   = config_value_using_trait( compress_image );
 
   sprokit::process::_configure();
@@ -264,7 +269,7 @@ kw_archive_writer_process
 
   // homography
   //+ kwiver::f2f_homography homog = grab_input_as< kwiver::vital::f2f_homography > ( priv::port_src_to_ref_homography );
-  kwiver::vital::f2f_homography homog = grab_from_port_using_trait( src_to_ref_homography );
+  kwiver::vital::f2f_homography homog = grab_from_port_using_trait( homography_src_to_ref );
 
   // corners
   kwiver::vital::corner_points_t corners = grab_input_using_trait( corner_points );
@@ -272,11 +277,10 @@ kw_archive_writer_process
   // gsd
   kwiver::vital::gsd_t gsd = grab_input_using_trait( gsd );
 
-  std::cerr << "DEBUG - (KWA_WRITER) processing frame " << frame_time
-            << std::endl;
+  LOG_DEBUG( d->m_logger, "processing frame " << frame_time );
 
   *d->m_index_stream
-    << static_cast< vxl_int_64 > ( frame_time.get_time() * 1e6 ) << " " // in micro-seconds
+    << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
     << static_cast< int64_t > ( d->m_data_stream->tellp() )
     << std::endl;
 
@@ -305,8 +309,6 @@ kw_archive_writer_process
 } // kw_archive_writer_process::_step
 
 
-
-
 // ----------------------------------------------------------------
 void
 kw_archive_writer_process
@@ -322,7 +324,7 @@ kw_archive_writer_process
   // declare input ports
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
-  declare_input_port_using_trait( src_to_ref_homography, required );
+  declare_input_port_using_trait( homography_src_to_ref, required );
   declare_input_port_using_trait( corner_points, opt_static );
   declare_input_port_using_trait( gsd, opt_static );
 }
@@ -353,7 +355,7 @@ priv_t
                    kwiver::vital::f2f_homography const& s2r_homog,
                    double gsd)
 {
-  vxl_int_64 u_seconds = static_cast< vxl_int_64 > ( time.get_time() * 1e6 );
+  vxl_int_64 u_seconds = static_cast< vxl_int_64 > ( time.get_time_usec() );
   vxl_int_64 frame_num = static_cast< vxl_int_64 > ( time.get_frame() );
   vxl_int_64 ref_frame_num = static_cast< vxl_int_64 > ( s2r_homog.to_id() );
 
@@ -368,7 +370,6 @@ priv_t
     );
 
   // convert homography
-  //+ kwiver::vital::homography_sptr const matrix= s2r_homog.homography();
   Eigen::Matrix< double, 3, 3 > matrix= s2r_homog.homography()->matrix();
   vnl_matrix_fixed< double, 3, 3 > homog;
 
@@ -433,7 +434,8 @@ priv_t
 // ================================================================
 kw_archive_writer_process::priv
 ::priv()
-  : m_index_stream(0),
+  : m_logger( vital::get_logger( "kw_archive_writer_process" ) ),
+    m_index_stream(0),
     m_meta_stream(0),
     m_meta_bstream(0),
     m_data_stream(0),

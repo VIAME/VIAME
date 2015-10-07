@@ -28,30 +28,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "stabilize_image_process.h"
+#include "detect_features_process.h"
 
 #include <vital/algorithm_plugin_manager.h>
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_set.h>
-#include <vital/types/homography.h>
+#include <vital/types/feature_set.h>
 #include <vital/logger/logger.h>
 
-#include <vital/algo/track_features.h>
-#include <vital/algo/compute_ref_homography.h>
+#include <vital/algo/detect_features.h>
 
 #include <kwiver_util/sprokit_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
-
-// -- DEBUG
-#if defined DEBUG
-#include <maptk/plugins/ocv/image_container.h>
-#include <opencv2/highgui/highgui.hpp>
-using namespace cv;
-#endif
 
 namespace algo = kwiver::vital::algo;
 
@@ -60,7 +51,7 @@ namespace kwiver
 
 //----------------------------------------------------------------
 // Private implementation class
-class stabilize_image_process::priv
+class detect_features_process::priv
 {
 public:
   priv();
@@ -73,20 +64,16 @@ public:
   // There are many config items for the tracking and stabilization that go directly to
   // the maptk algo.
 
-  // feature tracker algorithm - homography source
-  algo::track_features_sptr         m_feature_tracker;
-  algo::compute_ref_homography_sptr m_compute_homog;
-
-  vital::track_set_sptr m_tracks; // last set of tracks
+  algo::detect_features_sptr m_detector;
 
 }; // end priv class
 
 // ================================================================
 
-stabilize_image_process
-::stabilize_image_process( kwiver::vital::config_block_sptr const& config )
+detect_features_process
+::detect_features_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new stabilize_image_process::priv )
+    d( new detect_features_process::priv )
 {
   kwiver::vital::algorithm_plugin_manager::load_plugins_once();
   make_ports();
@@ -94,34 +81,27 @@ stabilize_image_process
 }
 
 
-stabilize_image_process
-::~stabilize_image_process()
+detect_features_process
+::~detect_features_process()
 {
 }
 
 
 // ----------------------------------------------------------------
-void stabilize_image_process
+void detect_features_process
 ::_configure()
 {
+  // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  // Check config so it will give run-time diagnostic of config problems
-  algo::track_features::check_nested_algo_configuration( "track_features", algo_config );
+  // Check config so it will give run-time diagnostic if any config problems are found
+  algo::detect_features::check_nested_algo_configuration( "feature_detector", algo_config );
 
-  algo::track_features::set_nested_algo_configuration( "track_features", algo_config, d->m_feature_tracker );
-  if ( ! d->m_feature_tracker )
+  // Instantiate the configured algorithm
+  algo::detect_features::set_nested_algo_configuration( "feature_detector", algo_config, d->m_detector );
+  if ( ! d->m_detector )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"track_features\"" );
-  }
-
-  // Check config so it will give run-time diagnostic of config problems
-  algo::compute_ref_homography::check_nested_algo_configuration("homography_generator", algo_config );
-
-  algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator", algo_config, d->m_compute_homog );
-  if ( ! d->m_compute_homog )
-  {
-    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"compute_ref_homography\"" );
+    throw sprokit::invalid_configuration_exception( name(), "Error configuring \"feature_detector\"" );
   }
 
   sprokit::process::_configure();
@@ -130,45 +110,29 @@ void stabilize_image_process
 
 // ----------------------------------------------------------------
 void
-stabilize_image_process
+detect_features_process
 ::_step()
 {
-  kwiver::vital::f2f_homography_sptr src_to_ref_homography;
-
   // timestamp
   kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
 
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
   LOG_DEBUG( d->m_logger, "Processing frame " << frame_time );
 
-  // --- debug
-#if defined DEBUG
-  cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img->get_image() );
-  namedWindow( "Display window", cv::WINDOW_NORMAL ); // Create a window for display.
-  imshow( "Display window", image );                   // Show our image inside it.
-
-  waitKey( 0 );
-#endif                                        // Wait for a keystroke in the window
-  // -- end debug
-
-  // Get feature tracks
-  d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
-
-  // Get stabilization homography
-  src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
+  // detect features on the current frame
+  kwiver::vital::feature_set_sptr curr_feat = d->m_detector->detect( img );
 
   // return by value
-  push_to_port_using_trait( homography_src_to_ref, *src_to_ref_homography );
+  push_to_port_using_trait( feature_set, curr_feat );
 
   sprokit::process::_step();
 }
 
 
 // ----------------------------------------------------------------
-void stabilize_image_process
+void detect_features_process
 ::make_ports()
 {
   // Set up for required ports
@@ -180,27 +144,27 @@ void stabilize_image_process
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
 
-  declare_output_port_using_trait( homography_src_to_ref, optional );
+  // -- output --
+  declare_output_port_using_trait( feature_set, optional );
 }
 
 
 // ----------------------------------------------------------------
-void stabilize_image_process
+void detect_features_process
 ::make_config()
 {
-
 }
 
 
 // ================================================================
-stabilize_image_process::priv
+detect_features_process::priv
 ::priv()
-  : m_logger( vital::get_logger( "stabilize_image_process" ) )
+  : m_logger( vital::get_logger( "detect_features_process" ) )
 {
 }
 
 
-stabilize_image_process::priv
+detect_features_process::priv
 ::~priv()
 {
 }
