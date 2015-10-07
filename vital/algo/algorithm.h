@@ -45,6 +45,7 @@
 
 #include <vital/config/config_block.h>
 #include <vital/registrar.h>
+#include <vital/logger/logger.h>
 
 namespace kwiver {
 namespace vital {
@@ -203,6 +204,34 @@ public:
   static bool check_nested_algo_configuration(std::string const& type_name,
                                               std::string const& name,
                                               config_block_sptr config);
+
+protected:
+  algorithm(); // CTOR
+
+  /**
+   * \brief Attach logger to this object.
+   *
+   * This method attaches a logger to this object. The name supplied
+   * is used to name the logger. Since this is a fundamental base
+   * class, derived classes will want to have the logger named
+   * something relevant to the concrete algorithm.
+   *
+   * A logger is attached by the base class, but it is expected that
+   * that one of the derived classes will attach a more meaningful
+   * logger.
+   *
+   * \param name Name of the logger to attach.
+   */
+  void attach_logger( std::string const& name );
+
+
+  /**
+   * \brief Logger handle.
+   *
+   * This handle supplies a logger for all derived classes.
+   */
+  kwiver::vital::logger_handle_t m_logger;
+
 };
 
 
