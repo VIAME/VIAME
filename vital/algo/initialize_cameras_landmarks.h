@@ -71,6 +71,10 @@ public:
   initialize(kwiver::vital::camera_map_sptr& cameras,
              kwiver::vital::landmark_map_sptr& landmarks,
              kwiver::vital::track_set_sptr tracks) const = 0;
+
+protected:
+  initialize_cameras_landmarks();
+
 };
 
 

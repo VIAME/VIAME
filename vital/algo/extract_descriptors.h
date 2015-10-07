@@ -69,6 +69,9 @@ public:
           kwiver::vital::feature_set_sptr features,
           kwiver::vital::image_container_sptr image_mask = kwiver::vital::image_container_sptr()) const = 0;
 
+protected:
+  extract_descriptors();
+
 };
 
 

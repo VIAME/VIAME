@@ -50,8 +50,6 @@ class VITAL_EXPORT geo_map
   : public kwiver::vital::algorithm_def<geo_map>
 {
 public:
-  /// Default Constructor
-  geo_map() {}
 
   /// Return the name of this algorithm
   static std::string static_type_name() { return "geo_map"; }
@@ -94,6 +92,10 @@ public:
    * \param lon longitude in decimal degrees.
    */
   virtual int latlon_zone(double lat, double lon) const;
+
+protected:
+    /// Default Constructor
+  geo_map();
 
 };
 

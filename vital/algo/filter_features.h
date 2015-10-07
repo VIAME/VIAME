@@ -84,6 +84,7 @@ public:
   filter( kwiver::vital::feature_set_sptr feat, kwiver::vital::descriptor_set_sptr descr) const;
 
 protected:
+  filter_features();
 
   /// Filter a feature set and return a new feature set with a subset of features
   /**

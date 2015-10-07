@@ -64,13 +64,13 @@ config_block_get_value_cast( config_block_value_t const& value )
 
   timestamp::time_t t;
   str >> t;
-  obj.set_time( t );
+  obj.set_time_usec( t );
 
   timestamp::frame_t f;
   str >> f;
   obj.set_frame( f );
 
-  return obj
+  return obj;
 }
 
 
@@ -92,7 +92,7 @@ config_block_set_value_cast( timestamp const& value )
 {
   std::stringstream str;
 
-  str << value.get_time() << " " << value.get_frame();
+  str << value.get_time_usec() << " " << value.get_frame();
 
   return str.str();
 }

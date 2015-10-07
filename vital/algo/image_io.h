@@ -90,6 +90,9 @@ public:
    */
   void save(std::string const& filename, kwiver::vital::image_container_sptr data) const;
 
+protected:
+  image_io();
+
 private:
   /// Implementation specific load functionality.
   /**

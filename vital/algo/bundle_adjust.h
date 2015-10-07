@@ -67,12 +67,15 @@ public:
   optimize(kwiver::vital::camera_map_sptr& cameras,
            kwiver::vital::landmark_map_sptr& landmarks,
            kwiver::vital::track_set_sptr tracks) const = 0;
+
+protected:
+    bundle_adjust();
+
 };
 
 
 /// type definition for shared pointer to a bundle adjust algorithm
 typedef std::shared_ptr<bundle_adjust> bundle_adjust_sptr;
-
 
 } } } // end namespace
 

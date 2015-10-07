@@ -40,8 +40,9 @@
 #include <iostream>
 
 #include <vital/types/matrix.h>
-#include "vector.h"
-#include "rotation.h"
+#include <vital/types/vector.h>
+#include <vital/types/rotation.h>
+#include <vital/logger/logger.h>
 
 namespace kwiver {
 namespace vital {
@@ -146,6 +147,9 @@ protected:
   rotation_< T > rot_;
   /// translation
   Eigen::Matrix< T, 3, 1 > trans_;
+
+  kwiver::vital::logger_handle_t m_logger;
+
 };
 
 

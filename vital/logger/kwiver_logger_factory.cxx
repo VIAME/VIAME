@@ -40,7 +40,7 @@ namespace logger_ns {
  *
  */
 kwiver_logger_factory
-::kwiver_logger_factory(const char * name)
+::kwiver_logger_factory( std::string const& name )
   :m_name(name)
 { }
 

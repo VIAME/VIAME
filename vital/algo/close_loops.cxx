@@ -31,4 +31,16 @@
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/close_loops.h>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+close_loops
+::close_loops()
+{
+  attach_logger( "close_loops" );
+}
+
+} } }
+
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::close_loops);

@@ -67,6 +67,9 @@ public:
   match(kwiver::vital::feature_set_sptr feat1, kwiver::vital::descriptor_set_sptr desc1,
         kwiver::vital::feature_set_sptr feat2, kwiver::vital::descriptor_set_sptr desc2) const = 0;
 
+protected:
+  match_features();
+
 };
 
 

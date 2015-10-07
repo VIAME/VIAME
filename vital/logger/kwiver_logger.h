@@ -309,7 +309,6 @@ protected:
    * @param fact Pointer to logger factory
    * @param name Name of logger to create
    */
-  kwiver_logger( logger_ns::kwiver_logger_factory* fact, const char * const name );
   kwiver_logger( logger_ns::kwiver_logger_factory* fact, std::string const& name );
 
 private:

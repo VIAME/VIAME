@@ -79,6 +79,9 @@ public:
        kwiver::vital::image_container_sptr_list image_data,
        kwiver::vital::track_set_sptr comparison_set = kwiver::vital::track_set_sptr()) = 0;
 
+protected:
+    draw_tracks();
+
 };
 
 

@@ -46,6 +46,12 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
+estimate_homography
+::estimate_homography()
+{
+  attach_logger( "estimate_homography" );
+}
+
 
 /// Estimate a homography matrix from corresponding features
 homography_sptr

@@ -36,6 +36,18 @@
 #include <vital/algo/match_features.h>
 #include <vital/algo/algorithm.txx>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+match_features
+::match_features()
+{
+  attach_logger( "match_features" );
+}
+
+} } }
+
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::match_features);
 /// \endcond

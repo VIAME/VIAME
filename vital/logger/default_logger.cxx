@@ -79,7 +79,7 @@ class default_logger :
 {
 public:
   /// CTOR
-  default_logger( logger_ns::logger_factory_default* p, const char* const name )
+  default_logger( logger_ns::logger_factory_default* p, std::string const& name )
     : kwiver_logger( p, name ),
     m_logLevel( kwiver_logger::LEVEL_TRACE )
   { }
@@ -186,6 +186,15 @@ private:
   virtual void log_message( log_level_t         level,
                             std::string const&  msg )
   {
+    log_message_i( level, msg, "" );
+  }
+
+
+  // ------------------------------------------------------------------
+  void log_message_i(  log_level_t         level,
+                       std::string const&  msg,
+                       std::string const& location )
+  {
     static std::mutex lock;
 
     using namespace std::chrono;
@@ -209,14 +218,14 @@ private:
 
     {
       std::lock_guard< std::mutex > guard( lock ); // serialize access to stream
-      std::ostream* s = &get_stream();
+      std::ostream* str = &get_stream();
       while ( getline( ss, msg_part ) )
       {
-        writeTime( *s, t );
-        *s
+        writeTime( *str, t );
+        *str
           // << std::put_time(std::localtime(&t), "%F %T")
            << '.' << fractional_seconds
-           << ' ' << level_str << ' ' << msg_part << '\n';
+           << ' ' << level_str << ' ' << location << msg_part << '\n';
       }
     }
   }
@@ -227,7 +236,11 @@ private:
                             std::string const&              msg,
                             logger_ns::location_info const& location )
   {
-    log_message( level, msg );
+    // format location
+    std::stringstream loc;
+    loc << location.get_file_name() << "(" << location.get_line_number() << "): ";
+
+    log_message_i( level, msg, loc.str() );
   }
 
 
@@ -256,9 +269,19 @@ std::ostream* default_logger::s_output_stream = &std::cerr;
 // ==================================================================
 logger_handle_t
 logger_factory_default
-  ::get_logger( const char* const name )
+::get_logger( std::string const& name )
 {
-  return std::make_shared< default_logger > ( this, name );
+  // look for logger in the map
+  std::map< std::string, logger_handle_t >::iterator it = m_active_loggers.find( name );
+  if (it != m_active_loggers.end() )
+  {
+    return it->second;
+  }
+
+  logger_handle_t log = std::make_shared< default_logger > ( this, name );
+  m_active_loggers[name] = log;
+
+  return log;
 }
 
 

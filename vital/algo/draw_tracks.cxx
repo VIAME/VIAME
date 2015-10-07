@@ -31,4 +31,16 @@
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/draw_tracks.h>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+draw_tracks
+::draw_tracks()
+{
+  attach_logger( "draw_tracks" );
+}
+
+} } }
+
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::draw_tracks);

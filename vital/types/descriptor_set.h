@@ -39,6 +39,7 @@
 
 #include "descriptor.h"
 #include <vital/vital_config.h>
+#include <vital/logger/logger.h>
 
 namespace kwiver {
 namespace vital {
@@ -60,6 +61,11 @@ public:
 
   /// Return a vector of descriptor shared pointers
   virtual std::vector< descriptor_sptr > descriptors() const = 0;
+
+protected:
+  descriptor_set() : m_logger( kwiver::vital::get_logger( "descriptor_set" ) ) { }
+
+  kwiver::vital::logger_handle_t m_logger;
 };
 
 /// Shared pointer for base descriptor_set type

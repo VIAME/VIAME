@@ -135,6 +135,8 @@ public:
            std::vector<bool>& inliers,
            double inlier_scale = 1.0) const = 0;
 
+protected:
+  estimate_essential_matrix();
 
 };
 

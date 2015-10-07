@@ -274,7 +274,7 @@ endfunction()
 #-
 function(kwiver_private_header_group)
   source_group("Header Files\\Private"
-    ${ARGN}
+    FILES ${ARGN}
     )
 endfunction()
 

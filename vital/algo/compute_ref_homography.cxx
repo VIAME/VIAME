@@ -31,4 +31,16 @@
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/compute_ref_homography.h>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+compute_ref_homography
+::compute_ref_homography()
+{
+  attach_logger( "compute_ref_homography" );
+}
+
+} } }
+
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::compute_ref_homography);

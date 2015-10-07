@@ -37,6 +37,17 @@
 #include <vital/algo/bundle_adjust.h>
 #include <vital/algo/algorithm.txx>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+bundle_adjust
+::bundle_adjust()
+{
+  attach_logger( "bundle_adjust" );
+}
+
+} } }
 
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::bundle_adjust);

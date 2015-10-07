@@ -36,6 +36,18 @@
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/algorithm.txx>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+extract_descriptors
+::extract_descriptors()
+{
+  attach_logger( "extract_descriptors" );
+}
+
+} } }
+
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::extract_descriptors);
 /// \endcond

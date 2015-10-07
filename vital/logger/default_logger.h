@@ -34,6 +34,8 @@
 #include <vital/vital_config.h>
 #include "kwiver_logger_factory.h"
 
+#include <map>
+#include <string>
 
 namespace kwiver {
 namespace vital {
@@ -66,7 +68,10 @@ public:
    *
    * @return Handle to desired logger.
    */
-  virtual logger_handle_t get_logger( const char * const name );
+  virtual logger_handle_t get_logger( std::string const& name );
+
+private:
+  std::map< std::string, logger_handle_t > m_active_loggers;
 
 }; // end class logger_factory
 

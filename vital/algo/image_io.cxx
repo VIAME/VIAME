@@ -50,6 +50,13 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
+image_io
+::image_io()
+{
+  attach_logger( "image_io" );
+}
+
+
 image_container_sptr
 image_io
 ::load(std::string const& filename) const

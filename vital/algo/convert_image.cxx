@@ -37,6 +37,13 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
+convert_image
+::convert_image()
+{
+  attach_logger( "convert_image" );
+}
+
+
 /// Set this algorithm's properties via a config block
 void
 convert_image

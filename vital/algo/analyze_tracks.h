@@ -70,6 +70,9 @@ public:
   print_info(kwiver::vital::track_set_sptr track_set,
              stream_t& stream = std::cout) const = 0;
 
+protected:
+  analyze_tracks();
+
 };
 
 typedef std::shared_ptr<analyze_tracks> analyze_tracks_sptr;

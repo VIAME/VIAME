@@ -38,6 +38,17 @@
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/optimize_cameras.h>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+optimize_cameras
+::optimize_cameras()
+{
+  attach_logger( "optimize_cameras" );
+}
+
+} } }
 
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::optimize_cameras);

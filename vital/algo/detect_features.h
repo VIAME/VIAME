@@ -73,6 +73,9 @@ public:
   detect(kwiver::vital::image_container_sptr image_data,
          kwiver::vital::image_container_sptr mask = kwiver::vital::image_container_sptr()) const = 0;
 
+protected:
+  detect_features();
+
 };
 
 

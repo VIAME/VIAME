@@ -141,6 +141,10 @@ public:
   virtual kwiver::vital::similarity_d
   estimate_transform(kwiver::vital::landmark_map_sptr const from,
                      kwiver::vital::landmark_map_sptr const to) const;
+
+protected:
+    estimate_similarity_transform();
+
 };
 
 

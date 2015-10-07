@@ -38,6 +38,17 @@
 #include <vital/algo/initialize_cameras_landmarks.h>
 #include <vital/algo/algorithm.txx>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+initialize_cameras_landmarks
+::initialize_cameras_landmarks()
+{
+  attach_logger( "initialize_cameras_landmarks" );
+}
+
+} } }
 
 /// \cond DoxygenSuppress
   INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::initialize_cameras_landmarks);

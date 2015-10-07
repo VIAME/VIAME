@@ -38,6 +38,17 @@
 #include <vital/algo/triangulate_landmarks.h>
 #include <vital/algo/algorithm.txx>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+triangulate_landmarks
+::triangulate_landmarks()
+{
+  attach_logger( "triangulate_landmarks" );
+}
+
+} } }
 
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::triangulate_landmarks);

@@ -56,7 +56,7 @@ public:
    * @param fact Pointer to logger factory class.
    * @param name Name of logging category.
    */
-  log4cxx_logger( kwiver_logger_factory* fact, const char* const name )
+  log4cxx_logger( kwiver_logger_factory* fact, std::string const& name )
     : kwiver_logger( fact, name ),
     m_loggerImpl( ::log4cxx::Logger::getLogger( name ) )
   {  }
@@ -305,7 +305,7 @@ public:
 
   virtual ~log4cxx_factory() VITAL_DEFAULT_DTOR
 
-  virtual logger_handle_t get_logger( const char * const name )
+  virtual logger_handle_t get_logger( std::string const& name )
   {
     return logger_handle_t( new log4cxx_logger ( this, name ) );
   }

@@ -62,7 +62,7 @@ public:
    *
    * @param name  Name of this logger factory
    */
-  kwiver_logger_factory( const char* name );
+  kwiver_logger_factory( std::string const& name );
   virtual ~kwiver_logger_factory();
 
   /**
@@ -75,9 +75,7 @@ public:
    *
    * @return
    */
-  virtual logger_handle_t get_logger( const char* const name ) = 0;
-  logger_handle_t get_logger( std::string const& name )
-  {  return get_logger( name.c_str() ); }
+  virtual logger_handle_t get_logger( std::string const& name ) = 0;
 
   /**
    * @brief Get logger factory name.

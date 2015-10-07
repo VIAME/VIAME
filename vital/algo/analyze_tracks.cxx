@@ -31,4 +31,16 @@
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/analyze_tracks.h>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+analyze_tracks
+::analyze_tracks()
+{
+  attach_logger( "analyze_tracks" );
+}
+
+} } }
+
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::analyze_tracks);

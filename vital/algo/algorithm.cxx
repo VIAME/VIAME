@@ -45,6 +45,23 @@ namespace kwiver {
 namespace vital {
 
 // ------------------------------------------------------------------
+algorithm
+::algorithm()
+  : m_logger( kwiver::vital::get_logger( "algorithm" ) )
+{
+}
+
+
+// ------------------------------------------------------------------
+void
+algorithm
+::attach_logger( std::string const& name )
+{
+  kwiver::vital::get_logger( name );
+}
+
+
+// ------------------------------------------------------------------
 /// Get this alg's \link kwiver::vital::config_block configuration block \endlink
 config_block_sptr
 algorithm

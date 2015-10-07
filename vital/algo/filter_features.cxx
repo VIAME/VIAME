@@ -44,6 +44,13 @@ namespace vital {
 namespace algo {
 
 
+filter_features
+::filter_features()
+{
+  attach_logger( "filter_features" );
+}
+
+
 feature_set_sptr
 filter_features
 ::filter(feature_set_sptr feat) const

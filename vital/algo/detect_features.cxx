@@ -36,6 +36,18 @@
 #include <vital/algo/detect_features.h>
 #include <vital/algo/algorithm.txx>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
+
+detect_features
+::detect_features()
+{
+  attach_logger( "detect_features" );
+}
+
+} } }
+
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::detect_features);
 /// \endcond
