@@ -47,6 +47,13 @@ namespace vital {
 namespace algo {
 
 
+estimate_essential_matrix
+::estimate_essential_matrix()
+{
+  attach_logger( "estimate_essential_matrix" );
+}
+
+
 /// Estimate an essential matrix from corresponding features
 essential_matrix_sptr
 estimate_essential_matrix

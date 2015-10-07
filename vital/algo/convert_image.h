@@ -59,6 +59,9 @@ public:
   /// Convert image base type
   virtual kwiver::vital::image_container_sptr convert(kwiver::vital::image_container_sptr img) const = 0;
 
+protected:
+  convert_image();
+
 };
 
 typedef std::shared_ptr<convert_image> convert_image_sptr;

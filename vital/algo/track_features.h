@@ -76,6 +76,9 @@ public:
         image_container_sptr image_data,
         image_container_sptr mask = image_container_sptr()) const = 0;
 
+protected:
+    track_features();
+
 };
 
 

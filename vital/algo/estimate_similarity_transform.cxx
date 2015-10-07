@@ -48,6 +48,14 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
+
+estimate_similarity_transform
+::estimate_similarity_transform()
+{
+  attach_logger( "estimate_similarity_transform" );
+}
+
+
 // ------------------------------------------------------------------
 /// Estimate the similarity transform between two corresponding sets of cameras
 similarity_d

@@ -74,6 +74,9 @@ public:
            kwiver::vital::track_set_sptr tracks,
            kwiver::vital::landmark_map_sptr landmarks) const = 0;
 
+protected:
+  optimize_cameras();
+
 };
 
 

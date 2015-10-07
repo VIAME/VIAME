@@ -44,6 +44,14 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
+
+geo_map
+::geo_map()
+{
+  attach_logger( "geo_map" );
+}
+
+
 /// Return the standard zone number for a Latitude and Longitude
 int
 geo_map

@@ -87,6 +87,9 @@ public:
   estimate( kwiver::vital::frame_id_t frame_number,
             kwiver::vital::track_set_sptr tracks ) const = 0;
 
+protected:
+  compute_ref_homography();
+
 };
 
 

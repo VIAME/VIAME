@@ -70,6 +70,10 @@ public:
   triangulate(kwiver::vital::camera_map_sptr cameras,
               kwiver::vital::track_set_sptr tracks,
               kwiver::vital::landmark_map_sptr& landmarks) const = 0;
+
+protected:
+  triangulate_landmarks();
+
 };
 
 

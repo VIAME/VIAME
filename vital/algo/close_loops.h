@@ -79,6 +79,9 @@ public:
           kwiver::vital::image_container_sptr image,
           kwiver::vital::image_container_sptr mask = kwiver::vital::image_container_sptr()) const = 0;
 
+protected:
+  close_loops();
+
 };
 
 typedef std::shared_ptr<close_loops> close_loops_sptr;
