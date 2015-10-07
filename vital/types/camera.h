@@ -49,6 +49,7 @@
 #include <vital/types/rotation.h>
 #include <vital/types/vector.h>
 #include <vital/types/similarity.h>
+#include <vital/logger/logger.h>
 
 
 namespace kwiver {
@@ -102,6 +103,12 @@ public:
    *  Points with negative depth are behind the camera
    */
   virtual double depth(const vector_3d& pt) const;
+
+protected:
+  camera();
+
+  kwiver::vital::logger_handle_t m_logger;
+
 };
 
 /// output stream operator for a base class camera

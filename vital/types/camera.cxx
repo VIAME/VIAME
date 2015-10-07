@@ -43,6 +43,11 @@
 namespace kwiver {
 namespace vital {
 
+camera
+::camera()
+{
+  kwiver::vital::get_logger( "camera" );
+}
 
 /// Convert to a 3x4 homogeneous projection matrix
 matrix_3x4d
@@ -117,8 +122,7 @@ simple_camera
   // nearly parallel and the up direction is poorly defined.
   if ( x_mag < 1e-4 )
   {
-    std::cerr << "WARNING: camera_::look_at up_direction is "
-              << "nearly parallel with the look direction" << std::endl;
+    LOG_WARN( m_logger,  "camera_::look_at up_direction nearly parallel with the look direction" );
   }
 
   x /= x_mag;

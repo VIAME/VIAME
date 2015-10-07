@@ -46,12 +46,13 @@ namespace vital {
 template < typename T >
 similarity_< T >
 ::similarity_( const Eigen::Matrix< T, 4, 4 >& M )
+  : m_logger( kwiver::vital::get_logger( "similarity" ) )
 {
   if ( ( M( 3, 0 ) != T( 0 ) ) || ( M( 3, 1 ) != T( 0 ) ) || ( M( 3, 2 ) != T( 0 ) ) || ( M( 3, 3 ) != T( 1 ) ) )
   {
     // not a similarity if bottom row is not [0,0,0,1]
     // TODO throw an exception here
-    std::cerr << "third row of similarity matrix must be [0,0,0,1]" << std::endl;
+    LOG_WARN( m_logger, "third row of similarity matrix must be [0,0,0,1]" );
     return;
   }
   Eigen::Matrix< T, 3, 3 > sr = M.template block< 3, 3 > ( 0, 0 );
@@ -60,7 +61,7 @@ similarity_< T >
   {
     // similarity must have positive scale
     // TODO throw an exception
-    std::cerr << "determinant in upper 3x3 of similarity matrix must be positive" << std::endl;
+    LOG_WARN( m_logger, "determinant in upper 3x3 of similarity matrix must be positive" );
     return;
   }
   // take the cube root
