@@ -186,6 +186,15 @@ private:
   virtual void log_message( log_level_t         level,
                             std::string const&  msg )
   {
+    log_message_i( level, msg, "" );
+  }
+
+
+  // ------------------------------------------------------------------
+  void log_message_i(  log_level_t         level,
+                       std::string const&  msg,
+                       std::string const& location )
+  {
     static std::mutex lock;
 
     using namespace std::chrono;
@@ -216,7 +225,7 @@ private:
         *str
           // << std::put_time(std::localtime(&t), "%F %T")
            << '.' << fractional_seconds
-           << ' ' << level_str << ' ' << msg_part << '\n';
+           << ' ' << level_str << ' ' << location << msg_part << '\n';
       }
     }
   }
@@ -227,7 +236,11 @@ private:
                             std::string const&              msg,
                             logger_ns::location_info const& location )
   {
-    log_message( level, msg );
+    // format location
+    std::stringstream loc;
+    loc << location.get_file_name() << "(" << location.get_line_number() << "): ";
+
+    log_message_i( level, msg, loc.str() );
   }
 
 
