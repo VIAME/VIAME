@@ -86,6 +86,12 @@ IMPLEMENT_TEST(check_levels)
   LOG_ASSERT( log2, false, "This should generate ERROR message." );
 */
   TEST_EQUAL ("Get logger level", log2->get_level(), kwiver::vital::kwiver_logger::LEVEL_DEBUG );
+
+  // test to see if we get the same logger back
+  kwiver::vital::logger_handle_t log = kwiver::vital::get_logger( "main.logger2" );
+
+  TEST_EQUAL ("Get logger level", log->get_level(), kwiver::vital::kwiver_logger::LEVEL_DEBUG );
+
 }
 
 
