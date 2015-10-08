@@ -13,10 +13,11 @@ support.
 
 Replaced boost supplied features with those from std and kwiversys OS
 Abstraction Layer. Using the std boost equivalent features required
-compiling with C++ 0x standard support. The cmake build system now
+compiling with C++ 0x standard support. The CMake build system now
 tests for required compiler flags.
 
-Test vital builds on CentOS 5, OSX
+Test vital builds on CentOS 5, OSX, Windows. Due to the later c++
+standard requirements, VS 2013 is the build system being supported.
 
 Add method to algorithm plugin manager to load plugins on the first
 call.  This is used by sprokit processes to optimize plugin
@@ -25,7 +26,7 @@ method reduces startup time considerably.
 
 More compiler warning flags have been added to catch programming
 errors and questionable practices. Code has been modified to compile
-without warnings.
+without warnings. Missing libraries were added to CMake files.
 
 Added build time checks to determine which language features are
 available with the current compiler. More advanced language features
@@ -46,8 +47,18 @@ the conversion to and from the c++ type has been simplified and
 documented.  This conversion is done with two user supplied templated
 specializations of the default conversion functions.
 
+Added support for config entry attributes. Currently supporting the
+read-only "[RO]" attribute borrowed from sprokit config semantics.
+
 Refactored camera related data types by moving code between Map-TK and
 vital.
 
 The C bindings used for the python interface have been converted to
 vital namespace, are built and tested.
+
+Reworked timestamp class to contain integral number of micro-seconds
+and changed access methods to specify units returned.
+
+Added logging support to algorithm base classes to simplify liogging
+in the derived classes. Also added logging support to some of the
+vital types.
