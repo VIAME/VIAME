@@ -34,9 +34,11 @@
 #include "pipeline-config.h"
 
 #include "edge.h"
-#include <vital/config/config_block.h>
 #include "datum.h"
 #include "types.h"
+
+#include <vital/config/config_block.h>
+#include <vital/logger/logger.h>
 
 #include <boost/cstdint.hpp>
 #include <boost/noncopyable.hpp>
@@ -479,12 +481,22 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief The name of the process.
      *
+     * The instance name of this process is returned as a string. The
+     * instance name is established when this process is created
+     * during pipeline construction. The process type or class name
+     * can be determined by calling the type() method.
+     *
      * \returns The name of the process.
      */
     name_t name() const;
 
     /**
      * \brief The type of the process.
+     *
+     * The type name of this process is returned. The type name is
+     * established when the process is registered. It effectively
+     * specifies the class name of this process. The instance name of
+     * this process is obtained with the name() method.
      *
      * \returns A name for the type of the process.
      */
@@ -631,6 +643,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param config Contains configuration for the process.
      */
     process(kwiver::vital::config_block_sptr const& config);
+
     /**
      * \brief Destructor.
      */
@@ -696,6 +709,28 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns Properties on the subclass.
      */
     virtual properties_t _properties() const;
+
+    /**
+     * \brief Attach a logger to process.
+     *
+     * Attach a logger to this process to use as processes default
+     * logger. This logger can be accessed via the logger() method.
+     *
+     * \param logger New logger for process to use
+     *
+     * \return Previous logger is returned.
+     */
+    kwiver::vital::logger_handle_t attach_logger( kwiver::vital::logger_handle_t logger );
+
+    /**
+     * \brief Get process logger.
+     *
+     * This method returns the currently active process logger. This
+     * is typically used by derived processes when logging messages.
+     *
+     * \return Process logger.
+     */
+    kwiver::vital::logger_handle_t logger() const;
 
     /**
      * \brief Subclass input ports.

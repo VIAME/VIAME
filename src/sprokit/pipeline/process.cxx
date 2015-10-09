@@ -31,13 +31,7 @@
 #include "process.h"
 #include "process_exception.h"
 
-#include <vital/config/config_block.h>
-#include "datum.h"
-#include "edge.h"
 #include "stamp.h"
-#include "types.h"
-
-#include <vital/logger/logger.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/assign/ptr_map_inserter.hpp>
@@ -129,6 +123,7 @@ process::data_info
 {
 }
 
+// ==================================================================
 class process::priv
 {
   public:
@@ -144,8 +139,8 @@ class process::priv
     void push_to_output_edges(datum_t const& dat) const;
     bool required_outputs_done() const;
 
-    name_t name;
-    type_t type;
+    name_t name; // instance name of process
+    type_t type; // name of class of type of process
 
     typedef std::map<port_t, port_info_t> port_map_t;
     typedef std::map<kwiver::vital::config_block_key_t, conf_info_t> conf_map_t;
@@ -239,6 +234,8 @@ class process::priv
 
     static kwiver::vital::config_block_value_t const default_name;
 };
+
+// ==================================================================
 
 kwiver::vital::config_block_value_t const process::priv::default_name = "(unnamed)";
 
@@ -527,6 +524,9 @@ process
   return d->type;
 }
 
+//
+// CTOR
+//
 process
 ::process(kwiver::vital::config_block_sptr const& config)
   : d()
@@ -1593,6 +1593,25 @@ process
   _reconfigure(conf);
 }
 
+
+kwiver::vital::logger_handle_t
+process
+::attach_logger( kwiver::vital::logger_handle_t log )
+{
+  kwiver::vital::logger_handle_t temp = d->m_logger;
+  d->m_logger = log;
+  return temp;
+}
+
+
+kwiver::vital::logger_handle_t
+process::logger() const
+{
+  return d->m_logger;
+}
+
+
+// ==================================================================
 process::priv
 ::priv(process* proc,kwiver::vital::config_block_sptr const& c)
   : name()
