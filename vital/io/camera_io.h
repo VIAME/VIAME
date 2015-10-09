@@ -55,7 +55,7 @@ namespace vital {
  *    Thrown when the file could not be read or parsed for whatever reason.
  *
  * \param file_path   The path to the file to read in.
- * \return A \c camera_d object representing the contents of the read-in file.
+ * \return A new camera object representing the contents of the read-in file.
  */
 camera_sptr
 VITAL_EXPORT read_krtd_file( path_t const& file_path );
@@ -73,7 +73,7 @@ VITAL_EXPORT read_krtd_file( path_t const& file_path );
  * \param camera_dir
  *    The directory path containing the KRTD file for the given image.
  * \return
- *    A \c camera_d object representing the contents of the read-in file.
+ *    A new camera object representing the contents of the read-in file.
  */
 camera_sptr
 VITAL_EXPORT read_krtd_file( path_t const& image_file,
