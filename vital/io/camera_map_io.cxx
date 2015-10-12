@@ -51,22 +51,13 @@ read_krtd_files( std::vector< path_t > const& img_files, path_t const& dir )
     throw path_not_exists( dir );
   }
 
-  std::vector< std::string > files_to_read;
   camera_map::map_camera_t cameras;
 
-  for ( size_t i = 0; i < img_files.size(); i++ )
-  {
-    files_to_read.push_back( dir
-                             + "/"
-                             +  kwiversys::SystemTools::GetFilenameWithoutLastExtension( img_files[i] )
-                             + ".krtd" );
-  }
-
-  for ( size_t fid = 0; fid < files_to_read.size(); fid++ )
+  for ( size_t fid = 0; fid < img_files.size(); ++fid )
   {
     try
     {
-      cameras[fid] = read_krtd_file( files_to_read[fid] );
+      cameras[fid] = read_krtd_file( img_files[fid], dir );
     }
     catch ( file_not_found_exception )
     {

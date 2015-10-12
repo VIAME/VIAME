@@ -76,6 +76,19 @@ read_krtd_file( path_t const& file_path )
 }
 
 
+/// Read in a KRTD file, producing a camera object
+camera_sptr
+read_krtd_file( path_t const& image_file, path_t const& camera_dir )
+{
+  std::string adj_path =
+    camera_dir
+    + "/"
+    + kwiversys::SystemTools::GetFilenameWithoutLastExtension( image_file );
+
+  return read_krtd_file( path_t( adj_path.append( ".krtd" ) ) );
+}
+
+
 /// Output the given \c camera object to the specified file path
 void
 write_krtd_file( camera const&  cam,
