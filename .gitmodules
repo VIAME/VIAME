@@ -1,0 +1,3 @@
+[submodule "vital/kwiversys"]
+	path = vital/kwiversys
+	url = git://public.kitware.com/KWSys.git
