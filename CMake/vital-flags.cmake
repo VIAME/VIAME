@@ -7,7 +7,7 @@ include( utils/kwiver-utils-flags )
 
 if (MSVC)
   include( vital-flags-msvc )
-elseif (APPLE)
+elseif (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
   include( vital-flags-clang )
 else()
   include( vital-flags-gnu )
