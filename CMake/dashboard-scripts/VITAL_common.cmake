@@ -216,10 +216,6 @@ if(EXISTS \"${CTEST_SOURCE_DIRECTORY}/.git\")
     WORKING_DIRECTORY \"${CTEST_SOURCE_DIRECTORY}\"
     )
   execute_process(
-    COMMAND \"${CTEST_GIT_COMMAND}\" checkout ${git_branch_old}
-    WORKING_DIRECTORY \"${CTEST_SOURCE_DIRECTORY}\"
-    )
-  execute_process(
     COMMAND \"${CTEST_GIT_COMMAND}\" submodule update --init
     WORKING_DIRECTORY \"${CTEST_SOURCE_DIRECTORY}\"
     )
