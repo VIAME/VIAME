@@ -119,6 +119,7 @@ public:
    */
   time_t get_time_usec() const { return m_time; }
 
+
   /**
    * \brief Get time in seconds.
    *
@@ -127,6 +128,7 @@ public:
    * \return time in seconds.
    */
   double get_time_seconds() const;
+
 
   /**
    * \brief Get frame number from timestamp.
@@ -161,9 +163,21 @@ public:
   /**
    * \brief Set timestamp totally invalid.
    *
-   * Both the frame and time are set to
+   * Both the frame and time are set to invalid
    */
   timestamp& set_invalid();
+
+
+  /**
+   * @brief Set time domain index for this timestamp
+   *
+   * @param dom Time domain index
+   *
+   * @return Reference to this object.
+   */
+  timestamp& set_time_domain_index ( int dom );
+
+  int get_time_domain_index() const { return m_time_domain_index; }
 
 
   /**
@@ -176,17 +190,21 @@ public:
    */
   std::string pretty_print() const;
 
+  bool operator==( timestamp const& rhs ) const;
+  bool operator!=( timestamp const& rhs ) const;
+  bool operator<( timestamp const& rhs ) const;
+  bool operator>( timestamp const& rhs ) const;
+
 
 private:
-  bool m_valid_time; ///< indicates valid timestamp
-  bool m_valid_frame;
+  bool m_valid_time;            ///< indicates valid time
+  bool m_valid_frame;           ///< indicates valid frame number
 
-  time_t m_time; ///< frame time in seconds
-  frame_t  m_frame;
+  time_t m_time;                ///< frame time in seconds
+  frame_t  m_frame;             ///< frame number
 
-  ///\todo Add unique field to denote reference.
-  /// The concept is to prevent comparing timestamps that have a different reference
-  /// (e.g. from a different video stream or having a different start time offset).
+  // index used to determine the time domain for this timestamp.
+  int m_time_domain_index;
 
 }; // end class timestamp
 
