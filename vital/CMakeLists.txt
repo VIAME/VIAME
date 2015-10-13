@@ -3,7 +3,7 @@
 #
 
 ###
-# KWSys borrowed from CMake
+# KWSys
 #---------------------------------------------------------------------
 # Create the kwsys library for vital.
 set(KWSYS_NAMESPACE kwiversys)
@@ -20,6 +20,10 @@ set(KWSYS_INSTALL_INCLUDE_DIR "include/kwiver")
 set(KWSYS_INSTALL_LIB_DIR lib)
 set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
 
+# save our custom CXX flags and reset so we pass no special flags to kwiversys
+set( save_flags  ${CMAKE_CXX_FLAGS} )
+set( CMAKE_CXX_FLAGS )
+
 include_directories( SYSTEM ${KWSYS_INCLUDE_DIR}/kwiversys )
 add_subdirectory(kwiversys)
 _kwiver_export( ${KWSYS_NAMESPACE} )
@@ -30,6 +34,9 @@ if (APPLE)
     PROPERTIES
     MACOSX_RPATH          TRUE)
 endif()
+
+# restore old CXX flags for our code.
+set( CMAKE_CXX_FLAGS ${save_flags} )
 
 # ==================================================================
 ###
