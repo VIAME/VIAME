@@ -57,7 +57,7 @@ void
 algorithm
 ::attach_logger( std::string const& name )
 {
-  kwiver::vital::get_logger( name );
+  m_logger = kwiver::vital::get_logger( name );
 }
 
 
