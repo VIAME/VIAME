@@ -36,7 +36,6 @@
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
 #include <vital/types/feature_set.h>
-#include <vital/logger/logger.h>
 
 #include <vital/algo/extract_descriptors.h>
 
@@ -57,8 +56,6 @@ public:
   priv();
   ~priv();
 
-  vital::logger_handle_t m_logger;
-
   // Configuration values
 
   // There are many config items for the tracking and stabilization that go directly to
@@ -75,6 +72,8 @@ extract_descriptors_process
   : process( config ),
     d( new extract_descriptors_process::priv )
 {
+  // Attach our logger name to process logger
+  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
   kwiver::vital::algorithm_plugin_manager::load_plugins_once();
   make_ports();
   make_config();
@@ -118,7 +117,7 @@ extract_descriptors_process
   kwiver::vital::feature_set_sptr features =  grab_from_port_using_trait( feature_set );
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  LOG_DEBUG( d->m_logger, "Processing frame " << frame_time );
+  LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
   // extract stuff on the current frame
   kwiver::vital::descriptor_set_sptr curr_desc = d->m_extractor->extract( img, features );
@@ -159,7 +158,6 @@ void extract_descriptors_process
 // ================================================================
 extract_descriptors_process::priv
 ::priv()
-  : m_logger( vital::get_logger( "extract_descriptors_process" ) )
 {
 }
 

@@ -37,7 +37,6 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/homography_f2f.h>
-#include <vital/logger/logger.h>
 
 #include <kwiver_util/sprokit_type_traits.h>
 
@@ -86,8 +85,6 @@ public:
   priv();
   ~priv();
 
-  vital::logger_handle_t m_logger;
-
   void write_frame_data(vsl_b_ostream& stream,
                         bool write_image,
                         kwiver::vital::timestamp const& time,
@@ -132,6 +129,8 @@ kw_archive_writer_process
   : process(config),
     d( new kw_archive_writer_process::priv )
 {
+  // Attach our logger name to process logger
+  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
   kwiver::vital::algorithm_plugin_manager::load_plugins_once();
   make_ports();
   make_config();
@@ -277,7 +276,7 @@ kw_archive_writer_process
   // gsd
   kwiver::vital::gsd_t gsd = grab_input_using_trait( gsd );
 
-  LOG_DEBUG( d->m_logger, "processing frame " << frame_time );
+  LOG_DEBUG( logger(), "processing frame " << frame_time );
 
   *d->m_index_stream
     << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
@@ -434,8 +433,7 @@ priv_t
 // ================================================================
 kw_archive_writer_process::priv
 ::priv()
-  : m_logger( vital::get_logger( "kw_archive_writer_process" ) ),
-    m_index_stream(0),
+  : m_index_stream(0),
     m_meta_stream(0),
     m_meta_bstream(0),
     m_data_stream(0),

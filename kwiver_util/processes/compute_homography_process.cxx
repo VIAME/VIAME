@@ -37,7 +37,6 @@
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
 #include <vital/types/homography.h>
-#include <vital/logger/logger.h>
 
 #include <vital/algo/track_features.h>
 #include <vital/algo/compute_ref_homography.h>
@@ -66,8 +65,6 @@ public:
   priv();
   ~priv();
 
-  vital::logger_handle_t m_logger;
-
   // Configuration values
 
   // There are many config items for the tracking and stabilization that go directly to
@@ -84,6 +81,8 @@ compute_homography_process
   : process( config ),
     d( new compute_homography_process::priv )
 {
+  // Attach our logger name to process logger
+  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
   kwiver::vital::algorithm_plugin_manager::load_plugins_once();
   make_ports();
   make_config();
@@ -126,7 +125,7 @@ compute_homography_process
   vital::track_set_sptr tracks = grab_from_port_using_trait( track_set );
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  LOG_DEBUG( d->m_logger, "Processing frame " << frame_time );
+  LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
   // Get stabilization homography
   src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), tracks );
@@ -167,7 +166,6 @@ void compute_homography_process
 // ================================================================
 compute_homography_process::priv
 ::priv()
-  : m_logger( vital::get_logger( "compute_homography_process" ) )
 {
 }
 

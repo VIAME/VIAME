@@ -36,7 +36,6 @@
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
 #include <vital/types/feature_set.h>
-#include <vital/logger/logger.h>
 
 #include <vital/algo/detect_features.h>
 
@@ -57,8 +56,6 @@ public:
   priv();
   ~priv();
 
-  vital::logger_handle_t m_logger;
-
   // Configuration values
 
   // There are many config items for the tracking and stabilization that go directly to
@@ -75,6 +72,8 @@ detect_features_process
   : process( config ),
     d( new detect_features_process::priv )
 {
+  // Attach our logger name to process logger
+  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
   kwiver::vital::algorithm_plugin_manager::load_plugins_once();
   make_ports();
   make_config();
@@ -119,7 +118,7 @@ detect_features_process
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  LOG_DEBUG( d->m_logger, "Processing frame " << frame_time );
+  LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
   // detect features on the current frame
   kwiver::vital::feature_set_sptr curr_feat = d->m_detector->detect( img );
@@ -159,7 +158,6 @@ void detect_features_process
 // ================================================================
 detect_features_process::priv
 ::priv()
-  : m_logger( vital::get_logger( "detect_features_process" ) )
 {
 }
 
