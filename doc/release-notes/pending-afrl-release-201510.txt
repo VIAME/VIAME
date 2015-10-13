@@ -26,7 +26,8 @@ method reduces startup time considerably.
 
 More compiler warning flags have been added to catch programming
 errors and questionable practices. Code has been modified to compile
-without warnings. Missing libraries were added to CMake files.
+without warnings. Referenced but unlisted libraries were added to
+CMake files.
 
 Added build time checks to determine which language features are
 available with the current compiler. More advanced language features
@@ -62,3 +63,10 @@ and changed access methods to specify units returned.
 Added logging support to algorithm base classes to simplify liogging
 in the derived classes. Also added logging support to some of the
 vital types.
+
+Added support for clang compiler specific flags.
+
+Updated to latest kwiversys implementation. This library is publically
+available from http://public.kitware.com/gitweb?p=KWSys.git;a=summary
+but it is easier for us to provide a local copy of this source without
+using git submodules.
