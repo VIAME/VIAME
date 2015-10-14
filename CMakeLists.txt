@@ -9,6 +9,9 @@ project(VITAL)
 
 include(CMakeDependentOption)
 
+# This is a windows only requirement
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${VITAL_BINARY_DIR}/bin")
+
 ###
 # VITAL version
 #
