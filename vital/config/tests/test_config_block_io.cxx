@@ -50,6 +50,7 @@
 
 #include <fcntl.h>
 #include <io.h>
+#include <sys/stat.h>
 int mkstemp(char *tmpl)
 {
   int ret=-1;
