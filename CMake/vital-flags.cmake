@@ -5,11 +5,11 @@
 
 include( utils/kwiver-utils-flags )
 
-if (MSVC)
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   include( vital-flags-msvc )
-elseif (CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   include( vital-flags-clang )
-else()
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   include( vital-flags-gnu )
 endif()
 
