@@ -61,7 +61,9 @@ public:
   /// Optimize camera parameters given sets of landmarks and tracks
   /**
    * We only optimize cameras that have associating tracks and landmarks in
-   * the given maps.
+   * the given maps.  The default implementation collects the corresponding
+   * features and landmarks for each camera and calls the single camera
+   * optimize function.
    *
    * \throws invalid_value When one or more of the given pointer is Null.
    *
@@ -72,7 +74,25 @@ public:
   virtual void
   optimize(kwiver::vital::camera_map_sptr & cameras,
            kwiver::vital::track_set_sptr tracks,
-           kwiver::vital::landmark_map_sptr landmarks) const = 0;
+           kwiver::vital::landmark_map_sptr landmarks) const;
+
+
+  /// Optimize a single camera given corresponding features and landmarks
+  /**
+   * This function assumes that 2D features viewed by this camera have
+   * already been put into correspondence with 3D landmarks by aligning
+   * them into two parallel vectors
+   *
+   * \param[in,out] camera    The camera to optimize.
+   * \param[in]     features  The vector of features observed by \p camera
+   *                          to use as constraints.
+   * \param[in]     landmarks The vector of landmarks corresponding to
+   *                          \p features.
+   */
+  virtual void
+  optimize(kwiver::vital::camera_sptr& camera,
+           const std::vector<kwiver::vital::feature_sptr>& features,
+           const std::vector<kwiver::vital::landmark_sptr>& landmarks) const = 0;
 
 protected:
   optimize_cameras();
