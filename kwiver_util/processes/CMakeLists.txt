@@ -48,7 +48,6 @@ if (KWIVER_ENABLE_OPENCV)
                      view_image_process.cxx     view_image_process.h
     PRIVATE          sprokit_pipeline
                      vital vital_apm vital_logger vital_config
-                     vsl vul vnl_algo vnl_io vnl vil_io vil
                      ${maptk_libs}
                      ${OpenCV_LIBS}
    )
