@@ -17,7 +17,7 @@
 #include "extract_descriptors_process.h"
 #include "matcher_process.h"
 #include "compute_homography_process.h"
-#include "view_image_process.h"
+#include "draw_tracks_process.h"
 
 extern "C"
 KWIVER_PROCESSES_EXPORT void register_processes();
@@ -71,6 +71,10 @@ void register_processes()
   registry->register_process(
     "compute_homography", "Compute a frame to frame homography based on tracks",
     sprokit::create_process< kwiver::compute_homography_process > );
+
+  registry->register_process(
+    "draw_tracks", "Draw feature tracks on image",
+    sprokit::create_process< kwiver::draw_tracks_process > );
 
 
   // - - - - - - - - - - - - - - - - - - - - - - -

@@ -33,5 +33,4 @@ connect from input.timestamp
 connect from input.image
         to   disp.image
 
-
 # -- end of file --

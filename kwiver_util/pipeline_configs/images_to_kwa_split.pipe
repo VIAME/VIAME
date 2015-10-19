@@ -313,6 +313,24 @@ process writer
   :static/gsd[ro]{CONF} common:fixed_gsd
   :static/corner_points[ro] 0 0 0 0 0 0 0 0
 
+
+# ==================================================================
+# configuration for draw tracks process
+#
+process draw
+  :: draw_tracks
+  :draw_tracks:type ocv
+
+
+# ================================================================
+process disp
+  :: view_image
+:annotate_image         true
+:pause_time             2.0
+:footer                 Feature Tracks
+#:header                 header-header
+
+
 # ================================================================
 # global pipeline config
 #
@@ -357,5 +375,16 @@ connect from input.timestamp
         to   writer.timestamp
 connect from input.image
         to   writer.image
+
+# -- visualize stabilization tracks
+connect from input.image
+        to   draw.image
+connect from matcher.track_set
+        to   draw.track_set
+
+connect from input.timestamp
+        to   disp.timestamp
+connect from draw.output_image
+        to   disp.image
 
 # -- end of file --
