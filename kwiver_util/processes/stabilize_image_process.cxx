@@ -37,7 +37,6 @@
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
 #include <vital/types/homography.h>
-#include <vital/logger/logger.h>
 
 #include <vital/algo/track_features.h>
 #include <vital/algo/compute_ref_homography.h>
@@ -66,7 +65,6 @@ public:
   priv();
   ~priv();
 
-  vital::logger_handle_t m_logger;
 
   // Configuration values
 
@@ -142,7 +140,7 @@ stabilize_image_process
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  LOG_DEBUG( d->m_logger, "Processing frame " << frame_time );
+  LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
   // --- debug
 #if defined DEBUG
@@ -195,7 +193,6 @@ void stabilize_image_process
 // ================================================================
 stabilize_image_process::priv
 ::priv()
-  : m_logger( vital::get_logger( "stabilize_image_process" ) )
 {
 }
 
