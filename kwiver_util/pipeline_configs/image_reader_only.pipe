@@ -1,11 +1,6 @@
 # ================================================================
-config common
-  :fixed_gsd 0.5
-
-
-# ================================================================
 process input
-  :: frame_list_process
+  :: frame_list_input
 # Input file containing new-line separated paths to sequential image
 # files.
   :image_list_file ../video-test/input_image_list.txt
@@ -17,6 +12,13 @@ process input
 # 	- vxl
   :image_reader:type ocv
 
+# ================================================================
+process disp
+  :: view_image
+:annotate_image         true
+:pause_time             2.0
+:footer                 footer_footer
+:header                 header-header
 
 # ================================================================
 # global pipeline config
@@ -26,5 +28,10 @@ config _pipeline:_edge
 
 # ================================================================
 # connections
+connect from input.timestamp
+        to   disp.timestamp
+connect from input.image
+        to   disp.image
+
 
 # -- end of file --
