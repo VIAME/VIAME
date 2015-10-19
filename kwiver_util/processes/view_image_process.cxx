@@ -56,6 +56,7 @@ namespace kwiver
 {
 
 // config items
+  // <name>, <type>, <default string>, <description>
 create_config_trait( pause_time, float, "0", "Interval to pause between frames. 0 means wait for keystroke, "
                      "Otherwise interval is in seconds (float)" );
 create_config_trait( annotate_image, bool, "false", "Add frame number and other text to display." );
@@ -214,7 +215,7 @@ view_image_process
 
   if ( d->m_annotate_image )
   {
-    image = d->annotate_image( image , frame_time.get_frame() );
+    image = d->annotate_image( image, frame_time.get_frame() );
   }
 
   cv::namedWindow( "Display window", cv::WINDOW_NORMAL ); // Create a window for display.

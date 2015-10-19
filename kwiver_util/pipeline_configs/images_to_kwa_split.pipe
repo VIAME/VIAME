@@ -319,7 +319,11 @@ process writer
 #
 process draw
   :: draw_tracks
-  :draw_tracks:type ocv
+  :draw_tracks:type                  ocv
+#  :draw_tracks:ocv:draw_match_lines  true
+#  :draw_tracks:ocv:draw_track_ids    true
+#  :draw_tracks:ocv:draw_shift_lines  true
+  :draw_tracks:ocv:draw_untracked_features  true
 
 
 # ================================================================
