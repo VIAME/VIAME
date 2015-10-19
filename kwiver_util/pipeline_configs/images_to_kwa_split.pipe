@@ -323,6 +323,8 @@ config _pipeline:_edge
 # connections
 # input -> detector -> extractor -> matcher -> compute_homog -> kwa-writer
 
+# connect from input.timestamp       to   detector.timestamp ## does not work :-(
+
 connect from input.timestamp
         to   detector.timestamp
 connect from input.image
