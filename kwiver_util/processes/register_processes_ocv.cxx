@@ -4,7 +4,6 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "register_processes.h"
 #include <sprokit/pipeline/process_registry.h>
 
 // -- list processes to register --
