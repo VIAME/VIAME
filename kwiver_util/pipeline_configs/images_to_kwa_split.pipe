@@ -249,7 +249,7 @@ process matcher
 # config for homography_generator
 #
 process compute_homog
-  :: compute_homography_process
+  :: compute_homography
 # Algorithm to use for 'ref_computer'.
 # Must be one of the following options:
 # 	- default

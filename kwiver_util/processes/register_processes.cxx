@@ -69,7 +69,7 @@ void register_processes()
     sprokit::create_process< kwiver::matcher_process > );
 
   registry->register_process(
-    "compute_homography_process", "Compute a frame to frame homography based on tracks",
+    "compute_homography", "Compute a frame to frame homography based on tracks",
     sprokit::create_process< kwiver::compute_homography_process > );
 
 
