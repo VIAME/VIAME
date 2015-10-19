@@ -4,7 +4,6 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "register_processes.h"
 #include <sprokit/pipeline/process_registry.h>
 
 // -- list processes to register --
@@ -18,6 +17,11 @@
 #include "extract_descriptors_process.h"
 #include "matcher_process.h"
 #include "compute_homography_process.h"
+#include "view_image_process.h"
+
+extern "C"
+KWIVER_PROCESSES_EXPORT void register_processes();
+
 
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes
