@@ -45,13 +45,6 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
-// -- DEBUG
-#if defined DEBUG
-#include <maptk/plugins/ocv/image_container.h>
-#include <opencv2/highgui/highgui.hpp>
-using namespace cv;
-#endif
-
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver

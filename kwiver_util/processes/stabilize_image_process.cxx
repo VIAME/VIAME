@@ -45,13 +45,6 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
-// -- DEBUG
-#if defined DEBUG
-#include <maptk/plugins/ocv/image_container.h>
-#include <opencv2/highgui/highgui.hpp>
-using namespace cv;
-#endif
-
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver
@@ -141,16 +134,6 @@ stabilize_image_process
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
-
-  // --- debug
-#if defined DEBUG
-  cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img->get_image() );
-  namedWindow( "Display window", cv::WINDOW_NORMAL ); // Create a window for display.
-  imshow( "Display window", image );                   // Show our image inside it.
-
-  waitKey( 0 );
-#endif                                        // Wait for a keystroke in the window
-  // -- end debug
 
   // Get feature tracks
   d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
