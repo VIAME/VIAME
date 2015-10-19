@@ -28,6 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief KW Archive writer process implementation.
+ */
+
 #include "kw_archive_writer_process.h"
 
 #include <vital/algorithm_plugin_manager.h>
