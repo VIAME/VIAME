@@ -197,7 +197,7 @@ process_registry::priv
 ::priv()
   : registry()
   , loaded_modules()
-  , m_logger( kwiver::vital::get_logger( "sprokit:process_registry" ))
+  , m_logger( kwiver::vital::get_logger( "sprokit.process_registry" ))
 {
 }
 

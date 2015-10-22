@@ -406,7 +406,7 @@ process_cluster::priv
   , input_mappings()
   , output_mappings()
   , internal_connections()
-  , m_logger( kwiver::vital::get_logger( "sprokit:process_cluster" ) )
+  , m_logger( kwiver::vital::get_logger( "sprokit.process_cluster" ) )
 {
 }
 

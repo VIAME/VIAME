@@ -1638,7 +1638,7 @@ process::priv
   , is_complete(false)
   , check_input_level(check_valid)
   , stamp_for_inputs()
-  , m_logger( kwiver::vital::get_logger( "sprokit:process" ))
+  , m_logger( kwiver::vital::get_logger( "sprokit.process" ))
 {
 }
 
