@@ -202,6 +202,8 @@ load_from_module(module_path_t const& path)
     return;
   }
 
+  LOG_TRACE( m_logger, "Attempting to load module: " << path );
+
   function_t process_function = NULL;
   function_t scheduler_function = NULL;
 
