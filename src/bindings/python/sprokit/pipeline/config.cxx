@@ -47,6 +47,20 @@
  * \brief Python bindings for \link sprokit::config\endlink.
  */
 
+namespace kwiver {
+namespace vital {
+
+// config value converter for boost::python
+template<>
+config_block_value_t
+config_block_set_value_cast( boost::python::extract<std::basic_string<char> > const& value )
+{
+  return std::string( value );
+}
+
+} }
+
+
 using namespace boost::python;
 
 static kwiver::vital::config_block_value_t config_get_value(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key);
@@ -55,6 +69,7 @@ static size_t config_len(kwiver::vital::config_block_sptr self);
 static kwiver::vital::config_block_value_t config_getitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key);
 static void config_setitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key, object const& value);
 static void config_delitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key);
+
 
 BOOST_PYTHON_MODULE(config)
 {
@@ -88,7 +103,7 @@ BOOST_PYTHON_MODULE(config)
     .def("get_value", &config_get_value_with_default
       , (arg("key"), arg("default"))
       , "Retrieve a value from the configuration, using a default in case of failure.")
-    .def("set_value", &sprokit::config::set_value
+    .def("set_value", &kwiver::vital::config_block::set_value<std::string>
       , (arg("key"), arg("value"))
       , "Set a value in the configuration.")
     .def("unset_value", &kwiver::vital::config_block::unset_value
