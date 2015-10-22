@@ -62,7 +62,7 @@ static void pipe_block_process_set(sprokit::pipe_block& block, sprokit::process_
 static object pipe_block_connect(sprokit::pipe_block const& block);
 static void pipe_block_connect_set(sprokit::pipe_block& block, sprokit::connect_pipe_block const& connect);
 static object cluster_subblock_config(sprokit::cluster_subblock_t const& subblock);
-static void cluster_subblock_config_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_kwiver::vital::config_block_sptr const& config);
+static void cluster_subblock_config_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_config_t const& config);
 static object cluster_subblock_input(sprokit::cluster_subblock_t const& subblock);
 static void cluster_subblock_input_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_input_t const& input);
 static object cluster_subblock_output(sprokit::cluster_subblock_t const& subblock);
@@ -143,10 +143,10 @@ BOOST_PYTHON_MODULE(load)
     /// \todo Need operator == on pipe_block.
     //.def(vector_indexing_suite<sprokit::pipe_blocks>())
   ;
-  class_<sprokit::cluster_kwiver::vital::config_block_sptr>("ClusterConfig"
+  class_<sprokit::cluster_config_t>("ClusterConfig"
     , "A configuration value for a cluster.")
-    .def_readwrite("description", &sprokit::cluster_kwiver::vital::config_block_sptr::description)
-    .def_readwrite("config_value", &sprokit::cluster_kwiver::vital::config_block_sptr::config_value)
+    .def_readwrite("description", &sprokit::cluster_config_t::description)
+    .def_readwrite("config_value", &sprokit::cluster_config_t::config_value)
   ;
   class_<sprokit::cluster_input_t>("ClusterInput"
     , "An input mapping for a cluster.")
@@ -279,7 +279,7 @@ class cluster_subblock_visitor
 
     block_t const block_type;
 
-    object operator () (sprokit::cluster_kwiver::vital::config_block_sptr const& config) const;
+    object operator () (sprokit::cluster_config_t const& config) const;
     object operator () (sprokit::cluster_input_t const& input) const;
     object operator () (sprokit::cluster_output_t const& output) const;
 };
@@ -291,7 +291,7 @@ cluster_subblock_config(sprokit::cluster_subblock_t const& subblock)
 }
 
 void
-cluster_subblock_config_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_kwiver::vital::config_block_sptr const& config)
+cluster_subblock_config_set(sprokit::cluster_subblock_t& subblock, sprokit::cluster_config_t const& config)
 {
   subblock = config;
 }
@@ -492,7 +492,7 @@ cluster_subblock_visitor
 
 object
 cluster_subblock_visitor
-::operator () (sprokit::cluster_kwiver::vital::config_block_sptr const& config) const
+::operator () (sprokit::cluster_config_t const& config) const
 {
   sprokit::python::python_gil const gil;
 
