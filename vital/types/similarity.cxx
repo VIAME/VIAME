@@ -46,9 +46,12 @@ namespace vital {
 template < typename T >
 similarity_< T >
 ::similarity_( const Eigen::Matrix< T, 4, 4 >& M )
-  : m_logger( kwiver::vital::get_logger( "similarity" ) )
+  : m_logger( kwiver::vital::get_logger( "vital.similarity" ) )
 {
-  if ( ( M( 3, 0 ) != T( 0 ) ) || ( M( 3, 1 ) != T( 0 ) ) || ( M( 3, 2 ) != T( 0 ) ) || ( M( 3, 3 ) != T( 1 ) ) )
+  if ( ( M( 3, 0 ) != T( 0 ) )
+       || ( M( 3, 1 ) != T( 0 ) )
+       || ( M( 3, 2 ) != T( 0 ) )
+       || ( M( 3, 3 ) != T( 1 ) ) )
   {
     // not a similarity if bottom row is not [0,0,0,1]
     // TODO throw an exception here

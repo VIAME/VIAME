@@ -149,22 +149,6 @@ int main(int argc, char *argv[])
   LOG_DEBUG( m_logger, "debug message");
   LOG_TRACE( m_logger, "trace message");
 
-  // A logger can be explicitly created if needed.
-  kwiver::vital::logger_handle_t log2 =  kwiver::vital::get_logger("main.logger2");
-
-  log2->set_level(kwiver::vital::kwiver_logger::LEVEL_WARN);
-
-  std::cout << "Current log level "
-           << log2->get_level_string (log2->get_level())
-           << std::endl;
-
-  log2->log_fatal("direct logger call");
-  log2->log_error("direct logger call");
-  log2->log_warn ("direct logger call");
-  log2->log_info ("direct logger call");
-  log2->log_debug("direct logger call");
-  log2->log_trace("direct logger call");
-
   return 0;
 }
 \endcode

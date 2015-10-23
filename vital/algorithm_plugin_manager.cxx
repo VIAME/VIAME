@@ -111,7 +111,7 @@ public:
 public:
   impl()
     : m_search_paths(),
-      m_logger( kwiver::vital::get_logger( "algorithm_plugin_manager" ) )
+      m_logger( kwiver::vital::get_logger( "vital.algorithm_plugin_manager" ) )
   { }
 
 
