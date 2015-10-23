@@ -739,7 +739,6 @@ config_block
   this->i_set_value( key, value, descr );
 }
 
+} }
 
-}
-}
 #endif // KWIVER_CONFIG_BLOCK_H_

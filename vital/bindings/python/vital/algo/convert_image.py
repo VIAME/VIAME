@@ -54,7 +54,7 @@ class ConvertImage (VitalAlgorithm):
         :rtype: ImageContainer
 
         """
-        ci_convert = self.VITAL_LIB['vital_algorithm_convert_image_convert']
+        ci_convert = self.VITAL_LIB.vital_algorithm_convert_image_convert
         ci_convert.argtypes = [self.C_TYPE_PTR, ImageContainer.C_TYPE_PTR,
                                VitalErrorHandle.C_TYPE_PTR]
         ci_convert.restype = ImageContainer.C_TYPE_PTR

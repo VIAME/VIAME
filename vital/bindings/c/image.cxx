@@ -65,19 +65,26 @@ vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
 }
 
 
-/// Create a new image from existing data
+/// Create a new image from new data
 vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
-                                          size_t width, size_t height,
-                                          size_t depth, ptrdiff_t w_step,
-                                          ptrdiff_t h_step, ptrdiff_t d_step )
+                                          size_t width, size_t height, size_t depth,
+                                          ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
 {
   STANDARD_CATCH(
     "C::image::new_from_data", 0,
-    return reinterpret_cast<vital_image_t*>(
-      new kwiver::vital::image( first_pixel, width, height, depth,
-                          w_step, h_step, d_step )
-      );
-  );
+    kwiver::vital::image* new_image = new kwiver::vital::image( width, height, depth );
+    for ( unsigned int d = 0; d < depth; ++d )
+    {
+      for ( unsigned int h = 0; h < height; ++h )
+      {
+        for ( unsigned int w = 0; w < width; ++w )
+        {
+          (*new_image)( w, h, d ) = first_pixel[ w_step * w + h_step * h + d_step * d ];
+        }
+      }
+    }
+    return reinterpret_cast<vital_image_t*>( new_image );
+    );
   return 0;
 }
 
@@ -99,18 +106,33 @@ vital_image_t* vital_image_new_from_image( vital_image_t *other_image )
 void vital_image_destroy( vital_image_t *image )
 {
   STANDARD_CATCH(
-    "C::image::desroy", 0,
+    "C::image::destroy", 0,
     delete reinterpret_cast<kwiver::vital::image*>( image );
   );
 };
 
 
-/// Get the number of bytes allocated in the given image
-size_t vital_image_size( vital_image_t *image )
-{
-  STANDARD_CATCH(
-    "C::image::size", 0,
-    return reinterpret_cast<kwiver::vital::image*>(image)->size();
-  );
-  return 0;
+//
+// A little shortcut for defining accessors
+//
+#define ACCESSOR( TYPE, NAME )                                          \
+TYPE vital_image_ ## NAME( vital_image_t *image )                       \
+{                                                                       \
+  STANDARD_CATCH(                                                       \
+    "C::image::" # NAME, 0,                                             \
+    return reinterpret_cast<kwiver::vital::image*>(image)->NAME();      \
+  );                                                                    \
+  return 0;                                                             \
 }
+
+/// Get the number of bytes allocated in the given image
+ACCESSOR( size_t, size )
+ACCESSOR( vital_image_byte*, first_pixel )
+ACCESSOR( size_t, width )
+ACCESSOR( size_t, height )
+ACCESSOR( size_t, depth )
+ACCESSOR( size_t, w_step )
+ACCESSOR( size_t, h_step )
+ACCESSOR( size_t, d_step )
+
+#undef ACCESSOR
