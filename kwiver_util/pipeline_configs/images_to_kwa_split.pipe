@@ -8,8 +8,9 @@ process input
   :: frame_list_input
 # Input file containing new-line separated paths to sequential image
 # files.
-  :image_list_file ../video-test/input_image_list.txt
-  :frame_time .9
+  :image_list_file ../video-test/short/input_image_list.txt
+  #:image_list_file ../video-test/long/input_image_list.txt
+  :frame_time .03
 
 # Algorithm to use for 'image_reader'.
 # Must be one of the following options:
@@ -317,21 +318,21 @@ process writer
 # ==================================================================
 # configuration for draw tracks process
 #
-process draw
-  :: draw_tracks
-  :draw_tracks:type                  ocv
+#process draw
+#  :: draw_tracks
+#  :draw_tracks:type                  ocv
 #  :draw_tracks:ocv:draw_match_lines  true
 #  :draw_tracks:ocv:draw_track_ids    true
 #  :draw_tracks:ocv:draw_shift_lines  true
-  :draw_tracks:ocv:draw_untracked_features  true
+#  :draw_tracks:ocv:draw_untracked_features  false
 
 
 # ================================================================
-process disp
-  :: view_image
-:annotate_image         true
-:pause_time             2.0
-:footer                 Feature Tracks
+#process disp
+#  :: view_image
+#:annotate_image         true
+#:pause_time             2.0
+#:footer                 Feature Tracks
 #:header                 header-header
 
 
@@ -381,14 +382,14 @@ connect from input.image
         to   writer.image
 
 # -- visualize stabilization tracks
-connect from input.image
-        to   draw.image
-connect from matcher.track_set
-        to   draw.track_set
+#connect from input.image
+#        to   draw.image
+#connect from matcher.track_set
+#        to   draw.track_set
 
-connect from input.timestamp
-        to   disp.timestamp
-connect from draw.output_image
-        to   disp.image
+#connect from input.timestamp
+#        to   disp.timestamp
+#connect from draw.output_image
+#        to   disp.image
 
 # -- end of file --
