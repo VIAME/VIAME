@@ -32,6 +32,9 @@
 #define SPROKIT_PIPELINE_MODULES_H
 
 #include "pipeline-config.h"
+#include <sprokit/pipeline_util/path.h>
+
+#include <vector>
 
 /**
  * \file modules.h
@@ -41,6 +44,20 @@
 
 namespace sprokit
 {
+
+typedef path_t::string_type module_path_t;
+typedef std::vector<module_path_t> module_paths_t;
+
+/**
+ * \brief Get module load path.
+ *
+ * This function returns the module load path as a list of
+ * directories.
+ *
+ * @return List of directories for loading modules.
+ */
+SPROKIT_PIPELINE_EXPORT sprokit::module_paths_t get_module_load_path();
+
 
 /**
  * \brief Load modules from the system path.

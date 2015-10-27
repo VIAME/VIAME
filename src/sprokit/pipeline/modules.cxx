@@ -36,7 +36,6 @@
 
 #include "utils.h"
 
-#include <sprokit/pipeline_util/path.h>
 #include <vital/logger/logger.h>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -45,7 +44,6 @@
 #include <boost/foreach.hpp>
 
 #include <string>
-#include <vector>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -76,8 +74,6 @@ typedef void* library_t;
 typedef void* function_t;
 #endif
 typedef void (*load_module_t)();
-typedef path_t::string_type module_path_t;
-typedef std::vector<module_path_t> module_paths_t;
 typedef std::string lib_suffix_t;
 typedef std::string function_name_t;
 
@@ -94,10 +90,12 @@ static envvar_name_t const sprokit_module_envvar = envvar_name_t("SPROKIT_MODULE
 static lib_suffix_t const library_suffix = lib_suffix_t(LIBRARY_SUFFIX);
 
 // There may be a better way to get this logger than static CTOR
-static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "sprokit:modules" ) );
+static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "sprokit.modules" ) );
 
-void
-load_known_modules()
+
+// ------------------------------------------------------------------
+module_paths_t
+get_module_load_path()
 {
   module_paths_t module_dirs;
 
@@ -109,14 +107,14 @@ load_known_modules()
   }
 
   module_paths_t module_dirs_tmp;
-
   boost::split(module_dirs_tmp, default_module_dirs, is_separator, boost::token_compress_on);
-
   module_dirs.insert(module_dirs.end(), module_dirs_tmp.begin(), module_dirs_tmp.end());
+
+  module_paths_t path_list;
 
   BOOST_FOREACH (module_path_t const& module_dir, module_dirs)
   {
-    look_in_directory(module_dir);
+    path_list.push_back( module_dir );
 
 #ifdef USE_CONFIGURATION_SUBDIRECTORY
     module_path_t const subdir = module_dir +
@@ -127,11 +125,28 @@ load_known_modules()
 #endif
     ;
 
-    look_in_directory(subdir);
+    path_list.push_back( subdir );
 #endif
+  }
+
+  return path_list;
+}
+
+
+// ------------------------------------------------------------------
+void
+load_known_modules()
+{
+  module_paths_t module_dirs = get_module_load_path();
+
+  BOOST_FOREACH (module_path_t const& module_dir, module_dirs)
+  {
+    look_in_directory(module_dir);
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 look_in_directory(module_path_t const& directory)
 {
