@@ -53,15 +53,48 @@ source_group("Python Files"
 source_group("Python Files"
   REGULAR_EXPRESSION ".*\\.py$")
 
-macro (_sprokit_create_safe_modpath modpath result)
+macro (_sprokit_create_safe_modpath    modpath    result)
   string(REPLACE "/" "." "${result}" "${modpath}")
 endmacro ()
 
-function (sprokit_add_python_library name modpath)
+#
+# Get canonical directory for python site packages.
+# It varys from system to system.
+#
+function ( _sprokit_python_site_package_dir    var_name)
+  execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='')"
+  RESULT_VARIABLE proc_success
+  OUTPUT_VARIABLE python_site_packages
+  )
+
+# Returns something like
+# "lib/python2.7/dist-packages"
+
+if(NOT ${proc_success} EQUAL 0)
+    message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
+  else()
+    string(STRIP "${python_site_packages}" python_site_packages)
+  endif()
+
+  string( REGEX MATCH "dist-packages" result ${python_site_packages} )
+  if (result)
+    set( python_site_packages dist-packages)
+  else()
+    set( python_site_packages site-packages)
+  endif()
+
+  set( ${var_name} ${python_site_packages} PARENT_SCOPE )
+
+endfunction()
+
+function (sprokit_add_python_library    name    modpath)
   _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
+  _sprokit_python_site_package_dir( python_site_packages )
+
   set(library_subdir "/${sprokit_python_subdir}")
-  set(library_subdir_suffix "/site-packages/${modpath}")
+  set(library_subdir_suffix "/${python_site_packages}/${modpath}")
   set(component runtime)
 
   set(no_export ON)
@@ -84,10 +117,16 @@ function (sprokit_add_python_library name modpath)
     "python-${safe_modpath}-${name}")
 endfunction ()
 
-function (_sprokit_add_python_module path modpath module)
+function (_sprokit_add_python_module    path     modpath    module)
   _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
-  set(python_sitepath /site-packages)
+  #
+  # The output contains a full path, but sprokit may be configured to place
+  # modules in a different location.
+  #
+  _sprokit_python_site_package_dir( python_site_packages )
+  set(python_sitepath /${python_site_packages})
+
   set(python_arch)
   set(python_noarchdir)
 
@@ -135,7 +174,7 @@ function (_sprokit_add_python_module path modpath module)
   endif ()
 endfunction ()
 
-function (sprokit_add_python_module path modpath module)
+function (sprokit_add_python_module   path   modpath   module)
   _sprokit_add_python_module("${path}"
     "${modpath}"
     "${module}")
