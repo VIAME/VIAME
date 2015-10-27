@@ -2,6 +2,7 @@ project(sprokit_test_pipeline)
 
 set(test_libraries
   vital_config
+  ${Boost_SYSTEM_LIBRARY}
   sprokit_pipeline)
 
 ##############################
@@ -146,7 +147,9 @@ function (sprokit_add_tooled_run_test group instance)
     if (SPROKIT_ENABLE_PYTHON)
       if (scheduler STREQUAL "pythread_per_process" OR
           instance STREQUAL "pysimple_pipeline")
-        set(sprokit_test_environment "PYTHONPATH=${test_python_path}/site-packages")
+          _sprokit_python_site_package_dir( python_site_packages )
+
+        set(sprokit_test_environment "PYTHONPATH=${test_python_path}/${python_site_packages}")
       endif ()
     endif ()
 
