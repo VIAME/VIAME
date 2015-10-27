@@ -67,9 +67,6 @@ static boost::program_options::options_description processopedia_options();
 int
 sprokit_tool_main(int argc, char const* argv[])
 {
-  // Load all known modules
-  sprokit::load_known_modules();
-
   boost::program_options::options_description desc;
   desc
     .add(sprokit::tool_common_options())
@@ -77,6 +74,23 @@ sprokit_tool_main(int argc, char const* argv[])
 
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc,
     program_description );
+
+  if (vm.count("path"))
+  {
+    sprokit::module_paths_t paths = sprokit::get_module_load_path();
+
+    std::cout << "Modules will be loaded from the following directories, in order:\n";
+
+    BOOST_FOREACH (sprokit::module_path_t const& module_dir, paths)
+    {
+      std::cout << "    " << module_dir << std::endl;
+    }
+
+    return EXIT_SUCCESS;
+  }
+
+  // Load all known modules
+  sprokit::load_known_modules();
 
   sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
@@ -225,6 +239,7 @@ processopedia_options()
     ("list,l", "simply list types")
     ("hidden,H", "show hidden properties")
     ("detail,d", "output detailed information")
+    ("path,p", "display search paths")
   ;
 
   return desc;
