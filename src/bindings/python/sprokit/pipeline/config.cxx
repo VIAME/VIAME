@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@
 /**
  * \file config.cxx
  *
- * \brief Python bindings for \link sprokit::config\endlink.
+ * \brief Python bindings for \link kwiver::vital::config \endlink.
  */
 
 namespace kwiver {
@@ -63,12 +63,23 @@ config_block_set_value_cast( boost::python::extract<std::basic_string<char> > co
 
 using namespace boost::python;
 
-static kwiver::vital::config_block_value_t config_get_value(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key);
-static kwiver::vital::config_block_value_t config_get_value_with_default(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& def);
-static size_t config_len(kwiver::vital::config_block_sptr self);
-static kwiver::vital::config_block_value_t config_getitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key);
-static void config_setitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key, object const& value);
-static void config_delitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key);
+static void config_set_value( kwiver::vital::config_block_sptr         self,
+                              kwiver::vital::config_block_key_t const& key,
+                              kwiver::vital::config_block_key_t const& value  );
+
+static kwiver::vital::config_block_value_t config_get_value( kwiver::vital::config_block_sptr         self,
+                                                             kwiver::vital::config_block_key_t const& key );
+static kwiver::vital::config_block_value_t config_get_value_with_default( kwiver::vital::config_block_sptr            self,
+                                                                          kwiver::vital::config_block_key_t const&    key,
+                                                                          kwiver::vital::config_block_value_t const&  def );
+static size_t config_len( kwiver::vital::config_block_sptr self );
+static kwiver::vital::config_block_value_t config_getitem( kwiver::vital::config_block_sptr         self,
+                                                           kwiver::vital::config_block_key_t const& key );
+static void config_setitem( kwiver::vital::config_block_sptr          self,
+                            kwiver::vital::config_block_key_t const&  key,
+                            object const&                             value );
+static void config_delitem( kwiver::vital::config_block_sptr          self,
+                            kwiver::vital::config_block_key_t const&  key );
 
 
 BOOST_PYTHON_MODULE(config)
@@ -79,12 +90,15 @@ BOOST_PYTHON_MODULE(config)
 
   class_<kwiver::vital::config_block_key_t>("ConfigKey"
     , "A key for a configuration.");
+
   class_<kwiver::vital::config_block_keys_t>("ConfigKeys"
     , "A collection of keys for a configuration.")
     .def(vector_indexing_suite<kwiver::vital::config_block_keys_t>())
   ;
+
   class_<kwiver::vital::config_block_description_t>("ConfigDescription"
     , "A description of a configuration key.");
+
   class_<kwiver::vital::config_block_value_t>("ConfigValue"
     , "A value in the configuration.");
 
@@ -103,7 +117,7 @@ BOOST_PYTHON_MODULE(config)
     .def("get_value", &config_get_value_with_default
       , (arg("key"), arg("default"))
       , "Retrieve a value from the configuration, using a default in case of failure.")
-    .def("set_value", &kwiver::vital::config_block::set_value<std::string>
+    .def("set_value", &config_set_value
       , (arg("key"), arg("value"))
       , "Set a value in the configuration.")
     .def("unset_value", &kwiver::vital::config_block::unset_value
@@ -135,34 +149,51 @@ BOOST_PYTHON_MODULE(config)
   ;
 }
 
-kwiver::vital::config_block_value_t
-config_get_value(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key)
+
+void
+config_set_value( kwiver::vital::config_block_sptr          self,
+                  kwiver::vital::config_block_key_t const&  key,
+                  kwiver::vital::config_block_key_t const&  value )
 {
-  return self->get_value<kwiver::vital::config_block_value_t>(key);
+  return self->set_value< kwiver::vital::config_block_value_t > ( key, value );
 }
 
+
 kwiver::vital::config_block_value_t
-config_get_value_with_default(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& def)
+config_get_value( kwiver::vital::config_block_sptr          self,
+                  kwiver::vital::config_block_key_t const&  key )
 {
-  return self->get_value<kwiver::vital::config_block_value_t>(key, def);
+  return self->get_value< kwiver::vital::config_block_value_t > ( key );
 }
+
+
+kwiver::vital::config_block_value_t
+config_get_value_with_default( kwiver::vital::config_block_sptr           self,
+                               kwiver::vital::config_block_key_t const&   key,
+                               kwiver::vital::config_block_value_t const& def )
+{
+  return self->get_value< kwiver::vital::config_block_value_t > ( key, def );
+}
+
 
 size_t
-config_len(kwiver::vital::config_block_sptr self)
+config_len( kwiver::vital::config_block_sptr self )
 {
   return self->available_values().size();
 }
 
+
 kwiver::vital::config_block_value_t
-config_getitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key)
+config_getitem( kwiver::vital::config_block_sptr          self,
+                kwiver::vital::config_block_key_t const&  key )
 {
   kwiver::vital::config_block_value_t val;
 
   try
   {
-    val = config_get_value(self, key);
+    val = config_get_value( self, key );
   }
-  catch (kwiver::vital::no_such_configuration_value_exception const&)
+  catch ( kwiver::vital::no_such_configuration_value_exception const& )
   {
     sprokit::python::python_gil const gil;
 
@@ -172,31 +203,36 @@ config_getitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_bloc
 
     sstr << "\'" << key << "\'";
 
-    PyErr_SetString(PyExc_KeyError, sstr.str().c_str());
+    PyErr_SetString( PyExc_KeyError, sstr.str().c_str() );
     throw_error_already_set();
   }
 
   return val;
 }
 
+
 void
-config_setitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key, object const& value)
+config_setitem( kwiver::vital::config_block_sptr          self,
+                kwiver::vital::config_block_key_t const&  key,
+                object const&                             value )
 {
   sprokit::python::python_gil const gil;
 
   (void)gil;
 
-  self->set_value(key, extract<kwiver::vital::config_block_value_t>(str(value)));
+  self->set_value( key, extract< kwiver::vital::config_block_value_t > ( str( value ) ) );
 }
 
+
 void
-config_delitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_block_key_t const& key)
+config_delitem( kwiver::vital::config_block_sptr          self,
+                kwiver::vital::config_block_key_t const&  key )
 {
   try
   {
-    self->unset_value(key);
+    self->unset_value( key );
   }
-  catch (kwiver::vital::no_such_configuration_value_exception const&)
+  catch ( kwiver::vital::no_such_configuration_value_exception const& )
   {
     sprokit::python::python_gil const gil;
 
@@ -206,7 +242,7 @@ config_delitem(kwiver::vital::config_block_sptr self, kwiver::vital::config_bloc
 
     sstr << "\'" << key << "\'";
 
-    PyErr_SetString(PyExc_KeyError, sstr.str().c_str());
+    PyErr_SetString( PyExc_KeyError, sstr.str().c_str() );
     throw_error_already_set();
   }
 }
