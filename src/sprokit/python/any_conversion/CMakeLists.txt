@@ -14,16 +14,15 @@ sprokit_add_library(sprokit_python_any_conversion SHARED
   ${python_any_conversion_srcs}
   ${python_any_conversion_headers})
 target_link_libraries(sprokit_python_any_conversion
-  LINK_PUBLIC
-    sprokit_python_util
-    ${${boost_python_library_var}}
-    ${PYTHON_LIBRARIES}
-  LINK_PRIVATE
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_CHRONO_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${CMAKE_THREAD_LIBS_INIT})
+  PUBLIC        sprokit_python_util
+                ${${boost_python_library_var}}
+                ${PYTHON_LIBRARIES}
+  PRIVATE       ${Boost_THREAD_LIBRARY}
+                ${Boost_CHRONO_LIBRARY}
+                ${Boost_SYSTEM_LIBRARY}
+                ${Boost_SYSTEM_LIBRARY}
+                ${CMAKE_THREAD_LIBS_INIT}
+                vital_logger)
 set_target_properties(sprokit_python_any_conversion
   PROPERTIES
     VERSION       ${sprokit_version}
