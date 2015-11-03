@@ -266,7 +266,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 4:
-        test_error("Expected three arguments")
+        test_error("Expected three arguments( test-name, data-dir, path")
         sys.exit(1)
 
     testname = sys.argv[1]
