@@ -119,16 +119,16 @@ target_link_libraries(python-sprokit.pipeline-version
                       ${${boost_python_library_var}}
                       ${PYTHON_LIBRARIES})
 
-sprokit_create_python_init(sprokit/pipeline)
-#  config
-#  datum
-#  edge
-#  modules
-#  pipeline
-#  process
-#  process_registry
-#  scheduler
-#  scheduler_registry
-#  stamp
-#  utils
-#  version)
+sprokit_create_python_init(sprokit/pipeline
+  config
+  datum
+  edge
+  modules
+  pipeline
+  process
+  process_registry
+  scheduler
+  scheduler_registry
+  stamp
+  utils
+  version)
