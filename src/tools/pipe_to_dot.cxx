@@ -60,8 +60,6 @@ static boost::program_options::options_description pipe_to_dot_pipeline_options(
 int
 sprokit_tool_main(int argc, char const* argv[])
 {
-  sprokit::load_known_modules();
-
   boost::program_options::options_description desc;
   desc
     .add(sprokit::tool_common_options())
@@ -110,6 +108,8 @@ sprokit_tool_main(int argc, char const* argv[])
 
       return EXIT_FAILURE;
     }
+
+    sprokit::load_known_modules();
 
     sprokit::pipeline_builder builder;
 

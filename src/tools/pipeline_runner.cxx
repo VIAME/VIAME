@@ -51,8 +51,6 @@ static kwiver::vital::config_block_key_t const scheduler_block = kwiver::vital::
 int
 sprokit_tool_main(int argc, char const* argv[])
 {
-  sprokit::load_known_modules();
-
   boost::program_options::options_description desc;
   desc
     .add(sprokit::tool_common_options())
@@ -61,6 +59,8 @@ sprokit_tool_main(int argc, char const* argv[])
     .add(sprokit::pipeline_run_options());
 
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc, "");
+
+  sprokit::load_known_modules();
 
   sprokit::pipeline_builder const builder(vm, desc);
 
