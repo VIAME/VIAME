@@ -57,6 +57,7 @@ typedef boost::optional<PyObject*> opt_pyobject_t;
 
 /// A function which converts from Python, returning \c true on success.
 typedef boost::function<bool (PyObject*, void*)> from_any_func_t;
+
 /// A function which converts to Python, returning the object on success.
 typedef boost::function<opt_pyobject_t (boost::any const&)> to_any_func_t;
 
@@ -70,7 +71,9 @@ typedef uint64_t priority_t;
  * \param from The function for converting from Python.
  * \param to The function for converting to Python.
  */
-SPROKIT_PYTHON_ANY_CONVERSION_EXPORT void register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to);
+SPROKIT_PYTHON_ANY_CONVERSION_EXPORT void register_conversion(priority_t priority,
+                                                              from_any_func_t from,
+                                                              to_any_func_t to);
 
 }
 

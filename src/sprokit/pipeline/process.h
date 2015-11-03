@@ -355,6 +355,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
      */
+
     void connect_input_port(port_t const& port, edge_t edge);
     /**
      * \brief Connect an edge to an output port on the process.
@@ -386,6 +387,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns The names of all input ports available.
      */
     ports_t input_ports() const;
+
     /**
      * \brief Query for a list of output ports available on the process.
      *
@@ -405,6 +407,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns Information about the input port.
      */
+
     port_info_t input_port_info(port_t const& port);
     /**
      * \brief Query for information about an output port on the process.
@@ -1136,6 +1139,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns Information about the data given.
      */
     static data_info_t edge_data_info(edge_data_t const& data);
+
   private:
     kwiver::vital::config_block_value_t config_value_raw(kwiver::vital::config_block_key_t const& key) const;
 

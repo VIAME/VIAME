@@ -44,6 +44,8 @@
 
 #include <map>
 
+#include <vital/logger/logger.h>
+
 /**
  * \file any_conversion/registration.cxx
  *
@@ -89,11 +91,13 @@ any_converter::to_map_t any_converter::m_to = any_converter::to_map_t();
 
 static void register_to_python();
 
+// ------------------------------------------------------------------
 void
 register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to)
 {
   static boost::once_flag once;
 
+  // Register with python on the first call
   boost::call_once(once, register_to_python);
 
   if (from)
@@ -110,6 +114,8 @@ register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to)
 namespace
 {
 
+
+// ------------------------------------------------------------------
 void
 any_converter
 ::add_from(priority_t priority, from_any_func_t from)
@@ -121,6 +127,8 @@ any_converter
   m_from.insert(from_map_t::value_type(priority, from));
 }
 
+
+// ------------------------------------------------------------------
 void
 any_converter
 ::add_to(priority_t priority, to_any_func_t to)
@@ -132,6 +140,8 @@ any_converter
   m_to.insert(to_map_t::value_type(priority, to));
 }
 
+
+// ------------------------------------------------------------------
 void*
 any_converter
 ::convertible(PyObject* obj)
@@ -139,6 +149,8 @@ any_converter
   return obj;
 }
 
+
+// ------------------------------------------------------------------
 PyObject*
 any_converter
 ::convert(boost::any const& any)
@@ -181,11 +193,15 @@ any_converter
     }
   }
 
-  /// \todo Log that the any has a type which is not supported yet.
+  // Log that the any has a type which is not supported yet.
+  static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "sprokit.python.any_converter" ) );
+  LOG_WARN( logger, "Converter called on unsupported type" );
 
   Py_RETURN_NONE;
 }
 
+
+// ------------------------------------------------------------------
 void
 any_converter
 ::construct(PyObject* obj, converter::rvalue_from_python_stage1_data* data)
@@ -220,6 +236,8 @@ any_converter
 
 }
 
+
+// ------------------------------------------------------------------
 void
 register_to_python()
 {

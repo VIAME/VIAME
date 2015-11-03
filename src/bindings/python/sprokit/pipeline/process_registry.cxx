@@ -160,47 +160,54 @@ BOOST_PYTHON_MODULE(process_registry)
   ;
 }
 
+
 class python_process_wrapper
   : sprokit::python::python_threading
 {
-  public:
-    python_process_wrapper(object obj);
-    ~python_process_wrapper();
+public:
+  python_process_wrapper( object obj );
+  ~python_process_wrapper();
 
-    sprokit::process_t operator () (kwiver::vital::config_block_sptr const& config);
-  private:
-    object const m_obj;
+  sprokit::process_t operator()( kwiver::vital::config_block_sptr const& config );
+
+
+private:
+  object const m_obj;
 };
 
+
 void
-register_process(sprokit::process_registry_t reg,
-                 sprokit::process::type_t const& type,
-                 sprokit::process_registry::description_t const& desc,
-                 object obj)
+register_process( sprokit::process_registry_t                     reg,
+                  sprokit::process::type_t const&                 type,
+                  sprokit::process_registry::description_t const& desc,
+                  object                                          obj )
 {
   sprokit::python::python_gil const gil;
 
   (void)gil;
 
-  python_process_wrapper const wrap(obj);
+  python_process_wrapper const wrap( obj );
 
-  reg->register_process(type, desc, wrap);
+  reg->register_process( type, desc, wrap );
 }
 
+
 python_process_wrapper
-::python_process_wrapper(object obj)
-  : m_obj(obj)
+  ::python_process_wrapper( object obj )
+  : m_obj( obj )
 {
 }
 
+
 python_process_wrapper
-::~python_process_wrapper()
+  ::~python_process_wrapper()
 {
 }
+
 
 sprokit::process_t
 python_process_wrapper
-::operator () (kwiver::vital::config_block_sptr const& config)
+  ::operator()( kwiver::vital::config_block_sptr const& config )
 {
   sprokit::python::python_gil const gil;
 
@@ -208,7 +215,7 @@ python_process_wrapper
 
   object proc;
 
-  SPROKIT_PYTHON_HANDLE_EXCEPTION(proc = m_obj(config))
+  SPROKIT_PYTHON_HANDLE_EXCEPTION( proc = m_obj( config ) )
 
-  return extract<sprokit::process_t>(proc);
+  return extract< sprokit::process_t > ( proc );
 }

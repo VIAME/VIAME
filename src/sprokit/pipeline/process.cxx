@@ -1647,6 +1647,8 @@ process::priv
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 process::priv
 ::run_heartbeat()
@@ -1665,6 +1667,8 @@ process::priv
   q->push_datum_to_port(port_heartbeat, dat);
 }
 
+
+// ------------------------------------------------------------------
 void
 process::priv
 ::connect_input_port(port_t const& port, edge_t const& edge)
@@ -1682,6 +1686,8 @@ process::priv
   boost::assign::ptr_map_insert<input_port_info_t>(input_edges)(port, edge);
 }
 
+
+// ------------------------------------------------------------------
 void
 process::priv
 ::connect_output_port(port_t const& port, edge_t const& edge)
@@ -1707,6 +1713,8 @@ process::priv
   edges.push_back(edge);
 }
 
+
+// ------------------------------------------------------------------
 datum_t
 process::priv
 ::check_required_input()
@@ -1811,6 +1819,8 @@ process::priv
   return datum_t();
 }
 
+
+// ------------------------------------------------------------------
 void
 process::priv
 ::grab_from_input_edges()
@@ -1852,6 +1862,8 @@ process::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 process::priv
 ::push_to_output_edges(datum_t const& dat) const
@@ -1892,6 +1904,8 @@ process::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 bool
 process::priv
 ::required_outputs_done() const
@@ -1936,6 +1950,8 @@ process::priv
   return true;
 }
 
+
+// ------------------------------------------------------------------
 process::priv::tag_t
 process::priv
 ::port_flow_tag_name(port_type_t const& port_type) const
@@ -1948,6 +1964,8 @@ process::priv
   return tag_t();
 }
 
+
+// ------------------------------------------------------------------
 void
 process::priv
 ::check_tag(tag_t const& tag)
@@ -1961,6 +1979,8 @@ process::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 process::priv
 ::make_output_stamps()
@@ -2011,6 +2031,8 @@ process::priv
   output_stamps_made = true;
 }
 
+
+// ------------------------------------------------------------------
 process::priv::input_port_info_t
 ::input_port_info_t(edge_t const& edge_)
   : edge(edge_)

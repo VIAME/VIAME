@@ -92,6 +92,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler_registry
      * \param ctor The function which creates the scheduler of the \p type.
      */
     void register_scheduler(type_t const& type, description_t const& desc, scheduler_ctor_t ctor);
+
     /**
      * \brief Create scheduler of a specific type.
      *
@@ -113,6 +114,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler_registry
      * \returns All available types in the registry.
      */
     types_t types() const;
+
     /**
      * \brief Query for a description of a type.
      *
@@ -128,6 +130,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler_registry
      * \param module The module to mark as loaded.
      */
     void mark_module_as_loaded(module_t const& module);
+
     /**
      * \brief Query if a module has already been loaded.
      *
@@ -146,6 +149,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler_registry
 
     /// The default scheduler type.
     static type_t const default_type;
+
   private:
     scheduler_registry();
 

@@ -1071,7 +1071,7 @@ pipeline::priv
   , setup_in_progress(false)
   , setup_successful(false)
   , running(false)
-  , m_logger( kwiver::vital::get_logger( "sprokit:pipeline" ) )
+  , m_logger( kwiver::vital::get_logger( "sprokit.pipeline" ) )
 {
   if ( IS_DEBUG_ENABLED( m_logger ) )
   {

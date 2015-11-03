@@ -68,11 +68,15 @@ class scheduler_registry::priv
 
 static scheduler_registry_t reg_self = scheduler_registry_t();
 
+
+// ------------------------------------------------------------------
 scheduler_registry
 ::~scheduler_registry()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 scheduler_registry
 ::register_scheduler(type_t const& type, description_t const& desc, scheduler_ctor_t ctor)
@@ -90,6 +94,8 @@ scheduler_registry
   d->registry[type] = priv::scheduler_typeinfo_t(desc, ctor);
 }
 
+
+// ------------------------------------------------------------------
 scheduler_t
 scheduler_registry
 ::create_scheduler(type_t const& type, pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config) const
@@ -114,6 +120,8 @@ scheduler_registry
   return i->second.get<1>()(pipe, config);
 }
 
+
+// ------------------------------------------------------------------
 scheduler_registry::types_t
 scheduler_registry
 ::types() const
@@ -130,6 +138,8 @@ scheduler_registry
   return ts;
 }
 
+
+// ------------------------------------------------------------------
 scheduler_registry::description_t
 scheduler_registry
 ::description(type_t const& type) const
@@ -144,6 +154,8 @@ scheduler_registry
   return i->second.get<0>();
 }
 
+
+// ------------------------------------------------------------------
 void
 scheduler_registry
 ::mark_module_as_loaded(module_t const& module)
@@ -151,6 +163,8 @@ scheduler_registry
   d->loaded_modules.insert(module);
 }
 
+
+// ------------------------------------------------------------------
 bool
 scheduler_registry
 ::is_module_loaded(module_t const& module) const
@@ -158,6 +172,8 @@ scheduler_registry
   return (0 != d->loaded_modules.count(module));
 }
 
+
+// ------------------------------------------------------------------
 scheduler_registry_t
 scheduler_registry
 ::self()
@@ -182,6 +198,8 @@ scheduler_registry
   return reg_self;
 }
 
+
+// ------------------------------------------------------------------
 scheduler_registry
 ::scheduler_registry()
   : d(new priv)
