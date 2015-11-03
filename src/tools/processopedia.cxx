@@ -36,6 +36,7 @@
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_registry.h>
 #include <sprokit/pipeline/process_registry_exception.h>
+#include <sprokit/pipeline/scheduler_registry.h>
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -91,6 +92,22 @@ sprokit_tool_main(int argc, char const* argv[])
 
   // Load all known modules
   sprokit::load_known_modules();
+
+  if (vm.count("sched"))
+  {
+    sprokit::scheduler_registry_t const sched = sprokit::scheduler_registry::self();
+
+    sprokit::scheduler_registry::types_t types = sched->types();
+
+    std::cout << "\nScheduler registry" << std::endl;
+
+    BOOST_FOREACH (sprokit::scheduler_registry::type_t const& sched_type, types)
+    {
+      std::cout << "    " << sched_type << ": " << sched->description( sched_type ) << std::endl;
+    }
+
+    return EXIT_SUCCESS;
+  }
 
   sprokit::process_registry_t const reg = sprokit::process_registry::self();
 
@@ -240,6 +257,7 @@ processopedia_options()
     ("hidden,H", "show hidden properties")
     ("detail,d", "output detailed information")
     ("path,p", "display search paths")
+    ("sched,s", "display schedulers")
   ;
 
   return desc;
