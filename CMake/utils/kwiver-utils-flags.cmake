@@ -17,6 +17,7 @@ define_property(GLOBAL PROPERTY kwiver_warnings
 function(kwiver_check_compiler_flag )
   foreach( flag ${ARGN} )
     string(REPLACE "+" "plus" safeflag "${flag}")
+    string(REPLACE "/" "slash" safeflag "${safeflag}")
     check_cxx_compiler_flag("${flag}" "has_compiler_flag-${safeflag}")
     if ( has_compiler_flag-${safeflag} )
       set_property(GLOBAL APPEND PROPERTY kwiver_warnings "${flag}")
