@@ -9,7 +9,6 @@ if (NOT ${CMAKE_PROJECT_NAME}_ENABLE_DLL_WARNINGS)
 endif()
 
 kwiver_check_compiler_flag(/W3)
-kwiver_check_compiler_flag(/MP)
 
 # Disable deprication warnings for standard C and STL functions in VS2005 and
 # later.
