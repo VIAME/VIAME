@@ -1,6 +1,9 @@
 #
 # KWIVER CMake utilities entry point
 #
+# save this directory so we can fine  config helper
+set( KWIVER_CMAKE_ROOT ${CMAKE_CURRENT_LIST_DIR})
+
 include("${CMAKE_CURRENT_LIST_DIR}/utils/kwiver-utils-configuration.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/kwiver-utils-targets.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/kwiver-utils-flags.cmake")
