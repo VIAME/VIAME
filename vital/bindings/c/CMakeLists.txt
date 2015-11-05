@@ -51,12 +51,12 @@ set(vital_c_sources
 
 kwiver_install_headers(
   ${vital_c_public_headers}
-  SUBDIR vital/c
+  SUBDIR vital/bindings/c
   )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_c_export.h
-  SUBDIR vital/c
+  SUBDIR vital/bindings/c
   NOPATH
   )
 
