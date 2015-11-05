@@ -552,4 +552,4 @@ config_block::
 }
 
 
-} }   // end namesapce
+} }   // end namespace

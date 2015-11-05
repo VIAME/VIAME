@@ -97,6 +97,6 @@ config_block_set_value_cast( timestamp const& value )
   return str.str();
 }
 
-} } // end namesapce
+} } // end namespace
 
 #endif /* _VITAL_TYPES_TIMESTAMP_CONFIG_H */

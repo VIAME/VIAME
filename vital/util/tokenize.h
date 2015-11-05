@@ -92,6 +92,6 @@ tokenize( std::string const& str, // i: string to tokenize
   }
 }
 
-} } // end namesapce
+} } // end namespace
 
 #endif /* VITAL_TOKENIZE_H */
