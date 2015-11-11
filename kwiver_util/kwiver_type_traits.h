@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _VITAL_TYPES_VITAL_H_
-#define _VITAL_TYPES_VITAL_H_
+#ifndef KWIVER_VITAL_TYPE_TRAITS_H
+#define KWIVER_VITAL_TYPE_TRAITS_H
 
 #include <vital/vital_types.h>
 #include <vital/types/geo_lat_lon.h>
@@ -59,7 +59,8 @@ namespace vital {
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
 create_type_trait( gsd, "kwiver:gsd", kwiver::vital::gsd_t );
 create_type_trait( corner_points, "corner_points", kwiver::vital::corner_points_t );
-create_type_trait( image, "kwiver:image_container", kwiver::vital::image_container_sptr ); // polymorphic type must pass by reference
+create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
+create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
 create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
@@ -87,4 +88,4 @@ create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image t
 create_port_trait( image_file_name, image_file_name, "Name of an image file. Usually a single frame of a video." );
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
 
-#endif /* _KWIVER_TYPES_KWIVER_H_ */
+#endif /* KWIVER_VITAL_TYPE_TRAITS_H */

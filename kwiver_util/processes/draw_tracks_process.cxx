@@ -42,7 +42,7 @@
 
 #include <vital/algo/draw_tracks.h>
 
-#include <kwiver_util/sprokit_type_traits.h>
+#include <kwiver_util/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>
 
 namespace algo = kwiver::vital::algo;
