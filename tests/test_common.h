@@ -284,20 +284,9 @@ inline bool is_almost(double const &value,
   return fabs(value - target) <= epsilon;
 }
 
-} //end namespace testing
-} //end namespace kwiver
-
 
 // ------------------------------------------------------------------
-/// General equality test with message generation on inequality
-/**
- * Test equality between values with a '!=' expression. This wrapps a standard
- * error response message.
- *
- * @param name      A descriptive name for this specific test.
- * @param value     The experimental value of the equality check.
- * @param expected  The expected value of the equality check.
- */
+/// \copydoc kwiver::testing::test_equal
 #define TEST_EQUAL(name, value, expected)                       \
   do                                                            \
   {                                                             \
@@ -308,6 +297,58 @@ inline bool is_almost(double const &value,
                  << "    Got     : ``" << (value) << "``");     \
     }                                                           \
   } while(false)
+
+// ------------------------------------------------------------------
+/// General equality test with message generation on inequality
+/**
+ * Test equality between values with a '!=' expression. This wraps a standard
+ * error response message.
+ *
+ * @param name      A descriptive name for this specific test.
+ * @param value     The experimental value of the equality check.
+ * @param expected  The expected value of the equality check.
+ */
+template <typename ActualType, typename ExpectedType> inline
+bool
+test_equal( char const* name, ActualType const& value,
+            ExpectedType const& expected )
+{
+  if (value != expected)
+  {
+    TEST_ERROR("test_equal check '" << name << "' failed:\n"
+               << "    Expected: ``" << expected << "``\n"
+               << "    Got     : ``" << value << "``");
+    return false;
+  }
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+/// General range test with message generation on out of range
+/**
+ * Test that a value is between two bounds with '<' expressions. This wraps a
+ * standard error response message.
+ *
+ * @param name      A descriptive name for this specific test.
+ * @param value     The experimental value of the equality check.
+ * @param expected  The expected value of the equality check.
+ */
+template <typename ValueType, typename BoundsType> inline
+bool
+test_bound( char const* name, ValueType const& value,
+            BoundsType const& lower, BoundsType const& upper )
+{
+  if ((value < lower) || (upper < value))
+  {
+    TEST_ERROR("test_bound check '" << name << "' failed:\n"
+               << "    Expected: in [``" << lower << "``, ``"
+                                         << upper << "``]\n"
+               << "    Got     : ``" << value << "``");
+    return false;
+  }
+  return true;
+}
 
 
 // ------------------------------------------------------------------
@@ -329,5 +370,8 @@ inline bool is_almost(double const &value,
                  << "    Got     : " << (value));                \
     }                                                            \
   }while(false)
+
+} //end namespace testing
+} //end namespace kwiver
 
 #endif // KWIVER_TEST_TEST_COMMON_H_
