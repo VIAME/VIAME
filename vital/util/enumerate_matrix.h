@@ -125,6 +125,10 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
   : m_matrix(&mat), m_end(mat.outerSize()), m_outer(0),
     m_inner(new iterator_t(mat, 0))
 {
+  if (!(*(this->m_inner)))
+  {
+    ++(*this);
+  }
 }
 
 template < typename ValueT, int Options, typename IndexT >
@@ -165,6 +169,10 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
     if (++this->m_outer < this->m_end)
     {
       this->m_inner.reset(new iterator_t(*(this->m_matrix), m_outer));
+      if (!(*(this->m_inner)))
+      {
+        return ++(*this);
+      }
     }
     else
     {
