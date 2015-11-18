@@ -45,6 +45,7 @@
 
 #include "covariance.h"
 #include "vector.h"
+#include "color.h"
 
 namespace kwiver {
 namespace vital {
@@ -74,6 +75,8 @@ public:
   virtual double angle() const = 0;
   /// Accessor for the covariance
   virtual covariance_2d covar() const = 0;
+  /// Accessor for the RGB color
+  virtual rgb_color color() const = 0;
 };
 
 /// Shared pointer for base feature type
@@ -143,6 +146,9 @@ public:
   /// Accessor for the covariance
   virtual covariance_2d covar() const { return static_cast< covariance_2d > ( covar_ ); }
 
+  /// Accessor for the RGB color
+  virtual rgb_color color() const { return color_; }
+
 
   /// Set the feature position in image space
   void set_loc( const Eigen::Matrix< T, 2, 1 >& loc ) { loc_ = loc; }
@@ -159,6 +165,9 @@ public:
   /// Set the covariance matrix of the feature
   void set_covar( const covariance_< 2, T >& covar ) { covar_ = covar; }
 
+  // Set the RGB color of the landmark
+  void set_color( const rgb_color& color ) { color_ = color; }
+
 
 protected:
   /// location of feature
@@ -171,6 +180,8 @@ protected:
   T angle_;
   /// covariance matrix of feature
   covariance_< 2, T > covar_;
+  /// RGB color of feature
+  rgb_color color_;
 };
 
 

@@ -44,6 +44,7 @@
 
 #include "covariance.h"
 #include "vector.h"
+#include "color.h"
 
 namespace kwiver {
 namespace vital {
@@ -75,6 +76,8 @@ public:
   virtual double scale() const = 0;
   /// Accessor for the covariance
   virtual covariance_3d covar() const = 0;
+  /// Accessor for the RGB color
+  virtual rgb_color color() const = 0;
 };
 
 /// output stream operator for a base class landmark
@@ -126,6 +129,9 @@ public:
   /// Accessor for the covariance
   virtual covariance_3d covar() const { return static_cast< covariance_3d > ( covar_ ); }
 
+  /// Accessor for the RGB color
+  virtual rgb_color color() const { return color_; }
+
   // Set the landmark position in image space
   /**
    * \param loc new location of this landmark
@@ -138,6 +144,9 @@ public:
   /// Set the covariance matrix of the landmark location
   void set_covar( const covariance_< 3, T >& covar ) { covar_ = covar; }
 
+  // Set the RGB color of the landmark
+  void set_color( const rgb_color& color ) { color_ = color; }
+
 protected:
   /// A vector representing the 3D position of the landmark
   Eigen::Matrix< T, 3, 1 > loc_;
@@ -145,6 +154,8 @@ protected:
   T scale_;
   /// Covariance representing uncertainty in the estimate of 3D position
   covariance_< 3, T > covar_;
+  /// The RGB color associated with the landmark
+  rgb_color color_;
 };
 
 
