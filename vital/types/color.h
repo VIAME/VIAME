@@ -57,6 +57,31 @@ struct rgb_color
   unsigned char b;
 };
 
+
+/// output stream operator for an rgb_color
+inline
+std::ostream&
+operator<<( std::ostream& s, const rgb_color& c )
+{
+  // Note the '+' prefix here is used to print characters
+  // as decimal number, not ASCII characters
+  s << +c.r << " " << +c.g << " " << +c.b;
+  return s;
+}
+
+
+/// input stream operator for an rgb_color
+inline
+std::istream&
+operator>>( std::istream& s, rgb_color& c )
+{
+  s >> c.r >> c.g >> c.b;
+  return s;
+}
+
+
+
+
 } } // end namespace vital
 
 #endif // VITAL_COLOR_H_

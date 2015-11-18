@@ -105,7 +105,8 @@ public:
 
   /// Constructor for a feature
   feature_< T > ( const Eigen::Matrix< T, 2, 1 > &loc, T mag = 0.0,
-                  T scale = 1.0, T angle = 0.0 );
+                  T scale = 1.0, T angle = 0.0,
+                  const rgb_color &color = rgb_color());
 
   /// Constructor for a feature_ from a base class feature
   explicit feature_< T > ( const feature &f );

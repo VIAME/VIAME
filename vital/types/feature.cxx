@@ -47,7 +47,8 @@ operator<<( std::ostream& s, const feature& f )
   s << f.loc().transpose() << " "
     << f.magnitude() << " "
     << f.scale() << " "
-    << f.angle();
+    << f.angle() << " "
+    << f.color();
   return s;
 }
 
@@ -67,11 +68,14 @@ feature_< T >
 /// Constructor for a feature
 template < typename T >
 feature_< T >
-::feature_( const Eigen::Matrix< T, 2, 1 >& loc, T mag, T scale, T angle )
+::feature_( const Eigen::Matrix< T, 2, 1 >& loc,
+            T mag, T scale, T angle,
+            const rgb_color &color)
   : loc_( loc ),
   magnitude_( mag ),
   scale_( scale ),
-  angle_( angle )
+  angle_( angle ),
+  color_( color )
 {
 }
 
@@ -83,7 +87,8 @@ feature_< T >
   : loc_( f.loc().cast< T > () ),
   magnitude_( static_cast< T > ( f.magnitude() ) ),
   scale_( static_cast< T > ( f.scale() ) ),
-  angle_( static_cast< T > ( f.angle() ) )
+  angle_( static_cast< T > ( f.angle() ) ),
+  color_( f.color() )
 {
 }
 
@@ -97,7 +102,8 @@ operator<<( std::ostream& s, const feature_< T >& f )
   s << f.get_loc().transpose() << " "
     << f.get_magnitude() << " "
     << f.get_scale() << " "
-    << f.get_angle();
+    << f.get_angle() << " "
+    << f.color();
   return s;
 }
 
@@ -112,15 +118,18 @@ operator>>( std::istream& s, feature_< T >& f )
   T magnitude;
   T scale;
   T angle;
+  rgb_color color;
 
   s >> loc
-  >> magnitude
-  >> scale
-  >> angle;
+    >> magnitude
+    >> scale
+    >> angle
+    >> color;
   f.set_loc( loc );
   f.set_magnitude( magnitude );
   f.set_scale( scale );
   f.set_angle( angle );
+  f.set_color( color );
   return s;
 }
 

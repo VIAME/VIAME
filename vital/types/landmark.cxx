@@ -47,7 +47,8 @@ operator<<( std::ostream& s, const landmark& m )
 {
   // TODO include covariance once stream operators are defined
   s << m.loc() << " "
-    << m.scale();
+    << m.scale() << " "
+    << m.color();
   return s;
 }
 
@@ -79,7 +80,8 @@ operator<<( std::ostream& s, const landmark_< T >& m )
 {
   // TODO include covariance once stream operators are defined
   s << m.get_loc() << " "
-    << m.get_scale();
+    << m.get_scale() << " "
+    << m.color();
   return s;
 }
 
@@ -92,11 +94,14 @@ operator>>( std::istream& s, landmark_< T >& m )
   // TODO include covariance once stream operators are defined
   Eigen::Matrix< T, 3, 1 > loc;
   T scale;
+  rgb_color color;
 
   s >> loc
-  >> scale;
+    >> scale
+    >> color;
   m.set_loc( loc );
   m.set_scale( scale );
+  m.set_color( color );
   return s;
 }
 
