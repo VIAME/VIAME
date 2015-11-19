@@ -128,8 +128,7 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
 
 // ------------------------------------------------------------------
 config_block_sptr
-read_config_file( config_path_t const&      file_path,
-                  config_block_key_t const& block_name )
+read_config_file( config_path_t const& file_path )
 {
   // Check that file exists
   if ( ! kwiversys::SystemTools::FileExists( file_path ) )

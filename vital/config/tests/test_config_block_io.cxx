@@ -195,8 +195,7 @@ IMPLEMENT_TEST( successful_config_read )
 
 IMPLEMENT_TEST( successful_config_read_named_block )
 {
-  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt",
-                                                              "block_name_here" );
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt" );
 
   using std::cerr;
   using std::endl;
@@ -242,8 +241,7 @@ IMPLEMENT_TEST( successful_config_read_named_block )
 
 IMPLEMENT_TEST( include_files )
 {
-  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-include-a.txt",
-                                                              "block_name_here" );
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-include-a.txt" );
   using std::cerr;
   using std::endl;
   cerr << "Available keys in the config_block:" << endl;

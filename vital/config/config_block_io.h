@@ -57,13 +57,10 @@ namespace vital {
  *    Thrown when the file could not be read or parsed for whatever reason.
  *
  * \param file_path   The path to the file to read in.
- * \param block_name  Optional name to give to the generated \c config_block.
- *                    If none given, the generated config_block will have no
- *                    underlying name (empty config_block_key_t value).
  * \return A \c config_block object representing the contents of the read-in file.
  */
-config_block_sptr VITAL_CONFIG_EXPORT read_config_file( config_path_t const& file_path,
-                     config_block_key_t const& block_name = config_block_key_t() );
+config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
+  config_path_t const& file_path );
 
 
 // ------------------------------------------------------------------
