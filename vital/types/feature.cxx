@@ -41,7 +41,7 @@ namespace vital {
 
 /// output stream operator for a feature base class
 std::ostream&
-operator<<( std::ostream& s, const feature& f )
+operator<<( std::ostream& s, feature const& f )
 {
   // TODO include covariance once stream operators are defined
   s << f.loc().transpose() << " "
@@ -68,9 +68,9 @@ feature_< T >
 /// Constructor for a feature
 template < typename T >
 feature_< T >
-::feature_( const Eigen::Matrix< T, 2, 1 >& loc,
+::feature_( Eigen::Matrix< T, 2, 1 > const& loc,
             T mag, T scale, T angle,
-            const rgb_color &color)
+            rgb_color const& color)
   : loc_( loc ),
   magnitude_( mag ),
   scale_( scale ),
@@ -83,7 +83,7 @@ feature_< T >
 /// Constructor for a feature_ from a feature
 template < typename T >
 feature_< T >
-::feature_( const feature& f )
+::feature_( feature const& f )
   : loc_( f.loc().cast< T > () ),
   magnitude_( static_cast< T > ( f.magnitude() ) ),
   scale_( static_cast< T > ( f.scale() ) ),
@@ -96,7 +96,7 @@ feature_< T >
 /// output stream operator for a feature
 template < typename T >
 std::ostream&
-operator<<( std::ostream& s, const feature_< T >& f )
+operator<<( std::ostream& s, feature_< T > const& f )
 {
   // TODO include covariance once stream operators are defined
   s << f.get_loc().transpose() << " "
@@ -138,7 +138,7 @@ operator>>( std::istream& s, feature_< T >& f )
 #define INSTANTIATE_FEATURE( T )                     \
   template class VITAL_EXPORT feature_< T >;         \
   template VITAL_EXPORT std::ostream&                    \
-  operator<<( std::ostream& s, const feature_< T >& f ); \
+  operator<<( std::ostream& s, feature_< T > const& f ); \
   template VITAL_EXPORT std::istream&                    \
   operator>>( std::istream& s, feature_< T >& f )
 
