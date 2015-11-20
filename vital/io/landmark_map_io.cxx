@@ -91,6 +91,9 @@ write_ply_file( landmark_map_sptr const&  landmarks,
                                                      "property float x\n"
                                                      "property float y\n"
                                                      "property float z\n"
+                                                     "property uchar red\n"
+                                                     "property uchar green\n"
+                                                     "property uchar blue\n"
                                                      "property uint track_id\n"
                                                      "end_header\n";
 
@@ -99,8 +102,12 @@ write_ply_file( landmark_map_sptr const&  landmarks,
   VITAL_FOREACH( lm_map_val_t const& p, lm_map )
   {
     vector_3d loc = p.second->loc();
+    rgb_color color = p.second->color();
 
+    // the '+' prefix on the color values causes them to be printed
+    // as decimal numbers instead of ASCII characters
     ofile << loc.x() << " " << loc.y() << " " << loc.z()
+          << " " << +color.r << " " << +color.g << " " << +color.b
           << " " << p.first << "\n";
   }
   ofile.close();
