@@ -63,7 +63,7 @@ public:
   virtual ~feature() VITAL_DEFAULT_DTOR
 
   /// Access the type info of the underlying data (double or float)
-  virtual const std::type_info& data_type() const = 0;
+  virtual std::type_info const& data_type() const = 0;
 
   /// Accessor for the image coordinates
   virtual vector_2d loc() const = 0;
@@ -112,10 +112,10 @@ public:
   explicit feature_< T > ( feature const& f );
 
   /// Access staticly available type of underlying data (double or float)
-  static const std::type_info& static_data_type() { return typeid( T ); }
+  static std::type_info const& static_data_type() { return typeid( T ); }
 
   /// Access the type info of the underlying data (double or float)
-  virtual const std::type_info& data_type() const { return typeid( T ); }
+  virtual std::type_info const& data_type() const { return typeid( T ); }
 
   /// Accessor for the image coordinates using underlying data type
   Eigen::Matrix< T, 2, 1 > const& get_loc() const { return loc_; }
@@ -142,7 +142,7 @@ public:
   virtual double angle() const { return static_cast< double > ( angle_ ); }
 
   /// Accessor for the covariance using underlying data type
-  const covariance_< 2, T >& get_covar() const { return covar_; }
+  covariance_< 2, T > const& get_covar() const { return covar_; }
 
   /// Accessor for the covariance
   virtual covariance_2d covar() const { return static_cast< covariance_2d > ( covar_ ); }
