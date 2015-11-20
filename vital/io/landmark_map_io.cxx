@@ -40,6 +40,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 #include <vital/exceptions.h>
 #include <vital/vital_foreach.h>
@@ -114,6 +115,21 @@ write_ply_file( landmark_map_sptr const&  landmarks,
 } // write_ply_file
 
 
+namespace {
+
+/// Return true if \c line starts with \c prefix
+std::vector<std::string>
+get_tokens(std::string const& line)
+{
+  std::istringstream iss( line );
+  std::vector<std::string> tokens((std::istream_iterator<std::string>(iss)),
+                                  std::istream_iterator<std::string>());
+  return tokens;
+}
+
+} // end anonymous namespace
+
+
 /// Load a given \c landmark_map object from the specified PLY file path
 landmark_map_sptr
 read_ply_file( path_t const& file_path )
@@ -133,28 +149,108 @@ read_ply_file( path_t const& file_path )
     throw file_not_read_exception( file_path, "Cannot read file." );
   }
 
+  // enumeration of the vertex properties we can handle
+  enum vertex_property_t {INVALID, VX, VY, VZ, CR, CG, CB, INDEX};
+  std::map<std::string, vertex_property_t> prop_map;
+  prop_map["x"] = VX;
+  prop_map["y"] = VY;
+  prop_map["z"] = VZ;
+  prop_map["red"] = CR;
+  prop_map["diffuse_red"] = CR;
+  prop_map["green"] = CG;
+  prop_map["diffuse_green"] = CG;
+  prop_map["blue"] = CB;
+  prop_map["diffuse_blue"] = CB;
+  prop_map["track_id"] = INDEX;
+
   bool parsed_header = false;
+  bool parsing_vertex_props = false;
+  std::vector<vertex_property_t> vert_props;
   std::string line;
 
+  landmark_id_t id = 0;
   while ( std::getline( ifile, line ) )
   {
-    if ( ! parsed_header || line.empty() )
+    std::vector<std::string> tokens = get_tokens(line);
+    if ( line.empty() || tokens.empty() )
+    {
+      continue;
+    }
+    if ( ! parsed_header )
     {
       if ( line == "end_header" )
       {
         parsed_header = true;
+        continue;
       }
+
+      if ( tokens.size() == 3 &&
+           tokens[0] == "element" &&
+           tokens[1] == "vertex" )
+      {
+        parsing_vertex_props = true;
+      }
+      else if ( tokens[0] == "element" )
+      {
+        parsing_vertex_props = false;
+      }
+
+      if ( parsing_vertex_props )
+      {
+        if ( tokens.size() == 3 && tokens[0] == "property" )
+        {
+          std::string name = tokens[2];
+          std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+          vertex_property_t prop = INVALID;
+          const auto p = prop_map.find(name);
+          if ( p != prop_map.end() )
+          {
+            prop = p->second;
+          }
+          vert_props.push_back(prop);
+        }
+      }
+
       continue;
     }
 
-    std::istringstream iss( line );
-
     double x, y, z;
-    landmark_id_t id;
+    rgb_color color;
+    ++id;
+    for( unsigned int i=0; i<tokens.size() && i < vert_props.size(); ++i )
+    {
+      std::istringstream iss(tokens[i]);
+      switch( vert_props[i] )
+      {
+        case VX:
+          iss >> x;
+          break;
+        case VY:
+          iss >> y;
+          break;
+        case VZ:
+          iss >> z;
+          break;
+        case CR:
+          iss >> color.r;
+          break;
+        case CG:
+          iss >> color.g;
+          break;
+        case CB:
+          iss >> color.b;
+          break;
+        case INDEX:
+          iss >> id;
+          break;
+        default:
+          break;
+      }
+    }
 
-    iss >> x >> y >> z >> id;
-
-    landmarks[id] = landmark_sptr( new landmark_d( vector_3d( x, y, z ) ) );
+    landmark_d* lm = new landmark_d( vector_3d( x, y, z ) );
+    lm->set_color( color );
+    landmarks[id] = landmark_sptr( lm );
   }
 
   ifile.close();
