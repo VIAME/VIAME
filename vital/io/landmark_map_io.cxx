@@ -152,6 +152,7 @@ read_ply_file( path_t const& file_path )
 
   // enumeration of the vertex properties we can handle
   enum vertex_property_t {INVALID, VX, VY, VZ, CR, CG, CB, INDEX};
+  // mapping between PLY vertex property names and our enum
   std::map<std::string, vertex_property_t> prop_map;
   prop_map["x"] = VX;
   prop_map["y"] = VY;
@@ -182,6 +183,8 @@ read_ply_file( path_t const& file_path )
       if ( line == "end_header" )
       {
         parsed_header = true;
+        // TODO check that provided properties are meaningful
+        // (e.g. has X, Y, and Z; has R, G, and B or no color, etc.)
         continue;
       }
 
@@ -200,6 +203,7 @@ read_ply_file( path_t const& file_path )
       {
         if ( tokens.size() == 3 && tokens[0] == "property" )
         {
+          // map property names into enum values if supported
           std::string name = tokens[2];
           std::transform(name.begin(), name.end(), name.begin(), ::tolower);
           vertex_property_t prop = INVALID;
@@ -215,6 +219,8 @@ read_ply_file( path_t const& file_path )
       continue;
     }
 
+    // TODO throw exceptions if tokens.size() != vert_props.size()
+    // or if the values do not parse as expected
     double x, y, z;
     rgb_color color;
     ++id;
