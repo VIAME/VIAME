@@ -257,9 +257,10 @@ read_ply_file( path_t const& file_path )
       }
     }
 
-    landmark_d* lm = new landmark_d( vector_3d( x, y, z ) );
+    std::shared_ptr<landmark_d> lm =
+        std::make_shared<landmark_d>( vector_3d( x, y, z ) );
     lm->set_color( color );
-    landmarks[id] = landmark_sptr( lm );
+    landmarks[id] = lm;
 
     // exit if we have read the expected number of points
     if ( vert_count > num_verts )
