@@ -37,14 +37,15 @@
 
 #include "landmark_map_io.h"
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <algorithm>
-
 #include <vital/exceptions.h>
 #include <vital/vital_foreach.h>
 #include <kwiversys/SystemTools.hxx>
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <sstream>
 
 namespace kwiver {
 namespace vital {

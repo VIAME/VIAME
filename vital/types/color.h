@@ -37,6 +37,9 @@
 #define VITAL_COLOR_H_
 
 
+#include <iostream>
+
+
 namespace kwiver {
 namespace vital {
 

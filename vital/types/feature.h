@@ -36,16 +36,16 @@
 #ifndef VITAL_FEATURE_H_
 #define VITAL_FEATURE_H_
 
+#include "color.h"
+#include "covariance.h"
+#include "vector.h"
+
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
 
 #include <iostream>
 #include <typeinfo>
 #include <memory>
-
-#include "covariance.h"
-#include "vector.h"
-#include "color.h"
 
 namespace kwiver {
 namespace vital {
