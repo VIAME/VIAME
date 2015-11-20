@@ -170,7 +170,7 @@ read_ply_file( path_t const& file_path )
   std::vector<vertex_property_t> vert_props;
   std::string line;
 
-  landmark_id_t id = 0;
+  unsigned int num_verts = 0, vert_count = 0;
   while ( std::getline( ifile, line ) )
   {
     std::vector<std::string> tokens = get_tokens(line);
@@ -192,6 +192,8 @@ read_ply_file( path_t const& file_path )
            tokens[0] == "element" &&
            tokens[1] == "vertex" )
       {
+        std::istringstream iss(tokens[2]);
+        iss >> num_verts;
         parsing_vertex_props = true;
       }
       else if ( tokens[0] == "element" )
@@ -223,7 +225,7 @@ read_ply_file( path_t const& file_path )
     // or if the values do not parse as expected
     double x, y, z;
     rgb_color color;
-    ++id;
+    landmark_id_t id = static_cast<landmark_id_t>(vert_count++);
     for( unsigned int i=0; i<tokens.size() && i < vert_props.size(); ++i )
     {
       std::istringstream iss(tokens[i]);
@@ -258,6 +260,12 @@ read_ply_file( path_t const& file_path )
     landmark_d* lm = new landmark_d( vector_3d( x, y, z ) );
     lm->set_color( color );
     landmarks[id] = landmark_sptr( lm );
+
+    // exit if we have read the expected number of points
+    if ( vert_count > num_verts )
+    {
+      break;
+    }
   }
 
   ifile.close();
