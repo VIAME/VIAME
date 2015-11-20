@@ -223,7 +223,7 @@ read_ply_file( path_t const& file_path )
 
     // TODO throw exceptions if tokens.size() != vert_props.size()
     // or if the values do not parse as expected
-    double x, y, z;
+    double x=0, y=0, z=0;
     rgb_color color;
     landmark_id_t id = static_cast<landmark_id_t>(vert_count++);
     for( unsigned int i=0; i<tokens.size() && i < vert_props.size(); ++i )
