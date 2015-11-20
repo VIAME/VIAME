@@ -147,6 +147,9 @@ public:
   /// Accessor for the covariance
   virtual covariance_2d covar() const { return static_cast< covariance_2d > ( covar_ ); }
 
+  /// Accessor for a const reference to the RGB color
+  virtual rgb_color const& get_color() const { return color_; }
+
   /// Accessor for the RGB color
   virtual rgb_color color() const { return color_; }
 

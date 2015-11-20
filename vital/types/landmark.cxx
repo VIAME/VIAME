@@ -81,7 +81,7 @@ operator<<( std::ostream& s, const landmark_< T >& m )
   // TODO include covariance once stream operators are defined
   s << m.get_loc() << " "
     << m.get_scale() << " "
-    << m.color();
+    << m.get_color();
   return s;
 }
 

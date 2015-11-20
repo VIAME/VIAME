@@ -103,7 +103,7 @@ operator<<( std::ostream& s, feature_< T > const& f )
     << f.get_magnitude() << " "
     << f.get_scale() << " "
     << f.get_angle() << " "
-    << f.color();
+    << f.get_color();
   return s;
 }
 
