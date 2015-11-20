@@ -118,7 +118,7 @@ write_ply_file( landmark_map_sptr const&  landmarks,
 
 namespace {
 
-/// Return true if \c line starts with \c prefix
+/// Split a string into tokens delimited by whitespace
 std::vector<std::string>
 get_tokens(std::string const& line)
 {
