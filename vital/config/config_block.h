@@ -56,9 +56,6 @@
 namespace kwiver {
 namespace vital {
 
-class config_block;
-
-
 // ----------------------------------------------------------------
 /**
  * \brief Configuration value storage structure.
@@ -215,9 +212,9 @@ public:
    *              is maintained.
    */
   template < typename T >
-  void set_value( config_block_key_t const& key,
-                  T const& value,
-                  config_block_description_t const& descr = config_block_key_t() );
+  void set_value( config_block_key_t const&         key,
+                  T const&                          value,
+                  config_block_description_t const& descr = config_block_description_t() );
 
   /// Remove a value from the configuration.
   /**
