@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ==============================================================================
 
 Utility method for finding and returning the VITAL library.
+e.g. libvital_c.so
 
 """
 # -*- coding: utf-8 -*-
@@ -65,13 +66,14 @@ def _system_library_dirs():
         return ["lib64", "lib"]
 
 
-def _search_up_directory(d):
+def _search_up_directory(d, library_re):
     """
     Look for the vital_c library in the given directory and each directory above
     it until we hit root. We return the first matching library path, or None
     if no matching library was found.
 
     :param d: Starting directory path
+    :param library_re: regular expression for library
     :type d: str
 
     :return: Discovered path to the vital_c library, or None if one wasn't found
@@ -87,7 +89,7 @@ def _search_up_directory(d):
             l_dir = os.path.join(d, l)
             if os.path.isdir(l_dir):
                 for f in os.listdir(l_dir):
-                    if __LIBRARY_NAME_RE__.match(f):
+                    if library_re.match(f):
                         return os.path.join(l_dir, f)
                 hit = True
         if hit:
@@ -124,12 +126,13 @@ def _find_vital_library_path():
         return __LIBRARY_PATH_CACHE__
 
     search_dirs = [os.path.dirname(os.path.abspath(__file__))]
-    search_dirs.extend(os.environ['PATH'].split(_system_path_separator()))
+    # NOTE this is not cover all possible systems
+    search_dirs.extend(os.environ['LD_LIBRARY_PATH'].split(_system_path_separator()))
     if __BUILD_DIR__:
         search_dirs = [__BUILD_DIR__] + search_dirs
 
     for d in search_dirs:
-        r = _search_up_directory(d)
+        r = _search_up_directory(d, __LIBRARY_NAME_RE__)
         if r is not None:
             __LIBRARY_PATH_CACHE__ = r
             return r
@@ -153,6 +156,35 @@ def find_vital_library():
     return __LIBRARY_CACHE__
 
 
+# ==================================================================
+# Library finders without cache
+#
+def find_library_path(lib):
+    library_name_re = re.compile("(?:lib)?%s.(?:so|dylib|dll)"
+                                     % lib)
+
+    # start the search in the current directory
+    search_dirs = [os.path.dirname(os.path.abspath(__file__))]
+
+    # NOTE this is not cover all possible systems
+    search_dirs.extend(os.environ['LD_LIBRARY_PATH'].split(_system_path_separator()))
+
+    if __BUILD_DIR__:
+        search_dirs = [__BUILD_DIR__] + search_dirs
+
+    for d in search_dirs:
+        r = _search_up_directory(d, library_name_re)
+        if r is not None:
+            library_path = r
+            return r
+
+    # No library found in any paths given at this point
+    raise RuntimeError("Failed to find a valid '%s' library!"
+                       % lib)
+
+
+
+# ==================================================================
 def test():
 
     """
