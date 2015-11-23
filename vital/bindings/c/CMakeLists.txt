@@ -42,6 +42,7 @@ set(vital_c_sources
   image_container.cxx
   track.cxx
   track_set.cxx
+
   helpers/c_utils.cxx
 
   algo_def/convert_image.cxx
@@ -51,12 +52,12 @@ set(vital_c_sources
 
 kwiver_install_headers(
   ${vital_c_public_headers}
-  SUBDIR vital/bindings/c
+  SUBDIR     vital/bindings/c
   )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_c_export.h
-  SUBDIR vital/bindings/c
+  SUBDIR     vital/bindings/c
   NOPATH
   )
 
@@ -67,6 +68,6 @@ kwiver_add_library( vital_c
   )
 
 target_link_libraries( vital_c
-  vital
-  vital_apm
+  PRIVATE     vital
+              vital_apm
   )
