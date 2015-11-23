@@ -62,6 +62,8 @@ if (KWIVER_ENABLE_TESTS)
 
 endif()
 
+option( KWIVER_ENABLE_PYTHON    "Enable python code" OFF )
+
 if (KWIVER_ENABLE_PYTHON)
   set(kwiver_boost_python_package python)
 endif()
@@ -105,8 +107,17 @@ include_directories("${KWIVER_BINARY_DIR}")
 option(KWIVER_BUILD_SHARED "Build KWIVER packages shared or not" ON)
 
 if (KWIVER_ENABLE_PYTHON)
-    find_package(PythonInterp)
+    find_package(PythonInterp REQUIRED)
     find_package(PythonLibs)
+
+    # to be compatible with sprokit
+    set(PYTHON_VERSION "2.7"
+    CACHE STRING "The version of python to use for bindings")
+  set(PYTHON_ABIFLAGS ""
+    CACHE STRING "The ABI flags for the version of Python being used")
+
+  include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
+
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
