@@ -350,6 +350,20 @@ grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
   peek_at_datum_on_port(PN ## _port_trait::port_name, IDX)
 
 
+/**
+ * \brief Test to see if port is connected.
+ *
+ * This macro tests to see if the specified port is connected.
+ *
+ * \param PN Port trait name.
+ *
+ * \return \b true if port is connected
+ */
+#define has_input_port_edge_using_trait(PN)             \
+  has_input_port_edge(PN ##_port_trait::port_name )
+
+
+
 // Putting data to ports
 
 /**
