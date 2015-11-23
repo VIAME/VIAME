@@ -183,12 +183,12 @@ void frame_list_process
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    kwiver::vital::image_container_sptr img;
-    img = d->m_image_reader->load( a_file );
+    kwiver::vital::image_container_sptr img_c;
+    img_c = d->m_image_reader->load( a_file );
 
     // --- debug
 #if defined DEBUG
-    cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img->get_image() );
+    cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img_c->get_image() );
     namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
     imshow( "Display window", image );                   // Show our image inside it.
 
@@ -203,7 +203,7 @@ void frame_list_process
     d->m_frame_time += d->m_config_frame_time;
 
     push_to_port_using_trait( timestamp, frame_ts );
-    push_to_port_using_trait( image, img );
+    push_to_port_using_trait( image, img_c );
 
     ++d->m_current_file;
   }
