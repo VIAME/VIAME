@@ -206,7 +206,14 @@ void
 view_image_process
 ::_step()
 {
-  kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
+  kwiver::vital::timestamp frame_time;
+
+  // Test to see if optional port is connected.
+  if (has_input_port_edge_using_trait( timestamp ) )
+  {
+    frame_time = grab_input_using_trait( timestamp );
+  }
+
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
@@ -234,11 +241,12 @@ view_image_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
+  sprokit::process::port_flags_t optional;
 
   required.insert( flag_required );
 
   // -- input --
-  declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( timestamp, optional );
   declare_input_port_using_trait( image, required );
 }
 
