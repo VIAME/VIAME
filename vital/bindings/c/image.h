@@ -56,7 +56,6 @@ typedef struct vital_image_s vital_image_t;
 VITAL_C_EXPORT
 vital_image_t* vital_image_new();
 
-
 /// Create a new image with dimensions, allocating memory
 VITAL_C_EXPORT
 vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
@@ -101,7 +100,6 @@ void vital_image_destroy( vital_image_t* image );
 VITAL_C_EXPORT
 size_t vital_image_size( vital_image_t* image );
 
-
 /// Get first pixel address
 VITAL_C_EXPORT
 vital_image_byte* vital_image_first_pixel( vital_image_t* image );
@@ -129,6 +127,12 @@ size_t vital_image_h_step(  vital_image_t* image );
 /// Get image d_step
 VITAL_C_EXPORT
 size_t vital_image_d_step(  vital_image_t* image );
+
+VITAL_C_EXPORT
+int vital_image_get_pixel2( vital_image_t *image, unsigned i, unsigned j );
+
+VITAL_C_EXPORT
+int vital_image_get_pixel3( vital_image_t *image, unsigned i, unsigned j, unsigned k );
 
 #ifdef __cplusplus
 }

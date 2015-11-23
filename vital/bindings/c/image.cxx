@@ -93,7 +93,7 @@ vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
 vital_image_t* vital_image_new_from_image( vital_image_t *other_image )
 {
   STANDARD_CATCH(
-    "C::image::new_from_data", 0,
+    "C::image::new_from_image", 0,
     return reinterpret_cast<vital_image_t*>(
       new kwiver::vital::image( *reinterpret_cast<kwiver::vital::image*>(other_image) )
       );
@@ -111,6 +111,25 @@ void vital_image_destroy( vital_image_t *image )
   );
 };
 
+
+int vital_image_get_pixel2( vital_image_t *image, unsigned i, unsigned j )
+{
+  STANDARD_CATCH(
+    "C::image::destroy", 0,
+    return reinterpret_cast<kwiver::vital::image*>( image )->operator()(i, j);
+  );
+  return 0;
+}
+
+
+int vital_image_get_pixel3( vital_image_t *image, unsigned i, unsigned j, unsigned k )
+{
+  STANDARD_CATCH(
+    "C::image::destroy", 0,
+    return reinterpret_cast<kwiver::vital::image*>( image )->operator()(i, j, k);
+  );
+  return 0;
+}
 
 //
 // A little shortcut for defining accessors
