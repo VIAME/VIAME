@@ -77,11 +77,27 @@ vital_trackset_new( size_t length, vital_track_t **tracks )
 
 /// Create a new track set as read from file
 vital_trackset_t*
+vital_trackset_from_sptr( void* sptr )
+{
+  STANDARD_CATCH(
+    "C::track_set::from_sptr", NULL,
+
+    kwiver::vital::track_set_sptr ts_sptr = *reinterpret_cast< kwiver::vital::track_set_sptr* >(sptr);
+    kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
+    return reinterpret_cast<vital_trackset_t*>( ts_sptr.get() );
+  );
+  return 0;
+}
+
+
+/// Create a new track set as read from file
+vital_trackset_t*
 vital_trackset_new_from_file( char const *filepath,
                               vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::track_set::new_from_file", eh,
+
     kwiver::vital::track_set_sptr ts_sptr( kwiver::vital::read_track_file( filepath ) );
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
     return reinterpret_cast<vital_trackset_t*>( ts_sptr.get() );
@@ -97,6 +113,7 @@ vital_trackset_destroy( vital_trackset_t *track_set,
 {
   STANDARD_CATCH(
     "C::track_set::destroy", eh,
+
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.erase( track_set );
   );
 }
@@ -109,6 +126,7 @@ vital_trackset_size( vital_trackset_t *track_set,
 {
   STANDARD_CATCH(
     "C::track_set::size", eh,
+
     return kwiver::vital_c::TRACK_SET_SPTR_CACHE.get( track_set )->size();
   );
   return 0;
@@ -124,6 +142,7 @@ vital_trackset_write_track_file( vital_trackset_t* ts,
 {
   STANDARD_CATCH(
     "C::track_set::write_track_file", eh,
+
     kwiver::vital::write_track_file(
       kwiver::vital_c::TRACK_SET_SPTR_CACHE.get( ts ),
       filepath

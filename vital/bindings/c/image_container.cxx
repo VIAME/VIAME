@@ -43,11 +43,14 @@
 namespace kwiver {
 namespace vital_c {
 
+// Allocate our shared pointer cache object
 SharedPointerCache< kwiver::vital::image_container, vital_image_container_t >
   IMGC_SPTR_CACHE( "image_container" );
 
 } }
 
+//+ really need a way to display SPTR_CACHE.
+// need to verify that pointers are released as needed and cache does not grow without bound
 
 /// Create a new, simple image container around an image
 vital_image_container_t* vital_image_container_new_simple( vital_image_t *img )
@@ -60,6 +63,30 @@ vital_image_container_t* vital_image_container_new_simple( vital_image_t *img )
     kwiver::vital_c::IMGC_SPTR_CACHE.store( img_sptr );
     return reinterpret_cast<vital_image_container_t*>( img_sptr.get() );
   );
+  return 0;
+}
+
+
+/**
+ * @brief Accept shared pointer to image container.
+ *
+ * This function takes a pointer to a shared_pointer and adds it to
+ * the SPTR_CACHE in the same way as a constructor (above). This
+ * allows us to manage an already existing object.
+ *
+ * @param sptr Pointer to shared pointer
+ *
+ * @return Opaque object pointer/handle
+ */
+vital_image_container_t* vital_image_container_from_sptr( void* sptr )
+{
+  STANDARD_CATCH(
+    "C::image_container::from_sptr", 0,
+
+    kwiver::vital::image_container_sptr img_sptr = *reinterpret_cast< kwiver::vital::image_container_sptr* >(sptr);
+    kwiver::vital_c::IMGC_SPTR_CACHE.store( img_sptr );
+    return reinterpret_cast<vital_image_container_t*>( img_sptr.get() );
+    );
   return 0;
 }
 

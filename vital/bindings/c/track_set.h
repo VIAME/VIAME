@@ -64,6 +64,18 @@ vital_trackset_t*
 vital_trackset_new( size_t length, vital_track_t **tracks );
 
 
+/// Adopt existing track set from sptr
+/**
+ *
+ * \param sptr address of track set sptr
+ *
+ * \returns trackset opaque handle
+ */
+VITAL_C_EXPORT
+vital_trackset_t*
+vital_trackset_from_sptr( void* sptr );
+
+
 /// Create a new track set as read from file
 /**
  * NOTE: The simple track file format currently defined does not represent
@@ -88,6 +100,11 @@ vital_trackset_new_from_file( char const *filepath,
 
 /// Destroy a track set instance
 /**
+ * This function destroys the referenced track set. The supplied
+ * handle is removed from the internal cache as the associated smart
+ * pointer. The actual track set data may be deleted if there are no
+ * more ref counts.
+ *
  * \param track_set opaque pointer to track set instance
  * \param eh Error handle instance.
  */
@@ -110,7 +127,6 @@ void
 vital_trackset_write_track_file( vital_trackset_t* ts,
                                  char const *filepath,
                                  vital_error_handle_t *eh );
-
 
 #ifdef __cplusplus
 }

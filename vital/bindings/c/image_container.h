@@ -56,6 +56,9 @@ typedef struct vital_image_container_s vital_image_container_t;
 VITAL_C_EXPORT
 vital_image_container_t* vital_image_container_new_simple( vital_image_t *img );
 
+// Adopt previously created image container
+VITAL_C_EXPORT
+vital_image_container_t* vital_image_container_from_sptr( void* sptr );
 
 /// Destroy a vital_image_container_t instance
 VITAL_C_EXPORT
