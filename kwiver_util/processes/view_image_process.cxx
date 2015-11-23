@@ -41,7 +41,7 @@
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
 
-#include <kwiver_util/sprokit_type_traits.h>
+#include <kwiver_util/kwiver_type_traits.h>
 
 #include <maptk/plugins/ocv/image_container.h>
 
