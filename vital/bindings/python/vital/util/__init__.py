@@ -44,3 +44,4 @@ except ImportError:
 
 from .VitalObject import VitalObject
 from .error_handle import VitalErrorHandle
+from .find_vital_library import find_library_path
