@@ -76,24 +76,21 @@ class Image (VitalObject):
 
         if mode == "RGB":
             img_depth = 3
-            img_w_step = 1
-            img_h_step = img_width;
-            img_d_step = img_width * img_height
+            img_w_step = 3
+            img_h_step = img_width * img_height
+            img_d_step = 1
         elif mode == "BGR":
             img_depth = 3
             img_w_step = 1
-            img_h_step = img_width;
-            img_d_step = img_width * img_height * -1
+            img_h_step = img_width * img_height
+            img_d_step = -1
         elif mode == "L":  # 8 bit greyscale
             img_depth = 1
             img_w_step = 1
-            img_h_step = img_width;
+            img_h_step = img_width
             img_d_step = 0
         else:
             raise RuntimeError("Unsupported image format.")
-
-        # need first pixel address
-        img_first_pixel = 0 # TBD
 
         img_new = cls.VITAL_LIB.vital_image_new_from_data
         img_new.argtypes = [ctypes.c_void_p,
@@ -104,6 +101,9 @@ class Image (VitalObject):
         return Image.from_c_pointer(img_new(ctypes.byref( pil_image.tostring() ),
                                             img_width, img_height, img_depth,
                                             img_w_step, img_h_step, img_d_step ) )
+    """
+    Need to add classmethod from_numpy( cls, numpy_arry )
+    """
 
     def __init__(self, width=None, height=None, depth=1, interleave=False):
         """ Construct an empty image of no, or defined, dimensions.
@@ -133,6 +133,10 @@ class Image (VitalObject):
         img_destroy.argtypes = [self.C_TYPE_PTR]
         img_destroy(self._inst_ptr)
 
+    #
+    # ----------------------------------------------------------
+    # Accessors
+
     def size(self):
         """ Get the number of bytes allocated in the given image
 
@@ -145,6 +149,55 @@ class Image (VitalObject):
         img_size.restype = ctypes.c_size_t
         return img_size(self._inst_ptr)
 
+    def width(self):
+        """
+        Get the image width in pixels
+        """
+        return self.VITAL_LIB.vital_image_width(self)
+
+    def height(self):
+        """
+        Get image height in pixels
+        """
+        return self.VITAL_LIB.vital_image_height(self)
+
+    def depth(self):
+        """
+        Get image depth in planes
+        """
+        return self.VITAL_LIB.vital_image_depth(self)
+
+    def first_pixel_address(self):
+        """
+        Get the address of thei first pixel in the image
+        """
+        first_pixel = self.VITAL_LIB.vital_image_first_pixel
+        first_pixel.restype = ctypes.c_void_p
+        return first_pixel(self)
+
+    def w_step(self):
+        """
+        Get the step value to go to next column
+        """
+        return self.VITAL_LIB.vital_image_w_step(self)
+
+    def h_step(self):
+        """
+        Get the step value to go to next row
+        """
+        return self.VITAL_LIB.vital_image_h_step(self)
+
+    def d_step(self):
+        """
+        Get the step value to go to next plane
+        """
+        return self.VITAL_LIB.vital_image_d_step(self)
+
+
+
+    # ------------------------------------------------------------------
+    #+# Make a utility method not a member
+    # or a derived class :: pil_image_converter
     def get_pil_image(self):
         """ Get image in python friendly format
         Assumptions are that the image has byte pixels.
@@ -152,32 +205,28 @@ class Image (VitalObject):
         :return: numpy array containing image
         :rtype: pil image
         """
-        img_width = self.VITAL_LIB.vital_image_width
-        img_height = self.VITAL_LIB.vital_image_height
-        img_depth = self.VITAL_LIB.vital_image_depth
-        img_first_byte = self.VITAL_LIB.vital_image_first_byte
-        # img_w_step = self.VITAL_LIB.vital_image_w_step
-        img_h_step = self.VITAL_LIB.vital_image_h_step
-        img_d_step = self.VITAL_LIB.vital_image_d_step
+        img_first_byte = self.first_pixel_address()
 
-        """ It may be possible to use frombuffer() to share image memory
-        if image pixels are in a buffer objecct, which is not the case now.
-        """
+        # get buffer from image
+        pixels = ctypes.pythonapi.PyBuffer_FromMemory
+        pixels.argtypes = [ ctypes.c_void_p, ctypes.c_int ]
+        pixels.restype = ctypes.py_object
+        img_pixels = pixels( img_first_byte, self.size() )
 
-        if img_depth == 3:
-            if img_d_step == (img_width * img_height):
-                mode = "RGB"
-            elif img_d_step < 0:
+        # determine image format from strides
+        if self.depth() == 3:
+            if self.d_step() == 1:
                 mode = "BGR"
+            elif self.d_step() < 0:
+                mode = "RGB"
             else:
                 raise RuntimeError("Unsupported image format.")
 
-
-            pil_image = PIL.Image.fromstring(mode, (img_width, img_height), img_first_byte,
-                                         "raw", mode, img_h_step, 1 )
-        elif img_depth == 1:
-            pil_image = PIL.Image.fromstring("L", (img_width, img_height), img_first_byte,
-                                         "raw", "L", img_h_step, 1 )
+            pil_image = PIL.Image.fromstring("RGB", (self.width(), self.height()), img_pixels,
+                                         "raw", mode, self.h_step(), 1 )
+        elif self.depth() == 1:
+            pil_image = PIL.Image.fromstring("L", (self.width(), self.height()), img_pixels,
+                                         "raw", "L", self.h_step(), 1 )
         else:
             raise RuntimeError("Unsupported image depth.")
 
