@@ -27,12 +27,15 @@ file( APPEND ${VITAL_SETUP_SCRIPT_FILE}
 
 kwiver_configure_file(python-find_vital_libraray.py
   "${CMAKE_CURRENT_SOURCE_DIR}/vital/util/find_vital_library.py.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/vital/util/find_vital_library.py"  #? this may not be the correct place
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/util/find_vital_library.py"
   VITAL_BUILD_DIRECTORY
   )
 
+# this command in inadvertently installing the input file also.
 kwiver_install( DIRECTORY      vital
   DESTINATION                  ${python_site_packages}
   )
 
-# install find_vital_library.py ??
+kwiver_install( FILES ${CMAKE_CURRENT_BINARY_DIR}/vital/util/find_vital_library.py
+  DESTINATION                  ${python_site_packages}/vital/util
+  )
