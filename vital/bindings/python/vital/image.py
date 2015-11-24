@@ -37,9 +37,7 @@ Interface to VITAL image class.
 __author__ = 'purg'
 
 import ctypes
-
 from vital.util import VitalObject
-import PIL
 
 
 class Image (VitalObject):
@@ -198,6 +196,8 @@ class Image (VitalObject):
     # ------------------------------------------------------------------
     #+# Make a utility method not a member
     # or a derived class :: pil_image_converter
+    # def get_pil_image( Image ): returns PIL image
+    # need to check type of input
     def get_pil_image(self):
         """ Get image in python friendly format
         Assumptions are that the image has byte pixels.
@@ -205,6 +205,7 @@ class Image (VitalObject):
         :return: numpy array containing image
         :rtype: pil image
         """
+        import PIL.Image as PIM
         img_first_byte = self.first_pixel_address()
 
         # get buffer from image
@@ -222,10 +223,10 @@ class Image (VitalObject):
             else:
                 raise RuntimeError("Unsupported image format.")
 
-            pil_image = PIL.Image.fromstring("RGB", (self.width(), self.height()), img_pixels,
+            pil_image = PIM.fromstring("RGB", (self.width(), self.height()), img_pixels,
                                          "raw", mode, self.h_step(), 1 )
         elif self.depth() == 1:
-            pil_image = PIL.Image.fromstring("L", (self.width(), self.height()), img_pixels,
+            pil_image = PIM.fromstring("L", (self.width(), self.height()), img_pixels,
                                          "raw", "L", self.h_step(), 1 )
         else:
             raise RuntimeError("Unsupported image depth.")
