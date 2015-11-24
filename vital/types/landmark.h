@@ -44,6 +44,7 @@
 
 #include "covariance.h"
 #include "vector.h"
+#include "color.h"
 
 namespace kwiver {
 namespace vital {
@@ -75,6 +76,8 @@ public:
   virtual double scale() const = 0;
   /// Accessor for the covariance
   virtual covariance_3d covar() const = 0;
+  /// Accessor for the RGB color
+  virtual rgb_color color() const = 0;
 };
 
 /// output stream operator for a base class landmark
@@ -82,7 +85,7 @@ public:
  * \param s output stream
  * \param m landmark to stream
  */
-VITAL_EXPORT std::ostream& operator<<( std::ostream& s, const landmark& m );
+VITAL_EXPORT std::ostream& operator<<( std::ostream& s, landmark const& m );
 
 
 /// A representation of a 3D world point
@@ -99,17 +102,17 @@ public:
    * \param loc 3D location of the landmark
    * \param scale optional scale of the landmark (default of 1)
    */
-  landmark_< T > ( const Eigen::Matrix< T, 3, 1 > &loc, T scale = 1 );
+  landmark_< T > ( Eigen::Matrix< T, 3, 1 > const& loc, T scale = 1 );
 
   /// Create a clone of this landmark object
   virtual landmark_sptr clone() const
   { return landmark_sptr( new landmark_< T > ( *this ) ); }
 
   /// Access staticly available type of underlying data (double or float)
-  static const std::type_info& data_type() { return typeid( T ); }
+  static std::type_info const& data_type() { return typeid( T ); }
 
   /// Accessor for the world coordinates using underlying data type
-  const Eigen::Matrix< T, 3, 1 >& get_loc() const { return loc_; }
+  Eigen::Matrix< T, 3, 1 > const& get_loc() const { return loc_; }
 
   /// Accessor for the world coordinates
   virtual vector_3d loc() const { return loc_.template cast< double > (); }
@@ -121,22 +124,31 @@ public:
   virtual double scale() const { return static_cast< double > ( scale_ ); }
 
   /// Accessor for the covariance using underlying data type
-  const covariance_< 3, T >& get_covar() const { return covar_; }
+  covariance_< 3, T > const& get_covar() const { return covar_; }
 
   /// Accessor for the covariance
   virtual covariance_3d covar() const { return static_cast< covariance_3d > ( covar_ ); }
+
+  /// Accessor for a const reference to the RGB color
+  virtual rgb_color const& get_color() const { return color_; }
+
+  /// Accessor for the RGB color
+  virtual rgb_color color() const { return color_; }
 
   // Set the landmark position in image space
   /**
    * \param loc new location of this landmark
    */
-  void set_loc( const Eigen::Matrix< T, 3, 1 >& loc ) { loc_ = loc; }
+  void set_loc( Eigen::Matrix< T, 3, 1 > const& loc ) { loc_ = loc; }
 
   /// Set the scale of the landmark
   void set_scale( T scale ) { scale_ = scale; }
 
   /// Set the covariance matrix of the landmark location
-  void set_covar( const covariance_< 3, T >& covar ) { covar_ = covar; }
+  void set_covar( covariance_< 3, T > const& covar ) { covar_ = covar; }
+
+  // Set the RGB color of the landmark
+  void set_color( rgb_color const& color ) { color_ = color; }
 
 protected:
   /// A vector representing the 3D position of the landmark
@@ -145,6 +157,8 @@ protected:
   T scale_;
   /// Covariance representing uncertainty in the estimate of 3D position
   covariance_< 3, T > covar_;
+  /// The RGB color associated with the landmark
+  rgb_color color_;
 };
 
 
@@ -155,7 +169,7 @@ typedef landmark_< float > landmark_f;
 
 /// output stream operator for a landmark
 template < typename T >
-VITAL_EXPORT std::ostream& operator<<( std::ostream& s, const landmark_< T >& m );
+VITAL_EXPORT std::ostream& operator<<( std::ostream& s, landmark_< T > const& m );
 
 /// input stream operator for a landmark
 template < typename T >

@@ -86,6 +86,7 @@ set( vital_public_headers
   types/camera.h
   types/camera_intrinsics.h
   types/camera_map.h
+  types/color.h
   types/covariance.h
   types/descriptor.h
   types/descriptor_set.h

@@ -43,11 +43,12 @@ namespace vital {
 
 /// output stream operator for a landmark base class
 std::ostream&
-operator<<( std::ostream& s, const landmark& m )
+operator<<( std::ostream& s, landmark const& m )
 {
   // TODO include covariance once stream operators are defined
   s << m.loc() << " "
-    << m.scale();
+    << m.scale() << " "
+    << m.color();
   return s;
 }
 
@@ -65,7 +66,7 @@ landmark_< T >
 /// Constructor for a feature
 template < typename T >
 landmark_< T >
-::landmark_( const Eigen::Matrix< T, 3, 1 >& loc, T scale )
+::landmark_( Eigen::Matrix< T, 3, 1 > const& loc, T scale )
   : loc_( loc ),
   scale_( scale )
 {
@@ -75,11 +76,12 @@ landmark_< T >
 /// output stream operator for a landmark
 template < typename T >
 std::ostream&
-operator<<( std::ostream& s, const landmark_< T >& m )
+operator<<( std::ostream& s, landmark_< T > const& m )
 {
   // TODO include covariance once stream operators are defined
   s << m.get_loc() << " "
-    << m.get_scale();
+    << m.get_scale() << " "
+    << m.get_color();
   return s;
 }
 
@@ -92,11 +94,14 @@ operator>>( std::istream& s, landmark_< T >& m )
   // TODO include covariance once stream operators are defined
   Eigen::Matrix< T, 3, 1 > loc;
   T scale;
+  rgb_color color;
 
   s >> loc
-  >> scale;
+    >> scale
+    >> color;
   m.set_loc( loc );
   m.set_scale( scale );
+  m.set_color( color );
   return s;
 }
 
@@ -105,7 +110,7 @@ operator>>( std::istream& s, landmark_< T >& m )
 #define INSTANTIATE_LANDMARK( T )                     \
   template class VITAL_EXPORT landmark_< T >;         \
   template VITAL_EXPORT std::ostream&                     \
-  operator<<( std::ostream& s, const landmark_< T >& f ); \
+  operator<<( std::ostream& s, landmark_< T > const& f ); \
   template VITAL_EXPORT std::istream&                     \
   operator>>( std::istream& s, landmark_< T >& f )
 
