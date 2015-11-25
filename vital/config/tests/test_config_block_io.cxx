@@ -74,6 +74,7 @@ DECLARE_TEST_MAP();
 using namespace kwiver::vital;
 typedef kwiversys::SystemTools ST;
 
+// ------------------------------------------------------------------
 int
 main( int argc, char* argv[] )
 {
@@ -93,6 +94,7 @@ main( int argc, char* argv[] )
               << std::endl;                                             \
   }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( config_path_not_exist )
 {
   path_t fp( "/this/shouldnt/exist/anywhere" );
@@ -100,10 +102,11 @@ IMPLEMENT_TEST( config_path_not_exist )
   EXPECT_EXCEPTION(
     kwiver::vital::config_file_not_found_exception,
     kwiver::vital::read_config_file( fp ),
-    "calling config read with non-existant file"
+    "calling config read with non-existent file"
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( config_path_not_file )
 {
   path_t fp = ST::GetCurrentWorkingDirectory();
@@ -115,6 +118,7 @@ IMPLEMENT_TEST( config_path_not_file )
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( successful_config_read )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt" );
@@ -193,6 +197,7 @@ IMPLEMENT_TEST( successful_config_read )
 
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( successful_config_read_named_block )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt" );
@@ -239,6 +244,7 @@ IMPLEMENT_TEST( successful_config_read_named_block )
               "should be valid" );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( include_files )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-include-a.txt" );
@@ -267,6 +273,7 @@ IMPLEMENT_TEST( include_files )
               "on" );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( invalid_config_file )
 {
   EXPECT_EXCEPTION(
@@ -276,6 +283,7 @@ IMPLEMENT_TEST( invalid_config_file )
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( invalid_keypath )
 {
   EXPECT_EXCEPTION(
@@ -285,6 +293,7 @@ IMPLEMENT_TEST( invalid_keypath )
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( config_with_comments )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-comments.txt" );
@@ -309,6 +318,7 @@ IMPLEMENT_TEST( config_with_comments )
               "things and stuff" );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( write_config_simple_success )
 {
   using namespace kwiver;
@@ -414,6 +424,7 @@ IMPLEMENT_TEST( write_config_simple_success )
   }
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( invalid_directory_write )
 {
   using namespace kwiver;
@@ -426,6 +437,7 @@ IMPLEMENT_TEST( invalid_directory_write )
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( empty_config_write_failure )
 {
   using namespace kwiver;
