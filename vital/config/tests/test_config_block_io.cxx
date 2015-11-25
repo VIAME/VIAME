@@ -460,3 +460,57 @@ IMPLEMENT_TEST( empty_config_write_failure )
     cerr << "Test failed and output file created. Removing." << endl;
   }
 }
+
+// ------------------------------------------------------------------
+static
+std::string
+test_standard_paths( kwiver::vital::config_path_t const& data_dir )
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  char const pathSep = ';';
+#else
+  char const pathSep = ':';
+#endif
+
+  return data_dir + "/test_config-standard-dir-first" + pathSep +
+         data_dir + "/test_config-standard-dir-second";
+}
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( standard_config_read_without_merge )
+{
+  kwiversys::SystemTools::PutEnv(
+    "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
+
+  auto const config =
+    kwiver::vital::read_config_file( "test_config-standard.txt",
+                                     "vital", {}, {}, false );
+
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              1 );
+
+  TEST_EQUAL( "general:first param",
+              config->get_value< std::string > ( "general:first" ),
+              "foo" );
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( standard_config_read_with_merge )
+{
+  kwiversys::SystemTools::PutEnv(
+    "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
+
+  auto const config =
+    kwiver::vital::read_config_file( "test_config-standard.txt",
+                                     "vital", {}, {}, true );
+
+  TEST_EQUAL( "general:first param",
+              config->get_value< std::string > ( "general:first" ),
+              "foo" );
+
+  TEST_EQUAL( "general:second param",
+              config->get_value< std::string > ( "general:second" ),
+              "bar" );
+}
