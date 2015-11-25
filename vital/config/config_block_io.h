@@ -64,6 +64,46 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
 
 
 // ------------------------------------------------------------------
+/// Read in (a) configuration file(s), producing a \c config_block object
+/**
+ * This function reads one or more configuration files from platform specific
+ * standard locations and from locations specified by the \c VITAL_CONFIG_PATH
+ * environmental variable. \c VITAL_CONFIG_PATH is searched first, followed by
+ * the user-specific location(s), followed by the machine-wide location(s).
+ *
+ * \throws config_file_not_found_exception
+ *    Thrown when the no matching file could be found in the searched paths.
+ * \throws config_file_not_read_exception
+ *    Thrown when a file could not be read or parsed for whatever reason.
+ *
+ * \param file_name
+ *   The name to the file(s) to read in.
+ * \param application_name
+ *   The name to the file(s) to read in.
+ * \param application_version
+ *   The application version number, used to build the list of standard
+ *   locations to be searched.
+ * \param install_prefix
+ *   The prefix to which the application is installed (should be one directory
+ *   higher than the location of the executing binary).
+ * \param merge
+ *   If \c true, search all locations for matching config files, merging their
+ *   contents, with files earlier in the search order taking precedence. If
+ *   \c false, read only the first matching file.
+ *
+ * \return
+ *   A \c config_block object representing the contents of the read-in file.
+ */
+config_block_sptr
+VITAL_CONFIG_EXPORT read_config_file(
+  std::string const& file_name,
+  std::string const& application_name,
+  std::string const& application_version,
+  std::string const& install_prefix = {},
+  bool merge = true );
+
+
+// ------------------------------------------------------------------
 /// Output to file the given \c config_block object to the specified file path
 /**
  * This function writes the specified config block to the specified
