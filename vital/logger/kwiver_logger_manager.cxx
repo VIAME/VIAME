@@ -200,6 +200,16 @@ get_logger( std::string const& name )
 
 
 // ------------------------------------------------------------------
+VITAL_LOGGER_EXPORT
+void
+kwiver_logger_manager
+::set_logger_factory( logger_ns::kwiver_logger_factory* fact )
+{
+  m_impl->m_logFactory.reset( fact );
+}
+
+
+// ------------------------------------------------------------------
 std::string const&
 kwiver_logger_manager
 ::get_factory_name() const

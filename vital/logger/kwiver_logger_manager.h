@@ -40,7 +40,11 @@
 
 namespace kwiver {
 namespace vital {
+namespace logger_ns {
 
+  class kwiver_logger_factory;
+
+}
 
 // ----------------------------------------------------------------
 /** Logger manager.
@@ -67,6 +71,17 @@ public:
    * @return Name of logger factory.
    */
   std::string const&  get_factory_name() const;
+
+  /**
+   * @brief Establish a new logger factory.
+   *
+   * The specified logger factory object is installed as the current
+   * factory and the old factory is returned. This is useful for
+   * setting up loggers that are tightly coupled with the application.
+   *
+   * @param fact Pointer to new factory.
+   */
+  void set_logger_factory( logger_ns::kwiver_logger_factory* fact );
 
 private:
   friend VITAL_LOGGER_EXPORT logger_handle_t
