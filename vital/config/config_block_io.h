@@ -99,7 +99,7 @@ VITAL_CONFIG_EXPORT read_config_file(
   std::string const& file_name,
   std::string const& application_name,
   std::string const& application_version,
-  std::string const& install_prefix = {},
+  config_path_t const& install_prefix = {},
   bool merge = true );
 
 

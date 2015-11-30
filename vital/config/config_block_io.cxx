@@ -94,7 +94,7 @@ application_paths( std::vector< config_path_t > const& paths,
 std::vector< config_path_t >
 config_file_paths( std::string const& application_name,
                    std::string const& application_version,
-                   std::string const& install_prefix )
+                   config_path_t const& install_prefix )
 {
   // First, add any paths specified by our local environment variable
   auto paths = std::vector< config_path_t >{};
@@ -277,7 +277,7 @@ config_block_sptr
 read_config_file( std::string const& file_name,
                   std::string const& application_name,
                   std::string const& application_version,
-                  std::string const& install_prefix,
+                  config_path_t const& install_prefix,
                   bool merge )
 {
   auto result = config_block_sptr{};
