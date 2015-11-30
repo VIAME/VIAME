@@ -514,3 +514,24 @@ IMPLEMENT_TEST( standard_config_read_with_merge )
               config->get_value< std::string > ( "general:second" ),
               "bar" );
 }
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( standard_config_read_from_prefix )
+{
+  auto const config =
+    kwiver::vital::read_config_file( "test_config-standard.txt",
+                                     "vital", "test", data_dir );
+
+  TEST_EQUAL( "animal:dog param",
+              config->get_value< std::string > ( "animal:dog" ),
+              "woof" );
+
+  TEST_EQUAL( "animal:cat param",
+              config->get_value< std::string > ( "animal:cat" ),
+              "meow" );
+
+  TEST_EQUAL( "animal:pig param",
+              config->get_value< std::string > ( "animal:pig" ),
+              "oink" );
+}
