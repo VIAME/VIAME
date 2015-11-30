@@ -79,6 +79,7 @@ stabilize_image_process
   : process( config ),
     d( new stabilize_image_process::priv )
 {
+  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
   kwiver::vital::algorithm_plugin_manager::load_plugins_once();
   make_ports();
   make_config();
@@ -99,15 +100,13 @@ void stabilize_image_process
 
   // Check config so it will give run-time diagnostic of config problems
   algo::track_features::check_nested_algo_configuration( "track_features", algo_config );
+  algo::compute_ref_homography::check_nested_algo_configuration("homography_generator", algo_config );
 
   algo::track_features::set_nested_algo_configuration( "track_features", algo_config, d->m_feature_tracker );
   if ( ! d->m_feature_tracker )
   {
     throw sprokit::invalid_configuration_exception( name(), "Error configuring \"track_features\"" );
   }
-
-  // Check config so it will give run-time diagnostic of config problems
-  algo::compute_ref_homography::check_nested_algo_configuration("homography_generator", algo_config );
 
   algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator", algo_config, d->m_compute_homog );
   if ( ! d->m_compute_homog )

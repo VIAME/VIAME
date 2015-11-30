@@ -74,6 +74,10 @@ draw_tracks_process
   : process( config ),
     d( new draw_tracks_process::priv )
 {
+  // Attach our logger name to process logger
+  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
+  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
+
   make_ports();
   make_config();
 }
