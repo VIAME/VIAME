@@ -81,7 +81,7 @@ public:
    *
    * @param fact Pointer to new factory.
    */
-  void set_logger_factory( logger_ns::kwiver_logger_factory* fact );
+  void set_logger_factory( std::unique_ptr< logger_ns::kwiver_logger_factory >&& fact );
 
 private:
   friend VITAL_LOGGER_EXPORT logger_handle_t
