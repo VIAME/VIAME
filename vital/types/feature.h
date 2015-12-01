@@ -36,15 +36,16 @@
 #ifndef VITAL_FEATURE_H_
 #define VITAL_FEATURE_H_
 
+#include "color.h"
+#include "covariance.h"
+#include "vector.h"
+
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
 
 #include <iostream>
 #include <typeinfo>
 #include <memory>
-
-#include "covariance.h"
-#include "vector.h"
 
 namespace kwiver {
 namespace vital {
@@ -62,7 +63,7 @@ public:
   virtual ~feature() VITAL_DEFAULT_DTOR
 
   /// Access the type info of the underlying data (double or float)
-  virtual const std::type_info& data_type() const = 0;
+  virtual std::type_info const& data_type() const = 0;
 
   /// Accessor for the image coordinates
   virtual vector_2d loc() const = 0;
@@ -74,6 +75,8 @@ public:
   virtual double angle() const = 0;
   /// Accessor for the covariance
   virtual covariance_2d covar() const = 0;
+  /// Accessor for the RGB color
+  virtual rgb_color color() const = 0;
 };
 
 /// Shared pointer for base feature type
@@ -84,7 +87,7 @@ typedef std::shared_ptr< feature > feature_sptr;
  * \param s output stream
  * \param f feature to stream
  */
-VITAL_EXPORT std::ostream& operator<<( std::ostream& s, const feature& f );
+VITAL_EXPORT std::ostream& operator<<( std::ostream& s, feature const& f );
 
 
 // ------------------------------------------------------------------
@@ -101,20 +104,21 @@ public:
   feature_< T > ( );
 
   /// Constructor for a feature
-  feature_< T > ( const Eigen::Matrix< T, 2, 1 > &loc, T mag = 0.0,
-                  T scale = 1.0, T angle = 0.0 );
+  feature_< T > ( Eigen::Matrix< T, 2, 1 > const& loc, T mag = 0.0,
+                  T scale = 1.0, T angle = 0.0,
+                  rgb_color const& color = rgb_color());
 
   /// Constructor for a feature_ from a base class feature
-  explicit feature_< T > ( const feature &f );
+  explicit feature_< T > ( feature const& f );
 
   /// Access staticly available type of underlying data (double or float)
-  static const std::type_info& static_data_type() { return typeid( T ); }
+  static std::type_info const& static_data_type() { return typeid( T ); }
 
   /// Access the type info of the underlying data (double or float)
-  virtual const std::type_info& data_type() const { return typeid( T ); }
+  virtual std::type_info const& data_type() const { return typeid( T ); }
 
   /// Accessor for the image coordinates using underlying data type
-  const Eigen::Matrix< T, 2, 1 >& get_loc() const { return loc_; }
+  Eigen::Matrix< T, 2, 1 > const& get_loc() const { return loc_; }
 
   /// Accessor for the image coordinates
   virtual vector_2d loc() const { return loc_.template cast< double > (); }
@@ -138,14 +142,20 @@ public:
   virtual double angle() const { return static_cast< double > ( angle_ ); }
 
   /// Accessor for the covariance using underlying data type
-  const covariance_< 2, T >& get_covar() const { return covar_; }
+  covariance_< 2, T > const& get_covar() const { return covar_; }
 
   /// Accessor for the covariance
   virtual covariance_2d covar() const { return static_cast< covariance_2d > ( covar_ ); }
 
+  /// Accessor for a const reference to the RGB color
+  virtual rgb_color const& get_color() const { return color_; }
+
+  /// Accessor for the RGB color
+  virtual rgb_color color() const { return color_; }
+
 
   /// Set the feature position in image space
-  void set_loc( const Eigen::Matrix< T, 2, 1 >& loc ) { loc_ = loc; }
+  void set_loc( Eigen::Matrix< T, 2, 1 > const& loc ) { loc_ = loc; }
 
   /// Set the magnitude of the feature response
   void set_magnitude( T magnitude ) { magnitude_ = magnitude; }
@@ -157,7 +167,10 @@ public:
   void set_angle( T angle ) { angle_ = angle; }
 
   /// Set the covariance matrix of the feature
-  void set_covar( const covariance_< 2, T >& covar ) { covar_ = covar; }
+  void set_covar( covariance_< 2, T > const& covar ) { covar_ = covar; }
+
+  // Set the RGB color of the landmark
+  void set_color( rgb_color const& color ) { color_ = color; }
 
 
 protected:
@@ -171,6 +184,8 @@ protected:
   T angle_;
   /// covariance matrix of feature
   covariance_< 2, T > covar_;
+  /// RGB color of feature
+  rgb_color color_;
 };
 
 
@@ -182,7 +197,7 @@ typedef feature_< float > feature_f;
 
 /// output stream operator for a feature
 template < typename T >
-VITAL_EXPORT std::ostream& operator<<( std::ostream& s, const feature_< T >& f );
+VITAL_EXPORT std::ostream& operator<<( std::ostream& s, feature_< T > const& f );
 
 /// input stream operator for a feature
 template < typename T >

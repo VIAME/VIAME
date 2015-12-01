@@ -37,13 +37,15 @@
 
 #include "landmark_map_io.h"
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
-
 #include <vital/exceptions.h>
 #include <vital/vital_foreach.h>
 #include <kwiversys/SystemTools.hxx>
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
@@ -91,6 +93,9 @@ write_ply_file( landmark_map_sptr const&  landmarks,
                                                      "property float x\n"
                                                      "property float y\n"
                                                      "property float z\n"
+                                                     "property uchar red\n"
+                                                     "property uchar green\n"
+                                                     "property uchar blue\n"
                                                      "property uint track_id\n"
                                                      "end_header\n";
 
@@ -99,12 +104,31 @@ write_ply_file( landmark_map_sptr const&  landmarks,
   VITAL_FOREACH( lm_map_val_t const& p, lm_map )
   {
     vector_3d loc = p.second->loc();
+    rgb_color color = p.second->color();
 
+    // the '+' prefix on the color values causes them to be printed
+    // as decimal numbers instead of ASCII characters
     ofile << loc.x() << " " << loc.y() << " " << loc.z()
+          << " " << +color.r << " " << +color.g << " " << +color.b
           << " " << p.first << "\n";
   }
   ofile.close();
 } // write_ply_file
+
+
+namespace {
+
+/// Split a string into tokens delimited by whitespace
+std::vector<std::string>
+get_tokens(std::string const& line)
+{
+  std::istringstream iss( line );
+  std::vector<std::string> tokens((std::istream_iterator<std::string>(iss)),
+                                  std::istream_iterator<std::string>());
+  return tokens;
+}
+
+} // end anonymous namespace
 
 
 /// Load a given \c landmark_map object from the specified PLY file path
@@ -126,28 +150,123 @@ read_ply_file( path_t const& file_path )
     throw file_not_read_exception( file_path, "Cannot read file." );
   }
 
+  // enumeration of the vertex properties we can handle
+  enum vertex_property_t {INVALID, VX, VY, VZ, CR, CG, CB, INDEX};
+  // mapping between PLY vertex property names and our enum
+  std::map<std::string, vertex_property_t> prop_map;
+  prop_map["x"] = VX;
+  prop_map["y"] = VY;
+  prop_map["z"] = VZ;
+  prop_map["red"] = CR;
+  prop_map["diffuse_red"] = CR;
+  prop_map["green"] = CG;
+  prop_map["diffuse_green"] = CG;
+  prop_map["blue"] = CB;
+  prop_map["diffuse_blue"] = CB;
+  prop_map["track_id"] = INDEX;
+
   bool parsed_header = false;
+  bool parsing_vertex_props = false;
+  std::vector<vertex_property_t> vert_props;
   std::string line;
 
+  unsigned int num_verts = 0, vert_count = 0;
   while ( std::getline( ifile, line ) )
   {
-    if ( ! parsed_header || line.empty() )
+    std::vector<std::string> tokens = get_tokens(line);
+    if ( line.empty() || tokens.empty() )
+    {
+      continue;
+    }
+    if ( ! parsed_header )
     {
       if ( line == "end_header" )
       {
         parsed_header = true;
+        // TODO check that provided properties are meaningful
+        // (e.g. has X, Y, and Z; has R, G, and B or no color, etc.)
+        continue;
       }
+
+      if ( tokens.size() == 3 &&
+           tokens[0] == "element" &&
+           tokens[1] == "vertex" )
+      {
+        std::istringstream iss(tokens[2]);
+        iss >> num_verts;
+        parsing_vertex_props = true;
+      }
+      else if ( tokens[0] == "element" )
+      {
+        parsing_vertex_props = false;
+      }
+
+      if ( parsing_vertex_props )
+      {
+        if ( tokens.size() == 3 && tokens[0] == "property" )
+        {
+          // map property names into enum values if supported
+          std::string name = tokens[2];
+          std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+          vertex_property_t prop = INVALID;
+          const auto p = prop_map.find(name);
+          if ( p != prop_map.end() )
+          {
+            prop = p->second;
+          }
+          vert_props.push_back(prop);
+        }
+      }
+
       continue;
     }
 
-    std::istringstream iss( line );
+    // TODO throw exceptions if tokens.size() != vert_props.size()
+    // or if the values do not parse as expected
+    double x=0, y=0, z=0;
+    rgb_color color;
+    landmark_id_t id = static_cast<landmark_id_t>(vert_count++);
+    for( unsigned int i=0; i<tokens.size() && i < vert_props.size(); ++i )
+    {
+      std::istringstream iss(tokens[i]);
+      switch( vert_props[i] )
+      {
+        case VX:
+          iss >> x;
+          break;
+        case VY:
+          iss >> y;
+          break;
+        case VZ:
+          iss >> z;
+          break;
+        case CR:
+          iss >> color.r;
+          break;
+        case CG:
+          iss >> color.g;
+          break;
+        case CB:
+          iss >> color.b;
+          break;
+        case INDEX:
+          iss >> id;
+          break;
+        default:
+          break;
+      }
+    }
 
-    double x, y, z;
-    landmark_id_t id;
+    std::shared_ptr<landmark_d> lm =
+        std::make_shared<landmark_d>( vector_3d( x, y, z ) );
+    lm->set_color( color );
+    landmarks[id] = lm;
 
-    iss >> x >> y >> z >> id;
-
-    landmarks[id] = landmark_sptr( new landmark_d( vector_3d( x, y, z ) ) );
+    // exit if we have read the expected number of points
+    if ( vert_count > num_verts )
+    {
+      break;
+    }
   }
 
   ifile.close();

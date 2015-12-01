@@ -14,6 +14,7 @@ install(
         "${utils_dir}/vital-flags.cmake"
         "${utils_dir}/vital-flags-gnu.cmake"
         "${utils_dir}/vital-flags-msvc.cmake"
+        "${utils_dir}/vital-flags-clang.cmake"
   DESTINATION "${kwiver_cmake_install_dir}"
   )
 

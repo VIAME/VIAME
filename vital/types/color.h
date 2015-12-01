@@ -28,75 +28,63 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _VITAL_TYPES_TIMESTAMP_CONFIG_H
-#define _VITAL_TYPES_TIMESTAMP_CONFIG_H
+/**
+ * \file
+ * \brief Structs for representing color
+ */
 
-#include <vital/types/timestamp.h>
-#include <vital/config/config_block.h>
+#ifndef VITAL_COLOR_H_
+#define VITAL_COLOR_H_
 
-#include <sstream>
+
+#include <iostream>
+
 
 namespace kwiver {
 namespace vital {
 
-/**
- * @brief Convert string to timestamp for config block.
- *
- * This function is a specialization of the config type converter. It
- * converts a string to a native timestamp object.
- *
- * This is primarily used to supply *default* behaviour for a
- * timestamp when getting data from the confiug.
- *
- * @param value String representation of timestamp.
- *
- * @return Native timestamp.
- */
-template<>
-inline
-timestamp
-config_block_get_value_cast( config_block_value_t const& value )
+/// Struct to represent an RGB tuple
+struct rgb_color
 {
-  timestamp obj;
+  /// Default constructor - set the color to white
+  rgb_color() : r(255), g(255), b(255) {}
 
-  std::stringstream str; // add string to stream
-  str << value;
+  /// Constructor
+  rgb_color(unsigned char cr,
+            unsigned char cg,
+            unsigned char cb)
+    : r(cr), g(cg), b(cb) {}
 
-  timestamp::time_t t;
-  str >> t;
-  obj.set_time_usec( t );
+  unsigned char r;
+  unsigned char g;
+  unsigned char b;
+};
 
-  timestamp::frame_t f;
-  str >> f;
-  obj.set_frame( f );
 
-  return obj;
+/// output stream operator for an rgb_color
+inline
+std::ostream&
+operator<<( std::ostream& s, const rgb_color& c )
+{
+  // Note the '+' prefix here is used to print characters
+  // as decimal number, not ASCII characters
+  s << +c.r << " " << +c.g << " " << +c.b;
+  return s;
 }
 
 
-/**
- * @brief Convert timestamp to string for config block.
- *
- * This function is a specialization of the config type converter. It
- * converts a timestamp to a string representation for use in a config
- * block.
- *
- * @param value Timestamp to be converted to a string.
- *
- * @return String representation of timestamp.
- */
-template<>
+/// input stream operator for an rgb_color
 inline
-config_block_value_t
-config_block_set_value_cast( timestamp const& value )
+std::istream&
+operator>>( std::istream& s, rgb_color& c )
 {
-  std::stringstream str;
-
-  str << value.get_time_usec() << " " << value.get_frame();
-
-  return str.str();
+  s >> c.r >> c.g >> c.b;
+  return s;
 }
 
-} } // end namespace
 
-#endif /* _VITAL_TYPES_TIMESTAMP_CONFIG_H */
+
+
+} } // end namespace vital
+
+#endif // VITAL_COLOR_H_
