@@ -339,29 +339,6 @@ vital_config_block_t* vital_config_block_file_read( char const *filepath,
                                                     vital_error_handle_t *eh );
 
 
-/// Read in a configuration file, producing a named config_block object
-/**
- * This may fail if the given filepath is not found, could not be read, or some
- * other filesystem error. In such a case, a NULL pointer is returned and the
- * given error handle, if non-null, will be given an error code and message.
- *
- * Error Codes:
- *  (0) Successful read
- *  (1) File whose path was given could not be found.
- *  (2) File whose path was given could not be read.
- *  (3) File whose path was given could not be parsed.
- *  (-1) Some other exception occurred
- *
- * \param filepath   The path to the file to read in.
- * \param blockname  A name to give to the generated config_block.
- * \return A object representing the contents of the read-in file.
- */
-VITAL_C_EXPORT
-vital_config_block_t* vital_config_block_file_read_with_name( char const *filepath,
-                                                              char const *blockname,
-                                                              vital_error_handle_t *eh );
-
-
 /// Output to file the given \c config_block object to the specified file path
 /**
  * If a file exists at the target location, it will be overwritten. If the

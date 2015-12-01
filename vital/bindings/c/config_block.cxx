@@ -426,45 +426,6 @@ vital_config_block_file_read( char const*           filepath,
 }
 
 
-/// Read in a configuration file, producing a named config_block object
-vital_config_block_t*
-vital_config_block_file_read_with_name( char const*           filepath,
-                                        char const*           blockname,
-                                        vital_error_handle_t* eh )
-{
-  STANDARD_CATCH(
-    "C::config_block::file_read_with_name", eh,
-    try
-    {
-      kwiver::vital::config_block_sptr c = kwiver::vital::read_config_file( filepath,
-                                                                            blockname );
-      kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.store( c );
-      return reinterpret_cast< vital_config_block_t* > ( c.get() );
-    }
-    catch ( kwiver::vital::config_file_not_found_exception const& e )
-    {
-      eh->error_code = 1;
-      eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-      strcpy( eh->message, e.what() );
-    }
-    catch ( kwiver::vital::config_file_not_read_exception const& e )
-    {
-      eh->error_code = 2;
-      eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-      strcpy( eh->message, e.what() );
-    }
-    catch ( kwiver::vital::config_file_not_parsed_exception const& e )
-    {
-      eh->error_code = 3;
-      eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-      strcpy( eh->message, e.what() );
-    }
-
-                );
-  return 0;
-}
-
-
 /// Output to file the given \c config_block object to the specified file path
 void
 vital_config_block_file_write( vital_config_block_t*  cb,
