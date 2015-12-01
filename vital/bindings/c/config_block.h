@@ -339,6 +339,49 @@ vital_config_block_t* vital_config_block_file_read( char const *filepath,
                                                     vital_error_handle_t *eh );
 
 
+/// Read in a configuration file from standard locations, producing a config_block object
+/**
+ * This may fail if the given name is not found in any of the standard
+ * directories, or if an error occurs while trying to read one of the located
+ * files. In such a case, a NULL pointer is returned and the given error
+ * handle, if non-null, will be given an error code and message.
+ *
+ * Error Codes:
+ *  (0) Successful read
+ *  (1) No matching file was found.
+ *  (2) A matching file could not be read.
+ *  (3) A matching file could not be parsed.
+ *  (-1) Some other exception occurred
+ *
+ * \param name
+ *   The name to the file(s) to read in.
+ * \param application_name
+ *   The application name, used to build the list of standard locations to be
+ *   searched.
+ * \param application_version
+ *   The application version number, used to build the list of standard
+ *   locations to be searched. Pass \c NULL to skip versioned paths.
+ * \param install_prefix
+ *   The prefix to which the application is installed (should be one directory
+ *   higher than the location of the executing binary). Pass \c NULL to skip
+ *   searching a non-standard prefix.
+ * \param merge
+ *   If \c true, search all locations for matching config files, merging their
+ *   contents, with files earlier in the search order taking precedence. If
+ *   \c false, read only the first matching file.
+ *
+ * \return A object representing the contents of the read-in file.
+ */
+VITAL_C_EXPORT
+vital_config_block_t* vital_config_block_file_read_from_standard_location(
+  char const*           name,
+  char const*           application_name,
+  char const*           application_version,
+  char const*           install_prefix,
+  bool                  merge,
+  vital_error_handle_t* eh );
+
+
 /// Output to file the given \c config_block object to the specified file path
 /**
  * If a file exists at the target location, it will be overwritten. If the

@@ -389,6 +389,44 @@ vital_config_block_available_values( vital_config_block_t*  cb,
 }
 
 
+namespace {
+
+// Helper to read a config_block from a file
+template <typename... Args>
+vital_config_block_t*
+read_config_file_helper( vital_error_handle_t* eh, Args... args )
+{
+  try
+  {
+    auto c = kwiver::vital::read_config_file( args... );
+    kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.store( c );
+    return reinterpret_cast< vital_config_block_t* > ( c.get() );
+  }
+  catch ( kwiver::vital::config_file_not_found_exception const& e )
+  {
+    eh->error_code = 1;
+    eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
+    strcpy( eh->message, e.what() );
+  }
+  catch ( kwiver::vital::config_file_not_read_exception const& e )
+  {
+    eh->error_code = 2;
+    eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
+    strcpy( eh->message, e.what() );
+  }
+  catch ( kwiver::vital::config_file_not_parsed_exception const& e )
+  {
+    eh->error_code = 3;
+    eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
+    strcpy( eh->message, e.what() );
+  }
+
+  return 0;
+}
+
+}
+
+
 /// Read in a configuration file, producing a config_block object
 vital_config_block_t*
 vital_config_block_file_read( char const*           filepath,
@@ -396,31 +434,30 @@ vital_config_block_file_read( char const*           filepath,
 {
   STANDARD_CATCH(
     "C::config_block::file_read", eh,
-    try
-    {
-      kwiver::vital::config_block_sptr c = kwiver::vital::read_config_file( filepath );
-      kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.store( c );
-      return reinterpret_cast< vital_config_block_t* > ( c.get() );
-    }
-    catch ( kwiver::vital::config_file_not_found_exception const& e )
-    {
-      eh->error_code = 1;
-      eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-      strcpy( eh->message, e.what() );
-    }
-    catch ( kwiver::vital::config_file_not_read_exception const& e )
-    {
-      eh->error_code = 2;
-      eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-      strcpy( eh->message, e.what() );
-    }
-    catch ( kwiver::vital::config_file_not_parsed_exception const& e )
-    {
-      eh->error_code = 3;
-      eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-      strcpy( eh->message, e.what() );
-    }
+    return read_config_file_helper( eh, filepath );
+                );
+  return 0;
+}
 
+
+/// Read in a configuration file, producing a named config_block object
+vital_config_block_t*
+vital_config_block_file_read_from_standard_location(
+  char const*           name,
+  char const*           application_name,
+  char const*           application_version,
+  char const*           install_prefix,
+  bool                  merge,
+  vital_error_handle_t* eh )
+{
+  STANDARD_CATCH(
+    "C::config_block::file_read_first_from_standard_location", eh,
+    return read_config_file_helper( eh,
+                                    name,
+                                    MAYBE_EMPTY_STRING( application_name ),
+                                    MAYBE_EMPTY_STRING( application_version ),
+                                    MAYBE_EMPTY_STRING( install_prefix ),
+                                    merge );
                 );
   return 0;
 }
