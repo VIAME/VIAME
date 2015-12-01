@@ -79,7 +79,8 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
  * \param file_name
  *   The name to the file(s) to read in.
  * \param application_name
- *   The name to the file(s) to read in.
+ *   The application name, used to build the list of standard locations to be
+ *   searched.
  * \param application_version
  *   The application version number, used to build the list of standard
  *   locations to be searched.
