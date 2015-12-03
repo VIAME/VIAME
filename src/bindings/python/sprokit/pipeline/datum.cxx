@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@
 
 #include <limits>
 #include <string>
+#include <cstdint>
 
 /**
  * \file datum.cxx
@@ -59,9 +60,17 @@ static sprokit::datum_t new_datum(object const& obj);
 static sprokit::datum::type_t datum_type(sprokit::datum_t const& self);
 static sprokit::datum::error_t datum_get_error(sprokit::datum_t const& self);
 static object datum_get_datum(sprokit::datum_t const& self);
+static std::string datum_datum_type(sprokit::datum_t const& self);
+
+static PyObject* datum_get_datum_ptr(sprokit::datum_t& self);
+static sprokit::datum_t datum_from_capsule( PyObject* cap );
+
+char const* sprokit_datum_PyCapsule_name() { return  "sprokit::datum"; }
+
 
 BOOST_PYTHON_MODULE(datum)
 {
+
   enum_<sprokit::datum::type_t>("DatumType"
     , "A type for a datum packet.")
     .value("invalid", sprokit::datum::invalid)
@@ -75,9 +84,13 @@ BOOST_PYTHON_MODULE(datum)
   class_<sprokit::datum::error_t>("DatumError"
     , "The type of an error message.");
 
+  // constructors
   def("new", &new_datum
     , (arg("dat"))
     , "Creates a new datum packet.");
+  def("datum_from_capsule", &datum_from_capsule
+      , (arg("dptr"))
+      , "Converts datum* in capsule to datum_t");
   def("empty", &sprokit::datum::empty_datum
     , "Creates an empty datum packet.");
   def("flush", &sprokit::datum::flush_datum
@@ -88,15 +101,20 @@ BOOST_PYTHON_MODULE(datum)
     , (arg("err"))
     , "Creates an error datum packet.");
 
+  // Methods on datum
   class_<sprokit::datum_t>("Datum"
     , "A packet of data within the pipeline."
     , no_init)
     .def("type", &datum_type
       , "The type of the datum packet.")
+    .def("datum_type", &datum_datum_type
+      , "The type of the data in the packet")
     .def("get_error", &datum_get_error
       , "The error contained within the datum packet.")
     .def("get_datum", &datum_get_datum
       , "Get the data contained within the packet.")
+    .def("get_datum_ptr", &datum_get_datum_ptr
+      , "Get pointer to datum object as a PyCapsule.")
   ;
 
   sprokit::python::register_type<std::string>(0);
@@ -110,8 +128,10 @@ BOOST_PYTHON_MODULE(datum)
 
   implicitly_convertible<boost::any, object>();
   implicitly_convertible<object, boost::any>();
-}
+} // end module
 
+
+// ------------------------------------------------------------------
 sprokit::datum_t
 new_datum(object const& obj)
 {
@@ -119,7 +139,7 @@ new_datum(object const& obj)
 
   (void)gil;
 
-  boost::any const any = extract<boost::any>(obj)();
+  boost::any const any = boost::python::extract<boost::any>(obj)();
 
   return sprokit::datum::new_datum(any);
 }
@@ -146,4 +166,59 @@ datum_get_datum(sprokit::datum_t const& self)
   boost::any const any = self->get_datum<boost::any>();
 
   return object(any);
+}
+
+std::string
+datum_datum_type(sprokit::datum_t const& self)
+{
+  boost::any const any = self->get_datum<boost::any>();
+
+  return any.type().name();
+}
+
+// ------------------------------------------------------------------
+// Bridge regular python to boost::python
+
+/**
+ * \brief Get address of datum object.
+ *
+ * This function returns the address of the datum object managed by
+ * the datum_t sptr.
+ *
+ * Caller holds the datum_t while we are returning the address of the
+ * datum.  The customer then extracts the data contained in the datum.
+ * After this the datum is then expendable.
+ *
+ * \param self Reference to datum_t (sptr)
+ *
+ * \return Address of real datum object.
+ */
+PyObject*
+datum_get_datum_ptr(sprokit::datum_t& self)
+{
+  return PyCapsule_New( const_cast< sprokit::datum* >(self.get()), "sprokit::datum", NULL );
+}
+
+
+/**
+ * \brief Convert PyCapsule to datum_t sptr.
+ *
+ * This function converts the PyCapsule containing the address of a
+ * datum object into a datum_t sptr that is managing that object.
+ *
+ * \param cap Pointer to PyCapsule that contains address of datum object.
+ *
+ * \return datun_t sptr that manages supplied datum object.
+ */
+sprokit::datum_t
+datum_from_capsule( PyObject* cap )
+{
+  // cap is pointer to datum
+  if (PyCapsule_IsValid( cap, "sprokit::datum" ))
+  {
+    sprokit::datum* dptr = static_cast<sprokit::datum*>( PyCapsule_GetPointer( cap, "sprokit::datum" ) );
+    return sprokit::datum_t(dptr);
+  }
+
+  return sprokit::datum::error_datum( "Invalid PyCapsule" );
 }
