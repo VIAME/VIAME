@@ -556,9 +556,11 @@ cluster_grammar<Iterator>
   , cluster_block()
   , cluster_block_set()
 {
-#if 0
-  // This is not ideal, but leaving this code in causes a compiler error.
-  // Only a short term solution until we get a better compiler
+
+#if NDEBUG                           //+ TEMP
+  // This is not ideal, but leaving this code in when building for
+  // debug causes a compiler error.  Only a short term solution until
+  // we get a better compiler
   description_decl.name("description-decl");
   description_decl %=
      (  qi::lit(description_token)
