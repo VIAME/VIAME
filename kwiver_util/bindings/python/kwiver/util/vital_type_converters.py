@@ -53,7 +53,7 @@ def _find_converter_lib():
     # or similar to locate library.
     global __VITAL_CONVERTERS_LIB__
     if not __VITAL_CONVERTERS_LIB__:
-        lib_path = find_library_path("vital_type_converters")
+        lib_path = find_library_path("vital_type_converter")
         if not lib_path:
             raise RuntimeError( "Unable to locate 'vital_type_converters' support library")
 
@@ -65,20 +65,38 @@ def _find_converter_lib():
 
 
 
-def _convert_image_container_sptr(datum_ptr):
+def _convert_image_container_handle_in(datum_ptr):
     """
-    Convert datum to image_container opaque handle.
+    Convert datum as PyCapsule to image_container opaque handle.
     """
     _VCL = _find_converter_lib()
+    # Convert from datum to opaque handle
     func = _VCL.vital_image_container_from_datum
     func.argtypes = [ ctypes.py_object ]
     func.restype = ImageContainer.C_TYPE_PTR
     return func(datum_ptr)
 
 
-def _convert_track_set_sptr(datum_ptr):
+def _convert_image_container_handle_out(handle):
+    """
+    Convert datum as PyCapsule from image_container opaque handle.
+    """
+    _VCL = _find_converter_lib()
+    # convert opaque handle to datum (as PyCapsule)
+    func =  _VCL.vital_image_container_to_datum
+    func.argtypes = [ ImageContainer.C_TYPE_PTR ]
+    func.restype = ctypes.py_object
+    retval = func(handle)
+    return retval
+
+
+# ------------------------------------------------------------------
+def _convert_track_set_handle(datum_ptr):
     """
     Convert datum to track set.
+
+    Note: not tested so code is surely wrong. See above for
+    template code.
     """
     func = _find_converter_lib().vital_trackset_from_datum
     func.argtypes = [ ctypes.py_object ]

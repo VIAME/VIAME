@@ -37,17 +37,26 @@ more python friendly types.
 
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
-
 #include <vital/logger/logger.h>
+
+#include <vital/bindings/c/image_container.hxx>
+
+#include <sprokit/pipeline/datum.h>
 
 #include <boost/any.hpp>
 
-static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital_type_converters" ) );
-
+static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital.type_converters" ) );
 
 // ------------------------------------------------------------------
 /**
  * @brief Convert datum to image container handle
+ *
+ * The item held in the datum is extracted and registered as an image
+ * container.
+ *
+ * The PyCapsule contains a raw pointer to the datum. The datum_t
+ * (sptr to datum) is held by the caller while we extract its contents
+ * (an sptr). After this, the datum can be deleted.
  *
  * @param args PyCapsule object
  *
@@ -55,7 +64,7 @@ static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital_
  */
 vital_image_container_t* vital_image_container_from_datum( PyObject* args )
 {
-  // Get capsule from args - or arg may be the capsule
+  // arg is the capsule
   sprokit::datum* dptr = (sprokit::datum*) PyCapsule_GetPointer( args, "sprokit::datum" );
 
   try
@@ -67,7 +76,7 @@ vital_image_container_t* vital_image_container_from_datum( PyObject* args )
     kwiver::vital::image_container_sptr sptr = boost::any_cast< kwiver::vital::image_container_sptr >(any);
 
     // Register this object with the main image_container interface
-    vital_image_container_t* ptr =  vital_image_container_from_sptr( reinterpret_cast< void* >(&sptr) );
+    vital_image_container_t* ptr =  vital_image_container_from_sptr( sptr );
     return ptr;
   }
   catch (boost::bad_any_cast const& e)
@@ -79,6 +88,54 @@ vital_image_container_t* vital_image_container_from_datum( PyObject* args )
   }
 
   return NULL;
+}
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Convert image container handle to PyCapsule
+ *
+ * @param handle Opaque handle to image container
+ *
+ * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ */
+PyObject* vital_image_container_to_datum( vital_image_container_t* handle )
+{
+  // Get sptr from handle. Use sptr cache access interface
+  kwiver::vital::image_container_sptr sptr = vital_image_container_to_sptr( handle );
+
+  if ( ! sptr )
+  {
+    // Could not find sptr for supplied handle.
+    Py_RETURN_NONE;
+  }
+
+  // Create a new datum that contains the sptr. We don't want an sptr
+  // to a datum (datum_t), just a datum. That's why there's all this
+  // foolin' around.
+
+  sprokit::datum_t dsp = sprokit::datum::new_datum( sptr );
+
+  // get a copy of the datum from datum_t that is not controlled by sptr
+  sprokit::datum* datum = new sprokit::datum( *dsp.get() );
+
+  // Return address of datum through PyCapsule object.
+  // The caller now owns the datum.
+  LOG_INFO( logger, "XXXXXX Datum address: " << datum ); //+ TEMP
+
+  PyObject* cap = PyCapsule_New( const_cast< sprokit::datum* >(datum), "sprokit::datum", NULL );
+
+  std::cout << "##### capsule name: " << PyCapsule_GetName( cap ) << std::endl;
+  if (PyCapsule_IsValid( cap, "sprokit::datum" ))
+  {
+    std::cout << "### cap is valid\n";
+  }
+  else
+  {
+    std::cout << "### cap is NOT valid\n";
+  }
+
+  return cap;
 }
 
 

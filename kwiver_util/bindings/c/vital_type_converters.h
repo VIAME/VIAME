@@ -38,10 +38,8 @@
 #include <kwiver_util/bindings/c/vital_type_converters_export.h>
 
 #include <vital/bindings/c/image_container.h>
-#include <vital/bindings/c/image.h>
 #include <vital/bindings/c/track_set.h>
 
-#include <sprokit/pipeline/datum.h>
 #include <Python.h>
 
 #ifdef __cplusplus
@@ -53,7 +51,12 @@ VITAL_TYPE_CONVERTERS_EXPORT
 vital_image_container_t* vital_image_container_from_datum( PyObject* args );
 
 VITAL_TYPE_CONVERTERS_EXPORT
-vital_trackset_t* vital_trackset_from_datum( sprokit::datum* dptr );
+PyObject* vital_image_container_to_datum( vital_image_container_t* handle );
+
+VITAL_TYPE_CONVERTERS_EXPORT
+vital_trackset_t* vital_trackset_from_datum( PyObject* dptr );
+
+  // others
 
 #ifdef __cplusplus
 }
