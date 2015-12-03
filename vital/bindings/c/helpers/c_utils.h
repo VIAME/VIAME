@@ -116,6 +116,17 @@ static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "c_ut
     } while( 0 )
 
 
+/// Wrap an optional string parameter.
+/**
+ * This converts a potentially null character array pointer ("string") to an
+ * empty string literal (if it is null) or itself (otherwise). This is meant to
+ * wrap <code>char const*</code> arguments that will be passed to C++ functions
+ * taking \c std::string, as the latter does not allow construction from a null
+ * pointer.
+ */
+#define MAYBE_EMPTY_STRING(s) (s?s:"")
+
+
 namespace kwiver {
 namespace vital_c {
 

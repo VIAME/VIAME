@@ -1,0 +1,2 @@
+animal:dog = bark
+animal:cat = meow

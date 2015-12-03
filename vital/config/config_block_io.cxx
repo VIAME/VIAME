@@ -52,6 +52,131 @@ namespace vital {
 
 namespace {
 
+#if defined(_WIN32)
+// ------------------------------------------------------------------
+// Helper method to add known special paths to a path list
+void add_windows_path( std::vector< config_path_t >& paths, int which )
+{
+  char buffer[MAX_PATH];
+  if ( SHGetSpecialFolderPath ( 0, which, 0, 0, buffer ) )
+  {
+    auto path = config_path_t{ buffer };
+    kwiversys::SystemTools::ConvertToUnixSlashes( path );
+    paths.push_back( path );
+  }
+}
+#endif
+
+// ------------------------------------------------------------------
+// Helper method to get application specific paths from generic paths
+std::vector< config_path_t >
+application_paths( std::vector< config_path_t > const& paths,
+                   std::string const& application_name,
+                   std::string const& application_version )
+{
+  auto result = std::vector< config_path_t >{};
+  VITAL_FOREACH ( auto const& path, paths )
+  {
+    auto const& app_path = path + "/" + application_name;
+
+    if ( ! application_version.empty() )
+    {
+      result.push_back( app_path + "/" + application_version );
+    }
+    result.push_back( app_path );
+  }
+
+  return result;
+}
+
+// ------------------------------------------------------------------
+// Helper method to get all possible locations of application config files
+std::vector< config_path_t >
+config_file_paths( std::string const& application_name,
+                   std::string const& application_version,
+                   config_path_t const& install_prefix )
+{
+  // First, add any paths specified by our local environment variable
+  auto paths = std::vector< config_path_t >{};
+  kwiversys::SystemTools::GetPath( paths, "KWIVER_CONFIG_PATH" );
+
+  // Now add platform specific directories
+  auto data_paths = std::vector< config_path_t >{};
+
+#if defined(_WIN32)
+
+  // Add the application data directories
+  add_windows_path( data_paths, CSIDL_LOCAL_APPDATA );
+  add_windows_path( data_paths, CSIDL_APPDATA );
+  add_windows_path( data_paths, CSIDL_COMMON_APPDATA );
+
+#else
+
+  auto const home = kwiversys::SystemTools::GetEnv( "HOME" );
+
+# if defined(__APPLE__)
+  if ( home && *home )
+  {
+    data_paths.push_back(
+      config_path_t( home ) + "/Library/Application Support" );
+  }
+  data_paths.push_back( "/Library/Application Support" );
+# endif
+
+  // Get the list of configuration data paths
+  auto config_paths = std::vector< config_path_t >{};
+  kwiversys::SystemTools::GetPath( config_paths, "XDG_CONFIG_HOME" );
+  if ( home && *home )
+  {
+    config_paths.push_back( config_path_t( home ) + "/.config" );
+  }
+  config_paths.push_back( "/etc/xdg" );
+  config_paths.push_back( "/etc" );
+
+  // Add application information to config paths and append to paths
+  config_paths = application_paths(
+                   config_paths, application_name, application_version );
+  paths.insert( paths.end(), config_paths.begin(), config_paths.end() );
+
+  // Get the list of application data paths
+  data_paths.push_back( "/usr/local/share" );
+  data_paths.push_back( "/usr/share" );
+
+#endif
+
+  // Add install-local data path if install prefix is not a standard prefix
+  auto const nonstandard_prefix =
+    !install_prefix.empty() &&
+    install_prefix != "/usr" &&
+    install_prefix != "/usr/local";
+  if ( nonstandard_prefix )
+  {
+    data_paths.push_back( install_prefix + "/share" );
+  }
+
+  // Turn the generic FHS data paths into application data paths...
+  data_paths = application_paths(
+                 data_paths, application_name, application_version );
+
+  // ...then into config paths and add to final list
+  VITAL_FOREACH ( auto const& path, data_paths )
+  {
+    paths.push_back( path + "/config" );
+  }
+
+  // Add install-local config paths if install prefix is not a standard prefix
+  if ( nonstandard_prefix )
+  {
+    paths.push_back( install_prefix + "/share/config" );
+    paths.push_back( install_prefix + "/config" );
+#if defined(__APPLE__)
+    paths.push_back( install_prefix + "/Resources/config" );
+#endif
+  }
+
+  return paths;
+}
+
 // ------------------------------------------------------------------
 // Helper method to write out a comment to a configuration file ostream
 /**
@@ -128,8 +253,7 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
 
 // ------------------------------------------------------------------
 config_block_sptr
-read_config_file( config_path_t const&      file_path,
-                  config_block_key_t const& block_name )
+read_config_file( config_path_t const& file_path )
 {
   // Check that file exists
   if ( ! kwiversys::SystemTools::FileExists( file_path ) )
@@ -145,6 +269,57 @@ read_config_file( config_path_t const&      file_path,
   kwiver::vital::config_parser the_parser( file_path );
   the_parser.parse_config();
   return the_parser.get_config();
+}
+
+
+// ------------------------------------------------------------------
+config_block_sptr
+read_config_file( std::string const& file_name,
+                  std::string const& application_name,
+                  std::string const& application_version,
+                  config_path_t const& install_prefix,
+                  bool merge )
+{
+  auto result = config_block_sptr{};
+
+  auto const& search_paths =
+    config_file_paths( application_name, application_version, install_prefix );
+
+  VITAL_FOREACH( auto const& search_path, search_paths )
+  {
+    try
+    {
+      auto const& config_path = search_path + "/" + file_name;
+      auto const& config = read_config_file( config_path );
+
+      if ( ! merge )
+      {
+        return config;
+      }
+      else if ( result )
+      {
+        // Merge under current configuration
+        config->merge_config( result );
+      }
+
+      // Continue with new config
+      result = config;
+    }
+    catch ( config_file_not_found_exception const& )
+    {
+      // Ignore 'not found' errors... we don't care (yet), just continue with
+      // next search path
+    }
+  }
+
+  // Throw file-not-found if we ran out of paths without finding anything
+  if ( ! result )
+  {
+    throw config_file_not_found_exception(
+      file_name, "No matching file found in the search paths." );
+  }
+
+  return result;
 }
 
 
