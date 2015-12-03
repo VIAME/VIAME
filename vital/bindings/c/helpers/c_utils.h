@@ -268,7 +268,7 @@ private:
 };
 
 
-/// Helper function to create a char** list of strings give a vector of strings
+/// Helper function to create a char** list of strings given a vector of strings
 void make_string_list( std::vector<std::string> const &list,
                        unsigned int &length, char ** &strings );
 
