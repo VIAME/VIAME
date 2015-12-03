@@ -209,7 +209,7 @@ class Image (VitalObject):
         img_first_byte = self.first_pixel_address()
 
         # get buffer from image
-        pixels = ctypes.pythonapi.PyBuffer_FromMemory
+        pixels = ctypes.pythonapi.PyBuffer_FromReadWriteMemory
         pixels.argtypes = [ ctypes.c_void_p, ctypes.c_int ]
         pixels.restype = ctypes.py_object
         img_pixels = pixels( img_first_byte, self.size() )
