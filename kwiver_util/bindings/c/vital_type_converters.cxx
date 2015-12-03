@@ -121,20 +121,7 @@ PyObject* vital_image_container_to_datum( vital_image_container_t* handle )
 
   // Return address of datum through PyCapsule object.
   // The caller now owns the datum.
-  LOG_INFO( logger, "XXXXXX Datum address: " << datum ); //+ TEMP
-
   PyObject* cap = PyCapsule_New( const_cast< sprokit::datum* >(datum), "sprokit::datum", NULL );
-
-  std::cout << "##### capsule name: " << PyCapsule_GetName( cap ) << std::endl;
-  if (PyCapsule_IsValid( cap, "sprokit::datum" ))
-  {
-    std::cout << "### cap is valid\n";
-  }
-  else
-  {
-    std::cout << "### cap is NOT valid\n";
-  }
-
   return cap;
 }
 
