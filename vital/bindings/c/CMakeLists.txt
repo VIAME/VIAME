@@ -10,6 +10,7 @@ set(vital_c_public_headers
   error_handle.h
   image.h
   image_container.h
+  image_container.hxx
   track.h
   track_set.h
 
