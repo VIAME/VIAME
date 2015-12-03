@@ -68,23 +68,21 @@ from_prototype(PyObject* obj, void* storage)
 
   (void)gil;
 
-  using namespace boost::python;
-
-  extract<T> const ex(obj);
+  boost::python::extract<T> const ex(obj);
   if (ex.check())
   {
     new (storage) boost::any(ex());
     return true;
   }
 
-  extract<T const> const exc(obj);
+  boost::python::extract<T const> const exc(obj);
   if (exc.check())
   {
     new (storage) boost::any(exc());
     return true;
   }
 
-  extract<T const&> const excr(obj);
+  boost::python::extract<T const&> const excr(obj);
   if (excr.check())
   {
     new (storage) boost::any(excr());
@@ -93,6 +91,7 @@ from_prototype(PyObject* obj, void* storage)
 
   return false;
 }
+
 
 /**
  * \brief Convert a boost::any into a Python object.
@@ -109,20 +108,20 @@ to_prototype(boost::any const& any)
 
   (void)gil;
 
-  using namespace boost::python;
-
   try
   {
     T const t = boost::any_cast<T>(any);
-    object const o(t);
-    return incref(o.ptr());
+    boost::python::object const o(t);
+    return boost::python::incref(o.ptr());
   }
   catch (boost::bad_any_cast const&)
   {
   }
 
+  // Returning a default object indicates failure
   return opt_pyobject_t();
 }
+
 
 /**
  * \brief Register a type for conversion between Python and boost::any.

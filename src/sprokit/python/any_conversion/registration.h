@@ -55,25 +55,45 @@ namespace python
 /// A type for a possible Python conversion.
 typedef boost::optional<PyObject*> opt_pyobject_t;
 
+/// A priority for converting between boost::any and Python.
+typedef uint64_t priority_t;
+
+
+
+// ==================================================================
 /// A function which converts from Python, returning \c true on success.
 typedef boost::function<bool (PyObject*, void*)> from_any_func_t;
 
 /// A function which converts to Python, returning the object on success.
 typedef boost::function<opt_pyobject_t (boost::any const&)> to_any_func_t;
 
-/// A priority for converting between boost::any and Python.
-typedef uint64_t priority_t;
 
 /**
  * \brief Register functions for conversions between boost::any and Python.
  *
- * \param priority The priority for the type conversion.
+ * These conversion functions are registered with the sprokit python
+ * bindings and the conversions are attempted in priority order until
+ * one conversion succeeds.
+ *
+ * Note that multiple conversions may have the same priority value.
+ *
+ * Note that zero priority will be attempted first, so higher values
+ * get tried later.
+ *
+ * The concept of priority seems useful, but there needs to be some
+ * guidance on how best to use the full range.
+ *
+ *\sa register_type() is a convenience function to generate converters
+ *and register them.
+ *
+ * \param priority The priority for the type conversion (zero being high).
  * \param from The function for converting from Python.
  * \param to The function for converting to Python.
  */
-SPROKIT_PYTHON_ANY_CONVERSION_EXPORT void register_conversion(priority_t priority,
-                                                              from_any_func_t from,
-                                                              to_any_func_t to);
+SPROKIT_PYTHON_ANY_CONVERSION_EXPORT
+  void register_conversion(priority_t      priority,
+                           from_any_func_t from,
+                           to_any_func_t   to);
 
 }
 

@@ -52,8 +52,6 @@
  * \brief Helpers for working with boost::any in Python.
  */
 
-using namespace boost::python;
-
 namespace sprokit
 {
 
@@ -63,31 +61,43 @@ namespace python
 namespace
 {
 
+/*
+ * Static class to manage conversions.
+ *
+ * It appears that this must be a static class so that it can be passed to the python
+ */
 class any_converter
 {
-  public:
-    static void* convertible(PyObject* obj);
-    static PyObject* convert(boost::any const& any);
-    static void construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data);
+public:
+  static void* convertible( PyObject* obj );
+  static PyObject* convert( boost::any const& any ); // for to-python conversions
 
-    static void add_from(priority_t priority, from_any_func_t from);
-    static void add_to(priority_t priority, to_any_func_t to);
-  private:
-    static boost::shared_mutex m_mutex;
+  static void construct( PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data );
 
-    typedef std::multimap<priority_t, from_any_func_t> from_map_t;
-    typedef std::multimap<priority_t, to_any_func_t> to_map_t;
+  // Add type converters to our internal set.
+  static void add_from( priority_t priority, from_any_func_t from );
+  static void add_to( priority_t priority, to_any_func_t to );
 
-    static from_map_t m_from;
-    static to_map_t m_to;
+private:
+  static boost::shared_mutex s_mutex;
+
+  typedef std::multimap< priority_t, from_any_func_t > from_map_t;
+  typedef std::multimap< priority_t, to_any_func_t > to_map_t;
+
+  static from_map_t s_from;
+  static to_map_t s_to;
+
+  static kwiver::vital::logger_handle_t s_logger;
+
 };
 
-boost::shared_mutex any_converter::m_mutex;
+boost::shared_mutex any_converter::s_mutex;
 
-any_converter::from_map_t any_converter::m_from = any_converter::from_map_t();
-any_converter::to_map_t any_converter::m_to = any_converter::to_map_t();
+any_converter::from_map_t any_converter::s_from = any_converter::from_map_t();
+any_converter::to_map_t any_converter::s_to = any_converter::to_map_t();
+kwiver::vital::logger_handle_t any_converter::s_logger( kwiver::vital::get_logger( "sprokit.python.any_converter" ) );
 
-}
+} // end anon namespace
 
 static void register_to_python();
 
@@ -111,20 +121,21 @@ register_conversion(priority_t priority, from_any_func_t from, to_any_func_t to)
   }
 }
 
+
 namespace
 {
-
 
 // ------------------------------------------------------------------
 void
 any_converter
 ::add_from(priority_t priority, from_any_func_t from)
 {
-  boost::unique_lock<boost::shared_mutex> const lock(m_mutex);
+  boost::unique_lock<boost::shared_mutex> const lock(s_mutex);
 
   (void)lock;
 
-  m_from.insert(from_map_t::value_type(priority, from));
+  LOG_DEBUG( s_logger, "Registering from converter" );
+  s_from.insert(from_map_t::value_type(priority, from));
 }
 
 
@@ -133,11 +144,12 @@ void
 any_converter
 ::add_to(priority_t priority, to_any_func_t to)
 {
-  boost::unique_lock<boost::shared_mutex> const lock(m_mutex);
+  boost::unique_lock<boost::shared_mutex> const lock(s_mutex);
 
   (void)lock;
 
-  m_to.insert(to_map_t::value_type(priority, to));
+  LOG_DEBUG( s_logger, "Registering to converter" );
+  s_to.insert(to_map_t::value_type(priority, to));
 }
 
 
@@ -146,11 +158,13 @@ void*
 any_converter
 ::convertible(PyObject* obj)
 {
+  LOG_DEBUG( s_logger, "any_converter::convertible() called" );
   return obj;
 }
 
 
 // ------------------------------------------------------------------
+// Convert data to-python format.
 PyObject*
 any_converter
 ::convert(boost::any const& any)
@@ -159,66 +173,68 @@ any_converter
 
   (void)gil;
 
+  // Nothing to convert
   if (any.empty())
   {
     Py_RETURN_NONE;
   }
 
-  boost::python::type_info const info(any.type());
+  LOG_TRACE( s_logger, "boost::any Convertion for \"" << any.type().name() << "\"" );
 
-  converter::registration const* const reg = converter::registry::query(info);
+  boost::shared_lock<boost::shared_mutex> const lock(s_mutex);
 
-  if (reg)
+  (void)lock;
+
+  LOG_INFO( s_logger, "TO Conversions to try: " << s_to.size() );
+  BOOST_FOREACH (to_map_t::value_type const& to, s_to)
   {
-    boost::shared_lock<boost::shared_mutex> const lock(m_mutex);
+    LOG_INFO( s_logger, "Attempting conversion" );
+    to_any_func_t const& func = to.second;
 
-    (void)lock;
-
-    BOOST_FOREACH (to_map_t::value_type const& to, m_to)
+    try
     {
-      to_any_func_t const& func = to.second;
+      opt_pyobject_t const opt = func(any);
 
-      try
+      if (opt)
       {
-        opt_pyobject_t const opt = func(any);
-
-        if (opt)
-        {
-          return *opt;
-        }
-      }
-      catch (error_already_set const&)
-      {
+        LOG_TRACE( s_logger, "Conversion succeeded" );
+        return *opt;
       }
     }
-  }
+    catch (boost::python::error_already_set const&)
+    {
+      LOG_INFO( s_logger, "Conversion failed" );
+    }
+  } // end foreach
 
   // Log that the any has a type which is not supported yet.
-  static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "sprokit.python.any_converter" ) );
-  LOG_WARN( logger, "Converter called on unsupported type" );
+  LOG_WARN( s_logger, "Convert called for unsupported type: " << any.type().name() );
 
   Py_RETURN_NONE;
 }
 
 
 // ------------------------------------------------------------------
+// Convert data from-python to C
 void
 any_converter
-::construct(PyObject* obj, converter::rvalue_from_python_stage1_data* data)
+::construct(PyObject* obj, boost::python::converter::rvalue_from_python_stage1_data* data)
 {
   python_gil const gil;
 
   (void)gil;
 
-  void* storage = reinterpret_cast<converter::rvalue_from_python_storage<boost::any>*>(data)->storage.bytes;
+  void* storage = reinterpret_cast< boost::python::converter::rvalue_from_python_storage<boost::any>* >
+    (data)->storage.bytes;
 
   if (obj != Py_None)
   {
-    boost::shared_lock<boost::shared_mutex> const lock(m_mutex);
+    boost::shared_lock<boost::shared_mutex> const lock(s_mutex);
 
     (void)lock;
 
-    BOOST_FOREACH (from_map_t::value_type const& from, m_from)
+    LOG_TRACE( s_logger, "FROM Conversions to try: " << s_from.size() );
+    BOOST_FOREACH (from_map_t::value_type const& from, s_from)
     {
       from_any_func_t const& func = from.second;
 
@@ -227,14 +243,16 @@ any_converter
         data->convertible = storage;
         return;
       }
-    }
+    } // end foreach
   }
+
+  LOG_WARN( s_logger, "Construct called for unsupported type" );
 
   new (storage) boost::any;
   data->convertible = storage;
 }
 
-}
+} // end anon namespace
 
 
 // ------------------------------------------------------------------
@@ -245,13 +263,16 @@ register_to_python()
 
   (void)gil;
 
-  to_python_converter<boost::any, any_converter>();
-  converter::registry::push_back(
-    &any_converter::convertible,
+  // Register the to-python converter
+  boost::python::to_python_converter<boost::any, any_converter>();
+
+  // Register the from-python converter
+  boost::python::converter::registry::push_back(
+    &any_converter::convertible, //
     &any_converter::construct,
-    type_id<boost::any>());
+    boost::python::type_id<boost::any>());
 }
 
-}
+} // end python namespace
 
-}
+} // end sprokit namesapce
