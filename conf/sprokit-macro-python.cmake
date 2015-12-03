@@ -62,21 +62,26 @@ endmacro ()
 # It varys from system to system.
 #
 function ( _sprokit_python_site_package_dir    var_name)
+
+  #
+  # This is run many times and should produce the same result, which could be cached.
+  # Think about it.
   execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='')"
   RESULT_VARIABLE proc_success
   OUTPUT_VARIABLE python_site_packages
   )
+  # Returns something like "lib/python2.7/dist-packages"
 
-# Returns something like
-# "lib/python2.7/dist-packages"
-
-if(NOT ${proc_success} EQUAL 0)
+  if(NOT ${proc_success} EQUAL 0)
     message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
   else()
     string(STRIP "${python_site_packages}" python_site_packages)
   endif()
 
+  # Current usage determines most of the path in alternate ways.
+  # All we need to supply is the '*-packages' directory name.
+  # Customers could be converted to accept a larger part of the path from this function.
   string( REGEX MATCH "dist-packages" result ${python_site_packages} )
   if (result)
     set( python_site_packages dist-packages)
@@ -120,10 +125,6 @@ endfunction ()
 function (_sprokit_add_python_module    path     modpath    module)
   _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
-  #
-  # The output contains a full path, but sprokit may be configured to place
-  # modules in a different location.
-  #
   _sprokit_python_site_package_dir( python_site_packages )
   set(python_sitepath /${python_site_packages})
 
@@ -180,7 +181,7 @@ function (sprokit_add_python_module   path   modpath   module)
     "${module}")
 endfunction ()
 
-function (sprokit_create_python_init modpath)
+function (sprokit_create_python_init    modpath)
   _sprokit_create_safe_modpath("${modpath}" safe_modpath)
 
   set(init_template "${CMAKE_CURRENT_BINARY_DIR}/${safe_modpath}.__init__.py")

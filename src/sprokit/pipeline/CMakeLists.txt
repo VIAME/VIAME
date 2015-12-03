@@ -152,8 +152,8 @@ sprokit_add_library(sprokit_pipeline SHARED
   ${pipeline_private_headers})
 target_link_libraries(sprokit_pipeline
   PUBLIC              vital_config
-  PRIVATE             vital_logger
-                    ${Boost_CHRONO_LIBRARY}
+                      vital_logger
+  PRIVATE           ${Boost_CHRONO_LIBRARY}
                     ${Boost_DATE_TIME_LIBRARY}
                     ${Boost_FILESYSTEM_LIBRARY}
                     ${Boost_SYSTEM_LIBRARY}

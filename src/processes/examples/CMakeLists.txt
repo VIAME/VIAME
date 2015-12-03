@@ -57,7 +57,6 @@ sprokit_add_plugin(processes_examples
   ${examples_srcs}
   ${examples_private_headers})
 target_link_libraries(processes_examples
-  LINK_PRIVATE
-    sprokit_pipeline
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY})
+  PRIVATE        sprokit_pipeline
+                 ${Boost_FILESYSTEM_LIBRARY}
+                 ${Boost_SYSTEM_LIBRARY})
