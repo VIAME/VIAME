@@ -37,15 +37,19 @@
 #include "config_block_exception.h"
 #include "config_parser.h"
 
+#include <vital/logger/logger.h>
+
+#include <vital/util/tokenize.h>
+
+#include <vital/vital_foreach.h>
+
+#include <kwiversys/SystemTools.hxx>
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <list>
-
-#include <kwiversys/SystemTools.hxx>
-#include <vital/util/tokenize.h>
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {
@@ -280,6 +284,8 @@ read_config_file( std::string const& file_name,
                   config_path_t const& install_prefix,
                   bool merge )
 {
+  auto logger = logger_handle_t{ get_logger( "read_config_file" ) };
+
   auto result = config_block_sptr{};
 
   auto const& search_paths =
@@ -291,6 +297,8 @@ read_config_file( std::string const& file_name,
     {
       auto const& config_path = search_path + "/" + file_name;
       auto const& config = read_config_file( config_path );
+
+      LOG_DEBUG( logger, "Read config file \"" << config_path << "\"" );
 
       if ( ! merge )
       {
