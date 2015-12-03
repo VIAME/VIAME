@@ -37,37 +37,53 @@ Interface to KWIVER kwiver_process class.
 
 
 from sprokit.pipeline import process
+from sprokit.pipeline import datum
 
 import util.vital_type_converters as VTC
 
 # import kwiver_process_utils
 
 class KwiverProcess(process.PythonProcess):
-    """
-    This class represents a sprokit python process with traits extensions.
+    """This class represents a sprokit python process with traits extensions.
     This allows all derived processes to share a common set of types,
-    ports and config entries. A proces scan add additional traits as needed.
+    ports and config entries.
+
+    A common set of type and port traits is readily available from
+    this class, and process can add additional traits as needed.
+
+    Config traits are not that standardized, so no default set is provided.
+
     """
 
     class type_trait(object):
-        """
-        This class represents a single type trait. It binds together
-        trait_name: name of this type specification used with other traits
-        canonical type name: official system level type name string.
-        conv: function to convert data from boost::any to real type.
+        """This class represents a single type trait. It binds together
+        trait_name: name of this type specification used with other
+        traits canonical type name: official system level type name
+        string.  conv: function to convert data from boost::any to
+        real type.
 
         The convert function takes in a "datum" and returns the correct type/
 
         These objects are indexed by _name
+
         """
-        def __init__(self, tn, ctn, conv):
+        def __init__(self, tn, ctn, conv_in, conv_out):
             """
             tn: type trait name
             ctn: system level canonical type name string
+            conv-in: converter function
+            conv-out: converter function
+
+            The converter function takes the source type and returns the
+            destination type. If the source type is a PyCapsule, the
+            return type is an opaque handle to the object. If the parameter
+            is not a PyCapsule, then it is assumed to be an opaque handle to
+            the appropriate type and a PyCapsule is returned.
             """
             self.name = tn
             self.canonical_name = ctn
-            self.converter = conv
+            self.converter_in = conv_in
+            self.converter_out = conv_out
 
 
     class port_trait(object):
@@ -123,14 +139,22 @@ class KwiverProcess(process.PythonProcess):
         # default set of kwiver/vital type traits
         #    These definitions must be the same as those in kwiver_type_traits.h
         #
-        #                   trait name, system-level-type,   converter function
+        # Converter functions are needed for most vital data types (e.g. kwiver:image).
+        # Types that resolve to basic types (e.g. float, string) have converters in the
+        # sprokit python support code and will be used if no converter function is
+        # specified.
+        #
+        # If there is no converter in sprokit and a conversion function is not specified
+        # as part of the trait, fire will rain from above.
+        #
+        #                   trait name, system-level-type,   opt-converter-function
         self.add_type_trait("timestamp", "kwiver::timestamp")
         self.add_type_trait("gsd", "kwiver:gsd")
-        self.add_type_trait("image", "kwiver:image", VTC._convert_image_container_sptr )
-        self.add_type_trait("mask", "kwiver:image", VTC._convert_image_container_sptr )
+        self.add_type_trait("image", "kwiver:image", VTC._convert_image_container_handle_in, VTC._convert_image_container_handle_out )
+        self.add_type_trait("mask", "kwiver:image", VTC._convert_image_container_handle_in, VTC._convert_image_container_handle_out )
         self.add_type_trait("feature_set", "kwiver:feature_set")
         self.add_type_trait("descriptor_set", "kwiver:descriptor_set")
-        self.add_type_trait("track_set", "kwiver:track_set", VTC._convert_track_set_sptr )
+        self.add_type_trait("track_set", "kwiver:track_set", VTC._convert_track_set_handle )
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
         self.add_type_trait("image_file_name", "kwiver:image_file_name")
@@ -149,10 +173,27 @@ class KwiverProcess(process.PythonProcess):
         self.add_port_trait("video_file_name", "video_file_name", "Name of video file.")
 
 
-    def add_type_trait(self, ttn, tn, conv = None):
-        self._type_trait_set[ttn] = self.type_trait(ttn, tn, conv)
+    def add_type_trait(self, ttn, tn, conv_in = None, conv_out = None):
+        '''
+        Create a type trait and add to this process so it can be used.
+
+        Parameters:
+        ttn - type trait name (type trait must be previously created)
+        tn - canonical type name for this application
+        conv-in - converter function (optional)
+        conv-out - converter function (optional)
+        '''
+        self._type_trait_set[ttn] = self.type_trait(ttn, tn, conv_in, conv_out)
 
     def add_port_trait(self, nm, ttn, descr):
+        '''
+        Create a port trait so it can be used with this process.
+
+        Parameters:
+        nm - trait name. Also used as port name.
+        ttn - type trait name (type trait must be previously created)
+        descr - description of port
+        '''
         # check to see if tn is in set below
         tt = self._type_trait_set.get(ttn)
         if tt == None:
@@ -160,19 +201,27 @@ class KwiverProcess(process.PythonProcess):
         self._port_trait_set[nm] = self.port_trait(nm, tt, descr)
 
     def add_config_trait(self, name, key, default, descr):
+        '''
+        Create a config trait and add to this process. Once a config trait is
+        created it can be used to declare and access a config entry.
+
+        Parameters:
+        name - trait name
+        key - config key string
+        default - default value string
+        descr - description
+        '''
         self._config_trait_set[name] = self.config_trait(name, key, default,descr)
 
 
     # ----------------------------------------------------------
     def declare_input_port_using_trait(self, ptn, flag):
         """
-        Declare a port on the specified process.
+        Declare a port on the specified process using the pre-defined trait.
 
         ptn: port trait name
         flag: required/optional flags
 
-        There may be a better approach than passing the process as a parameter
-        Maybe making this a class and deriving the user process from this.
         """
         port_trait = self._port_trait_set[ptn]
         if port_trait == None: raise ValueError('port trait name "%" not registered' % (ptn))
@@ -185,13 +234,11 @@ class KwiverProcess(process.PythonProcess):
 
     def declare_output_port_using_trait(self, ptn, flag):
         """
-        Declare a port on the specified process.
+        Declare a port on the specified process using the pre-defined trait.
 
         ptn: port trait name
         flag: required/optional flags
 
-        There may be a better approach than passing the process as a parameter
-        Maybe making this a class and deriving the user process from this.
         """
         port_trait = self._port_trait_set[ptn]
         if port_trait == None: raise ValueError('port trait name "%" not registered' % (ptn))
@@ -220,8 +267,8 @@ class KwiverProcess(process.PythonProcess):
 
         pipeline_datum = self.grab_datum_from_port(pt.name)
         tt = pt.type_trait
-        if tt.converter != None:
-            data = tt.converter(pipeline_datum.get_datum_ptr())
+        if tt.converter_in != None:
+            data = tt.converter_in(pipeline_datum.get_datum_ptr())
             return data
 
         return pipeline_datum
@@ -245,6 +292,8 @@ class KwiverProcess(process.PythonProcess):
     def declare_config_using_trait(self, name):
         """
         Declare a process config entry from the named trait.
+        An exception will be thrown if the config trait has not been registered
+        with the process.
         """
         ct = self._config_trait_set[name]
         if ct == None: raise ValueError('config trait name "%" not registered' % (name))
@@ -254,9 +303,54 @@ class KwiverProcess(process.PythonProcess):
 
     def config_value_using_trait(self, name):
         """
-        Get value from config using trait
+        Get value from config using trait.
+        An exception will be thrown if the config trait has not been registered
+        with the process.
         """
         ct = self._config_trait_set[name]
         if ct == None: raise ValueError('config trait name "%" not registered' % (name))
 
         return self.config_value(ct.name)
+
+
+    def push_to_port_using_trait(self, ptn, val):
+        """
+        Push value to port using trait.
+
+        ptn: port trait name
+        val: value to put on port
+
+        If the trait has a converter function, the supplied value will be converted
+        by that function to a datum which will be pushed to the port.
+
+        If no converter is associated with the trait, the raw value supplied will be
+        pushed to the port. If the value is already a datum, then all is well. If it
+        is some other data type, such as a fundimental type, it will be automatically
+        be converted to a datum.
+        """
+        pt = self._port_trait_set[ptn]
+        if pt == None: raise ValueError('port trait name "%" not registered' % (ptn))
+
+        tt = pt.type_trait
+        if tt.converter_out != None:
+            cap = tt.converter_out(val) # convert handle to PyCapsule around datum ptr
+            dat = datum.datum_from_capsule(cap) # convert to datum_t
+            self.push_datum_to_port( pt.name, dat )
+        else:
+            # no registered converter - hope for the best
+            self.push_datum_to_port( pt.name, val )
+
+
+    def push_datum_to_port_using_trait(self, ptn, val):
+        """
+        Push datum to port using trait.
+
+        ptn: port trait name
+        val: datum to push to port
+
+        The datum has already been formed, so it is pushed directly.
+        """
+        pt = self._port_trait_set[ptn]
+        if pt == None: raise ValueError('port trait name "%" not registered' % (ptn))
+
+        self.push_datum_to_port( pt.name, val)
