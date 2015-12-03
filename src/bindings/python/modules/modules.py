@@ -1,5 +1,5 @@
 #ckwg +28
-# Copyright 2012-2013 by Kitware, Inc.
+# Copyright 2012-2015 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,8 @@ def _load_python_module(mod):
         if isinstance(mod.__sprokit_register__, collections.Callable):
             mod.__sprokit_register__()
 
+    else:
+        print "[WARN] Python module", mod, "does not have __sprokit_register__ method"
 
 def load_python_modules():
     import os
@@ -66,15 +68,14 @@ def load_python_modules():
 
     for package in packages:
         modules = loader.load(package)
-
         all_modules += modules
 
     for module in all_modules:
+        print "[DEBUG] Loading python module:", module
+
         try:
             _load_python_module(module)
         except BaseException:
             import sys
-
             e = sys.exc_info()[1]
-
             _log("Failed to load '%s': %s" % (module, str(e)))
