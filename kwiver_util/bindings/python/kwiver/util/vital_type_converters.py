@@ -65,19 +65,25 @@ def _find_converter_lib():
 
 
 
-def _convert_image_container_handle_in(datum_ptr):
+def _convert_image_container_in(datum_ptr):
     """
     Convert datum as PyCapsule to image_container opaque handle.
     """
     _VCL = _find_converter_lib()
-    # Convert from datum to opaque handle
+    # Convert from datum to opaque handle.
     func = _VCL.vital_image_container_from_datum
     func.argtypes = [ ctypes.py_object ]
     func.restype = ImageContainer.C_TYPE_PTR
-    return func(datum_ptr)
+    # get opaque handle from the datum
+    handle = func(datum_ptr)
+
+    # convert handle to python object
+    py_ic_obj = ImageContainer.from_c_pointer( handle )
+
+    return py_ic_obj
 
 
-def _convert_image_container_handle_out(handle):
+def _convert_image_container_out(handle):
     """
     Convert datum as PyCapsule from image_container opaque handle.
     """

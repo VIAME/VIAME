@@ -150,8 +150,8 @@ class KwiverProcess(process.PythonProcess):
         #                   trait name, system-level-type,   opt-converter-function
         self.add_type_trait("timestamp", "kwiver::timestamp")
         self.add_type_trait("gsd", "kwiver:gsd")
-        self.add_type_trait("image", "kwiver:image", VTC._convert_image_container_handle_in, VTC._convert_image_container_handle_out )
-        self.add_type_trait("mask", "kwiver:image", VTC._convert_image_container_handle_in, VTC._convert_image_container_handle_out )
+        self.add_type_trait("image", "kwiver:image", VTC._convert_image_container_in, VTC._convert_image_container_out )
+        self.add_type_trait("mask", "kwiver:image", VTC._convert_image_container_in, VTC._convert_image_container_out )
         self.add_type_trait("feature_set", "kwiver:feature_set")
         self.add_type_trait("descriptor_set", "kwiver:descriptor_set")
         self.add_type_trait("track_set", "kwiver:track_set", VTC._convert_track_set_handle )
