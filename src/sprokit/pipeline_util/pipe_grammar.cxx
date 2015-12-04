@@ -557,7 +557,7 @@ cluster_grammar<Iterator>
   , cluster_block_set()
 {
 
-#if NDEBUG                           //+ TEMP
+#if defined (NDEBUG)                           //+ TEMP
   // This is not ideal, but leaving this code in when building for
   // debug causes a compiler error.  Only a short term solution until
   // we get a better compiler
