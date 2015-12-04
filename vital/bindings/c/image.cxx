@@ -38,6 +38,7 @@
 #include <vital/types/image.h>
 
 #include <vital/bindings/c/helpers/c_utils.h>
+#include <iostream>
 
 
 /// Create a new, empty image
@@ -68,24 +69,33 @@ vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
 /// Create a new image from new data
 vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
                                           size_t width, size_t height, size_t depth,
-                                          ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
+                                          int32_t w_step, int32_t h_step, int32_t d_step )
 {
-  STANDARD_CATCH(
-    "C::image::new_from_data", 0,
-    kwiver::vital::image* new_image = new kwiver::vital::image( width, height, depth );
-    for ( unsigned int d = 0; d < depth; ++d )
+  kwiver::vital::image* new_image = new kwiver::vital::image( width, height, depth );
+  for ( unsigned int d = 0; d < depth; ++d )
+  {
+    // This is a little crazy, but it is used to convert BGR to RGB
+    int d_idx(0);
+    if (d_step >= 0)
     {
-      for ( unsigned int h = 0; h < height; ++h )
+      d_idx = d * d_step;
+    }
+    else
+    {
+      d_idx = (depth - d - 1) * (-d_step);
+    }
+
+    for ( unsigned int h = 0; h < height; ++h )
+    {
+      int h_idx = h * h_step;
+      for ( unsigned int w = 0; w < width; ++w )
       {
-        for ( unsigned int w = 0; w < width; ++w )
-        {
-          (*new_image)( w, h, d ) = first_pixel[ w_step * w + h_step * h + d_step * d ];
-        }
+        int w_idx = w * w_step;
+        (*new_image)( w, h, d ) = first_pixel[ w_idx + h_idx + d_idx ];
       }
     }
-    return reinterpret_cast<vital_image_t*>( new_image );
-    );
-  return 0;
+  }
+  return reinterpret_cast<vital_image_t*>( new_image );
 }
 
 

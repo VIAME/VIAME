@@ -75,12 +75,7 @@ class Image (VitalObject):
         if mode == "RGB":
             img_depth = 3
             img_w_step = 3
-            img_h_step = img_width * img_height
-            img_d_step = 1
-        elif mode == "BGR":
-            img_depth = 3
-            img_w_step = 1
-            img_h_step = img_width * img_height
+            img_h_step = img_width * 3
             img_d_step = -1
         elif mode == "L":  # 8 bit greyscale
             img_depth = 1
@@ -91,14 +86,14 @@ class Image (VitalObject):
             raise RuntimeError("Unsupported image format.")
 
         img_new = cls.VITAL_LIB.vital_image_new_from_data
-        img_new.argtypes = [ctypes.c_void_p,
+        img_new.argtypes = [ctypes.c_char_p,
                             ctypes.c_size_t, ctypes.c_size_t, ctypes.c_size_t,
                             ctypes.c_int32, ctypes.c_int32, ctypes.c_int32]
         img_new.restype = cls.C_TYPE_PTR
 
-        return Image.from_c_pointer(img_new(ctypes.byref( pil_image.tostring() ),
-                                            img_width, img_height, img_depth,
-                                            img_w_step, img_h_step, img_d_step ) )
+        return Image.from_c_pointer( img_new(pil_image.tostring(),
+                                             img_width, img_height, img_depth,
+                                             img_w_step, img_h_step, img_d_step ) )
     """
     Need to add classmethod from_numpy( cls, numpy_arry )
     """

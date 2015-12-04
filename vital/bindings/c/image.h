@@ -36,15 +36,16 @@
 #ifndef VITAL_C_IMAGE_H_
 #define VITAL_C_IMAGE_H_
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#include <vital/bindings/c/vital_c_export.h>
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-#include <stdbool.h>
-#include <stddef.h>
-
-#include <vital/bindings/c/vital_c_export.h>
 
 typedef unsigned char vital_image_byte;
 
@@ -80,7 +81,7 @@ vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
 VITAL_C_EXPORT
 vital_image_t* vital_image_new_from_data( unsigned char const* first_pixel,
                                           size_t width, size_t height, size_t depth,
-                                          ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step );
+                                          int32_t w_step, int32_t h_step, int32_t d_step );
 
 
 /// Create a new image from an existing image, sharing the same memory
