@@ -31,7 +31,6 @@ from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 from vital import Image
 from vital import ImageContainer
-import PIL
 
 
 class ProcessImage(KwiverProcess):
@@ -48,16 +47,22 @@ class ProcessImage(KwiverProcess):
 
         self.declare_config_using_trait( 'output' )
 
+        self.add_port_trait( 'out_image', 'image', 'Processed image' )
+
         # set up required flags
+        optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
 
         #  declare our input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
 
+        # declare port using sprokit API. Traits do not have to be
+        # used, which can work for simple data types.
         self.declare_input_port( 'input', 'integer',required,
             'Where numbers are read from.')
 
+        self.declare_output_port_using_trait('out_image', optional )
 
     # ----------------------------------------------
     def _configure(self):
@@ -68,27 +73,33 @@ class ProcessImage(KwiverProcess):
 
     # ----------------------------------------------
     def _step(self):
+        # grab number from port using sprokit API
         num = self.grab_value_from_port('input')
         print "Number received:", num
 
-        # expecting Image Container opaque tyle
-        datum = self.grab_input_using_trait('image')
+        # grab image container from port using traits
+        in_img_c = self.grab_input_using_trait('image')
 
-        # look up image container based on opaque handle (datum)
-        in_img_c = ImageContainer.from_c_pointer( datum )
-
+        # Get image from conatiner
         in_img = in_img_c.get_image()
+
+        # convert generic image to PIL image
         pil_image = in_img.get_pil_image()
 
+        # draw on the image to prove we can do it
         import ImageDraw
         draw = ImageDraw.Draw(pil_image)
         draw.line((0, 0) + pil_image.size, fill=128, width=5)
-        draw.line((0, pil_image.size[1], pil_image.size[0], 0), fill=128, width=5)
-        draw.rectangle( [num*10, num*10, num+100, num+100], outline=125 )
+        draw.line((0, pil_image.size[1], pil_image.size[0], 0), fill=32768, width=5)
+        #                 x0   y0   x1       y1
+        draw.rectangle( [num, num, num+100, num+100], outline=125 )
         del draw
 
-        pil_image.show()
-        time.sleep(3)
+        new_image = Image.from_pil( pil_image )  # get new image handle
+        new_ic = ImageContainer( new_image )
+
+        # push object to output port
+        self.push_to_port_using_trait( 'out_image', new_ic )
 
         self._base_step()
 
