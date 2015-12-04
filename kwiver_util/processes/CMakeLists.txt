@@ -65,7 +65,6 @@ kwiver_add_plugin( kwiver_processes
   PRIVATE         sprokit_pipeline
                 ${maptk_libs}
                   vital vital_apm vital_logger vital_config
-                ${ocv_libs}
                 ${Boost_FILESYSTEM_LIBRARY}
                 ${Boost_SYSTEM_LIBRARY}
                   vsl vul vnl_algo vnl_io vnl vil_io vil
