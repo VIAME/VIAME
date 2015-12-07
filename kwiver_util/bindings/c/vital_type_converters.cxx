@@ -246,7 +246,7 @@ double_vector_to_datum( PyObject* list )
   int num_elem = PyList_Size( list );
 
   // Copy input values into a new vector.
-  for ( size_t i = 0; i < num_elem; i++ )
+  for ( int i = 0; i < num_elem; i++ )
   {
     PyObject* item = PyList_GetItem( list, i );
     double d = PyFloat_AsDouble( item );
