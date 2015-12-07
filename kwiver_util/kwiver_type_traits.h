@@ -48,6 +48,9 @@ namespace vital {
   class timestamp;
   class f2f_homography;
 
+  typedef std::vector< double >  double_vector;
+  typedef std::shared_ptr< double_vector > double_vector_sptr;
+
 } }
 
 
@@ -64,6 +67,7 @@ create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
 create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
+create_type_trait( double_vector,  "kwiver:d_vector", kwiver::vital::double_vector_sptr );
 
 create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
