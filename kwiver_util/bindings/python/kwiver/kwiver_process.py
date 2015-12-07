@@ -148,7 +148,7 @@ class KwiverProcess(process.PythonProcess):
         # as part of the trait, fire will rain from above.
         #
         #                   trait name, system-level-type,   opt-converter-function
-        self.add_type_trait("timestamp", "kwiver::timestamp")
+        self.add_type_trait("timestamp", "kwiver:timestamp")
         self.add_type_trait("gsd", "kwiver:gsd")
         self.add_type_trait("image", "kwiver:image", VTC._convert_image_container_in, VTC._convert_image_container_out )
         self.add_type_trait("mask", "kwiver:image", VTC._convert_image_container_in, VTC._convert_image_container_out )
@@ -159,6 +159,9 @@ class KwiverProcess(process.PythonProcess):
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
         self.add_type_trait("image_file_name", "kwiver:image_file_name")
         self.add_type_trait("video_file_name", "kwiver:video_file_name")
+
+        self.add_type_trait( "double_vector", "kwiver:d_vector", VTC._convert_double_vector_in, VTC._convert_double_vector_out )
+
 
         #          port-name   type-trait-name    description
         self.add_port_trait("timestamp", "timestamp", "Timestamp for input image")
@@ -197,7 +200,7 @@ class KwiverProcess(process.PythonProcess):
         # check to see if tn is in set below
         tt = self._type_trait_set.get(ttn)
         if tt == None:
-            raise ValueError('type trait name "%" not registered' % (ttn))
+            raise ValueError('type trait name \"%\" not registered' % (ttn))
         self._port_trait_set[nm] = self.port_trait(nm, tt, descr)
 
     def add_config_trait(self, name, key, default, descr):
@@ -224,7 +227,7 @@ class KwiverProcess(process.PythonProcess):
 
         """
         port_trait = self._port_trait_set[ptn]
-        if port_trait == None: raise ValueError('port trait name "%" not registered' % (ptn))
+        if port_trait == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         self.declare_input_port(port_trait.name,
                                 port_trait.type_trait.canonical_name,
@@ -241,7 +244,7 @@ class KwiverProcess(process.PythonProcess):
 
         """
         port_trait = self._port_trait_set[ptn]
-        if port_trait == None: raise ValueError('port trait name "%" not registered' % (ptn))
+        if port_trait == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         self.declare_output_port(port_trait.name,
                                  port_trait.type_trait.canonical_name,
@@ -263,7 +266,7 @@ class KwiverProcess(process.PythonProcess):
         The raw datum contains the port data and other metadata.
         """
         pt = self._port_trait_set[ptn]
-        if pt == None: raise ValueError('port trait name "%" not registered' % (ptn))
+        if pt == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         pipeline_datum = self.grab_datum_from_port(pt.name)
         tt = pt.type_trait
@@ -284,7 +287,7 @@ class KwiverProcess(process.PythonProcess):
         fundimental types, such as int, double, bool, string, char
         """
         pt = self._port_trait_set[ptn]
-        if pt == None: raise ValueError('port trait name "%" not registered' % (ptn))
+        if pt == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         return self.grab_value_from_port(pt.name)
 
@@ -296,7 +299,7 @@ class KwiverProcess(process.PythonProcess):
         with the process.
         """
         ct = self._config_trait_set[name]
-        if ct == None: raise ValueError('config trait name "%" not registered' % (name))
+        if ct == None: raise ValueError('config trait name \"%\" not registered' % (name))
 
         process.PythonProcess.declare_configuration_key(self, ct.key, ct.default, ct.description)
 
@@ -308,7 +311,7 @@ class KwiverProcess(process.PythonProcess):
         with the process.
         """
         ct = self._config_trait_set[name]
-        if ct == None: raise ValueError('config trait name "%" not registered' % (name))
+        if ct == None: raise ValueError('config trait name \"%\" not registered' % (name))
 
         return self.config_value(ct.name)
 
@@ -329,7 +332,7 @@ class KwiverProcess(process.PythonProcess):
         be converted to a datum.
         """
         pt = self._port_trait_set[ptn]
-        if pt == None: raise ValueError('port trait name "%" not registered' % (ptn))
+        if pt == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         tt = pt.type_trait
         if tt.converter_out != None:
@@ -351,6 +354,6 @@ class KwiverProcess(process.PythonProcess):
         The datum has already been formed, so it is pushed directly.
         """
         pt = self._port_trait_set[ptn]
-        if pt == None: raise ValueError('port trait name "%" not registered' % (ptn))
+        if pt == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         self.push_datum_to_port( pt.name, val)
