@@ -35,7 +35,6 @@
 
 #include "view_image_process.h"
 
-#include <vital/algorithm_plugin_manager.h>
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
@@ -193,8 +192,6 @@ void
 view_image_process
 ::_configure()
 {
-  kwiver::vital::config_block_sptr algo_config = get_config();
-
   d->m_pause_ms = static_cast< int >( config_value_using_trait( pause_time ) * 1000.0 ); // convert to msec
   d->m_annotate_image = config_value_using_trait( annotate_image );
   d->m_header         = config_value_using_trait( header );
