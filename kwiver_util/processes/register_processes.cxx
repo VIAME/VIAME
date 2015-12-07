@@ -19,6 +19,8 @@
 #include "compute_homography_process.h"
 #include "draw_tracks_process.h"
 
+#include "read_descriptor_process.h"
+
 extern "C"
 KWIVER_PROCESSES_EXPORT void register_processes();
 
@@ -75,6 +77,11 @@ void register_processes()
   registry->register_process(
     "draw_tracks", "Draw feature tracks on image",
     sprokit::create_process< kwiver::draw_tracks_process > );
+
+
+  registry->register_process(
+    "read_d_vector", "Read vector of doubles",
+    sprokit::create_process< kwiver::read_descriptor_process > );
 
 
   // - - - - - - - - - - - - - - - - - - - - - - -

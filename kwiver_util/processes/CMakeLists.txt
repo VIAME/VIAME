@@ -16,6 +16,7 @@ set( sources
   compute_homography_process.cxx
 
   draw_tracks_process.cxx
+  read_descriptor_process.cxx
 )
 
 set( private_headers
@@ -28,7 +29,8 @@ set( private_headers
   matcher_process.h
   compute_homography_process.h
 
-  draw_tracks_process.cxx
+  draw_tracks_process.h
+  read_descriptor_process.h
 )
 
 kwiver_private_header_group( ${private_headers} )

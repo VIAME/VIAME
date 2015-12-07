@@ -25,3 +25,7 @@ sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/homography_writer.py
 sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/ProcessImage.py
   kwiver/processes
   ProcessImage)
+
+sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/ApplyDescriptor.py
+  kwiver/processes
+  ApplyDescriptor)
