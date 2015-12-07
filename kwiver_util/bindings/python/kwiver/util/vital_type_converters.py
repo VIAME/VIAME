@@ -97,6 +97,33 @@ def _convert_image_container_out(handle):
 
 
 # ------------------------------------------------------------------
+def _convert_double_vector_in( datum_ptr ):
+    """
+    Convert datum pointer to python list.
+    """
+    _VCL = _find_converter_lib()
+    func =  _VCL.double_vector_from_datum
+    func.argtypes = [ ctypes.py_object ]
+    func.restype = ctypes.POINTER(ctypes.c_double) # may need a tuple here to return length
+    return func( datum_ptr )
+
+
+def _convert_double_vector_out( dlist ):
+    """
+    Convert python list to datum as PyCapsule.
+
+    Possibly check type of input and handle arrays amd nparrays too.
+    Convert to standard form for C translation to datum.
+    """
+    _VCL = _find_converter_lib()
+    func =  _VCL.double_vector_to_datum
+    # func.argtypes = [ ctypes.c_size_t, ctypes.byref(ctypes.c_double ]
+    func.argtypes = [ ctypes.py_object ]
+    func.restype = ctypes.py_object
+    return func( dlist )
+
+
+# ------------------------------------------------------------------
 def _convert_track_set_handle(datum_ptr):
     """
     Convert datum to track set.
