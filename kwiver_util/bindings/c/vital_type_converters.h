@@ -54,6 +54,13 @@ VITAL_TYPE_CONVERTERS_EXPORT
 PyObject* vital_image_container_to_datum( vital_image_container_t* handle );
 
 VITAL_TYPE_CONVERTERS_EXPORT
+double* double_vector_from_datum( PyObject* args );
+
+VITAL_TYPE_CONVERTERS_EXPORT
+PyObject* double_vector_to_datum( PyObject* list );
+
+
+VITAL_TYPE_CONVERTERS_EXPORT
 vital_trackset_t* vital_trackset_from_datum( PyObject* dptr );
 
   // others
