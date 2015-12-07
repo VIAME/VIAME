@@ -179,16 +179,14 @@ any_converter
     Py_RETURN_NONE;
   }
 
-  LOG_TRACE( s_logger, "boost::any Convertion for \"" << any.type().name() << "\"" );
+  LOG_DEBUG( s_logger, "boost::any Conversion for \"" << any.type().name() << "\"" );
 
   boost::shared_lock<boost::shared_mutex> const lock(s_mutex);
 
   (void)lock;
 
-  LOG_INFO( s_logger, "TO Conversions to try: " << s_to.size() );
   BOOST_FOREACH (to_map_t::value_type const& to, s_to)
   {
-    LOG_INFO( s_logger, "Attempting conversion" );
     to_any_func_t const& func = to.second;
 
     try
@@ -197,18 +195,18 @@ any_converter
 
       if (opt)
       {
-        LOG_TRACE( s_logger, "Conversion succeeded" );
+        LOG_DEBUG( s_logger, "Conversion succeeded" );
         return *opt;
       }
     }
     catch (boost::python::error_already_set const&)
     {
-      LOG_INFO( s_logger, "Conversion failed" );
+      LOG_DEBUG( s_logger, "Conversion failed" );
     }
   } // end foreach
 
   // Log that the any has a type which is not supported yet.
-  LOG_WARN( s_logger, "Convert called for unsupported type: " << any.type().name() );
+  LOG_DEBUG( s_logger, "Convert called for unsupported type: " << any.type().name() );
 
   Py_RETURN_NONE;
 }
