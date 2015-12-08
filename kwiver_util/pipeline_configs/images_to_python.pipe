@@ -47,10 +47,10 @@ config _pipeline:_edge
 connect from input.image
         to   process.image
 
-connect from input.image
-        to disp.image
-
 connect from numbersource.number
         to process.input
+
+connect from process.out_image
+        to disp.image
 
 # -- end of file --
