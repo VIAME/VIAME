@@ -241,7 +241,7 @@ double_vector_to_datum( PyObject* list )
 {
   double_vector_sptr vect( new double_vector () );
 
-  // if ( ! PyList_Check( list ) { log message }
+  // if ( ! PyList_Check( list )) { log message }
 
   int num_elem = PyList_Size( list );
 

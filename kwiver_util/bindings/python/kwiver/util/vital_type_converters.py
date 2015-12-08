@@ -117,7 +117,6 @@ def _convert_double_vector_out( dlist ):
     """
     _VCL = _find_converter_lib()
     func =  _VCL.double_vector_to_datum
-    # func.argtypes = [ ctypes.c_size_t, ctypes.byref(ctypes.c_double ]
     func.argtypes = [ ctypes.py_object ]
     func.restype = ctypes.py_object
     return func( dlist )
