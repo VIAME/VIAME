@@ -21,7 +21,8 @@ process vector_display
 # Python process to accept an image.
 process process
   :: ApplyDescriptor
-
+  :first second
+  :algorithm algo
 
 # ================================================================
 # global pipeline config
