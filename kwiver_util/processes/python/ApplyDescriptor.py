@@ -30,7 +30,11 @@
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 import numpy as np
-from array import *
+
+from smqtk.representation.data_element.file_element import DataFileElement
+from smqtk.algorithms.descriptor_generator import get_descriptor_generator_impls
+from smqtk.representation.descriptor_element_factory import DescriptorElementFactory
+from smqtk.representation.descriptor_element.local_elements import DescriptorMemoryElement
 
 
 class ApplyDescriptor(KwiverProcess):
@@ -56,6 +60,17 @@ class ApplyDescriptor(KwiverProcess):
 
     # ----------------------------------------------
     def _configure(self):
+        self.config_dict = {}
+        cfg = self.available_config()
+        for it in cfg:
+            self.config_dict[it] = self.config_value(it)
+
+        print "Config:", config_dict
+
+        self.factory = DescriptorElementFactory(DescriptorMemoryElement, {})
+        self.cd = get_descriptor_generator_impls()## ['ColorDescriptor_Image_csift']
+
+        # self.cd = self.cd.from_config( config_dict )
 
         self._base_configure()
 
@@ -69,12 +84,16 @@ class ApplyDescriptor(KwiverProcess):
 
         # convert generic image to PIL image
         pil_image = in_img.get_pil_image()
+        pix = np.array(pil_image)
 
-        desc_list = list()
-        for i in range(40):
-            desc_list.append(i)
+        # get image in acceptable format
+        pil_image.save( "file.png" )
+        e = DataFileElement("file.png")
 
-        # push object to output port
+        result = self.cd.compute_descriptor(e, self.factory)
+        desc_list = result.vector().tolist()
+
+        # push list to output port
         self.push_to_port_using_trait( 'vector', desc_list )
 
         self._base_step()
