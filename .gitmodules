@@ -1,21 +1,21 @@
 [submodule "Packages/sprokit"]
         path = Packages/sprokit
-        url =  git@kwgitlab.kitware.com:computer-vision/sprokit.git
+        url =  git@gitlab.kitware.com:KWIVER/sprokit.git
 [submodule "Packages/VXL"]
         path = Packages/VXL
-        url = git@kwgitlab.kitware.com:computer-vision/vxl.git
+        url = git@github.com:vxl/vxl.git
 [submodule "Packages/maptk"]
         path = Packages/maptk
-        url = git@kwgitlab.kitware.com:computer-vision/maptk.git
+        url = git@github.com:Kitware/maptk.git
 [submodule "Packages/vital"]
 	path = Packages/vital
-	url = git@kwgitlab.kitware.com:computer-vision/vital.git
+	url = git@github.com:Kitware/vital.git
 [submodule "Packages/kwant"]
 	path = Packages/kwant
-	url = git@kwgitlab.kitware.com:keith.fieldhouse/kwant.git
+	url = git@github.com:Kitware/kwant.git
 [submodule "Packages/vivia"]
 	path = Packages/vivia
 	url = git@github.com:kfieldho/vivia.git
 [submodule "Packages/vibrant"]
 	path = Packages/vibrant
-	url = git@kwgitlab.kitware.com:keith.fieldhouse/vidtk.git
+	url = git@github.com:Kitware/vibrant.git
