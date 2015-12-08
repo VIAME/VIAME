@@ -100,8 +100,13 @@ read_descriptor_process
 {
   kwiver::vital::double_vector_sptr vect = grab_from_port_using_trait( d_vector );
 
-  std::cout << "Vector size: " << vect->size() << std::endl;
+  std::cout << "Vector size: " << vect->size() << " -- " << std::endl;
 
+  for (int i = 0; i < 5; i++)
+  {
+    std::cout << " " << vect->at(i);
+  }
+  std::cout << std::endl;
 
   sprokit::process::_step();
 }
