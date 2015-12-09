@@ -53,7 +53,7 @@ def _find_converter_lib():
     # or similar to locate library.
     global __VITAL_CONVERTERS_LIB__
     if not __VITAL_CONVERTERS_LIB__:
-        lib_path = find_library_path("vital_type_converter")
+        lib_path = find_library_path("vital_type_converters")
         if not lib_path:
             raise RuntimeError( "Unable to locate 'vital_type_converters' support library")
 

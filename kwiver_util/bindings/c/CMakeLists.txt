@@ -25,13 +25,13 @@ kwiver_install_headers(
   NOPATH
   )
 
-kwiver_add_library( vital_type_converter
+kwiver_add_library( vital_type_converters
   ${public_headers}
   ${private_headers}
   ${sources}
   )
 
-target_link_libraries( vital_type_converter
+target_link_libraries( vital_type_converters
   PRIVATE              vital
                        sprokit_pipeline
                        vital_c
