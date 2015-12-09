@@ -100,6 +100,7 @@ endif()
 include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include")
 include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_BINARY_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 # ==================================================================
 
