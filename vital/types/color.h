@@ -61,6 +61,24 @@ struct rgb_color
 };
 
 
+/// comparison operator for an rgb_color
+inline
+bool
+operator==( rgb_color const& c1, rgb_color const& c2 )
+{
+  return (c1.r == c2.r) && (c1.g == c2.g) && (c1.b == c2.b);
+}
+
+
+/// comparison operator for an rgb_color
+inline
+bool
+operator!=( rgb_color const& c1, rgb_color const& c2 )
+{
+  return !(c1 == c2);
+}
+
+
 /// output stream operator for an rgb_color
 inline
 std::ostream&
