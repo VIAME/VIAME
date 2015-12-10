@@ -51,6 +51,10 @@
 #include <sstream>
 #include <list>
 
+#if defined(_WIN32)
+#include <shlobj.h>
+#endif
+
 namespace kwiver {
 namespace vital {
 
@@ -62,7 +66,7 @@ namespace {
 void add_windows_path( std::vector< config_path_t >& paths, int which )
 {
   char buffer[MAX_PATH];
-  if ( SHGetSpecialFolderPath ( 0, which, 0, 0, buffer ) )
+  if ( SHGetFolderPath ( 0, which, 0, 0, buffer ) )
   {
     auto path = config_path_t{ buffer };
     kwiversys::SystemTools::ConvertToUnixSlashes( path );
