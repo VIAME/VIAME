@@ -225,6 +225,7 @@ read_ply_file( path_t const& file_path )
     // or if the values do not parse as expected
     double x=0, y=0, z=0;
     rgb_color color;
+    int cvalue;
     landmark_id_t id = static_cast<landmark_id_t>(vert_count++);
     for( unsigned int i=0; i<tokens.size() && i < vert_props.size(); ++i )
     {
@@ -241,13 +242,16 @@ read_ply_file( path_t const& file_path )
           iss >> z;
           break;
         case CR:
-          iss >> color.r;
+          iss >> cvalue;
+          color.r = static_cast<unsigned char>(cvalue);
           break;
         case CG:
-          iss >> color.g;
+          iss >> cvalue;
+          color.g = static_cast<unsigned char>(cvalue);
           break;
         case CB:
-          iss >> color.b;
+          iss >> cvalue;
+          color.b = static_cast<unsigned char>(cvalue);
           break;
         case INDEX:
           iss >> id;
