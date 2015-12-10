@@ -31,11 +31,12 @@ from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 import numpy as np
 
-from smqtk.representation.data_element.file_element import DataFileElement
 from smqtk.algorithms.descriptor_generator import get_descriptor_generator_impls
+from smqtk.representation.data_element.file_element import DataFileElement
 from smqtk.representation.descriptor_element_factory import DescriptorElementFactory
 from smqtk.representation.descriptor_element.local_elements import DescriptorMemoryElement
 
+from smqtk.algorithms.descriptor_generator.caffe_default_imagenet import CaffeDefaultImageNet
 
 class ApplyDescriptor(KwiverProcess):
     """
@@ -46,31 +47,38 @@ class ApplyDescriptor(KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
+	# Add trait for our output port
         self.add_port_trait( 'vector', 'double_vector', 'Output descriptor vector' )
 
         # set up required flags
-        optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
 
-        #  declare our input port ( port-name,flags)
+        #  declare our ports ( port-name, flags)
         self.declare_input_port_using_trait('image', required)
 
-        self.declare_output_port_using_trait('vector', optional )
+        self.declare_output_port_using_trait('vector', required )
 
     # ----------------------------------------------
     def _configure(self):
+	# Test extracting config as dictionary
         self.config_dict = {}
         cfg = self.available_config()
         for it in cfg:
             self.config_dict[it] = self.config_value(it)
 
-        print "Config:", config_dict
-
+	# create descriptor factory
         self.factory = DescriptorElementFactory(DescriptorMemoryElement, {})
-        self.cd = get_descriptor_generator_impls()## ['ColorDescriptor_Image_csift']
+        ## self.cd = get_descriptor_generator_impls()['ColorDescriptor_Image_csift']
 
         # self.cd = self.cd.from_config( config_dict )
+
+	self.caffe_config = {
+        "blvc_reference_caffenet_model": "/home/etri/projects/smqtk/source/data/caffenet/bvlc_reference_caffenet.caffemodel",
+        "image_mean_binary": "/home/etri/projects/smqtk/source/data/caffenet/imagenet_mean.binaryproto",
+        "gpu_batch_size": 100,
+	}
+	self.generator = CaffeDefaultImageNet.from_config(self.caffe_config)
 
         self._base_configure()
 
@@ -87,10 +95,12 @@ class ApplyDescriptor(KwiverProcess):
         pix = np.array(pil_image)
 
         # get image in acceptable format
+	# TBD use in memory transfer
         pil_image.save( "file.png" )
-        e = DataFileElement("file.png")
+        test_data = DataFileElement("file.png")
 
-        result = self.cd.compute_descriptor(e, self.factory)
+        ## result = self.cd.compute_descriptor(e, self.factory)
+	result = self.generator.compute_descriptor(test_data, self.descr_factory)
         desc_list = result.vector().tolist()
 
         # push list to output port
