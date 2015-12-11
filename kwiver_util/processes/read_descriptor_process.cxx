@@ -102,7 +102,7 @@ read_descriptor_process
 
   std::cout << "Vector size: " << vect->size() << " -- " << std::endl;
 
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 50; i++)
   {
     std::cout << " " << vect->at(i);
   }
