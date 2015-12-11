@@ -1,3 +1,10 @@
+#
+# Pipeline description for running SMQTK descriptor generator
+#
+# Command:
+#   pipeline_runner -p descrip.pipe -S pythread_per_process
+#
+
 # ================================================================
 process input
   :: frame_list_input
