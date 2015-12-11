@@ -1,0 +1,3 @@
+/home/linus/projects/SMQTK/source/data/caffenet/cat.jpg
+/home/linus/projects/SMQTK/source/data/caffenet/cat_gray.jpg
+/home/linus/projects/SMQTK/source/data/caffenet/fish-bike.jpg
