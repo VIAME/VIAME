@@ -68,7 +68,7 @@ class ApplyDescriptor(KwiverProcess):
             self.config_dict[it] = self.config_value(it)
 
 	# create descriptor factory
-        self.factory = DescriptorElementFactory(DescriptorMemoryElement, {})
+        self.descr_factory = DescriptorElementFactory(DescriptorMemoryElement, {})
         ## self.cd = get_descriptor_generator_impls()['ColorDescriptor_Image_csift']
 
         # self.cd = self.cd.from_config( config_dict )
