@@ -58,6 +58,7 @@ set( vital_public_headers
   algo/detect_features.h
   algo/draw_tracks.h
   algo/estimate_essential_matrix.h
+  algo/estimate_fundamental_matrix.h
   algo/estimate_homography.h
   algo/estimate_similarity_transform.h
   algo/extract_descriptors.h
@@ -125,6 +126,7 @@ set( vital_sources
   algo/detect_features.cxx
   algo/draw_tracks.cxx
   algo/estimate_essential_matrix.cxx
+  algo/estimate_fundamental_matrix.cxx
   algo/estimate_homography.cxx
   algo/estimate_similarity_transform.cxx
   algo/extract_descriptors.cxx
