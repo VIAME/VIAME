@@ -93,9 +93,8 @@ configure_file(
   ${VITAL_SETUP_SCRIPT_FILE}
   )
 
-
 # install set up script
-install( PROGRAMS   ${VITAL_BINARY_DIR}/setup_VITAL.sh
+install( PROGRAMS   ${VITAL_SETUP_SCRIPT_FILE}
   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 add_subdirectory( vital )

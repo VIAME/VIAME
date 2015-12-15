@@ -47,7 +47,7 @@ namespace vital {
 // ------------------------------------------------------------------
 algorithm
 ::algorithm()
-  : m_logger( kwiver::vital::get_logger( "algorithm" ) )
+  : m_logger( kwiver::vital::get_logger( "vital.algorithm" ) )
 {
 }
 
@@ -213,7 +213,7 @@ algorithm
                                    std::string const& name,
                                    config_block_sptr  config )
 {
-  static  kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "algorithm" );
+  static  kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "vital.algorithm" );
   const std::string type_key = name + config_block::block_sep + "type";
 
   if ( ! config->has_value( type_key ) )

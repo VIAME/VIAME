@@ -129,7 +129,7 @@ public:
       m_parse_error( false ),
       m_symtab( new kwiver::vital::token_type_symtab( "LOCAL" ) ),
       m_config_block( kwiver::vital::config_block::empty_config() ), //+ nay need to set a name
-      m_logger( kwiver::vital::get_logger( "config_parser" ) )
+      m_logger( kwiver::vital::get_logger( "vital.config_parser" ) )
   {
     m_token_expander.add_token_type( new kwiver::vital::token_type_env() );
     m_token_expander.add_token_type( new kwiver::vital::token_type_sysenv() );

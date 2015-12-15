@@ -41,7 +41,7 @@ namespace vital {
 
 registrar
 ::registrar()
-  : m_logger( kwiver::vital::get_logger( "registrar" ) )
+  : m_logger( kwiver::vital::get_logger( "vital.registrar" ) )
 {
 }
 

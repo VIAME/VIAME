@@ -46,7 +46,7 @@ namespace vital {
 camera
 ::camera()
 {
-  kwiver::vital::get_logger( "camera" );
+  kwiver::vital::get_logger( "vital.camera" );
 }
 
 /// Convert to a 3x4 homogeneous projection matrix

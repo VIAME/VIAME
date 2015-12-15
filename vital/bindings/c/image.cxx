@@ -38,6 +38,7 @@
 #include <vital/types/image.h>
 
 #include <vital/bindings/c/helpers/c_utils.h>
+#include <iostream>
 
 
 /// Create a new, empty image
@@ -65,20 +66,36 @@ vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
 }
 
 
-/// Create a new image from existing data
+/// Create a new image from new data
 vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
-                                          size_t width, size_t height,
-                                          size_t depth, ptrdiff_t w_step,
-                                          ptrdiff_t h_step, ptrdiff_t d_step )
+                                          size_t width, size_t height, size_t depth,
+                                          int32_t w_step, int32_t h_step, int32_t d_step )
 {
-  STANDARD_CATCH(
-    "C::image::new_from_data", 0,
-    return reinterpret_cast<vital_image_t*>(
-      new kwiver::vital::image( first_pixel, width, height, depth,
-                          w_step, h_step, d_step )
-      );
-  );
-  return 0;
+  kwiver::vital::image* new_image = new kwiver::vital::image( width, height, depth );
+  for ( unsigned int d = 0; d < depth; ++d )
+  {
+    // This is a little crazy, but it is used to convert BGR to RGB
+    int d_idx(0);
+    if (d_step >= 0)
+    {
+      d_idx = d * d_step;
+    }
+    else
+    {
+      d_idx = (depth - d - 1) * (-d_step);
+    }
+
+    for ( unsigned int h = 0; h < height; ++h )
+    {
+      int h_idx = h * h_step;
+      for ( unsigned int w = 0; w < width; ++w )
+      {
+        int w_idx = w * w_step;
+        (*new_image)( w, h, d ) = first_pixel[ w_idx + h_idx + d_idx ];
+      }
+    }
+  }
+  return reinterpret_cast<vital_image_t*>( new_image );
 }
 
 
@@ -86,7 +103,7 @@ vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
 vital_image_t* vital_image_new_from_image( vital_image_t *other_image )
 {
   STANDARD_CATCH(
-    "C::image::new_from_data", 0,
+    "C::image::new_from_image", 0,
     return reinterpret_cast<vital_image_t*>(
       new kwiver::vital::image( *reinterpret_cast<kwiver::vital::image*>(other_image) )
       );
@@ -99,18 +116,52 @@ vital_image_t* vital_image_new_from_image( vital_image_t *other_image )
 void vital_image_destroy( vital_image_t *image )
 {
   STANDARD_CATCH(
-    "C::image::desroy", 0,
+    "C::image::destroy", 0,
     delete reinterpret_cast<kwiver::vital::image*>( image );
   );
 };
 
 
-/// Get the number of bytes allocated in the given image
-size_t vital_image_size( vital_image_t *image )
+int vital_image_get_pixel2( vital_image_t *image, unsigned i, unsigned j )
 {
   STANDARD_CATCH(
-    "C::image::size", 0,
-    return reinterpret_cast<kwiver::vital::image*>(image)->size();
+    "C::image::destroy", 0,
+    return reinterpret_cast<kwiver::vital::image*>( image )->operator()(i, j);
   );
   return 0;
 }
+
+
+int vital_image_get_pixel3( vital_image_t *image, unsigned i, unsigned j, unsigned k )
+{
+  STANDARD_CATCH(
+    "C::image::destroy", 0,
+    return reinterpret_cast<kwiver::vital::image*>( image )->operator()(i, j, k);
+  );
+  return 0;
+}
+
+//
+// A little shortcut for defining accessors
+//
+#define ACCESSOR( TYPE, NAME )                                          \
+TYPE vital_image_ ## NAME( vital_image_t *image )                       \
+{                                                                       \
+  STANDARD_CATCH(                                                       \
+    "C::image::" # NAME, 0,                                             \
+    return reinterpret_cast<kwiver::vital::image*>(image)->NAME();      \
+  );                                                                    \
+  return 0;                                                             \
+}
+
+/// Get the number of bytes allocated in the given image
+ACCESSOR( size_t, size )
+ACCESSOR( vital_image_byte*, first_pixel )
+ACCESSOR( size_t, width )
+ACCESSOR( size_t, height )
+ACCESSOR( size_t, depth )
+ACCESSOR( size_t, w_step )
+ACCESSOR( size_t, h_step )
+ACCESSOR( size_t, d_step )
+
+#undef ACCESSOR
