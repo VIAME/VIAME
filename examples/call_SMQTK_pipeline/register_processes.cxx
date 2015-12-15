@@ -39,7 +39,7 @@ extern "C"
 SMQTK_EXTRACT_EXPORT void register_processes();
 
 // ----------------------------------------------------------------
-/*! \brief Regsiter processes
+/** \brief Regsiter processes
  *
  *
  */

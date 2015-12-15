@@ -11,7 +11,6 @@ kwiver_add_plugin( SMQTK_extract
                      supply_image.h           supply_image.cxx
                      accept_descriptor.h      accept_descriptor.cxx
                      register_processes.cxx
-
   PRIVATE          sprokit_pipeline sprokit_tools
                    maptk_core maptk_vxl maptk_ocv
                    vital vital_apm vital_logger vital_config
@@ -19,14 +18,13 @@ kwiver_add_plugin( SMQTK_extract
                    ${Boost_SYSTEM_LIBRARY}
   )
 
-add_library( SMQTK_Descriptor
+kwiver_add_library( SMQTK_Descriptor
   SMQTK_Descriptor.h       SMQTK_Descriptor.cxx
   io_mgr.h                 io_mgr.cxx
   )
 
 target_link_libraries( SMQTK_Descriptor
   PRIVATE         sprokit_pipeline sprokit_tools
-#                  maptk_core maptk_vxl maptk_ocv
                   vital vital_apm vital_logger vital_config
                   ${OpenCV_LIBS}
                   ${Boost_SYSTEM_LIBRARY}
@@ -41,8 +39,7 @@ add_executable( desc_test
   )
 
 target_link_libraries( desc_test
-  PRIVATE             # SMQTK_extract
-                      sprokit_pipeline sprokit_tools
+  PRIVATE             sprokit_pipeline sprokit_tools
                       ${OpenCV_LIBS}
                       ${Boost_SYSTEM_LIBRARY}
   )
