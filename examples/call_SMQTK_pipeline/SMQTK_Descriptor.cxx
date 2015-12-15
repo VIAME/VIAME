@@ -101,7 +101,7 @@ ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file )
 
   // 4) locate python process and get it loaded
 
-  sprokit::load_known_modules(); //+ maybe not needed
+  sprokit::load_known_modules();
 
   // 5) create pipeline description
   std::stringstream pipeline_desc;
@@ -109,6 +109,8 @@ ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file )
                 << "  :: supply_image\n"
                 << "process descriptor\n"
                 << "  :: ApplyDescriptor\n"
+		<< ":config_file " << config_file << "\n"
+
                 << "process output_endcap\n"
                 << "  :: accept_descriptor\n"
 
@@ -131,11 +133,8 @@ ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file )
     return std::vector< double >();
   }
 
-  // For the next version, use the pipeline interface to locate
-  // endcaps and interact with them.
-  // process_t proc = pipeline->process_by_name( "" );
-  // cast proc to real derived process type
-  // interact with process.
+  // Get config from pipeline and force scheduler type
+  kwiver::vital::config_block_sptr conf = builder.config();
 
   // perform setup operation on pipeline and get it ready to run
   // This throws many exceptions
@@ -150,14 +149,6 @@ ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file )
   }
 
   sprokit::scheduler_registry::type_t const scheduler_type = "pythread_per_process";
-
-    // Get config from pipeline and force scheduler type
-  kwiver::vital::config_block_sptr conf = builder.config();
-  conf->print( std::cout );
-
-  // Add config stream to descriptor process
-  conf->set_value( "input_endcap:config_file", config_file );
-
 
   kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
                                               kwiver::vital::config_block::block_sep + scheduler_type);
