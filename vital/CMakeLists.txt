@@ -93,6 +93,7 @@ set( vital_public_headers
   types/essential_matrix.h
   types/feature.h
   types/feature_set.h
+  types/fundamental_matrix.h
   types/geo_lat_lon.h
   types/homography.h
   types/homography_f2f.h
@@ -151,6 +152,7 @@ set( vital_sources
   types/camera_intrinsics.cxx
   types/essential_matrix.cxx
   types/feature.cxx
+  types/fundamental_matrix.cxx
   types/geo_lat_lon.cxx
   types/homography.cxx
   types/homography_f2f.cxx
