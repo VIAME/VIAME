@@ -3,7 +3,7 @@ VITAL Release Notes for changes pending release approval by AFRL
 
 This file documents release notes for changes made to VITAL which require
 public release approval from AFRL.  After approval, the changes and
-corresponding notes below will be encorporated into a public numbered
+corresponding notes below will be incorporated into a public numbered
 release version, and the content of this file will be reset.
 
 Removed boost libraries as dependencies. The vital libraries no longer
@@ -13,10 +13,10 @@ support.
 
 Replaced boost supplied features with those from std and kwiversys OS
 Abstraction Layer. Using the std boost equivalent features required
-compiling with C++ 0x standard support. The CMake build system now
+compiling with C++0x or later standard support. The CMake build system now
 tests for required compiler flags.
 
-Test vital builds on CentOS 5, OSX, Windows. Due to the later c++
+Test vital builds on CentOS 5, OS/X, Windows. Due to the later c++
 standard requirements, VS 2013 is the build system being supported.
 
 Add method to algorithm plugin manager to load plugins on the first
@@ -51,7 +51,7 @@ specializations of the default conversion functions.
 Added support for config entry attributes. Currently supporting the
 read-only "[RO]" attribute borrowed from sprokit config semantics.
 
-Refactored camera related data types by moving code between Map-TK and
+Refactored camera related data types by moving code between MAP-TK and
 vital.
 
 The C bindings used for the python interface have been converted to
@@ -60,13 +60,13 @@ vital namespace, are built and tested.
 Reworked timestamp class to contain integral number of micro-seconds
 and changed access methods to specify units returned.
 
-Added logging support to algorithm base classes to simplify liogging
+Added logging support to algorithm base classes to simplify logging
 in the derived classes. Also added logging support to some of the
 vital types.
 
 Added support for clang compiler specific flags.
 
-Updated to latest kwiversys implementation. This library is publically
+Updated to latest kwiversys implementation. This library is publicly
 available from http://public.kitware.com/gitweb?p=KWSys.git;a=summary
 but it is easier for us to provide a local copy of this source without
 using git submodules.
