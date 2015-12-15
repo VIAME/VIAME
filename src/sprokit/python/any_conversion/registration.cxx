@@ -134,7 +134,6 @@ any_converter
 
   (void)lock;
 
-  LOG_DEBUG( s_logger, "Registering from converter" );
   s_from.insert(from_map_t::value_type(priority, from));
 }
 
@@ -148,7 +147,6 @@ any_converter
 
   (void)lock;
 
-  LOG_DEBUG( s_logger, "Registering to converter" );
   s_to.insert(to_map_t::value_type(priority, to));
 }
 
