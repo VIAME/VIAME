@@ -74,10 +74,14 @@ public:
   virtual vector_3d loc() const = 0;
   /// Accessor for the landmark scale
   virtual double scale() const = 0;
+  /// Accessor for the landmark normal
+  virtual vector_3d normal() const = 0;
   /// Accessor for the covariance
   virtual covariance_3d covar() const = 0;
   /// Accessor for the RGB color
   virtual rgb_color color() const = 0;
+  /// Accessor for the number of observations
+  virtual unsigned observations() const = 0;
 };
 
 /// output stream operator for a base class landmark
@@ -123,6 +127,12 @@ public:
   /// Accessor for the landmark scale
   virtual double scale() const { return static_cast< double > ( scale_ ); }
 
+  /// Accessor for the landmark normal using underlying data type
+  Eigen::Matrix< T, 3, 1 > const& get_normal() const { return normal_; }
+
+  /// Accessor for the landmark normal
+  virtual vector_3d normal() const { return normal_.template cast< double > (); }
+
   /// Accessor for the covariance using underlying data type
   covariance_< 3, T > const& get_covar() const { return covar_; }
 
@@ -135,11 +145,20 @@ public:
   /// Accessor for the RGB color
   virtual rgb_color color() const { return color_; }
 
+  /// Accessor for a const reference to the number of observations
+  virtual unsigned const& get_observations() const { return observations_; }
+
+  /// Accessor for the number of observations
+  virtual unsigned observations() const { return observations_; }
+
   /// Set the landmark position in world coordinates
   void set_loc( Eigen::Matrix< T, 3, 1 > const& loc ) { loc_ = loc; }
 
   /// Set the scale of the landmark
   void set_scale( T scale ) { scale_ = scale; }
+
+  /// Set the landmark normal
+  void set_normal( Eigen::Matrix< T, 3, 1 > const& normal ) { normal_ = normal; }
 
   /// Set the covariance matrix of the landmark location
   void set_covar( covariance_< 3, T > const& covar ) { covar_ = covar; }
@@ -147,15 +166,22 @@ public:
   /// Set the RGB color of the landmark
   void set_color( rgb_color const& color ) { color_ = color; }
 
+  /// Set the number of observations of the landmark
+  void set_observations( unsigned observations ) { observations_ = observations; }
+
 protected:
   /// A vector representing the 3D position of the landmark
   Eigen::Matrix< T, 3, 1 > loc_;
   /// The scale of the landmark in 3D
   T scale_;
+  /// A vector representing the normal of the landmark
+  Eigen::Matrix< T, 3, 1 > normal_;
   /// Covariance representing uncertainty in the estimate of 3D position
   covariance_< 3, T > covar_;
   /// The RGB color associated with the landmark
   rgb_color color_;
+  /// The number of observations that contributed to this landmark
+  unsigned observations_;
 };
 
 
