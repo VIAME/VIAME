@@ -37,14 +37,14 @@
 int main(int argc, char *argv[])
 {
 
-  if (argc < 2 )
+  if (argc < 3 )
   {
-    std::cerr << "Need at least one file name\n";
+    std::cerr << "usage: " << argv[0] << " config-file  image-file [image-file ...]\n";
     return 1;
   }
 
   // loop over file names
-  for (int i = 1; i < argc; i++)
+  for (int i = 2; i < argc; i++)
   {
     cv::Mat img = cv::imread( argv[i], CV_LOAD_IMAGE_COLOR );
     if ( ! img.data )
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     }
 
     kwiver::SMQTK_Descriptor des;
-    std::vector< double > results = des.ExtractSMQTK( img, "" );
+    std::vector< double > results = des.ExtractSMQTK( img, argv[1] );
 
     std::cout << "Descriptor size: " << results.size()
               << std::endl;
