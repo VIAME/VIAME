@@ -59,6 +59,7 @@ fundamental_matrix_<T>
 
   // clear the last singular value
   S[2] = T(0);
+  S /= S.norm();
   mat_ = U*S.asDiagonal()*V.transpose();
 }
 
