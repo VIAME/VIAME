@@ -100,16 +100,6 @@ accept_descriptor
 {
   kwiver::vital::double_vector_sptr vect = grab_from_port_using_trait( d_vector );
 
-  //+ TEMP DEBUG CODE
-  std::cout << "Vector size: " << vect->size() << " -- " << std::endl;
-
-  for (int i = 0; i < 50; i++)
-  {
-    std::cout << " " << vect->at(i);
-  }
-  std::cout << std::endl;
-  //+ end debug code
-
   kwiver::io_mgr::Instance()->SetDescriptor( vect );
 
   sprokit::process::_step();
