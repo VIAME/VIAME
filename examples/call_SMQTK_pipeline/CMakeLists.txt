@@ -31,19 +31,19 @@ target_link_libraries( SMQTK_Descriptor
   )
 
 
-add_executable( desc_test
+add_executable( SMQTK_Descriptor_test
   SMQTK_Descriptor_test.cxx
 
   io_mgr.h           io_mgr.cxx
   SMQTK_Descriptor.h SMQTK_Descriptor.cxx
   )
 
-target_link_libraries( desc_test
+target_link_libraries( SMQTK_Descriptor_test
   PRIVATE             sprokit_pipeline sprokit_tools
                       ${OpenCV_LIBS}
                       ${Boost_SYSTEM_LIBRARY}
   )
 
-install( TARGETS desc_test
+install( TARGETS SMQTK_Descriptor_test
   RUNTIME DESTINATION bin
   )
