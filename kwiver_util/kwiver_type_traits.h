@@ -42,6 +42,9 @@
 
 #include <kwiver_util/trait_utils.h>
 
+#include <memory>
+#include <vector>
+
 namespace kwiver {
 namespace vital {
 

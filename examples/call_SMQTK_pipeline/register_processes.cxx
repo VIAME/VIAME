@@ -28,43 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sprokit/pipeline/process_registry.h>
 
-#ifndef _KWIVER_SMQTK_DESCRIPTOR_H
-#define _KWIVER_SMQTK_DESCRIPTOR_H
+// -- list processes to register --
+#include "supply_image.h"
+#include "accept_descriptor.h"
+#include "smqtk_extract_export.h"
 
-#include <memory>
-#include <vector>
-#include <opencv2/opencv.hpp>
+extern "C"
+SMQTK_EXTRACT_EXPORT void register_processes();
 
-namespace kwiver {
-
-// -----------------------------------------------------------------
-/**
- * @brief SMQTK Descriptor Wrapper.
+// ----------------------------------------------------------------
+/*! \brief Regsiter processes
  *
- * This class implements a synchronous interface to a pipelined
- * implementation of a SMQTK descriptor.
+ *
  */
-class SMQTK_Descriptor
+void register_processes()
 {
-public:
-  // -- CONSTRUCTORS --
-  SMQTK_Descriptor();
-  ~SMQTK_Descriptor();
+  static sprokit::process_registry::module_t const module_name =
+    sprokit::process_registry::module_t( "SMQTK_extract" );
 
-  std::vector< double > ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file );
+  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
 
-protected:
+  if ( registry->is_module_loaded( module_name ) )
+  {
+    return;
+  }
 
+  // ----------------------------------------------------------------
+  registry->register_process( "supply_image", "Supplies a single image",
+                              sprokit::create_process< kwiver::supply_image > );
 
+  registry->register_process( "accept_descriptor", "Reads a single vector",
+                              sprokit::create_process< kwiver::accept_descriptor > );
 
-private:
-  class priv;
-  const std::unique_ptr<priv> d;
-
-
-}; // end class SMQTK_Descriptor
-
-} // end namespace
-
-#endif /* _KWIVER_SMQTK_DESCRIPTOR_H */
+  // - - - - - - - - - - - - - - - - - - - - - - -
+  registry->mark_module_as_loaded( module_name );
+}

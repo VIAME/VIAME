@@ -299,7 +299,11 @@ endif()
 
 if (KWIVER_ENABLE_PROCESSES)
 add_subdirectory(kwiver_util)
+
+# may want to make this optional.
+add_subdirectory(examples)
 endif()
+
 
 ##################################################################
 # Top level installation

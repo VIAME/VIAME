@@ -28,43 +28,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-#ifndef _KWIVER_SMQTK_DESCRIPTOR_H
-#define _KWIVER_SMQTK_DESCRIPTOR_H
-
-#include <memory>
-#include <vector>
-#include <opencv2/opencv.hpp>
+#include "io_mgr.h"
 
 namespace kwiver {
 
-// -----------------------------------------------------------------
-/**
- * @brief SMQTK Descriptor Wrapper.
- *
- * This class implements a synchronous interface to a pipelined
- * implementation of a SMQTK descriptor.
- */
-class SMQTK_Descriptor
+  kwiver::io_mgr* kwiver::io_mgr::s_instance(0); // static instance pointer
+
+
+io_mgr* io_mgr::Instance()
 {
-public:
-  // -- CONSTRUCTORS --
-  SMQTK_Descriptor();
-  ~SMQTK_Descriptor();
+  if ( s_instance == 0 )
+  {
+    s_instance = new io_mgr;
+  }
 
-  std::vector< double > ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file );
+  return s_instance;
+}
 
-protected:
-
-
-
-private:
-  class priv;
-  const std::unique_ptr<priv> d;
-
-
-}; // end class SMQTK_Descriptor
 
 } // end namespace
-
-#endif /* _KWIVER_SMQTK_DESCRIPTOR_H */

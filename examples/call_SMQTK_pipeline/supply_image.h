@@ -28,30 +28,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_EXAMPLE_SUPPLY_IMAGE_H
-#define KWIVER_EXAMPLE_SUPPLY_IMAGE_H
+#ifndef _KWIVER_EXAMPLE_SUPPLY_IMAGE_H
+#define _KWIVER_EXAMPLE_SUPPLY_IMAGE_H
 
 #include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
+#include "smqtk_extract_export.h"
 
 #include <opencv2/opencv.hpp>
 
 #include <memory>
+
+namespace kwiver {
 
 // ----------------------------------------------------------------
 /**
  * @brief Supply Image
  *
  */
-class KWIVER_PROCESSES_NO_EXPORT supply_image
+class SMQTK_EXTRACT_NO_EXPORT supply_image
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
   supply_image( kwiver::vital::config_block_sptr const& config );
   virtual ~supply_image();
-
-  static void set_image( cv::Mat cv_img );
 
 protected:
   virtual void _configure();
@@ -67,4 +67,6 @@ private:
 
 }; // end class supply_image
 
-#endif /* KWIVER_EXAMPLE_SUPPLY_IMAGE_H */
+} // end namespace
+
+#endif /* _KWIVER_EXAMPLE_SUPPLY_IMAGE_H */

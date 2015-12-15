@@ -68,16 +68,28 @@ class ApplyDescriptor(KwiverProcess):
             self.config_dict[it] = self.config_value(it)
 
 	# create descriptor factory
-        self.descr_factory = DescriptorElementFactory(DescriptorMemoryElement, {})
-        ## self.cd = get_descriptor_generator_impls()['ColorDescriptor_Image_csift']
+        self.factory = DescriptorElementFactory(DescriptorMemoryElement, {})
 
-        # self.cd = self.cd.from_config( config_dict )
+        # get config file name
+        file_name = self.get_value( "config_file" )
 
+        # open file
+        cfg_file = open( file_name )
+
+        from smqtk.utils.jsmin import jsmin
+        import json
+
+        self.caffe_config = json.loads(jsmin(cfg_file.read() ) )
+        print self.caffe_config # TEMP
+
+        '''
 	self.caffe_config = {
         "blvc_reference_caffenet_model": "/home/etri/projects/smqtk/source/data/caffenet/bvlc_reference_caffenet.caffemodel",
         "image_mean_binary": "/home/etri/projects/smqtk/source/data/caffenet/imagenet_mean.binaryproto",
         "gpu_batch_size": 100,
 	}
+        '''
+
 	self.generator = CaffeDefaultImageNet.from_config(self.caffe_config)
 
         self._base_configure()
@@ -99,7 +111,6 @@ class ApplyDescriptor(KwiverProcess):
         pil_image.save( "file.png" )
         test_data = DataFileElement("file.png")
 
-        ## result = self.cd.compute_descriptor(e, self.factory)
 	result = self.generator.compute_descriptor(test_data, self.descr_factory)
         desc_list = result.vector().tolist()
 

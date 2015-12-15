@@ -31,45 +31,43 @@
 #include "SMQTK_Descriptor.h"
 
 #include <vital/config/config_block.h>
+
 #include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_registry.h>
 #include <sprokit/pipeline/pipeline.h>
 
+#include "supply_image.h"
+#include "accept_descriptor.h"
+#include "io_mgr.h"
+
 #include <iostream>
+#include <sstream>
 
 #include <cstdlib>
+
+namespace kwiver {
+
+static kwiver::vital::config_block_key_t const scheduler_block = kwiver::vital::config_block_key_t("_scheduler");
 
 
 // ==================================================================
 class SMQTK_Descriptor::priv
 {
 public:
-  priv()
-  {
-    m_pipeline_config = "
-process supply_image
-:: image_source
+  priv() {}
 
-process SMQTK_desc
-:: ApplyDescriptor
-
-process accept_vector
-:: get_vector
-";
-  }
 
   ~priv() {}
 
-  std::string m_pipeline_config;
 };
 
 
 // ==================================================================
 SMQTK_Descriptor::
 SMQTK_Descriptor()
-  : priv( new SMQTK_Descriptor::priv() )
+  : d( new SMQTK_Descriptor::priv() )
 {
 }
 
@@ -83,14 +81,9 @@ SMQTK_Descriptor::
 // ------------------------------------------------------------------
 std::vector< double >
 SMQTK_Descriptor::
-ExtractSMQTK(  cv::Mat cv_img, std::istream const& config )
+ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file )
 {
-
-  // 1) instantiate input process with input image
-
-  // 2) instantiate output process
-
-  // 3) register input and processes with sprokit
+  // 1) register input and processes with sprokit
   static sprokit::process_registry::module_t const module_name =
     sprokit::process_registry::module_t( "smqtk_processes" );
 
@@ -98,36 +91,74 @@ ExtractSMQTK(  cv::Mat cv_img, std::istream const& config )
 
   if ( registry->is_module_loaded( module_name ) )
   {
-    return;
+    return std::vector< double >();
   }
 
-  registry->register_process( "supply_image", "Supplies a single image",
-    sprokit::create_process< supply_image > );
+  // 2) Make image available for input.
+  kwiver::io_mgr::Instance()->SetImage( cv_img );
 
-  registry->register_process( "accept_vector", "Reads a single vector",
-    sprokit::create_process< accept_vector > );
-
+  // 3) ...
 
   // 4) locate python process and get it loaded
 
   sprokit::load_known_modules(); //+ maybe not needed
 
-  //+ VM is a problem
-  sprokit::pipeline_builder const builder(vm, desc);
+  // 5) create pipeline description
+  std::stringstream pipeline_desc;
+  pipeline_desc << "process input_endcap\n"
+                << "  :: supply_image\n"
+                << "process descriptor\n"
+                << "  :: ApplyDescriptor\n"
+                << "process output_endcap\n"
+                << "  :: accept_descriptor\n"
 
+                << "connect from input_endcap.image\n"
+                << "          to descriptor.image\n"
+
+                << "connect from descriptor.vector\n"
+                << "          to output_endcap.d_vector\n"
+    ;
+
+  // 7) create a pipeline
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( pipeline_desc );
+
+  // build pipeline
   sprokit::pipeline_t const pipe = builder.pipeline();
-  kwiver::vital::config_block_sptr const conf = builder.config();
-
   if (!pipe)
   {
     std::cerr << "Error: Unable to bake pipeline" << std::endl;
-
-    return EXIT_FAILURE;
+    return std::vector< double >();
   }
 
-  pipe->setup_pipeline();
+  // For the next version, use the pipeline interface to locate
+  // endcaps and interact with them.
+  // process_t proc = pipeline->process_by_name( "" );
+  // cast proc to real derived process type
+  // interact with process.
+
+  // perform setup operation on pipeline and get it ready to run
+  // This throws many exceptions
+  try
+  {
+    pipe->setup_pipeline();
+  }
+  catch( sprokit::pipeline_exception const& e)
+  {
+    std::cerr << "Error setting up pipeline: " << e.what() << std::endl;
+    return std::vector< double >();
+  }
 
   sprokit::scheduler_registry::type_t const scheduler_type = "pythread_per_process";
+
+    // Get config from pipeline and force scheduler type
+  kwiver::vital::config_block_sptr conf = builder.config();
+  conf->print( std::cout );
+
+  // Add config stream to descriptor process
+  conf->set_value( "input_endcap:config_file", config_file );
+
+
   kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
                                               kwiver::vital::config_block::block_sep + scheduler_type);
 
@@ -138,11 +169,16 @@ ExtractSMQTK(  cv::Mat cv_img, std::istream const& config )
   if (!scheduler)
   {
     std::cerr << "Error: Unable to create scheduler" << std::endl;
-
-    return EXIT_FAILURE;
+    return std::vector< double >();
   }
 
+  // Start pipeline and wait for it to finish
   scheduler->start();
   scheduler->wait();
 
+  // Extract pipeline results
+  kwiver::vital::double_vector_sptr d_ptr = kwiver::io_mgr::Instance()->GetDescriptor();
+  return *d_ptr.get(); // return by value
 }
+
+} // end namespace

@@ -28,43 +28,58 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef _KWIVER_IO_MGR_H
+#define _KWIVER_IO_MGR_H
 
-#ifndef _KWIVER_SMQTK_DESCRIPTOR_H
-#define _KWIVER_SMQTK_DESCRIPTOR_H
+#include "smqtk_extract_export.h"
+#include <kwiver_util/kwiver_type_traits.h>
 
-#include <memory>
-#include <vector>
 #include <opencv2/opencv.hpp>
+#include <vector>
+#include <memory>
+
 
 namespace kwiver {
 
 // -----------------------------------------------------------------
 /**
- * @brief SMQTK Descriptor Wrapper.
+ * @brief Class to manage input and output from endcaps.
  *
- * This class implements a synchronous interface to a pipelined
- * implementation of a SMQTK descriptor.
+ * This class is implemented as a singleton so that both endcaps and
+ * the pipeline control method can share this class.
+ *
+ * Currently this class expecte to handle only one image. If more than
+ * one image is needed, then some queueing will be needed.
  */
-class SMQTK_Descriptor
+
+class SMQTK_EXTRACT_EXPORT io_mgr
 {
 public:
   // -- CONSTRUCTORS --
-  SMQTK_Descriptor();
-  ~SMQTK_Descriptor();
+  io_mgr() { }
+  virtual ~io_mgr() { }
 
-  std::vector< double > ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file );
+  //
+  static io_mgr* Instance();
 
-protected:
+  // -- ACCESSORS --
+  cv::Mat const& GetImage() const { return m_image; }
+  kwiver::vital::double_vector_sptr GetDescriptor() const { return m_descriptor; }
 
-
+  // -- MANIPULATORS --
+  void SetImage( cv::Mat const& img ) { m_image = img; }
+  void SetDescriptor( kwiver::vital::double_vector_sptr vec) { m_descriptor = vec; }
 
 private:
-  class priv;
-  const std::unique_ptr<priv> d;
+  // input image
+  cv::Mat m_image;
 
+  // output descriptor vector
+  kwiver::vital::double_vector_sptr m_descriptor;
 
-}; // end class SMQTK_Descriptor
+  static io_mgr* s_instance;
+}; // end class io_mgr
 
 } // end namespace
 
-#endif /* _KWIVER_SMQTK_DESCRIPTOR_H */
+#endif /* _KWIVER_IO_MGR_H */

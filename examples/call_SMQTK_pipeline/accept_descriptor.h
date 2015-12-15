@@ -28,43 +28,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief Image display process interface.
+ */
 
-#ifndef _KWIVER_SMQTK_DESCRIPTOR_H
-#define _KWIVER_SMQTK_DESCRIPTOR_H
+#ifndef _KWIVER_ACCEPT_DESCRIPTOR_H
+#define _KWIVER_ACCEPT_DESCRIPTOR_H
+
+#include <sprokit/pipeline/process.h>
+#include "smqtk_extract_export.h"
 
 #include <memory>
-#include <vector>
-#include <opencv2/opencv.hpp>
 
 namespace kwiver {
 
-// -----------------------------------------------------------------
+// ----------------------------------------------------------------
 /**
- * @brief SMQTK Descriptor Wrapper.
+ * @brief Display images
  *
- * This class implements a synchronous interface to a pipelined
- * implementation of a SMQTK descriptor.
  */
-class SMQTK_Descriptor
+class SMQTK_EXTRACT_NO_EXPORT accept_descriptor
+  : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  SMQTK_Descriptor();
-  ~SMQTK_Descriptor();
-
-  std::vector< double > ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file );
+  accept_descriptor( kwiver::vital::config_block_sptr const& config );
+  virtual ~accept_descriptor();
 
 protected:
-
-
+  virtual void _configure();
+  virtual void _step();
 
 private:
+  void make_ports();
+  void make_config();
+
+
   class priv;
   const std::unique_ptr<priv> d;
 
-
-}; // end class SMQTK_Descriptor
+}; // end class accept_descriptor
 
 } // end namespace
 
-#endif /* _KWIVER_SMQTK_DESCRIPTOR_H */
+#endif /* _KWIVER_ACCEPT_DESCRIPTOR_H */

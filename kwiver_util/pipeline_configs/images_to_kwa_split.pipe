@@ -8,7 +8,8 @@ process input
   :: frame_list_input
 # Input file containing new-line separated paths to sequential image
 # files.
-  :image_list_file ../video-test/short/input_image_list.txt
+  :image_list_file ../video-test/aphill_images.txt
+  #:image_list_file ../video-test/short/input_image_list.txt
   #:image_list_file ../video-test/long/input_image_list.txt
   :frame_time .03
 

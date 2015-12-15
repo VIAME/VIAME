@@ -28,43 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "SMQTK_Descriptor.h"
+#include <iostream>
 
-#ifndef _KWIVER_SMQTK_DESCRIPTOR_H
-#define _KWIVER_SMQTK_DESCRIPTOR_H
 
-#include <memory>
-#include <vector>
-#include <opencv2/opencv.hpp>
+// ==================================================================
 
-namespace kwiver {
-
-// -----------------------------------------------------------------
-/**
- * @brief SMQTK Descriptor Wrapper.
- *
- * This class implements a synchronous interface to a pipelined
- * implementation of a SMQTK descriptor.
- */
-class SMQTK_Descriptor
+int main(int argc, char *argv[])
 {
-public:
-  // -- CONSTRUCTORS --
-  SMQTK_Descriptor();
-  ~SMQTK_Descriptor();
 
-  std::vector< double > ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file );
+  if (argc < 2 )
+  {
+    std::cerr << "Need at least one file name\n";
+    return 1;
+  }
 
-protected:
+  // loop over file names
+  for (int i = 1; i < argc; i++)
+  {
+    cv::Mat img = cv::imread( argv[i], CV_LOAD_IMAGE_COLOR );
+    if ( ! img.data )
+    {
+      std::cerr << "Could not read image from file \"" << argv[i] << "\"\n";
+      continue;
+    }
 
+    kwiver::SMQTK_Descriptor des;
+    std::vector< double > results = des.ExtractSMQTK( img, "" );
 
+    std::cout << "Descriptor size: " << results.size()
+              << std::endl;
 
-private:
-  class priv;
-  const std::unique_ptr<priv> d;
+  } // end for
 
-
-}; // end class SMQTK_Descriptor
-
-} // end namespace
-
-#endif /* _KWIVER_SMQTK_DESCRIPTOR_H */
+  return 0;
+}
