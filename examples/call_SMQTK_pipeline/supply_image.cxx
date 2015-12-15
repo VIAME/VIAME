@@ -99,6 +99,8 @@ void supply_image
 
   if ( d->first )
   {
+    d->first = false;
+
     // Convert image to a image container.
     kwiver::vital::image_container_sptr const img_c( new kwiver::maptk::ocv::image_container( io_mgr::Instance()->GetImage() ) );
 
