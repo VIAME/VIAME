@@ -48,26 +48,112 @@
 namespace sprokit
 {
 
+// ----------------------------------------------------------------
+/**
+ * \brief Class to build pipeline.
+ *
+ * This class is the main interface for creating a pipeline. A
+ * pipeline builder (object of this class) is created and configured
+ * with the pipeline description. Configuration items can be added as
+ * needed.
+ *
+ * After the pipeline builder is configured as desired, it can build
+ * the pipeline which is ready to process.
+ */
 class SPROKIT_TOOLS_EXPORT pipeline_builder
   : boost::noncopyable
 {
-  public:
-    pipeline_builder(boost::program_options::variables_map const& vm, boost::program_options::options_description const& desc);
-    pipeline_builder();
-    ~pipeline_builder();
+public:
+  /**
+   * \brief Create pipeline from command line input.
+   *
+   * This is the all-in-one call to create a pipeline builder.
+   *
+   * \param vm Variable map from parsing the command line
+   * \param desc Command line options descriptions
+   */
+  pipeline_builder(boost::program_options::variables_map const& vm, boost::program_options::options_description const& desc);
 
-    void load_pipeline(std::istream& istr);
+  /**
+   * \brief Create default pipeline builder object.
+   *
+   */
+  pipeline_builder();
+  ~pipeline_builder();
 
-    void load_from_options(boost::program_options::variables_map const& vm);
+  /**
+   * \brief Load pipeline configuration from stream.
+   *
+   * This method loads the pipeline configuration into the
+   * builder. This can be used to add additional configuration files
+   * to the internal pipeline representation.
+   *
+   * \param istr Stream containing the textual pipeline definition.
+   */
+  void load_pipeline(std::istream& istr);
 
-    void load_supplement(sprokit::path_t const& path);
-    void add_setting(std::string const& setting);
+  /**
+   * \brief Load options into builder.
+   *
+   * This method loads options as specified from the command
+   * line. These options are supplementary config files and settings
+   * as specified in th eprogram options supplied.
+   *
+   * The result of this call is to add more entries to the internal
+   * pipeline representation.
+   *
+   * \param vm Program options
+   */
+  void load_from_options(boost::program_options::variables_map const& vm);
 
-    sprokit::pipeline_t pipeline() const;
-    kwiver::vital::config_block_sptr config() const;
-    sprokit::pipe_blocks blocks() const;
-  private:
-    sprokit::pipe_blocks m_blocks;
+  /**
+   * \brief Load supplemental data into pipeline description.
+   *
+   * Adds supplemental block to the internal representation of the pipeline.
+   *
+   * \param path File to read.
+   */
+  void load_supplement(sprokit::path_t const& path);
+
+  /**
+   * \brief Add single config entry
+   *
+   * Add a single config entry to the internal pipeline
+   * representation. A config entry has for form key=value
+   *
+   * \param setting String containing a single config setting entry.
+   */
+  void add_setting(std::string const& setting);
+
+  /**
+   * \brief Create pipeline from internal representation.
+   *
+   * This method instantiates a pipeline from the accumulated internal
+   * pipeline representation.
+   *
+   * \return A new pipeline object.
+   */
+  sprokit::pipeline_t pipeline() const;
+
+  /**
+   * \brief Extract config block from pipeline.
+   *
+   * This method extracts the config for the pipeline.
+   *
+   * \return Block containing the whole pipeline config.
+   */
+  kwiver::vital::config_block_sptr config() const;
+
+  /**
+   * \brief Get internal representation of pipeline.
+   *
+   *
+   * \return List of internal pipeline blocks.
+   */
+  sprokit::pipe_blocks blocks() const;
+
+private:
+  sprokit::pipe_blocks m_blocks;
 };
 
 SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_common_options();

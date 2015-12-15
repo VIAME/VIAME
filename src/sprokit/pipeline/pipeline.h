@@ -254,6 +254,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns The names of all processes in the pipeline.
      */
     process::names_t process_names() const;
+
     /**
      * \brief Get a process by name.
      *
@@ -270,6 +271,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns The process in the pipeline with the given name.
      */
     process_t process_by_name(process::name_t const& name) const;
+
     /**
      * \brief Get the cluster a process is a member of.
      *
@@ -293,6 +295,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns The list of all cluster names in the pipeline.
      */
     process::names_t cluster_names() const;
+
     /**
      * \brief Get a cluster by name.
      *
@@ -319,6 +322,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns The port address that sends data from \p name's \p port.
      */
     process::port_addrs_t connections_from_addr(process::name_t const& name, process::port_t const& port) const;
+
     /**
      * \brief Find the port requested to send data to a port.
      *
@@ -340,6 +344,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns All processes that feed data into \p name.
      */
     processes_t upstream_for_process(process::name_t const& name) const;
+
     /**
      * \brief Find the process that is sending data directly to a port.
      *
@@ -352,6 +357,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns The process that sends data to \p name's \p port.
      */
     process_t upstream_for_port(process::name_t const& name, process::port_t const& port) const;
+
     /**
      * \brief Find processes that are siphoning data directly from a process.
      *
@@ -363,6 +369,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns All processes that receive data from \p name.
      */
     processes_t downstream_for_process(process::name_t const& name) const;
+
     /**
      * \brief Find processes that are siphoning data directly from a port.
      *
@@ -375,6 +382,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns All processes that receive data from \p name's \p port.
      */
     processes_t downstream_for_port(process::name_t const& name, process::port_t const& port) const;
+
     /**
      * \brief Find the port that is sending data directly to a port.
      *
@@ -387,6 +395,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns The port address that sends data from \p name's \p port.
      */
     process::port_addr_t sender_for_port(process::name_t const& name, process::port_t const& port) const;
+
     /**
      * \brief Find ports that are siphoning data directly from a port.
      *
@@ -399,6 +408,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns All port addresses that receive data from \p name's \p port.
      */
     process::port_addrs_t receivers_for_port(process::name_t const& name, process::port_t const& port) const;
+
 
     /**
      * \brief Find the edge that represents a connection.
@@ -429,6 +439,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns All edges that carry data into \p name.
      */
     edges_t input_edges_for_process(process::name_t const& name) const;
+
     /**
      * \brief Find the edge that is sending data directly to a port.
      *
@@ -441,6 +452,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns The edge that sends data to \p name's \p port, or \c NULL.
      */
     edge_t input_edge_for_port(process::name_t const& name, process::port_t const& port) const;
+
     /**
      * \brief Find edges that are siphoning data directly from a process.
      *
@@ -452,6 +464,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns All edges that carry data from \p name.
      */
     edges_t output_edges_for_process(process::name_t const& name) const;
+
     /**
      * \brief Find edges that are siphoning data directly from a port.
      *
@@ -464,6 +477,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns All edges that carry data from \p name's \p port.
      */
     edges_t output_edges_for_port(process::name_t const& name, process::port_t const& port) const;
+
   private:
     friend class scheduler;
     SPROKIT_PIPELINE_NO_EXPORT void start();
