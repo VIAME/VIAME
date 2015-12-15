@@ -52,11 +52,18 @@ public:
   SMQTK_Descriptor();
   ~SMQTK_Descriptor();
 
+  /**
+   * @brief Apply descriptor to image.
+   *
+   * This function takes an image as input and applies the SMQTK
+   * descriptor. The resulting descriptor vector is returned.
+   *
+   * @param cv_img OCV image.
+   * @param config_file Name of the descriptor configuration file.
+   *
+   * @return Calculated descriptor as vector of doubles.
+   */
   std::vector< double > ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file );
-
-protected:
-
-
 
 private:
   class priv;
