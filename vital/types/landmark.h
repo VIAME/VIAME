@@ -108,7 +108,7 @@ public:
   virtual landmark_sptr clone() const
   { return landmark_sptr( new landmark_< T > ( *this ) ); }
 
-  /// Access staticly available type of underlying data (double or float)
+  /// Access statically available type of underlying data (double or float)
   static std::type_info const& data_type() { return typeid( T ); }
 
   /// Accessor for the world coordinates using underlying data type
@@ -135,10 +135,7 @@ public:
   /// Accessor for the RGB color
   virtual rgb_color color() const { return color_; }
 
-  // Set the landmark position in image space
-  /**
-   * \param loc new location of this landmark
-   */
+  /// Set the landmark position in world coordinates
   void set_loc( Eigen::Matrix< T, 3, 1 > const& loc ) { loc_ = loc; }
 
   /// Set the scale of the landmark
@@ -147,7 +144,7 @@ public:
   /// Set the covariance matrix of the landmark location
   void set_covar( covariance_< 3, T > const& covar ) { covar_ = covar; }
 
-  // Set the RGB color of the landmark
+  /// Set the RGB color of the landmark
   void set_color( rgb_color const& color ) { color_ = color; }
 
 protected:
