@@ -1,5 +1,5 @@
 #
-# Precache settings for building fletch
+# Precache settings for building fletch to support the SMQTK/C++ Bridge
 #
 # Selects required modules
 #
