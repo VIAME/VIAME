@@ -29,14 +29,22 @@
 
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
-import numpy as np
 
-from smqtk.algorithms.descriptor_generator import get_descriptor_generator_impls
-from smqtk.representation.data_element.file_element import DataFileElement
-from smqtk.representation.descriptor_element_factory import DescriptorElementFactory
-from smqtk.representation.descriptor_element.local_elements import DescriptorMemoryElement
+apply_descriptor_test_mode = False
+try:
+    import numpy as np
+    from smqtk.algorithms.descriptor_generator import get_descriptor_generator_impls
+    from smqtk.representation.data_element.file_element import DataFileElement
+    from smqtk.representation.descriptor_element_factory import DescriptorElementFactory
+    from smqtk.representation.descriptor_element.local_elements import DescriptorMemoryElement
 
-from smqtk.algorithms.descriptor_generator.caffe_default_imagenet import CaffeDefaultImageNet
+    from smqtk.algorithms.descriptor_generator.caffe_default_imagenet import CaffeDefaultImageNet
+except:
+    # By doing this we allow folks to test that their KWIVER environment is properly built, before
+    # building and configuring SMQTK
+    print "SMQTK not configured into this Python instance.  Entering ApplyDescriptor test mode"
+    apply_descriptor_test_mode = True
+    
 
 class ApplyDescriptor(KwiverProcess):
     """
@@ -71,29 +79,23 @@ class ApplyDescriptor(KwiverProcess):
         for it in cfg:
             self.config_dict[it] = self.config_value(it)
 
-	# create descriptor factory
-        self.factory = DescriptorElementFactory(DescriptorMemoryElement, {})
+        # If we're in test mode, don't do anything that requires smqtk.
+        if not apply_descriptor_test_mode:
+            # create descriptor factory
+            self.factory = DescriptorElementFactory(DescriptorMemoryElement, {})
 
-        # get config file name
-        file_name = self.config_value( "config_file" )
+            # get config file name
+            file_name = self.config_value( "config_file" )
 
-        # open file
-        cfg_file = open( file_name )
+            # open file
+            cfg_file = open( file_name )
 
-        from smqtk.utils.jsmin import jsmin
-        import json
+            from smqtk.utils.jsmin import jsmin
+            import json
 
-        self.caffe_config = json.loads( jsmin( cfg_file.read() ) )
+            self.caffe_config = json.loads( jsmin( cfg_file.read() ) )
 
-        '''
-	self.caffe_config = {
-        "blvc_reference_caffenet_model": "/home/etri/projects/smqtk/source/data/caffenet/bvlc_reference_caffenet.caffemodel",
-        "image_mean_binary": "/home/etri/projects/smqtk/source/data/caffenet/imagenet_mean.binaryproto",
-        "gpu_batch_size": 100
-	}
-        '''
-
-	self.generator = CaffeDefaultImageNet.from_config(self.caffe_config)
+            self.generator = CaffeDefaultImageNet.from_config(self.caffe_config)
 
         self._base_configure()
 
@@ -102,23 +104,31 @@ class ApplyDescriptor(KwiverProcess):
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
-        # Get image from conatiner
-        in_img = in_img_c.get_image()
+        # If we're in test mode, just grab the image and 
+        # push a fake descriptor without trying to use
+        # smqtk.
+        if not apply_descriptor_test_mode:
+            # Get image from conatiner
+            in_img = in_img_c.get_image()
 
-        # convert generic image to PIL image
-        pil_image = in_img.get_pil_image()
-        pix = np.array(pil_image)
 
-        # get image in acceptable format
-	# TBD use in memory transfer
-        pil_image.save( "file.png" )
-        test_data = DataFileElement("file.png")
+            # convert generic image to PIL image
+            pil_image = in_img.get_pil_image()
+            pix = np.array(pil_image)
 
-	result = self.generator.compute_descriptor(test_data, self.factory)
-        desc_list = result.vector().tolist()
+            # get image in acceptable format
+            # TBD use in memory transfer
+            pil_image.save( "file.png" )
+            test_data = DataFileElement("file.png")
 
-        # push list to output port
-        self.push_to_port_using_trait( 'vector', desc_list )
+            result = self.generator.compute_descriptor(test_data, self.factory)
+            desc_list = result.vector().tolist()
+
+            # push list to output port
+            self.push_to_port_using_trait( 'vector', desc_list )
+        else:
+            desc_list =  4096 * [0.223] # Create  fake descriptor in test mode
+            self.push_to_port_using_trait('vector', desc_list)
 
         self._base_step()
 
