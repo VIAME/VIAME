@@ -27,8 +27,7 @@ process vector_display
 # Python process to accept an image.
 process process
   :: ApplyDescriptor
-  :first second
-  :algorithm algo
+  :config_file caffe-config
 
 # ================================================================
 # global pipeline config
