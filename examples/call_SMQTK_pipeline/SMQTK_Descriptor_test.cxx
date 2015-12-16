@@ -59,6 +59,12 @@ int main(int argc, char *argv[])
     std::cout << "Descriptor size: " << results.size()
               << std::endl;
 
+    for ( unsigned i = 0; i < 50; i++)
+    {
+      std::cout << results.at(i) << " ";
+    }
+    std::cout << std::endl;
+
   } // end for
 
   return 0;
