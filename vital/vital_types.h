@@ -39,8 +39,8 @@
 #define KWIVER_CORE_TYPES_H
 
 #include <string>
-#include <vector>
-#include <stdint.h>
+
+#include <cstdint>
 
 namespace kwiver {
 namespace vital {
