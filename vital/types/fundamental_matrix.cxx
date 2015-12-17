@@ -51,8 +51,8 @@ template <typename T>
 fundamental_matrix_<T>
 ::fundamental_matrix_( Eigen::Matrix<T,3,3> const &mat )
 {
-  Eigen::JacobiSVD<matrix_t> svd(mat, Eigen::ComputeThinU |
-                                      Eigen::ComputeThinV);
+  Eigen::JacobiSVD<matrix_t> svd(mat, Eigen::ComputeFullU |
+                                      Eigen::ComputeFullV);
   auto S = svd.singularValues();
   const matrix_t& U = svd.matrixU();
   const matrix_t& V = svd.matrixV();
