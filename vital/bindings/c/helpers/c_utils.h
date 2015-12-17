@@ -52,7 +52,7 @@
 #include <vital/logger/logger.h>
 
 // There may be a better way to allocate this other than static CTOR
-static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "c_utils" ) );
+static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
 
 /// Macro allowing simpler population of an error handle
 /**
@@ -279,7 +279,7 @@ private:
 };
 
 
-/// Helper function to create a char** list of strings give a vector of strings
+/// Helper function to create a char** list of strings given a vector of strings
 void make_string_list( std::vector<std::string> const &list,
                        unsigned int &length, char ** &strings );
 

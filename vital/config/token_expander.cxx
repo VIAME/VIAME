@@ -45,7 +45,7 @@ namespace vital {
  */
 token_expander::
 token_expander()
-  : m_logger( kwiver::vital::get_logger( "token_expander" ) )
+  : m_logger( kwiver::vital::get_logger( "vital.token_expander" ) )
 {  }
 
 token_expander::

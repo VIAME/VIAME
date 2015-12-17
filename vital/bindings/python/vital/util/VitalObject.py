@@ -135,6 +135,7 @@ class VitalObject (object):
         #       Or would that cause issues.
         _from_c_pointer.__name__ = "%s_from_c_pointer" % cls.__name__
 
+        # construct local class that contains our opaque pointer
         return _from_c_pointer(ptr, shallow_copy_of)
 
     def __init__(self):

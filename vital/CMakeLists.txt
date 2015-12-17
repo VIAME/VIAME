@@ -239,7 +239,7 @@ target_link_libraries(vital_apm
                    vital_logger
   )
 
-set(VITAL_MODULE_PATHS "${vidtk_default_module_paths}"
+set(VITAL_MODULE_PATHS "${vital_default_module_paths}"
   CACHE STRING "The extra default paths for module scanning. Separate paths with ';' character.")
 mark_as_advanced( VITAL_MODULE_PATHS )
 
