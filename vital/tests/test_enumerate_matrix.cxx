@@ -34,16 +34,20 @@
  */
 
 #include <test_common.h>
-// #include <test_math.h>
 
 #include <vital/util/enumerate_matrix.h>
 
+#include <array>
 #include <iostream>
 
 
 #define TEST_ARGS ()
 
 DECLARE_TEST_MAP();
+
+typedef int data_value_t;
+typedef std::array<data_value_t, 5> data_vector_t;
+typedef std::array<data_vector_t, 5> data_matrix_t;
 
 int
 main(int argc, char* argv[])
@@ -56,10 +60,10 @@ main(int argc, char* argv[])
 }
 
 static
-int
-sparse_sum( Eigen::SparseMatrix<int> const& m )
+data_value_t
+sparse_sum( Eigen::SparseMatrix<data_value_t> const& m )
 {
-  auto result = int(0);
+  auto result = data_value_t{0};
 
   VITAL_FOREACH (auto it, kwiver::vital::enumerate(m))
   {
@@ -82,13 +86,14 @@ sparse_sum( Eigen::SparseMatrix<int> const& m )
 
 
 static
-int
-sparse_apply_kernel( Eigen::SparseMatrix<int> const& m, int (&data)[5][5] )
+data_value_t
+sparse_apply_kernel( Eigen::SparseMatrix<data_value_t> const& m,
+                     data_matrix_t const& data )
 {
   using namespace kwiver::testing;
   using namespace kwiver::vital;
 
-  auto result = int(0);
+  auto result = data_value_t{0};
 
   VITAL_FOREACH (auto it, enumerate(m))
   {
@@ -110,21 +115,21 @@ IMPLEMENT_TEST(enumerate_matrix)
   using namespace kwiver::vital;
 
   // Test data
-  int data[5][5] = {
-    226, 225,  85,   5,  36,
-     73, 186,  90, 134,   0,
-    206,  32,  25, 121, 124,
-     85,  38,  93, 195, 179,
-    245, 248, 187, 113, 181
-  };
+  auto const data = data_matrix_t{{
+    {{ 226, 225,  85,   5,  36 }},
+    {{  73, 186,  90, 134,   0 }},
+    {{ 206,  32,  25, 121, 124 }},
+    {{  85,  38,  93, 195, 179 }},
+    {{ 245, 248, 187, 113, 181 }}
+  }};
 
   // Set up some matrices for testing (specifically, these are the five kernels
   // used in Marval-He-Cutler debayerization)
-  Eigen::SparseMatrix<int> mat_ident(5, 5);
-  Eigen::SparseMatrix<int> mat_cross(5, 5);
-  Eigen::SparseMatrix<int> mat_checker(5, 5);
-  Eigen::SparseMatrix<int> mat_phi(5, 5);
-  Eigen::SparseMatrix<int> mat_theta(5, 5);
+  Eigen::SparseMatrix<data_value_t> mat_ident(5, 5);
+  Eigen::SparseMatrix<data_value_t> mat_cross(5, 5);
+  Eigen::SparseMatrix<data_value_t> mat_checker(5, 5);
+  Eigen::SparseMatrix<data_value_t> mat_phi(5, 5);
+  Eigen::SparseMatrix<data_value_t> mat_theta(5, 5);
 
   mat_ident.insert(2, 2) = +16;
 
