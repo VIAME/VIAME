@@ -58,6 +58,7 @@ set( vital_public_headers
   algo/detect_features.h
   algo/draw_tracks.h
   algo/estimate_essential_matrix.h
+  algo/estimate_fundamental_matrix.h
   algo/estimate_homography.h
   algo/estimate_similarity_transform.h
   algo/extract_descriptors.h
@@ -93,6 +94,7 @@ set( vital_public_headers
   types/essential_matrix.h
   types/feature.h
   types/feature_set.h
+  types/fundamental_matrix.h
   types/geo_lat_lon.h
   types/homography.h
   types/homography_f2f.h
@@ -124,6 +126,7 @@ set( vital_sources
   algo/detect_features.cxx
   algo/draw_tracks.cxx
   algo/estimate_essential_matrix.cxx
+  algo/estimate_fundamental_matrix.cxx
   algo/estimate_homography.cxx
   algo/estimate_similarity_transform.cxx
   algo/extract_descriptors.cxx
@@ -151,6 +154,7 @@ set( vital_sources
   types/camera_intrinsics.cxx
   types/essential_matrix.cxx
   types/feature.cxx
+  types/fundamental_matrix.cxx
   types/geo_lat_lon.cxx
   types/homography.cxx
   types/homography_f2f.cxx

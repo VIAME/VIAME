@@ -1,0 +1,19 @@
+VITAL Release Notes for changes pending release approval by AFRL
+================================================================
+
+This file documents release notes for changes made to VITAL which require
+public release approval from AFRL.  After approval, the changes and
+corresponding notes below will be encorporated into a public numbered
+release version, and the content of this file will be reset.
+
+Changes since last public release
+---------------------------------
+
+ - Added abstract and templated types for fundamental matrix.
+
+ - Added abstract algorithm for fundamental matrix estimation.
+
+ - Added RGB color to the landmark data type
+
+ - Generalized landmark I/O (.ply file format) to read and write additional
+   fields, including RGB color.
