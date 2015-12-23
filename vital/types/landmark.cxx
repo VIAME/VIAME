@@ -48,7 +48,9 @@ operator<<( std::ostream& s, landmark const& m )
   // TODO include covariance once stream operators are defined
   s << m.loc() << " "
     << m.scale() << " "
-    << m.color();
+    << m.normal() << " "
+    << m.color() << " "
+    << m.observations();
   return s;
 }
 
@@ -58,7 +60,9 @@ template < typename T >
 landmark_< T >
 ::landmark_()
   : loc_( 0, 0, 0 ),
-  scale_( 1 )
+    scale_( 1 ),
+    normal_( 0, 0, 0 ),
+    observations_( 0 )
 {
 }
 
@@ -68,7 +72,9 @@ template < typename T >
 landmark_< T >
 ::landmark_( Eigen::Matrix< T, 3, 1 > const& loc, T scale )
   : loc_( loc ),
-  scale_( scale )
+    scale_( scale ),
+    normal_( 0, 0, 0 ),
+    observations_( 0 )
 {
 }
 
@@ -81,7 +87,9 @@ operator<<( std::ostream& s, landmark_< T > const& m )
   // TODO include covariance once stream operators are defined
   s << m.get_loc() << " "
     << m.get_scale() << " "
-    << m.get_color();
+    << m.get_normal() << " "
+    << m.get_color() << " "
+    << m.get_observations();
   return s;
 }
 
@@ -93,15 +101,21 @@ operator>>( std::istream& s, landmark_< T >& m )
 {
   // TODO include covariance once stream operators are defined
   Eigen::Matrix< T, 3, 1 > loc;
+  Eigen::Matrix< T, 3, 1 > normal;
   T scale;
   rgb_color color;
+  unsigned int observations;
 
   s >> loc
     >> scale
-    >> color;
+    >> normal
+    >> color
+    >> observations;
   m.set_loc( loc );
   m.set_scale( scale );
+  m.set_normal( normal );
   m.set_color( color );
+  m.set_observations( observations );
   return s;
 }
 

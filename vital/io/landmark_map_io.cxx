@@ -93,24 +93,30 @@ write_ply_file( landmark_map_sptr const&  landmarks,
                                                      "property float x\n"
                                                      "property float y\n"
                                                      "property float z\n"
+                                                     "property float nx\n"
+                                                     "property float ny\n"
+                                                     "property float nz\n"
                                                      "property uchar red\n"
                                                      "property uchar green\n"
                                                      "property uchar blue\n"
                                                      "property uint track_id\n"
+                                                     "property uint observations\n"
                                                      "end_header\n";
 
   landmark_map::map_landmark_t lm_map = landmarks->landmarks();
   typedef  landmark_map::map_landmark_t::value_type lm_map_val_t;
   VITAL_FOREACH( lm_map_val_t const& p, lm_map )
   {
-    vector_3d loc = p.second->loc();
-    rgb_color color = p.second->color();
+    auto const& loc = p.second->loc();
+    auto const& normal = p.second->normal();
+    auto const& color = p.second->color();
 
     // the '+' prefix on the color values causes them to be printed
     // as decimal numbers instead of ASCII characters
     ofile << loc.x() << " " << loc.y() << " " << loc.z()
+          << " " << normal.x() << " " << normal.y() << " " << normal.z()
           << " " << +color.r << " " << +color.g << " " << +color.b
-          << " " << p.first << "\n";
+          << " " << p.first << " " << p.second->observations() << "\n";
   }
   ofile.close();
 } // write_ply_file
@@ -151,19 +157,39 @@ read_ply_file( path_t const& file_path )
   }
 
   // enumeration of the vertex properties we can handle
-  enum vertex_property_t {INVALID, VX, VY, VZ, CR, CG, CB, INDEX};
+  enum vertex_property_t
+  {
+    INVALID,
+    VX, VY, VZ,
+    NX, NY, NZ,
+    CR, CG, CB,
+    INDEX,
+    OBSERVATIONS,
+  };
+
   // mapping between PLY vertex property names and our enum
   std::map<std::string, vertex_property_t> prop_map;
+  // "standard" attributes
   prop_map["x"] = VX;
   prop_map["y"] = VY;
   prop_map["z"] = VZ;
+  prop_map["nx"] = NX;
+  prop_map["ny"] = NY;
+  prop_map["nz"] = NZ;
   prop_map["red"] = CR;
-  prop_map["diffuse_red"] = CR;
   prop_map["green"] = CG;
-  prop_map["diffuse_green"] = CG;
   prop_map["blue"] = CB;
-  prop_map["diffuse_blue"] = CB;
+  // attributes defined by Vital
   prop_map["track_id"] = INDEX;
+  prop_map["observations"] = OBSERVATIONS;
+  // attributes for VisualSFM compatibility
+  prop_map["vsfm_cnx"] = NX;
+  prop_map["vsfm_cny"] = NY;
+  prop_map["vsfm_cnz"] = NZ;
+  prop_map["diffuse_red"] = CR;
+  prop_map["diffuse_green"] = CG;
+  prop_map["diffuse_blue"] = CB;
+  prop_map["number_of_camera_sees_this_point"] = OBSERVATIONS;
 
   bool parsed_header = false;
   bool parsing_vertex_props = false;
@@ -224,9 +250,11 @@ read_ply_file( path_t const& file_path )
     // TODO throw exceptions if tokens.size() != vert_props.size()
     // or if the values do not parse as expected
     double x=0, y=0, z=0;
+    double nx=0, ny=0, nz=0;
     rgb_color color;
     int cvalue;
     landmark_id_t id = static_cast<landmark_id_t>(vert_count++);
+    unsigned observations = 0;
     for( unsigned int i=0; i<tokens.size() && i < vert_props.size(); ++i )
     {
       std::istringstream iss(tokens[i]);
@@ -240,6 +268,15 @@ read_ply_file( path_t const& file_path )
           break;
         case VZ:
           iss >> z;
+          break;
+        case NX:
+          iss >> nx;
+          break;
+        case NY:
+          iss >> ny;
+          break;
+        case NZ:
+          iss >> nz;
           break;
         case CR:
           iss >> cvalue;
@@ -256,6 +293,9 @@ read_ply_file( path_t const& file_path )
         case INDEX:
           iss >> id;
           break;
+        case OBSERVATIONS:
+          iss >> observations;
+          break;
         default:
           break;
       }
@@ -263,7 +303,9 @@ read_ply_file( path_t const& file_path )
 
     std::shared_ptr<landmark_d> lm =
         std::make_shared<landmark_d>( vector_3d( x, y, z ) );
+    lm->set_normal( { nx, ny, nz } );
     lm->set_color( color );
+    lm->set_observations( observations );
     landmarks[id] = lm;
 
     // exit if we have read the expected number of points
