@@ -218,11 +218,11 @@ class Image (VitalObject):
             else:
                 raise RuntimeError("Unsupported image format.")
 
-            pil_image = PIM.fromstring("RGB", (self.width(), self.height()), img_pixels,
-                                         "raw", mode, self.h_step(), 1 )
+            pil_image = PIM.frombytes("RGB", (self.width(), self.height()), img_pixels,
+                                      "raw", mode, self.h_step(), 1 )
         elif self.depth() == 1:
-            pil_image = PIM.fromstring("L", (self.width(), self.height()), img_pixels,
-                                         "raw", "L", self.h_step(), 1 )
+            pil_image = PIM.frombytes("L", (self.width(), self.height()), img_pixels,
+                                      "raw", "L", self.h_step(), 1 )
         else:
             raise RuntimeError("Unsupported image depth.")
 
