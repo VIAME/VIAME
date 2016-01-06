@@ -69,7 +69,6 @@ if (VITAL_ENABLE_LOG4CXX)
     SUBDIR           modules
     )
 
-
 endif()
 
 ###

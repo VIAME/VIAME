@@ -6,21 +6,22 @@
 # KWSys
 #---------------------------------------------------------------------
 # Create the kwsys library for vital.
-set(KWSYS_NAMESPACE kwiversys)
-set(KWSYS_USE_DynamicLoader 1)
-set(KWSYS_USE_SystemTools 1)
-set(KWSYS_USE_System 1)
-set(KWSYS_USE_RegularExpression 1)
-set(KWSYS_USE_SystemInformation 1)
-set(KWSYS_USE_Directory 1)
+set(KWSYS_NAMESPACE                kwiversys)
+set(KWSYS_USE_DynamicLoader        1)
+set(KWSYS_USE_SystemTools          1)
+set(KWSYS_USE_System               1)
+set(KWSYS_USE_RegularExpression    1)
+set(KWSYS_USE_SystemInformation    1)
+set(KWSYS_USE_Directory            1)
 set(KWSYS_USE_CommandLineArguments 1)
 
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
-set(KWSYS_INSTALL_INCLUDE_DIR "include/kwiver")
-set(KWSYS_INSTALL_LIB_DIR lib)
-set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
+set(KWSYS_INSTALL_INCLUDE_DIR  "include/kwiver")
+set(KWSYS_INSTALL_LIB_DIR      lib)
+set(KWSYS_INCLUDE_DIR          ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
 
-# save our custom CXX flags and reset so we pass no special flags to kwiversys
+# Save our custom CXX flags and reset so we pass no special flags to kwiversys.
+# Our flags are more strict than expected and causes many warnings and errors.
 set( save_flags  ${CMAKE_CXX_FLAGS} )
 set( CMAKE_CXX_FLAGS )
 
@@ -29,10 +30,25 @@ add_subdirectory(kwiversys)
 _kwiver_export( ${KWSYS_NAMESPACE} )
 set_property(GLOBAL APPEND PROPERTY kwiver_libraries kwiversys)
 
-if (APPLE)
+# force install to standard library directory
+# Note that some of the following duplicates what is in kwiver_add_library()
+set_target_properties( ${KWSYS_NAMESPACE}
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+
+  if (APPLE)
   set_target_properties( ${KWSYS_NAMESPACE}
     PROPERTIES
     MACOSX_RPATH          TRUE)
+else()
+  set_target_properties( ${KWSYS_NAMESPACE}
+    PROPERTIES
+        VERSION          ${VITAL_VERSION}
+        SOVERSION        ${VITAL_VERSION}
+        )
 endif()
 
 # restore old CXX flags for our code.
