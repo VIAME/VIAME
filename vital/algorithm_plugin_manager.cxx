@@ -31,7 +31,6 @@
 /**
  * \file
  * \brief Algorithm plugin manager implementation
- * \todo look into using kwiversys for DLL support
  */
 
 #include "algorithm_plugin_manager.h"
@@ -77,7 +76,7 @@ static std::string const register_function_name = std::string( "private_register
 static std::string const shared_library_suffix = std::string( SHARED_LIB_SUFFIX );
 
 // Default module directory locations. Values defined in CMake configuration.
-static std::string const default_module_paths= std::string( DEFAULT_MODULE_PATHS );
+static std::string const default_module_paths = std::string( DEFAULT_MODULE_PATHS );
 
 } // end anonymous namespace
 
@@ -117,7 +116,7 @@ public:
 
   // ------------------------------------------------------------------
   /// Attempt loading algorithm implementations from all known search paths
-  void load_from_search_paths( std::string name = std::string() )
+  void load_from_search_paths( std::string name )
   {
     LOG_DEBUG( m_logger, "Loading plugins in search paths" );
 
@@ -138,7 +137,7 @@ public:
    * If the given path is not a valid directory, we emit a warning message
    * and return without doing anything else.
    */
-  void load_modules_in_directory( path_t dir_path, std::string name = std::string() )
+  void load_modules_in_directory( path_t dir_path, std::string name )
   {
     // Check given path for validity
     // Preventing load from current directory via empty string (security)
