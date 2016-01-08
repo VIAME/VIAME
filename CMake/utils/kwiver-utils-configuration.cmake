@@ -24,8 +24,8 @@ add_custom_target(kwiver_configure ALL)
 # This functions by generating custom configuration files for each call that
 # controls the configuration. Generated files are marked for cleaning.
 #
-# If ``no_configure_target`` is NOT set, this creates a target of the form
-# ``configure-<name>`` for this configuration step.
+# If "no_configure_target" is NOT set, this creates a target of the form
+# "configure-<name>" for this configuration step.
 #
 # Additional configuration dependencies may be set with the DEPENDS and are
 # passed to the underlying ``add_custom_command``.
@@ -70,7 +70,7 @@ function(kwiver_configure_file name source dest)
 
   # This passes if not defined or a false-evaluating value
   if(NOT no_configure_target)
-    add_custom_target(configure-${name} ${all}
+    add_custom_target(configure-${name}
       DEPENDS "${dest}"
       SOURCES "${source}"   # Addding source for IDE purposes
       )
