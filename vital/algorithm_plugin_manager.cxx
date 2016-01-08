@@ -387,17 +387,11 @@ algorithm_plugin_manager
 
 
 // ------------------------------------------------------------------
-std::string
+std::vector< std::string > const&
 algorithm_plugin_manager
 ::get_search_path() const
 {
-  std::string path_string;
-  VITAL_FOREACH( std::string module_dir, this->m_impl->m_search_paths )
-  {
-    path_string += module_dir + ":";
-  }
-
-  return path_string;
+  return this->m_impl->m_search_paths;
 }
 
 
