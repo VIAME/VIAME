@@ -530,7 +530,7 @@ config_block::
   {
     std::string ro;
 
-    kwiver::vital::config_block_value_t const val = this->get_value< kwiver::vital::config_block_value_t > ( key );
+    auto const val = this->get_value< kwiver::vital::config_block_value_t > ( key );
 
     if ( this->is_read_only( key ) )
     {

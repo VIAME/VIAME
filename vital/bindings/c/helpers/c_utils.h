@@ -52,7 +52,7 @@
 #include <vital/logger/logger.h>
 
 // There may be a better way to allocate this other than static CTOR
-static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
+static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
 
 /// Macro allowing simpler population of an error handle
 /**
