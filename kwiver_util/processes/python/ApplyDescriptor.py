@@ -38,7 +38,8 @@ try:
     from smqtk.representation.descriptor_element_factory import DescriptorElementFactory
     from smqtk.representation.descriptor_element.local_elements import DescriptorMemoryElement
 
-    from smqtk.algorithms.descriptor_generator.caffe_default_imagenet import CaffeDefaultImageNet
+    from smqtk.algorithms import get_descriptor_generator_impls
+    from smqtk.utils.plugin import from_plugin_config
 except:
     # By doing this we allow folks to test that their KWIVER environment is properly built, before
     # building and configuring SMQTK
@@ -93,9 +94,10 @@ class ApplyDescriptor(KwiverProcess):
             from smqtk.utils.jsmin import jsmin
             import json
 
-            self.caffe_config = json.loads( jsmin( cfg_file.read() ) )
+            self.descr_config = json.loads( jsmin( cfg_file.read() ) )
 
-            self.generator = CaffeDefaultImageNet.from_config(self.caffe_config)
+            #self.generator = CaffeDescriptorGenerator.from_config(self.descr_config)
+            self.generator = from_plugin_config(self.descr_config, get_descriptor_generator_impls)
 
         self._base_configure()
 
