@@ -34,6 +34,10 @@ define_property(GLOBAL PROPERTY kwiver_libraries
   BRIEF_DOCS "Libraries build as part of KWIVER"
   FULL_DOCS "List of static/shared libraries build by KWIVER"
   )
+define_property(GLOBAL PROPERTY kwiver_plugin_libraries
+  BRIEF_DOCS "Generated plugin libraries"
+  FULL_DOCS "List of generated shared plugin module libraries"
+  )
 
 
 #+
@@ -333,6 +337,12 @@ function( kwiver_add_plugin        name )
     PROPERTIES
       PREFIX           ""
       SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX}
-)
+      INSTALL_RPATH    "\$ORIGIN/../../lib:\$ORIGIN/"
+      )
+
+  # Add to global collection variable
+  set_property(GLOBAL APPEND
+    PROPERTY kwiver_plugin_libraries    ${name}
+    )
 
 endfunction()
