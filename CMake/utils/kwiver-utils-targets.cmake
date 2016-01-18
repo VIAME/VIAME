@@ -34,6 +34,10 @@ define_property(GLOBAL PROPERTY kwiver_libraries
   BRIEF_DOCS "Libraries build as part of KWIVER"
   FULL_DOCS "List of static/shared libraries build by KWIVER"
   )
+define_property(GLOBAL PROPERTY kwiver_plugin_libraries
+  BRIEF_DOCS "Generated plugin libraries"
+  FULL_DOCS "List of generated shared plugin module libraries"
+  )
 
 
 #+
@@ -148,6 +152,7 @@ function(kwiver_add_library     name)
   if ( APPLE )
     set( props
       MACOSX_RPATH         TRUE
+      INSTALL_NAME_DIR     "@executable_path/../lib"
       )
   else()
     if ( NOT no_version ) # optional versioning
@@ -165,6 +170,7 @@ function(kwiver_add_library     name)
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}"
+    INSTALL_RPATH            "\$ORIGIN/../lib:\$ORIGIN/"
     ${props}
     )
 
@@ -333,6 +339,12 @@ function( kwiver_add_plugin        name )
     PROPERTIES
       PREFIX           ""
       SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX}
-)
+      INSTALL_RPATH    "\$ORIGIN/../../lib:\$ORIGIN/"
+      )
+
+  # Add to global collection variable
+  set_property(GLOBAL APPEND
+    PROPERTY kwiver_plugin_libraries    ${name}
+    )
 
 endfunction()

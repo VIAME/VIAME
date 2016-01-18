@@ -142,7 +142,7 @@ operator<<( std::ostream &s, fundamental_matrix const &f )
 // ---------------------------------------------------------------------------
 /// \cond DoxygenSuppress
 #define INSTANTIATE_FUNDAMENTAL_MATRIX(T) \
-  template class VITAL_EXPORT fundamental_matrix_<T>;
+  template class fundamental_matrix_<T>;
 
 INSTANTIATE_FUNDAMENTAL_MATRIX(float);
 INSTANTIATE_FUNDAMENTAL_MATRIX(double);

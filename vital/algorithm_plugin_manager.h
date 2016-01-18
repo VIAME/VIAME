@@ -111,9 +111,9 @@ public:
   /**
    *  This method returns the search path used to load algorithms.
    *
-   * @return the colon delimited search path.
+   * @return vector of paths that are searched
    */
-  std::string get_search_path() const;
+  std::vector< std::string > const& get_search_path() const;
 
   /// Get the list currently registered module names.
   /**

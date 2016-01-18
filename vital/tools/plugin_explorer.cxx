@@ -172,9 +172,16 @@ main( int argc, char* argv[] )
   // locate all plugins
   apm.register_plugins( plugin_name );
 
+  std::string path_string;
+  auto search_path( apm.get_search_path() );
+  VITAL_FOREACH( auto module_dir, search_path )
+  {
+    path_string += module_dir + ":";
+  }
+
   std::cout << "---- Algorithm search path\n"
-            << apm.get_search_path()
-            << std::endl << std::endl;
+            << path_string << std::endl
+            << std::endl;
 
   std::cout << "---- Registered module names:\n";
   std::vector< std::string > module_list = apm.registered_module_names();

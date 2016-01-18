@@ -296,8 +296,8 @@ operator<<( std::ostream& s, homography const& h )
 // ---------------------------------------------------------------------------
 /// \cond DoxygenSuppress
 #define INSTANTIATE_HOMOGRAPHY( T )              \
-  template class VITAL_EXPORT homography_< T >;  \
-  template VITAL_EXPORT std::ostream&            \
+  template class homography_< T >;               \
+  template std::ostream&                         \
   operator<<( std::ostream&,                     \
               homography_< T > const& )
 

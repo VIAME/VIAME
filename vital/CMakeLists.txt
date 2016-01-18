@@ -130,6 +130,7 @@ set( vital_public_headers
   types/vector.h
 )
 
+# ----------------------
 set( vital_sources
   registrar.cxx
 
@@ -182,6 +183,8 @@ set( vital_sources
   types/timestamp.cxx
   types/track.cxx
   types/track_set.cxx
+
+  util/get_paths.h   util/get_paths.cxx
 )
 
 kwiver_install_headers(
@@ -276,6 +279,8 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(config_subdir "/$<CONFIGURATION>")
 endif()
 
+set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/maptk" )
+
 #
 # This is all to get around the ';' as the path separator.  CMake will
 # split it into two elements when we want it to be ignored.
@@ -283,7 +288,7 @@ endif()
 
 ## The modules subdirectory is where the kwiver_add_module() macro generates its product
 ## Note that maptk has a different place where it installs plugins
-set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/maptk" )
+set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${install_lib_module_subdir}" )
 set( build_module_paths   "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/maptk" )
 
 # assemle total search path
@@ -307,7 +312,7 @@ configure_file(
 include( kwiver-configcheck )
 
 ###
-# configure our CMake config
+# configure our compiler options
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vital_config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/vital_config.h" )
