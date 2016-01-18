@@ -152,6 +152,7 @@ function(kwiver_add_library     name)
   if ( APPLE )
     set( props
       MACOSX_RPATH         TRUE
+      INSTALL_NAME_DIR     "@executable_path/../lib"
       )
   else()
     if ( NOT no_version ) # optional versioning
@@ -169,6 +170,7 @@ function(kwiver_add_library     name)
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}"
+    INSTALL_RPATH            "\$ORIGIN/../lib:\$ORIGIN/"
     ${props}
     )
 
