@@ -11,7 +11,10 @@
 ============================================================================*/
 
 #if defined(_WIN32)
+#ifndef NOMINMAX
 # define NOMINMAX // use our min,max
+#endif
+
 # if !defined(_WIN32_WINNT) && !(defined(_MSC_VER) && _MSC_VER < 1300)
 #  define _WIN32_WINNT 0x0501
 # endif
