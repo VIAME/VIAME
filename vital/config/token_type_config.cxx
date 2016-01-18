@@ -59,7 +59,7 @@ lookup_entry (kwiver::vital::config_block_key_t const& name,
   {
     result = m_config->get_value< std::string >( name );
   }
-  catch ( kwiver::vital::config_block_exception & e)
+  catch ( kwiver::vital::config_block_exception& )
   {
     retcode = false; // not found
   }
