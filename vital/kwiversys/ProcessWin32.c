@@ -39,6 +39,7 @@ a UNIX-style select system call.
 #endif
 #include <string.h>  /* strlen, strdup */
 #include <stdio.h>   /* sprintf */
+#include <malloc.h>
 #include <io.h>      /* _unlink */
 #ifdef __WATCOMC__
 #define _unlink unlink
