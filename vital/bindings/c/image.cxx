@@ -82,7 +82,7 @@ vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
     }
     else
     {
-      d_idx = (depth - d - 1) * (-d_step);
+      d_idx = static_cast< int >( (depth - d - 1) * (-d_step) );
     }
 
     for ( unsigned int h = 0; h < height; ++h )

@@ -149,8 +149,8 @@ T
 rotation_< T >
 ::angle() const
 {
-  static const T pi( LOCAL_PI );
-  static const T two_pi = static_cast< T > ( 2 ) * LOCAL_PI;
+  static const T pi = static_cast< T > ( LOCAL_PI );
+  static const T two_pi = static_cast< T > ( 2.0 * LOCAL_PI );
 
   const double i = Eigen::Matrix< T, 3, 1 > ( q_.x(), q_.y(), q_.z() ).norm();
   const double r = q_.w();
