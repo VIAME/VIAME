@@ -56,7 +56,7 @@ get_executable_path()
   if ( path.empty() )
   {
     char ppath[4096];
-    int length;
+    int length(0);
     wai_getExecutablePath( ppath, sizeof ppath, &length );
     ppath[length] = '\0';
 
@@ -76,8 +76,8 @@ get_module_path()
 
   if ( path.empty() )
   {
-    int length = wai_getModulePath( NULL, 0, NULL );
     char ppath[4096];
+    int length(0);
     wai_getModulePath( ppath, sizeof ppath, &length );
     path[length] = '\0';
 
