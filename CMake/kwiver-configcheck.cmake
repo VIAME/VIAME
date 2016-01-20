@@ -45,3 +45,16 @@ try_compile( success
   OUTPUT_VARIABLE OUTPUT)
 
 set( VITAL_USE_CPP_NOEXCEPT ${success} )
+
+##
+# see if std::chrono is supported
+try_compile( success
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/configcheck/std_chrono.cxx
+  CMAKE_FLAGS
+     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+  OUTPUT_VARIABLE OUTPUT)
+
+set( VITAL_USE_CHRONO ${success} )
+
+###

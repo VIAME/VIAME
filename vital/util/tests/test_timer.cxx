@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,48 +28,53 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_VITAL_CONFIG_H
-#define VITAL_VITAL_CONFIG_H
+/**
+ * \file
+ * \brief test util timer class
+ */
 
-// Support macros.
-#if defined(_WIN32) || defined(_WIN64)
-#define VITAL_NO_RETURN __declspec(noreturn)
-// Unsupported.
-#define VITAL_MUST_USE_RESULT
-// Unsupported.
-#define VITAL_UNUSED
-#elif defined(__GNUC__)
-#define VITAL_NO_RETURN __attribute__((__noreturn__))
-#define VITAL_MUST_USE_RESULT __attribute__((__warn_unused_result__))
-#define VITAL_UNUSED __attribute__((__unused__))
-#else
-// Unsupported.
-#define VITAL_NO_RETURN
-// Unsupported.
-#define VITAL_MUST_USE_RESULT
-// Unsupported.
-#define VITAL_UNUSED
-#endif
+#include <test_common.h>
 
-#cmakedefine01  VITAL_USE_CPP_AUTO
-#cmakedefine01  VITAL_USE_CPP_RANGE_FOR
-#cmakedefine01  VITAL_USE_CPP_DEFAULT_CTOR
-#cmakedefine01  VITAL_USE_CPP_NOEXCEPT
-#cmakedefine01  VITAL_USE_CHRONO
+#include <vital/util/scoped_timer.h>
+
+#include <iostream>
+
+#define TEST_ARGS ()
+
+DECLARE_TEST_MAP();
+
+namespace  {
+
+// classic bad Fibonacci implementation.
+long fibonacci(unsigned n)
+{
+    if (n < 2) return n;
+    return fibonacci(n-1) + fibonacci(n-2);
+}
+
+} // end namespace
+
+// ------------------------------------------------------------------
+int
+main(int argc, char* argv[])
+{
+  CHECK_ARGS(1);
+
+  testname_t const testname = argv[1];
+
+  RUN_TEST(testname);
+}
 
 
-#if VITAL_USE_CPP_NOEXCEPT
-  #define VITAL_NOTHROW noexcept
-#else
-  #define VITAL_NOTHROW throw()
-#endif
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(fib_test)
+{
+  long fib(0);
+  {
+    kwiver::vital::scoped_timer timer( "fib_test" );
+    fib = fibonacci(42);
+    std::cout << "  f(42) = " << fib << std::endl;
+  }
 
-#if VITAL_USE_CPP_DEFAULT_CTOR // also DTOR
-  #define VITAL_DEFAULT_CTOR = default;
-  #define VITAL_DEFAULT_DTOR = default;
-#else
-  #define VITAL_DEFAULT_CTOR {}
-  #define VITAL_DEFAULT_DTOR {}
-#endif
-
-#endif // VITAL_VITAL_CONFIG_H
+  TEST_EQUAL( "Expected Fibonacci number", fib, 267914296 );
+}
