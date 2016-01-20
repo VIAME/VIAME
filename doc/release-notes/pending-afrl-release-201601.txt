@@ -42,3 +42,16 @@ Changes since last public release
   to assist in locating plugins and libraries.
 
 - Addressed several minor problems that caused build warnings on windows builds.
+
+Other branches
+--------------
+
+dev/add-plugin-manager - Initial thoughts on adapting vidtk plugin
+                         manager for loading vital plugins. This is a
+                         work in progress and is not conceptually
+                         complete.
+
+kw/add-klv-toolkit - Initial thoughts on porting KLV library from
+                     vidtk. It is part of the effort to make a video
+                     input process. The KLV parser may be complete,
+                     but the video input process is not finished.
