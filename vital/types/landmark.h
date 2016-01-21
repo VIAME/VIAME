@@ -108,6 +108,9 @@ public:
    */
   landmark_< T > ( Eigen::Matrix< T, 3, 1 > const& loc, T scale = 1 );
 
+  /// Constructor for a landmark_ from a base class landmark
+  explicit landmark_< T > ( landmark const& f );
+
   /// Create a clone of this landmark object
   virtual landmark_sptr clone() const
   { return landmark_sptr( new landmark_< T > ( *this ) ); }
