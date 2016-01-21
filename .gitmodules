@@ -1,21 +1,21 @@
 [submodule "Packages/sprokit"]
         path = Packages/sprokit
-        url =  git@gitlab.kitware.com:KWIVER/sprokit.git
+        url =  https://gitlab.kitware.com/kwiver/sprokit.git
 [submodule "Packages/VXL"]
         path = Packages/VXL
-        url = git@github.com:vxl/vxl.git
+        url = https://github.com/vxl/vxl.git
 [submodule "Packages/maptk"]
         path = Packages/maptk
-        url = git@github.com:Kitware/maptk.git
+        url = https://github.com/Kitware/maptk.git
 [submodule "Packages/vital"]
 	path = Packages/vital
-	url = git@github.com:Kitware/vital.git
+	url = https://github.com/Kitware/vital.git
 [submodule "Packages/kwant"]
 	path = Packages/kwant
-	url = git@github.com:Kitware/kwant.git
+	url = https://github.com/Kitware/kwant.git
 [submodule "Packages/vivia"]
 	path = Packages/vivia
-	url = git@github.com:kfieldho/vivia.git
+	url = https://github.com/Kitware/vivia.git
 [submodule "Packages/vibrant"]
 	path = Packages/vibrant
-	url = git@github.com:Kitware/vibrant.git
+	url = https://github.com/Kitware/vibrant.git
