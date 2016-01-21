@@ -7,32 +7,32 @@
 #   KWIVER_ARGS_COMMON -
 #
 # Produced symbols are:
-#   KWIVER_ARGS_maptk -
+#   KWIVER_ARGS_vatal -
 #
 
-ExternalProject_Add(maptk_proj
-  DEPENDS VXL vital_proj
+ExternalProject_Add(vital_proj
   PREFIX ${KWIVER_BUILD_PREFIX}
-  SOURCE_DIR ${KWIVER_PACKAGES_DIR}/maptk
+  SOURCE_DIR ${KWIVER_PACKAGES_DIR}/vital
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     ${KWIVER_ARGS_COMMON}
-    -DMAPTK_ENABLE_VXL:BOOL=ON
-    -DMAPTK_ENABLE_OPENCV:BOOL=${KWIVER_ENABLE_OPENCV}
-    -DMAPTK_ENABLE_DOCS:BOOL=${KWIVER_ENABLE_DOC}
+    -DKWIVER_ENABLE_DOCS:BOOL=${KWIVER_ENABLE_DOCS}
+    -DVITAL_ENABLE_LOG4CXX=${KWIVER_ENABLE_LOG4CXX}
 
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(maptk_proj forcebuild
+ExternalProject_Add_Step(vital_proj forcebuild
   COMMAND ${CMAKE_COMMAND}
-    -E remove ${KWIVER_BUILD_PREFIX}/src/maptk-stamp/maptk-build
+    -E remove ${KWIVER_BUILD_PREFIX}/src/vital-stamp/vital-build
   COMMENT "Removing build stamp file for build update (forcebuild)."
   DEPENDEES configure
   DEPENDERS build
   ALWAYS 1
   )
 
-set(KWIVER_ARGS_maptk
-  -Dmaptk_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
+include_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/include/kwiver)
+
+set(KWIVER_ARGS_vital
+  -Dvital_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
   )

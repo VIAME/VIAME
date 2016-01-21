@@ -1,0 +1,94 @@
+Script started on Wed 25 Mar 2015 05:42:58 PM EDT
+[0;34m[[0;31mlinus@mandragora:/disk2/projects/KWIVER/kwiver-github/source/kwiver/pipeline_configs [0;34m(script: proc.out)
+[0;32m(add-homography-processes)[0;34m][0;30m$ processopedia 
+INFO - Processes from module /disk2/projects/KWIVER/kwiver-github/build/install/lib/sprokit/kwiver_processes.so loaded
+DEBUG - Registering process: kw_archive_writer_process (A process to write kw archives)
+DEBUG - Registering process: frame_list_process (A process that reads a list of image file names and generates stream of images and associated time stamps)
+DEBUG - Registering process: stabilize_image_process (A process to generate current-to-reference image homographies)
+INFO - Processes from module /disk2/projects/KWIVER/kwiver-github/build/install/lib/sprokit/processes_flow.so loaded
+DEBUG - Registering process: collate (Collates data from multiple worker processes)
+DEBUG - Registering process: distribute (Distributes data to multiple worker processes)
+DEBUG - Registering process: pass (Pass a data stream through)
+DEBUG - Registering process: sink (Ignores incoming data)
+INFO - Processes from module /disk2/projects/KWIVER/kwiver-github/build/install/lib/sprokit/modules_python.so loaded
+/disk2/projects/KWIVER/kwiver-github/build/install/lib/python/site-packages/sprokit/schedulers/examples/pythread_per_process_scheduler.py:31: RuntimeWarning: to-Python converter for std::string already registered; second conversion method ignored.
+  from sprokit.pipeline import config
+/disk2/projects/KWIVER/kwiver-github/build/install/lib/python/site-packages/sprokit/schedulers/examples/pythread_per_process_scheduler.py:32: RuntimeWarning: to-Python converter for std::string already registered; second conversion method ignored.
+  from sprokit.pipeline import datum
+/disk2/projects/KWIVER/kwiver-github/build/install/lib/python/site-packages/sprokit/schedulers/examples/pythread_per_process_scheduler.py:35: RuntimeWarning: to-Python converter for std::string already registered; second conversion method ignored.
+  from sprokit.pipeline import process
+/disk2/projects/KWIVER/kwiver-github/build/install/lib/python/site-packages/sprokit/schedulers/examples/pythread_per_process_scheduler.py:35: RuntimeWarning: to-Python converter for std::vector<std::string, std::allocator<std::string> > already registered; second conversion method ignored.
+  from sprokit.pipeline import process
+/disk2/projects/KWIVER/kwiver-github/build/install/lib/python/site-packages/sprokit/schedulers/examples/pythread_per_process_scheduler.py:35: RuntimeWarning: to-Python converter for std::set<std::string, std::less<std::string>, std::allocator<std::string> > already registered; second conversion method ignored.
+  from sprokit.pipeline import process
+/disk2/projects/KWIVER/kwiver-github/build/install/lib/python/site-packages/sprokit/schedulers/examples/pythread_per_process_scheduler.py:37: RuntimeWarning: to-Python converter for std::string already registered; second conversion method ignored.
+  from sprokit.pipeline import utils
+/disk2/projects/KWIVER/kwiver-github/build/install/lib/python/site-packages/kwiver/processes/homography_writer.py:13: RuntimeWarning: to-Python converter for std::string already registered; second conversion method ignored.
+  import sprokit.pipeline.process_registry
+/disk2/projects/KWIVER/kwiver-github/build/install/lib/python/site-packages/sprokit/schedulers/examples/__init__.py:35: RuntimeWarning: to-Python converter for std::string already registered; second conversion method ignored.
+  from sprokit.pipeline import scheduler_registry
+/disk2/projects/KWIVER/kwiver-github/build/install/lib/python/site-packages/sprokit/schedulers/examples/__init__.py:35: RuntimeWarning: to-Python converter for std::vector<std::string, std::allocator<std::string> > already registered; second conversion method ignored.
+  from sprokit.pipeline import scheduler_registry
+DEBUG - Registering process: kw_print_number_process (A Simple Kwiver Test Process)
+INFO - Processes from module /disk2/projects/KWIVER/kwiver-github/build/install/lib/sprokit/processes_clusters.so loaded
+DEBUG - loading clusters from directory: "/disk2/projects/KWIVER/kwiver-github/build/install/share/sprokit/pipelines/clusters"
+DEBUG - Path not found loading clusters: "/disk2/projects/KWIVER/kwiver-github/build/install/share/sprokit/pipelines/clusters"
+DEBUG - loading clusters from directory: "/disk2/projects/KWIVER/kwiver-github/source/Packages/sprokit/src/tools/pipelines/clusters"
+INFO - Processes from module /disk2/projects/KWIVER/kwiver-github/build/build/src/sprokit-build/lib/sprokit/processes_flow.so loaded
+INFO - Processes from module /disk2/projects/KWIVER/kwiver-github/build/build/src/sprokit-build/lib/sprokit/processes_examples.so loaded
+DEBUG - Registering process: any_source (A process which creates arbitrary data)
+DEBUG - Registering process: const (A process with the const flag)
+DEBUG - Registering process: const_number (Outputs a constant number)
+DEBUG - Registering process: data_dependent (A process with a data dependent type)
+DEBUG - Registering process: duplicate (A process which duplicates input)
+DEBUG - Registering process: expect (A process which expects some conditions)
+DEBUG - Registering process: feedback (A process which feeds data into itself)
+DEBUG - Registering process: flow_dependent (A process with a flow dependent type)
+DEBUG - Registering process: multiplication (Multiplies numbers)
+DEBUG - Registering process: multiplier_cluster (A constant factor multiplier cluster)
+DEBUG - Registering process: mutate (A process with a mutable flag)
+DEBUG - Registering process: numbers (Outputs numbers within a range)
+DEBUG - Registering process: orphan_cluster (A dummy cluster)
+DEBUG - Registering process: orphan (A dummy process)
+DEBUG - Registering process: print_number (Print numbers to a file)
+DEBUG - Registering process: shared (A process with the shared flag)
+DEBUG - Registering process: skip (A process which skips input data)
+DEBUG - Registering process: tagged_flow_dependent (A process with a tagged flow dependent types)
+DEBUG - Registering process: take_number (Print numbers to a file)
+DEBUG - Registering process: take_string (Print strings to a file)
+DEBUG - Registering process: tunable (A process with a tunable parameter)
+INFO - Processes from module /disk2/projects/KWIVER/kwiver-github/build/build/src/sprokit-build/lib/sprokit/modules_python.so loaded
+INFO - Processes from module /disk2/projects/KWIVER/kwiver-github/build/build/src/sprokit-build/lib/sprokit/processes_clusters.so loaded
+any_source: A process which creates arbitrary data
+collate: Collates data from multiple worker processes
+const: A process with the const flag
+const_number: Outputs a constant number
+data_dependent: A process with a data dependent type
+distribute: Distributes data to multiple worker processes
+duplicate: A process which duplicates input
+expect: A process which expects some conditions
+feedback: A process which feeds data into itself
+flow_dependent: A process with a flow dependent type
+frame_list_process: A process that reads a list of image file names and generates stream of images and associated time stamps
+kw_archive_writer_process: A process to write kw archives
+kw_print_number_process: A Simple Kwiver Test Process
+multiplication: Multiplies numbers
+multiplier_cluster: A constant factor multiplier cluster
+mutate: A process with a mutable flag
+numbers: Outputs numbers within a range
+orphan: A dummy process
+orphan_cluster: A dummy cluster
+pass: Pass a data stream through
+print_number: Print numbers to a file
+shared: A process with the shared flag
+sink: Ignores incoming data
+skip: A process which skips input data
+stabilize_image_process: A process to generate current-to-reference image homographies
+tagged_flow_dependent: A process with a tagged flow dependent types
+take_number: Print numbers to a file
+take_string: Print strings to a file
+tunable: A process with a tunable parameter
+[0;34m[[0;31mlinus@mandragora:/disk2/projects/KWIVER/kwiver-github/source/kwiver/pipeline_configs [0;34m(script: proc.out)
+[0;32m(add-homography-processes)[0;34m][0;30m$ exit
+
+Script done on Wed 25 Mar 2015 05:43:02 PM EDT

@@ -1,4 +1,4 @@
-# maptk External Project
+# VIVIA External Project
 #
 # Required symbols are:
 #   KWIVER_BUILD_PREFIX - where packages are built
@@ -7,32 +7,27 @@
 #   KWIVER_ARGS_COMMON -
 #
 # Produced symbols are:
-#   KWIVER_ARGS_maptk -
+#   KWIVER_ARGS_vivia -
 #
 
-ExternalProject_Add(maptk_proj
-  DEPENDS VXL vital_proj
+ExternalProject_Add(vivia
   PREFIX ${KWIVER_BUILD_PREFIX}
-  SOURCE_DIR ${KWIVER_PACKAGES_DIR}/maptk
+  SOURCE_DIR ${KWIVER_PACKAGES_DIR}/vivia
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     ${KWIVER_ARGS_COMMON}
-    -DMAPTK_ENABLE_VXL:BOOL=ON
-    -DMAPTK_ENABLE_OPENCV:BOOL=${KWIVER_ENABLE_OPENCV}
-    -DMAPTK_ENABLE_DOCS:BOOL=${KWIVER_ENABLE_DOC}
-
+	${KWIVER_ARGS_VIVIA_APPS}
+	${KWIVER_ARGS_VIVIA_DEPS}
+	-DVISGUI_DISABLE_FIXUP_BUNDLE:BOOL=TRUE
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}
+  DEPENDS VXL vibrant
   )
 
-ExternalProject_Add_Step(maptk_proj forcebuild
+ExternalProject_Add_Step(vivia forcebuild
   COMMAND ${CMAKE_COMMAND}
-    -E remove ${KWIVER_BUILD_PREFIX}/src/maptk-stamp/maptk-build
+    -E remove ${KWIVER_BUILD_PREFIX}/src/vivia-stamp/vivia-build
   COMMENT "Removing build stamp file for build update (forcebuild)."
   DEPENDEES configure
   DEPENDERS build
   ALWAYS 1
-  )
-
-set(KWIVER_ARGS_maptk
-  -Dmaptk_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
   )

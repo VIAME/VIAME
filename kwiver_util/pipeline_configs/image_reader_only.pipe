@@ -1,0 +1,30 @@
+# ================================================================
+config common
+  :fixed_gsd 0.5
+
+
+# ================================================================
+process input
+  :: frame_list_process
+# Input file containing new-line separated paths to sequential image
+# files.
+  :image_list_file ../video-test/input_image_list.txt
+  :frame_time .9
+
+# Algorithm to use for 'image_reader'.
+# Must be one of the following options:
+# 	- ocv
+# 	- vxl
+  :image_reader:type ocv
+
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 10
+
+# ================================================================
+# connections
+
+# -- end of file --

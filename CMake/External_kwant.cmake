@@ -1,4 +1,4 @@
-# maptk External Project
+# VIBRANT External Project
 #
 # Required symbols are:
 #   KWIVER_BUILD_PREFIX - where packages are built
@@ -7,32 +7,26 @@
 #   KWIVER_ARGS_COMMON -
 #
 # Produced symbols are:
-#   KWIVER_ARGS_maptk -
+#   KWIVER_ARGS_sprokit -
 #
 
-ExternalProject_Add(maptk_proj
-  DEPENDS VXL vital_proj
+
+ExternalProject_Add(kwant
   PREFIX ${KWIVER_BUILD_PREFIX}
-  SOURCE_DIR ${KWIVER_PACKAGES_DIR}/maptk
+  SOURCE_DIR ${KWIVER_PACKAGES_DIR}/kwant
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     ${KWIVER_ARGS_COMMON}
-    -DMAPTK_ENABLE_VXL:BOOL=ON
-    -DMAPTK_ENABLE_OPENCV:BOOL=${KWIVER_ENABLE_OPENCV}
-    -DMAPTK_ENABLE_DOCS:BOOL=${KWIVER_ENABLE_DOC}
-
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}
+  DEPENDS VXL
   )
 
-ExternalProject_Add_Step(maptk_proj forcebuild
+ExternalProject_Add_Step(kwant forcebuild
   COMMAND ${CMAKE_COMMAND}
-    -E remove ${KWIVER_BUILD_PREFIX}/src/maptk-stamp/maptk-build
+    -E remove ${KWIVER_BUILD_PREFIX}/src/kwant-stamp/kwant-build
   COMMENT "Removing build stamp file for build update (forcebuild)."
   DEPENDEES configure
   DEPENDERS build
   ALWAYS 1
   )
 
-set(KWIVER_ARGS_maptk
-  -Dmaptk_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
-  )

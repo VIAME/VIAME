@@ -1,9 +1,21 @@
 [submodule "Packages/sprokit"]
         path = Packages/sprokit
-        url =  https://github.com/Kitware/sprokit.git
+        url =  https://gitlab.kitware.com/kwiver/sprokit.git
 [submodule "Packages/VXL"]
         path = Packages/VXL
-        url = http://git.code.sf.net/p/vxl/git
+        url = https://github.com/vxl/vxl.git
 [submodule "Packages/maptk"]
         path = Packages/maptk
         url = https://github.com/Kitware/maptk.git
+[submodule "Packages/vital"]
+	path = Packages/vital
+	url = https://github.com/Kitware/vital.git
+[submodule "Packages/kwant"]
+	path = Packages/kwant
+	url = https://github.com/Kitware/kwant.git
+[submodule "Packages/vivia"]
+	path = Packages/vivia
+	url = https://github.com/Kitware/vivia.git
+[submodule "Packages/vibrant"]
+	path = Packages/vibrant
+	url = https://github.com/Kitware/vibrant.git
