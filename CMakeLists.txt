@@ -34,6 +34,7 @@ set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
 set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build")
 set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
+set(CMAKE_INSTALL_PREFIX ${KWIVER_BUILD_INSTALL_PREFIX} CACHE STRING "" FORCE)
 
 # root directories
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
@@ -49,6 +50,8 @@ set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" )
 
 # ================================================================
 option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
+mark_as_advanced(KWIVER_ENABLE_OPENCV)
+
 option(KWIVER_ENABLE_TESTS     "Enable testing" ON)
 
 if (KWIVER_ENABLE_TESTS)
@@ -201,6 +204,10 @@ set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
 # Work out which Packages to build based on user choice and their
 # interdependencies
 #
+option(KWIVER_ENABLE_ALL_PACKAGES "Should KWIVER build all of the optional packages?" OFF)
+# Leave as advanced until VIVIA and VIBRANT aren't advanced
+mark_as_advanced(KWIVER_ENABLE_ALL_PACKAGES)
+option(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF)
 option(KWIVER_ENABLE_MAPTK "Enable building MapTK" FALSE)
 option(KWIVER_ENABLE_VIBRANT "Enable building VIBRANT" FALSE)
 mark_as_advanced(KWIVER_ENABLE_VIBRANT)
@@ -209,9 +216,22 @@ mark_as_advanced(KWIVER_ENABLE_KWANT)
 option(KWIVER_ENABLE_VIVIA "Enable building ViVIA" FALSE)
 mark_as_advanced(KWIVER_ENABLE_VIVIA)
 
+
+foreach(package MAPTK VIBRANT KWANT VIVIA PROCESSES)
+  if (KWIVER_ENABLE_ALL_PACKAGES)
+      set(KWIVER_ENABLE_${package} TRUE CACHE BOOL "" FORCE)
+  endif()
+endforeach()
+#
+set(KWIVER_ENABLE_ALL_PACKAGES FALSE CACHE BOOL "" FORCE)
+
 if (KWIVER_ENABLE_VIVIA)
     set(KWIVER_ENABLE_KWANT TRUE CACHE BOOL "" FORCE)
     set(KWIVER_ENABLE_VIBRANT TRUE CACHE BOOL "" FORCE)
+endif()
+
+if (KWIVER_ENABLE_PROCESSES)
+  set(KWIVER_ENABLE_MAPTK TRUE CACHE BOOL "" FORCE)
 endif()
 
 #
@@ -225,8 +245,7 @@ set(KWIVER_ARGS_VIVIA_APPS
 
 set(KWIVER_ARGS_VIVIA_DEPS
     "-DQT_QMAKE_EXECUTABLE:PATH=${QT_QMAKE_EXECUTABLE}"
-    "-DVTK_DIR:PATH=${VTK_ROOT}/lib/cmake/vtk-6.1"
-
+    "-DVTK_DIR:PATH=${VTK_ROOT}/lib/cmake/vtk-6.2"
     )
 
 # ================================================================
@@ -245,7 +264,7 @@ if (KWIVER_ENABLE_VIBRANT)
 endif()
 
 if (KWIVER_ENABLE_KWANT)
-    include(External_kwant)
+	include(External_kwant)
 endif()
 
 if (KWIVER_ENABLE_VIVIA)
@@ -265,9 +284,8 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
 
-option(KWIVER_BUILD_KWIVER_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF)
 
-if (KWIVER_BUILD_KWIVER_PROCESSES)
+if (KWIVER_ENABLE_PROCESSES)
 add_subdirectory(kwiver_util)
 endif()
 
