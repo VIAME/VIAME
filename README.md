@@ -9,12 +9,12 @@ Vital is an open source C++ collection of libraries and tools that supply basic 
 * tests -- contains testing related support code
 * vital -- contains the core library source and headers
 * vital/algo -- contains abstract algorithm definitions
-* vital/bindings -- contains 'c' and Python bindings
+* vital/bindings -- contains C and Python bindings
 * vital/config -- contains configuration support code
 * vital/exceptions -- contains the exception class hierarchy
 * vital/io -- contains the classes that support reading and writing core data types
 * vital/kwiversys -- contains the code that supports the OS abstraction layer
-* vital/logger -- contains the classes tha tprovide logging support
+* vital/logger -- contains the classes that provide logging support
 * vital/tests -- contains the main testing code
 * vital/tools -- contains source for command line utilities
 * vital/types -- contains the source for the core data types
@@ -41,8 +41,8 @@ where the path above is the location of your vital source tree.  The ccmake tool
 * VITAL_ENABLE_LOG4CXX -- Enable log4cxx logger back end
 * VITAL_ENABLE_PYTHON -- Enable the python bindings
 * VITAL_ENABLE_TESTS -- Build the unit tests
-* VITAL_USE_BUILD_PLUGIN_DIR -- When building the plugin manager, wether to include the build directory in the sesarch path.
-* VITAL_ENABLE_C_LIB -- Whether to build the c bindings
+* VITAL_USE_BUILD_PLUGIN_DIR -- When building the plugin manager, whether to include the build directory in the search path.
+* VITAL_ENABLE_C_LIB -- Whether to build the C bindings
 * fletch_DIR -- Build directory for the Fletch support packages.
 
 ## Dependencies ##
