@@ -112,6 +112,7 @@ function(kwiver_add_executable name)
   set_target_properties(${name}
     PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+      INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/"
     )
 
   if(NOT component)
