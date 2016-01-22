@@ -43,6 +43,9 @@ Changes since last public release
 
 - Addressed several minor problems that caused build warnings on windows builds.
 
+- Simplified some looping constructs by replacing for() loop with VITAL_FOREACH()
+
+
 Other branches
 --------------
 
