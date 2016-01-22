@@ -124,6 +124,17 @@ write_ply_file( landmark_map_sptr const&  landmarks,
 
 namespace {
 
+// enumeration of the vertex properties we can handle
+enum vertex_property_t
+{
+  INVALID,
+  VX, VY, VZ,
+  NX, NY, NZ,
+  CR, CG, CB,
+  INDEX,
+  OBSERVATIONS,
+};
+
 /// Split a string into tokens delimited by whitespace
 std::vector<std::string>
 get_tokens(std::string const& line)
@@ -155,17 +166,6 @@ read_ply_file( path_t const& file_path )
   {
     throw file_not_read_exception( file_path, "Cannot read file." );
   }
-
-  // enumeration of the vertex properties we can handle
-  enum vertex_property_t
-  {
-    INVALID,
-    VX, VY, VZ,
-    NX, NY, NZ,
-    CR, CG, CB,
-    INDEX,
-    OBSERVATIONS,
-  };
 
   // mapping between PLY vertex property names and our enum
   std::map<std::string, vertex_property_t> prop_map;
