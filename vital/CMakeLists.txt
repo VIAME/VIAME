@@ -128,6 +128,9 @@ set( vital_public_headers
   types/track.h
   types/track_set.h
   types/vector.h
+
+  util/get_paths.h
+  util/scoped_timer.h
 )
 
 # ----------------------
@@ -184,7 +187,7 @@ set( vital_sources
   types/track.cxx
   types/track_set.cxx
 
-  util/get_paths.h   util/get_paths.cxx
+  util/get_paths.cxx
 )
 
 kwiver_install_headers(
@@ -331,6 +334,7 @@ endif()
 # Add tests if enabled
 if (VITAL_ENABLE_TESTS)
   add_subdirectory( tests )
+  add_subdirectory( util/tests )
 endif()
 
 ###
