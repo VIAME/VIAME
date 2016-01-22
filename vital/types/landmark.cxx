@@ -67,7 +67,7 @@ landmark_< T >
 }
 
 
-/// Constructor for a feature
+/// Constructor for a landmark
 template < typename T >
 landmark_< T >
 ::landmark_( Eigen::Matrix< T, 3, 1 > const& loc, T scale )
@@ -75,6 +75,19 @@ landmark_< T >
     scale_( scale ),
     normal_( 0, 0, 0 ),
     observations_( 0 )
+{
+}
+
+
+/// Constructor for a landmark_ from a landmark
+template < typename T >
+landmark_< T >
+::landmark_( landmark const& lm )
+  : loc_( lm.loc().cast< T > () ),
+    scale_( static_cast< T > ( lm.scale() ) ),
+    normal_( lm.normal().cast< T > () ),
+    color_( lm.color() ),
+    observations_( lm.observations() )
 {
 }
 
