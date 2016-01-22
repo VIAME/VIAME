@@ -40,9 +40,10 @@
 
 #include <vital/vital_export.h>
 
-#include <cstddef>
 #include <memory>
-#include <cassert>
+#include <stdexcept>
+
+#include <cstddef>
 
 namespace kwiver {
 namespace vital {
@@ -232,8 +233,10 @@ public:
    */
   inline rgb_color at( unsigned i, unsigned j ) const
   {
-    assert( i < width_ );
-    assert( j < height_ );
+    if( i >= width_ || j >= height_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::at(unsigned, unsigned) const");
+    }
 
     if ( depth_ < 3 )
     {
@@ -255,8 +258,10 @@ public:
    */
   inline byte& operator()( unsigned i, unsigned j )
   {
-    assert( i < width_ );
-    assert( j < height_ );
+    if( i >= width_ || j >= height_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned)");
+    }
     return first_pixel_[w_step_ * i + h_step_ * j];
   }
 
@@ -264,8 +269,10 @@ public:
   /// Const access pixels in the first channel of the image
   inline const byte& operator()( unsigned i, unsigned j ) const
   {
-    assert( i < width_ );
-    assert( j < height_ );
+    if( i >= width_ || j >= height_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned) const");
+    }
     return first_pixel_[w_step_ * i + h_step_ * j];
   }
 
@@ -273,9 +280,10 @@ public:
   /// Access pixels in the image (width, height, channel)
   inline byte& operator()( unsigned i, unsigned j, unsigned k )
   {
-    assert( i < width_ );
-    assert( j < height_ );
-    assert( k < depth_ );
+    if( i >= width_ || j >= height_ || k >= depth_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned, unsigned)");
+    }
     return first_pixel_[w_step_ * i + h_step_ * j + d_step_ * k];
   }
 
@@ -283,9 +291,10 @@ public:
   /// Const access pixels in the image (width, height, channel)
   inline const byte& operator()( unsigned i, unsigned j, unsigned k ) const
   {
-    assert( i < width_ );
-    assert( j < height_ );
-    assert( k < depth_ );
+    if( i >= width_ || j >= height_ || k >= depth_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned, unsigned) const");
+    }
     return first_pixel_[w_step_ * i + h_step_ * j + d_step_ * k];
   }
 
