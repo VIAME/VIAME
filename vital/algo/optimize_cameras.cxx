@@ -84,13 +84,11 @@ optimize_cameras
     // state's frame (constant-time check).
     if (lms.count(t->id()))
     {
-      for (track::history_const_itr tsi = t->begin();
-           tsi != t->end();
-           ++tsi)
+      VITAL_FOREACH (auto const& ts, *t)
       {
-        if (tsi->feat && cams.count(tsi->frame_id))
+        if (ts.feat && cams.count(ts.frame_id))
         {
-          states_map[tsi->frame_id][t->id()] = tsi->feat;
+          states_map[ts.frame_id][t->id()] = ts.feat;
         }
       }
     }

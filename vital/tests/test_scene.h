@@ -193,11 +193,11 @@ subset_tracks( kwiver::vital::track_set_sptr in_tracks, double keep_frac = 0.75 
 
     nt->set_id( t->id() );
     std::cout << "track " << t->id() << ":";
-    for ( track::history_const_itr it = t->begin(); it != t->end(); ++it )
+    VITAL_FOREACH( const auto &ts, *t )
     {
       if ( std::rand() < rand_thresh )
       {
-        nt->append( *it );
+        nt->append( ts );
         std::cout << " .";
       }
       else
@@ -225,12 +225,12 @@ noisy_tracks( kwiver::vital::track_set_sptr in_tracks, double stdev = 1.0 )
     track_sptr nt( new track );
 
     nt->set_id( t->id() );
-    for ( track::history_const_itr it = t->begin(); it != t->end(); ++it )
+    VITAL_FOREACH( const auto &ts, *t )
     {
-      vector_2d loc = it->feat->loc() + random_point2d( stdev );
-      track::track_state ts( *it );
-      ts.feat = feature_sptr( new feature_d( loc ) );
-      nt->append( ts );
+      vector_2d loc = ts.feat->loc() + random_point2d( stdev );
+      track::track_state new_ts( ts );
+      new_ts.feat = feature_sptr( new feature_d( loc ) );
+      nt->append( new_ts );
     }
     new_tracks.push_back( nt );
   }
