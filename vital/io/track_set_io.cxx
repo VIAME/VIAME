@@ -144,10 +144,9 @@ write_track_file( track_set_sptr const& tracks,
   std::vector< vital::track_sptr > trks = tracks->tracks();
   VITAL_FOREACH( vital::track_sptr t, trks )
   {
-    typedef vital::track::history_const_itr state_itr;
-    for ( state_itr si = t->begin(); si != t->end(); ++si )
+    VITAL_FOREACH( vital::track::track_state const& s, *t )
     {
-      ofile << t->id() << " " << si->frame_id << " " << *si->feat << "\n";
+      ofile << t->id() << " " << s.frame_id << " " << *s.feat << "\n";
     }
   }
   ofile.close();
