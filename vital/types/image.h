@@ -36,11 +36,14 @@
 #ifndef VITAL_IMAGE_H_
 #define VITAL_IMAGE_H_
 
+#include <vital/types/color.h>
+
 #include <vital/vital_export.h>
 
-#include <cstddef>
 #include <memory>
-#include <cassert>
+#include <stdexcept>
+
+#include <cstddef>
 
 namespace kwiver {
 namespace vital {
@@ -216,6 +219,38 @@ public:
   /// The the step in memory to next pixel in the depth direction
   ptrdiff_t d_step() const { return d_step_; }
 
+  /// Const access pixels in the image
+  /**
+   * This returns the specified pixel in the image as an rgb_color. This
+   * assumes that the image is either Luminance[, Alpha], if depth() < 3, and
+   * that only the first (Luminance) channel is interesting (in which case the
+   * R, G, B values of the returned rgb_color are all taken from the first
+   * channel), or that only the first three channels are interesting, and are
+   * in the order Red, Green, Blue.
+   *
+   * \param i width position (x)
+   * \param j height position (y)
+   */
+  inline rgb_color at( unsigned i, unsigned j ) const
+  {
+    if( i >= width_ || j >= height_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::at(unsigned, unsigned) const");
+    }
+
+    if ( depth_ < 3 )
+    {
+      auto const v = first_pixel_[w_step_ * i + h_step_ * j];
+      return { v, v, v };
+    }
+
+    auto const r = first_pixel_[w_step_ * i + h_step_ * j + d_step_ * 0];
+    auto const g = first_pixel_[w_step_ * i + h_step_ * j + d_step_ * 1];
+    auto const b = first_pixel_[w_step_ * i + h_step_ * j + d_step_ * 2];
+    return { r, g, b };
+  }
+
+
   /// Access pixels in the first channel of the image
   /**
    * \param i width position (x)
@@ -223,8 +258,10 @@ public:
    */
   inline byte& operator()( unsigned i, unsigned j )
   {
-    assert( i < width_ );
-    assert( j < height_ );
+    if( i >= width_ || j >= height_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned)");
+    }
     return first_pixel_[w_step_ * i + h_step_ * j];
   }
 
@@ -232,8 +269,10 @@ public:
   /// Const access pixels in the first channel of the image
   inline const byte& operator()( unsigned i, unsigned j ) const
   {
-    assert( i < width_ );
-    assert( j < height_ );
+    if( i >= width_ || j >= height_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned) const");
+    }
     return first_pixel_[w_step_ * i + h_step_ * j];
   }
 
@@ -241,9 +280,10 @@ public:
   /// Access pixels in the image (width, height, channel)
   inline byte& operator()( unsigned i, unsigned j, unsigned k )
   {
-    assert( i < width_ );
-    assert( j < height_ );
-    assert( k < depth_ );
+    if( i >= width_ || j >= height_ || k >= depth_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned, unsigned)");
+    }
     return first_pixel_[w_step_ * i + h_step_ * j + d_step_ * k];
   }
 
@@ -251,9 +291,10 @@ public:
   /// Const access pixels in the image (width, height, channel)
   inline const byte& operator()( unsigned i, unsigned j, unsigned k ) const
   {
-    assert( i < width_ );
-    assert( j < height_ );
-    assert( k < depth_ );
+    if( i >= width_ || j >= height_ || k >= depth_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned, unsigned) const");
+    }
     return first_pixel_[w_step_ * i + h_step_ * j + d_step_ * k];
   }
 
