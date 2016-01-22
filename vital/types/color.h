@@ -96,7 +96,11 @@ inline
 std::istream&
 operator>>( std::istream& s, rgb_color& c )
 {
-  s >> c.r >> c.g >> c.b;
+  int rv = 255, gv = 255, bv = 255;
+  s >> rv >> gv >> bv;
+  c.r = static_cast<unsigned char>( rv );
+  c.g = static_cast<unsigned char>( gv );
+  c.b = static_cast<unsigned char>( bv );
   return s;
 }
 
