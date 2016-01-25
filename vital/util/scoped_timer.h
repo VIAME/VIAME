@@ -134,6 +134,8 @@ public:
 
 }; // end class scoped_timer
 
+} }   // end namespace
+
 #endif
 
 #endif /* KWIVER_VITAL_SCOPED_TIMER_H */
