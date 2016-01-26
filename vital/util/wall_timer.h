@@ -30,16 +30,18 @@
 
 /**
  * \file
- * \brief Interface and implementation of CPU timer classes
+ * \brief Interface and implementation of WALL timer classes
  */
 
-#ifndef KWIVER_VITAL_CPU_TIMER_H
-#define KWIVER_VITAL_CPU_TIMER_H
+#ifndef KWIVER_VITAL_WALL_TIMER_H
+#define KWIVER_VITAL_WALL_TIMER_H
 
 #include <vital/util/timer.h>
 
+#if VITAL_USE_CHRONO
+
 #include <string>
-#include <ctime>
+#include <chrono>
 #include <iostream>
 
 
@@ -48,24 +50,19 @@ namespace vital {
 
 // ----------------------------------------------------------------
 /**
- * @brief Interval timer class.
+ * @brief Interval wall clock timer class.
  *
- * This class represents an interval timer that measures CPU time. The
- * time reported is summed over all cores/threads active, so the
- * resulting time could be greater than wall clock time.
-
+ * This class represents an interval timer that measures wall clock time.
  */
-class VITAL_EXPORT cpu_timer
+class VITAL_EXPORT wall_timer
   : public timer
 {
 public:
-  cpu_timer()
-    : m_start(0),
-      m_end(0)
+  wall_timer()
   { }
 
 
-  ~cpu_timer()
+  ~wall_timer()
   {
     m_active = false;
   }
@@ -80,7 +77,7 @@ public:
   virtual void start()
   {
     m_active = true;
-    m_start = std::clock();
+    m_start = std::chrono::system_clock::now();
   }
 
 
@@ -93,7 +90,7 @@ public:
   virtual void stop()
   {
     m_active = false;
-    m_end = std::clock();
+    m_end = std::chrono::system_clock::now();
   }
 
 
@@ -110,27 +107,55 @@ public:
     if (m_active)
     {
       // Take a snapshot of the interval.
-      std::clock_t elapsed_seconds = std::clock() - m_start;
-      return elapsed_seconds / (double) CLOCKS_PER_SEC;
+      std::chrono::duration< double > elapsed_seconds = std::chrono::system_clock::now() - m_start;
+      return elapsed_seconds.count();
     }
     else
     {
-      std::clock_t elapsed_seconds = m_end - m_start;
-      return elapsed_seconds/ (double) CLOCKS_PER_SEC;
+      std::chrono::duration< double > elapsed_seconds = m_end - m_start;
+      return elapsed_seconds.count();
     }
   }
 
 private:
 
-  std::clock_t m_start;
-  std::clock_t m_end;
+  std::chrono::time_point< std::chrono::system_clock > m_start;
+  std::chrono::time_point< std::chrono::system_clock > m_end;
 
-}; // end class cpu_timer
+}; // end class wall_timer
 
-// instantiate scoped timer
-template class scoped_timer< cpu_timer >;
-typedef scoped_timer< cpu_timer > scoped_cpu_timer;
+template class scoped_timer< wall_timer >;
+typedef scoped_timer< wall_timer > scoped_wall_timer;
 
 } }   // end namespace
 
-#endif /* KWIVER_VITAL_CPU_TIMER_H */
+#else // ==================================================================
+
+namespace kwiver {
+namespace vital {
+
+/*
+ * Empty implementation where chrono is not supported.
+ */
+class wall_timer
+  : public timer
+{
+public:
+  wall_timer()  { }
+  virtual ~wall_timer() { }
+
+  virtual bool timer_available() { return false; }
+
+  virtual void start() { }
+  virtual void stop() { }
+  virtual double elapsed() const { return 0; }
+}; // end class wall_timer
+
+template class scoped_timer< wall_timer >;
+typedef scoped_timer< wall_timer > scoped_wall_timer;
+
+} } // end namespace
+
+#endif
+
+#endif /* KWIVER_VITAL_SCOPED_TIMER_H */

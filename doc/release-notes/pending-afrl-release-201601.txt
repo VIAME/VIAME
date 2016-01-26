@@ -45,6 +45,9 @@ Changes since last public release
 
 - Simplified some looping constructs by replacing for() loop with VITAL_FOREACH()
 
+- Added timer classes to implement a CPU timer and a wall clock
+  timer. These are needed to remove boost timers from MAP-TK code.
+
 
 Other branches
 --------------
