@@ -130,7 +130,9 @@ set( vital_public_headers
   types/vector.h
 
   util/get_paths.h
+  util/timer.h
   util/cpu_timer.h
+  util/wall_timer.h
 )
 
 # ----------------------

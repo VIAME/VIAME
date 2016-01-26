@@ -35,6 +35,7 @@
 #include <test_common.h>
 
 #include <vital/util/cpu_timer.h>
+#include <vital/util/wall_timer.h>
 
 #include <iostream>
 
@@ -106,9 +107,94 @@ IMPLEMENT_TEST(timer_test)
 }
 
 // ------------------------------------------------------------------
+IMPLEMENT_TEST(cpu_timer_test)
+{
+  kwiver::vital::cpu_timer timer;
+
+  if ( ! timer.timer_available() )
+  {
+    std::cout << "Skipping tests, timer support not available\n";
+    return;
+  }
+
+  TEST_EQUAL( "Timers supported", timer.timer_available(), true );
+  TEST_EQUAL( "Timer not active", timer.is_active(), false );
+  TEST_EQUAL( "Inactive timer interval", timer.elapsed(), 0 );
+
+  timer.start();
+  TEST_EQUAL( "Timer active", timer.is_active(), true );
+
+  fibonacci(30);
+
+  double t1 = timer.elapsed();
+  bool value = (t1 != 0);
+  TEST_EQUAL( "Timer 1 not zero", value, true );
+
+  fibonacci(30);
+
+  double t2 = timer.elapsed();
+  value = (t2 != 0);
+  TEST_EQUAL( "Timer 2 not zero", value, true );
+
+  value = (t1 == t2);
+  TEST_EQUAL( "Timers not the same", value, false );
+
+  timer.stop();
+  t1 = timer.elapsed();
+  fibonacci(30);
+  t2 = timer.elapsed();
+
+  TEST_EQUAL( "Stopped timer does not change", t1, t2 );
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(wall_timer_test)
+{
+  kwiver::vital::wall_timer timer;
+
+  if ( ! timer.timer_available() )
+  {
+    std::cout << "Skipping tests, timer support not available\n";
+    return;
+  }
+
+  TEST_EQUAL( "Timers supported", timer.timer_available(), true );
+  TEST_EQUAL( "Timer not active", timer.is_active(), false );
+  TEST_EQUAL( "Inactive timer interval", timer.elapsed(), 0 );
+
+  timer.start();
+  TEST_EQUAL( "Timer active", timer.is_active(), true );
+
+  fibonacci(30);
+
+  double t1 = timer.elapsed();
+  bool value = (t1 != 0);
+  TEST_EQUAL( "Timer 1 not zero", value, true );
+
+  fibonacci(30);
+
+  double t2 = timer.elapsed();
+  value = (t2 != 0);
+  TEST_EQUAL( "Timer 2 not zero", value, true );
+
+  value = (t1 == t2);
+  TEST_EQUAL( "Timers not the same", value, false );
+
+  timer.stop();
+  t1 = timer.elapsed();
+  fibonacci(30);
+  t2 = timer.elapsed();
+
+  TEST_EQUAL( "Stopped timer does not change", t1, t2 );
+}
+
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(fib_test)
 {
-  if ( ! kwiver::vital::cpu_timer::timer_available() )
+  kwiver::vital::cpu_timer a_timer;
+  if ( ! a_timer.timer_available() )
   {
     std::cout << "Skipping tests, timer support not available\n";
     std::cout << "Timer support not available\n";
@@ -117,7 +203,13 @@ IMPLEMENT_TEST(fib_test)
 
   long fib(0);
   {
-    kwiver::vital::scoped_cpu_timer timer( "fib_test" );
+    kwiver::vital::scoped_cpu_timer timer( "cpu_fib_test" );
+    fib = fibonacci(42);
+    std::cout << "  f(42) = " << fib << std::endl;
+  }
+
+  {
+    kwiver::vital::scoped_wall_timer timer( "wall_fib_test" );
     fib = fibonacci(42);
     std::cout << "  f(42) = " << fib << std::endl;
   }
