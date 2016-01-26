@@ -68,15 +68,14 @@ main(int argc, char* argv[])
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(timer_test)
 {
-  if ( ! kwiver::vital::cpu_timer::timer_available() )
+  kwiver::vital::cpu_timer timer;
+  if ( ! timer.timer_available() )
   {
     std::cout << "Skipping tests, timer support not available\n";
     return;
   }
 
-  kwiver::vital::cpu_timer timer;
-
-  TEST_EQUAL( "Timers supported", kwiver::vital::cpu_timer::timer_available(), true );
+  TEST_EQUAL( "Timers supported", timer.timer_available(), true );
   TEST_EQUAL( "Timer not active", timer.is_active(), false );
   TEST_EQUAL( "Inactive timer interval", timer.elapsed(), 0 );
 
