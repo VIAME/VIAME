@@ -111,12 +111,12 @@ public:
     {
       // Take a snapshot of the interval.
       std::clock_t elapsed_seconds = std::clock() - m_start;
-      return elapsed_seconds / (double) CLOCKS_PER_SEC;
+      return static_cast< double >(elapsed_seconds) / CLOCKS_PER_SEC;
     }
     else
     {
       std::clock_t elapsed_seconds = m_end - m_start;
-      return elapsed_seconds/ (double) CLOCKS_PER_SEC;
+      return static_cast< double >(elapsed_seconds) / CLOCKS_PER_SEC;
     }
   }
 
