@@ -78,7 +78,7 @@ timestamp& timestamp
 timestamp& timestamp
 ::set_time_seconds( double t )
 {
-  m_time = t * 1e6;             // Convert to usec
+  m_time = static_cast< time_t >(t * 1e6);     // Convert to usec
   m_valid_time = true;
 
   return *this;
