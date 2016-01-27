@@ -82,13 +82,13 @@ IMPLEMENT_TEST(timer_test)
   timer.start();
   TEST_EQUAL( "Timer active", timer.is_active(), true );
 
-  fibonacci(30);
+  fibonacci(35);
 
   double t1 = timer.elapsed();
   bool value = (t1 != 0);
   TEST_EQUAL( "Timer 1 not zero", value, true );
 
-  fibonacci(30);
+  fibonacci(35);
 
   double t2 = timer.elapsed();
   value = (t2 != 0);

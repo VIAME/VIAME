@@ -128,7 +128,7 @@ private:
 }; // end class cpu_timer
 
 // instantiate scoped timer
-template class scoped_timer< cpu_timer >;
+template class VITAL_EXPORT scoped_timer< cpu_timer >;
 typedef scoped_timer< cpu_timer > scoped_cpu_timer;
 
 } }   // end namespace
