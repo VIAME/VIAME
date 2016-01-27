@@ -124,7 +124,7 @@ private:
 
 }; // end class wall_timer
 
-template class scoped_timer< wall_timer >;
+template class VITAL_EXPORT scoped_timer< wall_timer >;
 typedef scoped_timer< wall_timer > scoped_wall_timer;
 
 } }   // end namespace
@@ -137,7 +137,7 @@ namespace vital {
 /*
  * Empty implementation where chrono is not supported.
  */
-class wall_timer
+class VITAL_EXPORT wall_timer
   : public timer
 {
 public:
