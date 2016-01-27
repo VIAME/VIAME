@@ -48,7 +48,7 @@ namespace vital {
  *
  * This class represents an interval timer.
  */
-class VITAL_EXPORT timer
+class timer
 {
 public:
   timer()
@@ -134,7 +134,7 @@ protected:
  * a timer class in seconds.
  */
 template < class timer_t >
-class VITAL_EXPORT scoped_timer
+class scoped_timer
 {
 public:
   scoped_timer()
