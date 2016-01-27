@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,17 @@ timestamp& timestamp
 
 // ------------------------------------------------------------------
 timestamp& timestamp
+::set_time_seconds( double t )
+{
+  m_time = t * 1e6;             // Convert to usec
+  m_valid_time = true;
+
+  return *this;
+}
+
+
+// ------------------------------------------------------------------
+timestamp& timestamp
 ::set_frame( frame_t f)
 {
   m_frame = f;
@@ -117,29 +128,25 @@ double timestamp
 bool timestamp
 ::operator<( timestamp const& rhs ) const
 {
+  // Differing domains
   if ( this->m_time_domain_index != rhs.m_time_domain_index )
   {
-    LOG_WARN( s_logger, "Ordering not defined for timestamps in different domains" );
     return false;
   }
 
+  // compare times preferentially
   if ( this->has_valid_time() && rhs.has_valid_time() )
   {
     return this->get_time_usec() < rhs.get_time_usec();
   }
 
-  if ( this->has_valid_time() || rhs.has_valid_time() )
-  {
-    LOG_WARN( s_logger, "Comparing timestamps that don't both have time values" );
-    return false;
-  }
-
+  // If both times not available, compare frames
   if ( this->has_valid_frame() && rhs.has_valid_frame() )
   {
     return this->get_frame() < rhs.get_frame();
   }
 
-  LOG_WARN( s_logger, "Comparing timestamps that don't both have time values or frame number values, or are empty" );
+  // Can't compare
   return false;
 }
 
@@ -148,7 +155,23 @@ bool timestamp
 bool timestamp
 ::operator>( timestamp const& rhs ) const
 {
-  return this->operator!=( rhs ) && ! this->operator<( rhs );
+  if ( this->m_time_domain_index != rhs.m_time_domain_index )
+  {
+    return false;
+  }
+
+  if ( this->has_valid_time() && rhs.has_valid_time() )
+  {
+    return this->get_time_usec() > rhs.get_time_usec();
+  }
+
+  if ( this->has_valid_frame() && rhs.has_valid_frame() )
+  {
+    return this->get_frame() > rhs.get_frame();
+  }
+
+  return false;
+
 }
 
 
@@ -158,7 +181,6 @@ bool timestamp
 {
   if ( this->m_time_domain_index != rhs.m_time_domain_index )
   {
-    LOG_WARN( s_logger, "Ordering not defined for timestamps in different domains" );
     return false;
   }
 
@@ -167,18 +189,11 @@ bool timestamp
     return this->get_time_usec() == rhs.get_time_usec();
   }
 
-  if ( this->has_valid_time() || rhs.has_valid_time() )
-  {
-    LOG_WARN( s_logger, "Comparing timestamps that don't both have time values" );
-    return false;
-  }
-
   if ( this->has_valid_frame() && rhs.has_valid_frame() )
   {
     return this->get_frame() == rhs.get_frame();
   }
 
-  LOG_WARN( s_logger, "Comparing timestamps that don't both have time values or frame number values, or are empty" );
   return false;
 }
 
@@ -187,7 +202,22 @@ bool timestamp
 bool timestamp
 ::operator!=( timestamp const& rhs ) const
 {
-  return ! this->operator==( rhs );
+  if ( this->m_time_domain_index != rhs.m_time_domain_index )
+  {
+    return false;
+  }
+
+  if ( this->has_valid_time() && rhs.has_valid_time() )
+  {
+    return this->get_time_usec() != rhs.get_time_usec();
+  }
+
+  if ( this->has_valid_frame() && rhs.has_valid_frame() )
+  {
+    return this->get_frame() != rhs.get_frame();
+  }
+
+  return false;
 }
 
 
