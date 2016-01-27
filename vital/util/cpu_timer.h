@@ -55,7 +55,7 @@ namespace vital {
  * resulting time could be greater than wall clock time.
 
  */
-class VITAL_EXPORT cpu_timer
+class cpu_timer
   : public timer
 {
 public:
@@ -128,7 +128,7 @@ private:
 }; // end class cpu_timer
 
 // instantiate scoped timer
-template class VITAL_EXPORT scoped_timer< cpu_timer >;
+template class scoped_timer< cpu_timer >;
 typedef scoped_timer< cpu_timer > scoped_cpu_timer;
 
 } }   // end namespace

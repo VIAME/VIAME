@@ -44,7 +44,6 @@
 #include <chrono>
 #include <iostream>
 
-
 namespace kwiver {
 namespace vital {
 
@@ -54,7 +53,7 @@ namespace vital {
  *
  * This class represents an interval timer that measures wall clock time.
  */
-class VITAL_EXPORT wall_timer
+class wall_timer
   : public timer
 {
 public:
@@ -124,7 +123,7 @@ private:
 
 }; // end class wall_timer
 
-template class VITAL_EXPORT scoped_timer< wall_timer >;
+template class scoped_timer< wall_timer >;
 typedef scoped_timer< wall_timer > scoped_wall_timer;
 
 } }   // end namespace
@@ -137,7 +136,7 @@ namespace vital {
 /*
  * Empty implementation where chrono is not supported.
  */
-class VITAL_EXPORT wall_timer
+class wall_timer
   : public timer
 {
 public:
