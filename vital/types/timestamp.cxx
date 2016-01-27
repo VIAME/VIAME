@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  */
 
 #include "timestamp.h"
+#include <vital/logger/logger.h>
 
 #include <sstream>
 #include <string>
@@ -37,12 +38,19 @@
 
 namespace kwiver {
 namespace vital {
+namespace {
+
+  static logger_handle_t s_logger( get_logger( "timestamp" ) );
+
+}
+
 
 timestamp::timestamp()
   : m_valid_time( false ),
     m_valid_frame( false ),
     m_time( 0 ),
-    m_frame( 0 )
+    m_frame( 0 ),
+    m_time_domain_index( 0 )
 { }
 
 
@@ -50,10 +58,12 @@ timestamp::timestamp( time_t t, frame_t f )
   : m_valid_time( true ),
     m_valid_frame( true ),
     m_time( t ),
-    m_frame( f )
+    m_frame( f ),
+    m_time_domain_index( 0 )
 { }
 
 
+// ------------------------------------------------------------------
 timestamp& timestamp
 ::set_time_usec( time_t t )
 {
@@ -64,6 +74,18 @@ timestamp& timestamp
 }
 
 
+// ------------------------------------------------------------------
+timestamp& timestamp
+::set_time_seconds( double t )
+{
+  m_time = t * 1e6;             // Convert to usec
+  m_valid_time = true;
+
+  return *this;
+}
+
+
+// ------------------------------------------------------------------
 timestamp& timestamp
 ::set_frame( frame_t f)
 {
@@ -74,6 +96,7 @@ timestamp& timestamp
 }
 
 
+// ------------------------------------------------------------------
 timestamp& timestamp
 ::set_invalid()
 {
@@ -84,6 +107,16 @@ timestamp& timestamp
 }
 
 
+// ------------------------------------------------------------------
+timestamp& timestamp
+::set_time_domain_index( int dom )
+{
+  m_time_domain_index = dom;
+  return *this;
+}
+
+
+// ------------------------------------------------------------------
 double timestamp
 ::get_time_seconds() const
 {
@@ -91,6 +124,104 @@ double timestamp
 }
 
 
+// ------------------------------------------------------------------
+bool timestamp
+::operator<( timestamp const& rhs ) const
+{
+  // Differing domains
+  if ( this->m_time_domain_index != rhs.m_time_domain_index )
+  {
+    return false;
+  }
+
+  // compare times preferentially
+  if ( this->has_valid_time() && rhs.has_valid_time() )
+  {
+    return this->get_time_usec() < rhs.get_time_usec();
+  }
+
+  // If both times not available, compare frames
+  if ( this->has_valid_frame() && rhs.has_valid_frame() )
+  {
+    return this->get_frame() < rhs.get_frame();
+  }
+
+  // Can't compare
+  return false;
+}
+
+
+// ------------------------------------------------------------------
+bool timestamp
+::operator>( timestamp const& rhs ) const
+{
+  if ( this->m_time_domain_index != rhs.m_time_domain_index )
+  {
+    return false;
+  }
+
+  if ( this->has_valid_time() && rhs.has_valid_time() )
+  {
+    return this->get_time_usec() > rhs.get_time_usec();
+  }
+
+  if ( this->has_valid_frame() && rhs.has_valid_frame() )
+  {
+    return this->get_frame() > rhs.get_frame();
+  }
+
+  return false;
+
+}
+
+
+// ------------------------------------------------------------------
+bool timestamp
+::operator==( timestamp const& rhs ) const
+{
+  if ( this->m_time_domain_index != rhs.m_time_domain_index )
+  {
+    return false;
+  }
+
+  if ( this->has_valid_time() && rhs.has_valid_time() )
+  {
+    return this->get_time_usec() == rhs.get_time_usec();
+  }
+
+  if ( this->has_valid_frame() && rhs.has_valid_frame() )
+  {
+    return this->get_frame() == rhs.get_frame();
+  }
+
+  return false;
+}
+
+
+// ------------------------------------------------------------------
+bool timestamp
+::operator!=( timestamp const& rhs ) const
+{
+  if ( this->m_time_domain_index != rhs.m_time_domain_index )
+  {
+    return false;
+  }
+
+  if ( this->has_valid_time() && rhs.has_valid_time() )
+  {
+    return this->get_time_usec() != rhs.get_time_usec();
+  }
+
+  if ( this->has_valid_frame() && rhs.has_valid_frame() )
+  {
+    return this->get_frame() != rhs.get_frame();
+  }
+
+  return false;
+}
+
+
+// ------------------------------------------------------------------
 std::string timestamp
 ::pretty_print() const
 {
@@ -140,7 +271,7 @@ std::string timestamp
     str << "<inv>";
   }
 
-  str << ")";
+  str << ", d: " << this->get_time_domain_index() <<  ")";
 
   str.precision( old_prec );
   return str.str();

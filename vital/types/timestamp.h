@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,15 @@ namespace vital {
  * A timestamp has the notion of valid time and valid frame. This is
  * useful when dealing with interpolated timestamps. In this case, a
  * timestamps may have a time, but no frame.
+ *
+ * When comparing timestamps, they must be from the same domain. If
+ * not, then they are not comparable and \b all relative operators
+ * return false.
+ *
+ * If both timestamps have a time, then they are ordered by that
+ * value.  If both do not have time but both have frame numbers, they
+ * are ordered by frame number. If the timestamps do not have some way
+ * of being compared, all relational operators return false.
  */
 class VITAL_EXPORT timestamp
 {
@@ -119,6 +128,7 @@ public:
    */
   time_t get_time_usec() const { return m_time; }
 
+
   /**
    * \brief Get time in seconds.
    *
@@ -127,6 +137,7 @@ public:
    * \return time in seconds.
    */
   double get_time_seconds() const;
+
 
   /**
    * \brief Get frame number from timestamp.
@@ -151,6 +162,14 @@ public:
 
 
   /**
+   * \brief Set time portion of timestamp.
+   *
+   * @param t Time for frame.
+   */
+  timestamp& set_time_seconds( double t );
+
+
+  /**
    * \brief Set frame portion of timestamp.
    *
    * @param f Frame number
@@ -161,9 +180,21 @@ public:
   /**
    * \brief Set timestamp totally invalid.
    *
-   * Both the frame and time are set to
+   * Both the frame and time are set to invalid
    */
   timestamp& set_invalid();
+
+
+  /**
+   * @brief Set time domain index for this timestamp
+   *
+   * @param dom Time domain index
+   *
+   * @return Reference to this object.
+   */
+  timestamp& set_time_domain_index ( int dom );
+
+  int get_time_domain_index() const { return m_time_domain_index; }
 
 
   /**
@@ -176,17 +207,21 @@ public:
    */
   std::string pretty_print() const;
 
+  bool operator==( timestamp const& rhs ) const;
+  bool operator!=( timestamp const& rhs ) const;
+  bool operator<( timestamp const& rhs ) const;
+  bool operator>( timestamp const& rhs ) const;
+
 
 private:
-  bool m_valid_time; ///< indicates valid timestamp
-  bool m_valid_frame;
+  bool m_valid_time;            ///< indicates valid time
+  bool m_valid_frame;           ///< indicates valid frame number
 
-  time_t m_time; ///< frame time in seconds
-  frame_t  m_frame;
+  time_t m_time;                ///< frame time in seconds
+  frame_t  m_frame;             ///< frame number
 
-  ///\todo Add unique field to denote reference.
-  /// The concept is to prevent comparing timestamps that have a different reference
-  /// (e.g. from a different video stream or having a different start time offset).
+  // index used to determine the time domain for this timestamp.
+  int m_time_domain_index;
 
 }; // end class timestamp
 

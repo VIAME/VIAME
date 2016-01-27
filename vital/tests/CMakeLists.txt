@@ -25,3 +25,4 @@ kwiver_discover_tests(core_vector             test_libraries test_vector.cxx)
 ## kwiver_discover_tests(core_algo               test_libraries test_algo.cxx)
 
 kwiver_discover_tests(core_est                test_libraries test_estimate_similarity_transform.cxx)
+kwiver_discover_tests(core_timestamp          test_libraries test_timestamp.cxx)
