@@ -234,6 +234,16 @@ layer as a descriptor::
     "type": "CaffeDescriptorGenerator"
     }
 
+
+The command to run the test application is as follows (all one line, run from the kwiver/build directory):                                                                                 
+                                                                                                                                                                                           
+    LD_PRELOAD=~/miniconda/envs/smqtk/lib/libpython2.7.so.1.0 ./examples/call_SMQTK_pipeline/SMQTK_Descriptor_test my-caffe-config ../source/examples/cat.jpg                              
+                                                                                                                                                                                           
+.. note:: The “LD_PRELOAD” variable setting is required to make sure that sprokit does not try to use the system                                                                           
+   python instead of the SMQTK python environment you created.  We will be working to make this unecessary as soon as possible.                                                            
+ 
+
+
 When the application runs, it will eventually print out lines that look like this (after many log messages)::
 
     Descriptor size: 4096
