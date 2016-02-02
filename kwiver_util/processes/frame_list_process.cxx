@@ -38,7 +38,7 @@
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
 
-#include <kwiver_util/sprokit_type_traits.h>
+#include <kwiver_util/kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/datum.h>
@@ -64,7 +64,6 @@ namespace kwiver
 
   // (config-key, value-type, default-value, description )
   create_config_trait( image_list_file, std::string, "", "Name of file that contains list of image file names." );
-  create_config_trait( image_reader, std::string, "", "Image reader type. Must be \"ocv\" or \"vxl\"" );
   create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds" );
 
 //----------------------------------------------------------------
@@ -77,7 +76,6 @@ public:
 
   // Configuration values
   std::string m_config_image_list_filename;
-  std::string m_config_image_reader;
   kwiver::vital::timestamp::time_t m_config_frame_time;
 
   // process local data
@@ -120,15 +118,15 @@ void frame_list_process
 
   // Examine the configuration
   d->m_config_image_list_filename = config_value_using_trait( image_list_file );
-  d->m_config_image_reader        = config_value_using_trait( image_reader );
   d->m_config_frame_time          = config_value_using_trait( frame_time ) * 1e6; // in usec
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
 
   // instantiate image reader and converter based on config type
+  algo::image_io::check_nested_algo_configuration( "image_reader", algo_config );
   algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
-  if (0 == d->m_image_reader )
+  if ( ! d->m_image_reader )
   {
     throw sprokit::invalid_configuration_exception( name(),
              "Error configuring. Unable to create image reader." );
@@ -163,7 +161,7 @@ void frame_list_process
   } // end for
 
   d->m_current_file = d->m_files.begin();
-  d->m_frame_number = 0;
+  d->m_frame_number = 1;
 
   process::_init();
 }
@@ -185,12 +183,12 @@ void frame_list_process
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    kwiver::vital::image_container_sptr img;
-    img = d->m_image_reader->load( a_file );
+    kwiver::vital::image_container_sptr img_c;
+    img_c = d->m_image_reader->load( a_file );
 
     // --- debug
 #if defined DEBUG
-    cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img->get_image() );
+    cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img_c->get_image() );
     namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
     imshow( "Display window", image );                   // Show our image inside it.
 
@@ -198,20 +196,20 @@ void frame_list_process
 #endif
     // -- end debug
 
+    kwiver::vital::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
+
     // update timestamp
     ++d->m_frame_number;
     d->m_frame_time += d->m_config_frame_time;
 
-    kwiver::vital::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
-
     push_to_port_using_trait( timestamp, frame_ts );
-    push_to_port_using_trait( image, img );
+    push_to_port_using_trait( image, img_c );
 
     ++d->m_current_file;
   }
   else
   {
-    LOG_DEBUG( logger(), "end of input reached, process terminating" );
+    LOG_DEBUG( logger(), "End of input reached, process terminating" );
 
     // indicate done
     mark_process_as_complete();
@@ -242,7 +240,6 @@ void frame_list_process
 ::make_config()
 {
   declare_config_using_trait( image_list_file );
-  declare_config_using_trait( image_reader );
   declare_config_using_trait( frame_time );
 }
 

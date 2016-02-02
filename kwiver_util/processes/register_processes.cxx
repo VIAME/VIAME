@@ -4,7 +4,6 @@
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
 
-#include "register_processes.h"
 #include <sprokit/pipeline/process_registry.h>
 
 // -- list processes to register --
@@ -18,6 +17,13 @@
 #include "extract_descriptors_process.h"
 #include "matcher_process.h"
 #include "compute_homography_process.h"
+#include "draw_tracks_process.h"
+
+#include "read_descriptor_process.h"
+
+extern "C"
+KWIVER_PROCESSES_EXPORT void register_processes();
+
 
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -65,8 +71,17 @@ void register_processes()
     sprokit::create_process< kwiver::matcher_process > );
 
   registry->register_process(
-    "compute_homography_process", "Compute a frame to frame homography based on tracks",
+    "compute_homography", "Compute a frame to frame homography based on tracks",
     sprokit::create_process< kwiver::compute_homography_process > );
+
+  registry->register_process(
+    "draw_tracks", "Draw feature tracks on image",
+    sprokit::create_process< kwiver::draw_tracks_process > );
+
+
+  registry->register_process(
+    "read_d_vector", "Read vector of doubles",
+    sprokit::create_process< kwiver::read_descriptor_process > );
 
 
   // - - - - - - - - - - - - - - - - - - - - - - -

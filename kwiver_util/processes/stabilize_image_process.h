@@ -51,4 +51,5 @@ class KWIVER_PROCESSES_NO_EXPORT stabilize_image_process
 
 
 } // end namespace
+
 #endif /* _KWIVER_STABILIZE_IMAGE_PROCESS_H_ */

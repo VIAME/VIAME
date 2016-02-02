@@ -28,6 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief KW Archive writer process implementation.
+ */
+
 #include "kw_archive_writer_process.h"
 
 #include <vital/algorithm_plugin_manager.h>
@@ -38,7 +43,7 @@
 #include <vital/types/timestamp_config.h>
 #include <vital/types/homography_f2f.h>
 
-#include <kwiver_util/sprokit_type_traits.h>
+#include <kwiver_util/kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 

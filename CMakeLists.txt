@@ -34,7 +34,7 @@ set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
 set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build")
 set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
-set(CMAKE_INSTALL_PREFIX ${KWIVER_BUILD_INSTALL_PREFIX} CACHE STRING "" FORCE)
+set(CMAKE_INSTALL_PREFIX        "${KWIVER_BUILD_INSTALL_PREFIX}" CACHE STRING "" FORCE)
 
 # root directories
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
@@ -61,6 +61,8 @@ if (KWIVER_ENABLE_TESTS)
   mark_as_advanced(BUILD_TESTING)
 
 endif()
+
+option( KWIVER_ENABLE_PYTHON    "Enable python code" OFF )
 
 if (KWIVER_ENABLE_PYTHON)
   set(kwiver_boost_python_package python)
@@ -98,6 +100,7 @@ endif()
 include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include")
 include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_BINARY_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 # ==================================================================
 
@@ -105,8 +108,17 @@ include_directories("${KWIVER_BINARY_DIR}")
 option(KWIVER_BUILD_SHARED "Build KWIVER packages shared or not" ON)
 
 if (KWIVER_ENABLE_PYTHON)
-    find_package(PythonInterp)
+    find_package(PythonInterp REQUIRED)
     find_package(PythonLibs)
+
+    # to be compatible with sprokit
+    set(PYTHON_VERSION "2.7"
+    CACHE STRING "The version of python to use for bindings")
+  set(PYTHON_ABIFLAGS ""
+    CACHE STRING "The ABI flags for the version of Python being used")
+
+  include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
+
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
@@ -287,7 +299,11 @@ endif()
 
 if (KWIVER_ENABLE_PROCESSES)
 add_subdirectory(kwiver_util)
+
+# may want to make this optional.
+add_subdirectory(examples)
 endif()
+
 
 ##################################################################
 # Top level installation

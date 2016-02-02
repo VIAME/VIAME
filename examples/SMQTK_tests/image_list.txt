@@ -1,0 +1,3 @@
+../cat.jpg
+../cat_gray.jpg
+../fish-bike.jpg

@@ -6,7 +6,7 @@ process numbersource
   :start 1
 
   # Ending Number
-  :end 100
+  :end 7
 
 # ================================================================
 process numbersink

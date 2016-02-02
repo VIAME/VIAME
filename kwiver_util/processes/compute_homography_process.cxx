@@ -41,16 +41,9 @@
 #include <vital/algo/track_features.h>
 #include <vital/algo/compute_ref_homography.h>
 
-#include <kwiver_util/sprokit_type_traits.h>
+#include <kwiver_util/kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
-
-// -- DEBUG
-#if defined DEBUG
-#include <maptk/plugins/ocv/image_container.h>
-#include <opencv2/highgui/highgui.hpp>
-using namespace cv;
-#endif
 
 namespace algo = kwiver::vital::algo;
 

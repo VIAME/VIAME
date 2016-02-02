@@ -5,11 +5,13 @@ config common
 
 # ================================================================
 process input
-  :: frame_list_process
+  :: frame_list_input
 # Input file containing new-line separated paths to sequential image
 # files.
-  :image_list_file ../video-test/input_image_list.txt
-  :frame_time .9
+##  :image_list_file ../video-test/short/input_image_list.txt
+  :image_list_file ../video-test/long/input_image_list.txt
+##  :frame_time .9
+  :frame_time .03
 
 # Algorithm to use for 'image_reader'.
 # Must be one of the following options:
@@ -20,7 +22,7 @@ process input
 
 # ================================================================
 process stabilize
-  :: stabilize_image_process
+  :: stabilize_image
 
 # Algorithm to use for 'track_features'.
 # Must be one of the following options:
@@ -272,7 +274,7 @@ process stabilize
 
 # ================================================================
 process writer
-  :: kw_archive_writer_process
+  :: kw_archive_writer
 
 # Configuration for KWA writer. This process writes an archive
 # which consists of several files into the specified directory
@@ -318,8 +320,8 @@ connect from input.timestamp
 connect from input.image
         to   stabilize.image
 
-connect from stabilize.src_to_ref_homography
-        to   writer.src_to_ref_homography
+connect from stabilize.homography_src_to_ref
+        to   writer.homography_src_to_ref
 connect from input.timestamp
         to   writer.timestamp
 connect from input.image
