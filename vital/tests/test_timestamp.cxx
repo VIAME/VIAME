@@ -63,17 +63,17 @@ IMPLEMENT_TEST(timestamp_API)
   TEST_EQUAL( "Valid time", ts.has_valid_time(), false );
   TEST_EQUAL( "Valid frame", ts.has_valid_frame(), false );
 
-  kwiver::vital::timestamp tsv( 5e6, 2);
+  kwiver::vital::timestamp tsv( 5000000, 2);
 
   TEST_EQUAL( "Valid timestamp", tsv.is_valid(), true );
   TEST_EQUAL( "Valid time", tsv.has_valid_time(), true );
   TEST_EQUAL( "Valid frame", tsv.has_valid_frame(), true );
-  TEST_EQUAL( "Correct time", tsv.get_time_usec(), 5e6 );
+  TEST_EQUAL( "Correct time", tsv.get_time_usec(), 5000000 );
   TEST_EQUAL( "Correct time", tsv.get_time_seconds(), 5 );
   TEST_EQUAL( "Correct frame", tsv.get_frame(), 2 );
 
   // Test copy constructor
-  ts = kwiver::vital::timestamp( 5e6, 2 );
+  ts = kwiver::vital::timestamp( 5000000, 2 );
   TEST_EQUAL( "Equal from temp", ts, tsv );
 
   ts = tsv;
@@ -84,7 +84,7 @@ IMPLEMENT_TEST(timestamp_API)
 
   ts.set_time_seconds( 123 );
   TEST_EQUAL( "Direct time access", ts.get_time_seconds(), 123 );
-  TEST_EQUAL( "Direct time access", ts.get_time_usec(), 123E6 );
+  TEST_EQUAL( "Direct time access", ts.get_time_usec(), 123000000 );
 }
 
 
@@ -92,11 +92,11 @@ IMPLEMENT_TEST(timestamp_API)
 IMPLEMENT_TEST(timestamp_relop)
 {
   kwiver::vital::timestamp tsiv; // invalid TS
-  kwiver::vital::timestamp ts( 5e6, 123 );
-  kwiver::vital::timestamp ts11( 5e6, 122 );
-  kwiver::vital::timestamp ts12( 5e6, 124 );
-  kwiver::vital::timestamp ts21( 4e6, 122 );
-  kwiver::vital::timestamp ts22( 6e6, 124 );
+  kwiver::vital::timestamp ts( 5000000, 123 );
+  kwiver::vital::timestamp ts11( 5000000, 122 );
+  kwiver::vital::timestamp ts12( 5000000, 124 );
+  kwiver::vital::timestamp ts21( 4000000, 122 );
+  kwiver::vital::timestamp ts22( 6000000, 124 );
 
   TEST_EQUAL( "Invalid timestamp ==", (ts == tsiv), false );
   TEST_EQUAL( "Invalid timestamp !=", (ts != tsiv), false );
