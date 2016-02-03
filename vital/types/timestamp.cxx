@@ -29,7 +29,6 @@
  */
 
 #include "timestamp.h"
-#include <vital/logger/logger.h>
 
 #include <sstream>
 #include <string>
@@ -38,12 +37,6 @@
 
 namespace kwiver {
 namespace vital {
-namespace {
-
-  static logger_handle_t s_logger( get_logger( "timestamp" ) );
-
-}
-
 
 timestamp::timestamp()
   : m_valid_time( false ),
