@@ -55,6 +55,6 @@ try_compile( success
      -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
-set( VITAL_USE_CHRONO ${success} )
+set( VITAL_USE_STD_CHRONO ${success} )
 
 ###
