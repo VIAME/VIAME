@@ -15,11 +15,13 @@ install(
         "${utils_dir}/vital-flags-gnu.cmake"
         "${utils_dir}/vital-flags-msvc.cmake"
         "${utils_dir}/vital-flags-clang.cmake"
+        "${utils_dir}/kwiver-configcheck.cmake"
   DESTINATION "${kwiver_cmake_install_dir}"
   )
 
 install(
   DIRECTORY "${utils_dir}/utils"
             "${utils_dir}/tools"
+            "${utils_dir}/configcheck"
   DESTINATION "${kwiver_cmake_install_dir}"
   )
