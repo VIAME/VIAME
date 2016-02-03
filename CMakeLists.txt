@@ -55,6 +55,10 @@ endif()
 include(kwiver-utils)
 include(vital-flags) # vital specific CXX flags
 
+##
+# check compiler support
+include( kwiver-configcheck )
+
 ###
 # External Dependencies and Modules
 #
