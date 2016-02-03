@@ -57,9 +57,4 @@ try_compile( success
 
 set( VITAL_USE_CHRONO ${success} )
 
-# MSVC specific fixup. Timing does not work on VS 2013 (aka VS12)
-if ( MSVC AND NOT MSVC_VERSION GREATER 1800 )
-  set( VITAL_USE_CHRONO false )
-endif()
-
 ###
