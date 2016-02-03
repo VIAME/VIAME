@@ -59,7 +59,7 @@ set( CMAKE_CXX_FLAGS ${save_flags} )
 # Generate correct timer header based on availbility of timer
 #
 
-if (VITAL_USE_CHRONO)
+if (VITAL_USE_STD_CHRONO)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/util/wall_timer.h.in"
