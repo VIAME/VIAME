@@ -85,6 +85,9 @@ IMPLEMENT_TEST(cpu_timer_test)
   timer.start();
   TEST_EQUAL( "CPU Timer active", timer.is_active(), true );
 
+  // This may look odd, but we need to use the results of this call or
+  // it can be optimized out of generated code resulting in no elapsed
+  // time.
   long fib = fibonacci(40);
   TEST_EQUAL( "fib(40)", fib-fib, 0 );
 
