@@ -48,6 +48,8 @@ Changes since last public release
 - Added timer classes to implement a CPU timer and a wall clock
   timer. These are needed to remove boost timers from MAP-TK code.
 
+- Added configuration checking for std::random and std::chrono
+
 
 Other branches
 --------------
