@@ -18,7 +18,7 @@ Changes since last public release
  - Generalized landmark I/O (.ply file format) to read and write additional
    fields, including RGB color.
 
-- Cleaned up code so it is compatible with all supported platforms.
+- Cleaned up code so it is compatible with all supported platforms {linux, windows, OS-X}
 
 - Consolidated CMake support for Map-TK building. Moved required features to
   vital cmake support so Map-TK can use more of the vital CMake support.
@@ -50,6 +50,16 @@ Changes since last public release
 
 - Added configuration checking for std::random and std::chrono
 
+- Added VITAL_SYSTEM_WIN_API symbol to simplify adapting code to build
+  on windows
+
+- Added utility to determine directory that contains the executable
+  and current library. This is usefil for applications when locating
+  their plugins.
+
+- Added compile time checks to see if std::random and std::chrono are
+  available.
+
 
 Other branches
 --------------
@@ -59,7 +69,7 @@ dev/add-plugin-manager - Initial thoughts on adapting vidtk plugin
                          work in progress and is not conceptually
                          complete.
 
-kw/add-klv-toolkit - Initial thoughts on porting KLV library from
-                     vidtk. It is part of the effort to make a video
-                     input process. The KLV parser may be complete,
-                     but the video input process is not finished.
+kw/add-klv-toolkit - Initial version of KLV library from vidtk. It is
+                     part of the effort to make a video input
+                     process. The KLV parser may be complete, but the
+                     video input process is not finished.
