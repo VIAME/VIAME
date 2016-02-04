@@ -38,6 +38,7 @@
 #include <vital/util/wall_timer.h>
 
 #include <iostream>
+#include <unistd.h>
 
 #define TEST_ARGS ()
 
@@ -65,47 +66,6 @@ main(int argc, char* argv[])
   RUN_TEST(testname);
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(timer_test)
-{
-  kwiver::vital::cpu_timer timer;
-  if ( ! timer.timer_available() )
-  {
-    std::cout << "Skipping tests, timer support not available\n";
-    return;
-  }
-
-  TEST_EQUAL( "Timers supported", timer.timer_available(), true );
-  TEST_EQUAL( "Timer not active", timer.is_active(), false );
-  TEST_EQUAL( "Inactive timer interval", timer.elapsed(), 0 );
-
-  timer.start();
-  TEST_EQUAL( "Timer active", timer.is_active(), true );
-
-  fibonacci(40);
-
-  double t1 = timer.elapsed();
-
-  bool value = (t1 != 0.0);
-  // The following test will fail on occasion due to timer (lack of) precision
-  // TEST_EQUAL( "Timer 1 not zero", value, true );
-
-  fibonacci(40);
-
-  double t2 = timer.elapsed();
-  value = (t2 != 0.0);
-  TEST_EQUAL( "Timer 2 not zero", value, true );
-
-  value = (t1 == t2);
-  TEST_EQUAL( "Timers not the same", value, false );
-
-  timer.stop();
-  t1 = timer.elapsed();
-  fibonacci(30);
-  t2 = timer.elapsed();
-
-  TEST_EQUAL( "Stopped timer does not change", t1, t2 );
-}
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cpu_timer_test)
@@ -114,38 +74,43 @@ IMPLEMENT_TEST(cpu_timer_test)
 
   if ( ! timer.timer_available() )
   {
-    std::cout << "Skipping tests, timer support not available\n";
+    std::cout << "Skipping tests, CPU Timer support not available\n";
     return;
   }
 
-  TEST_EQUAL( "Timers supported", timer.timer_available(), true );
-  TEST_EQUAL( "Timer not active", timer.is_active(), false );
-  TEST_EQUAL( "Inactive timer interval", timer.elapsed(), 0 );
+  TEST_EQUAL( "CPU Timers supported", timer.timer_available(), true );
+  TEST_EQUAL( "CPU Timer not active", timer.is_active(), false );
+  TEST_EQUAL( "Inactive CPU Timer interval", timer.elapsed(), 0 );
 
   timer.start();
-  TEST_EQUAL( "Timer active", timer.is_active(), true );
+  TEST_EQUAL( "CPU Timer active", timer.is_active(), true );
 
-  fibonacci(30);
+  long fib = fibonacci(40);
+  TEST_EQUAL( "fib(40)", fib-fib, 0 );
 
   double t1 = timer.elapsed();
   bool value = (t1 != 0);
-  TEST_EQUAL( "Timer 1 not zero", value, true );
+  TEST_EQUAL( "CPU Timer 1 not zero", value, true );
 
-  fibonacci(30);
+  fib = fibonacci(40);
+  TEST_EQUAL( "fib(40)", fib-fib, 0 );
 
   double t2 = timer.elapsed();
   value = (t2 != 0);
-  TEST_EQUAL( "Timer 2 not zero", value, true );
+  TEST_EQUAL( "CPU Timer 2 not zero", value, true );
 
   value = (t1 == t2);
-  TEST_EQUAL( "Timers not the same", value, false );
+  TEST_EQUAL( "CPU Timers not the same", value, false );
 
   timer.stop();
   t1 = timer.elapsed();
-  fibonacci(30);
+
+  fib = fibonacci(40);
+  TEST_EQUAL( "fib(40)", fib-fib, 0 );
+
   t2 = timer.elapsed();
 
-  TEST_EQUAL( "Stopped timer does not change", t1, t2 );
+  TEST_EQUAL( "Stopped CPU Timer does not change", t1, t2 );
 }
 
 
@@ -160,34 +125,34 @@ IMPLEMENT_TEST(wall_timer_test)
     return;
   }
 
-  TEST_EQUAL( "Timers supported", timer.timer_available(), true );
-  TEST_EQUAL( "Timer not active", timer.is_active(), false );
-  TEST_EQUAL( "Inactive timer interval", timer.elapsed(), 0 );
+  TEST_EQUAL( "Wall Timers supported", timer.timer_available(), true );
+  TEST_EQUAL( "Wall Timer not active", timer.is_active(), false );
+  TEST_EQUAL( "Inactive Wall Timer interval", timer.elapsed(), 0 );
 
   timer.start();
-  TEST_EQUAL( "Timer active", timer.is_active(), true );
+  TEST_EQUAL( "Wall Timer active", timer.is_active(), true );
 
-  fibonacci(30);
+  sleep(1);
 
   double t1 = timer.elapsed();
   bool value = (t1 != 0);
-  TEST_EQUAL( "Timer 1 not zero", value, true );
+  TEST_EQUAL( "Wall Timer 1 not zero", value, true );
 
-  fibonacci(30);
+  sleep(1);
 
   double t2 = timer.elapsed();
   value = (t2 != 0);
-  TEST_EQUAL( "Timer 2 not zero", value, true );
+  TEST_EQUAL( "Wall Timer 2 not zero", value, true );
 
   value = (t1 == t2);
-  TEST_EQUAL( "Timers not the same", value, false );
+  TEST_EQUAL( "Wall Timers not the same", value, false );
 
   timer.stop();
   t1 = timer.elapsed();
-  fibonacci(30);
+  sleep(1);
   t2 = timer.elapsed();
 
-  TEST_EQUAL( "Stopped timer does not change", t1, t2 );
+  TEST_EQUAL( "Stopped Wall Timer does not change", t1, t2 );
 }
 
 
