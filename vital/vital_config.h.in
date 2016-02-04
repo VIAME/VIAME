@@ -33,23 +33,28 @@
 
 // Support macros.
 #if defined(_WIN32) || defined(_WIN64)
-#define VITAL_NO_RETURN __declspec(noreturn)
-// Unsupported.
-#define VITAL_MUST_USE_RESULT
-// Unsupported.
-#define VITAL_UNUSED
+
+# define VITAL_NO_RETURN __declspec(noreturn)
+# define VITAL_MUST_USE_RESULT  /* unsupported */
+# define VITAL_UNUSED           /* unsupported */
+# define VITAL_SYSTEM_WIN_API (1)
+
 #elif defined(__GNUC__)
-#define VITAL_NO_RETURN __attribute__((__noreturn__))
-#define VITAL_MUST_USE_RESULT __attribute__((__warn_unused_result__))
-#define VITAL_UNUSED __attribute__((__unused__))
+
+# define VITAL_NO_RETURN __attribute__((__noreturn__))
+# define VITAL_MUST_USE_RESULT __attribute__((__warn_unused_result__))
+# define VITAL_UNUSED __attribute__((__unused__))
+# define VITAL_SYSTEM_WIN_API (0)
+
 #else
-// Unsupported.
-#define VITAL_NO_RETURN
-// Unsupported.
-#define VITAL_MUST_USE_RESULT
-// Unsupported.
-#define VITAL_UNUSED
+
+# define VITAL_NO_RETURN        /* unsupported */
+# define VITAL_MUST_USE_RESULT  /* unsupported */
+# define VITAL_UNUSED           /* unsupported */
+# define VITAL_SYSTEM_WIN_API (0)
+
 #endif
+
 
 #cmakedefine01  VITAL_USE_CPP_AUTO
 #cmakedefine01  VITAL_USE_CPP_RANGE_FOR
