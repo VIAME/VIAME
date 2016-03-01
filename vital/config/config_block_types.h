@@ -63,6 +63,8 @@ typedef std::shared_ptr<config_block> config_block_sptr;
 /// The type to be used for file and directory paths
 typedef std::string config_path_t;
 
+typedef std::vector< std::string > config_path_list_t;
+
 } }
 
 #endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
