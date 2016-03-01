@@ -49,7 +49,10 @@ namespace vital {
 // ------------------------------------------------------------------
 /// Read in a configuration file, producing a \c config_block object
 /**
- *
+ * This method reads the specified config file and returns the
+ * resulting config block. If a search path is supplied, any files
+ * included by config files are resolved using that list if they do
+ * not have an absolute path.
  *
  * \throws config_file_not_found_exception
  *    Thrown when the file could not be found on the file system.
@@ -57,18 +60,21 @@ namespace vital {
  *    Thrown when the file could not be read or parsed for whatever reason.
  *
  * \param file_path   The path to the file to read in.
+ * \param search_path An optional list of directories to use in locating included files.
+ *
  * \return A \c config_block object representing the contents of the read-in file.
  */
 config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
-  config_path_t const& file_path );
+  config_path_t const&      file_path,
+  config_path_list_t const& search_path = config_path_list_t() );
 
 
 // ------------------------------------------------------------------
 /// Read in (a) configuration file(s), producing a \c config_block object
 /**
  * This function reads one or more configuration files from platform specific
- * standard locations and from locations specified by the \c VITAL_CONFIG_PATH
- * environmental variable. \c VITAL_CONFIG_PATH is searched first, followed by
+ * standard locations and from locations specified by the \c KWIVDF_CONFIG_PATH
+ * environmental variable. \c KWIVER_CONFIG_PATH is searched first, followed by
  * the user-specific location(s), followed by the machine-wide location(s).
  *
  * \throws config_file_not_found_exception

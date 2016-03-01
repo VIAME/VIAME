@@ -63,7 +63,7 @@ namespace {
 #if defined(_WIN32)
 // ------------------------------------------------------------------
 // Helper method to add known special paths to a path list
-void add_windows_path( std::vector< config_path_t >& paths, int which )
+void add_windows_path( config_path_list_t & paths, int which )
 {
   char buffer[MAX_PATH];
   if ( SHGetFolderPath ( 0, which, 0, 0, buffer ) )
@@ -78,11 +78,11 @@ void add_windows_path( std::vector< config_path_t >& paths, int which )
 // ------------------------------------------------------------------
 // Helper method to get application specific paths from generic paths
 std::vector< config_path_t >
-application_paths( std::vector< config_path_t > const& paths,
+application_paths( config_path_list_t const& paths,
                    std::string const& application_name,
                    std::string const& application_version )
 {
-  auto result = std::vector< config_path_t >{};
+  auto result = config_path_list_t{};
   VITAL_FOREACH ( auto const& path, paths )
   {
     auto const& app_path = path + "/" + application_name;
@@ -99,17 +99,17 @@ application_paths( std::vector< config_path_t > const& paths,
 
 // ------------------------------------------------------------------
 // Helper method to get all possible locations of application config files
-std::vector< config_path_t >
+config_path_list_t
 config_file_paths( std::string const& application_name,
                    std::string const& application_version,
                    config_path_t const& install_prefix )
 {
   // First, add any paths specified by our local environment variable
-  auto paths = std::vector< config_path_t >{};
+  auto paths = config_path_list_t{};
   kwiversys::SystemTools::GetPath( paths, "KWIVER_CONFIG_PATH" );
 
   // Now add platform specific directories
-  auto data_paths = std::vector< config_path_t >{};
+  auto data_paths = config_path_list_t{};
 
 #if defined(_WIN32)
 
@@ -132,7 +132,7 @@ config_file_paths( std::string const& application_name,
 # endif
 
   // Get the list of configuration data paths
-  auto config_paths = std::vector< config_path_t >{};
+  auto config_paths = config_path_list_t{};
   kwiversys::SystemTools::GetPath( config_paths, "XDG_CONFIG_HOME" );
   if ( home && *home )
   {
@@ -184,6 +184,7 @@ config_file_paths( std::string const& application_name,
 
   return paths;
 }
+
 
 // ------------------------------------------------------------------
 // Helper method to write out a comment to a configuration file ostream
@@ -261,7 +262,8 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
 
 // ------------------------------------------------------------------
 config_block_sptr
-read_config_file( config_path_t const& file_path )
+read_config_file( config_path_t const&     file_path,
+                  config_path_list_t const& search_path )
 {
   // Check that file exists
   if ( ! kwiversys::SystemTools::FileExists( file_path ) )
@@ -274,8 +276,10 @@ read_config_file( config_path_t const& file_path )
               "Path given doesn't point to a regular file!" );
   }
 
-  kwiver::vital::config_parser the_parser( file_path );
-  the_parser.parse_config();
+  kwiver::vital::config_parser the_parser;
+  the_parser.add_search_path( search_path );
+  the_parser.parse_config( file_path );
+
   return the_parser.get_config();
 }
 
@@ -295,12 +299,23 @@ read_config_file( std::string const& file_name,
   auto const& search_paths =
     config_file_paths( application_name, application_version, install_prefix );
 
+  // See if file name is an absolute path. If so, then just process the file.
+  std::string root;
+  kwiversys::SystemTools::SplitPathRootComponent( file_name, &root );
+  if ( ! root.empty() )
+  {
+    // The file is on a absolute path.
+    auto const& config = read_config_file( file_name, search_paths );
+    return config;
+  }
+
+  // File name is relative, so go through the search process.
   VITAL_FOREACH( auto const& search_path, search_paths )
   {
     try
     {
       auto const& config_path = search_path + "/" + file_name;
-      auto const& config = read_config_file( config_path );
+      auto const& config = read_config_file( config_path, search_paths );
 
       LOG_DEBUG( logger, "Read config file \"" << config_path << "\"" );
 
@@ -397,7 +412,7 @@ void write_config( config_block_sptr const& config,
     // is one, write that out as a comment.
     // - comments will be limited to 80 character width lines, including "# "
     //   prefix.
-    // - value output format: ``key_path = value\n``
+    // - value output format: "key_path = value\n"
 
     config_block_description_t descr = config->get_description( key );
 
@@ -415,6 +430,13 @@ void write_config( config_block_sptr const& config,
     }
 
     ofile << key << " = " << config->get_value< config_block_value_t > ( key ) << "\n";
+
+    std::string file;
+    int line;
+    if ( config->get_location( key, file, line ) )
+    {
+      ofile << "# defined - " << file << ":" << line << "\n";
+    }
   }
   ofile.flush();
 } // write_config_file
