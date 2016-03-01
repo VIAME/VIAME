@@ -109,11 +109,11 @@ struct token_t
  */
 struct block_context_t
 {
-  std::string m_block_name;     // block name taken from 'block' keyword
+  std::string m_block_name;     // block name taken from 'block' keyword.
   std::string m_file_name;      // file where block started
-  int m_start_line;              // line number of block directive in file
+  int m_start_line;             // line number of block directive in file
 
-  std::string m_previous_context;  // previous block context
+  std::string m_previous_context;  // previous block context. e.g. as "a:b:c"
 };
 
 } // end namespace
@@ -128,7 +128,7 @@ public:
       m_file_count( 0 ),
       m_parse_error( false ),
       m_symtab( new kwiver::vital::token_type_symtab( "LOCAL" ) ),
-      m_config_block( kwiver::vital::config_block::empty_config() ), //+ nay need to set a name
+      m_config_block( kwiver::vital::config_block::empty_config() ),
       m_logger( kwiver::vital::get_logger( "vital.config_parser" ) )
   {
     m_token_expander.add_token_type( new kwiver::vital::token_type_env() );
@@ -147,6 +147,7 @@ public:
    * \param file_path Path to the file
    *
    * \throws config_file_not_found_exception if file could not be opened
+   * \throw config_file_not_parsed_exception if there is a parse error
    */
   void process_file( config_path_t const&  file_path)
   {
@@ -156,6 +157,12 @@ public:
     // Reset token parser since we are starting a new file
     m_token_line.clear();
     m_line_number = 0;
+
+    // The file specified really must be a file.
+    if ( ! kwiversys::SystemTools::FileExists( file_path ) )
+    {
+      throw config_file_not_found_exception( file_path, "File does not exist." );
+    }
 
     // Try to open the file
     std::ifstream in_stream( file_path.c_str() );
@@ -168,7 +175,11 @@ public:
     ++m_file_count;
 
     // Get directory part of the input file
-    const config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( file_path ) );
+    config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( file_path ) );
+    if ( "" == config_file_dir )
+    {
+      config_file_dir = ".";
+    }
 
     while ( true )
     {
@@ -218,18 +229,24 @@ public:
          */
         const int current_line( m_line_number ); // save current line number
 
-        LOG_DEBUG( m_logger, "Including file \"" << m_token_line << "\" at "
-                  << file_path << ":" << m_line_number );
+        config_path_t filename = resolve_file_name( m_token_line );
+        if ( "" == filename ) // could not resolve
+        {
+          // Could not find file in the search path, so ...
+          // Prepend current directory if file specified is not absolute.
+          std::string root;
+          kwiversys::SystemTools::SplitPathRootComponent( m_token_line, &root );
+          if ( root.empty() )
+          {
+            // The file is on a relative path.
+            filename = config_file_dir + "/" + m_token_line;
+          }
+        }
 
-        config_path_t filename = m_token_line;
         flush_line(); // force read of new line
 
-        // Prepend current directory if file specified is not absolute.
-        config_path_t dir_part = kwiversys::SystemTools::GetFilenamePath( filename );
-        if ( dir_part[0] != '/' )
-        {
-          filename = config_file_dir + "/" + filename;
-        }
+        LOG_DEBUG( m_logger, "Including file \"" << filename << "\" at "
+                  << file_path << ":" << m_line_number );
 
         process_file( filename ); // process included file
 
@@ -577,9 +594,36 @@ public:
   }
 
 
+  /**
+   * @brief Resolve file name against search path.
+   *
+   * This method returns a valid file path, including name, for the
+   * supplied file_name using the currently active file search path. A
+   * null string is returned if the file can not be found anywhere.
+   *
+   * @param file_name File name to resolve.
+   *
+   * @return Full file path, or empty string on failure.
+   */
+  config_path_t resolve_file_name( config_path_t const& file_name )
+  {
+    // Test for absolute file name
+    std::string root;
+    kwiversys::SystemTools::SplitPathRootComponent( file_name, &root );
+    if ( root.empty() )
+    {
+      // The file is on a relative path.
+      // See if file can be found in the search path.
+      return kwiversys::SystemTools::FindFile( file_name, this->m_search_path, false );
+    }
+
+    // Absolute file path, so just return it
+    return file_name;
+  }
+
+
   // ------------------------------------------------------------------
   // -- member data --
-
 
   // nested block stack
   std::vector< block_context_t > m_block_stack;
@@ -607,6 +651,9 @@ public:
   token_expander m_token_expander;
   token_type_symtab* m_symtab;
 
+  // file search path list
+  config_path_list_t m_search_path;
+
   // config block being created
   kwiver::vital::config_block_sptr m_config_block;
 
@@ -621,9 +668,8 @@ public:
 // ==================================================================
 
 config_parser
-::config_parser( config_path_t const& file_path )
-  : m_config_file( file_path ),
-    m_priv( new config_parser::priv() )
+::config_parser()
+  : m_priv( new config_parser::priv() )
 {
 }
 
@@ -634,14 +680,45 @@ config_parser
 }
 
 
+// ------------------------------------------------------------------
 void
 config_parser
-::parse_config()
+::add_search_path( config_path_t const& file_path )
 {
+  m_priv->m_search_path.push_back( file_path );
+}
+
+
+// ------------------------------------------------------------------
+void
+config_parser
+::add_search_path( config_path_list_t const& file_path )
+{
+  m_priv->m_search_path.insert( m_priv->m_search_path.end(),
+                                file_path.begin(), file_path.end() );
+}
+
+
+// ------------------------------------------------------------------
+config_path_list_t const&
+config_parser
+::get_search_path() const
+{
+  return m_priv->m_search_path;
+}
+
+
+// ------------------------------------------------------------------
+void
+config_parser
+::parse_config( config_path_t const& file_path )
+{
+  m_config_file = file_path;
   m_priv->process_file( m_config_file );
 }
 
 
+// ------------------------------------------------------------------
 kwiver::vital::config_block_sptr
 config_parser
 ::get_config() const
