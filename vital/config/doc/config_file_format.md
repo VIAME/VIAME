@@ -1,5 +1,5 @@
 /**
-*  \page config_file_format Config File format
+*  \page config_file_format Config File Format
 
 # vital Configuration File Format
 
@@ -65,7 +65,7 @@ The include directive logically inserts the contents of the specified file into 
 
 `include filename`
 
-If the file name is not an absolute path, it is resolved relative to the enclosing config file.
+If the file name is not an absolute path, it is located by scanning the current config search path. If the file is still not found, the stack of include directories is scanned from the current include file back to the initial config file.
 
 Block specifications and include directives can be used together to build reusable and shareable configuration snippets.
 
@@ -89,7 +89,7 @@ Include files can be nested to an arbitrary depth.
 
 There are cases where an algorithm needs an external file containing binary data that is tied to a specific configuration. These data files are usually stored with the main configuration files. Specifying a full hard coded file path is not portable between different users and systems.
 
-The solution is to specify the location of these external files relative to the configuration file and use the *relativepath* modifier construct a full, absolute path at run time by prepending the con figuration file directory path to the value.
+The solution is to specify the location of these external files relative to the configuration file and use the *relativepath* modifier construct a full, absolute path at run time by prepending the configuration file directory path to the value.
 
 ```
 relativepath data_file = ../data/online_dat.dat

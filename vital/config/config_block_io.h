@@ -32,7 +32,8 @@
  * \file
  * \brief IO Operation utilities for \c kwiver::config
  *
- * \todo Describe format here.
+ * Refer to \ref config_file_format "config file format" for more
+ * information on the file entries.
  */
 
 #ifndef KWIVER_CONFIG_BLOCK_IO_H_
@@ -73,7 +74,7 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
 /// Read in (a) configuration file(s), producing a \c config_block object
 /**
  * This function reads one or more configuration files from platform specific
- * standard locations and from locations specified by the \c KWIVDF_CONFIG_PATH
+ * standard locations and from locations specified by the \c KWIVER_CONFIG_PATH
  * environmental variable. \c KWIVER_CONFIG_PATH is searched first, followed by
  * the user-specific location(s), followed by the machine-wide location(s).
  *

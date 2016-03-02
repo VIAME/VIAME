@@ -85,8 +85,8 @@ public:
    * \brief Add directory to search path.
    *
    * This method adds a directory to the end of the config file search
-   * path. This search path is used to locate the main config file and
-   * all referenced included files.
+   * path. This search path is used to locate all referenced included
+   * files.
    *
    * @param file_path Directory or list to add to end of search path.
    */
