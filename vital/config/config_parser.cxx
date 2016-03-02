@@ -234,9 +234,7 @@ public:
         {
           // Could not find file in the search path, so ...
           // Prepend current directory if file specified is not absolute.
-          std::string root;
-          kwiversys::SystemTools::SplitPathRootComponent( m_token_line, &root );
-          if ( root.empty() )
+          if ( ! kwiversys::SystemTools::FileIsFullPath( m_token_line ) )
           {
             // The file is on a relative path.
             filename = config_file_dir + "/" + m_token_line;
@@ -608,13 +606,9 @@ public:
   config_path_t resolve_file_name( config_path_t const& file_name )
   {
     // Test for absolute file name
-    std::string root;
-    kwiversys::SystemTools::SplitPathRootComponent( file_name, &root );
-    if ( root.empty() )
+    if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
     {
-      // The file is on a relative path.
-      // See if file can be found in the search path.
-      return kwiversys::SystemTools::FindFile( file_name, this->m_search_path, false );
+      return file_name;
     }
 
     // Absolute file path, so just return it

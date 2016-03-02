@@ -300,9 +300,7 @@ read_config_file( std::string const& file_name,
     config_file_paths( application_name, application_version, install_prefix );
 
   // See if file name is an absolute path. If so, then just process the file.
-  std::string root;
-  kwiversys::SystemTools::SplitPathRootComponent( file_name, &root );
-  if ( ! root.empty() )
+  if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
   {
     // The file is on a absolute path.
     auto const& config = read_config_file( file_name, search_paths );
