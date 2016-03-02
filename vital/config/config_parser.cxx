@@ -611,8 +611,32 @@ public:
       return file_name;
     }
 
-    // Absolute file path, so just return it
-    return file_name;
+    // The file is on a relative path.
+    // See if file can be found in the search path.
+    std::string res_file = kwiversys::SystemTools::FindFile( file_name, this->m_search_path, false );
+    if ( "" != res_file )
+    {
+      return res_file;
+    }
+
+    // File not found in regular path, search backwards in current
+    // include stack.  The same directory may appear multiple times in
+    // the search path. Removing duplicates would be complicated since
+    // the order must be preserved. The effort is not worth the
+    // benefit at this point.
+    config_path_list_t include_paths;
+    const auto eit = m_block_stack.rend();
+    for ( auto it = m_block_stack.rbegin(); it != eit; ++it )
+    {
+      config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( it->m_file_name ) );
+      if ( "" == config_file_dir )
+      {
+        config_file_dir = ".";
+      }
+      include_paths.push_back( config_file_dir );
+    } // end for
+
+    return kwiversys::SystemTools::FindFile( file_name, include_paths, false );
   }
 
 
