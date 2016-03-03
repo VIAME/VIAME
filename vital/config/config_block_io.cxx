@@ -180,6 +180,9 @@ config_file_paths( std::string const& application_name,
 #if defined(__APPLE__)
     paths.push_back( install_prefix + "/Resources/config" );
 #endif
+
+    // Lastly add current directory
+    paths.push_back( "." );  // could use kwiversys::SystemTools::GetCurrentWorkingDirectory()
   }
 
   return paths;
