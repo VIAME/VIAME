@@ -599,12 +599,15 @@ public:
    * supplied file_name using the currently active file search path. A
    * null string is returned if the file can not be found anywhere.
    *
-   * @param file_name File name to resolve.
+   * @param file File name to resolve.
    *
    * @return Full file path, or empty string on failure.
    */
-  config_path_t resolve_file_name( config_path_t const& file_name )
+  config_path_t resolve_file_name( config_path_t const& file )
   {
+    // Do a macro expansion of the file name
+    const std::string file_name = m_token_expander.expand_token( file );
+
     // Test for absolute file name
     if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
     {
