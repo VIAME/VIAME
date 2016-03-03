@@ -98,6 +98,80 @@ application_paths( config_path_list_t const& paths,
 }
 
 // ------------------------------------------------------------------
+// Helper method to write out a comment to a configuration file ostream
+/**
+ * Makes sure there is no trailing white-space printed to file.
+ */
+void
+write_cb_comment( std::ostream& ofile, config_block_description_t const& comment )
+{
+  typedef config_block_description_t cbd_t;
+  size_t line_width = 80;
+  cbd_t comment_token = cbd_t( "#" );
+
+  // Add a leading new-line to separate comment block from previous config
+  // entry.
+  ofile << "\n";
+
+  // preserve manually specified new-lines in the comment string, adding a
+  // trailing new-line
+  std::list< cbd_t > blocks;
+  tokenize( comment, blocks, "\n" );
+  while ( blocks.size() > 0 )
+  {
+    cbd_t cur_block = blocks.front();
+    blocks.pop_front();
+
+    // Comment lines always start with the comment token
+    cbd_t line_buffer = comment_token;
+
+    // Counter of additional spaces to place in front of the next non-empty
+    // word added to the line buffer. There is always at least one space
+    // between words.
+    size_t spaces = 1;
+
+    std::list< cbd_t > words;
+    // Not using token-compress in case there is purposeful use of multiple
+    // adjacent spaces, like in bullited lists. This, however, leaves open
+    // the appearance of empty-string words in the loop, which are handled.
+    tokenize( cur_block, words );
+    while ( words.size() > 0 )
+    {
+      cbd_t cur_word = words.front();
+      words.pop_front();
+
+      // word is an empty string, meaning an intentional space was encountered.
+      if ( cur_word.size() == 0 )
+      {
+        ++spaces;
+      }
+      else
+      {
+        if ( ( line_buffer.size() + spaces + cur_word.size() ) > line_width )
+        {
+          ofile << line_buffer << "\n";
+          line_buffer = comment_token;
+          // On a line split, it makes sense to me that leading spaces are
+          // treated as trailing white-space, which should not be output.
+          spaces = 1;
+        }
+        line_buffer += std::string( spaces, ' ' ) + cur_word;
+        spaces = 1;
+      }
+    }
+
+    // flush remaining contents of line buffer if there is anything
+    if ( line_buffer.size() > 0 )
+    {
+      ofile << line_buffer << "\n";
+    }
+  }
+} // write_cb_comment
+
+} //end anonymous namespace
+
+
+// ------------------------------------------------------------------
 // Helper method to get all possible locations of application config files
 config_path_list_t
 config_file_paths( std::string const& application_name,
@@ -180,87 +254,10 @@ config_file_paths( std::string const& application_name,
 #if defined(__APPLE__)
     paths.push_back( install_prefix + "/Resources/config" );
 #endif
-
-    // Lastly add current directory
-    paths.push_back( "." );  // could use kwiversys::SystemTools::GetCurrentWorkingDirectory()
   }
 
   return paths;
 }
-
-
-// ------------------------------------------------------------------
-// Helper method to write out a comment to a configuration file ostream
-/**
- * Makes sure there is no trailing white-space printed to file.
- */
-void
-write_cb_comment( std::ostream& ofile, config_block_description_t const& comment )
-{
-  typedef config_block_description_t cbd_t;
-  size_t line_width = 80;
-  cbd_t comment_token = cbd_t( "#" );
-
-  // Add a leading new-line to separate comment block from previous config
-  // entry.
-  ofile << "\n";
-
-  // preserve manually specified new-lines in the comment string, adding a
-  // trailing new-line
-  std::list< cbd_t > blocks;
-  tokenize( comment, blocks, "\n" );
-  while ( blocks.size() > 0 )
-  {
-    cbd_t cur_block = blocks.front();
-    blocks.pop_front();
-
-    // Comment lines always start with the comment token
-    cbd_t line_buffer = comment_token;
-
-    // Counter of additional spaces to place in front of the next non-empty
-    // word added to the line buffer. There is always at least one space
-    // between words.
-    size_t spaces = 1;
-
-    std::list< cbd_t > words;
-    // Not using token-compress in case there is purposeful use of multiple
-    // adjacent spaces, like in bullited lists. This, however, leaves open
-    // the appearance of empty-string words in the loop, which are handled.
-    tokenize( cur_block, words );
-    while ( words.size() > 0 )
-    {
-      cbd_t cur_word = words.front();
-      words.pop_front();
-
-      // word is an empty string, meaning an intentional space was encountered.
-      if ( cur_word.size() == 0 )
-      {
-        ++spaces;
-      }
-      else
-      {
-        if ( ( line_buffer.size() + spaces + cur_word.size() ) > line_width )
-        {
-          ofile << line_buffer << "\n";
-          line_buffer = comment_token;
-          // On a line split, it makes sense to me that leading spaces are
-          // treated as trailing white-space, which should not be output.
-          spaces = 1;
-        }
-        line_buffer += std::string( spaces, ' ' ) + cur_word;
-        spaces = 1;
-      }
-    }
-
-    // flush remaining contents of line buffer if there is anything
-    if ( line_buffer.size() > 0 )
-    {
-      ofile << line_buffer << "\n";
-    }
-  }
-} // write_cb_comment
-
-} //end anonymous namespace
 
 
 // ------------------------------------------------------------------
@@ -310,35 +307,43 @@ read_config_file( std::string const& file_name,
     return config;
   }
 
+  // use current directory when searching for this file.
+  config_path_list_t local_search_paths( search_paths );
+  local_search_paths.push_back( "." );
+
   // File name is relative, so go through the search process.
-  VITAL_FOREACH( auto const& search_path, search_paths )
+  VITAL_FOREACH( auto const& search_path, local_search_paths )
   {
-    try
+    auto const& config_path = search_path + "/" + file_name;
+
+    // Check that file exists
+    if ( ! kwiversys::SystemTools::FileExists( config_path ) ||
+         kwiversys::SystemTools::FileIsDirectory( config_path ) )
     {
-      auto const& config_path = search_path + "/" + file_name;
-      auto const& config = read_config_file( config_path, search_paths );
-
-      LOG_DEBUG( logger, "Read config file \"" << config_path << "\"" );
-
-      if ( ! merge )
-      {
-        return config;
-      }
-      else if ( result )
-      {
-        // Merge under current configuration
-        config->merge_config( result );
-      }
-
-      // Continue with new config
-      result = config;
+      continue;
     }
-    catch ( config_file_not_found_exception const& )
+
+    kwiver::vital::config_parser the_parser;
+    the_parser.add_search_path( search_path );
+    the_parser.parse_config( config_path );
+
+    auto const& config = the_parser.get_config();
+
+    LOG_DEBUG( logger, "Read config file \"" << config_path << "\"" );
+
+    if ( ! merge )
     {
-      // Ignore 'not found' errors... we don't care (yet), just continue with
-      // next search path
+      return config;
     }
-  }
+    else if ( result )
+    {
+      // Merge under current configuration
+      config->merge_config( result );
+    }
+
+    // Continue with new config
+    result = config;
+  } // end foreach
 
   // Throw file-not-found if we ran out of paths without finding anything
   if ( ! result )

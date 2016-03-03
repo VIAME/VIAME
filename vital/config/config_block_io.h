@@ -151,6 +151,11 @@ void VITAL_CONFIG_EXPORT write_config_file( config_block_sptr const&  config,
 void VITAL_CONFIG_EXPORT write_config( config_block_sptr const& config,
                                        std::ostream&            str );
 
+config_path_list_t VITAL_CONFIG_EXPORT
+config_file_paths( std::string const& application_name,
+                   std::string const& application_version,
+                   config_path_t const& install_prefix );
+
 } }
 
 #endif // KWIVER_CONFIG_BLOCK_IO_H_
