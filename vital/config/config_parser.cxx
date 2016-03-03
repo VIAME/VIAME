@@ -28,6 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief config_parser implementation
+ */
+
 #include "config_parser.h"
 #include "token_expander.h"
 #include "token_type_symtab.h"
@@ -569,6 +574,7 @@ public:
   }
 
 
+  // ------------------------------------------------------------------
   /**
    * @brief Flush remaining line in parser.
    *
@@ -580,6 +586,7 @@ public:
   }
 
 
+  // ------------------------------------------------------------------
   /**
    * @brief Get name of current file being processed
    *
@@ -592,6 +599,7 @@ public:
   }
 
 
+  // ------------------------------------------------------------------
   /**
    * @brief Resolve file name against search path.
    *
