@@ -169,6 +169,12 @@ public:
       throw config_file_not_found_exception( file_path, "File does not exist." );
     }
 
+    if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+    {
+      throw config_file_not_found_exception( file_path,
+                   "Path given doesn't point to a regular file!" );
+    }
+
     // Try to open the file
     std::ifstream in_stream( file_path.c_str() );
     if ( ! in_stream )

@@ -265,17 +265,7 @@ config_block_sptr
 read_config_file( config_path_t const&     file_path,
                   config_path_list_t const& search_path )
 {
-  // Check that file exists
-  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
-  {
-    throw config_file_not_found_exception( file_path, "File does not exist." );
-  }
-  else if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
-  {
-    throw config_file_not_found_exception( file_path,
-              "Path given doesn't point to a regular file!" );
-  }
-
+  // The parser will verify that the file is a file.
   kwiver::vital::config_parser the_parser;
   the_parser.add_search_path( search_path );
   the_parser.parse_config( file_path );
@@ -316,18 +306,20 @@ read_config_file( std::string const& file_name,
   {
     auto const& config_path = search_path + "/" + file_name;
 
-    // Check that file exists
+    // Check that file exists. We need this check here because when
+    // the parser does not find a file it throws and we want to try
+    // the next directory if file not found.
+    //
+    // Cant use the parsers exception as an indication of a bad file
+    // because the parser will throw the same exception if an include
+    // file is not found.
     if ( ! kwiversys::SystemTools::FileExists( config_path ) ||
          kwiversys::SystemTools::FileIsDirectory( config_path ) )
     {
       continue;
     }
 
-    kwiver::vital::config_parser the_parser;
-    the_parser.add_search_path( search_path );
-    the_parser.parse_config( config_path );
-
-    auto const& config = the_parser.get_config();
+    auto const& config = read_config_file( config_path, search_paths );
 
     LOG_DEBUG( logger, "Read config file \"" << config_path << "\"" );
 
