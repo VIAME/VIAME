@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -238,7 +238,7 @@ config_file_not_found_exception
 {
   std::ostringstream sstr;
 
-  sstr  << "Could not find file at location \'" << m_file_path.c_str() << "\': "
+  sstr  << "Could not find file \'" << m_file_path << "\': "
         << m_reason;
   m_what = sstr.str();
 }
@@ -257,7 +257,7 @@ config_file_not_read_exception
 {
   std::ostringstream sstr;
 
-  sstr  << "Failed to read from file \'" << m_file_path.c_str() << "\': "
+  sstr  << "Failed to read from file \'" << m_file_path << "\': "
         << m_reason;
   m_what = sstr.str();
 }
@@ -276,7 +276,7 @@ config_file_not_parsed_exception
 {
   std::ostringstream sstr;
 
-  sstr  << "Failed to parse file \'" << m_file_path.c_str() << "\': "
+  sstr  << "Failed to parse file \'" << m_file_path << "\': "
         << m_reason;
   m_what = sstr.str();
 }
@@ -295,7 +295,7 @@ config_file_write_exception
 {
   std::ostringstream sstr;
 
-  sstr  << "Failed to write to file \'" << m_file_path.c_str() << "\': "
+  sstr  << "Failed to write to file \'" << m_file_path << "\': "
         << m_reason;
   m_what = sstr.str();
 }
