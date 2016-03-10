@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,11 +48,13 @@
 #include <cstring>
 #include <cerrno>
 #include <vector>
+#include <set>
 #include <fstream>
 #include <cctype>
 #include <algorithm>
 #include <iostream>
 #include <functional>
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
@@ -184,6 +186,7 @@ public:
 
     // update file count
     ++m_file_count;
+    m_include_stack.push_back( file_path );
 
     // Get directory part of the input file
     config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( file_path ) );
@@ -201,6 +204,10 @@ public:
       if ( token.type == token_t::TK_EOF )
       { // EOF found
         --m_file_count;
+        if ( 0 != m_include_stack.size() )
+        {
+          m_include_stack.pop_back();
+        }
 
         if ( 0 == m_file_count )
         {
@@ -240,24 +247,45 @@ public:
          */
         const int current_line( m_line_number ); // save current line number
 
-        config_path_t filename = resolve_file_name( m_token_line );
-        if ( "" == filename ) // could not resolve
+        // Do a macro expansion of the file name
+        const std::string exp_filename = m_token_expander.expand_token( m_token_line );
+
+        config_path_t resolv_filename = resolve_file_name( exp_filename );
+        if ( "" == resolv_filename ) // could not resolve
         {
           // Could not find file in the search path, so ...
           // Prepend current directory if file specified is not absolute.
-          if ( ! kwiversys::SystemTools::FileIsFullPath( m_token_line ) )
+          if ( ! kwiversys::SystemTools::FileIsFullPath( exp_filename ) )
           {
-            // The file is on a relative path.
-            filename = config_file_dir + "/" + m_token_line;
+            // The file is on a relative path. Prepend current config
+            // file directory.
+            resolv_filename = config_file_dir + "/" + exp_filename;
           }
         }
 
         flush_line(); // force read of new line
 
-        LOG_DEBUG( m_logger, "Including file \"" << filename << "\" at "
+        LOG_DEBUG( m_logger, "Including file \"" << resolv_filename << "\" at "
                   << file_path << ":" << m_line_number );
 
-        process_file( filename ); // process included file
+        // The file specified really must be a file.
+        if ( ! kwiversys::SystemTools::FileExists( resolv_filename ) )
+        {
+          std::ostringstream sstr;
+          sstr << "file included from " << file_path << ":" << m_line_number
+               << " could not be found in search path.";
+
+          throw config_file_not_found_exception( exp_filename, sstr.str() );
+        }
+
+        if ( kwiversys::SystemTools::FileIsDirectory( resolv_filename ) )
+        {
+          throw config_file_not_found_exception( resolv_filename,
+              "Path given doesn't point to a regular file!" );
+        }
+
+
+        process_file( resolv_filename ); // process included file
 
         m_line_number = current_line; // restore line number
         m_current_file = file_path;
@@ -617,11 +645,8 @@ public:
    *
    * @return Full file path, or empty string on failure.
    */
-  config_path_t resolve_file_name( config_path_t const& file )
+  config_path_t resolve_file_name( config_path_t const& file_name )
   {
-    // Do a macro expansion of the file name
-    const std::string file_name = m_token_expander.expand_token( file );
-
     // Test for absolute file name
     if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
     {
@@ -637,20 +662,24 @@ public:
     }
 
     // File not found in regular path, search backwards in current
-    // include stack.  The same directory may appear multiple times in
-    // the search path. Removing duplicates would be complicated since
-    // the order must be preserved. The effort is not worth the
-    // benefit at this point.
+    // include stack. First we have to reverse the include stack and
+    // remove duplicate paths.
+    std::set< std::string > dir_set;
     config_path_list_t include_paths;
-    const auto eit = m_block_stack.rend();
-    for ( auto it = m_block_stack.rbegin(); it != eit; ++it )
+    const auto eit = m_include_stack.rend();
+    for ( auto it = m_include_stack.rbegin(); it != eit; ++it )
     {
-      config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( it->m_file_name ) );
+      config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( *it ) );
       if ( "" == config_file_dir )
       {
         config_file_dir = ".";
       }
-      include_paths.push_back( config_file_dir );
+
+      if ( 0 == dir_set.count( config_file_dir ) )
+      {
+        dir_set.insert( config_file_dir );
+        include_paths.push_back( config_file_dir );
+      }
     } // end for
 
     return kwiversys::SystemTools::FindFile( file_name, include_paths, false );
@@ -671,6 +700,10 @@ public:
 
   // Current file being processed. Used for error messages
   std::string m_current_file;
+
+  // Include file stack. A file is pushed when it is opened. Popped
+  // when closed.
+  std::vector< std::string > m_include_stack;
 
   // current line number of input file
   int m_line_number;
