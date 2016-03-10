@@ -265,7 +265,19 @@ config_block_sptr
 read_config_file( config_path_t const&     file_path,
                   config_path_list_t const& search_path )
 {
-  // The parser will verify that the file is a file.
+  // The file specified really must be a file.
+  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
+  {
+    throw config_file_not_found_exception( file_path,
+          "File does not exist." );
+  }
+
+  if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  {
+    throw config_file_not_found_exception( file_path,
+          "Path given doesn't point to a regular file." );
+  }
+
   kwiver::vital::config_parser the_parser;
   the_parser.add_search_path( search_path );
   the_parser.parse_config( file_path );
