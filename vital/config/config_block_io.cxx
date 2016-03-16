@@ -75,9 +75,10 @@ void add_windows_path( config_path_list_t & paths, int which )
 }
 #endif
 
+
 // ------------------------------------------------------------------
 // Helper method to get application specific paths from generic paths
-std::vector< config_path_t >
+config_path_list_t
 application_paths( config_path_list_t const& paths,
                    std::string const& application_name,
                    std::string const& application_version )
@@ -96,6 +97,7 @@ application_paths( config_path_list_t const& paths,
 
   return result;
 }
+
 
 // ------------------------------------------------------------------
 // Helper method to write out a comment to a configuration file ostream

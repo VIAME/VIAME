@@ -75,7 +75,7 @@ The include directive logically inserts the contents of the specified file into 
 
 `include filename`
 
-If the file name is not an absolute path, it is resolved relative to the enclosing config file.
+If the file name is not an absolute path, it is located by scanning the current config search path. If the file is still not found, the stack of include directories is scanned from the current include file back to the initial config file. Macro substitution, as described below, is performed on the file name string before the searching is done.
 
 Block specifications and include directives can be used together to build reusable and shareable configuration snippets.
 
