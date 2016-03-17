@@ -128,6 +128,7 @@ kwiver_configure_file(vital-config
   VITAL_BINARY_DIR
   module_path
   vital_libs
+  fletch_DIR
   )
 kwiver_export_targets("${VITAL_BINARY_DIR}/vital-config-targets.cmake")
 

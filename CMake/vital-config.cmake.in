@@ -4,6 +4,7 @@ set(CMAKE_MODULE_PATH "@module_path@" ${CMAKE_MODULE_PATH})
 # VITAL include directory
 set(VITAL_INCLUDE_DIRS "@VITAL_SOURCE_DIR@" "@VITAL_BINARY_DIR@" "@VITAL_BINARY_DIR@/vital/kwiversys" "@VITAL_BINARY_DIR@/vital")
 set(VITAL_LIBRARIES @vital_libs@)
+set(fletch_DIR @fletch_DIR@)
 
 # Export definitions for vital to be used from find_package
 include("${CMAKE_CURRENT_LIST_DIR}/vital-config-targets.cmake")
