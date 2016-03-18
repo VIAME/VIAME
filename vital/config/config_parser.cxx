@@ -241,14 +241,11 @@ public:
         config_path_t resolv_filename = resolve_file_name( exp_filename );
         if ( "" == resolv_filename ) // could not resolve
         {
-          // Could not find file in the search path, so ...
-          // Prepend current directory if file specified is not absolute.
-          if ( ! kwiversys::SystemTools::FileIsFullPath( exp_filename ) )
-          {
-            // The file is on a relative path. Prepend current config
-            // file directory.
-            resolv_filename = config_file_dir + "/" + exp_filename;
-          }
+          std::ostringstream sstr;
+          sstr << "file included from " << file_path << ":" << m_line_number
+               << " could not be found in search path.";
+
+          throw config_file_not_found_exception( exp_filename, sstr.str() );
         }
 
         flush_line(); // force read of new line
@@ -268,10 +265,12 @@ public:
 
         if ( kwiversys::SystemTools::FileIsDirectory( resolv_filename ) )
         {
-          throw config_file_not_found_exception( resolv_filename,
-              "Path given doesn't point to a regular file!" );
-        }
+          std::ostringstream sstr;
+          sstr << "file included from " << file_path << ":" << m_line_number
+               << " is not a regular file!";
 
+          throw config_file_not_found_exception( resolv_filename, sstr.str() );
+        }
 
         process_file( resolv_filename ); // process included file
 
