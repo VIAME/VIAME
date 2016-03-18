@@ -66,7 +66,7 @@ typedef DL::SymbolPointer function_t;
 typedef int (* register_impls_func_t)( registrar& );
 
 
-static char const* environment_variable_name( "VITAL_PLUGIN_PATH" );
+static char const* environment_variable_name( "KWIVER_PLUGIN_PATH" );
 
 // String name of the private interface function.
 // See source file located @ CMake/templates/cxx/plugin_shell.cxx
