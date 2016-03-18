@@ -73,10 +73,66 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
 // ------------------------------------------------------------------
 /// Read in (a) configuration file(s), producing a \c config_block object
 /**
- * This function reads one or more configuration files from platform specific
- * standard locations and from locations specified by the \c KWIVER_CONFIG_PATH
- * environmental variable. \c KWIVER_CONFIG_PATH is searched first, followed by
- * the user-specific location(s), followed by the machine-wide location(s).
+ * This function reads one or more configuration files from a search
+ * path. The search path is based on environment variables, system
+ * defaults, and application defaults. More on this later.
+ *
+ * The config reader tries to locate the specified config file using
+ * the search path. If the file is not found, an exception is
+ * thrown. If the file is located and the \c merge parameter is \b
+ * true (default value), then the remaining directories in the search
+ * path are checked to see if additional versions of the file can be
+ * found. If so, then the contents are merged, in the order found,
+ * into the resulting config block. If the \c merge parameter is \b
+ * false. then reading process stops after the first file is found.
+ *
+ * A platform specific search path is constructed as follows:
+ *
+ * ## Windows Platform
+ * - ${KWIVER_CONFIG_PATH}          (if set)
+ * - $<CSIDL_LOCAL_APPDATA>/<app-name>[/<app-version>]/config
+ * - $<CSIDL_APPDATA>/<app-name>[/<app-version>]/config
+ * - $<CSIDL_COMMON_APPDATA>/<app-name>[/<app-version>]/config
+ * - <install-dir>/share/<app-name>[/<app-version>]/config
+ * - <install-dir>/share/config
+ * - <install-dir>/config
+ *
+ * ## OS/X Apple Platform
+ * - ${KWIVER_CONFIG_PATH}                                    (if set)
+ * - ${XDG_CONFIG_HOME}/<app-name>[/<app-version>]/config     (if $XDG_CONFIG_HOME set)
+ * - ${HOME}/.config/<app-name>[/<app-version>]/config        (if $HOME set)
+ * - /etc/xdg/<app-name>[/<app-version>]/config               (if $HOME set)
+ * - /etc/<app-name>[/<app-version>]/config                   (if $HOME set)
+ * - ${HOME}/Library/Application Support/<app-name>[/<app-version>]/config (if $HOME set)
+ * - /Library/Application Support/<app-name>[/<app-version>]/config
+ * - /usr/local/share/<app-name>[/<app-version>]/config
+ * - /usr/share/<app-name>[/<app-version>]/config
+ *
+ * If <install-dir> is not `/usr` or `/usr/local`:
+ *
+ * - <install-dir>/share/<app-name>[/<app-version>]/config
+ * - <install-dir>/share/config
+ * - <install-dir>/config
+ * - <install-dir>/Resources/config
+ *
+ * ## Other Posix Platforms (e.g. Linux)
+ * - ${KWIVER_CONFIG_PATH}                                    (if set)
+ * - ${XDG_CONFIG_HOME}/<app-name>[/<app-version>]/config     (if $XDG_CONFIG_HOME set)
+ * - ${HOME}/.config/<app-name>[/<app-version>]/config        (if $HOME set)
+ * - /etc/xdg/<app-name>[/<app-version>]/config               (if $HOME set)
+ * - /etc/<app-name>[/<app-version>]/config                   (if $HOME set)
+ * - /usr/local/share/<app-name>[/<app-version>]/config
+ * - /usr/share/<app-name>[/<app-version>]/config
+ *
+ * If <install-dir> is not `/usr` or `/usr/local`:
+ *
+ * - <install-dir>/share/<app-name>[/<app-version>]/config
+ * - <install-dir>/share/config
+ * - <install-dir>/config
+ *
+ * The environment variable \c KWIVER_CONFIG_PATH can be set with a
+ * list of one or more directories, in the same manner as the native
+ * execution \c PATH variable, to be searched for config files.
  *
  * \throws config_file_not_found_exception
  *    Thrown when the no matching file could be found in the searched paths.
