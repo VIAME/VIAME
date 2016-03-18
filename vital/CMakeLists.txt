@@ -227,9 +227,15 @@ kwiver_install_headers(
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
   ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
+  SUBDIR   vital
+  NOPATH
+  )
+
+# install generated header
+kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h
   ${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h
-  SUBDIR   vital
+  SUBDIR   vital/util
   NOPATH
   )
 

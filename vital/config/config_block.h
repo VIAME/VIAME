@@ -344,7 +344,7 @@ public:
    */
   bool get_location( config_block_key_t const& key,
                      std::string& file,
-                     int line) const;
+                     int& line) const;
 
 
 private:

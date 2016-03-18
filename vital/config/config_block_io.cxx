@@ -63,7 +63,7 @@ namespace {
 #if defined(_WIN32)
 // ------------------------------------------------------------------
 // Helper method to add known special paths to a path list
-void add_windows_path( std::vector< config_path_t >& paths, int which )
+void add_windows_path( config_path_list_t & paths, int which )
 {
   char buffer[MAX_PATH];
   if ( SHGetFolderPath ( 0, which, 0, 0, buffer ) )
@@ -75,14 +75,15 @@ void add_windows_path( std::vector< config_path_t >& paths, int which )
 }
 #endif
 
+
 // ------------------------------------------------------------------
 // Helper method to get application specific paths from generic paths
-std::vector< config_path_t >
-application_paths( std::vector< config_path_t > const& paths,
+config_path_list_t
+application_paths( config_path_list_t const& paths,
                    std::string const& application_name,
                    std::string const& application_version )
 {
-  auto result = std::vector< config_path_t >{};
+  auto result = config_path_list_t{};
   VITAL_FOREACH ( auto const& path, paths )
   {
     auto const& app_path = path + "/" + application_name;
@@ -97,93 +98,6 @@ application_paths( std::vector< config_path_t > const& paths,
   return result;
 }
 
-// ------------------------------------------------------------------
-// Helper method to get all possible locations of application config files
-std::vector< config_path_t >
-config_file_paths( std::string const& application_name,
-                   std::string const& application_version,
-                   config_path_t const& install_prefix )
-{
-  // First, add any paths specified by our local environment variable
-  auto paths = std::vector< config_path_t >{};
-  kwiversys::SystemTools::GetPath( paths, "KWIVER_CONFIG_PATH" );
-
-  // Now add platform specific directories
-  auto data_paths = std::vector< config_path_t >{};
-
-#if defined(_WIN32)
-
-  // Add the application data directories
-  add_windows_path( data_paths, CSIDL_LOCAL_APPDATA );
-  add_windows_path( data_paths, CSIDL_APPDATA );
-  add_windows_path( data_paths, CSIDL_COMMON_APPDATA );
-
-#else
-
-  auto const home = kwiversys::SystemTools::GetEnv( "HOME" );
-
-# if defined(__APPLE__)
-  if ( home && *home )
-  {
-    data_paths.push_back(
-      config_path_t( home ) + "/Library/Application Support" );
-  }
-  data_paths.push_back( "/Library/Application Support" );
-# endif
-
-  // Get the list of configuration data paths
-  auto config_paths = std::vector< config_path_t >{};
-  kwiversys::SystemTools::GetPath( config_paths, "XDG_CONFIG_HOME" );
-  if ( home && *home )
-  {
-    config_paths.push_back( config_path_t( home ) + "/.config" );
-  }
-  config_paths.push_back( "/etc/xdg" );
-  config_paths.push_back( "/etc" );
-
-  // Add application information to config paths and append to paths
-  config_paths = application_paths(
-                   config_paths, application_name, application_version );
-  paths.insert( paths.end(), config_paths.begin(), config_paths.end() );
-
-  // Get the list of application data paths
-  data_paths.push_back( "/usr/local/share" );
-  data_paths.push_back( "/usr/share" );
-
-#endif
-
-  // Add install-local data path if install prefix is not a standard prefix
-  auto const nonstandard_prefix =
-    !install_prefix.empty() &&
-    install_prefix != "/usr" &&
-    install_prefix != "/usr/local";
-  if ( nonstandard_prefix )
-  {
-    data_paths.push_back( install_prefix + "/share" );
-  }
-
-  // Turn the generic FHS data paths into application data paths...
-  data_paths = application_paths(
-                 data_paths, application_name, application_version );
-
-  // ...then into config paths and add to final list
-  VITAL_FOREACH ( auto const& path, data_paths )
-  {
-    paths.push_back( path + "/config" );
-  }
-
-  // Add install-local config paths if install prefix is not a standard prefix
-  if ( nonstandard_prefix )
-  {
-    paths.push_back( install_prefix + "/share/config" );
-    paths.push_back( install_prefix + "/config" );
-#if defined(__APPLE__)
-    paths.push_back( install_prefix + "/Resources/config" );
-#endif
-  }
-
-  return paths;
-}
 
 // ------------------------------------------------------------------
 // Helper method to write out a comment to a configuration file ostream
@@ -260,22 +174,116 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
 
 
 // ------------------------------------------------------------------
-config_block_sptr
-read_config_file( config_path_t const& file_path )
+// Helper method to get all possible locations of application config files
+config_path_list_t
+config_file_paths( std::string const& application_name,
+                   std::string const& application_version,
+                   config_path_t const& install_prefix )
 {
-  // Check that file exists
-  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
+  // First, add any paths specified by our local environment variable
+  auto paths = config_path_list_t{};
+  kwiversys::SystemTools::GetPath( paths, "KWIVER_CONFIG_PATH" );
+
+  // Now add platform specific directories
+  auto data_paths = config_path_list_t{};
+
+#if defined(_WIN32)
+
+  // Add the application data directories
+  add_windows_path( data_paths, CSIDL_LOCAL_APPDATA );
+  add_windows_path( data_paths, CSIDL_APPDATA );
+  add_windows_path( data_paths, CSIDL_COMMON_APPDATA );
+
+#else
+
+  auto const home = kwiversys::SystemTools::GetEnv( "HOME" );
+
+# if defined(__APPLE__)
+  if ( home && *home )
   {
-    throw config_file_not_found_exception( file_path, "File does not exist." );
+    data_paths.push_back(
+      config_path_t( home ) + "/Library/Application Support" );
   }
-  else if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  data_paths.push_back( "/Library/Application Support" );
+# endif
+
+  // Get the list of configuration data paths
+  auto config_paths = config_path_list_t{};
+  kwiversys::SystemTools::GetPath( config_paths, "XDG_CONFIG_HOME" );
+  if ( home && *home )
   {
-    throw config_file_not_found_exception( file_path,
-              "Path given doesn't point to a regular file!" );
+    config_paths.push_back( config_path_t( home ) + "/.config" );
+  }
+  config_paths.push_back( "/etc/xdg" );
+  config_paths.push_back( "/etc" );
+
+  // Add application information to config paths and append to paths
+  config_paths = application_paths(
+                   config_paths, application_name, application_version );
+  paths.insert( paths.end(), config_paths.begin(), config_paths.end() );
+
+  // Get the list of application data paths
+  data_paths.push_back( "/usr/local/share" );
+  data_paths.push_back( "/usr/share" );
+
+#endif
+
+  // Add install-local data path if install prefix is not a standard prefix
+  auto const nonstandard_prefix =
+    !install_prefix.empty() &&
+    install_prefix != "/usr" &&
+    install_prefix != "/usr/local";
+  if ( nonstandard_prefix )
+  {
+    data_paths.push_back( install_prefix + "/share" );
   }
 
-  kwiver::vital::config_parser the_parser( file_path );
-  the_parser.parse_config();
+  // Turn the generic FHS data paths into application data paths...
+  data_paths = application_paths(
+                 data_paths, application_name, application_version );
+
+  // ...then into config paths and add to final list
+  VITAL_FOREACH ( auto const& path, data_paths )
+  {
+    paths.push_back( path + "/config" );
+  }
+
+  // Add install-local config paths if install prefix is not a standard prefix
+  if ( nonstandard_prefix )
+  {
+    paths.push_back( install_prefix + "/share/config" );
+    paths.push_back( install_prefix + "/config" );
+#if defined(__APPLE__)
+    paths.push_back( install_prefix + "/Resources/config" );
+#endif
+  }
+
+  return paths;
+}
+
+
+// ------------------------------------------------------------------
+config_block_sptr
+read_config_file( config_path_t const&     file_path,
+                  config_path_list_t const& search_path )
+{
+  // The file specified really must be a file.
+  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
+  {
+    throw config_file_not_found_exception( file_path,
+          "File does not exist." );
+  }
+
+  if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  {
+    throw config_file_not_found_exception( file_path,
+          "Path given doesn't point to a regular file." );
+  }
+
+  kwiver::vital::config_parser the_parser;
+  the_parser.add_search_path( search_path );
+  the_parser.parse_config( file_path );
+
   return the_parser.get_config();
 }
 
@@ -295,34 +303,53 @@ read_config_file( std::string const& file_name,
   auto const& search_paths =
     config_file_paths( application_name, application_version, install_prefix );
 
-  VITAL_FOREACH( auto const& search_path, search_paths )
+  // See if file name is an absolute path. If so, then just process the file.
+  if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
   {
-    try
-    {
-      auto const& config_path = search_path + "/" + file_name;
-      auto const& config = read_config_file( config_path );
-
-      LOG_DEBUG( logger, "Read config file \"" << config_path << "\"" );
-
-      if ( ! merge )
-      {
-        return config;
-      }
-      else if ( result )
-      {
-        // Merge under current configuration
-        config->merge_config( result );
-      }
-
-      // Continue with new config
-      result = config;
-    }
-    catch ( config_file_not_found_exception const& )
-    {
-      // Ignore 'not found' errors... we don't care (yet), just continue with
-      // next search path
-    }
+    // The file is on a absolute path.
+    auto const& config = read_config_file( file_name, search_paths );
+    return config;
   }
+
+  // use current directory when searching for this file.
+  config_path_list_t local_search_paths( search_paths );
+  local_search_paths.push_back( "." );
+
+  // File name is relative, so go through the search process.
+  VITAL_FOREACH( auto const& search_path, local_search_paths )
+  {
+    auto const& config_path = search_path + "/" + file_name;
+
+    // Check that file exists. We need this check here because when
+    // the parser does not find a file it throws and we want to try
+    // the next directory if file not found.
+    //
+    // Cant use the parsers exception as an indication of a bad file
+    // because the parser will throw the same exception if an include
+    // file is not found.
+    if ( ! kwiversys::SystemTools::FileExists( config_path ) ||
+         kwiversys::SystemTools::FileIsDirectory( config_path ) )
+    {
+      continue;
+    }
+
+    auto const& config = read_config_file( config_path, search_paths );
+
+    LOG_DEBUG( logger, "Read config file \"" << config_path << "\"" );
+
+    if ( ! merge )
+    {
+      return config;
+    }
+    else if ( result )
+    {
+      // Merge under current configuration
+      config->merge_config( result );
+    }
+
+    // Continue with new config
+    result = config;
+  } // end foreach
 
   // Throw file-not-found if we ran out of paths without finding anything
   if ( ! result )
@@ -397,7 +424,7 @@ void write_config( config_block_sptr const& config,
     // is one, write that out as a comment.
     // - comments will be limited to 80 character width lines, including "# "
     //   prefix.
-    // - value output format: ``key_path = value\n``
+    // - value output format: "key_path = value\n"
 
     config_block_description_t descr = config->get_description( key );
 
@@ -415,6 +442,13 @@ void write_config( config_block_sptr const& config,
     }
 
     ofile << key << " = " << config->get_value< config_block_value_t > ( key ) << "\n";
+
+    std::string file;
+    int line;
+    if ( config->get_location( key, file, line ) )
+    {
+      ofile << "# defined - " << file << ":" << line << "\n";
+    }
   }
   ofile.flush();
 } // write_config_file

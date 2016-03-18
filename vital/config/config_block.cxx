@@ -409,7 +409,7 @@ bool
 config_block
 ::get_location( config_block_key_t const& key,
                 std::string& f,
-                int l) const
+                int& l) const
 {
   location_t::const_iterator i = m_def_store.find( key );
   if ( i != m_def_store.end() )

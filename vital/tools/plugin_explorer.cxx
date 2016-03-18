@@ -103,7 +103,7 @@ void
 print_help()
 {
   std::cout << "This program loads Map-TK plugins and displays their data.\n"
-            << "Additional paths can be specified in \"VITAL_PLUGIN_PATH\" environment variable\n"
+            << "Additional paths can be specified in \"KWIVER_PLUGIN_PATH\" environment variable\n"
             << "\n"
             << "Options are:\n"
             << "  --help           displays usage information\n"

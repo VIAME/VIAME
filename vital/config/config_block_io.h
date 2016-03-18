@@ -32,7 +32,8 @@
  * \file
  * \brief IO Operation utilities for \c kwiver::config
  *
- * \todo Describe format here.
+ * Refer to \ref config_file_format "config file format" for more
+ * information on the file entries.
  */
 
 #ifndef KWIVER_CONFIG_BLOCK_IO_H_
@@ -49,7 +50,10 @@ namespace vital {
 // ------------------------------------------------------------------
 /// Read in a configuration file, producing a \c config_block object
 /**
- *
+ * This method reads the specified config file and returns the
+ * resulting config block. If a search path is supplied, any files
+ * included by config files are resolved using that list if they do
+ * not have an absolute path.
  *
  * \throws config_file_not_found_exception
  *    Thrown when the file could not be found on the file system.
@@ -57,19 +61,78 @@ namespace vital {
  *    Thrown when the file could not be read or parsed for whatever reason.
  *
  * \param file_path   The path to the file to read in.
+ * \param search_path An optional list of directories to use in locating included files.
+ *
  * \return A \c config_block object representing the contents of the read-in file.
  */
 config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
-  config_path_t const& file_path );
+  config_path_t const&      file_path,
+  config_path_list_t const& search_path = config_path_list_t() );
 
 
 // ------------------------------------------------------------------
 /// Read in (a) configuration file(s), producing a \c config_block object
 /**
- * This function reads one or more configuration files from platform specific
- * standard locations and from locations specified by the \c VITAL_CONFIG_PATH
- * environmental variable. \c VITAL_CONFIG_PATH is searched first, followed by
- * the user-specific location(s), followed by the machine-wide location(s).
+ * This function reads one or more configuration files from a search
+ * path. The search path is based on environment variables, system
+ * defaults, and application defaults. More on this later.
+ *
+ * The config reader tries to locate the specified config file using
+ * the search path. If the file is not found, an exception is
+ * thrown. If the file is located and the \c merge parameter is \b
+ * true (default value), then the remaining directories in the search
+ * path are checked to see if additional versions of the file can be
+ * found. If so, then the contents are merged, in the order found,
+ * into the resulting config block. If the \c merge parameter is \b
+ * false. then reading process stops after the first file is found.
+ *
+ * A platform specific search path is constructed as follows:
+ *
+ * ## Windows Platform
+ * - ${KWIVER_CONFIG_PATH}          (if set)
+ * - $<CSIDL_LOCAL_APPDATA>/<app-name>[/<app-version>]/config
+ * - $<CSIDL_APPDATA>/<app-name>[/<app-version>]/config
+ * - $<CSIDL_COMMON_APPDATA>/<app-name>[/<app-version>]/config
+ * - <install-dir>/share/<app-name>[/<app-version>]/config
+ * - <install-dir>/share/config
+ * - <install-dir>/config
+ *
+ * ## OS/X Apple Platform
+ * - ${KWIVER_CONFIG_PATH}                                    (if set)
+ * - ${XDG_CONFIG_HOME}/<app-name>[/<app-version>]/config     (if $XDG_CONFIG_HOME set)
+ * - ${HOME}/.config/<app-name>[/<app-version>]/config        (if $HOME set)
+ * - /etc/xdg/<app-name>[/<app-version>]/config
+ * - /etc/<app-name>[/<app-version>]/config
+ * - ${HOME}/Library/Application Support/<app-name>[/<app-version>]/config (if $HOME set)
+ * - /Library/Application Support/<app-name>[/<app-version>]/config
+ * - /usr/local/share/<app-name>[/<app-version>]/config
+ * - /usr/share/<app-name>[/<app-version>]/config
+ *
+ * If <install-dir> is not `/usr` or `/usr/local`:
+ *
+ * - <install-dir>/share/<app-name>[/<app-version>]/config
+ * - <install-dir>/share/config
+ * - <install-dir>/config
+ * - <install-dir>/Resources/config
+ *
+ * ## Other Posix Platforms (e.g. Linux)
+ * - ${KWIVER_CONFIG_PATH}                                    (if set)
+ * - ${XDG_CONFIG_HOME}/<app-name>[/<app-version>]/config     (if $XDG_CONFIG_HOME set)
+ * - ${HOME}/.config/<app-name>[/<app-version>]/config        (if $HOME set)
+ * - /etc/xdg/<app-name>[/<app-version>]/config
+ * - /etc/<app-name>[/<app-version>]/config
+ * - /usr/local/share/<app-name>[/<app-version>]/config
+ * - /usr/share/<app-name>[/<app-version>]/config
+ *
+ * If <install-dir> is not `/usr` or `/usr/local`:
+ *
+ * - <install-dir>/share/<app-name>[/<app-version>]/config
+ * - <install-dir>/share/config
+ * - <install-dir>/config
+ *
+ * The environment variable \c KWIVER_CONFIG_PATH can be set with a
+ * list of one or more directories, in the same manner as the native
+ * execution \c PATH variable, to be searched for config files.
  *
  * \throws config_file_not_found_exception
  *    Thrown when the no matching file could be found in the searched paths.
@@ -143,6 +206,11 @@ void VITAL_CONFIG_EXPORT write_config_file( config_block_sptr const&  config,
  */
 void VITAL_CONFIG_EXPORT write_config( config_block_sptr const& config,
                                        std::ostream&            str );
+
+config_path_list_t VITAL_CONFIG_EXPORT
+config_file_paths( std::string const& application_name,
+                   std::string const& application_version,
+                   config_path_t const& install_prefix );
 
 } }
 
