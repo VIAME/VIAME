@@ -101,8 +101,8 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
  * - ${KWIVER_CONFIG_PATH}                                    (if set)
  * - ${XDG_CONFIG_HOME}/<app-name>[/<app-version>]/config     (if $XDG_CONFIG_HOME set)
  * - ${HOME}/.config/<app-name>[/<app-version>]/config        (if $HOME set)
- * - /etc/xdg/<app-name>[/<app-version>]/config               (if $HOME set)
- * - /etc/<app-name>[/<app-version>]/config                   (if $HOME set)
+ * - /etc/xdg/<app-name>[/<app-version>]/config
+ * - /etc/<app-name>[/<app-version>]/config
  * - ${HOME}/Library/Application Support/<app-name>[/<app-version>]/config (if $HOME set)
  * - /Library/Application Support/<app-name>[/<app-version>]/config
  * - /usr/local/share/<app-name>[/<app-version>]/config
@@ -119,8 +119,8 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
  * - ${KWIVER_CONFIG_PATH}                                    (if set)
  * - ${XDG_CONFIG_HOME}/<app-name>[/<app-version>]/config     (if $XDG_CONFIG_HOME set)
  * - ${HOME}/.config/<app-name>[/<app-version>]/config        (if $HOME set)
- * - /etc/xdg/<app-name>[/<app-version>]/config               (if $HOME set)
- * - /etc/<app-name>[/<app-version>]/config                   (if $HOME set)
+ * - /etc/xdg/<app-name>[/<app-version>]/config
+ * - /etc/<app-name>[/<app-version>]/config
  * - /usr/local/share/<app-name>[/<app-version>]/config
  * - /usr/share/<app-name>[/<app-version>]/config
  *
