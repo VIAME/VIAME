@@ -6,21 +6,22 @@
 # KWSys
 #---------------------------------------------------------------------
 # Create the kwsys library for vital.
-set(KWSYS_NAMESPACE kwiversys)
-set(KWSYS_USE_DynamicLoader 1)
-set(KWSYS_USE_SystemTools 1)
-set(KWSYS_USE_System 1)
-set(KWSYS_USE_RegularExpression 1)
-set(KWSYS_USE_SystemInformation 1)
-set(KWSYS_USE_Directory 1)
+set(KWSYS_NAMESPACE                kwiversys)
+set(KWSYS_USE_DynamicLoader        1)
+set(KWSYS_USE_SystemTools          1)
+set(KWSYS_USE_System               1)
+set(KWSYS_USE_RegularExpression    1)
+set(KWSYS_USE_SystemInformation    1)
+set(KWSYS_USE_Directory            1)
 set(KWSYS_USE_CommandLineArguments 1)
 
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
-set(KWSYS_INSTALL_INCLUDE_DIR "include/kwiver")
-set(KWSYS_INSTALL_LIB_DIR lib)
-set(KWSYS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
+set(KWSYS_INSTALL_INCLUDE_DIR  "include/kwiver")
+set(KWSYS_INSTALL_LIB_DIR      lib)
+set(KWSYS_INCLUDE_DIR          ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
 
-# save our custom CXX flags and reset so we pass no special flags to kwiversys
+# Save our custom CXX flags and reset so we pass no special flags to kwiversys.
+# Our flags are more strict than expected and causes many warnings and errors.
 set( save_flags  ${CMAKE_CXX_FLAGS} )
 set( CMAKE_CXX_FLAGS )
 
@@ -29,14 +30,57 @@ add_subdirectory(kwiversys)
 _kwiver_export( ${KWSYS_NAMESPACE} )
 set_property(GLOBAL APPEND PROPERTY kwiver_libraries kwiversys)
 
-if (APPLE)
+# force install to standard library directory
+# Note that some of the following duplicates what is in kwiver_add_library()
+set_target_properties( ${KWSYS_NAMESPACE}
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  )
+
+  if (APPLE)
   set_target_properties( ${KWSYS_NAMESPACE}
     PROPERTIES
     MACOSX_RPATH          TRUE)
+else()
+  set_target_properties( ${KWSYS_NAMESPACE}
+    PROPERTIES
+        VERSION          ${VITAL_VERSION}
+        SOVERSION        ${VITAL_VERSION}
+        )
 endif()
 
 # restore old CXX flags for our code.
 set( CMAKE_CXX_FLAGS ${save_flags} )
+
+# ==================================================================
+###
+# Generate correct timer header based on availbility of timer
+#
+
+if (VITAL_USE_STD_CHRONO)
+
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/util/wall_timer.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h" )
+
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/util/cpu_timer.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h" )
+
+else()
+
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/util/no-wall_timer.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h" )
+
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/util/no-cpu_timer.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h" )
+
+endif()
+
 
 # ==================================================================
 ###
@@ -58,6 +102,7 @@ set( vital_public_headers
   algo/detect_features.h
   algo/draw_tracks.h
   algo/estimate_essential_matrix.h
+  algo/estimate_fundamental_matrix.h
   algo/estimate_homography.h
   algo/estimate_similarity_transform.h
   algo/extract_descriptors.h
@@ -86,12 +131,14 @@ set( vital_public_headers
   types/camera.h
   types/camera_intrinsics.h
   types/camera_map.h
+  types/color.h
   types/covariance.h
   types/descriptor.h
   types/descriptor_set.h
   types/essential_matrix.h
   types/feature.h
   types/feature_set.h
+  types/fundamental_matrix.h
   types/geo_lat_lon.h
   types/homography.h
   types/homography_f2f.h
@@ -109,8 +156,12 @@ set( vital_public_headers
   types/track.h
   types/track_set.h
   types/vector.h
+
+  util/get_paths.h
+  util/timer.h
 )
 
+# ----------------------
 set( vital_sources
   registrar.cxx
 
@@ -123,6 +174,7 @@ set( vital_sources
   algo/detect_features.cxx
   algo/draw_tracks.cxx
   algo/estimate_essential_matrix.cxx
+  algo/estimate_fundamental_matrix.cxx
   algo/estimate_homography.cxx
   algo/estimate_similarity_transform.cxx
   algo/extract_descriptors.cxx
@@ -150,6 +202,7 @@ set( vital_sources
   types/camera_intrinsics.cxx
   types/essential_matrix.cxx
   types/feature.cxx
+  types/fundamental_matrix.cxx
   types/geo_lat_lon.cxx
   types/homography.cxx
   types/homography_f2f.cxx
@@ -161,6 +214,8 @@ set( vital_sources
   types/timestamp.cxx
   types/track.cxx
   types/track_set.cxx
+
+  util/get_paths.cxx
 )
 
 kwiver_install_headers(
@@ -176,11 +231,21 @@ kwiver_install_headers(
   NOPATH
   )
 
+# install generated header
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h
+  ${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h
+  SUBDIR   vital/util
+  NOPATH
+  )
+
 kwiver_add_library( vital
   ${vital_public_headers}
   ${vital_sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
   ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
+  ${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h
+  ${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h
   )
 
 target_link_libraries( vital
@@ -255,6 +320,8 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(config_subdir "/$<CONFIGURATION>")
 endif()
 
+set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/maptk" )
+
 #
 # This is all to get around the ';' as the path separator.  CMake will
 # split it into two elements when we want it to be ignored.
@@ -262,7 +329,7 @@ endif()
 
 ## The modules subdirectory is where the kwiver_add_module() macro generates its product
 ## Note that maptk has a different place where it installs plugins
-set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${shared_lib_dir}${lib_dir_suffix}/maptk" )
+set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${install_lib_module_subdir}" )
 set( build_module_paths   "${VITAL_BINARY_DIR}${shared_lib_dir}${config_subdir}/maptk" )
 
 # assemle total search path
@@ -281,12 +348,8 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/algorithm_plugin_manager_paths.h" )
 
-##
-# check compiler support
-include( kwiver-configcheck )
-
 ###
-# configure our CMake config
+# configure our compiler options
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vital_config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/vital_config.h" )
@@ -305,6 +368,7 @@ endif()
 # Add tests if enabled
 if (VITAL_ENABLE_TESTS)
   add_subdirectory( tests )
+  add_subdirectory( util/tests )
 endif()
 
 ###

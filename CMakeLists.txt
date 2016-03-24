@@ -17,7 +17,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${VITAL_BINARY_DIR}/bin")
 #
 set(VITAL_VERSION_MAJOR 0)
 set(VITAL_VERSION_MINOR 1)
-set(VITAL_VERSION_PATCH 0)
+set(VITAL_VERSION_PATCH 1)
 set(VITAL_VERSION "${VITAL_VERSION_MAJOR}.${VITAL_VERSION_MINOR}.${VITAL_VERSION_PATCH}")
 
 ##
@@ -54,6 +54,10 @@ endif()
 #
 include(kwiver-utils)
 include(vital-flags) # vital specific CXX flags
+
+##
+# check compiler support
+include( kwiver-configcheck )
 
 ###
 # External Dependencies and Modules
@@ -124,6 +128,7 @@ kwiver_configure_file(vital-config
   VITAL_BINARY_DIR
   module_path
   vital_libs
+  fletch_DIR
   )
 kwiver_export_targets("${VITAL_BINARY_DIR}/vital-config-targets.cmake")
 
@@ -147,3 +152,38 @@ kwiver_install(
   DESTINATION "${kwiver_cmake_install_dir}"
   FILE        vital-config-targets.cmake
   )
+
+##################################################################
+# Top level packaging
+#
+# if log4cxx emabled, require log4cxx RPM
+
+
+set(CPACK_PACKAGE_NAME              "vital")
+set(CPACK_PACKAGE_VENDOR            "Kitware, Inc.")
+set(CPACK_PACKAGE_CONTACT           "kitware@kitware.com")
+set(CPACK_MONOLITHIC_INSTALL        true)
+set(CPACK_PACKAGE_VERSION_MAJOR     "${VITAL_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR     "${VITAL_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH     "${VITAL_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION           "${VITAL_VERSION}")
+set(CPACK_RESOURCE_FILE_LICENSE     "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_FILE_NAME         "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+## set(CPACK_PACKAGE_ICON              "${CMAKE_CURRENT_SOURCE_DIR}/packaging\\\\vital_install.bmp")
+
+# NSIS Package options
+## set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\mapgui.exe")
+## set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/gui/icons\\\\mapgui.ico")
+## set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/gui/icons\\\\mapgui.ico")
+set(CPACK_NSIS_CONTACT "${CPACK_PACKAGE_CONTACT}")
+set(CPACK_NSIS_HELP_LINK "http://www.kitware.com")
+set(CPACK_NSIS_URL_INFO_ABOUT "http://www.kwiver.org")
+set(CPACK_NSIS_MENU_LINKS "http://www.kwiver.org" "KWIVER Website")
+
+if(APPLE)
+  set(CPACK_BINARY_DRAGNDROP ON)
+  set(CPACK_BINARY_PACKAGEMAKER OFF)
+  set(CPACK_SET_DESTDIR TRUE)
+  ## set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/packaging/vital_drive.icns")
+endif()
+include (CPack)

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,7 +155,7 @@ track_set
 /// Return all tracks active on a frame.
 track_set_sptr
 track_set
-::active_tracks(int offset)
+::active_tracks(frame_id_t offset)
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -176,7 +176,7 @@ track_set
 /// Return all tracks active on a frame.
 track_set_sptr
 track_set
-::inactive_tracks(int offset)
+::inactive_tracks(frame_id_t offset)
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -197,7 +197,7 @@ track_set
 /// Return all new tracks on a given frame.
 track_set_sptr
 track_set
-::new_tracks(int offset)
+::new_tracks(frame_id_t offset)
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -218,7 +218,7 @@ track_set
 /// Return all new tracks on a given frame.
 track_set_sptr
 track_set
-::terminated_tracks(int offset)
+::terminated_tracks(frame_id_t offset)
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -239,7 +239,7 @@ track_set
 /// Return the percentage of tracks successfully tracked to the next frame.
 double
 track_set
-::percentage_tracked(int offset1, int offset2)
+::percentage_tracked(frame_id_t offset1, frame_id_t offset2)
 {
   const frame_id_t frame_number1 = offset_to_frame(offset1);
   const frame_id_t frame_number2 = offset_to_frame(offset2);
@@ -309,7 +309,7 @@ track_set
 /// Return the set of features in all tracks for the given frame.
 feature_set_sptr
 track_set
-::frame_features(int offset) const
+::frame_features(frame_id_t offset) const
 {
   const frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -331,7 +331,7 @@ track_set
 /// Return the set of descriptors in all tracks for the given frame.
 descriptor_set_sptr
 track_set
-::frame_descriptors(int offset) const
+::frame_descriptors(frame_id_t offset) const
 {
   const frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -353,16 +353,16 @@ track_set
 /// Convert an offset number to an absolute frame number
 frame_id_t
 track_set
-::offset_to_frame(int offset) const
+::offset_to_frame(frame_id_t offset) const
 {
   if( offset >= 0 )
   {
-    return static_cast<frame_id_t>(offset);
+    return offset;
   }
 
   frame_id_t frame_number = this->last_frame() + 1;
 
-  if( static_cast<frame_id_t>(-offset) <= frame_number )
+  if( -offset <= frame_number )
   {
     frame_number += offset;
   }

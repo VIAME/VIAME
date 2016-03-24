@@ -1,0 +1,2 @@
+general:first = none
+general:second = bar

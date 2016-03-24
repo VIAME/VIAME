@@ -9,13 +9,16 @@
 #   no_install
 #       If set, target will not be installed.
 #
+#   no_version
+#       If set, the target will not have version information added to it.
+#
 #   component
 #     If set, the target will not be installed under this component (the
 #     default is 'runtime').
 #
 #   library_subdir
-#     If set, library targets will be placed into the directory with this
-#     as a suffix. This is necessary due to the way some systems use
+#     If set, library targets will be placed into the directory within the install
+#     directory. This is necessary due to the way some systems use
 #     CMAKE_BUILD_TYPE as a directory in the output path.
 #
 include(CMakeParseArguments)
@@ -30,6 +33,10 @@ define_property(GLOBAL PROPERTY kwiver_export_targets
 define_property(GLOBAL PROPERTY kwiver_libraries
   BRIEF_DOCS "Libraries build as part of KWIVER"
   FULL_DOCS "List of static/shared libraries build by KWIVER"
+  )
+define_property(GLOBAL PROPERTY kwiver_plugin_libraries
+  BRIEF_DOCS "Generated plugin libraries"
+  FULL_DOCS "List of generated shared plugin module libraries"
   )
 
 
@@ -133,7 +140,9 @@ endfunction()
 # Library version will be set to that of the current PROJECT version.
 #
 # This function will add the library to the set of targets to be exported
-# unless ``no_export`` was set.
+# unless "no_export" was set.
+#
+# An export header will be created unless "no_export_header" is set.
 #-
 function(kwiver_add_library     name)
   string(TOUPPER "${name}" upper_name)
@@ -144,35 +153,41 @@ function(kwiver_add_library     name)
   if ( APPLE )
     set( props
       MACOSX_RPATH         TRUE
+      INSTALL_NAME_DIR     "@executable_path/../lib"
       )
   else()
-    set( props
-      VERSION                  ${${CMAKE_PROJECT_NAME}_VERSION}
-      SOVERSION                ${${CMAKE_PROJECT_NAME}_VERSION}
-      )
+    if ( NOT no_version ) # optional versioning
+      set( props
+        VERSION                  ${${CMAKE_PROJECT_NAME}_VERSION}
+        SOVERSION                ${${CMAKE_PROJECT_NAME}_VERSION}
+        )
+    else()
+      set( props )
+    endif()
   endif()
 
   set_target_properties("${name}"
     PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}"
-      INSTALL_NAME_DIR "@executable_path/../lib"
-      INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/"
-      ${props}
-      )
-
-  generate_export_header( ${name}
-    STATIC_DEFINE  ${upper_name}_BUILD_AS_STATIC
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}"
+    INSTALL_RPATH            "\$ORIGIN/../lib:\$ORIGIN/"
+    ${props}
     )
+
+  if ( NOT no_export_header )
+    generate_export_header( ${name}
+      STATIC_DEFINE  ${upper_name}_BUILD_AS_STATIC
+      )
+  endif()
 
   foreach(config IN LISTS CMAKE_CONFIGURATION_TYPES)
     string(TOUPPER "${config}" upper_config)
     set_target_properties("${name}"
       PROPERTIES
-        "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}/${config}${library_subdir}"
-        "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}/${config}${library_subdir}"
-        "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/bin/${config}${library_subdir}"
+      "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}/${config}${library_subdir}"
+      "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}/${config}${library_subdir}"
+      "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/bin/${config}${library_subdir}"
       )
   endforeach()
 
@@ -197,9 +212,7 @@ function(kwiver_add_library     name)
     COMPONENT           ${component}
     )
 
-  if (target_type STREQUAL "MODULE_LIBRARY")
-    # Do not append names of MODULES (plugins) to the library list
-    # because they are not linked to.
+  if ( NOT no_export)
     set_property(GLOBAL APPEND PROPERTY kwiver_libraries ${name})
   endif()
 endfunction()
@@ -314,7 +327,7 @@ function( kwiver_add_plugin        name )
     set(library_subdir "/${PLUGIN_SUBDIR}") # put plugins in this subdir
   endif()
 
-  set(no_export 1) # do not export this product
+  set( no_export ON ) # do not export this product
 
   kwiver_add_library( ${name} MODULE ${PLUGIN_SOURCES} )
 
@@ -327,6 +340,12 @@ function( kwiver_add_plugin        name )
     PROPERTIES
       PREFIX           ""
       SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX}
-      INSTALL_RPATH "\$ORIGIN/../../lib:\$ORIGIN/" )
+      INSTALL_RPATH    "\$ORIGIN/../../lib:\$ORIGIN/"
+      )
+
+  # Add to global collection variable
+  set_property(GLOBAL APPEND
+    PROPERTY kwiver_plugin_libraries    ${name}
+    )
 
 endfunction()

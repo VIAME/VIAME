@@ -39,24 +39,10 @@
 #include <iomanip>
 #include <iostream>
 #include <string.h>
-#include <locale>
 
 namespace kwiver {
 namespace vital {
 namespace logger_ns {
-
-
-static void
-writeTime( std::ostream& os, time_t const& tc )
-{
-  using namespace std;
-
-  // alternative to put_time iomanip
-  locale loc;
-  const time_put< char >& tp = use_facet < time_put < char > > ( loc );
-  const char* pat = "%F %T";
-  tp.put( os, os, ' ', localtime( &tc ), pat, pat + strlen( pat ) );
-}
 
 
 // ------------------------------------------------------------------
@@ -216,16 +202,18 @@ private:
     std::string msg_part;
     std::istringstream ss( msg );
 
+    char buf[1024];
+    time(&t);
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&t));
+
     {
       std::lock_guard< std::mutex > guard( lock ); // serialize access to stream
       std::ostream* str = &get_stream();
       while ( getline( ss, msg_part ) )
       {
-        writeTime( *str, t );
-        *str
-          // << std::put_time(std::localtime(&t), "%F %T")
-           << '.' << fractional_seconds
-           << ' ' << level_str << ' ' << location << msg_part << '\n';
+        *str << buf
+             << '.' << fractional_seconds
+             << ' ' << level_str << ' ' << location << msg_part << '\n';
       }
     }
   }

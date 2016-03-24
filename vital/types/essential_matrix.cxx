@@ -251,10 +251,10 @@ operator<<( std::ostream &s, essential_matrix const &e )
 // Template class instantiation
 // ---------------------------------------------------------------------------
 /// \cond DoxygenSuppress
-#define INSTANTIATE_ESSENTIAL_MATRIX(T) \
-  template class essential_matrix_<T>; \
-  template VITAL_EXPORT std::ostream& operator<<( std::ostream &, \
-                                                      essential_matrix_<T> const & )
+#define INSTANTIATE_ESSENTIAL_MATRIX(T)                                 \
+  template class essential_matrix_<T>;                                  \
+  template VITAL_EXPORT std::ostream& operator<<( std::ostream &,       \
+                        essential_matrix_<T> const & )
 
 INSTANTIATE_ESSENTIAL_MATRIX(float);
 INSTANTIATE_ESSENTIAL_MATRIX(double);

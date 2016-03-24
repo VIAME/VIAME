@@ -43,11 +43,14 @@ namespace vital {
 
 /// output stream operator for a landmark base class
 std::ostream&
-operator<<( std::ostream& s, const landmark& m )
+operator<<( std::ostream& s, landmark const& m )
 {
   // TODO include covariance once stream operators are defined
   s << m.loc() << " "
-    << m.scale();
+    << m.scale() << " "
+    << m.normal() << " "
+    << m.color() << " "
+    << m.observations();
   return s;
 }
 
@@ -57,17 +60,34 @@ template < typename T >
 landmark_< T >
 ::landmark_()
   : loc_( 0, 0, 0 ),
-  scale_( 1 )
+    scale_( 1 ),
+    normal_( 0, 0, 0 ),
+    observations_( 0 )
 {
 }
 
 
-/// Constructor for a feature
+/// Constructor for a landmark
 template < typename T >
 landmark_< T >
-::landmark_( const Eigen::Matrix< T, 3, 1 >& loc, T scale )
+::landmark_( Eigen::Matrix< T, 3, 1 > const& loc, T scale )
   : loc_( loc ),
-  scale_( scale )
+    scale_( scale ),
+    normal_( 0, 0, 0 ),
+    observations_( 0 )
+{
+}
+
+
+/// Constructor for a landmark_ from a landmark
+template < typename T >
+landmark_< T >
+::landmark_( landmark const& lm )
+  : loc_( lm.loc().cast< T > () ),
+    scale_( static_cast< T > ( lm.scale() ) ),
+    normal_( lm.normal().cast< T > () ),
+    color_( lm.color() ),
+    observations_( lm.observations() )
 {
 }
 
@@ -75,11 +95,14 @@ landmark_< T >
 /// output stream operator for a landmark
 template < typename T >
 std::ostream&
-operator<<( std::ostream& s, const landmark_< T >& m )
+operator<<( std::ostream& s, landmark_< T > const& m )
 {
   // TODO include covariance once stream operators are defined
   s << m.get_loc() << " "
-    << m.get_scale();
+    << m.get_scale() << " "
+    << m.get_normal() << " "
+    << m.get_color() << " "
+    << m.get_observations();
   return s;
 }
 
@@ -91,12 +114,21 @@ operator>>( std::istream& s, landmark_< T >& m )
 {
   // TODO include covariance once stream operators are defined
   Eigen::Matrix< T, 3, 1 > loc;
+  Eigen::Matrix< T, 3, 1 > normal;
   T scale;
+  rgb_color color;
+  unsigned int observations;
 
   s >> loc
-  >> scale;
+    >> scale
+    >> normal
+    >> color
+    >> observations;
   m.set_loc( loc );
   m.set_scale( scale );
+  m.set_normal( normal );
+  m.set_color( color );
+  m.set_observations( observations );
   return s;
 }
 
@@ -105,7 +137,7 @@ operator>>( std::istream& s, landmark_< T >& m )
 #define INSTANTIATE_LANDMARK( T )                     \
   template class VITAL_EXPORT landmark_< T >;         \
   template VITAL_EXPORT std::ostream&                     \
-  operator<<( std::ostream& s, const landmark_< T >& f ); \
+  operator<<( std::ostream& s, landmark_< T > const& f ); \
   template VITAL_EXPORT std::istream&                     \
   operator>>( std::istream& s, landmark_< T >& f )
 

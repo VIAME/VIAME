@@ -214,7 +214,11 @@ public:
   template < typename T >
   void set_value( config_block_key_t const&         key,
                   T const&                          value,
-                  config_block_description_t const& descr = config_block_description_t() );
+                  config_block_description_t const& descr );
+
+  template < typename T >
+  void set_value( config_block_key_t const& key,
+                  T const& value);
 
   /// Remove a value from the configuration.
   /**
@@ -340,7 +344,7 @@ public:
    */
   bool get_location( config_block_key_t const& key,
                      std::string& file,
-                     int line) const;
+                     int& line) const;
 
 
 private:
@@ -669,6 +673,22 @@ config_block_value_t
 config_block_set_value_cast( T const& value )
 {
   return config_block_set_value_cast_default< T > ( value );
+}
+
+
+// ------------------------------------------------------------------
+// Set a value within the configuration.
+template < typename T >
+inline
+void
+config_block
+::set_value( config_block_key_t const&          key,
+             T const&                           value )
+{
+  // Need to convert value (type T) to string
+  config_block_value_t val_str = config_block_set_value_cast< T > ( value );
+
+  this->i_set_value( key,  val_str, config_block_description_t() ); // we know that the value is a string
 }
 
 

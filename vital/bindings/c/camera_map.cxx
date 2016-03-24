@@ -119,7 +119,7 @@ void vital_camera_map_get_map( vital_camera_map_t *cam_map,
     size_t i=0;
     VITAL_FOREACH( vital::camera_map::map_camera_t::value_type const& p, map_cams )
     {
-      (*frame_numbers)[i] = p.first;
+      (*frame_numbers)[i] = static_cast< unsigned int >(p.first);
       vital_c::CAMERA_SPTR_CACHE.store( p.second );
       (*cameras)[i] = reinterpret_cast<vital_camera_t*>( p.second.get() );
       ++i;

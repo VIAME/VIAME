@@ -74,6 +74,7 @@ DECLARE_TEST_MAP();
 using namespace kwiver::vital;
 typedef kwiversys::SystemTools ST;
 
+// ------------------------------------------------------------------
 int
 main( int argc, char* argv[] )
 {
@@ -93,6 +94,7 @@ main( int argc, char* argv[] )
               << std::endl;                                             \
   }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( config_path_not_exist )
 {
   path_t fp( "/this/shouldnt/exist/anywhere" );
@@ -100,10 +102,11 @@ IMPLEMENT_TEST( config_path_not_exist )
   EXPECT_EXCEPTION(
     kwiver::vital::config_file_not_found_exception,
     kwiver::vital::read_config_file( fp ),
-    "calling config read with non-existant file"
+    "calling config read with non-existent file"
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( config_path_not_file )
 {
   path_t fp = ST::GetCurrentWorkingDirectory();
@@ -115,6 +118,7 @@ IMPLEMENT_TEST( config_path_not_file )
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( successful_config_read )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt" );
@@ -193,10 +197,10 @@ IMPLEMENT_TEST( successful_config_read )
 
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( successful_config_read_named_block )
 {
-  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt",
-                                                              "block_name_here" );
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt" );
 
   using std::cerr;
   using std::endl;
@@ -240,10 +244,10 @@ IMPLEMENT_TEST( successful_config_read_named_block )
               "should be valid" );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( include_files )
 {
-  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-include-a.txt",
-                                                              "block_name_here" );
+  config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-include-a.txt" );
   using std::cerr;
   using std::endl;
   cerr << "Available keys in the config_block:" << endl;
@@ -269,6 +273,7 @@ IMPLEMENT_TEST( include_files )
               "on" );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( invalid_config_file )
 {
   EXPECT_EXCEPTION(
@@ -278,6 +283,7 @@ IMPLEMENT_TEST( invalid_config_file )
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( invalid_keypath )
 {
   EXPECT_EXCEPTION(
@@ -287,6 +293,7 @@ IMPLEMENT_TEST( invalid_keypath )
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( config_with_comments )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-comments.txt" );
@@ -311,6 +318,7 @@ IMPLEMENT_TEST( config_with_comments )
               "things and stuff" );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( write_config_simple_success )
 {
   using namespace kwiver;
@@ -416,6 +424,7 @@ IMPLEMENT_TEST( write_config_simple_success )
   }
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( invalid_directory_write )
 {
   using namespace kwiver;
@@ -428,6 +437,7 @@ IMPLEMENT_TEST( invalid_directory_write )
                   );
 }
 
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( empty_config_write_failure )
 {
   using namespace kwiver;
@@ -449,4 +459,79 @@ IMPLEMENT_TEST( empty_config_write_failure )
   {
     cerr << "Test failed and output file created. Removing." << endl;
   }
+}
+
+// ------------------------------------------------------------------
+static
+std::string
+test_standard_paths( kwiver::vital::config_path_t const& data_dir )
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  char const pathSep = ';';
+#else
+  char const pathSep = ':';
+#endif
+
+  return data_dir + "/test_config-standard-dir-first" + pathSep +
+         data_dir + "/test_config-standard-dir-second";
+}
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( standard_config_read_without_merge )
+{
+  kwiversys::SystemTools::PutEnv(
+    "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
+
+  auto const config =
+    kwiver::vital::read_config_file( "test_config-standard.txt",
+                                     "vital", {}, {}, false );
+
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              1 );
+
+  TEST_EQUAL( "general:first param",
+              config->get_value< std::string > ( "general:first" ),
+              "foo" );
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( standard_config_read_with_merge )
+{
+  kwiversys::SystemTools::PutEnv(
+    "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
+
+  auto const config =
+    kwiver::vital::read_config_file( "test_config-standard.txt",
+                                     "vital", {}, {}, true );
+
+  TEST_EQUAL( "general:first param",
+              config->get_value< std::string > ( "general:first" ),
+              "foo" );
+
+  TEST_EQUAL( "general:second param",
+              config->get_value< std::string > ( "general:second" ),
+              "bar" );
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( standard_config_read_from_prefix )
+{
+  auto const config =
+    kwiver::vital::read_config_file( "test_config-standard.txt",
+                                     "vital", "test", data_dir );
+
+  TEST_EQUAL( "animal:dog param",
+              config->get_value< std::string > ( "animal:dog" ),
+              "woof" );
+
+  TEST_EQUAL( "animal:cat param",
+              config->get_value< std::string > ( "animal:cat" ),
+              "meow" );
+
+  TEST_EQUAL( "animal:pig param",
+              config->get_value< std::string > ( "animal:pig" ),
+              "oink" );
 }

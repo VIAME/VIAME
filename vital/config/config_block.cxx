@@ -409,7 +409,7 @@ bool
 config_block
 ::get_location( config_block_key_t const& key,
                 std::string& f,
-                int l) const
+                int& l) const
 {
   location_t::const_iterator i = m_def_store.find( key );
   if ( i != m_def_store.end() )
@@ -530,7 +530,7 @@ config_block::
   {
     std::string ro;
 
-    kwiver::vital::config_block_value_t const val = this->get_value< kwiver::vital::config_block_value_t > ( key );
+    auto const val = this->get_value< kwiver::vital::config_block_value_t > ( key );
 
     if ( this->is_read_only( key ) )
     {
@@ -552,4 +552,4 @@ config_block::
 }
 
 
-} }   // end namesapce
+} }   // end namespace

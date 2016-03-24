@@ -52,7 +52,7 @@
 #include <vital/logger/logger.h>
 
 // There may be a better way to allocate this other than static CTOR
-static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
+static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
 
 /// Macro allowing simpler population of an error handle
 /**
@@ -114,6 +114,17 @@ static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "vita
         POPULATE_EH( eh_ptr, -1, msg.c_str() );                 \
       }                                                         \
     } while( 0 )
+
+
+/// Wrap an optional string parameter.
+/**
+ * This converts a potentially null character array pointer ("string") to an
+ * empty string literal (if it is null) or itself (otherwise). This is meant to
+ * wrap <code>char const*</code> arguments that will be passed to C++ functions
+ * taking \c std::string, as the latter does not allow construction from a null
+ * pointer.
+ */
+#define MAYBE_EMPTY_STRING(s) (s?s:"")
 
 
 namespace kwiver {
