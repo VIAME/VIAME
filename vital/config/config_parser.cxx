@@ -178,6 +178,7 @@ public:
 
     // Get directory part of the input file
     config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( file_path ) );
+    // if file_path has no directory prefix then use "." for the current directory
     if ( "" == config_file_dir )
     {
       config_file_dir = ".";
