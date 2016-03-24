@@ -1,0 +1,6 @@
+
+ {
+        "blvc_reference_caffenet_model": "/home/etri/projects/smqtk/source/data/caffenet/bvlc_reference_caffenet.caffemodel",
+        "image_mean_binary": "/home/etri/projects/smqtk/source/data/caffenet/imagenet_mean.binaryproto",
+        "gpu_batch_size": 100
+}
