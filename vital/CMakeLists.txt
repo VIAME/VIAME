@@ -159,6 +159,7 @@ set( vital_public_headers
 
   util/get_paths.h
   util/timer.h
+  util/enumerate_matrix.h
 )
 
 # ----------------------
