@@ -2,7 +2,7 @@ project(kwiver_util_tests)
 
 include(vital-test-setup)
 
-set( test_libraries vital vital_apm )
+set( test_libraries vital vital_apm kwiversys )
 
 ##############################
 # Util tests
