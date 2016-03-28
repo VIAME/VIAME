@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAPTK_PLUGINS_VISCL_FEATURE_SET_H_
-#define MAPTK_PLUGINS_VISCL_FEATURE_SET_H_
+#ifndef ARROWS_ALGORITHMS_VISCL_FEATURE_SET_H_
+#define ARROWS_ALGORITHMS_VISCL_FEATURE_SET_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/viscl/maptk_viscl_export.h>
+#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
 
 #include <vital/types/feature_set.h>
 
@@ -42,7 +42,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -53,7 +53,7 @@ namespace vcl
   * It is possible to get the smoothing scale but that value is not
   * saved on the GPU so would have to be provided externally
   */
-class MAPTK_VISCL_EXPORT feature_set
+class ALGORITHMS_VISCL_EXPORT feature_set
 : public vital::feature_set
 {
 public:
@@ -93,16 +93,16 @@ protected:
 /// Convert any feature set to a VisCL data (upload if needed)
 /**
   * viscl only cares about integer feature location, therefore will lose
-  * info converting from maptk feature set to viscl and back
+  * info converting from vital feature set to viscl and back
   */
-MAPTK_VISCL_EXPORT feature_set::type
+ALGORITHMS_VISCL_EXPORT feature_set::type
 features_to_viscl(const vital::feature_set& features);
 
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VISCL_FEATURE_SET_H_
+#endif // ARROWS_ALGORITHMS_VISCL_FEATURE_SET_H_

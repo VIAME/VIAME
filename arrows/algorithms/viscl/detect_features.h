@@ -28,25 +28,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAPTK_PLUGINS_VISCL_DETECT_FEATURES_H_
-#define MAPTK_PLUGINS_VISCL_DETECT_FEATURES_H_
+#ifndef ARROWS_ALGORITHMS_VISCL_DETECT_FEATURES_H_
+#define ARROWS_ALGORITHMS_VISCL_DETECT_FEATURES_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/viscl/maptk_viscl_export.h>
+#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
 
 #include <vital/algo/detect_features.h>
 
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
 
 /// An algorithm class for detecting feature points using VisCL
-class MAPTK_VISCL_EXPORT detect_features
+class ALGORITHMS_VISCL_EXPORT detect_features
 : public vital::algorithm_impl<detect_features, vital::algo::detect_features>
 {
 public:
@@ -62,7 +62,7 @@ public:
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "viscl"; }
 
-  /// Get this algorithm's \link maptk::vital::config_block configuration block \endlink
+  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
 
   /// Set this algorithm's properties via a config block
@@ -88,8 +88,8 @@ private:
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VISCL_DETECT_FEATURES_H_
+#endif // ARROWS_ALGORITHMS_VISCL_DETECT_FEATURES_H_

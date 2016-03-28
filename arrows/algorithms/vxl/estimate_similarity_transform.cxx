@@ -50,7 +50,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -137,5 +137,5 @@ estimate_similarity_transform
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

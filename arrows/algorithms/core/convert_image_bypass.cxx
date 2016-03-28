@@ -37,7 +37,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -76,5 +76,5 @@ convert_image_bypass
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

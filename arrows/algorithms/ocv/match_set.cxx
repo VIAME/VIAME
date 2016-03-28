@@ -39,7 +39,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -79,5 +79,5 @@ matches_to_ocv_dmatch(const vital::match_set& m_set)
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

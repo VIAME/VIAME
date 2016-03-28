@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link maptk::algo::compute_ref_homography_core
+ * \brief Implementation of \link vital::algo::compute_ref_homography_core
  *        compute_ref_homography_core \endlink
  */
 
@@ -53,7 +53,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -615,5 +615,5 @@ compute_ref_homography_core
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

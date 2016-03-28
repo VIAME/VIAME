@@ -33,12 +33,12 @@
  * \brief VXL image memory interface
  */
 
-#ifndef MAPTK_PLUGINS_VXL_VIL_IMAGE_MEMORY_H_
-#define MAPTK_PLUGINS_VXL_VIL_IMAGE_MEMORY_H_
+#ifndef ARROWS_ALGORITHMS_VXL_VIL_IMAGE_MEMORY_H_
+#define ARROWS_ALGORITHMS_VXL_VIL_IMAGE_MEMORY_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/types/image.h>
 
@@ -46,13 +46,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
 
 /// An image memory class that shares memory with VXL using vil_memory_chunk
-class MAPTK_VXL_EXPORT vil_image_memory
+class ALGORITHMS_VXL_EXPORT vil_image_memory
   : public vital::image_memory
 {
 public:
@@ -76,41 +76,39 @@ protected:
 };
 
 
-/// An image memory class that shares memory with MAPTK using image_memory
-class MAPTK_VXL_EXPORT maptk_memory_chunk
+/// An image memory class that shares memory with vital using image_memory
+class ALGORITHMS_VXL_EXPORT image_memory_chunk
  : public vil_memory_chunk
 {
 public:
-  /// Constructor - from maptk image memory
-  maptk_memory_chunk(vital::image_memory_sptr mem)
-  : maptk_data_(mem)
+  /// Constructor - from image memory
+  image_memory_chunk(vital::image_memory_sptr mem)
+  : image_data_(mem)
   {
-    size_ = maptk_data_->size();
+    size_ = image_data_->size();
     pixel_format_ = VIL_PIXEL_FORMAT_BYTE;
   }
 
   /// Pointer to the first element of data
-  virtual void* data() { return maptk_data_->data(); }
+  virtual void* data() { return image_data_->data(); }
 
   /// Pointer to the first element of data
-  virtual void* const_data() const { return maptk_data_->data(); }
+  virtual void* const_data() const { return image_data_->data(); }
 
   /// Create space for n bytes
   virtual void set_size(unsigned long n, vil_pixel_format pixel_format);
 
-  /// Access the underlying maptk memory
-  vital::image_memory_sptr memory() const { return maptk_data_; }
+  /// Access the underlying image memory
+  vital::image_memory_sptr memory() const { return image_data_; }
 protected:
 
-  /// The maptk image data
-  vital::image_memory_sptr maptk_data_;
+  /// The image image data
+  vital::image_memory_sptr image_data_;
 };
-
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
-
-#endif // MAPTK_PLUGINS_VXL_VIL_IMAGE_MEMORY_H_
+#endif // ARROWS_ALGORITHMS_VXL_VIL_IMAGE_MEMORY_H_

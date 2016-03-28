@@ -33,26 +33,26 @@
  * \brief OpenCV algorithm registration function
  */
 
-#ifndef MAPTK_PLUGINS_OCV_REGISTER_ALGORITHMS_H_
-#define MAPTK_PLUGINS_OCV_REGISTER_ALGORITHMS_H_
+#ifndef ARROWS_ALGORITHMS_OCV_REGISTER_ALGORITHMS_H_
+#define ARROWS_ALGORITHMS_OCV_REGISTER_ALGORITHMS_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <vital/registrar.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace ocv {
 
 /// Register OCV algorithm implementations with the given or global registrar
-MAPTK_OCV_EXPORT
+ALGORITHMS_OCV_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace ocv
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
-#endif // MAPTK_PLUGINS_OCV_REGISTER_ALGORITHMS_H_
+#endif // ARROWS_ALGORITHMS_OCV_REGISTER_ALGORITHMS_H_

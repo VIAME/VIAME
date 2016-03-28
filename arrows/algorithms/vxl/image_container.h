@@ -33,12 +33,12 @@
  * \brief VXL image container interface
  */
 
-#ifndef MAPTK_PLUGINS_VXL_IMAGE_CONTAINER_H_
-#define MAPTK_PLUGINS_VXL_IMAGE_CONTAINER_H_
+#ifndef ARROWS_ALGORITHMS_VXL_IMAGE_CONTAINER_H_
+#define ARROWS_ALGORITHMS_VXL_IMAGE_CONTAINER_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/types/image_container.h>
 
@@ -46,7 +46,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -56,7 +56,7 @@ namespace vxl
  * This class represents an image using vil_image_view format to store
  * the image data by extending the basic image_container.
  */
-class MAPTK_VXL_EXPORT image_container
+class ALGORITHMS_VXL_EXPORT image_container
   : public vital::image_container
 {
 public:
@@ -65,15 +65,15 @@ public:
   explicit image_container(const vil_image_view<vxl_byte>& d)
   : data_(d) {}
 
-  /// Constructor - convert maptk image to vil
-  explicit image_container(const vital::image& maptk_image)
-  : data_(maptk_to_vxl(maptk_image)) {}
+  /// Constructor - convert vital image to vil
+  explicit image_container(const vital::image& vital_image)
+  : data_(vital_to_vxl(vital_image)) {}
 
   /// Constructor - convert base image container to vil
   explicit image_container(const vital::image_container& image_cont);
 
   /// Copy Constructor
-  image_container(const maptk::vxl::image_container& other)
+  image_container(const algorithms::vxl::image_container& other)
   : data_(other.data_) {}
 
   /// The size of the image data in bytes
@@ -93,16 +93,16 @@ public:
   virtual size_t depth() const { return data_.nplanes(); }
 
   /// Get an in-memory image class to access the data
-  virtual vital::image get_image() const { return vxl_to_maptk(data_); }
+  virtual vital::image get_image() const { return vxl_to_vital(data_); }
 
   /// Get image data in this container.
   vil_image_view<vxl_byte> get_vil_image_view() const { return data_; }
 
-  /// Convert a VXL vil_image_view to a MAPTK image
-  static vital::image vxl_to_maptk(const vil_image_view<vxl_byte>& img);
+  /// Convert a VXL vil_image_view to a VITAL image
+  static vital::image vxl_to_vital(const vil_image_view<vxl_byte>& img);
 
-  /// Convert a MAPTK image to a VXL vil_image_view
-  static vil_image_view<vxl_byte> maptk_to_vxl(const vital::image& img);
+  /// Convert a VITAL image to a VXL vil_image_view
+  static vil_image_view<vxl_byte> vital_to_vxl(const vital::image& img);
 
 protected:
   /// image data
@@ -112,8 +112,8 @@ protected:
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VXL_IMAGE_CONTAINER_H_
+#endif // ARROWS_ALGORITHMS_VXL_IMAGE_CONTAINER_H_

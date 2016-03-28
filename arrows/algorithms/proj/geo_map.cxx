@@ -84,7 +84,7 @@ static projPJ gen_latlon_pj()
 }
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace proj
 {
@@ -160,5 +160,5 @@ geo_map
 
 } // end namespace proj
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

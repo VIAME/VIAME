@@ -35,15 +35,15 @@
 
 #include "extract_descriptors.h"
 
-#include <maptk/plugins/ocv/image_container.h>
-#include <maptk/plugins/ocv/feature_set.h>
-#include <maptk/plugins/ocv/descriptor_set.h>
-#include <maptk/plugins/ocv/ocv_algo_tools.h>
+#include <arrows/algorithms/ocv/image_container.h>
+#include <arrows/algorithms/ocv/feature_set.h>
+#include <arrows/algorithms/ocv/descriptor_set.h>
+#include <arrows/algorithms/ocv/ocv_algo_tools.h>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -106,7 +106,7 @@ extract_descriptors
 }
 
 
-/// Get this algorithm's \link maptk::kwiver::config_block configuration block \endlink
+/// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
 vital::config_block_sptr
 extract_descriptors
 ::get_configuration() const
@@ -166,5 +166,5 @@ extract_descriptors
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

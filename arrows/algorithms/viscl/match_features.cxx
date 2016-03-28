@@ -32,16 +32,16 @@
 
 #include <vector>
 
-#include <maptk/plugins/viscl/descriptor_set.h>
-#include <maptk/plugins/viscl/feature_set.h>
-#include <maptk/plugins/viscl/match_set.h>
-#include <maptk/plugins/viscl/utils.h>
+#include <arrows/algorithms/viscl/descriptor_set.h>
+#include <arrows/algorithms/viscl/feature_set.h>
+#include <arrows/algorithms/viscl/match_set.h>
+#include <arrows/algorithms/viscl/utils.h>
 
 #include <viscl/tasks/track_descr_match.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -144,5 +144,5 @@ match_features
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

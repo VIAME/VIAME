@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link maptk::algo::close_loops_multi_method
+ * \brief Implementation of \link vital::algo::close_loops_multi_method
  *        close_loops_multi_method \endlink
  */
 
@@ -48,7 +48,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -183,5 +183,5 @@ close_loops_multi_method
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

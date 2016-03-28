@@ -37,7 +37,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -45,12 +45,12 @@ namespace vxl
 
 /// Create space for n bytes
 void
-maptk_memory_chunk
+image_memory_chunk
 ::set_size(unsigned long n, vil_pixel_format pixel_format)
 {
   if( n != size_ )
   {
-    maptk_data_ = vital::image_memory_sptr(new vital::image_memory(n));
+    image_data_ = vital::image_memory_sptr(new vital::image_memory(n));
     size_ = n;
   }
   pixel_format_ = pixel_format;
@@ -59,5 +59,5 @@ maptk_memory_chunk
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

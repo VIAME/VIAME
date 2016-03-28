@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAPTK_PLUGINS_VISCL_DESCRIPTOR_SET_H_
-#define MAPTK_PLUGINS_VISCL_DESCRIPTOR_SET_H_
+#ifndef ARROWS_ALGORITHMS_VISCL_DESCRIPTOR_SET_H_
+#define ARROWS_ALGORITHMS_VISCL_DESCRIPTOR_SET_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/viscl/maptk_viscl_export.h>
+#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
 
 #include <vital/types/descriptor_set.h>
 
@@ -41,13 +41,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
 
 /// A concrete descriptor set that wraps VisCL descriptors.
-class MAPTK_VISCL_EXPORT descriptor_set
+class ALGORITHMS_VISCL_EXPORT descriptor_set
 : public vital::descriptor_set
 {
 public:
@@ -79,14 +79,14 @@ protected:
 
 
 /// Convert a descriptor set to a VisCL descriptor set must be <int,4>
-MAPTK_VISCL_EXPORT viscl::buffer
+ALGORITHMS_VISCL_EXPORT viscl::buffer
 descriptors_to_viscl(const vital::descriptor_set& desc_set);
 
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VISCL_DESCRIPTOR_SET_H_
+#endif // ARROWS_ALGORITHMS_VISCL_DESCRIPTOR_SET_H_

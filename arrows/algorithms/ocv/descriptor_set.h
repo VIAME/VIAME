@@ -33,11 +33,11 @@
  * \brief OCV descriptor_set interface
  */
 
-#ifndef MAPTK_PLUGINS_OCV_DESCRIPTOR_SET_H_
-#define MAPTK_PLUGINS_OCV_DESCRIPTOR_SET_H_
+#ifndef ARROWS_ALGORITHMS_OCV_DESCRIPTOR_SET_H_
+#define ARROWS_ALGORITHMS_OCV_DESCRIPTOR_SET_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <vital/types/descriptor_set.h>
 
@@ -45,13 +45,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
 
 /// A concrete descriptor set that wraps OpenCV descriptors.
-class MAPTK_OCV_EXPORT descriptor_set
+class ALGORITHMS_OCV_EXPORT descriptor_set
   : public vital::descriptor_set
 {
 public:
@@ -82,14 +82,14 @@ protected:
 /**
  * \param desc_set descriptors to convert to cv::mat
  */
-MAPTK_OCV_EXPORT cv::Mat
+ALGORITHMS_OCV_EXPORT cv::Mat
 descriptors_to_ocv_matrix(const vital::descriptor_set& desc_set);
 
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_OCV_DESCRIPTOR_SET_H_
+#endif // ARROWS_ALGORITHMS_OCV_DESCRIPTOR_SET_H_

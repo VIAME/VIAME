@@ -34,7 +34,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -44,7 +44,7 @@ std::vector<vital::descriptor_sptr>
 descriptor_set
 ::descriptors() const
 {
-  using namespace maptk;
+  using namespace arrows;
   std::vector<vital::descriptor_sptr> desc;
 
   cl_int4 *buf = new cl_int4[data_.len()];
@@ -112,5 +112,5 @@ descriptors_to_viscl(const vital::descriptor_set& desc_set)
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

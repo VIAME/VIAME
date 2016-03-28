@@ -37,7 +37,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -199,5 +199,5 @@ filter_features_magnitude
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

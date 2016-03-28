@@ -44,7 +44,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -55,7 +55,7 @@ namespace
 /// Templated helper function to convert matrix row into a descriptor
 template <typename T>
 vital::descriptor_sptr
-ocv_to_maptk_descriptor(const cv::Mat& v)
+ocv_to_vital_descriptor(const cv::Mat& v)
 {
   vital::descriptor_array_of<T>* d = NULL;
   switch(v.cols)
@@ -80,7 +80,7 @@ ocv_to_maptk_descriptor(const cv::Mat& v)
 /// Templated helper function to convert descriptors into a cv::Mat
 template <typename T>
 cv::Mat
-maptk_descriptors_to_ocv(const std::vector<vital::descriptor_sptr>& desc)
+vital_descriptors_to_ocv(const std::vector<vital::descriptor_sptr>& desc)
 {
   const unsigned int num = static_cast<unsigned int>(desc.size());
   const unsigned int dim = static_cast<unsigned int>(desc[0]->size());
@@ -117,7 +117,7 @@ descriptor_set
   case cv::DataType<T>::type: \
   for( unsigned i=0; i<num_desc; ++i ) \
   { \
-    desc.push_back(ocv_to_maptk_descriptor<T>(data_.row(i))); \
+    desc.push_back(ocv_to_vital_descriptor<T>(data_.row(i))); \
   } \
   break
 
@@ -154,7 +154,7 @@ descriptors_to_ocv_matrix(const vital::descriptor_set& desc_set)
 #define CONVERT_CASE(T) \
   if( dynamic_cast<const vital::descriptor_array_of<T>*>(desc[0].get()) ) \
   { \
-    return maptk_descriptors_to_ocv<T>(desc); \
+    return vital_descriptors_to_ocv<T>(desc); \
   }
   APPLY_TO_TYPES(CONVERT_CASE);
 #undef CONVERT_CASE
@@ -165,5 +165,5 @@ descriptors_to_ocv_matrix(const vital::descriptor_set& desc_set)
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

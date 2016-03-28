@@ -33,24 +33,24 @@
  * \brief OpenCV image_io interface
  */
 
-#ifndef MAPTK_PLUGINS_OCV_IMAGE_IO_H_
-#define MAPTK_PLUGINS_OCV_IMAGE_IO_H_
+#ifndef ARROWS_ALGORITHMS_OCV_IMAGE_IO_H_
+#define ARROWS_ALGORITHMS_OCV_IMAGE_IO_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <vital/algo/image_io.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
 
 /// A class for using OpenCV to read and write images
-class MAPTK_OCV_EXPORT image_io
+class ALGORITHMS_OCV_EXPORT image_io
   : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
 public:
@@ -82,8 +82,8 @@ private:
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_OCV_IMAGE_IO_H_
+#endif // ARROWS_ALGORITHMS_OCV_IMAGE_IO_H_

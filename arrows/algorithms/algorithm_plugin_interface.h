@@ -33,8 +33,8 @@
  * \brief Public interface for plugin library generation
  */
 
-#ifndef MAPTK_PLUGIN_INTERFACE_ALGORITHM_IMPL_PL_INTERFACE_H_
-#define MAPTK_PLUGIN_INTERFACE_ALGORITHM_IMPL_PL_INTERFACE_H_
+#ifndef ALGORITHMS_PLUGIN_INTERFACE_ALGORITHM_IMPL_PL_INTERFACE_H_
+#define ALGORITHMS_PLUGIN_INTERFACE_ALGORITHM_IMPL_PL_INTERFACE_H_
 
 #include <vital/registrar.h>
 
@@ -54,4 +54,4 @@
 int register_algo_impls( kwiver::vital::registrar &reg = kwiver::vital::registrar::instance() );
 
 
-#endif // MAPTK_PLUGIN_INTERFACE_ALGORITHM_IMPL_PL_INTERFACE_H_
+#endif // ALGORITHMS_PLUGIN_INTERFACE_ALGORITHM_IMPL_PL_INTERFACE_H_

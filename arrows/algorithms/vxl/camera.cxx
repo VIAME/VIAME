@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation for conversions between maptk and vpgl cameras
+ * \brief Implementation for conversions between vital and vpgl cameras
  */
 
 #include "camera.h"
@@ -38,7 +38,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -47,22 +47,22 @@ namespace vxl
 /// Construct a camera_sptr from a vpgl_perspective_camera
 template <typename T>
 camera_sptr
-vpgl_camera_to_maptk(const vpgl_perspective_camera<T>& vcam)
+vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam)
 {
   simple_camera* mcam = new simple_camera;
-  vpgl_camera_to_maptk(vcam, *mcam);
+  vpgl_camera_to_vital(vcam, *mcam);
   return camera_sptr(mcam);
 }
 
 
-/// Convert a vpgl_perspective_camera to a maptk::camera_
+/// Convert a vpgl_perspective_camera to a vital::camera_
 template <typename T>
 void
-vpgl_camera_to_maptk(const vpgl_perspective_camera<T>& vcam,
+vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam,
                      simple_camera& mcam)
 {
   simple_camera_intrinsics mk;
-  vpgl_calibration_to_maptk(vcam.get_calibration(), mk);
+  vpgl_calibration_to_vital(vcam.get_calibration(), mk);
   mcam.set_intrinsics(mk.clone());
 
   const vnl_quaternion<T>& vr = vcam.get_rotation().as_quaternion();
@@ -73,14 +73,14 @@ vpgl_camera_to_maptk(const vpgl_perspective_camera<T>& vcam,
 }
 
 
-/// Convert a maptk::camera_ to a vpgl_perspective_camera
+/// Convert a vital::camera_ to a vpgl_perspective_camera
 template <typename T>
 void
-maptk_to_vpgl_camera(const camera& mcam,
+vital_to_vpgl_camera(const camera& mcam,
                      vpgl_perspective_camera<T>& vcam)
 {
   vpgl_calibration_matrix<T> vk;
-  maptk_to_vpgl_calibration(*mcam.intrinsics(), vk);
+  vital_to_vpgl_calibration(*mcam.intrinsics(), vk);
   vcam.set_calibration(vk);
 
   const Eigen::Quaternion<double>& mr = mcam.rotation().quaternion();
@@ -92,10 +92,10 @@ maptk_to_vpgl_camera(const camera& mcam,
 }
 
 
-/// Convert a vpgl_calibration_matrix to a maptk::camera_intrinsics_
+/// Convert a vpgl_calibration_matrix to a vital::camera_intrinsics_
 template <typename T>
 void
-vpgl_calibration_to_maptk(const vpgl_calibration_matrix<T>& vcal,
+vpgl_calibration_to_vital(const vpgl_calibration_matrix<T>& vcal,
                           simple_camera_intrinsics& mcal)
 {
   vgl_point_2d<T> vpp = vcal.principal_point();
@@ -106,10 +106,10 @@ vpgl_calibration_to_maptk(const vpgl_calibration_matrix<T>& vcal,
 }
 
 
-/// Convert a maptk::camera_intrinsics_ to a vpgl_calibration_matrix
+/// Convert a vital::camera_intrinsics_ to a vpgl_calibration_matrix
 template <typename T>
 void
-maptk_to_vpgl_calibration(const camera_intrinsics& mcal,
+vital_to_vpgl_calibration(const camera_intrinsics& mcal,
                           vpgl_calibration_matrix<T>& vcal)
 {
   const vector_2d& mpp = mcal.principal_point();
@@ -123,12 +123,12 @@ maptk_to_vpgl_calibration(const camera_intrinsics& mcal,
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_CAMERA(T) \
-template MAPTK_VXL_EXPORT camera_sptr vpgl_camera_to_maptk(const vpgl_perspective_camera<T>& vcam); \
-template MAPTK_VXL_EXPORT void vpgl_camera_to_maptk(const vpgl_perspective_camera<T>&, simple_camera&); \
-template MAPTK_VXL_EXPORT void maptk_to_vpgl_camera(const camera&, vpgl_perspective_camera<T>&); \
-template MAPTK_VXL_EXPORT void vpgl_calibration_to_maptk(const vpgl_calibration_matrix<T>& vcal, \
+template ALGORITHMS_VXL_EXPORT camera_sptr vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam); \
+template ALGORITHMS_VXL_EXPORT void vpgl_camera_to_vital(const vpgl_perspective_camera<T>&, simple_camera&); \
+template ALGORITHMS_VXL_EXPORT void vital_to_vpgl_camera(const camera&, vpgl_perspective_camera<T>&); \
+template ALGORITHMS_VXL_EXPORT void vpgl_calibration_to_vital(const vpgl_calibration_matrix<T>& vcal, \
                                                          simple_camera_intrinsics& mcal); \
-template MAPTK_VXL_EXPORT void maptk_to_vpgl_calibration(const camera_intrinsics& mcal, \
+template ALGORITHMS_VXL_EXPORT void vital_to_vpgl_calibration(const camera_intrinsics& mcal, \
                                                          vpgl_calibration_matrix<T>& vcal)
 
 INSTANTIATE_CAMERA(double);
@@ -139,5 +139,5 @@ INSTANTIATE_CAMERA(float);
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

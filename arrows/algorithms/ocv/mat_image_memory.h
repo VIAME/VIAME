@@ -33,12 +33,12 @@
  * \brief OCV mat_image_memory interface
  */
 
-#ifndef MAPTK_PLUGINS_OCV_MAT_IMAGE_MEMORY_H_
-#define MAPTK_PLUGINS_OCV_MAT_IMAGE_MEMORY_H_
+#ifndef ARROWS_ALGORITHMS_OCV_MAT_IMAGE_MEMORY_H_
+#define ARROWS_ALGORITHMS_OCV_MAT_IMAGE_MEMORY_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <vital/types/image.h>
 
@@ -46,13 +46,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
 
 /// An image memory class that shares memory with OpenCV using reference counting
-class MAPTK_OCV_EXPORT mat_image_memory
+class ALGORITHMS_OCV_EXPORT mat_image_memory
   : public vital::image_memory
 {
 public:
@@ -79,8 +79,8 @@ protected:
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_OCV_MAT_IMAGE_MEMORY_H_
+#endif // ARROWS_ALGORITHMS_OCV_MAT_IMAGE_MEMORY_H_

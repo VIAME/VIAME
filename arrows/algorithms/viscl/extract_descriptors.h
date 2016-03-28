@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAPTK_PLUGINS_VISCL_EXTRACT_DESCRIPTORS_H_
-#define MAPTK_PLUGINS_VISCL_EXTRACT_DESCRIPTORS_H_
+#ifndef ARROWS_ALGORITHMS_VISCL_EXTRACT_DESCRIPTORS_H_
+#define ARROWS_ALGORITHMS_VISCL_EXTRACT_DESCRIPTORS_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/viscl/maptk_viscl_export.h>
+#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
 
 #include <vital/algo/extract_descriptors.h>
 
@@ -41,13 +41,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
 
 /// An class for extracting feature descriptors using VisCL
-class MAPTK_VISCL_EXPORT extract_descriptors
+class ALGORITHMS_VISCL_EXPORT extract_descriptors
 : public vital::algorithm_impl<extract_descriptors, vital::algo::extract_descriptors>
 {
 public:
@@ -85,8 +85,8 @@ private:
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VISCL_EXTRACT_DESCRIPTORS_H_
+#endif // ARROWS_ALGORITHMS_VISCL_EXTRACT_DESCRIPTORS_H_

@@ -33,11 +33,11 @@
  * \brief compute_ref_homography algorithm definition
  */
 
-#ifndef MAPTK_PLUGINS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_
-#define MAPTK_PLUGINS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_
+#ifndef ARROWS_ALGORITHMS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_
+#define ARROWS_ALGORITHMS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/compute_ref_homography.h>
@@ -48,7 +48,7 @@
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -67,7 +67,7 @@ namespace core
  * successive non-regressing frames. This is ideal for when it is desired to
  * compute reference frames on all frames in a sequence.
  */
-class MAPTK_CORE_EXPORT compute_ref_homography_core
+class ALGORITHMS_CORE_EXPORT compute_ref_homography_core
   : public vital::algorithm_impl<compute_ref_homography_core, vital::algo::compute_ref_homography>
 {
 public:
@@ -145,8 +145,8 @@ private:
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_
+#endif // ARROWS_ALGORITHMS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_

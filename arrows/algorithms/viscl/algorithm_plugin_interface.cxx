@@ -33,12 +33,12 @@
  * \brief VisCL plugin algorithm registration plugin interface impl
  */
 
-#include <maptk/plugins/viscl/register_algorithms.h>
-#include <maptk/plugin_interface/algorithm_plugin_interface.h>
+#include <arrows/algorithms/viscl/register_algorithms.h>
+#include <arrows/plugin_interface/algorithm_plugin_interface.h>
 #include <vital/registrar.h>
 
 
 int register_algo_impls( kwiver::vital::registrar &reg )
 {
-  return kwiver::maptk::vcl::register_algorithms( reg );
+  return kwiver::algorithms::vcl::register_algorithms( reg );
 }

@@ -33,12 +33,12 @@
  * \brief OCV image_container inteface
  */
 
-#ifndef MAPTK_PLUGINS_OCV_IMAGE_CONTAINER_H_
-#define MAPTK_PLUGINS_OCV_IMAGE_CONTAINER_H_
+#ifndef ARROWS_ALGORITHMS_OCV_IMAGE_CONTAINER_H_
+#define ARROWS_ALGORITHMS_OCV_IMAGE_CONTAINER_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <opencv2/core/core.hpp>
 
@@ -46,14 +46,14 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
 
 
 /// This image container wraps a cv::Mat
-class MAPTK_OCV_EXPORT image_container
+class ALGORITHMS_OCV_EXPORT image_container
   : public vital::image_container
 {
 public:
@@ -63,14 +63,14 @@ public:
   : data_(d) {}
 
   /// Constructor - convert kwiver image to cv::Mat
-  explicit image_container(const vital::image& maptk_image)
-  : data_(maptk_to_ocv(maptk_image)) {}
+  explicit image_container(const vital::image& vital_image)
+  : data_(vital_to_ocv(vital_image)) {}
 
   /// Constructor - convert base image container to cv::Mat
   explicit image_container(const vital::image_container& image_cont);
 
   /// Copy Constructor
-  image_container(const maptk::ocv::image_container& other)
+  image_container(const algorithms::ocv::image_container& other)
   : data_(other.data_) {}
 
   /// The size of the image data in bytes
@@ -90,16 +90,16 @@ public:
   virtual size_t depth() const { return data_.channels(); }
 
   /// Get and in-memory image class to access the data
-  virtual vital::image get_image() const { return ocv_to_maptk(data_); }
+  virtual vital::image get_image() const { return ocv_to_vital(data_); }
 
   /// Access the underlying cv::Mat data structure
   cv::Mat get_Mat() const { return data_; }
 
-  /// Convert an OpenCV cv::Mat to a MAPTK image
-  static vital::image ocv_to_maptk(const cv::Mat& img);
+  /// Convert an OpenCV cv::Mat to a VITAL image
+  static vital::image ocv_to_vital(const cv::Mat& img);
 
-  /// Convert a MAPTK image to an OpenCV cv::Mat
-  static cv::Mat maptk_to_ocv(const vital::image& img);
+  /// Convert a VITAL image to an OpenCV cv::Mat
+  static cv::Mat vital_to_ocv(const vital::image& img);
 
 protected:
   /// image data
@@ -109,19 +109,19 @@ protected:
 
 /// Extract a cv::Mat from any image container
 /**
- * If \a img is actually an maptk::ocv::image_container then
+ * If \a img is actually an algorithms::ocv::image_container then
  * return the underlying cv::Mat.  Otherwise, convert the image data
  * to cv:Mat by shallow copy (if possible) or deep copy as a last resort.
  *
  * \param img Image container to convert to cv::mat
  */
-MAPTK_OCV_EXPORT cv::Mat image_container_to_ocv_matrix(const vital::image_container& img);
+ALGORITHMS_OCV_EXPORT cv::Mat image_container_to_ocv_matrix(const vital::image_container& img);
 
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_OCV_IMAGE_CONTAINER_H_
+#endif // ARROWS_ALGORITHMS_OCV_IMAGE_CONTAINER_H_

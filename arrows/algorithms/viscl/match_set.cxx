@@ -30,13 +30,13 @@
 
 #include <algorithm>
 
-#include <maptk/plugins/viscl/match_set.h>
+#include <arrows/algorithms/viscl/match_set.h>
 
 #include <viscl/core/manager.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -124,5 +124,5 @@ matches_to_viscl(const vital::match_set& m_set)
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

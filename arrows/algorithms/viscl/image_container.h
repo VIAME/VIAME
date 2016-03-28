@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAPTK_PLUGINS_VISCL_IMAGE_CONTAINER_H_
-#define MAPTK_PLUGINS_VISCL_IMAGE_CONTAINER_H_
+#ifndef ARROWS_ALGORITHMS_VISCL_IMAGE_CONTAINER_H_
+#define ARROWS_ALGORITHMS_VISCL_IMAGE_CONTAINER_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/viscl/maptk_viscl_export.h>
+#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
 
 #include <vital/types/image_container.h>
 
@@ -41,13 +41,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
 
 /// This image container wraps a VisCL image
-class MAPTK_VISCL_EXPORT image_container
+class ALGORITHMS_VISCL_EXPORT image_container
 : public vital::image_container
 {
 public:
@@ -56,15 +56,15 @@ public:
   explicit image_container(const viscl::image& d)
   : data_(d) {}
 
-  /// Constructor - convert maptk image to VisCL image
-  explicit image_container(const vital::image& maptk_image)
-  : data_(maptk_to_viscl(maptk_image)) {}
+  /// Constructor - convert vital image to VisCL image
+  explicit image_container(const vital::image& vital_image)
+  : data_(vital_to_viscl(vital_image)) {}
 
   /// Constructor - convert base image container to VisCL
   explicit image_container(const vital::image_container& image_cont);
 
   /// Copy Constructor
-  image_container(const maptk::vcl::image_container& other)
+  image_container(const algorithms::vcl::image_container& other)
   : data_(other.data_) {}
 
   /// The size of the image data in bytes
@@ -87,16 +87,16 @@ public:
   virtual size_t depth() const { return data_.depth(); }
 
   /// Get and in-memory image class to access the data
-  virtual vital::image get_image() const { return viscl_to_maptk(data_); }
+  virtual vital::image get_image() const { return viscl_to_vital(data_); }
 
   /// Access the underlying VisCL data structure
   viscl::image get_viscl_image() const { return data_; }
 
-  /// Convert a VisCL image to a MAPTK image
-  static vital::image viscl_to_maptk(const viscl::image& img);
+  /// Convert a VisCL image to a VITAL image
+  static vital::image viscl_to_vital(const viscl::image& img);
 
-  /// Convert a MAPTK image to a VisCL image
-  static viscl::image maptk_to_viscl(const vital::image& img);
+  /// Convert a VITAL image to a VisCL image
+  static viscl::image vital_to_viscl(const vital::image& img);
 
 protected:
 
@@ -110,13 +110,13 @@ protected:
  * return the underlying VisCL image.  Otherwise, convert the image data
  * and upload to the GPU.
  */
-MAPTK_VISCL_EXPORT viscl::image image_container_to_viscl(const vital::image_container& img);
+ALGORITHMS_VISCL_EXPORT viscl::image image_container_to_viscl(const vital::image_container& img);
 
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VISCL_IMAGE_CONTAINER_H_
+#endif // ARROWS_ALGORITHMS_VISCL_IMAGE_CONTAINER_H_

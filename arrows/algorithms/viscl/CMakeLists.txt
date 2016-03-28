@@ -1,7 +1,7 @@
 # Build / install plugin containing VisCL algorithm implementations + support
 # structures
 
-set( maptk_viscl_headers_public
+set( viscl_headers_public
   convert_image.h
   descriptor_set.h
   detect_features.h
@@ -14,15 +14,15 @@ set( maptk_viscl_headers_public
   utils.h
   )
 kwiver_install_headers(
-  SUBDIR     maptk/plugins/viscl
-  ${maptk_viscl_headers_public}
+  SUBDIR     arrows/algorithms/viscl
+  ${viscl_headers_public}
   )
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/maptk_viscl_export.h
-  NOPATH   SUBDIR     maptk/plugins/viscl
+  ${CMAKE_CURRENT_BINARY_DIR}/algorithms_viscl_export.h
+  NOPATH   SUBDIR     arrows/algorithms/viscl
   )
 
-set( maptk_viscl_sources
+set( viscl_sources
   convert_image.cxx
   descriptor_set.cxx
   detect_features.cxx
@@ -34,14 +34,14 @@ set( maptk_viscl_sources
   register_algorithms.cxx
   utils.cxx
   )
-kwiver_add_library( maptk_viscl
-  ${maptk_viscl_headers_public}
-  ${maptk_viscl_sources}
+kwiver_add_library( algorithms_viscl
+  ${viscl_headers_public}
+  ${viscl_sources}
   )
-target_link_libraries( maptk_viscl
-  maptk
-  viscl_core viscl_tasks viscl_vxl
+target_link_libraries( algorithms_viscl
+  PUBLIC           maptk
+                   viscl_core viscl_tasks viscl_vxl
   )
-maptk_create_plugin( maptk_viscl
+algorithms_create_plugin( algorithms_viscl
   algorithm_plugin_interface.cxx
   )

@@ -33,24 +33,24 @@
  * \brief PROJ geo_map algorithm interface
  */
 
-#ifndef MAPTK_PLUGINS_PROJ_GEO_MAP_H_
-#define MAPTK_PLUGINS_PROJ_GEO_MAP_H_
+#ifndef ARROWS_ALGORITHMS_PROJ_GEO_MAP_H_
+#define ARROWS_ALGORITHMS_PROJ_GEO_MAP_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/proj/maptk_proj_export.h>
+#include <arrows/algorithms/proj/algorithms_proj_export.h>
 
 #include <vital/algo/geo_map.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace proj
 {
 
 /// PROJ implementation of geo_map algorithm
-class MAPTK_PROJ_EXPORT geo_map
+class ALGORITHMS_PROJ_EXPORT geo_map
   : public vital::algorithm_impl<geo_map, vital::algo::geo_map>
 {
 public:
@@ -103,7 +103,7 @@ public:
 
 } // end namespace proj
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
-#endif // MAPTK_PLUGINS_PROJ_GEO_MAP_H_
+#endif // ARROWS_ALGORITHMS_PROJ_GEO_MAP_H_

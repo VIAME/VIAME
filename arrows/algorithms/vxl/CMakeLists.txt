@@ -1,7 +1,7 @@
 # Build / Install plugin containing VXL algorithm implementations + support
 # structures
 
-set(maptk_vxl_headers_public
+set(vxl_headers_public
   bundle_adjust.h
   camera.h
   camera_map.h
@@ -20,15 +20,15 @@ set(maptk_vxl_headers_public
   vil_image_memory.h
   )
 kwiver_install_headers(
-  SUBDIR     maptk/plugins/vxl
-  ${maptk_vxl_headers_public}
+  SUBDIR     arrows/algorithms/vxl
+  ${vxl_headers_public}
   )
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/maptk_vxl_export.h
-  NOPATH   SUBDIR     maptk/plugins/vxl
+  ${CMAKE_CURRENT_BINARY_DIR}/algorithms_vxl_export.h
+  NOPATH   SUBDIR     arrows/algorithms/vxl
   )
 
-set(maptk_vxl_sources
+set(vxl_sources
   bundle_adjust.cxx
   camera.cxx
   camera_map.cxx
@@ -47,15 +47,15 @@ set(maptk_vxl_sources
   vil_image_memory.cxx
   )
 
-kwiver_add_library( maptk_vxl
-  ${maptk_vxl_headers_public}
-  ${maptk_vxl_sources}
+kwiver_add_library( algorithms_vxl
+  ${vxl_headers_public}
+  ${vxl_sources}
   )
-target_link_libraries( maptk_vxl
+target_link_libraries( algorithms_vxl
   PUBLIC               maptk
                        rrel rsdl vnl vgl_algo vil vpgl_algo
   )
 
-maptk_create_plugin( maptk_vxl
+arrows_create_plugin( algorithms_vxl
   algorithm_plugin_interface.cxx
   )

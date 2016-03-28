@@ -1,5 +1,5 @@
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 /// PROJ module namespace
 namespace proj { }
@@ -7,7 +7,7 @@ namespace proj { }
 // The following text is included in the main documentation page by doxygen
 /** \page plugin_proj PROJ Plugin
 \section sec-proj-contents Contents
-The MAPTK proj library provides geographic transformations by building on
+The ARROWS proj library provides geographic transformations by building on
                <a href="http://trac.osgeo.org/proj/">PROJ.4</a>
 
 

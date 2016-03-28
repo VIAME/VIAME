@@ -33,26 +33,26 @@
  * \brief VisCL algorithm registration function
  */
 
-#ifndef MAPTK_PLUGINS_VISCL_REGISTER_ALGORITHMS_H_
-#define MAPTK_PLUGINS_VISCL_REGISTER_ALGORITHMS_H_
+#ifndef ARROWS_ALGORITHMS_VISCL_REGISTER_ALGORITHMS_H_
+#define ARROWS_ALGORITHMS_VISCL_REGISTER_ALGORITHMS_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/viscl/maptk_viscl_export.h>
+#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
 
 #include <vital/registrar.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace vcl {
 
 /// Register VisCL algorithm implementations with the given or global registrar
-MAPTK_VISCL_EXPORT
+ALGORITHMS_VISCL_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace vcl
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
-#endif // MAPTK_PLUGINS_VISCL_REGISTER_ALGORITHMS_H_
+#endif // ARROWS_ALGORITHMS_VISCL_REGISTER_ALGORITHMS_H_

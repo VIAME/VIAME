@@ -33,30 +33,30 @@
  * \brief Register core algorithms
  */
 
-#ifndef MAPTK_PLUGINS_CORE_REGISTER_ALGORITHMS_H_
-#define MAPTK_PLUGINS_CORE_REGISTER_ALGORITHMS_H_
+#ifndef ARROWS_ALGORITHMS_CORE_REGISTER_ALGORITHMS_H_
+#define ARROWS_ALGORITHMS_CORE_REGISTER_ALGORITHMS_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/registrar.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
 
 // Register core algorithms with the given or global registrar
-MAPTK_CORE_EXPORT
+ALGORITHMS_CORE_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_REGISTER_ALGORITHMS_H_
+#endif // ARROWS_ALGORITHMS_CORE_REGISTER_ALGORITHMS_H_

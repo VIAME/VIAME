@@ -33,12 +33,12 @@
  * \brief VXL match_features_constrained algorithm impl interface
  */
 
-#ifndef MAPTK_PLUGINS_VXL_MATCH_FEATURES_CONSTRAINED_H_
-#define MAPTK_PLUGINS_VXL_MATCH_FEATURES_CONSTRAINED_H_
+#ifndef ARROWS_ALGORITHMS_VXL_MATCH_FEATURES_CONSTRAINED_H_
+#define ARROWS_ALGORITHMS_VXL_MATCH_FEATURES_CONSTRAINED_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/algo/match_features.h>
 
@@ -46,7 +46,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -64,7 +64,7 @@ namespace vxl
  *  scale) to find only geometrically nearby features.  It then looks at
  *  the descriptors for the neighbors and finds the best match by appearance.
  */
-class MAPTK_VXL_EXPORT match_features_constrained
+class ALGORITHMS_VXL_EXPORT match_features_constrained
   : public vital::algorithm_impl<match_features_constrained, vital::algo::match_features>
 {
 public:
@@ -107,8 +107,8 @@ private:
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VXL_MATCH_FEATURES_CONSTRAINED_H_
+#endif // ARROWS_ALGORITHMS_VXL_MATCH_FEATURES_CONSTRAINED_H_

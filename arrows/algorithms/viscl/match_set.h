@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAPTK_PLUGINS_VISCL_MATCH_SET_H_
-#define MAPTK_PLUGINS_VISCL_MATCH_SET_H_
+#ifndef ARROWS_ALGORITHMS_VISCL_MATCH_SET_H_
+#define ARROWS_ALGORITHMS_VISCL_MATCH_SET_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/viscl/maptk_viscl_export.h>
+#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
 
 #include <vital/types/match_set.h>
 
@@ -41,14 +41,14 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
 
 
 /// A concrete match set that wraps VisCL matches
-class MAPTK_VISCL_EXPORT match_set
+class ALGORITHMS_VISCL_EXPORT match_set
 : public vital::match_set
 {
 public:
@@ -83,14 +83,14 @@ private:
 /**
   * Will remove duplicate matches to a kpt from 2nd set
   */
-MAPTK_VISCL_EXPORT viscl::buffer
+ALGORITHMS_VISCL_EXPORT viscl::buffer
 matches_to_viscl(const vital::match_set& match_set);
 
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VISCL_MATCH_SET_H_
+#endif // ARROWS_ALGORITHMS_VISCL_MATCH_SET_H_

@@ -42,7 +42,7 @@
 
 #include <kwiver_util/kwiver_type_traits.h>
 
-#include <maptk/plugins/ocv/image_container.h>
+#include <arrows/algorithms/ocv/image_container.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -216,7 +216,7 @@ view_image_process
 
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img->get_image() );
+  cv::Mat image = algorithms::ocv::image_container::maptk_to_ocv( img->get_image() );
 
   if ( d->m_annotate_image )
   {

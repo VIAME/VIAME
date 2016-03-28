@@ -35,12 +35,12 @@
 
 #include "image_container.h"
 
-#include <maptk/plugins/ocv/mat_image_memory.h>
+#include <arrows/algorithms/ocv/mat_image_memory.h>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -58,7 +58,7 @@ image_container
   }
   else
   {
-    this->data_ = maptk_to_ocv(image_cont.get_image());
+    this->data_ = vital_to_ocv(image_cont.get_image());
   }
 }
 
@@ -72,10 +72,10 @@ image_container
 }
 
 
-/// Convert an OpenCV cv::Mat to a MAPTK image
+/// Convert an OpenCV cv::Mat to a VITAL image
 image
 image_container
-::ocv_to_maptk(const cv::Mat& img)
+::ocv_to_vital(const cv::Mat& img)
 {
   image_memory_sptr memory(new mat_image_memory(img));
 
@@ -85,10 +85,10 @@ image_container
 }
 
 
-/// Convert a MAPTK image to an OpenCV cv::Mat
+/// Convert a VITAL image to an OpenCV cv::Mat
 cv::Mat
 image_container
-::maptk_to_ocv(const vital::image& img)
+::vital_to_ocv(const vital::image& img)
 {
   // cv::Mat is limited in the image data layouts that it supports.
   // Color channels must be reversed and interleaved (d_step==-1) and the
@@ -103,12 +103,12 @@ image_container
                 CV_MAKETYPE(CV_8U, static_cast<int>(img.depth())),
                 memory->data(), img.h_step());
 
-    // if this MAPTK image is already wrapping cv::Mat allocated data,
+    // if this VITAL image is already wrapping cv::Mat allocated data,
     // then restore the original cv::Mat reference counter.
     if( mat_image_memory* mat_memory =
           dynamic_cast<mat_image_memory*>(memory.get()) )
     {
-      // extract the existing reference counter from the MAPTK wrapper
+      // extract the existing reference counter from the VITAL wrapper
       out.refcount = mat_memory->get_ref_counter();
       out.addref();
     }
@@ -119,8 +119,8 @@ image_container
   // allocated a new cv::Mat
   cv::Mat out(static_cast<int>(img.height()), static_cast<int>(img.width()),
               CV_MAKETYPE(CV_8U, static_cast<int>(img.depth())));
-  // wrap the new image as a MAPTK image (always a shallow copy)
-  image new_img = ocv_to_maptk(out);
+  // wrap the new image as a VITAL image (always a shallow copy)
+  image new_img = ocv_to_vital(out);
   new_img.copy_from(img);
 
   return out;
@@ -136,11 +136,11 @@ image_container_to_ocv_matrix(const vital::image_container& img)
   {
     return c->get_Mat();
   }
-  return ocv::image_container::maptk_to_ocv(img.get_image());
+  return ocv::image_container::vital_to_ocv(img.get_image());
 }
 
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

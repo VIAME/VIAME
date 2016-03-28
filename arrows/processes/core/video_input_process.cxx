@@ -46,7 +46,7 @@
 
 // -- DEBUG
 #if defined DEBUG
-#include <maptk/plugins/ocv/image_container.h>
+#include <arrows/algorithms/ocv/image_container.h>
 #include <opencv2/highgui/highgui.hpp>
 using namespace cv;
 #endif
@@ -153,7 +153,7 @@ void video_input_process
 
     // --- debug
 #if defined DEBUG
-    cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( frame->get_image() );
+    cv::Mat image = algorithms::ocv::image_container::maptk_to_ocv( frame->get_image() );
     namedWindow( "Display window", cv::WINDOW_NORMAL ); // Create a window for display.
     imshow( "Display window", image ); // Show our image inside it.
 

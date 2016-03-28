@@ -33,27 +33,27 @@
  * \brief Ceres algorithm registration function
  */
 
-#ifndef MAPTK_PLUGINS_CERES_REGISTER_ALGORITHMS_H_
-#define MAPTK_PLUGINS_CERES_REGISTER_ALGORITHMS_H_
+#ifndef ARROWS_ALGORITHMS_CERES_REGISTER_ALGORITHMS_H_
+#define ARROWS_ALGORITHMS_CERES_REGISTER_ALGORITHMS_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ceres/maptk_ceres_export.h>
+#include <arrows/algorithms/ceres/algorithms_ceres_export.h>
 
 #include <vital/registrar.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ceres {
 
 /// Register CERES algorithm implementations with the given or global registrar
-MAPTK_CERES_EXPORT
+ALGORITHMS_CERES_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace ceres
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
-#endif // MAPTK_PLUGINS_CERES_REGISTER_ALGORITHMS_H_
+#endif // ARROWS_ALGORITHMS_CERES_REGISTER_ALGORITHMS_H_

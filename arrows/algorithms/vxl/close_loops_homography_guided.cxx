@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link maptk::vxl::close_loops_homography_guided
+ * \brief Implementation of \link algorithms::vxl::close_loops_homography_guided
  *        close_loops \endlink
  */
 
@@ -45,12 +45,12 @@
 
 #include <vital/algo/compute_ref_homography.h>
 #include <vital/algo/match_features.h>
-#include <maptk/plugins/vxl/compute_homography_overlap.h>
+#include <arrows/algorithms/vxl/compute_homography_overlap.h>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -428,5 +428,5 @@ close_loops_homography_guided
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

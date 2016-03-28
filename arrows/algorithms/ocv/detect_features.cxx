@@ -39,16 +39,16 @@
 #include <vector>
 
 #include <vital/exceptions/image.h>
-#include <maptk/plugins/ocv/feature_set.h>
-#include <maptk/plugins/ocv/image_container.h>
-#include <maptk/plugins/ocv/ocv_algo_tools.h>
+#include <arrows/algorithms/ocv/feature_set.h>
+#include <arrows/algorithms/ocv/image_container.h>
+#include <arrows/algorithms/ocv/ocv_algo_tools.h>
 
 #include <opencv2/features2d/features2d.hpp>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -153,7 +153,7 @@ vital::feature_set_sptr
 detect_features
 ::detect(vital::image_container_sptr image_data, vital::image_container_sptr mask) const
 {
-  cv::Mat cv_img = ocv::image_container::maptk_to_ocv(image_data->get_image());
+  cv::Mat cv_img = ocv::image_container::vital_to_ocv(image_data->get_image());
   cv::Mat cv_mask;
   std::vector<cv::KeyPoint> keypoints;
 
@@ -180,7 +180,7 @@ detect_features
                      static_cast< vital::image::byte* >(s.memory()->data()),
                      s.width(),  s.height(), 1 /*depth*/,
                      s.w_step(), s.h_step(), s.d_step());
-    cv_mask = ocv::image_container::maptk_to_ocv(i);
+    cv_mask = ocv::image_container::vital_to_ocv(i);
   }
 
   d_->detector->detect(cv_img, keypoints, cv_mask);
@@ -190,5 +190,5 @@ detect_features
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

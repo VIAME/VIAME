@@ -33,22 +33,22 @@
  * \brief Header for Ceres reprojection error functions
  */
 
-#ifndef MAPTK_PLUGINS_CERES_REPROJECTION_ERROR_H_
-#define MAPTK_PLUGINS_CERES_REPROJECTION_ERROR_H_
+#ifndef ARROWS_ALGORITHMS_CERES_REPROJECTION_ERROR_H_
+#define ARROWS_ALGORITHMS_CERES_REPROJECTION_ERROR_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ceres/maptk_ceres_export.h>
+#include <arrows/algorithms/ceres/algorithms_ceres_export.h>
 
-#include <maptk/plugins/ceres/lens_distortion.h>
-#include <maptk/plugins/ceres/types.h>
+#include <arrows/algorithms/ceres/lens_distortion.h>
+#include <arrows/algorithms/ceres/types.h>
 
 #include <ceres/ceres.h>
 #include <ceres/rotation.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ceres
 {
@@ -260,8 +260,8 @@ create_cost_func(LensDistortionType ldt, double x, double y)
 
 } // end namespace ceres
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CERES_REPROJECTION_ERROR_H_
+#endif // ARROWS_ALGORITHMS_CERES_REPROJECTION_ERROR_H_

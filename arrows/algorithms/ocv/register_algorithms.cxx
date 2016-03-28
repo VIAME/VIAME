@@ -40,18 +40,18 @@
 #include <opencv2/nonfree/nonfree.hpp>
 #endif
 
-#include <maptk/plugin_interface/algorithm_plugin_interface_macros.h>
-#include <maptk/plugins/ocv/analyze_tracks.h>
-#include <maptk/plugins/ocv/detect_features.h>
-#include <maptk/plugins/ocv/draw_tracks.h>
-#include <maptk/plugins/ocv/estimate_homography.h>
-#include <maptk/plugins/ocv/extract_descriptors.h>
-#include <maptk/plugins/ocv/image_io.h>
-#include <maptk/plugins/ocv/match_features.h>
+#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/ocv/analyze_tracks.h>
+#include <arrows/algorithms/ocv/detect_features.h>
+#include <arrows/algorithms/ocv/draw_tracks.h>
+#include <arrows/algorithms/ocv/estimate_homography.h>
+#include <arrows/algorithms/ocv/extract_descriptors.h>
+#include <arrows/algorithms/ocv/image_io.h>
+#include <arrows/algorithms/ocv/match_features.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace ocv {
 
 /// Register OCV algorithm implementations with the given or global registrar
@@ -63,18 +63,18 @@ int register_algorithms( vital::registrar &reg )
 
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( maptk::ocv::analyze_tracks );
-  REGISTER_TYPE( maptk::ocv::detect_features );
-  REGISTER_TYPE( maptk::ocv::draw_tracks );
-  REGISTER_TYPE( maptk::ocv::estimate_homography );
-  REGISTER_TYPE( maptk::ocv::extract_descriptors );
-  REGISTER_TYPE( maptk::ocv::image_io );
-  REGISTER_TYPE( maptk::ocv::match_features );
+  REGISTER_TYPE( algorithms::ocv::analyze_tracks );
+  REGISTER_TYPE( algorithms::ocv::detect_features );
+  REGISTER_TYPE( algorithms::ocv::draw_tracks );
+  REGISTER_TYPE( algorithms::ocv::estimate_homography );
+  REGISTER_TYPE( algorithms::ocv::extract_descriptors );
+  REGISTER_TYPE( algorithms::ocv::image_io );
+  REGISTER_TYPE( algorithms::ocv::match_features );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();
 }
 
 } // end namespace ocv
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

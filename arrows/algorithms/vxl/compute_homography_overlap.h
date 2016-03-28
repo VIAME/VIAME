@@ -33,18 +33,18 @@
  * \brief Header defining homography overlap helper functions
  */
 
-#ifndef MAPTK_PLUGINS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
-#define MAPTK_PLUGINS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
+#ifndef ARROWS_ALGORITHMS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
+#define ARROWS_ALGORITHMS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vnl/vnl_double_3x3.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -56,15 +56,15 @@ namespace vxl
  * transformation between these 2 images (in some reference coordinate
  * system). The overlap is returned as a percentage.
  */
-MAPTK_VXL_EXPORT
+ALGORITHMS_VXL_EXPORT
 double
 overlap( const vnl_double_3x3& h, const unsigned ni, const unsigned nj );
 
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
+#endif // ARROWS_ALGORITHMS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_

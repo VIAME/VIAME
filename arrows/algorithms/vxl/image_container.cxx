@@ -35,11 +35,11 @@
 
 #include "image_container.h"
 
-#include <maptk/plugins/vxl/vil_image_memory.h>
+#include <arrows/algorithms/vxl/vil_image_memory.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -57,7 +57,7 @@ image_container
   }
   else
   {
-    this->data_ = maptk_to_vxl(image_cont.get_image());
+    this->data_ = vital_to_vxl(image_cont.get_image());
   }
 }
 
@@ -79,26 +79,26 @@ image_container
 }
 
 
-/// Convert a VXL vil_image_view to a MAPTK image
+/// Convert a VXL vil_image_view to a VITAL image
 vital::image
 image_container
-::vxl_to_maptk(const vil_image_view<vxl_byte>& img)
+::vxl_to_vital(const vil_image_view<vxl_byte>& img)
 {
   vil_memory_chunk_sptr chunk = img.memory_chunk();
   vital::image_memory_sptr memory;
 
   // prevent nested wrappers when converting back and forth.
-  // if this vil_image_view is already wrapping MAPTK data,
-  // then extract the underlying MAPTK data instead of wrapping
-  if( maptk_memory_chunk* maptk_chunk =
-        dynamic_cast<maptk_memory_chunk*>(chunk.ptr()) )
+  // if this vil_image_view is already wrapping VITAL data,
+  // then extract the underlying VITAL data instead of wrapping
+  if( vital_memory_chunk* vital_chunk =
+        dynamic_cast<vital_memory_chunk*>(chunk.ptr()) )
   {
-    // extract the existing MAPTK memory from the vil wrapper
-    memory = maptk_chunk->memory();
+    // extract the existing VITAL memory from the vil wrapper
+    memory = vital_chunk->memory();
   }
   else
   {
-    // create a MAPTK wrapper around the vil memory chunk
+    // create a VITAL wrapper around the vil memory chunk
     memory = vital::image_memory_sptr(new vil_image_memory(chunk));
   }
 
@@ -108,27 +108,27 @@ image_container
 }
 
 
-/// Convert a MAPTK image to a VXL vil_image_view
+/// Convert a VITAL image to a VXL vil_image_view
 vil_image_view<vxl_byte>
 image_container
-::maptk_to_vxl(const vital::image& img)
+::vital_to_vxl(const vital::image& img)
 {
   vital::image_memory_sptr memory = img.memory();
   vil_memory_chunk_sptr chunk;
 
   // prevent nested wrappers when converting back and forth.
-  // if this MAPTK image is already wrapping vil data,
+  // if this VITAL image is already wrapping vil data,
   // then extract the underlying vil data instead of wrapping
   if( vil_image_memory* vil_memory =
         dynamic_cast<vil_image_memory*>(memory.get()) )
   {
-    // extract the existing vil_memory_chunk from the MAPTK wrapper
+    // extract the existing vil_memory_chunk from the VITAL wrapper
     chunk = vil_memory->memory_chunk();
   }
   else
   {
-    // create a vil wrapper around the MAPTK memory
-    chunk = new maptk_memory_chunk(memory);
+    // create a vil wrapper around the VITAL memory
+    chunk = new vital_memory_chunk(memory);
   }
 
   return vil_image_view<vxl_byte>(chunk, img.first_pixel(),
@@ -141,5 +141,5 @@ image_container
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

@@ -35,21 +35,21 @@
 
 #include "register_algorithms.h"
 
-#include <maptk/plugin_interface/algorithm_plugin_interface_macros.h>
-#include <maptk/plugins/vxl/bundle_adjust.h>
-#include <maptk/plugins/vxl/close_loops_homography_guided.h>
-#include <maptk/plugins/vxl/estimate_essential_matrix.h>
-#include <maptk/plugins/vxl/estimate_fundamental_matrix.h>
-#include <maptk/plugins/vxl/estimate_homography.h>
-#include <maptk/plugins/vxl/estimate_similarity_transform.h>
-#include <maptk/plugins/vxl/image_io.h>
-#include <maptk/plugins/vxl/optimize_cameras.h>
-#include <maptk/plugins/vxl/triangulate_landmarks.h>
-#include <maptk/plugins/vxl/match_features_constrained.h>
+#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/vxl/bundle_adjust.h>
+#include <arrows/algorithms/vxl/close_loops_homography_guided.h>
+#include <arrows/algorithms/vxl/estimate_essential_matrix.h>
+#include <arrows/algorithms/vxl/estimate_fundamental_matrix.h>
+#include <arrows/algorithms/vxl/estimate_homography.h>
+#include <arrows/algorithms/vxl/estimate_similarity_transform.h>
+#include <arrows/algorithms/vxl/image_io.h>
+#include <arrows/algorithms/vxl/optimize_cameras.h>
+#include <arrows/algorithms/vxl/triangulate_landmarks.h>
+#include <arrows/algorithms/vxl/match_features_constrained.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace vxl {
 
 /// Register VXL algorithm implementations with the given or global registrar
@@ -57,21 +57,21 @@ int register_algorithms( vital::registrar &reg )
 {
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( maptk::vxl::bundle_adjust );
-  REGISTER_TYPE( maptk::vxl::close_loops_homography_guided );
-  REGISTER_TYPE( maptk::vxl::estimate_essential_matrix );
-  REGISTER_TYPE( maptk::vxl::estimate_fundamental_matrix );
-  REGISTER_TYPE( maptk::vxl::estimate_homography );
-  REGISTER_TYPE( maptk::vxl::estimate_similarity_transform );
-  REGISTER_TYPE( maptk::vxl::image_io );
-  REGISTER_TYPE( maptk::vxl::optimize_cameras );
-  REGISTER_TYPE( maptk::vxl::triangulate_landmarks );
-  REGISTER_TYPE( maptk::vxl::match_features_constrained );
+  REGISTER_TYPE( algorithms::vxl::bundle_adjust );
+  REGISTER_TYPE( algorithms::vxl::close_loops_homography_guided );
+  REGISTER_TYPE( algorithms::vxl::estimate_essential_matrix );
+  REGISTER_TYPE( algorithms::vxl::estimate_fundamental_matrix );
+  REGISTER_TYPE( algorithms::vxl::estimate_homography );
+  REGISTER_TYPE( algorithms::vxl::estimate_similarity_transform );
+  REGISTER_TYPE( algorithms::vxl::image_io );
+  REGISTER_TYPE( algorithms::vxl::optimize_cameras );
+  REGISTER_TYPE( algorithms::vxl::triangulate_landmarks );
+  REGISTER_TYPE( algorithms::vxl::match_features_constrained );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();
 }
 
 } // end namespace vxl
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

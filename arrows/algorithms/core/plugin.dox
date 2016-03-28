@@ -1,12 +1,12 @@
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 /// Core module namespace
 namespace core { }
 
 /** \page plugin_core Core Plugin
 \section sec-core-contents Contents
-The MAPTK Core plugin provides algorithm implementations that only depend on the MAP-Tk core.
+The ARROWS Core plugin provides algorithm implementations that only depend on the MAP-Tk core.
 
 \subsection sec-core-algorithm-impls Algorithm Implementations
 - \ref core::close_loops_bad_frames_only : stitch feature tracks together over

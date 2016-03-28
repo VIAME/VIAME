@@ -30,16 +30,16 @@
 
 /**
  * \file
- * \brief Header defining the vxl \link maptk::vxl::close_loops_homography_guided
+ * \brief Header defining the vxl \link algorithms::vxl::close_loops_homography_guided
  *        close_loops \endlink algorithm
  */
 
-#ifndef MAPTK_PLUGINS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
-#define MAPTK_PLUGINS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
+#ifndef ARROWS_ALGORITHMS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
+#define ARROWS_ALGORITHMS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
@@ -49,7 +49,7 @@
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -61,7 +61,7 @@ namespace vxl
  * estimate potential match locations in the past, followed up by additional
  * filtering.
  */
-class MAPTK_VXL_EXPORT close_loops_homography_guided
+class ALGORITHMS_VXL_EXPORT close_loops_homography_guided
   : public vital::algorithm_impl<vxl::close_loops_homography_guided, vital::algo::close_loops>
 {
 public:
@@ -139,8 +139,8 @@ private:
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
+#endif // ARROWS_ALGORITHMS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_

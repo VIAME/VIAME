@@ -37,17 +37,17 @@
 
 #include <vector>
 
-#include <maptk/plugins/ocv/feature_set.h>
-#include <maptk/plugins/ocv/descriptor_set.h>
-#include <maptk/plugins/ocv/match_set.h>
-#include <maptk/plugins/ocv/ocv_algo_tools.h>
+#include <arrows/algorithms/ocv/feature_set.h>
+#include <arrows/algorithms/ocv/descriptor_set.h>
+#include <arrows/algorithms/ocv/match_set.h>
+#include <arrows/algorithms/ocv/ocv_algo_tools.h>
 
 #include <opencv2/features2d/features2d.hpp>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -200,7 +200,7 @@ match_features
   // sets contain non-zero elements
   if( !desc1->size() || !desc2->size() )
   {
-    return vital::match_set_sptr( new maptk::ocv::match_set() );
+    return vital::match_set_sptr( new algorithms::ocv::match_set() );
   }
 
   cv::Mat d1 = descriptors_to_ocv_matrix(*desc1);
@@ -214,11 +214,11 @@ match_features
   {
     d_->simple_match(d1, d2, matches);
   }
-  return vital::match_set_sptr(new maptk::ocv::match_set(matches));
+  return vital::match_set_sptr(new algorithms::ocv::match_set(matches));
 }
 
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

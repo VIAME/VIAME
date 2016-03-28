@@ -30,15 +30,15 @@
 
 /**
  * \file
- * \brief Header defining the \link maptk::algo::close_loops_bad_frames_only
+ * \brief Header defining the \link vital::algo::close_loops_bad_frames_only
  *        close_loops_bad_frames_only \endlink algorithm
  */
 
-#ifndef MAPTK_PLUGINS_CORE_CLOSE_LOOPS_MULTI_METHOD_H_
-#define MAPTK_PLUGINS_CORE_CLOSE_LOOPS_MULTI_METHOD_H_
+#ifndef ARROWS_ALGORITHMS_CORE_CLOSE_LOOPS_MULTI_METHOD_H_
+#define ARROWS_ALGORITHMS_CORE_CLOSE_LOOPS_MULTI_METHOD_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
@@ -50,7 +50,7 @@
 #include <vital/config/config_block.h>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -60,7 +60,7 @@ namespace core
  * This class can run multiple other close_loops algorithm implementations
  * in attempt to accomplish this.
  */
-class MAPTK_CORE_EXPORT close_loops_multi_method
+class ALGORITHMS_CORE_EXPORT close_loops_multi_method
   : public vital::algorithm_impl<close_loops_multi_method, vital::algo::close_loops>
 {
 public:
@@ -143,8 +143,8 @@ private:
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_CLOSE_LOOPS_MULTI_METHOD_H_
+#endif // ARROWS_ALGORITHMS_CORE_CLOSE_LOOPS_MULTI_METHOD_H_

@@ -28,11 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAPTK_PLUGINS_CORE_FILTER_FEATURES_MAGNITUDE_H_
-#define MAPTK_PLUGINS_CORE_FILTER_FEATURES_MAGNITUDE_H_
+#ifndef ARROWS_ALGORITHMS_CORE_FILTER_FEATURES_MAGNITUDE_H_
+#define ARROWS_ALGORITHMS_CORE_FILTER_FEATURES_MAGNITUDE_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/filter_features.h>
 
@@ -40,18 +40,18 @@
 
 /**
  * \file
- * \brief Header defining \link maptk::core::filter_features_magnitude
+ * \brief Header defining \link vital::core::filter_features_magnitude
  *        \endlink algorithm
  */
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
 
 /// \brief Algorithm that filters features based on feature magnitude
-class MAPTK_CORE_EXPORT filter_features_magnitude
+class ALGORITHMS_CORE_EXPORT filter_features_magnitude
   : public vital::algorithm_impl<filter_features_magnitude, vital::algo::filter_features>
 {
 public:
@@ -94,8 +94,8 @@ private:
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_FILTER_FEATURES_MAGNITUDE_H_
+#endif // ARROWS_ALGORITHMS_CORE_FILTER_FEATURES_MAGNITUDE_H_

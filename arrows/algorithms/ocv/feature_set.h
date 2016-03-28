@@ -33,12 +33,12 @@
  * \brief OCV feature_set interface
  */
 
-#ifndef MAPTK_PLUGINS_OCV_FEATURE_SET_H_
-#define MAPTK_PLUGINS_OCV_FEATURE_SET_H_
+#ifndef ARROWS_ALGORITHMS_OCV_FEATURE_SET_H_
+#define ARROWS_ALGORITHMS_OCV_FEATURE_SET_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <opencv2/features2d/features2d.hpp>
 
@@ -46,14 +46,14 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
 
 
 /// A concrete feature set that wraps OpenCV KeyPoints
-class MAPTK_OCV_EXPORT feature_set
+class ALGORITHMS_OCV_EXPORT feature_set
   : public vital::feature_set
 {
 public:
@@ -81,14 +81,14 @@ protected:
 
 
 /// Convert any feature set to a vector of OpenCV cv::KeyPoints
-MAPTK_OCV_EXPORT std::vector<cv::KeyPoint>
+ALGORITHMS_OCV_EXPORT std::vector<cv::KeyPoint>
 features_to_ocv_keypoints(const vital::feature_set& features);
 
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_OCV_FEATURE_SET_H_
+#endif // ARROWS_ALGORITHMS_OCV_FEATURE_SET_H_

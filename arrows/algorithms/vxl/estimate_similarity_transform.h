@@ -33,26 +33,26 @@
  * \brief VXL version of similarity transform estimation
  */
 
-#ifndef MAPTK_PLUGINS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_
-#define MAPTK_PLUGINS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_
+#ifndef ARROWS_ALGORITHMS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_
+#define ARROWS_ALGORITHMS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/algo/estimate_similarity_transform.h>
 #include <vital/types/vector.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
 
 
 /// VXL implementation of similarity transform estimation
-class MAPTK_VXL_EXPORT estimate_similarity_transform
+class ALGORITHMS_VXL_EXPORT estimate_similarity_transform
   : public vital::algorithm_impl<estimate_similarity_transform,
                                          vital::algo::estimate_similarity_transform>
 {
@@ -86,8 +86,8 @@ public:
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_
+#endif // ARROWS_ALGORITHMS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_

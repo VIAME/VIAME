@@ -33,12 +33,12 @@
  * \brief Header for core triangulate_landmarks algorithm
  */
 
-#ifndef MAPTK_PLUGINS_CORE_TRIANGULATE_LANDMARKS_H_
-#define MAPTK_PLUGINS_CORE_TRIANGULATE_LANDMARKS_H_
+#ifndef ARROWS_ALGORITHMS_CORE_TRIANGULATE_LANDMARKS_H_
+#define ARROWS_ALGORITHMS_CORE_TRIANGULATE_LANDMARKS_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/triangulate_landmarks.h>
 
@@ -46,13 +46,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
 
 /// A class for triangulating landmarks from tracks and cameras using Eigen
-class MAPTK_CORE_EXPORT triangulate_landmarks
+class ALGORITHMS_CORE_EXPORT triangulate_landmarks
 : public vital::algorithm_impl<triangulate_landmarks,
                               vital::algo::triangulate_landmarks>
 {
@@ -99,8 +99,8 @@ private:
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_TRIANGULATE_LANDMARKS_H_
+#endif // ARROWS_ALGORITHMS_CORE_TRIANGULATE_LANDMARKS_H_

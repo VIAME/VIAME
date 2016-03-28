@@ -33,8 +33,8 @@
  * \brief Algorithm definition type registration helper macros
  */
 
-#ifndef MAPTK_PLUGIN_INTERFACE_ALGORITHM_PLUGIN_INTERFACE_MACROS_H_
-#define MAPTK_PLUGIN_INTERFACE_ALGORITHM_PLUGIN_INTERFACE_MACROS_H_
+#ifndef ALGORITHMS_PLUGIN_INTERFACE_ALGORITHM_PLUGIN_INTERFACE_MACROS_H_
+#define ALGORITHMS_PLUGIN_INTERFACE_ALGORITHM_PLUGIN_INTERFACE_MACROS_H_
 
 #include <iostream>
 #include <vital/registrar.h>
@@ -43,16 +43,16 @@
 // Helper macros for algorithm registration
 /// Initialize required variable for algorithm type registration
 /**
- * Side effect: Defines the integer variables ``maptk_api_expected_``,
- * ``maptk_api_registered_`` and ``maptk_api_registrar_``. Its probably not a good
+ * Side effect: Defines the integer variables ``algorithms_api_expected_``,
+ * ``algorithms_api_registered_`` and ``algorithms_api_registrar_``. Its probably not a good
  * idea to use these variable names in the current scope, unless expecting to
  * reference the ones defined here.
  *
  * \param reg The registrar we will be registering with.
  */
 #define REGISTRATION_INIT( reg ) \
-  unsigned int maptk_api_expected_ = 0, maptk_api_registered_ = 0; \
-  vital::registrar &maptk_api_registrar_ = reg
+  unsigned int algorithms_api_expected_ = 0, algorithms_api_registered_ = 0; \
+  vital::registrar &algorithms_api_registrar_ = reg
 
 
 /// Log to standard error a summary of registration results
@@ -61,8 +61,8 @@
  */
 #ifndef NDEBUG
 # define REGISTRATION_SUMMARY() \
-    std::cerr << "[DEBUG][maptk::algorithm_plugin_interface_macros::REGISTRATION_SUMMARY] " \
-              << "Registered " << maptk_api_registered_ << " of " << maptk_api_expected_ << " algorithms" << std::endl \
+    std::cerr << "[DEBUG][algorithms::algorithm_plugin_interface_macros::REGISTRATION_SUMMARY] " \
+              << "Registered " << algorithms_api_registered_ << " of " << algorithms_api_expected_ << " algorithms" << std::endl \
               << "\t(@" << __FILE__ << ")" << std::endl;
 #else
 # define REGISTRATION_SUMMARY()
@@ -71,17 +71,17 @@
 
 /// Return the number of registrations that failed (int).
 #define REGISTRATION_FAILURES() \
-  (maptk_api_expected_ - maptk_api_registered_)
+  (algorithms_api_expected_ - algorithms_api_registered_)
 
 
 /**
- * \brief Given a maptk::algorithm_def type, attempt registration with the
+ * \brief Given a algorithms::algorithm_def type, attempt registration with the
  *        given registrar
  * \param type Algorithm definition type
  */
 #define REGISTER_TYPE( type ) \
-  ++maptk_api_expected_; \
-  maptk_api_registered_ += type::register_self( maptk_api_registrar_ )
+  ++algorithms_api_expected_; \
+  algorithms_api_registered_ += type::register_self( algorithms_api_registrar_ )
 
 
-#endif // MAPTK_PLUGIN_INTERFACE_ALGORITHM_PLUGIN_INTERFACE_MACROS_H_
+#endif // ALGORITHMS_PLUGIN_INTERFACE_ALGORITHM_PLUGIN_INTERFACE_MACROS_H_

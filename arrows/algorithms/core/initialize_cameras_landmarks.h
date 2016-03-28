@@ -33,24 +33,24 @@
  * \brief Header for core camera and landmark initialization algorithm
  */
 
-#ifndef MAPTK_PLUGINS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
-#define MAPTK_PLUGINS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
+#ifndef ARROWS_ALGORITHMS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
+#define ARROWS_ALGORITHMS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/initialize_cameras_landmarks.h>
 
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
 
 /// A class for initialization of cameras and landmarks
-class MAPTK_CORE_EXPORT initialize_cameras_landmarks
+class ALGORITHMS_CORE_EXPORT initialize_cameras_landmarks
 : public vital::algorithm_impl<initialize_cameras_landmarks,
                               vital::algo::initialize_cameras_landmarks>
 {
@@ -98,8 +98,8 @@ private:
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
+#endif // ARROWS_ALGORITHMS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_

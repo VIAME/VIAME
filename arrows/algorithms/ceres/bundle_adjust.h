@@ -33,24 +33,24 @@
  * \brief Header for Ceres bundle adjustment algorithm
  */
 
-#ifndef MAPTK_PLUGINS_CERES_BUNDLE_ADJUST_H_
-#define MAPTK_PLUGINS_CERES_BUNDLE_ADJUST_H_
+#ifndef ARROWS_ALGORITHMS_CERES_BUNDLE_ADJUST_H_
+#define ARROWS_ALGORITHMS_CERES_BUNDLE_ADJUST_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ceres/maptk_ceres_export.h>
+#include <arrows/algorithms/ceres/algorithms_ceres_export.h>
 
 #include <vital/algo/bundle_adjust.h>
 
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ceres
 {
 
 /// A class for bundle adjustment of tracks using Ceres
-class MAPTK_CERES_EXPORT bundle_adjust
+class ALGORITHMS_CERES_EXPORT bundle_adjust
 : public vital::algorithm_impl<bundle_adjust, vital::algo::bundle_adjust>
 {
 public:
@@ -66,7 +66,7 @@ public:
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "ceres"; }
 
-  /// Get this algorithm's \link maptk::config_block configuration block \endlink
+  /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
   virtual void set_configuration(vital::config_block_sptr config);
@@ -93,8 +93,8 @@ private:
 
 } // end namespace ceres
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CERES_BUNDLE_ADJUST_H_
+#endif // ARROWS_ALGORITHMS_CERES_BUNDLE_ADJUST_H_

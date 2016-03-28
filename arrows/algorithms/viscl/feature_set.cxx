@@ -31,14 +31,14 @@
 
 #include "feature_set.h"
 
-#include <maptk/plugins/viscl/utils.h>
+#include <arrows/algorithms/viscl/utils.h>
 
 #include <viscl/core/manager.h>
 
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -154,5 +154,5 @@ feature_set
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

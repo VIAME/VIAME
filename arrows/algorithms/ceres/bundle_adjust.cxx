@@ -42,15 +42,15 @@
 
 #include <vital/logger/logger.h>
 #include <vital/io/eigen_io.h>
-#include <maptk/plugins/ceres/reprojection_error.h>
-#include <maptk/plugins/ceres/types.h>
+#include <arrows/algorithms/ceres/reprojection_error.h>
+#include <arrows/algorithms/ceres/types.h>
 
 #include <ceres/ceres.h>
 
 using namespace kwiver::vital;
 
 
-#define MAPTK_CERES_ENUM_HELPERS(NS, ceres_type)                        \
+#define CERES_ENUM_HELPERS(NS, ceres_type)                        \
 namespace kwiver {                                                      \
 namespace vital {                                                       \
                                                                         \
@@ -77,7 +77,7 @@ config_block_get_value_cast(config_block_value_t const& value)          \
                                                                         \
 }                                                                       \
                                                                         \
-namespace maptk {                                                       \
+namespace arrows {                                                      \
 namespace ceres {                                                       \
                                                                         \
 template<>                                                              \
@@ -104,7 +104,7 @@ ceres_options< NS::ceres_type >()                                       \
 }
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace ceres {
 
 /// Defult implementation of string options for Ceres enums
@@ -116,23 +116,23 @@ ceres_options()
 }
 
 } // end namespace ceres
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
-MAPTK_CERES_ENUM_HELPERS(::ceres, LinearSolverType)
-MAPTK_CERES_ENUM_HELPERS(::ceres, PreconditionerType)
-MAPTK_CERES_ENUM_HELPERS(::ceres, TrustRegionStrategyType)
-MAPTK_CERES_ENUM_HELPERS(::ceres, DoglegType)
+CERES_ENUM_HELPERS(::ceres, LinearSolverType)
+CERES_ENUM_HELPERS(::ceres, PreconditionerType)
+CERES_ENUM_HELPERS(::ceres, TrustRegionStrategyType)
+CERES_ENUM_HELPERS(::ceres, DoglegType)
 
-MAPTK_CERES_ENUM_HELPERS(kwiver::maptk::ceres, LossFunctionType)
-MAPTK_CERES_ENUM_HELPERS(kwiver::maptk::ceres, LensDistortionType)
-MAPTK_CERES_ENUM_HELPERS(kwiver::maptk::ceres, CameraIntrinsicShareType)
+CERES_ENUM_HELPERS(kwiver::algorithms::ceres, LossFunctionType)
+CERES_ENUM_HELPERS(kwiver::algorithms::ceres, LensDistortionType)
+CERES_ENUM_HELPERS(kwiver::algorithms::ceres, CameraIntrinsicShareType)
 
-#undef MAPTK_CERES_ENUM_HELPERS
+#undef CERES_ENUM_HELPERS
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace ceres {
 
 /// Private implementation class
@@ -155,7 +155,7 @@ public:
     optimize_dist_p1_p2(false),
     optimize_dist_k4_k5_k6(false),
     camera_intrinsic_share_type(AUTO_SHARE_INTRINSICS),
-    m_logger( vital::get_logger( "maptk.ceres.bundle_adjust" ))
+    m_logger( vital::get_logger( "algorithms.ceres.bundle_adjust" ))
   {
   }
 
@@ -174,7 +174,7 @@ public:
     optimize_dist_p1_p2(other.optimize_dist_p1_p2),
     optimize_dist_k4_k5_k6(other.optimize_dist_k4_k5_k6),
     camera_intrinsic_share_type(other.camera_intrinsic_share_type),
-    m_logger( vital::get_logger( "maptk.ceres.bundle_adjust" ))
+    m_logger( vital::get_logger( "algorithms.ceres.bundle_adjust" ))
   {
   }
 
@@ -237,7 +237,7 @@ bundle_adjust
 }
 
 
-/// Get this algorithm's \link maptk::config_block configuration block \endlink
+/// Get this algorithm's \link vital::config_block configuration block \endlink
 config_block_sptr
 bundle_adjust
 ::get_configuration() const
@@ -657,5 +657,5 @@ bundle_adjust
 
 } // end namespace ceres
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

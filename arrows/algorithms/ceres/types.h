@@ -33,18 +33,18 @@
  * \brief Define additional enum types in a similar style as Ceres
  */
 
-#ifndef MAPTK_PLUGINS_CERES_TYPES_H_
-#define MAPTK_PLUGINS_CERES_TYPES_H_
+#ifndef ARROWS_ALGORITHMS_CERES_TYPES_H_
+#define ARROWS_ALGORITHMS_CERES_TYPES_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ceres/maptk_ceres_export.h>
+#include <arrows/algorithms/ceres/algorithms_ceres_export.h>
 
 #include <string>
 #include <ceres/ceres.h>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ceres
 {
@@ -79,44 +79,44 @@ enum CameraIntrinsicShareType
 
 
 /// Provide a string representation for a LossFunctionType value
-MAPTK_CERES_EXPORT const char*
+ALGORITHMS_CERES_EXPORT const char*
 LossFunctionTypeToString(LossFunctionType type);
 
 /// Parse a LossFunctionType value from a string or return false
-MAPTK_CERES_EXPORT bool
+ALGORITHMS_CERES_EXPORT bool
 StringToLossFunctionType(std::string value, LossFunctionType* type);
 
 /// Construct a LossFunction object from the specified enum type
-MAPTK_CERES_EXPORT ::ceres::LossFunction*
+ALGORITHMS_CERES_EXPORT ::ceres::LossFunction*
 LossFunctionFactory(LossFunctionType type, double scale=1.0);
 
 
 /// Provide a string representation for a LensDisortionType value
-MAPTK_CERES_EXPORT const char*
+ALGORITHMS_CERES_EXPORT const char*
 LensDistortionTypeToString(LensDistortionType type);
 
 /// Parse a LensDistortionType value from a string or return false
-MAPTK_CERES_EXPORT bool
+ALGORITHMS_CERES_EXPORT bool
 StringToLensDistortionType(std::string value, LensDistortionType* type);
 
 /// Return the number of distortion parameters required for each type
-MAPTK_CERES_EXPORT unsigned int
+ALGORITHMS_CERES_EXPORT unsigned int
 num_distortion_params(LensDistortionType type);
 
 
 /// Provide a string representation for a CameraIntrinsicShareType value
-MAPTK_CERES_EXPORT const char*
+ALGORITHMS_CERES_EXPORT const char*
 CameraIntrinsicShareTypeToString(CameraIntrinsicShareType type);
 
 /// Parse a CameraIntrinsicShareType value from a string or return false
-MAPTK_CERES_EXPORT bool
+ALGORITHMS_CERES_EXPORT bool
 StringToCameraIntrinsicShareType(std::string value, CameraIntrinsicShareType* type);
 
 
 } // end namespace ceres
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CERES_TYPES_H_
+#endif // ARROWS_ALGORITHMS_CERES_TYPES_H_

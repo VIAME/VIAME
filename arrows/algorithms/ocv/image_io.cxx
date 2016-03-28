@@ -35,13 +35,13 @@
 
 #include "image_io.h"
 
-#include <maptk/plugins/ocv/image_container.h>
+#include <arrows/algorithms/ocv/image_container.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -71,10 +71,10 @@ image_io
        vital::image_container_sptr data) const
 {
   cv::imwrite(filename.c_str(),
-              ocv::image_container::maptk_to_ocv(data->get_image()));
+              ocv::image_container::vital_to_ocv(data->get_image()));
 }
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

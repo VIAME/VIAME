@@ -28,24 +28,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAPTK_PLUGINS_VISCL_CONVERT_IMAGE_H_
-#define MAPTK_PLUGINS_VISCL_CONVERT_IMAGE_H_
+#ifndef ARROWS_ALGORITHMS_VISCL_CONVERT_IMAGE_H_
+#define ARROWS_ALGORITHMS_VISCL_CONVERT_IMAGE_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/viscl/maptk_viscl_export.h>
+#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
 
 #include <vital/algo/convert_image.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
 
 /// Class to convert an image to a viscl base image
-class MAPTK_VISCL_EXPORT convert_image
+class ALGORITHMS_VISCL_EXPORT convert_image
   : public vital::algorithm_impl<convert_image, vital::algo::convert_image>
 {
 public:
@@ -71,8 +71,8 @@ public:
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VISCL_CONVERT_IMAGE_H_
+#endif // ARROWS_ALGORITHMS_VISCL_CONVERT_IMAGE_H_

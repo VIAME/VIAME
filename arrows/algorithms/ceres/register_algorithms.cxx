@@ -36,12 +36,12 @@
 #include "register_algorithms.h"
 
 
-#include <maptk/plugin_interface/algorithm_plugin_interface_macros.h>
-#include <maptk/plugins/ceres/bundle_adjust.h>
+#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/ceres/bundle_adjust.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace ceres {
 
 /// Register Ceres algorithm implementations with the given or global registrar
@@ -49,12 +49,12 @@ int register_algorithms( vital::registrar &reg )
 {
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( maptk::ceres::bundle_adjust );
+  REGISTER_TYPE( algorithms::ceres::bundle_adjust );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();
 }
 
 } // end namespace ceres
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

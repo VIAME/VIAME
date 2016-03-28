@@ -33,12 +33,12 @@
  * \brief OCV match_features algorithm impl interface
  */
 
-#ifndef MAPTK_PLUGINS_OCV_MATCH_FEATURES_H_
-#define MAPTK_PLUGINS_OCV_MATCH_FEATURES_H_
+#ifndef ARROWS_ALGORITHMS_OCV_MATCH_FEATURES_H_
+#define ARROWS_ALGORITHMS_OCV_MATCH_FEATURES_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <vital/algo/match_features.h>
 
@@ -46,13 +46,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
 
 /// An abstract base class for matching feature points
-class MAPTK_OCV_EXPORT match_features
+class ALGORITHMS_OCV_EXPORT match_features
   : public vital::algorithm_impl<match_features, vital::algo::match_features>
 {
 public:
@@ -68,7 +68,7 @@ public:
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "ocv"; }
 
-  /// Get this algorithm's \link maptk::kwiver::config_block configuration block \endlink
+  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
   virtual void set_configuration(vital::config_block_sptr config);
@@ -95,8 +95,8 @@ private:
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_OCV_MATCH_FEATURES_H_
+#endif // ARROWS_ALGORITHMS_OCV_MATCH_FEATURES_H_

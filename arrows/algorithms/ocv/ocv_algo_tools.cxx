@@ -42,7 +42,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -196,7 +196,7 @@ get_nested_ocv_algo_configuration(std::string const& name,
           {
             // Recursively call this method for an OpenCV algorithm's nested
             // algorithm. Options are laid out just like a nested OCV
-            // algorithm of MAPTK algorithm.
+            // algorithm of VITAL algorithm.
             cv::Ptr<cv::Algorithm> nested_algo = algo->get<cv::Algorithm>(pname);
             get_nested_ocv_algo_configuration(
                 pname,
@@ -362,5 +362,5 @@ cv::Ptr<cv::Algorithm> create_ocv_algo<cv::Algorithm>(std::string const& impl_na
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

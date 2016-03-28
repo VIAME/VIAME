@@ -35,16 +35,16 @@
 
 #include "register_algorithms.h"
 
-#include <maptk/plugin_interface/algorithm_plugin_interface_macros.h>
-#include <maptk/plugins/viscl/convert_image.h>
-#include <maptk/plugins/viscl/detect_features.h>
-#include <maptk/plugins/viscl/extract_descriptors.h>
-#include <maptk/plugins/viscl/match_features.h>
+#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/viscl/convert_image.h>
+#include <arrows/algorithms/viscl/detect_features.h>
+#include <arrows/algorithms/viscl/extract_descriptors.h>
+#include <arrows/algorithms/viscl/match_features.h>
 #include <vital/registrar.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace vcl {
 
 /// Register VisCL algorithm implementations with the given or global registrar
@@ -52,15 +52,15 @@ int register_algorithms( vital::registrar &reg )
 {
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( maptk::vcl::convert_image );
-  REGISTER_TYPE( maptk::vcl::detect_features );
-  REGISTER_TYPE( maptk::vcl::extract_descriptors );
-  REGISTER_TYPE( maptk::vcl::match_features );
+  REGISTER_TYPE( algorithms::vcl::convert_image );
+  REGISTER_TYPE( algorithms::vcl::detect_features );
+  REGISTER_TYPE( algorithms::vcl::extract_descriptors );
+  REGISTER_TYPE( algorithms::vcl::match_features );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();
 }
 
 } // end namespace vcl
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

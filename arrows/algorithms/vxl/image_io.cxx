@@ -40,7 +40,7 @@
 #include <vital/types/vector.h>
 #include <vital/exceptions/image.h>
 
-#include <maptk/plugins/vxl/image_container.h>
+#include <arrows/algorithms/vxl/image_container.h>
 
 #include <vil/vil_convert.h>
 #include <vil/vil_load.h>
@@ -49,7 +49,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -63,7 +63,7 @@ public:
   : auto_stretch(false),
     manual_stretch(false),
     intensity_range(0, 255),
-    m_logger( vital::get_logger( "maptk_vxl_image_io" ) )
+    m_logger( vital::get_logger( "vxl_image_io" ) )
   {
   }
 
@@ -272,11 +272,11 @@ image_io
 ::save_(const std::string& filename,
        image_container_sptr data) const
 {
-  vil_save(vxl::image_container::maptk_to_vxl(data->get_image()),
+  vil_save(vxl::image_container::vital_to_vxl(data->get_image()),
            filename.c_str());
 }
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

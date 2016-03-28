@@ -30,15 +30,15 @@
 
 #include "extract_descriptors.h"
 
-#include <maptk/plugins/viscl/image_container.h>
-#include <maptk/plugins/viscl/feature_set.h>
-#include <maptk/plugins/viscl/descriptor_set.h>
+#include <arrows/algorithms/viscl/image_container.h>
+#include <arrows/algorithms/viscl/feature_set.h>
+#include <arrows/algorithms/viscl/descriptor_set.h>
 
 #include <viscl/tasks/BRIEF.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -106,5 +106,5 @@ extract_descriptors
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

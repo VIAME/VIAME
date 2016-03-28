@@ -33,27 +33,27 @@
 * \brief Header defining VXL algorithm implementation of camera optimization.
 */
 
-#ifndef MAPTK_PLUGINS_VXL_OPTIMIZE_CAMERAS_H_
-#define MAPTK_PLUGINS_VXL_OPTIMIZE_CAMERAS_H_
+#ifndef ARROWS_ALGORITHMS_VXL_OPTIMIZE_CAMERAS_H_
+#define ARROWS_ALGORITHMS_VXL_OPTIMIZE_CAMERAS_H_
 
 
 #include <string>
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/optimize_cameras.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
 
 
-class MAPTK_VXL_EXPORT optimize_cameras
+class ALGORITHMS_VXL_EXPORT optimize_cameras
   : public vital::algorithm_impl<optimize_cameras, vital::algo::optimize_cameras>
 {
 public:
@@ -87,7 +87,7 @@ public:
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
-#endif // MAPTK_PLUGINS_VXL_OPTIMIZE_CAMERAS_H_
+#endif // ARROWS_ALGORITHMS_VXL_OPTIMIZE_CAMERAS_H_

@@ -30,16 +30,16 @@
 
 /**
  * \file
- * \brief Header defining the \link maptk::algo::track_features_core
+ * \brief Header defining the \link vital::algo::track_features_core
  *        track_features_core \endlink algorithm
  */
 
-#ifndef MAPTK_PLUGINS_CORE_TRACK_FEATURES_CORE_H_
-#define MAPTK_PLUGINS_CORE_TRACK_FEATURES_CORE_H_
+#ifndef ARROWS_PLUGINS_CORE_TRACK_FEATURES_CORE_H_
+#define ARROWS_PLUGINS_CORE_TRACK_FEATURES_CORE_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/track_features.h>
@@ -53,13 +53,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
 
 /// A basic feature tracker
-class MAPTK_CORE_EXPORT track_features_core
+class ALGORITHMS_CORE_EXPORT track_features_core
   : public vital::algorithm_impl<track_features_core, vital::algo::track_features>
 {
 public:
@@ -152,8 +152,8 @@ private:
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_TRACK_FEATURES_CORE_H_
+#endif // ARROWS_ALGORITHMS_CORE_TRACK_FEATURES_CORE_H_

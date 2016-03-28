@@ -33,12 +33,12 @@
  * \brief VXL image_io interface
  */
 
-#ifndef MAPTK_PLUGINS_VXL_IMAGE_IO_H_
-#define MAPTK_PLUGINS_VXL_IMAGE_IO_H_
+#ifndef ARROWS_ALGORITHMS_VXL_IMAGE_IO_H_
+#define ARROWS_ALGORITHMS_VXL_IMAGE_IO_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/algo/image_io.h>
 
@@ -46,13 +46,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
 
 /// A class for using VXL to read and write images
-class MAPTK_VXL_EXPORT image_io
+class ALGORITHMS_VXL_EXPORT image_io
   : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
 public:
@@ -101,8 +101,8 @@ private:
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VXL_IMAGE_IO_H_
+#endif // ARROWS_ALGORITHMS_VXL_IMAGE_IO_H_

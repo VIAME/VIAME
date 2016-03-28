@@ -50,7 +50,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -236,5 +236,5 @@ overlap( const vnl_double_3x3& h, const unsigned ni, const unsigned nj )
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

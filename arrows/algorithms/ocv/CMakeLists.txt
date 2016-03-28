@@ -1,7 +1,7 @@
 # Build / Install plugin containing OpenCV algorithm implementations + support
 # structures
 
-set( maptk_ocv_headers_public
+set( ocv_headers_public
   analyze_tracks.h
   descriptor_set.h
   detect_features.h
@@ -18,15 +18,15 @@ set( maptk_ocv_headers_public
   register_algorithms.h
   )
 kwiver_install_headers(
-  SUBDIR     maptk/plugins/ocv
-  ${maptk_ocv_headers_public}
+  SUBDIR     arrows/algorithms/ocv
+  ${ocv_headers_public}
   )
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/maptk_ocv_export.h
-  NOPATH   SUBDIR     maptk/plugins/ocv
+  ${CMAKE_CURRENT_BINARY_DIR}/algorithms_ocv_export.h
+  NOPATH   SUBDIR     arrows/algorithms/ocv
   )
 
-set( maptk_ocv_sources
+set( ocv_sources
   analyze_tracks.cxx
   descriptor_set.cxx
   detect_features.cxx
@@ -42,15 +42,15 @@ set( maptk_ocv_sources
   ocv_algo_tools.cxx
   register_algorithms.cxx
   )
-kwiver_add_library( maptk_ocv
-  ${maptk_ocv_headers_public}
-  ${maptk_ocv_sources}
+kwiver_add_library( algorithms_ocv
+  ${ocv_headers_public}
+  ${ocv_sources}
   )
-target_link_libraries( maptk_ocv
+target_link_libraries( algorithms_ocv
   PUBLIC               maptk
                      ${OpenCV_LIBS}
   )
 
-maptk_create_plugin( maptk_ocv
+arrows_create_plugin( algorithms_ocv
   algorithm_plugin_interface.cxx
   )

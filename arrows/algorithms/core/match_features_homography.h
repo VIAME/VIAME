@@ -33,11 +33,11 @@
  * \brief core match_features_homography algorithm impl interface
  */
 
-#ifndef MAPTK_PLUGINS_CORE_MATCH_FEATURES_HOMOGRAPHY_H_
-#define MAPTK_PLUGINS_CORE_MATCH_FEATURES_HOMOGRAPHY_H_
+#ifndef ARROWS_ALGORITHMS_CORE_MATCH_FEATURES_HOMOGRAPHY_H_
+#define ARROWS_ALGORITHMS_CORE_MATCH_FEATURES_HOMOGRAPHY_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/filter_features.h>
 
@@ -48,7 +48,7 @@
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -77,7 +77,7 @@ namespace core
  *  the additional weak matches using the constraint that the location
  *  in the image is now known approximately.
  */
-class MAPTK_CORE_EXPORT match_features_homography
+class ALGORITHMS_CORE_EXPORT match_features_homography
   : public vital::algorithm_impl<match_features_homography, vital::algo::match_features>
 {
 public:
@@ -154,8 +154,8 @@ private:
 
 } // end namespace algo
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_MATCH_FEATURES_HOMOGRAPHY_H_
+#endif // ARROWS_ALGORITHMS_CORE_MATCH_FEATURES_HOMOGRAPHY_H_

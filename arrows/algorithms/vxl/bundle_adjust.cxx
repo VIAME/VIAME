@@ -41,7 +41,7 @@
 #include <vital/vital_foreach.h>
 #include <vital/util/cpu_timer.h>
 
-#include <maptk/plugins/vxl/camera_map.h>
+#include <arrows/algorithms/vxl/camera_map.h>
 #include <vital/io/eigen_io.h>
 
 #include <vpgl/algo/vpgl_bundle_adjust.h>
@@ -49,7 +49,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -227,7 +227,7 @@ bundle_adjust
   typedef vxl::camera_map::map_vcam_t map_vcam_t;
   typedef vital::landmark_map::map_landmark_t map_landmark_t;
 
-#define MAPTK_SBA_TIMED(msg, code)                                      \
+#define SBA_TIMED(msg, code)                                      \
   do                                                                    \
   {                                                                     \
     kwiver::vital::cpu_timer t;                                         \
@@ -262,7 +262,7 @@ bundle_adjust
   typedef std::map<frame_id_t, super_map_inner_t> super_map_t;
   super_map_t frame2track2feature_map;
 
-  MAPTK_SBA_TIMED("Constructing id-map and super-map",
+  SBA_TIMED("Constructing id-map and super-map",
     VITAL_FOREACH(const map_vcam_t::value_type& p, vcams)
     {
       const frame_id_t& frame = p.first;
@@ -306,7 +306,7 @@ bundle_adjust
   std::map<frame_id_t, frame_id_t> cam_id_reverse_map;
   std::vector<vpgl_perspective_camera<double> > active_vcams;
 
-  MAPTK_SBA_TIMED("Creating index mappings",
+  SBA_TIMED("Creating index mappings",
     VITAL_FOREACH(const track_id_t& id, lm_ids)
     {
       lm_id_reverse_map[id] = static_cast<track_id_t>(lm_id_index.size());
@@ -334,7 +334,7 @@ bundle_adjust
   // compact location vector
   std::vector<vgl_point_2d<double> > image_pts;
 
-  MAPTK_SBA_TIMED("Creating masks and point vector",
+  SBA_TIMED("Creating masks and point vector",
     VITAL_FOREACH(const super_map_t::value_type& p, frame2track2feature_map)
     {
       // p.first  -> frame ID
@@ -367,12 +367,12 @@ bundle_adjust
   );
 
   // Run the vpgl bundle adjustment on the selected data
-  MAPTK_SBA_TIMED("VXL bundle optimization",
+  SBA_TIMED("VXL bundle optimization",
     d_->ba.optimize(active_vcams, active_world_pts, image_pts, mask);
   );
 
-  // map optimized results back into maptk structures
-  MAPTK_SBA_TIMED("Mapping optimized results back to MAPTK structures",
+  // map optimized results back into vital structures
+  SBA_TIMED("Mapping optimized results back to VITAL structures",
     for(unsigned int i=0; i<active_vcams.size(); ++i)
     {
       vcams[cam_id_index[i]] = active_vcams[i];
@@ -395,11 +395,11 @@ bundle_adjust
     landmarks = landmark_map_sptr(new simple_landmark_map(lms));
   );
 
-#undef MAPTK_SBA_TIMED
+#undef SBA_TIMED
 }
 
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

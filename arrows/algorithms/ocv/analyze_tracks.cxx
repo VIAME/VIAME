@@ -42,12 +42,12 @@
 #include <set>
 #include <vector>
 
-#include <maptk/plugins/ocv/ocv_algo_tools.h>
+#include <arrows/algorithms/ocv/ocv_algo_tools.h>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -260,5 +260,5 @@ analyze_tracks
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

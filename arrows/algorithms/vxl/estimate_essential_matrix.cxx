@@ -39,7 +39,7 @@
 #include <vital/vital_foreach.h>
 
 #include <vital/types/feature.h>
-#include <maptk/plugins/vxl/camera.h>
+#include <arrows/algorithms/vxl/camera.h>
 #include <maptk/epipolar_geometry.h>
 
 #include <vgl/vgl_point_2d.h>
@@ -49,7 +49,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -188,5 +188,5 @@ estimate_essential_matrix
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

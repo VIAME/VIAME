@@ -33,12 +33,12 @@
  * \brief Header for VXL bundle adjustment algorithm
  */
 
-#ifndef MAPTK_PLUGINS_VXL_BUNDLE_ADJUST_H_
-#define MAPTK_PLUGINS_VXL_BUNDLE_ADJUST_H_
+#ifndef ARROWS_ALGORITHMS_VXL_BUNDLE_ADJUST_H_
+#define ARROWS_ALGORITHMS_VXL_BUNDLE_ADJUST_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/algo/bundle_adjust.h>
 
@@ -46,13 +46,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
 
 /// A class for bundle adjustment of tracks using VXL
-class MAPTK_VXL_EXPORT bundle_adjust
+class ALGORITHMS_VXL_EXPORT bundle_adjust
 : public vital::algorithm_impl<bundle_adjust, vital::algo::bundle_adjust>
 {
 public:
@@ -68,7 +68,7 @@ public:
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "vxl"; }
 
-  /// Get this algorithm's \link maptk::vital::config_block configuration block \endlink
+  /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
   virtual void set_configuration(vital::config_block_sptr config);
@@ -95,8 +95,8 @@ private:
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VXL_BUNDLE_ADJUST_H_
+#endif // ARROWS_ALGORITHMS_VXL_BUNDLE_ADJUST_H_

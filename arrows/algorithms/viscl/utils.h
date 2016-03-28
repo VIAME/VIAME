@@ -28,14 +28,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAPTK_PLUGINS_VISCL_UTILS_H_
-#define MAPTK_PLUGINS_VISCL_UTILS_H_
+#ifndef ARROWS_ALGORITHMS_VISCL_UTILS_H_
+#define ARROWS_ALGORITHMS_VISCL_UTILS_H_
 
 #include <vital/types/feature_set.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -45,7 +45,7 @@ void min_image_dimensions(const vital::feature_set &feat, unsigned int &width, u
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
-#endif // MAPTK_PLUGINS_VISCL_UTILS_H_
+#endif // ARROWS_ALGORITHMS_VISCL_UTILS_H_

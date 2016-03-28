@@ -40,7 +40,7 @@
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -63,10 +63,10 @@ image_container
 }
 
 
-/// Convert a VisCL image to a MAPTK image
+/// Convert a VisCL image to a VITAL image
 vital::image
 image_container
-::viscl_to_maptk(const viscl::image& img_cl)
+::viscl_to_vital(const viscl::image& img_cl)
 {
   size_t width = img_cl.width();
   size_t height = img_cl.height();
@@ -88,10 +88,10 @@ image_container
 }
 
 
-/// Convert a MAPTK image to a VisCL image
+/// Convert a VITAL image to a VisCL image
 viscl::image
 image_container
-::maptk_to_viscl(const vital::image& img)
+::vital_to_viscl(const vital::image& img)
 {
   cl::ImageFormat img_fmt;
   img_fmt = cl::ImageFormat(CL_INTENSITY, CL_UNORM_INT8);
@@ -151,11 +151,11 @@ image_container_to_viscl(const vital::image_container& img)
   {
     return c->get_viscl_image();
   }
-  return image_container::maptk_to_viscl(img.get_image());
+  return image_container::vital_to_viscl(img.get_image());
 }
 
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

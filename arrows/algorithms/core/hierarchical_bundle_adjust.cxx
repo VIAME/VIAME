@@ -58,7 +58,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -166,7 +166,7 @@ hierarchical_bundle_adjust
 }
 
 
-/// Get this algorithm's \link maptk::kwiver::config_block configuration block \endlink
+/// Get this algorithm's \link vital::kwiver::config_block configuration block \endlink
   vital::config_block_sptr
 hierarchical_bundle_adjust
 ::get_configuration() const
@@ -229,8 +229,8 @@ hierarchical_bundle_adjust
 {
   bool valid = true;
 
-#define MAPTK_HSBA_CHECK_FAIL(msg) \
-  std::cerr << "MAPTK HSBA CONFIG CHECK FAIL: " << msg << std::endl; \
+#define HSBA_CHECK_FAIL(msg) \
+  std::cerr << "HSBA CONFIG CHECK FAIL: " << msg << std::endl; \
   valid = false
 
   // using long to allow negatives and maintain numerical capacity of
@@ -238,19 +238,19 @@ hierarchical_bundle_adjust
   if (config->has_value("initial_sub_sample")
       && config->get_value<long>("initial_sub_sample") <= 0)
   {
-    MAPTK_HSBA_CHECK_FAIL("\"initial_sub_sample\" must be greater than 0. Given: "
+    HSBA_CHECK_FAIL("\"initial_sub_sample\" must be greater than 0. Given: "
                           << config->get_value<long>("initial_sub_sample"));
   }
   if (config->has_value("interpolation_rate")
       && config->get_value<long>("interpolation_rate") < 0)
   {
-    MAPTK_HSBA_CHECK_FAIL("\"interpolation_rate\" must be >= 0. Given: "
+    HSBA_CHECK_FAIL("\"interpolation_rate\" must be >= 0. Given: "
                           << config->get_value<long>("interpolation_rate"));
   }
 
   if (!vital::algo::bundle_adjust::check_nested_algo_configuration("sba_impl", config))
   {
-    MAPTK_HSBA_CHECK_FAIL("sba_impl configuration invalid.");
+    HSBA_CHECK_FAIL("sba_impl configuration invalid.");
   }
 
   if (config->get_value<std::string>("camera_optimizer:type", "") == "")
@@ -259,7 +259,7 @@ hierarchical_bundle_adjust
   }
   else if (!vital::algo::optimize_cameras::check_nested_algo_configuration("camera_optimizer", config))
   {
-    MAPTK_HSBA_CHECK_FAIL("camera_optimizer configuration invalid.");
+    HSBA_CHECK_FAIL("camera_optimizer configuration invalid.");
   }
 
   if (config->get_value<std::string>("lm_triangulator:type", "") == "")
@@ -269,10 +269,10 @@ hierarchical_bundle_adjust
   else if (!vital::algo::triangulate_landmarks::check_nested_algo_configuration("lm_triangulator", config))
   {
     std::cerr << "lm_triangulator type: \"" << config->get_value<std::string>("lm_triangulator:type") << "\"" << std::endl;
-    MAPTK_HSBA_CHECK_FAIL("lm_triangulator configuration invalid.");
+    HSBA_CHECK_FAIL("lm_triangulator configuration invalid.");
   }
 
-#undef MAPTK_HSBA_CHECK_FAIL
+#undef HSBA_CHECK_FAIL
 
   // camera optimizer and lm triangulator are optional. If not set, pointers
   // will be 0.
@@ -500,5 +500,5 @@ hierarchical_bundle_adjust
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

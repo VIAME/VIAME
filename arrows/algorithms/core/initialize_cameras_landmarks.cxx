@@ -47,7 +47,7 @@
 #include <vital/algo/bundle_adjust.h>
 #include <vital/algo/optimize_cameras.h>
 
-#include <maptk/plugins/core/triangulate_landmarks.h>
+#include <arrows/algorithms/core/triangulate_landmarks.h>
 #include <maptk/metrics.h>
 #include <maptk/match_matrix.h>
 #include <maptk/triangulate.h>
@@ -55,7 +55,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -74,7 +74,7 @@ public:
     e_estimator(),
     camera_optimizer(),
     // use the core triangulation as the default, users can change it
-    lm_triangulator(new maptk::core::triangulate_landmarks()),
+    lm_triangulator(new algorithms::core::triangulate_landmarks()),
     bundle_adjuster()
   {
   }
@@ -857,13 +857,13 @@ initialize_cameras_landmarks
     {
       camera_map_sptr ba_cams(new simple_camera_map(cams));
       landmark_map_sptr ba_lms(new simple_landmark_map(lms));
-      double init_rmse = maptk::reprojection_rmse(cams, lms, trks);
+      double init_rmse = algorithms::reprojection_rmse(cams, lms, trks);
       std::cerr << "initial reprojection RMSE: " << init_rmse << std::endl;
 
       d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks);
       cams = ba_cams->cameras();
       lms = ba_lms->landmarks();
-      double final_rmse = maptk::reprojection_rmse(cams, lms, trks);
+      double final_rmse = algorithms::reprojection_rmse(cams, lms, trks);
       std::cerr << "final reprojection RMSE: " << final_rmse << std::endl;
       std::cout << "updated focal length "<<cams.begin()->second->intrinsics()->focal_length() <<std::endl;
     }
@@ -881,5 +881,5 @@ initialize_cameras_landmarks
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

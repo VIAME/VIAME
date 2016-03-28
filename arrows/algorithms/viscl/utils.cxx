@@ -32,7 +32,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -60,5 +60,5 @@ void min_image_dimensions(const vital::feature_set &feat, unsigned int &width, u
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

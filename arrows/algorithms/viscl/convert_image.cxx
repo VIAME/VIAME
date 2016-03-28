@@ -30,11 +30,11 @@
 
 #include "convert_image.h"
 
-#include <maptk/plugins/viscl/image_container.h>
+#include <arrows/algorithms/viscl/image_container.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -64,5 +64,5 @@ convert_image
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

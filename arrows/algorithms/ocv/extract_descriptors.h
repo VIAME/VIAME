@@ -30,28 +30,28 @@
 
 /**
  * \file
- * \brief MAPTK algorithm wrapping of OCV's DescriptorExtractor
+ * \brief Arrows algorithm wrapping of OCV's DescriptorExtractor
  */
 
-#ifndef MAPTK_PLUGINS_OCV_EXTRACT_DESCRIPTORS_H_
-#define MAPTK_PLUGINS_OCV_EXTRACT_DESCRIPTORS_H_
+#ifndef ARROWS_ALGORITHMS_OCV_EXTRACT_DESCRIPTORS_H_
+#define ARROWS_ALGORITHMS_OCV_EXTRACT_DESCRIPTORS_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <vital/algo/extract_descriptors.h>
 
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
 
 /// An class for extracting feature descriptors using OpenCV
-class MAPTK_OCV_EXPORT extract_descriptors
+class ALGORITHMS_OCV_EXPORT extract_descriptors
   : public vital::algorithm_impl<extract_descriptors, vital::algo::extract_descriptors>
 {
 public:
@@ -67,7 +67,7 @@ public:
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "ocv"; }
 
-  /// Get this algorithm's \link maptk::kwiver::config_block configuration block \endlink
+  /// Get this algorithm's \link vital::kwiver::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
   virtual void set_configuration(vital::config_block_sptr config);
@@ -93,8 +93,8 @@ private:
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_OCV_EXTRACT_DESCRIPTORS_H_
+#endif // ARROWS_ALGORITHMS_OCV_EXTRACT_DESCRIPTORS_H_

@@ -33,12 +33,12 @@
  * \brief OCV match_set interface
  */
 
-#ifndef MAPTK_PLUGINS_OCV_MATCH_SET_H_
-#define MAPTK_PLUGINS_OCV_MATCH_SET_H_
+#ifndef ARROWS_ALGORITHMS_OCV_MATCH_SET_H_
+#define ARROWS_ALGORITHMS_OCV_MATCH_SET_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <opencv2/features2d/features2d.hpp>
 
@@ -46,14 +46,14 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
 
 
 /// A concrete match set that wraps OpenCV cv::DMatch objects
-class MAPTK_OCV_EXPORT match_set
+class ALGORITHMS_OCV_EXPORT match_set
   : public vital::match_set
 {
 public:
@@ -80,14 +80,14 @@ private:
 
 
 /// Convert any match set to a vector of OpenCV cv::DMatch
-MAPTK_OCV_EXPORT std::vector<cv::DMatch>
+ALGORITHMS_OCV_EXPORT std::vector<cv::DMatch>
 matches_to_ocv_dmatch(const vital::match_set& match_set);
 
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_OCV_MATCH_SET_H_
+#endif // ARROWS_ALGORITHMS_OCV_MATCH_SET_H_

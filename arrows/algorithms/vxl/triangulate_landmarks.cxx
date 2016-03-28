@@ -39,14 +39,14 @@
 
 #include <vital/vital_foreach.h>
 
-#include <maptk/plugins/vxl/camera_map.h>
+#include <arrows/algorithms/vxl/camera_map.h>
 
 #include <vpgl/algo/vpgl_triangulate_points.h>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -223,5 +223,5 @@ triangulate_landmarks
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

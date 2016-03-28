@@ -33,12 +33,12 @@
  * \brief Header for VXL triangulate_landmarks algorithm
  */
 
-#ifndef MAPTK_PLUGINS_VXL_TRIANGULATE_LANDMARKS_H_
-#define MAPTK_PLUGINS_VXL_TRIANGULATE_LANDMARKS_H_
+#ifndef ARROWS_ALGORITHMS_VXL_TRIANGULATE_LANDMARKS_H_
+#define ARROWS_ALGORITHMS_VXL_TRIANGULATE_LANDMARKS_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/algo/triangulate_landmarks.h>
 
@@ -46,13 +46,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
 
 /// A class for triangulating landmarks from tracks and cameras using VXL
-class MAPTK_VXL_EXPORT triangulate_landmarks
+class ALGORITHMS_VXL_EXPORT triangulate_landmarks
 : public vital::algorithm_impl<triangulate_landmarks,
                                        vital::algo::triangulate_landmarks>
 {
@@ -99,8 +99,8 @@ private:
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VXL_TRIANGULATE_LANDMARKS_H_
+#endif // ARROWS_ALGORITHMS_VXL_TRIANGULATE_LANDMARKS_H_

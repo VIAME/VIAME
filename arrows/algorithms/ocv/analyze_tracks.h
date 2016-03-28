@@ -33,25 +33,25 @@
  * \brief Header for OpenCV analyze_tracks algorithm
  */
 
-#ifndef MAPTK_PLUGINS_OCV_ANALYZE_TRACKS_H_
-#define MAPTK_PLUGINS_OCV_ANALYZE_TRACKS_H_
+#ifndef ARROWS_ALGORITHMS_OCV_ANALYZE_TRACKS_H_
+#define ARROWS_ALGORITHMS_OCV_ANALYZE_TRACKS_H_
 
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/ocv/maptk_ocv_export.h>
+#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
 
 #include <vital/algo/analyze_tracks.h>
 
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
 
 /// A class for outputting various debug info about feature tracks
-class MAPTK_OCV_EXPORT analyze_tracks
+class ALGORITHMS_OCV_EXPORT analyze_tracks
 : public vital::algorithm_impl<analyze_tracks, vital::algo::analyze_tracks>
 {
 public:
@@ -94,8 +94,8 @@ private:
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_OCV_ANALYZE_TRACKS_H_
+#endif // ARROWS_ALGORITHMS_OCV_ANALYZE_TRACKS_H_

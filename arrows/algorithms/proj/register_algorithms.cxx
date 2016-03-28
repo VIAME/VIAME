@@ -35,12 +35,12 @@
 
 #include "register_algorithms.h"
 
-#include <maptk/plugin_interface/algorithm_plugin_interface_macros.h>
-#include <maptk/plugins/proj/geo_map.h>
+#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/proj/geo_map.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace proj {
 
 /// Register PROJ algorithm implementations with the given or global registrar
@@ -48,12 +48,12 @@ int register_algorithms( vital::registrar &reg )
 {
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( maptk::proj::geo_map );
+  REGISTER_TYPE( algorithms::proj::geo_map );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();
 }
 
 } // end namespace proj
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

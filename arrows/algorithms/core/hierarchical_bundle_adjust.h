@@ -30,15 +30,15 @@
 
 /**
  * \file
- * \brief Header defining \link maptk::algo::hierarchical_bundle_adjust
+ * \brief Header defining \link vital::algo::hierarchical_bundle_adjust
  *        hierarchical bundle adjustment \endlink algorithm
  */
 
-#ifndef MAPTK_PLUGINS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
-#define MAPTK_PLUGINS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
+#ifndef ARROWS_ALGORITHMS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
+#define ARROWS_ALGORITHMS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/bundle_adjust.h>
@@ -48,13 +48,13 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
 
 
-class MAPTK_CORE_EXPORT hierarchical_bundle_adjust
+class ALGORITHMS_CORE_EXPORT hierarchical_bundle_adjust
   : public vital::algorithm_impl<hierarchical_bundle_adjust, vital::algo::bundle_adjust>
 {
 public:
@@ -69,7 +69,7 @@ public:
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "hierarchical"; }
 
-  /// Get this algorithm's \link maptk::kwiver::config_block configuration block \endlink
+  /// Get this algorithm's \link vital::kwiver::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
   virtual void set_configuration(vital::config_block_sptr config);
@@ -94,8 +94,8 @@ typedef std::shared_ptr<hierarchical_bundle_adjust> hierarchical_bundle_adjust_s
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
+#endif // ARROWS_ALGORITHMS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_

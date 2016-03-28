@@ -33,12 +33,12 @@
  * \brief PROJ plugin algorithm registration interface implementation
  */
 
-#include <maptk/plugins/proj/register_algorithms.h>
-#include <maptk/plugin_interface/algorithm_plugin_interface.h>
+#include <arrows/algorithms/proj/register_algorithms.h>
+#include <arrows/plugin_interface/algorithm_plugin_interface.h>
 #include <vital/registrar.h>
 
 
 int register_algo_impls( kwiver::vital::registrar &reg )
 {
-  return kwiver::maptk::proj::register_algorithms( reg );
+  return kwiver::algorithms::proj::register_algorithms( reg );
 }

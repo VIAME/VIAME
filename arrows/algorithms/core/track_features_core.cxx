@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link maptk::algo::track_features_core
+ * \brief Implementation of \link vital::algo::track_features_core
  *        track_features_core \endlink
  */
 
@@ -52,7 +52,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -271,5 +271,5 @@ track_features_core
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

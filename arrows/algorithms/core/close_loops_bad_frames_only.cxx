@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link maptk::algo::close_loops_bad_frames_only
+ * \brief Implementation of \link vital::algo::close_loops_bad_frames_only
  *        close_loops_bad_frames_only \endlink
  */
 
@@ -49,7 +49,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -264,5 +264,5 @@ close_loops_bad_frames_only
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

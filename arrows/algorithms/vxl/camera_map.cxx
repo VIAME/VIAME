@@ -37,12 +37,12 @@
 
 #include <vital/vital_foreach.h>
 
-#include <maptk/plugins/vxl/camera.h>
+#include <arrows/algorithms/vxl/camera.h>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -52,15 +52,15 @@ namespace vxl
 vital::camera_map::map_camera_t
 camera_map::cameras() const
 {
-  map_camera_t maptk_cameras;
+  map_camera_t vital_cameras;
 
   VITAL_FOREACH(const map_vcam_t::value_type& c, data_)
   {
-    camera_sptr cam = vpgl_camera_to_maptk(c.second);
-    maptk_cameras.insert(std::make_pair(c.first, cam));
+    camera_sptr cam = vpgl_camera_to_vital(c.second);
+    vital_cameras.insert(std::make_pair(c.first, cam));
   }
 
-  return maptk_cameras;
+  return vital_cameras;
 }
 
 
@@ -82,7 +82,7 @@ camera_map_to_vpgl(const vital::camera_map& cam_map)
     vpgl_perspective_camera<double> vcam;
     if( const simple_camera* mcam = dynamic_cast<const simple_camera*>(c.second.get()) )
     {
-      maptk_to_vpgl_camera(*mcam, vcam);
+      vital_to_vpgl_camera(*mcam, vcam);
     }
     else
     {
@@ -96,5 +96,5 @@ camera_map_to_vpgl(const vital::camera_map& cam_map)
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

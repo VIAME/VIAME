@@ -43,8 +43,8 @@
 
 #include <vital/exceptions.h>
 
-#include <maptk/plugins/vxl/camera.h>
-#include <maptk/plugins/vxl/camera_map.h>
+#include <arrows/algorithms/vxl/camera.h>
+#include <arrows/algorithms/vxl/camera_map.h>
 
 #include <vcl_vector.h>
 #include <vgl/vgl_homg_point_3d.h>
@@ -56,7 +56,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
@@ -67,7 +67,7 @@ namespace // anonymous
 /// Reproduction of vpgl_optimize_camera::opt_orient_pos(...), but without
 /// trace statement.
 vpgl_perspective_camera<double>
-maptk_opt_orient_pos(vpgl_perspective_camera<double> const& camera,
+opt_orient_pos(vpgl_perspective_camera<double> const& camera,
                      vcl_vector<vgl_homg_point_3d<double> > const& world_points,
                      vcl_vector<vgl_point_2d<double> > const& image_points)
 {
@@ -109,7 +109,7 @@ optimize_cameras
 
   // convert the camera
   vpgl_perspective_camera<double> vcamera;
-  maptk_to_vpgl_camera(mcamera, vcamera);
+  vital_to_vpgl_camera(mcamera, vcamera);
 
   // For each camera in the input map, create corresponding point sets for 2D
   // and 3D coordinates of tracks and matching landmarks, respectively, for
@@ -127,10 +127,10 @@ optimize_cameras
     pts_3d.push_back(vgl_homg_point_3d<double>(tmp_3d.x(), tmp_3d.y(), tmp_3d.z()));
   }
   // optimize
-  vcamera = maptk_opt_orient_pos(vcamera, pts_3d, pts_2d);
+  vcamera = opt_orient_pos(vcamera, pts_3d, pts_2d);
 
   // convert back and fill in the unchanged intrinsics
-  vpgl_camera_to_maptk(vcamera, mcamera);
+  vpgl_camera_to_vital(vcamera, mcamera);
   mcamera.set_intrinsics(k);
   camera = mcamera.clone();
 }
@@ -138,5 +138,5 @@ optimize_cameras
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

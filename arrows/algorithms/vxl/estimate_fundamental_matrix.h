@@ -33,11 +33,11 @@
  * \brief VXL fundamental matrix estimation algorithm (5 point alg)
  */
 
-#ifndef MAPTK_PLUGINS_VXL_ESTIMATE_FUNDAMENTAL_MATRIX_H_
-#define MAPTK_PLUGINS_VXL_ESTIMATE_FUNDAMENTAL_MATRIX_H_
+#ifndef ARROWS_ALGORITHMS_VXL_ESTIMATE_FUNDAMENTAL_MATRIX_H_
+#define ARROWS_ALGORITHMS_VXL_ESTIMATE_FUNDAMENTAL_MATRIX_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/vxl/maptk_vxl_export.h>
+#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
 
 #include <vital/types/camera_intrinsics.h>
 
@@ -46,13 +46,13 @@
 #include <memory>
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vxl
 {
 
 /// A class that uses 5 pt algorithm to estimate an initial xform between 2 pt sets
-class MAPTK_VXL_EXPORT estimate_fundamental_matrix
+class ALGORITHMS_VXL_EXPORT estimate_fundamental_matrix
   : public vital::algorithm_impl<estimate_fundamental_matrix, vital::algo::estimate_fundamental_matrix>
 {
 public:
@@ -115,8 +115,8 @@ private:
 
 } // end namespace vxl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_VXL_ESTIMATE_FUNDAMENTAL_MATRIX_H_
+#endif // ARROWS_ALGORITHMS_VXL_ESTIMATE_FUNDAMENTAL_MATRIX_H_

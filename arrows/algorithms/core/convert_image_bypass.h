@@ -33,24 +33,24 @@
  * \brief Default convert_image algorithm that acts as a bypass
  */
 
-#ifndef MAPTK_PLUGINS_CORE_CONVERT_IMAGE_BYPASS_H_
-#define MAPTK_PLUGINS_CORE_CONVERT_IMAGE_BYPASS_H_
+#ifndef ARROWS_ALGORITHMS_CORE_CONVERT_IMAGE_BYPASS_H_
+#define ARROWS_ALGORITHMS_CORE_CONVERT_IMAGE_BYPASS_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/convert_image.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
 
 
 /// A class for bypassing image conversion
-class MAPTK_CORE_EXPORT convert_image_bypass
+class ALGORITHMS_CORE_EXPORT convert_image_bypass
   : public vital::algorithm_impl<convert_image_bypass, vital::algo::convert_image>
 {
 public:
@@ -77,8 +77,8 @@ public:
 
 } // end namespace core
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_CONVERT_IMAGE_BYPASS_H_
+#endif // ARROWS_ALGORITHMS_CORE_CONVERT_IMAGE_BYPASS_H_

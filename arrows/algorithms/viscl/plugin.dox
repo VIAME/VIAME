@@ -1,5 +1,5 @@
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 /// VCL module namespace
 namespace vcl { }
@@ -7,7 +7,7 @@ namespace vcl { }
 // The following text is included in the main documentation page by doxygen
 /** \page plugin_vcl VisCL Plugin
 \section sec-vcl-contents Contents
-The MAPTK vcl library provides various components by building on
+The ARROWS vcl library provides various components by building on
 <a href="https://github.com/Kitware/VisCL">VisCL</a>.  VisCL is an experimental
 library for feature detection and tracking on a GPU using OpenCL.
 <b>VisCL is still very experimental and not recommended for production use at

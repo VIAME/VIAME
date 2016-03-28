@@ -50,8 +50,8 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <maptk/plugins/ocv/image_container.h>
-#include <maptk/plugins/ocv/ocv_algo_tools.h>
+#include <arrows/algorithms/ocv/image_container.h>
+#include <arrows/algorithms/ocv/ocv_algo_tools.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -60,7 +60,7 @@
 using namespace kwiver::vital;
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace ocv
 {
@@ -93,7 +93,7 @@ public:
     write_images_to_disk( true ),
     pattern( "feature_tracks_%05d.png" ),
     cur_frame_id( 0 ),
-    m_logger( kwiver::vital::get_logger( "maptk.ocv.draw_tracks" ) )
+    m_logger( kwiver::vital::get_logger( "algorithms.ocv.draw_tracks" ) )
   {
   }
 
@@ -375,7 +375,7 @@ draw_tracks
     bool write_image_to_disk = d_->write_images_to_disk;
 
     // Clone a copy of the current image (so we don't modify the original input).
-    cv::Mat img = ocv::image_container::maptk_to_ocv( ctr_sptr->get_image() ).clone();
+    cv::Mat img = ocv::image_container::vital_to_ocv( ctr_sptr->get_image() ).clone();
 
     // Convert to 3 channel image if not one already
     if( img.channels() == 1 )
@@ -565,5 +565,5 @@ draw_tracks
 
 } // end namespace ocv
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

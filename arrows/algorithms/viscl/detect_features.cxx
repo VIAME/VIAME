@@ -32,14 +32,14 @@
 
 #include <vector>
 
-#include <maptk/plugins/viscl/feature_set.h>
-#include <maptk/plugins/viscl/image_container.h>
+#include <arrows/algorithms/viscl/feature_set.h>
+#include <arrows/algorithms/viscl/image_container.h>
 
 #include <viscl/tasks/hessian.h>
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace vcl
 {
@@ -140,5 +140,5 @@ detect_features
 
 } // end namespace vcl
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver

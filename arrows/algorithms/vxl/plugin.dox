@@ -1,5 +1,5 @@
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 /// VXL module namespace
 namespace vxl { }
@@ -7,7 +7,7 @@ namespace vxl { }
 // The following text is included in the main documentation page by doxygen
 /** \page plugin_vxl VXL Plugin
 \section sec-vxl-contents Contents
-The MAPTK vxl library provides various components by building on
+The arrows vxl library provides various components by building on
                <a href="http://vxl.sourceforge.net/">VXL</a>
 
 
@@ -15,7 +15,7 @@ The MAPTK vxl library provides various components by building on
 - \ref vxl::vil_image_memory : an image memory container for sharing image
                memory between
                <a href="http://public.kitware.com/vxl/doc/development/core/vil/html/classvil__image__view.html">
-               vil_image_view<vxl_byte></a> and maptk::image.
+               vil_image_view<vxl_byte></a> and vital::image.
 
 
 \subsection sec-vxl-containers Custom Containers

@@ -30,15 +30,15 @@
 
 /**
  * \file
- * \brief Header defining the \link maptk::algo::close_loops_bad_frames_only
+ * \brief Header defining the \link vital::algo::close_loops_bad_frames_only
  *        close_loops_bad_frames_only \endlink algorithm
  */
 
-#ifndef MAPTK_PLUGINS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_
-#define MAPTK_PLUGINS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_
+#ifndef ARROWS_ALGORITHMS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_
+#define ARROWS_ALGORITHMS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_
 
 #include <vital/vital_config.h>
-#include <maptk/plugins/core/maptk_core_export.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
@@ -50,7 +50,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 
 namespace core
 {
@@ -62,7 +62,7 @@ namespace core
  * principle that when a bad frame occurs, there is generally a lower
  * percentage of feature tracks.
  */
-class MAPTK_CORE_EXPORT close_loops_bad_frames_only
+class ALGORITHMS_CORE_EXPORT close_loops_bad_frames_only
   : public vital::algorithm_impl<close_loops_bad_frames_only, vital::algo::close_loops>
 {
 public:
@@ -154,8 +154,8 @@ protected:
 
 } // end namespace algo
 
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
 
-#endif // MAPTK_PLUGINS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_
+#endif // ARROWS_ALGORITHMS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_

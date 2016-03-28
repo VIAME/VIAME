@@ -14,12 +14,12 @@ set( plugin_core_headers
   triangulate_landmarks.h
   )
 kwiver_install_headers(
-  SUBDIR     maptk/plugins/core
+  SUBDIR     arrows/algorithms/core
   ${plugin_core_headers}
   )
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/maptk_core_export.h
-  NOPATH   SUBDIR     maptk/plugins/core
+  ${CMAKE_CURRENT_BINARY_DIR}/algorithms_core_export.h
+  NOPATH   SUBDIR     arrows/algorithms/core
   )
 
 set( plugin_core_sources
@@ -35,14 +35,14 @@ set( plugin_core_sources
   track_features_core.cxx
   triangulate_landmarks.cxx
   )
-kwiver_add_library( maptk_core
+kwiver_add_library( algorithms_core
   ${plugin_core_headers}
   ${plugin_core_sources}
   )
-target_link_libraries( maptk_core
+target_link_libraries( algorithms_core
   PUBLIC               maptk
   )
 
-maptk_create_plugin( maptk_core
+arrows_create_plugin( algorithms_core
   algorithm_plugin_interface.cxx
   )
