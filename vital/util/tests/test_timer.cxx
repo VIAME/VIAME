@@ -36,9 +36,10 @@
 
 #include <vital/util/cpu_timer.h>
 #include <vital/util/wall_timer.h>
+#include <kwiversys/SystemTools.hxx>
 
 #include <iostream>
-#include <unistd.h>
+typedef kwiversys::SystemTools ST;
 
 #define TEST_ARGS ()
 
@@ -135,13 +136,13 @@ IMPLEMENT_TEST(wall_timer_test)
   timer.start();
   TEST_EQUAL( "Wall Timer active", timer.is_active(), true );
 
-  sleep(1);
+  ST::Delay(1000);
 
   double t1 = timer.elapsed();
   bool value = (t1 != 0);
   TEST_EQUAL( "Wall Timer 1 not zero", value, true );
 
-  sleep(1);
+  ST::Delay(1000);
 
   double t2 = timer.elapsed();
   value = (t2 != 0);
@@ -152,7 +153,7 @@ IMPLEMENT_TEST(wall_timer_test)
 
   timer.stop();
   t1 = timer.elapsed();
-  sleep(1);
+  ST::Delay(1000);
   t2 = timer.elapsed();
 
   TEST_EQUAL( "Stopped Wall Timer does not change", t1, t2 );
