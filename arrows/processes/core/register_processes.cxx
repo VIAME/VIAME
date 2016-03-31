@@ -1,30 +1,48 @@
-/*ckwg +5
- * Copyright 2014 by Kitware, Inc. All Rights Reserved. Please refer to
- * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
- * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
+/*ckwg +29
+ * Copyright 2014-2016 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <sprokit/pipeline/process_registry.h>
 
 // -- list processes to register --
-#include "kw_archive_writer_process.h"
-#include "frame_list_process.h"
-#include "video_input_process.h"
-#include "view_image_process.h"
-#include "stabilize_image_process.h"
-#include "matcher_process.h"
 #include "compute_homography_process.h"
-
 #include "detect_features_process.h"
-#include "extract_descriptors_process.h"
-#include "matcher_process.h"
-#include "compute_homography_process.h"
 #include "draw_tracks_process.h"
-
+#include "extract_descriptors_process.h"
+#include "frame_list_process.h"
+#include "matcher_process.h"
 #include "read_descriptor_process.h"
+#include "stabilize_image_process.h"
+#include "video_input_process.h"
 
 extern "C"
-KWIVER_PROCESSES_EXPORT void register_processes();
+KWIVER_CORE_PROCESSES_EXPORT void register_processes();
 
 
 // ----------------------------------------------------------------
@@ -35,7 +53,7 @@ KWIVER_PROCESSES_EXPORT void register_processes();
 void register_processes()
 {
   static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes" );
+    sprokit::process_registry::module_t( "kwiver_processes_core" );
 
   sprokit::process_registry_t const registry( sprokit::process_registry::self() );
 
@@ -60,11 +78,6 @@ void register_processes()
   registry->register_process(
     "stabilize_image", "Generate current-to-reference image homographies",
     sprokit::create_process< kwiver::stabilize_image_process > );
-
-  registry->register_process(
-    "kw_archive_writer", "Write kw archives",
-    sprokit::create_process< kwiver::kw_archive_writer_process > );
-
 
   registry->register_process(
     "detect_features", "Detect features in an image that will be used for stabilization",

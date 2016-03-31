@@ -42,7 +42,7 @@
 #include <vital/algo/match_features.h>
 #include <vital/algo/close_loops.h>
 
-#include <kwiver_util/kwiver_type_traits.h>
+#include <arrows/processes/kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 
@@ -69,7 +69,7 @@ public:
   // Configuration values
 
   // There are many config items for the tracking and stabilization that go directly to
-  // the maptk algo.
+  // the algo.
 
   /// The feature matching algorithm to use
   vital::algo::match_features_sptr m_matcher;

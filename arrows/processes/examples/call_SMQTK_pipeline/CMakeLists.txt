@@ -12,7 +12,7 @@ kwiver_add_plugin( SMQTK_extract
                      accept_descriptor.h      accept_descriptor.cxx
                      register_processes.cxx
   PRIVATE          sprokit_pipeline sprokit_tools
-                   maptk_core maptk_vxl maptk_ocv
+                   algorithms_core algorithms_vxl algorithms_ocv
                    vital vital_apm vital_logger vital_config
                    ${OpenCV_LIBS}
                    ${Boost_SYSTEM_LIBRARY}

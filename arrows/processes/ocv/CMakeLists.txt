@@ -5,7 +5,8 @@ project( kwiver_ocv_processes )
 
 set( sources
   register_processes.cxx
- view_image_process.cxx
+
+  view_image_process.cxx
 )
 
 set( private_headers
@@ -26,7 +27,7 @@ kwiver_add_plugin( kwiver_ocv_processes
   SOURCES          ${sources}
                    ${private_headers}
   PRIVATE          sprokit_pipeline
-                   maptk_core maptk_ocv
+                   algorithms_core algorithms_ocv
                    vital vital_apm vital_logger vital_config
                    ${OpenCV_LIBS}
  )

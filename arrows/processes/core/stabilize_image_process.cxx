@@ -41,7 +41,7 @@
 #include <vital/algo/track_features.h>
 #include <vital/algo/compute_ref_homography.h>
 
-#include <kwiver_util/kwiver_type_traits.h>
+#include <arrows/processes/kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 
@@ -62,7 +62,7 @@ public:
   // Configuration values
 
   // There are many config items for the tracking and stabilization that go directly to
-  // the maptk algo.
+  // the algo.
 
   // feature tracker algorithm - homography source
   algo::track_features_sptr         m_feature_tracker;

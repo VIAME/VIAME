@@ -40,7 +40,7 @@
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
 
-#include <kwiver_util/kwiver_type_traits.h>
+#include <arrows/processes/kwiver_type_traits.h>
 
 #include <arrows/algorithms/ocv/image_container.h>
 
@@ -216,7 +216,7 @@ view_image_process
 
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  cv::Mat image = algorithms::ocv::image_container::maptk_to_ocv( img->get_image() );
+  cv::Mat image = arrows::ocv::image_container::vital_to_ocv( img->get_image() );
 
   if ( d->m_annotate_image )
   {

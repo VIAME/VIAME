@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
 #define _KWIVER_READ_DESCRIPTOR_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
+#include "kwiver_core_processes_export.h"
 
 #include <memory>
 
@@ -49,7 +49,7 @@ namespace kwiver
  * @brief Display images
  *
  */
-class KWIVER_PROCESSES_NO_EXPORT read_descriptor_process
+class KWIVER_CORE_PROCESSES_NO_EXPORT read_descriptor_process
   : public sprokit::process
 {
 public:

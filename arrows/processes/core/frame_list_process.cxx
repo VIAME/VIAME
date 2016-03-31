@@ -38,7 +38,7 @@
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
 
-#include <kwiver_util/kwiver_type_traits.h>
+#include <arrows/processes/kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/datum.h>
@@ -188,7 +188,7 @@ void frame_list_process
 
     // --- debug
 #if defined DEBUG
-    cv::Mat image = algorithms::ocv::image_container::maptk_to_ocv( img_c->get_image() );
+    cv::Mat image = algorithms::ocv::image_container::vital_to_ocv( img_c->get_image() );
     namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
     imshow( "Display window", image );                   // Show our image inside it.
 

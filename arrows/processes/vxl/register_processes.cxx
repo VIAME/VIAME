@@ -28,52 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_STABILIZE_IMAGE_PROCESS_H_
-#define _KWIVER_STABILIZE_IMAGE_PROCESS_H_
+#include <sprokit/pipeline/process_registry.h>
 
-#include <sprokit/pipeline/process.h>
-#include "kwiver_core_processes_export.h"
+// -- list processes to register --
+#include "kw_archive_writer_process.h"
 
-#include <memory>
+extern "C"
+KWIVER_VXL_PROCESSES_EXPORT void register_processes();
 
-namespace kwiver
-{
 
 // ----------------------------------------------------------------
-/**
- * \class stabilize_image_process
+/*! \brief Regsiter processes
  *
- * \brief Stabilizes a series of image.
- *
- * \iports
- * \iport{timestamp}
- * \iport{image}
- *
- * \oports
- * \oport{src_to_ref_homography}
  *
  */
-class KWIVER_CORE_PROCESSES_NO_EXPORT stabilize_image_process
-  : public sprokit::process
+void register_processes()
 {
-  public:
-  stabilize_image_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~stabilize_image_process();
+  static sprokit::process_registry::module_t const module_name =
+    sprokit::process_registry::module_t( "kwiver_processes_vxl" );
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
 
-  private:
-    void make_ports();
-    void make_config();
+  if ( registry->is_module_loaded( module_name ) )
+  {
+    return;
+  }
 
+  // ----------------------------------------------------------------
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class stabilize_image_process
+  registry->register_process(
+    "kw_archive_writer", "Write kw archives",
+    sprokit::create_process< kwiver::kw_archive_writer_process > );
 
-
-} // end namespace
-
-#endif /* _KWIVER_STABILIZE_IMAGE_PROCESS_H_ */
+  // - - - - - - - - - - - - - - - - - - - - - - -
+  registry->mark_module_as_loaded( module_name );
+}

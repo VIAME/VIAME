@@ -41,7 +41,7 @@ add_custom_target( all-plugins )
 #+
 # Generate and add a plug-in library based on another library
 #
-#   arrows_create_plugin(base_lib [args ...])
+#   algorithms_create_plugin(base_lib [args ...])
 #
 # The given base library must link against the core arrows library and provide
 # an implementation of the algorithm plugin interface class. If this has not
