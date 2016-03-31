@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,37 +30,63 @@
 
 /**
  * \file
- * \brief VisCL algorithm registration function implementation
+ * \brief Header for \link algorithms::interpolate_camera interpolate_camera \endlink
+ *        functions
  */
 
-#include "register_algorithms.h"
+#ifndef ALGORITHMS_INTERPOLATE_CAMERA_H_
+#define ALGORITHMS_INTERPOLATE_CAMERA_H_
 
-#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
-#include <arrows/algorithms/viscl/convert_image.h>
-#include <arrows/algorithms/viscl/detect_features.h>
-#include <arrows/algorithms/viscl/extract_descriptors.h>
-#include <arrows/algorithms/viscl/match_features.h>
-#include <vital/registrar.h>
+
+#include <vital/vital_config.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
+
+#include <vector>
+#include <vital/types/camera.h>
 
 
 namespace kwiver {
-namespace arrows {
-namespace vcl {
+namespace algorithms {
 
-/// Register VisCL algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
-{
-  REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( vcl::convert_image );
-  REGISTER_TYPE( vcl::detect_features );
-  REGISTER_TYPE( vcl::extract_descriptors );
-  REGISTER_TYPE( vcl::match_features );
+/// Generate an interpolated camera between \c A and \c B by a given fraction \c f
+/**
+ * \c f should be 0 < \c f < 1. A value outside this range is valid, but \c f
+ * must not be 0.
+ *
+ * \param A Camera to interpolate from.
+ * \param B Camera to interpolate to.
+ * \param f Decimal fraction in between A and B for the returned camera to represent.
+ */
+ALGORITHMS_CORE_EXPORT
+vital::simple_camera
+interpolate_camera(vital::simple_camera const& A,
+                   vital::simple_camera const& B, double f);
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
-}
 
-} // end namespace vcl
-} // end namespace arrows
+/// Genreate an interpolated camera from sptrs
+/**
+ * \relatesalso interpolate_camera
+ *
+ */
+ALGORITHMS_CORE_EXPORT
+vital::camera_sptr
+interpolate_camera(vital::camera_sptr A,
+                   vital::camera_sptr B, double f);
+
+
+/// Generate N evenly interpolated cameras in between \c A and \c B
+/**
+ * \c n must be >= 1.
+ */
+ALGORITHMS_CORE_EXPORT
+void interpolated_cameras(vital::simple_camera const& A,
+                          vital::simple_camera const& B,
+                          size_t n,
+                          std::vector< vital::simple_camera > & interp_cams);
+
+
+} // end namespace algorithms
 } // end namespace kwiver
+
+#endif // ALGORITHMS_INTERPOLATE_CAMERA_H_

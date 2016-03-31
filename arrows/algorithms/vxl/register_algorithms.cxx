@@ -35,7 +35,7 @@
 
 #include "register_algorithms.h"
 
-#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
 #include <arrows/algorithms/vxl/bundle_adjust.h>
 #include <arrows/algorithms/vxl/close_loops_homography_guided.h>
 #include <arrows/algorithms/vxl/estimate_essential_matrix.h>
@@ -57,16 +57,16 @@ int register_algorithms( vital::registrar &reg )
 {
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( algorithms::vxl::bundle_adjust );
-  REGISTER_TYPE( algorithms::vxl::close_loops_homography_guided );
-  REGISTER_TYPE( algorithms::vxl::estimate_essential_matrix );
-  REGISTER_TYPE( algorithms::vxl::estimate_fundamental_matrix );
-  REGISTER_TYPE( algorithms::vxl::estimate_homography );
-  REGISTER_TYPE( algorithms::vxl::estimate_similarity_transform );
-  REGISTER_TYPE( algorithms::vxl::image_io );
-  REGISTER_TYPE( algorithms::vxl::optimize_cameras );
-  REGISTER_TYPE( algorithms::vxl::triangulate_landmarks );
-  REGISTER_TYPE( algorithms::vxl::match_features_constrained );
+  REGISTER_TYPE( vxl::bundle_adjust );
+  REGISTER_TYPE( vxl::close_loops_homography_guided );
+  REGISTER_TYPE( vxl::estimate_essential_matrix );
+  REGISTER_TYPE( vxl::estimate_fundamental_matrix );
+  REGISTER_TYPE( vxl::estimate_homography );
+  REGISTER_TYPE( vxl::estimate_similarity_transform );
+  REGISTER_TYPE( vxl::image_io );
+  REGISTER_TYPE( vxl::optimize_cameras );
+  REGISTER_TYPE( vxl::triangulate_landmarks );
+  REGISTER_TYPE( vxl::match_features_constrained );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();

@@ -48,8 +48,8 @@
 
 #include <vital/algo/optimize_cameras.h>
 #include <vital/algo/triangulate_landmarks.h>
-#include <maptk/metrics.h>
-#include <maptk/interpolate_camera.h>
+#include <arrows/algorithms/core/metrics.h>
+#include <arrows/algorithms/core/interpolate_camera.h>
 
 #include <vital/types/camera.h>
 #include <vital/exceptions.h>
@@ -342,7 +342,7 @@ hierarchical_bundle_adjust
       d_->sba->optimize(active_cam_map, landmarks, tracks);
     }
 
-    double rmse = reprojection_rmse(active_cam_map->cameras(),
+    double rmse = kwiver::algorithms::reprojection_rmse(active_cam_map->cameras(),
                                     landmarks->landmarks(),
                                     tracks->tracks());
     cerr << "--> SBA iteration RMSE: " << rmse << endl;
@@ -410,7 +410,7 @@ hierarchical_bundle_adjust
               // fraction position of interpoated integer
               f = static_cast<double>(i2 - cur_frm) / (next_frm - cur_frm);
 
-              interped_cams[i2] = interpolate_camera(cur_cam, next_cam, f);
+              interped_cams[i2] = kwiver::algorithms::interpolate_camera(cur_cam, next_cam, f);
             }
 
           }
@@ -425,7 +425,7 @@ hierarchical_bundle_adjust
         if (d_->rmse_reporting_enabled)
         {
           cerr << "\t- pre-optimization RMSE : "
-               << reprojection_rmse(interped_cams_p->cameras(),
+               << kwiver::algorithms::reprojection_rmse(interped_cams_p->cameras(),
                                     landmarks->landmarks(),
                                     tracks->tracks())
                << endl;
@@ -439,7 +439,7 @@ hierarchical_bundle_adjust
         if (d_->rmse_reporting_enabled)
         {
           cerr << "\t- post-optimization RMSE: "
-               << reprojection_rmse(interped_cams_p->cameras(),
+               << kwiver::algorithms::reprojection_rmse(interped_cams_p->cameras(),
                                     landmarks->landmarks(),
                                     tracks->tracks())
                << endl;
@@ -456,7 +456,7 @@ hierarchical_bundle_adjust
       if (d_->rmse_reporting_enabled)
       {
         cerr << "\t- reprojection RMSE of combined map: "
-             << reprojection_rmse(active_cam_map->cameras(),
+             << kwiver::algorithms::reprojection_rmse(active_cam_map->cameras(),
                                   landmarks->landmarks(),
                                   tracks->tracks())
              << endl;
@@ -469,7 +469,7 @@ hierarchical_bundle_adjust
         if (d_->rmse_reporting_enabled)
         {
           cerr << "\t- pre-triangulation RMSE : "
-               << reprojection_rmse(active_cam_map->cameras(),
+               << kwiver::algorithms::reprojection_rmse(active_cam_map->cameras(),
                                     landmarks->landmarks(),
                                     tracks->tracks())
                << endl;
@@ -483,7 +483,7 @@ hierarchical_bundle_adjust
         if (d_->rmse_reporting_enabled)
         {
           cerr << "\t- post-triangulation RMSE: "
-               << reprojection_rmse(active_cam_map->cameras(),
+               << kwiver::algorithms::reprojection_rmse(active_cam_map->cameras(),
                                     landmarks->landmarks(),
                                     tracks->tracks())
                << endl;

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2015-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,15 +30,45 @@
 
 /**
  * \file
- * \brief OpenCV plugin algorithm registration interface impl
+ * \brief Header for match matrix computation
  */
 
-#include <arrows/algorithms/ocv/register_algorithms.h>
-#include <arrows/algorithms/algorithm_plugin_interface.h>
-#include <vital/registrar.h>
+#ifndef ALGORITHMS_MATCH_MATRIX_H_
+#define ALGORITHMS_MATCH_MATRIX_H_
 
 
-int register_algo_impls( kwiver::vital::registrar &reg )
-{
-  return kwiver::arrows::ocv::register_algorithms( reg );
-}
+#include <vital/vital_config.h>
+#include <arrows/algorithms/core/algorithms_core_export.h>
+
+#include <vital/types/track_set.h>
+#include <Eigen/Sparse>
+
+
+namespace kwiver {
+namespace algorithms {
+
+
+/// Compute the match matrix from a track set
+/**
+ *  This function computes an NxN integer symmetric matrix such that matrix
+ *  element (i,j) is the number of feature tracks with corresponding points
+ *  on both frames i and j.  The diagonal (i,i) is the number of features
+ *  on frame i.  The frame ids corresponding to each row/column are returned
+ *  in a vector.
+ *
+ *  \param[in]     tracks  The tracks from which to extract the match matrix
+ *  \param[in,out] frames  The vector of frame ids used in the match matrix.
+ *                         If empty, this will be filled in will all available
+ *                         frame ids in the track set.
+ *  \return an NxN symmetric match matrix
+ */
+ALGORITHMS_CORE_EXPORT
+Eigen::SparseMatrix<unsigned int>
+match_matrix(const vital::track_set_sptr tracks,
+                   std::vector<vital::frame_id_t>& frames);
+
+} // end namespace algorithms
+} // end namespace kwiver
+
+
+#endif // ALGORITHMS_MATCH_MATRIX_H_

@@ -52,10 +52,10 @@ kwiver_add_library( algorithms_vxl
   ${vxl_sources}
   )
 target_link_libraries( algorithms_vxl
-  PUBLIC               maptk
+  PUBLIC               algorithms_core
                        rrel rsdl vnl vgl_algo vil vpgl_algo
   )
 
-arrows_create_plugin( algorithms_vxl
+algorithms_create_plugin( algorithms_vxl
   algorithm_plugin_interface.cxx
   )

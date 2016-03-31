@@ -36,7 +36,7 @@
 #include "register_algorithms.h"
 
 
-#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
 #include <arrows/algorithms/ceres/bundle_adjust.h>
 
 
@@ -49,7 +49,7 @@ int register_algorithms( vital::registrar &reg )
 {
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( algorithms::ceres::bundle_adjust );
+  REGISTER_TYPE( ceres::bundle_adjust );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();

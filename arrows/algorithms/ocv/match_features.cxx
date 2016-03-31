@@ -200,7 +200,7 @@ match_features
   // sets contain non-zero elements
   if( !desc1->size() || !desc2->size() )
   {
-    return vital::match_set_sptr( new algorithms::ocv::match_set() );
+    return vital::match_set_sptr( new arrows::ocv::match_set() );
   }
 
   cv::Mat d1 = descriptors_to_ocv_matrix(*desc1);
@@ -214,7 +214,7 @@ match_features
   {
     d_->simple_match(d1, d2, matches);
   }
-  return vital::match_set_sptr(new algorithms::ocv::match_set(matches));
+  return vital::match_set_sptr(new arrows::ocv::match_set(matches));
 }
 
 

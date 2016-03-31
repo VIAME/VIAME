@@ -94,7 +94,7 @@ close_loops_bad_frames_only
 ::get_configuration() const
 {
   // get base config from base class
-  vital::config_block_sptr config = algorithm::get_configuration();
+  kwiver::vital::config_block_sptr config = algorithm::get_configuration();
 
   // Sub-algorithm implementation name + sub_config block
   // - Feature Matcher algorithm

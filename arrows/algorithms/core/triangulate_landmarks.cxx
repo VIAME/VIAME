@@ -40,7 +40,7 @@
 #include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
-#include <maptk/triangulate.h>
+#include <arrows/algorithms/core/triangulate.h>
 
 
 namespace kwiver {
@@ -214,7 +214,7 @@ triangulate_landmarks
       vital::vector_3d pt3d;
       if (d_->homogeneous)
       {
-        vital::vector_4d pt4d = triangulate_homog(lm_cams, lm_image_pts);
+        vital::vector_4d pt4d = kwiver::algorithms::triangulate_homog(lm_cams, lm_image_pts);
         if (std::abs(pt4d[3]) < 1e-6)
         {
           bad_triangulation = true;
@@ -224,7 +224,7 @@ triangulate_landmarks
       }
       else
       {
-        pt3d = triangulate_inhomog(lm_cams, lm_image_pts);
+        pt3d = kwiver::algorithms::triangulate_inhomog(lm_cams, lm_image_pts);
       }
       VITAL_FOREACH(vital::simple_camera const& cam, lm_cams)
       {

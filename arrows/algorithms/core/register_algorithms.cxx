@@ -35,7 +35,7 @@
 
 #include "register_algorithms.h"
 
-#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
 #include <arrows/algorithms/core/close_loops_bad_frames_only.h>
 #include <arrows/algorithms/core/close_loops_multi_method.h>
 #include <arrows/algorithms/core/compute_ref_homography_core.h>
@@ -59,16 +59,16 @@ int register_algorithms(vital::registrar &reg)
 {
     REGISTRATION_INIT( reg );
 
-    REGISTER_TYPE( algorithms::core::close_loops_bad_frames_only );
-    REGISTER_TYPE( algorithms::core::close_loops_multi_method );
-    REGISTER_TYPE( algorithms::core::compute_ref_homography_core );
-    REGISTER_TYPE( algorithms::core::convert_image_bypass );
-    REGISTER_TYPE( algorithms::core::filter_features_magnitude );
-    REGISTER_TYPE( algorithms::core::hierarchical_bundle_adjust );
-    REGISTER_TYPE( algorithms::core::initialize_cameras_landmarks );
-    REGISTER_TYPE( algorithms::core::match_features_homography );
-    REGISTER_TYPE( algorithms::core::track_features_core );
-    REGISTER_TYPE( algorithms::core::triangulate_landmarks );
+    REGISTER_TYPE( core::close_loops_bad_frames_only );
+    REGISTER_TYPE( core::close_loops_multi_method );
+    REGISTER_TYPE( core::compute_ref_homography_core );
+    REGISTER_TYPE( core::convert_image_bypass );
+    REGISTER_TYPE( core::filter_features_magnitude );
+    REGISTER_TYPE( core::hierarchical_bundle_adjust );
+    REGISTER_TYPE( core::initialize_cameras_landmarks );
+    REGISTER_TYPE( core::match_features_homography );
+    REGISTER_TYPE( core::track_features_core );
+    REGISTER_TYPE( core::triangulate_landmarks );
 
     REGISTRATION_SUMMARY();
     return REGISTRATION_FAILURES();

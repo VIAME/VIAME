@@ -73,7 +73,7 @@ public:
   explicit image_container(const vital::image_container& image_cont);
 
   /// Copy Constructor
-  image_container(const algorithms::vxl::image_container& other)
+  image_container(const arrows::vxl::image_container& other)
   : data_(other.data_) {}
 
   /// The size of the image data in bytes

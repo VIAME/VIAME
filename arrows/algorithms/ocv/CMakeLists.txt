@@ -47,10 +47,11 @@ kwiver_add_library( algorithms_ocv
   ${ocv_sources}
   )
 target_link_libraries( algorithms_ocv
-  PUBLIC               maptk
-                     ${OpenCV_LIBS}
+  PUBLIC               algorithms_core
+                       kwiversys
+                       ${OpenCV_LIBS}
   )
 
-arrows_create_plugin( algorithms_ocv
+algorithms_create_plugin( algorithms_ocv
   algorithm_plugin_interface.cxx
   )

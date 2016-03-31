@@ -40,7 +40,7 @@
 #include <opencv2/nonfree/nonfree.hpp>
 #endif
 
-#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
 #include <arrows/algorithms/ocv/analyze_tracks.h>
 #include <arrows/algorithms/ocv/detect_features.h>
 #include <arrows/algorithms/ocv/draw_tracks.h>
@@ -63,13 +63,13 @@ int register_algorithms( vital::registrar &reg )
 
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( algorithms::ocv::analyze_tracks );
-  REGISTER_TYPE( algorithms::ocv::detect_features );
-  REGISTER_TYPE( algorithms::ocv::draw_tracks );
-  REGISTER_TYPE( algorithms::ocv::estimate_homography );
-  REGISTER_TYPE( algorithms::ocv::extract_descriptors );
-  REGISTER_TYPE( algorithms::ocv::image_io );
-  REGISTER_TYPE( algorithms::ocv::match_features );
+  REGISTER_TYPE( ocv::analyze_tracks );
+  REGISTER_TYPE( ocv::detect_features );
+  REGISTER_TYPE( ocv::draw_tracks );
+  REGISTER_TYPE( ocv::estimate_homography );
+  REGISTER_TYPE( ocv::extract_descriptors );
+  REGISTER_TYPE( ocv::image_io );
+  REGISTER_TYPE( ocv::match_features );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();

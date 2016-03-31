@@ -34,10 +34,10 @@
  */
 
 #include <arrows/algorithms/vxl/register_algorithms.h>
-#include <arrows/plugin_interface/algorithm_plugin_interface.h>
+#include <arrows/algorithms/algorithm_plugin_interface.h>
 
 
 int register_algo_impls(kwiver::vital::registrar &reg)
 {
-  return kwiver::algorithms::vxl::register_algorithms( reg );
+  return kwiver::arrows::vxl::register_algorithms( reg );
 }

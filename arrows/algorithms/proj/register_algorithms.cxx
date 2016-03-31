@@ -35,7 +35,7 @@
 
 #include "register_algorithms.h"
 
-#include <arrows/plugin_interface/algorithm_plugin_interface_macros.h>
+#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
 #include <arrows/algorithms/proj/geo_map.h>
 
 
@@ -48,7 +48,7 @@ int register_algorithms( vital::registrar &reg )
 {
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( algorithms::proj::geo_map );
+  REGISTER_TYPE( proj::geo_map );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();

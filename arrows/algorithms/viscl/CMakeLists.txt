@@ -1,6 +1,8 @@
 # Build / install plugin containing VisCL algorithm implementations + support
 # structures
 
+find_package(Boost) ##+ temp
+
 set( viscl_headers_public
   convert_image.h
   descriptor_set.h
@@ -39,7 +41,7 @@ kwiver_add_library( algorithms_viscl
   ${viscl_sources}
   )
 target_link_libraries( algorithms_viscl
-  PUBLIC           maptk
+  PUBLIC           algorithms_core
                    viscl_core viscl_tasks viscl_vxl
   )
 algorithms_create_plugin( algorithms_viscl

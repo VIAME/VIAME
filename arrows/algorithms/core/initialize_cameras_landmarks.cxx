@@ -48,9 +48,9 @@
 #include <vital/algo/optimize_cameras.h>
 
 #include <arrows/algorithms/core/triangulate_landmarks.h>
-#include <maptk/metrics.h>
-#include <maptk/match_matrix.h>
-#include <maptk/triangulate.h>
+#include <arrows/algorithms/core/metrics.h>
+#include <arrows/algorithms/core/match_matrix.h>
+#include <arrows/algorithms/core/triangulate.h>
 
 using namespace kwiver::vital;
 
@@ -74,7 +74,7 @@ public:
     e_estimator(),
     camera_optimizer(),
     // use the core triangulation as the default, users can change it
-    lm_triangulator(new algorithms::core::triangulate_landmarks()),
+    lm_triangulator(new triangulate_landmarks()),
     bundle_adjuster()
   {
   }
@@ -324,7 +324,7 @@ initialize_cameras_landmarks::priv
 
   // option 1
   cams[1] = vital::simple_camera(R.inverse()*-t, R);
-  vector_3d pt3 = triangulate_inhomog(cams, pts);
+  vector_3d pt3 = kwiver::algorithms::triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
     return left_camera;
@@ -332,7 +332,7 @@ initialize_cameras_landmarks::priv
 
   // option 2, with negated translation
   cams[1] = vital::simple_camera(R.inverse()*t, R);
-  pt3 = triangulate_inhomog(cams, pts);
+  pt3 = kwiver::algorithms::triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
     return left_camera;
@@ -341,7 +341,7 @@ initialize_cameras_landmarks::priv
   // option 3, with the twisted pair rotation
   R = e.twisted_rotation();
   cams[1] = vital::simple_camera(R.inverse()*-t, R);
-  pt3 = triangulate_inhomog(cams, pts);
+  pt3 = kwiver::algorithms::triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
     return left_camera;
@@ -349,7 +349,7 @@ initialize_cameras_landmarks::priv
 
   // option 4, with negated translation
   cams[1] = vital::simple_camera(R.inverse()*t, R);
-  pt3 = triangulate_inhomog(cams, pts);
+  pt3 = kwiver::algorithms::triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
     return left_camera;
@@ -778,7 +778,7 @@ initialize_cameras_landmarks
   }
 
   std::vector<frame_id_t> mm_frames(frame_ids.begin(), frame_ids.end());
-  Eigen::SparseMatrix<unsigned int> mm = match_matrix(tracks, mm_frames);
+  Eigen::SparseMatrix<unsigned int> mm = kwiver::algorithms::match_matrix(tracks, mm_frames);
   int init_i=0,init_j=0;
   find_best_initial_pair(mm, init_i, init_j);
   std::cout << "using frames "<< mm_frames[init_i] << " and " << mm_frames[init_j] <<std::endl;

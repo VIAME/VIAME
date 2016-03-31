@@ -34,11 +34,11 @@
  */
 
 #include <arrows/algorithms/proj/register_algorithms.h>
-#include <arrows/plugin_interface/algorithm_plugin_interface.h>
+#include <arrows/algorithms/algorithm_plugin_interface.h>
 #include <vital/registrar.h>
 
 
 int register_algo_impls( kwiver::vital::registrar &reg )
 {
-  return kwiver::algorithms::proj::register_algorithms( reg );
+  return kwiver::arrows::proj::register_algorithms( reg );
 }

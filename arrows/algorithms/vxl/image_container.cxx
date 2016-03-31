@@ -90,8 +90,8 @@ image_container
   // prevent nested wrappers when converting back and forth.
   // if this vil_image_view is already wrapping VITAL data,
   // then extract the underlying VITAL data instead of wrapping
-  if( vital_memory_chunk* vital_chunk =
-        dynamic_cast<vital_memory_chunk*>(chunk.ptr()) )
+  if( image_memory_chunk* vital_chunk =
+        dynamic_cast<image_memory_chunk*>(chunk.ptr()) )
   {
     // extract the existing VITAL memory from the vil wrapper
     memory = vital_chunk->memory();
@@ -128,7 +128,7 @@ image_container
   else
   {
     // create a vil wrapper around the VITAL memory
-    chunk = new vital_memory_chunk(memory);
+    chunk = new image_memory_chunk(memory);
   }
 
   return vil_image_view<vxl_byte>(chunk, img.first_pixel(),

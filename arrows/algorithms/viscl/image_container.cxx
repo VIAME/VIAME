@@ -37,6 +37,8 @@
 #include <viscl/tasks/gaussian_smooth.h>
 #include <viscl/vxl/transfer.h>
 
+#include <boost/shared_ptr.hpp>
+
 #include <memory>
 
 namespace kwiver {
@@ -100,7 +102,7 @@ image_container
   // it also only supports byte and float images below only byte are supported
   if( img.depth() == 1 )
   {
-    return viscl::image(std::make_shared<cl::Image2D>(
+    return viscl::image(boost::make_shared<cl::Image2D>(
                           viscl::manager::inst()->get_context(),
                           CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                           img_fmt,
@@ -123,7 +125,7 @@ image_container
       }
     }
 
-    viscl::image image = viscl::image(std::make_shared<cl::Image2D>(
+    viscl::image image = viscl::image(boost::make_shared<cl::Image2D>(
                                         viscl::manager::inst()->get_context(),
                                         CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                                         img_fmt,

@@ -12,6 +12,12 @@ set( plugin_core_headers
   register_algorithms.h
   track_features_core.h
   triangulate_landmarks.h
+
+  epipolar_geometry.h
+  interpolate_camera.h
+  match_matrix.h
+  metrics.h
+  triangulate.h
   )
 kwiver_install_headers(
   SUBDIR     arrows/algorithms/core
@@ -34,15 +40,21 @@ set( plugin_core_sources
   register_algorithms.cxx
   track_features_core.cxx
   triangulate_landmarks.cxx
+
+  epipolar_geometry.cxx
+  interpolate_camera.cxx
+  match_matrix.cxx
+  metrics.cxx
+  triangulate.cxx
   )
 kwiver_add_library( algorithms_core
   ${plugin_core_headers}
   ${plugin_core_sources}
   )
 target_link_libraries( algorithms_core
-  PUBLIC               maptk
+  PUBLIC               vital
   )
 
-arrows_create_plugin( algorithms_core
+algorithms_create_plugin( algorithms_core
   algorithm_plugin_interface.cxx
   )

@@ -31,10 +31,10 @@ kwiver_add_library( algorithms_ceres
   ${ceres_sources}
   )
 target_link_libraries( algorithms_ceres
-  PUBLIC               maptk
+  PUBLIC               algorithms_core
                        ceres
   )
 
-arrows_create_plugin( algorithms_ceres
+algorithms_create_plugin( algorithms_ceres
   algorithm_plugin_interface.cxx
   )

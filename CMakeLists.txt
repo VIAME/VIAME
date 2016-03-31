@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(arrows)
 
-##+ include(CMakeDependentOption)
+include(CMakeDependentOption)
 
 ###
 # ARROWS version
@@ -29,7 +29,7 @@ set(ARROWS_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(ARROWS_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 set(ARROWS_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
-set(CMAKE_MODULE_PATH      ${ARROWS_CMAKE_DIR} ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH      ${ARROWS_CMAKE_DIR} ${ARROWS_CMAKE_DIR}/modules ${CMAKE_MODULE_PATH})
 
 # ================================================================
 ###
@@ -55,6 +55,7 @@ endif()
 # ARROWS CMake config
 #
 include(kwiver-utils)
+include(arrows-utils)
 include(vital-flags) # arrows specific CXX flags
 
 ##
@@ -86,10 +87,10 @@ endif()
 
 ##
 # Create initial setup script
-set(ARROWS_SETUP_SCRIPT_FILE  ${ARROWS_BINARY_DIR}/setup_ARROWS.sh )
+set(ARROWS_SETUP_SCRIPT_FILE  ${ARROWS_BINARY_DIR}/setup_arrows.sh )
 
 configure_file(
-  ${ARROWS_CMAKE_DIR}/setup_ARROWS.sh.in
+  ${ARROWS_CMAKE_DIR}/setup_arrows.sh.in
   ${ARROWS_SETUP_SCRIPT_FILE}
   )
 

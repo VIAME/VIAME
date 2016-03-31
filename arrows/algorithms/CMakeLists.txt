@@ -1,3 +1,8 @@
+#
+# Algorithms CMake file
+#
+
+
 # Base plug-in with default implementations
 add_subdirectory( core )
 

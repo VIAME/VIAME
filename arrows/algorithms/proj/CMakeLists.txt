@@ -24,9 +24,9 @@ kwiver_add_library( algorithms_proj
   ${proj_sources}
   )
 target_link_libraries( algorithms_proj
-  PUBLIC               maptk
-                     ${PROJ_LIBRARY}
+  PUBLIC               algorithms_core
+                       ${PROJ4_LIBRARY}
   )
-arrows_create_plugin( algorithms_proj
+algorithms_create_plugin( algorithms_proj
   algorithm_plugin_interface.cxx
   )

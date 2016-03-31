@@ -40,7 +40,7 @@
 
 #include <vital/types/feature.h>
 #include <arrows/algorithms/vxl/camera.h>
-#include <maptk/epipolar_geometry.h>
+#include <arrows/algorithms/core/epipolar_geometry.h>
 
 #include <vgl/vgl_point_2d.h>
 
@@ -154,8 +154,8 @@ estimate_essential_matrix
            double inlier_scale) const
 {
   vpgl_calibration_matrix<double> vcal1, vcal2;
-  maptk_to_vpgl_calibration(*cal1, vcal1);
-  maptk_to_vpgl_calibration(*cal2, vcal2);
+  vital_to_vpgl_calibration(*cal1, vcal1);
+  vital_to_vpgl_calibration(*cal2, vcal2);
 
   vcl_vector<vgl_point_2d<double> > right_points, left_points;
   VITAL_FOREACH(const vector_2d& v, pts1)
@@ -180,7 +180,7 @@ estimate_essential_matrix
   matrix_3x3d F = K2_invt * E * K1_inv;
 
   fundamental_matrix_sptr fm(new fundamental_matrix_d(F));
-  inliers = maptk::mark_fm_inliers(*fm, pts1, pts2, inlier_scale);
+  inliers = algorithms::mark_fm_inliers(*fm, pts1, pts2, inlier_scale);
 
   return essential_matrix_sptr(new essential_matrix_d(E));
 }

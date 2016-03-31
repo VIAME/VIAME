@@ -34,6 +34,7 @@
 #include <arrows/algorithms/viscl/utils.h>
 
 #include <viscl/core/manager.h>
+#include <boost/shared_ptr.hpp>
 
 #include <memory>
 
@@ -126,7 +127,8 @@ features_to_viscl(const vital::feature_set& features)
   queue->finish();
 
   cl::ImageFormat kptimg_fmt(CL_R, CL_SIGNED_INT32);
-  fs.kptmap_ = viscl::image(std::make_shared<cl::Image2D>(
+  //+ There is a problem here with the shared prt. The package wants a boost::shared_ptr
+  fs.kptmap_ = viscl::image(boost::make_shared<cl::Image2D>(
                             viscl::manager::inst()->get_context(),
                             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                             kptimg_fmt,
