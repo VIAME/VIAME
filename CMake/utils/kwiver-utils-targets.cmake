@@ -119,7 +119,6 @@ function(kwiver_add_executable name)
     set(component runtime)
   endif()
 
-  _kwiver_export(${name})
   kwiver_install(
     TARGETS     ${name}
     ${exports}
