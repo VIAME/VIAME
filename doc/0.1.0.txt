@@ -1,0 +1,58 @@
+VITAL 0.1.0 Release Notes
+=========================
+
+This is the first formal release of vital. The features in this
+initial release are summarized below.  Future release notes will
+describe modifications since the previous release.
+
+Vital is a result of refactoring the common support functionality,
+basic types and abstract algorithms from the MapTK package.
+
+Library Features
+----------------
+
+Package Configuration, Build System, & Documentation
+
+ * Build system uses CMake as a meta build system for easy build configuration,
+   cross-platform compiling, and dashboard regression testing.
+
+ * A unit testing framework using CTest is provided in the 'test' directory.
+   This makes writing unit tests easy.
+
+ * CMake scripts are provided to make it very easy to build the MAPTK code
+   documentation using Doxygen.  Just turn on the "MAPTK_ENABLE_DOCS" option
+   in CMake to create a documentation build target (if you have Doxygen).
+   Turn on "VITAL_INSTALL_DOCS" to have to built documentation installed.
+
+
+Common Support Functionality
+----------------------------
+
+* The Logger supports a general purpose logging facility that
+  interfaces to some well known logging packages.
+
+* Config management converts config files to internal configuration
+  structures. These config blocks are used to specify the behavior of
+  algorithms and other software components.
+
+* Video metadata parsing can be used to decode the metadata stream
+  in video files.
+
+* Algorithm Plugin loader loads and makes algorithms packaged as
+  shared objects available to be instantiated and executed.
+
+
+Common algorithm data types
+---------------------------
+
+This is a collection of data types used by the algorithms and
+tools. These data types are needed to interface with the
+algorithms. There are also C and python bindings for some of these
+types.
+
+
+Abstract Algorithms
+-------------------
+
+The abstract algorithms provide an interface with which to interact
+with the concrete algorithms.
