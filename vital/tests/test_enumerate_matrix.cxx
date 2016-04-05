@@ -109,6 +109,48 @@ sparse_apply_kernel( Eigen::SparseMatrix<data_value_t> const& m,
 }
 
 
+IMPLEMENT_TEST(enumerate_matrix_iterators)
+{
+  // This test exists to validate that enumeration iterators on the same outer
+  // index are distinct. This test exists due to a bug that was discovered
+  // where this was not the case due to inner iterators being non-comparable
+  // except via a cast to bool. This gave an incorrect result because the
+  // enumeration iterators would compare equal if the outer indices were the
+  // same and the inner iterators were both VALID, but not necessarily equal.
+
+  using namespace kwiver::testing;
+  using namespace kwiver::vital;
+
+  // Prepare matrix
+  Eigen::SparseMatrix<data_value_t> mat(3, 3);
+  mat.insert(0, 0) = 1;
+  mat.insert(0, 1) = 2;
+  mat.insert(0, 2) = 3;
+  mat.insert(1, 0) = 2;
+  mat.insert(2, 0) = 3;
+
+  // Obtain iterators
+  auto const& e_u = enumerate(mat);
+  auto const& begin_u = e_u.begin();
+  auto next_u = begin_u;
+  ++next_u;
+
+  // Test distinctiveness
+  test_equal("enumeration iterators are distinct", begin_u == next_u, false);
+
+  // Repeat test with the matrix compressed
+  mat.makeCompressed();
+
+  // Obtain iterators
+  auto const& e_c = enumerate(mat);
+  auto const& begin_c = e_c.begin();
+  auto next_c = begin_c;
+  ++next_c;
+
+  // Test distinctiveness
+  test_equal("enumeration iterators are distinct", begin_c == next_c, false);
+}
+
 IMPLEMENT_TEST(enumerate_matrix)
 {
   using namespace kwiver::testing;
@@ -124,7 +166,8 @@ IMPLEMENT_TEST(enumerate_matrix)
   }};
 
   // Set up some matrices for testing (specifically, these are the five kernels
-  // used in Marval-He-Cutler debayerization)
+  // used in Marval-He-Cutler debayerization, plus an empty matrix)
+  Eigen::SparseMatrix<data_value_t> mat_empty(5, 5);
   Eigen::SparseMatrix<data_value_t> mat_ident(5, 5);
   Eigen::SparseMatrix<data_value_t> mat_cross(5, 5);
   Eigen::SparseMatrix<data_value_t> mat_checker(5, 5);
@@ -176,6 +219,9 @@ IMPLEMENT_TEST(enumerate_matrix)
   mat_theta.insert(2, 1) = +8;
   mat_theta.insert(2, 3) = +8;
   mat_theta.insert(2, 2) = +10;
+
+  // Test that operating on an empty matrix does not crash
+  test_equal("empty matrix has expected weight", sparse_sum(mat_empty), 0);
 
   // Check coefficient sums
   test_equal("identity matrix has expected weight", sparse_sum(mat_ident), 16);
