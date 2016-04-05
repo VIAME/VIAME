@@ -105,9 +105,6 @@ add_subdirectory( arrows )
 #
 set(kwiver_cmake_install_dir "lib${LIB_SUFFIX}/cmake/arrows")
 
-# Install rules for CMake utilities
-include( kwiver-install-utils )
-
 # Prepare space-separated list of library names for config
 get_property(arrows_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " arrows_libs "${arrows_libs}")
@@ -121,6 +118,7 @@ kwiver_configure_file(arrows-config
   "${ARROWS_CONFIG_FILE}"
   ARROWS_SOURCE_DIR
   ARROWS_BINARY_DIR
+  ARROWS_VERSION
   module_path
   arrows_libs
   )
