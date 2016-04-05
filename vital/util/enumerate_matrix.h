@@ -155,7 +155,7 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
   return (self_valid == other_valid &&
           this->m_matrix == other.m_matrix &&
           this->m_outer == other.m_outer &&
-          (*this->m_inner) == (*other.m_inner));
+          this->m_inner->index() == other.m_inner->index());
 }
 
 template < typename ValueT, int Options, typename IndexT >
