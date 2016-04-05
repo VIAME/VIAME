@@ -38,7 +38,7 @@
 
 
 namespace kwiver {
-namespace algorithms {
+namespace arrows {
 
 using namespace kwiver::vital;
 
@@ -150,5 +150,5 @@ reprojection_median_error(const std::map<frame_id_t, camera_sptr>& cameras,
 }
 
 
-} // end namespace algorithms
+} // end namespace arrows
 } // end namespace kwiver

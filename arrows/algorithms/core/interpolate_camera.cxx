@@ -38,7 +38,7 @@
 
 
 namespace kwiver {
-namespace algorithms {
+namespace arrows {
 
 
 /// Generate an interpolated camera between \c A and \c B by a given fraction \c f
@@ -102,5 +102,5 @@ interpolate_camera(vital::camera_sptr A,
 }
 
 
-} // end namespace algorithms
+} // end namespace arrows
 } // end namespace kwiver

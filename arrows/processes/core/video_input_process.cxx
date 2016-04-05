@@ -72,7 +72,7 @@ public:
   kwiver::vital::timestamp::time_t        m_config_frame_time;
 
   kwiver::vital::algo::video_input_sptr   m_video_reader;
-  kwiver::vital::algo::video_input_traits m_video_traits;
+  kwiver::vital::algorithm_capabilities m_video_traits;
 
   kwiver::vital::timestamp::frame_t       m_frame_number;
   kwiver::vital::timestamp::time_t        m_frame_time;
@@ -137,7 +137,7 @@ void video_input_process
   // instantiate a video reader
   d->m_video_reader->open( d->m_config_video_filename ); // throws
 
-  d->m_video_traits = d->m_video_reader->get_implementation_traits();
+  d->m_video_traits = d->m_video_reader->get_implementation_capabilities();
 }
 
 
@@ -165,7 +165,7 @@ void video_input_process
     //
     // Sometimes the video source can not determine either the frame
     // number or frame time or both.
-    if ( d->m_video_traits.trait( kwiver::vital::algo::video_input_traits::HAS_FRAME_NUMBERS ) )
+    if ( d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS ) )
     {
       d->m_frame_number = ts.get_frame();
     }
@@ -175,7 +175,7 @@ void video_input_process
       ts.set_frame( d->m_frame_number );
     }
 
-    if ( ! d->m_video_traits.trait( kwiver::vital::algo::video_input_traits::HAS_FRAME_TIME ) )
+    if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_TIME ) )
     {
       // create an internal time standard
       d->m_frame_time = d->m_frame_number * d->m_config_frame_time;

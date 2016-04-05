@@ -30,3 +30,7 @@ target_link_libraries( algorithms_proj
 algorithms_create_plugin( algorithms_proj
   algorithm_plugin_interface.cxx
   )
+
+if (ARROWS_ENABLE_TESTS)
+  add_subdirectory(tests)
+endif()

@@ -38,7 +38,7 @@
 
 
 namespace kwiver {
-namespace algorithms {
+namespace arrows {
 
 /// Triangulate a 3D point from a set of cameras and 2D image points
 template <typename T>
@@ -130,5 +130,5 @@ INSTANTIATE_TRIANGULATE(float);
 /// \endcond
 
 
-} // end namespace algorithms
+} // end namespace arrows
 } // end namespace kwiver

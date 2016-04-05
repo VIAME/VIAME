@@ -1,6 +1,8 @@
 #
 # Algorithms CMake file
 #
+set(ALGORITHMS_SOURCE_DIR           "${CMAKE_CURRENT_SOURCE_DIR}")
+set(ALGORITHMS_BINARY_DIR           "${CMAKE_CURRENT_BINARY_DIR}")
 
 
 # Base plug-in with default implementations

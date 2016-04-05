@@ -38,3 +38,7 @@ target_link_libraries( algorithms_ceres
 algorithms_create_plugin( algorithms_ceres
   algorithm_plugin_interface.cxx
   )
+
+if (ARROWS_ENABLE_TESTS)
+  add_subdirectory(tests)
+endif()

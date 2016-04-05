@@ -40,7 +40,7 @@
 
 
 namespace kwiver {
-namespace algorithms {
+namespace arrows {
 
 
 /// Compute the match matrix from a track set
@@ -113,5 +113,5 @@ match_matrix(const vital::track_set_sptr tracks,
 
 
 
-} // end namespace algorithms
+} // end namespace arrows
 } // end namespace kwiver

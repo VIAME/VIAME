@@ -48,7 +48,7 @@
 #include <cmath>
 
 namespace kwiver {
-namespace algorithms {
+namespace arrows {
 
 /// Compute the reprojection error vector of lm projected by cam compared to f
 /**
@@ -159,7 +159,7 @@ reprojection_median_error(const std::map<vital::frame_id_t, vital::camera_sptr>&
                           const std::vector<vital::track_sptr>& tracks);
 
 
-} // end namespace algorithms
+} // end namespace arrows
 } // end namespace kwiver
 
 

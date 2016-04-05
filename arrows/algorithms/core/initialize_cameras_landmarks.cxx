@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -324,7 +324,7 @@ initialize_cameras_landmarks::priv
 
   // option 1
   cams[1] = vital::simple_camera(R.inverse()*-t, R);
-  vector_3d pt3 = kwiver::algorithms::triangulate_inhomog(cams, pts);
+  vector_3d pt3 = kwiver::arrows::triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
     return left_camera;
@@ -332,7 +332,7 @@ initialize_cameras_landmarks::priv
 
   // option 2, with negated translation
   cams[1] = vital::simple_camera(R.inverse()*t, R);
-  pt3 = kwiver::algorithms::triangulate_inhomog(cams, pts);
+  pt3 = kwiver::arrows::triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
     return left_camera;
@@ -341,7 +341,7 @@ initialize_cameras_landmarks::priv
   // option 3, with the twisted pair rotation
   R = e.twisted_rotation();
   cams[1] = vital::simple_camera(R.inverse()*-t, R);
-  pt3 = kwiver::algorithms::triangulate_inhomog(cams, pts);
+  pt3 = kwiver::arrows::triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
     return left_camera;
@@ -349,7 +349,7 @@ initialize_cameras_landmarks::priv
 
   // option 4, with negated translation
   cams[1] = vital::simple_camera(R.inverse()*t, R);
-  pt3 = kwiver::algorithms::triangulate_inhomog(cams, pts);
+  pt3 = kwiver::arrows::triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
     return left_camera;
@@ -778,7 +778,7 @@ initialize_cameras_landmarks
   }
 
   std::vector<frame_id_t> mm_frames(frame_ids.begin(), frame_ids.end());
-  Eigen::SparseMatrix<unsigned int> mm = kwiver::algorithms::match_matrix(tracks, mm_frames);
+  Eigen::SparseMatrix<unsigned int> mm = kwiver::arrows::match_matrix(tracks, mm_frames);
   int init_i=0,init_j=0;
   find_best_initial_pair(mm, init_i, init_j);
   std::cout << "using frames "<< mm_frames[init_i] << " and " << mm_frames[init_j] <<std::endl;
@@ -857,13 +857,13 @@ initialize_cameras_landmarks
     {
       camera_map_sptr ba_cams(new simple_camera_map(cams));
       landmark_map_sptr ba_lms(new simple_landmark_map(lms));
-      double init_rmse = algorithms::reprojection_rmse(cams, lms, trks);
+      double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
       std::cerr << "initial reprojection RMSE: " << init_rmse << std::endl;
 
       d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks);
       cams = ba_cams->cameras();
       lms = ba_lms->landmarks();
-      double final_rmse = algorithms::reprojection_rmse(cams, lms, trks);
+      double final_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
       std::cerr << "final reprojection RMSE: " << final_rmse << std::endl;
       std::cout << "updated focal length "<<cams.begin()->second->intrinsics()->focal_length() <<std::endl;
     }

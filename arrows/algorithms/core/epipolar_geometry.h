@@ -45,7 +45,7 @@
 #include <vector>
 
 namespace kwiver {
-namespace algorithms {
+namespace arrows {
 
 
 /// Test corresponding points against a fundamental matrix and mark inliers
@@ -86,7 +86,7 @@ essential_matrix_to_fundamental(kwiver::vital::essential_matrix const& E,
                                 kwiver::vital::camera_intrinsics const& right_cal,
                                 kwiver::vital::camera_intrinsics const& left_cal);
 
-} // end namespace algorithms
+} // end namespace arrows
 } // end namespace kwiver
 
 

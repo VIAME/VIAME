@@ -43,7 +43,7 @@
 
 
 namespace kwiver {
-namespace algorithms {
+namespace arrows {
 
 
 /// Triangulate a 3D point from a set of cameras and 2D image points
@@ -82,7 +82,7 @@ triangulate_homog(const std::vector<vital::simple_camera >& cameras,
                   const std::vector<Eigen::Matrix<T,2,1> >& points);
 
 
-} // end namespace algorithms
+} // end namespace arrows
 } // end namespace kwiver
 
 

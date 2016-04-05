@@ -3,9 +3,9 @@
 #
 
 # Sprokit macros & stuff
-include("${sprokit_source_dir}/conf/sprokit-macro-targets.cmake")
-include("${sprokit_source_dir}/conf/sprokit-macro-configure.cmake")
-include("${sprokit_source_dir}/conf/sprokit-macro-python.cmake")
+include("${SPROKIT_CMAKE_DIR}/sprokit-macro-targets.cmake")
+include("${SPROKIT_CMAKE_DIR}/sprokit-macro-configure.cmake")
+include("${SPROKIT_CMAKE_DIR}/sprokit-macro-python.cmake")
 
 set(sprokit_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
 set(sprokit_python_output_path "${KWIVER_BUILD_INSTALL_PREFIX}/lib/${sprokit_python_subdir}")

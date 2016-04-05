@@ -46,7 +46,7 @@
 
 
 namespace kwiver {
-namespace algorithms {
+namespace arrows {
 
 
 /// Generate an interpolated camera between \c A and \c B by a given fraction \c f
@@ -86,7 +86,7 @@ void interpolated_cameras(vital::simple_camera const& A,
                           std::vector< vital::simple_camera > & interp_cams);
 
 
-} // end namespace algorithms
+} // end namespace arrows
 } // end namespace kwiver
 
 #endif // ALGORITHMS_INTERPOLATE_CAMERA_H_

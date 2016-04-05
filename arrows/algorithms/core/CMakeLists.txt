@@ -11,12 +11,14 @@ set( plugin_core_headers
   match_features_homography.h
   register_algorithms.h
   track_features_core.h
+  transform.h
   triangulate_landmarks.h
 
   epipolar_geometry.h
   interpolate_camera.h
   match_matrix.h
   metrics.h
+  projected_track_set.h
   triangulate.h
   )
 kwiver_install_headers(
@@ -39,12 +41,14 @@ set( plugin_core_sources
   match_features_homography.cxx
   register_algorithms.cxx
   track_features_core.cxx
+  transform.cxx
   triangulate_landmarks.cxx
 
   epipolar_geometry.cxx
   interpolate_camera.cxx
   match_matrix.cxx
   metrics.cxx
+  projected_track_set.cxx
   triangulate.cxx
   )
 kwiver_add_library( algorithms_core
@@ -58,3 +62,7 @@ target_link_libraries( algorithms_core
 algorithms_create_plugin( algorithms_core
   algorithm_plugin_interface.cxx
   )
+
+if (ARROWS_ENABLE_TESTS)
+  add_subdirectory(tests)
+endif()

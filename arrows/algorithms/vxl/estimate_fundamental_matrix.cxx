@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -201,7 +201,7 @@ estimate_fundamental_matrix
   F.transposeInPlace();
 
   fundamental_matrix_sptr fm(new fundamental_matrix_d(F));
-  inliers = algorithms::mark_fm_inliers(*fm, pts1, pts2, inlier_scale);
+  inliers = arrows::mark_fm_inliers(*fm, pts1, pts2, inlier_scale);
   return fm;
 }
 

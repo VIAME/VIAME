@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -180,7 +180,7 @@ estimate_essential_matrix
   matrix_3x3d F = K2_invt * E * K1_inv;
 
   fundamental_matrix_sptr fm(new fundamental_matrix_d(F));
-  inliers = algorithms::mark_fm_inliers(*fm, pts1, pts2, inlier_scale);
+  inliers = arrows::mark_fm_inliers(*fm, pts1, pts2, inlier_scale);
 
   return essential_matrix_sptr(new essential_matrix_d(E));
 }
