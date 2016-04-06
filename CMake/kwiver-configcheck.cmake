@@ -66,6 +66,11 @@ try_compile( success
      -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
-set( VITAL_USE_STD_RANDOM ${success} )
+# Known issue with std::random in GCC 4.4.7 and probably below.
+if( CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.5 )
+  set( VITAL_USE_STD_RANDOM FALSE )
+else()
+  set( VITAL_USE_STD_RANDOM ${success} )
+endif()
 
 ###
