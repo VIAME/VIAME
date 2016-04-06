@@ -19,3 +19,6 @@
 [submodule "Packages/vibrant"]
 	path = Packages/vibrant
 	url = https://github.com/Kitware/vibrant.git
+[submodule "Packages/arrows"]
+	path = Packages/arrows
+	url = git@kwgitlab.kitware.com:computer-vision/arrows.git
