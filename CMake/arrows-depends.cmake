@@ -2,7 +2,7 @@
 
 include( arrows-depends-vital )
 include( arrows-depends-Ceres )
-##+ include( arrows-depends-Eigen )
+include( arrows-depends-Eigen )
 include( arrows-depends-OpenCV )
 include( arrows-depends-PROJ )
 include( arrows-depends-VisCL )

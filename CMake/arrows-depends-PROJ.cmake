@@ -6,12 +6,12 @@ option( ARROWS_ENABLE_PROJ
   )
 
 if( ARROWS_ENABLE_PROJ )
-  set( old_prefix CMAKE_PREFIX_PATH )
-  set( CMAKE_PREFIX_PATH ${PROJ4_ROOT} )
+  include(CommonFindMacros)
+  setup_find_root_context(PROJ4)
 
   find_package( PROJ4   MODULE REQUIRED )
 
-  set( CMAKE_PREFIX_PATH   old_prefix )
+  restore_find_root_context(EIGEN3)
 
   include_directories( SYSTEM ${PROJ_INCLUDE_DIR} )
 endif( ARROWS_ENABLE_PROJ )

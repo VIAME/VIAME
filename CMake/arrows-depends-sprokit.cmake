@@ -8,13 +8,14 @@ option( ARROWS_ENABLE_SPROKIT
   )
 
 if ( ARROWS_ENABLE_SPROKIT )
+  include(CommonFindMacros)
+
   find_package( sprokit REQUIRED )
 
   include_directories( SYSTEM ${SPROKIT_INCLUDE_DIRS} )
   link_directories( ${SPROKIT_LIBRARY_DIRS} )
 
-  set( old_prefix CMAKE_PREFIX_PATH )
-  set( CMAKE_PREFIX_PATH ${BOOST_ROOT} )
+  setup_find_root_context(BOOST)
 
   find_package( Boost ${SPROKIT_BOOST_VERSION} REQUIRED
     COMPONENTS
@@ -29,7 +30,7 @@ if ( ARROWS_ENABLE_SPROKIT )
   # Required for Boost.Thread.
   find_package(Threads REQUIRED)
 
-  set( CMAKE_PREFIX_PATH   old_prefix )
+  restore_find_root_context(EIGEN3)
 
   include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
   link_directories(${Boost_LIBRARY_DIRS})
