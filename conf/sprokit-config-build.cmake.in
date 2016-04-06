@@ -24,6 +24,8 @@ set(SPROKIT_MODULE_DIR
   "${SPROKIT_LIBRARY_DIR}/sprokit")
 set(SPROKIT_DOCUMENTATION_DIR
   "@sprokit_binary_dir@/doc")
+set(SPROKIT_CMAKE_DIR
+  "@sprokit_source_dir@/conf")
 
 set(SPROKIT_ENABLE_PYTHON
   "@SPROKIT_ENABLE_PYTHON@")
