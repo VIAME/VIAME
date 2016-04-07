@@ -8,7 +8,7 @@ include("${SPROKIT_CMAKE_DIR}/sprokit-macro-configure.cmake")
 include("${SPROKIT_CMAKE_DIR}/sprokit-macro-python.cmake")
 
 set(sprokit_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
-set(sprokit_python_output_path "${KWIVER_BUILD_INSTALL_PREFIX}/lib/${sprokit_python_subdir}")
+set(sprokit_python_output_path "${ARROWS_BINARY_DIR}/lib/${sprokit_python_subdir}")
 
 sprokit_create_python_plugin_init(kwiver)
 sprokit_create_python_plugin_init(kwiver/processes)
