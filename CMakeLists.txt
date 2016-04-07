@@ -154,6 +154,7 @@ set(KWIVER_ARGS_COMMON_CMAKE
   -DKWIVER_ENABLE_TESTS:BOOL=${KWIVER_ENABLE_TESTS}
   -DEIGEN3_ROOT:PATH=${EIGEN3_ROOT}
   -Dkwiver_DIR:PATH=${KWIVER_BINARY_DIR}
+  -Dfletch_DIR:PATH=${fletch_DIR}
   -Dvital_DIR:PATH=${KWIVER_BUILD_PREFIX}/src/vital-build
   -Dvidtk_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
   -DPROJ4_ROOT:PATH=${PROJ4_ROOT}
@@ -221,6 +222,7 @@ option(KWIVER_ENABLE_ALL_PACKAGES "Should KWIVER build all of the optional packa
 mark_as_advanced(KWIVER_ENABLE_ALL_PACKAGES)
 option(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF)
 option(KWIVER_ENABLE_MAPTK "Enable building MapTK" FALSE)
+option(KWIVER_ENABLE_ARROWS "Enable building arrows" FALSE)
 option(KWIVER_ENABLE_VIBRANT "Enable building VIBRANT" FALSE)
 mark_as_advanced(KWIVER_ENABLE_VIBRANT)
 option(KWIVER_ENABLE_KWANT "Enable building KWANT" FALSE)
@@ -243,7 +245,8 @@ if (KWIVER_ENABLE_VIVIA)
 endif()
 
 if (KWIVER_ENABLE_PROCESSES)
-  set(KWIVER_ENABLE_MAPTK TRUE CACHE BOOL "" FORCE)
+  set(KWIVER_ENABLE_MAPTK  TRUE   CACHE BOOL "" FORCE)
+  set(KWIVER_ENABLE_ARROWS TRUE   CACHE BOOL "" FORCE)
 endif()
 
 #
@@ -266,6 +269,10 @@ set(KWIVER_ARGS_VIVIA_DEPS
 include(External_VXL)
 include(External_vital)
 include(External_sprokit)
+
+if (KWIVER_ENABLE_ARROWS)
+    include(External_arrows)
+endif()
 
 if (KWIVER_ENABLE_MAPTK)
     include(External_maptk)
@@ -294,14 +301,6 @@ link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 # Add tests if enabled
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
-endif()
-
-
-if (KWIVER_ENABLE_PROCESSES)
-add_subdirectory(kwiver_util)
-
-# may want to make this optional.
-add_subdirectory(examples)
 endif()
 
 
