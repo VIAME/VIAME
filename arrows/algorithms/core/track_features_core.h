@@ -30,8 +30,7 @@
 
 /**
  * \file
- * \brief Header defining the \link vital::algo::track_features_core
- *        track_features_core \endlink algorithm
+ * \brief Header defining the track_features_core algorithm
  */
 
 #ifndef ARROWS_PLUGINS_CORE_TRACK_FEATURES_CORE_H_

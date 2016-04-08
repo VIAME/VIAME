@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Default convert_image algorithm that acts as a bypass
+ * \brief Header defining the convert_image algorithm that acts as a bypass
  */
 
 #ifndef ARROWS_ALGORITHMS_CORE_CONVERT_IMAGE_BYPASS_H_

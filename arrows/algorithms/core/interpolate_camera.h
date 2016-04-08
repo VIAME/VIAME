@@ -30,8 +30,7 @@
 
 /**
  * \file
- * \brief Header for \link algorithms::interpolate_camera interpolate_camera \endlink
- *        functions
+ * \brief Header for camera interpolation functions
  */
 
 #ifndef ALGORITHMS_INTERPOLATE_CAMERA_H_

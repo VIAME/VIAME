@@ -30,8 +30,7 @@
 
 /**
  * \file
- * \brief Header defining the \link vital::algo::close_loops_bad_frames_only
- *        close_loops_bad_frames_only \endlink algorithm
+ * \brief Header defining the close_loops_bad_frames_only algorithm
  */
 
 #ifndef ARROWS_ALGORITHMS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_

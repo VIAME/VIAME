@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief compute_ref_homography algorithm definition
+ * \brief Header defining the compute_ref_homography algorithm
  */
 
 #ifndef ARROWS_ALGORITHMS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_

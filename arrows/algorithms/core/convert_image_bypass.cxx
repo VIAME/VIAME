@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Pass-through convert_image implementation
+ * \brief Implementation of Pass-through convert_image
  */
 
 #include "convert_image_bypass.h"

@@ -30,8 +30,7 @@
 
 /**
  * \file
- * \brief Header defining \link vital::algo::hierarchical_bundle_adjust
- *        hierarchical bundle adjustment \endlink algorithm
+ * \brief Header defining the hierarchical_bundle_adjust algorithm
  */
 
 #ifndef ARROWS_ALGORITHMS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_

@@ -30,8 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link algorithms::interpolate_camera interpolate_camera \endlink
- *        functions
+ * \brief Implementation of camera interpolation functions
  */
 
 #include "interpolate_camera.h"

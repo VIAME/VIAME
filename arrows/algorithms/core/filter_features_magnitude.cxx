@@ -28,6 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief Implementation of filter_features_magnitude algorithm
+ */
 #include "filter_features_magnitude.h"
 
 #include <vital/logger/logger.h>
