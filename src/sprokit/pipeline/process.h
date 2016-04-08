@@ -292,6 +292,10 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Post-connection initialization.
      *
+     * This method is called after all connections are made. This
+     * allows the process to verify its state before it starts
+     * processing data.
+     *
      * \throws unconfigured_exception Thrown if called before \ref configure.
      * \throws reinitialization_exception Thrown if called multiple times.
      *
@@ -355,8 +359,8 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param port The port to connect to.
      * \param edge The edge to connect to the port.
      */
-
     void connect_input_port(port_t const& port, edge_t edge);
+
     /**
      * \brief Connect an edge to an output port on the process.
      *
@@ -407,8 +411,8 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns Information about the input port.
      */
-
     port_info_t input_port_info(port_t const& port);
+
     /**
      * \brief Query for information about an output port on the process.
      *
@@ -753,9 +757,10 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param port The port to get information about.
      *
-     * \returns Information about an output port.
+     * \returns Information about an input port.
      */
     virtual port_info_t _input_port_info(port_t const& port);
+
     /**
      * \brief Subclass output port information.
      *
