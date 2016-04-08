@@ -24,6 +24,8 @@ set(SPROKIT_MODULE_DIR
   "${SPROKIT_LIBRARY_DIR}/sprokit")
 set(SPROKIT_DOCUMENTATION_DIR
   "@CMAKE_INSTALL_PREFIX@/share/doc/sprokit-@sprokit_version@")
+set(SPROKIT_CMAKE_DIR
+  "${SPROKIT_LIBRARY_DIR}/cmake/sprokit")
 
 set(SPROKIT_PIPE_INSTALL_PATH
   "@CMAKE_INSTALL_PREFIX@/share/sprokit/pipelines")

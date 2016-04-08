@@ -30,7 +30,6 @@
 
 #include "utils.h"
 
-#include <cxxabi.h>
 #include <vital/logger/logger.h>
 
 #ifdef HAVE_PTHREAD_NAMING
@@ -73,11 +72,13 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <boost/scoped_array.hpp>
-
 #include <windows.h>
+
 #else
+
 #include <cstdlib>
 #include <cxxabi.h>
+
 #endif
 
 /**
@@ -269,6 +270,8 @@ set_thread_name(DWORD thread_id, LPCSTR name)
    }
 }
 #endif
+
+//+ replace with vital/util/demangle.h support
 
 std::string _demangle_symbol(std::string const& sym)
 {
