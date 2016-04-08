@@ -32,7 +32,7 @@
 #define _KWIVER_IO_MGR_H
 
 #include "smqtk_extract_export.h"
-#include <kwiver_util/kwiver_type_traits.h>
+#include <arrows/processes/kwiver_type_traits.h>
 
 #include <opencv2/opencv.hpp>
 #include <vector>

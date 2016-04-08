@@ -1,0 +1,34 @@
+# ================================================================
+process input
+  :: video_input
+  :video_filename     /disk2/projects/KWIVER/kwgitlab/source/examples/motion-133953-20012015.mp4
+#  :video_filename     /home/linus/.EXPORTCONT/video/U-ITAR_20090319_1115_I2_10_stamped.mpg
+  :frame_time          .3333
+
+# Algorithm to use for 'video_input'.
+# Must be one of the following options:
+# 	- vxl
+  :video_reader:type vxl
+
+# ================================================================
+process disp
+  :: view_image
+:annotate_image         true
+:pause_time             0.0333 # 1.0
+:footer                 footer_footer
+:header                 header-header
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 10
+
+# ================================================================
+# connections
+connect from input.timestamp
+        to   disp.timestamp
+connect from input.image
+        to   disp.image
+
+# -- end of file --
