@@ -24,6 +24,7 @@ target_link_libraries(python-sprokit.pipeline_util-export_
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
 
+if (0) #+ this module causes a compiler seg fault
 _sprokit_add_python_library(load
   sprokit/pipeline_util
   load.cxx)
@@ -36,6 +37,7 @@ target_link_libraries(python-sprokit.pipeline_util-load
     ${Boost_SYSTEM_LIBRARY}
     ${${boost_python_library_var}}
     ${PYTHON_LIBRARIES})
+endif()
 
 sprokit_create_python_init(sprokit/pipeline_util)
 #  bake

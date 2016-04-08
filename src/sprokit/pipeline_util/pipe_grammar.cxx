@@ -557,7 +557,7 @@ cluster_grammar<Iterator>
   , cluster_block_set()
 {
 
-#if defined (NDEBUG)                           //+ TEMP
+#if defined(NDEBUG) //+ TEMP fails in debug mode
   // This is not ideal, but leaving this code in when building for
   // debug causes a compiler error.  Only a short term solution until
   // we get a better compiler
@@ -575,7 +575,6 @@ cluster_grammar<Iterator>
      >> common.line_end
      >> common.partial_config_value_decl
      );
-#endif
 
   cluster_input_target.name("cluster-input-target");
   cluster_input_target %=
@@ -644,6 +643,7 @@ cluster_grammar<Iterator>
         |  common.connect_block
         )
      );
+#endif
 }
 
 template <typename Iterator>
