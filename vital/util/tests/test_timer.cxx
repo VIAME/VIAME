@@ -86,22 +86,24 @@ IMPLEMENT_TEST(cpu_timer_test)
   timer.start();
   TEST_EQUAL( "CPU Timer active", timer.is_active(), true );
 
-  // This may look odd, but we need to use the results of this call or
-  // it can be optimized out of generated code resulting in no elapsed
-  // time.
   long fib = fibonacci(40);
-  TEST_EQUAL( "fib(40)", fib-fib, 0 );
 
   double t1 = timer.elapsed();
   bool value = (t1 != 0);
   TEST_EQUAL( "CPU Timer 1 not zero", value, true );
+  // Displaying the result of this call is important.  Otherwise
+  // it can be optimized out of generated code resulting in no elapsed
+  // time.
+  std::cout << "fib(40) = " << fib << std::endl;
 
-  fib = fibonacci(40);
-  TEST_EQUAL( "fib(40)", fib-fib, 0 );
+  // Computing a different value is important.  Otherwise this
+  // call could be optimized out.
+  fib = fibonacci(41);
 
   double t2 = timer.elapsed();
   value = (t2 != 0);
   TEST_EQUAL( "CPU Timer 2 not zero", value, true );
+  std::cout << "fib(41) = " << fib << std::endl;
 
   value = (t1 == t2);
   TEST_EQUAL( "CPU Timers not the same", value, false );
@@ -109,8 +111,8 @@ IMPLEMENT_TEST(cpu_timer_test)
   timer.stop();
   t1 = timer.elapsed();
 
-  fib = fibonacci(40);
-  TEST_EQUAL( "fib(40)", fib-fib, 0 );
+  fib = fibonacci(39);
+  std::cout << "fib(39) = " << fib << std::endl;
 
   t2 = timer.elapsed();
 
