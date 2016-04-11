@@ -1,12 +1,13 @@
-VITAL 0.1.0 Release Notes
+Vital 0.1.0 Release Notes
 =========================
 
-This is the first formal release of vital. The features in this
+This is the first formal release of Vital. The features in this
 initial release are summarized below.  Future release notes will
 describe modifications since the previous release.
 
 Vital is a result of refactoring the common support functionality,
-basic types and abstract algorithms from the MapTK package.
+basic types and abstract algorithms from the MAP-Tk package combined
+with some core capabilities from the Vibrant package.
 
 Library Features
 ----------------
@@ -19,8 +20,8 @@ Package Configuration, Build System, & Documentation
  * A unit testing framework using CTest is provided in the 'test' directory.
    This makes writing unit tests easy.
 
- * CMake scripts are provided to make it very easy to build the MAPTK code
-   documentation using Doxygen.  Just turn on the "MAPTK_ENABLE_DOCS" option
+ * CMake scripts are provided to make it very easy to build the Vital code
+   documentation using Doxygen.  Just turn on the "VITAL_ENABLE_DOCS" option
    in CMake to create a documentation build target (if you have Doxygen).
    Turn on "VITAL_INSTALL_DOCS" to have to built documentation installed.
 
