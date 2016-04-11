@@ -38,7 +38,7 @@
 
 #include <vital/vital_types.h>
 
-#include <kwiver_util/kwiver_type_traits.h>
+#include <arrows/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>
 
 namespace kwiver {

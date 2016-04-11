@@ -33,8 +33,8 @@
  * \brief test support functions involving generic math
  */
 
-#ifndef MAPTK_TEST_MATH_H_
-#define MAPTK_TEST_MATH_H_
+#ifndef ARROWS_TEST_MATH_H_
+#define ARROWS_TEST_MATH_H_
 
 #include <cmath>
 
@@ -42,7 +42,7 @@
 
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace testing {
 
 
@@ -50,16 +50,17 @@ namespace testing {
 /**
  * Drop-in compatible with TEST_NEAR. Just need to include this header.
  */
-template <typename T, int M, int N>
-bool is_almost(Eigen::Matrix<T,M,N> const& a,
-               Eigen::Matrix<T,M,N> const& b,
-               double const& epsilon)
+template < typename T, int M, int N >
+bool
+is_almost( Eigen::Matrix< T, M, N > const& a,
+           Eigen::Matrix< T, M, N > const& b,
+           double const& epsilon )
 {
-  for (unsigned i=0; i<M; ++i)
+  for ( unsigned i = 0; i < M; ++i )
   {
-    for (unsigned j=0; j<N; ++j)
+    for ( unsigned j = 0; j < N; ++j )
     {
-      if (fabs(a(i,j) - b(i,j)) > epsilon)
+      if ( fabs( a( i, j ) - b( i, j ) ) > epsilon )
       {
         return false;
       }
@@ -68,9 +69,8 @@ bool is_almost(Eigen::Matrix<T,M,N> const& a,
   return true;
 }
 
-
 } // end namespace testing
-} // end namespace maptk
+} // end namespace arrows
 } // end namespace kwiver
 
-#endif // MAPTK_TEST_MATH_H_
+#endif // ARROWS_TEST_MATH_H_

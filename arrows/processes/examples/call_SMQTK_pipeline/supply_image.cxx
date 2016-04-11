@@ -35,10 +35,9 @@
 #include <vital/types/image_container.h>
 #include <vital/types/image.h>
 #include <vital/algorithm_plugin_manager.h>
+#include <arrows/algorithms/ocv/image_container.h>
 
-#include <maptk/plugins/ocv/image_container.h>
-
-#include <kwiver_util/kwiver_type_traits.h>
+#include <arrows/processes/kwiver_type_traits.h>
 
 // -- DEBUG
 #if defined DEBUG
@@ -102,11 +101,11 @@ void supply_image
     d->first = false;
 
     // Convert image to a image container.
-    kwiver::vital::image_container_sptr const img_c( new kwiver::maptk::ocv::image_container( io_mgr::Instance()->GetImage() ) );
+    kwiver::vital::image_container_sptr const img_c( new kwiver::arrows::ocv::image_container( io_mgr::Instance()->GetImage() ) );
 
     // --- debug
 #if defined DEBUG
-    cv::Mat image = maptk::ocv::image_container::maptk_to_ocv( img_c->get_image() );
+    cv::Mat image = arrows::ocv::image_container::vital_to_ocv( img_c->get_image() );
     namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
     imshow( "Display window", image );                   // Show our image inside it.
 

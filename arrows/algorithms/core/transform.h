@@ -142,4 +142,4 @@ necker_reverse(vital::camera_map_sptr& cameras,
 } // end namespace kwiver
 
 
-#endif // MAPTK_TRANSFORM_H_
+#endif // ARROWS_TRANSFORM_H_

@@ -52,6 +52,7 @@
 #include <arrows/algorithms/core/metrics.h>
 #include <arrows/algorithms/core/match_matrix.h>
 #include <arrows/algorithms/core/triangulate.h>
+#include <arrows/algorithms/core/transform.h>
 
 using namespace kwiver::vital;
 

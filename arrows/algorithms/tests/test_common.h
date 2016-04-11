@@ -33,12 +33,11 @@
  *
  * \brief Macro definitions for creating and running test cases
  *
- * These integrate with the paired CTest infrastucture managed by MAPTK's
- * CMake.
+ * These integrate with the paired CTest infrastucture managed by CMake.
  */
 
-#ifndef MAPTK_TEST_TEST_COMMON_H_
-#define MAPTK_TEST_TEST_COMMON_H_
+#ifndef ARROWS_TEST_TEST_COMMON_H_
+#define ARROWS_TEST_TEST_COMMON_H_
 
 #include <vital/vital_foreach.h>
 
@@ -247,7 +246,7 @@ typedef std::string testname_t;
 //
 
 namespace kwiver {
-namespace maptk {
+namespace arrows {
 namespace testing {
 
 /// Test double approximate equality to given epsilon
@@ -264,7 +263,7 @@ inline bool is_almost(double const &value,
 }
 
 } //end namespace testing
-} //end namespace maptk
+} //end namespace arrows
 } //end namespace kwiver
 
 /// General equality test with message generation on inequality
@@ -297,7 +296,7 @@ inline bool is_almost(double const &value,
 #define TEST_NEAR(name, value, target, epsilon)                  \
   do                                                             \
   {                                                              \
-    namespace kmt = kwiver::maptk::testing;                      \
+    namespace kmt = kwiver::arrows::testing;                      \
     if(! kmt::is_almost(value, target, epsilon))                 \
     {                                                            \
       TEST_ERROR("TEST_NEAR check '" << name                     \
@@ -307,4 +306,4 @@ inline bool is_almost(double const &value,
     }                                                            \
   }while(false)
 
-#endif // MAPTK_TEST_TEST_COMMON_H_
+#endif // ARROWS_TEST_TEST_COMMON_H_

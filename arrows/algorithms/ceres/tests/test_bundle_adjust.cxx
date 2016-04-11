@@ -66,7 +66,7 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(create)
 {
-  using namespace kwiver::maptk;
+  using namespace kwiver::arrows;
   algo::bundle_adjust_sptr ba = algo::bundle_adjust::create("ceres");
   if (!ba)
   {

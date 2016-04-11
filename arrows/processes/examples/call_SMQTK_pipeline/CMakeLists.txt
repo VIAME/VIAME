@@ -7,10 +7,10 @@ include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 kwiver_add_plugin( SMQTK_extract
   SUBDIR           sprokit
-  SOURCES            io_mgr.h                 io_mgr.cxx
-                     supply_image.h           supply_image.cxx
-                     accept_descriptor.h      accept_descriptor.cxx
-                     register_processes.cxx
+  SOURCES          io_mgr.h                 io_mgr.cxx
+                   supply_image.h           supply_image.cxx
+                   accept_descriptor.h      accept_descriptor.cxx
+                   register_processes.cxx
   PRIVATE          sprokit_pipeline sprokit_tools
                    algorithms_core algorithms_vxl algorithms_ocv
                    vital vital_apm vital_logger vital_config

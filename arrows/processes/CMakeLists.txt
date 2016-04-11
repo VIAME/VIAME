@@ -4,6 +4,7 @@
 
 add_subdirectory( bindings )
 add_subdirectory( core )
+add_subdirectory( examples )
 
 if (ARROWS_ENABLE_VXL)
   add_subdirectory( vxl )

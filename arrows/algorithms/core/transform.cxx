@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of maptk::transform functions to apply
+ * \brief Implementation of transform functions to apply
  * similarity transformations
  */
 

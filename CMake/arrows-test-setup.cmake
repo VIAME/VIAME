@@ -31,7 +31,7 @@ else ()
   set(kwiver_test_working_path    "${ARROWS_BINARY_DIR}/tests")
 endif ()
 
-set(maptk_test_data_directory      "${CMAKE_CURRENT_SOURCE_DIR}/data")
+set(arrows_test_data_directory      "${CMAKE_CURRENT_SOURCE_DIR}/test_data")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories("${ARROWS_SOURCE_DIR}")
