@@ -125,12 +125,6 @@ endif(KWIVER_ENABLE_PYTHON)
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
-# installing system setup script
-if (fletch_ROOT)
-    set(SET_FLETCH_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH")
-    set(SET_FLETCH_PYTHON_PATH "export PYTHONPATH=${fletch_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
-endif()
-
 configure_file(${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_BUILD_INSTALL_PREFIX}/setup_KWIVER.sh )
 
@@ -315,7 +309,6 @@ set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
 mark_as_advanced( LIB_SUFFIX )
 
-set(BUILD_SHARED_LIBS TRUE)
 
 # Create initial setup script
 set(KWIVER_SETUP_SCRIPT_FILE  ${KWIVER_BINARY_DIR}/setup_KWIVER.sh )
