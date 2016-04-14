@@ -1,4 +1,4 @@
-#
+###
 # Top level build script for kwiver-build
 #
 cmake_minimum_required(VERSION 3.0)
@@ -14,8 +14,7 @@ set(KWIVER_VERSION_MINOR 1)
 set(KWIVER_VERSION_PATCH 0)
 set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
 
-
-##
+###
 # Look for and use Fletch to find dependencies
 #
 set( fletch_DIR "" CACHE PATH "Path to FLETCH packages" )
@@ -23,25 +22,23 @@ if ( IS_DIRECTORY ${fletch_DIR} )
   find_package( fletch NO_MODULE )
 endif()
 
-
 ###
 # project specific directories
 #
-set(KWIVER_PACKAGES_DIR         "${CMAKE_SOURCE_DIR}/Packages")
+set(KWIVER_PACKAGES_DIR         "${CMAKE_SOURCE_DIR}/Packages") ## +delete this symbol
+set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build") ## +delete this symbol
+set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")## +delete this symbol
+
 set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/KWIVER_packaging")
 set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/KWIVER_packaging")
 set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
-
-set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build")
-set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
-set(CMAKE_INSTALL_PREFIX        "${KWIVER_BUILD_INSTALL_PREFIX}" CACHE STRING "" FORCE)
 
 # root directories
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 
 set(CMAKE_MODULE_PATH
-  ${KWIVER_PACKAGES_DIR}/vital/CMake # use vital supplied CMake support
+  ${KWIVER_PACKAGES_DIR}/kwiver/CMake # use kwiver supplied CMake support
   ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 
 set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})
@@ -119,7 +116,12 @@ if (KWIVER_ENABLE_PYTHON)
 
   include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
-endif()
+  if (fletch_ROOT)
+    set(SET_FLETCH_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH")
+    set(SET_FLETCH_PYTHON_PATH "export PYTHONPATH=${fletch_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages:$PYTHONPATH")
+  endif()
+
+endif(KWIVER_ENABLE_PYTHON)
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
@@ -155,8 +157,6 @@ set(KWIVER_ARGS_COMMON_CMAKE
   -DEIGEN3_ROOT:PATH=${EIGEN3_ROOT}
   -Dkwiver_DIR:PATH=${KWIVER_BINARY_DIR}
   -Dfletch_DIR:PATH=${fletch_DIR}
-  -Dvital_DIR:PATH=${KWIVER_BUILD_PREFIX}/src/vital-build
-  -Dvidtk_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
   -DPROJ4_ROOT:PATH=${PROJ4_ROOT}
   -DKML_DIR:PATH=${LIBKML_ROOT}/lib/cmake
   -DGeographicLib_ROOT:PATH=${GeographicLib_ROOT}
@@ -267,7 +267,6 @@ set(KWIVER_ARGS_VIVIA_DEPS
 # Adding external components
 #
 include(External_VXL)
-include(External_vital)
 include(External_sprokit)
 
 if (KWIVER_ENABLE_ARROWS)
@@ -303,6 +302,34 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
 
+#_#_#_ =======<<<< >>>>>>
+include(vital-flags) # vital specific CXX flags #+ check this
+
+##
+# check compiler support
+include( kwiver-configcheck )
+
+# ==================================================================
+
+set( LIB_SUFFIX "" CACHE STRING
+  "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
+mark_as_advanced( LIB_SUFFIX )
+
+set(BUILD_SHARED_LIBS TRUE)
+
+# Create initial setup script
+set(KWIVER_SETUP_SCRIPT_FILE  ${KWIVER_BINARY_DIR}/setup_KWIVER.sh )
+
+configure_file(
+  ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
+  ${KWIVER_SETUP_SCRIPT_FILE}
+  )
+
+# install set up script
+install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
+  DESTINATION ${CMAKE_INSTALL_PREFIX} )
+
+add_subdirectory( vital )
 
 ##################################################################
 # Top level installation
@@ -318,7 +345,7 @@ string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
 
 # Configure build-tree CMake config file and export associated targets file
 set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
-set(KWIVER_LIBRARY_DIR          "${KWIVER_BINARY_DIR}/lib") ##? TEMP
+set(KWIVER_LIBRARY_DIR "${KWIVER_BINARY_DIR}/lib") ##? TEMP
 
 kwiver_configure_file(kwiver-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config.cmake.in"
@@ -345,13 +372,11 @@ kwiver_install(
   RENAME      kwiver-config.cmake
   )
 
-# generates CMake Error: INSTALL(EXPORT) given unknown export "kwiver_exports"
-# FIXME - need to fix this. Happens when nothing has been exported.
-#kwiver_install(
-#  EXPORT      ${kwiver_export_name}
-#  DESTINATION "${kwiver_cmake_install_dir}"
-#  FILE        kwiver-config-targets.cmake
-#  )
+kwiver_install(
+  EXPORT      ${kwiver_export_name}
+  DESTINATION "${kwiver_cmake_install_dir}"
+  FILE        kwiver-config-targets.cmake
+  )
 
 
 # ==================================================================
@@ -382,4 +407,5 @@ set(CPACK_PACKAGE_VERSION           "${KWIVER_VERSION}")
 set(CPACK_RESOURCE_FILE_LICENSE     "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGING_INSTALL_PREFIX  "${CMAKE_INSTALL_PREFIX}")
 set(CPACK_PACKAGE_FILE_NAME         "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+
 include (CPack)

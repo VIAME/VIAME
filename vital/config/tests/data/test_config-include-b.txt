@@ -1,0 +1,6 @@
+
+b:key = val
+
+include test_config-comments.txt
+
+# end of file
