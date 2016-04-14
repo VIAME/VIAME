@@ -55,7 +55,6 @@ if (KWIVER_ENABLE_TESTS)
   include(CTest)
   set(BUILD_TESTING    ON)
   mark_as_advanced(BUILD_TESTING)
-
 endif()
 
 option( KWIVER_ENABLE_PYTHON    "Enable python code" OFF )
@@ -74,7 +73,6 @@ include(kwiver-utils)
 # level. Component packages may not perform well (or build at all)
 # with aggressive warnings.
 #
-
 
 # set the name for our package exports
 set(kwiver_export_name      kwiver_exports)
@@ -114,11 +112,6 @@ if (KWIVER_ENABLE_PYTHON)
     CACHE STRING "The ABI flags for the version of Python being used")
 
   include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
-
-  if (fletch_ROOT)
-    set(SET_FLETCH_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH")
-    set(SET_FLETCH_PYTHON_PATH "export PYTHONPATH=${fletch_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages:$PYTHONPATH")
-  endif()
 
 endif(KWIVER_ENABLE_PYTHON)
 
@@ -323,6 +316,13 @@ install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 add_subdirectory( vital )
+
+## If arrows enabled
+option(KWIVER_ENABLE_ARROWS "Enable building arrows" ON )
+
+if (KWIVER_ENABLE_ARROWS)
+  add_subdirectory( arrows )
+endif()
 
 ##################################################################
 # Top level installation

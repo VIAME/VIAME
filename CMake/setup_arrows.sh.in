@@ -1,0 +1,10 @@
+#
+# Script to source to setup the arrows environment
+#
+this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
+
+export PATH=$this_dir/bin:$PATH
+export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
+@SET_FLETCH_LD_LIBRARY_PATH@
+@SET_FLETCH_PYTHON_PATH@
+export SPROKIT_PYTHON_MODULES=kwiver.processes
