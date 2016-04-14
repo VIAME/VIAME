@@ -7,9 +7,6 @@
 [submodule "Packages/maptk"]
         path = Packages/maptk
         url = https://github.com/Kitware/maptk.git
-[submodule "Packages/vital"]
-	path = Packages/vital
-	url = https://github.com/Kitware/vital.git
 [submodule "Packages/kwant"]
 	path = Packages/kwant
 	url = https://github.com/Kitware/kwant.git
