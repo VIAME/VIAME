@@ -27,7 +27,7 @@ endif()
 #
 set(KWIVER_PACKAGES_DIR         "${CMAKE_SOURCE_DIR}/Packages") ## +delete this symbol
 set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build") ## +delete this symbol
-set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")## +delete this symbol
+set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install") ## +delete this symbol
 
 set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/KWIVER_packaging")
 set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/KWIVER_packaging")
@@ -40,9 +40,9 @@ set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 set(CMAKE_MODULE_PATH
   ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 
-set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})
-set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)
-set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" )
+set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})  ## +delete this symbol
+set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)  ## +delete this symbol
+set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" ) ## +delete this symbol
 
 # ================================================================
 option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
@@ -93,7 +93,7 @@ endif()
 
 # ================================================================
 # project global includes
-include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include")
+include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include") ## +delete this symbol
 include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
