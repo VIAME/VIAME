@@ -25,7 +25,6 @@ ExternalProject_Add( sprokit_proj
     -Ddoxy_documentation_output_path:STRING=${KWIVER_DOC_OUTPUT_DIR}
 	-DSPROKIT_ENABLE_TESTING:BOOL=TRUE
   INSTALL_DIR ${KWIVER_BUILD_INSTALL_PREFIX}
-  DEPENDS vital_proj
   )
 
 ExternalProject_Add_Step( sprokit_proj forcebuild

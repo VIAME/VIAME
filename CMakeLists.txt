@@ -38,7 +38,6 @@ set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 
 set(CMAKE_MODULE_PATH
-  ${KWIVER_PACKAGES_DIR}/kwiver/CMake # use kwiver supplied CMake support
   ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 
 set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})
@@ -296,8 +295,9 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
 
-#_#_#_ =======<<<< >>>>>>
-include(vital-flags) # vital specific CXX flags #+ check this
+##
+# System specific compiler flags
+include(kwiver-flags) # specific CXX flags
 
 ##
 # check compiler support

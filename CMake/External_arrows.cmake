@@ -11,7 +11,7 @@
 #
 
 ExternalProject_Add(arrows_proj
-  DEPENDS      vital_proj sprokit_proj
+  DEPENDS      sprokit_proj
   PREFIX ${KWIVER_BUILD_PREFIX}
   SOURCE_DIR ${KWIVER_PACKAGES_DIR}/arrows
   CMAKE_GENERATOR ${gen}
