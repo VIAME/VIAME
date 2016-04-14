@@ -11,7 +11,7 @@
 #
 
 ExternalProject_Add(maptk_proj
-  DEPENDS     VXL arrows_proj
+  DEPENDS     VXL
   PREFIX ${KWIVER_BUILD_PREFIX}
   SOURCE_DIR ${KWIVER_PACKAGES_DIR}/maptk
   CMAKE_GENERATOR ${gen}
