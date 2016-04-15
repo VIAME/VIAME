@@ -1,0 +1,8 @@
+process source
+  :: mytype
+
+process sink
+  :: mytype
+
+connect from source.output
+        to   sink.input

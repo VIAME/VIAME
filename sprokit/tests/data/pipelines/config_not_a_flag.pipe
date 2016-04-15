@@ -1,0 +1,2 @@
+config myblock
+  :mykey[nosuchflag] myvalue

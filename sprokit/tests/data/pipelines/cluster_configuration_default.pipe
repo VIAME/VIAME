@@ -1,0 +1,18 @@
+cluster configuration_default
+  :# Multiply a number by a constant factor.
+  :# The factor to multiply by.
+  imap from factor
+       to   multiply.factor1
+  :# The product.
+  omap from multiply.product
+       to   product
+
+process const
+  :: const_number
+  :value 20
+
+process multiply
+  :: multiplication
+
+connect from const.number
+        to   multiply.factor2

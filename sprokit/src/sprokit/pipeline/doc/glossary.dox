@@ -1,0 +1,25 @@
+/**
+ * \page glossary Glossary
+ *
+ * <dl>
+ * \term{datum}
+ *   \termdef{A single packet of information within the pipeline. Datum packets
+ *   can carry one of four states: empty\, complete\, error\, or a result from
+ *   the previous process.}
+ * \term{edge}
+ *   \termdef{A connection between two ports along which a stream of datum
+ *   packets flows.}
+ * \term{pipeline}
+ *   \termdef{A collection of processes connected with edges.}
+ * \term{port}
+ *   \termdef{An address on a process where datum packets can be received or be
+ *   made available.}
+ * \term{process}
+ *   \termdef{A node within a pipeline which optionally takes input datum
+ *   packets\, uses it to compute some result\, and then outputs the results as
+ *   datum packets.}
+ * \term{subblock}
+ *   \termdef{A group of related configuration keys which are typically passed
+ *   around as a group.}
+ * </dl>
+ */

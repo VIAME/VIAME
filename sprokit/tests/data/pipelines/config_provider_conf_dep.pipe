@@ -1,0 +1,8 @@
+config myblock
+  :mykey myvalue
+
+config myotherblock
+  :mykey{CONF} mymidblock:mykey
+
+config mymidblock
+  :mykey{CONF} myblock:mykey

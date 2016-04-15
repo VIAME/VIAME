@@ -1,0 +1,4 @@
+cluster mycluster
+  :# clusterdesc
+  omap from myproc.oport
+       to   oport

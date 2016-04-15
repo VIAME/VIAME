@@ -1,0 +1,30 @@
+config multiplier
+  :start1 10
+  :end1   20
+  :start2 10
+  :end2   30
+  :output products.txt
+
+process gen_numbers1
+  :: numbers
+  :start[ro]{CONF} multiplier:start1
+  :end[ro]{CONF} multiplier:end1
+
+process gen_numbers2
+  :: numbers
+  :start[ro]{CONF} multiplier:start2
+  :end[ro]{CONF} multiplier:end2
+
+process multiply
+  :: multiplication
+
+process print
+  :: print_number
+  :output[ro]{CONF} multiplier:output
+
+connect from gen_numbers1.number
+        to   multiply.factor1
+connect from gen_numbers2.number
+        to   multiply.factor2
+connect from multiply.product
+        to   print.number

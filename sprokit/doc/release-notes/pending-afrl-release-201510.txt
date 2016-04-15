@@ -1,0 +1,39 @@
+sprokit Release Notes for changes pending release approval by AFRL
+================================================================
+
+This file documents release notes for changes made to sprokit which
+require public release approval from AFRL.  After approval, the
+changes and corresponding notes below will be encorporated into a
+public numbered release version, and the content of this file will be
+reset.
+
+
+Updates since last public release
+---------------------------------
+
+ * General upgrading internal and external documentation.
+
+ * Convert runtime status notification to use vital logger rather than
+   writing to cout/cerr.
+
+ * Convert main source code to use vital config blocks and remove
+   sprokit config support files. This change unifies config handling
+   using vital config classes. This allows inter-operation between
+   vital, maptk, sprokit and kwiver processes.
+
+ * Added methods to sprokit process base class to make the internal
+   process logger available to derived classes.
+
+
+Build System
+
+ * Updated library specifications to establish library
+   visibility. Dependent librarys are separated into public and
+   private groups to better limit side effects of unintentional public
+   linkage.
+
+ * Adding build options to require all dependent libraries be
+   explicitly specified.
+
+ * Building sprokit requires c++0x standard support at a minimum and
+   will use c++11 if available.

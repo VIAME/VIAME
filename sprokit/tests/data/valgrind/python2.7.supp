@@ -1,0 +1,451 @@
+{
+   python2.7 -- PyUnicode_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyUnicode_New
+}
+
+{
+   python2.7 -- Py_InitializeEx strdup leak
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   fun:Py_InitializeEx
+}
+
+{
+   python2.7 -- PyList_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyList_New
+}
+
+{
+   python2.7 -- PyLong_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyLong_New
+}
+
+{
+   python2.7 -- PyThread_allocate_lock leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyThread_allocate_lock
+}
+
+{
+   python2.7 -- thread_PyThread_allocate_lock leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_New
+   fun:thread_PyThread_allocate_lock
+}
+
+{
+   python2.7 -- list_resize leak
+   Memcheck:Leak
+   fun:realloc
+   fun:list_resize
+}
+
+{
+   python2.7 -- list_resize leak
+   Memcheck:Leak
+   fun:malloc
+   fun:realloc
+   fun:list_resize
+}
+
+{
+   python2.7 -- PyString_FromStringAndSize leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyString_FromStringAndSize
+}
+
+{
+   python2.7 -- PyFunction_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:PyFunction_New
+}
+
+{
+   python2.7 -- dictresize leak
+   Memcheck:Leak
+   fun:malloc
+   fun:dictresize
+}
+
+{
+   python2.7 -- PyCode_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyCode_New
+}
+
+{
+   python2.7 -- PyGrammar_AddAccelerators
+   Memcheck:Leak
+   fun:malloc
+   fun:PyGrammar_AddAccelerators
+   fun:PyParser_New
+}
+
+{
+   python2.7 -- PyTuple_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_NewVar
+   fun:PyTuple_New
+}
+
+{
+   python2.7 -- PyDict_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:PyDict_New
+}
+
+{
+   python2.7 -- PyString_FromString leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyString_FromString
+}
+
+{
+   python2.7 -- PyCFunction_NewEx leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:PyCFunction_NewEx
+}
+
+{
+   python2.7 -- PyFrame_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_NewVar
+   fun:PyFrame_New
+}
+
+{
+   python2.7 -- PyObject_Call frozenset_new leak
+   Memcheck:Leak
+   fun:malloc
+   fun:set_table_resize
+   fun:set_update_internal
+   fun:make_new_set
+   fun:frozenset_new
+   fun:type_call
+   fun:PyObject_Call
+}
+
+{
+   python2.7 -- PyWeakref_NewRef leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:new_weakref
+   fun:PyWeakref_NewRef
+}
+
+{
+   python2.7 -- PyObject_Call set_init leak
+   Memcheck:Leak
+   fun:malloc
+   fun:set_table_resize
+   fun:set_update_internal
+   fun:set_init
+   fun:type_call
+   fun:PyObject_Call
+}
+
+{
+   python2.7 -- _PyString_Resize leak
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyString_Resize
+}
+
+{
+   python2.7 -- type_new leak
+   Memcheck:Leak
+   fun:malloc
+   fun:type_new
+}
+
+{
+   python2.7 -- string_concat leak
+   Memcheck:Leak
+   fun:malloc
+   fun:string_concat
+}
+
+{
+   python2.7 -- PyClass_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:PyClass_New
+}
+
+{
+   python2.7 -- PyFrame_New leak
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyObject_GC_Resize
+   fun:PyFrame_New
+}
+
+{
+   python2.7 -- _compile leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_compile
+}
+
+{
+   python2.7 -- PyEval_EvalFrameEx leak
+   Memcheck:Leak
+   fun:realloc
+   fun:list_resize
+   fun:listextend
+   fun:PyEval_EvalFrameEx
+}
+
+{
+   python2.7 -- PyList_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:PyList_New
+}
+
+{
+   python2.7 -- PyModule_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:PyModule_New
+}
+
+{
+   python2.7 -- fill_free_list leak
+   Memcheck:Leak
+   fun:malloc
+   fun:fill_free_list
+}
+
+{
+   python2.7 -- PyFloat_FromDouble leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyFloat_FromDouble
+}
+
+{
+   python2.7 -- PyStructSequence_InitType leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyStructSequence_InitType
+}
+
+{
+   python2.7 -- calculate_path leak
+   Memcheck:Leak
+   fun:malloc
+   fun:calculate_path
+}
+
+{
+   python2.7 -- PyMethod_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:PyMethod_New
+}
+
+{
+   python2.7 -- PyInterpreterState_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyInterpreterState_New
+}
+
+{
+   python2.7 -- PyStructSequence_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_New
+   fun:PyStructSequence_New
+}
+
+{
+   python2.7 -- new_threadstate leak
+   Memcheck:Leak
+   fun:malloc
+   fun:new_threadstate
+}
+
+{
+   python2.7 -- _PyImport_Init leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyImport_Init
+}
+
+{
+   python2.7 -- PyCell_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:PyCell_New
+}
+
+{
+   python2.7 -- _PyUnicode_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_New
+   fun:_PyUnicode_New
+}
+
+{
+   python2.7 -- PyInstance_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:_PyObject_GC_New
+   fun:PyInstance_NewRaw
+   fun:PyInstance_New
+}
+
+{
+   python2.7 -- type_new leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:type_new
+}
+
+{
+   python2.7 -- make_new_set leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:make_new_set
+}
+
+{
+   python2.7 -- descr_new leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:descr_new
+}
+
+{
+   python2.7 -- weakref___new__ leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:weakref___new__
+}
+
+{
+   python2.7 -- type_call leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyType_GenericAlloc
+   fun:type_call
+}
+
+{
+   python2.7 -- type_call leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:type_call
+}
+
+{
+   python2.7 -- dict_new leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:dict_new
+}
+
+{
+   python2.7 -- file_new leak
+   Memcheck:Leak
+   fun:malloc
+   fun:PyType_GenericAlloc
+   fun:file_new
+}
+
+{
+   python2.7 -- PyStaticMethod_New leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:PyStaticMethod_New
+}
+
+{
+   python2.7 -- tuple_new leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:tuple_new
+}
+
+{
+   python2.7 -- BaseException_new leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:BaseException_new
+}
+
+{
+   python2.7 -- int_new leak
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   fun:PyType_GenericAlloc
+   fun:int_new
+}
+
+{
+   python2.7 -- PyThread_set_key_value leak
+   Memcheck:Leak
+   fun:malloc
+   fun:find_key
+   fun:PyThread_set_key_value
+}
