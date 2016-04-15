@@ -1,6 +1,3 @@
-[submodule "Packages/sprokit"]
-        path = Packages/sprokit
-        url =  https://gitlab.kitware.com/kwiver/sprokit.git
 [submodule "Packages/VXL"]
         path = Packages/VXL
         url = https://github.com/vxl/vxl.git

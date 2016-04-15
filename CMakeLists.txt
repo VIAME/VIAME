@@ -22,6 +22,10 @@ if ( IS_DIRECTORY ${fletch_DIR} )
   find_package( fletch NO_MODULE )
 endif()
 
+if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
+  message(FATAL_ERROR "KWIVER does not support a relative install prefix (${CMAKE_INSTALL_PREFIX}).")
+endif ()
+
 ###
 # project specific directories
 #
@@ -96,6 +100,8 @@ include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+# kwiversys includes are generated in the binary directory
+include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
 # ==================================================================
 
 # Why would we ever want to build static?
@@ -249,7 +255,6 @@ set(KWIVER_ARGS_VIVIA_DEPS
 # Adding external components
 #
 include(External_VXL)
-include(External_sprokit)
 
 if (KWIVER_ENABLE_MAPTK)
     include(External_maptk)
@@ -308,12 +313,24 @@ install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 add_subdirectory( vital )
+# vital includes are relative to ${CMAKE_CURRENT_SOURCE_DIR}
+
+# TODO enforce some rational requirements.
 
 # sprokit requires vital
-# arrows requires sprokit
+# arrows.processes requires sprokit
+
+## if sprokit enabled
+option(KWIVER_ENABLE_SPROKIT "Enable building sprokit" ON )
 
 ## If arrows enabled
 option(KWIVER_ENABLE_ARROWS "Enable building arrows" ON )
+
+if (KWIVER_ENABLE_SPROKIT)
+  add_subdirectory(sprokit)
+  include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sprokit/src" )
+  include_directories( "${CMAKE_CURRENT_BINARY_DIR}/sprokit/src" ) # for generated files
+endif()
 
 if (KWIVER_ENABLE_ARROWS)
   add_subdirectory( arrows )
