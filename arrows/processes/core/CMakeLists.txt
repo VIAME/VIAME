@@ -14,7 +14,6 @@ set( sources
   matcher_process.cxx
   read_descriptor_process.cxx
   stabilize_image_process.cxx
-  video_input_process.cxx
 )
 
 set( private_headers
@@ -26,7 +25,6 @@ set( private_headers
   matcher_process.h
   read_descriptor_process.h
   stabilize_image_process.h
-  video_input_process.h
 )
 
 kwiver_private_header_group( ${private_headers} )

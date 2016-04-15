@@ -39,7 +39,6 @@
 #include "matcher_process.h"
 #include "read_descriptor_process.h"
 #include "stabilize_image_process.h"
-#include "video_input_process.h"
 
 extern "C"
 KWIVER_CORE_PROCESSES_EXPORT void register_processes();
@@ -68,12 +67,6 @@ void register_processes()
     "Reads a list of image file names and generates stream "
     "of images and associated time stamps",
     sprokit::create_process< kwiver::frame_list_process > );
-
-  registry->register_process(
-    "video_input",
-    "Reads a video and outputs images and metadata frame by frame",
-    sprokit::create_process< kwiver::video_input_process > );
-
 
   registry->register_process(
     "stabilize_image", "Generate current-to-reference image homographies",
