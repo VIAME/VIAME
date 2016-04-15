@@ -1,6 +1,7 @@
 #
 # Top level build for VITAL
 #
+project( vital )
 
 ###
 # KWSys
