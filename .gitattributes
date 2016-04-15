@@ -1,0 +1,6 @@
+*.h      hooks.checkcopyright diff=cpp
+*.h.in   hooks.checkcopyright diff=cpp
+*.cxx    hooks.checkcopyright diff=cpp
+*.txx    hooks.checkcopyright diff=cpp
+*.py     hooks.checkcopyright diff=python
+*.in     hooks.checkcopyright

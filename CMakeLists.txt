@@ -1,4 +1,4 @@
-#
+###
 # Top level build script for kwiver-build
 #
 cmake_minimum_required(VERSION 3.0)
@@ -14,8 +14,7 @@ set(KWIVER_VERSION_MINOR 1)
 set(KWIVER_VERSION_PATCH 0)
 set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
 
-
-##
+###
 # Look for and use Fletch to find dependencies
 #
 set( fletch_DIR "" CACHE PATH "Path to FLETCH packages" )
@@ -23,34 +22,35 @@ if ( IS_DIRECTORY ${fletch_DIR} )
   find_package( fletch NO_MODULE )
 endif()
 
+if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
+  message(FATAL_ERROR "KWIVER does not support a relative install prefix (${CMAKE_INSTALL_PREFIX}).")
+endif ()
 
 ###
 # project specific directories
 #
-set(KWIVER_PACKAGES_DIR         "${CMAKE_SOURCE_DIR}/Packages")
+set(KWIVER_PACKAGES_DIR         "${CMAKE_SOURCE_DIR}/Packages") ## +delete this symbol
+set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build") ## +delete this symbol
+set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install") ## +delete this symbol
+
 set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/KWIVER_packaging")
 set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/KWIVER_packaging")
 set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
-
-set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build")
-set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
-set(CMAKE_INSTALL_PREFIX        "${KWIVER_BUILD_INSTALL_PREFIX}" CACHE STRING "" FORCE)
 
 # root directories
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 
-set(CMAKE_MODULE_PATH
-  ${KWIVER_PACKAGES_DIR}/vital/CMake # use vital supplied CMake support
-  ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
+set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
 
-set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})
-set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)
-set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" )
+set(CMAKE_MODULE_PATH           ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
+
+set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})  ## +delete this symbol
+set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)  ## +delete this symbol
+set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" ) ## +delete this symbol
 
 # ================================================================
 option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
-mark_as_advanced(KWIVER_ENABLE_OPENCV)
 
 option(KWIVER_ENABLE_TESTS     "Enable testing" ON)
 
@@ -59,7 +59,6 @@ if (KWIVER_ENABLE_TESTS)
   include(CTest)
   set(BUILD_TESTING    ON)
   mark_as_advanced(BUILD_TESTING)
-
 endif()
 
 option( KWIVER_ENABLE_PYTHON    "Enable python code" OFF )
@@ -79,7 +78,6 @@ include(kwiver-utils)
 # with aggressive warnings.
 #
 
-
 # set the name for our package exports
 set(kwiver_export_name      kwiver_exports)
 
@@ -97,11 +95,13 @@ endif()
 
 # ================================================================
 # project global includes
-include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include")
+include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include") ## +delete this symbol
 include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+# kwiversys includes are generated in the binary directory
+include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
 # ==================================================================
 
 # Why would we ever want to build static?
@@ -119,15 +119,9 @@ if (KWIVER_ENABLE_PYTHON)
 
   include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
-endif()
+endif(KWIVER_ENABLE_PYTHON)
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
-
-# installing system setup script
-if (fletch_ROOT)
-    set(SET_FLETCH_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH")
-    set(SET_FLETCH_PYTHON_PATH "export PYTHONPATH=${fletch_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
-endif()
 
 configure_file(${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_BUILD_INSTALL_PREFIX}/setup_KWIVER.sh )
@@ -155,8 +149,7 @@ set(KWIVER_ARGS_COMMON_CMAKE
   -DEIGEN3_ROOT:PATH=${EIGEN3_ROOT}
   -Dkwiver_DIR:PATH=${KWIVER_BINARY_DIR}
   -Dfletch_DIR:PATH=${fletch_DIR}
-  -Dvital_DIR:PATH=${KWIVER_BUILD_PREFIX}/src/vital-build
-  -Dvidtk_DIR:PATH=${KWIVER_BUILD_INSTALL_PREFIX}/lib/cmake
+  -vital_DIR:PATH=${vital_DIR}
   -DPROJ4_ROOT:PATH=${PROJ4_ROOT}
   -DKML_DIR:PATH=${LIBKML_ROOT}/lib/cmake
   -DGeographicLib_ROOT:PATH=${GeographicLib_ROOT}
@@ -244,11 +237,6 @@ if (KWIVER_ENABLE_VIVIA)
     set(KWIVER_ENABLE_VIBRANT TRUE CACHE BOOL "" FORCE)
 endif()
 
-if (KWIVER_ENABLE_PROCESSES)
-  set(KWIVER_ENABLE_MAPTK  TRUE   CACHE BOOL "" FORCE)
-  set(KWIVER_ENABLE_ARROWS TRUE   CACHE BOOL "" FORCE)
-endif()
-
 #
 # Which applications to enable in ViVIA
 #
@@ -267,12 +255,6 @@ set(KWIVER_ARGS_VIVIA_DEPS
 # Adding external components
 #
 include(External_VXL)
-include(External_vital)
-include(External_sprokit)
-
-if (KWIVER_ENABLE_ARROWS)
-    include(External_arrows)
-endif()
 
 if (KWIVER_ENABLE_MAPTK)
     include(External_maptk)
@@ -303,6 +285,56 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
 
+##
+# System specific compiler flags
+include(kwiver-flags)
+
+##
+# check compiler support
+include( kwiver-configcheck )
+
+# ==================================================================
+
+set( LIB_SUFFIX "" CACHE STRING
+  "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
+mark_as_advanced( LIB_SUFFIX )
+
+
+# Create initial setup script
+set(KWIVER_SETUP_SCRIPT_FILE  ${KWIVER_BINARY_DIR}/setup_KWIVER.sh )
+
+configure_file(
+  ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
+  ${KWIVER_SETUP_SCRIPT_FILE}
+  )
+
+# install set up script
+install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
+  DESTINATION ${CMAKE_INSTALL_PREFIX} )
+
+add_subdirectory( vital )
+# vital includes are relative to ${CMAKE_CURRENT_SOURCE_DIR}
+
+# TODO enforce some rational requirements.
+
+# sprokit requires vital
+# arrows.processes requires sprokit
+
+## if sprokit enabled
+option(KWIVER_ENABLE_SPROKIT "Enable building sprokit" ON )
+
+## If arrows enabled
+option(KWIVER_ENABLE_ARROWS "Enable building arrows" ON )
+
+if (KWIVER_ENABLE_SPROKIT)
+  add_subdirectory(sprokit)
+  include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sprokit/src" )
+  include_directories( "${CMAKE_CURRENT_BINARY_DIR}/sprokit/src" ) # for generated files
+endif()
+
+if (KWIVER_ENABLE_ARROWS)
+  add_subdirectory( arrows )
+endif()
 
 ##################################################################
 # Top level installation
@@ -317,8 +349,7 @@ get_property(kwiver_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
 
 # Configure build-tree CMake config file and export associated targets file
-set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
-set(KWIVER_LIBRARY_DIR          "${KWIVER_BINARY_DIR}/lib") ##? TEMP
+set(KWIVER_LIBRARY_DIR "${KWIVER_BINARY_DIR}/lib") ##? TEMP - not used
 
 kwiver_configure_file(kwiver-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config.cmake.in"
@@ -345,13 +376,11 @@ kwiver_install(
   RENAME      kwiver-config.cmake
   )
 
-# generates CMake Error: INSTALL(EXPORT) given unknown export "kwiver_exports"
-# FIXME - need to fix this. Happens when nothing has been exported.
-#kwiver_install(
-#  EXPORT      ${kwiver_export_name}
-#  DESTINATION "${kwiver_cmake_install_dir}"
-#  FILE        kwiver-config-targets.cmake
-#  )
+kwiver_install(
+  EXPORT      ${kwiver_export_name}
+  DESTINATION "${kwiver_cmake_install_dir}"
+  FILE        kwiver-config-targets.cmake
+  )
 
 
 # ==================================================================
@@ -382,4 +411,5 @@ set(CPACK_PACKAGE_VERSION           "${KWIVER_VERSION}")
 set(CPACK_RESOURCE_FILE_LICENSE     "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGING_INSTALL_PREFIX  "${CMAKE_INSTALL_PREFIX}")
 set(CPACK_PACKAGE_FILE_NAME         "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+
 include (CPack)

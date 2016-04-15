@@ -1,15 +1,9 @@
-[submodule "Packages/sprokit"]
-        path = Packages/sprokit
-        url =  https://gitlab.kitware.com/kwiver/sprokit.git
 [submodule "Packages/VXL"]
         path = Packages/VXL
         url = https://github.com/vxl/vxl.git
 [submodule "Packages/maptk"]
         path = Packages/maptk
         url = https://github.com/Kitware/maptk.git
-[submodule "Packages/vital"]
-	path = Packages/vital
-	url = https://github.com/Kitware/vital.git
 [submodule "Packages/kwant"]
 	path = Packages/kwant
 	url = https://github.com/Kitware/kwant.git
@@ -19,6 +13,3 @@
 [submodule "Packages/vibrant"]
 	path = Packages/vibrant
 	url = https://github.com/Kitware/vibrant.git
-[submodule "Packages/arrows"]
-	path = Packages/arrows
-	url = git@kwgitlab.kitware.com:computer-vision/arrows.git

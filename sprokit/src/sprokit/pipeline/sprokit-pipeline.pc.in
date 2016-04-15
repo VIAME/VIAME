@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${prefix}/lib@LIB_SUFFIX@
+sprokitplugindir=${libdir}/sprokit
+
+Name: sprokit-pipeline
+Description: The sprokit-pipeline library
+Version: @sprokit_version@
+Requires: sprokit = @sprokit_version@
+Libs: -lsprokit_pipeline

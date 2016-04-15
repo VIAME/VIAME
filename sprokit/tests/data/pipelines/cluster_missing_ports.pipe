@@ -1,0 +1,7 @@
+cluster mycluster
+  :# clusterdesc
+  :# configdesc
+  :mykey myvalue
+
+process orphan
+  :: orphan

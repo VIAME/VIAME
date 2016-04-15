@@ -1,0 +1,14 @@
+process src
+  :: numbers
+
+process multiply
+  :: multiplier_cluster
+
+process sink
+  :: sink
+
+connect from src.number
+        to   multiply.factor
+
+connect from multiply.product
+        to   sink.sink

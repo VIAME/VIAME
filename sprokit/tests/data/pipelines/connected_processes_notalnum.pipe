@@ -1,0 +1,14 @@
+process source
+  :: mytype
+
+process sink
+  :: mytype
+
+connect from source.under_port
+        to   sink.dash-port
+
+connect from source.dash-port
+        to   sink.slash/port
+
+connect from source.slash/port
+        to   sink.under_port

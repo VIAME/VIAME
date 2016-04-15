@@ -1,0 +1,2 @@
+config myblock
+  :myenv{ENV} TEST_ENV

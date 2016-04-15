@@ -1,0 +1,10 @@
+/**
+ * \mainpage The sprokit Pipeline API Documentation
+ *
+ * \section introduction Introduction
+ *
+ * This is the sprokit pipeline API that addresses issues that have arisen in the
+ * vidtk pipeline.
+ *
+ * \todo Write introduction.
+ */

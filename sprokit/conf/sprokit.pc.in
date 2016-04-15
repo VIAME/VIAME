@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${prefix}/lib@LIB_SUFFIX@
+
+Name: sprokit
+Description: The sprokit project
+Version: @sprokit_version@
+Cflags: -I${includedir}
+Libs: -L${libdir}

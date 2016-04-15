@@ -1,0 +1,52 @@
+project(sprokit_python_modules)
+
+set(modules_python_srcs
+  registration.cxx)
+
+set(modules_python_private_headers
+  modules-config.h
+  registration.h)
+
+sprokit_private_header_group(${modules_python_private_headers})
+sprokit_add_plugin(modules_python
+  MAKE_SPROKIT_MODULES_PYTHON_LIB
+  ${modules_python_srcs}
+  ${modules_python_private_headers})
+target_link_libraries(modules_python
+  LINK_PRIVATE
+    sprokit_pipeline
+    sprokit_python_util
+    ${${boost_python_library_var}}
+    ${PYTHON_LIBRARIES})
+
+sprokit_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/modules.py"
+  sprokit/modules
+  modules)
+
+execute_process(
+  COMMAND           "${PYTHON_EXECUTABLE}" -c
+                    "import pkg_resources; pkg_resources.require('straight.plugin >= 1.3.1')"
+  WORKING_DIRECTORY "${sprokit_source_dir}"
+  RESULT_VARIABLE   straight_return
+  OUTPUT_QUIET
+  ERROR_QUIET)
+
+set(default_have_straight OFF)
+if (NOT straight_return)
+  set(default_have_straight ON)
+endif ()
+
+option(SPROKIT_ASSUME_STRAIGHT_PLUGIN "Assume the straight.plugin Python module exists (needs >= 1.3.1)" "${default_have_straight}")
+if (NOT SPROKIT_ASSUME_STRAIGHT_PLUGIN)
+  sprokit_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/loaders.py"
+    sprokit/modules
+    loaders)
+endif ()
+
+sprokit_create_python_init(sprokit/modules)
+#  modules)
+
+set (python_both_arch TRUE)
+
+sprokit_create_python_plugin_init(sprokit/processes)
+sprokit_create_python_plugin_init(sprokit/schedulers)

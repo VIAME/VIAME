@@ -1,0 +1,3 @@
+cluster mycluster
+  :# clusterdesc
+  :mykey myvalue

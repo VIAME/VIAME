@@ -1,0 +1,229 @@
+/**
+ * \page porting Porting
+ *
+ * This page outlines some steps that may be involved when porting a process
+ * from the vidtk process framework into a sprokit pipeline process.
+ *
+ * \section porting_splitting Splitting the process
+ *
+ * One of the goals of the new pipeline is to separate the algorithm from the
+ * code that makes it a process. Since many existing processes have the
+ * algorithm intertwined with the process code, the first step will generally be
+ * to copy the existing process into a directory of similar algorithms
+ * (as an example, a <tt>tracking_algo</tt> directory may exist which contains
+ * algorithms that pertain to tracking).
+ *
+ * \section porting_algorithm Writing the algorithm
+ *
+ * \todo Write this section.
+ *
+ * \section porting_process Writing the process
+ *
+ * Process classes belong within a shared library which is loaded at runtime.
+ * The class symbols should \em not be exported from the library. Each library
+ * should have a header named <tt>library_name-config.h</tt> which contains
+ * defines for exporting and importing symbols through the linker.
+ *
+ * \subsection process_configuration Configuration
+ *
+ * Processes receive their configuration when constructed. This is to ensure
+ * that a process is consistent throughout its entire existence. This also means
+ * that constructors should not throw exceptions for invalid configurations
+ * during construction. Instead, the \ref sprokit::process::_configure() function
+ * should be used to check that a process is ready to run. If there are problems
+ * with configurations at this time, exceptions should be thrown from there.
+ *
+ * Exceptions will be thrown if no default is given and it was not possible to
+ * cast to the requested type. To prevent the exceptions from leaking, defaults
+ * should always be given here.
+ *
+ * \subsection process_introspection Introspection
+ *
+ * The new process class has methods that offer introspection into what is
+ * provided by a process so that a GUI can show information about processes and
+ * allow pipelines to be created on-the-fly. The main introspection points are
+ * for configuration and for available ports. The available information about
+ * configuration values are:
+ *
+ * \li \tt{keys} — The available configuration values.
+ * \li \tt{default} — The default value for a key.
+ * \li \tt{description} — A description of the value for a key.
+ *
+ * For ports, the following information is available for both input and output
+ * ports:
+ *
+ * \li \tt{names} — Available port names.
+ * \li \tt{type} — The type available or expected at a port (includes the name
+ *     of the type as well as flags).
+ * \li \tt{description} — A description of the data available or exported at a
+ *     port.
+ *
+ * \subsection process_ports Ports
+ *
+ * Ports on a process are indexed by a \ref sprokit::process::port_t. These ports
+ * are where \link sprokit::edge edges\endlink will be connected to. Processes are
+ * in charge of keeping track of which edges are connected to which ports.
+ *
+ * Input ports are ports where data will be received from other processes in the
+ * pipeline. Typically, there should be only one edge connected to an input
+ * port (which is enforced by the base class), but there may be a case for
+ * multiples that has not yet arisen.
+ *
+ * Output ports are ports where data will be available for other processes in
+ * the pipeline. There may be many edges connected to a single port, and the
+ * same data should be pushed to each edge connected to the port. The
+ * \ref sprokit::process::push_to_port() and \ref
+ * sprokit::process::push_datum_to_port() methods may be used to push data to the
+ * output ports.
+ *
+ * \subsubsection process_port_types Types
+ *
+ * Ports must declare a type for its ports. There are currently four special
+ * types. The first two are static:
+ *
+ * \ptype{\link sprokit::process::type_any any\endlink} The process does not try
+ * to extract information from the port.
+ * \ptype{\link sprokit::process::type_none none\endlink} There is never any
+ * information to extract from the port.
+ *
+ * The other two are "delayed" types.
+ *
+ * \ptype{\link sprokit::process::type_flow_dependent flow_dependent\endlink} The
+ * process does not try to extract information from the port. If a tag is
+ * appended to the type, then when any of the ports gets a type set for it, all
+ * of the similarly tagged ports are given the same type.
+ * \ptype{\link sprokit::process::type_data_dependent data_dependent\endlink} The
+ * process can determine the type, but it must be configured before the type can
+ * be pinned down. The is usually for processes which read data from a file
+ * which it may not know about until after the configuration has been read.
+ *
+ * The tags on a flow-dependent port type can be used to propagate the types
+ * within a pipeline through a process which otherwise does not care about the
+ * type of data that it is handling. As an example, a process which just passes
+ * data through it can set its input and output ports to have a
+ * \code sprokit::process::type_flow_dependent + "tag"\endcode type and the
+ * \ref sprokit::pipeline will call \ref sprokit::process::set_input_port_type() (or
+ * \ref sprokit::process::set_output_port_type()) which the base class will, by
+ * default, also set the output port to have the same type. This allows the
+ * pipeline to check types on ports even when a process which does not care what
+ * types it has exists between two processes. A subclass may reimplement the
+ * \ref sprokit::process::_set_input_port_type() and \ref
+ * sprokit::process::_set_output_port_type() methods in order to inspect or reject
+ * a port type assignment based on what the type of the connected port is.
+ *
+ * \subsubsection process_port_flags Flags
+ *
+ * There are multiple flags available for a port. The currently understood flags
+ * include:
+ *
+ * \pflag{\link sprokit::process::flag_output_const const\endlink} Marks that an
+ * output is "const" and may not be modified by receivers of the data.
+ * \pflag{\link sprokit::process::flag_input_mutable mutable\endlink} Marks that
+ * an input is modified within the process and that other receivers of the data
+ * may see the changes if the data is not handled carefully.
+ * \pflag{\link sprokit::process::flag_input_nodep nodep\endlink} Indicates that
+ * the port is expected to be a backwards edge within the pipeline so that when
+ * the pipeline is topologically sorted (either for initialization or execution
+ * order by a scheduler), the edge can be ignored for such purposes.
+ * \pflag{\link sprokit::process::flag_required required\endlink} Marks that the
+ * port must be connected for the process to run.
+ *
+ * A "const" output port may \em not be connected to a "mutable" input port.
+ * Attempting to connect them causes an exception to be thrown when the
+ * connection is attempted.
+ *
+ * \subsection process_configuration Configuration
+ *
+ * Configuration is where a process is asked to ensure that its configuration
+ * makes sense. Any data-dependent port types must be set in this step. After
+ * this is called, the process will be have connections made and initialized.
+ *
+ * \subsection process_initialization Initialization
+ *
+ * Initialization is the final step before a process is stepped. This is
+ * where processes should have a chance to get a first look at the edges that
+ * are connected to a port and change behavior based on them. After this is
+ * called, the process will be stepped until it is either complete or the
+ * scheduler is stopped.
+ *
+ * \subsection process_reentrant Reentrant
+ *
+ * Processes may declare that they are reentrant for the scheduler to run a
+ * process concurrently with itself. If this is declared, a process \em must
+ * ensure that the first one called does the following:
+ *
+ * \li Reads data from input edges first.
+ * \li Writes data to the output edges first.
+ *
+ * If this is not adhered to, downstream processes may get confused and start
+ * dropping data because the stamps on the streams are not sychronized.
+ *
+ * \warning The base class is not yet reentrant, so this will not work yet. The
+ * base class will likely, in the future, handle reentrant logic itself.
+ *
+ * \subsection process_stepping Step
+ *
+ * In general, a process' \link sprokit::process::_step _step\endlink method
+ * will involve:
+ *
+ * \li Obtaining data from the input edges.
+ * \li Running the algorithm.
+ * \li Pushing data out via the output edges.
+ *
+ * \link sprokit::edge Edges\endlink will block if there is no data or they are
+ * full. Schedulers should try to ensure that these conditions do not occur.
+ *
+ * \subsection process_destruction Destruction
+ *
+ * The destructor must be ready to run at any time. The scheduler may be asked to
+ * stop processing at which time no processes will be run any more (though any
+ * step calls are likely to finish first). Any resources used should be released
+ * in the destructor since this is the only place it will happen.
+ *
+ * \subsection process_documentation Documentation
+ *
+ * Last, and certainly not least, is the documentation for a process. In
+ * general, a doxygen-commented block for the class is all that is needed. There
+ * are a few directives that are provided for convenience for documenting a
+ * process:
+ *
+ * <dl>
+ *   \term{\doxdir{process \<description\>}}
+ *     \termdef{Adds the process to the list of processes in the documentation.}
+ *   \term{\doxdir{configs}}
+ *     \termdef{Creates a section for configuration values.}
+ *   \term{\doxdir{configs{key name} \<description\>}}
+ *     \termdef{Documents a configuration value.}
+ *   \term{\doxdir{iports}}
+ *     \termdef{Creates a section for input ports.}
+ *   \term{\doxdir{iport{port name} \<description\>}}
+ *     \termdef{Documents an input port.}
+ *   \term{\doxdir{oports}}
+ *     \termdef{Creates a section for output ports.}
+ *   \term{\doxdir{oport{port name} \<description\>}}
+ *     \termdef{Documents an output port.}
+ *   \term{\doxdir{reqs}}
+ *     \termdef{Creates a section for requirements.}
+ *   \term{\doxdir{req \<requirement\>}}
+ *     \termdef{Lists a requirement for the process to be valid.}
+ * </dl>
+ *
+ * These directives help to keep the documentation consistent and will help make
+ * documentation easier so that it will not be as much of a chore.
+ *
+ * \section porting_registration Registering a process
+ *
+ * Processes are loaded from shared libraries as plugins. When the library is
+ * loaded, registration functions are called which lets the
+ * \link sprokit::process_registry process registry\endlink know about the various
+ * types of processes available. In order to register a process, a few things
+ * are needed. First, there needs to be a function which returns a
+ * \ref sprokit::process_t pointing to the new process given a
+ * \ref sprokit::config_t block. The \ref sprokit::create_process() function handles
+ * the common case. This function must then be added to the registry with a type
+ * name. This type name must be globally unique (exceptions will be thrown at a
+ * program's start if this is not adhered to). A single process class may be
+ * registered under multiple names or be instantiated differently for slightly
+ * different behaviors under different names. In this case, a custom function is
+ * probably necessary.
+ */

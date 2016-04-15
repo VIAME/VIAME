@@ -1,0 +1,21 @@
+cluster map_config_not_cluster
+  :# Cluster for map_config testing.
+  :# A tunable parameter.
+  :tunable[tunable] unexpected
+  :# The output.
+  omap from expect.dummy
+       to   pass
+
+config dummy
+  :value expected
+
+process expect
+  :: expect
+  :tunable[ro]{CONF} dummy:value
+  :expect[ro] expected
+
+process sink_expect
+  :: sink
+
+connect from expect.dummy
+        to   sink_expect.sink
