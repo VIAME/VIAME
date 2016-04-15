@@ -372,6 +372,9 @@ if (VITAL_ENABLE_TESTS)
   add_subdirectory( util/tests )
 endif()
 
+set(vital_DIR  ${CMAKE_CURRENT_BINARY_DIR}  CACHE PATH "Path to Vital package")
+# file(APPEND ${KWIVER_CONFIG_FILE} "set(vital_DIR ${vital_DIR})\n")
+
 ###
 # Marking source root for documentation generation
 #

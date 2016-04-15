@@ -1,34 +1,34 @@
 #
 # Algorithms CMake file
 #
+
 set(ALGORITHMS_SOURCE_DIR           "${CMAKE_CURRENT_SOURCE_DIR}")
 set(ALGORITHMS_BINARY_DIR           "${CMAKE_CURRENT_BINARY_DIR}")
-
 
 # Base plug-in with default implementations
 add_subdirectory( core )
 
 # Add Ceres plugin if enabled
-if( ARROWS_ENABLE_CERES )
+if( KWIVER_ENABLE_CERES )
   add_subdirectory( ceres )
 endif()
 
 # Add OpenCV plugin if enabled
-if( ARROWS_ENABLE_OPENCV )
+if( KWIVER_ENABLE_OPENCV )
   add_subdirectory( ocv )
 endif()
 
 # Add PROJ plugin if enabled
-if( ARROWS_ENABLE_PROJ )
+if( KWIVER_ENABLE_PROJ )
   add_subdirectory( proj )
 endif()
 
 #Add VisCL plugin if enabled
-if( ARROWS_ENABLE_VISCL )
+if( KWIVER_ENABLE_VISCL )
   add_subdirectory( viscl )
 endif()
 
 # Add VXL plugin if enabled
-if( ARROWS_ENABLE_VXL )
+if( KWIVER_ENABLE_VXL )
   add_subdirectory( vxl )
 endif()

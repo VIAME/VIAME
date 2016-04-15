@@ -63,7 +63,7 @@ function(algorithms_create_plugin    base_lib)
   message( STATUS "Building plugin \"${base_lib}\"" )
 
   # Configure template cxx source file
-  set(shell_source "${ARROWS_UTIL_ROOT}/templates/cxx/plugin_shell.cxx")
+  set(shell_source "${ALGORITHMS_SOURCE_DIR}/templates/cxx/plugin_shell.cxx")
 
   # create module library given generated source, linked to given library
   set(library_subdir /arrows)

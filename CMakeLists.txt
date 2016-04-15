@@ -37,8 +37,9 @@ set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 
-set(CMAKE_MODULE_PATH
-  ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
+set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+
+set(CMAKE_MODULE_PATH           ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 
 set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})  ## +delete this symbol
 set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)  ## +delete this symbol
@@ -46,7 +47,6 @@ set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" ) ## +delete this symbol
 
 # ================================================================
 option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
-mark_as_advanced(KWIVER_ENABLE_OPENCV)
 
 option(KWIVER_ENABLE_TESTS     "Enable testing" ON)
 
@@ -143,6 +143,7 @@ set(KWIVER_ARGS_COMMON_CMAKE
   -DEIGEN3_ROOT:PATH=${EIGEN3_ROOT}
   -Dkwiver_DIR:PATH=${KWIVER_BINARY_DIR}
   -Dfletch_DIR:PATH=${fletch_DIR}
+  -vital_DIR:PATH=${vital_DIR}
   -DPROJ4_ROOT:PATH=${PROJ4_ROOT}
   -DKML_DIR:PATH=${LIBKML_ROOT}/lib/cmake
   -DGeographicLib_ROOT:PATH=${GeographicLib_ROOT}
@@ -230,11 +231,6 @@ if (KWIVER_ENABLE_VIVIA)
     set(KWIVER_ENABLE_VIBRANT TRUE CACHE BOOL "" FORCE)
 endif()
 
-if (KWIVER_ENABLE_PROCESSES)
-  set(KWIVER_ENABLE_MAPTK  TRUE   CACHE BOOL "" FORCE)
-  set(KWIVER_ENABLE_ARROWS TRUE   CACHE BOOL "" FORCE)
-endif()
-
 #
 # Which applications to enable in ViVIA
 #
@@ -254,10 +250,6 @@ set(KWIVER_ARGS_VIVIA_DEPS
 #
 include(External_VXL)
 include(External_sprokit)
-
-if (KWIVER_ENABLE_ARROWS)
-    include(External_arrows)
-endif()
 
 if (KWIVER_ENABLE_MAPTK)
     include(External_maptk)
@@ -290,7 +282,7 @@ endif()
 
 ##
 # System specific compiler flags
-include(kwiver-flags) # specific CXX flags
+include(kwiver-flags)
 
 ##
 # check compiler support
@@ -317,6 +309,9 @@ install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
 
 add_subdirectory( vital )
 
+# sprokit requires vital
+# arrows requires sprokit
+
 ## If arrows enabled
 option(KWIVER_ENABLE_ARROWS "Enable building arrows" ON )
 
@@ -337,8 +332,7 @@ get_property(kwiver_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
 
 # Configure build-tree CMake config file and export associated targets file
-set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
-set(KWIVER_LIBRARY_DIR "${KWIVER_BINARY_DIR}/lib") ##? TEMP
+set(KWIVER_LIBRARY_DIR "${KWIVER_BINARY_DIR}/lib") ##? TEMP - not used
 
 kwiver_configure_file(kwiver-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config.cmake.in"
