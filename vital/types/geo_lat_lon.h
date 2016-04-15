@@ -28,8 +28,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _VITAL_GEO_LAT_LON_H_
-#define _VITAL_GEO_LAT_LON_H_
+/**
+ * \file
+ * \brief This file contains the interface to a lat lon geo point.
+ */
+
+#ifndef KWIVER_VITAL_GEO_LAT_LON_H_
+#define KWIVER_VITAL_GEO_LAT_LON_H_
 
 #include <vital/vital_export.h>
 
@@ -60,10 +65,27 @@ public:
 
   geo_lat_lon& set_latitude( double l );
   geo_lat_lon& set_longitude( double l );
-  double get_latitude() const;
-  double get_longitude() const;
+  double latitude() const;
+  double longitude() const;
 
+  /**
+   * @brief Is geo location in initial state
+   *
+   * This method checks the object to see if any data values have been
+   * set.
+   *
+   * @return \b true if object is default constructed.
+   */
   bool is_empty() const;
+
+  /**
+   * @brief Is geo location a valid coordinate.
+   *
+   * This method checks the latitude to be between -90 and +90.  The
+   * latitude is checked to be between -180 and +360.
+   *
+   * @return \b true if valid lat/lon coordinate.
+   */
   bool is_valid() const;
 
   bool operator==( const geo_lat_lon& rhs ) const;
@@ -79,4 +101,4 @@ VITAL_EXPORT std::ostream& operator<< (std::ostream& str, vital::geo_lat_lon con
 
 } } // end namespace
 
-#endif /* _VITAL_GEO_LAT_LON_H_ */
+#endif /* KWIVER_VITAL_GEO_LAT_LON_H_ */

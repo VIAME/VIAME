@@ -28,6 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief This file contains the implementation of a lat lon geo point.
+ */
+
 #include "geo_lat_lon.h"
 #include <cmath>
 #include <iomanip>
@@ -37,6 +42,7 @@ namespace vital {
 
 const double geo_lat_lon::INVALID = 444.0;
 
+// ------------------------------------------------------------------
 geo_lat_lon::
 geo_lat_lon()
   : m_latitude(INVALID),
@@ -55,6 +61,7 @@ geo_lat_lon::
 { }
 
 
+// ------------------------------------------------------------------
 geo_lat_lon& geo_lat_lon
 ::set_latitude(double l)
 {
@@ -63,6 +70,7 @@ geo_lat_lon& geo_lat_lon
 }
 
 
+// ------------------------------------------------------------------
 geo_lat_lon& geo_lat_lon
 ::set_longitude(double l)
 {
@@ -71,20 +79,23 @@ geo_lat_lon& geo_lat_lon
 }
 
 
+// ------------------------------------------------------------------
 double geo_lat_lon
-::get_latitude() const
+::latitude() const
 {
   return ( m_latitude );
 }
 
 
+// ------------------------------------------------------------------
 double geo_lat_lon
-::get_longitude() const
+::longitude() const
 {
   return ( m_longitude );
 }
 
 
+// ------------------------------------------------------------------
 bool
 geo_lat_lon::
 is_valid() const
@@ -103,23 +114,26 @@ is_valid() const
 }
 
 
+// ------------------------------------------------------------------
 bool
 geo_lat_lon::
 is_empty() const
 {
-  return (INVALID == get_latitude() && INVALID == get_longitude());
+  return (INVALID == latitude() && INVALID == longitude());
 }
 
 
+// ------------------------------------------------------------------
 bool
 geo_lat_lon::
 operator == ( const geo_lat_lon &rhs ) const
 {
-  return ( ( rhs.get_latitude() == this->get_latitude() )
-           && ( rhs.get_longitude() == this->get_longitude() ) );
+  return ( ( rhs.latitude() == this->latitude() )
+           && ( rhs.longitude() == this->longitude() ) );
 }
 
 
+// ------------------------------------------------------------------
 bool
 geo_lat_lon::
 operator != ( const geo_lat_lon &rhs ) const
@@ -128,13 +142,14 @@ operator != ( const geo_lat_lon &rhs ) const
 }
 
 
-  std::ostream & operator<< (std::ostream & str, vital::geo_lat_lon const& obj)
+// ------------------------------------------------------------------
+std::ostream & operator<< (std::ostream & str, vital::geo_lat_lon const& obj)
 {
   std::streamsize old_prec = str.precision();
 
   str << std::setprecision(22)
-      << "[ " << obj.get_latitude()
-      << " / " << obj.get_longitude()
+      << "[ " << obj.latitude()
+      << " / " << obj.longitude()
       << " ]";
 
   str.precision( old_prec );
