@@ -198,5 +198,4 @@ sparse_matrix_enumerator< ValueT, Options, IndexT > enumerate(
 
 } } // end namespace
 
-
-#endif // MAPTK_MATCH_MATRIX_H_
+#endif // VITAL_ENUMERATE_MATRIX_H_

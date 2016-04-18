@@ -25,7 +25,7 @@ kwiver_add_library( algorithms_proj
   )
 target_link_libraries( algorithms_proj
   PUBLIC               algorithms_core
-                       ${PROJ4_LIBRARY}
+                       ${PROJ_LIBRARY}
   )
 algorithms_create_plugin( algorithms_proj
   algorithm_plugin_interface.cxx
