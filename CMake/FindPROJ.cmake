@@ -45,4 +45,9 @@ elseif(NOT PROJ_FOUND)
   find_package_handle_standard_args(PROJ DEFAULT_MSG
     PROJ_INCLUDE_DIR PROJ_LIBRARY
     )
+
+  ###
+  # for compatibility
+  set( PROJ4_LIBRARY ${PROJ_LIBRARY} )
+  set( PROJ4_INCLUDE ${PROJ_INCLUDE} )
 endif()
