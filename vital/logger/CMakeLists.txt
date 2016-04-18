@@ -73,6 +73,6 @@ endif()
 
 ###
 # Add tests if enbled
-if (VITAL_ENABLE_TESTS)
+if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
