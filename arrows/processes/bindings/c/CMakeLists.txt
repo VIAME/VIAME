@@ -16,12 +16,12 @@ set( sources
 
 kwiver_install_headers(
   ${public_headers}
-  SUBDIR     kwiver_util/bindings/c
+  SUBDIR     processes/bindings/c
   )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_type_converters_export.h
-  SUBDIR      kwiver_util/bindings/c
+  SUBDIR      processes/bindings/c
   NOPATH
   )
 

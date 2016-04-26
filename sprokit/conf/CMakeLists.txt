@@ -136,4 +136,4 @@ sprokit_install(
   FILE        sprokit-config-targets.cmake
   COMPONENT   development)
 
-sprokit_configure_pkgconfig(sprokit)
+## sprokit_configure_pkgconfig(sprokit)
