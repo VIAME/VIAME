@@ -254,7 +254,7 @@ set(KWIVER_ARGS_VIVIA_DEPS
 # ================================================================
 # Adding external components
 #
-include(External_VXL)
+# include(External_VXL)
 
 if (KWIVER_ENABLE_MAPTK)
     include(External_maptk)
