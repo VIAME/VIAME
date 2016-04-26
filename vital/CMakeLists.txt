@@ -256,11 +256,6 @@ target_link_libraries( vital
                   vital_logger
   )
 
-## TODO not the best approach, but this will work until VXL is removed
-if (KWIVER_ENABLE_VXL)
-  add_dependencies( vital VXL )
-endif()
-
 ###
 # Build plugin management library
 #
@@ -326,7 +321,7 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(config_subdir "/$<CONFIGURATION>")
 endif()
 
-set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/vital" )
+set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/arrows" )
 
 #
 # This is all to get around the ';' as the path separator.  CMake will
@@ -336,7 +331,7 @@ set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/vital" )
 ## The modules subdirectory is where the kwiver_add_module() macro generates its product
 ## Note that maptk has a different place where it installs plugins
 set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${install_lib_module_subdir}" )
-set( build_module_paths    "${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/vital" )
+set( build_module_paths    "${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/arrows" )
 
 # assemble total search path
 set( VITAL_DEFAULT_MODULE_PATHS ${install_module_paths})

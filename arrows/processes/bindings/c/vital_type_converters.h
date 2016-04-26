@@ -35,7 +35,7 @@
 #ifndef KWIVER_VITAL_TYPE_CONVERTERS_H
 #define KWIVER_VITAL_TYPE_CONVERTERS_H
 
-#include <kwiver_util/bindings/c/vital_type_converters_export.h>
+#include <arrows/processes/bindings/c/vital_type_converters_export.h>
 
 #include <vital/bindings/c/image_container.h>
 #include <vital/bindings/c/track_set.h>
