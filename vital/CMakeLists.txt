@@ -47,8 +47,8 @@ set_target_properties( ${KWSYS_NAMESPACE}
 else()
   set_target_properties( ${KWSYS_NAMESPACE}
     PROPERTIES
-        VERSION          ${VITAL_VERSION}
-        SOVERSION        ${VITAL_VERSION}
+        VERSION          ${KWIVER_VERSION}
+        SOVERSION        ${KWIVER_VERSION}
         )
 endif()
 
