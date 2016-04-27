@@ -61,10 +61,15 @@ if (KWIVER_ENABLE_TESTS)
   mark_as_advanced(BUILD_TESTING)
 endif()
 
+## TODO: How should pytgon and c lib interact?
+option( KWIVER_C_LIB     "Enable C bindings libraries" OFF)
 option( KWIVER_ENABLE_PYTHON    "Enable python code" OFF )
 
 if (KWIVER_ENABLE_PYTHON)
-  set(kwiver_boost_python_package python)
+  if ( NOT KWIVER_C_LIB )
+    message( SEND_ERROR  "Python can not be enabled unless KWIVER_C_LIB is also enabled." )
+  endif()
+  set(kwiver_boost_python_package     python)
 endif()
 
 ###
