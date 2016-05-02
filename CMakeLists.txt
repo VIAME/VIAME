@@ -5,8 +5,6 @@ cmake_minimum_required(VERSION 3.0)
 
 project(KWIVER)
 
-include(CMakeDependentOption)
-
 ###
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 0)
@@ -29,12 +27,6 @@ endif ()
 ###
 # project specific directories
 #
-set(KWIVER_PACKAGES_DIR         "${CMAKE_SOURCE_DIR}/Packages") ## +delete this symbol
-set(KWIVER_BUILD_PREFIX         "${CMAKE_BINARY_DIR}/build") ## +delete this symbol
-set(KWIVER_BUILD_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install") ## +delete this symbol
-
-set(KWIVER_PACKAGING_SOURCE_DIR "${CMAKE_SOURCE_DIR}/KWIVER_packaging")
-set(KWIVER_PACKAGING_BINARY_DIR "${CMAKE_BINARY_DIR}/KWIVER_packaging")
 set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
 # root directories
@@ -44,10 +36,6 @@ set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
 
 set(CMAKE_MODULE_PATH           ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
-
-set(CMAKE_FIND_ROOT_PATH   ${KWIVER_BUILD_INSTALL_PREFIX} ${CMAKE_FIND_ROOT_PATH})  ## +delete this symbol
-set(CMAKE_LIBRARY_PATH     ${KWIVER_BUILD_INSTALL_PREFIX}/lib)  ## +delete this symbol
-set(KWIVER_LINKER_FLAGS    "-L${CMAKE_LIBRARY_PATH}" ) ## +delete this symbol
 
 # ================================================================
 option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
@@ -77,11 +65,14 @@ endif()
 #
 include(kwiver-utils)
 
-#
-# Be careful establishing compiler/linker options at this
-# level. Component packages may not perform well (or build at all)
-# with aggressive warnings.
-#
+##
+# System specific compiler flags
+include(kwiver-flags)
+
+##
+# check compiler support
+include( kwiver-configcheck )
+
 
 # set the name for our package exports
 set(kwiver_export_name      kwiver_exports)
@@ -100,15 +91,14 @@ endif()
 
 # ================================================================
 # project global includes
-include_directories(BEFORE "${KWIVER_BUILD_INSTALL_PREFIX}/include") ## +delete this symbol
 include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 # kwiversys includes are generated in the binary directory
 include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
-# ==================================================================
 
+# ==================================================================
 # Why would we ever want to build static?
 option(KWIVER_BUILD_SHARED "Build KWIVER packages shared or not" ON)
 
@@ -128,154 +118,10 @@ endif(KWIVER_ENABLE_PYTHON)
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
-configure_file(${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
-  ${KWIVER_BUILD_INSTALL_PREFIX}/setup_KWIVER.sh )
-
 #include_directories("${KWSYS_INCLUDE_DIR}")
 
-
-# ================================================================
-# Setting up external projects for KWIVER components
-#
-include(ExternalProject)
-set_property(DIRECTORY PROPERTY EP_STEP_TARGETS configure build install)
-
-# Common CMake args to send to all external projects
-set(KWIVER_ARGS_COMMON_CMAKE
-  # CMAKE options
-  -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-  -DCMAKE_INSTALL_PREFIX:PATH=${KWIVER_BUILD_INSTALL_PREFIX}
-  -DBUILD_SHARED_LIBS:BOOL=${KWIVER_BUILD_SHARED}
-  -DCMAKE_FIND_ROOT_PATH:PATH=${CMAKE_FIND_ROOT_PATH}
-  -DCMAKE_LIBRARY_PATH:PATH=${CMAKE_LIBRARY_PATH}
-  -DKWIVER_ENABLE_OPENCV:BOOL=${KWIVER_ENABLE_OPENCV}
-  -DKWIVER_ENABLE_DOCS:BOOL=${KWIVER_ENABLE_DOCS}
-  -DKWIVER_ENABLE_TESTS:BOOL=${KWIVER_ENABLE_TESTS}
-  -DEIGEN3_ROOT:PATH=${EIGEN3_ROOT}
-  -Dkwiver_DIR:PATH=${KWIVER_BINARY_DIR}
-  -Dfletch_DIR:PATH=${fletch_DIR}
-  -vital_DIR:PATH=${vital_DIR}
-  -DPROJ4_ROOT:PATH=${PROJ4_ROOT}
-  -DKML_DIR:PATH=${LIBKML_ROOT}/lib/cmake
-  -DGeographicLib_ROOT:PATH=${GeographicLib_ROOT}
-  -DTinyXML_ROOT:PATH=${TinyXML_ROOT}
-  -DLIBJSON_ROOT:PATH=${LIBJSON_ROOT}
-  -DSHAPELIB_ROOT:PATH=${SHAPELIB_ROOT}
-)
-
-set(KWIVER_ARGS_COMMON_COMPILER
-  # Compiler options
-  -DCMAKE_CXX_COMPILER_ARG1:STRING=${CMAKE_CXX_COMPILER_ARG1}
-  -DCMAKE_C_COMPILER_ARG1:STRING=${CMAKE_C_COMPILER_ARG1}
-  -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
-  -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
-  -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  -DCMAKE_CXX_FLAGS_DEBUG:STRING=${CMAKE_CXX_FLAGS_DEBUG}
-  -DCMAKE_CXX_FLAGS_MINSIZEREL:STRING=${CMAKE_CXX_FLAGS_MINSIZEREL}
-  -DCMAKE_CXX_FLAGS_RELEASE:STRING=${CMAKE_CXX_FLAGS_RELEASE}
-  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_CXX_FLAGS_RELWITHDEBINFO}
-  -DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
-  -DCMAKE_C_FLAGS_DEBUG:STRING=${CMAKE_C_FLAGS_DEBUG}
-  -DCMAKE_C_FLAGS_MINSIZEREL:STRING=${CMAKE_C_FLAGS_MINSIZEREL}
-  -DCMAKE_C_FLAGS_RELEASE:STRING=${CMAKE_C_FLAGS_RELEASE}
-  -DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_C_FLAGS_RELWITHDEBINFO}
-  )
-
-set(KWIVER_ARGS_COMMON_BOOST
-  # Boost files and options
-  -DBOOST_ROOT=${BOOST_ROOT_ARG}
-  -DBoost_INCLUDE_DIRS=${Boost_INCLUDE_DIRS}
-  -DBoost_LIBRARY_DIR=${Boost_LIBRARY_DIRS}
-)
-
-set( KWIVER_ARGS_OPENCV )
-
-if( KWIVER_ENABLE_OPENCV )
-  set( KWIVER_ARGS_OPENCV
-    -DOpenCV_DIR:PATH=${OpenCV_CONFIG_PATH}
-    )
-endif()
-
-set(KWIVER_ARGS_COMMON_LINKER
-  # Linker options
-  "-DCMAKE_EXE_LINKER_FLAGS:STRING=${KWIVER_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}"
-  "-DCMAKE_MODULE_LINKER_FLAGS:STRING=${KWIVER_LINKER_FLAGS} ${CMAKE_MODULE_LINKER_FLAGS}"
-  "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${KWIVER_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS}"
-  )
-
-set(KWIVER_ARGS_COMMON ${KWIVER_ARGS_COMMON_CMAKE}
-                       ${KWIVER_ARGS_OPENCV}
-                       ${KWIVER_ARGS_COMMON_COMPILER}
-                       ${KWIVER_ARGS_COMMON_LINKER}
-                       ${KWIVER_ARGS_COMMON_BOOST}
-                       ${KWIVER_ARGS_COMMON_EIGEN}
-  )
-
-#
-# Work out which Packages to build based on user choice and their
-# interdependencies
-#
-option(KWIVER_ENABLE_ALL_PACKAGES "Should KWIVER build all of the optional packages?" OFF)
-# Leave as advanced until VIVIA and VIBRANT aren't advanced
-mark_as_advanced(KWIVER_ENABLE_ALL_PACKAGES)
 option(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF)
-option(KWIVER_ENABLE_MAPTK "Enable building MapTK" FALSE)
 option(KWIVER_ENABLE_ARROWS "Enable building arrows" FALSE)
-option(KWIVER_ENABLE_VIBRANT "Enable building VIBRANT" FALSE)
-mark_as_advanced(KWIVER_ENABLE_VIBRANT)
-option(KWIVER_ENABLE_KWANT "Enable building KWANT" FALSE)
-mark_as_advanced(KWIVER_ENABLE_KWANT)
-option(KWIVER_ENABLE_VIVIA "Enable building ViVIA" FALSE)
-mark_as_advanced(KWIVER_ENABLE_VIVIA)
-
-
-foreach(package MAPTK VIBRANT KWANT VIVIA PROCESSES)
-  if (KWIVER_ENABLE_ALL_PACKAGES)
-      set(KWIVER_ENABLE_${package} TRUE CACHE BOOL "" FORCE)
-  endif()
-endforeach()
-#
-set(KWIVER_ENABLE_ALL_PACKAGES FALSE CACHE BOOL "" FORCE)
-
-if (KWIVER_ENABLE_VIVIA)
-    set(KWIVER_ENABLE_KWANT TRUE CACHE BOOL "" FORCE)
-    set(KWIVER_ENABLE_VIBRANT TRUE CACHE BOOL "" FORCE)
-endif()
-
-#
-# Which applications to enable in ViVIA
-#
-set(KWIVER_ARGS_VIVIA_APPS
-    "-DVISGUI_ENABLE_VIQUI:BOOL=FALSE"
-    "-DVISGUI_ENABLE_VPVIEW:BOOL=FALSE"
-    "-DVISGUI_ENABLE_VSPLAY:BOOL=TRUE"
-    )
-
-set(KWIVER_ARGS_VIVIA_DEPS
-    "-DQT_QMAKE_EXECUTABLE:PATH=${QT_QMAKE_EXECUTABLE}"
-    "-DVTK_DIR:PATH=${VTK_ROOT}/lib/cmake/vtk-6.2"
-    )
-
-# ================================================================
-# Adding external components
-#
-# include(External_VXL)
-
-if (KWIVER_ENABLE_MAPTK)
-    include(External_maptk)
-endif()
-
-if (KWIVER_ENABLE_VIBRANT)
-    include(External_vibrant)
-endif()
-
-if (KWIVER_ENABLE_KWANT)
-	include(External_kwant)
-endif()
-
-if (KWIVER_ENABLE_VIVIA)
-    include(External_vivia)
-endif()
 
 include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
@@ -289,14 +135,6 @@ link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
 endif()
-
-##
-# System specific compiler flags
-include(kwiver-flags)
-
-##
-# check compiler support
-include( kwiver-configcheck )
 
 # ==================================================================
 
@@ -318,12 +156,6 @@ install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 add_subdirectory( vital )
-# vital includes are relative to ${CMAKE_CURRENT_SOURCE_DIR}
-
-# TODO enforce some rational requirements.
-
-# sprokit requires vital
-# arrows.processes requires sprokit
 
 ## if sprokit enabled
 option(KWIVER_ENABLE_SPROKIT "Enable building sprokit" ON )
