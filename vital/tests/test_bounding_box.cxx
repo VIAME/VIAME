@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,57 @@
 
 /**
  * \file
- * \brief Header for Eigen fixed size column vector typedefs
+ * \brief test point_2 functionality
  */
 
-#ifndef VITAL_VECTOR_H_
-#define VITAL_VECTOR_H_
+#include <test_common.h>
 
-#include <Eigen/Core>
+#include <vital/types/bounding_box.h>
 
-namespace kwiver {
-namespace vital {
+#define TEST_ARGS ()
 
-/// \cond DoxygenSuppress
-typedef Eigen::Vector2i vector_2i;
-typedef Eigen::Vector2d vector_2d;
-typedef Eigen::Vector2f vector_2f;
-typedef Eigen::Vector3d vector_3d;
-typedef Eigen::Vector3f vector_3f;
-typedef Eigen::Vector4d vector_4d;
-typedef Eigen::Vector4f vector_4f;
-/// \endcond
+DECLARE_TEST_MAP();
 
-} } // end namespace vital
+int
+main(int argc, char* argv[])
+{
+  CHECK_ARGS(1);
 
-#endif // VITAL_VECTOR_H_
+  testname_t const testname = argv[1];
+
+  RUN_TEST(testname);
+}
+
+
+IMPLEMENT_TEST(construct_bbox_i)
+{
+  kwiver::vital::vector_2i tl( 12, 23 );
+  kwiver::vital::vector_2i br( 200, 223 );
+  kwiver::vital::bounding_box_i bb1( tl, br );
+
+  auto ul = bb1.upper_left();
+  auto lr = bb1.lower_right();
+
+  if ( ul != tl || lr != br )
+  {
+    TEST_ERROR("X coordinate of bounding box_ not initialized correctly");
+  }
+
+}
+
+
+IMPLEMENT_TEST(construct_bbox_d)
+{
+  kwiver::vital::vector_2d tl( 12, 23 );
+  kwiver::vital::vector_2d br( 200, 223 );
+  kwiver::vital::bounding_box_d bb1( tl, br );
+
+  auto ul = bb1.upper_left();
+  auto lr = bb1.lower_right();
+
+  if ( ul != tl || lr != br )
+  {
+    TEST_ERROR("X coordinate of bounding box_ not initialized correctly");
+  }
+
+}

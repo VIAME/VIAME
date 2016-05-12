@@ -166,6 +166,7 @@ set( vital_public_headers
   types/track.h
   types/track_set.h
   types/vector.h
+  types/bounding_box.h
 
   util/get_paths.h
   util/timer.h
