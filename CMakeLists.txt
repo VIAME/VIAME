@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(KWIVER)
 
+include(CMakeDependentOption)
+
 ###
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 0)
@@ -20,10 +22,6 @@ if ( IS_DIRECTORY ${fletch_DIR} )
   find_package( fletch NO_MODULE )
 endif()
 
-if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
-  message(FATAL_ERROR "KWIVER does not support a relative install prefix (${CMAKE_INSTALL_PREFIX}).")
-endif ()
-
 ###
 # project specific directories
 #
@@ -33,33 +31,44 @@ set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 
+#
+# kwiver module config file.
 set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+# Create initial setup script
+set(KWIVER_SETUP_SCRIPT_FILE    "${KWIVER_BINARY_DIR}/setup_KWIVER.sh" )
 
-set(CMAKE_MODULE_PATH           ${KWIVER_CMAKE_DIR} ${CMAKE_MODULE_PATH})
+LIST( INSERT CMAKE_MODULE_PATH  0         ${KWIVER_CMAKE_DIR} ) # prepend out cmake resources
 
 # ================================================================
-option(KWIVER_ENABLE_OPENCV    "Enable OpenCV-dependent code" ON )
+###
+# User options
+OPTION(KWIVER_BUILD_SHARED     "Build KWIVER components shared or not" TRUE )
+OPTION(KWIVER_ENABLE_TESTS     "Enable testing" ON)
+OPTION(KWIVER_ENABLE_ARROWS    "Enable building arrows" ON)
+OPTION(KWIVER_ENABLE_TOOLS     "Enable tools" ON )
 
-option(KWIVER_ENABLE_TESTS     "Enable testing" ON)
+# if sprokit enabled
+OPTION(KWIVER_ENABLE_SPROKIT "Enable building sprokit" ON )
+OPTION(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF)
+OPTION(KWIVER_USE_BUILD_TREE "Whether to include the build-tree plugin directory to the default plugin path list" OFF )
+MARK_AS_ADVANCED(KWIVER_USE_BUILD_TREE)
 
-if (KWIVER_ENABLE_TESTS)
-  enable_testing()
-  include(CTest)
-  set(BUILD_TESTING    ON)
-  mark_as_advanced(BUILD_TESTING)
-endif()
 
 ## TODO: How should pytgon and c lib interact?
-option( KWIVER_C_LIB     "Enable C bindings libraries" OFF)
-option( KWIVER_ENABLE_PYTHON    "Enable python code" OFF )
+OPTION( KWIVER_ENABLE_C_BINDINGS     "Enable C bindings libraries" OFF)
+CMAKE_DEPENDENT_OPTION( KWIVER_ENABLE_PYTHON    "Enable python code" OFF
+  KWIVER_ENABLE_C_BINDINGS OFF )
 
 if (KWIVER_ENABLE_PYTHON)
-  if ( NOT KWIVER_C_LIB )
-    message( SEND_ERROR  "Python can not be enabled unless KWIVER_C_LIB is also enabled." )
+  if ( NOT KWIVER_ENABLE_C_BINDINGS )
+    message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS is also enabled." )
   endif()
   set(kwiver_boost_python_package     python)
 endif()
 
+set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
+
+# ==================================================================
 ###
 # KWIVER CMake config
 #
@@ -73,13 +82,11 @@ include(kwiver-flags)
 # check compiler support
 include( kwiver-configcheck )
 
-
 # set the name for our package exports
 set(kwiver_export_name      kwiver_exports)
 
 ###
-# External Dependencies and Modules
-# Will be supplied by Fletch
+# External Dependencies and Modules - Most Will be supplied by Fletch
 include( kwiver-depends )
 
 # define which boost we are using
@@ -98,43 +105,55 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 # kwiversys includes are generated in the binary directory
 include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
 
-# ==================================================================
-# Why would we ever want to build static?
-option(KWIVER_BUILD_SHARED "Build KWIVER packages shared or not" ON)
+# ================================================================
+
+include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
+
+# ================================================================
+link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
+
+# ================================================================
+###
+# Add tests if enabled
+if (KWIVER_ENABLE_TESTS)
+  enable_testing()
+  include(CTest)
+  set(BUILD_TESTING    ON)  # needed for compatibility with kwiversys
+  mark_as_advanced(BUILD_TESTING)
+
+  add_subdirectory( tests )
+endif()
 
 if (KWIVER_ENABLE_PYTHON)
     find_package(PythonInterp REQUIRED)
     find_package(PythonLibs)
 
-    # to be compatible with sprokit
+    execute_process(
+      COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='')"
+      RESULT_VARIABLE proc_success
+      OUTPUT_VARIABLE python_site_packages
+      )
+
+    if(NOT ${proc_success} EQUAL 0)
+      message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
+    else()
+      string(STRIP "${python_site_packages}" python_site_packages)
+      message(STATUS "Python site-packages to install into: ${python_site_packages}")
+    endif()
+
+    # TODO Get version from above
     set(PYTHON_VERSION "2.7"
-    CACHE STRING "The version of python to use for bindings")
-  set(PYTHON_ABIFLAGS ""
-    CACHE STRING "The ABI flags for the version of Python being used")
+      CACHE STRING "The version of python to use for bindings")
+    set(PYTHON_ABIFLAGS ""
+      CACHE STRING "The ABI flags for the version of Python being used")
 
   include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
 endif(KWIVER_ENABLE_PYTHON)
 
-set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
-
-#include_directories("${KWSYS_INCLUDE_DIR}")
-
-option(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF)
-option(KWIVER_ENABLE_ARROWS "Enable building arrows" FALSE)
-
-include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
-
-
-# ================================================================
-link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
-
-# ==================================================================
-###
-# Add tests if enabled
-if (KWIVER_ENABLE_TESTS)
-  add_subdirectory( tests )
-endif()
+if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
+  message(FATAL_ERROR "KWIVER does not support a relative install prefix (${CMAKE_INSTALL_PREFIX}).")
+endif ()
 
 # ==================================================================
 
@@ -142,9 +161,6 @@ set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
 mark_as_advanced( LIB_SUFFIX )
 
-
-# Create initial setup script
-set(KWIVER_SETUP_SCRIPT_FILE  ${KWIVER_BINARY_DIR}/setup_KWIVER.sh )
 
 configure_file(
   ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
@@ -157,20 +173,12 @@ install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
 
 add_subdirectory( vital )
 
-## if sprokit enabled
-option(KWIVER_ENABLE_SPROKIT "Enable building sprokit" ON )
-
-## If arrows enabled
-option(KWIVER_ENABLE_ARROWS "Enable building arrows" ON )
+if (KWIVER_ENABLE_ARROWS)
+  add_subdirectory( arrows )
+endif()
 
 if (KWIVER_ENABLE_SPROKIT)
   add_subdirectory(sprokit)
-  include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sprokit/src" )
-  include_directories( "${CMAKE_CURRENT_BINARY_DIR}/sprokit/src" ) # for generated files
-endif()
-
-if (KWIVER_ENABLE_ARROWS)
-  add_subdirectory( arrows )
 endif()
 
 ##################################################################
@@ -185,17 +193,17 @@ include( kwiver-install-utils )
 get_property(kwiver_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
 
-# Configure build-tree CMake config file and export associated targets file
-set(KWIVER_LIBRARY_DIR "${KWIVER_BINARY_DIR}/lib") ##? TEMP - not used
-
 kwiver_configure_file(kwiver-config
-  "${KWIVER_SOURCE_DIR}/CMake/kwiver-config.cmake.in"
+  "${KWIVER_SOURCE_DIR}/CMake/kwiver-config-build.cmake.in"
   "${KWIVER_CONFIG_FILE}"
   KWIVER_SOURCE_DIR
   KWIVER_BINARY_DIR
-  EIGEN3_INCLUDE_DIR
+  KWIVER_ENABLE_PYTHON
+  BUILD_SHARED_LIBS
+  KWIVER_CMAKE_DIR
   kwiver_libs
   )
+
 kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
 
 # Configure install-tree CMake config file and export associated targets file
@@ -203,7 +211,10 @@ set(KWIVER_CONFIG_INSTALL_FILE "${KWIVER_BINARY_DIR}/kwiver-config-install.cmake
 kwiver_configure_file(kwiver-install-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config-install.cmake.in"
   "${KWIVER_CONFIG_INSTALL_FILE}"
-  EIGEN3_INCLUDE_DIR
+  KWIVER_SOURCE_DIR
+  KWIVER_BINARY_DIR
+  KWIVER_ENABLE_PYTHON
+  BUILD_SHARED_LIBS
   kwiver_libs
   )
 
