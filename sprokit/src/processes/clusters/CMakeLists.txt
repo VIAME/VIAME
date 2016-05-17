@@ -30,7 +30,7 @@ if (WIN32)
 endif ()
 
 set(SPROKIT_DEFAULT_CLUSTER_PATHS "${sprokit_default_cluster_paths}"
-  CACHE STRING "The default paths to search for clusters in")
+  CACHE STRING "The default paths to search for clusters in" FORCE)
 set(cluster_build_options
   "DEFAULT_CLUSTER_PATHS=${path_prefix}\"${SPROKIT_DEFAULT_CLUSTER_PATHS}\"")
 
