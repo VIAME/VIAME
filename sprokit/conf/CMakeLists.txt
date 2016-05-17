@@ -30,7 +30,7 @@ set(sprokit_config_file "${sprokit_binary_dir}/sprokit-config.cmake")
 sprokit_configure_file(sprokit-config.cmake
   "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-config-common.cmake.in"
   "${sprokit_config_file}"
-  sprokit_version
+  KWIVER_VERSION
   Boost_MAJOR_VERSION
   Boost_MINOR_VERSION
   Boost_SUBMINOR_VERSION
@@ -39,7 +39,7 @@ sprokit_configure_file(sprokit-config.cmake
   Boost_INCLUDE_DIR)
 
 set(config_vars
-  SPROKIT_ENABLE_PYTHON
+  KWIVER_ENABLE_PYTHON
   SPROKIT_ENABLE_PYTHON3
   PYTHON_EXECUTABLE
   PYTHON_VERSION
@@ -60,7 +60,7 @@ set(sprokit_config_install_file "${sprokit_binary_dir}/sprokit-config-install.cm
 sprokit_configure_file(sprokit-config-install.cmake
   "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-config-install.cmake.in"
   "${sprokit_config_install_file}"
-  sprokit_version
+  KWIVER_VERSION
   CMAKE_INSTALL_PREFIX
   LIB_SUFFIX
   ${config_vars})
@@ -83,7 +83,7 @@ set(macro_files
   targets
   tests)
 
-if (SPROKIT_ENABLE_PYTHON)
+if (KWIVER_ENABLE_PYTHON)
   list(APPEND macro_files
     python)
 endif ()
@@ -131,7 +131,7 @@ sprokit_install(
   RENAME      sprokit-config-variables.cmake)
 sprokit_export_targets("${sprokit_binary_dir}/sprokit-config-targets.cmake")
 sprokit_install(
-  EXPORT      ${export_name}
+  EXPORT      ${kwiver_export_name}
   DESTINATION "${cmakedir}"
   FILE        sprokit-config-targets.cmake
   COMPONENT   development)

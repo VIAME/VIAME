@@ -11,7 +11,7 @@ that prevent modules from loading.
 
 Modules are loaded from a set of directories that are configured into the loader at build time.
 The default directory is "lib/sprokit" subdirectory of the install tree. Additionally, at build time,
-The build directory can be added to the loading path by selecting the cmake variable SPROKIT_USE_BUILD_TREE
+The build directory can be added to the loading path by selecting the cmake variable KWIVER_USE_BUILD_TREE
 
 Set environment variable SPROKIT_MODULE_PATH to list directories of loadable modules
 

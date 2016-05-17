@@ -1,9 +1,8 @@
 # Set up options for Python.
 
-option(SPROKIT_ENABLE_PYTHON "Enable Python bindings" OFF)
 cmake_dependent_option(SPROKIT_ENABLE_PYTHON3 "Use Python3" OFF
-  SPROKIT_ENABLE_PYTHON OFF)
-if (SPROKIT_ENABLE_PYTHON)
+  KWIVER_ENABLE_PYTHON OFF)
+if (KWIVER_ENABLE_PYTHON)
   set(sprokit_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
   set(sprokit_python_output_path "${sprokit_binary_dir}/lib/${sprokit_python_subdir}")
 

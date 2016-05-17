@@ -18,6 +18,7 @@ set(tools_headers
 sprokit_add_library(sprokit_tools
   ${tools_srcs}
   ${tools_headers})
+
 target_link_libraries(sprokit_tools
   PUBLIC       sprokit_pipeline_util
                sprokit_pipeline
@@ -27,16 +28,16 @@ target_link_libraries(sprokit_tools
                ${Boost_SYSTEM_LIBRARY}
                vital_config
   )
+
 set_target_properties(sprokit_tools
   PROPERTIES
-    VERSION       ${sprokit_version}
+    VERSION       ${KWIVER_VERSION}
     SOVERSION     0
     DEFINE_SYMBOL MAKE_SPROKIT_TOOLS_LIB)
-sprokit_require_tools_fixes(sprokit_tools)
 
-sprokit_create_doxygen(
-  "${CMAKE_CURRENT_SOURCE_DIR}"
-  tools)
+  sprokit_require_tools_fixes(sprokit_tools)
+
+sprokit_create_doxygen( "${CMAKE_CURRENT_SOURCE_DIR}"  tools )
 
 sprokit_install_headers(sprokit/tools ${tools_headers})
 

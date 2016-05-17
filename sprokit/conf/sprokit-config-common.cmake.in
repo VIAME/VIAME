@@ -3,15 +3,17 @@ if (CMAKE_VERSION VERSION_LESS 2.8.8)
 endif ()
 
 # Version checks.
-set(SPROKIT_VERSION
-  "@sprokit_version@")
+set(KWIVER_VERSION
+  "@KWIVER_VERSION@")
 
-if (SPROKIT_VERSION VERSION_LESS sprokit_FIND_VERSION)
+if (KWIVER_VERSION VERSION_LESS sprokit_FIND_VERSION)
   set(sprokit_FOUND FALSE)
   return()
 endif ()
+
+##? will this work
 if (sprokit_FIND_VERSION_EXACT AND
-    NOT SPROKIT_VERSION STREQUAL sprokit_FIND_VERSION)
+    NOT KWIVER_VERSION STREQUAL sprokit_FIND_VERSION)
   set(sprokit_FOUND FALSE)
   return()
 endif ()

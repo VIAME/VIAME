@@ -97,7 +97,7 @@ sprokit_build_tooled_test(process_introspection test_libraries test_process_intr
 
 set(test_python_path)
 
-if (SPROKIT_ENABLE_PYTHON)
+if (KWIVER_ENABLE_PYTHON)
   set(python_module_path
     "${sprokit_python_output_path}/${CMAKE_CFG_INTDIR}")
 
@@ -137,14 +137,14 @@ set(schedulers
   sync
   thread_per_process)
 
-if (SPROKIT_ENABLE_PYTHON)
+if (KWIVER_ENABLE_PYTHON)
   list(APPEND schedulers
     pythread_per_process)
 endif ()
 
 function (sprokit_add_tooled_run_test group instance)
   foreach (scheduler IN LISTS schedulers)
-    if (SPROKIT_ENABLE_PYTHON)
+    if (KWIVER_ENABLE_PYTHON)
       if (scheduler STREQUAL "pythread_per_process" OR
           instance STREQUAL "pysimple_pipeline")
           _sprokit_python_site_package_dir( python_site_packages )
@@ -164,9 +164,11 @@ function (sprokit_add_tooled_run_test group instance)
 endfunction ()
 
 sprokit_add_tooled_run_test(run simple_pipeline)
-if (SPROKIT_ENABLE_PYTHON)
+
+if (KWIVER_ENABLE_PYTHON)
   sprokit_add_tooled_run_test(run pysimple_pipeline)
 endif ()
+
 sprokit_add_tooled_run_test(run multiplier_pipeline)
 sprokit_add_tooled_run_test(run multiplier_cluster_pipeline)
 sprokit_add_tooled_run_test(run frequency_pipeline)

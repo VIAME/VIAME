@@ -115,7 +115,7 @@ function (sprokit_create_doxygen inputdir name)
     if (SPROKIT_INSTALL_DOCUMENTATION)
       sprokit_install(
         DIRECTORY   "${sprokit_binary_dir}/doc/${name}"
-        DESTINATION "share/doc/sprokit-${sprokit_version}/${name}"
+        DESTINATION "share/doc/sprokit-${KWIVER_VERSION}/${name}"
         COMPONENT   documentation)
     endif ()
   endif ()

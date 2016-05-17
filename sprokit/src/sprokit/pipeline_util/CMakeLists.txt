@@ -31,12 +31,12 @@ else ()
   set(path_sep ":")
 endif ()
 
-set(sprokit_default_pipe_include_paths
-  "${CMAKE_INSTALL_PREFIX}/share/sprokit/pipelines/include")
+set(sprokit_default_pipe_include_paths   "${CMAKE_INSTALL_PREFIX}/share/sprokit/pipelines/include")
 
 cmake_dependent_option(SPROKIT_USE_BUILD_INCLUDE_PATHS "Whether to use the build tree for the default include path" ON
-  SPROKIT_USE_BUILD_TREE OFF)
+  KWIVER_USE_BUILD_TREE OFF)
 mark_as_advanced(SPROKIT_USE_BUILD_INCLUDE_PATHS)
+
 if (SPROKIT_USE_BUILD_INCLUDE_PATHS)
   set(sprokit_default_pipe_include_paths
     "${sprokit_default_pipe_include_paths}${path_sep}${sprokit_source_dir}/src/tools/pipelines/include")
@@ -44,8 +44,8 @@ endif ()
 
 set(SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS "${sprokit_default_pipe_include_paths}"
   CACHE STRING "The default paths to search for pipe includes in")
-set(sprokit_pipe_include_options
-  "DEFAULT_PIPE_INCLUDE_PATHS=\"${SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS}\"")
+
+set(sprokit_pipe_include_options  "DEFAULT_PIPE_INCLUDE_PATHS=\"${SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS}\"")
 
 set(load_pipe_build_options)
 
@@ -67,10 +67,13 @@ set_source_files_properties(load_pipe.cxx
     COMPILE_DEFINITIONS "${load_pipe_build_options}")
 
 sprokit_private_header_group(${pipeline_util_private_headers})
+
 sprokit_add_library(sprokit_pipeline_util
   ${pipeline_util_srcs}
   ${pipeline_util_headers}
   ${pipeline_util_private_headers})
+
+
 target_link_libraries(sprokit_pipeline_util
   PUBLIC      sprokit_pipeline
             ${Boost_FILESYSTEM_LIBRARY}
@@ -80,9 +83,10 @@ target_link_libraries(sprokit_pipeline_util
             ${Boost_THREAD_LIBRARY}
             ${CMAKE_THREAD_LIBS_INIT}
  )
+
 set_target_properties(sprokit_pipeline_util
   PROPERTIES
-    VERSION       ${sprokit_version}
+    VERSION       ${KWIVER_VERSION}
     SOVERSION     0
     DEFINE_SYMBOL MAKE_SPROKIT_PIPELINE_UTIL_LIB)
 
