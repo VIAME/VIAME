@@ -76,6 +76,7 @@ char const* kwiver_logger
   case kwiver_logger::LEVEL_ERROR:  return "ERROR";
   case kwiver_logger::LEVEL_FATAL:  return "FATAL";
 
+  case kwiver_logger::LEVEL_NONE:
   default:           break;
   } // end switch
 

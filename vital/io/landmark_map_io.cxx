@@ -296,6 +296,8 @@ read_ply_file( path_t const& file_path )
         case OBSERVATIONS:
           iss >> observations;
           break;
+
+        case INVALID:
         default:
           break;
       }
