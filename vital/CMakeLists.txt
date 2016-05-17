@@ -256,17 +256,6 @@ target_link_libraries( vital
                   vital_logger
   )
 
-###
-# Build plugin management library
-#
-# This has to happen after plugin creation so as to be able to statically link
-# in plugin libraries when building static.
-#
-option(VITAL_USE_BUILD_PLUGIN_DIR
-  "Whether to include the build-tree plugin directory to the default plugin path list"
-  OFF
-  )
-
 set(vital_apm_headers
   algorithm_plugin_manager.h
   )
@@ -300,9 +289,9 @@ target_link_libraries(vital_apm
                    vital_logger
   )
 
-set(VITAL_MODULE_PATHS "${vital_default_module_paths}"
+set(VITAL_MODULE_PATH "${VITAL_DEFAULT_MODULE_PATH}"
   CACHE STRING "The extra default paths for module scanning. Separate paths with ';' character.")
-mark_as_advanced( VITAL_MODULE_PATHS )
+mark_as_advanced( VITAL_MODULE_PATH )
 
 # Configuring/Adding compile definitions to target
 # (so we can use generator expressions)
@@ -334,16 +323,18 @@ set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${install_lib_module_subdir}"
 set( build_module_paths    "${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/arrows" )
 
 # assemble total search path
-set( VITAL_DEFAULT_MODULE_PATHS ${install_module_paths})
+set( vital_default_module_path ${install_module_paths} )
 
 # convert CMake list to path specification
-foreach( p IN LISTS VITAL_MODULE_PATHS )
-  set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${p} )
+foreach( p IN LISTS VITAL_MODULE_PATH )
+  set( vital_default_module_path ${vital_default_module_path}${path_sep}${p} )
 endforeach(p)
 
-if (VITAL_USE_BUILD_PLUGIN_DIR)
-  set( VITAL_DEFAULT_MODULE_PATHS ${VITAL_DEFAULT_MODULE_PATHS}${path_sep}${build_module_paths})
+if (KWIVER_USE_BUILD_TREE)
+  set( vital_default_module_path ${vital_default_module_path}${path_sep}${build_module_paths})
 endif()
+
+set( VITAL_DEFAULT_MODULE_PATH ${vital_default_module_path} CACHE STRING "Search path for loading algorithms" FORCE )
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"
@@ -361,8 +352,7 @@ add_subdirectory( bindings )
 add_subdirectory( logger )
 add_subdirectory( config )
 
-option (VITAL_ENABLE_TOOLS "Enable tools" ON )
-if (VITAL_ENABLE_TOOLS)
+if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )
 endif()
 
