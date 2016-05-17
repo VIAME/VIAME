@@ -23,3 +23,4 @@ endif()
 # Prevent namespace pollution
 add_definitions(-DWIN32_LEAN_AND_MEAN)
 add_definitions(-DNOMINMAX)
+add_definitions(-DWINDOWS_EXTRA_LEAN)

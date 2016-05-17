@@ -17,52 +17,52 @@ kwiver_check_compiler_flag( -Werror=cast-qual )
 kwiver_check_compiler_flag( -Wl,--no-undefined )
 kwiver_check_compiler_flag( -Wl,--copy-dt-needed-entries )
 
-## causes problemw with Map-TK
-kwiver_check_compiler_flag( -Wshadow )
-
 # --------------------------------------
 # flags from sprokit
 #
 # keep those that work for all of kwiver
 #
 
-# General warnings
-kwiver_check_compiler_flag(-Wextra)
-# Class warnings
-kwiver_check_compiler_flag(-Wabi)
-kwiver_check_compiler_flag(-Wctor-dtor-privacy)
-kwiver_check_compiler_flag(-Winit-self)
-kwiver_check_compiler_flag(-Woverloaded-virtual)
-# Pointer warnings
-kwiver_check_compiler_flag(-Wpointer-arith)
-kwiver_check_compiler_flag(-Wstrict-null-sentinel)
-# Enumeration warnings
-kwiver_check_compiler_flag(-Wswitch-default)
-kwiver_check_compiler_flag(-Wswitch-enum)
-# Formatting warnings
-kwiver_check_compiler_flag(-Wformat-security)
-kwiver_check_compiler_flag(-Wformat=2)
-# Casting warnings
-kwiver_check_compiler_flag(-Wcast-align)
-kwiver_check_compiler_flag(-Wcast-qual)
-kwiver_check_compiler_flag(-Wdouble-promotion)
-kwiver_check_compiler_flag(-Wfloat-equal)
-kwiver_check_compiler_flag(-fstrict-overflow)
-kwiver_check_compiler_flag(-Wstrict-overflow=5)
+OPTION(KWIVER_CPP_EXTRA "Generate more warnings about bad practices" OFF)
+if (KWIVER_CPP_EXTRA)
+  # General warnings
+  kwiver_check_compiler_flag(-Wextra)
+  # Class warnings
+  kwiver_check_compiler_flag(-Wabi)
+  kwiver_check_compiler_flag(-Wctor-dtor-privacy)
+  kwiver_check_compiler_flag(-Winit-self)
+  kwiver_check_compiler_flag(-Woverloaded-virtual)
+  # Pointer warnings
+  kwiver_check_compiler_flag(-Wpointer-arith)
+  kwiver_check_compiler_flag(-Wstrict-null-sentinel)
+  # Enumeration warnings
+  kwiver_check_compiler_flag(-Wswitch-default)
+  kwiver_check_compiler_flag(-Wswitch-enum)
+  # Formatting warnings
+  kwiver_check_compiler_flag(-Wformat-security)
+  kwiver_check_compiler_flag(-Wformat=2)
+  # Casting warnings
+  kwiver_check_compiler_flag(-Wcast-align)
+  kwiver_check_compiler_flag(-Wcast-qual)
+  kwiver_check_compiler_flag(-Wdouble-promotion)
+  kwiver_check_compiler_flag(-Wfloat-equal)
+  kwiver_check_compiler_flag(-fstrict-overflow)
+  kwiver_check_compiler_flag(-Wstrict-overflow=5)
 
-# TODO: Python triggers warnings with this
-kwiver_check_compiler_flag(-Wold-style-cast)
-# Variable naming warnings
-kwiver_check_compiler_flag(-Wshadow)
-# Exception warnings
-kwiver_check_compiler_flag(-Wnoexcept)
-# Miscellaneous warnings
-kwiver_check_compiler_flag(-Wlogical-op)
-kwiver_check_compiler_flag(-Wmissing-braces)
-kwiver_check_compiler_flag(-Wimplicit-fallthrough)
-kwiver_check_compiler_flag(-Wdocumentation)
-kwiver_check_compiler_flag(-Wundef)
-kwiver_check_compiler_flag(-Wunused-macros)
+  # TODO: Python triggers warnings with this
+  kwiver_check_compiler_flag(-Wold-style-cast)
+  # Variable naming warnings
+  kwiver_check_compiler_flag(-Wshadow)
+  # Exception warnings
+  kwiver_check_compiler_flag(-Wnoexcept)
+  # Miscellaneous warnings
+  kwiver_check_compiler_flag(-Wlogical-op)
+  kwiver_check_compiler_flag(-Wmissing-braces)
+  kwiver_check_compiler_flag(-Wimplicit-fallthrough)
+  kwiver_check_compiler_flag(-Wdocumentation)
+  kwiver_check_compiler_flag(-Wundef)
+  kwiver_check_compiler_flag(-Wunused-macros)
+endif()
 
 OPTION(KWIVER_CPP_NITPICK "Generate warnings about nitpicky things" OFF)
 if (KWIVER_CPP_NITPICK)
@@ -100,11 +100,12 @@ if (KWIVER_CPP_ASAN)
   kwiver_check_compiler_flag(-fno-omit-frame-pointer)
 endif ()
 
+## only in debug mode/config
 OPTION(KWIVER_CPP_COVERAGE "Build with coverage testing" OFF)
-if (KWIVER_CPP_COVERAGE)
-  kwiver_check_compiler_flag(-O0 Debug)
-  kwiver_check_compiler_flag(-pg Debug)
-  kwiver_check_compiler_flag(-ftest-coverage Debug)
+if (KWIVER_CPP_COVERAGE   AND   CMAKE_BUILD_TYPE EQUAL "DEBUG")
+  kwiver_check_compiler_flag(-O0)
+  kwiver_check_compiler_flag(-pg)
+  kwiver_check_compiler_flag(-ftest-coverage)
   # It seems as though the flag isn't detected alone.
-  kwiver_add_flag(-fprofile-arcs Debug)
+  kwiver_check_compiler_flag(-fprofile-arcs)
 endif ()
