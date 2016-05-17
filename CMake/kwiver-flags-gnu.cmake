@@ -18,4 +18,93 @@ kwiver_check_compiler_flag( -Wl,--no-undefined )
 kwiver_check_compiler_flag( -Wl,--copy-dt-needed-entries )
 
 ## causes problemw with Map-TK
-# kwiver_check_compiler_flag( -Wshadow )
+kwiver_check_compiler_flag( -Wshadow )
+
+# --------------------------------------
+# flags from sprokit
+#
+# keep those that work for all of kwiver
+#
+
+# General warnings
+kwiver_check_compiler_flag(-Wextra)
+# Class warnings
+kwiver_check_compiler_flag(-Wabi)
+kwiver_check_compiler_flag(-Wctor-dtor-privacy)
+kwiver_check_compiler_flag(-Winit-self)
+kwiver_check_compiler_flag(-Woverloaded-virtual)
+# Pointer warnings
+kwiver_check_compiler_flag(-Wpointer-arith)
+kwiver_check_compiler_flag(-Wstrict-null-sentinel)
+# Enumeration warnings
+kwiver_check_compiler_flag(-Wswitch-default)
+kwiver_check_compiler_flag(-Wswitch-enum)
+# Formatting warnings
+kwiver_check_compiler_flag(-Wformat-security)
+kwiver_check_compiler_flag(-Wformat=2)
+# Casting warnings
+kwiver_check_compiler_flag(-Wcast-align)
+kwiver_check_compiler_flag(-Wcast-qual)
+kwiver_check_compiler_flag(-Wdouble-promotion)
+kwiver_check_compiler_flag(-Wfloat-equal)
+kwiver_check_compiler_flag(-fstrict-overflow)
+kwiver_check_compiler_flag(-Wstrict-overflow=5)
+
+# TODO: Python triggers warnings with this
+kwiver_check_compiler_flag(-Wold-style-cast)
+# Variable naming warnings
+kwiver_check_compiler_flag(-Wshadow)
+# Exception warnings
+kwiver_check_compiler_flag(-Wnoexcept)
+# Miscellaneous warnings
+kwiver_check_compiler_flag(-Wlogical-op)
+kwiver_check_compiler_flag(-Wmissing-braces)
+kwiver_check_compiler_flag(-Wimplicit-fallthrough)
+kwiver_check_compiler_flag(-Wdocumentation)
+kwiver_check_compiler_flag(-Wundef)
+kwiver_check_compiler_flag(-Wunused-macros)
+
+OPTION(KWIVER_CPP_NITPICK "Generate warnings about nitpicky things" OFF)
+if (KWIVER_CPP_NITPICK)
+  kwiver_check_compiler_flag(-Wunsafe-loop-optimizations)
+  kwiver_check_compiler_flag(-Wsign-promo)
+  kwiver_check_compiler_flag(-Winline)
+  kwiver_check_compiler_flag(-Weffc++)
+endif ()
+
+option(KWIVER_CPP_PEDANTIC "Be pedantic" OFF)
+cmake_dependent_option(KWIVER_CPP_PEDANTIC_ERRORS "Be REALLY pedantic" OFF
+  KWIVER_CPP_PEDANTIC OFF)
+if (KWIVER_CPP_PEDANTIC)
+  if (KWIVER_CPP_PEDANTIC_ERRORS)
+    kwiver_check_compiler_flag(-pedantic-errors)
+  else ()
+    kwiver_check_compiler_flag(-pedantic)
+  endif ()
+endif ()
+
+OPTION(KWIVER_CPP_WERROR "Treat all warnings as errors" OFF)
+if (KWIVER_CPP_WERROR)
+  kwiver_check_compiler_flag(-Werror)
+endif ()
+
+CMAKE_DEPENDENT_OPTION(KWIVER_CPP_CLANG_CATCH_UNDEFINED_BEHAVIOR "Use clang to flag undefined behavior" OFF
+  kwiver_using_clang OFF)
+if (KWIVER_CPP_CLANG_CATCH_UNDEFINED_BEHAVIOR)
+  kwiver_check_compiler_flag(-fcatch-undefined-behavior)
+endif ()
+
+OPTION(KWIVER_CPP_ASAN "Enable address sanitization" OFF)
+if (KWIVER_CPP_ASAN)
+  kwiver_check_compiler_flag(-fsanitize=address)
+  kwiver_check_compiler_flag(-fno-omit-frame-pointer)
+endif ()
+
+OPTION(KWIVER_CPP_COVERAGE "Build with coverage testing" OFF)
+if (KWIVER_CPP_COVERAGE)
+  kwiver_check_compiler_flag(-O0 Debug)
+  kwiver_check_compiler_flag(-pg Debug)
+  kwiver_check_compiler_flag(-ftest-coverage Debug)
+  # It seems as though the flag isn't detected alone.
+  kwiver_add_flag(-fprofile-arcs Debug)
+endif ()
