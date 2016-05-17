@@ -43,7 +43,7 @@ protected:
 #if VITAL_USE_CPP_DEFAULT_CTOR
 
   noncopyable() = default;
-  ~noncopyable() = default;
+  virtual ~noncopyable() = default;
 
   noncopyable( const noncopyable& ) = delete;
   noncopyable& operator=( const noncopyable& ) = delete;
@@ -51,7 +51,8 @@ protected:
 #else
 
   noncopyable() {}
-  ~noncopyable() {}
+  virtual ~noncopyable() {}
+
 private:  // emphasize the following members are private
   noncopyable( const noncopyable& );
   noncopyable& operator=( const noncopyable& );
