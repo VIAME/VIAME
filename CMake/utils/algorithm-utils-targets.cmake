@@ -63,35 +63,38 @@ function(algorithms_create_plugin    base_lib)
   message( STATUS "Building plugin \"${base_lib}\"" )
 
   # Configure template cxx source file
-  set(shell_source "${ALGORITHMS_SOURCE_DIR}/templates/cxx/plugin_shell.cxx")
+  set(shell_source "${ARROWS_SOURCE_DIR}/templates/cxx/plugin_shell.cxx")
+
+  # Make a plugin from the supplied files. The name here is largely
+  # irrelevant since they are discovered at run time.
+  set( plugin_name   "${base_lib}_plugin" )
 
   # create module library given generated source, linked to given library
-  set(library_subdir /arrows)
+  set(library_subdir /modules)
   set(no_version ON)
   set(no_export_header ON)
 
-  kwiver_add_plugin( arrows-plugin-${base_lib}
+  kwiver_add_plugin( ${plugin_name}
     SOURCES  ${shell_source} ${ARGN}
-
-    # Not adding link to known base ARROWS library because if the base_lib isn't
+    # Not adding link to known base library because if the base_lib isn't
     # linking against it, its either doing something really complex or doing
     # something wrong (most likely the wrong).
     PRIVATE  ${base_lib}
     )
 
   # used by plugin shell
-  target_compile_definitions( arrows-plugin-${base_lib}
+  target_compile_definitions( ${plugin_name}
     PRIVATE
-    "ARROWS_PLUGIN_LIB_NAME=\"${base_lib}\""
+    "KWIVER_PLUGIN_LIB_NAME=\"${base_lib}\""
     )
 
-  set_target_properties( arrows-plugin-${base_lib}
+  set_target_properties( ${plugin_name}
     PROPERTIES
     OUTPUT_NAME   ${base_lib}_plugin
     INSTALL_RPATH "\$ORIGIN/../../lib:\$ORIGIN/"
     )
 
-  add_dependencies( all-plugins arrows-plugin-${base_lib} )
+  add_dependencies( all-plugins ${plugin_name} )
 
   # For each library linked to the base library, add the path to the library
   # to a list of paths to search later during fixup_bundle.
@@ -116,7 +119,7 @@ function(algorithms_create_plugin    base_lib)
 
   # Add to global collection variables
   set_property(GLOBAL APPEND
-    PROPERTY arrows_plugin_libraries    arrows-plugin-${base_lib}
+    PROPERTY arrows_plugin_libraries    ${plugin_name}
     )
   set_property(GLOBAL APPEND
     PROPERTY arrows_bundle_paths ${PLUGIN_BUNDLE_PATHS}
