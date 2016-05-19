@@ -2,7 +2,7 @@
 # Bindings for VITAL
 #
 
-if (KWIVER_ENABLE_C_LIB )
+if (KWIVER_ENABLE_C_BINDINGS )
   add_subdirectory( c )
 endif()
 
