@@ -52,10 +52,7 @@
 
 
 namespace kwiver {
-namespace arrows {
-
-namespace testing
-{
+namespace testing {
 
 /// random number generator type
 typedef RANDOM_NAMESPACE::mt19937 rng_t;
@@ -89,8 +86,6 @@ kwiver::vital::vector_2d random_point2d(double stdev)
 }
 
 } // end namespace testing
-
-} // end namespace arrows
 } // end namespace kwiver
 
 #endif // ALGORITHMS_TEST_TEST_RANDOM_POINT_H_
