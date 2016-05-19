@@ -43,13 +43,16 @@ LIST( INSERT CMAKE_MODULE_PATH  0         ${KWIVER_CMAKE_DIR} ) # prepend out cm
 ###
 # User options
 OPTION(KWIVER_BUILD_SHARED     "Build KWIVER components shared or not" TRUE )
-OPTION(KWIVER_ENABLE_TESTS     "Enable testing" ON)
-OPTION(KWIVER_ENABLE_ARROWS    "Enable building arrows" ON)
-OPTION(KWIVER_ENABLE_TOOLS     "Enable tools" ON )
+OPTION(KWIVER_ENABLE_TESTS     "Enable testing" OFF )
+OPTION(KWIVER_ENABLE_ARROWS    "Enable building arrows" OFF )
+OPTION(KWIVER_ENABLE_TOOLS     "Enable tools" OFF )
 
 # if sprokit enabled
-OPTION(KWIVER_ENABLE_SPROKIT "Enable building sprokit" ON )
-OPTION(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF)
+OPTION(KWIVER_ENABLE_SPROKIT "Enable building sprokit" OFF )
+
+CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF
+  "KWIVER_ENABLE_ARROWS AND  KWIVER_ENABLE_SPROKIT" OFF )
+
 OPTION(KWIVER_USE_BUILD_TREE "Whether to include the build-tree plugin directory to the default plugin path list" OFF )
 MARK_AS_ADVANCED(KWIVER_USE_BUILD_TREE)
 
@@ -122,6 +125,7 @@ if (KWIVER_ENABLE_TESTS)
   mark_as_advanced(BUILD_TESTING)
 
   add_subdirectory( tests )
+  include_directories( tests )
 endif()
 
 if (KWIVER_ENABLE_PYTHON)
