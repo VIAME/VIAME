@@ -33,14 +33,14 @@
 * \brief Header defining VXL algorithm implementation of camera optimization.
 */
 
-#ifndef ARROWS_ALGORITHMS_VXL_OPTIMIZE_CAMERAS_H_
-#define ARROWS_ALGORITHMS_VXL_OPTIMIZE_CAMERAS_H_
+#ifndef KWIVER_ARROWS_VXL_OPTIMIZE_CAMERAS_H_
+#define KWIVER_ARROWS_VXL_OPTIMIZE_CAMERAS_H_
 
 
 #include <string>
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/optimize_cameras.h>
@@ -53,7 +53,7 @@ namespace vxl
 {
 
 
-class ALGORITHMS_VXL_EXPORT optimize_cameras
+class KWIVER_ALGO_VXL_EXPORT optimize_cameras
   : public vital::algorithm_impl<optimize_cameras, vital::algo::optimize_cameras>
 {
 public:
@@ -90,4 +90,4 @@ public:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // ARROWS_ALGORITHMS_VXL_OPTIMIZE_CAMERAS_H_
+#endif // KWIVER_ARROWS_VXL_OPTIMIZE_CAMERAS_H_

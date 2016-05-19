@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@
 #endif
 
 #include <vital/vital_foreach.h>
-#include <arrows/algorithms/core/interpolate_camera.h>
+#include <arrows/core/interpolate_camera.h>
 
 #define TEST_ARGS ()
 

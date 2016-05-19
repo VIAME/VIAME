@@ -50,8 +50,8 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <arrows/algorithms/ocv/image_container.h>
-#include <arrows/algorithms/ocv/ocv_algo_tools.h>
+#include <arrows/ocv/image_container.h>
+#include <arrows/ocv/ocv_algo_tools.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>

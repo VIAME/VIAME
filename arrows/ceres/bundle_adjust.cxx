@@ -42,8 +42,8 @@
 
 #include <vital/logger/logger.h>
 #include <vital/io/eigen_io.h>
-#include <arrows/algorithms/ceres/reprojection_error.h>
-#include <arrows/algorithms/ceres/types.h>
+#include <arrows/ceres/reprojection_error.h>
+#include <arrows/ceres/types.h>
 
 #include <ceres/ceres.h>
 

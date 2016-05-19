@@ -33,8 +33,8 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <arrows/algorithms/core/register_algorithms.h>
-#include <arrows/algorithms/algorithm_plugin_interface.h>
+#include <arrows/core/register_algorithms.h>
+#include <arrows/algorithm_plugin_interface.h>
 #include <vital/registrar.h>
 
 

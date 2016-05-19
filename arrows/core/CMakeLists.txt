@@ -22,12 +22,12 @@ set( plugin_core_headers
   triangulate.h
   )
 kwiver_install_headers(
-  SUBDIR     arrows/algorithms/core
+  SUBDIR     arrows/core
   ${plugin_core_headers}
   )
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/algorithms_core_export.h
-  NOPATH   SUBDIR     arrows/algorithms/core
+  ${CMAKE_CURRENT_BINARY_DIR}/arrows_core_export.h
+  NOPATH   SUBDIR     arrows/core
   )
 
 set( plugin_core_sources
@@ -51,18 +51,20 @@ set( plugin_core_sources
   projected_track_set.cxx
   triangulate.cxx
   )
-kwiver_add_library( algorithms_core
+
+kwiver_add_library( kwiver_algo
   ${plugin_core_headers}
   ${plugin_core_sources}
   )
-target_link_libraries( algorithms_core
+
+target_link_libraries( kwiver_algo
   PUBLIC               vital
   )
 
-algorithms_create_plugin( algorithms_core
+algorithms_create_plugin( kwiver_algo
   algorithm_plugin_interface.cxx
   )
 
-if (ARROWS_ENABLE_TESTS)
+if (KWIVER_ENABLE_TESTS)
   add_subdirectory(tests)
 endif()

@@ -33,12 +33,12 @@
  * \brief VXL match_features_constrained algorithm impl interface
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_MATCH_FEATURES_CONSTRAINED_H_
-#define ARROWS_ALGORITHMS_VXL_MATCH_FEATURES_CONSTRAINED_H_
+#ifndef KWIVER_ARROWS_VXL_MATCH_FEATURES_CONSTRAINED_H_
+#define KWIVER_ARROWS_VXL_MATCH_FEATURES_CONSTRAINED_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/algo/match_features.h>
 
@@ -64,7 +64,7 @@ namespace vxl
  *  scale) to find only geometrically nearby features.  It then looks at
  *  the descriptors for the neighbors and finds the best match by appearance.
  */
-class ALGORITHMS_VXL_EXPORT match_features_constrained
+class KWIVER_ALGO_VXL_EXPORT match_features_constrained
   : public vital::algorithm_impl<match_features_constrained, vital::algo::match_features>
 {
 public:
@@ -111,4 +111,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VXL_MATCH_FEATURES_CONSTRAINED_H_
+#endif // KWIVER_ARROWS_VXL_MATCH_FEATURES_CONSTRAINED_H_

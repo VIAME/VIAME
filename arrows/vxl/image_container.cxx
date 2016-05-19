@@ -35,7 +35,7 @@
 
 #include "image_container.h"
 
-#include <arrows/algorithms/vxl/vil_image_memory.h>
+#include <arrows/vxl/vil_image_memory.h>
 
 
 namespace kwiver {

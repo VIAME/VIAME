@@ -35,7 +35,7 @@
 
 #include "image_container.h"
 
-#include <arrows/algorithms/ocv/mat_image_memory.h>
+#include <arrows/ocv/mat_image_memory.h>
 
 using namespace kwiver::vital;
 

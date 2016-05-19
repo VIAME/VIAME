@@ -45,7 +45,7 @@
 
 #include <vital/algo/compute_ref_homography.h>
 #include <vital/algo/match_features.h>
-#include <arrows/algorithms/vxl/compute_homography_overlap.h>
+#include <arrows/vxl/compute_homography_overlap.h>
 
 using namespace kwiver::vital;
 

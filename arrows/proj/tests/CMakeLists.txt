@@ -1,8 +1,8 @@
 project(arrows_test_proj)
 
-include(arrows-test-setup)
+include(kwiver-test-setup)
 
-set(test_libraries    algorithms_proj )
+set(test_libraries    kwiver_algo_proj )
 
 #########################
 # Algorithms Proj tests #

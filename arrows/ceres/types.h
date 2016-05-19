@@ -33,12 +33,12 @@
  * \brief Define additional enum types in a similar style as Ceres
  */
 
-#ifndef ARROWS_ALGORITHMS_CERES_TYPES_H_
-#define ARROWS_ALGORITHMS_CERES_TYPES_H_
+#ifndef KWIVER_ARROWS_CERES_TYPES_H_
+#define KWIVER_ARROWS_CERES_TYPES_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ceres/algorithms_ceres_export.h>
+#include <arrows/ceres/kwiver_algo_ceres_export.h>
 
 #include <string>
 #include <ceres/ceres.h>
@@ -79,37 +79,37 @@ enum CameraIntrinsicShareType
 
 
 /// Provide a string representation for a LossFunctionType value
-ALGORITHMS_CERES_EXPORT const char*
+KWIVER_ALGO_CERES_EXPORT const char*
 LossFunctionTypeToString(LossFunctionType type);
 
 /// Parse a LossFunctionType value from a string or return false
-ALGORITHMS_CERES_EXPORT bool
+KWIVER_ALGO_CERES_EXPORT bool
 StringToLossFunctionType(std::string value, LossFunctionType* type);
 
 /// Construct a LossFunction object from the specified enum type
-ALGORITHMS_CERES_EXPORT ::ceres::LossFunction*
+KWIVER_ALGO_CERES_EXPORT ::ceres::LossFunction*
 LossFunctionFactory(LossFunctionType type, double scale=1.0);
 
 
 /// Provide a string representation for a LensDisortionType value
-ALGORITHMS_CERES_EXPORT const char*
+KWIVER_ALGO_CERES_EXPORT const char*
 LensDistortionTypeToString(LensDistortionType type);
 
 /// Parse a LensDistortionType value from a string or return false
-ALGORITHMS_CERES_EXPORT bool
+KWIVER_ALGO_CERES_EXPORT bool
 StringToLensDistortionType(std::string value, LensDistortionType* type);
 
 /// Return the number of distortion parameters required for each type
-ALGORITHMS_CERES_EXPORT unsigned int
+KWIVER_ALGO_CERES_EXPORT unsigned int
 num_distortion_params(LensDistortionType type);
 
 
 /// Provide a string representation for a CameraIntrinsicShareType value
-ALGORITHMS_CERES_EXPORT const char*
+KWIVER_ALGO_CERES_EXPORT const char*
 CameraIntrinsicShareTypeToString(CameraIntrinsicShareType type);
 
 /// Parse a CameraIntrinsicShareType value from a string or return false
-ALGORITHMS_CERES_EXPORT bool
+KWIVER_ALGO_CERES_EXPORT bool
 StringToCameraIntrinsicShareType(std::string value, CameraIntrinsicShareType* type);
 
 
@@ -119,4 +119,4 @@ StringToCameraIntrinsicShareType(std::string value, CameraIntrinsicShareType* ty
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_CERES_TYPES_H_
+#endif // KWIVER_ARROWS_CERES_TYPES_H_

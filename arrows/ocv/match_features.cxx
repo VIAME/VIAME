@@ -37,10 +37,10 @@
 
 #include <vector>
 
-#include <arrows/algorithms/ocv/feature_set.h>
-#include <arrows/algorithms/ocv/descriptor_set.h>
-#include <arrows/algorithms/ocv/match_set.h>
-#include <arrows/algorithms/ocv/ocv_algo_tools.h>
+#include <arrows/ocv/feature_set.h>
+#include <arrows/ocv/descriptor_set.h>
+#include <arrows/ocv/match_set.h>
+#include <arrows/ocv/ocv_algo_tools.h>
 
 #include <opencv2/features2d/features2d.hpp>
 

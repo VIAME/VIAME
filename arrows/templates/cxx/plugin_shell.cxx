@@ -34,14 +34,12 @@
 
 // This is a little misuse of the exports mechanism, but there is no
 // other general purpose include that is set for always "building"
-#define algorithms_core_EXPORTS
+#define kwiver_algo_EXPORTS
 
-#include <arrows/algorithms/core/algorithms_core_export.h>
-#include <arrows/algorithms/algorithm_plugin_interface.h>
+#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/algorithm_plugin_interface.h>
 #include <vital/logger/logger.h>
 #include <vital/registrar.h>
-
-
 
 /**
  * Assuming public registration function is defined somewhere in a linked
@@ -53,14 +51,14 @@ extern "C"
 #endif
 
 // Always export this function
-int ALGORITHMS_CORE_EXPORT private_register_algo_impls( kwiver::vital::registrar &reg )
+int KWIVER_ALGO_EXPORT private_register_algo_impls( kwiver::vital::registrar &reg )
 {
   kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "Implementation Registration" ));
   try
   {
     LOG_DEBUG( m_logger,
                "Registering algorithm implementations from module "
-               "\"" ARROWS_PLUGIN_LIB_NAME "\"");
+               "\"" KWIVER_PLUGIN_LIB_NAME "\"");
     return register_algo_impls( reg );
   }
   catch( std::exception const &e )

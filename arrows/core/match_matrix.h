@@ -38,7 +38,7 @@
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/core/algorithms_core_export.h>
+#include <arrows/core/kwiver_algo_export.h>
 
 #include <vital/types/track_set.h>
 #include <Eigen/Sparse>
@@ -62,7 +62,7 @@ namespace arrows {
  *                         frame ids in the track set.
  *  \return an NxN symmetric match matrix
  */
-ALGORITHMS_CORE_EXPORT
+KWIVER_ALGO_EXPORT
 Eigen::SparseMatrix<unsigned int>
 match_matrix(const vital::track_set_sptr tracks,
                    std::vector<vital::frame_id_t>& frames);

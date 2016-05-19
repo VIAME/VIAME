@@ -40,14 +40,14 @@
 #include <opencv2/nonfree/nonfree.hpp>
 #endif
 
-#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
-#include <arrows/algorithms/ocv/analyze_tracks.h>
-#include <arrows/algorithms/ocv/detect_features.h>
-#include <arrows/algorithms/ocv/draw_tracks.h>
-#include <arrows/algorithms/ocv/estimate_homography.h>
-#include <arrows/algorithms/ocv/extract_descriptors.h>
-#include <arrows/algorithms/ocv/image_io.h>
-#include <arrows/algorithms/ocv/match_features.h>
+#include <arrows/algorithm_plugin_interface_macros.h>
+#include <arrows/ocv/analyze_tracks.h>
+#include <arrows/ocv/detect_features.h>
+#include <arrows/ocv/draw_tracks.h>
+#include <arrows/ocv/estimate_homography.h>
+#include <arrows/ocv/extract_descriptors.h>
+#include <arrows/ocv/image_io.h>
+#include <arrows/ocv/match_features.h>
 
 
 namespace kwiver {

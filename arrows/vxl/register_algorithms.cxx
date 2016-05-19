@@ -35,17 +35,17 @@
 
 #include "register_algorithms.h"
 
-#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
-#include <arrows/algorithms/vxl/bundle_adjust.h>
-#include <arrows/algorithms/vxl/close_loops_homography_guided.h>
-#include <arrows/algorithms/vxl/estimate_essential_matrix.h>
-#include <arrows/algorithms/vxl/estimate_fundamental_matrix.h>
-#include <arrows/algorithms/vxl/estimate_homography.h>
-#include <arrows/algorithms/vxl/estimate_similarity_transform.h>
-#include <arrows/algorithms/vxl/image_io.h>
-#include <arrows/algorithms/vxl/optimize_cameras.h>
-#include <arrows/algorithms/vxl/triangulate_landmarks.h>
-#include <arrows/algorithms/vxl/match_features_constrained.h>
+#include <arrows/algorithm_plugin_interface_macros.h>
+#include <arrows/vxl/bundle_adjust.h>
+#include <arrows/vxl/close_loops_homography_guided.h>
+#include <arrows/vxl/estimate_essential_matrix.h>
+#include <arrows/vxl/estimate_fundamental_matrix.h>
+#include <arrows/vxl/estimate_homography.h>
+#include <arrows/vxl/estimate_similarity_transform.h>
+#include <arrows/vxl/image_io.h>
+#include <arrows/vxl/optimize_cameras.h>
+#include <arrows/vxl/triangulate_landmarks.h>
+#include <arrows/vxl/match_features_constrained.h>
 
 
 namespace kwiver {

@@ -34,12 +34,12 @@
  *        close_loops \endlink algorithm
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
-#define ARROWS_ALGORITHMS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
+#ifndef KWIVER_ARROWS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
+#define KWIVER_ARROWS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
@@ -61,7 +61,7 @@ namespace vxl
  * estimate potential match locations in the past, followed up by additional
  * filtering.
  */
-class ALGORITHMS_VXL_EXPORT close_loops_homography_guided
+class KWIVER_ALGO_VXL_EXPORT close_loops_homography_guided
   : public vital::algorithm_impl<vxl::close_loops_homography_guided, vital::algo::close_loops>
 {
 public:
@@ -143,4 +143,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
+#endif // KWIVER_ARROWS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_

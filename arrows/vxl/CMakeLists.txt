@@ -19,13 +19,15 @@ set(vxl_headers_public
   triangulate_landmarks.h
   vil_image_memory.h
   )
+
 kwiver_install_headers(
-  SUBDIR     arrows/algorithms/vxl
+  SUBDIR     arrows/vxl
   ${vxl_headers_public}
   )
+
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/algorithms_vxl_export.h
-  NOPATH   SUBDIR     arrows/algorithms/vxl
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_vxl_export.h
+  NOPATH   SUBDIR     arrows/vxl
   )
 
 set(vxl_sources
@@ -47,19 +49,19 @@ set(vxl_sources
   vil_image_memory.cxx
   )
 
-kwiver_add_library( algorithms_vxl
+kwiver_add_library( kwiver_algo_vxl
   ${vxl_headers_public}
   ${vxl_sources}
   )
-target_link_libraries( algorithms_vxl
-  PUBLIC               algorithms_core
+target_link_libraries( kwiver_algo_vxl
+  PUBLIC               kwiver_algo
                        rrel rsdl vnl vgl_algo vil vpgl_algo
   )
 
-algorithms_create_plugin( algorithms_vxl
+algorithms_create_plugin( kwiver_algo_vxl
   algorithm_plugin_interface.cxx
   )
 
-if (ARROWS_ENABLE_TESTS)
+if (KWIVER_ENABLE_TESTS)
   add_subdirectory(tests)
 endif()

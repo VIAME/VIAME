@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_ALGORITHMS_VISCL_DETECT_FEATURES_H_
-#define ARROWS_ALGORITHMS_VISCL_DETECT_FEATURES_H_
+#ifndef KWIVER_ARROWS_VISCL_DETECT_FEATURES_H_
+#define KWIVER_ARROWS_VISCL_DETECT_FEATURES_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
+#include <arrows/viscl/kwiver_algo_viscl_export.h>
 
 #include <vital/algo/detect_features.h>
 
@@ -46,7 +46,7 @@ namespace vcl
 {
 
 /// An algorithm class for detecting feature points using VisCL
-class ALGORITHMS_VISCL_EXPORT detect_features
+class KWIVER_ALGO_VISCL_EXPORT detect_features
 : public vital::algorithm_impl<detect_features, vital::algo::detect_features>
 {
 public:
@@ -92,4 +92,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VISCL_DETECT_FEATURES_H_
+#endif // KWIVER_ARROWS_VISCL_DETECT_FEATURES_H_

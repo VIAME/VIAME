@@ -33,12 +33,12 @@
  * \brief OCV match_features algorithm impl interface
  */
 
-#ifndef ARROWS_ALGORITHMS_OCV_MATCH_FEATURES_H_
-#define ARROWS_ALGORITHMS_OCV_MATCH_FEATURES_H_
+#ifndef KWIVER_ARROWS_OCV_MATCH_FEATURES_H_
+#define KWIVER_ARROWS_OCV_MATCH_FEATURES_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/match_features.h>
 
@@ -52,7 +52,7 @@ namespace ocv
 {
 
 /// An abstract base class for matching feature points
-class ALGORITHMS_OCV_EXPORT match_features
+class KWIVER_ALGO_OCV_EXPORT match_features
   : public vital::algorithm_impl<match_features, vital::algo::match_features>
 {
 public:
@@ -99,4 +99,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_OCV_MATCH_FEATURES_H_
+#endif // KWIVER_ARROWS_OCV_MATCH_FEATURES_H_

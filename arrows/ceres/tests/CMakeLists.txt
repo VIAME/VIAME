@@ -1,8 +1,8 @@
-project(algorithms_test_ceres)
+project(arrows_test_ceres)
 
-include(arrows-test-setup)
+include(kwiver-test-setup)
 
-set(test_libraries algorithms_ceres)
+set(test_libraries    kwiver_algo_ceres)
 
 ##############################
 # Algorithms Ceres tests

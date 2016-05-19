@@ -33,12 +33,12 @@
  * \brief OCV feature_set interface
  */
 
-#ifndef ARROWS_ALGORITHMS_OCV_FEATURE_SET_H_
-#define ARROWS_ALGORITHMS_OCV_FEATURE_SET_H_
+#ifndef KWIVER_ARROWS_OCV_FEATURE_SET_H_
+#define KWIVER_ARROWS_OCV_FEATURE_SET_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <opencv2/features2d/features2d.hpp>
 
@@ -53,7 +53,7 @@ namespace ocv
 
 
 /// A concrete feature set that wraps OpenCV KeyPoints
-class ALGORITHMS_OCV_EXPORT feature_set
+class KWIVER_ALGO_OCV_EXPORT feature_set
   : public vital::feature_set
 {
 public:
@@ -81,7 +81,7 @@ protected:
 
 
 /// Convert any feature set to a vector of OpenCV cv::KeyPoints
-ALGORITHMS_OCV_EXPORT std::vector<cv::KeyPoint>
+KWIVER_ALGO_OCV_EXPORT std::vector<cv::KeyPoint>
 features_to_ocv_keypoints(const vital::feature_set& features);
 
 
@@ -91,4 +91,4 @@ features_to_ocv_keypoints(const vital::feature_set& features);
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_OCV_FEATURE_SET_H_
+#endif // KWIVER_ARROWS_OCV_FEATURE_SET_H_

@@ -10,13 +10,15 @@ set( ceres_headers_public
 set( ceres_headers_private
   types.h
   )
+
 kwiver_install_headers(
-  SUBDIR     arrows/algorithms/ceres
+  SUBDIR     arrows/ceres
   ${ceres_headers_public}
   )
+
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/algorithms_ceres_export.h
-  NOPATH   SUBDIR     arrows/algorithms/ceres
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_ceres_export.h
+  NOPATH   SUBDIR     arrows/ceres
   )
 
 set( ceres_sources
@@ -24,21 +26,21 @@ set( ceres_sources
   register_algorithms.cxx
   types.cxx
   )
-kwiver_add_library( algorithms_ceres
 
+kwiver_add_library( kwiver_algo_ceres
   ${ceres_headers_public}
   ${ceres_headers_private}
   ${ceres_sources}
   )
-target_link_libraries( algorithms_ceres
-  PUBLIC               algorithms_core
+target_link_libraries( kwiver_algo_ceres
+  PUBLIC               kwiver_algo
                        ceres
   )
 
-algorithms_create_plugin( algorithms_ceres
+algorithms_create_plugin( kwiver_algo_ceres
   algorithm_plugin_interface.cxx
   )
 
-if (ARROWS_ENABLE_TESTS)
+if (KWIVER_ENABLE_TESTS)
   add_subdirectory(tests)
 endif()

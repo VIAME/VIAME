@@ -30,7 +30,7 @@
 
 #include <algorithm>
 
-#include <arrows/algorithms/viscl/match_set.h>
+#include <arrows/viscl/match_set.h>
 
 #include <viscl/core/manager.h>
 

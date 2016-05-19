@@ -32,10 +32,10 @@
 #include <test_math.h>
 #include <test_scene.h>
 
-#include <arrows/algorithms/core/projected_track_set.h>
-#include <arrows/algorithms/core/epipolar_geometry.h>
-#include <arrows/algorithms/vxl/estimate_essential_matrix.h>
-#include <arrows/algorithms/vxl/register_algorithms.h>
+#include <arrows/core/projected_track_set.h>
+#include <arrows/core/epipolar_geometry.h>
+#include <arrows/vxl/estimate_essential_matrix.h>
+#include <arrows/vxl/register_algorithms.h>
 
 #include <Eigen/LU>
 
@@ -100,11 +100,11 @@ IMPLEMENT_TEST(ideal_points)
   vxl::estimate_essential_matrix est_e;
 
   // create landmarks at the random locations
-  landmark_map_sptr landmarks = testing::init_landmarks(100);
-  landmarks = testing::noisy_landmarks(landmarks, 1.0);
+  landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
+  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
@@ -164,17 +164,17 @@ IMPLEMENT_TEST(noisy_points)
   vxl::estimate_essential_matrix est_e;
 
   // create landmarks at the random locations
-  landmark_map_sptr landmarks = testing::init_landmarks(100);
-  landmarks = testing::noisy_landmarks(landmarks, 1.0);
+  landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
+  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
-  tracks = testing::noisy_tracks(tracks, 0.5);
+  tracks = kwiver::testing::noisy_tracks(tracks, 0.5);
 
   const frame_id_t frame1 = 0;
   const frame_id_t frame2 = 10;

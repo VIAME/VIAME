@@ -35,10 +35,10 @@
 
 #include "extract_descriptors.h"
 
-#include <arrows/algorithms/ocv/image_container.h>
-#include <arrows/algorithms/ocv/feature_set.h>
-#include <arrows/algorithms/ocv/descriptor_set.h>
-#include <arrows/algorithms/ocv/ocv_algo_tools.h>
+#include <arrows/ocv/image_container.h>
+#include <arrows/ocv/feature_set.h>
+#include <arrows/ocv/descriptor_set.h>
+#include <arrows/ocv/ocv_algo_tools.h>
 
 using namespace kwiver::vital;
 

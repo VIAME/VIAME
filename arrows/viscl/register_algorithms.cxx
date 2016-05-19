@@ -35,11 +35,11 @@
 
 #include "register_algorithms.h"
 
-#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
-#include <arrows/algorithms/viscl/convert_image.h>
-#include <arrows/algorithms/viscl/detect_features.h>
-#include <arrows/algorithms/viscl/extract_descriptors.h>
-#include <arrows/algorithms/viscl/match_features.h>
+#include <arrows/algorithm_plugin_interface_macros.h>
+#include <arrows/viscl/convert_image.h>
+#include <arrows/viscl/detect_features.h>
+#include <arrows/viscl/extract_descriptors.h>
+#include <arrows/viscl/match_features.h>
 #include <vital/registrar.h>
 
 

@@ -33,12 +33,12 @@
  * \brief VXL image_io interface
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_IMAGE_IO_H_
-#define ARROWS_ALGORITHMS_VXL_IMAGE_IO_H_
+#ifndef KWIVER_ARROWS_VXL_IMAGE_IO_H_
+#define KWIVER_ARROWS_VXL_IMAGE_IO_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/algo/image_io.h>
 
@@ -52,7 +52,7 @@ namespace vxl
 {
 
 /// A class for using VXL to read and write images
-class ALGORITHMS_VXL_EXPORT image_io
+class KWIVER_ALGO_VXL_EXPORT image_io
   : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
 public:
@@ -105,4 +105,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VXL_IMAGE_IO_H_
+#endif // KWIVER_ARROWS_VXL_IMAGE_IO_H_

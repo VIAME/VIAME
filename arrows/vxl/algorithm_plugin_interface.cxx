@@ -33,8 +33,8 @@
  * \brief VXL plugin algorithm registration plugin interface impl
  */
 
-#include <arrows/algorithms/vxl/register_algorithms.h>
-#include <arrows/algorithms/algorithm_plugin_interface.h>
+#include <arrows/vxl/register_algorithms.h>
+#include <arrows/algorithm_plugin_interface.h>
 
 
 int register_algo_impls(kwiver::vital::registrar &reg)

@@ -39,8 +39,8 @@
 #include <vital/vital_foreach.h>
 
 #include <vital/types/feature.h>
-#include <arrows/algorithms/vxl/camera.h>
-#include <arrows/algorithms/core/epipolar_geometry.h>
+#include <arrows/vxl/camera.h>
+#include <arrows/core/epipolar_geometry.h>
 
 #include <vgl/vgl_point_2d.h>
 

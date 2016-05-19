@@ -33,12 +33,12 @@
  * \brief OCV image_container inteface
  */
 
-#ifndef ARROWS_ALGORITHMS_OCV_IMAGE_CONTAINER_H_
-#define ARROWS_ALGORITHMS_OCV_IMAGE_CONTAINER_H_
+#ifndef KWIVER_ARROWS_OCV_IMAGE_CONTAINER_H_
+#define KWIVER_ARROWS_OCV_IMAGE_CONTAINER_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <opencv2/core/core.hpp>
 
@@ -53,7 +53,7 @@ namespace ocv
 
 
 /// This image container wraps a cv::Mat
-class ALGORITHMS_OCV_EXPORT image_container
+class KWIVER_ALGO_OCV_EXPORT image_container
   : public vital::image_container
 {
 public:
@@ -115,7 +115,7 @@ protected:
  *
  * \param img Image container to convert to cv::mat
  */
-ALGORITHMS_OCV_EXPORT cv::Mat image_container_to_ocv_matrix(const vital::image_container& img);
+KWIVER_ALGO_OCV_EXPORT cv::Mat image_container_to_ocv_matrix(const vital::image_container& img);
 
 
 } // end namespace ocv
@@ -124,4 +124,4 @@ ALGORITHMS_OCV_EXPORT cv::Mat image_container_to_ocv_matrix(const vital::image_c
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_OCV_IMAGE_CONTAINER_H_
+#endif // KWIVER_ARROWS_OCV_IMAGE_CONTAINER_H_

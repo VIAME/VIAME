@@ -43,8 +43,8 @@
 
 #include <vital/exceptions.h>
 
-#include <arrows/algorithms/vxl/camera.h>
-#include <arrows/algorithms/vxl/camera_map.h>
+#include <arrows/vxl/camera.h>
+#include <arrows/vxl/camera_map.h>
 
 #include <vcl_vector.h>
 #include <vgl/vgl_homg_point_3d.h>

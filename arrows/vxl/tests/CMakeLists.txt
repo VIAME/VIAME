@@ -1,8 +1,8 @@
 project(arrows_test_vxl)
 
-include(arrows-test-setup)
+include(kwiver-test-setup)
 
-set(test_libraries algorithms_vxl)
+set(test_libraries     kwiver_algo_vxl)
 
 ##############################
 # Algorithms VXL tests
@@ -19,5 +19,5 @@ kwiver_discover_tests(vxl_triangulate_landmarks        test_libraries test_trian
 
 # This test is really for an algorithm in core, but it's here
 # because the test depends on availablity of VXL sub-algorithms
-set(test_libraries algorithms_vxl algorithms_core)
+set(test_libraries     kwiver_algo_vxl kwiver_algo)
 kwiver_discover_tests(vxl_initialize_cameras_landmarks test_libraries test_initialize_cameras_landmarks.cxx)

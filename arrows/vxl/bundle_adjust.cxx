@@ -41,7 +41,7 @@
 #include <vital/vital_foreach.h>
 #include <vital/util/cpu_timer.h>
 
-#include <arrows/algorithms/vxl/camera_map.h>
+#include <arrows/vxl/camera_map.h>
 #include <vital/io/eigen_io.h>
 
 #include <vpgl/algo/vpgl_bundle_adjust.h>

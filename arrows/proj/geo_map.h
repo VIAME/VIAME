@@ -33,12 +33,12 @@
  * \brief PROJ geo_map algorithm interface
  */
 
-#ifndef ARROWS_ALGORITHMS_PROJ_GEO_MAP_H_
-#define ARROWS_ALGORITHMS_PROJ_GEO_MAP_H_
+#ifndef KWIVER_ARROWS_PROJ_GEO_MAP_H_
+#define KWIVER_ARROWS_PROJ_GEO_MAP_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/proj/algorithms_proj_export.h>
+#include <arrows/proj/kwiver_algo_proj_export.h>
 
 #include <vital/algo/geo_map.h>
 
@@ -50,7 +50,7 @@ namespace proj
 {
 
 /// PROJ implementation of geo_map algorithm
-class ALGORITHMS_PROJ_EXPORT geo_map
+class KWIVER_ALGO_PROJ_EXPORT geo_map
   : public vital::algorithm_impl<geo_map, vital::algo::geo_map>
 {
 public:
@@ -106,4 +106,4 @@ public:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // ARROWS_ALGORITHMS_PROJ_GEO_MAP_H_
+#endif // KWIVER_ARROWS_PROJ_GEO_MAP_H_

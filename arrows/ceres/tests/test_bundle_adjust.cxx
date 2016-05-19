@@ -39,10 +39,10 @@
 #include <vital/vital_foreach.h>
 #include <vital/algorithm_plugin_manager.h>
 
-#include <arrows/algorithms/core/metrics.h>
-#include <arrows/algorithms/ceres/bundle_adjust.h>
-#include <arrows/algorithms/ceres/register_algorithms.h>
-#include <arrows/algorithms/core/projected_track_set.h>
+#include <arrows/core/metrics.h>
+#include <arrows/ceres/bundle_adjust.h>
+#include <arrows/ceres/register_algorithms.h>
+#include <arrows/core/projected_track_set.h>
 
 using namespace kwiver::vital;
 
@@ -85,10 +85,10 @@ IMPLEMENT_TEST(from_solution)
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
@@ -121,16 +121,16 @@ IMPLEMENT_TEST(noisy_landmarks)
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
 
 
   double init_rmse = reprojection_rmse(cameras->cameras(),
@@ -161,19 +161,19 @@ IMPLEMENT_TEST(noisy_landmarks_noisy_cameras)
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
 
   // add Gaussian noise to the camera positions and orientations
-  camera_map_sptr cameras0 = testing::noisy_cameras(cameras, 0.1, 0.1);
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1, 0.1);
 
 
   double init_rmse = reprojection_rmse(cameras0->cameras(),
@@ -204,17 +204,17 @@ IMPLEMENT_TEST(zero_landmarks)
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
-  landmark_map_sptr landmarks0 = testing::init_landmarks(num_landmarks);
+  landmark_map_sptr landmarks0 = kwiver::testing::init_landmarks(num_landmarks);
 
 
   double init_rmse = reprojection_rmse(cameras->cameras(),
@@ -246,19 +246,19 @@ IMPLEMENT_TEST(subset_cameras)
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
 
   // add Gaussian noise to the camera positions and orientations
-  camera_map_sptr cameras0 = testing::noisy_cameras(cameras, 0.1, 0.1);
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1, 0.1);
 
   camera_map::map_camera_t cam_map = cameras0->cameras();
   camera_map::map_camera_t cam_map2;
@@ -304,19 +304,19 @@ IMPLEMENT_TEST(subset_landmarks)
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
 
   // add Gaussian noise to the camera positions and orientations
-  camera_map_sptr cameras0 = testing::noisy_cameras(cameras, 0.1, 0.1);
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1, 0.1);
 
   // remove some landmarks
   landmark_map::map_landmark_t lm_map = landmarks0->landmarks();
@@ -356,22 +356,22 @@ IMPLEMENT_TEST(subset_tracks)
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
 
   // add Gaussian noise to the camera positions and orientations
-  camera_map_sptr cameras0 = testing::noisy_cameras(cameras, 0.1, 0.1);
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1, 0.1);
 
   // remove some tracks/track_states
-  track_set_sptr tracks0 = testing::subset_tracks(tracks, 0.5);
+  track_set_sptr tracks0 = kwiver::testing::subset_tracks(tracks, 0.5);
 
 
   double init_rmse = reprojection_rmse(cameras0->cameras(),
@@ -403,24 +403,24 @@ IMPLEMENT_TEST(noisy_tracks)
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
 
   // add Gaussian noise to the camera positions and orientations
-  camera_map_sptr cameras0 = testing::noisy_cameras(cameras, 0.1, 0.1);
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1, 0.1);
 
   // remove some tracks/track_states and add Gaussian noise
   const double track_stdev = 1.0;
-  track_set_sptr tracks0 = testing::noisy_tracks(
-                               testing::subset_tracks(tracks, 0.5),
+  track_set_sptr tracks0 = kwiver::testing::noisy_tracks(
+                               kwiver::testing::subset_tracks(tracks, 0.5),
                                track_stdev);
 
 
@@ -456,28 +456,28 @@ IMPLEMENT_TEST(outlier_tracks)
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
 
   // add Gaussian noise to the camera positions and orientations
-  camera_map_sptr cameras0 = testing::noisy_cameras(cameras, 0.1, 0.1);
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1, 0.1);
 
   // make some observations outliers
   track_set_sptr tracks_w_outliers =
-      testing::add_outliers_to_tracks(tracks, 0.1, 20.0);
+      kwiver::testing::add_outliers_to_tracks(tracks, 0.1, 20.0);
 
   // remove some tracks/track_states and add Gaussian noise
   const double track_stdev = 1.0;
-  track_set_sptr tracks0 = testing::noisy_tracks(
-                               testing::subset_tracks(tracks_w_outliers, 0.5),
+  track_set_sptr tracks0 = kwiver::testing::noisy_tracks(
+                               kwiver::testing::subset_tracks(tracks_w_outliers, 0.5),
                                track_stdev);
 
 
@@ -559,30 +559,30 @@ void test_ba_using_distortion(kwiver::vital::config_block_sptr cfg,
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // The intrinsic camera parameters to use
   simple_camera_intrinsics K(1000, vector_2d(640,480));
   K.set_dist_coeffs(dc);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq(20,K);
+  camera_map_sptr cameras = kwiver::testing::camera_seq(20,K);
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
 
   if( clear_init_distortion )
   {
     // regenerate cameras without distortion so we can try to recover it
     K.set_dist_coeffs(Eigen::VectorXd());
-    cameras = testing::camera_seq(20,K);
+    cameras = kwiver::testing::camera_seq(20,K);
   }
 
   // add Gaussian noise to the camera positions and orientations
-  camera_map_sptr cameras0 = testing::noisy_cameras(cameras, 0.1, 0.1);
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1, 0.1);
 
   double init_rmse = reprojection_rmse(cameras0->cameras(),
                                        landmarks0->landmarks(),
@@ -831,16 +831,16 @@ test_ba_intrinsic_sharing(camera_map_sptr cameras,
   ba.set_configuration(cfg);
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
 
   // add Gaussian noise to the camera positions and orientations
-  camera_map_sptr cameras0 = testing::noisy_cameras(cameras, 0.1, 0.1);
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1, 0.1);
 
 
   double init_rmse = reprojection_rmse(cameras0->cameras(),
@@ -883,7 +883,7 @@ IMPLEMENT_TEST(unique_intrinsics)
   simple_camera_intrinsics K(1000, vector_2d(640,480));
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq(20, K);
+  camera_map_sptr cameras = kwiver::testing::camera_seq(20, K);
   unsigned int num_intrinsics = test_ba_intrinsic_sharing(cameras, cfg);
   TEST_EQUAL("Resulting camera intrinsics are unique",
              num_intrinsics, cameras->size());
@@ -903,7 +903,7 @@ IMPLEMENT_TEST(common_intrinsics)
   simple_camera_intrinsics K(1000, vector_2d(640,480));
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq(20, K);
+  camera_map_sptr cameras = kwiver::testing::camera_seq(20, K);
   unsigned int num_intrinsics = test_ba_intrinsic_sharing(cameras, cfg);
   TEST_EQUAL("Resulting camera intrinsics are unique",
              num_intrinsics, 1);
@@ -923,8 +923,8 @@ IMPLEMENT_TEST(auto_share_intrinsics)
   simple_camera_intrinsics K2(800, vector_2d(640,480));
 
   // create two camera sequences (elliptical paths)
-  camera_map_sptr cameras1 = testing::camera_seq(13, K1);
-  camera_map_sptr cameras2 = testing::camera_seq(7, K2);
+  camera_map_sptr cameras1 = kwiver::testing::camera_seq(13, K1);
+  camera_map_sptr cameras2 = kwiver::testing::camera_seq(7, K2);
 
   // combine the camera maps and offset the frame numbers
   const unsigned int offset = static_cast<unsigned int>(cameras1->size());

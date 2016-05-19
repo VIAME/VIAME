@@ -48,11 +48,11 @@
 #include <vital/algo/bundle_adjust.h>
 #include <vital/algo/optimize_cameras.h>
 
-#include <arrows/algorithms/core/triangulate_landmarks.h>
-#include <arrows/algorithms/core/metrics.h>
-#include <arrows/algorithms/core/match_matrix.h>
-#include <arrows/algorithms/core/triangulate.h>
-#include <arrows/algorithms/core/transform.h>
+#include <arrows/core/triangulate_landmarks.h>
+#include <arrows/core/metrics.h>
+#include <arrows/core/match_matrix.h>
+#include <arrows/core/triangulate.h>
+#include <arrows/core/transform.h>
 
 using namespace kwiver::vital;
 

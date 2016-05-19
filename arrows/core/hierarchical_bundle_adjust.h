@@ -33,11 +33,11 @@
  * \brief Header defining the hierarchical_bundle_adjust algorithm
  */
 
-#ifndef ARROWS_ALGORITHMS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
-#define ARROWS_ALGORITHMS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
+#ifndef KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
+#define KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/core/algorithms_core_export.h>
+#include <arrows/core/kwiver_algo_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/bundle_adjust.h>
@@ -53,7 +53,7 @@ namespace core
 {
 
 
-class ALGORITHMS_CORE_EXPORT hierarchical_bundle_adjust
+class KWIVER_ALGO_EXPORT hierarchical_bundle_adjust
   : public vital::algorithm_impl<hierarchical_bundle_adjust, vital::algo::bundle_adjust>
 {
 public:
@@ -97,4 +97,4 @@ typedef std::shared_ptr<hierarchical_bundle_adjust> hierarchical_bundle_adjust_s
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
+#endif // KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_

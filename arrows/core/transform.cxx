@@ -284,10 +284,10 @@ necker_reverse(vital::camera_map_sptr& cameras,
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_TRANSFORM(T) \
-  template ALGORITHMS_CORE_EXPORT vital::covariance_<3,T>  \
+  template KWIVER_ALGO_EXPORT vital::covariance_<3,T>  \
 transform(const vital::covariance_<3,T>& covar, \
           const vital::similarity_<T>& xform); \
-template ALGORITHMS_CORE_EXPORT void \
+template KWIVER_ALGO_EXPORT void \
 transform_inplace(const vital::similarity_<T>& xform, \
                   vital::landmark_<T>& cam);
 

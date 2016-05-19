@@ -33,14 +33,14 @@
  * \brief Header file for a map from frame IDs to vpgl cameras
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_CAMERA_MAP_H_
-#define ARROWS_ALGORITHMS_VXL_CAMERA_MAP_H_
+#ifndef KWIVER_ARROWS_VXL_CAMERA_MAP_H_
+#define KWIVER_ARROWS_VXL_CAMERA_MAP_H_
 
 
 #include <map>
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/types/camera_map.h>
 
@@ -54,7 +54,7 @@ namespace vxl
 {
 
 /// A concrete camera_map that wraps a map of vpgl_perspective_camera
-class ALGORITHMS_VXL_EXPORT camera_map
+class KWIVER_ALGO_VXL_EXPORT camera_map
 : public vital::camera_map
 {
 public:
@@ -85,7 +85,7 @@ protected:
 
 
 /// Convert any camera map to a vpgl camera map
-ALGORITHMS_VXL_EXPORT
+KWIVER_ALGO_VXL_EXPORT
 camera_map::map_vcam_t
 camera_map_to_vpgl(const vital::camera_map& cam_map);
 
@@ -96,4 +96,4 @@ camera_map_to_vpgl(const vital::camera_map& cam_map);
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VXL_CAMERA_MAP_H_
+#endif // KWIVER_ARROWS_VXL_CAMERA_MAP_H_

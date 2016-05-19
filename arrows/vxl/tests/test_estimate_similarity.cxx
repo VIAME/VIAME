@@ -39,8 +39,8 @@
 #include <vital/types/similarity.h>
 #include <vital/types/vector.h>
 
-#include <arrows/algorithms/vxl/register_algorithms.h>
-#include <arrows/algorithms/vxl/estimate_similarity_transform.h>
+#include <arrows/vxl/register_algorithms.h>
+#include <arrows/vxl/estimate_similarity_transform.h>
 
 #include <vital/vital_foreach.h>
 
@@ -110,7 +110,7 @@ IMPLEMENT_TEST(reprojection_100pts)
   vector<vector_3d> original_points;
   for (int i=0; i < 100; ++i)
   {
-    original_points.push_back(kwiver::arrows::testing::random_point3d(1.0));
+    original_points.push_back(kwiver::testing::random_point3d(1.0));
   }
 
   cerr << "Constructing crafted similarity transformation" << endl;
@@ -176,7 +176,7 @@ IMPLEMENT_TEST(reprojection_4pts)
   cerr << "Random points:" << endl;
   for (int i=0; i < 4; ++i)
   {
-    original_points.push_back(kwiver::arrows::testing::random_point3d(1.0));
+    original_points.push_back(kwiver::testing::random_point3d(1.0));
     cerr << "\t" << original_points.back() << endl;
   }
 
@@ -220,7 +220,7 @@ IMPLEMENT_TEST(reprojection_3pts)
   cerr << "Random points:" << endl;
   for (int i=0; i < 3; ++i)
   {
-    original_points.push_back(kwiver::arrows::testing::random_point3d(1.0));
+    original_points.push_back(kwiver::testing::random_point3d(1.0));
     cerr << "\t" << original_points.back() << endl;
   }
 
@@ -263,7 +263,7 @@ IMPLEMENT_TEST(reprojection_100pts_noisy)
   vector<vector_3d> original_points;
   for (int i=0; i < 100; ++i)
   {
-    original_points.push_back(kwiver::arrows::testing::random_point3d(1.0));
+    original_points.push_back(kwiver::testing::random_point3d(1.0));
   }
 
   cerr << "Constructing crafted similarity transformation" << endl;
@@ -275,7 +275,7 @@ IMPLEMENT_TEST(reprojection_100pts_noisy)
   vector<vector_3d> transformed_points;
   VITAL_FOREACH(vector_3d o_vec, original_points)
   {
-    transformed_points.push_back((m_sim * o_vec) + kwiver::arrows::testing::random_point3d(0.01));
+    transformed_points.push_back((m_sim * o_vec) + kwiver::testing::random_point3d(0.01));
   }
 
   cerr << "Estimating similarity transformation between point sets" << endl;

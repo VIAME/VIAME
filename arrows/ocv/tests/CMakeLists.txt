@@ -1,8 +1,8 @@
 project(arrows_test_ocv)
 
-include(arrows-test-setup)
+include(kwiver-test-setup)
 
-set(test_libraries  algorithms_ocv )
+set(test_libraries      kwiver_algo_ocv )
 
 ##############################
 # Algorithms OpenCV tests

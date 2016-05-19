@@ -1,32 +1,35 @@
 #
-# Top level for arrows
+# Arrows Algorithms CMake file
 #
-project( arrows )
 
-CMAKE_DEPENDENT_OPTION(ARROWS_ENABLE_CERES "Enable building arrows that depend on Ceres" ON
-  KWIVER_ENABLE_CERES OFF )
+set(ARROWS_SOURCE_DIR           "${CMAKE_CURRENT_SOURCE_DIR}")
+set(ARROWS_BINARY_DIR           "${CMAKE_CURRENT_BINARY_DIR}")
 
-CMAKE_DEPENDENT_OPTION(ARROWS_ENABLE_VXL "Enable building arrows that depend on VXL" ON
-  KWIVER_ENABLE_VXL OFF)
+# Base plug-in with default implementations
+add_subdirectory( core )
 
-CMAKE_DEPENDENT_OPTION(ARROWS_ENABLE_OPENCV "Enable building arrows that depend on OPENCV" ON
-  KWIVER_ENABLE_OPENCV OFF)
-
-CMAKE_DEPENDENT_OPTION(ARROWS_ENABLE_PROJ "Enable building arrows that depend on Proj4" ON
-  KWIVER_ENABLE_PROJ OFF)
-
-CMAKE_DEPENDENT_OPTION(ARROWS_ENABLE_VISCL "Enable building arrows that depend on Viscl" ON
-  KWIVER_ENABLE_VISCL OFF)
-
-option(ARROWS_ENABLE_CAFFE "Enable building arrows that depend on Caffe" ON)
-
-add_subdirectory( algorithms )
-
-if (KWIVER_ENABLE_SPROKIT)
-  # TODO add include_directories( sprokit )
-  add_subdirectory( pipelines )
-  add_subdirectory( processes )
+# Add Ceres plugin if enabled
+if( KWIVER_ENABLE_CERES )
+  add_subdirectory( ceres )
 endif()
 
-set(arrows_DIR  ${CMAKE_CURRENT_BINARY_DIR}  CACHE PATH "Path to Arrows package")
-#file(APPEND ${KWIVER_CONFIG_FILE} "set(arrows_DIR ${arrows_DIR})\n")
+# Add OpenCV plugin if enabled
+if( KWIVER_ENABLE_OPENCV )
+  add_subdirectory( ocv )
+endif()
+
+# Add PROJ plugin if enabled
+if( KWIVER_ENABLE_PROJ )
+  add_subdirectory( proj )
+endif()
+
+# Add VXL plugin if enabled
+if( KWIVER_ENABLE_VXL )
+  add_subdirectory( vxl )
+endif()
+
+# Add VisCL plugin if enabled
+#  needs VXL
+if( KWIVER_ENABLE_VISCL )
+  add_subdirectory( viscl )
+endif()

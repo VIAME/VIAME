@@ -33,12 +33,12 @@
  * \brief Arrows algorithm wrapping of OCV's DescriptorExtractor
  */
 
-#ifndef ARROWS_ALGORITHMS_OCV_EXTRACT_DESCRIPTORS_H_
-#define ARROWS_ALGORITHMS_OCV_EXTRACT_DESCRIPTORS_H_
+#ifndef KWIVER_ARROWS_OCV_EXTRACT_DESCRIPTORS_H_
+#define KWIVER_ARROWS_OCV_EXTRACT_DESCRIPTORS_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/extract_descriptors.h>
 
@@ -51,7 +51,7 @@ namespace ocv
 {
 
 /// An class for extracting feature descriptors using OpenCV
-class ALGORITHMS_OCV_EXPORT extract_descriptors
+class KWIVER_ALGO_OCV_EXPORT extract_descriptors
   : public vital::algorithm_impl<extract_descriptors, vital::algo::extract_descriptors>
 {
 public:
@@ -97,4 +97,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_OCV_EXTRACT_DESCRIPTORS_H_
+#endif // KWIVER_ARROWS_OCV_EXTRACT_DESCRIPTORS_H_

@@ -1,8 +1,8 @@
-project(algorithms_test_core)
+project(arrows_test_core)
 
-include(arrows-test-setup)
+include(kwiver-test-setup)
 
-set( test_libraries    algorithms_core vital )
+set( test_libraries    kwiver_algo vital )
 
 ##############################
 # Algorithms core plugin tests

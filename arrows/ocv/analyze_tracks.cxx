@@ -42,7 +42,7 @@
 #include <set>
 #include <vector>
 
-#include <arrows/algorithms/ocv/ocv_algo_tools.h>
+#include <arrows/ocv/ocv_algo_tools.h>
 
 using namespace kwiver::vital;
 

@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <arrows/algorithms/ocv/feature_set.h>
+#include <arrows/ocv/feature_set.h>
 
 
 

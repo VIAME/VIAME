@@ -30,9 +30,9 @@
 
 #include <test_common.h>
 #include <test_scene.h>
-#include <arrows/algorithms/core/tests/test_triangulate_landmarks.h>
-#include <arrows/algorithms/vxl/register_algorithms.h>
-#include <arrows/algorithms/vxl/triangulate_landmarks.h>
+#include <arrows/core/tests/test_triangulate_landmarks.h>
+#include <arrows/vxl/register_algorithms.h>
+#include <arrows/vxl/triangulate_landmarks.h>
 
 
 #define TEST_ARGS ()
@@ -68,7 +68,7 @@ IMPLEMENT_TEST(create)
 IMPLEMENT_TEST(from_solution)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_from_solution(tri_lm);
+  kwiver::testing::test_from_solution(tri_lm);
 }
 
 
@@ -76,7 +76,7 @@ IMPLEMENT_TEST(from_solution)
 IMPLEMENT_TEST(noisy_landmarks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_noisy_landmarks(tri_lm);
+  kwiver::testing::test_noisy_landmarks(tri_lm);
 }
 
 
@@ -84,7 +84,7 @@ IMPLEMENT_TEST(noisy_landmarks)
 IMPLEMENT_TEST(zero_landmarks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_zero_landmarks(tri_lm);
+  kwiver::testing::test_zero_landmarks(tri_lm);
 }
 
 
@@ -92,7 +92,7 @@ IMPLEMENT_TEST(zero_landmarks)
 IMPLEMENT_TEST(subset_cameras)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_subset_cameras(tri_lm);
+  kwiver::testing::test_subset_cameras(tri_lm);
 }
 
 
@@ -100,7 +100,7 @@ IMPLEMENT_TEST(subset_cameras)
 IMPLEMENT_TEST(subset_landmarks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_subset_landmarks(tri_lm);
+  kwiver::testing::test_subset_landmarks(tri_lm);
 }
 
 
@@ -108,7 +108,7 @@ IMPLEMENT_TEST(subset_landmarks)
 IMPLEMENT_TEST(subset_tracks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_subset_tracks(tri_lm);
+  kwiver::testing::test_subset_tracks(tri_lm);
 }
 
 
@@ -116,5 +116,5 @@ IMPLEMENT_TEST(subset_tracks)
 IMPLEMENT_TEST(noisy_tracks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_noisy_tracks(tri_lm);
+  kwiver::testing::test_noisy_tracks(tri_lm);
 }

@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_ALGORITHMS_VISCL_UTILS_H_
-#define ARROWS_ALGORITHMS_VISCL_UTILS_H_
+#ifndef KWIVER_ARROWS_VISCL_UTILS_H_
+#define KWIVER_ARROWS_VISCL_UTILS_H_
 
 #include <vital/types/feature_set.h>
 
@@ -48,4 +48,4 @@ void min_image_dimensions(const vital::feature_set &feat, unsigned int &width, u
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // ARROWS_ALGORITHMS_VISCL_UTILS_H_
+#endif // KWIVER_ARROWS_VISCL_UTILS_H_

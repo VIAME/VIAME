@@ -33,12 +33,12 @@
  * \brief VisCL algorithm registration function
  */
 
-#ifndef ARROWS_ALGORITHMS_VISCL_REGISTER_ALGORITHMS_H_
-#define ARROWS_ALGORITHMS_VISCL_REGISTER_ALGORITHMS_H_
+#ifndef KWIVER_ARROWS_VISCL_REGISTER_ALGORITHMS_H_
+#define KWIVER_ARROWS_VISCL_REGISTER_ALGORITHMS_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
+#include <arrows/viscl/kwiver_algo_viscl_export.h>
 
 #include <vital/registrar.h>
 
@@ -48,11 +48,11 @@ namespace arrows {
 namespace vcl {
 
 /// Register VisCL algorithm implementations with the given or global registrar
-ALGORITHMS_VISCL_EXPORT
+KWIVER_ALGO_VISCL_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace vcl
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // ARROWS_ALGORITHMS_VISCL_REGISTER_ALGORITHMS_H_
+#endif // KWIVER_ARROWS_VISCL_REGISTER_ALGORITHMS_H_

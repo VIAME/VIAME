@@ -33,12 +33,12 @@
  * \brief Header for lens distorion functions
  */
 
-#ifndef ARROWS_ALGORITHMS_CERES_LENS_DISTORTION_H_
-#define ARROWS_ALGORITHMS_CERES_LENS_DISTORTION_H_
+#ifndef KWIVER_ARROWS_CERES_LENS_DISTORTION_H_
+#define KWIVER_ARROWS_CERES_LENS_DISTORTION_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ceres/algorithms_ceres_export.h>
+#include <arrows/ceres/kwiver_algo_ceres_export.h>
 
 
 namespace kwiver {
@@ -177,4 +177,4 @@ public:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_CERES_LENS_DISTORTION_H_
+#endif // KWIVER_ARROWS_CERES_LENS_DISTORTION_H_

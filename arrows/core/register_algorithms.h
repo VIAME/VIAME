@@ -33,12 +33,12 @@
  * \brief Register core algorithms
  */
 
-#ifndef ARROWS_ALGORITHMS_CORE_REGISTER_ALGORITHMS_H_
-#define ARROWS_ALGORITHMS_CORE_REGISTER_ALGORITHMS_H_
+#ifndef KWIVER_ARROWS_CORE_REGISTER_ALGORITHMS_H_
+#define KWIVER_ARROWS_CORE_REGISTER_ALGORITHMS_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/core/algorithms_core_export.h>
+#include <arrows/core/kwiver_algo_export.h>
 
 #include <vital/registrar.h>
 
@@ -50,7 +50,7 @@ namespace core
 {
 
 // Register core algorithms with the given or global registrar
-ALGORITHMS_CORE_EXPORT
+KWIVER_ALGO_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace core
@@ -59,4 +59,4 @@ int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_CORE_REGISTER_ALGORITHMS_H_
+#endif // KWIVER_ARROWS_CORE_REGISTER_ALGORITHMS_H_

@@ -34,8 +34,8 @@
  */
 
 
-#include <arrows/algorithms/ceres/types.h>
-#include <arrows/algorithms/ceres/lens_distortion.h>
+#include <arrows/ceres/types.h>
+#include <arrows/ceres/lens_distortion.h>
 #include <ceres/loss_function.h>
 
 
@@ -118,7 +118,7 @@ StringToLensDistortionType(std::string value, LensDistortionType* type)
 
 
 /// Provide a string representation for a CameraIntrinsicShareType value
-ALGORITHMS_CERES_EXPORT const char*
+KWIVER_ALGO_CERES_EXPORT const char*
 CameraIntrinsicShareTypeToString(CameraIntrinsicShareType type)
 {
   switch (type)
@@ -133,7 +133,7 @@ CameraIntrinsicShareTypeToString(CameraIntrinsicShareType type)
 
 
 /// Parse a CameraIntrinsicShareType value from a string or return false
-ALGORITHMS_CERES_EXPORT bool
+KWIVER_ALGO_CERES_EXPORT bool
 StringToCameraIntrinsicShareType(std::string value, CameraIntrinsicShareType* type)
 {
   UpperCase(&value);

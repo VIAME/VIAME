@@ -39,7 +39,7 @@
 
 #include <vital/vital_foreach.h>
 
-#include <arrows/algorithms/vxl/camera_map.h>
+#include <arrows/vxl/camera_map.h>
 
 #include <vpgl/algo/vpgl_triangulate_points.h>
 

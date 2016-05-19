@@ -34,15 +34,15 @@
  *        between OpenCV algorithm properties and vital::config_block objects.
  */
 
-#ifndef ARROWS_ALGORITHMS_OCV_OCV_ALGO_TOOLS_H_
-#define ARROWS_ALGORITHMS_OCV_OCV_ALGO_TOOLS_H_
+#ifndef KWIVER_ARROWS_OCV_OCV_ALGO_TOOLS_H_
+#define KWIVER_ARROWS_OCV_OCV_ALGO_TOOLS_H_
 
 
 #include <string>
 #include <iostream>
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/config/config_block.h>
 #include <vital/exceptions.h>
@@ -66,13 +66,13 @@ namespace helper_
 {
 
 /// Helper method for setting nested OpenCV Algorithm parameters
-ALGORITHMS_OCV_EXPORT
+KWIVER_ALGO_OCV_EXPORT
 void set_nested_ocv_algo_configuration_helper(std::string const& name,
                                               vital::config_block_sptr config,
                                               cv::Ptr<cv::Algorithm> &algo);
 
 /// Helper method for checking nested OpenCV Algorithm configurations
-ALGORITHMS_OCV_EXPORT
+KWIVER_ALGO_OCV_EXPORT
 bool check_nested_ocv_algo_configuration_helper(std::string const& name,
                                                 vital::config_block_sptr config,
                                                 cv::Ptr<cv::Algorithm> algo);
@@ -125,7 +125,7 @@ cv::Ptr<algo_t> create_ocv_algo(std::string const& impl_name)
  * (its templated itself vs. other not being so).
  */
 template <>
-ALGORITHMS_OCV_EXPORT
+KWIVER_ALGO_OCV_EXPORT
 cv::Ptr<cv::Algorithm> create_ocv_algo<cv::Algorithm>(std::string const& impl_name);
 
 
@@ -148,7 +148,7 @@ cv::Ptr<cv::Algorithm> create_ocv_algo<cv::Algorithm>(std::string const& impl_na
  *                options to.
  * \param algo   The cv pointer to the nested algorithm.
  */
-ALGORITHMS_OCV_EXPORT
+KWIVER_ALGO_OCV_EXPORT
 void get_nested_ocv_algo_configuration(std::string const& name,
                                        vital::config_block_sptr config,
                                        cv::Ptr<cv::Algorithm> algo);
@@ -256,4 +256,4 @@ bool check_nested_ocv_algo_configuration(std::string const& name,
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // ARROWS_ALGORITHMS_OCV_OCV_ALGO_TOOLS_H_
+#endif // KWIVER_ARROWS_OCV_OCV_ALGO_TOOLS_H_

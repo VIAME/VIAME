@@ -33,12 +33,12 @@
  * \brief VXL homography estimation algorithm
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_ESTIMATE_HOMOGRAPHY_H_
-#define ARROWS_ALGORITHMS_VXL_ESTIMATE_HOMOGRAPHY_H_
+#ifndef KWIVER_ARROWS_VXL_ESTIMATE_HOMOGRAPHY_H_
+#define KWIVER_ARROWS_VXL_ESTIMATE_HOMOGRAPHY_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/algo/estimate_homography.h>
 
@@ -50,7 +50,7 @@ namespace vxl
 {
 
 /// A class that uses RREL in VXL to estimate a homography from matching 2D points
-class ALGORITHMS_VXL_EXPORT estimate_homography
+class KWIVER_ALGO_VXL_EXPORT estimate_homography
   : public vital::algorithm_impl<estimate_homography, vital::algo::estimate_homography>
 {
 public:
@@ -89,4 +89,4 @@ public:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VXL_ESTIMATE_HOMOGRAPHY_H_
+#endif // KWIVER_ARROWS_VXL_ESTIMATE_HOMOGRAPHY_H_

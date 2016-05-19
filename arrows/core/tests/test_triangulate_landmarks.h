@@ -42,32 +42,31 @@
 #include <test_common.h>
 #include <test_scene.h>
 
-#include <arrows/algorithms/core/projected_track_set.h>
-#include <arrows/algorithms/core/metrics.h>
+#include <arrows/core/projected_track_set.h>
+#include <arrows/core/metrics.h>
 #include <vital/algo/triangulate_landmarks.h>
 
 #include <vital/vital_foreach.h>
 
 namespace kwiver {
-namespace arrows {
 namespace testing {
 
 
 // input to triangulation is the ideal solution, make sure it doesn't diverge
 void test_from_solution(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 {
-  using namespace kwiver::vital;
+  //+ using namespace kwiver::vital;
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  kwiver::vital::landmark_map_sptr landmarks = testing::cube_corners(2.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  kwiver::vital::camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  kwiver::vital::track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
-  double init_rmse = reprojection_rmse(cameras->cameras(),
+  double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                        landmarks->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
@@ -78,7 +77,7 @@ void test_from_solution(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   tri_lm.triangulate(cameras, tracks, landmarks);
 
-  double end_rmse = reprojection_rmse(cameras->cameras(),
+  double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks->landmarks(),
                                       tracks->tracks());
   TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-12);
@@ -97,13 +96,13 @@ void test_noisy_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
   landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
 
 
-  double init_rmse = reprojection_rmse(cameras->cameras(),
+  double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
@@ -114,7 +113,7 @@ void test_noisy_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   tri_lm.triangulate(cameras, tracks, landmarks0);
 
-  double end_rmse = reprojection_rmse(cameras->cameras(),
+  double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
   TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
@@ -133,14 +132,14 @@ void test_zero_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
   landmark_map_sptr landmarks0 = testing::init_landmarks(num_landmarks);
 
 
-  double init_rmse = reprojection_rmse(cameras->cameras(),
+  double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
@@ -151,7 +150,7 @@ void test_zero_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   tri_lm.triangulate(cameras, tracks, landmarks0);
 
-  double end_rmse = reprojection_rmse(cameras->cameras(),
+  double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
   TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
@@ -170,7 +169,7 @@ void test_subset_cameras(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -191,7 +190,7 @@ void test_subset_cameras(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   TEST_EQUAL("Reduced number of cameras", cameras0->size(), 7);
 
-  double init_rmse = reprojection_rmse(cameras0->cameras(),
+  double init_rmse = kwiver::arrows::reprojection_rmse(cameras0->cameras(),
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
@@ -202,7 +201,7 @@ void test_subset_cameras(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   tri_lm.triangulate(cameras0, tracks, landmarks0);
 
-  double end_rmse = reprojection_rmse(cameras0->cameras(),
+  double end_rmse = kwiver::arrows::reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
   TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
@@ -221,7 +220,7 @@ void test_subset_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -236,7 +235,7 @@ void test_subset_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   TEST_EQUAL("Reduced number of landmarks", landmarks0->size(), 5);
 
-  double init_rmse = reprojection_rmse(cameras->cameras(),
+  double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
@@ -247,7 +246,7 @@ void test_subset_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   tri_lm.triangulate(cameras, tracks, landmarks0);
 
-  double end_rmse = reprojection_rmse(cameras->cameras(),
+  double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
   TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
@@ -266,7 +265,7 @@ void test_subset_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -275,7 +274,7 @@ void test_subset_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   // remove some tracks/track_states
   track_set_sptr tracks0 = testing::subset_tracks(tracks, 0.5);
 
-  double init_rmse = reprojection_rmse(cameras->cameras(),
+  double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                        landmarks0->landmarks(),
                                        tracks0->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
@@ -286,7 +285,7 @@ void test_subset_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   tri_lm.triangulate(cameras, tracks0, landmarks0);
 
-  double end_rmse = reprojection_rmse(cameras->cameras(),
+  double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks0->tracks());
   TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
@@ -305,7 +304,7 @@ void test_noisy_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -318,7 +317,7 @@ void test_noisy_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
                                track_stdev);
 
 
-  double init_rmse = reprojection_rmse(cameras->cameras(),
+  double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                        landmarks0->landmarks(),
                                        tracks0->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
@@ -329,14 +328,13 @@ void test_noisy_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   tri_lm.triangulate(cameras, tracks0, landmarks0);
 
-  double end_rmse = reprojection_rmse(cameras->cameras(),
+  double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks0->tracks());
   TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 3.0*track_stdev);
 }
 
 } // end namespace testing
-} // end namespace algorithms
 } // end namespace kwiver
 
 #endif // ALGORITHMS_TEST_ALGO_TEST_TRIANGULATE_LANDMARKS_H_

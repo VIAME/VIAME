@@ -37,7 +37,7 @@
 #define ALGORITHMS_METRICS_H_
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/core/algorithms_core_export.h>
+#include <arrows/core/kwiver_algo_export.h>
 
 #include <vital/types/camera.h>
 #include <vital/types/landmark.h>
@@ -57,7 +57,7 @@ namespace arrows {
  * \param [in] f is the measured feature point location
  * \returns the vector between the projected lm and f in image space
  */
-ALGORITHMS_CORE_EXPORT
+KWIVER_ALGO_EXPORT
 vital::vector_2d reprojection_error_vec(const vital::camera& cam,
                                  const vital::landmark& lm,
                                  const vital::feature& f);
@@ -105,7 +105,7 @@ reprojection_error(const vital::camera& cam,
  * \returns a vector containing one reprojection error for each observation
  *          (i.e. track state) that has a corresponding camera and landmark
  */
-ALGORITHMS_CORE_EXPORT
+KWIVER_ALGO_EXPORT
 std::vector<double>
 reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
                     const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
@@ -120,7 +120,7 @@ reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& camer
  * \returns the RMSE between all landmarks projected by all cameras that have
  *          corresponding image measurements provided by the tracks
  */
-ALGORITHMS_CORE_EXPORT
+KWIVER_ALGO_EXPORT
 double
 reprojection_rmse(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
                   const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
@@ -136,7 +136,7 @@ reprojection_rmse(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras
  *          all cameras that have corresponding image measurements provided
  *          by the tracks
  */
-ALGORITHMS_CORE_EXPORT
+KWIVER_ALGO_EXPORT
 double
 reprojection_median_error(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
                           const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
@@ -152,7 +152,7 @@ reprojection_median_error(const std::map<vital::frame_id_t, vital::camera_sptr>&
  *          all cameras that have corresponding image measurements provided
  *          by the tracks
  */
-ALGORITHMS_CORE_EXPORT
+KWIVER_ALGO_EXPORT
 double
 reprojection_median_error(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
                           const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,

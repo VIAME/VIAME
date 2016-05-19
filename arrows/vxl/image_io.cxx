@@ -40,7 +40,7 @@
 #include <vital/types/vector.h>
 #include <vital/exceptions/image.h>
 
-#include <arrows/algorithms/vxl/image_container.h>
+#include <arrows/vxl/image_container.h>
 
 #include <vil/vil_convert.h>
 #include <vil/vil_load.h>

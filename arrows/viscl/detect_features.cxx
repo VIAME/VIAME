@@ -32,8 +32,8 @@
 
 #include <vector>
 
-#include <arrows/algorithms/viscl/feature_set.h>
-#include <arrows/algorithms/viscl/image_container.h>
+#include <arrows/viscl/feature_set.h>
+#include <arrows/viscl/image_container.h>
 
 #include <viscl/tasks/hessian.h>
 

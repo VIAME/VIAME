@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@
 #include <test_math.h>
 #include <test_scene.h>
 
-#include <arrows/algorithms/core/projected_track_set.h>
-#include <arrows/algorithms/core/epipolar_geometry.h>
+#include <arrows/core/projected_track_set.h>
+#include <arrows/core/epipolar_geometry.h>
 
 
 #define TEST_ARGS ()
@@ -83,11 +83,11 @@ IMPLEMENT_TEST(ideal_points)
   using namespace kwiver::arrows;
 
   // create landmarks at the random locations
-  landmark_map_sptr landmarks = testing::init_landmarks(100);
-  landmarks = testing::noisy_landmarks(landmarks, 1.0);
+  landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
+  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);

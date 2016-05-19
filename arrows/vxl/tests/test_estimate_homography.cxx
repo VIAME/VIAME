@@ -36,10 +36,12 @@
 #include <test_common.h>
 #include <test_random_point.h>
 
-#include <arrows/algorithms/vxl/register_algorithms.h>
-#include <arrows/algorithms/vxl/estimate_homography.h>
+#include <arrows/vxl/register_algorithms.h>
+#include <arrows/vxl/estimate_homography.h>
 
 using namespace kwiver::vital;
+using namespace kwiver::arrows;
+using namespace kwiver::testing;
 
 kwiver::vital::matrix_3x3d sample_homography()
 {
@@ -69,7 +71,6 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST(create)
 {
-  using namespace kwiver::arrows;
   algo::estimate_homography_sptr est_H = algo::estimate_homography::create("vxl");
   if (!est_H)
   {
@@ -80,7 +81,6 @@ IMPLEMENT_TEST(create)
 
 IMPLEMENT_TEST(not_enough_points)
 {
-  using namespace kwiver::arrows;
   vxl::estimate_homography estimator;
 
   std::vector<vector_2d> pts1, pts2;
@@ -110,7 +110,6 @@ IMPLEMENT_TEST(not_enough_points)
 
 IMPLEMENT_TEST(four_points)
 {
-  using namespace kwiver::arrows;
   vxl::estimate_homography estimator;
 
   std::vector<vector_2d> pts1, pts2;
@@ -143,8 +142,6 @@ IMPLEMENT_TEST(four_points)
 
 IMPLEMENT_TEST(ideal_points)
 {
-  using namespace kwiver::arrows;
-  using namespace kwiver::arrows::testing;
   vxl::estimate_homography estimator;
 
   matrix_3x3d true_H = sample_homography();
@@ -177,8 +174,6 @@ IMPLEMENT_TEST(ideal_points)
 
 IMPLEMENT_TEST(noisy_points)
 {
-  using namespace kwiver::arrows;
-  using namespace kwiver::arrows::testing;
   vxl::estimate_homography estimator;
 
   matrix_3x3d true_H = sample_homography();
@@ -215,8 +210,6 @@ IMPLEMENT_TEST(noisy_points)
 
 IMPLEMENT_TEST(outlier_points)
 {
-  using namespace kwiver::arrows;
-  using namespace kwiver::arrows::testing;
   vxl::estimate_homography estimator;
 
   matrix_3x3d true_H = sample_homography();

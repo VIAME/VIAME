@@ -33,12 +33,12 @@
  * \brief OpenCV algorithm registration function
  */
 
-#ifndef ARROWS_ALGORITHMS_OCV_REGISTER_ALGORITHMS_H_
-#define ARROWS_ALGORITHMS_OCV_REGISTER_ALGORITHMS_H_
+#ifndef KWIVER_ARROWS_OCV_REGISTER_ALGORITHMS_H_
+#define KWIVER_ARROWS_OCV_REGISTER_ALGORITHMS_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/registrar.h>
 
@@ -48,11 +48,11 @@ namespace arrows {
 namespace ocv {
 
 /// Register OCV algorithm implementations with the given or global registrar
-ALGORITHMS_OCV_EXPORT
+KWIVER_ALGO_OCV_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace ocv
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // ARROWS_ALGORITHMS_OCV_REGISTER_ALGORITHMS_H_
+#endif // KWIVER_ARROWS_OCV_REGISTER_ALGORITHMS_H_

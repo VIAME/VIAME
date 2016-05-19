@@ -37,7 +37,7 @@
 
 #include <cstdio>
 
-#include <arrows/algorithms/vxl/camera.h>
+#include <arrows/vxl/camera.h>
 
 #define TEST_ARGS ()
 

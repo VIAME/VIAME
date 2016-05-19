@@ -48,8 +48,8 @@
 
 #include <vital/algo/optimize_cameras.h>
 #include <vital/algo/triangulate_landmarks.h>
-#include <arrows/algorithms/core/metrics.h>
-#include <arrows/algorithms/core/interpolate_camera.h>
+#include <arrows/core/metrics.h>
+#include <arrows/core/interpolate_camera.h>
 
 #include <vital/types/camera.h>
 #include <vital/exceptions.h>

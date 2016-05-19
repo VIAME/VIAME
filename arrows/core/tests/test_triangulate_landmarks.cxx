@@ -32,8 +32,7 @@
 #include <test_scene.h>
 #include <test_triangulate_landmarks.h>
 
-#include <arrows/algorithms/core/register_algorithms.h>
-#include <arrows/algorithms/core/triangulate_landmarks.h>
+#include <arrows/core/triangulate_landmarks.h>
 
 
 #define TEST_ARGS ()
@@ -44,8 +43,6 @@ int
 main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
-
-  kwiver::arrows::core::register_algorithms();
 
   testname_t const testname = argv[1];
 
@@ -68,7 +65,7 @@ IMPLEMENT_TEST(create)
 IMPLEMENT_TEST(from_solution)
 {
   kwiver::arrows::core::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_from_solution(tri_lm);
+  kwiver::testing::test_from_solution(tri_lm);
 }
 
 
@@ -79,7 +76,7 @@ IMPLEMENT_TEST(from_solution_homog)
   kwiver::vital::config_block_sptr cfg = tri_lm.get_configuration();
   cfg->set_value("homogeneous", "true");
   tri_lm.set_configuration(cfg);
-  kwiver::arrows::testing::test_from_solution(tri_lm);
+  kwiver::testing::test_from_solution(tri_lm);
 }
 
 
@@ -87,7 +84,7 @@ IMPLEMENT_TEST(from_solution_homog)
 IMPLEMENT_TEST(noisy_landmarks)
 {
   kwiver::arrows::core::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_noisy_landmarks(tri_lm);
+  kwiver::testing::test_noisy_landmarks(tri_lm);
 }
 
 
@@ -98,7 +95,7 @@ IMPLEMENT_TEST(noisy_landmarks_homog)
   kwiver::vital::config_block_sptr cfg = tri_lm.get_configuration();
   cfg->set_value("homogeneous", "true");
   tri_lm.set_configuration(cfg);
-  kwiver::arrows::testing::test_noisy_landmarks(tri_lm);
+  kwiver::testing::test_noisy_landmarks(tri_lm);
 }
 
 
@@ -106,7 +103,7 @@ IMPLEMENT_TEST(noisy_landmarks_homog)
 IMPLEMENT_TEST(zero_landmarks)
 {
   kwiver::arrows::core::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_zero_landmarks(tri_lm);
+  kwiver::testing::test_zero_landmarks(tri_lm);
 }
 
 
@@ -117,7 +114,7 @@ IMPLEMENT_TEST(zero_landmarks_homog)
   kwiver::vital::config_block_sptr cfg = tri_lm.get_configuration();
   cfg->set_value("homogeneous", "true");
   tri_lm.set_configuration(cfg);
-  kwiver::arrows::testing::test_zero_landmarks(tri_lm);
+  kwiver::testing::test_zero_landmarks(tri_lm);
 }
 
 
@@ -125,7 +122,7 @@ IMPLEMENT_TEST(zero_landmarks_homog)
 IMPLEMENT_TEST(subset_cameras)
 {
   kwiver::arrows::core::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_subset_cameras(tri_lm);
+  kwiver::testing::test_subset_cameras(tri_lm);
 }
 
 
@@ -136,7 +133,7 @@ IMPLEMENT_TEST(subset_cameras_homog)
   kwiver::vital::config_block_sptr cfg = tri_lm.get_configuration();
   cfg->set_value("homogeneous", "true");
   tri_lm.set_configuration(cfg);
-  kwiver::arrows::testing::test_subset_cameras(tri_lm);
+  kwiver::testing::test_subset_cameras(tri_lm);
 }
 
 
@@ -144,7 +141,7 @@ IMPLEMENT_TEST(subset_cameras_homog)
 IMPLEMENT_TEST(subset_landmarks)
 {
   kwiver::arrows::core::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_subset_landmarks(tri_lm);
+  kwiver::testing::test_subset_landmarks(tri_lm);
 }
 
 
@@ -155,7 +152,7 @@ IMPLEMENT_TEST(subset_landmarks_homog)
   kwiver::vital::config_block_sptr cfg = tri_lm.get_configuration();
   cfg->set_value("homogeneous", "true");
   tri_lm.set_configuration(cfg);
-  kwiver::arrows::testing::test_subset_landmarks(tri_lm);
+  kwiver::testing::test_subset_landmarks(tri_lm);
 }
 
 
@@ -163,7 +160,7 @@ IMPLEMENT_TEST(subset_landmarks_homog)
 IMPLEMENT_TEST(subset_tracks)
 {
   kwiver::arrows::core::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_subset_tracks(tri_lm);
+  kwiver::testing::test_subset_tracks(tri_lm);
 }
 
 
@@ -174,7 +171,7 @@ IMPLEMENT_TEST(subset_tracks_homog)
   kwiver::vital::config_block_sptr cfg = tri_lm.get_configuration();
   cfg->set_value("homogeneous", "true");
   tri_lm.set_configuration(cfg);
-  kwiver::arrows::testing::test_subset_tracks(tri_lm);
+  kwiver::testing::test_subset_tracks(tri_lm);
 }
 
 
@@ -182,7 +179,7 @@ IMPLEMENT_TEST(subset_tracks_homog)
 IMPLEMENT_TEST(noisy_tracks)
 {
   kwiver::arrows::core::triangulate_landmarks tri_lm;
-  kwiver::arrows::testing::test_noisy_tracks(tri_lm);
+  kwiver::testing::test_noisy_tracks(tri_lm);
 }
 
 // select a subset of tracks/track_states and add noise
@@ -192,5 +189,5 @@ IMPLEMENT_TEST(noisy_tracks_homog)
   kwiver::vital::config_block_sptr cfg = tri_lm.get_configuration();
   cfg->set_value("homogeneous", "true");
   tri_lm.set_configuration(cfg);
-  kwiver::arrows::testing::test_noisy_tracks(tri_lm);
+  kwiver::testing::test_noisy_tracks(tri_lm);
 }

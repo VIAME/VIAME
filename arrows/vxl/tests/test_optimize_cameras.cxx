@@ -40,9 +40,8 @@
 #include <vital/types/track_set.h>
 #include <vital/exceptions.h>
 
-
-#include <arrows/algorithms/core/projected_track_set.h>
-#include <arrows/algorithms/vxl/optimize_cameras.h>
+#include <arrows/core/projected_track_set.h>
+#include <arrows/vxl/optimize_cameras.h>
 
 #include <vital/vital_foreach.h>
 
@@ -132,9 +131,9 @@ IMPLEMENT_TEST(no_noise)
   // Optimize already optimimal elements to make sure they don't get changed
   // much.
 
-  camera_map::map_camera_t original_cams = testing::camera_seq()->cameras();
+  camera_map::map_camera_t original_cams = kwiver::testing::camera_seq()->cameras();
 
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
   camera_map_sptr working_cam_map(new simple_camera_map(original_cams));
   track_set_sptr tracks = projected_tracks(landmarks,
                                                   working_cam_map);
@@ -190,13 +189,13 @@ IMPLEMENT_TEST(noisy_cameras)
   // Same as above, but create an analogous set of cameras with noise added.
   // Check that optimized cameras are close to the original cameras.
 
-  camera_map::map_camera_t original_cams = testing::camera_seq()->cameras();
+  camera_map::map_camera_t original_cams = kwiver::testing::camera_seq()->cameras();
 
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
   camera_map_sptr working_cam_map(new simple_camera_map(original_cams));
   track_set_sptr tracks = projected_tracks(landmarks, working_cam_map);
 
-  working_cam_map = testing::noisy_cameras(working_cam_map, 0.1, 0.1);
+  working_cam_map = kwiver::testing::noisy_cameras(working_cam_map, 0.1, 0.1);
 
   vxl::optimize_cameras optimizer;
   optimizer.optimize(working_cam_map, tracks, landmarks);

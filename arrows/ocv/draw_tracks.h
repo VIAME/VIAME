@@ -33,12 +33,12 @@
  * \brief Header for OCV draw_tracks algorithm
  */
 
-#ifndef ARROWS_ALGORITHMS_OCV_DRAW_TRACKS_H_
-#define ARROWS_ALGORITHMS_OCV_DRAW_TRACKS_H_
+#ifndef KWIVER_ARROWS_OCV_DRAW_TRACKS_H_
+#define KWIVER_ARROWS_OCV_DRAW_TRACKS_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/draw_tracks.h>
 
@@ -51,7 +51,7 @@ namespace ocv
 {
 
 /// A class for drawing various information about feature tracks
-class ALGORITHMS_OCV_EXPORT draw_tracks
+class KWIVER_ALGO_OCV_EXPORT draw_tracks
 : public vital::algorithm_impl<draw_tracks, vital::algo::draw_tracks>
 {
 public:
@@ -108,4 +108,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_OCV_DRAW_TRACKS_H_
+#endif // KWIVER_ARROWS_OCV_DRAW_TRACKS_H_

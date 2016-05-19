@@ -33,8 +33,8 @@
  * \brief VisCL plugin algorithm registration plugin interface impl
  */
 
-#include <arrows/algorithms/viscl/register_algorithms.h>
-#include <arrows/algorithms/algorithm_plugin_interface.h>
+#include <arrows/viscl/register_algorithms.h>
+#include <arrows/algorithm_plugin_interface.h>
 #include <vital/registrar.h>
 
 

@@ -58,7 +58,6 @@ using namespace kwiver::vital;
 
 void test_distortion(const Eigen::VectorXd& d)
 {
-  using namespace kwiver::arrows;
   simple_camera_intrinsics K;
   K.set_dist_coeffs(d.transpose());
 
@@ -77,7 +76,7 @@ void test_distortion(const Eigen::VectorXd& d)
 
   for(unsigned int i = 1; i<100; ++i)
   {
-    vector_2d test_pt = testing::random_point2d(0.5);
+    vector_2d test_pt = kwiver::testing::random_point2d(0.5);
     // the distortion model is only valid within about a unit distance
     // from the origin in normalized coordinates
     // project distant points back onto the unit circle

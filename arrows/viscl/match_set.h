@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_ALGORITHMS_VISCL_MATCH_SET_H_
-#define ARROWS_ALGORITHMS_VISCL_MATCH_SET_H_
+#ifndef KWIVER_ARROWS_VISCL_MATCH_SET_H_
+#define KWIVER_ARROWS_VISCL_MATCH_SET_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
+#include <arrows/viscl/kwiver_algo_viscl_export.h>
 
 #include <vital/types/match_set.h>
 
@@ -48,7 +48,7 @@ namespace vcl
 
 
 /// A concrete match set that wraps VisCL matches
-class ALGORITHMS_VISCL_EXPORT match_set
+class KWIVER_ALGO_VISCL_EXPORT match_set
 : public vital::match_set
 {
 public:
@@ -83,7 +83,7 @@ private:
 /**
   * Will remove duplicate matches to a kpt from 2nd set
   */
-ALGORITHMS_VISCL_EXPORT viscl::buffer
+KWIVER_ALGO_VISCL_EXPORT viscl::buffer
 matches_to_viscl(const vital::match_set& match_set);
 
 
@@ -93,4 +93,4 @@ matches_to_viscl(const vital::match_set& match_set);
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VISCL_MATCH_SET_H_
+#endif // KWIVER_ARROWS_VISCL_MATCH_SET_H_

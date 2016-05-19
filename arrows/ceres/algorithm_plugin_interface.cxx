@@ -33,8 +33,8 @@
  * \brief Ceres plugin algorithm registration plugin interface impl
  */
 
-#include <arrows/algorithms/ceres/register_algorithms.h>
-#include <arrows/algorithms/algorithm_plugin_interface.h>
+#include <arrows/ceres/register_algorithms.h>
+#include <arrows/algorithm_plugin_interface.h>
 #include <vital/registrar.h>
 
 

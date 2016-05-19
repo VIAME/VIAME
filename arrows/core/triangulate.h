@@ -37,7 +37,7 @@
 #define ALGORITHMS_TRIANGULATE_H_
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/core/algorithms_core_export.h>
+#include <arrows/core/kwiver_algo_export.h>
 
 #include <vital/types/camera.h>
 
@@ -58,7 +58,7 @@ namespace arrows {
  *  \return a 3D triangulated point location
  */
 template <typename T>
-ALGORITHMS_CORE_EXPORT
+KWIVER_ALGO_EXPORT
 Eigen::Matrix<T,3,1>
 triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
                     const std::vector<Eigen::Matrix<T,2,1> >& points);
@@ -76,7 +76,7 @@ triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
  *  \return a homogeneous 3D triangulated point location
  */
 template <typename T>
-ALGORITHMS_CORE_EXPORT
+KWIVER_ALGO_EXPORT
 Eigen::Matrix<T,4,1>
 triangulate_homog(const std::vector<vital::simple_camera >& cameras,
                   const std::vector<Eigen::Matrix<T,2,1> >& points);

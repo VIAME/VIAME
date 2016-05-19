@@ -33,12 +33,12 @@
  * \brief VXL image memory interface
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_VIL_IMAGE_MEMORY_H_
-#define ARROWS_ALGORITHMS_VXL_VIL_IMAGE_MEMORY_H_
+#ifndef KWIVER_ARROWS_VXL_VIL_IMAGE_MEMORY_H_
+#define KWIVER_ARROWS_VXL_VIL_IMAGE_MEMORY_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/types/image.h>
 
@@ -52,7 +52,7 @@ namespace vxl
 {
 
 /// An image memory class that shares memory with VXL using vil_memory_chunk
-class ALGORITHMS_VXL_EXPORT vil_image_memory
+class KWIVER_ALGO_VXL_EXPORT vil_image_memory
   : public vital::image_memory
 {
 public:
@@ -77,7 +77,7 @@ protected:
 
 
 /// An image memory class that shares memory with vital using image_memory
-class ALGORITHMS_VXL_EXPORT image_memory_chunk
+class KWIVER_ALGO_VXL_EXPORT image_memory_chunk
  : public vil_memory_chunk
 {
 public:
@@ -111,4 +111,4 @@ protected:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // ARROWS_ALGORITHMS_VXL_VIL_IMAGE_MEMORY_H_
+#endif // KWIVER_ARROWS_VXL_VIL_IMAGE_MEMORY_H_

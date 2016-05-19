@@ -33,12 +33,12 @@
  * \brief Register VXL algorithms
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_REGISTER_ALGORITHMS_H_
-#define ARROWS_ALGORITHMS_VXL_REGISTER_ALGORITHMS_H_
+#ifndef KWIVER_ARROWS_VXL_REGISTER_ALGORITHMS_H_
+#define KWIVER_ARROWS_VXL_REGISTER_ALGORITHMS_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/registrar.h>
 
@@ -48,7 +48,7 @@ namespace arrows {
 namespace vxl {
 
 /// Register VXL algorithm implementations with the given or global registrar
-ALGORITHMS_VXL_EXPORT
+KWIVER_ALGO_VXL_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace vxl
@@ -56,4 +56,4 @@ int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 } // end namespace kwiver
 
 
-#endif  // ARROWS_ALGORITHMS_VXL_REGISTER_ALGORITHMS_H_
+#endif  // KWIVER_ARROWS_VXL_REGISTER_ALGORITHMS_H_

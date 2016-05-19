@@ -30,7 +30,7 @@
 
 #include "convert_image.h"
 
-#include <arrows/algorithms/viscl/image_container.h>
+#include <arrows/viscl/image_container.h>
 
 
 namespace kwiver {

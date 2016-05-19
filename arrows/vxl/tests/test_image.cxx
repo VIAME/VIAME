@@ -35,9 +35,9 @@
 
 #include <test_common.h>
 
-#include <arrows/algorithms/vxl/register_algorithms.h>
-#include <arrows/algorithms/vxl/image_container.h>
-#include <arrows/algorithms/vxl/image_io.h>
+#include <arrows/vxl/register_algorithms.h>
+#include <arrows/vxl/image_container.h>
+#include <arrows/vxl/image_io.h>
 
 #define TEST_ARGS ()
 

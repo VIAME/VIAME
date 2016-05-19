@@ -18,12 +18,12 @@ set( ocv_headers_public
   register_algorithms.h
   )
 kwiver_install_headers(
-  SUBDIR     arrows/algorithms/ocv
+  SUBDIR     arrows/ocv
   ${ocv_headers_public}
   )
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/algorithms_ocv_export.h
-  NOPATH   SUBDIR     arrows/algorithms/ocv
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_ocv_export.h
+  NOPATH   SUBDIR     arrows/ocv
   )
 
 set( ocv_sources
@@ -42,20 +42,21 @@ set( ocv_sources
   ocv_algo_tools.cxx
   register_algorithms.cxx
   )
-kwiver_add_library( algorithms_ocv
+
+kwiver_add_library( kwiver_algo_ocv
   ${ocv_headers_public}
   ${ocv_sources}
   )
-target_link_libraries( algorithms_ocv
-  PUBLIC               algorithms_core
+target_link_libraries( kwiver_algo_ocv
+  PUBLIC               kwiver_algo
                        kwiversys
                        ${OpenCV_LIBS}
   )
 
-algorithms_create_plugin( algorithms_ocv
+algorithms_create_plugin( kwiver_algo_ocv
   algorithm_plugin_interface.cxx
   )
 
-if (ARROWS_ENABLE_TESTS)
+if (KWIVER_ENABLE_TESTS)
   add_subdirectory(tests)
 endif()

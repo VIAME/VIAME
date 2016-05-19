@@ -33,11 +33,11 @@
  * \brief Header for core camera and landmark initialization algorithm
  */
 
-#ifndef ARROWS_ALGORITHMS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
-#define ARROWS_ALGORITHMS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
+#ifndef KWIVER_ARROWS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
+#define KWIVER_ARROWS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/core/algorithms_core_export.h>
+#include <arrows/core/kwiver_algo_export.h>
 
 #include <vital/algo/initialize_cameras_landmarks.h>
 
@@ -50,7 +50,7 @@ namespace core
 {
 
 /// A class for initialization of cameras and landmarks
-class ALGORITHMS_CORE_EXPORT initialize_cameras_landmarks
+class KWIVER_ALGO_EXPORT initialize_cameras_landmarks
 : public vital::algorithm_impl<initialize_cameras_landmarks,
                               vital::algo::initialize_cameras_landmarks>
 {
@@ -102,4 +102,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
+#endif // KWIVER_ARROWS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_

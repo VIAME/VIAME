@@ -33,12 +33,12 @@
  * \brief OCV mat_image_memory interface
  */
 
-#ifndef ARROWS_ALGORITHMS_OCV_MAT_IMAGE_MEMORY_H_
-#define ARROWS_ALGORITHMS_OCV_MAT_IMAGE_MEMORY_H_
+#ifndef KWIVER_ARROWS_OCV_MAT_IMAGE_MEMORY_H_
+#define KWIVER_ARROWS_OCV_MAT_IMAGE_MEMORY_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/types/image.h>
 
@@ -52,7 +52,7 @@ namespace ocv
 {
 
 /// An image memory class that shares memory with OpenCV using reference counting
-class ALGORITHMS_OCV_EXPORT mat_image_memory
+class KWIVER_ALGO_OCV_EXPORT mat_image_memory
   : public vital::image_memory
 {
 public:
@@ -83,4 +83,4 @@ protected:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_OCV_MAT_IMAGE_MEMORY_H_
+#endif // KWIVER_ARROWS_OCV_MAT_IMAGE_MEMORY_H_

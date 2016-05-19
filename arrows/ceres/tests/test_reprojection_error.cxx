@@ -38,10 +38,10 @@
 
 #include <vital/vital_foreach.h>
 
-#include <arrows/algorithms/core/metrics.h>
-#include <arrows/algorithms/ceres/reprojection_error.h>
-#include <arrows/algorithms/ceres/types.h>
-#include <arrows/algorithms/core/projected_track_set.h>
+#include <arrows/core/metrics.h>
+#include <arrows/ceres/reprojection_error.h>
+#include <arrows/ceres/types.h>
+#include <arrows/core/projected_track_set.h>
 
 
 #define TEST_ARGS ()
@@ -166,14 +166,14 @@ void test_reprojection_model(const Eigen::VectorXd& dc,
   using namespace kwiver::vital;
 
   // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = testing::cube_corners(2.0);
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
 
   // The intrinsic camera parameters to use
   simple_camera_intrinsics K(1000, vector_2d(640,480));
   K.set_dist_coeffs(dc);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = testing::camera_seq(20,K);
+  camera_map_sptr cameras = kwiver::testing::camera_seq(20,K);
 
   // create tracks from the projections
   track_set_sptr tracks = projected_tracks(landmarks, cameras);

@@ -33,8 +33,8 @@
  * \brief OpenCV plugin algorithm registration interface impl
  */
 
-#include <arrows/algorithms/ocv/register_algorithms.h>
-#include <arrows/algorithms/algorithm_plugin_interface.h>
+#include <arrows/ocv/register_algorithms.h>
+#include <arrows/algorithm_plugin_interface.h>
 #include <vital/registrar.h>
 
 

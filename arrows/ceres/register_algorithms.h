@@ -33,11 +33,11 @@
  * \brief Ceres algorithm registration function
  */
 
-#ifndef ARROWS_ALGORITHMS_CERES_REGISTER_ALGORITHMS_H_
-#define ARROWS_ALGORITHMS_CERES_REGISTER_ALGORITHMS_H_
+#ifndef KWIVER_ARROWS_CERES_REGISTER_ALGORITHMS_H_
+#define KWIVER_ARROWS_CERES_REGISTER_ALGORITHMS_H_
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ceres/algorithms_ceres_export.h>
+#include <arrows/ceres/kwiver_algo_ceres_export.h>
 
 #include <vital/registrar.h>
 
@@ -48,7 +48,7 @@ namespace arrows {
 namespace ceres {
 
 /// Register CERES algorithm implementations with the given or global registrar
-ALGORITHMS_CERES_EXPORT
+KWIVER_ALGO_CERES_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace ceres
@@ -56,4 +56,4 @@ int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // ARROWS_ALGORITHMS_CERES_REGISTER_ALGORITHMS_H_
+#endif // KWIVER_ARROWS_CERES_REGISTER_ALGORITHMS_H_

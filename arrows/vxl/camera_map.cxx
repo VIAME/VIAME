@@ -37,7 +37,7 @@
 
 #include <vital/vital_foreach.h>
 
-#include <arrows/algorithms/vxl/camera.h>
+#include <arrows/vxl/camera.h>
 
 using namespace kwiver::vital;
 

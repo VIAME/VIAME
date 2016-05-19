@@ -45,11 +45,11 @@
 #include <vital/vital_types.h>
 #include <vital/vital_foreach.h>
 
-#include <arrows/algorithms/ocv/detect_features.h>
-#include <arrows/algorithms/ocv/extract_descriptors.h>
-#include <arrows/algorithms/ocv/match_features.h>
-#include <arrows/algorithms/ocv/ocv_algo_tools.h>
-#include <arrows/algorithms/ocv/register_algorithms.h>
+#include <arrows/ocv/detect_features.h>
+#include <arrows/ocv/extract_descriptors.h>
+#include <arrows/ocv/match_features.h>
+#include <arrows/ocv/ocv_algo_tools.h>
+#include <arrows/ocv/register_algorithms.h>
 
 #include <opencv2/features2d/features2d.hpp>
 

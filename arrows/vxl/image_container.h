@@ -33,12 +33,12 @@
  * \brief VXL image container interface
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_IMAGE_CONTAINER_H_
-#define ARROWS_ALGORITHMS_VXL_IMAGE_CONTAINER_H_
+#ifndef KWIVER_ARROWS_VXL_IMAGE_CONTAINER_H_
+#define KWIVER_ARROWS_VXL_IMAGE_CONTAINER_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/types/image_container.h>
 
@@ -56,7 +56,7 @@ namespace vxl
  * This class represents an image using vil_image_view format to store
  * the image data by extending the basic image_container.
  */
-class ALGORITHMS_VXL_EXPORT image_container
+class KWIVER_ALGO_VXL_EXPORT image_container
   : public vital::image_container
 {
 public:
@@ -116,4 +116,4 @@ protected:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VXL_IMAGE_CONTAINER_H_
+#endif // KWIVER_ARROWS_VXL_IMAGE_CONTAINER_H_

@@ -1,3 +1,4 @@
+###
 # algorithms/proj
 
 set(proj_headers_public
@@ -6,31 +7,34 @@ set(proj_headers_public
   )
 
 kwiver_install_headers(
-  SUBDIR     arrows/algorithms/proj
+  SUBDIR     arrows/proj
   ${proj_headers_public}
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/algorithms_proj_export.h
-  NOPATH   SUBDIR     arrows/algorithms/proj
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_proj_export.h
+  NOPATH   SUBDIR     arrows/proj
   )
 
 set(proj_sources
   geo_map.cxx
   register_algorithms.cxx
   )
-kwiver_add_library( algorithms_proj
+
+kwiver_add_library( kwiver_algo_proj
   ${proj_headers_public}
   ${proj_sources}
   )
-target_link_libraries( algorithms_proj
-  PUBLIC               algorithms_core
+
+target_link_libraries( kwiver_algo_proj
+  PUBLIC               kwiver_algo
                        ${PROJ_LIBRARY}
   )
-algorithms_create_plugin( algorithms_proj
+
+algorithms_create_plugin( kwiver_algo_proj
   algorithm_plugin_interface.cxx
   )
 
-if (ARROWS_ENABLE_TESTS)
+if (KWIVER_ENABLE_TESTS)
   add_subdirectory(tests)
 endif()

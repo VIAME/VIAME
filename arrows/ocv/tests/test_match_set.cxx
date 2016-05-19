@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <arrows/algorithms/ocv/match_set.h>
+#include <arrows/ocv/match_set.h>
 
 
 

@@ -33,15 +33,15 @@
  * \brief Header for Ceres reprojection error functions
  */
 
-#ifndef ARROWS_ALGORITHMS_CERES_REPROJECTION_ERROR_H_
-#define ARROWS_ALGORITHMS_CERES_REPROJECTION_ERROR_H_
+#ifndef KWIVER_ARROWS_CERES_REPROJECTION_ERROR_H_
+#define KWIVER_ARROWS_CERES_REPROJECTION_ERROR_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ceres/algorithms_ceres_export.h>
+#include <arrows/ceres/kwiver_algo_ceres_export.h>
 
-#include <arrows/algorithms/ceres/lens_distortion.h>
-#include <arrows/algorithms/ceres/types.h>
+#include <arrows/ceres/lens_distortion.h>
+#include <arrows/ceres/types.h>
 
 #include <ceres/ceres.h>
 #include <ceres/rotation.h>
@@ -264,4 +264,4 @@ create_cost_func(LensDistortionType ldt, double x, double y)
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_CERES_REPROJECTION_ERROR_H_
+#endif // KWIVER_ARROWS_CERES_REPROJECTION_ERROR_H_

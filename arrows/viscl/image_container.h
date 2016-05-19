@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_ALGORITHMS_VISCL_IMAGE_CONTAINER_H_
-#define ARROWS_ALGORITHMS_VISCL_IMAGE_CONTAINER_H_
+#ifndef KWIVER_ARROWS_VISCL_IMAGE_CONTAINER_H_
+#define KWIVER_ARROWS_VISCL_IMAGE_CONTAINER_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
+#include <arrows/viscl/kwiver_algo_viscl_export.h>
 
 #include <vital/types/image_container.h>
 
@@ -47,7 +47,7 @@ namespace vcl
 {
 
 /// This image container wraps a VisCL image
-class ALGORITHMS_VISCL_EXPORT image_container
+class KWIVER_ALGO_VISCL_EXPORT image_container
 : public vital::image_container
 {
 public:
@@ -110,7 +110,7 @@ protected:
  * return the underlying VisCL image.  Otherwise, convert the image data
  * and upload to the GPU.
  */
-ALGORITHMS_VISCL_EXPORT viscl::image image_container_to_viscl(const vital::image_container& img);
+KWIVER_ALGO_VISCL_EXPORT viscl::image image_container_to_viscl(const vital::image_container& img);
 
 
 } // end namespace vcl
@@ -119,4 +119,4 @@ ALGORITHMS_VISCL_EXPORT viscl::image image_container_to_viscl(const vital::image
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VISCL_IMAGE_CONTAINER_H_
+#endif // KWIVER_ARROWS_VISCL_IMAGE_CONTAINER_H_

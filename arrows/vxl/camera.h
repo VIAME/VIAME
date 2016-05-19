@@ -33,12 +33,12 @@
  * \brief Header file for conversions between vital and vpgl cameras
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_CAMERA_H_
-#define ARROWS_ALGORITHMS_VXL_CAMERA_H_
+#ifndef KWIVER_ARROWS_VXL_CAMERA_H_
+#define KWIVER_ARROWS_VXL_CAMERA_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/types/camera.h>
 
@@ -53,32 +53,32 @@ namespace vxl
 
 /// Construct a camera_sptr from a vpgl_perspective_camera
 template <typename T>
-ALGORITHMS_VXL_EXPORT
+KWIVER_ALGO_VXL_EXPORT
 vital::camera_sptr vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam);
 
 
 /// Convert a vpgl_perspective_camera to a vital::camera_
 template <typename T>
-ALGORITHMS_VXL_EXPORT
+KWIVER_ALGO_VXL_EXPORT
 void vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam,
                           vital::simple_camera& mcam);
 
 /// Convert a vital::camera_ to a vpgl_perspective_camera
 template <typename T>
-ALGORITHMS_VXL_EXPORT
+KWIVER_ALGO_VXL_EXPORT
 void vital_to_vpgl_camera(const vital::camera& mcam,
                           vpgl_perspective_camera<T>& vcam);
 
 
 /// Convert a vpgl_calibration_matrix to a vital::camera_intrinsics_
 template <typename T>
-ALGORITHMS_VXL_EXPORT
+KWIVER_ALGO_VXL_EXPORT
 void vpgl_calibration_to_vital(const vpgl_calibration_matrix<T>& vcal,
                                vital::simple_camera_intrinsics& mcal);
 
 /// Convert a vital::camera_intrinsics_ to a vpgl_calibration_matrix
 template <typename T>
-ALGORITHMS_VXL_EXPORT
+KWIVER_ALGO_VXL_EXPORT
 void vital_to_vpgl_calibration(const vital::camera_intrinsics& mcal,
                                vpgl_calibration_matrix<T>& vcal);
 
@@ -89,4 +89,4 @@ void vital_to_vpgl_calibration(const vital::camera_intrinsics& mcal,
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VXL_CAMERA_H_
+#endif // KWIVER_ARROWS_VXL_CAMERA_H_

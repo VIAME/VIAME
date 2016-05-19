@@ -35,17 +35,17 @@
 
 #include "register_algorithms.h"
 
-#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
-#include <arrows/algorithms/core/close_loops_bad_frames_only.h>
-#include <arrows/algorithms/core/close_loops_multi_method.h>
-#include <arrows/algorithms/core/compute_ref_homography_core.h>
-#include <arrows/algorithms/core/convert_image_bypass.h>
-#include <arrows/algorithms/core/filter_features_magnitude.h>
-#include <arrows/algorithms/core/hierarchical_bundle_adjust.h>
-#include <arrows/algorithms/core/initialize_cameras_landmarks.h>
-#include <arrows/algorithms/core/match_features_homography.h>
-#include <arrows/algorithms/core/track_features_core.h>
-#include <arrows/algorithms/core/triangulate_landmarks.h>
+#include <arrows/algorithm_plugin_interface_macros.h>
+#include <arrows/core/close_loops_bad_frames_only.h>
+#include <arrows/core/close_loops_multi_method.h>
+#include <arrows/core/compute_ref_homography_core.h>
+#include <arrows/core/convert_image_bypass.h>
+#include <arrows/core/filter_features_magnitude.h>
+#include <arrows/core/hierarchical_bundle_adjust.h>
+#include <arrows/core/initialize_cameras_landmarks.h>
+#include <arrows/core/match_features_homography.h>
+#include <arrows/core/track_features_core.h>
+#include <arrows/core/triangulate_landmarks.h>
 
 
 namespace kwiver {

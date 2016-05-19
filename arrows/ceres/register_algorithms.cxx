@@ -36,8 +36,8 @@
 #include "register_algorithms.h"
 
 
-#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
-#include <arrows/algorithms/ceres/bundle_adjust.h>
+#include <arrows/algorithm_plugin_interface_macros.h>
+#include <arrows/ceres/bundle_adjust.h>
 
 
 namespace kwiver {

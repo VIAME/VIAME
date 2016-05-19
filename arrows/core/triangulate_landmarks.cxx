@@ -40,7 +40,7 @@
 #include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
-#include <arrows/algorithms/core/triangulate.h>
+#include <arrows/core/triangulate.h>
 
 
 namespace kwiver {

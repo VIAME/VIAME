@@ -34,14 +34,15 @@
 
 #include <vital/types/similarity.h>
 
-#include <arrows/algorithms/core/projected_track_set.h>
-#include <arrows/algorithms/core/metrics.h>
-#include <arrows/algorithms/core/transform.h>
-#include <arrows/algorithms/core/register_algorithms.h>
-#include <arrows/algorithms/vxl/register_algorithms.h>
-#include <arrows/algorithms/vxl/estimate_essential_matrix.h>
-#include <arrows/algorithms/vxl/estimate_similarity_transform.h>
-#include <arrows/algorithms/core/initialize_cameras_landmarks.h>
+#include <arrows/core/projected_track_set.h>
+#include <arrows/core/metrics.h>
+#include <arrows/core/transform.h>
+#include <arrows/core/register_algorithms.h>
+#include <arrows/core/initialize_cameras_landmarks.h>
+
+#include <arrows/vxl/register_algorithms.h>
+#include <arrows/vxl/estimate_essential_matrix.h>
+#include <arrows/vxl/estimate_similarity_transform.h>
 
 #include <vital/vital_foreach.h>
 
@@ -146,11 +147,11 @@ IMPLEMENT_TEST(ideal_points)
   arrows::core::initialize_cameras_landmarks init;
 
   // create landmarks at the random locations
-  vital::landmark_map_sptr landmarks = arrows::testing::init_landmarks(100);
-  landmarks = arrows::testing::noisy_landmarks(landmarks, 1.0);
+  vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
+  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = arrows::testing::camera_seq();
+  camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
@@ -174,11 +175,11 @@ IMPLEMENT_TEST(ideal_points_from_last)
   arrows::core::initialize_cameras_landmarks init;
 
   // create landmarks at the random locations
-  vital::landmark_map_sptr landmarks = arrows::testing::init_landmarks(100);
-  landmarks = arrows::testing::noisy_landmarks(landmarks, 1.0);
+  vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
+  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
 
   // create a camera sequence (elliptical path)
-  vital::camera_map_sptr cameras = arrows::testing::camera_seq();
+  vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
@@ -207,17 +208,17 @@ IMPLEMENT_TEST(noisy_points)
   arrows::core::initialize_cameras_landmarks init;
 
   // create landmarks at the random locations
-  vital::landmark_map_sptr landmarks = arrows::testing::init_landmarks(100);
-  landmarks = arrows::testing::noisy_landmarks(landmarks, 1.0);
+  vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
+  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
 
   // create a camera sequence (elliptical path)
-  vital::camera_map_sptr cameras = arrows::testing::camera_seq();
+  vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
-  tracks = arrows::testing::noisy_tracks(tracks, 0.3);
+  tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
 
   camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
   configure_algo(init, K);
@@ -239,17 +240,17 @@ IMPLEMENT_TEST(noisy_points_from_last)
   arrows::core::initialize_cameras_landmarks init;
 
   // create landmarks at the random locations
-  vital::landmark_map_sptr landmarks = arrows::testing::init_landmarks(100);
-  landmarks = arrows::testing::noisy_landmarks(landmarks, 1.0);
+  vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
+  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
 
   // create a camera sequence (elliptical path)
-  vital::camera_map_sptr cameras = arrows::testing::camera_seq();
+  vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
-  tracks = arrows::testing::noisy_tracks(tracks, 0.3);
+  tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
 
   vital::config_block_sptr cfg = init.get_configuration();
   cfg->set_value("init_from_last", "true");
@@ -275,11 +276,11 @@ IMPLEMENT_TEST(subset_init)
   arrows::core::initialize_cameras_landmarks init;
 
   // create landmarks at the random locations
-  vital::landmark_map_sptr landmarks = arrows::testing::init_landmarks(100);
-  landmarks = arrows::testing::noisy_landmarks(landmarks, 1.0);
+  vital::landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
+  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
 
   // create a camera sequence (elliptical path)
-  vital::camera_map_sptr cameras = arrows::testing::camera_seq();
+  vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
   vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);

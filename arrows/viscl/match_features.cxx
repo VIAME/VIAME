@@ -32,10 +32,10 @@
 
 #include <vector>
 
-#include <arrows/algorithms/viscl/descriptor_set.h>
-#include <arrows/algorithms/viscl/feature_set.h>
-#include <arrows/algorithms/viscl/match_set.h>
-#include <arrows/algorithms/viscl/utils.h>
+#include <arrows/viscl/descriptor_set.h>
+#include <arrows/viscl/feature_set.h>
+#include <arrows/viscl/match_set.h>
+#include <arrows/viscl/utils.h>
 
 #include <viscl/tasks/track_descr_match.h>
 

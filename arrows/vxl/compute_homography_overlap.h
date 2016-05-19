@@ -33,12 +33,12 @@
  * \brief Header defining homography overlap helper functions
  */
 
-#ifndef ARROWS_ALGORITHMS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
-#define ARROWS_ALGORITHMS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
+#ifndef KWIVER_ARROWS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
+#define KWIVER_ARROWS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/vxl/algorithms_vxl_export.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vnl/vnl_double_3x3.h>
 
@@ -56,7 +56,7 @@ namespace vxl
  * transformation between these 2 images (in some reference coordinate
  * system). The overlap is returned as a percentage.
  */
-ALGORITHMS_VXL_EXPORT
+KWIVER_ALGO_VXL_EXPORT
 double
 overlap( const vnl_double_3x3& h, const unsigned ni, const unsigned nj );
 
@@ -67,4 +67,4 @@ overlap( const vnl_double_3x3& h, const unsigned ni, const unsigned nj );
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_
+#endif // KWIVER_ARROWS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_

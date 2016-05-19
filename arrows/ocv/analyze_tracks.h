@@ -33,12 +33,12 @@
  * \brief Header for OpenCV analyze_tracks algorithm
  */
 
-#ifndef ARROWS_ALGORITHMS_OCV_ANALYZE_TRACKS_H_
-#define ARROWS_ALGORITHMS_OCV_ANALYZE_TRACKS_H_
+#ifndef KWIVER_ARROWS_OCV_ANALYZE_TRACKS_H_
+#define KWIVER_ARROWS_OCV_ANALYZE_TRACKS_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/ocv/algorithms_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/analyze_tracks.h>
 
@@ -51,7 +51,7 @@ namespace ocv
 {
 
 /// A class for outputting various debug info about feature tracks
-class ALGORITHMS_OCV_EXPORT analyze_tracks
+class KWIVER_ALGO_OCV_EXPORT analyze_tracks
 : public vital::algorithm_impl<analyze_tracks, vital::algo::analyze_tracks>
 {
 public:
@@ -98,4 +98,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_OCV_ANALYZE_TRACKS_H_
+#endif // KWIVER_ARROWS_OCV_ANALYZE_TRACKS_H_

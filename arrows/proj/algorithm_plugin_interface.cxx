@@ -33,8 +33,8 @@
  * \brief PROJ plugin algorithm registration interface implementation
  */
 
-#include <arrows/algorithms/proj/register_algorithms.h>
-#include <arrows/algorithms/algorithm_plugin_interface.h>
+#include <arrows/proj/register_algorithms.h>
+#include <arrows/algorithm_plugin_interface.h>
 #include <vital/registrar.h>
 
 

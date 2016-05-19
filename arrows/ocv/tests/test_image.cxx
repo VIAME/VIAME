@@ -35,9 +35,9 @@
 
 #include <test_common.h>
 
-#include <arrows/algorithms/ocv/register_algorithms.h>
-#include <arrows/algorithms/ocv/image_container.h>
-#include <arrows/algorithms/ocv/image_io.h>
+#include <arrows/ocv/register_algorithms.h>
+#include <arrows/ocv/image_container.h>
+#include <arrows/ocv/image_io.h>
 
 #define TEST_ARGS ()
 

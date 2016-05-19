@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_ALGORITHMS_VISCL_FEATURE_SET_H_
-#define ARROWS_ALGORITHMS_VISCL_FEATURE_SET_H_
+#ifndef KWIVER_ARROWS_VISCL_FEATURE_SET_H_
+#define KWIVER_ARROWS_VISCL_FEATURE_SET_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
+#include <arrows/viscl/kwiver_algo_viscl_export.h>
 
 #include <vital/types/feature_set.h>
 
@@ -53,7 +53,7 @@ namespace vcl
   * It is possible to get the smoothing scale but that value is not
   * saved on the GPU so would have to be provided externally
   */
-class ALGORITHMS_VISCL_EXPORT feature_set
+class KWIVER_ALGO_VISCL_EXPORT feature_set
 : public vital::feature_set
 {
 public:
@@ -95,7 +95,7 @@ protected:
   * viscl only cares about integer feature location, therefore will lose
   * info converting from vital feature set to viscl and back
   */
-ALGORITHMS_VISCL_EXPORT feature_set::type
+KWIVER_ALGO_VISCL_EXPORT feature_set::type
 features_to_viscl(const vital::feature_set& features);
 
 
@@ -105,4 +105,4 @@ features_to_viscl(const vital::feature_set& features);
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VISCL_FEATURE_SET_H_
+#endif // KWIVER_ARROWS_VISCL_FEATURE_SET_H_

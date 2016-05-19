@@ -33,12 +33,12 @@
  * \brief PROJ algorithm registration function
  */
 
-#ifndef ARROWS_ALGORITHMS_PROJ_REGISTER_ALGORITHMS_H_
-#define ARROWS_ALGORITHMS_PROJ_REGISTER_ALGORITHMS_H_
+#ifndef KWIVER_ARROWS_PROJ_REGISTER_ALGORITHMS_H_
+#define KWIVER_ARROWS_PROJ_REGISTER_ALGORITHMS_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/proj/algorithms_proj_export.h>
+#include <arrows/proj/kwiver_algo_proj_export.h>
 
 #include <vital/registrar.h>
 
@@ -48,11 +48,11 @@ namespace arrows {
 namespace proj {
 
 /// Register PROJ algorithm implementations with the given or global registrar
-ALGORITHMS_PROJ_EXPORT
+KWIVER_ALGO_PROJ_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace proj
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // ARROWS_ALGORITHMS_PROJ_REGISTER_ALGORITHMS_H_
+#endif // KWIVER_ARROWS_PROJ_REGISTER_ALGORITHMS_H_

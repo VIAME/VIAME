@@ -35,8 +35,8 @@
 
 #include "register_algorithms.h"
 
-#include <arrows/algorithms/algorithm_plugin_interface_macros.h>
-#include <arrows/algorithms/proj/geo_map.h>
+#include <arrows/algorithm_plugin_interface_macros.h>
+#include <arrows/proj/geo_map.h>
 
 
 namespace kwiver {

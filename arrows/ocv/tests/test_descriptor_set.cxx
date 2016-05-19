@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <arrows/algorithms/ocv/descriptor_set.h>
+#include <arrows/ocv/descriptor_set.h>
 
 #define TEST_ARGS ()
 

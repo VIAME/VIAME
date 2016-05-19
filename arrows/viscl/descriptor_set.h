@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_ALGORITHMS_VISCL_DESCRIPTOR_SET_H_
-#define ARROWS_ALGORITHMS_VISCL_DESCRIPTOR_SET_H_
+#ifndef KWIVER_ARROWS_VISCL_DESCRIPTOR_SET_H_
+#define KWIVER_ARROWS_VISCL_DESCRIPTOR_SET_H_
 
 
 #include <vital/vital_config.h>
-#include <arrows/algorithms/viscl/algorithms_viscl_export.h>
+#include <arrows/viscl/kwiver_algo_viscl_export.h>
 
 #include <vital/types/descriptor_set.h>
 
@@ -47,7 +47,7 @@ namespace vcl
 {
 
 /// A concrete descriptor set that wraps VisCL descriptors.
-class ALGORITHMS_VISCL_EXPORT descriptor_set
+class KWIVER_ALGO_VISCL_EXPORT descriptor_set
 : public vital::descriptor_set
 {
 public:
@@ -79,7 +79,7 @@ protected:
 
 
 /// Convert a descriptor set to a VisCL descriptor set must be <int,4>
-ALGORITHMS_VISCL_EXPORT viscl::buffer
+KWIVER_ALGO_VISCL_EXPORT viscl::buffer
 descriptors_to_viscl(const vital::descriptor_set& desc_set);
 
 
@@ -89,4 +89,4 @@ descriptors_to_viscl(const vital::descriptor_set& desc_set);
 } // end namespace kwiver
 
 
-#endif // ARROWS_ALGORITHMS_VISCL_DESCRIPTOR_SET_H_
+#endif // KWIVER_ARROWS_VISCL_DESCRIPTOR_SET_H_
