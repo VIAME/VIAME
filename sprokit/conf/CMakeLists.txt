@@ -1,6 +1,6 @@
 project(sprokit_conf)
 
-if (SPROKIT_ENABLE_TESTING)
+if (KWIVER_ENABLE_TESTS)
   # Configure the warning and code coverage suppression file
   sprokit_configure_file(CTestCustom.cmake
     "${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in"

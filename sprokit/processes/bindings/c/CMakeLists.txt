@@ -9,10 +9,11 @@ set( public_headers
 set( private_headers
   )
 
-
 set( sources
   vital_type_converters.cxx
   )
+
+include_directories( ${CMAKE_CURRENT_BINARY_DIR} ) # for generated files
 
 kwiver_install_headers(
   ${public_headers}
@@ -36,5 +37,5 @@ target_link_libraries( vital_type_converters
                        sprokit_pipeline
                        vital_c
                        vital_logger
-                       ${PYTHON_LIBRARIES}
+                     ${PYTHON_LIBRARIES}
   )

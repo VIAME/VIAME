@@ -39,7 +39,7 @@
 
 #include <vital/algo/extract_descriptors.h>
 
-#include <arrows/processes/kwiver_type_traits.h>
+#include <kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 

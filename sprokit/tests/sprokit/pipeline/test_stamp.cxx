@@ -32,6 +32,8 @@
 
 #include <sprokit/pipeline/stamp.h>
 
+#include <stdexcept>
+
 #define TEST_ARGS ()
 
 DECLARE_TEST_MAP();

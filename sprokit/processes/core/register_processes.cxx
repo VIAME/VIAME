@@ -41,7 +41,7 @@
 #include "stabilize_image_process.h"
 
 extern "C"
-KWIVER_CORE_PROCESSES_EXPORT void register_processes();
+KWIVER_PROCESSES_EXPORT void register_processes();
 
 
 // ----------------------------------------------------------------

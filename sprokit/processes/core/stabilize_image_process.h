@@ -32,7 +32,7 @@
 #define _KWIVER_STABILIZE_IMAGE_PROCESS_H_
 
 #include <sprokit/pipeline/process.h>
-#include "kwiver_core_processes_export.h"
+#include "kwiver_processes_export.h"
 
 #include <memory>
 
@@ -53,7 +53,7 @@ namespace kwiver
  * \oport{src_to_ref_homography}
  *
  */
-class KWIVER_CORE_PROCESSES_NO_EXPORT stabilize_image_process
+class KWIVER_PROCESSES_NO_EXPORT stabilize_image_process
   : public sprokit::process
 {
   public:

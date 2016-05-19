@@ -38,7 +38,7 @@
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
 
-#include <arrows/processes/kwiver_type_traits.h>
+#include <kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/datum.h>

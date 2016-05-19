@@ -6,6 +6,6 @@ sprokit_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/test.py
 
 sprokit_create_python_init(sprokit/test)
 
-if (SPROKIT_ENABLE_TESTING)
+if (KWIVER_ENABLE_TESTS)
   add_subdirectory(python)
 endif ()

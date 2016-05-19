@@ -1,7 +1,7 @@
 #
 # KWIVER processes
 #
-project( kwiver_core_processes )
+project( kwiver_processes )
 
 set( sources
   register_processes.cxx
@@ -31,13 +31,13 @@ kwiver_private_header_group( ${private_headers} )
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-kwiver_add_plugin( kwiver_core_processes
-  SUBDIR          sprokit
-  SOURCES       ${sources}
-                ${private_headers}
-  PRIVATE         sprokit_pipeline
-                  algorithms_core
-                  vital vital_apm vital_logger vital_config
-                  ${Boost_SYSTEM_LIBRARY}
-                  ${Boost_FILESYSTEM_LIBRARY}
+kwiver_add_plugin( kwiver_processes
+  SUBDIR           sprokit
+  SOURCES        ${sources}
+                 ${private_headers}
+  PRIVATE          sprokit_pipeline
+                   kwiver_algo
+                   vital vital_apm vital_logger vital_config
+                 ${Boost_SYSTEM_LIBRARY}
+                 ${Boost_FILESYSTEM_LIBRARY}
 )

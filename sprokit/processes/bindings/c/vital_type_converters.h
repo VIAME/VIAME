@@ -35,7 +35,7 @@
 #ifndef KWIVER_VITAL_TYPE_CONVERTERS_H
 #define KWIVER_VITAL_TYPE_CONVERTERS_H
 
-#include <arrows/processes/bindings/c/vital_type_converters_export.h>
+#include <processes/bindings/c/vital_type_converters_export.h>
 
 #include <vital/bindings/c/image_container.h>
 #include <vital/bindings/c/track_set.h>
@@ -59,7 +59,6 @@ double* double_vector_from_datum( PyObject* args );
 VITAL_TYPE_CONVERTERS_EXPORT
 PyObject* double_vector_to_datum( PyObject* list );
 
-
 VITAL_TYPE_CONVERTERS_EXPORT
 vital_trackset_t* vital_trackset_from_datum( PyObject* dptr );
 
@@ -68,6 +67,5 @@ vital_trackset_t* vital_trackset_from_datum( PyObject* dptr );
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* KWIVER_VITAL_TYPE_CONVERTERS_H */

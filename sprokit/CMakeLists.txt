@@ -55,10 +55,14 @@ if (SPROKIT_ENABLE_EXTRAS)
   add_subdirectory(extra)
 endif ()
 
-option(SPROKIT_ENABLE_TESTING "Build tests" OFF)
-if (SPROKIT_ENABLE_TESTING)
+if (KWIVER_ENABLE_TESTS)
   include(CTest)
   add_subdirectory(tests)
 endif ()
 
 add_subdirectory(conf)
+
+if (KWIVER_ENABLE_PROCESSES)
+  include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
+  add_subdirectory(processes)
+endif()

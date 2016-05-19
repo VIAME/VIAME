@@ -1,9 +1,11 @@
 #
-# Arrows processes
+# Kwiver processes
 #
 
-option(ARROWS_ENABLE_PROCESS_C_BINDINGS "Enable building C bindings for processes" OFF )
-option(ARROWS_ENABLE_PROCESS_EXAMPLES "Enable building process examples" ON )
+include_directories( ${sprokit_source_dir}/src
+                     ${sprokit_binary_dir}/src   # for generated files
+                     ${CMAKE_CURRENT_SOURCE_DIR} # for trait support files
+                     )
 
 add_subdirectory( bindings )
 add_subdirectory( core )
@@ -24,3 +26,8 @@ endif()
 if (ARROWS_ENABLE_CAFFE)
 #  add_subdirectory(caffe)
 endif()
+
+kwiver_install_headers(
+  kwiver_type_traits.h
+  trait_utils.h
+  )

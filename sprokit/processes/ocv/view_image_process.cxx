@@ -40,7 +40,7 @@
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
 
-#include <arrows/processes/kwiver_type_traits.h>
+#include <kwiver_type_traits.h>
 
 #include <arrows/algorithms/ocv/image_container.h>
 

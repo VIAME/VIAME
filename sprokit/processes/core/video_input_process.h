@@ -32,7 +32,7 @@
 #define _KWIVER_VIDEO_INPUT_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
-#include "kwiver_core_processes_export.h"
+#include "kwiver_processes_export.h"
 
 namespace kwiver
 {
@@ -50,7 +50,7 @@ namespace kwiver
  * \oport{time}
  * \oport{metadata}
  */
-class KWIVER_CORE_PROCESSES_NO_EXPORT video_input_process
+class KWIVER_PROCESSES_NO_EXPORT video_input_process
   : public sprokit::process
 {
 public:

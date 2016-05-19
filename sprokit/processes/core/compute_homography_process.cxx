@@ -41,7 +41,7 @@
 #include <vital/algo/track_features.h>
 #include <vital/algo/compute_ref_homography.h>
 
-#include <arrows/processes/kwiver_type_traits.h>
+#include <kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 

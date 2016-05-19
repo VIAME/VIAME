@@ -37,7 +37,7 @@
 #define _KWIVER_DRAW_TRACKS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
-#include "kwiver_core_processes_export.h"
+#include "kwiver_processes_export.h"
 
 #include <memory>
 
@@ -49,7 +49,7 @@ namespace kwiver
  * @brief Display images
  *
  */
-class KWIVER_CORE_PROCESSES_NO_EXPORT draw_tracks_process
+class KWIVER_PROCESSES_NO_EXPORT draw_tracks_process
   : public sprokit::process
 {
 public:

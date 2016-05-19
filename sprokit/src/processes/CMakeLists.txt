@@ -4,7 +4,7 @@ add_subdirectory(helpers)
 add_subdirectory(clusters)
 add_subdirectory(flow)
 
-if (SPROKIT_ENABLE_TESTING)
+if (KWIVER_ENABLE_TESTS)
   add_subdirectory(examples)
 endif ()
 

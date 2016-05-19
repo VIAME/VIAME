@@ -32,7 +32,7 @@
 #define _KWIVER_FRAME_LIST_PROCESS_H_
 
 #include <sprokit/pipeline/process.h>
-#include "kwiver_core_processes_export.h"
+#include "kwiver_processes_export.h"
 
 #include <memory>
 
@@ -51,7 +51,7 @@ namespace kwiver
  * \oport{frame}
  * \oport{time}
  */
-class KWIVER_CORE_PROCESSES_NO_EXPORT frame_list_process
+class KWIVER_PROCESSES_NO_EXPORT frame_list_process
   : public sprokit::process
 {
 public:

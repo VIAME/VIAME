@@ -35,9 +35,9 @@
 #include <vital/types/image_container.h>
 #include <vital/types/image.h>
 #include <vital/algorithm_plugin_manager.h>
-#include <arrows/algorithms/ocv/image_container.h>
+#include <arrows/ocv/image_container.h>
 
-#include <arrows/processes/kwiver_type_traits.h>
+#include <kwiver_type_traits.h>
 
 // -- DEBUG
 #if defined DEBUG

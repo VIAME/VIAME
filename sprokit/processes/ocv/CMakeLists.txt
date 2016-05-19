@@ -22,12 +22,12 @@ if( OpenCV_VERSION VERSION_LESS "2.4" )
   message( FATAL_ERROR "OpenCV version must be at least 2.4" )
 endif()
 
-kwiver_add_plugin( kwiver_ocv_processes
+kwiver_add_plugin( kwiver_processes_ocv
   SUBDIR           sprokit
-  SOURCES          ${sources}
-                   ${private_headers}
+  SOURCES        ${sources}
+                 ${private_headers}
   PRIVATE          sprokit_pipeline
-                   algorithms_core algorithms_ocv
+                   kwiver_algo kwiver_algo_ocv
                    vital vital_apm vital_logger vital_config
-                   ${OpenCV_LIBS}
+                 ${OpenCV_LIBS}
  )
