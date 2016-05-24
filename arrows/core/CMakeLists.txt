@@ -26,7 +26,7 @@ kwiver_install_headers(
   ${plugin_core_headers}
   )
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/arrows_core_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_export.h
   NOPATH   SUBDIR     arrows/core
   )
 
