@@ -1,0 +1,97 @@
+Vital 0.2.0 Release Notes
+=========================
+
+This is a minor release of Vital that provides both new functionality over
+the previous v0.1.0 release.  Vital is still considered pre-release software
+and subject to significant API changes.  This release is expected to be the
+last major/minor release of Vital as a stand-alone package.  The Vital code
+is being rolled into the KWIVER repository along with Sprokit and the algorithm
+plugins from MAP-Tk, which will be called Arrows.  Combining these repositories
+into a single one will simplify development, compilation, and code review.
+The Vital repository will be retired once transition is complete.
+
+
+Updates since v0.1.0
+---------------------------------
+
+Absract Algorithms
+
+ * Added an abstract algorithm for computing canonical transforms from maps
+   of cameras and points
+
+Bindings
+
+ * Updated current C/Python bindings to function correctly in Vital.
+
+ * Updated IPython notebook (now for use with jupyter)
+
+ * Added minimal bindings for Eigen::Matrix class in C.
+
+ * Added Python wrapping of Eigen::Matrix data using Numpy ndarray type.
+
+ * Added full C/Python bindings for vital::camera_intrinsics class
+
+ * Added full C/Python bindings for vital::covariance_<N, T> class
+
+ * Added full C/Python bindings for vital::rotation_<T> class
+
+ * Added full C/Python bindings for vital::camera class
+
+ * Added full C/Python bindings for vital::descriptor class
+
+ * Added full C/Python bindings for vital::feature class
+
+ * Fixed bug in python ConfigBlock read-from-file.
+
+Vital Types
+
+ * Fixed vital::covariance_ default constructor to initialize identity
+   matrix values instead of not initializing anything.
+
+ * Added geo coordinate types and bounding box.
+
+ * Added vital::any() class to support python bindings.
+
+New features
+
+ * Added classes to support general purpose plugin loading. These are
+   designed to support general plugin loading for other kwiver components.
+
+ * Added source file location for origin of thrown exceptions. This can
+   be optionally filled in to provide the developer on where the
+   exception was detected.
+
+ * Added video input abstract algorithm to support reading from video
+   sources. Also added video exception to handle errors from video
+   sources.
+
+ * Added klv parsing library to decode metadata embedded in the video
+   stream. This parsing code is derived from a previously publically
+   released package.
+
+ * Added dump_klv program to display video metadata derived from the
+   klv video stream.
+
+ * Added extensible video metadata class to support video metadata from
+   video sources.
+
+ * Added algorithm capabilities to allow the concrete algorithms to
+   report their capabilities to the algorithm user.
+
+ * Added config explorer tool to help analyze complex config loading
+   applications.
+
+
+Build infrastructure
+
+* Added CMake and c++ code to detect
+  - availablilty of symbol demangling support
+  - compiler specific std::unique_ptr behaviour
+
+Fixes since v0.1.0
+---------------------------------
+
+Vital Types
+
+ * Fixed a bug in which distortion coefficients were not properly captured when
+   parsing a camera in KRTD format.
