@@ -73,12 +73,16 @@ class TrackSet (VitalObject):
         None or an empty list may be provided to initialize an empty track set.
 
         :param track_list: List of tracks to initialize the set with
-        :type track_list: list of Track or None
+        :type track_list: collections.Iterable[Track] | None
 
         """
         super(TrackSet, self).__init__(from_cptr, track_list)
 
     def _new(self, track_list):
+        """
+        :param track_list: List of tracks to initialize the set with
+        :type track_list: collections.Iterable[Track] | None
+        """
         ts_new = self.VITAL_LIB['vital_trackset_new']
         ts_new.argtypes = [ctypes.c_size_t,
                            ctypes.POINTER(Track.C_TYPE_PTR)]
