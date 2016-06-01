@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015-2016 by Kitware, Inc.
+Copyright 2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,66 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-vital.types module
+Tests for TrackState interface class
 
 """
+import ctypes
+import unittest
 
-# Common VITAL Components for easy access
-from .camera_intrinsics import CameraIntrinsics
-from .color import RGBColor
-from .covariance import Covariance
-from .descriptor import Descriptor
-from .eigen import EigenArray
-from .image import Image
-from .image_container import ImageContainer
-from .rotation import Rotation
+import nose.tools
+import numpy
 
-# Requires EigenArray and RGBColor
-from .feature import Feature
+from vital.types import TrackState, Feature, Descriptor
 
-# Requires Descriptor, Feature
-from .track import TrackState, Track
-from .track_set import TrackSet
 
-# Requires CameraIntrinsics, Covariance, EigenArray, Rotation
-from .camera import Camera
+class TestTrackState (unittest.TestCase):
 
-# Required Camera
-from .camera_map import CameraMap
+    def test_new_ts(self):
+        TrackState(0)
+        TrackState(23456)
+
+        # With feat, desc, feat/desc
+        f = Feature()
+        d = Descriptor()
+        TrackState(0, feature=f)
+        TrackState(0, descriptor=d)
+        TrackState(0, f, d)
+
+        # Only integers
+        nose.tools.assert_raises(
+            ctypes.ArgumentError,
+            TrackState, 1.2
+        )
+        nose.tools.assert_raises(
+            ctypes.ArgumentError,
+            TrackState, 'foo'
+        )
+
+    def test_frame_id(self):
+        ts = TrackState(0)
+        nose.tools.assert_equal(ts.frame_id, 0)
+
+        ts = TrackState(14691234578)
+        nose.tools.assert_equal(ts.frame_id, 14691234578)
+
+    def test_feat_empty(self):
+        ts = TrackState(0)
+        nose.tools.assert_is_none(ts.feature)
+
+    def test_desc_empty(self):
+        ts = TrackState(0)
+        nose.tools.assert_is_none(ts.descriptor)
+
+    def test_feat(self):
+        f = Feature()
+        ts = TrackState(0, f)
+        nose.tools.assert_equal(ts.feature, f)
+
+    def test_desc(self):
+        # Some random initialized descriptor
+        d = Descriptor()
+        d[:] = 1
+        nose.tools.assert_equal(d.sum(), d.size)
+
+        ts = TrackState(0, descriptor=d)
+        numpy.testing.assert_equal(d, ts.descriptor)

@@ -35,7 +35,96 @@ Interface to VITAL track class.
 """
 import ctypes
 
-from vital.util import VitalObject, VitalErrorHandle
+from vital.types import (
+    Descriptor,
+    Feature
+)
+from vital.util import VitalObject, free_void_ptr
+
+
+class TrackState (VitalObject):
+    """
+    vital::track::track_state interface class
+    """
+
+    def __init__(self, frame, feature=None, descriptor=None, from_cptr=None):
+        """
+        Initialize new track state
+
+        :param frame: Frame the track state intersects
+        :type frame: int
+
+        :param feature: Optional Feature instance associated with this state.
+        :type feature: vital.types.Feature
+
+        :param descriptor: Optional Descriptor instance associated with this
+            state.
+        :type descriptor: vital.types.Descriptor
+
+        """
+        super(TrackState, self).__init__(from_cptr, frame, feature, descriptor)
+
+    def _new(self, frame, feature, descriptor):
+        """
+        :param frame: Frame the track state intersects
+        :type frame: int
+
+        :param feature: Optional Feature instance associated with this state.
+        :type feature: vital.types.Feature
+
+        :param descriptor: Optional Descriptor instance associated with this
+            state.
+        :type descriptor: vital.types.Descriptor
+        """
+        return self._call_cfunc(
+            "vital_track_state_new",
+            [ctypes.c_int64, Feature.c_ptr_type(), Descriptor.c_ptr_type()],
+            [frame, feature, descriptor],
+            self.C_TYPE_PTR
+        )
+
+    def _destroy(self):
+        self._call_cfunc(
+            "vital_track_state_destroy",
+            [self.C_TYPE_PTR],
+            [self],
+        )
+
+    @property
+    def frame_id(self):
+        return self._call_cfunc(
+            "vital_track_state_frame_id",
+            [self.C_TYPE_PTR],
+            [self],
+            ctypes.c_int64
+        )
+
+    @property
+    def feature(self):
+        f_ptr = self._call_cfunc(
+            "vital_track_state_feature",
+            [self.C_TYPE_PTR],
+            [self],
+            Feature.c_ptr_type()
+        )
+        # f_ptr may be null
+        if f_ptr:
+            return Feature(from_cptr=f_ptr)
+        else:
+            return None
+
+    @property
+    def descriptor(self):
+        d_ptr = self._call_cfunc(
+            "vital_track_state_descriptor",
+            [self.C_TYPE_PTR],
+            [self],
+            Descriptor.c_ptr_type()
+        )
+        if d_ptr:
+            return Descriptor(from_cptr=d_ptr)
+        else:
+            return None
 
 
 class Track (VitalObject):
@@ -70,6 +159,57 @@ class Track (VitalObject):
         return self.size
 
     @property
+    def id(self):
+        """
+        Get the ID of the track
+        :return: Integer ID value of this track
+        :rtype: int | long
+        """
+        return self._call_cfunc(
+            "vital_track_id",
+            [self.C_TYPE_PTR],
+            [self],
+            ctypes.c_int64,
+        )
+
+    @id.setter
+    def id(self, new_id):
+        """
+        Set ID of the track
+        :param new_id: New integer ID
+        :type new_id: int
+        """
+        self._call_cfunc(
+            "vital_track_set_id",
+            [self.C_TYPE_PTR, ctypes.c_int64],
+            [self, new_id],
+        )
+
+    @property
+    def first_frame(self):
+        """
+        Get the first frame ID of states in this track
+        :return: Frame ID
+        :rtype: int
+        """
+        return self._call_cfunc(
+            "vital_track_first_frame",
+            [self.C_TYPE_PTR], [self], ctypes.c_int64
+        )
+
+    @property
+    def last_frame(self):
+        """
+        Get the last frame ID of states in this track
+        :return: Frame ID
+        :rtype: int
+        """
+        return self._call_cfunc(
+            "vital_track_last_frame",
+            [self.C_TYPE_PTR], [self], ctypes.c_int64
+        )
+
+    @property
     def size(self):
         """
         :return: The number of states in this track
@@ -94,3 +234,22 @@ class Track (VitalObject):
             [self],
             ctypes.c_bool,
         )
+
+    def all_frame_ids(self):
+        """
+        Get set of all frame IDs covered by states in this track.
+        :return: Set of frame ID integers
+        :rtype: set[int]
+        """
+        n = ctypes.c_size_t()
+        s = self._call_cfunc(
+            "vital_track_all_frame_ids",
+            [self.C_TYPE_PTR, ctypes.POINTER(ctypes.c_size_t)],
+            [self, ctypes.byref(n)],
+            ctypes.POINTER(ctypes.c_int64)
+        )
+        r = set()
+        for i in xrange(n.value):
+            r.add(s[i])
+        free_void_ptr(s)
+        return r

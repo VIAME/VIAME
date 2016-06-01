@@ -30,21 +30,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Tests for VitalTrack interface class
+Tests for Track interface class
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
-
-from vital.types import Track
+import ctypes
 
 import nose.tools
+
+from vital.types import Track
 
 
 class TestVitalTrack (object):
 
     def test_new(self):
         t = Track()
+
+    def test_initial_id(self):
+        t = Track()
+        nose.tools.assert_equal(t.id, 0)
+
+    def test_initial_firstlast_frame(self):
+        t = Track()
+        nose.tools.assert_equal(t.first_frame, 0)
+        nose.tools.assert_equal(t.last_frame, 0)
+
+    def test_initial_all_frame_ids(self):
+        t = Track()
+        s = t.all_frame_ids()
+        nose.tools.assert_equal(len(s), 0)
 
     def test_initial_size(self):
         t = Track()
@@ -53,3 +66,21 @@ class TestVitalTrack (object):
     def test_initial_is_empty(self):
         t = Track()
         nose.tools.assert_true(t.is_empty)
+
+    def test_set_id(self):
+        t = Track()
+        nose.tools.assert_equal(t.id, 0)
+
+        t.id = 2
+        nose.tools.assert_equal(t.id, 2)
+
+        t.id = 1345634
+        nose.tools.assert_equal(t.id, 1345634)
+
+        # Shouldn't be able to set floats
+        def set():
+            t.id = 1.5
+        nose.tools.assert_raises(
+            ctypes.ArgumentError,
+            set
+        )
