@@ -133,6 +133,20 @@ vital_descriptor_as_doubles( vital_descriptor_t const *d,
 }
 
 
+/// Get the name of the descriptor instance's data type
+char const*
+vital_descriptor_type_name( vital_descriptor_t const *d,
+                            vital_error_handle_t *eh )
+{
+  STANDARD_CATCH(
+    "vital_descriptor_type_name", eh,
+    auto d_sptr = vital_c::DESCRIPTOR_SPTR_CACHE.get( d );
+    return d_sptr->data_type().name();
+  );
+  return 0;
+}
+
+
 #define DEFINE_TYPED_OPERATIONS( T, S ) \
 \
 /* Create a new descriptor of a the given size (vital::descriptor_dynamic<T>) */ \
