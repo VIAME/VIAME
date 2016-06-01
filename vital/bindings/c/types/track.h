@@ -56,6 +56,8 @@ typedef struct {} vital_track_state_t;
 /// Opaque structure for vital::track instances
 typedef struct {} vital_track_t;
 
+////////////////////////////////////////////////////////////////////////////////
+// Track State
 
 /// Create a new track state
 /**
@@ -113,6 +115,9 @@ VITAL_C_EXPORT
 vital_descriptor_t*
 vital_track_state_descriptor( vital_track_state_t *ts, vital_error_handle_t *eh );
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Track
 
 /// Create a new track
 /**

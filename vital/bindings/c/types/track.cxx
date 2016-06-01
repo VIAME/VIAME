@@ -53,6 +53,8 @@ SharedPointerCache< vital::track, vital_track_t >
 
 using namespace kwiver;
 
+////////////////////////////////////////////////////////////////////////////////
+// Track State
 
 /// Create a new track state
 vital_track_state_t*
@@ -139,6 +141,9 @@ vital_track_state_descriptor( vital_track_state_t *ts, vital_error_handle_t *eh 
   return 0;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Track
 
 /// Create a new track
 vital_track_t*
