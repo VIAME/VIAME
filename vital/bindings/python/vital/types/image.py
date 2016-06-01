@@ -210,9 +210,9 @@ class Image (VitalObject):
         # determine image format from strides
         if self.depth() == 3:
             if self.d_step() == 1:
-                mode = "BGR"
-            elif self.d_step() < 0:
                 mode = "RGB"
+            elif self.d_step() < 0:
+                mode = "BGR"
             else:
                 raise RuntimeError("Unsupported image format.")
 
