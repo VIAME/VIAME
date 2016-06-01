@@ -37,20 +37,12 @@ import ctypes
 
 import numpy
 
-from vital.exceptions.base import VitalNoTypeInfoException
-from vital.util import VitalObject
+from vital.util import VitalObject, TYPE_NAME_MAP
 from vital.types import (
     Covariance,
     EigenArray,
     RGBColor,
 )
-
-
-# Known mapping of C++ type_into.name() values for basic types
-TYPE_NAME_MAP = {
-    'd': ctypes.c_double,
-    'f': ctypes.c_float,
-}
 
 
 class Feature (VitalObject):

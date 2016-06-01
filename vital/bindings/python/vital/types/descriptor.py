@@ -40,6 +40,7 @@ import numpy
 from vital.exceptions.base import VitalDynamicCastException
 from vital.util import (
     free_void_ptr,
+    TYPE_NAME_MAP,
     VitalErrorHandle,
     VitalObject,
 )
@@ -63,11 +64,11 @@ class Descriptor (numpy.ndarray, VitalObject):
         :param ctype: Data type that this data is represented as under the hood.
         :param from_cptr: Existing Descriptor instance to wrap.
         """
-        # noinspection PyProtectedMember
-        type_char = ctype._type_
-
         if from_cptr is None:
-            d_new = cls.VITAL_LIB['vital_descriptor_new_{}'.format(type_char)]
+            d_type = ctype
+            # noinspection PyProtectedMember
+            d_type_char = ctype._type_
+            d_new = cls.VITAL_LIB['vital_descriptor_new_{}'.format(d_type_char)]
             d_new.argtypes = [ctypes.c_size_t, VitalErrorHandle.c_ptr_type()]
             d_new.restype = cls.c_ptr_type()
             with VitalErrorHandle() as eh:
@@ -77,12 +78,31 @@ class Descriptor (numpy.ndarray, VitalObject):
                 raise ValueError("Invalid ``from_cptr`` value (given %s"
                                  % type(from_cptr))
             inst_ptr = from_cptr
+            # Get type char from generic data type introspection function
+            # ASSUMING typename from c++ is the same as ctypes _type_ values,
+            #   which is at least currently true for float/double types, which
+            #   is all that we care about / is implemented in C/C++.
+            d_type = TYPE_NAME_MAP[cls._call_cfunc(
+                'vital_descriptor_type_name',
+                [cls.c_ptr_type()],
+                [inst_ptr],
+                ctypes.c_char_p
+            )]
+            # noinspection PyProtectedMember
+            d_type_char = d_type._type_
+            # Extract existing instance size information
+            size = cls._call_cfunc(
+                'vital_descriptor_size',
+                [cls.c_ptr_type()],
+                [inst_ptr],
+                ctypes.c_size_t
+            )
 
         # Get the raw-data pointer from inst to wrap array around
         d_raw_data = cls.VITAL_LIB['vital_descriptor_get_{}_raw_data'
-                                   .format(type_char)]
+                                   .format(d_type_char)]
         d_raw_data.argtypes = [cls.c_ptr_type(), VitalErrorHandle.c_ptr_type()]
-        d_raw_data.restype = ctypes.POINTER(ctype)
+        d_raw_data.restype = ctypes.POINTER(d_type)
         # TODO: We could recover from an exception here by parsing the type
         #       expected in the error message and changing the construction type
         with VitalErrorHandle() as eh:
@@ -90,8 +110,8 @@ class Descriptor (numpy.ndarray, VitalObject):
             data_ptr = d_raw_data(inst_ptr, eh)
         b = numpy.ctypeslib.as_array(data_ptr, (size,))
 
-        dtype = numpy.dtype(ctype)
-        obj = numpy.ndarray.__new__(cls, size, dtype, b)
+        npy_type = numpy.dtype(d_type)
+        obj = numpy.ndarray.__new__(cls, size, npy_type, b)
         obj._inst_ptr = inst_ptr
         obj._owns_data = True  # This is the owning instance
         return obj
