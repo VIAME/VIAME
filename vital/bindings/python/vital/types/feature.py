@@ -72,7 +72,7 @@ class Feature (VitalObject):
             # noinspection PyProtectedMember
             self._tchar = ctype._type_
         else:
-            self._datatype = self._tchar = None
+            self._tchar = None
         super(Feature, self).__init__(from_cptr, loc, mag, scale, angle,
                                       rgb_color)
 
@@ -123,10 +123,8 @@ class Feature (VitalObject):
         :return: Get the data type flag.
         :rtype: str
         """
-        if not self._tchar:
-            raise VitalNoTypeInfoException("Type info required but not present")
         return self._call_cfunc(
-            'vital_feature_{}_type_name'.format(self._tchar),
+            'vital_feature_type_name',
             [self.C_TYPE_PTR],
             [self],
             ctypes.c_char_p
