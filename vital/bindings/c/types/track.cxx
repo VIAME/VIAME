@@ -269,3 +269,53 @@ vital_track_empty( vital_track_t const *track,
   );
   return true;
 }
+
+
+/// Append a track state to this track
+bool
+vital_track_append_state( vital_track_t *t, vital_track_state_t *ts,
+                          vital_error_handle_t *eh )
+{
+  STANDARD_CATCH(
+    "vital_track_append_state", eh,
+    auto t_sptr = vital_c::TRACK_SPTR_CACHE.get( t );
+      REINTERP_TYPE( vital::track::track_state, ts, ts_ptr );
+      return t_sptr->append( *ts_ptr );
+  );
+  return false;
+}
+
+
+/// Find the track state matching the given frame ID
+vital_track_state_t*
+vital_track_find_state( vital_track_t *t, int64_t frame,
+                        vital_error_handle_t *eh )
+{
+  STANDARD_CATCH(
+    "vital_track_find_state", eh,
+    auto t_sptr = vital_c::TRACK_SPTR_CACHE.get( t );
+    auto it = t_sptr->find( frame );
+    if( it != t_sptr->end() )
+    {
+      vital::track::track_state const &ts = *it;
+      // store out-going references of the state's feature and descriptor if
+      // non-null
+      if( ts.feat )
+      {
+        vital_c::FEATURE_SPTR_CACHE.store( ts.feat );
+      }
+      if( ts.desc )
+      {
+        vital_c::DESCRIPTOR_SPTR_CACHE.store( ts.desc );
+      }
+      // Not using REINTERP_TYPE because feature/descriptor could be validly null
+      return vital_track_state_new(
+        frame,
+        reinterpret_cast< vital_feature_t* >( ts.feat.get() ),
+        reinterpret_cast< vital_descriptor_t* >( ts.desc.get() ),
+        eh
+      );
+    }
+  );
+  return NULL;
+}
