@@ -35,7 +35,9 @@ vital::feature class interface
 """
 import ctypes
 
-from vital.exceptions.base import VitalDynamicCastException
+import numpy
+
+from vital.exceptions.base import VitalNoTypeInfoException
 from vital.util import VitalObject
 from vital.types import (
     Covariance,
@@ -51,6 +53,11 @@ class Feature (VitalObject):
         """
         Create a new Feature instance.
 
+        If created from an existing C reference, we inherently don't know the
+        underlying data type (generic shared pointers under the hood). Thus,
+        when creating a new Feature object from a C-pointer, the setter function
+        cannon be used and instead raises a VitalNoTypeInfoException.
+
         :param loc: Location of the feature
         :param mag: Magnitude of the feature
         :param scale: Scale of the feature
@@ -60,9 +67,12 @@ class Feature (VitalObject):
         :param from_cptr: An existing feature instance to wrap.
 
         """
-        self._datatype = ctype
-        # noinspection PyProtectedMember
-        self._tchar = ctype._type_
+        if from_cptr is None:
+            self._datatype = ctype
+            # noinspection PyProtectedMember
+            self._tchar = ctype._type_
+        else:
+            self._datatype = self._tchar = None
         super(Feature, self).__init__(from_cptr, loc, mag, scale, angle,
                                       rgb_color)
 
@@ -83,22 +93,43 @@ class Feature (VitalObject):
                 self._datatype, self._datatype, self._datatype,
                 RGBColor.c_ptr_type()
             ],
-            self.C_TYPE_PTR,
-            loc, mag, scale, angle, rgb_color
+            [loc, mag, scale, angle, rgb_color],
+            self.C_TYPE_PTR
         )
 
     def _destroy(self):
         self._call_cfunc(
-            'vital_feature_destroy', [self.C_TYPE_PTR], None, self
+            'vital_feature_destroy', [self.C_TYPE_PTR], [self]
         )
+
+    def __eq__(self, other):
+        if isinstance(other, Feature):
+            return (
+                numpy.array_equal(self.location, other.location) and
+                self.magnitude == other.magnitude and
+                self.scale == other.scale and
+                self.angle == other.angle and
+                self.covariance == other.covariance and
+                self.color == other.color
+            )
+        return False
+
+    def __ne__(self, other):
+        return not (self == other)
 
     @property
     def type_name(self):
+        """
+        :return: Get the data type flag.
+        :rtype: str
+        """
+        if not self._tchar:
+            raise VitalNoTypeInfoException("Type info required but not present")
         return self._call_cfunc(
             'vital_feature_{}_type_name'.format(self._tchar),
             [self.C_TYPE_PTR],
-            ctypes.c_char_p,
-            self
+            [self],
+            ctypes.c_char_p
         )
 
     @property
@@ -107,8 +138,8 @@ class Feature (VitalObject):
         cptr = self._call_cfunc(
             'vital_feature_loc',
             [self.C_TYPE_PTR],
+            [self],
             EigenArray.c_ptr_type(2),
-            self
         )
         return EigenArray(2, from_cptr=cptr)
 
@@ -118,12 +149,13 @@ class Feature (VitalObject):
         :param loc: New locations. May be any iterable of 2 elements.
         :type loc: collections.Iterable
         """
+        if self._datatype is None:
+            raise VitalNoTypeInfoException("Type info required but not present")
         loc = EigenArray.from_iterable(loc, self._datatype, (2, 1))
         self._call_cfunc(
             'vital_feature_{}_set_loc'.format(self._tchar),
             [self.C_TYPE_PTR, loc.C_TYPE_PTR],
-            None,
-            self, loc
+            [self, loc],
         )
 
     @property
@@ -131,17 +163,18 @@ class Feature (VitalObject):
         return self._call_cfunc(
             'vital_feature_magnitude',
             [self.C_TYPE_PTR],
+            [self],
             ctypes.c_double,
-            self
         )
 
     @magnitude.setter
     def magnitude(self, mag):
+        if self._datatype is None:
+            raise VitalNoTypeInfoException("Type info required but not present")
         self._call_cfunc(
             'vital_feature_{}_set_magnitude'.format(self._tchar),
             [self.C_TYPE_PTR, self._datatype],
-            None,
-            self, mag
+            [self, mag],
         )
 
     @property
@@ -149,17 +182,19 @@ class Feature (VitalObject):
         return self._call_cfunc(
             'vital_feature_scale',
             [self.C_TYPE_PTR],
+            [self],
             ctypes.c_double,
-            self
         )
 
     @scale.setter
     def scale(self, scale):
+        if self._datatype is None:
+            raise VitalNoTypeInfoException("Type info required but not present")
         self._call_cfunc(
             'vital_feature_{}_set_scale'.format(self._tchar),
             [self.C_TYPE_PTR, self._datatype],
+            [self, scale],
             None,
-            self, scale
         )
 
     @property
@@ -167,17 +202,18 @@ class Feature (VitalObject):
         return self._call_cfunc(
             'vital_feature_angle',
             [self.C_TYPE_PTR],
+            [self],
             ctypes.c_double,
-            self
         )
 
     @angle.setter
     def angle(self, angle):
+        if self._datatype is None:
+            raise VitalNoTypeInfoException("Type info required but not present")
         self._call_cfunc(
             'vital_feature_{}_set_angle'.format(self._tchar),
             [self.C_TYPE_PTR, self._datatype],
-            None,
-            self, angle
+            [self, angle],
         )
 
     @property
@@ -185,13 +221,15 @@ class Feature (VitalObject):
         cptr = self._call_cfunc(
             "vital_feature_covar",
             [self.C_TYPE_PTR],
+            [self],
             Covariance.c_ptr_type(2, ctypes.c_double),
-            self
         )
         return Covariance(2, ctypes.c_double, from_cptr=cptr)
 
     @covariance.setter
     def covariance(self, covar):
+        if self._datatype is None:
+            raise VitalNoTypeInfoException("Type info required but not present")
         if not isinstance(covar, Covariance):
             # Try an make a covariance out of whatever was provided
             covar = Covariance(2, self._datatype, covar)
@@ -199,8 +237,7 @@ class Feature (VitalObject):
         self._call_cfunc(
             "vital_feature_{}_set_covar".format(self._tchar),
             [self.C_TYPE_PTR, Covariance.c_ptr_type(2, self._datatype)],
-            None,
-            self, covar
+            [self, covar],
         )
 
     @property
@@ -208,16 +245,17 @@ class Feature (VitalObject):
         cptr = self._call_cfunc(
             "vital_feature_color",
             [self.C_TYPE_PTR],
+            [self],
             RGBColor.c_ptr_type(),
-            self
         )
         return RGBColor(from_cptr=cptr)
 
     @color.setter
     def color(self, c):
+        if self._datatype is None:
+            raise VitalNoTypeInfoException("Type info required but not present")
         self._call_cfunc(
             'vital_feature_{}_set_color'.format(self._tchar),
             [self.C_TYPE_PTR, RGBColor.c_ptr_type()],
-            None,
-            self, c
+            [self, c],
         )

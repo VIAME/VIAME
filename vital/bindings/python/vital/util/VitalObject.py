@@ -93,12 +93,15 @@ class VitalObject (object):
         return cls.C_TYPE_PTR
 
     @classmethod
-    def _call_cfunc(cls, func_name, argtypes, restype, *args):
+    def _call_cfunc(cls, func_name, argtypes=(), args=(), restype=None):
         """
         Extract function from vital library and call it with a VitalErrorHandle.
 
         This assumes that the C function takes an additional parameter than what
         is given to this function that is the error handle.
+
+        This function may raise an exception when the C function call's error
+        handle picked something up.
 
         :param func_name: C function name to pull from library
         :type func_name: str
@@ -106,22 +109,22 @@ class VitalObject (object):
         :param argtypes: Ctypes argument type array
         :type argtypes: list | tuple
 
-        :param restype: Ctypes return type
+        :param args: sequence of positional arguments to the C function
+        :type args: list | tuple
 
-        :param args: iterable of positional arguments to the C function
-        :param args: tuple
+        :param restype: optional Ctypes return type
 
         :return: Result of the c function call
 
         """
-        # local import to prevent circular import
+        # local to prevent circular import
         from vital.util import VitalErrorHandle
         f = cls.VITAL_LIB[func_name]
         if argtypes:
             f.argtypes = list(argtypes) + [VitalErrorHandle.c_ptr_type()]
         f.restype = restype
         with VitalErrorHandle() as eh:
-            return f(*(args + (eh,)))
+            return f(*(list(args) + [eh]))
 
     def __init__(self, from_cptr=None, *args, **kwds):
         """

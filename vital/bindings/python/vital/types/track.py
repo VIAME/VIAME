@@ -33,9 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Interface to VITAL track class.
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
-
 import ctypes
 
 from vital.util import VitalObject, VitalErrorHandle
@@ -53,26 +50,24 @@ class Track (VitalObject):
         super(Track, self).__init__()
 
     def _new(self):
-        t_new = self.VITAL_LIB['vital_track_new']
-        t_new.restype = self.C_TYPE_PTR
-        return t_new()
+        return self._call_cfunc(
+            'vital_track_new',
+            restype=self.C_TYPE_PTR,
+        )
 
     def _destroy(self):
-        t_del = self.VITAL_LIB['vital_track_destroy']
-        t_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
-        with VitalErrorHandle() as eh:
-            t_del(self, eh)
+        self._call_cfunc(
+            'vital_track_destroy',
+            [self.C_TYPE_PTR],
+            [self]
+        )
 
     def __len__(self):
         """
         :return: The number of states in this track
         :rtype: int
         """
-        t_size = self.VITAL_LIB['vital_track_size']
-        t_size.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
-        t_size.restype = ctypes.c_size_t
-        with VitalErrorHandle() as eh:
-            return t_size(self, eh)
+        return self.size
 
     @property
     def size(self):
@@ -80,7 +75,12 @@ class Track (VitalObject):
         :return: The number of states in this track
         :rtype: int
         """
-        return len(self)
+        return self._call_cfunc(
+            "vital_track_size",
+            [self.C_TYPE_PTR],
+            [self],
+            ctypes.c_size_t,
+        )
 
     @property
     def is_empty(self):
@@ -88,8 +88,9 @@ class Track (VitalObject):
         :return: If this track has no track states or not
         :rtype: bool
         """
-        t_empty = self.VITAL_LIB['vital_track_empty']
-        t_empty.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
-        t_empty.restype = ctypes.c_bool
-        with VitalErrorHandle() as eh:
-            return t_empty(self, eh)
+        return self._call_cfunc(
+            'vital_track_empty',
+            [self.C_TYPE_PTR],
+            [self],
+            ctypes.c_bool,
+        )
