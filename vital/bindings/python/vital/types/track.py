@@ -47,7 +47,7 @@ class TrackState (VitalObject):
     vital::track::track_state interface class
     """
 
-    def __init__(self, frame, feature=None, descriptor=None, from_cptr=None):
+    def __init__(self, frame=0, feature=None, descriptor=None, from_cptr=None):
         """
         Initialize new track state
 
@@ -132,11 +132,17 @@ class Track (VitalObject):
     vital::track interface class
     """
 
-    def __init__(self):
+    def __init__(self, id=0, from_cptr=None):
         """
         Initialize a new, empty track.
+
+        :param id: ID number to assign to this track
+
         """
-        super(Track, self).__init__()
+        super(Track, self).__init__(from_cptr)
+        # Set given ID value after construction if not from an existing pointer
+        if id != 0 and from_cptr is None:
+            self.id = id
 
     def _new(self):
         return self._call_cfunc(
@@ -253,3 +259,55 @@ class Track (VitalObject):
             r.add(s[i])
         free_void_ptr(s)
         return r
+
+    def append(self, ts):
+        """
+        Append a track state to this track
+
+        The new track state must have a frame_id greater than the last frame in
+        the history. If such an append is attempted, nothing is added to this
+        track.
+
+        :param ts: TrackState instance to add to this track.
+        :type ts: TrackState
+
+        :return: True if the state was successfully added, False if it wasn't.
+            If False is returned, this track is no modified.
+        :rtype: bool
+
+        """
+        return self._call_cfunc(
+            'vital_track_append_state',
+            [Track.c_ptr_type(), TrackState.c_ptr_type()],
+            [self, ts],
+            ctypes.c_bool
+        )
+
+    def find_state(self, frame_id):
+        """
+        Find the track state matching the given frame ID
+
+        :param frame_id: the frame ID to look for among states
+        :type frame_id: int
+
+        :return: TrackState instance from this track that intersects the given
+            frame id.
+        :rtype: TrackState
+
+        :raises IndexError: The given frame ID is not covered by states in this
+            track.
+
+        """
+        ts_cptr = self._call_cfunc(
+            'vital_track_find_state',
+            [self.C_TYPE_PTR, ctypes.c_int64],
+            [self, frame_id],
+            TrackState.c_ptr_type()
+        )
+        if ts_cptr:
+            return TrackState(from_cptr=ts_cptr)
+        else:
+            raise IndexError(frame_id)
+
+    # TODO: __iter__ that uses find_state for each frame_id in all_frame_ids
+    # TODO: __getitem__ that calls find_state

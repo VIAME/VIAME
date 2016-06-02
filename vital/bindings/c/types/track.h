@@ -226,12 +226,15 @@ vital_track_empty( vital_track_t const *track,
  * The new track state must have a frame_id greater than the last frame in the
  * history. If such an append is attempted, nothing is added to this track.
  *
+ * \param t Track instance to append to
+ * \param ts Track state instance to append
+ * \param eh Vital error handle instance
  * \returns True if successful, false if not correctly ordered.
  */
 VITAL_C_EXPORT
 bool
-  vital_track_append_state( vital_track_t *t, vital_track_state_t *ts,
-                            vital_error_handle_t *eh );
+vital_track_append_state( vital_track_t *t, vital_track_state_t *ts,
+                          vital_error_handle_t *eh );
 
 
 /// Find the track state matching the given frame ID
@@ -245,8 +248,8 @@ bool
  */
 VITAL_C_EXPORT
 vital_track_state_t*
-  vital_track_find_state( vital_track_t *t, int64_t frame,
-                          vital_error_handle_t *eh );
+vital_track_find_state( vital_track_t *t, int64_t frame,
+                        vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus

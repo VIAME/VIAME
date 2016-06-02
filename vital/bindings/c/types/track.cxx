@@ -65,14 +65,8 @@ vital_track_state_new( int64_t frame, vital_feature_t *f,
     "vital_track_state_new", eh,
     vital::feature_sptr f_sptr;
     vital::descriptor_sptr d_sptr;
-    if( f )
-    {
-      f_sptr = vital_c::FEATURE_SPTR_CACHE.get( f );
-    }
-    if( d )
-    {
-      d_sptr = vital_c::DESCRIPTOR_SPTR_CACHE.get( d );
-    }
+    if( f ) f_sptr = vital_c::FEATURE_SPTR_CACHE.get( f );
+    if( d ) d_sptr = vital_c::DESCRIPTOR_SPTR_CACHE.get( d );
     vital::track::track_state *ts = new vital::track::track_state(frame, f_sptr,
                                                                   d_sptr);
     return reinterpret_cast< vital_track_state_t* >( ts );
@@ -234,8 +228,6 @@ vital_track_all_frame_ids( vital_track_t const *t, size_t *n,
          it != s.end();
          ++it, ++i )
     {
-      LOG_DEBUG( m_logger,
-                 "Setting output array index " << i << " with value " << *it );
       r[i] = *it;
     }
     return r;
@@ -279,8 +271,8 @@ vital_track_append_state( vital_track_t *t, vital_track_state_t *ts,
   STANDARD_CATCH(
     "vital_track_append_state", eh,
     auto t_sptr = vital_c::TRACK_SPTR_CACHE.get( t );
-      REINTERP_TYPE( vital::track::track_state, ts, ts_ptr );
-      return t_sptr->append( *ts_ptr );
+    REINTERP_TYPE( vital::track::track_state, ts, ts_ptr );
+    return t_sptr->append( *ts_ptr );
   );
   return false;
 }
@@ -298,23 +290,26 @@ vital_track_find_state( vital_track_t *t, int64_t frame,
     if( it != t_sptr->end() )
     {
       vital::track::track_state const &ts = *it;
-      // store out-going references of the state's feature and descriptor if
-      // non-null
-      if( ts.feat )
-      {
-        vital_c::FEATURE_SPTR_CACHE.store( ts.feat );
-      }
-      if( ts.desc )
-      {
-        vital_c::DESCRIPTOR_SPTR_CACHE.store( ts.desc );
-      }
+      // Since we're not directly exposing feat/desc (contained underneath track
+      //  state), we're not retaining their sptrs.
+      // Temp storing feat/desc sptrs in caches ONLY for retrieval in
+      //  vital_track_state_new as there is no guarantee that they are stored
+      //  there yet.
+      // We will release them from their caches once after creating the state
+      //  as their shared pointers will now be references by a track-state
+      //  instance on the heap.
+      if( ts.feat ) vital_c::FEATURE_SPTR_CACHE.store( ts.feat );
+      if( ts.desc ) vital_c::DESCRIPTOR_SPTR_CACHE.store( ts.desc );
       // Not using REINTERP_TYPE because feature/descriptor could be validly null
-      return vital_track_state_new(
+      vital_track_state_t *c_ts = vital_track_state_new(
         frame,
         reinterpret_cast< vital_feature_t* >( ts.feat.get() ),
         reinterpret_cast< vital_descriptor_t* >( ts.desc.get() ),
         eh
       );
+      if( ts.feat ) vital_c::FEATURE_SPTR_CACHE.erase( ts.feat.get() );
+      if( ts.desc ) vital_c::DESCRIPTOR_SPTR_CACHE.erase( ts.desc.get() );
+      return c_ts;
     }
   );
   return NULL;
