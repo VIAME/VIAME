@@ -72,6 +72,7 @@ class TestVitalTrack (object):
     def test_initial_size(self):
         t = Track()
         nose.tools.assert_equal(t.size, 0)
+        nose.tools.assert_equal(len(t), 0)
 
     def test_initial_is_empty(self):
         t = Track()
@@ -98,14 +99,17 @@ class TestVitalTrack (object):
     def test_ts_append(self):
         t = Track()
         nose.tools.assert_equal(t.size, 0)
+        nose.tools.assert_equal(len(t), 0)
 
         ts = TrackState(10)
         nose.tools.assert_true(t.append(ts))
         nose.tools.assert_equal(t.size, 1)
+        nose.tools.assert_equal(len(t), 1)
 
         ts = TrackState(11)
         nose.tools.assert_true(t.append(ts))
         nose.tools.assert_equal(t.size, 2)
+        nose.tools.assert_equal(len(t), 2)
 
         # Other properties that should not be different than default
         nose.tools.assert_equal(t.first_frame, 10)
@@ -126,6 +130,7 @@ class TestVitalTrack (object):
         # After all that there should only be two states in there for frames 10
         # and 11.
         nose.tools.assert_equal(t.size, 2)
+        nose.tools.assert_equal(len(t), 2)
         nose.tools.assert_equal(t.all_frame_ids(), {10, 11})
 
     def test_track_find(self):
@@ -159,6 +164,39 @@ class TestVitalTrack (object):
         nose.tools.assert_is_not_none(t.find_state(10))
         nose.tools.assert_equal(t.find_state(10).frame_id, 10)
 
+    def test_track_getitem(self):
+        # this is the same test as test_track_find, but using the get-item
+        # accessor syntax
+        t = Track()
+        t.append(TrackState(0))
+        t.append(TrackState(1))
+        t.append(TrackState(5))
+        t.append(TrackState(9))
+
+        ts = t[0]
+        nose.tools.assert_is_not_none(ts)
+        nose.tools.assert_equal(ts.frame_id, 0)
+
+        ts = t[1]
+        nose.tools.assert_is_not_none(ts)
+        nose.tools.assert_equal(ts.frame_id, 1)
+
+        ts = t[5]
+        nose.tools.assert_is_not_none(ts)
+        nose.tools.assert_equal(ts.frame_id, 5)
+
+        ts = t[9]
+        nose.tools.assert_is_not_none(ts)
+        nose.tools.assert_equal(ts.frame_id, 9)
+
+        nose.tools.assert_raises(
+            IndexError,
+            t.find_state, 10
+        )
+        t.append(TrackState(10))
+        nose.tools.assert_is_not_none(t[10])
+        nose.tools.assert_equal(t[10].frame_id, 10)
+
     def test_ts_feat_desc(self):
         t = Track()
 
@@ -173,6 +211,7 @@ class TestVitalTrack (object):
         t.append(TrackState(1, f1, d1))
 
         nose.tools.assert_equal(t.size, 2)
+        nose.tools.assert_equal(len(t), 2)
         ts0 = t.find_state(0)
         nose.tools.assert_equal(ts0.feature, f0)
         numpy.testing.assert_equal(ts0.descriptor, d0)
@@ -190,4 +229,16 @@ class TestVitalTrack (object):
         )
         numpy.testing.assert_equal(
             t.find_state(1).descriptor, [1, 1, 1, 1]
+        )
+
+    def test_iteration(self):
+        t = Track()
+        t.append(TrackState(0))
+        t.append(TrackState(1))
+        t.append(TrackState(5))
+        t.append(TrackState(9))
+
+        nose.tools.assert_equal(
+            [ts.frame_id for ts in t],
+            [0, 1, 5, 9]
         )

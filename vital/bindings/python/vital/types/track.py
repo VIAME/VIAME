@@ -164,6 +164,31 @@ class Track (VitalObject):
         """
         return self.size
 
+    def __getitem__(self, fid):
+        """
+        Get the track state matching the given frame ID
+
+        :param fid: the frame ID to look for among states
+        :type fid: int
+
+        :return: TrackState instance from this track that intersects the given
+            frame id.
+        :rtype: TrackState
+
+        :raises IndexError: The given frame ID is not covered by states in this
+            track.
+
+        """
+        return self.find_state(fid)
+
+    def __iter__(self):
+        """
+        Iterate through TrackStates in this Track by ordered frame ID.
+        :rtype: __generator[TrackState]
+        """
+        for fid in sorted(self.all_frame_ids()):
+            yield self.find_state(fid)
+
     @property
     def id(self):
         """
@@ -308,6 +333,3 @@ class Track (VitalObject):
             return TrackState(from_cptr=ts_cptr)
         else:
             raise IndexError(frame_id)
-
-    # TODO: __iter__ that uses find_state for each frame_id in all_frame_ids
-    # TODO: __getitem__ that calls find_state
