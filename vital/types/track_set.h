@@ -80,9 +80,17 @@ public:
   virtual std::set< track_id_t > all_track_ids() const;
 
   /// Return the first (smallest) frame number containing tracks
+  /**
+   * If there are no tracks in this set, or no tracks have states, this returns
+   * 0.
+   */
   virtual frame_id_t first_frame() const;
 
   /// Return the last (largest) frame number containing tracks
+  /**
+   * If there are no tracks in this set, or no tracks have states, this returns
+   * 0.
+   */
   virtual frame_id_t last_frame() const;
 
   /// Return the track in this set with the specified id.
@@ -100,9 +108,10 @@ public:
    * Active tracks are any tracks which contain a state on the target frame.
    *
    * \param [in] offset the frame offset for selecting the active frame.
-   *                    Postive number are absolute frame numbers while negative
-   *                    numbers are relative to the last frame.  For example,
-   *                    offset of -1 refers to the last frame and is the default.
+   *                    Positive number are absolute frame numbers while
+   *                    negative numbers are relative to the last frame.  For
+   *                    example, offset of -1 refers to the last frame and is
+   *                    the default.
    *
    * \returns a track set which is the subset of tracks that are active.
    */
@@ -113,9 +122,10 @@ public:
    * Inactive tracks are any tracks which do not contain a state on the target frame.
    *
    * \param [in] offset the frame offset for selecting the active frame.
-   *                    Postive number are absolute frame numbers while negative
-   *                    numbers are relative to the last frame.  For example,
-   *                    offset of -1 refers to the last frame and is the default.
+   *                    Positive number are absolute frame numbers while
+   *                    negative numbers are relative to the last frame.  For
+   *                    example, offset of -1 refers to the last frame and is
+   *                    the default.
    *
    * \returns a track set which is the subset of tracks that are inactive.
    */
@@ -126,9 +136,10 @@ public:
    * New tracks include any tracks with a first track state on the target frame.
    *
    * \param[in] offset the frame offset for selecting the active frame.
-   *                   Postive number are absolute frame numbers while negative
-   *                   numbers are relative to the last frame.  For example,
-   *                   offset of -1 refers to the last frame and is the default.
+   *                   Positive number are absolute frame numbers while
+   *                   negative numbers are relative to the last frame.  For
+   *                   example, offset of -1 refers to the last frame and is
+   *                   the default.
    *
    * \returns a track set containing all new tracks for the given frame.
    */
@@ -139,9 +150,10 @@ public:
    * Terminated tracks include any tracks with a last track state on the frame.
    *
    * \param[in] offset the frame offset for selecting the active frame.
-   *                   Postive number are absolute frame numbers while negative
-   *                   numbers are relative to the last frame.  For example,
-   *                   offset of -1 refers to the last frame and is the default.
+   *                   Positive number are absolute frame numbers while
+   *                   negative numbers are relative to the last frame.  For
+   *                   example, offset of -1 refers to the last frame and is
+   *                   the default.
    *
    * \returns a track set containing all terminated tracks for the given frame.
    */
@@ -154,13 +166,15 @@ public:
    * number of unique tracks which appear on both frames.
    *
    * \param[in] offset1 the frame offset for the first frame in the operation.
-   *                    Postive number are absolute frame numbers while negative
-   *                    numbers are relative to the last frame.  For example,
-   *                    offset of -1 refers to the last frame and is the default.
+   *                    Positive number are absolute frame numbers while
+   *                    negative numbers are relative to the last frame.  For
+   *                    example, offset of -1 refers to the last frame and is
+   *                    the default.
    * \param[in] offset2 the frame offset for the second frame in the operation.
-   *                    Postive number are absolute frame numbers while negative
-   *                    numbers are relative to the last frame.  For example,
-   *                    offset of -1 refers to the last frame and is the default.
+   *                    Positive number are absolute frame numbers while
+   *                    negative numbers are relative to the last frame.  For
+   *                    example, offset of -1 refers to the last frame and is
+   *                    the default.
    *
    * \returns a floating point percent value (between 0.0 and 1.0).
    */
@@ -175,9 +189,10 @@ public:
   /// Return the set of features in all tracks for the given frame.
   /**
    * \param [in] offset the frame offset for selecting the target frame.
-   *                    Postive number are absolute frame numbers while negative
-   *                    numbers are relative to the last frame.  For example,
-   *                    offset of -1 refers to the last frame and is the default.
+   *                    Positive number are absolute frame numbers while
+   *                    negative numbers are relative to the last frame.  For
+   *                    example, offset of -1 refers to the last frame and is
+   *                    the default.
    *
    * \returns a feature_set_sptr for all features on the give frame.
    */
@@ -186,9 +201,10 @@ public:
   /// Return the set of descriptors in all tracks for the given frame.
   /**
    * \param [in] offset the frame offset for selecting the target frame.
-   *                    Postive number are absolute frame numbers while negative
-   *                    numbers are relative to the last frame.  For example,
-   *                    offset of -1 refers to the last frame and is the default.
+   *                    Positive number are absolute frame numbers while
+   *                    negative numbers are relative to the last frame.  For
+   *                    example, offset of -1 refers to the last frame and is
+   *                    the default.
    *
    * \returns a descriptor_set_sptr for all features on the give frame.
    */
