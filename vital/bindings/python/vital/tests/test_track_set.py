@@ -33,10 +33,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for Python interface to vital::track_set
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
+import ctypes
 
-from vital.types import Track
+from vital.types import Track, TrackState
 from vital.types import TrackSet
 
 import nose.tools as nt
@@ -58,8 +57,131 @@ class TestVitalTrackSet (object):
 
     def test_new_nonempty(self):
         n = 10
-        tracks = [Track() for _ in xrange(n)]
+        tracks = [Track(i) for i in xrange(n)]
         ts = TrackSet(tracks)
         nt.assert_true(ts, "Invalid track set instance constructed")
         nt.assert_equal(len(ts), n)
         nt.assert_equal(ts.size(), n)
+
+    def test_tracklist_accessor(self):
+        n = 10
+        tracks = [Track(i) for i in xrange(n)]
+        ts = TrackSet(tracks)
+        ts_tracks = ts.tracks()
+
+        nt.assert_equal(len(ts_tracks), n)
+        for i, t in enumerate(ts_tracks):
+            nt.assert_equal(t.id, i)
+
+        # constructing a new trackset from the returned list of tracks should
+        # yield a trackset whose accessor should return the same list of tracks
+        # (same C/C++ instances).
+        ts2 = TrackSet(ts_tracks)
+        ts2_tracks = ts2.tracks()
+        for i in xrange(n):
+            ctypes.addressof(ts2_tracks[0].c_pointer.contents) \
+                == ctypes.addressof(ts2_tracks[0].c_pointer.contents)
+
+    def test_all_frame_ids_single_track(self):
+        # From a single track
+        n = 10
+        t = Track(1)
+        for i in range(n):
+            t.append(TrackState(i))
+        ts = TrackSet([t])
+
+        nt.assert_equal(
+            ts.all_frame_ids(),
+            set(range(10))
+        )
+
+    def test_all_frame_ids_multitrack(self):
+        # Across multiple tracks
+        n = 10
+        t1 = Track(1)
+        for i in range(0, n):
+            t1.append(TrackState(i))
+        t2 = Track(2)
+        for i in range(n, n+5):
+            t2.append(TrackState(i))
+        ts = TrackSet([t1, t2])
+        nt.assert_equal(
+            ts.all_frame_ids(),
+            set(range(n+5))
+        )
+
+    def test_first_frame(self):
+        # no tracks
+        ts = TrackSet()
+        nt.assert_equal(ts.first_frame(), 0)
+
+        # one track
+        t = Track(1)
+        t.append(TrackState(1))
+        t.append(TrackState(2))
+        ts = TrackSet([t])
+        nt.assert_equal(ts.first_frame(), 1)
+
+        # two tracks
+        t2 = Track(2)
+        t2.append(TrackState(3))
+        ts = TrackSet([t, t2])
+        nt.assert_equal(ts.first_frame(), 1)
+
+    def test_last_frame(self):
+        # no tracks
+        ts = TrackSet()
+        nt.assert_equal(ts.last_frame(), 0)
+
+        # one track
+        t = Track(1)
+        t.append(TrackState(1))
+        t.append(TrackState(2))
+        ts = TrackSet([t])
+        nt.assert_equal(ts.last_frame(), 2)
+
+        # two tracks
+        t2 = Track(2)
+        t2.append(TrackState(3))
+        ts = TrackSet([t, t2])
+        nt.assert_equal(ts.last_frame(), 3)
+
+    def test_get_track_empty(self):
+        # Empty set
+        ts = TrackSet()
+        nt.assert_raises(
+            IndexError,
+            ts.get_track, 0
+        )
+
+    def test_get_track_single(self):
+        # get track when only track
+        t = Track(0)
+        ts = TrackSet([t])
+        u = ts.get_track(0)
+        # Check that they're the same underlying instance
+        nt.assert_equal(
+            ctypes.addressof(t.c_pointer.contents),
+            ctypes.addressof(u.c_pointer.contents)
+        )
+
+    def test_get_track_missing(self):
+        # test failure to get track from set when set does have contents, but
+        # TID is not present
+        ts = TrackSet([Track(0), Track(1), Track(3)])
+        nt.assert_raises(
+            IndexError,
+            ts.get_track, 2
+        )
+
+    def test_get_track_multiple(self):
+        n = 10
+        tracks = [Track(i) for i in range(n)]
+        ts = TrackSet(tracks)
+
+        # Check that they're the same underlying instance
+        for i in range(n):
+            nt.assert_equal(
+                ctypes.addressof(ts.get_track(i).c_pointer.contents),
+                ctypes.addressof(tracks[i].c_pointer.contents)
+            )
