@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,10 @@ typedef std::basic_string<TCHAR> tstring;
 
 static tstring last_windows_error();
 #endif
+
+#define TEST_ARGS ()
+
+DECLARE_TEST_MAP();
 
 int
 main(int argc, char* argv[])

@@ -16,14 +16,14 @@ function (add_tool name)
 endfunction ()
 
 function (add_python_tool name)
-  if (SPROKIT_ENABLE_PYTHON)
+  if (KWIVER_ENABLE_PYTHON)
     sprokit_configure_file(tool-python-${name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${name}.py"
-      "${sprokit_binary_dir}/bin/${name}"
+      "${sprokit_output_dir}/bin/${name}"
       PYTHON_EXECUTABLE)
 
     sprokit_install(
-      PROGRAMS    "${sprokit_binary_dir}/bin/${name}"
+      PROGRAMS    "${sprokit_output_dir}/bin/${name}"
       DESTINATION bin
       COMPONENT   tool)
   endif ()

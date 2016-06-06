@@ -5,7 +5,7 @@ function (sprokit_configure_pkgconfig module)
     sprokit_configure_file(sprokit-${module}.pc
       "${CMAKE_CURRENT_SOURCE_DIR}/${module}.pc.in"
       "${pkgconfig_file}"
-      sprokit_version
+      KWIVER_VERSION
       CMAKE_INSTALL_PREFIX
       LIB_SUFFIX
       ${ARGN})

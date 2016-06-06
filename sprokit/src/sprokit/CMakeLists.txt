@@ -64,10 +64,10 @@ endif ()
 sprokit_configure_file_always(version.h
   "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/version.h"
-  sprokit_version_major
-  sprokit_version_minor
-  sprokit_version_patch
-  sprokit_version
+  KWIVER_VERSION_MAJOR
+  KWIVER_VERSION_MINOR
+  KWIVER_VERSION_PATCH
+  KWIVER_VERSION
   SPROKIT_BUILT_FROM_GIT
   sprokit_git_hash
   sprokit_git_hash_short
@@ -80,7 +80,7 @@ add_subdirectory(pipeline_util)
 add_subdirectory(scoring)
 add_subdirectory(tools)
 
-if (SPROKIT_ENABLE_PYTHON)
+if (KWIVER_ENABLE_PYTHON)
   add_subdirectory(python)
 endif ()
 

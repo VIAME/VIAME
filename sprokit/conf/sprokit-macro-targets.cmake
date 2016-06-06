@@ -15,7 +15,7 @@
 #
 # The following variables may be used to control the behavior of the functions:
 #
-#   export_name
+#   kwiver_export_name
 #     The export target name for installed targets. This is the name used for
 #     install(EXPORT ...) calls
 #
@@ -85,18 +85,6 @@
 #     libraries. The library is neither exported nor installed. The 'sourcevar'
 #     argument is a list of source files for the library.
 
-define_property(GLOBAL
-  PROPERTY   sprokit_export_targets
-  BRIEF_DOCS "A list of all targets exported by sprokit_export."
-  FULL_DOCS  "This is intended to be used in a single export() call after all "
-             "targets have been added. This is done by the "
-             "sprokit_export_targets() function.")
-define_property(GLOBAL
-  PROPERTY   sprokit_libraries
-  BRIEF_DOCS "A list of all shared libraries built using sprokit_add_library()."
-  FULL_DOCS  "This list is intended to be used to generate tests which ensure "
-             "that each library can be opened on its own.")
-
 function (_sprokit_compile_pic name)
   if (CMAKE_VERSION VERSION_GREATER "2.8.9")
     set_target_properties(${name}
@@ -118,17 +106,17 @@ function (_sprokit_export name)
   endif ()
 
   set(exports
-    EXPORT ${export_name}
+    EXPORT ${kwiver_export_name}
     PARENT_SCOPE)
 
   set_property(GLOBAL APPEND
-    PROPERTY sprokit_export_targets
+    PROPERTY kwiver_export_targets
     ${name})
 endfunction ()
 
 function (sprokit_export_targets file)
   get_property(sprokit_exports GLOBAL
-    PROPERTY sprokit_export_targets)
+    PROPERTY kwiver_export_targets)
   export(
     TARGETS ${sprokit_exports}
     ${ARGN}
@@ -164,17 +152,18 @@ function (sprokit_add_executable name)
     COMPONENT   ${component})
 endfunction ()
 
+###
+# replace with kwiver_add_library()
 function (sprokit_add_library name)
-  add_library("${name}"
-    ${ARGN})
+  add_library("${name}"     ${ARGN})
+
   set_target_properties("${name}"
     PROPERTIES
       ARCHIVE_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
       LIBRARY_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
       RUNTIME_OUTPUT_DIRECTORY "${sprokit_output_dir}/bin${library_subdir}${library_subdir_suffix}")
 
-  add_dependencies("${name}"
-    configure-config.h)
+  add_dependencies("${name}"    configure-config.h)
 
   foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
     set(subdir "${library_subdir}/${config}${library_subdir_suffix}")
@@ -188,18 +177,16 @@ function (sprokit_add_library name)
   endforeach ()
 
   if (NOT component)
-    set(component
-      runtime)
+    set(component      runtime)
   endif ()
 
-  get_target_property(target_type
-    "${name}" TYPE)
+  get_target_property(target_type    "${name}" TYPE)
 
   if (target_type STREQUAL "STATIC_LIBRARY")
     _sprokit_compile_pic("${name}")
   else ()
     set_property(GLOBAL APPEND
-      PROPERTY sprokit_libraries
+      PROPERTY kwiver_libraries
       "${name}")
   endif ()
 
@@ -217,6 +204,8 @@ function (sprokit_add_library name)
     COMPONENT     "${component}")
 endfunction ()
 
+###
+# replace with kwiver_add_plugin()
 function (sprokit_add_plugin name define)
   set(library_subdir /sprokit)
 

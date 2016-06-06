@@ -38,13 +38,13 @@
  */
 
 /// The major version.
-#define SPROKIT_VERSION_MAJOR  @sprokit_version_major@
+#define SPROKIT_VERSION_MAJOR  @KWIVER_VERSION_MAJOR@
 /// The minor version.
-#define SPROKIT_VERSION_MINOR  @sprokit_version_minor@
+#define SPROKIT_VERSION_MINOR  @KWIVER_VERSION_MINOR@
 /// The patch version.
-#define SPROKIT_VERSION_PATCH  @sprokit_version_patch@
+#define SPROKIT_VERSION_PATCH  @KWIVER_VERSION_PATCH@
 /// The full version as a string.
-#define SPROKIT_VERSION        "@sprokit_version@"
+#define SPROKIT_VERSION        "@kwiver_version@"
 
 /**
  * \brief Check whether sprokit is built with at least some minimum version.

@@ -3,7 +3,7 @@ project(sprokit_python)
 set(boost_python_library
   python)
 
-if (SPROKIT_ENABLE_PYTHON3)
+if (KWIVER_ENABLE_PYTHON3)
   set(boost_python_library
     python3)
 endif ()

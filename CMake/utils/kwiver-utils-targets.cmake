@@ -327,6 +327,7 @@ function( kwiver_add_plugin        name )
   endif()
 
   set( no_export ON ) # do not export this product
+  set( no_version ON ) # do not version plugins
 
   kwiver_add_library( ${name} MODULE ${PLUGIN_SOURCES} )
 

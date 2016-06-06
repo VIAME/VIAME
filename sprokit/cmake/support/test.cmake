@@ -1,7 +1,7 @@
 add_custom_target(tooling)
 
 cmake_dependent_option(SPROKIT_ENABLE_CDASH "Enable CDash integration" OFF
-  SPROKIT_ENABLE_TESTING OFF)
+  KWIVER_ENABLE_TESTS OFF)
 
 find_program(VALGRIND_EXECUTABLE valgrind)
 

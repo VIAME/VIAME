@@ -1,5 +1,5 @@
 project(sprokit_python_processes)
 
-if (SPROKIT_ENABLE_TESTING)
+if (KWIVER_ENABLE_TESTS)
   add_subdirectory(test)
 endif ()

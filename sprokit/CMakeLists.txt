@@ -2,19 +2,21 @@ project(sprokit)
 
 cmake_minimum_required(VERSION 3.0)
 
-option(SPROKIT_USE_BUILD_TREE "Whether the build tree should be used for default paths" ON)
-mark_as_advanced(SPROKIT_USE_BUILD_TREE)
-
 set(sprokit_source_dir "${CMAKE_CURRENT_SOURCE_DIR}")
 set(sprokit_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 
+##?++  temp needed until new macros are used
+check_cxx_compiler_flag(-fvisibility=hidden SPROKIT_HAVE_GCC_VISIBILITY)
+
+
 ## Copy options from KWIVER
-set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 set(SPROKIT_ENABLE_PYTHON ${KWIVER_ENABLE_PYTHON})
 
 include(CMakeDependentOption)
 
-set(sprokit_output_dir         "${sprokit_binary_dir}")
+## set(sprokit_output_dir         "${sprokit_binary_dir}")
+set(sprokit_output_dir         "${KWIVER_BINARY_DIR}")
+
 
 ## TODO replace sprokit macros with kwiver macros if possible
 # Sprokit macros
@@ -36,20 +38,15 @@ if (GIT_FOUND)
 endif ()
 
 # Project setup.
-include("${sprokit_source_dir}/cmake/snippets/version.cmake")
-include("${sprokit_source_dir}/cmake/snippets/flags.cmake")
-include("${sprokit_source_dir}/cmake/snippets/configuration.cmake")
-include("${sprokit_source_dir}/cmake/snippets/groups.cmake")
+include(${sprokit_source_dir}/cmake/snippets/configuration.cmake)
+include(${sprokit_source_dir}/cmake/snippets/groups.cmake)
+
 if (sprokit_is_in_git)
-  include("${sprokit_source_dir}/cmake/snippets/dist.cmake")
-  include("${sprokit_source_dir}/cmake/snippets/hooks.cmake")
+  include(${sprokit_source_dir}/cmake/snippets/dist.cmake)
 endif ()
 
 # Dependencies.
-include("${sprokit_source_dir}/cmake/snippets/python.cmake")
-include("${sprokit_source_dir}/cmake/snippets/depends.cmake")
-
-set(export_name             sprokit_exports)
+include(${sprokit_source_dir}/cmake/snippets/python.cmake)
 
 add_subdirectory(src)
 
@@ -58,10 +55,14 @@ if (SPROKIT_ENABLE_EXTRAS)
   add_subdirectory(extra)
 endif ()
 
-option(SPROKIT_ENABLE_TESTING "Build tests" OFF)
-if (SPROKIT_ENABLE_TESTING)
+if (KWIVER_ENABLE_TESTS)
   include(CTest)
   add_subdirectory(tests)
 endif ()
 
 add_subdirectory(conf)
+
+if (KWIVER_ENABLE_PROCESSES)
+  include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
+  add_subdirectory(processes)
+endif()

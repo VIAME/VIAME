@@ -25,11 +25,10 @@ target_link_libraries(sprokit_python_any_conversion
                 vital_logger)
 set_target_properties(sprokit_python_any_conversion
   PROPERTIES
-    VERSION       ${sprokit_version}
+    VERSION       ${KWIVER_VERSION}
     SOVERSION     0
     DEFINE_SYMBOL MAKE_SPROKIT_PYTHON_ANY_CONVERSION_LIB)
 
 sprokit_install_headers(sprokit/python/any_conversion ${python_any_conversion_headers})
 
-sprokit_configure_pkgconfig(sprokit-python_any_conversion
-  PYTHON_VERSION)
+sprokit_configure_pkgconfig(sprokit-python_any_conversion     PYTHON_VERSION)

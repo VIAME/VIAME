@@ -8,12 +8,8 @@
 #     `doxygen-${name}-tag', and `doxygen-${name}' will be created. All
 #     `tagdep' arguments will be added as dependencies.
 
-find_package(Doxygen)
-
-cmake_dependent_option(SPROKIT_ENABLE_DOCUMENTATION "Build documentation" OFF
-  DOXYGEN_FOUND OFF)
-cmake_dependent_option(SPROKIT_INSTALL_DOCUMENTATION "Install documentation" OFF
-  SPROKIT_ENABLE_DOCUMENTATION OFF)
+set( SPROKIT_ENABLE_DOCUMENTATION KWIVER_ENABLE_DOCS )
+set( SPROKIT_INSTALL_DOCUMENTATION KWIVER_INSTALL_DOCS )
 
 if (DOXYGEN_FOUND)
   add_custom_target(doxygen)
@@ -21,28 +17,21 @@ endif ()
 
 function (sprokit_create_doxygen inputdir name)
   if (SPROKIT_ENABLE_DOCUMENTATION)
-    set(doxy_project_source_dir
-      "${inputdir}")
-    set(doxy_include_path
-      "${sprokit_binary_dir}/src")
-    set(doxy_documentation_output_path
-      "${sprokit_binary_dir}/doc")
-    set(doxy_project_name
-      "${name}")
+    set(doxy_project_source_dir           "${inputdir}")
+    set(doxy_include_path                 "${sprokit_binary_dir}/src")
+    set(doxy_documentation_output_path    "${sprokit_binary_dir}/doc")
+    set(doxy_project_name                 "${name}")
     set(doxy_tag_files)
     set(tag_targets)
 
     foreach (tag IN LISTS ARGN)
-      list(APPEND doxy_tag_files
-        "${sprokit_binary_dir}/doc/${tag}.tag=../${tag}")
-      list(APPEND tag_targets
-        doxygen-${tag}-tag)
+      list(APPEND doxy_tag_files    "${sprokit_binary_dir}/doc/${tag}.tag=../${tag}")
+      list(APPEND tag_targets       doxygen-${tag}-tag)
     endforeach ()
 
     string(REPLACE ";" " " doxy_tag_files "${doxy_tag_files}")
 
-    set(doxygen_files_dir
-      "${sprokit_source_dir}/extra/doxygen")
+    set(doxygen_files_dir    "${sprokit_source_dir}/extra/doxygen")
 
     add_custom_target(doxygen-${name}-dir)
     add_custom_command(
@@ -115,7 +104,7 @@ function (sprokit_create_doxygen inputdir name)
     if (SPROKIT_INSTALL_DOCUMENTATION)
       sprokit_install(
         DIRECTORY   "${sprokit_binary_dir}/doc/${name}"
-        DESTINATION "share/doc/sprokit-${sprokit_version}/${name}"
+        DESTINATION "share/doc/sprokit-${KWIVER_VERSION}/${name}"
         COMPONENT   documentation)
     endif ()
   endif ()

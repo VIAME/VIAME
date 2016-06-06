@@ -1,4 +1,4 @@
-# Installation logic for MAP-Tk CMake utilities
+# Installation logic for kwiver CMake utilities
 #
 # Variables that modify function:
 #

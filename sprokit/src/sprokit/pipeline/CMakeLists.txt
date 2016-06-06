@@ -55,10 +55,8 @@ else ()
   set(destdir lib)
 endif ()
 
-set(sprokit_default_module_paths
-  "${CMAKE_INSTALL_PREFIX}/${libdir}/sprokit")
-set(module_output_path
-  "${sprokit_binary_dir}/${destdir}/sprokit")
+set(sprokit_default_module_paths  "${CMAKE_INSTALL_PREFIX}/${libdir}/sprokit")
+set(module_output_path            "${sprokit_output_dir}/${destdir}/sprokit")
 
 if (WIN32)
   set(path_sep ";")
@@ -67,11 +65,11 @@ else ()
 endif ()
 
 cmake_dependent_option(SPROKIT_USE_BUILD_MODULE_PATHS "Whether to use the build tree for the default module path" ON
-  SPROKIT_USE_BUILD_TREE OFF)
+  KWIVER_USE_BUILD_TREE OFF)
 mark_as_advanced(SPROKIT_USE_BUILD_MODULE_PATHS)
+
 if (SPROKIT_USE_BUILD_MODULE_PATHS)
-  set(sprokit_default_module_paths
-    "${sprokit_default_module_paths}${path_sep}${module_output_path}")
+  set(sprokit_default_module_paths "${sprokit_default_module_paths}${path_sep}${module_output_path}")
 endif ()
 
 set(path_prefix)
@@ -81,7 +79,7 @@ if (WIN32)
 endif ()
 
 set(SPROKIT_DEFAULT_MODULE_PATHS "${sprokit_default_module_paths}"
-  CACHE STRING "The default paths to search for modules in")
+  CACHE STRING "The default paths to search for modules in" FORCE)
 set(sprokit_library_options
   "DEFAULT_MODULE_PATHS=${path_prefix}\"${SPROKIT_DEFAULT_MODULE_PATHS}\"")
 
@@ -108,7 +106,10 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(default ON)
 endif ()
 
-option(SPROKIT_USE_CONFIGURATION_SUBDIRECTORY "Whether to look in the configuration's subdirectory for each module path" ${default})
+##? should this be KWIVER
+option(SPROKIT_USE_CONFIGURATION_SUBDIRECTORY
+  "Whether to look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
+
 if (SPROKIT_USE_CONFIGURATION_SUBDIRECTORY)
   list(APPEND module_build_options
     USE_CONFIGURATION_SUBDIRECTORY)
@@ -146,10 +147,12 @@ set_source_files_properties(scheduler.cxx
 # access to the loaded processes. Splitting out the registries into a separate
 # library might be something for the future.
 sprokit_private_header_group(${pipeline_private_headers})
+
 sprokit_add_library(sprokit_pipeline SHARED
   ${pipeline_srcs}
   ${pipeline_headers}
   ${pipeline_private_headers})
+
 target_link_libraries(sprokit_pipeline
   PUBLIC              vital_config
                       vital_logger
@@ -163,16 +166,14 @@ target_link_libraries(sprokit_pipeline
 
 set_target_properties(sprokit_pipeline
   PROPERTIES
-    VERSION       ${sprokit_version}
+    VERSION       ${KWIVER_VERSION}
     SOVERSION     0
     DEFINE_SYMBOL MAKE_SPROKIT_PIPELINE_LIB)
 
-add_dependencies(sprokit_pipeline
-  configure-version.h)
+add_dependencies(sprokit_pipeline     configure-version.h)
 
 if (WIN32)
-  add_dependencies(sprokit_pipeline
-    configure-module-paths.h)
+  add_dependencies(sprokit_pipeline   configure-module-paths.h)
 endif ()
 
 sprokit_create_doxygen(

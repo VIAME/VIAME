@@ -1,6 +1,6 @@
 project(kwiver_core_tests)
 
-include(vital-test-setup)
+include(kwiver-test-setup)
 
 set( test_libraries vital vital_apm )
 
