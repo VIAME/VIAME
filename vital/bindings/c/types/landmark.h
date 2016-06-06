@@ -176,7 +176,7 @@ vital_landmark_##S##_set_loc( vital_landmark_t *l, \
  */ \
 VITAL_C_EXPORT \
 void \
-vital_landmark_##S##_set_scale( vital_landmark_t *l, T const scale, \
+vital_landmark_##S##_set_scale( vital_landmark_t *l, T scale, \
                                 vital_error_handle_t *eh ); \
 \
 /**
@@ -212,7 +212,7 @@ vital_landmark_##S##_set_color( vital_landmark_t *l, \
 VITAL_C_EXPORT \
 void \
 vital_landmark_##S##_set_observations( vital_landmark_t *l, \
-                                       unsigned const observations, \
+                                       unsigned observations, \
                                        vital_error_handle_t *eh );
 
 

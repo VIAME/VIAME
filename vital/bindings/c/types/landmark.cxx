@@ -226,7 +226,7 @@ vital_landmark_##S##_set_loc( vital_landmark_t *l, \
 \
 /** Set the scale of the landmark */ \
 void \
-vital_landmark_##S##_set_scale( vital_landmark_t *l, T const scale, \
+vital_landmark_##S##_set_scale( vital_landmark_t *l, T scale, \
                                 vital_error_handle_t *eh ) \
 { \
   STANDARD_CATCH( \
@@ -291,7 +291,7 @@ vital_landmark_##S##_set_color( vital_landmark_t *l, \
 /** Set the observations of the landmark */ \
 void \
 vital_landmark_##S##_set_observations( vital_landmark_t *l, \
-                                       unsigned const observations, \
+                                       unsigned observations, \
                                        vital_error_handle_t *eh ) \
 { \
   STANDARD_CATCH( \
@@ -305,6 +305,6 @@ vital_landmark_##S##_set_observations( vital_landmark_t *l, \
 
 
 DEFINE_TYPED_OPERATIONS( double, d )
-//DEFINE_TYPED_OPERATIONS( float,  f )
+DEFINE_TYPED_OPERATIONS( float,  f )
 
 #undef DEFINE_TYPED_OPERATIONS
