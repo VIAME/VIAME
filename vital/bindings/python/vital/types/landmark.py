@@ -35,6 +35,8 @@ Vital landmark class interface
 """
 import ctypes
 
+import numpy
+
 from vital.types import Covariance
 from vital.types import EigenArray
 from vital.types import RGBColor
@@ -79,6 +81,18 @@ class Landmark (VitalObject):
 
     def _destroy(self):
         self._call_cfunc('vital_landmark_destroy', [self.C_TYPE_PTR], [self])
+
+    def __eq__(self, other):
+        if isinstance(other, Landmark):
+            return all((
+                numpy.allclose(self.loc, other.loc),
+                self.scale == other.scale,
+                numpy.allclose(self.normal, other.normal),
+                self.covariance == other.covariance,
+                self.color == other.color,
+                self.observations == other.observations,
+            ))
+        return False
 
     @property
     def type_name(self):

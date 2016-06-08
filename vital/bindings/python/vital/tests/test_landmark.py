@@ -219,3 +219,26 @@ class TestLandmark (unittest.TestCase):
         nose.tools.assert_equal(l.type_name, l2.type_name)
         numpy.testing.assert_equal(l.loc, l2.loc)
         nose.tools.assert_equal(l.scale, l2.scale)
+
+    def test_equal(self):
+        for ct in self.C_TYPES:
+            print ct
+
+            l = Landmark(c_type=ct)
+            l2 = Landmark(c_type=ct)
+            nose.tools.assert_equal(l, l2)
+
+            l = Landmark([1, 1, 1], 42.2, c_type=ct)
+            l2 = Landmark([1, 1, 1], 42.2, c_type=ct)
+            nose.tools.assert_equal(l, l2)
+
+            norm = [0, 0.5, 0.5]
+            covar = Covariance(3, init_scalar_or_matrix=3)
+            color = RGBColor(2, 1, 5)
+            obs = 43
+
+            l.normal = l2.normal = norm
+            l.covariance = l2.covariance = covar
+            l.color = l2.color = color
+            l.observations = l2.observations = obs
+            nose.tools.assert_equal(l, l2)
