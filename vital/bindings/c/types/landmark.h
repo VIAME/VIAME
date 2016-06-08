@@ -55,12 +55,21 @@ typedef struct {} vital_landmark_t;
 // Type independent functions //////////////////////////////////////////////////
 
 /// Destroy landmark instance
+/**
+ * \param l Landmark instance to destroy
+ * \param eh Vital error handle instance
+ */
 VITAL_C_EXPORT
 void
 vital_landmark_destroy( vital_landmark_t *l, vital_error_handle_t *eh );
 
 
 /// Get the name of the stored data type
+/**
+ * \param l Landmark instance
+ * \param eh Vital error handle instance
+ * \returns String type identifier
+ */
 VITAL_C_EXPORT
 char const*
 vital_landmark_type_name( vital_landmark_t const *l, vital_error_handle_t *eh );
@@ -70,6 +79,7 @@ vital_landmark_type_name( vital_landmark_t const *l, vital_error_handle_t *eh );
 /**
  * \param l landmark instance
  * \param eh Vital error handle instance
+ * \returns New 3x1 Eigen matrix instance
  */
 VITAL_C_EXPORT
 vital_eigen_matrix3x1d_t*
@@ -80,6 +90,7 @@ vital_landmark_loc( vital_landmark_t const *l, vital_error_handle_t *eh );
 /**
  * \param l landmark instance
  * \param eh Vital error handle instance
+ * \returns Scale value
  */
 VITAL_C_EXPORT
 double
@@ -90,6 +101,7 @@ vital_landmark_scale( vital_landmark_t const *l, vital_error_handle_t *eh );
 /**
  * \param l landmark instance
  * \param eh Vital error handle instance
+ * \return New 3x1 Eigen matrix instance
  */
 VITAL_C_EXPORT
 vital_eigen_matrix3x1d_t*
@@ -100,6 +112,7 @@ vital_landmark_normal( vital_landmark_t const *l, vital_error_handle_t *eh );
 /**
  * \param l landmark instance
  * \param eh Vital error handle instance
+ * \returns New 3D covariance instance
  */
 VITAL_C_EXPORT
 vital_covariance_3d_t*
@@ -110,6 +123,7 @@ vital_landmark_covariance( vital_landmark_t const *l, vital_error_handle_t *eh )
 /**
  * \param l landmark instance
  * \param eh Vital error handle instance
+ * \returns New color instance
  */
 VITAL_C_EXPORT
 vital_rgb_color_t*
@@ -120,6 +134,7 @@ vital_landmark_color( vital_landmark_t const *l, vital_error_handle_t *eh );
 /**
  * \param l landmark instance
  * \param eh Vital error handle instance
+ * \returns Observations value
  */
 VITAL_C_EXPORT
 unsigned
@@ -141,6 +156,7 @@ vital_landmark_observations( vital_landmark_t const *l, vital_error_handle_t *eh
  * Scale is set to 1 by default.
  *
  * \param loc 3D location of the landmark
+ * \param eh Vital error handle instance
  */ \
 VITAL_C_EXPORT \
 vital_landmark_t* \
@@ -149,6 +165,10 @@ vital_landmark_##S##_new( vital_eigen_matrix3x1##S##_t const *loc, \
 \
 /**
  * Create a new instance of a landmark from a coordinate with a scale
+ *
+ * \param loc 3D location of the landmark
+ * \param scale Scale of the landmark
+ * \param eh Vital error handle instance
  */ \
 VITAL_C_EXPORT \
 vital_landmark_t* \
@@ -157,6 +177,8 @@ vital_landmark_##S##_new_scale( vital_eigen_matrix3x1##S##_t const *loc, \
 \
 /**
  * Create a new default instance of a landmark
+ *
+ * \param eh Vital error handle instance
  */ \
 VITAL_C_EXPORT \
 vital_landmark_t* \
@@ -164,6 +186,10 @@ vital_landmark_##S##_new_default( vital_error_handle_t *eh ); \
 \
 /**
  * Set 3D location of a landmark instance
+ *
+ * \param l landmark instance
+ * \param loc New 3D location for the landmark
+ * \param eh Vital error handle instance
  */ \
 VITAL_C_EXPORT \
 void \
@@ -173,6 +199,10 @@ vital_landmark_##S##_set_loc( vital_landmark_t *l, \
 \
 /**
  * Set the scale of the landmark
+ *
+ * \param l landmark instance
+ * \param scale New scale of the landmark
+ * \param eh Vital error handle instance
  */ \
 VITAL_C_EXPORT \
 void \
@@ -181,6 +211,10 @@ vital_landmark_##S##_set_scale( vital_landmark_t *l, T scale, \
 \
 /**
  * Set the normal vector of the landmark
+ *
+ * \param l landmark instance
+ * \param normal New 3D normal vector of the landmark
+ * \param eh Vital error handle instance
  */ \
 VITAL_C_EXPORT \
 void \
@@ -190,6 +224,10 @@ vital_landmark_##S##_set_normal( vital_landmark_t *l, \
 \
 /**
  * Set the covariance of the landmark
+ *
+ * \param l landmark instance
+ * \param covar New 3D covariance of the landmark
+ * \param eh Vital error handle instance
  */ \
 VITAL_C_EXPORT \
 void \
@@ -199,6 +237,10 @@ vital_landmark_##S##_set_covar( vital_landmark_t *l, \
 \
 /**
  * Set the color of the landmark
+ *
+ * \param l landmark instance
+ * \param c New color of the landmark
+ * \param eh Vital error handle instance
  */ \
 VITAL_C_EXPORT \
 void \
@@ -208,6 +250,10 @@ vital_landmark_##S##_set_color( vital_landmark_t *l, \
 \
 /**
  * Set the observations of the landmark
+ *
+ * \param l landmark instance
+ * \param observations New observations value for the landmark
+ * \param eh Vital error handle instance
  */ \
 VITAL_C_EXPORT \
 void \
