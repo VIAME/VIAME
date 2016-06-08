@@ -43,6 +43,12 @@ Bindings
 
  * Fixed bug in python ConfigBlock read-from-file.
 
+ * Added more C/Python bindings for vital::track class
+
+ * Added more C/Python bindings for vital::track_set class
+
+ * Added full C/Python bindings for vital::landmark class
+
 Vital Types
 
  * Fixed vital::covariance_ default constructor to initialize identity
