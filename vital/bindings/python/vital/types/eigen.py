@@ -220,6 +220,7 @@ class EigenArray (numpy.ndarray, VitalObject):
         # Make input iterable into an actual numpy.ndarray if it wasn't already
         #: :type: numpy.ndarray | EigenArray
         vec = numpy.array(i, copy=False, subok=True)
+        # if vec is a EigenArray, it will always have dim==2
         if vec.ndim == 1:
             vec = vec[:, numpy.newaxis]
 

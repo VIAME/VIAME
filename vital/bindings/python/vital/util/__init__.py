@@ -39,7 +39,7 @@ from .VitalObject import VitalObject, OpaqueTypeCache
 from .error_handle import VitalErrorHandle
 
 
-# Known mapping of C++ type_into.name() values for basic types
+# Known mapping of C++ type_info.name() values for basic types
 TYPE_NAME_MAP = {
     'd': ctypes.c_double,
     'f': ctypes.c_float,

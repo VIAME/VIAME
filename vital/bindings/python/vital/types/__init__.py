@@ -47,6 +47,9 @@ from .rotation import Rotation
 # Requires EigenArray and RGBColor
 from .feature import Feature
 
+# Requires Covariance
+from .landmark import Landmark
+
 # Requires Descriptor, Feature
 from .track import TrackState, Track
 from .track_set import TrackSet
