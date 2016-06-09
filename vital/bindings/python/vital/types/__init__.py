@@ -49,6 +49,7 @@ from .feature import Feature
 
 # Requires Covariance
 from .landmark import Landmark
+from .landmark_map import LandmarkMap
 
 # Requires Descriptor, Feature
 from .track import TrackState, Track
@@ -56,6 +57,4 @@ from .track_set import TrackSet
 
 # Requires CameraIntrinsics, Covariance, EigenArray, Rotation
 from .camera import Camera
-
-# Required Camera
 from .camera_map import CameraMap

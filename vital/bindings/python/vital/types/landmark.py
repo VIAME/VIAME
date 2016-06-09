@@ -94,6 +94,9 @@ class Landmark (VitalObject):
             ))
         return False
 
+    def __ne__(self, other):
+        return not (self == other)
+
     @property
     def type_name(self):
         return self._call_cfunc(

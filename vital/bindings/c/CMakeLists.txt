@@ -28,6 +28,7 @@ set(vital_c_public_headers
   types/image_container.h
   types/image_container.hxx
   types/landmark.h
+  types/landmark_map.h
   types/rotation.h
   types/track.h
   types/track_set.h
@@ -46,7 +47,10 @@ set(vital_c_private_headers
   helpers/detected_object.h
   helpers/detected_object_type.h
   helpers/detected_object_set.h
+  helpers/feature.h
   helpers/image_container.h
+  helpers/landmark.h
+  helpers/landmark_map.h
   helpers/track.h
   helpers/track_set.h
   )
@@ -79,6 +83,7 @@ set(vital_c_sources
   types/image.cxx
   types/image_container.cxx
   types/landmark.cxx
+  types/landmark_map.cxx
   types/rotation.cxx
   types/track.cxx
   types/track_set.cxx

@@ -49,6 +49,8 @@ Bindings
 
  * Added full C/Python bindings for vital::landmark class
 
+ * Added full C/Python bindings for vital::landmark_map class
+
 Vital Types
 
  * Fixed vital::covariance_ default constructor to initialize identity
