@@ -186,15 +186,17 @@ class TestVitalCamera (unittest.TestCase):
     def test_look_at(self):
         pp = EigenArray.from_iterable([300, 400])
         k = CameraIntrinsics(1000, pp)
-        focus = [0, 1, -2]
+        focus = EigenArray.from_iterable([0, 1, -2])
 
         base = Camera([3, -4, 7], Rotation(), k)
         cam = base.look_at(focus)
         nose.tools.assert_not_equal(base, cam)
 
         ifocus = cam.project(focus)
-        numpy.testing.assert_almost_equal(
-            numpy.linalg.norm(ifocus - pp, 2),
-            0.0,
-            12
-        )
+        nose.tools.assert_almost_equal(numpy.linalg.norm(ifocus - pp, 2),
+                                       0., 12)
+
+        ifocus_up = cam.project(focus + EigenArray.from_iterable([0, 0, 2]))
+        tmp = ifocus_up - pp
+        nose.tools.assert_almost_equal(tmp[0], 0., 12)
+        nose.tools.assert_true(tmp[1] < 0.)

@@ -66,16 +66,16 @@ IMPLEMENT_TEST(look_at)
     ->look_at( focus );
 
   vector_2d ifocus = cam->project(focus);
-  TEST_NEAR("set_look_at focus projects to origin",
+  TEST_NEAR("look_at focus projects to origin",
             (ifocus-pp).norm(), 0.0, 1e-12);
 
   vector_2d ifocus_up = cam->project(focus + vector_3d(0,0,2));
   vector_2d tmp = ifocus_up - pp;
-  TEST_NEAR("set_look_at vertical projects vertical",
+  TEST_NEAR("look_at vertical projects vertical",
             tmp.x(), 0.0, 1e-12);
   // "up" in image space is actually negative Y because the
   // Y axis is inverted
-  TEST_EQUAL("set_look_at up projects up", tmp.y() < 0.0, true);
+  TEST_EQUAL("look_at up projects up", tmp.y() < 0.0, true);
 }
 
 
