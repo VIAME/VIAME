@@ -48,7 +48,7 @@ template < typename T >
 class bounding_box
 {
 public:
-  typedef Eigen::Matrix< T, 2, 1> vector_type;
+  typedef Eigen::Matrix< T, 2, 1 > vector_type;
 
   bounding_box()
   { }
@@ -76,14 +76,10 @@ public:
 
   double area() const { return m_bbox.volume(); }
 
-  bounding_box< T > intersection( bounding_box< T > const& other )
-  {
-    return bounding_box< T >( m_bbox.intersection( other.m_bbox ) );
-  }
-
+  Eigen::AlignedBox< T, 2 >& get_eabb()  { return m_bbox; }
+  Eigen::AlignedBox< T, 2 > get_eabb() const  { return m_bbox; }
 
 protected:
-
   // Note that this class is implemented using Eigen types.
   // There is no guarantee of this in the future.
   bounding_box( Eigen::AlignedBox< T, 2 > const& b )
@@ -96,6 +92,46 @@ protected:
 // Define for common types.
 typedef bounding_box< int > bounding_box_i;
 typedef bounding_box< double > bounding_box_d;
+
+
+/**
+ * @brief Translate a box by (x,y) offset.
+ *
+ * This operator translates a bounding_box by the specified amount.
+ *
+ * @param[in,out] bbox Box to translate
+ * @param[in] pt X and Y offsets to use for translation
+ *
+ * @return The specified box is updated with the new coordinates.
+ */
+  template < typename T >
+  bounding_box<T> & translate( bounding_box<T>& bbox,
+                               Eigen::Matrix< T, 2, 1 > const& pt )
+{
+  bbox.get_eabb().translate( pt );
+  return bbox;
+}
+
+
+/**
+ * @brief Determine intersection of two boxes.
+ *
+ * This operator calculates the intersection of two
+ * bounding_boxes. The rectangular intersection is returned as a new
+ * bounding box.
+ *
+ * @param one The first bounding box for finding intersection
+ * @param other The other bounding box for finding intersection.
+ *
+ * @return A new bounding_box specifying the intersection if the two
+ * parameters.
+ */
+template<typename T>
+bounding_box<T> intersection( bounding_box<T> const& one,
+                              bounding_box<T> const& other )
+{
+  return bounding_box<T>( one.get_eabb().intersection( other.get_eabb() ) );
+}
 
 } }   // end namespace kwiver
 
