@@ -22,6 +22,11 @@ if ( IS_DIRECTORY ${fletch_DIR} )
   find_package( fletch NO_MODULE )
 endif()
 
+# Fletch provides the PROJ4 symbols. We need the PROJ symbols.
+if (PROJ4_ROOT)
+  set(PROJ_ROOT ${PROJ4_ROOT})
+endif()
+
 ###
 # project specific directories
 #

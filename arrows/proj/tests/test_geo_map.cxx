@@ -35,8 +35,8 @@
 
 #include <test_common.h>
 
-#include <arrows/algorithms/proj/register_algorithms.h>
-#include <arrows/algorithms/proj/geo_map.h>
+#include <arrows/proj/register_algorithms.h>
+#include <arrows/proj/geo_map.h>
 
 // test_common.h required things
 #define TEST_ARGS ()
