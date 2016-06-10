@@ -53,8 +53,9 @@ namespace kwiver {
 namespace vital_c {
 
 // Defined in ../c/algorithm.cxx
-extern SharedPointerCache< kwiver::vital::algorithm,
-                         vital_algorithm_t > ALGORITHM_SPTR_CACHE;
+extern
+SharedPointerCache< kwiver::vital::algorithm, vital_algorithm_t >
+  ALGORITHM_SPTR_CACHE;
 
 
 class invalid_algorithm_pointer
@@ -67,7 +68,8 @@ public:
   }
 };
 
-} } // end namespace
+} // end namespace vital_c
+} // end namespace kwiver
 
 
 /// Macro companion to DECLARE_COMMON_ALGO_API, providing type implementations
@@ -77,7 +79,8 @@ public:
     namespace vital_c {                                                 \
       SharedPointerCache< kwiver::vital::algo::type, vital_algorithm_t > \
         ALGORITHM_##type##_SPTR_CACHE( #type );                         \
-   } }                                                                     \
+  }                                                                     \
+  }                                                                     \
   /* ==================================================================== */ \
   /* Functions on types (static methods)                                  */ \
   /* -------------------------------------------------------------------- */ \
