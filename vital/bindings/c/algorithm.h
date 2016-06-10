@@ -75,7 +75,7 @@ char const* vital_algorithm_type_name( vital_algorithm_t *algo,
  */
 VITAL_C_EXPORT
 char const*
-vital_algorithm_impl_name( vital_algorithm_t *algo,
+vital_algorithm_impl_name( vital_algorithm_t const *algo,
                            vital_error_handle_t *eh );
 
 
@@ -123,7 +123,7 @@ vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
   VITAL_C_EXPORT                                                                \
   vital_algorithm_t*                                                            \
   vital_algorithm_##type##_create( char const *impl_name );                     \
-  /* Destroy an algorithm instance of this type */                              \
+  /** Destroy an algorithm instance of this type */                             \
   VITAL_C_EXPORT                                                                \
   void                                                                          \
   vital_algorithm_##type##_destroy( vital_algorithm_t *algo,                    \
@@ -174,10 +174,10 @@ vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
   /* Clone the given algorithm instance */                                      \
   /**
    * If a NULL algorithm pointer is given, a null pointer is returned.
-   */ \
+   */                                                                           \
   VITAL_C_EXPORT                                                                \
   vital_algorithm_t*                                                            \
-  vital_algorithm_##type##_clone( vital_algorithm_t *algo, \
+  vital_algorithm_##type##_clone( vital_algorithm_t *algo,                      \
                                   vital_error_handle_t *eh );
   // TODO: description() method
 
