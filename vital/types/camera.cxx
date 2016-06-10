@@ -106,8 +106,8 @@ operator<<( std::ostream& s, const camera& c )
 /// Rotate the camera about its center such that it looks at the given point.
 void
 simple_camera
-::look_at( const vector_3d& stare_point,
-           const vector_3d& up_direction )
+::set_look_at(const vector_3d &stare_point,
+              const vector_3d &up_direction)
 {
   // a unit vector in the up direction
   const vector_3d up = up_direction.normalized();
@@ -122,7 +122,7 @@ simple_camera
   // nearly parallel and the up direction is poorly defined.
   if ( x_mag < 1e-4 )
   {
-    LOG_WARN( m_logger,  "camera_::look_at up_direction nearly parallel with the look direction" );
+    LOG_WARN( m_logger,  "camera_::set_look_at up_direction nearly parallel with the look direction" );
   }
 
   x /= x_mag;
@@ -134,6 +134,19 @@ simple_camera
     z.x(), z.y(), z.z();
 
   this->set_rotation( rotation_d ( R ) );
+}
+
+
+/// Create a clone of this camera that is rotated to look at the given point
+camera_sptr
+simple_camera
+::look_at(const vector_3d &stare_point,
+          const vector_3d &up_direction = vector_3d::UnitZ()) const
+{
+  camera_sptr c_sptr = this->clone();
+  dynamic_cast<simple_camera*>(c_sptr.get())->set_look_at(stare_point,
+                                                          up_direction);
+  return c_sptr;
 }
 
 
