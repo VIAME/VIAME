@@ -114,7 +114,7 @@ class VitalAlgorithm (VitalObject):
 
         :return: New instance of derived type initialized to the given
             implementation.
-        :rtype: cls
+        :rtype: VitalAlgorithm
 
         """
         algo_create = cls.VITAL_LIB['vital_algorithm_%s_create'

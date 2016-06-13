@@ -43,14 +43,21 @@ from vital.util import VitalObject, VitalErrorHandle
 
 
 class CameraMap (VitalObject):
-    """ vital::camera_map interface class """
+    """
+    Store Frame ID to camera relationships
 
-    def __init__(self, frame2cam_map, from_cptr=None):
+    vital::camera_map interface class
+
+    """
+
+    def __init__(self, frame2cam_map=None, from_cptr=None):
         """
         :param frame2cam_map: Association of frame number to camera instance
-        :type frame2cam_map: dict[int, vital.types.Camera]
+        :type frame2cam_map: dict[int, vital.types.Camera] | None
 
         """
+        if frame2cam_map is None:
+            frame2cam_map = {}
         super(CameraMap, self).__init__(from_cptr, frame2cam_map)
 
     def _new(self, frame2cam_map):
@@ -82,6 +89,9 @@ class CameraMap (VitalObject):
         cm_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
         with VitalErrorHandle() as eh:
             cm_del(self, eh)
+
+    def __len__(self):
+        return self.size
 
     @property
     def size(self):

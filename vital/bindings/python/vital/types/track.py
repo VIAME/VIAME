@@ -130,6 +130,10 @@ class TrackState (VitalObject):
 class Track (VitalObject):
     """
     vital::track interface class
+
+    Track states can be yielded by iterating over this object, or by fetching
+    all contained frame IDs and iteratively requesting each state individually.
+
     """
 
     def __init__(self, id=0, from_cptr=None):

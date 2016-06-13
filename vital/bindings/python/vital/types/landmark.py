@@ -107,6 +107,11 @@ class Landmark (VitalObject):
 
     @property
     def loc(self):
+        """
+        Get the 3D location of this landmark
+        :return: 3D location of this landmark
+        :rtype: EigenArray
+        """
         cptr = self._call_cfunc(
             'vital_landmark_loc',
             [self.C_TYPE_PTR], [self],
@@ -116,6 +121,11 @@ class Landmark (VitalObject):
 
     @loc.setter
     def loc(self, new_loc):
+        """
+        Set the 3D location of this landmark
+        :param new_loc: New 3D location
+        :type new_loc: collections.Iterable[float]
+        """
         new_loc = EigenArray.from_iterable(new_loc, self._datatype, (3, 1))
         self._call_cfunc(
             'vital_landmark_{}_set_loc'.format(self._tchar),

@@ -8,6 +8,7 @@ set(vital_c_public_headers
   config_block.h
   error_handle.h
 
+  algo_def/bundle_adjust.h
   algo_def/convert_image.h
   algo_def/image_io.h
   algo_def/track_features.h
@@ -62,6 +63,7 @@ set(vital_c_sources
   config_block.cxx
   error_handle.cxx
 
+  algo_def/bundle_adjust.cxx
   algo_def/convert_image.cxx
   algo_def/image_io.cxx
   algo_def/track_features.cxx
