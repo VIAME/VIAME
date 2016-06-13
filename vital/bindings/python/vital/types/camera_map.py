@@ -105,7 +105,7 @@ class CameraMap (VitalObject):
         with VitalErrorHandle() as eh:
             return cm_size(self, eh)
 
-    def to_dict(self):
+    def as_dict(self):
         """
         :return: Internal frame-number to cameras mapping
         :rtype: dict[int, Camera]
