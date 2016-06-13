@@ -53,13 +53,13 @@ public:
   /// Constructor
   priv()
     : homogeneous(false),
-      m_logger( vital::get_logger( "triangulate_landmarks" ))
+      m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" ))
   {
   }
 
   priv(const priv& other)
     : homogeneous(other.homogeneous),
-      m_logger( vital::get_logger( "triangulate_landmarks" ))
+      m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" ))
   {
   }
 

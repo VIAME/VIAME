@@ -47,11 +47,11 @@
 #include <vital/vital_config.h>
 #include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
+#include <vital/exceptions/io.h>
 
 #include <kwiversys/SystemTools.hxx>
 
 #include <arrows/ocv/image_container.h>
-#include <arrows/ocv/ocv_algo_tools.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -92,7 +92,7 @@ public:
     write_images_to_disk( true ),
     pattern( "feature_tracks_%05d.png" ),
     cur_frame_id( 0 ),
-    m_logger( kwiver::vital::get_logger( "algorithms.ocv.draw_tracks" ) )
+    m_logger( kwiver::vital::get_logger( "arrows.ocv.draw_tracks" ) )
   {
   }
 
@@ -340,7 +340,7 @@ draw_tracks
   // Validate inputs
   if( image_data.empty() )
   {
-    std::cerr << "Error: valid imagery must be provided" << std::endl;
+    LOG_ERROR(m_logger, "valid imagery must be provided");
     return image_container_sptr();
   }
 
@@ -379,7 +379,11 @@ draw_tracks
     // Convert to 3 channel image if not one already
     if( img.channels() == 1 )
     {
+#ifdef KWIVER_HAS_OPENCV_VER_3
+      cv::cvtColor( img, img, cv::COLOR_GRAY2BGR );
+#else
       cv::cvtColor( img, img, CV_GRAY2BGR );
+#endif
     }
 
     // List of match lines to draw on final image
