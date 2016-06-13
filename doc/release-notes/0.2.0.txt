@@ -58,6 +58,8 @@ Bindings
 
  * Added C/Python interface for triangulate_landmarks algorithm definition
 
+ * Added C/Python interface for geo_map algorithm definition
+
 Vital Types
 
  * Fixed vital::covariance_ default constructor to initialize identity
