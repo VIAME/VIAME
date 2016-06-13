@@ -60,11 +60,11 @@ DECLARE_COMMON_ALGO_API( initialize_cameras_landmarks )
  */
 VITAL_C_EXPORT
 void
-vital_initialize_cameras_landmarks_initialize( vital_algorithm_t *algo,
-                                               vital_camera_map_t **cameras,
-                                               vital_landmark_map_t **landmarks,
-                                               vital_trackset_t *tracks,
-                                               vital_error_handle_t *eh );
+vital_algorithm_initialize_cameras_landmarks_initialize( vital_algorithm_t *algo,
+                                                         vital_camera_map_t **cameras,
+                                                         vital_landmark_map_t **landmarks,
+                                                         vital_trackset_t *tracks,
+                                                         vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus

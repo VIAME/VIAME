@@ -50,11 +50,11 @@ using namespace kwiver;
 
 /// Initialize the camera and landmark parameters given a set of tracks
 void
-vital_initialize_cameras_landmarks_initialize( vital_algorithm_t *algo,
-                                               vital_camera_map_t **cameras,
-                                               vital_landmark_map_t **landmarks,
-                                               vital_trackset_t *tracks,
-                                               vital_error_handle_t *eh )
+vital_algorithm_initialize_cameras_landmarks_initialize( vital_algorithm_t *algo,
+                                                         vital_camera_map_t **cameras,
+                                                         vital_landmark_map_t **landmarks,
+                                                         vital_trackset_t *tracks,
+                                                         vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "vital_initialize_cameras_landmarks_initialize", eh,

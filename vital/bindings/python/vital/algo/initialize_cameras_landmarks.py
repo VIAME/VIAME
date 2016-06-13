@@ -70,7 +70,7 @@ class InitializeCamerasLandmarks (VitalAlgorithm):
         lmap_ptr = LandmarkMap.c_ptr_type()(lmap.c_pointer.contents)
 
         self._call_cfunc(
-            "vital_initialize_cameras_landmarks_initialize",
+            "vital_algorithm_initialize_cameras_landmarks_initialize",
             [self.C_TYPE_PTR,
              ctypes.POINTER(CameraMap.c_ptr_type()),
              ctypes.POINTER(LandmarkMap.c_ptr_type()),
