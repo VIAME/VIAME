@@ -55,6 +55,13 @@ DECLARE_COMMON_ALGO_API( bundle_adjust )
 
 
 /// Optimize the camera and landmark parameters given a set of tracks
+/**
+ * \param [in] algo bundle adjust algorithm instance
+ * \param [in,out] cameras the cameras to optimize
+ * \param [in,out] landmarks the landmarks to optimize
+ * \param [in] tracks the tracks to use as constraints
+ * \param [in] eh Vital error handle instance
+ */
 VITAL_C_EXPORT
 void
 vital_algorithm_bundle_adjust_optimize( vital_algorithm_t *algo,

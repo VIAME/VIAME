@@ -63,7 +63,7 @@ public:
    * \param [in] tracks the tracks to use as constraints
    * \param [in,out] landmarks the landmarks to triangulate
    *
-   * This function only triangulates the landmarks with indicies in the
+   * This function only triangulates the landmarks with indices in the
    * landmark map and which have support in the tracks and cameras
    */
   virtual void
@@ -81,6 +81,8 @@ protected:
 typedef std::shared_ptr<triangulate_landmarks> triangulate_landmarks_sptr;
 
 
-} } } // end namespace
+} // end namespace algo
+} // end namespace vital
+} // end namespace kwiver
 
 #endif // VITAL_ALGO_TRIANGULATE_LANDMARKS_H_

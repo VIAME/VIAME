@@ -54,9 +54,11 @@ DECLARE_COMMON_ALGO_API( initialize_cameras_landmarks )
 
 /// Initialize the camera and landmark parameters given a set of tracks
 /**
+ * \param[in] algo initialize cameras landmarks algorithm instance
  * \param[in,out] cameras Cameras to initialize
  * \param[in,out] landmarks Landmarks to initialize
  * \param[in] tracks Tracks to use as constraints
+ * \param[in] eh Vital error handle instance
  */
 VITAL_C_EXPORT
 void
