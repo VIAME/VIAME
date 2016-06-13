@@ -63,12 +63,8 @@ vital_algorithm_bundle_adjust_optimize( vital_algorithm_t *algo,
     auto cmap_sptr = vital_c::CAM_MAP_SPTR_CACHE.get( *cmap );
     auto lmap_sptr = vital_c::LANDMARK_MAP_SPTR_CACHE.get( *lmap );
     auto tset_sptr = vital_c::TRACK_SET_SPTR_CACHE.get( tset );
-    LOG_DEBUG( m_logger, "C++ Input cam map: " << cmap_sptr.get() );
-    LOG_DEBUG( m_logger, "C++ Input landmark map: " << lmap_sptr.get() );
 
     a_sptr->optimize( cmap_sptr, lmap_sptr, tset_sptr );
-    LOG_DEBUG( m_logger, "C++ Output cam map: " << cmap_sptr.get() );
-    LOG_DEBUG( m_logger, "C++ Output landmark map: " << lmap_sptr.get() );
 
     // Check instance pointer for cmap_sptr and lmap_sptr. If they are different
     // than input, which probably are, cache the sptrs and assign casted pointers
@@ -76,7 +72,6 @@ vital_algorithm_bundle_adjust_optimize( vital_algorithm_t *algo,
     auto *cmap_after = reinterpret_cast< vital_camera_map_t* >( cmap_sptr.get() );
     if( *cmap != cmap_after )
     {
-      LOG_DEBUG( m_logger, "caching and returning output camera map" );
       vital_c::CAM_MAP_SPTR_CACHE.store( cmap_sptr );
       *cmap = cmap_after;
     }
@@ -84,7 +79,6 @@ vital_algorithm_bundle_adjust_optimize( vital_algorithm_t *algo,
     auto *lmap_after = reinterpret_cast< vital_landmark_map_t* >( lmap_sptr.get() );
     if( *lmap != lmap_after )
     {
-      LOG_DEBUG( m_logger, "caching and returning output landmark map" );
       vital_c::LANDMARK_MAP_SPTR_CACHE.store( lmap_sptr );
       *lmap = lmap_after;
     }

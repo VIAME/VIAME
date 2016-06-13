@@ -33,8 +33,8 @@
  * \brief vital::algo::bundle_adjust interface
  */
 
-#ifndef VITAL_BUNDLE_ADJUST_H_
-#define VITAL_BUNDLE_ADJUST_H_
+#ifndef VITAL_C_ALGO_BUNDLE_ADJUST_H_
+#define VITAL_C_ALGO_BUNDLE_ADJUST_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -68,4 +68,4 @@ vital_algorithm_bundle_adjust_optimize( vital_algorithm_t *algo,
 }
 #endif
 
-#endif //VITAL_BUNDLE_ADJUST_H_
+#endif //VITAL_C_ALGO_BUNDLE_ADJUST_H_
