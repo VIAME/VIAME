@@ -43,6 +43,8 @@
 #include <vital/types/track_set.h>
 #include <Eigen/Sparse>
 
+#include <map>
+
 
 namespace kwiver {
 namespace arrows {
@@ -64,9 +66,25 @@ namespace arrows {
  */
 KWIVER_ALGO_EXPORT
 Eigen::SparseMatrix<unsigned int>
-match_matrix(const vital::track_set_sptr tracks,
-                   std::vector<vital::frame_id_t>& frames);
+match_matrix(vital::track_set_sptr tracks,
+             std::vector<vital::frame_id_t>& frames);
 
+
+/// Compute a score for each track based on its importance to the match matrix.
+/**
+ * Using the match matrix (as computed by vital::match_matrix) assign a score
+ * to each track that is proportional to that tracks importance in reproducing
+ * the matrix.  That is, the top N scoring tracks should provide the best
+ * approximation to the coverage of match matrix if only those N tracks are
+ * used.  Tracks are scored as the sum of one over the mm(i,j) where mm(i,j)
+ * is the match matrix entry at (i,j) for every frame i and j in the track.
+ *
+ */
+KWIVER_ALGO_EXPORT
+std::map<vital::track_id_t, double>
+match_matrix_track_importance(vital::track_set_sptr tracks,
+                              std::vector<vital::frame_id_t> const& frames,
+                              Eigen::SparseMatrix<unsigned int> const& mm);
 } // end namespace arrows
 } // end namespace kwiver
 
