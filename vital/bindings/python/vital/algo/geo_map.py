@@ -82,7 +82,8 @@ class GeoMap (VitalAlgorithm):
             instead of the computed zone from the given lat/lon coordinate.
         :type set_zone: None | int
 
-        :return:
+        :return: Converted easting, northing, zone and north_hemi values
+        :rtype: (float, float, int, bool)
 
         """
         if set_zone is None:
