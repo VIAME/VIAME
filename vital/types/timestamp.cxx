@@ -118,99 +118,86 @@ double timestamp
 
 
 // ------------------------------------------------------------------
-bool timestamp
-::operator<( timestamp const& rhs ) const
-{
-  // Differing domains
-  if ( this->m_time_domain_index != rhs.m_time_domain_index )
-  {
-    return false;
-  }
+/**
+Generic truth table for compares
 
-  // compare times preferentially
-  if ( this->has_valid_time() && rhs.has_valid_time() )
-  {
-    return this->get_time_usec() < rhs.get_time_usec();
-  }
+There are some cases where the tow objects are incomparable. in these
+cases the results are always false.
 
-  // If both times not available, compare frames
-  if ( this->has_valid_frame() && rhs.has_valid_frame() )
-  {
-    return this->get_frame() < rhs.get_frame();
-  }
+\code
 
-  // Can't compare
-  return false;
+times-valid | frames_valid | same_domain | time_condition | frame_condition | result
+------------------------------------------------------------------------------------
+     -      |       -      |     F       |       -        |       -         |   F (incomparable)
+     F      |       F      |     T       |       -        |       -         |   F (incomparable)
+            |              |             |                |                 |
+     T      |       T      |     T       |       T        |       T         |   T (meets condition)
+            |              |             |                |                 |
+     T      |       T      |     T       |       F        |       -         |   F
+     T      |       T      |     T       |       -        |       F         |   F
+            |              |             |                |                 |
+     T      |       F      |     T       |       F        |       -         |   F (time only compare)
+     T      |       F      |     T       |       T        |       -         |   T (time only compare)
+     F      |       T      |     T       |       -        |       F         |   F (frame only compare)
+     F      |       T      |     T       |       -        |       T         |   T (frame only compare)
+
+\endcode
+
+General implementation
+
+( ! same_domain ) -> F
+( ! time_valid ) & ( ! frame_valid ) -> F
+( time_valid & ( ! time_condition ) -> F
+( frame_valid & ( ! frame_condition ) -> F
+                             -> T
+
+ */
+
+#define COMPARE(OP)                                                     \
+bool timestamp                                                          \
+::operator OP( timestamp const& rhs ) const                             \
+{                                                                       \
+  if ( this->m_time_domain_index != rhs.m_time_domain_index )           \
+  {                                                                     \
+    return false;                                                       \
+  }                                                                     \
+                                                                        \
+  const bool time_valid( this->has_valid_time() && rhs.has_valid_time() ); \
+  const bool frame_valid( this->has_valid_frame() && rhs.has_valid_frame() ); \
+                                                                        \
+  if ( (! time_valid) && (! frame_valid) )                              \
+  {                                                                     \
+    return false;                                                       \
+  }                                                                     \
+                                                                        \
+  if ( time_valid  && !( this->get_time_usec() OP rhs.get_time_usec() ) ) \
+  {                                                                     \
+    return false;                                                       \
+  }                                                                     \
+                                                                        \
+  if ( frame_valid && !( this->get_frame() OP rhs.get_frame() ) )       \
+  {                                                                     \
+    return false;                                                       \
+  }                                                                     \
+                                                                        \
+  return true;                                                          \
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------
+// Instantiate relational operators
+//
+  COMPARE( == )
+  COMPARE( < )
+  COMPARE( > )
+  COMPARE( <= )
+  COMPARE( >= )
+
+
 bool timestamp
-::operator>( timestamp const& rhs ) const
+::operator !=( timestamp const& rhs ) const
 {
-  if ( this->m_time_domain_index != rhs.m_time_domain_index )
-  {
-    return false;
-  }
-
-  if ( this->has_valid_time() && rhs.has_valid_time() )
-  {
-    return this->get_time_usec() > rhs.get_time_usec();
-  }
-
-  if ( this->has_valid_frame() && rhs.has_valid_frame() )
-  {
-    return this->get_frame() > rhs.get_frame();
-  }
-
-  return false;
-
-}
-
-
-// ------------------------------------------------------------------
-bool timestamp
-::operator==( timestamp const& rhs ) const
-{
-  if ( this->m_time_domain_index != rhs.m_time_domain_index )
-  {
-    return false;
-  }
-
-  if ( this->has_valid_time() && rhs.has_valid_time() )
-  {
-    return this->get_time_usec() == rhs.get_time_usec();
-  }
-
-  if ( this->has_valid_frame() && rhs.has_valid_frame() )
-  {
-    return this->get_frame() == rhs.get_frame();
-  }
-
-  return false;
-}
-
-
-// ------------------------------------------------------------------
-bool timestamp
-::operator!=( timestamp const& rhs ) const
-{
-  if ( this->m_time_domain_index != rhs.m_time_domain_index )
-  {
-    return false;
-  }
-
-  if ( this->has_valid_time() && rhs.has_valid_time() )
-  {
-    return this->get_time_usec() != rhs.get_time_usec();
-  }
-
-  if ( this->has_valid_frame() && rhs.has_valid_frame() )
-  {
-    return this->get_frame() != rhs.get_frame();
-  }
-
-  return false;
+  return !operator == (rhs);
 }
 
 

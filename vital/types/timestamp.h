@@ -211,6 +211,8 @@ public:
   bool operator!=( timestamp const& rhs ) const;
   bool operator<( timestamp const& rhs ) const;
   bool operator>( timestamp const& rhs ) const;
+  bool operator<=( timestamp const& rhs ) const;
+  bool operator>=( timestamp const& rhs ) const;
 
 
 private:
