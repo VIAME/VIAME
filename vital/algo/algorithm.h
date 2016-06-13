@@ -153,11 +153,11 @@ public:
    * parameters are merged with the given
    * \link kwiver::vital::config_block config_block \endlink.
    *
-   * \param     type_name   The type name of the nested algorithm.
-   * \param     name        An identifying name for the nested algorithm
-   * \param     config      The \c config_block instance in which to put the
+   * \param[in]       type_name   The type name of the nested algorithm.
+   * \param[in]       name        An identifying name for the nested algorithm
+   * \param[in,out]   config      The \c config_block instance in which to put the
    *                          nested algorithm's configuration.
-   * \param     nested_algo The nested algorithm's sptr variable.
+   * \param[in]       nested_algo The nested algorithm's sptr variable.
    */
   static void get_nested_algo_configuration(std::string const& type_name,
                                             std::string const& name,
@@ -175,9 +175,9 @@ public:
    * an invalid value relative to the registered names for this
    * \c type_name
    *
-   * \param type_name           The type name of the nested algorithm.
-   * \param name                An identifying name for the nested algorithm.
-   * \param config              The \c config_block instance from which we will
+   * \param[in] type_name           The type name of the nested algorithm.
+   * \param[in] name                An identifying name for the nested algorithm.
+   * \param[in] config              The \c config_block instance from which we will
    *                              draw configuration needed for the nested
    *                              algorithm instance.
    * \param[in,out] nested_algo The nested algorithm's sptr variable.
@@ -314,22 +314,22 @@ public:
                                             config_block_sptr config,
                                             base_sptr nested_algo);
 
-  /// Helper function for properly setting a nested algorithm's configuration
+  /// Instantiate nested algorighm.
   /**
-   * If the value for the config parameter "type" is supported by the
-   * concrete algorithm class, then a new algorithm object is created,
-   * configured and returned via the \c nested_algo pointer.
+   * A new concrete algorithm object is created if the value for the
+   * config parameter "type" is supported. The new object is returned
+   * through the nested_algo parameter.
    *
    * The nested algorithm will not be set if the implementation switch (as
    * defined in the \c get_nested_algo_configuration) is not present or set to
    * an invalid value relative to the registered names for this
    * \c algorithm_def.
    *
-   * \param name                An identifying name for the nested algorithm.
-   * \param config              The \c config_block instance from which we will
+   * \param[in] name              An identifying name for the nested algorithm.
+   * \param[in] config            The \c config_block instance from which we will
    *                              draw configuration needed for the nested
    *                              algorithm instance.
-   * \param[in,out] nested_algo The nested algorithm's sptr variable.
+   * \param[out] nested_algo      Pointer to the algorithm object is returned here.
    */
   static void set_nested_algo_configuration(std::string const& name,
                                             config_block_sptr config,
@@ -357,7 +357,9 @@ public:
 /// An intermediate templated base class for algorithm implementations
 /**
  *  Uses a variation of the curiously recurring template pattern (CRTP) to
- *  implement the clone() and register_self() functions for the derived class.
+ *  implement the clone() and register_self() functions for the derived class
+ *  with respect to the base algorithm_def implementation.
+ *
  *  Each algorithm implementation should be declared as shown below
  *  \code
     class my_algo_impl
@@ -367,15 +369,36 @@ public:
     };
     \endcode
  *  where \c my_algo_def is the abstract algorithm class being implemented.
+ *
+ *  While the above example shows the algorithm_impl taking two template
+ *  arguments, the full definition takes 3: the implementation class, the parent
+ *  definition class that's being sub-classed and the base definition class. We
+ *  define here that the "base" definition class is the first class along a
+ *  class hierarchy that implements the algorithm_def class (e.g. the
+ *  detect_features class or the estimate_homography class defined in
+ *  kwiver::vital::algo)
+ *
+ *  In most cases, the parent definition class *is* the base definition class.
+ *  In some cases, however, algorithm_def implementations may be sub-classed,
+ *  giving rise to intermediate definitions. These cannot just directly be used
+ *  as the parent *and* based because of the use of CRTP and templated types
+ *  conflicting in one or more parts of the hierarchy. Thus, if an algorithm
+ *  implementation is using a parent definition that is NOT the base definition,
+ *  the base must also be provided as the third template argument. It also
+ *  follows that the Parent algorithm_def type provided must descend from the
+ *  BaseDef algorithm_def type provided. IF this is not the case, some compilers
+ *  may error if this is the case (e.g. GCC will fail with an "invalid covariant
+ *  return type" due to the algorithm_impl's clone method).
+ *
  *  \sa algorithm_def
  */
-template <typename Self, typename Base>
+template <typename Self, typename Parent, typename BaseDef=Parent>
 class algorithm_impl
-  : public Base
+  : public Parent
 {
 public:
   /// shared pointer type of this impl's base vital::algorithm_def class.
-  typedef std::shared_ptr<Base> base_sptr;
+  typedef std::shared_ptr<BaseDef> base_sptr;
 
   virtual ~algorithm_impl() VITAL_DEFAULT_DTOR;
 
@@ -385,7 +408,7 @@ public:
     return algorithm_sptr(new Self(static_cast<const Self&>(*this)));
   }
 
-  /// Returns a clone of this algorithm as a specific algorithm pointer
+  /// Returns a clone of this algorithm as a pointer of the base definition type
   virtual base_sptr clone() const
   {
     return base_sptr(new Self(static_cast<const Self&>(*this)));
@@ -397,10 +420,10 @@ public:
     return "";
   }
 
-  /// Register this algorithm implementation
+  /// Register this algorithm implementation under the BaseDef type definition
   static bool register_self(registrar &reg = vital::registrar::instance())
   {
-    return algorithm_def<Base>::register_instance(reg, base_sptr(new Self));
+    return algorithm_def<BaseDef>::register_instance(reg, base_sptr(new Self));
   }
 
 };

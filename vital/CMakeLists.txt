@@ -92,6 +92,8 @@ set( vital_public_headers
   vital_types.h
   vital_foreach.h
   noncopyable.h
+  any.h
+  algorithm_capabilities.h
 
   algo/algorithm.txx
   algo/algorithm.h
@@ -102,6 +104,7 @@ set( vital_public_headers
   algo/convert_image.h
   algo/detect_features.h
   algo/draw_tracks.h
+  algo/estimate_canonical_transform.h
   algo/estimate_essential_matrix.h
   algo/estimate_fundamental_matrix.h
   algo/estimate_homography.h
@@ -122,6 +125,8 @@ set( vital_public_headers
   exceptions/image.h
   exceptions/io.h
   exceptions/math.h
+  exceptions/video.h
+  exceptions/klv.h
 
   io/camera_io.h
   io/camera_map_io.h
@@ -141,6 +146,9 @@ set( vital_public_headers
   types/feature_set.h
   types/fundamental_matrix.h
   types/geo_lat_lon.h
+  types/geo_UTM.h
+  types/geo_MGRS.h
+  types/geo_corner_points.h
   types/homography.h
   types/homography_f2f.h
   types/homography_f2w.h
@@ -160,12 +168,19 @@ set( vital_public_headers
 
   util/get_paths.h
   util/timer.h
+  util/demangle.h
+  util/any_converter.h
   util/enumerate_matrix.h
+  util/enumerate_matrix.h
+
+  plugin_loader/plugin_factory.h
+  plugin_loader/plugin_manager.h
 )
 
 # ----------------------
 set( vital_sources
   registrar.cxx
+  algorithm_capabilities.cxx
 
   algo/algorithm.cxx
   algo/analyze_tracks.cxx
@@ -175,6 +190,7 @@ set( vital_sources
   algo/convert_image.cxx
   algo/detect_features.cxx
   algo/draw_tracks.cxx
+  algo/estimate_canonical_transform.cxx
   algo/estimate_essential_matrix.cxx
   algo/estimate_fundamental_matrix.cxx
   algo/estimate_homography.cxx
@@ -188,12 +204,15 @@ set( vital_sources
   algo/optimize_cameras.cxx
   algo/track_features.cxx
   algo/triangulate_landmarks.cxx
+  algo/video_input.cxx
 
   exceptions/algorithm.cxx
   exceptions/base.cxx
   exceptions/image.cxx
   exceptions/io.cxx
   exceptions/math.cxx
+  exceptions/video.cxx
+  exceptions/klv.cxx
 
   io/camera_io.cxx
   io/camera_map_io.cxx
@@ -206,6 +225,9 @@ set( vital_sources
   types/feature.cxx
   types/fundamental_matrix.cxx
   types/geo_lat_lon.cxx
+  types/geo_UTM.cxx
+  types/geo_MGRS.cxx
+  types/geo_corner_points.cxx
   types/homography.cxx
   types/homography_f2f.cxx
   types/homography_f2w.cxx
@@ -218,6 +240,10 @@ set( vital_sources
   types/track_set.cxx
 
   util/get_paths.cxx
+  util/demangle.cxx
+
+  plugin_loader/plugin_manager.cxx
+  plugin_loader/plugin_factory.cxx
 )
 
 kwiver_install_headers(
@@ -256,6 +282,16 @@ target_link_libraries( vital
                   vital_logger
   )
 
+###
+# Build plugin management library
+#
+# This has to happen after plugin creation so as to be able to statically link
+# in plugin libraries when building static.
+#
+option(VITAL_USE_BUILD_PLUGIN_DIR
+  "Whether to include the build-tree plugin directory to the default plugin path list"
+  OFF
+  )
 set(vital_apm_headers
   algorithm_plugin_manager.h
   )
@@ -289,9 +325,9 @@ target_link_libraries(vital_apm
                    vital_logger
   )
 
-set(VITAL_MODULE_PATH "${VITAL_DEFAULT_MODULE_PATH}"
+set(VITAL_MODULE_PATHS "${vital_default_module_paths}"
   CACHE STRING "The extra default paths for module scanning. Separate paths with ';' character.")
-mark_as_advanced( VITAL_MODULE_PATH )
+mark_as_advanced( VITAL_MODULE_PATHS )
 
 # Configuring/Adding compile definitions to target
 # (so we can use generator expressions)
@@ -351,6 +387,8 @@ configure_file(
 add_subdirectory( bindings )
 add_subdirectory( logger )
 add_subdirectory( config )
+add_subdirectory( klv )
+add_subdirectory( video_metadata )
 
 if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )
@@ -361,6 +399,7 @@ endif()
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
   add_subdirectory( util/tests )
+  add_subdirectory( klv/tests )
 endif()
 
 ###
