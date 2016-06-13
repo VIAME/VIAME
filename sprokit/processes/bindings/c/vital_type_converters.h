@@ -37,8 +37,8 @@
 
 #include <processes/bindings/c/vital_type_converters_export.h>
 
-#include <vital/bindings/c/image_container.h>
-#include <vital/bindings/c/track_set.h>
+#include <vital/bindings/c/types/image_container.h>
+#include <vital/bindings/c/types/track_set.h>
 
 #include <Python.h>
 

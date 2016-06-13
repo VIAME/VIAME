@@ -30,6 +30,7 @@ kwiver_add_library( vital_type_converters
   ${public_headers}
   ${private_headers}
   ${sources}
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_type_converters_export.h
   )
 
 target_link_libraries( vital_type_converters
