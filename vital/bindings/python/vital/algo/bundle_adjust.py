@@ -81,11 +81,11 @@ class BundleAdjust (VitalAlgorithm):
         # Initialize new objects if "returned" pointers are different from input
         # objects
         r_cmap = cmap
-        if ctypes.addressof(cmap_ptr.contents) != cmap.c_pointer.contents:
+        if ctypes.addressof(cmap_ptr.contents) != ctypes.addressof(cmap.c_pointer.contents):
             self._log.debug("Creating new CameraMap instance")
             r_cmap = CameraMap(from_cptr=cmap_ptr)
         r_lmap = lmap
-        if ctypes.addressof(lmap_ptr.contents) != lmap.c_pointer.contents:
+        if ctypes.addressof(lmap_ptr.contents) != ctypes.addressof(lmap.c_pointer.contents):
             self._log.debug("Creating new LandmarkMap instance")
             r_lmap = LandmarkMap(from_cptr=lmap_ptr)
 
