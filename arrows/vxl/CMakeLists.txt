@@ -7,6 +7,7 @@ set(vxl_headers_public
   camera_map.h
   close_loops_homography_guided.h
   compute_homography_overlap.h
+  estimate_canonical_transform.h
   estimate_essential_matrix.h
   estimate_fundamental_matrix.h
   estimate_homography.h
@@ -18,6 +19,7 @@ set(vxl_headers_public
   register_algorithms.h
   triangulate_landmarks.h
   vil_image_memory.h
+  vidl_ffmpeg_video_input.h
   )
 
 kwiver_install_headers(
@@ -36,6 +38,7 @@ set(vxl_sources
   camera_map.cxx
   close_loops_homography_guided.cxx
   compute_homography_overlap.cxx
+  estimate_canonical_transform.cxx
   estimate_essential_matrix.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
@@ -47,6 +50,7 @@ set(vxl_sources
   register_algorithms.cxx
   triangulate_landmarks.cxx
   vil_image_memory.cxx
+  vidl_ffmpeg_video_input.cxx
   )
 
 kwiver_add_library( kwiver_algo_vxl
@@ -55,7 +59,12 @@ kwiver_add_library( kwiver_algo_vxl
   )
 target_link_libraries( kwiver_algo_vxl
   PUBLIC               kwiver_algo
-                       rrel rsdl vnl vgl_algo vil vpgl_algo
+                       vil vidl
+  PRIVATE              vital_klv
+                       vital_video_metadata
+                       rrel rsdl
+                       vnl vgl_algo
+                       vpgl_algo
   )
 
 algorithms_create_plugin( kwiver_algo_vxl

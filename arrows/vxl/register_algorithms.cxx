@@ -36,8 +36,10 @@
 #include "register_algorithms.h"
 
 #include <arrows/algorithm_plugin_interface_macros.h>
+
 #include <arrows/vxl/bundle_adjust.h>
 #include <arrows/vxl/close_loops_homography_guided.h>
+#include <arrows/vxl/estimate_canonical_transform.h>
 #include <arrows/vxl/estimate_essential_matrix.h>
 #include <arrows/vxl/estimate_fundamental_matrix.h>
 #include <arrows/vxl/estimate_homography.h>
@@ -46,6 +48,7 @@
 #include <arrows/vxl/optimize_cameras.h>
 #include <arrows/vxl/triangulate_landmarks.h>
 #include <arrows/vxl/match_features_constrained.h>
+#include <arrows/vxl/vidl_ffmpeg_video_input.h>
 
 
 namespace kwiver {
@@ -59,6 +62,7 @@ int register_algorithms( vital::registrar &reg )
 
   REGISTER_TYPE( vxl::bundle_adjust );
   REGISTER_TYPE( vxl::close_loops_homography_guided );
+  REGISTER_TYPE( vxl::estimate_canonical_transform );
   REGISTER_TYPE( vxl::estimate_essential_matrix );
   REGISTER_TYPE( vxl::estimate_fundamental_matrix );
   REGISTER_TYPE( vxl::estimate_homography );
@@ -67,6 +71,7 @@ int register_algorithms( vital::registrar &reg )
   REGISTER_TYPE( vxl::optimize_cameras );
   REGISTER_TYPE( vxl::triangulate_landmarks );
   REGISTER_TYPE( vxl::match_features_constrained );
+  REGISTER_TYPE( vxl::vidl_ffmpeg_video_input );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();
