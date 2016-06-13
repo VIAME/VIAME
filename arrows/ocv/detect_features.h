@@ -38,11 +38,11 @@
 
 
 #include <vital/vital_config.h>
-#include <arrows/ocv/kwiver_algo_ocv_export.h>
-
 #include <vital/algo/detect_features.h>
 
-#include <memory>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
+
+#include <opencv2/features2d/features2d.hpp>
 
 namespace kwiver {
 namespace arrows {
@@ -54,28 +54,9 @@ namespace ocv {
  * method.
  */
 class KWIVER_ALGO_OCV_EXPORT detect_features
-  : public vital::algorithm_impl<detect_features, vital::algo::detect_features>
+  : public kwiver::vital::algo::detect_features
 {
 public:
-  /// Constructor
-  detect_features();
-
-  /// Destructor
-  virtual ~detect_features();
-
-  /// Copy Constructor
-  detect_features(const detect_features& other);
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv"; }
-
-  /// Get this algorithm's \link vital::kwiver::config_block configuration block \endlink
-  virtual vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration(vital::config_block_sptr config);
-  /// Check that the algorithm's configuration vital::config_block is valid
-  virtual bool check_configuration(vital::config_block_sptr config) const;
-
   /// Extract a set of image features from the provided image
   /**
    * A given mask image should be one-channel (mask->depth() == 1). If the
@@ -92,10 +73,9 @@ public:
   detect(vital::image_container_sptr image_data,
          vital::image_container_sptr mask = vital::image_container_sptr()) const;
 
-private:
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
+protected:
+  /// the feature detector algorithm
+  cv::Ptr<cv::FeatureDetector> detector;
 };
 
 } // end namespace ocv

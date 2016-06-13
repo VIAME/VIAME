@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,59 +30,66 @@
 
 /**
  * \file
- * \brief OCV mat_image_memory interface
+ * \brief OCV LUCID descriptor extractor wrapper
  */
 
-#ifndef KWIVER_ARROWS_OCV_MAT_IMAGE_MEMORY_H_
-#define KWIVER_ARROWS_OCV_MAT_IMAGE_MEMORY_H_
+#ifndef KWIVER_ARROWS_EXTRACT_DESCRIPTORS_LUCID_H_
+#define KWIVER_ARROWS_EXTRACT_DESCRIPTORS_LUCID_H_
 
+#include <opencv2/opencv_modules.hpp>
+#ifdef HAVE_OPENCV_XFEATURES2D
 
-#include <vital/vital_config.h>
+#include <memory>
+#include <string>
+
+#include <arrows/ocv/extract_descriptors.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
-
-#include <vital/types/image.h>
-
-#include <opencv2/core/core.hpp>
 
 namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-/// An image memory class that shares memory with OpenCV using reference counting
-class KWIVER_ALGO_OCV_EXPORT mat_image_memory
-  : public vital::image_memory
+
+class KWIVER_ALGO_OCV_EXPORT extract_descriptors_LUCID
+  : public vital::algorithm_impl< extract_descriptors_LUCID,
+                                  ocv::extract_descriptors,
+                                  vital::algo::extract_descriptors >
 {
 public:
-  /// Constructor - allocates n bytes
-  mat_image_memory(const cv::Mat& m);
-
+  /// Constructor
+  extract_descriptors_LUCID();
+  /// Copy Constructor
+  extract_descriptors_LUCID( extract_descriptors_LUCID const &other );
   /// Destructor
-  virtual ~mat_image_memory();
+  virtual ~extract_descriptors_LUCID();
 
-  /// Return a pointer to the allocated memory
-  virtual void* data() { return this->mat_data_; }
+  /// Return the name of this implementation
+  virtual std::string impl_name() const { return "ocv_LUCID"; }
+  /// Returns a descriptive string for this implementation
+  virtual std::string description() const {
+    return "OpenCV feature-point descriptor extraction via the LUCID algorithm";
+  }
 
-  /// Return the OpenCV reference counter
-#ifndef KWIVER_HAS_OPENCV_VER_3
-  int* get_ref_counter() const { return this->mat_refcount_; }
-#else
-  cv::UMatData* get_umatdata() const { return this->u_; }
-#endif
+  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
+  virtual vital::config_block_sptr get_configuration() const;
+  /// Set this algorithm's properties via a config block
+  virtual void set_configuration(vital::config_block_sptr config);
+  /// Check that the algorithm's configuration config_block is valid
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
-protected:
-  /// The cv::Mat data
-  unsigned char* mat_data_;
-
-  /// The ref count shared with cv::Mat
-#ifndef KWIVER_HAS_OPENCV_VER_3
-  int* mat_refcount_;
-#else
-  cv::UMatData *u_;
-#endif
+private:
+  class priv;
+  std::unique_ptr<priv> p_;
 };
+
+
+#define KWIVER_OCV_HAS_LUCID
+
 
 } // end namespace ocv
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_OCV_MAT_IMAGE_MEMORY_H_
+#endif //HAVE_OPENCV_XFEATURES2D
+
+#endif //KWIVER_ARROWS_EXTRACT_DESCRIPTORS_LUCID_H_

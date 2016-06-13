@@ -35,118 +35,17 @@
 
 #include "detect_features.h"
 
-#include <iostream>
 #include <vector>
 
 #include <vital/exceptions/image.h>
 #include <arrows/ocv/feature_set.h>
 #include <arrows/ocv/image_container.h>
-#include <arrows/ocv/ocv_algo_tools.h>
-
-#include <opencv2/features2d/features2d.hpp>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
-
-
-/// Private implementation class
-class detect_features::priv
-{
-public:
-  /// Constructor
-  priv()
-  : detector(default_detector())
-  {
-  }
-
-  priv(const priv& other)
-  : detector(default_detector())
-  {
-  }
-
-  /// create the default feature detector
-  static cv::Ptr<cv::FeatureDetector> default_detector()
-  {
-    cv::Ptr<cv::FeatureDetector> det;
-    // try the SURF detector first
-    det = cv::FeatureDetector::create("SURF");
-    if( !det )
-    {
-      // if SURF is not available (nonfree not built) use ORB
-      det = cv::FeatureDetector::create("ORB");
-    }
-    return det;
-  }
-
-  /// the feature detector algorithm
-  cv::Ptr<cv::FeatureDetector> detector;
-};
-
-
-/// Constructor
-detect_features
-::detect_features()
-: d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-detect_features
-::detect_features(const detect_features& other)
-: d_(new priv(*other.d_))
-{
-}
-
-
-/// Destructor
-detect_features
-::~detect_features()
-{
-}
-
-
-/// Get this algorithm's \link vital::config_block configuration block \endlink
-vital::config_block_sptr
-detect_features
-::get_configuration() const
-{
-  // base configuration block
-  vital::config_block_sptr config = algorithm::get_configuration();
-
-  get_nested_ocv_algo_configuration("detector", config, d_->detector);
-
-  return config;
-}
-
-
-/// Set this algorithm's properties via a config block
-void
-detect_features
-::set_configuration(vital::config_block_sptr config)
-{
-  set_nested_ocv_algo_configuration(
-      "detector", config, d_->detector);
-}
-
-
-/// Check that the algorithm's configuration vital::config_block is valid
-bool
-detect_features
-::check_configuration(vital::config_block_sptr config) const
-{
-  bool nested_ok =
-    check_nested_ocv_algo_configuration<cv::FeatureDetector>(
-        "detector", config);
-
-  return nested_ok;
-}
-
+namespace ocv {
 
 /// Extract a set of image features from the provided image
 vital::feature_set_sptr
@@ -166,7 +65,7 @@ detect_features
     {
       throw image_size_mismatch_exception(
           "OCV detect feature algorithm given a non-zero mask with mismatched "
-          "shape compared to imput image",
+          "shape compared to input image",
           image_data->width(), image_data->height(),
           mask->width(), mask->height()
           );
@@ -183,7 +82,7 @@ detect_features
     cv_mask = ocv::image_container::vital_to_ocv(i);
   }
 
-  d_->detector->detect(cv_img, keypoints, cv_mask);
+  detector->detect(cv_img, keypoints, cv_mask);
   return feature_set_sptr(new feature_set(keypoints));
 }
 
