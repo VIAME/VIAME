@@ -26,3 +26,5 @@ kwiver_discover_tests(core_vector             test_libraries test_vector.cxx)
 
 kwiver_discover_tests(core_est                test_libraries test_estimate_similarity_transform.cxx)
 kwiver_discover_tests(core_timestamp          test_libraries test_timestamp.cxx)
+kwiver_discover_tests(core_any                test_libraries test_any.cxx)
+kwiver_discover_tests(core_algorithm_capabilities  test_libraries test_algorithm_capabilities.cxx)

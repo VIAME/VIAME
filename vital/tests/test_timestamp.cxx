@@ -92,14 +92,14 @@ IMPLEMENT_TEST(timestamp_API)
 IMPLEMENT_TEST(timestamp_relop)
 {
   kwiver::vital::timestamp tsiv; // invalid TS
-  kwiver::vital::timestamp ts( 5000000, 123 );
+  kwiver::vital::timestamp   ts( 5000000, 123 );
   kwiver::vital::timestamp ts11( 5000000, 122 );
   kwiver::vital::timestamp ts12( 5000000, 124 );
   kwiver::vital::timestamp ts21( 4000000, 122 );
   kwiver::vital::timestamp ts22( 6000000, 124 );
 
   TEST_EQUAL( "Invalid timestamp ==", (ts == tsiv), false );
-  TEST_EQUAL( "Invalid timestamp !=", (ts != tsiv), false );
+  TEST_EQUAL( "Invalid timestamp !=", (ts != tsiv), true );
   TEST_EQUAL( "Invalid timestamp <", (ts < tsiv), false );
   TEST_EQUAL( "Invalid timestamp >", (ts > tsiv), false );
 
@@ -108,13 +108,13 @@ IMPLEMENT_TEST(timestamp_relop)
   TEST_EQUAL( "Same timestamp <", (ts < ts), false );
   TEST_EQUAL( "Same timestamp >", (ts > ts), false );
 
-  TEST_EQUAL( "ts11 timestamp ==", (ts == ts11), true );
-  TEST_EQUAL( "ts11 timestamp !=", (ts != ts11), false );
+  TEST_EQUAL( "ts11 timestamp ==", (ts == ts11), false );
+  TEST_EQUAL( "ts11 timestamp !=", (ts != ts11), true );
   TEST_EQUAL( "ts11 timestamp <", (ts < ts11), false );
   TEST_EQUAL( "ts11 timestamp >", (ts > ts11), false );
 
-  TEST_EQUAL( "ts12 timestamp ==", (ts == ts12), true );
-  TEST_EQUAL( "ts12 timestamp !=", (ts != ts12), false );
+  TEST_EQUAL( "ts12 timestamp ==", (ts == ts12), false );
+  TEST_EQUAL( "ts12 timestamp !=", (ts != ts12), true );
   TEST_EQUAL( "ts12 timestamp <", (ts < ts12), false );
   TEST_EQUAL( "ts12 timestamp >", (ts > ts12), false );
 
@@ -154,13 +154,12 @@ IMPLEMENT_TEST(timestamp_relop)
   ts01.set_time_domain_index( 1 );
 
   TEST_EQUAL( "ts01 frame only timestamp ==", (ts == ts01), false );
-  TEST_EQUAL( "ts01 frame only timestamp !=", (ts != ts01), false );
+  TEST_EQUAL( "ts01 frame only timestamp !=", (ts != ts01), true );
   TEST_EQUAL( "ts01 frame only timestamp <", (ts < ts01), false );
   TEST_EQUAL( "ts01 frame only timestamp >", (ts > ts01), false );
 
   TEST_EQUAL( "ts10:ts01 timestamp ==", (ts10 == ts01), false );
-  TEST_EQUAL( "ts10:ts01 timestamp !=", (ts10 != ts01), false );
+  TEST_EQUAL( "ts10:ts01 timestamp !=", (ts10 != ts01), true );
   TEST_EQUAL( "ts10:ts01 timestamp <", (ts10 < ts01), false );
   TEST_EQUAL( "ts10:ts01 timestamp >", (ts10 > ts01), false  );
-
 }
