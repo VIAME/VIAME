@@ -13,6 +13,7 @@ set(vital_c_public_headers
   algo_def/image_io.h
   algo_def/initialize_cameras_landmarks.h
   algo_def/track_features.h
+  algo_def/triangulate_landmarks.h
 
   types/bounding_box.h
   types/camera.h
@@ -69,6 +70,7 @@ set(vital_c_sources
   algo_def/image_io.cxx
   algo_def/initialize_cameras_landmarks.cxx
   algo_def/track_features.cxx
+  algo_def/triangulate_landmarks.cxx
 
   helpers/c_utils.cxx
 
