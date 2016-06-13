@@ -44,8 +44,8 @@ extern "C"
 #include <vital/bindings/c/algorithm.h>
 #include <vital/bindings/c/vital_c_export.h>
 #include <vital/bindings/c/error_handle.h>
-#include <vital/bindings/c/image_container.h>
-#include <vital/bindings/c/track_set.h>
+#include <vital/bindings/c/types/image_container.h>
+#include <vital/bindings/c/types/track_set.h>
 
 
 /// Common algorithm definition API

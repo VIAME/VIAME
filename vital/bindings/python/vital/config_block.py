@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ Interface to VITAL config_block class.
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
+__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 
@@ -47,7 +47,6 @@ from vital.exceptions.config_block_io import (
     VitalConfigBlockIoFileWriteException,
 )
 from vital.util import VitalObject, VitalErrorHandle
-from vital.util.string import vital_string_t
 
 import os
 import tempfile
@@ -89,11 +88,9 @@ class ConfigBlock (VitalObject):
                 3: VitalConfigBlockIoFileNotParsed
             })
 
-            return cls.from_c_pointer(
-                cb_read(filepath, eh)
-            )
+            return cls(cb_read(filepath, eh))
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, from_cptr=None):
         """
         Create a new, empty configuration instance.
 
@@ -101,17 +98,18 @@ class ConfigBlock (VitalObject):
         :type name: str
 
         """
-        super(ConfigBlock, self).__init__()
+        super(ConfigBlock, self).__init__(from_cptr, name)
 
+    def _new(self, name):
         if name:
             cb_new = self.VITAL_LIB.vital_config_block_new_named
             cb_new.argtypes = [ctypes.c_char_p]
             cb_new.restype = self.C_TYPE_PTR
-            self._inst_ptr = cb_new(str(name))
+            return cb_new(str(name))
         else:
             cb_new = self.VITAL_LIB.vital_config_block_new
             cb_new.restype = self.C_TYPE_PTR
-            self._inst_ptr = cb_new()
+            return cb_new()
 
     def _destroy(self):
         # print "Destroying CB: \"%s\" %d" % (self.name, self._inst_ptr)
@@ -126,13 +124,8 @@ class ConfigBlock (VitalObject):
         """
         cb_get_name = self.VITAL_LIB.vital_config_block_get_name
         cb_get_name.argtypes = [self.C_TYPE_PTR]
-        cb_get_name.restype = self.MST_TYPE_PTR
-
-        mst = cb_get_name(self)
-        s = mst.contents.str
-        self.MST_FREE(mst)
-
-        return s
+        cb_get_name.restype = ctypes.c_char_p
+        return cb_get_name(self)
 
     def subblock(self, key):
         """
@@ -146,9 +139,7 @@ class ConfigBlock (VitalObject):
         cb_subblock = self.VITAL_LIB.vital_config_block_subblock
         cb_subblock.argtypes = [self.C_TYPE_PTR]
         cb_subblock.restype = self.C_TYPE_PTR
-        return ConfigBlock.from_c_pointer(
-            cb_subblock(self, key)
-        )
+        return ConfigBlock(from_cptr=cb_subblock(self, key))
 
     def subblock_view(self, key):
         """
@@ -165,16 +156,14 @@ class ConfigBlock (VitalObject):
         cb_subblock_view = self.VITAL_LIB.vital_config_block_subblock_view
         cb_subblock_view.argtypes = [self.C_TYPE_PTR]
         cb_subblock_view.restype = self.C_TYPE_PTR
-        return ConfigBlock.from_c_pointer(
-            cb_subblock_view(self, key)
-        )
+        return ConfigBlock(from_cptr=cb_subblock_view(self, key))
 
     def get_value(self, key, default=None):
         """ Get the string value for a key.
 
         The given key may not exist in this configuration. If no default was
-        given, then None is returned. Otherwise, the provided default value is
-        returned.
+        given, then an exception is raised. Otherwise, the provided default
+        value is returned.
 
         :param key: The index of the configuration value to retrieve.
         :type key: str
@@ -186,26 +175,32 @@ class ConfigBlock (VitalObject):
         :return: The string value stored within the configuration
         :rtype: str
 
-        """
-        # Not using the get_value_default C API call since the string version
-        # getter handily returns a None value (yay ctypes), providing a simpler
-        # code path than calling the C API default func.
-        cb_get_value = self.VITAL_LIB.vital_config_block_get_value
-        cb_get_value.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
-        cb_get_value.restype = self.MST_TYPE_PTR
+        :raises VitalConfigBlockNoSuchValueException: the given key doesn't
+            exist in the configuration and no default was provided.
 
-        mst_ptr = cb_get_value(self, key)
-        if not bool(mst_ptr):
-            return default
-        s = mst_ptr.contents.str
-        self.MST_FREE(mst_ptr)
-        return s
+        """
+        cb_get_argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
+        cb_get_args = [self, key]
+        if default is None:
+            cb_get = self.VITAL_LIB['vital_config_block_get_value']
+        else:
+            cb_get = self.VITAL_LIB['vital_config_block_get_value_default']
+            cb_get_argtypes.append(ctypes.c_char_p)
+            cb_get_args.append(default)
+
+        cb_get.argtypes = cb_get_argtypes + [VitalErrorHandle.C_TYPE_PTR]
+        cb_get.restype = ctypes.c_char_p
+
+        with VitalErrorHandle() as eh:
+            eh.set_exception_map({1: VitalConfigBlockNoSuchValueException})
+            return cb_get(*(cb_get_args + [eh]))
 
     def get_value_bool(self, key, default=None):
         """ Get the boolean value for a key
 
-        :raises VitalConfigBlockNoSuchValueException: the given key doesn't
-            exist in the configuration and no default was provided.
+        The given key may not exist in this configuration. If no default was
+        given, then an exception is raised. Otherwise, the provided default
+        value is returned.
 
         :param key: The index of the configuration value to retrieve.
         :type key: str
@@ -216,6 +211,9 @@ class ConfigBlock (VitalObject):
 
         :return: The boolean value stored within the configuration
         :rtype: bool
+
+        :raises VitalConfigBlockNoSuchValueException: the given key doesn't
+            exist in the configuration and no default was provided.
 
         """
         cb_get_bool_argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
@@ -233,7 +231,7 @@ class ConfigBlock (VitalObject):
         cb_get_bool.restype = ctypes.c_bool
 
         with VitalErrorHandle() as eh:
-            eh.set_exception_map({-1: VitalConfigBlockNoSuchValueException})
+            eh.set_exception_map({1: VitalConfigBlockNoSuchValueException})
             cb_get_bool_args.append(eh)
             return cb_get_bool(*cb_get_bool_args)
 
@@ -241,10 +239,8 @@ class ConfigBlock (VitalObject):
         """
         Get the string description for a given key.
 
-        If the provided key exists but has no description associated with it, an
-        empty string is returned.
-
-        If the key provided does not exist, a None is returned.
+        :raises VitalConfigBlockNoSuchValueException: the given key doesn't
+            exist in the configuration and no default was provided.
 
         :param key: The name of the parameter to get the description of.
         :type key: str
@@ -255,15 +251,14 @@ class ConfigBlock (VitalObject):
 
         """
         cb_get_descr = self.VITAL_LIB.vital_config_block_get_description
-        cb_get_descr.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
-        cb_get_descr.restype = self.MST_TYPE_PTR
+        cb_get_descr.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
+                                 VitalErrorHandle.C_TYPE_PTR]
+        cb_get_descr.restype = ctypes.c_char_p
 
-        mst_ptr = cb_get_descr(self, key)
-        if mst_ptr is not None:
-            s = mst_ptr.contents.str
-            self.MST_FREE(mst_ptr)
-            return s
-        return None
+        with VitalErrorHandle() as eh:
+            eh.set_exception_map({-1: VitalConfigBlockNoSuchValueException})
+            d = cb_get_descr(self, key, eh)
+        return d
 
     def set_value(self, key, value, description=None):
         """
@@ -468,13 +463,12 @@ class ConfigBlock (VitalObject):
 
 def _initialize_cb_statics():
     """ Initialize ConfigBlock class variables from library """
-    VitalObject.VITAL_LIB.vital_config_block_block_sep.restype = \
-        vital_string_t.PTR_t
-    VitalObject.VITAL_LIB.vital_config_block_global_value.restype = \
-        vital_string_t.PTR_t
-    ConfigBlock.BLOCK_SEP = \
-        VitalObject.VITAL_LIB.vital_config_block_block_sep().contents.str
-    ConfigBlock.GLOBAL_VALUE = \
-        VitalObject.VITAL_LIB.vital_config_block_global_value().contents.str
+    VitalObject.VITAL_LIB.vital_config_block_block_sep.restype = ctypes.c_char_p
+    VitalObject.VITAL_LIB.vital_config_block_global_value.restype = ctypes.c_char_p
+    ConfigBlock.BLOCK_SEP = VitalObject.VITAL_LIB.vital_config_block_block_sep()
+    ConfigBlock.GLOBAL_VALUE = VitalObject.VITAL_LIB.vital_config_block_global_value()
 
-_initialize_cb_statics()
+
+# Only call if ConfigBlock globals are not initialized yet
+if ConfigBlock.BLOCK_SEP is None:
+    _initialize_cb_statics()

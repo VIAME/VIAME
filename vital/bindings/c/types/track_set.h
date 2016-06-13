@@ -43,7 +43,7 @@ extern "C"
 
 #include <vital/bindings/c/vital_c_export.h>
 #include <vital/bindings/c/error_handle.h>
-#include <vital/bindings/c/track.h>
+#include <vital/bindings/c/types/track.h>
 
 
 /// Opaque structure
@@ -54,6 +54,9 @@ typedef struct vital_trackset_s vital_trackset_t;
 /**
  * The given track array may be freed after calling this function as the
  * underlying instance references are shared into the track set.
+ *
+ * This may be given a length of 0 and a null pointer to create an empty track
+ * set.
  *
  * \param length The number of tracks in the given array
  * \param tracks The array of tracks to create a set out of

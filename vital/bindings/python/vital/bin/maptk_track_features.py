@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,14 @@ interface usage.
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
+__author__ = 'paul.tunison@kitware.com'
 
 import logging
 import os
 import os.path
 
 from vital import (
-    AlgorithmPluginManager,
+    apm,
     ConfigBlock,
     TrackSet
 )
@@ -102,7 +102,7 @@ class TrackFeaturesTool (object):
         return logging.getLogger("TrackFeaturesTool")
 
     def __init__(self):
-        AlgorithmPluginManager.register_plugins()
+        apm.register_plugins()
 
         # Algorithms
         self.algo_convert_img = ConvertImage("convert_image")

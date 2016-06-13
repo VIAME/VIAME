@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief C interface for vital::camera_map
+ * \brief C interface to vital::image_container class
  */
 
-#ifndef VITAL_C_CAMERA_MAP_H_
-#define VITAL_C_CAMERA_MAP_H_
+#ifndef VITAL_C_IMAGE_CONTAINER_H_
+#define VITAL_C_IMAGE_CONTAINER_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -43,57 +43,54 @@ extern "C"
 
 #include <stddef.h>
 
-#include <vital/bindings/c/camera.h>
+#include <vital/bindings/c/vital_c_export.h>
 #include <vital/bindings/c/error_handle.h>
+#include <vital/bindings/c/types/image.h>
+
+/// VITAL Image opaque structure
+typedef struct vital_image_container_s vital_image_container_t;
+
+/// Create a new, simple image container around an image
+VITAL_C_EXPORT
+vital_image_container_t* vital_image_container_new_simple( vital_image_t *img );
+
+/// Destroy a vital_image_container_t instance
+VITAL_C_EXPORT
+void vital_image_container_destroy( vital_image_container_t *img_container,
+                                    vital_error_handle_t *eh );
 
 
-/// Opaque structure for vital::camera_map class
-typedef struct vital_camera_map_s vital_camera_map_t;
-
-
-/// New, simple camera map
+/// Get the size in bytes of an image container
 /**
- * Given a two parallel arrays of frame number and cameras, create a new
- * camera map.
- *
- * If either array is NULL or if length is zero, the returned camera_map will
- * be empty.
+ * Size includes all allocated image memory, which could be larger than
+ * the product of width, height and depth.
  */
 VITAL_C_EXPORT
-vital_camera_map_t* vital_camera_map_new( size_t length,
-                                          unsigned int *frame_numbers,
-                                          vital_camera_t **cameras );
+size_t vital_image_container_size( vital_image_container_t *img_c );
 
 
-/// Destroy the given camera_map
+/// Get the width of the given image in pixels
 VITAL_C_EXPORT
-void vital_camera_map_destroy( vital_camera_map_t *cam_map,
-                               vital_error_handle_t *eh );
+size_t vital_image_container_width( vital_image_container_t *img_c );
 
 
-/// Return the number of cameras in the map
+/// Get the height of the given image in pixels
 VITAL_C_EXPORT
-size_t vital_camera_map_size( vital_camera_map_t *cam_map,
-                              vital_error_handle_t *eh );
+size_t vital_image_container_height( vital_image_container_t *img_c );
 
 
-/// Set pointers to parallel arrays of frame numers and camera instances
+/// Get the depth (number of channels) of the image
 VITAL_C_EXPORT
-void vital_camera_map_get_map( vital_camera_map_t *cam_map,
-                               size_t *length,
-                               unsigned int **frame_numbers,
-                               vital_camera_t ***cameras,
-                               vital_error_handle_t *eh );
+size_t vital_image_container_depth( vital_image_container_t *img_c );
 
-// TODO Free method for allocated frame/camera parallel arrays
-/// Free paired frame-to-camera mapping arrays
-//void vital_camera_map_free_mapping_array( size_t length,
-//                                          unsigned int *frame_numbers,
-//                                          vital_camera_t **cameras );
+
+/// Get the in-memory image class to access data
+VITAL_C_EXPORT
+vital_image_t* vital_image_container_get_image( vital_image_container_t *img_c );
 
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // VITAL_C_CAMERA_MAP_H_
+#endif // VITAL_C_IMAGE_CONTAINER_H_

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,30 +28,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief C++ interface to vital::image_container class
- */
+#ifndef VITAL_C_HELPERS_CAMERA_INTRINSICS_H_
+#define VITAL_C_HELPERS_CAMERA_INTRINSICS_H_
 
-#ifndef VITAL_C_IMAGE_CONTAINER_HXX_
-#define VITAL_C_IMAGE_CONTAINER_HXX_
+#include <vital/types/camera_intrinsics.h>
+#include <vital/bindings/c/helpers/c_utils.h>
 
-#include <vital/bindings/c/vital_c_export.h>
-#include <vital/bindings/c/image_container.h>
-#include <vital/types/image_container.h>
+namespace kwiver {
+namespace vital_c {
 
+/// Cache for saving shared pointer references
+extern
+SharedPointerCache< vital::camera_intrinsics, vital_camera_intrinsics_t >
+  CAMERA_INTRINSICS_SPTR_CACHE;
 
-// ------------------------------------------------------------------
-// These two functions are a bridge between c++ and the internal smart pointer management
-// ------------------------------------------------------------------
+} // end namespace vital_c
+} // end namespace kwiver
 
-// Adopt previously created image container
-VITAL_C_EXPORT
-vital_image_container_t* vital_image_container_from_sptr( kwiver::vital::image_container_sptr sptr );
-
-// Return sptr from handle
-VITAL_C_EXPORT
-kwiver::vital::image_container_sptr vital_image_container_to_sptr( vital_image_container_t* handle );
-
-
-#endif // VITAL_C_IMAGE_CONTAINER_HXX_
+#endif //VITAL_C_HELPERS_CAMERA_INTRINSICS_H_

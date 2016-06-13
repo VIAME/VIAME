@@ -38,7 +38,7 @@
 #include <vital/types/camera_map.h>
 #include <vital/vital_foreach.h>
 
-#include <vital/bindings/c/camera.h>
+#include <vital/bindings/c/types/camera.h>
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/camera.h>
 #include <vital/bindings/c/helpers/camera_map.h>
@@ -46,23 +46,29 @@
 namespace kwiver {
 namespace vital_c {
 
-SharedPointerCache< vital::camera_map,
-                    vital_camera_map_t > CAM_MAP_SPTR_CACHE( "camera_map" );
+SharedPointerCache<vital::camera_map,
+                   vital_camera_map_t> CAM_MAP_SPTR_CACHE( "camera_map" );
 
 }
+}
+
+
+using namespace kwiver;
 
 
 /// New, simple camera map
 vital_camera_map_t* vital_camera_map_new( size_t length,
-                                          unsigned int *frame_numbers,
-                                          vital_camera_t **cameras )
+                                          int64_t *frame_numbers,
+                                          vital_camera_t **cameras,
+                                          vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
-    "C::camera_map::new", 0,
+    "C::camera_map::new", eh,
     if( frame_numbers == 0 || cameras == 0 )
     {
       length = 0;
     }
+
     // Create std::map of the paired items given
     // This assumes that the sptr type defined in the cache type is the same as
     // the type defined in C++-land (which is should be?)
@@ -71,7 +77,8 @@ vital_camera_map_t* vital_camera_map_new( size_t length,
     {
       cmap[frame_numbers[i]] = vital_c::CAMERA_SPTR_CACHE.get( cameras[i] );
     }
-    vital::camera_map_sptr cm_sptr( new vital::simple_camera_map( cmap ) );
+
+    auto cm_sptr = std::make_shared< vital::simple_camera_map >( cmap );
     vital_c::CAM_MAP_SPTR_CACHE.store( cm_sptr );
     return reinterpret_cast<vital_camera_map_t*>( cm_sptr.get() );
   );
@@ -105,7 +112,7 @@ size_t vital_camera_map_size( vital_camera_map_t *cam_map,
 /// Set pointers to parallel arrays of frame numers and camera instances
 void vital_camera_map_get_map( vital_camera_map_t *cam_map,
                                size_t *length,
-                               unsigned int **frame_numbers,
+                               int64_t **frame_numbers,
                                vital_camera_t ***cameras,
                                vital_error_handle_t *eh )
 {
@@ -113,17 +120,17 @@ void vital_camera_map_get_map( vital_camera_map_t *cam_map,
     "C::camera_map::get_map", eh,
     vital::camera_map::map_camera_t map_cams =
       vital_c::CAM_MAP_SPTR_CACHE.get( cam_map )->cameras();
+
     *length = map_cams.size();
-    *frame_numbers = (unsigned int*)malloc(sizeof(unsigned int) * *length);
+    *frame_numbers = (int64_t*)malloc(sizeof(int64_t) * *length);
     *cameras = (vital_camera_t**)malloc(sizeof(vital_camera_t*) * *length);
     size_t i=0;
     VITAL_FOREACH( vital::camera_map::map_camera_t::value_type const& p, map_cams )
     {
-      (*frame_numbers)[i] = static_cast< unsigned int >(p.first);
+      (*frame_numbers)[i] = p.first;
       vital_c::CAMERA_SPTR_CACHE.store( p.second );
-      (*cameras)[i] = reinterpret_cast<vital_camera_t*>( p.second.get() );
+      (*cameras)[i] = reinterpret_cast< vital_camera_t* >( p.second.get() );
       ++i;
     }
   );
-
-} }
+}

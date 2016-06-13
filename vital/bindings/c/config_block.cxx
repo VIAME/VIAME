@@ -64,17 +64,17 @@ CONFIG_BLOCK_SPTR_CACHE( "config_block" );
 // Static Constant getters
 
 /// Separator between blocks within the config
-vital_string_t*
+char const*
 vital_config_block_block_sep()
 {
-  static vital_string_t* static_bs = 0;
+  static char const* static_bs = 0;
 
   if ( ! static_bs )
   {
     STANDARD_CATCH(
       "C::config_block::block_sep", NULL,
       std::string bs( kwiver::vital::config_block::block_sep );
-      static_bs = vital_string_new( bs.size(), bs.c_str() );
+      static_bs = bs.c_str();
                   );
   }
   return static_bs;
@@ -82,17 +82,17 @@ vital_config_block_block_sep()
 
 
 /// The magic group for global parameters
-vital_string_t*
+char const*
 vital_config_block_global_value()
 {
-  static vital_string_t* static_gv = 0;
+  static char const* static_gv = 0;
 
   if ( ! static_gv )
   {
     STANDARD_CATCH(
       "C::config_block::global_value", NULL,
       std::string gv( kwiver::vital::config_block::global_value );
-      static_gv = vital_string_new( gv.size(), gv.c_str() );
+      static_gv = gv.c_str();
                   );
   }
   return static_gv;
@@ -141,13 +141,13 @@ vital_config_block_destroy( vital_config_block_t* cb,
 
 
 /// Get the name of the \p config_block instance
-vital_string_t*
+char const*
 vital_config_block_get_name( vital_config_block_t* cb )
 {
   STANDARD_CATCH(
     "C::config_block::get_name", 0,
     std::string name = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )->get_name();
-    return vital_string_new( name.length(), name.c_str() );
+    return name.c_str();
                 );
   return 0;
 }
@@ -188,16 +188,24 @@ vital_config_block_subblock_view( vital_config_block_t* cb,
 
 
 /// Get the string value for a key
-vital_string_t*
+char const*
 vital_config_block_get_value( vital_config_block_t* cb,
-                              char const*           key )
+                              char const*           key,
+                              vital_error_handle_t* eh )
 {
   STANDARD_CATCH(
-    "C::config_block::get_value", 0,
+    "C::config_block::get_value", eh,
+    auto cb_sptr = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb );
+    if( cb_sptr->has_value( key ) )
+    {
 
     std::string v = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
                       ->get_value< std::string > ( key );
-    return vital_string_new( v.length(), v.c_str() );
+      return v.c_str();
+    }
+    std::stringstream ss;
+    ss << "No value for key '" << key << "'";
+    POPULATE_EH( eh, 1, ss.str().c_str() );
                 );
   return 0;
 }
@@ -211,25 +219,30 @@ vital_config_block_get_value_bool( vital_config_block_t*  cb,
 {
   STANDARD_CATCH(
     "C::config_block:get_value_bool", eh,
-    return kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
-      ->get_value< bool > ( key );
+    auto cb_sptr = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb );
+    if( cb_sptr->has_value( key ) )
+    {
+      return cb_sptr->get_value< bool >( key );
+    }
+    std::stringstream ss;
+    ss << "No value for key '" << key << "'";
+    POPULATE_EH( eh, 1, ss.str().c_str() );
                 );
   return false;
 }
 
 
 /// Get the string value for a key if it exists, else the default
-vital_string_t*
+char const*
 vital_config_block_get_value_default( vital_config_block_t* cb,
                                       char const*           key,
-                                      char const*           deflt )
+                                      char const*           deflt,
+                                      vital_error_handle_t* eh )
 {
   STANDARD_CATCH(
-    "C::config_block::get_value_default", 0,
-
-    std::string v = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
-                      ->get_value< std::string > ( key, deflt );
-    return vital_string_new( v.length(), v.c_str() );
+    "C::config_block::get_value_default", eh,
+    return kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
+      ->get_value< std::string > ( key, deflt ).c_str();
                 );
   return 0;
 }
@@ -252,16 +265,17 @@ vital_config_block_get_value_default_bool( vital_config_block_t*  cb,
 
 
 /// Get the description string for a given key
-vital_string_t*
+char const*
 vital_config_block_get_description( vital_config_block_t* cb,
-                                    char const*           key )
+                                    char const*           key,
+                                    vital_error_handle_t *eh)
 {
   STANDARD_CATCH(
-    "C::config_block::get_description", 0,
+    "C::config_block::get_description", eh,
 
     std::string d = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
                       ->get_description( key ).c_str();
-    return vital_string_new( d.length(), d.c_str() );
+    return d.c_str();
                 );
   return 0;
 }
@@ -404,21 +418,15 @@ read_config_file_helper( vital_error_handle_t* eh, Args... args )
   }
   catch ( kwiver::vital::config_file_not_found_exception const& e )
   {
-    eh->error_code = 1;
-    eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-    strcpy( eh->message, e.what() );
+    POPULATE_EH( eh, 1, e.what() );
   }
   catch ( kwiver::vital::config_file_not_read_exception const& e )
   {
-    eh->error_code = 2;
-    eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-    strcpy( eh->message, e.what() );
+    POPULATE_EH( eh, 2, e.what() );
   }
   catch ( kwiver::vital::config_file_not_parsed_exception const& e )
   {
-    eh->error_code = 3;
-    eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-    strcpy( eh->message, e.what() );
+    POPULATE_EH( eh, 3, e.what() );
   }
 
   return 0;

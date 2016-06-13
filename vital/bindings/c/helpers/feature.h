@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,52 +30,25 @@
 
 /**
  * \file
- * \brief C Interface to \p vital::camera class
+ * \brief File description here.
  */
 
-#ifndef VITAL_C_CAMERA_H_
-#define VITAL_C_CAMERA_H_
+#ifndef VITAL_C_HELPERS_FEATURE_H_
+#define VITAL_C_HELPERS_FEATURE_H_
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-#include <vital/bindings/c/vital_c_export.h>
-#include <vital/bindings/c/error_handle.h>
+#include <vital/types/feature.h>
+#include <vital/bindings/c/types/feature.h>
+#include <vital/bindings/c/helpers/c_utils.h>
 
 
-/// Opaque structure to a vital::camera class
-typedef struct vital_camera_s vital_camera_t;
+namespace kwiver {
+namespace vital_c {
 
+extern SharedPointerCache< vital::feature, vital_feature_t >
+  FEATURE_SPTR_CACHE;
 
-/// TODO: New and member methods
-
-/// Destroy a vital_camera_t instance
-/**
- * The given might not refer to a valid camera instance, causing the error
- * handle to be populated (code -1).
- */
-VITAL_C_EXPORT
-void vital_camera_destroy( vital_camera_t *cam,
-                           vital_error_handle_t *eh );
-
-
-/// Read in a KRTD file, producing a new vital::camera object
-VITAL_C_EXPORT
-vital_camera_t* vital_camera_read_krtd_file( char const *filepath,
-                                             vital_error_handle_t *eh );
-
-
-/// Output the given vital_camera_t object to the specified file path
-VITAL_C_EXPORT
-void vital_camera_write_krtd_file( vital_camera_t *cam,
-                                   char const *filepath,
-                                   vital_error_handle_t *eh );
-
-
-#ifdef __cplusplus
 }
-#endif
+}
 
-#endif // VITAL_C_CAMERA_H_
+
+#endif //VITAL_C_HELPERS_FEATURE_H_

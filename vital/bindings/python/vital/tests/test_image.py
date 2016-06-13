@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,12 @@ Test Python interface to vital::image
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
-
-from vital import Image
-
 import nose.tools
+
+from vital.types import Image
+
+
+__author__ = 'paul.tunison@kitware.com'
 
 
 class TestVitalImage (object):

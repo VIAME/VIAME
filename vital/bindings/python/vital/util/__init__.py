@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,15 +33,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 vital.util module
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'purg'
+import ctypes
 
-try:
-    from .find_vital_library import find_vital_library
-except ImportError:
-    raise ImportError("Failed to import library finder module, must not have "
-                      "enabled Python in CMake.")
-
-from .VitalObject import VitalObject
+from .VitalObject import VitalObject, OpaqueTypeCache
 from .error_handle import VitalErrorHandle
-from .find_vital_library import find_library_path
+
+
+def free_void_ptr(ptr):
+    """
+    Free a C pointer as a void pointer.
+
+    :param ptr: Ctypes pointer instance
+    :type ptr: _ctypes._Pointer
+
+    """
+    c_free_ptr = VitalObject.VITAL_LIB['vital_free_pointer']
+    c_free_ptr.argtypes = [ctypes.c_void_p]
+    c_free_ptr(ptr)

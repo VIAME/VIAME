@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ e.g. libvital_c.so
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
+__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 import os
@@ -44,13 +44,10 @@ import sys
 
 
 __LIBRARY_NAME__ = "vital_c"
-__LIBRARY_NAME_RE__ = re.compile("(?:lib)?%s.(?:so|dylib|dll).*"
-                                 % __LIBRARY_NAME__)
+__LIBRARY_NAME_RE_BASE__ = "(?:lib)?%s.(?:so|dylib|dll).*"
+__LIBRARY_NAME_RE__ = re.compile(__LIBRARY_NAME_RE_BASE__ % __LIBRARY_NAME__)
 __LIBRARY_PATH_CACHE__ = None
 __LIBRARY_CACHE__ = None
-
-# TODO: Replace with environment variable set by cannonical setup script
-__BUILD_DIR__ = "@VITAL_BUILD_DIRECTORY@"
 
 
 def _system_library_dirs():
@@ -83,18 +80,14 @@ def _search_up_directory(d, library_re):
     # Stopping search when we see the root twice, based on ``os.path.dirname``
     # returning the root directory when the root directory is passed to it.
     prev_dir = None
+    d = os.path.abspath(d)
     while d != prev_dir:
-        hit = False
         for l in _system_library_dirs():
             l_dir = os.path.join(d, l)
             if os.path.isdir(l_dir):
                 for f in os.listdir(l_dir):
                     if library_re.match(f):
                         return os.path.join(l_dir, f)
-                hit = True
-        if hit:
-            # Found a library directory(s), but didn't find desired library
-            return None
         prev_dir = d
         d = os.path.dirname(d)
     return None
@@ -111,30 +104,34 @@ def _system_path_separator():
         return ':'
 
 
-def _find_vital_library_path():
+def find_vital_library_path(use_cache=True):
     """
     Discover the path to a VITAL C interface library based on the directory
-    structure this file is in, and then to system directories in the PATH
-    (NOT python's sys.path, the actual OS environment PATH).
+    structure this file is in, and then to system directories in the
+    LD_LIBRARY_PATH.
+
+    :param use_cache: Store and use the cached path, preventing redundant
+        searching (default = True).
+    :type use_cache: bool
 
     :return: The string path to the VITAL C interface library
     :rtype: str
 
     """
     global __LIBRARY_PATH_CACHE__
-    if __LIBRARY_PATH_CACHE__:
+    if use_cache and __LIBRARY_PATH_CACHE__:
         return __LIBRARY_PATH_CACHE__
 
+    # Otherwise, find the Vital C library
     search_dirs = [os.path.dirname(os.path.abspath(__file__))]
     # NOTE this is not cover all possible systems
     search_dirs.extend(os.environ['LD_LIBRARY_PATH'].split(_system_path_separator()))
-    if __BUILD_DIR__:
-        search_dirs = [__BUILD_DIR__] + search_dirs
 
     for d in search_dirs:
         r = _search_up_directory(d, __LIBRARY_NAME_RE__)
         if r is not None:
-            __LIBRARY_PATH_CACHE__ = r
+            if use_cache:
+                __LIBRARY_PATH_CACHE__ = r
             return r
 
     # No library found in any paths given at this point
@@ -142,95 +139,23 @@ def _find_vital_library_path():
                        % __LIBRARY_NAME__)
 
 
-def find_vital_library():
+def find_vital_library(use_cache=True):
     """
     Discover and return the ctypes-loaded VITAL C interface library.
 
-    :return:
-    :rtype:
+    :param use_cache: Use the cached library instance or cache the discovered
+        library. Otherwise, search for the library again, not storing it in the
+        cache. Default is True.
+    :type use_cache: bool
+
+    :return: The cached Vital C library ctypes instance.
+    :rtype: ctypes.CDLL
 
     """
-    global __LIBRARY_CACHE__
-    if not __LIBRARY_CACHE__:
-        __LIBRARY_CACHE__ = ctypes.CDLL(_find_vital_library_path())
-    return __LIBRARY_CACHE__
-
-
-# ==================================================================
-# Library finders without cache
-#
-def find_library_path(lib):
-    library_name_re = re.compile("(?:lib)?%s.(?:so|dylib|dll)"
-                                     % lib)
-
-    # start the search in the current directory
-    search_dirs = [os.path.dirname(os.path.abspath(__file__))]
-
-    # NOTE this is not cover all possible systems
-    search_dirs.extend(os.environ['LD_LIBRARY_PATH'].split(_system_path_separator()))
-
-    if __BUILD_DIR__:
-        search_dirs = [__BUILD_DIR__] + search_dirs
-
-    for d in search_dirs:
-        r = _search_up_directory(d, library_name_re)
-        if r is not None:
-            library_path = r
-            return r
-
-    # No library found in any paths given at this point
-    raise RuntimeError("Failed to find a valid '%s' library!"
-                       % lib)
-
-
-
-# ==================================================================
-def test():
-
-    """
-    Testing basic finding based on Linux OS
-    """
-    # Saving current state for restoration after testing
-    global __LIBRARY_NAME__, __LIBRARY_NAME_RE__, __LIBRARY_PATH_CACHE__
-    orig_values = (__LIBRARY_NAME__, __LIBRARY_NAME_RE__,
-                   __LIBRARY_PATH_CACHE__)
-
-    __LIBRARY_NAME__ = "c"
-    __LIBRARY_NAME_RE__ = re.compile("(?:lib)?%s.(?:so|dylib|dll)"
-                                     % __LIBRARY_NAME__)
-    __LIBRARY_PATH_CACHE__ = None
-
-    __test_search_up_dir__()
-    __LIBRARY_PATH_CACHE__ = None
-
-    __test_find_libraray_path__()
-    __LIBRARY_PATH_CACHE__ = None
-
-    __test_find_library__()
-    __LIBRARY_PATH_CACHE__ = None
-
-    # Restoring module state
-    __LIBRARY_NAME__ = orig_values[0]
-    __LIBRARY_NAME_RE__ = orig_values[1]
-    __LIBRARY_PATH_CACHE__ = orig_values[2]
-
-
-def __test_search_up_dir__():
-    r = _search_up_directory("/usr/local/bin/")
-    print "__test_search_up_dir__::Searching up from directory '/usr/local/bin' for pthread lib:", r
-
-
-def __test_find_libraray_path__():
-    r0 = __LIBRARY_PATH_CACHE__
-    r1 = _find_vital_library_path()
-    r2 = __LIBRARY_PATH_CACHE__
-
-    print "__test_find_libraray_path__::PATH:", os.environ['PATH']
-    print "__test_find_libraray_path__::Cache before:", r0
-    print "__test_find_libraray_path__::Using PATH for dir bases, found:", r1
-    print "__test_find_libraray_path__::Cache after                    :", r2
-
-
-def __test_find_library__():
-    l = find_vital_library()
-    print "__test_find_library__::Library found:", l
+    if use_cache:
+        global __LIBRARY_CACHE__
+        if not __LIBRARY_CACHE__:
+            __LIBRARY_CACHE__ = ctypes.CDLL(find_vital_library_path(use_cache))
+        return __LIBRARY_CACHE__
+    else:
+        return ctypes.CDLL(find_vital_library_path(use_cache))

@@ -60,14 +60,14 @@ typedef struct vital_config_block_s vital_config_block_t;
  * Pointer returned is cached, and the same pointer is returned every call.
  */
 VITAL_C_EXPORT
-vital_string_t* vital_config_block_block_sep();
+char const* vital_config_block_block_sep();
 
 /// The magic group for global parameters
 /**
  * Pointer returned is cached, and the same pointer is returned every call.
  */
 VITAL_C_EXPORT
-vital_string_t* vital_config_block_global_value();
+char const* vital_config_block_global_value();
 
 
 /// Create a new, empty \p config_block object
@@ -105,7 +105,7 @@ void vital_config_block_destroy( vital_config_block_t *cb,
  * \return String name of the given config_block.
  */
 VITAL_C_EXPORT
-vital_string_t* vital_config_block_get_name( vital_config_block_t *cb );
+char const* vital_config_block_get_name( vital_config_block_t *cb );
 
 /// Get a subblock from the configuration.
 /**
@@ -135,15 +135,17 @@ vital_config_block_t* vital_config_block_subblock_view( vital_config_block_t *cb
 
 /// Get the string value for a key
 /**
- * This may fail if the key given doesn't exist, returning a null char*.
+ * This may fail if the key given doesn't exist, populating \c eh.
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The index of the configuration value to retrieve.
  * \return The string value stored within the configuration.
  */
 VITAL_C_EXPORT
-vital_string_t* vital_config_block_get_value( vital_config_block_t *cb,
-                                              char const *key );
+char const*
+vital_config_block_get_value( vital_config_block_t *cb,
+                              char const *key,
+                              vital_error_handle_t *eh );
 
 /// Get the boolean value for a key
 /**
@@ -167,9 +169,11 @@ bool vital_config_block_get_value_bool( vital_config_block_t *cb,
  * \return the \p char* value stored within the configuration.
  */
 VITAL_C_EXPORT
-vital_string_t* vital_config_block_get_value_default( vital_config_block_t *cb,
+char const*
+vital_config_block_get_value_default( vital_config_block_t *cb,
                                                       char const *key,
-                                                      char const *deflt );
+                                      char const *deflt,
+                                      vital_error_handle_t *eh );
 
 /// Get the boolean value for a key if it exists, else the default
 /**
@@ -190,7 +194,7 @@ bool vital_config_block_get_value_default_bool( vital_config_block_t *cb,
  * If the provided key exists but has no description associated with it, an
  * empty string is returned.
  *
- * If the key provided does not exist, a NULL pointer is returned.
+ * If the key provided does not exist, the error handle is populated.
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The name of the parameter to get the description of.
@@ -198,8 +202,10 @@ bool vital_config_block_get_value_default_bool( vital_config_block_t *cb,
  *          found.
  */
 VITAL_C_EXPORT
-vital_string_t* vital_config_block_get_description( vital_config_block_t *cb,
-                                                    char const *key );
+char const*
+vital_config_block_get_description( vital_config_block_t *cb,
+                                    char const *key,
+                                    vital_error_handle_t *eh);
 
 /// Set a string value within the configuration.
 /**

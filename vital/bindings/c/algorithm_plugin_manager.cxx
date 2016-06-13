@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,17 @@ void vital_apm_register_single_plugin( char const *name )
     "C::apm::register_single_plugin", 0,
     kwiver::vital::algorithm_plugin_manager::instance().register_plugins( name );
   );
+}
+
+
+/// Load all plugins on first call
+bool vital_apm_load_plugins_once()
+{
+  STANDARD_CATCH(
+    "C::apm::load_plugins_once", 0,
+    return kwiver::vital::algorithm_plugin_manager::instance().load_plugins_once();
+  );
+  return false;
 }
 
 

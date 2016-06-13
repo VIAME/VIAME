@@ -47,7 +47,7 @@ extern "C"
 #include <vital/bindings/c/vital_c_export.h>
 #include <vital/bindings/c/config_block.h>
 #include <vital/bindings/c/error_handle.h>
-#include <vital/bindings/c/image_container.h>
+#include <vital/bindings/c/types/image_container.h>
 
 
 /// Opaque pointer to a VITAL Algorithm instance
@@ -64,7 +64,7 @@ typedef struct vital_algorithm_s vital_algorithm_t;
  * \return String name of the algorithm type.
  */
 VITAL_C_EXPORT
-vital_string_t* vital_algorithm_type_name( vital_algorithm_t *algo,
+char const* vital_algorithm_type_name( vital_algorithm_t *algo,
                                            vital_error_handle_t *eh );
 
 
@@ -74,7 +74,8 @@ vital_string_t* vital_algorithm_type_name( vital_algorithm_t *algo,
  * \return String name of the algorithm implementation type.
  */
 VITAL_C_EXPORT
-vital_string_t* vital_algorithm_impl_name( vital_algorithm_t *algo,
+char const*
+vital_algorithm_impl_name( vital_algorithm_t *algo,
                                            vital_error_handle_t *eh );
 
 

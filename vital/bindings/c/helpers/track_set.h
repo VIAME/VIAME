@@ -33,12 +33,12 @@
  * \brief C Interface vital::track_set helpers
  */
 
-#ifndef VITAL_C_HELPERS_TRACK_H_
-#define VITAL_C_HELPERS_TRACK_H_
+#ifndef VITAL_C_HELPERS_TRACK_SET_H_
+#define VITAL_C_HELPERS_TRACK_SET_H_
 
 #include <vital/types/track_set.h>
 
-#include <vital/bindings/c/track_set.h>
+#include <vital/bindings/c/types/track_set.h>
 #include <vital/bindings/c/helpers/c_utils.h>
 
 namespace kwiver {
@@ -51,4 +51,4 @@ SharedPointerCache< vital::track_set, vital_trackset_t >
 
 } }
 
-#endif // VITAL_C_HELPERS_TRACK_H_
+#endif // VITAL_C_HELPERS_TRACK_SET_H_

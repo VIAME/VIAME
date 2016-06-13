@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,52 +30,33 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Tests for vital::algo::image_io
+Tests for CameraMap interface
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'purg'
+import unittest
 
-from vital import (
-    AlgorithmPluginManager,
-    ConfigBlock,
-)
-from vital.algo import ImageIo
-from vital.tests import TEST_DATA_DIR
+import nose.tools
 
-import nose.tools as nt
-import os
-import os.path as osp
-import tempfile
+from vital.types import Camera, CameraMap
 
 
-class TestVitalAlgoImageIo (object):
+class TestCameraMap (unittest.TestCase):
 
-    @classmethod
-    def setup_class(cls):
-        AlgorithmPluginManager.register_plugins()
+    def test_size(self):
+        m = {
+            0: Camera(),
+            1: Camera(),
+            5: Camera()
+        }
+        cm = CameraMap(m)
+        nose.tools.assert_equal(cm.size, 3)
 
-        cls.test_image_filepath = osp.join(TEST_DATA_DIR,
-                                           'test_kitware_logo.jpg')
-
-    def test_image_load_save_diff(self):
-        fd, tmp_filename = tempfile.mkstemp()
-
-        c = ConfigBlock()
-        c.set_value('iio:type', 'vxl')
-        iio = ImageIo('iio')
-        iio.set_config(c)
-
-        nt.assert_true(osp.isfile(self.test_image_filepath),
-                       "Couldn't find image file")
-        ic_orig = iio.load(self.test_image_filepath)
-        iio.save(ic_orig, tmp_filename)
-        ic_test = iio.load(tmp_filename)
-
-        nt.assert_equal(ic_orig.size(), ic_test.size())
-        nt.assert_equal(ic_orig.width(), ic_test.width())
-        nt.assert_equal(ic_orig.height(), ic_test.height())
-        nt.assert_equal(ic_orig.depth(), ic_test.depth())
-
-        os.remove(tmp_filename)
-        os.close(fd)
+    def test_to_dict(self):
+        m = {
+            0: Camera(),
+            1: Camera(),
+            5: Camera()
+        }
+        cm = CameraMap(m)
+        m2 = cm.to_dict()
+        nose.tools.assert_equal(m, m2)

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,23 @@ void vital_apm_register_plugins();
  */
 VITAL_C_EXPORT
 void vital_apm_register_single_plugin( char const *name );
+/// Load all plugins on first call
+/**
+ * This static method loads all plugins on the first call and does
+ * nothing on all subsequent calls. This is designed to load plugins
+ * in a concurrent application where the first thread to start is
+ * non-deterministic. All threads would call this method on starting
+ * and the first one that completes has loaded all plugins and the
+ * other callers will return.
+ *
+ * If you must reload plugins after this method has been called, use
+ * the vital_apm_register_plugins() method.
+ *
+ * @return \b true if plugins were loaded, \b false if plugins were
+ * already loaded.
+ */
+VITAL_C_EXPORT
+bool vital_apm_load_plugins_once();
 
 
 /// Add an additional directory to search for plugins in

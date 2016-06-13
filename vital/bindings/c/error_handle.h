@@ -45,6 +45,14 @@ extern "C"
 
 
 /// Common error handle structure
+/**
+ * When an instance of this structure is passed into a Vital API and an error
+ * occurs a new string (char*) is allocated for ``message``. If ``message``
+ * is already allocated then the previous memory is first freed. A single error
+ * handle can be reused between multiple API calls, but one should check the
+ * status between calls and copy the message string before reusing the error
+ * handle to avoid losing the message.
+ */
 typedef struct vital_error_handle_s {
   int error_code;
   char *message;

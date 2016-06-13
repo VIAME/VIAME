@@ -39,7 +39,7 @@
 #define VITAL_C_HELPERS_CAMERA_H_
 
 #include <vital/types/camera.h>
-#include <vital/bindings/c/camera.h>
+#include <vital/bindings/c/types/camera.h>
 #include <vital/bindings/c/helpers/c_utils.h>
 
 namespace kwiver {

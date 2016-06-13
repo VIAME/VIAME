@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,60 +30,25 @@
 
 /**
  * \file
- * \brief vital::camera C interface implementation
+ * \brief C Interface vital::descriptor helpers
  */
 
-#include "camera.h"
+#ifndef VITAL_C_HELPERS_DESCRIPTOR_H_
+#define VITAL_C_HELPERS_DESCRIPTOR_H_
 
-#include <vital/types/camera.h>
-#include <vital/io/camera_io.h>
-
+#include <vital/types/descriptor.h>
+#include <vital/bindings/c/types/descriptor.h>
 #include <vital/bindings/c/helpers/c_utils.h>
-#include <vital/bindings/c/helpers/camera.h>
+
 
 namespace kwiver {
 namespace vital_c {
 
-  SharedPointerCache< kwiver::vital::camera,
-                    vital_camera_t > CAMERA_SPTR_CACHE( "camera" );
+extern SharedPointerCache< kwiver::vital::descriptor, vital_descriptor_t >
+  DESCRIPTOR_SPTR_CACHE;
 
-} }
-
-
-/// Destroy a vital_camera_t instance
-void vital_camera_destroy( vital_camera_t *cam,
-                           vital_error_handle_t *eh )
-{
-  STANDARD_CATCH(
-    "C::camera::destroy", eh,
-    kwiver::vital_c::CAMERA_SPTR_CACHE.erase( cam );
-  );
+}
 }
 
 
-/// Read in a KRTD file, producing a new vital::camera object
-vital_camera_t* vital_camera_read_krtd_file( char const *filepath,
-                                             vital_error_handle_t *eh )
-{
-  STANDARD_CATCH(
-    "C::camera::read_krtd_file", eh,
-    kwiver::vital::camera_sptr c( kwiver::vital::read_krtd_file(filepath) );
-    kwiver::vital_c::CAMERA_SPTR_CACHE.store( c );
-    return reinterpret_cast<vital_camera_t*>( c.get() );
-  );
-  return 0;
-}
-
-
-/// Output the given vital_camera_t object to the specified file path
-void vital_camera_write_krtd_file( vital_camera_t *cam,
-                                   char const *filepath,
-                                   vital_error_handle_t *eh )
-{
-  STANDARD_CATCH(
-    "C::camera::write_krtd_file", eh,
-    kwiver::vital::camera *m_cam = kwiver::vital_c::CAMERA_SPTR_CACHE.get( cam ).get();
-    kwiver::vital::write_krtd_file( *m_cam,
-                            filepath );
-  );
-}
+#endif //VITAL_C_HELPERS_DESCRIPTOR_H_

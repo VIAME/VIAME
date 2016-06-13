@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,13 @@ Tests for vital::algo::convert_image and general algorithm tests
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
+__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 
 from vital import (
-    AlgorithmPluginManager,
+    apm,
     ConfigBlock,
-    Image,
-    ImageContainer,
 )
 from vital.algo import ConvertImage
 from vital.exceptions.base import VitalNullPointerException
@@ -62,34 +60,27 @@ class TestVitalAlgoConvertImage (object):
 
     @classmethod
     def setup_class(cls):
-        AlgorithmPluginManager.register_plugins()
+        apm.register_plugins()
 
     def test_from_c_ptr_null(self):
-        ci = ConvertImage.from_c_pointer(
-            ConvertImage.C_TYPE_PTR(),
-            name='ci'
+        ci = ConvertImage(
+            name='ci',
+            from_cptr=ConvertImage.C_TYPE_PTR(),
         )
         nt.assert_false(ci.c_pointer)
 
     def test_from_c_ptr_no_name(self):
         nt.assert_raises(
-            ValueError,
-            ConvertImage.from_c_pointer,
-            ConvertImage.C_TYPE_PTR(),
+            TypeError,
+            ConvertImage,
+            from_cptr=ConvertImage.C_TYPE_PTR(),
         )
 
-    def test_from_c_ptr_copy(self):
-        ci = ConvertImage('ci')
-        ci_new = ConvertImage.from_c_pointer(ci.c_pointer, ci)
-        nt.assert_is(ci.c_pointer, ci_new.c_pointer)
-        nt.assert_equal(ci_new.name, ci.name)
-
-    def test_registered_names(self):
-        nt.assert_in('bypass', ConvertImage.registered_names())
-
-    def test_create(self):
-        ci = ConvertImage.create('ci', 'bypass')
-        nt.assert_equal(ci.impl_name(), 'bypass')
+        nt.assert_raises(
+            ValueError,
+            ConvertImage,
+            None
+        )
 
     def test_create_invalid(self):
         nt.assert_raises(
@@ -125,8 +116,6 @@ class TestVitalAlgoConvertImage (object):
     def test_impl_name(self):
         ci_empty = ConvertImage('ci')
         nt.assert_is_none(ci_empty.impl_name())
-        ci_bypass = ConvertImage.create('ci', 'bypass')
-        nt.assert_equal(ci_bypass.impl_name(), 'bypass')
 
     def test_clone_empty(self):
         ci_empty = ConvertImage('ci')
@@ -135,34 +124,26 @@ class TestVitalAlgoConvertImage (object):
         nt.assert_false(ci_empty2)
 
     def test_clone(self):
-        ci1 = ConvertImage.create('ci', 'bypass')
+        # inst_ptr will be null for both
+        ci1 = ConvertImage('ci')
         ci2 = ci1.clone()
-        nt.assert_true(ci1)
-        nt.assert_true(ci2)
+        nt.assert_false(ci1)
+        nt.assert_false(ci2)
         nt.assert_not_equal(ci1.c_pointer, ci2.c_pointer)
-        nt.assert_not_equal(mem_address(ci1.c_pointer),
-                                    mem_address(ci2.c_pointer))
+        # They should both be null
+        nt.assert_equal(mem_address(ci1.c_pointer), mem_address(ci2.c_pointer))
 
     def test_get_conf(self):
         ci = ConvertImage('ci')
         c = ci.get_config()
         nt.assert_list_equal(c.available_keys(), ['ci:type'])
+        nt.assert_true(c.has_value('ci:type'))
         nt.assert_equal(c.get_value('ci:type'), '')
-
-        ci = ConvertImage.create('ci', 'bypass')
-        c = ci.get_config()
-        nt.assert_equal(c.get_value('ci:type'), 'bypass')
 
     def test_set_conf(self):
         ci = ConvertImage('ci')
         nt.assert_false(ci)
         nt.assert_is_none(ci.impl_name())
-
-        c = ConfigBlock()
-        c.set_value('ci:type', 'bypass')
-        ci.set_config(c)
-        nt.assert_true(ci)
-        nt.assert_equal(ci.impl_name(), 'bypass')
 
     def test_check_conf(self):
         ci = ConvertImage('ci')
@@ -174,24 +155,3 @@ class TestVitalAlgoConvertImage (object):
 
         c.set_value('ci:type', 'not_an_impl')
         nt.assert_false(ci.check_config(c))
-
-        c.set_value('ci:type', 'bypass')
-        nt.assert_true(ci.check_config(c))
-
-    def test_convert(self):
-        ic1 = ImageContainer(Image())
-        ci = ConvertImage.create('ci', 'bypass')
-        ic2 = ci.convert(ic1)
-
-        nt.assert_not_equal(ic1, ic2)
-        nt.assert_not_equal(ic1.c_pointer, ic2.c_pointer)
-        nt.assert_equal(hex(mem_address(ic1.c_pointer)),
-                        hex(mem_address(ic2.c_pointer)))
-
-    # def test_image_load_save_diff(self):
-    #     fd, filename = tempfile.mkstemp()
-    #
-    #     c = ConfigBlock()
-    #     c.set_value('iio:type', 'vxl')
-    #     iio = ImageIo('iio')
-    #     iio.set_config(c)

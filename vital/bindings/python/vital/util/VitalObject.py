@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Base class for all VITAL Python interface classes
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'purg'
 
 import abc
 import ctypes
+import logging
 
-from vital.util import find_vital_library
-from vital.util.string import vital_string_t
+from vital.util.find_vital_library import find_vital_library
 
 
 class VitalClassMeta (abc.ABCMeta):
@@ -67,6 +65,14 @@ class VitalClassMeta (abc.ABCMeta):
 class VitalObject (object):
     """
     Basic VITAL python interface class.
+
+    Guarantees that should be maintained:
+        - c_type() and c_ptr_type() should be used when trying to get C types
+          from class types.
+        - C_TYPE and C_TYPE_PTR should be used when trying to get C types from
+          class instances, and thus should only refer to a single type in an
+          instance. Value undefined defined on the class level.
+
     """
     __metaclass__ = VitalClassMeta
 
@@ -76,80 +82,96 @@ class VitalObject (object):
     C_TYPE = None
     C_TYPE_PTR = None
 
-    # Common string structure stuff
-    MST_TYPE = vital_string_t
-    MST_TYPE_PTR = vital_string_t.PTR_t
-    MST_NEW = VITAL_LIB['vital_string_new']
-    MST_NEW.argtypes = [ctypes.c_size_t, ctypes.c_char_p]
-    MST_NEW.restype = vital_string_t.PTR_t
-    MST_FREE = VITAL_LIB['vital_string_free']
-    MST_FREE.argtypes = [vital_string_t.PTR_t]
+    @classmethod
+    def c_type(cls, *args):
+        """ Get the C opaque type """
+        return cls.C_TYPE
 
     @classmethod
-    def from_c_pointer(cls, ptr, shallow_copy_of=None):
+    def c_ptr_type(cls, *args):
+        """ Get the C opaque pointer type """
+        return cls.C_TYPE_PTR
+
+    @classmethod
+    def _call_cfunc(cls, func_name, argtypes, restype, *args):
         """
-        Create an instance of the derived class from a C API opaque pointer.
+        Extract function from vital library and call it with a VitalErrorHandle.
 
-        If this the C pointer given to ptr is taken from an existing Python
-        object instance, that object instance should be given to the
-        shallow_copy_of argument. This ensures that the underlying C reference
-        is not destroyed prematurely.
+        This assumes that the C function takes an additional parameter than what
+        is given to this function that is the error handle.
 
-        :param ptr: C API opaque structure pointer type instance
-        :type ptr: VitalAlgorithm.C_TYPE_PTR
+        :param func_name: C function name to pull from library
+        :type func_name: str
 
-        :param shallow_copy_of: Optional parent object instance when the ptr
-            given is coming from an existing python object.
-        :type shallow_copy_of: VitalObject or None
+        :param argtypes: Ctypes argument type array
+        :type argtypes: list | tuple
 
-        :return: New Python object using the given underlying C object pointer.
-        :rtype: VitalObject
+        :param restype: Ctypes return type
+
+        :param args: iterable of positional arguments to the C function
+        :param args: tuple
+
+        :return: Result of the c function call
 
         """
-        # As this is a generalized method, make sure that the derived class
-        # has a C opaque structure pointer type defined.
-        if cls.C_TYPE_PTR is None:
-            raise RuntimeError("Derived class '%s' did not define C_TYPE_PTR"
-                               % cls.__name__)
+        # local import to prevent circular import
+        from vital.util import VitalErrorHandle
+        f = cls.VITAL_LIB[func_name]
+        if argtypes:
+            f.argtypes = list(argtypes) + [VitalErrorHandle.c_ptr_type()]
+        f.restype = restype
+        with VitalErrorHandle() as eh:
+            return f(*(args + (eh,)))
 
-        assert isinstance(ptr, cls.C_TYPE_PTR), \
-            "Required a C_TYPE_PTR instance of this class (%s)" \
-            % cls.__name__
+    def __init__(self, from_cptr=None, *args, **kwds):
+        """
+        Create a new instance of the Python vital type wrapper.
 
-        # Custom child class of calling type in order to bypass constructor of
-        # calling type. Since we already have the underlying instance, we
-        # fundamentally don't want to "construct" again.
-        # noinspection PyPep8Naming,PyMissingConstructor,PyAbstractClass
-        class _from_c_pointer (cls):
-            # Need to set from parent class in order to prevent the metaclass
-            # from creating a different opaque structure, which messes with
-            # type-checking when calling C API functions.
-            C_TYPE = cls.C_TYPE
-            C_TYPE_PTR = cls.C_TYPE_PTR
+        This initializer should only be called after C_TYPE/C_TYPE_PTR are
+        concrete types.
 
-            def __init__(self, _ptr, _is_copy_of):
-                self._inst_ptr = _ptr
-                self._parent = _is_copy_of
+        :param from_cptr: Existing C opaque instance pointer to use, preventing
+            new instance construction. This should of course be a valid pointer
+            to an instance. Only a new instance pointer or a new shared pointer
+            reference should be passed here, otherwise memory issue will ensue.
+            Thus this should only be used if you know what you're doing.
 
-        # TODO: Can we just make this the same name as the parent class?
-        #       Or would that cause issues.
-        _from_c_pointer.__name__ = "%s_from_c_pointer" % cls.__name__
+        Optional keyword arguments:
 
-        # construct local class that contains our opaque pointer
-        return _from_c_pointer(ptr, shallow_copy_of)
+        :param allow_null_pointer: Allow a null pointer to be returned from the
+            _new method instead of raising an exception.
 
-    def __init__(self):
+        """
+        self._inst_ptr = None
+
         if None in (self.C_TYPE, self.C_TYPE_PTR):
             raise RuntimeError("Derived class did not define opaque handle "
                                "structure types.")
-        self._inst_ptr = None
 
-        # When this instance is copied in python, carry a copy of the instance
-        # it was copied from to leverage Python's internal GC ref counting
-        self._parent = None
+        allow_null_pointer = kwds.get('allow_null_pointer', None)
+        if allow_null_pointer is not None:
+            del kwds['allow_null_pointer']
+
+        if from_cptr is not None:
+            # if null pointer and we're not allowing them
+            if not (allow_null_pointer or bool(from_cptr)):
+                raise RuntimeError("Cannot initialize to a null pointer")
+            # if not a valid opaque pointer type
+            elif not isinstance(from_cptr, self.C_TYPE_PTR):
+                raise RuntimeError("Given C Opaque Pointer is not of the "
+                                   "correct type. Given '%s' but expected '%s'."
+                                   % (type(from_cptr), self.C_TYPE_PTR))
+            self._inst_ptr = from_cptr
+        else:
+            self._inst_ptr = self._new(*args, **kwds)
+            # raise if we have a null pointer and we don't allow nulls
+            if not (allow_null_pointer or bool(self._inst_ptr)):
+                raise RuntimeError("Failed to construct new %s instance: Null "
+                                   "pointer returned from construction."
+                                   % self.__class__.__name__)
 
     def __del__(self):
-        if self._parent is None:
+        if hasattr(self, '_inst_ptr') and self._inst_ptr is not None:
             self._destroy()
 
     def __nonzero__(self):
@@ -163,21 +185,110 @@ class VitalObject (object):
     @property
     def _as_parameter_(self):
         """
-        Ctypes interface attribute for passing object instance as argument to
-        C function. This basically means that when an instance of this class
-        is passed as an argument, the underlying opaque pointer is passed.
+        Ctypes interface attribute for allowing a user to pass the python object
+        instance as argument to a C function instead of the opaque pointer.
+        This means that when an instance of this class is passed as an argument,
+        the underlying opaque pointer is automatically passed in its place.
         """
         return self.c_pointer
+
+    @classmethod
+    def logger(cls):
+        return logging.getLogger('.'.join([cls.__module__, cls.__name__]))
+
+    @property
+    def _log(self):
+        return self.logger()
 
     @property
     def c_pointer(self):
         """
         :return: The ctypes opaque structure pointer
+        :rtype: _ctypes._Pointer
         """
         return self._inst_ptr
 
     @abc.abstractmethod
+    def _new(self, *args, **kwds):
+        """
+        Construct a new instance, returning new instance opaque C pointer and
+        initializing any other necessary object properties
+
+        :returns: New C opaque structure pointer.
+        :rtype: _ctypes._Pointer
+
+        """
+        raise NotImplementedError("Calling VitalObject class abstract _new "
+                                  "method.")
+
+    @abc.abstractmethod
     def _destroy(self):
-        """ Call C API destructor for derived class """
+        """
+        Call C API destructor for derived class
+        """
         raise NotImplementedError("Calling VitalObject class abstract _destroy "
-                                  "function.")
+                                  "method.")
+
+    # TODO: Serialization hooks?
+
+
+class OpaqueTypeCache (object):
+    """
+    Support structure for VitalObject sub-classes that represent multiple
+    C types akin to C++ templating.
+    """
+
+    def __init__(self, name_prefix=None):
+        # Store pairs of C opaque structure and its pointer type
+        #: :type: dict[str, (_ctypes.PyCStructType, _ctypes.PyCPointerType)]
+        self._c_type_cache = {}
+        self._prefix = name_prefix or ''
+
+    def get_types(self, k):
+        """
+        Return or generate opaque type and pointer based on shape spec
+        """
+        if k not in self._c_type_cache:
+            # Based on VitalClassMetadata meta-cass
+            class OpaqueStruct (ctypes.Structure):
+                pass
+            OpaqueStruct.__name__ = "%s%s_OpaqueStructure" % (self._prefix, k)
+            self._c_type_cache[k] = \
+                (OpaqueStruct, ctypes.POINTER(OpaqueStruct))
+        return self._c_type_cache[k]
+
+    def new_type_getter(self):
+        """
+        Returns new simple object with a __getitem__ hook for getting a specific
+        C opaque type.
+        """
+        class c_type_manager (object):
+            def __getitem__(s2, k):
+                return self.get_types(k)[0]
+
+            __contains__ = self._c_type_cache.__contains__
+
+            @property
+            def _as_parameter_(self):
+                raise RuntimeError("Cannot use type manager as ctypes "
+                                   "parameter")
+
+        return c_type_manager()
+
+    def new_ptr_getter(self):
+        """
+        Returns new simple object with a __getitem__ hook for getting a specific
+        C opaque pointer type.
+        """
+        class c_type_ptr_manager (object):
+            def __getitem__(s2, k):
+                return self.get_types(k)[1]
+
+            __contains__ = self._c_type_cache.__contains__
+
+            @property
+            def _as_parameter_(self):
+                raise RuntimeError("Cannot use type manager as ctypes "
+                                   "parameter")
+
+        return c_type_ptr_manager()
