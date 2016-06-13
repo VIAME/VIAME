@@ -90,6 +90,7 @@ typedef std::shared_ptr<image_container> image_container_sptr;
 typedef std::vector<image_container_sptr> image_container_sptr_list;
 
 
+// ==================================================================
 /// This concrete image container is simply a wrapper around an image
 class simple_image_container
 : public image_container

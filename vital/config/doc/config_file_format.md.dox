@@ -162,7 +162,7 @@ This macro provider supports the following symbols derived from the current host
 - totalphysicalmemory - number of KB of total physical memory
 - availablephysicalmemory - number of KB of physical virtual memory
 - hostname - name of the host computer
-- domainname - name of the conputer in the domain
+- domainname - name of the computer in the domain
 - osname - name of the host operating system
 - osdescription - description of the host operating system
 - osplatform - platorm name (e.g. x86-64)

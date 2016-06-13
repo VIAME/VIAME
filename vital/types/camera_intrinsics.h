@@ -105,13 +105,13 @@ public:
 
   /// Map normalized image coordinates into distorted coordinates
   /**
-   *  The default implementation is the identity tranformation (no distortion)
+   *  The default implementation is the identity transformation (no distortion)
    */
   virtual vector_2d distort(const vector_2d& norm_pt) const { return norm_pt; };
 
-  /// Unnap distorted normalized coordinates into normalized coordinates
+  /// Unmap distorted normalized coordinates into normalized coordinates
   /**
-   *  The default implementation is the identity tranformation (no distortion)
+   *  The default implementation is the identity transformation (no distortion)
    */
   virtual vector_2d undistort(const vector_2d& dist_pt) const { return dist_pt; };
 

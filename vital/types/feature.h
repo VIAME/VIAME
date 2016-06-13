@@ -111,7 +111,7 @@ public:
   /// Constructor for a feature_ from a base class feature
   explicit feature_< T > ( feature const& f );
 
-  /// Access staticly available type of underlying data (double or float)
+  /// Access statically available type of underlying data (double or float)
   static std::type_info const& static_data_type() { return typeid( T ); }
 
   /// Access the type info of the underlying data (double or float)

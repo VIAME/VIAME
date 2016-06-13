@@ -48,17 +48,18 @@ namespace vital{
  * @brief Get path to current executable.
  *
  * Get the name of the directory that contains the current executable
- * file.
+ * file. The returned string does not include the file name.
  *
  * @return Directory name.
  */
 std::string VITAL_EXPORT get_executable_path();
 
 /**
- * @brief
+ * @brief Get path to the current module.
  *
  *
- * @return
+ *
+ * @return Directory name.
  */
 std::string VITAL_EXPORT get_module_path();
 

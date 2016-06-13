@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -295,11 +295,16 @@ algorithm_plugin_manager
   const char * env_ptr = kwiversys::SystemTools::GetEnv( environment_variable_name );
   if ( 0 != env_ptr )
   {
-    LOG_INFO( m_impl->m_logger, "Adding path \"" << env_ptr << "\" from environment" );
+    LOG_INFO( m_impl->m_logger, "Adding path(s) \"" << env_ptr << "\" from environment" );
     std::string const extra_module_dirs(env_ptr);
 
     // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
     ST::Split( extra_module_dirs, m_impl->m_search_paths, PATH_SEPARATOR_CHAR );
+  }
+  else
+  {
+    LOG_INFO( m_impl->m_logger,
+              "No additional paths on " << environment_variable_name );
   }
 
   ST::Split( default_module_paths, m_impl->m_search_paths, PATH_SEPARATOR_CHAR );
