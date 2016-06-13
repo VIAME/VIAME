@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,15 +60,29 @@ public:
   /// Destructor
   virtual ~vital_core_base_exception() VITAL_NOTHROW;
 
-  /// Description of the exception
   /**
+   * \brief Description of the exception
    * \returns A string describing what went wrong.
    */
   char const* what() const VITAL_NOTHROW;
 
+  /**
+   * \brief Set optional location of exception.
+   *
+   * This method saves the supplied source file and location in the
+   * exception so the location where the exception was thrown can be
+   * determined. This is not that useful for an end user, but it is
+   * very helpful for developers.
+   *
+   * \param file Name of source file.
+   * \param line Line number in file.
+   */
+  void set_location( std::string const& file, int line );
 protected:
   /// descriptive string as to what happened to cause the exception.
   std::string m_what;
+  std::string m_file_name;
+  int m_line_number;
 };
 
 // ------------------------------------------------------------------
@@ -96,17 +110,18 @@ protected:
 ///Exception helper macro.
 /**
  * Macro to simplify creating exception messages using stream
- * operators.
+ * operators. The source location of this macro is also recorded in
+ * the exception.
  *
  * @param E       Exception type.
  * @param MSG     Stream constructed exception message.
  */
-#define VITAL_THROW_MSG(E, MSG) do {           \
+#define VITAL_THROW_MSG(E, MSG) do {            \
     std::stringstream _oss_;                    \
     _oss_ << MSG;                               \
-    E except;                                   \
+    E except(_oss.str();                        \
     except.set_location( __file, __line );      \
-    throw E( MSG.str() );                       \
+    throw except;                               \
   } while (0)
 
 #endif // VITAL_CORE_EXCEPTIONS_BASE_H

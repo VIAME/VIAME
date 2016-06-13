@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,60 +28,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief VITAL base exception implementation
- */
-
-#include "base.h"
+#include "klv.h"
 
 namespace kwiver {
 namespace vital {
 
-vital_core_base_exception
-::vital_core_base_exception() VITAL_NOTHROW
-  : std::exception()
-  , m_line_number(0)
+klv_exception
+::klv_exception( std::string const& str )
 {
+  m_what = str;
 }
 
 
-vital_core_base_exception
-::~vital_core_base_exception() VITAL_NOTHROW
-{
-}
+klv_exception
+::~klv_exception() VITAL_NOTHROW
+{ }
 
 
-// ------------------------------------------------------------------
-void
-vital_core_base_exception
-::set_location( std::string const& file, int line )
-{
-  m_file_name = file;
-  m_line_number = line;
-}
 
-
-// ------------------------------------------------------------------
-char const*
-vital_core_base_exception
-::what() const VITAL_NOTHROW
-{
-  return this->m_what.c_str();
-}
-
-
-// ------------------------------------------------------------------
-invalid_value
-::invalid_value(std::string reason) VITAL_NOTHROW
-  : m_reason(reason)
-{
-  m_what = "Invalid value(s): " + reason;
-}
-
-invalid_value
-::~invalid_value() VITAL_NOTHROW
-{
-}
-
-} } // end namespace vital
+} } // end namespace

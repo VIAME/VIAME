@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,58 +30,68 @@
 
 /**
  * \file
- * \brief VITAL base exception implementation
+ * \brief Implementation for image exceptions
  */
 
-#include "base.h"
+#include "video.h"
 
 namespace kwiver {
 namespace vital {
 
-vital_core_base_exception
-::vital_core_base_exception() VITAL_NOTHROW
-  : std::exception()
-  , m_line_number(0)
+
+// ------------------------------------------------------------------
+video_exception
+::video_exception() VITAL_NOTHROW
+{
+  m_what = "Yo, Yo, we have a Vide-o exception";
+}
+
+video_exception
+::~video_exception() VITAL_NOTHROW
 {
 }
 
+// ------------------------------------------------------------------
+video_input_timeout_exception
+::video_input_timeout_exception() VITAL_NOTHROW
+{
+  m_what = "End of video exception";
+}
 
-vital_core_base_exception
-::~vital_core_base_exception() VITAL_NOTHROW
+
+video_input_timeout_exception
+::~video_input_timeout_exception() VITAL_NOTHROW
 {
 }
 
 
 // ------------------------------------------------------------------
-void
-vital_core_base_exception
-::set_location( std::string const& file, int line )
+video_stream_exception
+::video_stream_exception( std::string const& msg) VITAL_NOTHROW
 {
-  m_file_name = file;
-  m_line_number = line;
+  m_what = "Video stream exception:" + msg;
+}
+
+
+video_stream_exception
+::~video_stream_exception() VITAL_NOTHROW
+{
 }
 
 
 // ------------------------------------------------------------------
-char const*
-vital_core_base_exception
-::what() const VITAL_NOTHROW
+video_config_exception
+::video_config_exception( std::string const& msg) VITAL_NOTHROW
 {
-  return this->m_what.c_str();
+  m_what = "Video config exception:" + msg;
 }
 
 
-// ------------------------------------------------------------------
-invalid_value
-::invalid_value(std::string reason) VITAL_NOTHROW
-  : m_reason(reason)
-{
-  m_what = "Invalid value(s): " + reason;
-}
-
-invalid_value
-::~invalid_value() VITAL_NOTHROW
+video_config_exception
+::~video_config_exception() VITAL_NOTHROW
 {
 }
 
-} } // end namespace vital
+
+
+} } // end namespace
