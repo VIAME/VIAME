@@ -88,6 +88,9 @@ public:
 
   /// Return the standard zone number for a given latitude and longitude
   /**
+   * This is a simplified implementation that ignores the exceptions to the
+   * standard UTM zone rules (e.g. around Norway, etc.).
+   *
    * \param lat latitude in decimal degrees.
    * \param lon longitude in decimal degrees.
    */
@@ -102,6 +105,8 @@ protected:
 /// Shared pointer for geo_map algorithm definition class
 typedef std::shared_ptr<geo_map> geo_map_sptr;
 
-} } } // end namespace
+} // end namespace algo
+} // end namespace vital
+} // end namespace kwiver
 
 #endif // VITAL_ALGO_GEO_MAP_H_

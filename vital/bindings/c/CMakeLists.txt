@@ -10,6 +10,7 @@ set(vital_c_public_headers
 
   algo_def/bundle_adjust.h
   algo_def/convert_image.h
+  algo_def/geo_map.h
   algo_def/image_io.h
   algo_def/initialize_cameras_landmarks.h
   algo_def/track_features.h
@@ -67,6 +68,7 @@ set(vital_c_sources
 
   algo_def/bundle_adjust.cxx
   algo_def/convert_image.cxx
+  algo_def/geo_map.cxx
   algo_def/image_io.cxx
   algo_def/initialize_cameras_landmarks.cxx
   algo_def/track_features.cxx
