@@ -49,9 +49,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 
 /// Default impl class for mapping each image to some reference image.
@@ -144,7 +142,6 @@ private:
 
 
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver
 

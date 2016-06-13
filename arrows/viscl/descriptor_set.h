@@ -42,9 +42,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// A concrete descriptor set that wraps VisCL descriptors.
 class KWIVER_ALGO_VISCL_EXPORT descriptor_set
@@ -84,9 +82,7 @@ descriptors_to_viscl(const vital::descriptor_set& desc_set);
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VISCL_DESCRIPTOR_SET_H_

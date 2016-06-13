@@ -35,9 +35,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// Default Constructor
 convert_image
@@ -63,6 +61,5 @@ convert_image
 }
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver

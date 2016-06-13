@@ -38,10 +38,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// Create space for n bytes
 void
@@ -58,6 +55,5 @@ image_memory_chunk
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

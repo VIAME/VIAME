@@ -45,9 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace ceres
-{
+namespace ceres {
 
 /// The various robust loss function supported in the config
 enum LossFunctionType
@@ -112,11 +110,8 @@ CameraIntrinsicShareTypeToString(CameraIntrinsicShareType type);
 KWIVER_ALGO_CERES_EXPORT bool
 StringToCameraIntrinsicShareType(std::string value, CameraIntrinsicShareType* type);
 
-
 } // end namespace ceres
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CERES_TYPES_H_

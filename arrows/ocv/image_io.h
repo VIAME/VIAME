@@ -42,12 +42,9 @@
 
 #include <vital/algo/image_io.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 /// A class for using OpenCV to read and write images
 class KWIVER_ALGO_OCV_EXPORT image_io
@@ -81,9 +78,7 @@ private:
 };
 
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_IMAGE_IO_H_

@@ -40,13 +40,9 @@
 #include <vital/vital_config.h>
 #include <arrows/ceres/kwiver_algo_ceres_export.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace ceres
-{
-
+namespace ceres {
 
 /// Class to hold to distortion function and traits
 class distortion_poly_radial
@@ -170,11 +166,8 @@ public:
   }
 };
 
-
 } // end namespace ceres
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CERES_LENS_DISTORTION_H_

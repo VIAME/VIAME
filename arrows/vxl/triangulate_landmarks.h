@@ -47,9 +47,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// A class for triangulating landmarks from tracks and cameras using VXL
 class KWIVER_ALGO_VXL_EXPORT triangulate_landmarks
@@ -98,9 +96,7 @@ private:
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_TRIANGULATE_LANDMARKS_H_

@@ -40,9 +40,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 /// Return a vector of matching indices
 std::vector<vital::match>
@@ -76,8 +74,6 @@ matches_to_ocv_dmatch(const vital::match_set& m_set)
   return dm;
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

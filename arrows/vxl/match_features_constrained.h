@@ -47,9 +47,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// A match_feature algorithm that uses feature position, orientation, and scale constraints
 /**
@@ -106,9 +104,7 @@ private:
 };
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_MATCH_FEATURES_CONSTRAINED_H_

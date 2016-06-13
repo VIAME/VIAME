@@ -45,9 +45,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// Private implementation class
 class match_features_homography::priv
@@ -275,6 +273,5 @@ match_features_homography
 
 
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

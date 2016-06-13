@@ -163,8 +163,6 @@ extract_descriptors
   return descriptor_set_sptr(new ocv::descriptor_set(desc));
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

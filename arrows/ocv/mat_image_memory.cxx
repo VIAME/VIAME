@@ -66,8 +66,6 @@ mat_image_memory
   }
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

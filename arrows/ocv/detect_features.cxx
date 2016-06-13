@@ -187,8 +187,6 @@ detect_features
   return feature_set_sptr(new feature_set(keypoints));
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

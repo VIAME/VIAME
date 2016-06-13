@@ -45,10 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// Return the overlap between two images.
 /**
@@ -62,9 +59,7 @@ overlap( const vnl_double_3x3& h, const unsigned ni, const unsigned nj );
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_COMPUTE_HOMOGRAPHY_OVERLAP_H_

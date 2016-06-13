@@ -61,9 +61,8 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
+namespace ocv {
 
-namespace ocv
-{
 typedef kwiversys::SystemTools     ST;
 
 /// Helper typedef for storing match lines between frames
@@ -562,8 +561,6 @@ draw_tracks
   return image_container_sptr( new ocv::image_container( output_image ) );
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

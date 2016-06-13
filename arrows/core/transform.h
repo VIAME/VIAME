@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Header for arrows::transform functions
+ * \brief Header for kwiver::arrows::transform functions
  */
 
-#ifndef ARROWS_TRANSFORM_H_
-#define ARROWS_TRANSFORM_H_
+#ifndef KWIVER_ARROWS_CORE_TRANSFORM_H_
+#define KWIVER_ARROWS_CORE_TRANSFORM_H_
 
 
 #include <vital/vital_config.h>
@@ -107,19 +107,6 @@ vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
                                    const vital::similarity_d& xform);
 
 
-/// Estimate a canonical coordinate transform for landmarks and cameras
-/**
- * Center landmarks about the origin with unit average scale,
- * orient the average camera principal axis to the -Z axis and
- * the average camera up vector to Y axis.
- * \note This assumes most cameras are viewing from the same side of
- *       3D landmarks and have similar up directions.
- */
-KWIVER_ALGO_EXPORT
-vital::similarity_d
-canonical_transform(vital::camera_map_sptr cameras,
-                    vital::landmark_map_sptr landmarks);
-
 /// Compute an approximate Necker reversal of cameras and landmarks
 /**
  * This operation help restart bundle adjustment after falling into
@@ -141,5 +128,4 @@ necker_reverse(vital::camera_map_sptr& cameras,
 } // end namespace arrows
 } // end namespace kwiver
 
-
-#endif // ARROWS_TRANSFORM_H_
+#endif // KWIVER_ARROWS_CORE_TRANSFORM_H_

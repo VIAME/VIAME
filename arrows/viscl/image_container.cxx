@@ -43,10 +43,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
-
+namespace vcl {
 
 /// Constructor - convert base image container to a VisCL image
 image_container
@@ -158,6 +155,5 @@ image_container_to_viscl(const vital::image_container& img)
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver

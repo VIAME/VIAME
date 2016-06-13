@@ -50,10 +50,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// Private implementation class
 class bundle_adjust::priv
@@ -400,6 +397,5 @@ bundle_adjust
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

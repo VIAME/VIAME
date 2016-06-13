@@ -42,10 +42,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
-
+namespace vcl {
 
 /// Private implementation class
 class match_features::priv
@@ -143,6 +140,5 @@ match_features
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver

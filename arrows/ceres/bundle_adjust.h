@@ -45,9 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace ceres
-{
+namespace ceres {
 
 /// A class for bundle adjustment of tracks using Ceres
 class KWIVER_ALGO_CERES_EXPORT bundle_adjust
@@ -90,11 +88,8 @@ private:
   const std::unique_ptr<priv> d_;
 };
 
-
 } // end namespace ceres
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CERES_BUNDLE_ADJUST_H_

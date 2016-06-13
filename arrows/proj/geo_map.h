@@ -42,12 +42,9 @@
 
 #include <vital/algo/geo_map.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace proj
-{
+namespace proj {
 
 /// PROJ implementation of geo_map algorithm
 class KWIVER_ALGO_PROJ_EXPORT geo_map
@@ -102,7 +99,6 @@ public:
 };// end class geo_map
 
 } // end namespace proj
-
 } // end namespace arrows
 } // end namespace kwiver
 

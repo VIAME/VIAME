@@ -92,9 +92,7 @@ private:
 };
 
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_EXTRACT_DESCRIPTORS_H_

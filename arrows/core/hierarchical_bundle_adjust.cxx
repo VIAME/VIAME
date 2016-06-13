@@ -59,9 +59,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 namespace // anonymous
 {
@@ -166,7 +164,7 @@ hierarchical_bundle_adjust
 }
 
 
-/// Get this algorithm's \link vital::kwiver::config_block configuration block \endlink
+/// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   vital::config_block_sptr
 hierarchical_bundle_adjust
 ::get_configuration() const
@@ -502,8 +500,6 @@ hierarchical_bundle_adjust
   cameras = active_cam_map;
 }
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

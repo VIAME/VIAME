@@ -46,9 +46,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 /// A concrete descriptor set that wraps OpenCV descriptors.
 class KWIVER_ALGO_OCV_EXPORT descriptor_set
@@ -85,11 +83,8 @@ protected:
 KWIVER_ALGO_OCV_EXPORT cv::Mat
 descriptors_to_ocv_matrix(const vital::descriptor_set& desc_set);
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_DESCRIPTOR_SET_H_

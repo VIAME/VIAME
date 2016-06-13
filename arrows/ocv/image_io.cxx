@@ -42,9 +42,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 /// Load image image from the file
 /**
@@ -75,6 +73,5 @@ image_io
 }
 
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

@@ -41,9 +41,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// An algorithm class for detecting feature points using VisCL
 class KWIVER_ALGO_VISCL_EXPORT detect_features
@@ -87,9 +85,7 @@ private:
 };
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VISCL_DETECT_FEATURES_H_

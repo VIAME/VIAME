@@ -53,9 +53,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 namespace
 {
@@ -613,6 +611,5 @@ compute_ref_homography_core
 }
 
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

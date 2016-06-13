@@ -42,9 +42,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// An class for extracting feature descriptors using VisCL
 class KWIVER_ALGO_VISCL_EXPORT extract_descriptors
@@ -84,9 +82,7 @@ private:
 };
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VISCL_EXTRACT_DESCRIPTORS_H_

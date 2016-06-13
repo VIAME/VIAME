@@ -39,9 +39,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// Private implementation class
 class extract_descriptors::priv
@@ -105,6 +103,5 @@ extract_descriptors
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver

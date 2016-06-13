@@ -46,13 +46,9 @@
 #include <ceres/ceres.h>
 #include <ceres/rotation.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace ceres
-{
-
+namespace ceres {
 
 /// Helper function to apply pose transformations and project a point
 /**
@@ -257,11 +253,8 @@ create_cost_func(LensDistortionType ldt, double x, double y)
   }
 }
 
-
 } // end namespace ceres
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CERES_REPROJECTION_ERROR_H_

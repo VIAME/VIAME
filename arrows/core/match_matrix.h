@@ -33,8 +33,8 @@
  * \brief Header for match matrix computation
  */
 
-#ifndef ALGORITHMS_MATCH_MATRIX_H_
-#define ALGORITHMS_MATCH_MATRIX_H_
+#ifndef KWIVER_ARROWS_CORE_MATCH_MATRIX_H_
+#define KWIVER_ARROWS_CORE_MATCH_MATRIX_H_
 
 
 #include <vital/vital_config.h>
@@ -70,5 +70,4 @@ match_matrix(const vital::track_set_sptr tracks,
 } // end namespace arrows
 } // end namespace kwiver
 
-
-#endif // ALGORITHMS_MATCH_MATRIX_H_
+#endif // KWIVER_ARROWS_CORE_MATCH_MATRIX_H_

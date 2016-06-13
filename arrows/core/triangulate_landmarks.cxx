@@ -42,13 +42,9 @@
 
 #include <arrows/core/triangulate.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
-
+namespace core {
 
 /// Private implementation class
 class triangulate_landmarks::priv
@@ -253,8 +249,6 @@ triangulate_landmarks
   landmarks = vital::landmark_map_sptr(new vital::simple_landmark_map(triangulated_lms));
 }
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

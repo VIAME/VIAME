@@ -52,9 +52,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// Default Constructor
 track_features_core
@@ -267,8 +265,6 @@ track_features_core
   return stitched_tracks;
 }
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

@@ -654,8 +654,6 @@ bundle_adjust
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
 }
 
-
 } // end namespace ceres
-
 } // end namespace arrows
 } // end namespace kwiver

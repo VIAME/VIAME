@@ -37,9 +37,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// Return the number of matches in the set
 size_t
@@ -123,6 +121,5 @@ matches_to_viscl(const vital::match_set& m_set)
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver

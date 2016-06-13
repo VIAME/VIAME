@@ -113,6 +113,5 @@ essential_matrix_to_fundamental(kwiver::vital::essential_matrix const & E,
 }
 
 
-
 } // end namespace arrows
 } // end namespace kwiver

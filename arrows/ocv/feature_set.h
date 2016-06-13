@@ -44,13 +44,9 @@
 
 #include <vital/types/feature_set.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
-
+namespace ocv {
 
 /// A concrete feature set that wraps OpenCV KeyPoints
 class KWIVER_ALGO_OCV_EXPORT feature_set
@@ -84,11 +80,8 @@ protected:
 KWIVER_ALGO_OCV_EXPORT std::vector<cv::KeyPoint>
 features_to_ocv_keypoints(const vital::feature_set& features);
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_FEATURE_SET_H_

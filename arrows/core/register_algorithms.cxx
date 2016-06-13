@@ -50,9 +50,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 // Register core algorithms with the given or global registrar
 int register_algorithms(vital::registrar &reg)

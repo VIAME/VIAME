@@ -46,11 +46,13 @@
 
 namespace kwiver {
 namespace arrows {
+namespace ocv {
 
-namespace ocv
-{
-
-/// An algorithm class for detecting feature points using OpenCV
+/// OCV Specific base definition for algorithms that detect feature points
+/**
+ * This extended algorithm_def provides a common implementation for the detect
+ * method.
+ */
 class KWIVER_ALGO_OCV_EXPORT detect_features
   : public vital::algorithm_impl<detect_features, vital::algo::detect_features>
 {
@@ -97,9 +99,7 @@ private:
 };
 
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_DETECT_FEATURES_H_

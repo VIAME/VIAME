@@ -47,9 +47,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// This image container wraps a vil_image_view
 /**
@@ -111,9 +109,7 @@ protected:
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_IMAGE_CONTAINER_H_

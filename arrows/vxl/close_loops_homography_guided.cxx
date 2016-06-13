@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of \link algorithms::vxl::close_loops_homography_guided
+ * \brief Implementation of \link arrows::vxl::close_loops_homography_guided
  *        close_loops \endlink
  */
 
@@ -51,9 +51,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 namespace
 {
@@ -427,6 +425,5 @@ close_loops_homography_guided
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

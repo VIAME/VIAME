@@ -47,9 +47,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// Private implementation class
 class triangulate_landmarks::priv
@@ -222,6 +220,5 @@ triangulate_landmarks
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

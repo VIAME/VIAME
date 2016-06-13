@@ -94,9 +94,7 @@ private:
 };
 
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_MATCH_FEATURES_H_

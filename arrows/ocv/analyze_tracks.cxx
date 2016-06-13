@@ -42,16 +42,12 @@
 #include <set>
 #include <vector>
 
-#include <arrows/ocv/ocv_algo_tools.h>
-
+#include <opencv2/core/core.hpp>
 using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
-
+namespace ocv {
 
 /// Private implementation class
 class analyze_tracks::priv
@@ -257,8 +253,6 @@ analyze_tracks
   }
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

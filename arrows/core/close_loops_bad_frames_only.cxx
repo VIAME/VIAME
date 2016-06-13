@@ -46,12 +46,9 @@
 #include <vital/algo/algorithm.h>
 #include <vital/exceptions/algorithm.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 using namespace kwiver::vital;
 
@@ -260,8 +257,6 @@ close_loops_bad_frames_only
   return input;
 }
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

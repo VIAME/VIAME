@@ -53,9 +53,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// A basic feature tracker
 class KWIVER_ALGO_EXPORT track_features_core
@@ -148,11 +146,8 @@ private:
 
 };
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CORE_TRACK_FEATURES_CORE_H_

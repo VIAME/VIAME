@@ -33,8 +33,8 @@
  * \brief Header for epipolar geometry functions.
  */
 
-#ifndef ALGORITHMS_EPIPOLAR_GEOMETRY_H_
-#define ALGORITHMS_EPIPOLAR_GEOMETRY_H_
+#ifndef KWIVER_ARROWS_CORE_EPIPOLAR_GEOMETRY_H_
+#define KWIVER_ARROWS_CORE_EPIPOLAR_GEOMETRY_H_
 
 #include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_export.h>
@@ -65,6 +65,28 @@ mark_fm_inliers(vital::fundamental_matrix const& fm,
                 double inlier_scale = 1.0);
 
 
+/// Compute a valid left camera from an essential matrix
+/**
+ * There are four valid left camera possibilities for any essential
+ * matrix (assuming the right camera is the identity camera).
+ * This function selects the left camera such that a corresponding
+ * pair of points (in normalized coordinates) triangulates
+ * in front of both cameras.
+ *
+ * \param [in]  e        the essential matrix
+ * \param [in]  left_pt  a point in normalized coordinates of the left image
+ * \param [in]  right_pt a point in normalized coordinates of the right image
+ *                       that corresponds with \p left_pt
+ * \returns     a camera containing the rotation and unit translation of the
+ *                left camera assuming the right camera is the identity
+ */
+KWIVER_ALGO_EXPORT
+kwiver::vital::simple_camera
+extract_valid_left_camera(const kwiver::vital::essential_matrix_d& e,
+                          const kwiver::vital::vector_2d& left_pt,
+                          const kwiver::vital::vector_2d& right_pt);
+
+
 /// Compute the fundamental matrix from a pair of cameras
 KWIVER_ALGO_EXPORT
 kwiver::vital::fundamental_matrix_sptr
@@ -89,5 +111,4 @@ essential_matrix_to_fundamental(kwiver::vital::essential_matrix const& E,
 } // end namespace arrows
 } // end namespace kwiver
 
-
-#endif // ALGORITHMS_EPIPOLAR_GEOMETRY_H_
+#endif // KWIVER_ARROWS_CORE_EPIPOLAR_GEOMETRY_H_

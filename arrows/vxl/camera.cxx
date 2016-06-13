@@ -39,10 +39,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// Construct a camera_sptr from a vpgl_perspective_camera
 template <typename T>
@@ -138,6 +135,5 @@ INSTANTIATE_CAMERA(float);
 /// \endcond
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

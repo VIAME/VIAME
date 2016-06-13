@@ -42,9 +42,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 
 /// A concrete match set that wraps VisCL matches
@@ -88,9 +86,7 @@ matches_to_viscl(const vital::match_set& match_set);
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VISCL_MATCH_SET_H_

@@ -43,10 +43,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// Return a map from integer IDs to camera shared pointers
 vital::camera_map::map_camera_t
@@ -95,6 +92,5 @@ camera_map_to_vpgl(const vital::camera_map& cam_map)
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

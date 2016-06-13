@@ -45,9 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 namespace
 {
@@ -162,8 +160,6 @@ descriptors_to_ocv_matrix(const vital::descriptor_set& desc_set)
   return cv::Mat();
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

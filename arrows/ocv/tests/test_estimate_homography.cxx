@@ -63,8 +63,6 @@ main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
 
-  kwiver::arrows::ocv::register_algorithms();
-
   testname_t const testname = argv[1];
 
   RUN_TEST(testname);

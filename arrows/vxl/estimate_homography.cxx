@@ -50,10 +50,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// Estimate a homography matrix from corresponding points
 homography_sptr
@@ -65,7 +62,8 @@ estimate_homography
 {
   if (pts1.size() < 4 || pts2.size() < 4)
   {
-    std::cerr << "Not enough points to estimate a homography" <<std::endl;
+    vital::logger_handle_t logger( vital::get_logger( "arrows.vxl.estimate_homography" ));
+    LOG_ERROR(logger, "Not enough points to estimate a homography");
     return homography_sptr();
   }
 
@@ -137,6 +135,5 @@ estimate_homography
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

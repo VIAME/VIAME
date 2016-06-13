@@ -47,9 +47,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// Construct a camera_sptr from a vpgl_perspective_camera
 template <typename T>
@@ -84,9 +82,7 @@ void vital_to_vpgl_calibration(const vital::camera_intrinsics& mcal,
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_CAMERA_H_

@@ -42,9 +42,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// An abstract base class for matching feature points
 class KWIVER_ALGO_VISCL_EXPORT match_features
@@ -91,7 +89,6 @@ private:
 };
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver
 

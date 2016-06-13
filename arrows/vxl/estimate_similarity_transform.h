@@ -46,10 +46,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// VXL implementation of similarity transform estimation
 class KWIVER_ALGO_VXL_EXPORT estimate_similarity_transform
@@ -85,9 +82,7 @@ public:
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_

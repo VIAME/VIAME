@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header defining the vxl \link algorithms::vxl::close_loops_homography_guided
+ * \brief Header defining the vxl \link arrows::vxl::close_loops_homography_guided
  *        close_loops \endlink algorithm
  */
 
@@ -50,9 +50,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// Attempts to stitch tracks over a long period of time.
 /**
@@ -138,9 +136,7 @@ private:
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_

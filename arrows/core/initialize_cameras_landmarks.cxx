@@ -1072,8 +1072,6 @@ initialize_cameras_landmarks
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
 }
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver
