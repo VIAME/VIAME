@@ -118,7 +118,7 @@ include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
 include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # ================================================================
-link_directories( ${KWIVER_BUILD_INSTALL_PREFIX}/lib )
+link_directories( ${KWIVER_BINARY_DIR}/lib )
 
 # ================================================================
 ###
