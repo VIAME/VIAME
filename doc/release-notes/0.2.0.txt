@@ -53,6 +53,9 @@ Bindings
 
  * Added C/Python interface for bindle_adjust algorithm definition
 
+ * Added C/Python interface for initialize_cameras_landmarks algorithm
+   definition
+
 Vital Types
 
  * Fixed vital::covariance_ default constructor to initialize identity
