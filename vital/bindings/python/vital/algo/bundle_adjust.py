@@ -78,4 +78,15 @@ class BundleAdjust (VitalAlgorithm):
             [self, ctypes.byref(cmap_ptr), ctypes.byref(lmap_ptr), tset]
         )
 
-        return CameraMap(from_cptr=cmap_ptr), LandmarkMap(from_cptr=lmap_ptr)
+        # Initialize new objects if "returned" pointers are different from input
+        # objects
+        r_cmap = cmap
+        if ctypes.addressof(cmap_ptr.contents) != cmap.c_pointer.contents:
+            self._log.debug("Creating new CameraMap instance")
+            r_cmap = CameraMap(from_cptr=cmap_ptr)
+        r_lmap = lmap
+        if ctypes.addressof(lmap_ptr.contents) != lmap.c_pointer.contents:
+            self._log.debug("Creating new LandmarkMap instance")
+            r_lmap = LandmarkMap(from_cptr=lmap_ptr)
+
+        return r_cmap, r_lmap
