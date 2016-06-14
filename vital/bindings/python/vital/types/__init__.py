@@ -47,6 +47,9 @@ from .rotation import Rotation
 # Requires EigenArray and RGBColor
 from .feature import Feature
 
+# Requires EigenArray and Rotation
+from .similarity import Similarity
+
 # Requires Covariance
 from .landmark import Landmark
 from .landmark_map import LandmarkMap

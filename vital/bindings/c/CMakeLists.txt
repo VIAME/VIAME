@@ -34,6 +34,7 @@ set(vital_c_public_headers
   types/landmark.h
   types/landmark_map.h
   types/rotation.h
+  types/similarity.h
   types/track.h
   types/track_set.h
   )
@@ -93,6 +94,7 @@ set(vital_c_sources
   types/landmark.cxx
   types/landmark_map.cxx
   types/rotation.cxx
+  types/similarity.cxx
   types/track.cxx
   types/track_set.cxx
   )

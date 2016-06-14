@@ -66,7 +66,7 @@ class VitalObject (object):
     """
     Basic VITAL python interface class.
 
-    Guarantees that should be maintained:
+    Guarantees that should be maintained after construction:
         - c_type() and c_ptr_type() should be used when trying to get C types
           from class types.
         - C_TYPE and C_TYPE_PTR should be used when trying to get C types from
