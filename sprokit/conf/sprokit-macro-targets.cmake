@@ -97,6 +97,8 @@ function (_sprokit_compile_pic name)
   endif ()
 endfunction ()
 
+###
+#
 function (_sprokit_export name)
   set(exports
     PARENT_SCOPE)
@@ -114,6 +116,8 @@ function (_sprokit_export name)
     ${name})
 endfunction ()
 
+###
+#
 function (sprokit_export_targets file)
   get_property(sprokit_exports GLOBAL
     PROPERTY kwiver_export_targets)
@@ -123,6 +127,8 @@ function (sprokit_export_targets file)
     FILE    "${file}")
 endfunction ()
 
+###
+#
 function (sprokit_install)
   if (no_install)
     return()
@@ -131,6 +137,8 @@ function (sprokit_install)
   install(${ARGN})
 endfunction ()
 
+###
+#
 function (sprokit_add_executable name)
   add_executable(${name}
     ${ARGN})
@@ -184,11 +192,17 @@ function (sprokit_add_library name)
 
   if (target_type STREQUAL "STATIC_LIBRARY")
     _sprokit_compile_pic("${name}")
-  else ()
-    set_property(GLOBAL APPEND
-      PROPERTY kwiver_libraries
-      "${name}")
-  endif ()
+  elseif( NOT no_export)
+
+    if (target_type STREQUAL "MODULE")
+      set_property(GLOBAL APPEND
+        PROPERTY kwiver_plugin_libraries    "${name}" )
+    else ()
+      set_property(GLOBAL APPEND
+        PROPERTY kwiver_libraries     "${name}" )
+    endif ()
+
+  endif()
 
   _sprokit_export("${name}")
 
@@ -206,7 +220,7 @@ endfunction ()
 
 ###
 # replace with kwiver_add_plugin()
-function (sprokit_add_plugin name define)
+function (sprokit_add_plugin     name define)
   set(library_subdir /sprokit)
 
   set(no_export ON)
@@ -221,16 +235,22 @@ function (sprokit_add_plugin name define)
       SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX})
 endfunction ()
 
+###
+#
 function (sprokit_private_header_group)
   source_group("Header Files\\Private"
     FILES ${ARGN})
 endfunction ()
 
+###
+#
 function (sprokit_private_template_group)
   source_group("Template Files\\Private"
     FILES ${ARGN})
 endfunction ()
 
+###
+#
 function (sprokit_install_headers subdir)
   sprokit_install(
     FILES       ${ARGN}
@@ -238,6 +258,8 @@ function (sprokit_install_headers subdir)
     COMPONENT   development)
 endfunction ()
 
+###
+#
 function (sprokit_install_pipelines)
   sprokit_install(
     FILES       ${ARGN}
@@ -245,6 +267,8 @@ function (sprokit_install_pipelines)
     COMPONENT   pipeline)
 endfunction ()
 
+###
+#
 function (sprokit_install_clusters)
   sprokit_install(
     FILES       ${ARGN}
@@ -252,6 +276,8 @@ function (sprokit_install_clusters)
     COMPONENT   pipeline)
 endfunction ()
 
+###
+#
 function (sprokit_install_includes)
   sprokit_install(
     FILES       ${ARGN}
@@ -259,6 +285,8 @@ function (sprokit_install_includes)
     COMPONENT   pipeline)
 endfunction ()
 
+###
+#
 function (sprokit_add_helper_library name sources)
   add_library(${name} STATIC
     ${${sources}})
