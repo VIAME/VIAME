@@ -52,6 +52,15 @@ set( plugin_core_sources
   triangulate.cxx
   )
 
+# Address MSVC fatal error C1128:
+# number of sections exceeded object file format limit
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  set_source_files_properties(
+    triangulate.cxx
+    PROPERTIES COMPILE_FLAGS "/bigobj"
+    )
+endif()
+
 kwiver_add_library( kwiver_algo
   ${plugin_core_headers}
   ${plugin_core_sources}

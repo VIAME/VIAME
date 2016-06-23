@@ -211,6 +211,7 @@ kwiver_configure_file(kwiver-config
   BUILD_SHARED_LIBS
   KWIVER_CMAKE_DIR
   kwiver_libs
+  fletch_DIR
   )
 
 kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
@@ -224,7 +225,9 @@ kwiver_configure_file(kwiver-install-config
   KWIVER_BINARY_DIR
   KWIVER_ENABLE_PYTHON
   BUILD_SHARED_LIBS
+  CMAKE_INSTALL_PREFIX
   kwiver_libs
+  fletch_DIR
   )
 
 kwiver_install(
