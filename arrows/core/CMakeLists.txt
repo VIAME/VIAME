@@ -5,6 +5,7 @@ set( plugin_core_headers
   close_loops_multi_method.h
   compute_ref_homography_core.h
   convert_image_bypass.h
+  estimate_canonical_transform.h
   filter_features_magnitude.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
@@ -35,6 +36,7 @@ set( plugin_core_sources
   close_loops_multi_method.cxx
   compute_ref_homography_core.cxx
   convert_image_bypass.cxx
+  estimate_canonical_transform.cxx
   filter_features_magnitude.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
@@ -51,6 +53,15 @@ set( plugin_core_sources
   projected_track_set.cxx
   triangulate.cxx
   )
+
+# Address MSVC fatal error C1128:
+# number of sections exceeded object file format limit
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  set_source_files_properties(
+    triangulate.cxx
+    PROPERTIES COMPILE_FLAGS "/bigobj"
+    )
+endif()
 
 kwiver_add_library( kwiver_algo
   ${plugin_core_headers}

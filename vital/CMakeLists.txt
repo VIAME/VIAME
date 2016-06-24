@@ -105,6 +105,7 @@ set( vital_public_headers
   algo/estimate_essential_matrix.h
   algo/estimate_fundamental_matrix.h
   algo/estimate_homography.h
+  algo/estimate_canonical_transform.h
   algo/estimate_similarity_transform.h
   algo/extract_descriptors.h
   algo/filter_features.h
@@ -179,6 +180,7 @@ set( vital_sources
   algo/estimate_fundamental_matrix.cxx
   algo/estimate_homography.cxx
   algo/estimate_similarity_transform.cxx
+  algo/estimate_canonical_transform.cxx
   algo/extract_descriptors.cxx
   algo/filter_features.cxx
   algo/geo_map.cxx

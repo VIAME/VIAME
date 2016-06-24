@@ -13,6 +13,8 @@ install(
         "${utils_dir}/FindEigen3.cmake"
         "${utils_dir}/FindLog4cxx.cmake"
         "${utils_dir}/kwiver-flags.cmake"
+        "${utils_dir}/kwiver-utils.cmake"
+        "${utils_dir}/kwiver-configcheck.cmake"
         "${utils_dir}/kwiver-flags-gnu.cmake"
         "${utils_dir}/kwiver-flags-msvc.cmake"
         "${utils_dir}/kwiver-flags-clang.cmake"
