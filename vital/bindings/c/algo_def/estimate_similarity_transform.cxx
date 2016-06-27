@@ -62,8 +62,8 @@ vital_algorithm_estimate_similarity_transform_estimate_transform_points(
 )
 {
   typedef Eigen::Matrix< double, 3, 1 > matrix_t;
-//  STANDARD_CATCH(
-//    "vital_algorithm_estimate_similarity_transform_estimate_transform_vector", eh,
+  STANDARD_CATCH(
+    "vital_algorithm_estimate_similarity_transform_estimate_transform_vector", eh,
 
     auto a_sptr =
       vital_c::ALGORITHM_estimate_similarity_transform_SPTR_CACHE.get( algo );
@@ -93,8 +93,8 @@ vital_algorithm_estimate_similarity_transform_estimate_transform_points(
       new vital::similarity_d( sim )
     );
 
-//  );
-//  return NULL;
+  );
+  return NULL;
 }
 
 
