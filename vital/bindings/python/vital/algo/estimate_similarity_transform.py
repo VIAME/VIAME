@@ -125,7 +125,10 @@ class EstimateSimilarityTransform (VitalAlgorithm):
             'vital_algorithm_estimate_similarity_transform_estimate_camera_map',
             [self.C_TYPE_PTR, CameraMap.c_ptr_type(), CameraMap.c_ptr_type()],
             [self, from_cm, to_cm],
-            Similarity.c_ptr_type(ctypes.c_double)
+            Similarity.c_ptr_type(ctypes.c_double),
+            {
+                1: VitalAlgorithmException
+            }
         )
         return Similarity(ctype=ctypes.c_double, from_cptr=cptr)
 
@@ -156,6 +159,9 @@ class EstimateSimilarityTransform (VitalAlgorithm):
             'vital_algorithm_estimate_similarity_transform_estimate_landmark_map',
             [self.C_TYPE_PTR, LandmarkMap.c_ptr_type(), LandmarkMap.c_ptr_type()],
             [self, from_lm, to_lm],
-            Similarity.c_ptr_type(ctypes.c_double)
+            Similarity.c_ptr_type(ctypes.c_double),
+            {
+                1: VitalAlgorithmException
+            }
         )
         return Similarity(ctype=ctypes.c_double, from_cptr=cptr)
