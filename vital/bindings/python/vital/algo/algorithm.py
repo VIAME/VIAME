@@ -219,8 +219,8 @@ class VitalAlgorithm (VitalObject):
             [self.C_TYPE_PTR], [self],
             self.C_TYPE_PTR
         )
-        self.__class__(name=(new_name or self.name),
-                       from_cptr=clone_cptr)
+        return self.__class__(name=(new_name or self.name),
+                              from_cptr=clone_cptr)
 
     def get_config(self, cb=None):
         """
