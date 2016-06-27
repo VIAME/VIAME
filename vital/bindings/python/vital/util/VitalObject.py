@@ -93,7 +93,8 @@ class VitalObject (object):
         return cls.C_TYPE_PTR
 
     @classmethod
-    def _call_cfunc(cls, func_name, argtypes=(), args=(), restype=None):
+    def _call_cfunc(cls, func_name, argtypes=(), args=(), restype=None,
+                    exception_map=None):
         """
         Extract function from vital library and call it with a VitalErrorHandle.
 
@@ -114,6 +115,10 @@ class VitalObject (object):
 
         :param restype: optional Ctypes return type
 
+        :param exception_map: Return code to exception mapping to give to the
+            error handler.
+        :type exception_map: dict[int, BaseException | types.FunctionType]
+
         :return: Result of the c function call
 
         """
@@ -124,6 +129,8 @@ class VitalObject (object):
             f.argtypes = list(argtypes) + [VitalErrorHandle.c_ptr_type()]
         f.restype = restype
         with VitalErrorHandle() as eh:
+            if exception_map:
+                eh.set_exception_map(exception_map)
             return f(*(list(args) + [eh]))
 
     def __init__(self, from_cptr=None, *args, **kwds):

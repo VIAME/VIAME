@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015-2016 by Kitware, Inc.
+Copyright 2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,15 +30,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Base VITAL algorithm structure
+Algorithm related exceptions.
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
+from .base import VitalBaseException
 
-# Convenience imports of algorithm definition types to the module level
-from .algorithm import VitalAlgorithm
-from .convert_image import ConvertImage
-from .estimate_similarity_transform import EstimateSimilarityTransform
-from .image_io import ImageIo
-from .track_features import TrackFeatures
+
+class VitalAlgorithmException (VitalBaseException):
+    """ Base exception for algorithm exceptions """
+    pass
