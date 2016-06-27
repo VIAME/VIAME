@@ -65,6 +65,9 @@ Bindings
  * Added C/Python interface for estimate_similarity_transform algorithm
    definition
 
+ * Added C/Python interface for estimate_canonical_transform algorithm
+   definition
+
 Vital Types
 
  * Fixed vital::covariance_ default constructor to initialize identity
