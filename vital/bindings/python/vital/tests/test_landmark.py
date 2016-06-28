@@ -242,3 +242,23 @@ class TestLandmark (unittest.TestCase):
             l.color = l2.color = color
             l.observations = l2.observations = obs
             nose.tools.assert_equal(l, l2)
+
+    def test_clone(self):
+        # Should be able to clone an instance, modify either and NOT see the
+        # change in the other
+        l1 = Landmark([1, 2, 3], 4)
+        l2 = l1.clone()
+
+        l1.loc = [[5],
+                  [6],
+                  [7]]
+        numpy.testing.assert_equal(l1.loc, [[5],
+                                            [6],
+                                            [7]])
+        numpy.testing.assert_equal(l2.loc, [[1],
+                                            [2],
+                                            [3]])
+
+        l2.scale = 8
+        nose.tools.assert_equal(l1.scale, 4)
+        nose.tools.assert_equal(l2.scale, 8)

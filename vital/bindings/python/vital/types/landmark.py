@@ -97,6 +97,18 @@ class Landmark (VitalObject):
     def __ne__(self, other):
         return not (self == other)
 
+    def clone(self):
+        """
+        :return: Return a new instance that is the clone of this one.
+        :rtype: Landmark
+        """
+        cptr = self._call_cfunc(
+            'vital_landmark_clone',
+            [self.C_TYPE_PTR], [self],
+            self.C_TYPE_PTR
+        )
+        return Landmark(from_cptr=cptr)
+
     @property
     def type_name(self):
         return self._call_cfunc(

@@ -65,6 +65,22 @@ vital_landmark_destroy( vital_landmark_t *l, vital_error_handle_t *eh )
 }
 
 
+/// Clone the given landmark, returning a new instance.
+vital_landmark_t*
+vital_landmark_clone( vital_landmark_t *l, vital_error_handle_t *eh )
+{
+  STANDARD_CATCH(
+    "vital_landmark_clone", eh,
+
+    auto l_clone = vital_c::LANDMARK_SPTR_CACHE.get( l )->clone();
+    vital_c::LANDMARK_SPTR_CACHE.store( l_clone );
+    return reinterpret_cast< vital_landmark_t* >( l_clone.get() );
+
+  );
+  return NULL;
+}
+
+
 /// Get the name of the stored data type
 char const*
 vital_landmark_type_name( vital_landmark_t const *l, vital_error_handle_t *eh )

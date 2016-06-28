@@ -59,6 +59,10 @@ public:
 
   /// Optimize the camera and landmark parameters given a set of tracks
   /**
+   * Implementations of this function should not modify the underlying objects
+   * contained in the input structures. Output references should either be new
+   * instances or the same as input.
+   *
    * \param [in,out] cameras the cameras to optimize
    * \param [in,out] landmarks the landmarks to optimize
    * \param [in] tracks the tracks to use as constraints

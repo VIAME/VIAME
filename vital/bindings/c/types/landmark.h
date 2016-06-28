@@ -64,6 +64,17 @@ void
 vital_landmark_destroy( vital_landmark_t *l, vital_error_handle_t *eh );
 
 
+/// Clone the given landmark, returning a new instance.
+/**
+ * \param l Landmark instance to clone
+ * \param eh Vital error handle instance
+ * \returns New landmark instance that is the clone of \c l.
+ */
+VITAL_C_EXPORT
+vital_landmark_t*
+vital_landmark_clone( vital_landmark_t *l, vital_error_handle_t *eh );
+
+
 /// Get the name of the stored data type
 /**
  * \param l Landmark instance
