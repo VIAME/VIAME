@@ -106,6 +106,14 @@ class Landmark (VitalObject):
         )
 
     @property
+    def datatype(self):
+        """
+        Ctypes type the underlying data is stored as.
+        :rtype: ctypes._SimpleCData
+        """
+        return self._datatype
+
+    @property
     def loc(self):
         """
         Get the 3D location of this landmark
