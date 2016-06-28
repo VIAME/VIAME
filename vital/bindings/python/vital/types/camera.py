@@ -150,6 +150,18 @@ class Camera (VitalObject):
     def __ne__(self, other):
         return not (self == other)
 
+    def clone(self):
+        """
+        :return: Return a new instance that is the clone of this one.
+        :rtype: Camera
+        """
+        cptr = self._call_cfunc(
+            'vital_camera_clone',
+            [self.C_TYPE_PTR], [self],
+            self.C_TYPE_PTR
+        )
+        return Camera(from_cptr=cptr)
+
     @property
     def center(self):
         """
