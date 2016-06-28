@@ -107,6 +107,10 @@ class TrackSet (VitalObject):
     def __len__(self):
         return self.size()
 
+    def __iter__(self):
+        for tid in self.all_track_ids():
+            yield self.get_track(tid)
+
     def size(self):
         return self._call_cfunc(
             'vital_trackset_size',
@@ -117,7 +121,7 @@ class TrackSet (VitalObject):
 
     def tracks(self):
         """
-        Get the list of tracks contained in this set (new instances).
+        Get the list of all tracks contained in this set (new instances).
 
         :return: list of new Track instances of tracks contained in this set
         :rtype: list[Track]
