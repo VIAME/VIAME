@@ -249,6 +249,14 @@ class TestLandmark (unittest.TestCase):
         l1 = Landmark([1, 2, 3], 4)
         l2 = l1.clone()
 
+        # They should be the same at this point
+        numpy.testing.assert_equal(l1.loc, [[1],
+                                            [2],
+                                            [3]])
+        nose.tools.assert_equal(l1.scale, 4)
+        numpy.testing.assert_equal(l2.loc, l1.loc)
+        nose.tools.assert_equal(l1.scale, l2.scale)
+
         l1.loc = [[5],
                   [6],
                   [7]]
