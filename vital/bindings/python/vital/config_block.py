@@ -33,12 +33,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Interface to VITAL config_block class.
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
-
 import ctypes
 
-from vital.exceptions.config_block import VitalConfigBlockNoSuchValueException
+from vital.exceptions.config_block import (
+    VitalConfigBlockNoSuchValueException,
+    VitalConfigBlockReadOnlyException,
+)
 from vital.exceptions.config_block_io import (
     VitalConfigBlockIoException,
     VitalConfigBlockIoFileNotFoundException,
@@ -46,7 +46,7 @@ from vital.exceptions.config_block_io import (
     VitalConfigBlockIoFileNotParsed,
     VitalConfigBlockIoFileWriteException,
 )
-from vital.util import VitalObject, VitalErrorHandle
+from vital.util import VitalObject, VitalErrorHandle, free_void_ptr
 
 import os
 import tempfile
@@ -122,10 +122,11 @@ class ConfigBlock (VitalObject):
         :return: The name assigned to this ConfigBlock instance.
         :rtype: str
         """
-        cb_get_name = self.VITAL_LIB.vital_config_block_get_name
-        cb_get_name.argtypes = [self.C_TYPE_PTR]
-        cb_get_name.restype = ctypes.c_char_p
-        return cb_get_name(self)
+        return self._call_cfunc(
+            'vital_config_block_get_name',
+            [self.C_TYPE_PTR], [self],
+            ctypes.c_char_p
+        )
 
     def subblock(self, key):
         """
@@ -136,10 +137,13 @@ class ConfigBlock (VitalObject):
         :rtype: ConfigBlock
 
         """
-        cb_subblock = self.VITAL_LIB.vital_config_block_subblock
-        cb_subblock.argtypes = [self.C_TYPE_PTR]
-        cb_subblock.restype = self.C_TYPE_PTR
-        return ConfigBlock(from_cptr=cb_subblock(self, key))
+        cptr = self._call_cfunc(
+            'vital_config_block_subblock',
+            [self.C_TYPE_PTR, ctypes.c_char_p],
+            [self, key],
+            self.C_TYPE_PTR
+        )
+        return ConfigBlock(from_cptr=cptr)
 
     def subblock_view(self, key):
         """
@@ -153,10 +157,13 @@ class ConfigBlock (VitalObject):
         :rtype: ConfigBlock
 
         """
-        cb_subblock_view = self.VITAL_LIB.vital_config_block_subblock_view
-        cb_subblock_view.argtypes = [self.C_TYPE_PTR]
-        cb_subblock_view.restype = self.C_TYPE_PTR
-        return ConfigBlock(from_cptr=cb_subblock_view(self, key))
+        cptr = self._call_cfunc(
+            'vital_config_block_subblock_view',
+            [self.C_TYPE_PTR, ctypes.c_char_p],
+            [self, key],
+            self.C_TYPE_PTR
+        )
+        return ConfigBlock(from_cptr=cptr)
 
     def get_value(self, key, default=None):
         """ Get the string value for a key.
@@ -179,21 +186,28 @@ class ConfigBlock (VitalObject):
             exist in the configuration and no default was provided.
 
         """
-        cb_get_argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
-        cb_get_args = [self, key]
+        c_arg_t = [self.C_TYPE_PTR, ctypes.c_char_p]
+        c_arg_v = [self, key]
+        c_arg_r = ctypes.c_void_p
+        ex_map = {1: VitalConfigBlockNoSuchValueException}
+
         if default is None:
-            cb_get = self.VITAL_LIB['vital_config_block_get_value']
+            v = self._call_cfunc(
+                'vital_config_block_get_value',
+                c_arg_t, c_arg_v, c_arg_r, ex_map
+            )
         else:
-            cb_get = self.VITAL_LIB['vital_config_block_get_value_default']
-            cb_get_argtypes.append(ctypes.c_char_p)
-            cb_get_args.append(default)
+            v = self._call_cfunc(
+                'vital_config_block_get_value_default',
+                c_arg_t + [ctypes.c_char_p],
+                c_arg_v + [default],
+                c_arg_r,
+                ex_map
+            )
 
-        cb_get.argtypes = cb_get_argtypes + [VitalErrorHandle.C_TYPE_PTR]
-        cb_get.restype = ctypes.c_char_p
-
-        with VitalErrorHandle() as eh:
-            eh.set_exception_map({1: VitalConfigBlockNoSuchValueException})
-            return cb_get(*(cb_get_args + [eh]))
+        s = ctypes.c_char_p(v).value
+        free_void_ptr(v)
+        return s
 
     def get_value_bool(self, key, default=None):
         """ Get the boolean value for a key
@@ -216,49 +230,48 @@ class ConfigBlock (VitalObject):
             exist in the configuration and no default was provided.
 
         """
-        cb_get_bool_argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
-        cb_get_bool_args = [self, key]
-        if default is None:
-            cb_get_bool = self.VITAL_LIB['vital_config_block_'
-                                         'get_value_bool']
-        else:
-            cb_get_bool = self.VITAL_LIB['vital_config_block_'
-                                         'get_value_default_bool']
-            cb_get_bool_argtypes.append(ctypes.c_bool)
-            cb_get_bool_args.append(default)
-        cb_get_bool_argtypes.append(VitalErrorHandle.C_TYPE_PTR)
-        cb_get_bool.argtypes = cb_get_bool_argtypes
-        cb_get_bool.restype = ctypes.c_bool
+        c_arg_t = [self.C_TYPE_PTR, ctypes.c_char_p]
+        c_arg_v = [self, key]
+        c_arg_r = ctypes.c_bool
+        ex_map = {1: VitalConfigBlockNoSuchValueException}
 
-        with VitalErrorHandle() as eh:
-            eh.set_exception_map({1: VitalConfigBlockNoSuchValueException})
-            cb_get_bool_args.append(eh)
-            return cb_get_bool(*cb_get_bool_args)
+        if default is None:
+            return self._call_cfunc(
+                'vital_config_block_get_value_bool',
+                c_arg_t, c_arg_v, c_arg_r, ex_map
+            )
+        else:
+            return self._call_cfunc(
+                'vital_config_block_get_value_default_bool',
+                c_arg_t + [ctypes.c_bool],
+                c_arg_v + [default],
+                c_arg_r, ex_map
+            )
 
     def get_description(self, key):
         """
         Get the string description for a given key.
 
         :raises VitalConfigBlockNoSuchValueException: the given key doesn't
-            exist in the configuration and no default was provided.
+            exist in the configuration.
 
         :param key: The name of the parameter to get the description of.
         :type key: str
 
-        :returns: The string description of the give key or None if the key was
-                  not found.
+        :returns: The string description of the give key.
         :rtype: str or None
 
         """
-        cb_get_descr = self.VITAL_LIB.vital_config_block_get_description
-        cb_get_descr.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
-                                 VitalErrorHandle.C_TYPE_PTR]
-        cb_get_descr.restype = ctypes.c_char_p
-
-        with VitalErrorHandle() as eh:
-            eh.set_exception_map({-1: VitalConfigBlockNoSuchValueException})
-            d = cb_get_descr(self, key, eh)
-        return d
+        v = self._call_cfunc(
+            'vital_config_block_get_description',
+            [self.C_TYPE_PTR, ctypes.c_char_p],
+            [self, key],
+            ctypes.c_void_p,
+            {1: VitalConfigBlockNoSuchValueException}
+        )
+        s = ctypes.c_char_p(v).value
+        free_void_ptr(v)
+        return s
 
     def set_value(self, key, value, description=None):
         """
@@ -283,15 +296,23 @@ class ConfigBlock (VitalObject):
 
         """
         if description is None:
-            cb_set_value = self.VITAL_LIB.vital_config_block_set_value
-            cb_set_value.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
-                                     ctypes.c_char_p]
-            cb_set_value(self, str(key), str(value))
+            self._call_cfunc(
+                'vital_config_block_set_value',
+                [self.C_TYPE_PTR, ctypes.c_char_p, ctypes.c_char_p],
+                [self, str(key), str(value)],
+                exception_map={
+                    1: VitalConfigBlockReadOnlyException
+                }
+            )
         else:
-            cb_set_value = self.VITAL_LIB.vital_config_block_set_value_descr
-            cb_set_value.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p,
-                                     ctypes.c_char_p, ctypes.c_char_p]
-            cb_set_value(self, str(key), str(value), str(description))
+            self._call_cfunc(
+                'vital_config_block_set_value_descr',
+                [self.C_TYPE_PTR, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p],
+                [self, str(key), str(value), str(description)],
+                exception_map={
+                    1: VitalConfigBlockReadOnlyException
+                }
+            )
 
     def unset_value(self, key):
         """
@@ -303,9 +324,15 @@ class ConfigBlock (VitalObject):
         :type key: str
 
         """
-        cb_unset_value = self.VITAL_LIB.vital_config_block_unset_value
-        cb_unset_value.argtypes = [self.C_TYPE_PTR]
-        cb_unset_value(self, key)
+        self._call_cfunc(
+            'vital_config_block_unset_value',
+            [self.C_TYPE_PTR, ctypes.c_char_p],
+            [self, str(key)],
+            exception_map={
+                1: VitalConfigBlockReadOnlyException,
+                2: VitalConfigBlockNoSuchValueException,
+            }
+        )
 
     def is_read_only(self, key):
         """
@@ -319,10 +346,12 @@ class ConfigBlock (VitalObject):
         :rtype: bool
 
         """
-        cb_is_ro = self.VITAL_LIB.vital_config_block_is_read_only
-        cb_is_ro.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
-        cb_is_ro.restype = ctypes.c_bool
-        return cb_is_ro(self, key)
+        return self._call_cfunc(
+            'vital_config_block_is_read_only',
+            [self.C_TYPE_PTR, ctypes.c_char_p],
+            [self, key],
+            ctypes.c_bool
+        )
 
     def mark_read_only(self, key):
         """
@@ -335,9 +364,11 @@ class ConfigBlock (VitalObject):
         :type key: str
 
         """
-        cb_mark_ro = self.VITAL_LIB.vital_config_block_mark_read_only
-        cb_mark_ro.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
-        cb_mark_ro(self, key)
+        self._call_cfunc(
+            'vital_config_block_mark_read_only',
+            [self.C_TYPE_PTR, ctypes.c_char_p],
+            [self, key]
+        )
 
     def merge_config(self, other):
         """
@@ -351,9 +382,11 @@ class ConfigBlock (VitalObject):
         :type other: ConfigBlock
 
         """
-        cb_merge = self.VITAL_LIB.vital_config_block_merge_config
-        cb_merge.argtypes = [self.C_TYPE_PTR, self.C_TYPE_PTR]
-        cb_merge(self, other)
+        self._call_cfunc(
+            'vital_config_block_merge_config',
+            [self.C_TYPE_PTR, self.C_TYPE_PTR],
+            [self, other]
+        )
 
     def has_value(self, key):
         """
@@ -366,10 +399,12 @@ class ConfigBlock (VitalObject):
         :rtype: bool
 
         """
-        cb_has_value = self.VITAL_LIB.vital_config_block_has_value
-        cb_has_value.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p]
-        cb_has_value.restype = ctypes.c_bool
-        return cb_has_value(self, key)
+        return self._call_cfunc(
+            'vital_config_block_has_value',
+            [self.C_TYPE_PTR, ctypes.c_char_p],
+            [self, key],
+            ctypes.c_bool
+        )
 
     def available_keys(self):
         """
