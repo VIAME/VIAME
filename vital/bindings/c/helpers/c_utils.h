@@ -64,18 +64,19 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
  * some other purpose, it should be copied/duplicated before re-using an error
  * handle.
  */
-#define POPULATE_EH(eh_ptr, ec, msg)                                        \
-  do                                                                        \
-  {                                                                         \
-    vital_error_handle_t *PEH_eh_ptr_cast =                                 \
-        reinterpret_cast<vital_error_handle_t*>(eh_ptr);                    \
-    if( PEH_eh_ptr_cast != NULL )                                           \
-    {                                                                       \
-      PEH_eh_ptr_cast->error_code = ec;                                     \
-      free(PEH_eh_ptr_cast->message); /* Does nothing if already null */    \
-      PEH_eh_ptr_cast->message = (char*)malloc(sizeof(char) * (strlen(msg)+1)); \
-      strcpy(PEH_eh_ptr_cast->message, msg);                                \
-    }                                                                       \
+#define POPULATE_EH(eh_ptr, ec, msg)                                                \
+  do                                                                                \
+  {                                                                                 \
+    vital_error_handle_t *PEH_eh_ptr_cast =                                         \
+        reinterpret_cast<vital_error_handle_t*>(eh_ptr);                            \
+    if( PEH_eh_ptr_cast != NULL )                                                   \
+    {                                                                               \
+      PEH_eh_ptr_cast->error_code = ec;                                             \
+      free(PEH_eh_ptr_cast->message); /* Does nothing if already null */            \
+      /* +1 for null terminator */                                                  \
+      PEH_eh_ptr_cast->message = (char*)malloc(sizeof(char) * (strlen(msg) + 1) );  \
+      strcpy(PEH_eh_ptr_cast->message, msg);                                        \
+    }                                                                               \
   } while(0)
 
 
