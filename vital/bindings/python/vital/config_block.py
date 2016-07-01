@@ -88,7 +88,7 @@ class ConfigBlock (VitalObject):
                 3: VitalConfigBlockIoFileNotParsed
             })
             cptr = cb_read(filepath, eh)
-        return cls(name, cptr)
+        return cls(from_cptr=cptr)
 
     def __init__(self, name=None, from_cptr=None):
         """
