@@ -262,7 +262,7 @@ homography_< double >
 template < typename T >
 homography_< T >
 homography_< T >
-::operator*( homography_< T > const& rhs )
+::operator*( homography_< T > const& rhs ) const
 {
   return homography_< T > ( h_ * rhs.h_ );
 }

@@ -69,6 +69,9 @@ public:
   /// Destructor
   virtual ~homography() VITAL_DEFAULT_DTOR
 
+  /// Access the type info of the underlying data
+  virtual std::type_info const& data_type() const = 0;
+
   /// Create a clone of this homography object, returning as smart pointer
   /**
    * \return A new deep clone of this homography transformation.
@@ -157,6 +160,9 @@ public:
 
   // ---- Abstract method definitions ----
 
+  /// Access the type info of the underlying data
+  virtual std::type_info const& data_type() const { return typeid( T ); }
+
   /// Create a clone of ourself as a shared pointer
   /**
    * \return A new clone of this homography transformation.
@@ -222,7 +228,7 @@ public:
    * \return New homography object whose transform is the result of
    *         \p this * \p rhs.
    */
-  virtual homography_< T > operator*( homography_< T > const& rhs );
+  virtual homography_< T > operator*( homography_< T > const& rhs ) const;
 
 
 protected:
