@@ -52,11 +52,6 @@ class Feature (VitalObject):
         """
         Create a new Feature instance.
 
-        If created from an existing C reference, we inherently don't know the
-        underlying data type (generic shared pointers under the hood). Thus,
-        when creating a new Feature object from a C-pointer, the setter function
-        cannon be used and instead raises a VitalNoTypeInfoException.
-
         :param loc: Location of the feature
         :param mag: Magnitude of the feature
         :param scale: Scale of the feature

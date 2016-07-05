@@ -40,6 +40,7 @@ from .error_handle import VitalErrorHandle
 
 
 # Known mapping of C++ type_info.name() values for basic types
+#: :type: dict[str, ctypes._SimpleCData]
 TYPE_NAME_MAP = {
     'd': ctypes.c_double,
     'f': ctypes.c_float,

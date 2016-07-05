@@ -30,6 +30,7 @@ set(vital_c_public_headers
   types/detected_object_set.h
   types/eigen.h
   types/feature.h
+  types/homography.h
   types/image.h
   types/image_container.h
   types/image_container.hxx
@@ -93,6 +94,7 @@ set(vital_c_sources
   types/detected_object_set.cxx
   types/eigen.cxx
   types/feature.cxx
+  types/homography.cxx
   types/image.cxx
   types/image_container.cxx
   types/landmark.cxx

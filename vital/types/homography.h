@@ -104,7 +104,6 @@ public:
 
   /// Map a 2D double-type point using this homography
   /**
-   * \tparam T Point vector data type
    * \param p Point to map against this homography
    * \return New point in the projected coordinate system.
    */
@@ -196,7 +195,6 @@ public:
 
   /// Map a 2D double-type point using this homography
   /**
-   * \tparam T Point vector data type
    * \param p Point to map against this homography
    * \return New point in the projected coordinate system.
    */
@@ -224,6 +222,7 @@ public:
 
   /// Custom multiplication operator that multiplies the underlying matrices
   /**
+   * \tparam T Homography data type
    * \param rhs Right-hand-side operand homography.
    * \return New homography object whose transform is the result of
    *         \p this * \p rhs.
