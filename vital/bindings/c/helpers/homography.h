@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief File description here.
+ * \brief vital::homography shared pointer cache definition
  */
 
 #ifndef VITAL_C_HELPERS_HOMOGRAPHY_H_
