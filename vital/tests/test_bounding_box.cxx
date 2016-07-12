@@ -37,7 +37,7 @@
 
 #include <vital/types/bounding_box.h>
 
-#define TEST_ARGS ()
+#define TEST_ARGS      ()
 
 DECLARE_TEST_MAP();
 
@@ -52,10 +52,10 @@ main(int argc, char* argv[])
 }
 
 
-IMPLEMENT_TEST(construct_bbox_i)
+IMPLEMENT_TEST( construct_bbox_i )
 {
-  kwiver::vital::vector_2i tl( 12, 23 );
-  kwiver::vital::vector_2i br( 200, 223 );
+  kwiver::vital::bounding_box_i::vector_type tl( 12, 23 );
+  kwiver::vital::bounding_box_i::vector_type  br( 200, 223 );
   kwiver::vital::bounding_box_i bb1( tl, br );
 
   auto ul = bb1.upper_left();
@@ -63,16 +63,15 @@ IMPLEMENT_TEST(construct_bbox_i)
 
   if ( ul != tl || lr != br )
   {
-    TEST_ERROR("X coordinate of bounding box_ not initialized correctly");
+    TEST_ERROR("Coordinates of bounding box not initialized correctly");
   }
-
 }
 
 
-IMPLEMENT_TEST(construct_bbox_d)
+IMPLEMENT_TEST( construct_bbox_d )
 {
-  kwiver::vital::vector_2d tl( 12, 23 );
-  kwiver::vital::vector_2d br( 200, 223 );
+  kwiver::vital::bounding_box_d::vector_type tl( 12, 23 );
+  kwiver::vital::bounding_box_d::vector_type br( 200, 223 );
   kwiver::vital::bounding_box_d bb1( tl, br );
 
   auto ul = bb1.upper_left();
@@ -80,7 +79,56 @@ IMPLEMENT_TEST(construct_bbox_d)
 
   if ( ul != tl || lr != br )
   {
-    TEST_ERROR("X coordinate of bounding box_ not initialized correctly");
+    TEST_ERROR("Coordinates of bounding box not initialized correctly");
+  }
+}
+
+
+IMPLEMENT_TEST(translate_bbox_d)
+{
+  kwiver::vital::bounding_box_d::vector_type tl( 12, 23 );
+  kwiver::vital::bounding_box_d::vector_type br( 200, 223 );
+  kwiver::vital::bounding_box_d::vector_type tr( 20, 10 );
+  kwiver::vital::bounding_box_d bb1( tl, br );
+
+  kwiver::vital::translate( bb1, tr );
+
+  auto ul = bb1.upper_left();
+    auto lr = bb1.lower_right();
+
+    if ( ul[0] != 32 || ul[1] != 33 )
+    {
+      TEST_ERROR("ul coordinates of box not translated as expected");
+    }
+
+    if ( lr[0] != 220 || lr[1] != 233 )
+    {
+      TEST_ERROR("lr coordinates of box not translated as expected");
+    }
+}
+
+
+IMPLEMENT_TEST(intersection_bbox_d)
+{
+  kwiver::vital::bounding_box_d::vector_type tl( 12, 23 );
+  kwiver::vital::bounding_box_d::vector_type br( 200, 223 );
+  kwiver::vital::bounding_box_d::vector_type tr( 120, 110 );
+  kwiver::vital::bounding_box_d bb1( tl, br );
+
+  kwiver::vital::bounding_box_d bb2 = bb1;
+  kwiver::vital::translate( bb2, tr );
+  kwiver::vital::bounding_box_d bb3 = kwiver::vital::intersection( bb1, bb2 );
+
+  auto ul = bb3.upper_left();
+  auto lr = bb3.lower_right();
+
+  if ( ul[0] != 132 || ul[1] != 133 )
+  {
+    TEST_ERROR("ul coordinates of box not as expected");
   }
 
+  if ( lr[0] != 200 || lr[1] != 223 )
+  {
+    TEST_ERROR("lr coordinates of box not as expected");
+  }
 }

@@ -53,11 +53,24 @@ public:
   bounding_box()
   { }
 
+  /**
+   * @brief Create box from two corner points.
+   *
+   * @param upper_left Upper left corner of box.
+   * @param lower_right Lower right corner of box.
+   */
   bounding_box( vector_type const& upper_left,
                 vector_type const& lower_right )
     : m_bbox( upper_left, lower_right )
   { }
 
+  /**
+   * @brief Create box from point and dimensions.
+   *
+   * @param upper_left Upper left corner point
+   * @param width Width of box.
+   * @param height Height of box.
+   */
   bounding_box( vector_type const& upper_left,
                 T const& width, T const& height )
   {
@@ -67,24 +80,77 @@ public:
     m_bbox =  Eigen::AlignedBox< T, 2 >( upper_left, lr );
   }
 
+  /**
+   * @brief Get center coordinate of box.
+   *
+   * @return Center coordinate of box.
+   */
   vector_type center() const { return m_bbox.center(); }
+
+  /**
+   * @brief Get upper left coordinate of box.
+   *
+   * @return Upper left coordinate of box.
+   */
   vector_type upper_left() const { return m_bbox.min(); }
+
+  /**
+   * @brief Get lower right coordinate of box.
+   *
+   * @return Lower right coordinate of box.
+   */
   vector_type lower_right() const { return m_bbox.max(); }
 
+  /**
+   * @brief Get width of box.
+   *
+   * @return Width of box.
+   */
   T width() const { return m_bbox.sizes()[0]; }
+
+  /**
+   * @brief Get height of box.
+   *
+   * @return Height of box.
+   */
   T height() const { return m_bbox.sizes()[1]; }
 
+  /**
+   * @brief Get area of box.
+   *
+   * @return Area of box.
+   */
   double area() const { return m_bbox.volume(); }
 
+protected:
+  /*
+   * @brief Obscure accessors for underlying data.
+   *
+   *
+   * @return Underlying data type.
+   */
   Eigen::AlignedBox< T, 2 >& get_eabb()  { return m_bbox; }
   Eigen::AlignedBox< T, 2 > get_eabb() const  { return m_bbox; }
 
-protected:
+private:
   // Note that this class is implemented using Eigen types.
   // There is no guarantee of this in the future.
   bounding_box( Eigen::AlignedBox< T, 2 > const& b )
     : m_bbox( b )
   { }
+
+  /*
+   * These functions are friends to allow them access to the
+   * underlying data type. They need access to the private data in
+   * order to use the methods on that type, an implementation
+   * convenience.
+   */
+  template < typename T1 >
+  friend bounding_box<T1> & translate( bounding_box<T1>& bbox,
+                                       typename bounding_box<T1>::vector_type const& pt );
+  template<typename T2>
+  friend bounding_box<T2> intersection( bounding_box<T2> const& one,
+                                        bounding_box<T2> const& other );
 
   Eigen::AlignedBox< T, 2 > m_bbox;
 };
@@ -97,16 +163,18 @@ typedef bounding_box< double > bounding_box_d;
 /**
  * @brief Translate a box by (x,y) offset.
  *
- * This operator translates a bounding_box by the specified amount.
+ * This operator translates a bounding_box by the specified
+ * amount. The box being translated is modified.
  *
  * @param[in,out] bbox Box to translate
  * @param[in] pt X and Y offsets to use for translation
  *
- * @return The specified box is updated with the new coordinates.
+ * @return The specified parameter box, updated with the new
+ * coordinates, is returned.
  */
   template < typename T >
   bounding_box<T> & translate( bounding_box<T>& bbox,
-                               Eigen::Matrix< T, 2, 1 > const& pt )
+                               typename bounding_box<T>::vector_type const& pt )
 {
   bbox.get_eabb().translate( pt );
   return bbox;

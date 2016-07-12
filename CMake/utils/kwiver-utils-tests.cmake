@@ -144,6 +144,7 @@ function (kwiver_discover_tests group libraries file)
     set(test_name)
     set(property)
 
+    # Note that this does not handle comments well
     string(REGEX MATCH "^IMPLEMENT_TEST\\( *([A-Za-z_0-9]+) *\\)$"
       match "${test_line}")
     if (match)

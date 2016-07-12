@@ -222,6 +222,7 @@ set( vital_sources
   io/landmark_map_io.cxx
   io/track_set_io.cxx
 
+  types/bounding_box.cxx
   types/camera.cxx
   types/camera_intrinsics.cxx
   types/essential_matrix.cxx
