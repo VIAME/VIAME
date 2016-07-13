@@ -1,0 +1,125 @@
+/*ckwg +29
+ * Copyright 2016 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ * \brief Interface for detected_object_set detected_object_set
+ */
+
+#ifndef VITAL_DETECTED_OBJECT_SET_H_
+#define VITAL_DETECTED_OBJECT_SET_H_
+
+#include <vital/vital_export.h>
+#include <vital/vital_config.h>
+
+#include <vital/types/detected_object.h>
+
+namespace kwiver {
+namespace vital {
+
+// forward declaration of detected_object class
+class detected_object_set;
+
+// typedef for a detected_object shared pointer
+typedef std::shared_ptr< detected_object_set > detected_object_set_sptr;
+
+// ----------------------------------------------------------------
+/**
+ * @brief Set of detected objects.
+ *
+ * This class represents a ordered set of detected objects. The
+ * detections are ordered on their basic confidence value.
+ */
+class VITAL_EXPORT detected_object_set
+{
+public:
+
+  /**
+   * @brief Create new set of detected objects.
+   *
+   * @param objs Vector of detected objects.
+   * @param labels Optional set of labels on detections.
+   */
+  detected_object_set( detected_object::vector_t const& objs );
+
+  ~detected_object_set() VITAL_DEFAULT_DTOR
+
+  /**
+   * @brief Get number of detections in this set.
+   *
+   * This method returns the number of detections in the set.
+   *
+   * @return Number of detections.
+   */
+  size_t size() const;
+
+  /**
+   * @brief Select detections based on confidence value.
+   *
+   * This method returns a vector of detections ordered by confidence
+   * value, high to low. If the optional threshold is specified, then
+   * all detections from the set that are less than the threshold are
+   * not in the selected set.
+   *
+   * @param threshold Select all detections with confidence not less
+   *                  than this value. If this parameter is omitted,
+   *                  then all detections are selected.
+   *
+   * @return List of detections.
+   */
+  detected_object::vector_t select( double threshold = detected_object_type::INVALID_SCORE );
+
+  //@{
+  /**
+   * @brief Select detections based on class_name
+   *
+   * This method returns a vector of detections that have the
+   * specified class_name. These detections are ordered by
+   * descending score for the name.
+   *
+   * @param class_name class name
+   * @param threshold Select all detections with confidence not less
+   *                  than this value. If this parameter is omitted,
+   *                  then all detections with the label are selected.
+   *
+   * @return List of detections.
+   */
+  const detected_object::vector_t select( const std::string& class_name,
+                                          double             threshold = detected_object_type::INVALID_SCORE ) const;
+  //@}
+
+private:
+  // List of detections ordered by confidence value.
+  detected_object::vector_t m_detected_objects;
+};
+
+} }
+
+#endif

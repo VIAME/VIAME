@@ -43,15 +43,15 @@ namespace vital {
  *
  * This class represents a coordinate aligned box. The coordinate
  * system places the origin in the upper left.
+ *
+ * A bounding box must be constructed with the correct geometry. Once
+ * created, the geometry can not be altered.
  */
 template < typename T >
 class bounding_box
 {
 public:
   typedef Eigen::Matrix< T, 2, 1 > vector_type;
-
-  bounding_box()
-  { }
 
   /**
    * @brief Create box from two corner points.
@@ -140,14 +140,14 @@ private:
   { }
 
   /*
-   * These functions are friends to allow them access to the
+   * These operations are friends to allow them access to the
    * underlying data type. They need access to the private data in
    * order to use the methods on that type, an implementation
    * convenience.
    */
   template < typename T1 >
   friend bounding_box<T1> & translate( bounding_box<T1>& bbox,
-                                       typename bounding_box<T1>::vector_type const& pt );
+                              typename bounding_box<T1>::vector_type const& pt );
   template<typename T2>
   friend bounding_box<T2> intersection( bounding_box<T2> const& one,
                                         bounding_box<T2> const& other );
