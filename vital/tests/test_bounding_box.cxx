@@ -71,15 +71,16 @@ IMPLEMENT_TEST( construct_bbox_i )
 IMPLEMENT_TEST( construct_bbox_d )
 {
   kwiver::vital::bounding_box_d::vector_type tl( 12, 23 );
-  kwiver::vital::bounding_box_d::vector_type br( 200, 223 );
-  kwiver::vital::bounding_box_d bb1( tl, br );
+  kwiver::vital::bounding_box_d bb1( tl, 111, 222 );
 
   auto ul = bb1.upper_left();
   auto lr = bb1.lower_right();
 
+  kwiver::vital::bounding_box_d::vector_type br( 12 + 111, 23 + 222 );
+
   if ( ul != tl || lr != br )
   {
-    TEST_ERROR("Coordinates of bounding box not initialized correctly");
+    TEST_ERROR( "Coordinates of bounding box not initialized correctly" );
   }
 }
 
@@ -94,17 +95,17 @@ IMPLEMENT_TEST(translate_bbox_d)
   kwiver::vital::translate( bb1, tr );
 
   auto ul = bb1.upper_left();
-    auto lr = bb1.lower_right();
+  auto lr = bb1.lower_right();
 
-    if ( ul[0] != 32 || ul[1] != 33 )
-    {
-      TEST_ERROR("ul coordinates of box not translated as expected");
-    }
+  if ( ul[0] != 32 || ul[1] != 33 )
+  {
+    TEST_ERROR("ul coordinates of box not translated as expected");
+  }
 
-    if ( lr[0] != 220 || lr[1] != 233 )
-    {
-      TEST_ERROR("lr coordinates of box not translated as expected");
-    }
+  if ( lr[0] != 220 || lr[1] != 233 )
+  {
+    TEST_ERROR("lr coordinates of box not translated as expected");
+  }
 }
 
 

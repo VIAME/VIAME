@@ -52,7 +52,7 @@ detected_object::detected_object( const bounding_box_d& bbox,
 // ------------------------------------------------------------------
 bounding_box_d
 detected_object::
-get_bounding_box() const
+bounding_box() const
 {
   return *m_bounding_box;
 }

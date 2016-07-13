@@ -102,7 +102,7 @@ public:
    *
    * @return A copy of the bounding box.
    */
-  bounding_box_d get_bounding_box() const;
+  bounding_box_d bounding_box() const;
 
   /**
    * @brief Set new bounding box for this detection.
@@ -127,7 +127,7 @@ public:
    * @brief Set new confidence value for detection.
    *
    * This method sets a new confidence value for this detection.
-   * Confidence values are in the range of 0.0 - 1.0.
+   * Confidence values are in the range of [0.0 - 1.0].
    *
    * @param d New confidence value for this detection.
    */
