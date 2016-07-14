@@ -41,15 +41,31 @@ namespace vital {
 // ==================================================================
 namespace {
 
-struct less_confidence
+struct descending_confidence
 {
   bool operator()( detected_object_sptr const& a, detected_object_sptr const& b ) const
   {
-    return a->confidence() < b->confidence();
+    return a->confidence() > b->confidence();
+  }
+};
+
+template < typename T1, typename T2 >
+struct more_first
+{
+  typedef std::pair< T1, T2 > type;
+  bool operator()( type const& a, type const& b ) const
+  {
+    return a.first > b.first;
   }
 };
 
 } // end namespace
+
+
+// ------------------------------------------------------------------
+detected_object_set::
+detected_object_set()
+{ }
 
 
 // ------------------------------------------------------------------
@@ -59,7 +75,21 @@ detected_object_set( detected_object::vector_t const& objs )
 {
   // sort objects based on confidence
   std::sort( m_detected_objects.begin(), m_detected_objects.end(),
-             less_confidence() );
+             descending_confidence() );
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object_set::
+add( detected_object_sptr object )
+{
+  // keep list ordered
+  m_detected_objects.insert (
+      std::upper_bound( m_detected_objects.begin(), m_detected_objects.end(),
+                        object, descending_confidence() ),
+      object
+    );
 }
 
 
@@ -127,8 +157,9 @@ select( const std::string& class_name, double threshold ) const
   } // end foreach
 
   // Sort on score
-  std::sort( data.begin(), data.end() );
+  std::sort( data.begin(), data.end(), more_first< double,  detected_object_sptr >() );
 
+  // Create new vector for return
   detected_object::vector_t vect;
 
   VITAL_FOREACH( auto i, data )

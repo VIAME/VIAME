@@ -57,17 +57,37 @@ typedef std::shared_ptr< detected_object_set > detected_object_set_sptr;
  * This class represents a ordered set of detected objects. The
  * detections are ordered on their basic confidence value.
  */
-class VITAL_EXPORT detected_object_set
+class VITAL_EXPORT detected_object_set VITAL_FINAL
 {
 public:
 
   /**
+   * @brief Create an empty detection set.
+   *
+   * This CTOR creates an empty detection set. Detections can be added
+   * with the add() method.
+   */
+  detected_object_set();
+
+  /**
    * @brief Create new set of detected objects.
    *
+   * This CTOR creates a detection set using the supplied vector of
+   * detection objects. This can be used to create a new detection set
+   * from the output of a select() method.
+   *
    * @param objs Vector of detected objects.
-   * @param labels Optional set of labels on detections.
    */
   detected_object_set( detected_object::vector_t const& objs );
+
+  /**
+   * @brief Add detection to set.
+   *
+   * This method adds a new detection to this set.
+   *
+   * @param object Detection to be added to set.
+   */
+  void add( detected_object_sptr object );
 
   ~detected_object_set() VITAL_DEFAULT_DTOR
 
@@ -96,7 +116,6 @@ public:
    */
   detected_object::vector_t select( double threshold = detected_object_type::INVALID_SCORE );
 
-  //@{
   /**
    * @brief Select detections based on class_name
    *
@@ -113,7 +132,6 @@ public:
    */
   const detected_object::vector_t select( const std::string& class_name,
                                           double             threshold = detected_object_type::INVALID_SCORE ) const;
-  //@}
 
 private:
   // List of detections ordered by confidence value.

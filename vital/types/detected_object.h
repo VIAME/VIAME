@@ -91,6 +91,7 @@ public:
   detected_object( const bounding_box_d& bbox,
                    double confidence = 1.0,
                    detected_object_type_sptr classifications = detected_object_type_sptr() );
+
   virtual ~detected_object() VITAL_DEFAULT_DTOR
 
   /**
@@ -147,7 +148,8 @@ public:
   /**
    * @brief Set new classifications for this detection.
    *
-   * This method sets a new classification for this detection.
+   * This method supplies a new set of class_names and scores for this
+   * detection.
    *
    * @param c New classification for this detection
    */
