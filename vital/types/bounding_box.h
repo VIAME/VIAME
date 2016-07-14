@@ -81,6 +81,21 @@ public:
   }
 
   /**
+   * @brief Create a box from four coordinates.
+   *
+   * @param xmin Minimum x coordinate
+   * @param ymin minimum y coordinate
+   * @param xmax Maximum x coordinate
+   * @param ymax Maximum y coordinate
+   */
+  bounding_box( T xmin, T ymin, T xmax, T ymax )
+  {
+    vector_type ul( xmin, ymin );
+    vector_type lr( xmax, ymax );
+    m_bbox =  Eigen::AlignedBox< T, 2 >( ul, lr );
+  }
+
+  /**
    * @brief Get center coordinate of box.
    *
    * @return Center coordinate of box.
