@@ -74,6 +74,13 @@ public:
   static const double INVALID_SCORE;
 
   /**
+   * @brief Create an empty object.
+   *
+   * An object is created without class_names or scores.
+   */
+  detected_object_type();
+
+  /**
    * @brief Create new object type classes.
    *
    * Create a new object type instance with a set of labels and

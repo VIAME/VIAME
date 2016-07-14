@@ -75,6 +75,10 @@ struct more_second
 
 // ------------------------------------------------------------------
 detected_object_type::
+detected_object_type()
+{ }
+
+detected_object_type::
 detected_object_type( const std::vector< std::string >& class_names,
                       const std::vector< double >& scores )
 {
