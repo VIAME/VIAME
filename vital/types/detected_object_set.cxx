@@ -107,6 +107,14 @@ detected_object::vector_t
 detected_object_set::
 select( double threshold )
 {
+  // The main list can get out of order if somebody updates the
+  // confidence value of a detection directly
+
+  ///@todo Find a way of determining if the list needs sorting or is
+  ///already sorted.
+  std::sort( m_detected_objects.begin(), m_detected_objects.end(),
+             descending_confidence() );
+
   detected_object::vector_t vect;
 
   VITAL_FOREACH( auto i, m_detected_objects )
@@ -145,6 +153,10 @@ select( const std::string& class_name, double threshold ) const
     }
     catch (const std::runtime_error& )
     {
+      // Object did not have the desired class_name. This not fatal,
+      // but since we are looking for that name, there is some
+      // expectation that it is present.
+
       //+ maybe log something?
       continue;
     }
