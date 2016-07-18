@@ -34,7 +34,7 @@
 #include "kw_archive_writer_process.h"
 
 extern "C"
-KWIVER_VXL_PROCESSES_EXPORT void register_processes();
+KWIVER_PROCESSES_VXL_EXPORT void register_processes();
 
 
 // ----------------------------------------------------------------

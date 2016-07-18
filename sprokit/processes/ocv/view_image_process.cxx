@@ -42,7 +42,7 @@
 
 #include <kwiver_type_traits.h>
 
-#include <arrows/algorithms/ocv/image_container.h>
+#include <arrows/ocv/image_container.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -51,8 +51,7 @@
 #include <iostream>
 
 
-namespace kwiver
-{
+namespace kwiver {
 
 // config items
   // <name>, <type>, <default string>, <description>

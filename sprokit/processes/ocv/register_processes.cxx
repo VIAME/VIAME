@@ -34,7 +34,7 @@
 #include "view_image_process.h"
 
 extern "C"
-KWIVER_OCV_PROCESSES_EXPORT void register_processes();
+KWIVER_PROCESSES_OCV_EXPORT void register_processes();
 
 
 // ----------------------------------------------------------------
