@@ -123,8 +123,11 @@ declare_configuration_key( KEY ## _config_trait::key,           \
                            KEY ## _config_trait::description)
 
 
-// Get value from config using trait
+// Get value from process config using trait
 #define config_value_using_trait(KEY) config_value< KEY ## _config_trait::type >( KEY ## _config_trait::key )
+
+// Get value from config blockusing trait
+#define reconfig_value_using_trait(CONF,KEY) CONF->get_value< KEY ## _config_trait::type >( KEY ## _config_trait::key )
 
 
 /**
