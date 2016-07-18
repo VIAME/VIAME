@@ -31,5 +31,6 @@ kwiver_add_plugin( kwiver_processes_ocv
   PRIVATE          sprokit_pipeline
                    kwiver_algo kwiver_algo_ocv
                    vital vital_apm vital_logger vital_config
+                   kwiversys
                  ${OpenCV_LIBS}
  )
