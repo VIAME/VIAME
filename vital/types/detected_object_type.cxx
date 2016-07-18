@@ -230,4 +230,14 @@ find_string( const std::string& str ) const
   return &(*it);
 }
 
+
+// ------------------------------------------------------------------
+std::vector< std::string >
+detected_object_type::
+all_class_names()
+{
+  std::vector< std::string > names( s_master_name_set.begin(), s_master_name_set.end() );
+  return names;
+}
+
 } } // end namespace

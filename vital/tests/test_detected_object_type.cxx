@@ -98,7 +98,7 @@ IMPLEMENT_TEST(DOT_creation)
     TEST_ERROR( "failure setting new score on old class." );
   }
 
-  std::vector< std::string > lbl  = dot.class_names();
+  auto lbl  = kwiver::vital::detected_object_type::all_class_names();
   TEST_EQUAL( "expected name count", lbl.size(), 5 );
 
   dot.score( "other" ); // make sure this entry exists
@@ -109,7 +109,7 @@ IMPLEMENT_TEST(DOT_creation)
                     dot.score("other"),
                     "accessing deleted class name" );
 
-  lbl  = dot.class_names();
+  lbl  = kwiver::vital::detected_object_type::all_class_names();
   TEST_EQUAL( "expected new name count", lbl.size(), 4 );
 
   for (size_t i = 0; i < lbl.size(); i++)
@@ -150,26 +150,6 @@ IMPLEMENT_TEST(DOT_creation_error)
 
 // ----------------------------------------------------------------
 
-class test_detected_object_type
-  : public kwiver::vital::detected_object_type
-{
-public:
-  // -- CONSTRUCTORS --
-
-  test_detected_object_type( const std::vector< std::string >& class_names,
-                             const std::vector< double >& scores )
-    : detected_object_type( class_names, scores )
-  {}
-
-  virtual ~test_detected_object_type() {}
-
-  std::set< std::string >& master_list()
-  {
-    return kwiver::vital::detected_object_type::s_master_name_set;
-  }
-
-}; // end class test_detected_object_type
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(DOT_name_pool)
@@ -188,7 +168,7 @@ IMPLEMENT_TEST(DOT_name_pool)
   score.push_back( .0055 );
   score.push_back( .005 );
 
-  test_detected_object_type dot( names, score );
+  kwiver::vital::detected_object_type dot( names, score );
 
   std::vector< std::string > names_2;
   names_2.push_back( "a-person" );
@@ -204,9 +184,9 @@ IMPLEMENT_TEST(DOT_name_pool)
   score_2.push_back( .0055 );
   score_2.push_back( .005 );
 
-  test_detected_object_type dot_2( names_2, score_2 );
+  kwiver::vital::detected_object_type dot_2( names_2, score_2 );
 
-  std::set< std::string >& list = dot_2.master_list();
+  auto list = kwiver::vital::detected_object_type::all_class_names();
 
   TEST_EQUAL( "Expected master list size", list.size(), 10 );
 

@@ -176,9 +176,17 @@ public:
    */
   std::vector< std::string > class_names( double threshold = INVALID_SCORE ) const;
 
+  /**
+   * @brief Get list of all class_names in use.
+   *
+   * This method returns an ordered vector of all class_name strings.
+   *
+   * @return Vector of class names.
+   */
+  static std::vector < std::string > all_class_names();
+
 private:
   const std::string* find_string( const std::string& str ) const;
-
 
   /**
    * Set of possible classes for this object.
@@ -188,7 +196,6 @@ private:
    */
   std::map< const std::string*, double > m_classes;
 
-protected:
   /**
    * @brief Set of all class_names used.
    *
