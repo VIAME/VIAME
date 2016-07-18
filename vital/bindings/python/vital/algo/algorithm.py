@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,13 @@ Base VITAL algorithm structure
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
+__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 
 from vital import ConfigBlock
 from vital.exceptions.base import VitalNullPointerException
 from vital.util import VitalObject, VitalErrorHandle
-
-
-# noinspection PyPep8Naming
-class _vital_algorithm_t (ctypes.Structure):
-    """
-    Opaque structure type used in C interface.
-    """
-    pass
 
 
 class VitalAlgorithm (VitalObject):
@@ -59,47 +51,6 @@ class VitalAlgorithm (VitalObject):
     # vital::algo::*::type_name. This allows this base class to know how to
     # automatically call common algorithm_def level methods.
     TYPE_NAME = None
-
-    @classmethod
-    def from_c_pointer(cls, ptr, shallow_copy_of=None, name=None):
-        """
-        Create a named algorithm instance of the derived class from a C API
-        opaque pointer.
-
-        If this the C pointer given to ptr is taken from an existing Python
-        object instance, that object instance should be given to the
-        shallow_copy_of argument. This ensures that the underlying C reference
-        is not destroyed prematurely.
-
-        This class-method override allows the passing of the algorithm instance
-        name.
-
-        :param ptr: C API opaque structure pointer type instance
-        :type ptr: VitalAlgorithm.C_TYPE_PTR
-
-        :param shallow_copy_of: Optional parent object instance when the ptr
-            given is coming from an existing python object.
-        :type shallow_copy_of: VitalAlgorithm or None
-
-        :param name: Name of the new algorithm. This must be provided if this is
-            not a copy of another algorithm instance.
-        :type name: str or None
-
-        :return: New Python object using the given underlying C object pointer.
-        :rtype: VitalAlgorithm
-
-        """
-        n = super(VitalAlgorithm, cls).from_c_pointer(ptr, shallow_copy_of)
-
-        if shallow_copy_of is None and not name:
-            raise ValueError("Empty name given.")
-
-        if name:
-            n._name = name
-        elif shallow_copy_of is not None:
-            n._name = shallow_copy_of._name
-
-        return n
 
     @classmethod
     def type_name(cls):
@@ -177,9 +128,9 @@ class VitalAlgorithm (VitalObject):
                 "Failed to construct algorithm instance"
             )
 
-        return cls.from_c_pointer(inst_ptr, name=algo_name)
+        return cls(name=algo_name, from_cptr=inst_ptr)
 
-    def __init__(self, name):
+    def __init__(self, name, from_cptr=None):
         """
         Construct an un-initialized algorithm of the derived type with the given
         name.
@@ -187,21 +138,25 @@ class VitalAlgorithm (VitalObject):
         The name is used for configuration purposes in order to delineate this
         algorithm instance from others of the same type.
 
+        :param: Semantic name for this algorithm instance.
+
         :raises ValueError: The given name was empty.
         :raises AttributeError: Class type name not correctly defined in derived
             class
 
         """
-        super(VitalAlgorithm, self).__init__()
-        # Initialize to NULL pointer
-        self._inst_ptr = self.C_TYPE_PTR()
-
-        # Checking that derived class has a valid typename
-        self.type_name()
+        super(VitalAlgorithm, self).__init__(from_cptr, allow_null_pointer=True)
 
         if not name:
             raise ValueError("Empty name given.")
         self._name = name
+
+        # Checking that derived class has a valid typename
+        self.type_name()
+
+    def _new(self):
+        # Initialize to NULL pointer to start
+        return self.C_TYPE_PTR()
 
     @property
     def name(self):
@@ -244,15 +199,12 @@ class VitalAlgorithm (VitalObject):
         :rtype: str
         """
         if self._inst_ptr:
-            algo_impl_name = self.VITAL_LIB.vital_algorithm_impl_name
+            algo_impl_name = self.VITAL_LIB.vital_algorithm_impl_name_cstr
             algo_impl_name.argtypes = [self.C_TYPE_PTR,
                                        VitalErrorHandle.C_TYPE_PTR]
-            algo_impl_name.restype = self.MST_TYPE_PTR
+            algo_impl_name.restype = ctypes.c_char_p
             with VitalErrorHandle() as eh:
-                s_ptr = algo_impl_name(self, eh)
-                s = s_ptr.contents.str
-                self.MST_FREE(s_ptr)
-                return s
+                return algo_impl_name(self, eh)
         else:
             return None
 
@@ -269,8 +221,8 @@ class VitalAlgorithm (VitalObject):
         algo_clone.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
         algo_clone.restype = self.C_TYPE_PTR
         with VitalErrorHandle() as eh:
-            return self.from_c_pointer(algo_clone(self, eh),
-                                       name=(new_name or self.name))
+            return self.__class__(name=(new_name or self.name),
+                                  from_cptr=algo_clone(self, eh))
 
     def get_config(self, cb=None):
         """

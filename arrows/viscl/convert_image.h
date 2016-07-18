@@ -37,12 +37,9 @@
 
 #include <vital/algo/convert_image.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// Class to convert an image to a viscl base image
 class KWIVER_ALGO_VISCL_EXPORT convert_image
@@ -70,9 +67,7 @@ public:
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VISCL_CONVERT_IMAGE_H_

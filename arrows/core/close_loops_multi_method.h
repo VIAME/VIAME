@@ -50,9 +50,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// Attempts to stitch over incomplete or bad input frames.
 /**
@@ -139,11 +137,8 @@ private:
 
 };
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CORE_CLOSE_LOOPS_MULTI_METHOD_H_

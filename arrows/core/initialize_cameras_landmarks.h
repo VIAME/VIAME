@@ -45,9 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// A class for initialization of cameras and landmarks
 class KWIVER_ALGO_EXPORT initialize_cameras_landmarks
@@ -95,11 +93,8 @@ private:
   const std::unique_ptr<priv> d_;
 };
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_

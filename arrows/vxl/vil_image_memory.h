@@ -47,9 +47,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// An image memory class that shares memory with VXL using vil_memory_chunk
 class KWIVER_ALGO_VXL_EXPORT vil_image_memory
@@ -107,7 +105,6 @@ protected:
 };
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
 

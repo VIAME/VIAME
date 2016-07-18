@@ -51,9 +51,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 namespace
 {
@@ -235,6 +233,5 @@ overlap( const vnl_double_3x3& h, const unsigned ni, const unsigned nj )
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

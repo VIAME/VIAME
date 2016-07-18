@@ -35,9 +35,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// Return a vector of descriptor shared pointers
 std::vector<vital::descriptor_sptr>
@@ -111,6 +109,5 @@ descriptors_to_viscl(const vital::descriptor_set& desc_set)
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver

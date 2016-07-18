@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,13 +40,15 @@
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
 
+#ifdef KWIVER_HAS_OPENCV_VER_3
+#define OPENCV_METHOD_RANSAC cv::RANSAC
+#else
+#define OPENCV_METHOD_RANSAC CV_RANSAC
+#endif
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
-
+namespace ocv {
 
 /// Estimate a homography matrix from corresponding points
 vital::homography_sptr
@@ -58,7 +60,8 @@ estimate_homography
 {
   if (pts1.size() < 4 || pts2.size() < 4)
   {
-    std::cerr << "Not enough points to estimate a homography" <<std::endl;
+    vital::logger_handle_t logger( vital::get_logger( "arrows.ocv.estimate_homography" ));
+    LOG_ERROR(logger, "Not enough points to estimate a homography");
     return vital::homography_sptr();
   }
 
@@ -76,7 +79,7 @@ estimate_homography
 
   cv::Mat inliers_mat;
   cv::Mat H = cv::findHomography( cv::Mat(points1), cv::Mat(points2),
-                                  CV_RANSAC,
+                                  OPENCV_METHOD_RANSAC,
                                   inlier_scale,
                                   inliers_mat );
   inliers.resize(inliers_mat.rows);
@@ -90,8 +93,6 @@ estimate_homography
   return vital::homography_sptr( new vital::homography_<double>(H_mat) );
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

@@ -51,10 +51,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// Estimate the similarity transform between two corresponding point sets
 similarity_d
@@ -112,7 +109,8 @@ estimate_similarity_transform
   if (!op.compute_ok())
   {
     // TODO: Do some exception handling here
-    std::cerr << "ERROR: Invalid vpgl_ortho_procrustes construction" << std::endl;
+    vital::logger_handle_t logger( vital::get_logger( "arrows.vxl.estimate_similarity_transform" ));
+    LOG_ERROR(logger, "ERROR: Invalid vpgl_ortho_procrustes construction");
     return similarity_d();
   }
 
@@ -123,7 +121,8 @@ estimate_similarity_transform
   if (!op.compute_ok())
   {
     // TODO: Do some exception handling here.
-    std::cerr << "ERROR: vpgl_ortho_procrustes failed computation" << std::endl;
+    vital::logger_handle_t logger( vital::get_logger( "arrows.vxl.estimate_similarity_transform" ));
+    LOG_ERROR(logger, "ERROR: vpgl_ortho_procrustes failed computation");
     return similarity_d();
   }
 
@@ -136,6 +135,5 @@ estimate_similarity_transform
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

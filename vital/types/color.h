@@ -50,10 +50,14 @@ struct rgb_color
   rgb_color() : r(255), g(255), b(255) {}
 
   /// Constructor
-  rgb_color(unsigned char cr,
-            unsigned char cg,
-            unsigned char cb)
+  rgb_color(unsigned char const &cr,
+            unsigned char const &cg,
+            unsigned char const &cb)
     : r(cr), g(cg), b(cb) {}
+
+  /// Copy Constructor
+  rgb_color( rgb_color const &c )
+    : r(c.r), g(c.g), b(c.b) {}
 
   unsigned char r;
   unsigned char g;

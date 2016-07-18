@@ -44,13 +44,9 @@
 
 #include <vital/types/match_set.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
-
+namespace ocv {
 
 /// A concrete match set that wraps OpenCV cv::DMatch objects
 class KWIVER_ALGO_OCV_EXPORT match_set
@@ -85,9 +81,7 @@ matches_to_ocv_dmatch(const vital::match_set& match_set);
 
 
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_MATCH_SET_H_

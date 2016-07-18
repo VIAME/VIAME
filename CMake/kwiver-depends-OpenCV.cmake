@@ -12,6 +12,12 @@ if( KWIVER_ENABLE_OPENCV )
 
   if( OpenCV_VERSION VERSION_GREATER "2.4" )
     set( USE_OPENCV True )
+    if( OpenCV_VERSION VERSION_GREATER "3.0" OR
+        OpenCV_VERSION VERSION_EQUAL "3.0")
+      message(STATUS "Found OPENCV 3.0")
+      set (KWIVER_HAS_OPENCV_VER_3 True)
+    endif()
+
   else()
     message( FATAL_ERROR "OpenCV version must be at least 2.4" )
   endif()

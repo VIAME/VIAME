@@ -33,9 +33,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// Compute image dimensions from feature set
 void min_image_dimensions(const vital::feature_set &feat, unsigned int &width, unsigned int &height)
@@ -59,6 +57,5 @@ void min_image_dimensions(const vital::feature_set &feat, unsigned int &width, u
 }
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver

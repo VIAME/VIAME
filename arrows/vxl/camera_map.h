@@ -49,9 +49,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// A concrete camera_map that wraps a map of vpgl_perspective_camera
 class KWIVER_ALGO_VXL_EXPORT camera_map
@@ -59,7 +57,7 @@ class KWIVER_ALGO_VXL_EXPORT camera_map
 {
 public:
   /// typedef for a map of frame numbers to vpgl_perspective_camera
-  typedef std::map<unsigned int, vpgl_perspective_camera<double> > map_vcam_t;
+  typedef std::map<kwiver::vital::frame_id_t, vpgl_perspective_camera<double> > map_vcam_t;
 
   /// Default Constructor
   camera_map() {}
@@ -91,9 +89,7 @@ camera_map_to_vpgl(const vital::camera_map& cam_map);
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_CAMERA_MAP_H_

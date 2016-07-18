@@ -41,13 +41,9 @@
 
 #include <vital/algo/convert_image.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
-
+namespace core {
 
 /// A class for bypassing image conversion
 class KWIVER_ALGO_EXPORT convert_image_bypass
@@ -74,11 +70,8 @@ public:
   virtual vital::image_container_sptr convert(vital::image_container_sptr img) const;
 };
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CORE_CONVERT_IMAGE_BYPASS_H_

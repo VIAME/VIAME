@@ -48,9 +48,15 @@
 namespace kwiver {
 namespace vital {
 
-/// This class represents a block of image memory on the heap.
+/// Basic in memory image.
 /**
- * The image object use shared pointers to this class.
+ * This class represents an image with byte wide pixels in a block of
+ * image memory on the heap.
+ *
+ * The image object uses shared pointers to this class. The image
+ * memory is separated from the image object so it can be shared among
+ * many image objects.
+ *
  * Derived image memory classes can proved access to image memory
  * stored in other forms, such as on the GPU or in 3rd party data structures.
  */
@@ -349,11 +355,39 @@ VITAL_EXPORT bool equal_content( const image& img1, const image& img2 );
  * Apply a given unary function to all pixels in the image. This is guareteed
  * to traverse the pixels in an optimal order, i.e. in-memory-order traversal.
  *
+ * Example:
+\code
+static kwiver::vital::image::byte invert_mask_pixel( kwiver::vital::image::byte const &b )
+{ return !b; }
+
+kwiver::vital::image   mask_img( mask->get_image() );
+kwiver::vital::transform_image( mask_img, invert_mask_pixel );
+
+// or as a functor
+class multiply_by {
+private:
+    int factor;
+
+public:
+    multiply_by(int x) : factor(x) { }
+
+    kwiver::vital::image::byte   operator () (kwiver::vital::image::byte const& other) const
+    {
+        return factor * other;
+    }
+};
+
+kwiver::vital::transform_image( mask_img, multiply_by( 5 ) );
+
+\endcode
+ *
  * \param img Input image reference to transform the data of
  * \param op Unary function which takes a const byte& and returns a byte
  */
 VITAL_EXPORT void transform_image( image& img,
                                    image::byte ( * op )( image::byte const& ) );
+
+
 } }   // end namespace vital
 
 

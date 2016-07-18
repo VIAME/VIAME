@@ -42,9 +42,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// This image container wraps a VisCL image
 class KWIVER_ALGO_VISCL_EXPORT image_container
@@ -114,9 +112,7 @@ KWIVER_ALGO_VISCL_EXPORT viscl::image image_container_to_viscl(const vital::imag
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VISCL_IMAGE_CONTAINER_H_

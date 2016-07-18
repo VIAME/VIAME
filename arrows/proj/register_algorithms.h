@@ -42,7 +42,6 @@
 
 #include <vital/registrar.h>
 
-
 namespace kwiver {
 namespace arrows {
 namespace proj {

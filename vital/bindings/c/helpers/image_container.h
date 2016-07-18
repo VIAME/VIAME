@@ -40,7 +40,7 @@
 
 #include <vital/types/image_container.h>
 
-#include <vital/bindings/c/image_container.h>
+#include <vital/bindings/c/types/image_container.h>
 #include <vital/bindings/c/helpers/c_utils.h>
 
 namespace kwiver {

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ namespace vital {
 vital_core_base_exception
 ::vital_core_base_exception() VITAL_NOTHROW
   : std::exception()
+  , m_line_number(0)
 {
 }
 
@@ -51,6 +52,17 @@ vital_core_base_exception
 }
 
 
+// ------------------------------------------------------------------
+void
+vital_core_base_exception
+::set_location( std::string const& file, int line )
+{
+  m_file_name = file;
+  m_line_number = line;
+}
+
+
+// ------------------------------------------------------------------
 char const*
 vital_core_base_exception
 ::what() const VITAL_NOTHROW

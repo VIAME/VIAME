@@ -45,9 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 // Register core algorithms with the given or global registrar
 KWIVER_ALGO_EXPORT

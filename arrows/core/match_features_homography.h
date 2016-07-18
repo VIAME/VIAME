@@ -49,9 +49,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// Combines a feature matchers, homography estimation, and filtering
 /**
@@ -153,9 +151,7 @@ private:
 
 
 } // end namespace algo
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CORE_MATCH_FEATURES_HOMOGRAPHY_H_

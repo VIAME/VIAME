@@ -53,6 +53,7 @@ image_exception
 }
 
 
+// ------------------------------------------------------------------
 image_size_mismatch_exception
 ::image_size_mismatch_exception(std::string message,
                                 size_t correct_w, size_t correct_h,

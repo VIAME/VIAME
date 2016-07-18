@@ -52,9 +52,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// Default Constructor
 track_features_core
@@ -162,10 +160,9 @@ track_features_core
   // verify that all dependent algorithms have been initialized
   if( !detector_ || !extractor_ || !matcher_ || !closer_ )
   {
-    // Something did not initialize, return an empty vector
-    /// \todo Convert to log message
-    std::cerr << "ERROR - not all dependent algorithms have been initialized.\n";
-    return track_set_sptr();
+    // Something did not initialize
+    throw vital::algorithm_configuration_exception(this->type_name(), this->impl_name(),
+        "not all sub-algorithms have been initialized");
   }
 
   // Check that the given mask, when non-zero, matches the size of the image
@@ -267,8 +264,6 @@ track_features_core
   return stitched_tracks;
 }
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

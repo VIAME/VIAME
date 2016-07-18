@@ -45,9 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// A class that uses RREL in VXL to estimate a homography from matching 2D points
 class KWIVER_ALGO_VXL_EXPORT estimate_homography
@@ -84,7 +82,6 @@ public:
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
 

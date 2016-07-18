@@ -56,7 +56,7 @@ typedef struct {
 VITAL_C_EXPORT
 vital_string_t* vital_string_new(size_t length, char const* s);
 
-/// Free an alocated string structure
+/// Free an allocated string structure
 VITAL_C_EXPORT
 void vital_string_free( vital_string_t *s );
 

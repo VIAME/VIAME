@@ -45,9 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// \brief Algorithm that filters features based on feature magnitude
 class KWIVER_ALGO_EXPORT filter_features_magnitude
@@ -92,9 +90,7 @@ private:
 };
 
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CORE_FILTER_FEATURES_MAGNITUDE_H_

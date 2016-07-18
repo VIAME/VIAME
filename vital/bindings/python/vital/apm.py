@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,88 +34,101 @@ Interface to VITAL algorithm_plugin_manager class.
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
-
 import ctypes
 from vital.util import VitalObject
 
 
-# This class doesn't get instantiated, so we don't care about abstract instance
-# method implementations missing.
-# noinspection PyAbstractClass
-class AlgorithmPluginManager (VitalObject):
-    """ Interface to singleton APM class """
+__author__ = 'paul.tunison@kitware.com'
 
-    @staticmethod
-    def register_plugins(name=None):
-        """
-        (Re)Load plugin modules found in currently set search paths.
 
-        If a plugin name was provided, we attempt to load only that plugin
-        module. If the named plugin fails to load, nothing occurs (warning
-        messages will be emitted, though).
+def register_plugins(name=None):
+    """
+    (Re)Load plugin modules found in currently set search paths.
 
-        :param name: Optional name of a specific plugin.
-        :type name: str
+    If a plugin name was provided, we attempt to load only that plugin
+    module. If the named plugin fails to load, nothing occurs (warning
+    messages will be emitted, though).
 
-        """
-        if name is None:
-            apm_reg_plugins = VitalObject.VITAL_LIB.vital_apm_register_plugins
-            apm_reg_plugins()
-        else:
-            apm_reg_plugins = VitalObject.VITAL_LIB.vital_apm_register_single_plugin
-            apm_reg_plugins.argtypes = [ctypes.c_char_p]
-            apm_reg_plugins(name)
+    :param name: Optional name of a specific plugin.
+    :type name: str
 
-    @staticmethod
-    def add_search_path(dirpath):
-        """
-        Add an additional directory to search for plugins in
+    """
+    if name is None:
+        apm_reg_plugins = VitalObject.VITAL_LIB.vital_apm_register_plugins
+        apm_reg_plugins()
+    else:
+        apm_reg_plugins = VitalObject.VITAL_LIB.vital_apm_register_single_plugin
+        apm_reg_plugins.argtypes = [ctypes.c_char_p]
+        apm_reg_plugins(name)
 
-        :param dirpath: Path to a directory to additionally search for plugins
-        :type dirpath: str
 
-        """
-        apm_add_sp = VitalObject.VITAL_LIB.vital_apm_add_search_path
-        apm_add_sp.argtypes = [ctypes.c_char_p]
-        apm_add_sp(dirpath)
+def register_plugins_once():
+    """
+    Load all plugins on first call.
 
-    @staticmethod
-    def registered_module_names():
-        """ Get a list of registered module name strings
+    This static method loads all plugins on the first call and does
+    nothing on all subsequent calls. This is designed to load plugins
+    in a concurrent application where the first thread to start is
+    non-deterministic. All threads would call this method on starting
+    and the first one that completes has loaded all plugins and the
+    other callers will return.
 
-        A module's name is defined as the filename minus the standard platform
-        module library suffix. For example, on Windows, if a module library was
-        named ``vital_foo.dll``, the module's name would be "vital_foo".
-        Similarly on a unix system, ``vital_bar.so`` would have the name
-        "vital_bar".
+    If you must reload plugins after this method has been called, use
+    the vital_apm_register_plugins() method.
 
-        :return: List of registered module names
-        :rtype: list of str
+    :return: True if plugins were loaded, False if plugins were already
+        loaded.
+    :rtype: bool
 
-        """
-        apm_reg_names = VitalObject.VITAL_LIB.vital_apm_registered_module_names
-        sl_free = VitalObject.VITAL_LIB.vital_common_free_string_list
+    """
+    apm_load_once = VitalObject.VITAL_LIB['vital_apm_load_plugins_once']
+    apm_load_once.restype = bool
+    return apm_load_once()
 
-        apm_reg_names.argtypes = [ctypes.POINTER(ctypes.c_uint),
-                                  ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p))]
-        sl_free.argtypes = [ctypes.c_uint, ctypes.POINTER(ctypes.c_char_p)]
 
-        length = ctypes.c_uint(0)
-        keys = ctypes.POINTER(ctypes.c_char_p)()
-        apm_reg_names(ctypes.byref(length), ctypes.byref(keys))
+def add_search_path(dirpath):
+    """
+    Add an additional directory to search for plugins in
 
-        # Constructing return array
-        r = []
-        for i in xrange(length.value):
-            r.append(keys[i])
+    :param dirpath: Path to a directory to additionally search for plugins
+    :type dirpath: str
 
-        # Free allocated key listing
-        sl_free(length, keys)
+    """
+    apm_add_sp = VitalObject.VITAL_LIB.vital_apm_add_search_path
+    apm_add_sp.argtypes = [ctypes.c_char_p]
+    apm_add_sp(dirpath)
 
-        return r
 
-    # noinspection PyMissingConstructor
-    def __init__(self):
-        raise RuntimeError("Cannot instantiate singleton class wrapper "
-                           "AlgorithmPluginManager")
+def registered_module_names():
+    """ Get a list of registered module name strings
+
+    A module's name is defined as the filename minus the standard platform
+    module library suffix. For example, on Windows, if a module library was
+    named ``vital_foo.dll``, the module's name would be "vital_foo".
+    Similarly on a unix system, ``vital_bar.so`` would have the name
+    "vital_bar".
+
+    :return: List of registered module names
+    :rtype: list of str
+
+    """
+    apm_reg_names = VitalObject.VITAL_LIB.vital_apm_registered_module_names
+    sl_free = VitalObject.VITAL_LIB.vital_common_free_string_list
+
+    apm_reg_names.argtypes = [ctypes.POINTER(ctypes.c_uint),
+                              ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p))]
+    sl_free.argtypes = [ctypes.c_uint, ctypes.POINTER(ctypes.c_char_p)]
+
+    length = ctypes.c_uint(0)
+    keys = ctypes.POINTER(ctypes.c_char_p)()
+    apm_reg_names(ctypes.byref(length), ctypes.byref(keys))
+
+    # Constructing return array
+    r = []
+    for i in xrange(length.value):
+        r.append(keys[i])
+
+    # Free allocated key listing
+    sl_free(length, keys)
+
+    return r

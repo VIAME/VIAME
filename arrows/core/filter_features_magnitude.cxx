@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,9 +42,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 //Helper struct for the filter function
 struct feature_at_index_is_greater
@@ -63,14 +61,14 @@ public:
   priv()
     : top_fraction(0.2),
       min_features(100),
-      m_logger( vital::get_logger( "filter_features_magnitude" ))
+      m_logger( vital::get_logger( "arrows.core.filter_features_magnitude" ))
   {
   }
 
   priv(const priv& other)
     : top_fraction(other.top_fraction),
       min_features(other.min_features),
-      m_logger( vital::get_logger( "filter_features_magnitude" ))
+      m_logger( vital::get_logger( "arrows.core.filter_features_magnitude" ))
   {
   }
 
@@ -202,6 +200,5 @@ filter_features_magnitude
 }
 
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

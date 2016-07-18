@@ -45,9 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 /// A class that using OpenCV to estimate a homography from matching 2D points
 class KWIVER_ALGO_OCV_EXPORT estimate_homography
@@ -82,11 +80,8 @@ public:
 
 };
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_ESTIMATE_HOMOGRAPHY_H_

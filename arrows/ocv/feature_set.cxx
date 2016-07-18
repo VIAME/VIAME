@@ -39,9 +39,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 
 /// Return a vector of feature shared pointers
@@ -92,8 +90,6 @@ features_to_ocv_keypoints(const vital::feature_set& feat_set)
   return kpts;
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

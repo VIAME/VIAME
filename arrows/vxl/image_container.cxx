@@ -40,10 +40,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// Constructor - convert base image container to vil
 image_container
@@ -138,8 +135,6 @@ image_container
                                   img.w_step(), img.h_step(), img.d_step());
 }
 
-
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

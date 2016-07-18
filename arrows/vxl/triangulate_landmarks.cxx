@@ -47,9 +47,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// Private implementation class
 class triangulate_landmarks::priv
@@ -57,14 +55,18 @@ class triangulate_landmarks::priv
 public:
   /// Constructor
   priv()
+  : m_logger( vital::get_logger( "arrows.vxl.triangulate_landmarks" ))
   {
   }
 
   priv(const priv& other)
+  : m_logger( vital::get_logger( "arrows.vxl.triangulate_landmarks" ))
   {
   }
 
   /// parameters - none yet
+  /// Logger handle
+  vital::logger_handle_t m_logger;
 };
 
 
@@ -207,21 +209,20 @@ triangulate_landmarks
         auto lm = std::make_shared<vital::landmark_d>();
         lm->set_loc(vital::vector_3d(pt3d.x(), pt3d.y(), pt3d.z()));
         lm->set_covar(covariance_3d(error));
-        lm->set_observations(lm_cams.size());
+        lm->set_observations(static_cast<unsigned int>(lm_cams.size()));
         triangulated_lms[p.first] = lm;
       }
     }
   }
   if( !failed_landmarks.empty() )
   {
-    std::cerr << "failed to triangulate " << failed_landmarks.size()
-              << " of " << lms.size() << " landmarks" << std::endl;
+    LOG_ERROR(d_->m_logger, "failed to triangulate " << failed_landmarks.size()
+                            << " of " << lms.size() << " landmarks");
   }
   landmarks = landmark_map_sptr(new simple_landmark_map(triangulated_lms));
 }
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

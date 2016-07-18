@@ -35,13 +35,9 @@
 
 #include "convert_image_bypass.h"
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
-
+namespace core {
 
 /// Default Constructor
 convert_image_bypass
@@ -73,8 +69,6 @@ convert_image_bypass
   return img;
 }
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

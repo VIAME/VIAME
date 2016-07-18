@@ -153,7 +153,8 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
  * \param merge
  *   If \c true, search all locations for matching config files, merging their
  *   contents, with files earlier in the search order taking precedence. If
- *   \c false, read only the first matching file.
+ *   \c false, read only the first matching file. If this parameter is omitted
+ *   the configs are merged.
  *
  * \return
  *   A \c config_block object representing the contents of the read-in file.

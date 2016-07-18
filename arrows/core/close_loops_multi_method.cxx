@@ -45,12 +45,9 @@
 #include <vital/algo/algorithm.h>
 #include <vital/exceptions/algorithm.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 using namespace kwiver::vital;
 
@@ -179,8 +176,6 @@ close_loops_multi_method
   return updated_set;
 }
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

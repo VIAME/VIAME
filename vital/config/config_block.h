@@ -190,11 +190,13 @@ public:
 
   /// Set a value within the configuration.
   /**
+   * The specified value is set for the specified key.
+   *
    * If this key already exists, has a description and no new description
    * was passed with this \c set_value call, the previous description is
    * retained. We assume that the previous description is still valid and
    * this a value overwrite. If it is intended for the description to also
-   * be overwritted, an \c unset_value call should be performed on the key
+   * be overwritten, an \c unset_value call should be performed on the key
    * first, and then this \c set_value call.
    *
    * \throws set_on_read_only_value_exception Thrown if \p key is marked as read-only.
@@ -216,6 +218,26 @@ public:
                   T const&                          value,
                   config_block_description_t const& descr );
 
+  /// Set a value within the configuration.
+  /**
+   * The specified value is set for the specified key.
+   *
+   * If this key already exists, has a description and no new description
+   * was passed with this \c set_value call, the previous description is
+   * retained. We assume that the previous description is still valid and
+   * this a value overwrite. If it is intended for the description to also
+   * be overwritten, an \c unset_value call should be performed on the key
+   * first, and then this \c set_value call.
+   *
+   * \throws set_on_read_only_value_exception Thrown if \p key is marked as read-only.
+   *
+   * \postconds
+   * \postcond{<code>this->get_value<value_t>(key) == value</code>}
+   * \endpostconds
+   *
+   * \param key The index of the configuration value to set.
+   * \param value The value to set for the \p key.
+   */
   template < typename T >
   void set_value( config_block_key_t const& key,
                   T const& value);
@@ -299,7 +321,9 @@ public:
 
   /// Check if a value exists for \p key.
   /**
-   * \param key The index of the configuration value to check.
+   * The existence of a key is checked in the config block.
+   *
+   * \param key The key to check for existence.
    * \returns Whether the key exists.
    */
   bool has_value( config_block_key_t const& key ) const;

@@ -55,10 +55,15 @@ bool
 algorithm_def< Self >
 ::register_instance( registrar& reg, std::shared_ptr< Self > inst )
 {
+  logger_handle_t log = get_logger( "algorithm.register_instance" );
   if ( ! inst )
   {
+    LOG_DEBUG( log, "shared pointer does not point to anything" );
     return false;
   }
+  LOG_DEBUG( log,
+             "Registering algo implementation '" << inst->impl_name()
+             << "' for def type '" << inst->type_name() << "'" );
 
   std::string qualified_name = inst->type_name() + ":" + inst->impl_name();
   return reg.register_item< algorithm > ( qualified_name, inst ) &&

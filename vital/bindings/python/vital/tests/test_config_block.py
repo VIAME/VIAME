@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ Tests for the Python interface to VITAL class config_block.
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
+__author__ = 'paul.tunison@kitware.com'
 
 from vital import ConfigBlock
 from vital.exceptions.config_block import *
@@ -97,7 +97,11 @@ class TestVitalConfigBlock (object):
         cb = ConfigBlock()
 
         cb.set_value('a', 'b')
+        cb.set_value('longer_value:foo', "BarBazThing")
+
         nose.tools.assert_equal(cb.get_value('a'), 'b')
+        nose.tools.assert_equal(cb.get_value('longer_value:foo'),
+                                'BarBazThing')
 
     def test_get_value_bool(self):
         cb = ConfigBlock()
@@ -149,7 +153,10 @@ class TestVitalConfigBlock (object):
         k2 = 'b'
         v2 = '2'
 
-        nose.tools.assert_is_none(cb.get_value(k1))
+        nose.tools.assert_raises(
+            VitalConfigBlockNoSuchValueException,
+            cb.get_value, k1
+        )
         nose.tools.assert_equal(cb.get_value(k2, v2), v2)
 
     def test_unset_value(self):
@@ -161,7 +168,10 @@ class TestVitalConfigBlock (object):
         cb.unset_value('a')
 
         nose.tools.assert_false(cb.has_value('a'))
-        nose.tools.assert_is_none(cb.get_value('a'))
+        nose.tools.assert_raises(
+            VitalConfigBlockNoSuchValueException,
+            cb.get_value, 'a'
+        )
 
         nose.tools.assert_equal(cb.get_value('b'), '2')
         nose.tools.assert_true(cb.has_value('b'))

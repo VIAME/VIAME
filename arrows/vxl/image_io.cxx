@@ -50,9 +50,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// Private implementation class
 class image_io::priv
@@ -63,7 +61,7 @@ public:
   : auto_stretch(false),
     manual_stretch(false),
     intensity_range(0, 255),
-    m_logger( vital::get_logger( "vxl_image_io" ) )
+    m_logger( vital::get_logger( "arrows.vxl.image_io" ) )
   {
   }
 
@@ -277,6 +275,5 @@ image_io
 }
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

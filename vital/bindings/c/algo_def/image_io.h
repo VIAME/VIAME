@@ -43,7 +43,7 @@ extern "C"
 
 #include <vital/bindings/c/algorithm.h>
 #include <vital/bindings/c/error_handle.h>
-#include <vital/bindings/c/image_container.h>
+#include <vital/bindings/c/types/image_container.h>
 
 
 /// Declare common type-specific functions

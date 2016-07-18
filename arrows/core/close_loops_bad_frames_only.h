@@ -47,12 +47,9 @@
 #include <vital/algo/close_loops.h>
 #include <vital/config/config_block.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// Attempts to stitch over incomplete or bad input frames.
 /**
@@ -150,9 +147,7 @@ protected:
 
 };
 
-
 } // end namespace algo
-
 } // end namespace arrows
 } // end namespace kwiver
 

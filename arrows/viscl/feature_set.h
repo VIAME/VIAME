@@ -43,9 +43,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
+namespace vcl {
 
 /// A concrete feature set that wraps VisCL features
 /**
@@ -100,9 +98,7 @@ features_to_viscl(const vital::feature_set& features);
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VISCL_FEATURE_SET_H_

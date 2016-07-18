@@ -47,9 +47,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// A class for bundle adjustment of tracks using VXL
 class KWIVER_ALGO_VXL_EXPORT bundle_adjust
@@ -94,9 +92,7 @@ private:
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_BUNDLE_ADJUST_H_

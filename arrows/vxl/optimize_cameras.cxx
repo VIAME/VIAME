@@ -57,9 +57,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 namespace // anonymous
 {
@@ -137,6 +135,5 @@ optimize_cameras
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

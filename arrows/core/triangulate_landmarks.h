@@ -44,12 +44,9 @@
 
 #include <memory>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// A class for triangulating landmarks from tracks and cameras using Eigen
 class KWIVER_ALGO_EXPORT triangulate_landmarks
@@ -96,11 +93,8 @@ private:
   const std::unique_ptr<priv> d_;
 };
 
-
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_CORE_TRIANGULATE_LANDMARKS_H_

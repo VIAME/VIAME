@@ -46,7 +46,7 @@
 underlying log implementation. Log4cxx is the baseline implementation,
 which is why this interface looks the way it does. Alternate loggers
 can be instantiated as needed for specific applications, products, or
-projects. These alternate logger inplementations are supplied by a
+projects. These alternate logger implementations are supplied by a
 factory class and can provide any functionality consistent with the
 kwiver_logger interface. The semantics of the underlying logger
 largely pass through to this implementation.</P>

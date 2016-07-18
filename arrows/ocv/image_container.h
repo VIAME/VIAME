@@ -44,13 +44,9 @@
 
 #include <vital/types/image_container.h>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
-
+namespace ocv {
 
 /// This image container wraps a cv::Mat
 class KWIVER_ALGO_OCV_EXPORT image_container
@@ -109,7 +105,7 @@ protected:
 
 /// Extract a cv::Mat from any image container
 /**
- * If \a img is actually an algorithms::ocv::image_container then
+ * If \a img is actually an arrows::ocv::image_container then
  * return the underlying cv::Mat.  Otherwise, convert the image data
  * to cv:Mat by shallow copy (if possible) or deep copy as a last resort.
  *
@@ -119,9 +115,7 @@ KWIVER_ALGO_OCV_EXPORT cv::Mat image_container_to_ocv_matrix(const vital::image_
 
 
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_IMAGE_CONTAINER_H_

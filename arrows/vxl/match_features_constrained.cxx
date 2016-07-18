@@ -52,9 +52,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// Private implementation class
 class match_features_constrained::priv
@@ -65,7 +63,7 @@ public:
     scale_thresh(2.0),
     angle_thresh(-1.0),
     radius_thresh(200.0),
-    m_logger( vital::get_logger( "match_features_constrained" ) )
+    m_logger( vital::get_logger( "arrows.vxl.match_features_constrained" ) )
   {
   }
 
@@ -73,7 +71,7 @@ public:
     scale_thresh(other.scale_thresh),
     angle_thresh(other.angle_thresh),
     radius_thresh(other.radius_thresh),
-    m_logger( vital::get_logger( "match_features_constrained" ) )
+    m_logger( vital::get_logger( "arrows.vxl.match_features_constrained" ) )
   {
   }
 
@@ -265,6 +263,5 @@ match_features_constrained
 }
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

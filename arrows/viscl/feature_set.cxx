@@ -40,10 +40,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vcl
-{
-
+namespace vcl {
 
 /// Return a vector of feature shared pointers
 std::vector<vital::feature_sptr>
@@ -155,6 +152,5 @@ feature_set
 
 
 } // end namespace vcl
-
 } // end namespace arrows
 } // end namespace kwiver

@@ -85,9 +85,7 @@ static projPJ gen_latlon_pj()
 
 namespace kwiver {
 namespace arrows {
-
-namespace proj
-{
+namespace proj {
 
 /// Convert UTM coordinate into latitude and longitude.
 void
@@ -159,6 +157,5 @@ geo_map
 }
 
 } // end namespace proj
-
 } // end namespace arrows
 } // end namespace kwiver

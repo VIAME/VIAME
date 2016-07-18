@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,10 @@ Tests for Python interface to vital::track_set
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
+__author__ = 'paul.tunison@kitware.com'
 
-from vital import Track
-from vital import TrackSet
+from vital.types import Track
+from vital.types import TrackSet
 
 import nose.tools as nt
 

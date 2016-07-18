@@ -41,9 +41,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 /// Constructor - convert base image container to cv::Mat
 image_container
@@ -109,7 +107,11 @@ image_container
           dynamic_cast<mat_image_memory*>(memory.get()) )
     {
       // extract the existing reference counter from the VITAL wrapper
+#ifndef KWIVER_HAS_OPENCV_VER_3
       out.refcount = mat_memory->get_ref_counter();
+#else
+      out.u = mat_memory->get_umatdata();
+#endif
       out.addref();
     }
     // TODO use MatAllocator to share memory with image_memory
@@ -139,8 +141,6 @@ image_container_to_ocv_matrix(const vital::image_container& img)
   return ocv::image_container::vital_to_ocv(img.get_image());
 }
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver

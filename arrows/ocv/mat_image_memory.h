@@ -44,12 +44,9 @@
 
 #include <opencv2/core/core.hpp>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 /// An image memory class that shares memory with OpenCV using reference counting
 class KWIVER_ALGO_OCV_EXPORT mat_image_memory
@@ -66,21 +63,26 @@ public:
   virtual void* data() { return this->mat_data_; }
 
   /// Return the OpenCV reference counter
+#ifndef KWIVER_HAS_OPENCV_VER_3
   int* get_ref_counter() const { return this->mat_refcount_; }
+#else
+  cv::UMatData* get_umatdata() const { return this->u_; }
+#endif
 
 protected:
   /// The cv::Mat data
   unsigned char* mat_data_;
 
   /// The ref count shared with cv::Mat
+#ifndef KWIVER_HAS_OPENCV_VER_3
   int* mat_refcount_;
+#else
+  cv::UMatData *u_;
+#endif
 };
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_MAT_IMAGE_MEMORY_H_

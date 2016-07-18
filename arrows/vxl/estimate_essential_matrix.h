@@ -49,9 +49,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// A class that uses 5 pt algorithm to estimate an initial xform between 2 pt sets
 class KWIVER_ALGO_VXL_EXPORT estimate_essential_matrix
@@ -105,9 +103,7 @@ private:
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_ESTIMATE_ESSENTIAL_MATRIX_H_

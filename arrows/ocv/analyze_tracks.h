@@ -46,9 +46,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace ocv
-{
+namespace ocv {
 
 /// A class for outputting various debug info about feature tracks
 class KWIVER_ALGO_OCV_EXPORT analyze_tracks
@@ -91,11 +89,8 @@ private:
   const std::unique_ptr<priv> d_;
 };
 
-
 } // end namespace ocv
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_OCV_ANALYZE_TRACKS_H_

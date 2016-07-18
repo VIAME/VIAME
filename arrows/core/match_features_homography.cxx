@@ -45,9 +45,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace core
-{
+namespace core {
 
 /// Private implementation class
 class match_features_homography::priv
@@ -57,14 +55,16 @@ public:
   priv()
   : inlier_scale(10.0),
     min_required_inlier_count(0),
-    min_required_inlier_percent(0.0)
+    min_required_inlier_percent(0.0),
+    m_logger( vital::get_logger( "arrows.core.match_features_homography" ))
   {
   }
 
   priv(const priv& other)
   : inlier_scale(other.inlier_scale),
     min_required_inlier_count(other.min_required_inlier_count),
-    min_required_inlier_percent(other.min_required_inlier_percent)
+    min_required_inlier_percent(other.min_required_inlier_percent),
+    m_logger( vital::get_logger( "arrows.core.match_features_homography" ))
   {
   }
 
@@ -76,6 +76,8 @@ public:
 
   // min inlier percent required to make any matches
   double min_required_inlier_percent;
+  /// Logger handle
+  vital::logger_handle_t m_logger;
 };
 
 
@@ -229,7 +231,7 @@ match_features_homography
   homography_sptr H = h_estimator_->estimate(feat1, feat2, init_matches,
                                              inliers, d_->inlier_scale);
   int inlier_count = static_cast<int>(std::count(inliers.begin(), inliers.end(), true));
-  std::cout << "inlier ratio: " << inlier_count << "/" << inliers.size() << std::endl;
+  LOG_INFO(d_->m_logger, "inlier ratio: " << inlier_count << "/" << inliers.size());
 
   // verify matching criteria are met
   if( !inlier_count || inlier_count < d_->min_required_inlier_count ||
@@ -275,6 +277,5 @@ match_features_homography
 
 
 } // end namespace core
-
 } // end namespace arrows
 } // end namespace kwiver

@@ -39,7 +39,7 @@ more python friendly types.
 #include <vital/types/track_set.h>
 #include <vital/logger/logger.h>
 
-#include <vital/bindings/c/image_container.hxx>
+#include <vital/bindings/c/types/image_container.hxx>
 
 #include <sprokit/pipeline/datum.h>
 

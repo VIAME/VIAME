@@ -53,8 +53,20 @@ public:
   /// Number of unique values in a NxN symmetric matrix
   static const unsigned int data_size = N * ( N + 1 ) / 2;
 
-  /// Default Constructor
-  covariance_< N, T > ( ) { }
+  /// Default Constructor - Initialize to identity
+  covariance_< N, T > ( )
+  {
+    // Setting identity matrix values
+    unsigned int n = 0;
+    for ( unsigned int j = 0; j < N; ++j )
+    {
+      for ( unsigned int i = 0; i < j; ++i )
+      {
+        data_[n++] = T( 0 );
+      }
+      data_[n++] = T( 1 );
+    }
+  }
 
   /// Copy constructor
   covariance_< N, T > ( const covariance_< N, T > &other )
@@ -68,7 +80,7 @@ public:
   {
     const U* in = other.data();
     T* out = this->data_;
-    for ( unsigned i = 0; i < N; ++i, ++in, ++out )
+    for ( unsigned i = 0; i < data_size; ++i, ++in, ++out )
     {
       *out = static_cast< T > ( *in );
     }
@@ -147,10 +159,6 @@ public:
     return data_[vector_index( i, j )];
   }
 
-
-  /// Compute the generalized variance (determinant of covariance)
-  T generalized_variance() const;
-
   /// Access the underlying data
   const T* data() const { return data_; }
 
@@ -159,11 +167,11 @@ protected:
   /// Convert from matrix to vector indices
   unsigned int vector_index( unsigned int i, unsigned int j ) const
   {
-    return ( j > i ) ? j * ( j + 1 ) / 2 + i : i*( i + 1 ) / 2 + j;
+    return ( j > i ) ? j * ( j + 1 ) / 2 + i
+                     : i * ( i + 1 ) / 2 + j;
   }
 
-
-  /// data of the sparse symmetric covarience matrix
+  /// data of the sparse symmetric covariance matrix; column-major format
   T data_[data_size];
 };
 

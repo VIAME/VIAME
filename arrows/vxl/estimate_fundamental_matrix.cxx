@@ -52,10 +52,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 /// Private implementation class
 class estimate_fundamental_matrix::priv
@@ -207,6 +204,5 @@ estimate_fundamental_matrix
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver

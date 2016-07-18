@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015 by Kitware, Inc.
+Copyright 2015-2016 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,11 @@ VITAL image_io algorithm interface
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'purg'
+__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 
-from vital import ImageContainer
+from vital.types import ImageContainer
 from vital.algo import VitalAlgorithm
 from vital.util import VitalErrorHandle
 
@@ -67,7 +67,7 @@ class ImageIo (VitalAlgorithm):
         iio_load.restype = ImageContainer.C_TYPE_PTR
         with VitalErrorHandle() as eh:
             ic_ptr = iio_load(self, filepath, eh)
-        return ImageContainer.from_c_pointer(ic_ptr)
+        return ImageContainer(from_cptr=ic_ptr)
 
     def save(self, image_container, filepath):
         """

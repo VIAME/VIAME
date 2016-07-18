@@ -44,12 +44,9 @@
 
 #include <memory>
 
-
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
+namespace vxl {
 
 /// A class for using VXL to read and write images
 class KWIVER_ALGO_VXL_EXPORT image_io
@@ -100,9 +97,7 @@ private:
 };
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
-
 
 #endif // KWIVER_ARROWS_VXL_IMAGE_IO_H_

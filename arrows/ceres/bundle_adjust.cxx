@@ -155,7 +155,7 @@ public:
     optimize_dist_p1_p2(false),
     optimize_dist_k4_k5_k6(false),
     camera_intrinsic_share_type(AUTO_SHARE_INTRINSICS),
-    m_logger( vital::get_logger( "algorithms.ceres.bundle_adjust" ))
+    m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
   {
   }
 
@@ -174,7 +174,7 @@ public:
     optimize_dist_p1_p2(other.optimize_dist_p1_p2),
     optimize_dist_k4_k5_k6(other.optimize_dist_k4_k5_k6),
     camera_intrinsic_share_type(other.camera_intrinsic_share_type),
-    m_logger( vital::get_logger( "algorithms.ceres.bundle_adjust" ))
+    m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
   {
   }
 
@@ -483,8 +483,8 @@ bundle_adjust
         std::copy(d.begin(), d.begin()+num_dp, &intrinsic_params[5]);
       }
       // update the maps with the index of this new parameter vector
-      camera_intr_map[K] = camera_intr_params.size();
-      frame_to_intr_map[c.first] = camera_intr_params.size();
+      camera_intr_map[K] = static_cast<unsigned int>(camera_intr_params.size());
+      frame_to_intr_map[c.first] = static_cast<unsigned int>(camera_intr_params.size());
       // add the parameter vector
       camera_intr_params.push_back(intrinsic_params);
     }
@@ -607,7 +607,7 @@ bundle_adjust
 
   ::ceres::Solver::Summary summary;
   ::ceres::Solve(d_->options, &problem, &summary);
-  std::cout << summary.FullReport() << "\n";
+  LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
 
   // Update the landmarks with the optimized values
   VITAL_FOREACH(const lm_param_map_t::value_type& lmp, landmark_params)
@@ -654,8 +654,6 @@ bundle_adjust
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
 }
 
-
 } // end namespace ceres
-
 } // end namespace arrows
 } // end namespace kwiver

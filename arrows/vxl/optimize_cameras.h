@@ -48,10 +48,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace vxl
-{
-
+namespace vxl {
 
 class KWIVER_ALGO_VXL_EXPORT optimize_cameras
   : public vital::algorithm_impl<optimize_cameras, vital::algo::optimize_cameras>
@@ -86,7 +83,6 @@ public:
 
 
 } // end namespace vxl
-
 } // end namespace arrows
 } // end namespace kwiver
 

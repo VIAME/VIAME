@@ -14,7 +14,7 @@ extern "C" {
 #define WAI_PREFIX(function) wai_##function
 #endif
 
-/**
+/*
  * Returns the path to the current executable.
  *
  * Usage:
@@ -36,7 +36,7 @@ extern "C" {
 WAI_FUNCSPEC
 int WAI_PREFIX(getExecutablePath)(char* out, int capacity, int* dirname_length);
 
-/**
+/*
  * Returns the path to the current module
  *
  * Usage:

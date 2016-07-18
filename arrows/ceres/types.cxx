@@ -41,9 +41,7 @@
 
 namespace kwiver {
 namespace arrows {
-
-namespace ceres
-{
+namespace ceres {
 
 #define CASESTR(x) case x: return #x
 #define STRENUM(x) if (value == #x) { *type = x; return true;}
@@ -188,8 +186,6 @@ num_distortion_params(LensDistortionType type)
   }
 }
 
-
 } // end namespace ceres
-
 } // end namespace arrows
 } // end namespace kwiver
