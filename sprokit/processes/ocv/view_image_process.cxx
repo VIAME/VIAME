@@ -58,6 +58,7 @@ namespace kwiver {
 create_config_trait( pause_time, float, "0", "Interval to pause between frames. 0 means wait for keystroke, "
                      "Otherwise interval is in seconds (float)" );
 create_config_trait( annotate_image, bool, "false", "Add frame number and other text to display." );
+create_config_trait( title, std::string, "Display window", "Display window title text.." );
 create_config_trait( header, std::string, "", "Header text for image display." );
 create_config_trait( footer, std::string, "", "Footer text for image display. Displayed centered at bottom of image." );
 
@@ -74,6 +75,7 @@ public:
   // Configuration values
   int m_pause_ms;
   bool m_annotate_image;
+  std::string m_title;
   std::string m_header;
   std::string m_footer;
 
@@ -193,6 +195,7 @@ view_image_process
 {
   d->m_pause_ms = static_cast< int >( config_value_using_trait( pause_time ) * 1000.0 ); // convert to msec
   d->m_annotate_image = config_value_using_trait( annotate_image );
+  d->m_title          = config_value_using_trait( title );
   d->m_header         = config_value_using_trait( header );
   d->m_footer         = config_value_using_trait( footer );
 }
@@ -222,8 +225,8 @@ view_image_process
     image = d->annotate_image( image, frame_time.get_frame() );
   }
 
-  cv::namedWindow( "Display window", cv::WINDOW_NORMAL ); // Create a window for display.
-  cv::imshow( "Display window", image ); // Show our image inside it.
+  cv::namedWindow( d->m_title, cv::WINDOW_AUTOSIZE ); // Create a window for display.
+  cv::imshow( d->m_title, image ); // Show our image inside it.
 
   cv::waitKey( d->m_pause_ms );
 }
@@ -253,6 +256,7 @@ view_image_process
 {
   declare_config_using_trait( pause_time );
   declare_config_using_trait( annotate_image );
+  declare_config_using_trait( title );
   declare_config_using_trait( header );
   declare_config_using_trait( footer );
 }
