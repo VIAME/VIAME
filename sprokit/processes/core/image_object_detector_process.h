@@ -58,6 +58,7 @@ protected:
 
 private:
   void make_ports();
+  void make_config();
 
   class priv;
   const std::unique_ptr<priv> d;

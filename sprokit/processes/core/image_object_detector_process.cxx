@@ -38,6 +38,8 @@
 
 namespace kwiver {
 
+create_config_trait( detector, std::string, "", "Algorithm configuration subblock" );
+
 //----------------------------------------------------------------
 // Private implementation class
 class image_object_detector_process::priv
@@ -63,6 +65,7 @@ image_object_detector_process( kwiver::vital::config_block_sptr const& config )
   kwiver::vital::algorithm_plugin_manager::load_plugins_once();
 
   make_ports();
+  make_config();
 }
 
 
@@ -79,17 +82,17 @@ _configure()
 {
   vital::config_block_sptr algo_config = get_config();
 
-  vital::algo::image_object_detector::set_nested_algo_configuration( "image_object_detector", algo_config, d->m_detector );
+  vital::algo::image_object_detector::set_nested_algo_configuration( "detector", algo_config, d->m_detector );
 
   if ( ! d->m_detector )
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create detector" );
   }
 
-  vital::algo::image_object_detector::get_nested_algo_configuration( "image_object_detector", algo_config, d->m_detector );
+  vital::algo::image_object_detector::get_nested_algo_configuration( "detector", algo_config, d->m_detector );
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::image_object_detector::check_nested_algo_configuration( "image_object_detector", algo_config ) )
+  if ( ! vital::algo::image_object_detector::check_nested_algo_configuration( "detector", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
@@ -126,6 +129,15 @@ make_ports()
 
   // -- output --
   declare_output_port_using_trait( detected_object_set, optional );
+}
+
+
+// ------------------------------------------------------------------
+void
+image_object_detector_process::
+make_config()
+{
+  declare_config_using_trait( detector );
 }
 
 
