@@ -99,6 +99,7 @@ IMPLEMENT_TEST(DOT_creation)
   }
 
   auto lbl  = kwiver::vital::detected_object_type::all_class_names();
+
   TEST_EQUAL( "expected name count", lbl.size(), 5 );
 
   dot.score( "other" ); // make sure this entry exists
@@ -109,7 +110,7 @@ IMPLEMENT_TEST(DOT_creation)
                     dot.score("other"),
                     "accessing deleted class name" );
 
-  lbl  = kwiver::vital::detected_object_type::all_class_names();
+  lbl  = dot.class_names();
   TEST_EQUAL( "expected new name count", lbl.size(), 4 );
 
   for (size_t i = 0; i < lbl.size(); i++)
