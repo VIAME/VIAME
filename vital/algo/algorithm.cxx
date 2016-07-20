@@ -189,12 +189,12 @@ algorithm
                                  config_block_sptr  config,
                                  algorithm_sptr&    nested_algo )
 {
-  if ( config->has_value( name + config_block::block_sep + "type" ) )
-  {
+  static  kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "vital.algorithm" );
+  const std::string type_key = name + config_block::block_sep + "type";
 
-    std::string iname = config->get_value< std::string > ( name
-                                                           + config_block::block_sep
-                                                           + "type" );
+  if ( config->has_value( type_key ) )
+  {
+   const std::string iname = config->get_value< std::string > ( type_key );
     if ( algorithm::has_impl_name( type_name, iname ) )
     {
       nested_algo = algorithm::create( type_name, iname );
@@ -202,6 +202,16 @@ algorithm
         config->subblock_view( name + config_block::block_sep + iname )
                                     );
     }
+    else
+    {
+      LOG_DEBUG( logger, "Could not find implementation \"" << iname
+                 << "\" for \"" << type_name <<"\"." );
+    }
+  }
+  else
+  {
+    LOG_DEBUG( logger, "Config item \"" << type_key
+               << "\" not found for \"" << type_name << "\"." );
   }
 }
 
