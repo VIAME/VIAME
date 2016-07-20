@@ -22,9 +22,13 @@ kwiver_discover_tests(core_similarity         test_libraries test_similarity.cxx
 kwiver_discover_tests(core_track              test_libraries test_track.cxx)
 kwiver_discover_tests(core_track_set          test_libraries test_track_set.cxx)
 kwiver_discover_tests(core_vector             test_libraries test_vector.cxx)
+kwiver_discover_tests(core_bounding_box       test_libraries test_bounding_box.cxx)
 ## kwiver_discover_tests(core_algo               test_libraries test_algo.cxx)
 
 kwiver_discover_tests(core_est                test_libraries test_estimate_similarity_transform.cxx)
 kwiver_discover_tests(core_timestamp          test_libraries test_timestamp.cxx)
 kwiver_discover_tests(core_any                test_libraries test_any.cxx)
 kwiver_discover_tests(core_algorithm_capabilities  test_libraries test_algorithm_capabilities.cxx)
+kwiver_discover_tests( core_detected_object_type     test_libraries    test_detected_object_type.cxx)
+kwiver_discover_tests( core_detected_object          test_libraries    test_detected_object.cxx)
+kwiver_discover_tests( core_detected_object_set      test_libraries    test_detected_object_set.cxx)

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,29 +28,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Header for Eigen fixed size column vector typedefs
- */
-
-#ifndef VITAL_VECTOR_H_
-#define VITAL_VECTOR_H_
-
-#include <Eigen/Core>
+#include "bounding_box.h"
 
 namespace kwiver {
 namespace vital {
 
-/// \cond DoxygenSuppress
-typedef Eigen::Vector2i vector_2i;
-typedef Eigen::Vector2d vector_2d;
-typedef Eigen::Vector2f vector_2f;
-typedef Eigen::Vector3d vector_3d;
-typedef Eigen::Vector3f vector_3f;
-typedef Eigen::Vector4d vector_4d;
-typedef Eigen::Vector4f vector_4f;
-/// \endcond
+//
+// Instantiate operators
+//
+#define instantiate(T)                                                  \
+template bounding_box<T> & translate( bounding_box<T>& bbox,            \
+                                      typename bounding_box<T>::vector_type const& pt ); \
+template bounding_box<T> intersection( bounding_box<T> const& one,      \
+                                       bounding_box<T> const& other )
 
-} } // end namespace vital
+instantiate( int );
+instantiate( double );
 
-#endif // VITAL_VECTOR_H_
+#undef instantiate
+
+} }                             // end namespace

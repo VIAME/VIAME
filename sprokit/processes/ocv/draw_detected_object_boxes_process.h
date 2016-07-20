@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,29 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Header for Eigen fixed size column vector typedefs
- */
+#ifndef ARROWS_PROCESSES_DRAW_DETECTED_OBJECT_BOXES_PROCESS_H
+#define ARROWS_PROCESSES_DRAW_DETECTED_OBJECT_BOXES_PROCESS_H
 
-#ifndef VITAL_VECTOR_H_
-#define VITAL_VECTOR_H_
+#include <sprokit/pipeline/process.h>
+#include "kwiver_processes_ocv_export.h"
 
-#include <Eigen/Core>
+#include <memory>
 
 namespace kwiver {
-namespace vital {
 
-/// \cond DoxygenSuppress
-typedef Eigen::Vector2i vector_2i;
-typedef Eigen::Vector2d vector_2d;
-typedef Eigen::Vector2f vector_2f;
-typedef Eigen::Vector3d vector_3d;
-typedef Eigen::Vector3f vector_3f;
-typedef Eigen::Vector4d vector_4d;
-typedef Eigen::Vector4f vector_4f;
-/// \endcond
+// ----------------------------------------------------------------
+/**
+ * @brief Process to draw detected object boxes on an image.
+ *
+ */
 
-} } // end namespace vital
+class KWIVER_PROCESSES_OCV_NO_EXPORT draw_detected_object_boxes_process
+  : public sprokit::process
+{
+public:
+  draw_detected_object_boxes_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~draw_detected_object_boxes_process();
 
-#endif // VITAL_VECTOR_H_
+protected:
+  virtual void _configure();
+  virtual void _step();
+  virtual void _reconfigure( kwiver::vital::config_block_sptr const& conf );
+
+private:
+  void process_config();
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+
+}; // end class draw_detected_object_boxes_process
+
+} // end namespace
+
+#endif // ARROWS_PROCESSES_DRAW_DETECTED_OBJECT_BOXES_PROCESS_H

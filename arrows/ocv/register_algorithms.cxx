@@ -65,7 +65,7 @@
 #include <arrows/ocv/image_io.h>
 #include <arrows/ocv/match_features_bruteforce.h>
 #include <arrows/ocv/match_features_flannbased.h>
-
+#include <arrows/ocv/hough_circle_detector.h>
 
 namespace kwiver {
 namespace arrows {
@@ -99,6 +99,8 @@ int register_algorithms( vital::registrar &reg )
 
   REGISTER_TYPE( ocv::match_features_bruteforce );
   REGISTER_TYPE( ocv::match_features_flannbased );
+
+  REGISTER_TYPE( ocv::hough_circle_detector );
 
   // Conditional algorithms
   // Source ``KWIVER_OCV_HAS_*`` symbol definitions can be found in the header

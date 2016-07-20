@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,24 @@
 
 /**
  * \file
- * \brief Header for Eigen fixed size column vector typedefs
+ * \brief image_object_detector algorithm instantiation
  */
 
-#ifndef VITAL_VECTOR_H_
-#define VITAL_VECTOR_H_
-
-#include <Eigen/Core>
+#include <vital/algo/algorithm.txx>
+#include <vital/algo/image_object_detector.h>
 
 namespace kwiver {
 namespace vital {
+namespace algo {
+
+image_object_detector
+::image_object_detector()
+{
+  attach_logger( "image_object_detector" ); // specify a logger
+}
+
+} } }
 
 /// \cond DoxygenSuppress
-typedef Eigen::Vector2i vector_2i;
-typedef Eigen::Vector2d vector_2d;
-typedef Eigen::Vector2f vector_2f;
-typedef Eigen::Vector3d vector_3d;
-typedef Eigen::Vector3f vector_3f;
-typedef Eigen::Vector4d vector_4d;
-typedef Eigen::Vector4f vector_4f;
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_object_detector);
 /// \endcond
-
-} } // end namespace vital
-
-#endif // VITAL_VECTOR_H_

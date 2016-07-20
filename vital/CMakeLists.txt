@@ -113,6 +113,7 @@ set( vital_public_headers
   algo/extract_descriptors.h
   algo/filter_features.h
   algo/geo_map.h
+  algo/image_object_detector.h
   algo/image_io.h
   algo/initialize_cameras_landmarks.h
   algo/match_features.h
@@ -142,6 +143,9 @@ set( vital_public_headers
   types/covariance.h
   types/descriptor.h
   types/descriptor_set.h
+  types/detected_object.h
+  types/detected_object_set.h
+  types/detected_object_type.h
   types/essential_matrix.h
   types/feature.h
   types/feature_set.h
@@ -166,6 +170,7 @@ set( vital_public_headers
   types/track.h
   types/track_set.h
   types/vector.h
+  types/bounding_box.h
 
   util/get_paths.h
   util/timer.h
@@ -200,6 +205,7 @@ set( vital_sources
   algo/extract_descriptors.cxx
   algo/filter_features.cxx
   algo/geo_map.cxx
+  algo/image_object_detector.cxx
   algo/image_io.cxx
   algo/initialize_cameras_landmarks.cxx
   algo/match_features.cxx
@@ -221,8 +227,12 @@ set( vital_sources
   io/landmark_map_io.cxx
   io/track_set_io.cxx
 
+  types/bounding_box.cxx
   types/camera.cxx
   types/camera_intrinsics.cxx
+  types/detected_object.cxx
+  types/detected_object_set.cxx
+  types/detected_object_type.cxx
   types/essential_matrix.cxx
   types/feature.cxx
   types/fundamental_matrix.cxx

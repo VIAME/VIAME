@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,76 @@
 
 /**
  * \file
- * \brief Header for Eigen fixed size column vector typedefs
+ * \brief Implementation for detected_object class
  */
 
-#ifndef VITAL_VECTOR_H_
-#define VITAL_VECTOR_H_
-
-#include <Eigen/Core>
+#include "detected_object.h"
 
 namespace kwiver {
 namespace vital {
 
-/// \cond DoxygenSuppress
-typedef Eigen::Vector2i vector_2i;
-typedef Eigen::Vector2d vector_2d;
-typedef Eigen::Vector2f vector_2f;
-typedef Eigen::Vector3d vector_3d;
-typedef Eigen::Vector3f vector_3f;
-typedef Eigen::Vector4d vector_4d;
-typedef Eigen::Vector4f vector_4f;
-/// \endcond
 
-} } // end namespace vital
+detected_object::detected_object( const bounding_box_d& bbox,
+                                  double              confidence,
+                                  detected_object_type_sptr classifications )
+  : m_bounding_box( std::make_shared< bounding_box_d >( bbox ) )
+  , m_confidence( confidence )
+  , m_type( classifications )
+{
+}
 
-#endif // VITAL_VECTOR_H_
+
+// ------------------------------------------------------------------
+bounding_box_d
+detected_object::
+bounding_box() const
+{
+  return *m_bounding_box;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object::
+set_bounding_box( const bounding_box_d& bbox )
+{
+  m_bounding_box = std::make_shared< bounding_box_d >( bbox );
+}
+
+
+// ------------------------------------------------------------------
+double
+detected_object::
+confidence() const
+{
+  return m_confidence;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object::
+set_confidence( double d )
+{
+  m_confidence = d;
+}
+
+
+// ------------------------------------------------------------------
+detected_object_type_sptr
+detected_object::
+type()
+{
+  return m_type;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object::
+set_type( detected_object_type_sptr c )
+{
+  m_type = c;
+}
+
+} } // end namespace

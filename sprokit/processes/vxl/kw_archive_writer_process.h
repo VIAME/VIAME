@@ -32,7 +32,7 @@
 #define _KWIVER_KW_ARCHIVE_WRITER_PROCESS_H_
 
 #include <sprokit/pipeline/process.h>
-#include "kwiver_vxl_processes_export.h"
+#include "kwiver_processes_vxl_export.h"
 
 #include <memory>
 
@@ -66,7 +66,7 @@ namespace kwiver
  * Scaling of the image in meters per pixel.
  */
 
-class KWIVER_VXL_PROCESSES_NO_EXPORT kw_archive_writer_process
+class KWIVER_PROCESSES_VXL_NO_EXPORT kw_archive_writer_process
   : public sprokit::process
 {
 public:

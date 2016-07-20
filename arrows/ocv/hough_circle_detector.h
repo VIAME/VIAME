@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,29 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Header for Eigen fixed size column vector typedefs
- */
+#ifndef ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H
+#define ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H
 
-#ifndef VITAL_VECTOR_H_
-#define VITAL_VECTOR_H_
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
-#include <Eigen/Core>
+#include <vital/algo/image_object_detector.h>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
+namespace ocv {
 
-/// \cond DoxygenSuppress
-typedef Eigen::Vector2i vector_2i;
-typedef Eigen::Vector2d vector_2d;
-typedef Eigen::Vector2f vector_2f;
-typedef Eigen::Vector3d vector_3d;
-typedef Eigen::Vector3f vector_3f;
-typedef Eigen::Vector4d vector_4d;
-typedef Eigen::Vector4f vector_4f;
-/// \endcond
+class KWIVER_ALGO_OCV_EXPORT hough_circle_detector
+  : public vital::algorithm_impl< hough_circle_detector, vital::algo::image_object_detector>
+{
+public:
+  hough_circle_detector();
+  hough_circle_detector( const hough_circle_detector& other );
+  virtual ~hough_circle_detector();
 
-} } // end namespace vital
+  virtual std::string impl_name() const { return "hough_circle_detector"; }
 
-#endif // VITAL_VECTOR_H_
+  virtual vital::config_block_sptr get_configuration() const;
+
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
+
+  // Main detection method
+  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data) const;
+
+private:
+  class priv;
+  const std::unique_ptr<priv> d;
+};
+
+} } } // end namespace
+
+#endif /* ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H */

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,52 @@
 
 /**
  * \file
- * \brief Header for Eigen fixed size column vector typedefs
+ * \brief Header defining abstract image object detector
  */
 
-#ifndef VITAL_VECTOR_H_
-#define VITAL_VECTOR_H_
+#ifndef VITAL_ALGO_IMAGE_OBJECT_DETECTOR_H_
+#define VITAL_ALGO_IMAGE_OBJECT_DETECTOR_H_
 
-#include <Eigen/Core>
+#include <vital/algo/algorithm.h>
+#include <vital/types/image_container.h>
+#include <vital/types/detected_object_set.h>
+
+#include <vector>
 
 namespace kwiver {
 namespace vital {
+namespace algo {
 
-/// \cond DoxygenSuppress
-typedef Eigen::Vector2i vector_2i;
-typedef Eigen::Vector2d vector_2d;
-typedef Eigen::Vector2f vector_2f;
-typedef Eigen::Vector3d vector_3d;
-typedef Eigen::Vector3f vector_3f;
-typedef Eigen::Vector4d vector_4d;
-typedef Eigen::Vector4f vector_4f;
-/// \endcond
+// ----------------------------------------------------------------
+/**
+ * @brief Image object detector base class/
+ *
+ */
+class VITAL_EXPORT image_object_detector
+: public algorithm_def<image_object_detector>
+{
+public:
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "image_object_detector"; }
 
-} } // end namespace vital
+  /// Find all objects on the provided image
+  /**
+   * This method analyzes the supplied image and along with any saved
+   * context, returns a vector of detected image objects.
+   *
+   * \param image_data the image pixels
+   * \returns vector of image objects found
+   */
+  virtual detected_object_set_sptr
+      detect( image_container_sptr image_data) const = 0;
 
-#endif // VITAL_VECTOR_H_
+protected:
+  image_object_detector();
+};
+
+/// Shared pointer for generic image_object_detector definition type.
+typedef std::shared_ptr<image_object_detector> image_object_detector_sptr;
+
+} } } // end namespace
+
+#endif //VITAL_ALGO_IMAGE_OBJECT_DETECTOR_H_

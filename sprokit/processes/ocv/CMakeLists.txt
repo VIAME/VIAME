@@ -6,10 +6,12 @@ project( kwiver_ocv_processes )
 set( sources
   register_processes.cxx
 
+  draw_detected_object_boxes_process.cxx
   view_image_process.cxx
 )
 
 set( private_headers
+  draw_detected_object_boxes_process.h
   view_image_process.h
 )
 
@@ -29,5 +31,6 @@ kwiver_add_plugin( kwiver_processes_ocv
   PRIVATE          sprokit_pipeline
                    kwiver_algo kwiver_algo_ocv
                    vital vital_apm vital_logger vital_config
+                   kwiversys
                  ${OpenCV_LIBS}
  )

@@ -71,9 +71,9 @@
 #cmakedefine01  VITAL_USE_CPP_RANGE_FOR
 #cmakedefine01  VITAL_USE_CPP_DEFAULT_CTOR
 #cmakedefine01  VITAL_USE_CPP_NOEXCEPT
+#cmakedefine01  VITAL_USE_CPP_FINAL
 #cmakedefine01  VITAL_USE_STD_CHRONO
 #cmakedefine01  VITAL_USE_STD_RANDOM
-
 #cmakedefine01  VITAL_USE_ABI_DEMANGLE
 #cmakedefine  VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
 
@@ -81,6 +81,12 @@
   #define VITAL_NOTHROW noexcept
 #else
   #define VITAL_NOTHROW throw()
+#endif
+
+#if VITAL_USE_CPP_FINAL
+  #define VITAL_FINAL final
+#else
+  #define VITAL_FINAL
 #endif
 
 #if VITAL_USE_CPP_DEFAULT_CTOR // also DTOR
