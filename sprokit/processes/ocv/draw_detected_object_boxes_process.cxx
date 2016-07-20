@@ -93,7 +93,7 @@ create_config_trait( custom_class_color, std::string, "",
                      "List of class/thickness/color seperated by semicolon. For example: person/3/255 0 0;car/2/0 255 0. "
                      "Color is in RGB.");
 
-create_config_trait( select_classes, std::string, "*ALL*", "List of classes to display, separated by a semicolon. For example: person car clam" );
+create_config_trait( select_classes, std::string, "*ALL*", "List of classes to display, separated by a semicolon. For example: person;car;clam" );
 create_config_trait( text_scale, float, "0.4", "Scaling for the text label. " );
 create_config_trait( text_thickness, float, "1.0", "Thickness for text" );
 
@@ -329,7 +329,8 @@ draw_detected_object_boxes_process
 
 // ------------------------------------------------------------------
 void
-draw_detected_object_boxes_process::_configure()
+draw_detected_object_boxes_process::
+_configure()
 {
   d->m_do_alpha                 = config_value_using_trait( alpha_blend_prob );
   d->m_clip_box_to_image        = config_value_using_trait( clip_box_to_image );
@@ -431,16 +432,19 @@ process_config()
   } // end local scope
 
   // Parse selected class_names
-  //+ kwiver::vital::tokenize( d->m_tmp_class_select, d->m_select_classes, ";", true );
+  kwiver::vital::tokenize( d->m_tmp_class_select, d->m_select_classes, ";", true );
 }
 
 
 // ------------------------------------------------------------------
 void
-draw_detected_object_boxes_process::_step()
+draw_detected_object_boxes_process::
+_step()
 {
   vital::image_container_sptr img = grab_from_port_using_trait( image );
   vital::detected_object_set_sptr detections = grab_from_port_using_trait( detected_object_set );
+
+  LOG_DEBUG( logger(), "Processing " << detections->size() << " detections" );
 
   vital::image_container_sptr result = d->draw_detections( img, detections );
 
@@ -450,7 +454,8 @@ draw_detected_object_boxes_process::_step()
 
 // ------------------------------------------------------------------
 void
-draw_detected_object_boxes_process::make_ports()
+draw_detected_object_boxes_process::
+make_ports()
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
@@ -469,18 +474,19 @@ draw_detected_object_boxes_process::make_ports()
 
 // ------------------------------------------------------------------
 void
-draw_detected_object_boxes_process::make_config()
+draw_detected_object_boxes_process::
+make_config()
 {
-  declare_config_using_trait( alpha_blend_prob );
-  declare_config_using_trait( clip_box_to_image );
-  declare_config_using_trait( custom_class_color );
-  declare_config_using_trait( default_color );
-  declare_config_using_trait( default_line_thickness );
-  declare_config_using_trait( draw_text );
-  declare_config_using_trait( select_classes );
-  declare_config_using_trait( text_scale );
-  declare_config_using_trait( text_thickness );
-  declare_config_using_trait( threshold );
+  declare_tunable_config_using_trait( alpha_blend_prob );
+  declare_tunable_config_using_trait( clip_box_to_image );
+  declare_tunable_config_using_trait( custom_class_color );
+  declare_tunable_config_using_trait( default_color );
+  declare_tunable_config_using_trait( default_line_thickness );
+  declare_tunable_config_using_trait( draw_text );
+  declare_tunable_config_using_trait( select_classes );
+  declare_tunable_config_using_trait( text_scale );
+  declare_tunable_config_using_trait( text_thickness );
+  declare_tunable_config_using_trait( threshold );
 }
 
 } //end namespace

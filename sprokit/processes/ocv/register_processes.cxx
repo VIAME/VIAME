@@ -32,6 +32,8 @@
 
 // -- list processes to register --
 #include "view_image_process.h"
+#include "draw_detected_object_boxes_process.h"
+
 
 extern "C"
 KWIVER_PROCESSES_OCV_EXPORT void register_processes();
@@ -60,6 +62,12 @@ void register_processes()
     "view_image", "Display input image and delay",
     sprokit::create_process< kwiver::view_image_process > );
 
-  // - - - - - - - - - - - - - - - - - - - - - - -
+  registry->register_process(
+    "draw_detected_object_boxes",
+    "Draw detected object boxes on images.",
+    sprokit::create_process< kwiver::draw_detected_object_boxes_process > );
+
+
+// - - - - - - - - - - - - - - - - - - - - - - -
   registry->mark_module_as_loaded( module_name );
 }
