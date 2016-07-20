@@ -49,10 +49,24 @@ class hough_circle_detector::priv
 public:
   // -- CONSTRUCTORS --
   priv()
+    : m_dp(1)
+    , m_min_dist(100)
+    , m_param1(200)
+    , m_param2(100)
+    , m_min_radius(0)
+    , m_max_radius(0)
   {}
 
   ~priv()
   {}
+
+  // Hough algorithm parameters
+  double m_dp;
+  double m_min_dist;
+  double m_param1;
+  double m_param2;
+  double m_min_radius;
+  double m_max_radius;
 
 }; // end class hough_circle_detector::priv
 
@@ -83,6 +97,31 @@ get_configuration() const
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
 
+  config->set_value( "dp", d->m_dp,
+                     "Inverse ratio of the accumulator resolution to the image resolution. "
+                     "For example, if dp=1 , the accumulator has the same resolution as the input image. "
+                     "If dp=2 , the accumulator has half as big width and height." );
+
+  config->set_value( "min_dist", d->m_min_dist,
+                     "Minimum distance between the centers of the detected circles. "
+                     "If the parameter is too small, multiple neighbor circles may be falsely "
+                     "detected in addition to a true one. If it is too large, some circles may be missed." );
+
+  config->set_value( "param1", d->m_param1,
+                     "First method-specific parameter. In case of CV_HOUGH_GRADIENT , "
+                     "it is the higher threshold of the two passed to the Canny() edge detector "
+                     "(the lower one is twice smaller)." );
+
+  config->set_value( "param2", d->m_param2,
+                     "Second method-specific parameter. In case of CV_HOUGH_GRADIENT , "
+                     "it is the accumulator threshold for the circle centers at the detection stage. "
+                     "The smaller it is, the more false circles may be detected. Circles, "
+                     "corresponding to the larger accumulator values, will be returned first." );
+
+  config->set_value( "min_radius", d->m_min_radius, "Minimum circle radius." );
+
+  config->set_value( "max_radius", d->m_max_radius, "Maximum circle radius." );
+
   return config;
 }
 
@@ -91,7 +130,14 @@ get_configuration() const
 void
 hough_circle_detector::
 set_configuration(vital::config_block_sptr config)
-{ }
+{
+  d->m_dp         = config->get_value<double>( "dp" );
+  d->m_min_dist   = config->get_value<double>( "min_dist" );
+  d->m_param1     = config->get_value<double>( "param1" );
+  d->m_param2     = config->get_value<double>( "param2" );
+  d->m_min_radius = config->get_value<double>( "min_radius" );
+  d->m_max_radius = config->get_value<double>( "max_radius" );
+}
 
 
 // ------------------------------------------------------------------
@@ -122,10 +168,20 @@ detect( vital::image_container_sptr image_data) const
   cv::vector< cv::Vec3f > circles;
 
   // Apply the Hough Transform to find the circles
-  cv::HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows / 8, 200, 100, 0, 0 );
+  cv::HoughCircles( src_gray, // i: source image
+                    circles, // o: detected circles
+                    CV_HOUGH_GRADIENT, // i: method
+                    d->m_dp, // i: dp
+                    d->m_min_dist, //+ src_gray.rows / 8, // i: minDist
+                    d->m_param1, // i: param1 for canny edge detector
+                    d->m_param2, // i: param2 for canny edge detector
+                    d->m_min_radius, // i: min radius
+                    d->m_max_radius ); // i: max radius
+
+  LOG_DEBUG( m_logger, "Detected " << circles.size() << " objects." );
 
   // process results
-  for ( size_t i = 0; i < circles.size(); i++ )
+  for ( size_t i = 0; i < circles.size(); ++i )
   {
     // Center point [circles[i][0], circles[i][1]]
     // Radius circles[i][2]
