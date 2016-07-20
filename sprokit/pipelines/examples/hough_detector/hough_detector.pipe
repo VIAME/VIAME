@@ -1,0 +1,56 @@
+# ================================================================
+process input
+  :: frame_list_input
+  #:image_list_file    images/image_list_1.txt
+  :image_list_file    images/detect_circles_list.txt
+  :frame_time          .3333
+  :image_reader:type   ocv
+
+# ================================================================
+process detector
+  :: image_object_detector
+  :detector:type    hough_circle_detector
+  :detector:hough_circle_detector:dp            1
+  :detector:hough_circle_detector:min_dist      100
+  :detector:hough_circle_detector:param1        200
+  :detector:hough_circle_detector:param2        100
+  :detector:hough_circle_detector:min_radius    0
+  :detector:hough_circle_detector:max_radius    0
+
+# ================================================================
+process draw
+  :: draw_detected_object_boxes
+  :default_line_thickness 3
+
+# ================================================================
+process disp
+  :: view_image
+  :annotate_image         true
+  # pause_time in seconds. 0 means wait for keystroke.
+  :pause_time             0  # 1.0
+  :title                  NOAA images
+#  :footer                 NOAA images
+#  :header                 header-header
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 2
+
+# ================================================================
+# connections
+connect from input.image
+        to   detector.image
+
+connect from detector.detected_object_set
+        to   draw.detected_object_set
+connect from input.image
+        to draw.image
+
+connect from input.timestamp
+        to   disp.timestamp
+connect from draw.image
+        to   disp.image
+
+# -- end of file --
