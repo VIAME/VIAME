@@ -84,7 +84,7 @@ kwiver::vital::config_block_key_t const NAME ## _config_trait::key = kwiver::vit
 kwiver::vital::config_block_value_t const NAME ## _config_trait::def = kwiver::vital::config_block_value_t( DEF ); \
 kwiver::vital::config_block_description_t const  NAME ## _config_trait::description = kwiver::vital::config_block_description_t( DESCR ); }
 
-
+//@{
 /**
  * \brief Create a configuration item trait.
  *
@@ -122,6 +122,11 @@ declare_configuration_key( KEY ## _config_trait::key,           \
                            KEY ## _config_trait::def,           \
                            KEY ## _config_trait::description)
 
+#define declare_tunable_config_using_trait(KEY)                         \
+declare_configuration_key( KEY ## _config_trait::key,                   \
+                           KEY ## _config_trait::def,                   \
+                           KEY ## _config_trait::description, true)     \
+//@}
 
 // Get value from process config using trait
 #define config_value_using_trait(KEY) config_value< KEY ## _config_trait::type >( KEY ## _config_trait::key )
