@@ -808,8 +808,11 @@ IMPLEMENT_TEST(cluster_map_config_tunable)
   pipeline->reconfigure(new_conf);
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(cluster_map_config_redirect)
+#if 0
+//+ Need to mangle the macro name so the CMake tooling does not
+//+  register these tests even though they are not active
+//------------------------------------------------------------------
+DONT_IMPLEMENT_TEST(cluster_map_config_redirect)
 {
   sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
@@ -847,7 +850,7 @@ IMPLEMENT_TEST(cluster_map_config_redirect)
 }
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(cluster_map_config_modified)
+DONT_IMPLEMENT_TEST(cluster_map_config_modified)
 {
   sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
@@ -881,6 +884,8 @@ IMPLEMENT_TEST(cluster_map_config_modified)
 
   pipeline->reconfigure(new_conf);
 }
+#endif
+
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_map_config_not_read_only)
