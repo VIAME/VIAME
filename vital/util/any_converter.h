@@ -32,8 +32,8 @@
  * \file \brief This file contains the any converter class
  */
 
-#ifndef KWIVER_VITAL_NY_CONVERTER_H
-#define KWIVER_VITAL_NY_CONVERTER_H
+#ifndef KWIVER_VITAL_UTIL_ANY_CONVERTER_H
+#define KWIVER_VITAL_UTIL_ANY_CONVERTER_H
 
 #include <vital/any.h>
 
@@ -178,4 +178,4 @@ private:
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_NY_CONVERTER_H */
+#endif // KWIVER_VITAL_UTIL_ANY_CONVERTER_H

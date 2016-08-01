@@ -172,6 +172,7 @@ set( vital_public_headers
   types/vector.h
   types/bounding_box.h
 
+  util/bounded_buffer.h
   util/get_paths.h
   util/timer.h
   util/demangle.h
