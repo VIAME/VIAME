@@ -10,8 +10,3 @@ endif ()
 
 set(DOXY_EXCLUDE_PATTERNS
   "*/examples/* */helpers/*")
-
-sprokit_create_doxygen(
-  "${CMAKE_CURRENT_SOURCE_DIR}"
-  processes
-  pipeline)

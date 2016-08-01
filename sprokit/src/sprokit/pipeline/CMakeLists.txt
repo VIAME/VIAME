@@ -176,10 +176,6 @@ if (WIN32)
   add_dependencies(sprokit_pipeline   configure-module-paths.h)
 endif ()
 
-sprokit_create_doxygen(
-  "${CMAKE_CURRENT_SOURCE_DIR}"
-  pipeline)
-
 sprokit_install_headers(sprokit/pipeline ${pipeline_headers})
 
 sprokit_configure_pkgconfig(sprokit-pipeline)

@@ -26,7 +26,6 @@ include("${sprokit_source_dir}/conf/sprokit-macro-python.cmake")
 
 # Support functions.
 include("${sprokit_source_dir}/cmake/support/pkgconfig.cmake")
-include("${sprokit_source_dir}/cmake/support/doxygen.cmake")
 
 ### TODO This will not work without going to root directory
 find_package(Git)
