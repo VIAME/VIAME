@@ -31,13 +31,14 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/process_cluster.h>
 #include <sprokit/pipeline/process_registry.h>
 #include <sprokit/pipeline/process_registry_exception.h>
 #include <sprokit/pipeline/types.h>
 
-#include <boost/foreach.hpp>
 
 #define TEST_ARGS ()
 
@@ -83,7 +84,7 @@ IMPLEMENT_TEST(load_processes)
 
   sprokit::process::types_t const types = reg->types();
 
-  BOOST_FOREACH (sprokit::process::type_t const& type, types)
+  VITAL_FOREACH (sprokit::process::type_t const& type, types)
   {
     sprokit::process_t process;
 

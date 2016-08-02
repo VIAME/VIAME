@@ -31,6 +31,8 @@
 #include "sync_scheduler.h"
 
 #include <vital/config/config_block.h>
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/pipeline.h>
@@ -44,7 +46,6 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
-#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
 #include <deque>
@@ -87,7 +88,7 @@ sync_scheduler
   pipeline_t const p = pipeline();
   process::names_t const names = p->process_names();
 
-  BOOST_FOREACH (process::name_t const& name, names)
+  VITAL_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = p->process_by_name(name);
     process::properties_t const consts = proc->properties();
@@ -178,7 +179,7 @@ sync_scheduler::priv
 
   kwiver::vital::config_block_sptr const edge_conf = monitor_edge_config();
 
-  BOOST_FOREACH (process::name_t const& name, names)
+  VITAL_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = pipe->process_by_name(name);
     edge_t const monitor_edge = boost::make_shared<edge>(edge_conf);
@@ -249,21 +250,21 @@ sorted_names(pipeline_t const& pipe)
 
     process::names_t const names = pipe->process_names();
 
-    BOOST_FOREACH (process::name_t const& name, names)
+    VITAL_FOREACH (process::name_t const& name, names)
     {
       vertex_t s = boost::add_vertex(graph);
       graph[s] = name;
       vertex_map[name] = s;
     }
 
-    BOOST_FOREACH (process::name_t const& name, names)
+    VITAL_FOREACH (process::name_t const& name, names)
     {
       process_t const proc = pipe->process_by_name(name);
       process::ports_t const iports = proc->input_ports();
 
       vertex_t const t = vertex_map[name];
 
-      BOOST_FOREACH (process::port_t const& port, iports)
+      VITAL_FOREACH (process::port_t const& port, iports)
       {
         process::port_addr_t const sender = pipe->sender_for_port(name, port);
 
@@ -308,7 +309,7 @@ sorted_names(pipeline_t const& pipe)
 
   process::names_t names;
 
-  BOOST_FOREACH (vertex_t const& vertex, vertices)
+  VITAL_FOREACH (vertex_t const& vertex, vertices)
   {
     names.push_back(graph[vertex]);
   }

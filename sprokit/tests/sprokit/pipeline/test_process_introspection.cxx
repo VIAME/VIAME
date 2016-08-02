@@ -31,6 +31,8 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/process.h>
@@ -39,7 +41,6 @@
 #include <sprokit/pipeline/process_registry_exception.h>
 #include <sprokit/pipeline/types.h>
 
-#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
 static void test_process(sprokit::process::type_t const& type);
@@ -70,7 +71,7 @@ main()
 
   sprokit::process::types_t const types = reg->types();
 
-  BOOST_FOREACH (sprokit::process::type_t const& type, types)
+  VITAL_FOREACH (sprokit::process::type_t const& type, types)
   {
     //@note The adapter processes cause the tests to fail because they
     // behave differently than other processes. This check handles the
@@ -167,7 +168,7 @@ test_process_configuration(sprokit::process_t const process)
 {
   kwiver::vital::config_block_keys_t const keys = process->available_config();
 
-  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
+  VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
   {
     try
     {
@@ -195,7 +196,7 @@ test_process_input_ports(sprokit::process_t const process)
 
   sprokit::process::ports_t const ports = process->input_ports();
 
-  BOOST_FOREACH (sprokit::process::port_t const& port, ports)
+  VITAL_FOREACH (sprokit::process::port_t const& port, ports)
   {
     sprokit::process::port_info_t info;
 
@@ -267,7 +268,7 @@ test_process_output_ports(sprokit::process_t const process)
 
   sprokit::process::ports_t const ports = process->output_ports();
 
-  BOOST_FOREACH (sprokit::process::port_t const& port, ports)
+  VITAL_FOREACH (sprokit::process::port_t const& port, ports)
   {
     sprokit::process::port_info_t info;
 

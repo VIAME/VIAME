@@ -33,10 +33,11 @@
 
 #include "types.h"
 
+#include <vital/vital_foreach.h>
+
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 
 #include <map>
 #include <set>
@@ -128,7 +129,7 @@ scheduler_registry
 {
   types_t ts;
 
-  BOOST_FOREACH (priv::scheduler_store_t::value_type const& entry, d->registry)
+  VITAL_FOREACH (priv::scheduler_store_t::value_type const& entry, d->registry)
   {
     type_t const& type = entry.first;
 

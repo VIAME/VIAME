@@ -30,6 +30,9 @@
 
 #include "registration.h"
 
+#include <vital/foreach.h>
+#include <vital/logger/logger.h>
+
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/converter/registry.hpp>
@@ -39,12 +42,10 @@
 #include <boost/thread/once.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/any.hpp>
-#include <boost/foreach.hpp>
 #include <boost/optional.hpp>
 
 #include <map>
 
-#include <vital/logger/logger.h>
 
 /**
  * \file any_conversion/registration.cxx
@@ -183,7 +184,7 @@ any_converter
 
   (void)lock;
 
-  BOOST_FOREACH (to_map_t::value_type const& to, s_to)
+  VITAL_FOREACH (to_map_t::value_type const& to, s_to)
   {
     to_any_func_t const& func = to.second;
 
@@ -230,7 +231,7 @@ any_converter
     (void)lock;
 
     LOG_TRACE( s_logger, "FROM Conversions to try: " << s_from.size() );
-    BOOST_FOREACH (from_map_t::value_type const& from, s_from)
+    VITAL_FOREACH (from_map_t::value_type const& from, s_from)
     {
       from_any_func_t const& func = from.second;
 

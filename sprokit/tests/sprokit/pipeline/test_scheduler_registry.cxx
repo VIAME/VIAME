@@ -31,6 +31,8 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
@@ -38,7 +40,6 @@
 #include <sprokit/pipeline/scheduler_registry_exception.h>
 #include <sprokit/pipeline/types.h>
 
-#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
 #define TEST_ARGS ()
@@ -104,7 +105,7 @@ IMPLEMENT_TEST(load_schedulers)
 
   sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
-  BOOST_FOREACH (sprokit::scheduler_registry::type_t const& type, types)
+  VITAL_FOREACH (sprokit::scheduler_registry::type_t const& type, types)
   {
     sprokit::scheduler_t scheduler;
 
