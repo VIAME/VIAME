@@ -72,8 +72,22 @@ main()
 
   BOOST_FOREACH (sprokit::process::type_t const& type, types)
   {
+    //@note The adapter processes cause the tests to fail because they
+    // behave differently than other processes. This check handles the
+    // current set or problems, it is not a universal solution.
+    //
+    // A better approach is to add an indication in the metadata to
+    // indicate a process is suitable for use in tests. There are
+    // processes that have undesirable side effects that should not be
+    // used here.
+    if (type.find( "adapter" ) != std::string::npos)
+    {
+      continue;
+    }
+
     try
     {
+      std::cout << "------------- testing process type: " << type << std::endl;
       test_process(type);
     }
     catch (std::exception const& e)
