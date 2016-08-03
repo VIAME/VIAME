@@ -17,7 +17,7 @@ endif()
 
 ##
 # add our python path to setup script
-file( APPEND ${VITAL_SETUP_SCRIPT_FILE}
+file( APPEND ${KWIVER_SETUP_SCRIPT_FILE}
   "export PYTHONPATH=$this_dir/${python_site_packages}:$PYTHONPATH\n"
   )
 

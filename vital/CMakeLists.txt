@@ -301,10 +301,6 @@ target_link_libraries( vital
 # This has to happen after plugin creation so as to be able to statically link
 # in plugin libraries when building static.
 #
-option(VITAL_USE_BUILD_PLUGIN_DIR
-  "Whether to include the build-tree plugin directory to the default plugin path list"
-  OFF
-  )
 set(vital_apm_headers
   algorithm_plugin_manager.h
   )
@@ -383,6 +379,7 @@ if (KWIVER_USE_BUILD_TREE)
   set( vital_default_module_path ${vital_default_module_path}${path_sep}${build_module_paths})
 endif()
 
+# used by APM
 set( VITAL_DEFAULT_MODULE_PATH ${vital_default_module_path} CACHE STRING "Search path for loading algorithms" FORCE )
 
 configure_file(
