@@ -30,7 +30,7 @@
 
 #include "registration.h"
 
-#include <vital/foreach.h>
+#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
 #include <sprokit/python/util/python_gil.h>
