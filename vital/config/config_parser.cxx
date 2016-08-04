@@ -376,7 +376,7 @@ public:
       // encode them in square brackets, such as [TR]
       //
       // So an entry with multiple attributes would look like:
-      // key[RO][TR] = value
+      // key[RO,TR] = value
       //
       // Add additional tests in the while block to handle additional
       // attributes.
