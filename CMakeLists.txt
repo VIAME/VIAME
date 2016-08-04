@@ -192,6 +192,13 @@ if (KWIVER_ENABLE_SPROKIT)
   add_subdirectory(sprokit)
 endif()
 
+
+##############################################################
+# Marking source root for documentation generation
+#
+kwiver_create_doxygen( kwiver "${CMAKE_CURRENT_LIST_DIR}" )
+
+
 ##################################################################
 # Top level installation
 #

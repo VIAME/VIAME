@@ -411,8 +411,3 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory( util/tests )
   add_subdirectory( klv/tests )
 endif()
-
-###
-# Marking source root for documentation generation
-#
-kwiver_create_doxygen( vital "${CMAKE_CURRENT_LIST_DIR}" )
