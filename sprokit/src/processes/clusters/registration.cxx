@@ -34,6 +34,9 @@
 #include <processes/clusters/cluster-paths.h>
 #endif
 
+#include <vital/logger/logger.h>
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline_util/load_pipe_exception.h>
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
@@ -46,12 +49,8 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
-
-#include <vital/logger/logger.h>
 
 #include <algorithm>
-//+ #include <iostream>
 
 /**
  * \file clusters/registration.cxx
@@ -119,7 +118,7 @@ register_processes()
     include_dirs.insert(include_dirs.end(), include_dirs_tmp.begin(), include_dirs_tmp.end());
   }
 
-  BOOST_FOREACH (include_path_t const& include_dir, include_dirs)
+  VITAL_FOREACH (include_path_t const& include_dir, include_dirs)
   {
     // log file
     LOG_DEBUG( logger, "Loading clusters from directory: " << include_dir );

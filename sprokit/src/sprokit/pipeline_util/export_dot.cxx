@@ -31,13 +31,14 @@
 #include "export_dot.h"
 #include "export_dot_exception.h"
 
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
 
 #include <boost/bind.hpp>
-#include <boost/foreach.hpp>
 #include <boost/function.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
@@ -117,7 +118,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
 
   parent_names_t parent_map;
 
-  BOOST_FOREACH (process::name_t const& name, proc_names)
+  VITAL_FOREACH (process::name_t const& name, proc_names)
   {
     if (name.empty())
     {
@@ -131,7 +132,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
     parent_map[parent].push_back(info);
   }
 
-  BOOST_FOREACH (process::name_t const& name, cluster_names)
+  VITAL_FOREACH (process::name_t const& name, cluster_names)
   {
     if (name.empty())
     {
@@ -150,18 +151,18 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
   output_cluster(ostr, process::name_t(), pipe, parent_map);
 
   // Output connections
-  BOOST_FOREACH (process::name_t const& name, proc_names)
+  VITAL_FOREACH (process::name_t const& name, proc_names)
   {
     process_t const proc = pipe->process_by_name(name);
 
     process::ports_t const oports = proc->output_ports();
-    BOOST_FOREACH (process::port_t const& port, oports)
+    VITAL_FOREACH (process::port_t const& port, oports)
     {
       std::string const node_from_port_name = name + node_prefix_output + port;
 
       process::port_addrs_t const addrs = pipe->connections_from_addr(name, port);
 
-      BOOST_FOREACH (process::port_addr_t const& addr, addrs)
+      VITAL_FOREACH (process::port_addr_t const& addr, addrs)
       {
         process::name_t const& recv_name = addr.first;
         process::port_t const& recv_port = addr.second;
@@ -176,18 +177,18 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
     }
   }
 
-  BOOST_FOREACH (process::name_t const& name, cluster_names)
+  VITAL_FOREACH (process::name_t const& name, cluster_names)
   {
     process_t const proc = pipe->cluster_by_name(name);
 
     process::ports_t const oports = proc->output_ports();
-    BOOST_FOREACH (process::port_t const& port, oports)
+    VITAL_FOREACH (process::port_t const& port, oports)
     {
       std::string const node_from_port_name = name + node_prefix_output + port;
 
       process::port_addrs_t const addrs = pipe->connections_from_addr(name, port);
 
-      BOOST_FOREACH (process::port_addr_t const& addr, addrs)
+      VITAL_FOREACH (process::port_addr_t const& addr, addrs)
       {
         process::name_t const& recv_name = addr.first;
         process::port_t const& recv_port = addr.second;
@@ -240,7 +241,7 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
 
   name_infos_t const& name_infos = i->second;
 
-  BOOST_FOREACH (name_info_t const& info, name_infos)
+  VITAL_FOREACH (name_info_t const& info, name_infos)
   {
     process::name_t const& child_name = info.first;
     name_type_t const& type = info.second;
@@ -278,9 +279,7 @@ output_process(std::ostream& ostr, process_t const& process)
   process::type_t const& type = process->type();
 
   ostr << "subgraph \"cluster_" << name << "\" {" << std::endl;
-
   ostr << style_process_subgraph << std::endl;
-
   ostr << std::endl;
 
   std::string const node_name = name + node_suffix_main;
@@ -295,7 +294,7 @@ output_process(std::ostream& ostr, process_t const& process)
 
   // Input ports
   process::ports_t const iports = process->input_ports();
-  BOOST_FOREACH (process::port_t const& port, iports)
+  VITAL_FOREACH (process::port_t const& port, iports)
   {
     process::port_type_t const ptype = process->input_port_info(port)->type;
 
@@ -315,27 +314,25 @@ output_process(std::ostream& ostr, process_t const& process)
 
   // Output ports
   process::ports_t const oports = process->output_ports();
-  BOOST_FOREACH (process::port_t const& port, oports)
+  VITAL_FOREACH (process::port_t const& port, oports)
   {
     process::port_type_t const ptype = process->output_port_info(port)->type;
 
     std::string const node_port_name = name + node_prefix_output + port;
 
     ostr << "\"" << node_port_name << "\" ["
-            "label=\"" << port << "\\n:: " << ptype << "\","
+         << "label=\"" << port << "\\n:: " << ptype << "\","
          << style_output_port
          << "];" << std::endl;
     ostr << "\"" << node_name << "\" -> "
-            "\"" << node_port_name << "\" ["
+         << "\"" << node_port_name << "\" ["
          << style_output_port_edge
          << "];" << std::endl;
   }
 
-  ostr << std::endl;
-
-  ostr << "}" << std::endl;
-
-  ostr << std::endl;
+  ostr << std::endl
+       << "}" << std::endl
+       << std::endl;
 }
 
 void
@@ -352,15 +349,13 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
   typedef std::set<process::port_t> unique_ports_t;
 
   ostr << "subgraph \"cluster_" << name << "_inputs\" {" << std::endl;
-
   ostr << style_input_subgraph << std::endl;
-
   ostr << std::endl;
 
   // Input ports
   process::connections_t const input_mappings = cluster->input_mappings();
   unique_ports_t input_ports;
-  BOOST_FOREACH (process::connection_t const& input_mapping, input_mappings)
+  VITAL_FOREACH (process::connection_t const& input_mapping, input_mappings)
   {
     process::port_addr_t const& upstream_addr = input_mapping.first;
 
@@ -382,12 +377,10 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
   }
 
   ostr << std::endl;
-
   ostr << "}" << std::endl;
-
   ostr << std::endl;
 
-  BOOST_FOREACH (process::connection_t const& input_mapping, input_mappings)
+  VITAL_FOREACH (process::connection_t const& input_mapping, input_mappings)
   {
     process::port_addr_t const& upstream_addr = input_mapping.first;
     process::port_addr_t const& downstream_addr = input_mapping.second;
@@ -403,23 +396,21 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
     std::string const mapped_node_name = mapped_name + node_prefix_input + mapped_port;
 
     ostr << "\"" << node_port_name << "\" -> "
-            "\"" << mapped_node_name << "\" ["
+         << "\"" << mapped_node_name << "\" ["
          << style_input_map_edge
          << "];" << std::endl;
 
     ostr << std::endl;
   }
 
-  ostr << "subgraph \"cluster_" << name << "_outputs\" {" << std::endl;
-
-  ostr << style_output_subgraph << std::endl;
-
-  ostr << std::endl;
+  ostr << "subgraph \"cluster_" << name << "_outputs\" {" << std::endl
+       << style_output_subgraph << std::endl
+       << std::endl;
 
   // Output ports
   process::connections_t const output_mappings = cluster->output_mappings();
   unique_ports_t output_ports;
-  BOOST_FOREACH (process::connection_t const& output_mapping, output_mappings)
+  VITAL_FOREACH (process::connection_t const& output_mapping, output_mappings)
   {
     process::port_addr_t const& downstream_addr = output_mapping.second;
 
@@ -433,20 +424,18 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
     }
 
     ostr << "\"" << node_port_name << "\" ["
-            "label=\"" << port << "\","
+         << "label=\"" << port << "\","
          << style_output_port
          << "];" << std::endl;
 
     output_ports.insert(port);
   }
 
-  ostr << std::endl;
+  ostr << std::endl
+       << "}" << std::endl
+       << std::endl;
 
-  ostr << "}" << std::endl;
-
-  ostr << std::endl;
-
-  BOOST_FOREACH (process::connection_t const& output_mapping, output_mappings)
+  VITAL_FOREACH (process::connection_t const& output_mapping, output_mappings)
   {
     process::port_addr_t const& upstream_addr = output_mapping.first;
     process::port_addr_t const& downstream_addr = output_mapping.second;
@@ -462,7 +451,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
     std::string const mapped_node_name = mapped_name + node_prefix_output + mapped_port;
 
     ostr << "\"" << mapped_node_name << "\" -> "
-            "\"" << node_port_name << "\" ["
+         << "\"" << node_port_name << "\" ["
          << style_output_map_edge
          << "];" << std::endl;
 
@@ -477,7 +466,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
     // Output cluster connections
     process::connections_t const connections = cluster->internal_connections();
 
-    BOOST_FOREACH (process::connection_t const& connection, connections)
+    VITAL_FOREACH (process::connection_t const& connection, connections)
     {
       process::port_addr_t const& upstream_addr = connection.first;
       process::port_addr_t const& downstream_addr = connection.second;
@@ -492,21 +481,17 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
       std::string const node_to_port_name = recv_name + node_prefix_input + recv_port;
 
       ostr << "\"" << node_from_port_name << "\" -> "
-              "\"" << node_to_port_name << "\" ["
+           << "\"" << node_to_port_name << "\" ["
            << style_connection_edge
            << "];" << std::endl;
     }
   }
 
-  ostr << std::endl;
-
-  ostr << "label = \"" << name << "\\n:: " << type << "\";" << std::endl;
-
-  ostr << std::endl;
-
-  ostr << "}" << std::endl;
-
-  ostr << std::endl;
+  ostr << std::endl
+       << "label = \"" << name << "\\n:: " << type << "\";" << std::endl
+       << std::endl
+       << "}" << std::endl
+       << std::endl;
 }
 
 }

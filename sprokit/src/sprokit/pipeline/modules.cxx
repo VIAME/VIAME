@@ -37,11 +37,11 @@
 #include "utils.h"
 
 #include <vital/logger/logger.h>
+#include <vital/vital_foreach.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
 
 #include <string>
 
@@ -112,7 +112,7 @@ get_module_load_path()
 
   module_paths_t path_list;
 
-  BOOST_FOREACH (module_path_t const& module_dir, module_dirs)
+  VITAL_FOREACH (module_path_t const& module_dir, module_dirs)
   {
     path_list.push_back( module_dir );
 
@@ -139,7 +139,7 @@ load_known_modules()
 {
   module_paths_t module_dirs = get_module_load_path();
 
-  BOOST_FOREACH (module_path_t const& module_dir, module_dirs)
+  VITAL_FOREACH (module_path_t const& module_dir, module_dirs)
   {
     look_in_directory(module_dir);
   }

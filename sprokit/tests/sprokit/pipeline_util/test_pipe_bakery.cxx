@@ -808,7 +808,7 @@ IMPLEMENT_TEST(cluster_map_config_tunable)
   pipeline->reconfigure(new_conf);
 }
 
-#if 0
+#if 0  // disable incomplete tests
 //+ Need to mangle the macro name so the CMake tooling does not
 //+  register these tests even though they are not active
 //------------------------------------------------------------------

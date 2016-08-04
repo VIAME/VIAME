@@ -10,22 +10,17 @@ computer vision group to the open
 source domain in order to further research, collaboration, and product
 development.
 
-Unlike other open source projects, KWIVER_ is not organized as a
-single repository containing all of the code for the project. Rather,
-the KWIVER repository located on GitHub serves as a central location
-for KWIVER’s documentation and contains sample code, utilities,
-tests and other tools that are useful to the KWIVER community. The
-bulk of the repository, however, consists of a CMake superbuild
-that builds many of the members of the KWIVER “family” of projects.
-Each of these members typically has its own source code repository
-and in some cases, as with MAP-Tk, can be built and dealt with as
-a single stand alone project.  
+KWIVER contains the following components.
 
-`Motion-imagery Aerial Photogrammetry Toolkit (MAP-Tk)`_
-  MAP-Tk is an open source C++ collection of libraries and tools
-  for making measurements from aerial video. Initial capability
-  focuses on estimating the camera flight trajectory and a sparse
-  3D point cloud of the scene.
+`VITAL`_
+  A core library of abstractions and data types used by various KWIVER components.
+  Major elements of VITAL are:
+  - Basic data types used throughout Kwiver.
+  - Provides abstract algorithm interfaces for implementations in the ARROWS component.
+  - Configuration support library providing a common approach to run time configuration of the components.
+  - An OS abstraction layer that provides system services in a platform independent manner.
+  - flexible logging support that can interface to different logging back ends.
+  - General purpose plugin architecture.
 
 `Stream Processing Toolkit (sprokit)`_
   Sprokit is the “Stream Processing Toolkit”, a library aiming to
@@ -34,40 +29,15 @@ a single stand alone project.
   between them, connection type checking, all with full, first-class
   Python bindings.
 
-`Social Multimedia Query Toolkit (SMQTK)`_
-  A collection of Python tools, with C++ dependencies, for ingesting
-  images and video from social media (e.g. YouTube, Twitter),
-  computing content-based features, indexing the media based on the
-  content descriptors, querying for similar content, and building
-  user-defined searches via an interactive query refinement (IQR)
-  process.
+  Sprokit also contains a set of processes and example pipelines that
+  support basic operations such as image and video input and display,
+  wrappers for common algorithms.
 
-`ViViA`_
-  A collection of Qt based applications for GUIs, visualization and
-  exploration of content extracted from video.
-
-`Video and Image-Based Retrieval and Analysis Toolkit (VIBRANT)`_
-  An end-to-end system for surveillance video analytics including
-  content-based retrieval and alerting using behaviors, actions and
-  appearance.
-
-`KWant`_
-  A lightweight toolkit for computing detection and tracking metrics
-  on a variety of video data. It computes spatial and temporal
-  associations between datasets, even with different frame rates.
-  It has a flexible input format and can generate XML based results.
-
-`VITAL`_ 
-  A core library of abstractions and data types used by various KWIVER components.
-
-.. _KWIVER: https://github.com/Kitware/kwiver
-.. _Motion-imagery Aerial Photogrammetry Toolkit (MAP-Tk): https://github.com/Kitware/maptk
-.. _Stream Processing Toolkit (sprokit): https://github.com/Kitware/sprokit
-.. _ViViA: https://github.com/Kitware/vivia
-.. _Video and Image-Based Retrieval and Analysis Toolkit (VIBRANT): https://github.com/Kitware/vibrant
-.. _KWant: https://github.com/Kitware/kwant
-.. _Social Multimedia Query Toolkit (SMQTK): https://github.com/Kitware/SMQTK
-.. _VITAL: https://github.com/Kitware/vital
+`ARROWS`_
+  ARROWS is an open source C++ collection of algorithms
+  for making measurements from aerial video. Initial capability
+  focuses on estimating the camera flight trajectory and a sparse
+  3D point cloud of the scene.
 
 Additionally, a separate repository, Fletch, is a CMake based project
 that assists with acquiring and building common Open Source libraries

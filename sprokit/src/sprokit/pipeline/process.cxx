@@ -33,13 +33,14 @@
 
 #include "stamp.h"
 
+#include <vital/vital_foreach.h>
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/assign/ptr_map_inserter.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 #include <boost/optional.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
@@ -388,7 +389,7 @@ process
 {
   ports_t ports = _input_ports();
 
-  BOOST_FOREACH (priv::port_map_t::value_type const& port, d->input_ports)
+  VITAL_FOREACH (priv::port_map_t::value_type const& port, d->input_ports)
   {
     port_t const& port_name = port.first;
 
@@ -404,7 +405,7 @@ process
 {
   ports_t ports = _output_ports();
 
-  BOOST_FOREACH (priv::port_map_t::value_type const& port, d->output_ports)
+  VITAL_FOREACH (priv::port_map_t::value_type const& port, d->output_ports)
   {
     port_t const& port_name = port.first;
 
@@ -468,7 +469,7 @@ process
 {
   kwiver::vital::config_block_keys_t keys = _available_config();
 
-  BOOST_FOREACH (priv::conf_map_t::value_type const& conf, d->config_keys)
+  VITAL_FOREACH (priv::conf_map_t::value_type const& conf, d->config_keys)
   {
     kwiver::vital::config_block_key_t const& key = conf.first;
 
@@ -485,7 +486,7 @@ process
   kwiver::vital::config_block_keys_t const all_keys = available_config();
   kwiver::vital::config_block_keys_t keys;
 
-  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, all_keys)
+  VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, all_keys)
   {
     // Read-only parameters aren't tunable.
     if (d->conf->is_read_only(key))
@@ -695,7 +696,7 @@ process
     {
       ports_t const& iports = d->input_flow_tag_ports[tag];
 
-      BOOST_FOREACH (port_t const& iport, iports)
+      VITAL_FOREACH (port_t const& iport, iports)
       {
         port_info_t const iport_info = input_port_info(iport);
 
@@ -709,7 +710,7 @@ process
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
 
-      BOOST_FOREACH (port_t const& oport, oports)
+      VITAL_FOREACH (port_t const& oport, oports)
       {
         port_info_t const oport_info = output_port_info(oport);
 
@@ -766,7 +767,7 @@ process
     {
       ports_t const& iports = d->input_flow_tag_ports[tag];
 
-      BOOST_FOREACH (port_t const& iport, iports)
+      VITAL_FOREACH (port_t const& iport, iports)
       {
         port_info_t const iport_info = input_port_info(iport);
 
@@ -780,7 +781,7 @@ process
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
 
-      BOOST_FOREACH (port_t const& oport, oports)
+      VITAL_FOREACH (port_t const& oport, oports)
       {
         port_info_t const oport_info = output_port_info(oport);
 
@@ -1145,7 +1146,7 @@ process
   d->is_complete = true;
 
   // Indicate to input edges that we are complete.
-  BOOST_FOREACH (priv::input_edge_map_t::value_type const& port_edge, d->input_edges)
+  VITAL_FOREACH (priv::input_edge_map_t::value_type const& port_edge, d->input_edges)
   {
     priv::input_port_info_t const& info = *port_edge.second;
     edge_t const& edge = info.edge;
@@ -1295,7 +1296,7 @@ process
 
   edges_t const& edges = info.edges;
 
-  BOOST_FOREACH (edge_t const& edge, edges)
+  VITAL_FOREACH (edge_t const& edge, edges)
   {
     edge->push_datum(dat);
   }
@@ -1375,7 +1376,7 @@ process
   edge_datum_t const& fst = data[0];
   stamp_t const& st = fst.stamp;
 
-  BOOST_FOREACH (edge_datum_t const& edat, data)
+  VITAL_FOREACH (edge_datum_t const& edat, data)
   {
     datum_t const& dat = edat.datum;
     stamp_t const& st2 = edat.stamp;
@@ -1478,7 +1479,7 @@ process
   // Loop over all entires in the supplied config block and select all
   // entries that are for this process and are flagged as tunable.
   // Then update the process config with the new value.
-  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, new_keys)
+  VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, new_keys)
   {
     bool const for_process = (0 != std::count(process_keys.begin(), process_keys.end(), key));
 
@@ -1542,7 +1543,7 @@ process
 
  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, all_keys)
+  VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, all_keys)
   {
     bool const has_old_value = d->conf->has_value(key);
     bool const for_process = (0 != std::count(process_keys.begin(), process_keys.end(), key));
@@ -1737,7 +1738,7 @@ process::priv
   edge_data_t first_data;
   edge_data_t data;
 
-  BOOST_FOREACH (port_t const& port, required_inputs)
+  VITAL_FOREACH (port_t const& port, required_inputs)
   {
     input_edge_map_t::const_iterator const i = input_edges.find(port);
 
@@ -1834,7 +1835,7 @@ void
 process::priv
 ::grab_from_input_edges()
 {
-  BOOST_FOREACH (port_map_t::value_type const& iport, input_ports)
+  VITAL_FOREACH (port_map_t::value_type const& iport, input_ports)
   {
     port_t const& port = iport.first;
     port_info_t const& info = iport.second;
@@ -1879,7 +1880,7 @@ process::priv
 {
   datum::type_t const dat_type = dat->type();
 
-  BOOST_FOREACH (port_map_t::value_type const& oport, output_ports)
+  VITAL_FOREACH (port_map_t::value_type const& oport, output_ports)
   {
     port_t const& port = oport.first;
 
@@ -1928,7 +1929,7 @@ process::priv
 
   (void)lock;
 
-  BOOST_FOREACH (port_t const& port, required_outputs)
+  VITAL_FOREACH (port_t const& port, required_outputs)
   {
     output_edge_map_t::const_iterator const i = output_edges.find(port);
 
@@ -1946,7 +1947,7 @@ process::priv
     output_port_info_t const& info = *i->second;
     edges_t const& edges = info.edges;
 
-    BOOST_FOREACH (edge_t const& edge, edges)
+    VITAL_FOREACH (edge_t const& edge, edges)
     {
       // If any required edge is not complete, then return false.
       if (!edge->is_downstream_complete())
@@ -1994,7 +1995,7 @@ void
 process::priv
 ::make_output_stamps()
 {
-  BOOST_FOREACH (port_map_t::value_type const& oport, output_ports)
+  VITAL_FOREACH (port_map_t::value_type const& oport, output_ports)
   {
     port_t const& port_name = oport.first;
 

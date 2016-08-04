@@ -95,11 +95,6 @@ if (WIN32)
     configure-include-paths.h)
 endif ()
 
-sprokit_create_doxygen(
-  "${CMAKE_CURRENT_SOURCE_DIR}"
-  pipeline_util
-  pipeline)
-
 sprokit_install_headers(sprokit/pipeline_util ${pipeline_util_headers})
 
 sprokit_configure_pkgconfig(sprokit-pipeline_util)

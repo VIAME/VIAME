@@ -32,6 +32,8 @@
 #include <sprokit/tools/tool_usage.h>
 
 #include <vital/config/config_block.h>
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_registry.h>
@@ -42,7 +44,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
-#include <boost/foreach.hpp>
 
 #include <iostream>
 #include <string>
@@ -82,7 +83,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     std::cout << "Modules will be loaded from the following directories, in order:\n";
 
-    BOOST_FOREACH (sprokit::module_path_t const& module_dir, paths)
+    VITAL_FOREACH (sprokit::module_path_t const& module_dir, paths)
     {
       std::cout << "    " << module_dir << std::endl;
     }
@@ -101,7 +102,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     std::cout << "\nScheduler registry" << std::endl;
 
-    BOOST_FOREACH (sprokit::scheduler_registry::type_t const& sched_type, types)
+    VITAL_FOREACH (sprokit::scheduler_registry::type_t const& sched_type, types)
     {
       std::cout << "    " << sched_type << ": " << sched->description( sched_type ) << std::endl;
     }
@@ -124,7 +125,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
   if (vm.count("list"))
   {
-    BOOST_FOREACH (sprokit::process::type_t const& type, types)
+    VITAL_FOREACH (sprokit::process::type_t const& type, types)
     {
       std::cout << type << std::endl;
     }
@@ -134,7 +135,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
   bool const hidden = (0 != vm.count("hidden"));
 
-  BOOST_FOREACH (sprokit::process::type_t const& proc_type, types)
+  VITAL_FOREACH (sprokit::process::type_t const& proc_type, types)
   {
     try
     {
@@ -166,7 +167,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     kwiver::vital::config_block_keys_t const keys = proc->available_config();
 
-    BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
+    VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
     {
       if (!hidden && boost::starts_with(key, hidden_prefix))
       {
@@ -191,7 +192,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     sprokit::process::ports_t const iports = proc->input_ports();
 
-    BOOST_FOREACH (sprokit::process::port_t const& port, iports)
+    VITAL_FOREACH (sprokit::process::port_t const& port, iports)
     {
       if (!hidden && boost::starts_with(port, hidden_prefix))
       {
@@ -217,7 +218,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     sprokit::process::ports_t const oports = proc->output_ports();
 
-    BOOST_FOREACH (sprokit::process::port_t const& port, oports)
+    VITAL_FOREACH (sprokit::process::port_t const& port, oports)
     {
       if (!hidden && boost::starts_with(port, hidden_prefix))
       {

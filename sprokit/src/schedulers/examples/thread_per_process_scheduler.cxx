@@ -31,6 +31,8 @@
 #include "thread_per_process_scheduler.h"
 
 #include <vital/config/config_block.h>
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/pipeline.h>
@@ -40,7 +42,6 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 
 /**
@@ -76,7 +77,7 @@ thread_per_process_scheduler
   pipeline_t const p = pipeline();
   process::names_t const names = p->process_names();
 
-  BOOST_FOREACH (process::name_t const& name, names)
+  VITAL_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = p->process_by_name(name);
     process::properties_t const consts = proc->properties();
@@ -106,7 +107,7 @@ thread_per_process_scheduler
 
   d->process_threads.reset(new boost::thread_group);
 
-  BOOST_FOREACH (process::name_t const& name, names)
+  VITAL_FOREACH (process::name_t const& name, names)
   {
     process_t const process = pipeline()->process_by_name(name);
 
