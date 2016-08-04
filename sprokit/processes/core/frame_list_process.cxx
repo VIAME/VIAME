@@ -43,7 +43,7 @@
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/datum.h>
 
-#include <boost/filesystem.hpp>
+#include <kwiversys/SystemTools.hxx>
 
 #include <vector>
 #include <stdint.h>
@@ -56,7 +56,6 @@
 using namespace cv;
 #endif
 
-namespace bfs = boost::filesystem;
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver {
@@ -156,7 +155,7 @@ void frame_list_process
   for ( std::string line; std::getline( ifs, line ); )
   {
     d->m_files.push_back( line );
-    if ( ! bfs::exists( d->m_files.back() ) )
+    if ( ! kwiversys::SystemTools::FileExists( d->m_files.back() ) )
     {
       throw kwiver::vital::path_not_exists( d->m_files.back() );
     }
