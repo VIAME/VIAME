@@ -153,6 +153,4 @@ image_object_detector_process::priv
 {
 }
 
-
-
 } // end namespace kwiver

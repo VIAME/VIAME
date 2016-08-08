@@ -22,7 +22,3 @@ find_package(PythonInterp ${PYTHON_VERSION})
 
 add_subdirectory(util)
 add_subdirectory(any_conversion)
-
-sprokit_create_doxygen(
-  "${CMAKE_CURRENT_SOURCE_DIR}"
-  python)

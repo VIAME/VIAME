@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.0)
 
 set(sprokit_source_dir "${CMAKE_CURRENT_SOURCE_DIR}")
 set(sprokit_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
+set(SPROKIT_CMAKE_DIR  "${sprokit_source_dir}/conf")
 
 ##?++  temp needed until new macros are used
 check_cxx_compiler_flag(-fvisibility=hidden SPROKIT_HAVE_GCC_VISIBILITY)
@@ -26,7 +27,6 @@ include("${sprokit_source_dir}/conf/sprokit-macro-python.cmake")
 
 # Support functions.
 include("${sprokit_source_dir}/cmake/support/pkgconfig.cmake")
-include("${sprokit_source_dir}/cmake/support/doxygen.cmake")
 
 ### TODO This will not work without going to root directory
 find_package(Git)

@@ -32,6 +32,7 @@
 #define SPROKIT_PIPELINE_UTIL_PIPE_DECLARATION_TYPES_H
 
 #include <vital/config/config_block.h>
+
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_registry.h>
 
@@ -111,9 +112,9 @@ typedef std::vector<config_value_t> config_values_t;
 struct config_pipe_block
 {
   /// The common path of the configuration.
-  kwiver::vital::config_block_keys_t key;
+  kwiver::vital::config_block_keys_t key; // vector of keys
   /// The values for the configuration block.
-  config_values_t values;
+  config_values_t values; // vector of key/value pairs
 };
 
 /**

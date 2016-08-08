@@ -31,15 +31,16 @@
 #include "process_registry.h"
 #include "process_registry_exception.h"
 
-#include <vital/config/config_block.h>
 #include "process.h"
 #include "types.h"
+
+#include <vital/config/config_block.h>
 #include <vital/logger/logger.h>
+#include <vital/vital_foreach.h>
 
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 
 #include <map>
 #include <set>
@@ -125,7 +126,7 @@ process_registry
 {
   process::types_t ts;
 
-  BOOST_FOREACH (priv::process_store_t::value_type const& entry, d->registry)
+  VITAL_FOREACH (priv::process_store_t::value_type const& entry, d->registry)
   {
     process::type_t const& type = entry.first;
 

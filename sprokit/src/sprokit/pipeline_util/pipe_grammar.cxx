@@ -556,11 +556,6 @@ cluster_grammar<Iterator>
   , cluster_block()
   , cluster_block_set()
 {
-
-#if defined(NDEBUG) //+ TEMP fails in debug mode
-  // This is not ideal, but leaving this code in when building for
-  // debug causes a compiler error.  Only a short term solution until
-  // we get a better compiler
   description_decl.name("description-decl");
   description_decl %=
      (  qi::lit(description_token)
@@ -643,7 +638,6 @@ cluster_grammar<Iterator>
         |  common.connect_block
         )
      );
-#endif
 }
 
 template <typename Iterator>

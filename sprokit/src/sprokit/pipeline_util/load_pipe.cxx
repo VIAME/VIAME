@@ -37,6 +37,8 @@
 #include "path.h"
 #include "pipe_grammar.h"
 
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/utils.h>
 
@@ -45,7 +47,6 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
 
 #include <istream>
 #include <sstream>
@@ -180,7 +181,7 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
 
       if (file_path.is_relative())
       {
-        BOOST_FOREACH (include_path_t const& include_dir, include_dirs)
+        VITAL_FOREACH (include_path_t const& include_dir, include_dirs)
         {
           path_t const inc_file_path = include_dir / file_path;
 

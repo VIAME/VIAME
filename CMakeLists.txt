@@ -48,6 +48,8 @@ LIST( INSERT CMAKE_MODULE_PATH  0         ${KWIVER_CMAKE_DIR} ) # prepend out cm
 ###
 # User options
 OPTION(KWIVER_BUILD_SHARED     "Build KWIVER components shared or not" TRUE )
+MARK_AS_ADVANCED( KWIVER_BUILD_SHARED )
+
 OPTION(KWIVER_ENABLE_TESTS     "Enable testing" OFF )
 OPTION(KWIVER_ENABLE_ARROWS    "Enable building arrows" OFF )
 OPTION(KWIVER_ENABLE_TOOLS     "Enable tools" OFF )
@@ -189,6 +191,13 @@ endif()
 if (KWIVER_ENABLE_SPROKIT)
   add_subdirectory(sprokit)
 endif()
+
+
+##############################################################
+# Marking source root for documentation generation
+#
+kwiver_create_doxygen( kwiver "${CMAKE_CURRENT_LIST_DIR}" )
+
 
 ##################################################################
 # Top level installation

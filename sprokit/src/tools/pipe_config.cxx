@@ -33,10 +33,12 @@
 #include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
 
+#include <vital/config/config_block.h>
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 
-#include <vital/config/config_block.h>
 #include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
@@ -48,7 +50,6 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 
 #include <algorithm>
@@ -243,7 +244,7 @@ config_printer
 {
   sprokit::process::names_t const cluster_names = m_pipe->cluster_names();
 
-  BOOST_FOREACH (sprokit::process::name_t const& name, cluster_names)
+  VITAL_FOREACH (sprokit::process::name_t const& name, cluster_names)
   {
     if (m_visited.count(name))
     {
@@ -260,7 +261,7 @@ config_printer
 
   sprokit::process::names_t const process_names = m_pipe->process_names();
 
-  BOOST_FOREACH (sprokit::process::name_t const& name, process_names)
+  VITAL_FOREACH (sprokit::process::name_t const& name, process_names)
   {
     if (m_visited.count(name))
     {
@@ -342,7 +343,7 @@ config_printer
   kwiver::vital::config_block_keys_t const tunable_keys = proc->available_tunable_config();
   sprokit::process::name_t const norm_name = normalize_name(name);
 
-  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
+  VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
   {
     if (boost::starts_with(key, "_"))
     {

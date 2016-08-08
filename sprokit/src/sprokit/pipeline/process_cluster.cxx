@@ -36,8 +36,7 @@
 #include "process_registry.h"
 
 #include <vital/logger/logger.h>
-
-#include <boost/foreach.hpp>
+#include <vital/vital_foreach.h>
 
 #include <algorithm>
 #include <map>
@@ -83,7 +82,7 @@ process_cluster
 {
   processes_t procs;
 
-  BOOST_FOREACH (priv::process_map_t::value_type const& process_entry, d->processes)
+  VITAL_FOREACH (priv::process_map_t::value_type const& process_entry, d->processes)
   {
     process_t const& proc = process_entry.second;
 
@@ -159,7 +158,7 @@ process_cluster
 
   kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, cur_keys)
+  VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, cur_keys)
   {
     kwiver::vital::config_block_value_t const value = conf->get_value<kwiver::vital::config_block_value_t>(key);
 
@@ -173,7 +172,7 @@ process_cluster
 
   priv::config_mappings_t const mappings = d->config_map[name_];
 
-  BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
+  VITAL_FOREACH (priv::config_mapping_t const& mapping, mappings)
   {
     kwiver::vital::config_block_key_t const& key = mapping.first;
     kwiver::vital::config_block_key_t const& mapped_key = mapping.second;
@@ -198,7 +197,7 @@ process_cluster
     new_conf->mark_read_only(mapped_key);
   }
 
-  BOOST_FOREACH (kwiver::vital::config_block_key_t const& key, ro_keys)
+  VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, ro_keys)
   {
     new_conf->mark_read_only(key);
   }
@@ -228,7 +227,7 @@ process_cluster
 
   name_t const real_name = convert_name(name(), name_);
 
-  BOOST_FOREACH (connection_t const& input_mapping, d->input_mappings)
+  VITAL_FOREACH (connection_t const& input_mapping, d->input_mappings)
   {
     port_addr_t const& process_addr = input_mapping.second;
     name_t const& process_name = process_addr.first;
@@ -266,7 +265,7 @@ process_cluster
     return;
   }
 
-  BOOST_FOREACH (connection_t const& output_mapping, d->output_mappings)
+  VITAL_FOREACH (connection_t const& output_mapping, d->output_mappings)
   {
     port_addr_t const& cluster_addr = output_mapping.second;
     port_t const& cluster_port = cluster_addr.second;
@@ -351,14 +350,14 @@ process_cluster
 {
   kwiver::vital::config_block_keys_t const tunable_keys = available_tunable_config();
 
-  BOOST_FOREACH (priv::config_map_t::value_type const& config_mapping, d->config_map)
+  VITAL_FOREACH (priv::config_map_t::value_type const& config_mapping, d->config_map)
   {
     name_t const& name_ = config_mapping.first;
     priv::config_mappings_t const& mappings = config_mapping.second;
 
     kwiver::vital::config_block_sptr const provide_conf = kwiver::vital::config_block::empty_config();
 
-    BOOST_FOREACH (priv::config_mapping_t const& mapping, mappings)
+    VITAL_FOREACH (priv::config_mapping_t const& mapping, mappings)
     {
       kwiver::vital::config_block_key_t const& key = mapping.first;
 

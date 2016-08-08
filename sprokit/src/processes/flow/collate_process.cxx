@@ -30,13 +30,14 @@
 
 #include "collate_process.h"
 
+#include <vital/vital_foreach.h>
+
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/stamp.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/foreach.hpp>
 
 #include <map>
 #include <string>
@@ -142,7 +143,7 @@ void
 collate_process
 ::_init()
 {
-  BOOST_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
+  VITAL_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
   {
     priv::tag_t const& tag = tag_data.first;
     priv::tag_info& info = tag_data.second;
@@ -159,7 +160,7 @@ collate_process
     frequency_component_t const ratio = ports.size();
     port_frequency_t const freq = port_frequency_t(1, ratio);
 
-    BOOST_FOREACH (port_t const& port, ports)
+    VITAL_FOREACH (port_t const& port, ports)
     {
       set_input_port_frequency(port, freq);
     }
@@ -174,7 +175,7 @@ void
 collate_process
 ::_reset()
 {
-  BOOST_FOREACH (priv::tag_data_t::value_type const& tag_data, d->tag_data)
+  VITAL_FOREACH (priv::tag_data_t::value_type const& tag_data, d->tag_data)
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const output_port = priv::port_res_prefix + tag;
@@ -182,7 +183,7 @@ collate_process
     priv::tag_info const& info = tag_data.second;
     ports_t const& ports = info.ports;
 
-    BOOST_FOREACH (port_t const& port, ports)
+    VITAL_FOREACH (port_t const& port, ports)
     {
       remove_input_port(port);
     }
@@ -202,7 +203,7 @@ collate_process
 {
   ports_t complete_ports;
 
-  BOOST_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
+  VITAL_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const output_port = priv::port_res_prefix + tag;
@@ -220,7 +221,7 @@ collate_process
     {
       push_to_port(output_port, status_edat);
 
-      BOOST_FOREACH (port_t const& port, info.ports)
+      VITAL_FOREACH (port_t const& port, info.ports)
       {
         (void)grab_from_port(port);
       }
@@ -247,7 +248,7 @@ collate_process
     }
   }
 
-  BOOST_FOREACH (port_t const& port, complete_ports)
+  VITAL_FOREACH (port_t const& port, complete_ports)
   {
     d->tag_data.erase(port);
   }
@@ -343,7 +344,7 @@ collate_process::priv
   {
     port_t const no_prefix = port.substr(priv::port_coll_prefix.size());
 
-    BOOST_FOREACH (priv::tag_data_t::value_type const& data, tag_data)
+    VITAL_FOREACH (priv::tag_data_t::value_type const& data, tag_data)
     {
       tag_t const& tag = data.first;
       port_t const tag_prefix = tag + priv::res_sep;

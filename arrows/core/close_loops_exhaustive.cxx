@@ -71,7 +71,7 @@ public:
   }
 
   /// number of feature matches required for acceptance
-  int match_req;
+  size_t match_req;
 
   /// Max frames to close loops back to (-1 to beginning of sequence)
   int num_look_back;
@@ -153,7 +153,7 @@ close_loops_exhaustive
   algo::match_features::set_nested_algo_configuration("feature_matcher",
                                                       config, d_->matcher);
 
-  d_->match_req = config->get_value<int>("match_req");
+  d_->match_req = config->get_value<size_t>("match_req");
   d_->num_look_back = config->get_value<int>("num_look_back");
 }
 

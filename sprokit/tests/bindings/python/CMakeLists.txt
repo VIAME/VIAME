@@ -25,6 +25,8 @@ else ()
     "${PYTHON_EXECUTABLE}")
 endif ()
 
+###
+#
 function (sprokit_build_python_test group input)
   if (CMAKE_CONFIGURATION_TYPES)
     set(sprokit_configure_cmake_args
@@ -38,17 +40,15 @@ function (sprokit_build_python_test group input)
   sprokit_declare_tooled_test(python-${group})
 endfunction ()
 
+###
+#
 function (sprokit_add_python_test group instance)
-  set(python_module_path
-    "${sprokit_python_output_path}")
-  set(python_chdir
-    ".")
+  set(python_module_path    "${sprokit_python_output_path}")
+  set(python_chdir          ".")
 
   if (CMAKE_CONFIGURATION_TYPES)
-    set(python_module_path
-      "${python_module_path}/$<CONFIGURATION>")
-    set(python_chdir
-      "$<CONFIGURATION>")
+    set(python_module_path      "${python_module_path}/$<CONFIGURATION>")
+    set(python_chdir           "$<CONFIGURATION>")
   endif ()
 
   _sprokit_python_site_package_dir( site_dir )
@@ -56,6 +56,8 @@ function (sprokit_add_python_test group instance)
     "${python_chdir}" "${python_module_path}/${site_dir}" ${ARGN})
 endfunction ()
 
+###
+#
 function (sprokit_discover_python_tests group file)
   file(STRINGS "${file}" test_lines)
   set(properties)

@@ -13,7 +13,7 @@ provided by SMQTK’s Sprokit project. The :ref:`smqtkcplusplusbridgeblock` show
 the structure of the solution.
 
 
-.. _smqtkcplusplusbridgeblock: 
+.. _smqtkcplusplusbridgeblock:
 .. figure:: images/smqtkcplusplusbridge.png
    :align: center
 
@@ -62,8 +62,7 @@ In the KWIVER directory::
 
     git clone https://github.com/kitware/kwiver.git source
     cd source
-    git checkout dev/SMQTK-descriptor-pipeline
-    git submodule update --init
+    git checkout master
 
 SMQTK
 +++++
@@ -106,9 +105,9 @@ your PATH::
 
 We will also need to create an SMQTK conda environment in which we will run SMQTK::
 
-    conda create -n smqtk --file smqtk/source/requirements.conda.txt 
+    conda create -n smqtk --file smqtk/source/requirements.conda.txt
     source activate smqtk
-    pip install -r smqtk/source/requirements.pip.txt 
+    pip install -r smqtk/source/requirements.pip.txt
     pip install scikit-image
     pip install protobuf
 
@@ -127,7 +126,7 @@ From your Fletch directory::
 
     mkdir build
     cd build
-    cmake -C ../../kwiver/source/examples/call_SMQTK_pipeline/fletch-precache.cmake ../source/
+    cmake -C ../source/sprokit/processes/examples/call_SMQTK_pipeline/fletch-precache.cmake ../source/
 
 This will configure Fletch to build the projects that KWIVER needs to build properly for use with SMQTK/C++ bridge.
 
@@ -141,7 +140,7 @@ KWIVER
 ++++++
 
 .. note::
-    It is important that the SMQTK Miniconda environment 
+    It is important that the SMQTK Miniconda environment
     is active when building fletch.  Run ``source
     activate smqtk`` to be sure.
 
@@ -149,13 +148,13 @@ What follows are the steps required to build KIWVER to provide the SMQTK/C++ bri
 
 In the KWIVER directory::
 
-    source activate smqtk  
+    source activate smqtk
     mkdir build
     cd build
 
 To configure the build::
 
-    cmake -Dfletch_DIR:PATH=../../fletch/build/ -C../source/examples/call_SMQTK_pipeline/kwiver-precache.cmake ../source/
+    cmake -Dfletch_DIR:PATH=../../fletch/build/ -C ../source/sprokit/processes/examples/call_SMQTK_pipeline/kwiver-precache.cmake ../source/
 
 Verify that the PYTHON specifications are correct (assuming you installed miniconda in ~/miniconda)::
 
@@ -210,8 +209,8 @@ elements.  This is a sample program only.  You may wish to read the
 source code for the program in ``kwiver/source/examples/call_SMQTK_pipeline``
 to see how you can adapt this technique to your own programs.
 
-To use the application, you'll need to provide it with a configuration file that tells it what 
-descriptor to use.  
+To use the application, you'll need to provide it with a configuration file that tells it what
+descriptor to use.
 
 Here is an example configuration file that uses SMQTK's
 CaffeDesriptorGenerator to run the ImageNet CNN and  use the 7th
@@ -235,13 +234,13 @@ layer as a descriptor::
     }
 
 
-The command to run the test application is as follows (all one line, run from the kwiver/build directory):                                                                                 
-                                                                                                                                                                                           
-    LD_PRELOAD=~/miniconda/envs/smqtk/lib/libpython2.7.so.1.0 ./examples/call_SMQTK_pipeline/SMQTK_Descriptor_test my-caffe-config ../source/examples/cat.jpg                              
-                                                                                                                                                                                           
-.. note:: The “LD_PRELOAD” variable setting is required to make sure that sprokit does not try to use the system                                                                           
-   python instead of the SMQTK python environment you created.  We will be working to make this unecessary as soon as possible.                                                            
- 
+The command to run the test application is as follows (all one line, run from the kwiver/build directory):
+
+    LD_PRELOAD=~/miniconda/envs/smqtk/lib/libpython2.7.so.1.0 ./examples/call_SMQTK_pipeline/SMQTK_Descriptor_test my-caffe-config ../source/examples/cat.jpg
+
+.. note:: The “LD_PRELOAD” variable setting is required to make sure that sprokit does not try to use the system
+   python instead of the SMQTK python environment you created.  We will be working to make this unecessary as soon as possible.
+
 
 
 When the application runs, it will eventually print out lines that look like this (after many log messages)::
@@ -265,7 +264,7 @@ Using the SMQTK/C++ Bridge in Your Code
 
 The C++ interface to SMQTK descriptors is through the SMQTK_Descriptor class as defined in the include file ``SMQTK_Descriptor.h``.
 
-The SMQTK descriptor API is built as part of kwiver and is available in the library ``libSMQTK_Descriptor.so``. 
+The SMQTK descriptor API is built as part of kwiver and is available in the library ``libSMQTK_Descriptor.so``.
 You will need to add this to your build instructions as ``-lSMQTK_Descriptor`` or in an equivalent manner appropriate
 for your build system.
 
@@ -278,7 +277,7 @@ The class provides a single method to apply the descriptor to an image and retur
 *cv_img*
     An image in OpenCV format
 
-*config_file*  
+*config_file*
     The name of the SMQTK descriptor configuration file in JSON format.  See :ref:`Testing the Code <smqtkbridgetesting>` for details.
 
 
@@ -307,5 +306,3 @@ The inputs are the OpenCV format image and the name of the descriptor configurat
 A sample program is provided in the source file SMQTK_Descriptor_test.cxx
 which serves as a test of the API and an example of how it is used.
 The operation of this test program is discussed above.
-
-
