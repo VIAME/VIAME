@@ -7,10 +7,10 @@ kwiver_add_executable( plugin_explorer
   )
 
 target_link_libraries( plugin_explorer
-  vital
-  vital_apm
-  vital_logger
-  kwiversys
+  PRIVATE        vital
+                 vital_apm
+                 vital_logger
+                 kwiversys
   )
 
 ###
@@ -35,8 +35,8 @@ kwiver_add_executable( config_explorer
   )
 
 target_link_libraries( config_explorer
-  vital
-  vital_apm
-  vital_logger
-  kwiversys
+  PRIVATE      vital
+               vital_apm
+               vital_logger
+               kwiversys
   )
