@@ -1,8 +1,7 @@
 #
 # KWIVER adapter processes
 #
-project( kwiver_core_processes )
-
+project( kwiver_adapter_processes )
 
 set( proc_sources
   register_processes.cxx
@@ -31,8 +30,6 @@ kwiver_add_plugin( kwiver_adapter_processes
                   ${private_headers}
   PRIVATE         sprokit_pipeline
                   vital vital_logger vital_config
-                 #? ${Boost_SYSTEM_LIBRARY}
-                 #? ${Boost_FILESYSTEM_LIBRARY}
 )
 
 ###
