@@ -1,0 +1,64 @@
+/*ckwg +29
+ * Copyright 2016 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file adapter_types.h
+ * \brief Interface file for adapter types.
+ *
+ * This file contains a set of types that can be used to declare
+ * useful objects. They are in a separate file to reduce coupling in
+ * the interface (header) files that use these types.
+ */
+
+#ifndef KWIVER_ADAPTER_ADAPTER_TYPES_H
+#define KWIVER_ADAPTER_ADAPTER_TYPES_H
+
+#include <sprokit/pipeline/process.h>
+
+#include <memory>
+#include <map>
+
+namespace kwiver {
+namespace vital {
+
+template <class T> class bounded_buffer;
+
+}
+
+namespace adapter{
+
+class adapter_data_set;
+typedef std::shared_ptr< adapter_data_set > adapter_data_set_t;
+typedef std::shared_ptr< kwiver::vital::bounded_buffer< kwiver::adapter::adapter_data_set_t > > interface_ref_t;
+typedef std::map< sprokit::process::port_t, sprokit::process::port_info_t > ports_info_t;
+
+} } // end namespace
+
+#endif // KWIVER_ADAPTER_ADAPTER_TYPES_H
