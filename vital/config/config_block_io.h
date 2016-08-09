@@ -244,8 +244,8 @@ void VITAL_CONFIG_EXPORT write_config( config_block_sptr const& config,
  */
 config_path_list_t VITAL_CONFIG_EXPORT
 application_config_file_paths(std::string const& application_name,
-                   std::string const& application_version,
-                   config_path_t const& install_prefix );
+                              std::string const& application_version,
+                              config_path_t const& install_prefix);
 
 } }
 

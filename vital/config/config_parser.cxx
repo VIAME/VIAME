@@ -526,7 +526,7 @@ public:
    * This is a state machine driven token extractor.
    *
    * "[a-zA-Z0-9.-_]+"  =>   TK_WORD, value = match
-   * "\[[A-Z,]+\]"     =>   TK_FLAGS, value = match
+   * "\[[A-Z,]+\]"      =>   TK_FLAGS, value = match
    * ":="               =>   TK_LOCAL_ASSIGN, value = rest of line
    * "="                =>   TK_ASSIGN, value = rest of line
    *

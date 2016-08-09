@@ -75,7 +75,7 @@ vital_config_block_block_sep()
       "C::config_block::block_sep", NULL,
       std::string bs( kwiver::vital::config_block::block_sep );
       static_bs = bs.c_str();
-                  );
+    );
   }
   return static_bs;
 }
@@ -93,7 +93,7 @@ vital_config_block_global_value()
       "C::config_block::global_value", NULL,
       std::string gv( kwiver::vital::config_block::global_value );
       static_gv = gv.c_str();
-                  );
+    );
   }
   return static_gv;
 }
@@ -148,7 +148,7 @@ vital_config_block_get_name( vital_config_block_t* cb )
     "C::config_block::get_name", 0,
     std::string name = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )->get_name();
     return name.c_str();
-                );
+  );
   return 0;
 }
 
@@ -198,15 +198,14 @@ vital_config_block_get_value( vital_config_block_t* cb,
     auto cb_sptr = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb );
     if( cb_sptr->has_value( key ) )
     {
-
-    std::string v = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
+      std::string v = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
                       ->get_value< std::string > ( key );
       return v.c_str();
     }
     std::stringstream ss;
     ss << "No value for key '" << key << "'";
     POPULATE_EH( eh, 1, ss.str().c_str() );
-                );
+  );
   return 0;
 }
 
@@ -227,7 +226,7 @@ vital_config_block_get_value_bool( vital_config_block_t*  cb,
     std::stringstream ss;
     ss << "No value for key '" << key << "'";
     POPULATE_EH( eh, 1, ss.str().c_str() );
-                );
+  );
   return false;
 }
 
@@ -243,7 +242,7 @@ vital_config_block_get_value_default( vital_config_block_t* cb,
     "C::config_block::get_value_default", eh,
     return kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
       ->get_value< std::string > ( key, deflt ).c_str();
-                );
+  );
   return 0;
 }
 
@@ -259,7 +258,7 @@ vital_config_block_get_value_default_bool( vital_config_block_t*  cb,
     "C::config_block::get_value_default_bool", eh,
     return kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
       ->get_value< bool > ( key, deflt );
-                );
+  );
   return false;
 }
 
@@ -272,11 +271,10 @@ vital_config_block_get_description( vital_config_block_t* cb,
 {
   STANDARD_CATCH(
     "C::config_block::get_description", eh,
-
     std::string d = kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb )
                       ->get_description( key ).c_str();
     return d.c_str();
-                );
+  );
   return 0;
 }
 

@@ -39,6 +39,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 #include <iostream>
+
 typedef kwiversys::SystemTools ST;
 
 #define TEST_ARGS ()

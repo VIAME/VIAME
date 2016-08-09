@@ -55,24 +55,24 @@ typedef std::function< kwiver::vital::any( const uint8_t*, std::size_t ) > klv_d
 template < typename T, size_t n >
 struct klv_convert_bytes
 {
-kwiver::vital::any
+  kwiver::vital::any
   operator ()( const uint8_t* data, std::size_t length ) const
-{
+  {
     if ( n != length )
-  {
-    kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital.klv_0601" ) );
+    {
+      kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital.klv_0601" ) );
       LOG_DEBUG( logger, "Data type (" <<  n << " bytes) and length ("
-              << length << " bytes) differ in size." );
-  }
+                 << length << " bytes) differ in size." );
+    }
 
-  T value = *( data++ );
-  for ( std::size_t i = 1; i < length; ++i, ++data )
-  {
-    value <<= 8;
-    value |= *data;
-  }
+    T value = *( data++ );
+    for ( std::size_t i = 1; i < length; ++i, ++data )
+    {
+      value <<= 8;
+      value |= *data;
+    }
 
-  return value;
+    return value;
   }
 };
 

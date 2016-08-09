@@ -159,6 +159,7 @@ operator>>( std::istream& s, simple_camera& k )
   {
     d(i) =  dValues[i];
   }
+
   // a single 0 in d is used as a place holder,
   // if a single 0 was loaded then clear d
   if ( ( d.rows() == 1 ) && ( d[0] ==  0.0 ) )

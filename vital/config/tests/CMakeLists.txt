@@ -5,7 +5,6 @@ include(kwiver-test-setup)
 set( test_libraries vital_config kwiversys )
 
 
-
 ##############################
 # Config Tests
 ##############################

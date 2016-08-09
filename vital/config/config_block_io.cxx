@@ -48,7 +48,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <list>
 
 #if defined(_WIN32)
@@ -185,6 +184,7 @@ void append_kwiver_config_paths( config_path_list_t &path_vector )
   path_vector.push_back(".");
   kwiversys::SystemTools::GetPath( path_vector, "KWIVER_CONFIG_PATH" );
 }
+
 } //end anonymous namespace
 
 
@@ -192,8 +192,8 @@ void append_kwiver_config_paths( config_path_list_t &path_vector )
 // Helper method to get all possible locations of application config files
 config_path_list_t
 application_config_file_paths(std::string const& application_name,
-                   std::string const& application_version,
-                   config_path_t const& install_prefix )
+                              std::string const& application_version,
+                              config_path_t const& install_prefix)
 {
   // First, add any paths specified by our local environment variable
   auto paths = config_path_list_t{};
@@ -330,13 +330,12 @@ read_config_file( std::string const& file_name,
   if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
   {
     // The file is on a absolute path.
-    auto const& config = read_config_file( file_name, search_paths );
+    auto const& config = read_config_file( file_name, search_paths, true );
     return config;
   }
 
   // current working directory is already added before KWIVER_CONFIG_PATH
   config_path_list_t local_search_paths( search_paths );
-  local_search_paths.push_back( "." );
 
   // File name is relative, so go through the search process.
   VITAL_FOREACH( auto const& search_path, local_search_paths )

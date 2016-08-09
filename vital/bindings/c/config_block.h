@@ -171,7 +171,7 @@ bool vital_config_block_get_value_bool( vital_config_block_t *cb,
 VITAL_C_EXPORT
 char const*
 vital_config_block_get_value_default( vital_config_block_t *cb,
-                                                      char const *key,
+                                      char const *key,
                                       char const *deflt,
                                       vital_error_handle_t *eh );
 
