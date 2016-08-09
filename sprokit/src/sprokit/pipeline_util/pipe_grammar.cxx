@@ -630,7 +630,7 @@ cluster_grammar<Iterator>
         )
      );
 
-  cluster_block_set.name("cluster-blocks-spec");
+  cluster_block_set.name("cluster-blocks-set");
   cluster_block_set %=
      (  cluster_block
      > *(  common.config_block
