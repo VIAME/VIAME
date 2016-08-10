@@ -192,10 +192,10 @@ vital_camera_intrinsics( vital_camera_t const *cam, vital_error_handle_t *eh );
  */
 VITAL_C_EXPORT
 vital_camera_t*
-vital_camera_look_at( vital_camera_t const *cam,
-                      vital_eigen_matrix3x1d_t const *stare_point,
-                      vital_eigen_matrix3x1d_t const *up_direction,
-                      vital_error_handle_t *eh );
+vital_camera_clone_look_at( vital_camera_t const *cam,
+                            vital_eigen_matrix3x1d_t const *stare_point,
+                            vital_eigen_matrix3x1d_t const *up_direction,
+                            vital_error_handle_t *eh );
 
 
 /// Convert camera to a 3x4 homogeneous projection matrix instance

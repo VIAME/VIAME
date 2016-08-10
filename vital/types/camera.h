@@ -94,8 +94,8 @@ public:
    * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
    * \returns New clone, but set to look at the given point.
    */
-  virtual camera_sptr look_at( const vector_3d &stare_point,
-                               const vector_3d &up_direction=vector_3d::UnitZ() ) const = 0;
+  virtual camera_sptr clone_look_at( const vector_3d &stare_point,
+                                     const vector_3d &up_direction = vector_3d::UnitZ() ) const = 0;
 
   /// Convert to a 3x4 homogeneous projection matrix
   /**
@@ -200,14 +200,14 @@ public:
 
   /// Create a clone of this camera that is rotated to look at the given point
   /**
-   * This version creates a clone and call set_look_at on it.
+   * This implementation creates a clone and call look_at on it.
    *
    * \param stare_point the location at which the camera is oriented to point
    * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
    * \returns New clone, but set to look at the given point.
    */
-  virtual camera_sptr look_at( const vector_3d &stare_point,
-                               const vector_3d &up_direction ) const;
+  virtual camera_sptr clone_look_at( const vector_3d &stare_point,
+                                     const vector_3d &up_direction ) const;
 
   /// Accessor for the camera center of projection using underlying data type
   const vector_3d& get_center() const { return center_; }
@@ -252,8 +252,8 @@ public:
    * \param stare_point the location at which the camera is oriented to point
    * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
    */
-  void set_look_at( const vector_3d &stare_point,
-                    const vector_3d &up_direction = vector_3d::UnitZ() );
+  void look_at( const vector_3d &stare_point,
+                const vector_3d &up_direction = vector_3d::UnitZ() );
 
 protected:
   /// The camera center of project

@@ -127,7 +127,7 @@ def camera_seq(num_cams=20, k=None):
         frac = float(i) / num_cams
         x = 4 * math.cos(2*frac)
         y = 3 * math.sin(2*frac)
-        d[i] = Camera([x, y, 2+frac], r, k).look_at([0, 0, 0])
+        d[i] = Camera([x, y, 2+frac], r, k).clone_look_at([0, 0, 0])
 
     return CameraMap(d)
 
@@ -148,8 +148,8 @@ def init_cameras(num_cams=20, intrinsics=None):
     c = EigenArray.from_iterable((0, 0, 1))
     d = {}
     for i in range(num_cams):
-        cam = Camera(c, r, intrinsics).look_at([0, 0, 0],
-                                               [0, 1, 0])
+        cam = Camera(c, r, intrinsics).clone_look_at([0, 0, 0],
+                                                     [0, 1, 0])
         d[i] = cam
     return CameraMap(d)
 

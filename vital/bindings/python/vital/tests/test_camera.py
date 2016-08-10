@@ -184,13 +184,13 @@ class TestVitalCamera (unittest.TestCase):
         print "Custom newcam string:\n%s" % cam2.as_string()
         nose.tools.assert_equal(cam, cam2)
 
-    def test_look_at(self):
+    def test_clone_look_at(self):
         pp = EigenArray.from_iterable([300, 400])
         k = CameraIntrinsics(1000, pp)
         focus = EigenArray.from_iterable([0, 1, -2])
 
         base = Camera([3, -4, 7], Rotation(), k)
-        cam = base.look_at(focus)
+        cam = base.clone_look_at(focus)
         nose.tools.assert_not_equal(base, cam)
 
         ifocus = cam.project(focus)

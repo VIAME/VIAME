@@ -318,7 +318,7 @@ class Camera (VitalObject):
         with VitalErrorHandle() as eh:
             return cam_depth(self, point, eh)
 
-    def look_at(self, stare_point, up_direction=(0, 0, 1)):
+    def clone_look_at(self, stare_point, up_direction=(0, 0, 1)):
         """
         Create a clone of this camera that is rotated to look at the given point
 
@@ -342,7 +342,7 @@ class Camera (VitalObject):
         up_direction = EigenArray.from_iterable(up_direction,
                                                 target_shape=(3, 1))
         cptr = self._call_cfunc(
-            'vital_camera_look_at',
+            'vital_camera_clone_look_at',
             [self.C_TYPE_PTR, EigenArray.c_ptr_type(3),
              EigenArray.c_ptr_type(3)],
             [self, stare_point, up_direction],
