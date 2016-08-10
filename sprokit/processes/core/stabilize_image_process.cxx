@@ -131,7 +131,7 @@ stabilize_image_process
   kwiver::vital::f2f_homography_sptr src_to_ref_homography;
 
   // timestamp
-  kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
+  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
 
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );

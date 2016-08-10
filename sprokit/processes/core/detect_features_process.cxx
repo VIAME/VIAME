@@ -116,7 +116,7 @@ detect_features_process
 ::_step()
 {
   // timestamp
-  kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
+  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
 
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );

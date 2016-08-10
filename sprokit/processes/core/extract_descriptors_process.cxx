@@ -115,7 +115,7 @@ void
 extract_descriptors_process
 ::_step()
 {
-  kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
+  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
   kwiver::vital::feature_set_sptr features =  grab_from_port_using_trait( feature_set );
 

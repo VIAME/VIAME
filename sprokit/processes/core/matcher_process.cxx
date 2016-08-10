@@ -143,7 +143,7 @@ void
 matcher_process
   ::_step()
 {
-  kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
+  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
   kwiver::vital::image_container_sptr image_data = grab_from_port_using_trait( image );
   kwiver::vital::feature_set_sptr curr_feat = grab_from_port_using_trait( feature_set );
   kwiver::vital::descriptor_set_sptr curr_desc = grab_from_port_using_trait( descriptor_set );

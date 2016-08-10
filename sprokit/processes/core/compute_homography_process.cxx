@@ -119,7 +119,7 @@ compute_homography_process
 {
   kwiver::vital::f2f_homography_sptr src_to_ref_homography;
 
-  kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
+  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
   vital::track_set_sptr tracks = grab_from_port_using_trait( track_set );
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
