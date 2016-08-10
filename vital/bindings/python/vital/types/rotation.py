@@ -50,7 +50,7 @@ from vital.util import (
 class Rotation (VitalObject):
 
     # Override C opaque pointer type to ones that are dependent on size and type
-    TYPE_CACHE = OpaqueTypeCache("Covariance_")
+    TYPE_CACHE = OpaqueTypeCache("Rotation_")
     C_TYPE = TYPE_CACHE.new_type_getter()
     C_TYPE_PTR = TYPE_CACHE.new_ptr_getter()
 
