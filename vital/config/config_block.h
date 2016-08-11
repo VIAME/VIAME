@@ -507,7 +507,7 @@ config_block_get_value_cast_default( config_block_value_t const& value )
  *
  * If the default implementation (using input operator) does not work
  * for your data type, then write a specialized version of this
- * function to do the conversion.
+ * function to do the conversion as show in the following example.
  *
  * Example:
 \code
@@ -551,7 +551,6 @@ config_block_get_value_cast( config_block_value_t const& value )
  * \c true, \c false, \c yes and \c no literal conversion versus just
  * \c 1 and \c 0 (1 and 0 still handled if provided).
  *
- * \note Do not use this in user code. Use config_block_get_value_cast() instead.
  * \param value The value to convert.
  * \returns The value of \p value in the requested type.
  */

@@ -260,6 +260,8 @@ process
   d->configured = true;
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::init()
@@ -279,6 +281,8 @@ process
   d->initialized = true;
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::reset()
@@ -286,6 +290,8 @@ process
   _reset();
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::step()
@@ -314,6 +320,8 @@ process
   {
     datum_t const dat = d->check_required_input();
 
+    // If a non-data datum is in the inputs (these are empty, flush, complete, error, invalid)
+    // then propagate these controls to all output ports.
     if (dat)
     {
       d->grab_from_input_edges();
@@ -324,7 +332,7 @@ process
     else
     {
       // We don't want to reconfigure while the subclass is running. Since the
-      // base class shouldn't be messed with while configuring, we only need to
+      // base class shouldn't be messing with while configuring, we only need to
       // lock around the base class _step method call.
       priv::shared_lock_t const lock(d->reconfigure_mut);
 
@@ -347,6 +355,8 @@ process
   }
 }
 
+
+// ------------------------------------------------------------------
 process::properties_t
 process
 ::properties() const
@@ -354,6 +364,8 @@ process
   return _properties();
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::connect_input_port(port_t const& port, edge_t edge)
@@ -371,6 +383,8 @@ process
   d->connect_input_port(port, edge);
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::connect_output_port(port_t const& port, edge_t edge)
@@ -383,6 +397,8 @@ process
   d->connect_output_port(port, edge);
 }
 
+
+// ------------------------------------------------------------------
 process::ports_t
 process
 ::input_ports() const
@@ -399,6 +415,8 @@ process
   return ports;
 }
 
+
+// ------------------------------------------------------------------
 process::ports_t
 process
 ::output_ports() const
@@ -415,6 +433,8 @@ process
   return ports;
 }
 
+
+// ------------------------------------------------------------------
 process::port_info_t
 process
 ::input_port_info(port_t const& port)
@@ -429,6 +449,8 @@ process
   return _output_port_info(port);
 }
 
+
+// ------------------------------------------------------------------
 bool
 process
 ::set_input_port_type(port_t const& port, port_type_t const& new_type)
@@ -446,6 +468,8 @@ process
   return _set_input_port_type(port, new_type);
 }
 
+
+// ------------------------------------------------------------------
 bool
 process
 ::set_output_port_type(port_t const& port, port_type_t const& new_type)
@@ -463,6 +487,8 @@ process
   return _set_output_port_type(port, new_type);
 }
 
+
+// ------------------------------------------------------------------
 kwiver::vital::config_block_keys_t
 process
 ::available_config() const
@@ -479,6 +505,8 @@ process
   return keys;
 }
 
+
+// ------------------------------------------------------------------
 kwiver::vital::config_block_keys_t
 process
 ::available_tunable_config()
@@ -505,6 +533,8 @@ process
   return keys;
 }
 
+
+// ------------------------------------------------------------------
 process::conf_info_t
 process
 ::config_info(kwiver::vital::config_block_key_t const& key)
@@ -512,6 +542,8 @@ process
   return _config_info(key);
 }
 
+
+// ------------------------------------------------------------------
 process::name_t
 process
 ::name() const
@@ -519,6 +551,8 @@ process
   return d->name;
 }
 
+
+// ------------------------------------------------------------------
 process::type_t
 process
 ::type() const
@@ -526,6 +560,8 @@ process
   return d->type;
 }
 
+
+// ------------------------------------------------------------------
 //
 // CTOR
 //
@@ -560,23 +596,31 @@ process
     port_frequency_t(1));
 }
 
+
+// ------------------------------------------------------------------
 process
 ::~process()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::_configure()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::_init()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::_reset()
@@ -596,24 +640,32 @@ process
   d->core_frequency.reset();
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::_flush()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::_step()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::_reconfigure(kwiver::vital::config_block_sptr const& /*conf*/)
 {
 }
 
+
+// ------------------------------------------------------------------
 process::properties_t
 process
 ::_properties() const
@@ -625,6 +677,8 @@ process
   return consts;
 }
 
+
+// ------------------------------------------------------------------
 process::ports_t
 process
 ::_input_ports() const
@@ -632,6 +686,8 @@ process
   return ports_t();
 }
 
+
+// ------------------------------------------------------------------
 process::ports_t
 process
 ::_output_ports() const
@@ -639,6 +695,8 @@ process
   return ports_t();
 }
 
+
+// ------------------------------------------------------------------
 process::port_info_t
 process
 ::_input_port_info(port_t const& port)
@@ -653,6 +711,8 @@ process
   throw no_such_port_exception(d->name, port);
 }
 
+
+// ------------------------------------------------------------------
 process::port_info_t
 process
 ::_output_port_info(port_t const& port)
@@ -667,6 +727,8 @@ process
   throw no_such_port_exception(d->name, port);
 }
 
+
+// ------------------------------------------------------------------
 bool
 process
 ::_set_input_port_type(port_t const& port, port_type_t const& new_type)
@@ -738,6 +800,8 @@ process
   return true;
 }
 
+
+// ------------------------------------------------------------------
 bool
 process
 ::_set_output_port_type(port_t const& port, port_type_t const& new_type)
@@ -809,6 +873,8 @@ process
   return true;
 }
 
+
+// ------------------------------------------------------------------
 kwiver::vital::config_block_keys_t
 process
 ::_available_config() const
@@ -816,6 +882,8 @@ process
   return kwiver::vital::config_block_keys_t();
 }
 
+
+// ------------------------------------------------------------------
 process::conf_info_t
 process
 ::_config_info(kwiver::vital::config_block_key_t const& key)
@@ -830,6 +898,8 @@ process
   throw unknown_configuration_value_exception(d->name, key);
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::declare_input_port(port_t const& port, port_info_t const& info)
@@ -907,6 +977,8 @@ process
   d->input_ports[port] = info;
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::declare_input_port(port_t const& port,
@@ -922,6 +994,8 @@ process
     frequency_));
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::declare_output_port(port_t const& port, port_info_t const& info)
@@ -967,6 +1041,8 @@ process
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::declare_output_port(port_t const& port,
@@ -982,6 +1058,8 @@ process
     frequency_));
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
@@ -1007,6 +1085,8 @@ process
     new_frequency);
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::set_output_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
@@ -1032,6 +1112,8 @@ process
     new_frequency);
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::remove_input_port(port_t const& port)
@@ -1071,6 +1153,8 @@ process
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::remove_output_port(port_t const& port)
@@ -1114,6 +1198,8 @@ process
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::declare_configuration_key(kwiver::vital::config_block_key_t const& key, conf_info_t const& info)
@@ -1126,6 +1212,8 @@ process
   d->config_keys[key] = info;
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::declare_configuration_key(kwiver::vital::config_block_key_t const& key,
@@ -1139,6 +1227,8 @@ process
     tunable_));
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::mark_process_as_complete()
@@ -1155,6 +1245,8 @@ process
   }
 }
 
+
+// ------------------------------------------------------------------
 bool
 process
 ::has_input_port_edge(port_t const& port) const
@@ -1167,6 +1259,8 @@ process
   return (0 != d->input_edges.count(port));
 }
 
+
+// ------------------------------------------------------------------
 size_t
 process
 ::count_output_port_edges(port_t const& port) const
@@ -1200,6 +1294,8 @@ process
   return edges.size();
 }
 
+
+// ------------------------------------------------------------------
 edge_datum_t
 process
 ::peek_at_port(port_t const& port, size_t idx) const
@@ -1224,6 +1320,8 @@ process
   return edge->peek_datum(idx);
 }
 
+
+// ------------------------------------------------------------------
 datum_t
 process
 ::peek_at_datum_on_port(port_t const& port, size_t idx) const
@@ -1233,6 +1331,8 @@ process
   return edat.datum;
 }
 
+
+// ------------------------------------------------------------------
 edge_datum_t
 process
 ::grab_from_port(port_t const& port) const
@@ -1257,6 +1357,8 @@ process
   return edge->get_datum();
 }
 
+
+// ------------------------------------------------------------------
 datum_t
 process
 ::grab_datum_from_port(port_t const& port) const
@@ -1266,6 +1368,8 @@ process
   return edat.datum;
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::push_to_port(port_t const& port, edge_datum_t const& dat) const
@@ -1302,6 +1406,8 @@ process
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::push_datum_to_port(port_t const& port, datum_t const& dat) const
@@ -1352,6 +1458,8 @@ process
   push_to_port(port, edge_datum_t(dat, push_stamp));
 }
 
+
+// ------------------------------------------------------------------
 kwiver::vital::config_block_sptr
 process
 ::get_config() const
@@ -1359,6 +1467,8 @@ process
   return d->conf;
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::set_data_checking_level(data_check_t check)
@@ -1366,6 +1476,8 @@ process
   d->check_input_level = check;
 }
 
+
+// ------------------------------------------------------------------
 process::data_info_t
 process
 ::edge_data_info(edge_data_t const& data)
@@ -1383,6 +1495,7 @@ process
 
     datum::type_t const type = dat->type();
 
+    // Select the highest value in the type enum.
     if (max_type < type)
     {
       max_type = type;
@@ -1397,6 +1510,8 @@ process
   return boost::make_shared<data_info>(in_sync, max_type);
 }
 
+
+// ------------------------------------------------------------------
 kwiver::vital::config_block_value_t
 process
 ::config_value_raw(kwiver::vital::config_block_key_t const& key) const
@@ -1418,6 +1533,8 @@ process
   return info->def;
 }
 
+
+// ------------------------------------------------------------------
 bool
 process
 ::is_static_input(port_t const& port) const
@@ -1425,6 +1542,8 @@ process
   return (0 != d->static_inputs.count(port));
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::set_core_frequency(port_frequency_t const& frequency)
@@ -1455,6 +1574,8 @@ process
   d->make_output_stamps();
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::reconfigure(kwiver::vital::config_block_sptr const& conf)
@@ -1506,6 +1627,8 @@ process
   _reconfigure(conf);
 }
 
+
+// ------------------------------------------------------------------
 void
 process
 ::reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf)
@@ -1596,6 +1719,8 @@ process
 }
 
 
+
+// ------------------------------------------------------------------
 kwiver::vital::logger_handle_t
 process
 ::attach_logger( kwiver::vital::logger_handle_t log )
@@ -1606,6 +1731,8 @@ process
 }
 
 
+
+// ------------------------------------------------------------------
 kwiver::vital::logger_handle_t
 process::logger() const
 {
@@ -1725,6 +1852,13 @@ process::priv
 
 
 // ------------------------------------------------------------------
+/**
+ * @brief Check all required ports.
+ *
+ * This method checks all required
+ *
+ * @return
+ */
 datum_t
 process::priv
 ::check_required_input()
@@ -1738,6 +1872,7 @@ process::priv
   edge_data_t first_data;
   edge_data_t data;
 
+  // Loop over all required ports
   VITAL_FOREACH (port_t const& port, required_inputs)
   {
     input_edge_map_t::const_iterator const i = input_edges.find(port);
@@ -1763,6 +1898,8 @@ process::priv
       continue;
     }
 
+    // Since the top element in the edge was not flush or complete,
+    // look through the rest of the input on this edge.
     port_info_t const& port_info = q->input_port_info(port);
     port_frequency_t const& freq = port_info->frequency;
 
@@ -1775,7 +1912,7 @@ process::priv
 
       data.push_back(edat);
     }
-  }
+  } // end foreach port
 
   data_info_t const first_info = edge_data_info(first_data);
 
@@ -1804,19 +1941,24 @@ process::priv
   {
     case datum::data:
       break;
+
     case datum::empty:
       return datum::empty_datum();
+
     case datum::flush:
       q->_flush();
       return datum::flush_datum();
+
     case datum::complete:
       return datum::complete_datum();
+
     case datum::error:
     {
       static datum::error_t const err_string = datum::error_t("Error in a required input edge.");
 
       return datum::error_datum(err_string);
     }
+
     case datum::invalid:
     default:
     {
@@ -2049,11 +2191,15 @@ process::priv::input_port_info_t
 {
 }
 
+
+// ------------------------------------------------------------------
 process::priv::input_port_info_t
 ::~input_port_info_t()
 {
 }
 
+
+// ------------------------------------------------------------------
 process::priv::output_port_info_t
 ::output_port_info_t()
   : edges()
@@ -2061,6 +2207,8 @@ process::priv::output_port_info_t
 {
 }
 
+
+// ------------------------------------------------------------------
 process::priv::output_port_info_t
 ::~output_port_info_t()
 {

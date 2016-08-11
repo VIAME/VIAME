@@ -62,6 +62,7 @@ class SPROKIT_PIPELINE_EXPORT datum
     typedef std::string error_t;
 
     /// The type of the datum being passed through the edge.
+    /// Order of this enum is important.
     typedef enum
     {
       /// Data is included in the edge.
