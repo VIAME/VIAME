@@ -287,7 +287,21 @@ void
 process
 ::reset()
 {
-  _reset();
+  _reset(); // call delegated method
+
+  d->input_edges.clear();
+
+  {
+    priv::unique_lock_t lock(d->output_edges_mut);
+
+    (void)lock;
+
+    d->output_edges.clear();
+  }
+
+  d->configured = false;
+  d->initialized = false;
+  d->core_frequency.reset();
 }
 
 
@@ -625,19 +639,6 @@ void
 process
 ::_reset()
 {
-  d->input_edges.clear();
-
-  {
-    priv::unique_lock_t lock(d->output_edges_mut);
-
-    (void)lock;
-
-    d->output_edges.clear();
-  }
-
-  d->configured = false;
-  d->initialized = false;
-  d->core_frequency.reset();
 }
 
 
