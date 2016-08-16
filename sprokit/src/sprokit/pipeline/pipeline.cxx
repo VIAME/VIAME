@@ -1190,8 +1190,8 @@ pipeline::priv
 pipeline::priv::port_type_status
 pipeline::priv
 ::check_connection_types(process::connection_t const& connection,
-                         process::port_type_t const& up_type, p
-                         rocess::port_type_t const& down_type)
+                         process::port_type_t const& up_type,
+                         process::port_type_t const& down_type)
 {
   bool const up_data_dep = (up_type == process::type_data_dependent);
 

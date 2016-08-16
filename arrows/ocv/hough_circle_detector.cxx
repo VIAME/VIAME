@@ -28,6 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief Implementation for hough_circle_detector
+ */
+
 #include "hough_circle_detector.h"
 
 #include <arrows/ocv/image_container.h>
@@ -74,8 +79,7 @@ public:
 hough_circle_detector::
 hough_circle_detector()
   : d( new priv )
-{
-}
+{ }
 
 
 hough_circle_detector::
