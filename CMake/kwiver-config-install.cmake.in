@@ -15,14 +15,18 @@ endif ()
 
 # kwiver include directory
 set(KWIVER_INCLUDE_DIR        "@CMAKE_INSTALL_PREFIX@/include")
-set(KWIVER_INCLUDE_DIRS        ${KWIVER_INCLUDE_DIR}  ${Boost_INCLUDE_DIRS})
+set(KWIVER_INCLUDE_DIRS       "${KWIVER_INCLUDE_DIR}"  "${Boost_INCLUDE_DIRS}"
+                              "@EIGEN3_INCLUDE_DIR@" )
 set(KWIVER_LIBRARY_DIR        "@CMAKE_INSTALL_PREFIX@/${libdir}")
-set(KWIVER_LIBRARY_DIRS        ${KWIVER_LIBRARY_DIR}  ${Boost_LIBRARY_DIRS})
+set(KWIVER_LIBRARY_DIRS       "${KWIVER_LIBRARY_DIR}"  "${Boost_LIBRARY_DIRS}")
 set(KWIVER_MODULE_DIR         "${KWIVER_LIBRARY_DIR}/modules")
 set(KWIVER_DOCUMENTATION_DIR  "@CMAKE_INSTALL_PREFIX@/share/doc/kwiver-@KWIVER_VERSION@")
 set(KWIVER_CMAKE_DIR          "${KWIVER_LIBRARY_DIR}/cmake/kwiver")
 
-set(fletch_DIR @fletch_DIR@ CACHE PATH "Path to fletch package")
+# Extend module path for KWIVER utils
+set(CMAKE_MODULE_PATH "${KWIVER_CMAKE_DIR}" "${CMAKE_MODULE_PATH}")
+
+set(fletch_DIR "@fletch_DIR@" CACHE PATH "Path to fletch package")
 
 #set(KWIVER_PIPE_INSTALL_PATH  "@CMAKE_INSTALL_PREFIX@/share/kwiver/pipelines")
 #set(KWIVER_PIPE_INCLUDE_INSTALL_PATH  "${KWIVER_PIPE_INSTALL_PATH}/include")
