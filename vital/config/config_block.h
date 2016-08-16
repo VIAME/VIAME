@@ -452,6 +452,11 @@ private:
 // ==================================================================
 // ---- get value group ----
 // ------------------------------------------------------------------
+/** \defgroup get_value_group Get Config Value Group
+ * Functions to get typed values from a config entry.
+ * @{
+ */
+
 /// Default cast handling for getting configuration values.
 /**
  * The specified value is converted into a form suitable for this
@@ -474,9 +479,6 @@ inline
 R
 config_block_get_value_cast_default( config_block_value_t const& value )
 {
-  // replace boost::lexical_cast
-  // Currently a problem dealing with values with embedded white space
-  // e.g. "one two" will only have the first work converted.
   try
   {
     std::stringstream interpreter;
@@ -501,7 +503,6 @@ config_block_get_value_cast_default( config_block_value_t const& value )
 // ------------------------------------------------------------------
 /// Cast a configuration value to the requested type.
 /**
- *
  * This method converts the config block value from its native string
  * representation to the desired type.
  *
@@ -545,7 +546,7 @@ config_block_get_value_cast( config_block_value_t const& value )
 
 
 // ------------------------------------------------------------------
-/// Type-specific casting handling, config_block_value_t->bool specialization
+/// Type-specific casting handling for config_block_value_t->bool specialization
 /**
  * This is the \c bool to \c config_block_value_t specialization to handle
  * \c true, \c false, \c yes and \c no literal conversion versus just
@@ -615,10 +616,16 @@ config_block
     return def;
   }
 }
+//@}
 
 // ==================================================================
 //  ---- set value group ----
 // ------------------------------------------------------------------
+  /** \defgroup set_value_group Set Config Value Group
+ * Functions to set typed values in a config entry.
+ * @{
+ */
+
 /// Default cast handling for setting config values
 /**
  * The supplied value is converted from its native type to a string
@@ -629,7 +636,8 @@ config_block
  * around this problem define a specialized version of
  * config_block_set_value_cast<>() for your specific type.
  *
- * \note Do not use this in user code. Use config_block_set_value_cast() instead.
+ * \note Do not use this in user code. Use
+ * config_block_set_value_cast() instead.
  *
  * \param value   Value to be converted to string representation.
  * \tparam T Type to be converted.
@@ -663,7 +671,6 @@ config_block_set_value_cast_default( T const& value )
 // ------------------------------------------------------------------
 /// Cast a configuration value to the requested type.
 /**
- *
  * This method converts the user supplied value from its native form
  * to a string representation to the desired type.
  *
@@ -733,7 +740,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Type-specific handling, bool->cb_value_t specialization
+/// Type-specific handling, bool->config_block_value_t specialization
 /**
  * This is the \c config_block_value_t to \c bool specialization that outputs
  * \c true and \c false literals instead of 1 or 0.
@@ -741,8 +748,6 @@ config_block
  * \param key The configuration key string
  * \param value The value to convert.
  * \param descr Configuration item descrription
- *
- * \returns The value of \p value as either "true" or "false".
  */
 template < >
 inline
@@ -757,7 +762,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-/// Type-specific handling, string->cb_value_t specialization
+/// Type-specific handling, string->config_block_value_t specialization
 /**
  * This is the \c config_block_value_t to \c string specialization that outputs
  * the value string directly.
@@ -765,8 +770,6 @@ config_block
  * \param key The configuration key string
  * \param value The value to convert.
  * \param descr Configuration item descrription
- *
- * \returns The value of \p value as either "true" or "false".
  */
 template < >
 inline
@@ -778,6 +781,7 @@ config_block
 {
   this->i_set_value( key, value, descr );
 }
+//@}
 
 } }
 

@@ -48,19 +48,45 @@ namespace matlab {
 
 typedef std::shared_ptr<mxArray> mxArraySptr;
 
-//@{
+/** \defgroup create_matlab_array Create Matlab Array
+ * Factory functions to create managed Matlab arrays.
+ * @{
+ */
+
 /**
- * @brief Create empty Matlab managed array,
+ * @brief Create empty Matlab managed array.
  *
  * This function is a factory for managed Matlab arrays.
  *
- * @param r - number of rows in the matrix
- * @param c - number of columns in the matrix
+ * @param r - number of rows in the array
+ * @param c - number of columns in the array
  *
  * @return Managed pointer to the newly allocated array.
  */
 VITAL_MATLAB_EXPORT mxArraySptr create_mxByteArray( size_t r, size_t c );
+
+/**
+ * @brief Create empty Matlab managed array.
+ *
+ * This function is a factory for managed Matlab arrays.
+ *
+ * @param r - number of rows in the array
+ * @param c - number of columns in the array
+ *
+ * @return Managed pointer to the newly allocated array.
+ */
 VITAL_MATLAB_EXPORT mxArraySptr create_mxIntArray( size_t r, size_t c );
+
+/**
+ * @brief Create empty Matlab managed array.
+ *
+ * This function is a factory for managed Matlab arrays.
+ *
+ * @param r - number of rows in the array
+ * @param c - number of columns in the array
+ *
+ * @return Managed pointer to the newly allocated array.
+ */
 VITAL_MATLAB_EXPORT mxArraySptr create_mxDoubleArray( size_t r, size_t c );
 //@}
 
