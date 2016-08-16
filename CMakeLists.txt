@@ -221,6 +221,7 @@ kwiver_configure_file(kwiver-config
   KWIVER_CMAKE_DIR
   kwiver_libs
   fletch_DIR
+  EIGEN3_INCLUDE_DIR
   )
 
 kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
@@ -237,6 +238,7 @@ kwiver_configure_file(kwiver-install-config
   CMAKE_INSTALL_PREFIX
   kwiver_libs
   fletch_DIR
+  EIGEN3_INCLUDE_DIR
   )
 
 kwiver_install(
