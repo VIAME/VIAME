@@ -159,6 +159,9 @@ set_configuration(vital::config_block_sptr config)
 
   // Convert configuration to matlab format
   // TBD
+  // Since the config is a key/value pair, send in two pairs of strings?
+  // As an array? How about repeated eval calls to a function set_config( key, value ).
+  //
 
   // Pass configuration to matlab detector
   d->m_matlab_engine->eval( "set_configuration()" );
