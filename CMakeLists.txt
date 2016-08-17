@@ -12,9 +12,13 @@ include(CMakeDependentOption)
 # Look for and use Fletch to find dependencies
 #
 find_package( kwiver REQUIRED )
+include_directories( ${KWIVER_INCLUDE_DIRS} )
+link_directories( ${KWIVER_LIBRARY_DIR} )
+LIST( INSERT CMAKE_MODULE_PATH  0         "${KWIVER_CMAKE_DIR}" )
 
 if ( IS_DIRECTORY ${fletch_DIR} )
   find_package( fletch NO_MODULE )
+  LIST( APPEND CMAKE_PREFIX_PATH  "${fletch_DIR}" )
 endif()
 
 find_package( OpenCV 2.4.6 REQUIRED )
@@ -48,3 +52,4 @@ set(kwiver_export_name      viame_exports)
 ## add_subdirectory( processes )
 add_subdirectory( algorithms )
 add_subdirectory( pipelines )
+add_subdirectory( examples )
