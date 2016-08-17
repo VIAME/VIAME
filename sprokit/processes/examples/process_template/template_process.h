@@ -47,6 +47,8 @@
 
 #include <memory>
 
+namespace group_ns {
+
 // ----------------------------------------------------------------
 /**
  * @brief brief description
@@ -88,6 +90,6 @@ private:
 
 }; // end class view_image_process
 
-} // end namespace
+}
 
 #endif // GROUP_TEMPLATE_PROCESS_H

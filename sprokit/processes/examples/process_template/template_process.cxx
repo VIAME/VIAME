@@ -22,7 +22,7 @@
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+[ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -38,11 +38,19 @@
 //++ include process class/interface
 #include "template_process.h"
 
+#include <sprokit/processes/kwiver_type_traits.h>
+#include <vital/types/timestamp.h>
+#include <arrows/ocv/image_container.h>
+
+#include <opencv2/core/core.hpp>
+
 //++ You can put all of your processes in the same namespace
-namespace group {
+namespace group_ns {
 
 //++ Insert process documentation here. Don't be shy about adding detail.
 //++ This description is collected by doxygen for the on-line documentation.
+//++ Since the header file is mostly boiler-plate, the process docomentation
+//++ is in the implementation file where it is more likely to be read and updated.
 // ----------------------------------------------------------------
 /**
  * \class template_process
@@ -75,6 +83,7 @@ namespace group {
 // <name>, <type>, <default string>, <description string>
 create_config_trait( header, std::string, "top", "Header text for image display." );
 create_config_trait( footer, std::string, "bottom", "Footer text for image display. Displayed centered at bottom of image." );
+create_config_trait( gsd, double, "3.14159", "Meters per pixel scaling." );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -84,9 +93,12 @@ public:
   priv();
   ~priv();
 
+  cv::Mat process_image( cv::Mat img ) { return img; }
+
   // Configuration values
   std::string m_header;
   std::string m_footer;
+  double m_gsd;
 }; // end priv class
 
 // ================================================================
@@ -121,8 +133,11 @@ template_process
 {
   //++ Use config traits to access the value for the parameters.
   //++ Values are usually stored in the private structure.
-  d->m_header         = config_value_using_trait( header );
-  d->m_footer         = config_value_using_trait( footer );
+  //++ These config items are not really used in this process.
+  //++ There are shown here as an example.
+  d->m_header = config_value_using_trait( header );
+  d->m_footer = config_value_using_trait( footer );
+  d->m_gsd    = config_value_using_trait( gsd ); // converted to double
 }
 
 
@@ -134,7 +149,8 @@ template_process
   kwiver::vital::timestamp frame_time;
 
   // See if optional input port has been connected.
-  //++ Best practice seeing if an optional input port is connected.
+  // Get input only if connected.
+  //++ Best practice - checking if an optional input port is connected.
   if ( has_input_port_edge_using_trait( timestamp ) )
   {
     frame_time = grab_from_port_using_trait( timestamp );
@@ -144,10 +160,10 @@ template_process
 
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  cv::Mat in_image = arrows::ocv::image_container::vital_to_ocv( img->get_image() );
+  cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
 
-  // process image
-  cv::Mat out_image = process_image( in_image );
+  //++ Here is where the process does its work.
+  kwiver::vital::image_container_sptr out_image (new kwiver::arrows::ocv::image_container( d->process_image( in_image ) ) );
 
   push_to_port_using_trait( image, out_image );
 }
@@ -220,6 +236,7 @@ template_process
   //++ This makes the configuration items visible to sprokit pipeline framework.
   declare_config_using_trait( header );
   declare_config_using_trait( footer );
+  declare_config_using_trait( gsd );
 }
 
 
@@ -227,6 +244,7 @@ template_process
 //++ Initialize any private data here
 template_process::priv
 ::priv()
+  : m_gsd( 0.1122 )
 {
 }
 

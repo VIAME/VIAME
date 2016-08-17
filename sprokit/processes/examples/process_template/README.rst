@@ -15,7 +15,7 @@ This directory contains the following files:
 CMakeLists.txt - Description of how to build the process(es) into a
     loadable module
 
-README.tsy - this file
+README.rst - this file
 
 register_processes.cxx - Process registration code. This file acts as
     the executable hook in the module. It contains an interface
@@ -28,7 +28,32 @@ template_process.[h,cxx] - These are the skelital process code. They
     occurrences of "template" with something more meaningful in the
     application context, including in the file name.
 
-template_types_traits.h - This file is a minimal starter/place holder
-    for creating new type andport traits for a new application. If a
+template_types_traits.h - This file is a minimal starter/place-holder
+    for creating new type and port traits for a new application. If a
     new project has application specific data type semantics, then it
     is useful to set up type traits for these types.
+
+
+A quick overview of processes
+-----------------------------
+
+A process is a unit of execution in the sprokit pipeline. Processes
+typically have input and output ports that are connected to other
+processes to form a pipeline. (Not a strict pipeline but more of a
+directed graph.) Once a process has been initialized, it runs in a
+loop, reading inputs, processing that data, and creating outputs.
+
+Pipelines are created by sprokit from a pipeline configuration file
+which processes to use and how they are connected. Sprokit collects a
+set of known processes by dynamically loading a set of files (called
+modules or plug-ins) from a set of directories. Each of these files
+can contain one or more processes which register themselves with
+sprokit process management.
+
+When connecting processes, the ports must be declared as having the
+same data type or an error will be thrown. This data type is a string
+defining the logical or semantic data type that appears when creating
+type traits (See template_type_traits.h file). It is important to make
+the distinction between physical data types and logical data
+types. Naming the data type based on its purpose will make for a more
+robust application.
