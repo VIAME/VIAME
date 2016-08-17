@@ -28,7 +28,6 @@ The simplest form of a congig entry is:
 
 ```
 simple = value
-
 ```
 
 Configuration entries can be grouped so that entries for a specific
@@ -39,8 +38,9 @@ the *foo* algorithm can be specified as
 foo:mode = red
 foo:sync = false
 foo:debug = false
+```
 
-``` by prepending the block/subblock name before the name with a ":"
+by prepending the block/subblock name before the name with a ":"
 separator. All conrig entries for *foo* can be extracted from the
 larger config into a subblock that is expected by the
 algorithm. Blocks can be nested to an arbitrary depth, as shown below.
@@ -55,7 +55,6 @@ assigned another value or deleted from the config.
 
 ```
 simple[RO] = value
-
 ```
 
 
@@ -85,7 +84,6 @@ block foo
     mode = yellow     # becomes foo:bar:fizzle:mode = yellow
   endblock
 endblock
-
 ```
 ### Including Files
 
@@ -117,8 +115,9 @@ block main
     include alg_foo.config
   endblock
 endblock
+```
 
-``` In this case the same configuration structure can be used in two
+In this case the same configuration structure can be used in two
 places in the overall configuration.
 
 Include files can be nested to an arbitrary depth.

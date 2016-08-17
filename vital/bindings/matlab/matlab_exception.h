@@ -28,39 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H
-#define ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H
+/**
+ * \file
+ * \brief Interface to matlab exceptions
+ */
 
-#include <arrows/ocv/kwiver_algo_ocv_export.h>
+#ifndef KWIVER_VITAL_MATLAB_EXCEPTION_H
+#define KWIVER_VITAL_MATLAB_EXCEPTION_H
 
-#include <vital/algo/image_object_detector.h>
+#include <vital/vital_config.h>
+#include <vital/bindings/matlab/vital_matlab_export.h>
+#include <vital/exceptions/base.h>
 
 namespace kwiver {
-namespace arrows {
-namespace ocv {
+namespace vital {
+namespace matlab {
 
-class KWIVER_ALGO_OCV_EXPORT hough_circle_detector
-  : public vital::algorithm_impl< hough_circle_detector, vital::algo::image_object_detector>
+// -----------------------------------------------------------------
+/**
+ *
+ *
+ */
+class VITAL_MATLAB_EXPORT matlab_exception
+  : public vital_core_base_exception
 {
 public:
-  hough_circle_detector();
-  hough_circle_detector( const hough_circle_detector& other );
-  virtual ~hough_circle_detector();
+  // -- CONSTRUCTORS --
+  matlab_exception(const std::string& msg) VITAL_NOTHROW;
 
-  virtual std::string impl_name() const { return "hough_circle_detector"; }
+  virtual ~matlab_exception() VITAL_NOTHROW;
 
-  virtual vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
-
-  // Main detection method
-  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data) const;
-
-private:
-  class priv;
-  const std::unique_ptr<priv> d;
-};
+}; // end class matlab_exception
 
 } } } // end namespace
 
-#endif /* ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H */
+#endif /* KWIVER_VITAL_MATLAB_EXCEPTION_H */

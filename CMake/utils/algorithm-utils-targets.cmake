@@ -63,7 +63,7 @@ function(algorithms_create_plugin    base_lib)
   message( STATUS "Building plugin \"${base_lib}\"" )
 
   # Configure template cxx source file
-  set(shell_source "${ARROWS_SOURCE_DIR}/templates/cxx/plugin_shell.cxx")
+  set(shell_source "${KWIVER_CMAKE_DIR}/templates/cxx/plugin_shell.cxx")
 
   # Make a plugin from the supplied files. The name here is largely
   # irrelevant since they are discovered at run time.

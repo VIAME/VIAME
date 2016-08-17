@@ -1,0 +1,165 @@
+/*ckwg +29
+ * Copyright 2016 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ * \brief Implementation for MatLab engine interface class.
+ */
+
+#include "matlab_engine.h"
+#include "matlab_exception.h"
+
+#include <sstream>
+
+namespace kwiver {
+namespace vital {
+namespace matlab {
+
+// ------------------------------------------------------------------
+matlab_engine::
+matlab_engine()
+  : m_logger( kwiver::vital::get_logger( "vital.matlab_engine" ) )
+  , m_engine_handle( 0 )
+  , m_output_buffer( 0 )
+{
+  int retcode( 0 );
+
+  m_engine_handle = engOpenSingleUse( 0, 0, &retcode );
+
+  throw matlab_exception( "Error opening MatLab engine" );
+
+  m_output_buffer = static_cast< char * >(malloc( 4096 ));
+  int status = engOutputBuffer( m_engine_handle, m_output_buffer, 4096 );
+  if ( status )
+  {
+    throw matlab_exception("Invalid engine handle in engOutputBuffer() call" );
+  }
+}
+
+
+// ------------------------------------------------------------------
+matlab_engine::
+~matlab_engine()
+{
+  int status = engClose( m_engine_handle );
+
+  m_engine_handle = 0;
+
+  if ( status )
+  {
+    LOG_WARN( m_logger, "Error returned from closing MatLab engine: " << status );
+  }
+
+  free( m_output_buffer );
+}
+
+
+// ------------------------------------------------------------------
+void
+matlab_engine::
+eval( const std::string& cmd )
+{
+  int status = engEvalString( m_engine_handle, cmd.c_str() );
+  if ( 1 == status )
+  {
+    throw matlab_exception( "Engine session no longer active" );
+  }
+}
+
+
+// ------------------------------------------------------------------
+std::shared_ptr< mxArray >
+matlab_engine::
+get_variable( const std::string& name )
+{
+  mxArray* var = engGetVariable( m_engine_handle, name.c_str() );
+  if ( ! var )
+  {
+    std::stringstream str;
+    str << "Variable \"" << name << "\" does not exist.";
+    throw matlab_exception( str.str() );
+  }
+
+  return mxArraySptr( var, mxDestroyArray );
+}
+
+
+// ------------------------------------------------------------------
+void
+matlab_engine::
+put_variable( const std::string& name, mxArraySptr val )
+{
+  int status = engPutVariable( m_engine_handle, name.c_str(), val.get() );
+  if ( status )
+  {
+    std::stringstream str;
+    str << "Variable \"" << name << "\" does not exist.";
+    throw matlab_exception( str.str() );
+  }
+}
+
+
+// ------------------------------------------------------------------
+bool
+matlab_engine::
+get_visible()
+{
+  bool retval( 0 );
+  int status = engGetVisible( m_engine_handle, &retval );
+  if ( status )
+  {
+    LOG_WARN( m_logger, "Error returned from engGetVisible()");
+  }
+  return retval;
+}
+
+
+// ------------------------------------------------------------------
+void
+matlab_engine::
+set_visible( bool vis )
+{
+  int status = engSetVisible( m_engine_handle, vis );
+  if ( status )
+  {
+    LOG_WARN( m_logger, "Error returned from engSetVisible()");
+  }
+}
+
+
+// ------------------------------------------------------------------
+std::string
+matlab_engine::
+engine_output() const
+{
+  return std::string( m_output_buffer );
+}
+
+} } }     // end namesapce

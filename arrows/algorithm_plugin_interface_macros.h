@@ -52,7 +52,7 @@
  */
 #define REGISTRATION_INIT( reg ) \
   unsigned int algorithms_api_expected_ = 0, algorithms_api_registered_ = 0; \
-  vital::registrar &algorithms_api_registrar_ = reg
+  kwiver::vital::registrar &algorithms_api_registrar_ = reg
 
 
 /// Log to standard error a summary of registration results

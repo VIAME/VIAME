@@ -28,26 +28,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H
-#define ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H
+/**
+ * \file
+ * \brief Header defining matlab bindings to image object detector
+ */
 
-#include <arrows/ocv/kwiver_algo_ocv_export.h>
+#ifndef VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H
+#define VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H
 
 #include <vital/algo/image_object_detector.h>
+#include <vital/bindings/matlab/vital_matlab_export.h>
 
 namespace kwiver {
-namespace arrows {
-namespace ocv {
+namespace vital {
+namespace matlab {
 
-class KWIVER_ALGO_OCV_EXPORT hough_circle_detector
-  : public vital::algorithm_impl< hough_circle_detector, vital::algo::image_object_detector>
+class VITAL_MATLAB_EXPORT matlab_image_object_detector
+  : public vital::algorithm_impl< matlab_image_object_detector, vital::algo::image_object_detector >
 {
 public:
-  hough_circle_detector();
-  hough_circle_detector( const hough_circle_detector& other );
-  virtual ~hough_circle_detector();
+  matlab_image_object_detector();
+  matlab_image_object_detector( const matlab_image_object_detector& other );
+  virtual ~matlab_image_object_detector();
 
-  virtual std::string impl_name() const { return "hough_circle_detector"; }
+  virtual std::string impl_name() const { return "matlab_image_object_detector"; }
 
   virtual vital::config_block_sptr get_configuration() const;
   virtual void set_configuration(vital::config_block_sptr config);
@@ -63,4 +67,5 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H */
+
+#endif /* VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H */

@@ -111,8 +111,8 @@ kwiver::vital::config_block_description_t const  NAME ## _config_trait::descript
  *
  * \param KEY Configuration item key name. Also the trait name.
  * \param TYPE Data type for this configuration item.
- * \param DEF Default value for this configuration item.
- * \param DESCR Description of configuration item.
+ * \param DEF Default value for this configuration item. This must be a suitable initializer for a string.
+ * \param DESCR Description of configuration item. This must be a suitable initializer for a string.
  */
 #define create_config_trait(KEY, TYPE, DEF, DESCR) create_named_config_trait( KEY, # KEY, TYPE, DEF, DESCR )
 
@@ -143,11 +143,12 @@ declare_configuration_key( KEY ## _config_trait::key,                   \
  * to establish names for types that are used throughout a sprokit
  * pipeline.
  *
- * Type traits should name a logical type not a physical type. This
- * essential for verifying the semantics of a pipeline. For example,
- * GSD is usually a double but the trait name should be \b gsd with a
- * type double. It is a really bad idea to name type traits based on
- * the concrete builtin fundamental type such as double or int.
+ * Type traits should name a logical or semantic type not a physical
+ * or logical type. This essential for verifying the semantics of a
+ * pipeline. For example, GSD is usually a double but the trait name
+ * should be \b gsd with a type double. It is a really bad idea to
+ * name type traits based on the concrete builtin fundamental type
+ * such as double or int.
  *
  \code
  create_type_trait( gsd, "kwiver:gsd", double );  // do this
@@ -276,6 +277,9 @@ declare_ ## D ## _port( PN ## _port_trait::port_name,   \
  * trait or the configured static value. If there is a value on the
  * port, then this method behaves the same as grab_from_port_using_trait().
  *
+ * This should be used with ports that have the \c flag_input_static
+ * option set when created.
+ *
  \code
  create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
  kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
@@ -295,13 +299,23 @@ grab_input_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
  * \brief Get input from port using port trait name.
  *
  * This method grabs an input value directly from the port specified
- * by the port trait with no handling for static ports. This call will
+ * by the port trait with \b no handling for static ports. This call will
  * block until a datum is available.
  *
  \code
  create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
  \endcode
+ *
+ * Optional ports can be handled as follows:
+ *
+\code
+  // See if optional input port has been connected.
+  if ( has_input_port_edge_using_trait( timestamp ) )
+  {
+    frame_time = grab_input_using_trait( timestamp );
+  }
+\endcode
  *
  * \sa sprokit::process::grab_from_port_as()
  *
@@ -369,6 +383,25 @@ grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
  */
 #define has_input_port_edge_using_trait(PN)             \
   has_input_port_edge(PN ##_port_trait::port_name )
+
+
+/**
+ * \brief Count number of edged connected to output port.
+ *
+ * This method returns the number of down stream processes are
+ * connected to the port. This is useful in determining if there
+ * are any consumers of an output port.
+ *
+ * For example, this can be used to optimize a process. An
+ * expensive output can be skipped if there are no consumers.
+ *
+ * \param PN Port trait name.
+ *
+ * \returns The number of edges connected to the \p port.
+ */
+
+#define count_output_port_edges_using_trait(PN) \
+  count_output_port_edges(PN ##_port_trait::port_name )
 
 
 

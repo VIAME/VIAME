@@ -198,6 +198,8 @@ kwiver::vital::config_block_key_t const pipeline::priv::config_edge_conn = kwive
 kwiver::vital::config_block_key_t const pipeline::priv::upstream_subblock = kwiver::vital::config_block_key_t("up");
 kwiver::vital::config_block_key_t const pipeline::priv::downstream_subblock = kwiver::vital::config_block_key_t("down");
 
+
+// ------------------------------------------------------------------
 pipeline
 ::pipeline(kwiver::vital::config_block_sptr const& config)
   : d()
@@ -215,6 +217,8 @@ pipeline
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline
 ::add_process(process_t const& process)
@@ -283,6 +287,8 @@ pipeline
   d->process_map[name] = process;
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline
 ::remove_process(process::name_t const& name)
@@ -324,6 +330,8 @@ pipeline
   d->remove_from_pipeline(name);
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline
 ::connect(process::name_t const& upstream_name,
@@ -396,6 +404,8 @@ pipeline
   d->connections.push_back(connection);
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline
 ::disconnect(process::name_t const& upstream_name,
@@ -432,6 +442,8 @@ pipeline
 #undef FORGET_CONNECTION
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline
 ::setup_pipeline()
@@ -472,6 +484,8 @@ pipeline
   d->setup_successful = true;
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline
 ::is_setup() const
@@ -479,6 +493,8 @@ pipeline
   return d->setup;
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline
 ::setup_successful() const
@@ -486,6 +502,8 @@ pipeline
   return d->setup_successful;
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline
 ::reset()
@@ -537,6 +555,8 @@ pipeline
   d->setup_in_progress = false;
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline
 ::reconfigure(kwiver::vital::config_block_sptr const& conf) const
@@ -583,6 +603,8 @@ pipeline
   }
 }
 
+
+// ------------------------------------------------------------------
 process::names_t
 pipeline
 ::process_names() const
@@ -599,6 +621,8 @@ pipeline
   return names;
 }
 
+
+// ------------------------------------------------------------------
 process_t
 pipeline
 ::process_by_name(process::name_t const& name) const
@@ -613,6 +637,8 @@ pipeline
   return i->second;
 }
 
+
+// ------------------------------------------------------------------
 process::name_t
 pipeline
 ::parent_cluster(process::name_t const& name) const
@@ -627,6 +653,8 @@ pipeline
   return i->second;
 }
 
+
+// ------------------------------------------------------------------
 process::names_t
 pipeline
 ::cluster_names() const
@@ -643,6 +671,8 @@ pipeline
   return names;
 }
 
+
+// ------------------------------------------------------------------
 process_cluster_t
 pipeline
 ::cluster_by_name(process::name_t const& name) const
@@ -657,6 +687,8 @@ pipeline
   return i->second;
 }
 
+
+// ------------------------------------------------------------------
 process::port_addrs_t
 pipeline
 ::connections_from_addr(process::name_t const& name, process::port_t const& port) const
@@ -680,6 +712,8 @@ pipeline
   return addrs;
 }
 
+
+// ------------------------------------------------------------------
 process::port_addr_t
 pipeline
 ::connection_to_addr(process::name_t const& name, process::port_t const& port) const
@@ -701,6 +735,8 @@ pipeline
   return process::port_addr_t();
 }
 
+
+// ------------------------------------------------------------------
 processes_t
 pipeline
 ::upstream_for_process(process::name_t const& name) const
@@ -736,6 +772,8 @@ pipeline
   return processes;
 }
 
+
+// ------------------------------------------------------------------
 process_t
 pipeline
 ::upstream_for_port(process::name_t const& name, process::port_t const& port) const
@@ -763,6 +801,8 @@ pipeline
   return process_t();
 }
 
+
+// ------------------------------------------------------------------
 processes_t
 pipeline
 ::downstream_for_process(process::name_t const& name) const
@@ -798,6 +838,8 @@ pipeline
   return processes;
 }
 
+
+// ------------------------------------------------------------------
 processes_t
 pipeline
 ::downstream_for_port(process::name_t const& name, process::port_t const& port) const
@@ -835,6 +877,8 @@ pipeline
   return processes;
 }
 
+
+// ------------------------------------------------------------------
 process::port_addr_t
 pipeline
 ::sender_for_port(process::name_t const& name, process::port_t const& port) const
@@ -859,6 +903,8 @@ pipeline
   return process::port_addr_t();
 }
 
+
+// ------------------------------------------------------------------
 process::port_addrs_t
 pipeline
 ::receivers_for_port(process::name_t const& name, process::port_t const& port) const
@@ -885,6 +931,8 @@ pipeline
   return port_addrs;
 }
 
+
+// ------------------------------------------------------------------
 edge_t
 pipeline
 ::edge_for_connection(process::name_t const& upstream_name,
@@ -918,6 +966,8 @@ pipeline
   return edge_t();
 }
 
+
+// ------------------------------------------------------------------
 edges_t
 pipeline
 ::input_edges_for_process(process::name_t const& name) const
@@ -946,6 +996,8 @@ pipeline
   return edges;
 }
 
+
+// ------------------------------------------------------------------
 edge_t
 pipeline
 ::input_edge_for_port(process::name_t const& name, process::port_t const& port) const
@@ -974,6 +1026,8 @@ pipeline
   return edge_t();
 }
 
+
+// ------------------------------------------------------------------
 edges_t
 pipeline
 ::output_edges_for_process(process::name_t const& name) const
@@ -1002,6 +1056,8 @@ pipeline
   return edges;
 }
 
+
+// ------------------------------------------------------------------
 edges_t
 pipeline
 ::output_edges_for_port(process::name_t const& name, process::port_t const& port) const
@@ -1032,6 +1088,8 @@ pipeline
   return edges;
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline
 ::start()
@@ -1041,6 +1099,8 @@ pipeline
   d->running = true;
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline
 ::stop()
@@ -1055,6 +1115,8 @@ pipeline
   d->running = false;
 }
 
+
+// ------------------------------------------------------------------
 pipeline::priv
 ::priv(pipeline* pipe, kwiver::vital::config_block_sptr conf)
   : q(pipe)
@@ -1086,6 +1148,8 @@ pipeline::priv
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::check_duplicate_name(process::name_t const& name)
@@ -1096,6 +1160,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::remove_from_pipeline(process::name_t const& name)
@@ -1119,9 +1185,13 @@ pipeline::priv
 #undef FORGET_CONNECTIONS
 }
 
+
+// ------------------------------------------------------------------
 pipeline::priv::port_type_status
 pipeline::priv
-::check_connection_types(process::connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type)
+::check_connection_types(process::connection_t const& connection,
+                         process::port_type_t const& up_type,
+                         process::port_type_t const& down_type)
 {
   bool const up_data_dep = (up_type == process::type_data_dependent);
 
@@ -1162,9 +1232,13 @@ pipeline::priv
   return type_compatible;
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline::priv
-::check_connection_flags(process::connection_t const& connection, process::port_flags_t const& up_flags, process::port_flags_t const& down_flags)
+::check_connection_flags(process::connection_t const& connection,
+                         process::port_flags_t const& up_flags,
+                         process::port_flags_t const& down_flags)
 {
   bool const is_const = (0 != up_flags.count(process::flag_output_const));
   bool const is_shared = (0 != up_flags.count(process::flag_output_shared));
@@ -1201,6 +1275,8 @@ pipeline::priv
   return true;
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::propagate(process::name_t const& root)
@@ -1294,6 +1370,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::check_for_processes() const
@@ -1304,6 +1382,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::map_cluster_connections()
@@ -1345,7 +1425,9 @@ pipeline::priv
 
           boost::function<bool (process::connection_t const&)> const is_port = boost::bind(&is_downstream_for, upstream_addr, _1);
 
-          process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(), mapped_connections.end(), boost::not1(is_port));
+          process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(),
+                                                                    mapped_connections.end(),
+                                                                    boost::not1(is_port));
           mapped_connections.erase(i, mapped_connections.end());
 
           if (mapped_connections.empty())
@@ -1388,7 +1470,9 @@ pipeline::priv
 
           boost::function<bool (process::connection_t const&)> const is_port = boost::bind(&is_upstream_for, downstream_addr, _1);
 
-          process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(), mapped_connections.end(), boost::not1(is_port));
+          process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(),
+                                                                    mapped_connections.end(),
+                                                                    boost::not1(is_port));
           mapped_connections.erase(i, mapped_connections.end());
 
           if (mapped_connections.empty())
@@ -1422,6 +1506,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::configure_processes()
@@ -1482,6 +1568,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::check_for_data_dep_ports() const
@@ -1494,6 +1582,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::propagate_pinned_types()
@@ -1582,6 +1672,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::check_for_untyped_ports() const
@@ -1592,6 +1684,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::make_connections()
@@ -1682,6 +1776,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::check_for_required_ports() const
@@ -1777,6 +1873,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::check_for_dag() const
@@ -1846,6 +1944,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::initialize_processes()
@@ -1861,6 +1961,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::check_port_frequencies() const
@@ -2009,6 +2111,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline::priv
 ::ensure_setup() const
@@ -2024,6 +2128,8 @@ pipeline::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline::priv
 ::is_upstream_for(process::port_addr_t const& addr, process::connection_t const& connection)
@@ -2033,6 +2139,8 @@ pipeline::priv
   return (addr == up_addr);
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline::priv
 ::is_downstream_for(process::port_addr_t const& addr, process::connection_t const& connection)
@@ -2042,6 +2150,8 @@ pipeline::priv
   return (addr == down_addr);
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline::priv
 ::is_cluster_upstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection)
@@ -2051,6 +2161,8 @@ pipeline::priv
   return is_upstream_for(addr, connection);
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline::priv
 ::is_cluster_downstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection)
@@ -2060,6 +2172,8 @@ pipeline::priv
   return is_downstream_for(addr, connection);
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline::priv
 ::is_addr_on(process::name_t const& name, process::port_addr_t const& addr)
@@ -2069,6 +2183,8 @@ pipeline::priv
   return (name == proc_name);
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline::priv
 ::is_connection_with(process::name_t const& name, process::connection_t const& connection)
@@ -2079,6 +2195,8 @@ pipeline::priv
   return (is_addr_on(name, upstream_addr) || is_addr_on(name, downstream_addr));
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline::priv
 ::is_cluster_connection_with(process::name_t const& name, cluster_connection_t const& cconnection)
@@ -2088,6 +2206,8 @@ pipeline::priv
   return is_connection_with(name, connection);
 }
 
+
+// ------------------------------------------------------------------
 bool
 pipeline::priv
 ::is_cluster_connection_for(process::connection_t const& connection, cluster_connection_t const& cconnection)
@@ -2097,6 +2217,8 @@ pipeline::priv
   return (connection == cluster_connection);
 }
 
+
+// ------------------------------------------------------------------
 pipeline::priv::propagation_exception
 ::propagation_exception(process::name_t const& upstream_name,
                         process::port_t const& upstream_port,
@@ -2119,4 +2241,4 @@ pipeline::priv::propagation_exception
 {
 }
 
-}
+} // end namespace

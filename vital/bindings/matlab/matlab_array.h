@@ -28,39 +28,68 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H
-#define ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H
+/**
+ * \file
+ * \brief Interface of matlab image object detector
+ */
 
-#include <arrows/ocv/kwiver_algo_ocv_export.h>
+#ifndef VITAL_BINDINGS_MATLAB_ARRAY_H
+#define VITAL_BINDINGS_MATLAB_ARRAY_H
 
-#include <vital/algo/image_object_detector.h>
+#include <vital/bindings/matlab/vital_matlab_export.h>
+
+#include <matrix.h>  // matlab include
+
+#include <memory>
 
 namespace kwiver {
-namespace arrows {
-namespace ocv {
+namespace vital {
+namespace matlab {
 
-class KWIVER_ALGO_OCV_EXPORT hough_circle_detector
-  : public vital::algorithm_impl< hough_circle_detector, vital::algo::image_object_detector>
-{
-public:
-  hough_circle_detector();
-  hough_circle_detector( const hough_circle_detector& other );
-  virtual ~hough_circle_detector();
+typedef std::shared_ptr<mxArray> mxArraySptr;
 
-  virtual std::string impl_name() const { return "hough_circle_detector"; }
+/** \defgroup create_matlab_array Create Matlab Array
+ * Factory functions to create managed Matlab arrays.
+ * @{
+ */
 
-  virtual vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+/**
+ * @brief Create empty Matlab managed array.
+ *
+ * This function is a factory for managed Matlab arrays.
+ *
+ * @param r - number of rows in the array
+ * @param c - number of columns in the array
+ *
+ * @return Managed pointer to the newly allocated array.
+ */
+VITAL_MATLAB_EXPORT mxArraySptr create_mxByteArray( size_t r, size_t c );
 
-  // Main detection method
-  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data) const;
+/**
+ * @brief Create empty Matlab managed array.
+ *
+ * This function is a factory for managed Matlab arrays.
+ *
+ * @param r - number of rows in the array
+ * @param c - number of columns in the array
+ *
+ * @return Managed pointer to the newly allocated array.
+ */
+VITAL_MATLAB_EXPORT mxArraySptr create_mxIntArray( size_t r, size_t c );
 
-private:
-  class priv;
-  const std::unique_ptr<priv> d;
-};
+/**
+ * @brief Create empty Matlab managed array.
+ *
+ * This function is a factory for managed Matlab arrays.
+ *
+ * @param r - number of rows in the array
+ * @param c - number of columns in the array
+ *
+ * @return Managed pointer to the newly allocated array.
+ */
+VITAL_MATLAB_EXPORT mxArraySptr create_mxDoubleArray( size_t r, size_t c );
+//@}
 
 } } } // end namespace
 
-#endif /* ARROWS_OCV_HOUGH_CIRCLE_DETECTOR_H */
+#endif /* VITAL_BINDINGS_MATLAB_ARRAY_H */

@@ -26,5 +26,6 @@ install(
   DIRECTORY "${utils_dir}/utils"
             "${utils_dir}/tools"
             "${utils_dir}/configcheck"
+            "${utils_dir}/templates"
   DESTINATION "${kwiver_cmake_install_dir}"
   )

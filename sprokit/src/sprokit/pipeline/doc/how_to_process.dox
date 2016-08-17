@@ -127,7 +127,7 @@
  * The other flags which are currently understood are:
  *
  * \li \tt{flag_input_mutable} — Indicates that the input received on the port
- *     will be modified.
+ *     will be modified externally by another process.
  * \li \tt{flag_output_const} — Indicates that the data sent on the output port
  *     may not be modified. This is usually used for data that is sent, but a
  *     reference is kept internally to help reduce memory usage.
@@ -147,6 +147,17 @@
  *     triggers and status messages.
  *
  * \until }
+ *
+ * \todo Need use cases for ports described. Describe why and when you want these
+ * types of ports. How they interact with scheduler stopping criteria.
+ *
+ * - required input port
+ * - optional input port
+ * - optional, static input port. How to specify static data for this port in the config.
+ * - optional output port
+ * - required output port
+ *
+ * - how to determine if optional input is connected and why you would want to check.
  *
  * The private class constructor is straightforward.
  *
@@ -170,6 +181,13 @@
  * bounds checked, and so on.
  *
  * \section how_to_process_run Running
+ *
+ * The methods of a process are called in the following order:
+ *
+ * Constructor()
+ * _configure()
+ * <all pipeline connections are made>
+ * _init()
  *
  * The base \ref sprokit::process class will do checking for input ports that have
  * the \flag{required} flag to ensure that they are synchronized and all have
