@@ -20,11 +20,12 @@ set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VER
 set( fletch_DIR "" CACHE PATH "Path to FLETCH packages" )
 if ( IS_DIRECTORY ${fletch_DIR} )
   find_package( fletch NO_MODULE )
+  list(APPEND CMAKE_PREFIX_PATH "${fletch_ROOT}")
 endif()
 
 # Fletch provides the PROJ4 symbols. We need the PROJ symbols.
 if (PROJ4_ROOT)
-  set(PROJ_ROOT ${PROJ4_ROOT})
+  set(PROJ_ROOT "${PROJ4_ROOT}")
 endif()
 
 ###
