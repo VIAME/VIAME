@@ -50,7 +50,7 @@ set(kwiver_export_name      viame_exports)
 ###
 # add subdirs
 ## add_subdirectory( processes )
-add_subdirectory( algorithms )
+add_subdirectory( plugins )
 add_subdirectory( pipelines )
 add_subdirectory( examples )
 
