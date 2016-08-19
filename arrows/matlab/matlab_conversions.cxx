@@ -30,27 +30,46 @@
 
 /**
  * \file
- * \brief Implementation of matlab exceptions
+ * \brief Interface for MatLab conversion functions
  */
 
-#include "matlab_exception.h"
+#include "matlab_conversions.h"
+
+#include <matrix.h>  // matlab include
+#include <arrows/ocv/image_container.h>
+#include <opencv2/core/core.hpp>
+
+#include <stdint.h>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
-
-matlab_exception::
-matlab_exception(const std::string& msg) VITAL_NOTHROW
-  : vital_core_base_exception()
+// ------------------------------------------------------------------
+mxArraySptr
+convert_to_mx_image( const kwiver::vital::image_container_sptr image )
 {
-    m_what = msg;
+  const size_t rows = image->height();
+  const size_t cols = image->width();
+
+  mxArraySptr mx_image = create_mxByteArray( rows, cols );
+  cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image->get_image() );
+
+  // Copy the pixels
+  uint8_t* mx_mem = static_cast< uint8_t* > ( mxGetData( mx_image.get() ) );
+
+  // convert from column major to row major.
+  for ( size_t i = 0; i < rows; i++ )
+  {
+    for ( size_t j = 0; j < cols; j++ )
+    {
+      // row major indexing
+      mx_mem[i * ( cols ) + j] = src.at< uint8_t > ( i, j );
+    }
+  }
+
+  return mx_image;
 }
-
-
-matlab_exception::
-~matlab_exception() VITAL_NOTHROW
-{ }
 
 
 } } } // end namespace

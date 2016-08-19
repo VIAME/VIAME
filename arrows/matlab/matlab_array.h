@@ -30,42 +30,66 @@
 
 /**
  * \file
- * \brief Header defining matlab bindings to image object detector
+ * \brief Interface of matlab image object detector
  */
 
-#ifndef VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H
-#define VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H
+#ifndef VITAL_BINDINGS_MATLAB_ARRAY_H
+#define VITAL_BINDINGS_MATLAB_ARRAY_H
 
-#include <vital/algo/image_object_detector.h>
-#include <vital/bindings/matlab/vital_matlab_export.h>
+#include <arrows/matlab/kwiver_algo_matlab_export.h>
+
+#include <matrix.h>  // matlab include
+
+#include <memory>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
-class VITAL_MATLAB_EXPORT matlab_image_object_detector
-  : public vital::algorithm_impl< matlab_image_object_detector, vital::algo::image_object_detector >
-{
-public:
-  matlab_image_object_detector();
-  matlab_image_object_detector( const matlab_image_object_detector& other );
-  virtual ~matlab_image_object_detector();
+typedef std::shared_ptr<mxArray> mxArraySptr;
 
-  virtual std::string impl_name() const { return "matlab"; }
+/** \defgroup create_matlab_array Create Matlab Array
+ * Factory functions to create managed Matlab arrays.
+ * @{
+ */
 
-  virtual vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+/**
+ * @brief Create empty Matlab managed array.
+ *
+ * This function is a factory for managed Matlab arrays.
+ *
+ * @param r - number of rows in the array
+ * @param c - number of columns in the array
+ *
+ * @return Managed pointer to the newly allocated array.
+ */
+KWIVER_ALGO_MATLAB_EXPORT mxArraySptr create_mxByteArray( size_t r, size_t c );
 
-  // Main detection method
-  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data) const;
+/**
+ * @brief Create empty Matlab managed array.
+ *
+ * This function is a factory for managed Matlab arrays.
+ *
+ * @param r - number of rows in the array
+ * @param c - number of columns in the array
+ *
+ * @return Managed pointer to the newly allocated array.
+ */
+KWIVER_ALGO_MATLAB_EXPORT mxArraySptr create_mxIntArray( size_t r, size_t c );
 
-private:
-  class priv;
-  const std::unique_ptr<priv> d;
-};
+/**
+ * @brief Create empty Matlab managed array.
+ *
+ * This function is a factory for managed Matlab arrays.
+ *
+ * @param r - number of rows in the array
+ * @param c - number of columns in the array
+ *
+ * @return Managed pointer to the newly allocated array.
+ */
+KWIVER_ALGO_MATLAB_EXPORT mxArraySptr create_mxDoubleArray( size_t r, size_t c );
+//@}
 
 } } } // end namespace
 
-
-#endif /* VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H */
+#endif /* VITAL_BINDINGS_MATLAB_ARRAY_H */

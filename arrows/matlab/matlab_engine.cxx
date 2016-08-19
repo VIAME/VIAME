@@ -39,7 +39,7 @@
 #include <sstream>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
 // ------------------------------------------------------------------

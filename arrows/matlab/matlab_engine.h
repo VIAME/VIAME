@@ -39,8 +39,8 @@
 #include <vital/vital_config.h>
 #include <vital/noncopyable.h>
 #include <vital/logger/logger.h>
-#include <vital/bindings/matlab/matlab_array.h>
-#include <vital/bindings/matlab/vital_matlab_export.h>
+#include <arrows/matlab/matlab_array.h>
+#include <arrows/matlab/kwiver_algo_matlab_export.h>
 
 // Matlab includes
 #include <engine.h>
@@ -48,7 +48,7 @@
 #include <cstdlib>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
 // -----------------------------------------------------------------
@@ -57,8 +57,8 @@ namespace matlab {
  *
  * This class represents a single user Matlab engine instance.
  */
-class VITAL_MATLAB_EXPORT matlab_engine
-  : private noncopyable
+class KWIVER_ALGO_MATLAB_EXPORT matlab_engine
+  : private kwiver::vital::noncopyable
 {
 public:
   /**
@@ -163,6 +163,6 @@ private:
 
 }; // end class matlab_engine
 
-} } } // end namespace vital
+} } } // end namespace
 
 #endif /* VITAL_MATLAB_ENGINE_H */

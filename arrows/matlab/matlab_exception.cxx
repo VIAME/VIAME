@@ -30,36 +30,27 @@
 
 /**
  * \file
- * \brief Interface of matlab image object detector
+ * \brief Implementation of matlab exceptions
  */
 
-#include "matlab_array.h"
+#include "matlab_exception.h"
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
-// ------------------------------------------------------------------
-mxArraySptr create_mxByteArray( size_t r, size_t c )
+
+matlab_exception::
+matlab_exception(const std::string& msg) VITAL_NOTHROW
+  : vital_core_base_exception()
 {
-  mxArray* array = mxCreateNumericMatrix( r, c,  mxUINT8_CLASS, mxREAL );
-  return mxArraySptr( array, mxDestroyArray );
+    m_what = msg;
 }
 
 
-// ------------------------------------------------------------------
-mxArraySptr create_mxIntArray( size_t r, size_t c )
-{
-  mxArray* array = mxCreateNumericMatrix( r, c, mxINT32_CLASS, mxREAL );
-  return mxArraySptr( array, mxDestroyArray );
-}
+matlab_exception::
+~matlab_exception() VITAL_NOTHROW
+{ }
 
-
-// ------------------------------------------------------------------
-mxArraySptr create_mxDoubleArray( size_t r, size_t c )
-{
-  mxArray* array = mxCreateNumericMatrix( r, c, mxDOUBLE_CLASS, mxREAL );
-  return mxArraySptr( array, mxDestroyArray );
-}
 
 } } } // end namespace

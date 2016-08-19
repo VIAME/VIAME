@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,66 +30,27 @@
 
 /**
  * \file
- * \brief Interface of matlab image object detector
+ * \brief Matlab algorithm registration implementation
  */
 
-#ifndef VITAL_BINDINGS_MATLAB_ARRAY_H
-#define VITAL_BINDINGS_MATLAB_ARRAY_H
+#include "register_algorithms.h"
+#include <arrows/algorithm_plugin_interface_macros.h>
 
-#include <vital/bindings/matlab/vital_matlab_export.h>
-
-#include <matrix.h>  // matlab include
-
-#include <memory>
+#include <arrows/matlab/matlab_image_object_detector.h>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
-typedef std::shared_ptr<mxArray> mxArraySptr;
+/// Register Matlab algorithm implementations with the given or global registrar
+int register_algorithms( vital::registrar &reg )
+{
+  REGISTRATION_INIT( reg );
 
-/** \defgroup create_matlab_array Create Matlab Array
- * Factory functions to create managed Matlab arrays.
- * @{
- */
+  REGISTER_TYPE( matlab_image_object_detector );
 
-/**
- * @brief Create empty Matlab managed array.
- *
- * This function is a factory for managed Matlab arrays.
- *
- * @param r - number of rows in the array
- * @param c - number of columns in the array
- *
- * @return Managed pointer to the newly allocated array.
- */
-VITAL_MATLAB_EXPORT mxArraySptr create_mxByteArray( size_t r, size_t c );
-
-/**
- * @brief Create empty Matlab managed array.
- *
- * This function is a factory for managed Matlab arrays.
- *
- * @param r - number of rows in the array
- * @param c - number of columns in the array
- *
- * @return Managed pointer to the newly allocated array.
- */
-VITAL_MATLAB_EXPORT mxArraySptr create_mxIntArray( size_t r, size_t c );
-
-/**
- * @brief Create empty Matlab managed array.
- *
- * This function is a factory for managed Matlab arrays.
- *
- * @param r - number of rows in the array
- * @param c - number of columns in the array
- *
- * @return Managed pointer to the newly allocated array.
- */
-VITAL_MATLAB_EXPORT mxArraySptr create_mxDoubleArray( size_t r, size_t c );
-//@}
+  REGISTRATION_SUMMARY();
+  return REGISTRATION_FAILURES();
+}
 
 } } } // end namespace
-
-#endif /* VITAL_BINDINGS_MATLAB_ARRAY_H */

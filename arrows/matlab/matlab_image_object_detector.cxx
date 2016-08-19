@@ -35,13 +35,19 @@
 
 #include "matlab_image_object_detector.h"
 #include "matlab_engine.h"
+#include "matlab_conversions.h"
+
+#include <vital/vital_foreach.h>
+#include <vital/logger/logger.h>
 
 #include <arrows/ocv/image_container.h>
 
 #include <opencv2/core/core.hpp>
 
+#include <sstream>
+
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
 // ----------------------------------------------------------------
@@ -62,7 +68,7 @@ namespace matlab {
  *   - get_configuration() - returns the required configuration (format to be determined)
  *     May just punt and pass a filename to the algorithm and let it decode the config.
  *
- *   - set_configuration() - accepts a new configuration into the detector.
+ *   - set_configuration() - accepts a new configuration into the detector. (?)
  *
  *   - check_configuration() - returns error if there is a configuration problem
  *
@@ -92,6 +98,7 @@ public:
   // -- CONSTRUCTORS --
   priv()
     : m_matlab_engine( new matlab_engine )
+    , m_logger( kwiver::vital::get_logger( "vital.matlab_image_object_detector" ) )
   {}
 
   priv( const priv & other ) // copy ctor
@@ -104,6 +111,8 @@ public:
 
   // MatLab support.
   const std::unique_ptr<matlab_engine> m_matlab_engine;
+
+  kwiver::vital::logger_handle_t m_logger;
 
   // MatLab wrapper parameters
   std::string m_matlab_program;       // name of matlab program
@@ -152,21 +161,25 @@ set_configuration(vital::config_block_sptr config)
 {
   d->m_matlab_program = config->get_value<double>( "program_file" );
 
-  d->m_matlab_engine->eval( "load " + d->m_matlab_program );
+  d->m_matlab_engine->eval( "load " + d->m_matlab_program  );
   //@todo check return code
 
-  d->m_matlab_engine->eval( "initialize()" );
+  d->m_matlab_engine->eval( "initialize()" ); //+ is this needed?
 
-  // Convert configuration to matlab format
-  // TBD
-  // Since the config is a key/value pair, send in two pairs of strings?
-  // As an array? How about repeated eval calls to a function set_config( key, value ).
-  //
+  auto keys = config->available_values();
+  VITAL_FOREACH( auto k, keys )
+  {
+    std::stringstream config_command;
+    config_command <<  k << " = " << config->get_value<std::string>( k );
+    d->m_matlab_engine->eval( config_command.str().c_str() );
 
-  // Pass configuration to matlab detector
-  d->m_matlab_engine->eval( "set_configuration()" );
-  //@todo check return code
-
+    // check for errors
+    const std::string& results( d->m_matlab_engine->engine_output() );
+    if ( results.size() > 3 )
+    {
+      LOG_INFO( d->m_logger, "Matlab output: " << results );
+    }
+  }
 }
 
 
@@ -187,17 +200,13 @@ check_configuration(vital::config_block_sptr config) const
 // ------------------------------------------------------------------
 kwiver::vital::detected_object_set_sptr
 matlab_image_object_detector::
-detect( vital::image_container_sptr image_data) const
+detect( kwiver::vital::image_container_sptr image_data) const
 {
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set>();
 
-  // Ideally use this call
-  // mxArraySptr mx_image = convert_image( image_data );
-
-  cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
-
   // convert image container to matlab image TBD
-  mxArraySptr mx_image = create_mxByteArray( image_data->height(), image_data->width() );
+  mxArraySptr mx_image = convert_to_mx_image( image_data );
+
   d->m_matlab_engine->put_variable( "in_image", mx_image );
 
 
