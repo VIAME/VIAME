@@ -53,3 +53,15 @@ set(kwiver_export_name      viame_exports)
 add_subdirectory( algorithms )
 add_subdirectory( pipelines )
 add_subdirectory( examples )
+
+
+###
+# Configure setup script
+#
+kwiver_configure_file(viame-buid-setup
+  "${CMAKE_SOURCE_DIR}/CMake/setup_VIAME.sh.in"
+  setup_VIAME.sh
+  fletch_ROOT
+  KWIVER_MODULE_DIR
+  KWIVER_LIBRARY_DIR
+  )
