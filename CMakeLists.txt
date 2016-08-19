@@ -2,11 +2,11 @@
 # top level build file for NOAA VIAME
 #
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required( VERSION 3.0 )
 
-project(VIAME)
+project( VIAME )
 
-include(CMakeDependentOption)
+include( CMakeDependentOption )
 
 ###
 # Look for and use Fletch to find dependencies
@@ -34,14 +34,14 @@ include(kwiver-utils)
 
 ##
 # System specific compiler flags
-include(viame-flags)
+include( viame-flags )
 
 ##
 # check compiler support
 include( kwiver-configcheck )
 
 # set the name for our package exports
-set(kwiver_export_name      viame_exports)
+set( kwiver_export_name      viame_exports )
 
 ###
 # build submodules
