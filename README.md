@@ -36,7 +36,8 @@ Once your `cmake` command has completed, you can build with the following comman
 
 ### kwiver
 
-Once Fletch has been built, it's possible to build the `kwiver` repository as well.  This repo is also a CMake super-build and can be fetched with this command:
+Once Fletch has been built, it's possible to build the `kwiver` repository as well.  This repo is also a CMake super-build
+and can be fetched with this command:
 
 	git clone https://github.com/Kitware/kwiver.git
 
@@ -195,54 +196,63 @@ Vital is an open source C++ collection of libraries and tools that supply basic 
 * vital/tools -- contains source for command line utilities
 * vital/types -- contains the source for the core data types
 
-## Building vital ##
-
-vital uses CMake (www.cmake.org) for easy cross-platform compilation. The minimum required version of CMake is 3.0, but newer versions are recommended.
 
 # Running CMake #
 
-We recommend building vital out of the source directory to prevent mixing source files with compiled products.  Create a build directory in parallel with the vital source directory.  From the command line, enter the empty build directory and run
+We recommend building kwiver out of the source directory to prevent
+mixing source files with compiled products.  Create a build directory
+in parallel with the kwiver source directory.  From the command line,
+enter the empty build directory and run
 
-    $ ccmake /path/to/vital/source
+    $ ccmake /path/to/kwiver/source
 
-where the path above is the location of your vital source tree.  The ccmake tool allows for interactive selection of CMake options.  Alternatively, using the CMake GUI you can set the source and build directories accordingly and press the "Configure" button.
+where the path above is the location of your kwiver source tree.  The
+ccmake tool allows for interactive selection of CMake options.
+Alternatively, using the CMake GUI you can set the source and build
+directories accordingly and press the "Configure" button.
 
 
 # CMake Options #
 
 * CMAKE_BUILD_TYPE -- The compiler mode, usually Debug or Release
-* CMAKE_INSTALL_PREFIX -- The path to where you want the vital build products to install
-* VITAL_BUILD_SHARED -- Build shared or static libraries
-* VITAL_ENABLE_DOCS -- Turn on building the Doxygen documentation
-* VITAL_ENABLE_LOG4CXX -- Enable log4cxx logger back end
-* VITAL_ENABLE_PYTHON -- Enable the python bindings
-* VITAL_ENABLE_TESTS -- Build the unit tests
-* VITAL_USE_BUILD_PLUGIN_DIR -- When building the plugin manager, whether to include the build directory in the search path.
-* VITAL_ENABLE_C_LIB -- Whether to build the C bindings
+* CMAKE_INSTALL_PREFIX -- The path to where you want the kwiver build products to install
+* KWIVER_BUILD_SHARED -- Build shared or static libraries
+* KWIVER_ENABLE_DOCS -- Turn on building the Doxygen documentation
+* KWIVER_ENABLE_LOG4CXX -- Enable log4cxx logger back end
+* KWIVER_ENABLE_PYTHON -- Enable the python bindings
+* KWIVER_ENABLE_TESTS -- Build the unit tests
+* KWIVER_USE_BUILD_TREE -- When building the plugin manager, whether to include the build directory in the search path.
+* KWIVER_ENABLE_C_BINDINGS -- Whether to build the C bindings
 * fletch_DIR -- Build directory for the Fletch support packages.
+
+There are many more options
 
 ## Dependencies ##
 
-Vital has minimal required dependencies at the core level.  Enabling add-on
-modules adds additional capabilities as well as additional dependencies.
+Vital has minimal required dependencies. Sprokit pipeline framework
+relies on boost.  Arrows and sprokit processes are structured so that
+the code that depends on an external package is in a directory with
+the major dependency name (e.g. vxl, ocv). The dependencies can be
+turned ON or OFF through CMake variables.
 
 ### Required ##
 
-These dependencies are supplied (or will be supplied) by the Fletch package of 3rd party dependencies.
+All dependencies are supplied by the Fletch package of 3rd party dependencies.
 
 [Eigen](http://eigen.tuxfamily.org/) (>= 3.0)
 [log4cxx] (https://logging.apache.org/log4cxx/) (>= 0.10.0)
 [Apache Runtime] (https://apr.apache.org/)
 
-Development
-===========
+# Development #
+
+Branches that are directly public releasable start with the 'dev/' prefix and those that need
+public release approval start with 'kw/'.
 
 When developing on vital, please keep to the prevailing style of the code.
 Some guidelines to keep in mind for different languages in the codebase are as
 follows:
 
-CMake
------
+## CMake ##
 
   * 2-space indentation
   * Lowercase for private variables
@@ -258,8 +268,7 @@ CMake
   * Quote *all* paths and variable expansions unless list expansion is required
     (usually in command arguments or optional arguments)
 
-C++
----
+## C++ ##
 
   * 2-space indentation
   * Use lowercase with underscores for symbol names
@@ -276,8 +285,7 @@ C++
     - This allows for chaining functions, works with ``<algorithm>`` better,
       and allows more variables to be ``const``
 
-Python
-------
+## Python ##
 
   * Follow PEP8
   * When catching exceptions, catch the type then use ``sys.exc_info()`` so
@@ -285,8 +293,7 @@ Python
   * No metaclasses; they don't work with the same syntax in Python2 and Python3
   * Avoid 'with' since it doesn't work in Python 2.4
 
-Testing
--------
+## Testing ##
 
 Generally, all new code should come with tests. The goal is sustained
 95% coverage and higher (due to impossible-to-generically-create
