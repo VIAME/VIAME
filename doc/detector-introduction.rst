@@ -1,8 +1,8 @@
-Title: Implementing object detectors in Kwiver - a tutorial
+Title: Implementing object detectors in KWIVER - a tutorial
 
 
 We will be using a Hough circle detector as an and example of what the
-mechanics of implementing a detector in KWIVER.
+mechanics of implementing a VIAME detector using the KWIVER framework.
 
 In general, detectors accept images and produce detections. The data
 types that we will need to get data in and out of the detector are
