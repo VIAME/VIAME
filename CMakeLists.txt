@@ -46,6 +46,9 @@ set( kwiver_export_name      viame_exports )
 ###
 # build submodules
 
+###
+# add submodule options
+option( VIAME_ENABLE_SCALLOP_TK "Enable ScallopTK plugins" OFF )
 
 ###
 # add subdirs
