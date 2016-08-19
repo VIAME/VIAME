@@ -116,6 +116,11 @@ public:
    */
   vector_type lower_right() const { return m_bbox.max(); }
 
+  T min_x() const { return this->upper_left()[0]; }
+  T min_y() const { return this->upper_left()[1]; }
+  T max_x() const { return this->lower_right()[0]; }
+  T max_y() const { return this->lower_right()[1]; }
+
   /**
    * @brief Get width of box.
    *
@@ -169,6 +174,29 @@ private:
 
   Eigen::AlignedBox< T, 2 > m_bbox;
 };
+
+
+/**
+ * @brief Equality operator for bounding box
+ *
+ * @param other The box to check against
+ *
+ * @return \b true if boxes are identical
+ */
+template <typename T>
+bool operator== ( bounding_box<T> const& lhs, bounding_box<T> const& rhs )
+{
+  if ( ( lhs == &rhs ) ||
+       ( lhs->upper_left() == rhs.upper_left()  &&
+         lhs->lower_right() == rhs.lower_right() )
+    )
+  {
+    return true;
+  }
+
+  return false;
+}
+
 
 // Define for common types.
 typedef bounding_box< int > bounding_box_i;
