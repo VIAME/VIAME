@@ -22,6 +22,8 @@ set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
 ###
 # Add plugin enable flags
 ##
+option( VIAME_ENABLE_VXL         "Enable VXL plugins"       OFF )
+option( VIAME_ENABLE_CAFFE       "Enable Caffe plugins"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 
 ###
