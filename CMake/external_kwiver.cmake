@@ -9,7 +9,7 @@
 
 ExternalProject_Add(kwiver
   DEPENDS fletch
-  PREFIX ${CMAKE_BINARY_DIR}/build
+  PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/kwiver
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
