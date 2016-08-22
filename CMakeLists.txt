@@ -9,8 +9,36 @@ project( VIAME )
 include( CMakeDependentOption )
 
 ###
+# Add paths used throughout CMakeLists files
+##
+LIST( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/CMake" "${KWIVER_CMAKE_DIR}" )
+
+set( VIAME_SOURCE_DIR            "${CMAKE_SOURCE_DIR}" )
+set( VIAME_BINARY_DIR            "${CMAKE_BINARY_DIR}" )
+set( VIAME_BUILD_INSTALL_PREFIX  "${CMAKE_BINARY_DIR}/install" )
+
+set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
+
+###
+# Add plugin enable flags
+##
+option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
+
+###
+# Add external projects
+##
+include( ExternalProject )
+
+include( external_fletch )
+include( external_kwiver )
+
+if( VIAME_ENABLE_SCALLOP_TK )
+  include( external_scallop_tk )
+endif()
+
+###
 # Look for and use Fletch to find dependencies
-#
+##
 find_package( kwiver REQUIRED )
 include_directories( ${KWIVER_INCLUDE_DIRS} )
 link_directories( ${KWIVER_LIBRARY_DIR} )
@@ -25,12 +53,10 @@ find_package( OpenCV 2.4.6 REQUIRED )
 
 include_directories( "${CMAKE_CURRENT_BINARY_DIR}" "${KWIVER_INCLUDE_DIRS}" )
 
-LIST( INSERT CMAKE_MODULE_PATH  0      "${CMAKE_CURRENT_SOURCE_DIR}/CMake" "${KWIVER_CMAKE_DIR}" )
-
 ###
 # KWIVER CMake config
 #
-include(kwiver-utils)
+include( kwiver-utils )
 
 ##
 # System specific compiler flags
@@ -47,16 +73,11 @@ set( kwiver_export_name      viame_exports )
 # build submodules
 
 ###
-# add submodule options
-option( VIAME_ENABLE_SCALLOP_TK "Enable ScallopTK plugins" OFF )
-
-###
 # add subdirs
 ## add_subdirectory( processes )
 add_subdirectory( plugins )
 add_subdirectory( pipelines )
 add_subdirectory( examples )
-
 
 ###
 # Configure setup script
