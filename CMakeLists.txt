@@ -40,7 +40,7 @@ if( VIAME_EXT_PROJECTS_ONLY )
 include( ExternalProject )
 include( common_args )
 
-# Hard requirements
+# Hard VIAME requirements
 include( external_fletch )
 include( external_kwiver )
 include( external_viame )

@@ -17,7 +17,6 @@ ExternalProject_Add(kwiver
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
-    -DVIAME_ENABLE_DOCS:BOOL=${VIAME_ENABLE_DOCS}
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
@@ -31,5 +30,5 @@ ExternalProject_Add_Step(kwiver forcebuild
   )
 
 set(VIAME_ARGS_kwiver
-  -Dkwiver_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/cmake
+  -Dkwiver_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/src/kwiver-build
   )

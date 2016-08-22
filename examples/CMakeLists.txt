@@ -3,10 +3,10 @@
 
 
 find_package( OpenCV 2.4.6 REQUIRED )
-include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
+include_directories( SYSTEM ${OpenCV_INCLUDE_DIRS} )
 
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
+find_package( Eigen3 REQUIRED )
+include_directories( ${EIGEN3_INCLUDE_DIR} )
 
 ###
 # Add first detector example
