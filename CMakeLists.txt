@@ -25,16 +25,20 @@ set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
 ##
 option( VIAME_ENABLE_VXL         "Enable VXL plugins"       OFF )
 option( VIAME_ENABLE_CAFFE       "Enable Caffe plugins"     OFF )
+option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"    OFF )
 option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 
 ###
-# Add external projects
+# Add external package build instructions
 ##
 include( ExternalProject )
+include( common_args )
 
+# Hard requirements
 include( external_fletch )
 include( external_kwiver )
 
+# Optional requirements
 if( VIAME_ENABLE_SCALLOP_TK )
   include( external_scallop_tk )
 endif()
@@ -42,7 +46,7 @@ endif()
 ###
 # Look for and use Fletch to find dependencies
 ##
-find_package( kwiver REQUIRED )
+find_package( kwiver REQUIRED PATH ${VIAME_BUILD_PREFIX}/src/kwiver-build )
 include_directories( ${KWIVER_INCLUDE_DIRS} )
 link_directories( ${KWIVER_LIBRARY_DIR} )
 LIST( INSERT CMAKE_MODULE_PATH  0         "${KWIVER_CMAKE_DIR}" )
@@ -77,7 +81,7 @@ set( kwiver_export_name      viame_exports )
 
 ###
 # add subdirs
-## add_subdirectory( processes )
+##
 add_subdirectory( plugins )
 add_subdirectory( pipelines )
 add_subdirectory( examples )
