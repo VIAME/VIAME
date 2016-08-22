@@ -31,22 +31,31 @@ option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 ###
 # Add external package build instructions
 ##
+option( VIAME_EXT_PROJECTS_ONLY  "Enable only external projects" ON )
+mark_as_advanced( VIAME_EXT_PROJECTS_ONLY )
+
+if( VIAME_EXT_PROJECTS_ONLY )
+
+# Macros and scripts
 include( ExternalProject )
 include( common_args )
 
 # Hard requirements
 include( external_fletch )
 include( external_kwiver )
+include( external_viame )
 
 # Optional requirements
 if( VIAME_ENABLE_SCALLOP_TK )
   include( external_scallop_tk )
 endif()
 
+else()
+
 ###
 # Look for and use Fletch to find dependencies
 ##
-find_package( kwiver REQUIRED PATH ${VIAME_BUILD_PREFIX}/src/kwiver-build )
+find_package( kwiver REQUIRED )
 include_directories( ${KWIVER_INCLUDE_DIRS} )
 link_directories( ${KWIVER_LIBRARY_DIR} )
 LIST( INSERT CMAKE_MODULE_PATH  0         "${KWIVER_CMAKE_DIR}" )
@@ -96,3 +105,5 @@ kwiver_configure_file(viame-buid-setup
   KWIVER_MODULE_DIR
   KWIVER_LIBRARY_DIR
   )
+
+endif()

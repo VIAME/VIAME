@@ -14,18 +14,21 @@ ExternalProject_Add(viame
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
+    ${VIAME_ARGS_fletch}
+    ${VIAME_ARGS_kwiver}
+    ${VIAME_ARGS_scallop_tk}
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(scallop_tk forcebuild
+ExternalProject_Add_Step(viame forcebuild
   COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/scallop_tk-stamp/scallop_tk-build
+    -E remove ${VIAME_BUILD_PREFIX}/src/viame-stamp/viame-build
   COMMENT "Removing build stamp file for build update (forcebuild)."
   DEPENDEES configure
   DEPENDERS build
   ALWAYS 1
   )
 
-set(VIAME_ARGS_scallop_tk
-  -Dscallop_tk_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/cmake
+set(VIAME_ARGS_viame
+  -Dviame_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/cmake
   )
