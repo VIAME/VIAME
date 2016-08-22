@@ -5,12 +5,14 @@
 #   VIAME_BUILD_INSTALL_PREFIX - directory install target
 #   VIAME_PACKAGES_DIR - location of git submodule packages
 #   VIAME_ARGS_COMMON -
-#
+##
+
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} scallop_tk )
 
 ExternalProject_Add(scallop_tk
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
-  SOURCE_DIR ${VIAME_PACKAGES_DIR}/scallop_tk
+  SOURCE_DIR ${VIAME_PACKAGES_DIR}/scallop-tk
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
