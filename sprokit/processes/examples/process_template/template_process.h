@@ -88,7 +88,7 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class view_image_process
+}; // end class
 
 }
 
