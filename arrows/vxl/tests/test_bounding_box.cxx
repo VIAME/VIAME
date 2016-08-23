@@ -68,10 +68,6 @@ IMPLEMENT_TEST(convert_bb2vgl)
   {
     TEST_ERROR( "Assignment vbox = bbox failed" );
   }
-
-  vgl_box_2d<double> vbox( 10.1, 30.4, 100.12, 304.45 );
-  kwiver::vital::bounding_box<double> bbox( 1.1, 3.4, 10.12, 34.45 );
-
 }
 
 
