@@ -29,6 +29,11 @@ option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"    OFF )
 option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 
 ###
+# Other misc options
+##
+option( VIAME_DISABLE_GPU_SUPPORT  "Force the disabling of GPU support" OFF )
+
+###
 # Add external package build instructions
 ##
 option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-build" ON )
@@ -55,11 +60,6 @@ if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK )
 endif()
 
 else()
-
-###
-# Other misc options
-##
-option( VIAME_DISABLE_GPU_SUPPORT  "Force the disabling of GPU support" OFF )
 
 ###
 # Look for and use Fletch to find dependencies
