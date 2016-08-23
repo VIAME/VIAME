@@ -19,6 +19,7 @@ ExternalProject_Add(viame
     ${VIAME_ARGS_scallop_tk}
     -DVIAME_BUILD_DEPENDENCIES:BOOL=OFF
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
+  INSTALL_COMMAND ""
   )
 
 ExternalProject_Add_Step(viame forcebuild
