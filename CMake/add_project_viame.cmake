@@ -7,14 +7,19 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-function( formatPassdowns _prefix _varResult )
+function( formatPassdowns _str _varResult )
+  set( _tmpResult "" )
   get_cmake_property( _vars VARIABLES )
-  string( REGEX MATCHALL "(^|;)${_prefix}[A-Za-z0-9_]*" _matchedVars "${_vars}" )
-  set( ${_varResult} ${_matchedVars} PARENT_SCOPE )
+  string( REGEX MATCHALL "(^|;)${_str}[A-Za-z0-9_]*" _matchedVars "${_vars}" )
+  set( ${_tmpResult} ${_matchedVars} PARENT_SCOPE )
+  foreach( _match ${_matchedVars} )
+    set( _tmpResult ${_tmpResult} "-D${_match}=${${_match}}" )
+  endforeach()
+  set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
 endfunction()
 
-formatPassdowns( "ENABLE" VIAME_ENABLE_FLAGS )
-formatPassdowns( "DISABLE" VIAME_DISABLE_FLAGS )
+formatPassdowns( "VIAME_ENABLE" VIAME_ENABLE_FLAGS )
+formatPassdowns( "VIAME_DISABLE" VIAME_DISABLE_FLAGS )
 
 ExternalProject_Add(viame
   DEPENDS ${VIAME_PROJECT_LIST}
