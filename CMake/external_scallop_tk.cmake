@@ -1,4 +1,4 @@
-# maptk External Project
+# scallop_tk External Project
 #
 # Required symbols are:
 #   VIAME_BUILD_PREFIX - where packages are built

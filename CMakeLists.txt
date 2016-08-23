@@ -57,6 +57,11 @@ endif()
 else()
 
 ###
+# Other misc options
+##
+option( VIAME_DISABLE_GPU_SUPPORT  "Force the disabling of GPU support" OFF )
+
+###
 # Look for and use Fletch to find dependencies
 ##
 find_package( kwiver REQUIRED )

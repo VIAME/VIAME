@@ -1,4 +1,4 @@
-# maptk External Project
+# fletch External Project
 #
 # Required symbols are:
 #   VIAME_BUILD_PREFIX - where packages are built
@@ -16,9 +16,12 @@ ExternalProject_Add(fletch
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
 
-    # KWIVER Dependencies, always on
+    # KWIVER Dependencies, Always On
     -Dfletch_ENABLE_Boost:BOOL=TRUE
     -Dfletch_ENABLE_Eigen:BOOL=TRUE
+
+    # System Related Options
+    -Dfletch_DISABLE_GPU_SUPPORT:BOOL=${VIAME_DISABLE_GPU_SUPPORT}
 
     # Optional Dependencies
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
@@ -42,3 +45,17 @@ ExternalProject_Add_Step(fletch forcebuild
 set(VIAME_ARGS_fletch
   -Dfletch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build
   )
+
+if( VIAME_ENABLE_OPENCV )
+  set(VIAME_ARGS_fletch
+    ${VIAME_ARGS_fletch}
+    -DOpenCV_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/OpenCV-build
+    )
+endif()
+
+if( VIAME_ENABLE_CAFFE )
+  set(VIAME_ARGS_fletch
+     ${VIAME_ARGS_fletch}
+    -DCaffe_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/Caffe-build
+    )
+endif()
