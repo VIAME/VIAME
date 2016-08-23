@@ -9,10 +9,6 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} fletch )
 
-if( ${VIAME_ENABLE_CAFFE} OR ${VIAME_ENABLE_SCALLOP_TK} )
-  set( VIAME_ENABLE_OPENCV TRUE )
-endif()
-
 ExternalProject_Add(fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
@@ -20,7 +16,7 @@ ExternalProject_Add(fletch
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
 
-    # KWIVER Dependencies, Always on
+    # KWIVER Dependencies, always on
     -Dfletch_ENABLE_Boost:BOOL=TRUE
     -Dfletch_ENABLE_Eigen:BOOL=TRUE
 

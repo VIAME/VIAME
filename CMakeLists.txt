@@ -49,6 +49,11 @@ if( VIAME_ENABLE_SCALLOP_TK )
   include( external_scallop_tk )
 endif()
 
+# Forced dependency logic for optional requirements
+if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK )
+  set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
+endif()
+
 else()
 
 ###
@@ -72,7 +77,7 @@ include_directories( "${CMAKE_CURRENT_BINARY_DIR}" "${KWIVER_INCLUDE_DIRS}" )
 
 ###
 # KWIVER CMake config
-#
+##
 include( kwiver-utils )
 
 ##
@@ -98,7 +103,7 @@ add_subdirectory( examples )
 
 ###
 # Configure setup script
-#
+##
 kwiver_configure_file(viame-buid-setup
   "${CMAKE_SOURCE_DIR}/CMake/setup_VIAME.sh.in"
   setup_VIAME.sh
