@@ -11,7 +11,7 @@ include( CMakeDependentOption )
 ###
 # Add paths used throughout CMakeLists files
 ##
-LIST( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/CMake" "${KWIVER_CMAKE_DIR}" )
+list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/CMake" "${KWIVER_CMAKE_DIR}" )
 
 set( VIAME_SOURCE_DIR            "${CMAKE_SOURCE_DIR}" )
 set( VIAME_BINARY_DIR            "${CMAKE_BINARY_DIR}/build" )
@@ -31,10 +31,10 @@ option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 ###
 # Add external package build instructions
 ##
-option( VIAME_EXT_PROJECTS_ONLY  "Enable only external projects" ON )
-mark_as_advanced( VIAME_EXT_PROJECTS_ONLY )
+option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-build" ON )
+mark_as_advanced( VIAME_BUILD_DEPENDENCIES )
 
-if( VIAME_EXT_PROJECTS_ONLY )
+if( VIAME_BUILD_DEPENDENCIES )
 
 # Macros and scripts
 include( ExternalProject )
@@ -58,14 +58,16 @@ else()
 find_package( kwiver REQUIRED )
 include_directories( ${KWIVER_INCLUDE_DIRS} )
 link_directories( ${KWIVER_LIBRARY_DIR} )
-LIST( INSERT CMAKE_MODULE_PATH  0         "${KWIVER_CMAKE_DIR}" )
+list( INSERT CMAKE_MODULE_PATH  0         "${KWIVER_CMAKE_DIR}" )
 
-if ( IS_DIRECTORY ${fletch_DIR} )
+if( IS_DIRECTORY ${fletch_DIR} )
   find_package( fletch NO_MODULE )
-  LIST( APPEND CMAKE_PREFIX_PATH  "${fletch_DIR}" )
+  list( APPEND CMAKE_PREFIX_PATH  "${fletch_DIR}" )
 endif()
 
-find_package( OpenCV 2.4.6 REQUIRED )
+if( VIAME_ENABLE_OPENCV )
+  find_package( OpenCV 2.4.6 REQUIRED )
+endif()
 
 include_directories( "${CMAKE_CURRENT_BINARY_DIR}" "${KWIVER_INCLUDE_DIRS}" )
 
