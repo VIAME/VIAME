@@ -40,13 +40,13 @@ include( ExternalProject )
 include( common_args )
 
 # Hard VIAME requirements
-include( external_fletch )
-include( external_kwiver )
-include( external_viame )
+include( add_project_fletch )
+include( add_project_kwiver )
+include( add_project_viame )
 
 # Optional requirements
 if( VIAME_ENABLE_SCALLOP_TK )
-  include( external_scallop_tk )
+  include( add_project_scallop_tk )
 endif()
 
 # Forced dependency logic for optional requirements
