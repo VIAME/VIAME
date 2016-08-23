@@ -27,6 +27,7 @@ option( VIAME_ENABLE_VXL         "Enable VXL plugins"       OFF )
 option( VIAME_ENABLE_CAFFE       "Enable Caffe plugins"     OFF )
 option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"    OFF )
 option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
+option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"    OFF )
 
 ###
 # Other misc options
