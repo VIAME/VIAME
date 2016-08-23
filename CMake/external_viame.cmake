@@ -17,7 +17,7 @@ ExternalProject_Add(viame
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_scallop_tk}
-    -DVIAME_EXT_PROJECTS_ONLY:BOOL=OFF
+    -DVIAME_BUILD_DEPENDENCIES:BOOL=OFF
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
