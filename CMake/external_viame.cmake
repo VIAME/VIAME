@@ -31,5 +31,5 @@ ExternalProject_Add_Step(viame forcebuild
   )
 
 set(VIAME_ARGS_viame
-  -Dviame_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/cmake
+  -Dviame_DIR:PATH=${VIAME_BUILD_PREFIX}/src/viame-build
   )

@@ -30,5 +30,5 @@ ExternalProject_Add_Step(kwiver forcebuild
   )
 
 set(VIAME_ARGS_kwiver
-  -Dkwiver_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/src/kwiver-build
+  -Dkwiver_DIR:PATH=${VIAME_BUILD_PREFIX}/src/kwiver-build
   )

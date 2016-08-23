@@ -32,7 +32,6 @@ option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 # Add external package build instructions
 ##
 option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-build" ON )
-mark_as_advanced( VIAME_BUILD_DEPENDENCIES )
 
 if( VIAME_BUILD_DEPENDENCIES )
 
