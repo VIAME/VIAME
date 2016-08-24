@@ -30,5 +30,5 @@ ExternalProject_Add_Step(scallop_tk forcebuild
   )
 
 set(VIAME_ARGS_scallop_tk
-  -Dscallop_tk_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/cmake
+  -DScallopTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/scallop_tk-build
   )

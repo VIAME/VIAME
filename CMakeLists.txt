@@ -48,12 +48,14 @@ include( common_args )
 # Hard VIAME requirements
 include( add_project_fletch )
 include( add_project_kwiver )
-include( add_project_viame )
 
 # Optional requirements
 if( VIAME_ENABLE_SCALLOP_TK )
   include( add_project_scallop_tk )
 endif()
+
+# Viame plugins
+include( add_project_viame )
 
 # Forced dependency logic for optional requirements
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK )

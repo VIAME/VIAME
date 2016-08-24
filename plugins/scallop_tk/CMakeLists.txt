@@ -1,11 +1,9 @@
 ###
 # Loadable algorithms
 
-#find_package( ScallopTK REQUIRED )
+find_package( ScallopTK REQUIRED )
 
 ## These should come from the find package.
-set( ScallopTK_INCLUDE_DIR "" CACHE PATH "Directory for ScallopTK includes" )
-set( ScallopTK_LIBRARY_DIR "" CACHE PATH "Directory for ScallopTK libraries" )
 set( ScallopTK_LIBS ScallopTK )
 
 include_directories( "${ScallopTK_INCLUDE_DIR}" )
