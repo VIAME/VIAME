@@ -31,7 +31,8 @@
 #ifndef VIAME_ALGORITHMS_REGISTER_ALGORITHMS_H
 #define VIAME_ALGORITHMS_REGISTER_ALGORITHMS_H
 
-#include <algorithms/viame_algo_export.h>
+#include <plugins/scallop_tk/viame_algo_export.h>
+
 #include <vital/registrar.h>
 
 namespace viame {
