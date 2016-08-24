@@ -17,6 +17,7 @@ ExternalProject_Add(scallop_tk
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
+    -DBUILD_SHARED_LIBS:BOOL=ON
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
