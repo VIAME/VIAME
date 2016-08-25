@@ -28,6 +28,10 @@ if (KWIVER_ENABLE_CAFFE)
 #  add_subdirectory(caffe)
 endif()
 
+if (KWIVER_ENABLE_MATLAB)
+  add_subdirectory( matlab )
+endif()
+
 kwiver_install_headers(
   kwiver_type_traits.h
   trait_utils.h
