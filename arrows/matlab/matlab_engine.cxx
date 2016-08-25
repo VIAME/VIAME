@@ -49,11 +49,11 @@ matlab_engine()
   , m_engine_handle( 0 )
   , m_output_buffer( 0 )
 {
-  int retcode( 0 );
-
-  m_engine_handle = engOpenSingleUse( 0, 0, &retcode );
-
-  throw matlab_exception( "Error opening MatLab engine" );
+  m_engine_handle = engOpen( "" );
+  if ( 0 == m_engine_handle)
+  {
+    throw matlab_exception( "Error opening MatLab engine" );
+  }
 
   m_output_buffer = static_cast< char * >(malloc( 4096 ));
   int status = engOutputBuffer( m_engine_handle, m_output_buffer, 4096 );
@@ -69,7 +69,6 @@ matlab_engine::
 ~matlab_engine()
 {
   int status = engClose( m_engine_handle );
-
   m_engine_handle = 0;
 
   if ( status )
@@ -78,6 +77,7 @@ matlab_engine::
   }
 
   free( m_output_buffer );
+  m_output_buffer = 0;
 }
 
 
@@ -95,7 +95,7 @@ eval( const std::string& cmd )
 
 
 // ------------------------------------------------------------------
-std::shared_ptr< mxArray >
+MxArraySptr
 matlab_engine::
 get_variable( const std::string& name )
 {
@@ -107,20 +107,20 @@ get_variable( const std::string& name )
     throw matlab_exception( str.str() );
   }
 
-  return mxArraySptr( var, mxDestroyArray );
+  return MxArraySptr( new MxArray( var ) );
 }
 
 
 // ------------------------------------------------------------------
 void
 matlab_engine::
-put_variable( const std::string& name, mxArraySptr val )
+put_variable( const std::string& name, MxArraySptr val )
 {
-  int status = engPutVariable( m_engine_handle, name.c_str(), val.get() );
+  int status = engPutVariable( m_engine_handle, name.c_str(), val.get()->get() );
   if ( status )
   {
     std::stringstream str;
-    str << "Variable \"" << name << "\" does not exist.";
+    str << "Error assigning value to variable \"" << name << "\"";
     throw matlab_exception( str.str() );
   }
 }
@@ -157,7 +157,7 @@ set_visible( bool vis )
 // ------------------------------------------------------------------
 std::string
 matlab_engine::
-engine_output() const
+output() const
 {
   return std::string( m_output_buffer );
 }

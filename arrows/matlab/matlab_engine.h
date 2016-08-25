@@ -39,7 +39,7 @@
 #include <vital/vital_config.h>
 #include <vital/noncopyable.h>
 #include <vital/logger/logger.h>
-#include <arrows/matlab/matlab_array.h>
+#include <arrows/matlab/mxarray.h>
 #include <arrows/matlab/kwiver_algo_matlab_export.h>
 
 // Matlab includes
@@ -75,7 +75,7 @@ public:
    *
    * This method evaluates the specified string as a MatLab
    * program. The results are returned in the output string. Call
-   * engine_output() to retrieve the output string.
+   * output() to retrieve the output string.
    *
    * @param cmd String to evaluate
    */
@@ -92,8 +92,10 @@ public:
    * @return Pointer to a newly allocated mxArray structure, or NULL
    * if the attempt fails. engGetVariable fails if the named variable
    * does not exist.
+   *
+   * @throws matlab_exception if variable is not found.
    */
-  std::shared_ptr<mxArray> get_variable( const std::string& name );
+  MxArraySptr get_variable( const std::string& name );
 
   /**
    * @brief Set named variable in MatLab engine.
@@ -117,9 +119,9 @@ public:
    * engine application does not need to account for or free memory
    * for the copy.
    *
-   * @return
+   * @throws matlab_exception if error setting value
    */
-  void put_variable( const std::string& name, mxArraySptr val);
+  void put_variable( const std::string& name, MxArraySptr val);
 
 
   /**
@@ -154,7 +156,7 @@ public:
    *
    * @return The output text from the last call to eval_string().
    */
-  std::string engine_output() const;
+  std::string output() const;
 
 private:
   kwiver::vital::logger_handle_t m_logger;

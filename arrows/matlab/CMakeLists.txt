@@ -2,7 +2,6 @@
 # CMake file for matlab bindings
 
 set( sources
-  matlab_array.cxx
   matlab_conversions.cxx
   matlab_exception.cxx
   matlab_engine.cxx
@@ -12,7 +11,8 @@ set( sources
   )
 
 set( public_headers
-  matlab_array.h
+  mxtypes.h
+  mxarray.h
   matlab_conversions.h
   matlab_exception.h
   matlab_engine.h
@@ -46,7 +46,7 @@ target_link_libraries( kwiver_algo_matlab
   PUBLIC               vital
                        ${Matlab_LIBRARIES}
                        kwiver_algo_ocv
-
+                       kwiversys
   )
 
 algorithms_create_plugin( kwiver_algo_matlab

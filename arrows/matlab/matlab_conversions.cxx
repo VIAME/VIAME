@@ -35,7 +35,6 @@
 
 #include "matlab_conversions.h"
 
-#include <matrix.h>  // matlab include
 #include <arrows/ocv/image_container.h>
 #include <opencv2/core/core.hpp>
 
@@ -46,17 +45,17 @@ namespace arrows {
 namespace matlab {
 
 // ------------------------------------------------------------------
-mxArraySptr
+MxArraySptr
 convert_to_mx_image( const kwiver::vital::image_container_sptr image )
 {
   const size_t rows = image->height();
   const size_t cols = image->width();
 
-  mxArraySptr mx_image = create_mxByteArray( rows, cols );
+  MxArray* mx_image = new MxArray( mxCreateNumericMatrix( rows, cols,  mxUINT8_CLASS, mxREAL ) );
   cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image->get_image() );
 
   // Copy the pixels
-  uint8_t* mx_mem = static_cast< uint8_t* > ( mxGetData( mx_image.get() ) );
+  uint8_t* mx_mem = static_cast< uint8_t* > ( mxGetData( mx_image->get() ) );
 
   // convert from column major to row major.
   for ( size_t i = 0; i < rows; i++ )
@@ -68,8 +67,31 @@ convert_to_mx_image( const kwiver::vital::image_container_sptr image )
     }
   }
 
-  return mx_image;
+  return MxArraySptr( mx_image );
 }
 
+
+// ------------------------------------------------------------------
+MxArraySptr create_mxByteArray( size_t r, size_t c )
+{
+  MxArray* mxa = new MxArray( mxCreateNumericMatrix( r, c,  mxUINT8_CLASS, mxREAL ) );
+  return MxArraySptr( mxa );
+}
+
+
+// ------------------------------------------------------------------
+MxArraySptr create_mxIntArray( size_t r, size_t c )
+{
+  MxArray* mxa = new MxArray( mxCreateNumericMatrix( r, c, mxINT32_CLASS, mxREAL ) );
+  return MxArraySptr( mxa );
+}
+
+
+// ------------------------------------------------------------------
+MxArraySptr create_mxDoubleArray( size_t r, size_t c )
+{
+  MxArray* mxa = new MxArray( mxCreateNumericMatrix( r, c, mxDOUBLE_CLASS, mxREAL ) );
+  return MxArraySptr( mxa );
+}
 
 } } } // end namespace
