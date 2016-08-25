@@ -39,12 +39,15 @@
 
 #include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
+#include <kwiversys/SystemTools.hxx>
 
 #include <arrows/ocv/image_container.h>
 
 #include <opencv2/core/core.hpp>
 
+#include <string>
 #include <sstream>
+#include <fstream>
 
 namespace kwiver {
 namespace arrows {
@@ -97,25 +100,70 @@ class matlab_image_object_detector::priv
 public:
   // -- CONSTRUCTORS --
   priv()
-    : m_matlab_engine( new matlab_engine )
-    , m_logger( kwiver::vital::get_logger( "vital.matlab_image_object_detector" ) )
-  {}
+    : m_logger( kwiver::vital::get_logger( "vital.matlab_image_object_detector" ) )
 
-  priv( const priv & other ) // copy ctor
-    : m_matlab_engine( new matlab_engine )
-    , m_matlab_program( other.m_matlab_program )
+      // @bug The algorithm loader instantiates this class when it is
+      // first loaded to so done introspection. The bad side effect is
+      // that we get a matlab instance too whether you need one or not.
+      //
+      // It would be better to instantiate the matlab engine only when
+      // used. Maybe this needs a class static? That will cause
+      // collisions between detectors.
+    , m_matlab_engine( new matlab_engine )
   {}
 
   ~priv()
   {}
 
-  // MatLab support.
-  const std::unique_ptr<matlab_engine> m_matlab_engine;
+  matlab_engine* engine()
+  {
+    // JIT allocation of engine if needed.
+    //
+    //@bug Because of the way these algorithms are managed and
+    // duplicated, the matlab engine pointer must be shared with all
+    // copies of this algorithm.  This is not optimal, since different
+    // detectors may collide in the engine.  Doing the JIT creation
+    // causes problems in that it allocates multiple engines. The real
+    // solution is to get better control of creating these objects and
+    // not have them clone themselves all the time.
+    if ( ! m_matlab_engine)
+    {
+      LOG_DEBUG( m_logger, "Allocating a matlab engine in " << this );
+      m_matlab_engine.reset( new matlab_engine );
+    }
+
+    return m_matlab_engine.get();
+  }
+
+
+  // ------------------------------------------------------------------
+  void check_result()
+  {
+    const std::string& results( m_matlab_engine->output() );
+    if ( results.size() > 0 )
+    {
+      LOG_INFO( m_logger, "Matlab output: " << results );
+    }
+  }
+
+
+  // ------------------------------------------------------------------
+  void eval( std::string expr )
+  {
+    LOG_DEBUG( m_logger, "Matlab eval: " << expr );
+    m_matlab_engine->eval( expr );
+    check_result();
+  }
+
 
   kwiver::vital::logger_handle_t m_logger;
 
   // MatLab wrapper parameters
   std::string m_matlab_program;       // name of matlab program
+
+private:
+  // MatLab support. The engine is allocated at the latest time.
+  std::shared_ptr<matlab_engine> m_matlab_engine;
 
 }; // end class matlab_image_object_detector::priv
 
@@ -159,27 +207,35 @@ void
 matlab_image_object_detector::
 set_configuration(vital::config_block_sptr config)
 {
-  d->m_matlab_program = config->get_value<double>( "program_file" );
+  // Load specified program file into matlab engine
+  d->m_matlab_program = config->get_value<std::string>( "program_file" );
+  std::ifstream t( d->m_matlab_program );
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  d->eval( buffer.str() );
 
-  d->m_matlab_engine->eval( "load " + d->m_matlab_program  );
-  //@todo check return code
+  // Create path to program file so we can do addpath('path');
+  std::string full_path = kwiversys::SystemTools::CollapseFullPath( d->m_matlab_program );
+  full_path = kwiversys::SystemTools::GetFilenamePath( full_path );
 
-  d->m_matlab_engine->eval( "initialize()" ); //+ is this needed?
+  d->eval( "addpath('" + full_path + "')" );
 
-  auto keys = config->available_values();
+  // Get config values for this algorithm by extracting the subblock
+  auto algo_config = config->subblock( "config" );
+
+  // Iterate over all values in this config block and pass the values
+  // to the matlab as variable assignments.
+  auto keys = algo_config->available_values();
   VITAL_FOREACH( auto k, keys )
   {
     std::stringstream config_command;
-    config_command <<  k << " = " << config->get_value<std::string>( k );
-    d->m_matlab_engine->eval( config_command.str().c_str() );
+    config_command <<  k << "=" << algo_config->get_value<std::string>( k ) << ";";
+    //+ LOG_DEBUG( d->m_logger, "Sending config value: " << config_command.str() );
 
-    // check for errors
-    const std::string& results( d->m_matlab_engine->engine_output() );
-    if ( results.size() > 3 )
-    {
-      LOG_INFO( d->m_logger, "Matlab output: " << results );
-    }
-  }
+    d->eval( config_command.str() );
+  }// end foreach
+
+  d->eval( "detector_initialize()" );
 }
 
 
@@ -188,9 +244,12 @@ bool
 matlab_image_object_detector::
 check_configuration(vital::config_block_sptr config) const
 {
-    d->m_matlab_engine->eval( "check_configuration()" );
-  //@todo check return code
+  d->eval( "check_configuration()" );
 
+  //+ not sure this has any value.
+  // Need to get a return value back.
+  // Could execute "retval = check_configuration()"
+  // and them retrieve the results
   //@todo  check output buffer for message to throw
 
   return true;
@@ -204,32 +263,89 @@ detect( kwiver::vital::image_container_sptr image_data) const
 {
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set>();
 
-  // convert image container to matlab image TBD
-  mxArraySptr mx_image = convert_to_mx_image( image_data );
+  // convert image container to matlab image
+  MxArraySptr mx_image = convert_to_mx_image( image_data );
 
-  d->m_matlab_engine->put_variable( "in_image", mx_image );
+  d->engine()->put_variable( "in_image", mx_image );
+  d->eval( "detect(in_image)" );
 
+  MxArraySptr detections = d->engine()-> get_variable( "detected_object_set" ); // throws
+  d->check_result();
 
-  d->m_matlab_engine->eval( "detect()" );
-  //@todo check return code
-
-#if 0
-  // process results
-  for ( size_t i = 0; i < circles.size(); ++i )
+  // Check dimensionality of returned array
+  size_t col = detections->cols();
+  if ( col < 5 )
   {
-    // Center point [circles[i][0], circles[i][1]]
-    // Radius circles[i][2]
+    throw std::runtime_error ( "Insufficient columns in detections array. Must have 5 columns." );
+  }
 
-    // Bounding box is center +/- radius
-    kwiver::vital::bounding_box_d bbox( circles[i][0] - circles[i][2], circles[i][1] - circles[i][2],
-                                        circles[i][0] + circles[i][2], circles[i][1] + circles[i][2] );
+  if (col > 5)
+  {
+    LOG_WARN( d->m_logger, "Extra columns in detections array. Ignored." );
+  }
 
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-    dot->set_score( "circle", 1.0 );
+  size_t num_det = detections->rows();
 
-    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+  // Get the classification info if there
+  // TBD catch exception (if any) and mark as no classifications
+  size_t class_rows( 0 );
+  size_t class_cols( 0 );
+  MxArraySptr class_dims;
+  d->eval( "temp_temp=size(detected_object_classification);" );
+  try
+  {
+    class_dims = d->engine()-> get_variable( "temp_temp" ); // throws
+    class_rows = class_dims->at<size_t>(0);
+    class_cols = class_dims->at<size_t>(1);
+  }
+  catch( ... ) { }
+
+  // Process each detection and create an object
+  for ( size_t i = 0; i < num_det; i++ )
+  {
+    kwiver::vital::bounding_box_d bbox( detections->at<double>(i, (size_t) 0), // tl-x
+                                        detections->at<double>(i, (size_t) 1), // tl-y
+                                        detections->at<double>(i, (size_t) 2), // lr-x
+                                        detections->at<double>(i, (size_t) 3) ); // lr-y
+
+    // Save classifications in DOT
+    kwiver::vital::detected_object_type_sptr dot;
+    if ( class_rows ) // there are some classification details
+    {
+      dot = std::make_shared< kwiver::vital::detected_object_type >();
+
+      for ( size_t cc = 0; cc < class_cols; ++cc )
+      {
+        // Extract name and score from matlab
+        std::stringstream cmd;
+        cmd << "temp_temp=detected_object_classification(" << (i+1) << "," << (cc+1) << ").name;";
+        d->eval( cmd.str() );
+        MxArraySptr temp = d->engine()-> get_variable( "temp_temp" );
+
+        // If the name is empty, then there are no more names for this detection.
+        if ( temp->size() == 0 )
+        {
+          continue;
+        }
+
+        const std::string c_name = temp->getString();
+
+        cmd.str(""); // reset command string
+        cmd << "temp_temp=detected_object_classification(" << (i+1) << "," << (cc+1) << ").score;";
+        d->eval( cmd.str() );
+        temp =  d->engine()-> get_variable( "temp_temp" );
+        const double c_score = temp->at<double>(0);
+
+        dot->set_score( c_name, c_score );
+      } // end for cc
+    }
+
+    d->eval( "clear temp_temp;" );
+
+    // Add this detection to the set
+    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, detections->at<double>(i, 4), dot ) );
+
   } // end for
-#endif
 
   return detected_set;
 }

@@ -1,0 +1,59 @@
+#
+# Example pipeline configuration for matlab based image object detectors
+#
+# ================================================================
+process input
+  :: frame_list_input
+# Input file containing new-line separated paths to sequential image
+# files.
+  :image_list_file /home/linus/projects/NOAA/matlab-samples/autoprocess_test_set/input_image_list.txt
+  :frame_time .03
+  :image_reader:type ocv
+
+# ================================================================
+process detector
+ :: image_object_detector
+  :detector:type   matlab
+  :detector:matlab:program_file     example_detector/example_matlab_detector.m
+  # Specify initial config for the detector
+  # The following line is presented to the matlab script as "a=1;"
+  :detector:matlab:config:a_var          1
+  :detector:matlab:config:border         2
+  :detector:matlab:config:saving         false
+
+# ================================================================
+process annotate
+  :: draw_detected_object_boxes
+
+
+
+# ================================================================
+process disp
+  :: view_image
+:annotate_image         true
+:pause_time             1.0
+:footer                 NOAA images
+:header                 header-header
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 2
+
+# ================================================================
+# connections
+connect from input.timestamp
+        to   disp.timestamp
+
+connect from input.image
+        to   detector.image
+
+connect from input.image
+        to annotate.image
+
+connect from detector.detected_object_set
+        to annotate.detected_object_set
+
+connect from annotate.image
+        to   disp.image
