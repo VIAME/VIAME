@@ -30,15 +30,16 @@
 
 /**
  * \file
- * \brief Interface for MatLab conversion functions
+ * \brief Interface for MatLab util functions
  */
 
-#include "matlab_conversions.h"
+#include "matlab_util.h"
 
 #include <arrows/ocv/image_container.h>
 #include <opencv2/core/core.hpp>
 
 #include <stdint.h>
+#include <memory>
 
 namespace kwiver {
 namespace arrows {
@@ -46,13 +47,13 @@ namespace matlab {
 
 // ------------------------------------------------------------------
 MxArraySptr
-convert_to_mx_image( const kwiver::vital::image_container_sptr image )
+convert_mx_image( const kwiver::vital::image_container_sptr image )
 {
   const size_t rows = image->height();
   const size_t cols = image->width();
 
   MxArray* mx_image = new MxArray( mxCreateNumericMatrix( rows, cols,  mxUINT8_CLASS, mxREAL ) );
-  cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image->get_image() );
+  cv::Mat ocv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image->get_image() );
 
   // Copy the pixels
   uint8_t* mx_mem = static_cast< uint8_t* > ( mxGetData( mx_image->get() ) );
@@ -63,7 +64,7 @@ convert_to_mx_image( const kwiver::vital::image_container_sptr image )
     for ( size_t j = 0; j < cols; j++ )
     {
       // row major indexing
-      mx_mem[i * ( cols ) + j] = src.at< uint8_t > ( i, j );
+      mx_mem[ (i * cols)  + j ] = ocv_image.at< uint8_t > ( i, j );
     }
   }
 
@@ -72,10 +73,35 @@ convert_to_mx_image( const kwiver::vital::image_container_sptr image )
 
 
 // ------------------------------------------------------------------
+kwiver::vital::image_container_sptr convert_mx_image( const MxArraySptr mx_image )
+{
+  const size_t rows = mx_image->rows();
+  const size_t cols = mx_image->cols();
+
+  cv::Mat ocv_image(rows, cols, CV_8UC1 );
+
+  // Copy the pixels
+  uint8_t* mx_mem = static_cast< uint8_t* > ( mxGetData( mx_image->get() ) );
+
+  // convert from row major to col major.
+  for ( size_t i = 0; i < rows; i++ )
+  {
+    for ( size_t j = 0; j < cols; j++ )
+    {
+      // column major indexing
+      ocv_image.at< uint8_t > ( i, j ) = mx_mem[ (i * cols ) + j ];
+    }
+  }
+
+  kwiver::vital::image_container_sptr retval = std::make_shared< kwiver::arrows::ocv::image_container >( ocv_image );
+  return retval;
+}
+
+
+// ------------------------------------------------------------------
 MxArraySptr create_mxByteArray( size_t r, size_t c )
 {
-  MxArray* mxa = new MxArray( mxCreateNumericMatrix( r, c,  mxUINT8_CLASS, mxREAL ) );
-  return MxArraySptr( mxa );
+  return std::make_shared< MxArray >( mxCreateNumericMatrix( r, c,  mxUINT8_CLASS, mxREAL ) );
 }
 
 

@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Interface for MatLab conversion functions
+ * \brief Interface for MatLab util functions
  */
 
-#ifndef VITAL_MATLAB_CONVERSIONS_H
-#define VITAL_MATLAB_CONVERSIONS_H
+#ifndef ARROWS_MATLAB_UTIL_H
+#define ARROWS_MATLAB_UTIL_H
 
 #include <vital/types/image_container.h>
 
@@ -57,7 +57,11 @@ namespace matlab {
  * @return Managed array containing the image.
  */
 KWIVER_ALGO_MATLAB_EXPORT
-MxArraySptr convert_to_mx_image( const kwiver::vital::image_container_sptr image);
+MxArraySptr convert_mx_image( const kwiver::vital::image_container_sptr image );
+
+KWIVER_ALGO_MATLAB_EXPORT
+kwiver::vital::image_container_sptr convert_mx_image( const MxArraySptr image );
+
 
 /** \defgroup create_matlab_array Create Matlab Array
  * Factory functions to create managed Matlab arrays.
@@ -107,4 +111,4 @@ MxArraySptr create_mxDoubleArray( size_t r, size_t c );
 
 } } } // end namespace
 
-#endif /* VITAL_MATLAB_CONVERSIONS_H */
+#endif // ARROWS_MATLAB_UTIL_H

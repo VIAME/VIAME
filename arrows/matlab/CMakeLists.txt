@@ -2,7 +2,7 @@
 # CMake file for matlab bindings
 
 set( sources
-  matlab_conversions.cxx
+  matlab_util.cxx
   matlab_exception.cxx
   matlab_engine.cxx
   matlab_image_object_detector.cxx
@@ -13,7 +13,7 @@ set( sources
 set( public_headers
   mxtypes.h
   mxarray.h
-  matlab_conversions.h
+  matlab_util.h
   matlab_exception.h
   matlab_engine.h
   matlab_image_object_detector.h

@@ -35,7 +35,7 @@
 
 #include "matlab_image_object_detector.h"
 #include "matlab_engine.h"
-#include "matlab_conversions.h"
+#include "matlab_util.h"
 
 #include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
