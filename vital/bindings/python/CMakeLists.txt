@@ -15,12 +15,6 @@ else()
   message(STATUS "Python site-packages to install into: ${python_site_packages}")
 endif()
 
-##
-# add our python path to setup script
-file( APPEND ${KWIVER_SETUP_SCRIPT_FILE}
-  "export PYTHONPATH=$this_dir/${python_site_packages}:$PYTHONPATH\n"
-  )
-
 # this command in inadvertently installing the input file also.
 kwiver_install( DIRECTORY      vital
   DESTINATION                  ${python_site_packages}

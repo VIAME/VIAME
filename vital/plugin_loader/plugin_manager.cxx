@@ -40,7 +40,7 @@
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>
 
-//+ kwiversys has a demangle but it is private
+// kwiversys has a demangle but it is private
 #if defined __linux__
   #include <cxxabi.h>
 #endif
