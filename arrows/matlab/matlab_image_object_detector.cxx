@@ -148,7 +148,7 @@ public:
 
 
   // ------------------------------------------------------------------
-  void eval( std::string expr )
+  void eval( const std::string& expr )
   {
     LOG_DEBUG( m_logger, "Matlab eval: " << expr );
     m_matlab_engine->eval( expr );
@@ -264,7 +264,7 @@ detect( kwiver::vital::image_container_sptr image_data) const
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set>();
 
   // convert image container to matlab image
-  MxArraySptr mx_image = convert_to_mx_image( image_data );
+  MxArraySptr mx_image = convert_mx_image( image_data );
 
   d->engine()->put_variable( "in_image", mx_image );
   d->eval( "detect(in_image)" );
