@@ -55,7 +55,13 @@ class algorithm;
 /// Shared pointer to an algorithm
 typedef std::shared_ptr< algorithm > algorithm_sptr;
 
-/// An abstract base class for all algorithms
+// ----------------------------------------------------------------
+/**
+ * @brief An abstract base class for all algorithms
+ *
+ * This class is an sbstract base class for all algorithm
+ * implementations.
+ */
 class VITAL_EXPORT algorithm
 {
 public:
@@ -112,8 +118,12 @@ public:
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   /**
-   * This base virtual function implementation returns an empty configuration
-   * block whose name is set to \c this->type_name.
+   * This method returns the required configuration for the
+   * algorithm. The implementation of this method should be
+   * light-weight and only create and fill in the config
+   * block.
+   *
+   * This base virtual function implementation returns an empty configuration.
    *
    * \returns \c config_block containing the configuration for this algorithm
    *          and any nested components.
@@ -122,8 +132,14 @@ public:
 
   /// Set this algorithm's properties via a config block
   /**
+   * This method is called to pass a configuration to the
+   * algorithm. The implementation of this method should be
+   * light-weight and only save the necessary config values. Defer
+   * any substantial processing in another method.
+   *
    * \throws no_such_configuration_value_exception
    *    Thrown if an expected configuration value is not present.
+   *
    * \throws algorithm_configuration_exception
    *    Thrown when the algorithm is given an invalid \c config_block or is'
    *    otherwise unable to configure itself.

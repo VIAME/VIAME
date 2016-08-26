@@ -148,8 +148,7 @@ algorithm
 {
   config_block_description_t type_comment =
     "Algorithm to use for '" + name + "'.\n"
-                                      "Must be one of the following options:"
-  ;
+    "Must be one of the following options:";
   std::string tmp_d;
 
   VITAL_FOREACH( std::string reg_name, algorithm::registered_names( type_name ) )
