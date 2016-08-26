@@ -113,6 +113,7 @@ set( vital_public_headers
   algo/extract_descriptors.h
   algo/filter_features.h
   algo/geo_map.h
+  algo/image_filter.h
   algo/image_object_detector.h
   algo/image_io.h
   algo/initialize_cameras_landmarks.h
@@ -206,6 +207,7 @@ set( vital_sources
   algo/extract_descriptors.cxx
   algo/filter_features.cxx
   algo/geo_map.cxx
+  algo/image_filter.cxx
   algo/image_object_detector.cxx
   algo/image_io.cxx
   algo/initialize_cameras_landmarks.cxx
