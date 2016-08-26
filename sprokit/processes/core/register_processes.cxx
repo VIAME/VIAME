@@ -40,6 +40,7 @@
 #include "read_descriptor_process.h"
 #include "stabilize_image_process.h"
 #include "image_object_detector_process.h"
+#include "image_filter_process.h"
 
 
 extern "C"
@@ -102,6 +103,9 @@ void register_processes()
     "image_object_detector", "Apply selected image object detector algorithm to incoming images.",
     sprokit::create_process< kwiver::image_object_detector_process > );
 
+  registry->register_process(
+    "image_filter", "Apply selected image filter algorithm to incoming images.",
+    sprokit::create_process< kwiver::image_filter_process > );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   registry->mark_module_as_loaded( module_name );
