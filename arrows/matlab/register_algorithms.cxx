@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,36 +30,27 @@
 
 /**
  * \file
- * \brief Interface of matlab image object detector
+ * \brief Matlab algorithm registration implementation
  */
 
-#include "matlab_array.h"
+#include "register_algorithms.h"
+#include <arrows/algorithm_plugin_interface_macros.h>
+
+#include <arrows/matlab/matlab_image_object_detector.h>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
-// ------------------------------------------------------------------
-mxArraySptr create_mxByteArray( size_t r, size_t c )
+/// Register Matlab algorithm implementations with the given or global registrar
+int register_algorithms( vital::registrar &reg )
 {
-  mxArray* array = mxCreateNumericMatrix( r, c,  mxUINT8_CLASS, mxREAL );
-  return mxArraySptr( array, mxDestroyArray );
-}
+  REGISTRATION_INIT( reg );
 
+  REGISTER_TYPE( matlab_image_object_detector );
 
-// ------------------------------------------------------------------
-mxArraySptr create_mxIntArray( size_t r, size_t c )
-{
-  mxArray* array = mxCreateNumericMatrix( r, c, mxINT32_CLASS, mxREAL );
-  return mxArraySptr( array, mxDestroyArray );
-}
-
-
-// ------------------------------------------------------------------
-mxArraySptr create_mxDoubleArray( size_t r, size_t c )
-{
-  mxArray* array = mxCreateNumericMatrix( r, c, mxDOUBLE_CLASS, mxREAL );
-  return mxArraySptr( array, mxDestroyArray );
+  REGISTRATION_SUMMARY();
+  return REGISTRATION_FAILURES();
 }
 
 } } } // end namespace

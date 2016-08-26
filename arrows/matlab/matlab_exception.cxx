@@ -30,42 +30,27 @@
 
 /**
  * \file
- * \brief Header defining matlab bindings to image object detector
+ * \brief Implementation of matlab exceptions
  */
 
-#ifndef VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H
-#define VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H
-
-#include <vital/algo/image_object_detector.h>
-#include <vital/bindings/matlab/vital_matlab_export.h>
+#include "matlab_exception.h"
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
-class VITAL_MATLAB_EXPORT matlab_image_object_detector
-  : public vital::algorithm_impl< matlab_image_object_detector, vital::algo::image_object_detector >
+
+matlab_exception::
+matlab_exception(const std::string& msg) VITAL_NOTHROW
+  : vital_core_base_exception()
 {
-public:
-  matlab_image_object_detector();
-  matlab_image_object_detector( const matlab_image_object_detector& other );
-  virtual ~matlab_image_object_detector();
+    m_what = msg;
+}
 
-  virtual std::string impl_name() const { return "matlab_image_object_detector"; }
 
-  virtual vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+matlab_exception::
+~matlab_exception() VITAL_NOTHROW
+{ }
 
-  // Main detection method
-  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data) const;
-
-private:
-  class priv;
-  const std::unique_ptr<priv> d;
-};
 
 } } } // end namespace
-
-
-#endif /* VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H */

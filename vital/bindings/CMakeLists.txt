@@ -9,7 +9,3 @@ if (KWIVER_ENABLE_C_BINDINGS )
     add_subdirectory( python )
   endif ()
 endif()
-
-if (KWIVER_ENABLE_MATLAB)
-  add_subdirectory( matlab )
-endif()

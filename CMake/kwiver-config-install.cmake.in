@@ -26,6 +26,7 @@ set(KWIVER_CMAKE_DIR          "${KWIVER_LIBRARY_DIR}/cmake/kwiver")
 # Extend module path for KWIVER utils
 set(CMAKE_MODULE_PATH "${KWIVER_CMAKE_DIR}" "${CMAKE_MODULE_PATH}")
 
+set(KWIVER_DIR "@CMAKE_INSTALL_PREFIX@")
 set(fletch_DIR "@fletch_DIR@" CACHE PATH "Path to fletch package")
 
 #set(KWIVER_PIPE_INSTALL_PATH  "@CMAKE_INSTALL_PREFIX@/share/kwiver/pipelines")

@@ -47,6 +47,8 @@
 
 #include <memory>
 
+namespace group_ns {
+
 // ----------------------------------------------------------------
 /**
  * @brief brief description
@@ -86,8 +88,8 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class view_image_process
+}; // end class
 
-} // end namespace
+}
 
 #endif // GROUP_TEMPLATE_PROCESS_H

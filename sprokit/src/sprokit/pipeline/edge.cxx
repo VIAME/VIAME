@@ -128,11 +128,6 @@ edge
   bool const depends = config->get_value<bool>(config_dependency, true);
   size_t const capacity = config->get_value<size_t>(config_capacity, 0);
 
-  if (0 != capacity)
-  {
-    std::cerr << "DEBUG - Edge capacity set to: " << capacity << std::endl;
-  }
-
   d.reset(new priv(depends, capacity));
 }
 

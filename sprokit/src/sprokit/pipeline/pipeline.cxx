@@ -1758,7 +1758,7 @@ pipeline::priv
       std::stringstream msg;
       edge_config->print(msg);
 
-      LOG_DEBUG( m_logger,
+      LOG_TRACE( m_logger,
                  "Edge config for "  << upstream_name << "." <<
                  upstream_port  << " -> " << downstream_name << "." <<
                  downstream_port << "\n" << msg.str() );

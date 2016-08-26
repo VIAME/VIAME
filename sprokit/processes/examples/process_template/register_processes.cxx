@@ -7,7 +7,8 @@
 #include "template_process.h"
 //++ list additional processes here
 
-extern "C"
+
+extern "C"   //++ This needs to have 'C' linkage so the loader can find it.
 TEMPLATE_PROCESSES_EXPORT
 void register_processes();
 
@@ -33,10 +34,10 @@ void register_processes()
   // ----------------------------------------------------------------
 
   registry->register_process(
-    "template",    // name of process type as used in pipeline config file. Does *not* contain the word "process"
+    "template",    //++ name of process type as used in pipeline config file. Does *not* contain the word "process"
     "Description of process. Make as long as necessary to fully explain what the process does "
-    "and how to use it. Explain specific algorithms used.",
-    sprokit::create_process< template_process > );
+    "and how to use it. Explain specific algorithms used, etc.",
+    sprokit::create_process< group_ns::template_process > );
 
   //++ Add more additional processes here.
 

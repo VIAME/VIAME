@@ -28,6 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief definition of kwiver type traits
+ */
+
 #ifndef KWIVER_VITAL_TYPE_TRAITS_H
 #define KWIVER_VITAL_TYPE_TRAITS_H
 
@@ -89,10 +94,10 @@ create_port_trait( timestamp, timestamp, "Timestamp for input image." );
 create_port_trait( corner_points, corner_points, "Four corner points for image in lat/lon units, ordering ul ur lr ll." );
 create_port_trait( gsd, gsd, "GSD for image in meters per pixel." );
 create_port_trait( image, image, "Single frame image." );
-create_port_trait( feature_set, feature_set, "Set of detected image features" );
-create_port_trait( descriptor_set, descriptor_set, "Set of feature descriptors" );
-create_port_trait( track_set, track_set, "Set of feature tracks for stabilization" );
-create_port_trait( detected_object_set, detected_object_set, "Set of detected objects" );
+create_port_trait( feature_set, feature_set, "Set of detected image features." );
+create_port_trait( descriptor_set, descriptor_set, "Set of feature descriptors." );
+create_port_trait( track_set, track_set, "Set of feature tracks for stabilization." );
+create_port_trait( detected_object_set, detected_object_set, "Set of detected objects." );
 
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
 create_port_trait( image_file_name, image_file_name, "Name of an image file. Usually a single frame of a video." );

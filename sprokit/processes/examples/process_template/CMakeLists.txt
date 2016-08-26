@@ -4,7 +4,8 @@
 ##++ replace "template" with something more meaningful for your project
 project( template_processes )
 
-include(kwiver-utils) # provides kwiver_* operations
+#++ uncomment the following line if the project has not already included the file.
+# include(kwiver-utils) # provides kwiver_* operations
 
 set( sources
   register_processes.cxx
@@ -22,7 +23,7 @@ include_directories( ${sprokit_source_dir}/src
                      ${sprokit_binary_dir}/src   # for generated files
                      ${sprokit_source_dir}/processes # for trait support files
                      ${CMAKE_CURRENT_SOURCE_DIR}
-
+                     ${CMAKE_CURRENT_BINARY_DIR} # needed for generated export header
                      )
 
 ##++ Find any required packages. OpenCV is include here only as an example
@@ -41,6 +42,7 @@ kwiver_add_plugin( template_processes
                  ${private_headers}
   PRIVATE          sprokit_pipeline
                    vital vital_apm vital_logger vital_config
+                   kwiver_algo_ocv
                    kwiversys
  )
 

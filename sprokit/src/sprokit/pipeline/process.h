@@ -1080,10 +1080,13 @@ class SPROKIT_PIPELINE_EXPORT process
 
     /**
      * \brief Output a result on a port.
-     * \todo explain why use this instead of push_to_port
+     *
+     * This method pushes a value to the port. This is the easiest way
+     * to send a data value down stream. If you need to push a
+     * different type of datum, then use push_to_port()/
      *
      * \param port The port to push to.
-     * \param dat The result to push.
+     * \param dat The value to push.
      */
     template <typename T>
     void push_to_port_as(port_t const& port, T const& dat) const;

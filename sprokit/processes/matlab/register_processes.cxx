@@ -28,29 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Implementation of matlab exceptions
+#include <sprokit/pipeline/process_registry.h>
+
+// -- list processes to register --
+#include "matlab_process.h"
+
+
+extern "C"
+KWIVER_MATLAB_PROCESSES_EXPORT void register_processes();
+
+
+// ----------------------------------------------------------------
+/*! \brief Regsiter processes
+ *
+ *
  */
-
-#include "matlab_exception.h"
-
-namespace kwiver {
-namespace vital {
-namespace matlab {
-
-
-matlab_exception::
-matlab_exception(const std::string& msg) VITAL_NOTHROW
-  : vital_core_base_exception()
+void register_processes()
 {
-    m_what = msg;
+  static sprokit::process_registry::module_t const module_name =
+    sprokit::process_registry::module_t( "kwiver_processes_matlab" );
+
+  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
+
+  if ( registry->is_module_loaded( module_name ) )
+  {
+    return;
+  }
+
+  // ----------------------------------------------------------------
+  registry->register_process(
+    "matlab_bridge",
+    "Bridge to process written in Matlab",
+    sprokit::create_process< kwiver::matlab::matlab_process > );
+
+
+  // - - - - - - - - - - - - - - - - - - - - - - -
+  registry->mark_module_as_loaded( module_name );
 }
-
-
-matlab_exception::
-~matlab_exception() VITAL_NOTHROW
-{ }
-
-
-} } } // end namespace

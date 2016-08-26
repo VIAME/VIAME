@@ -138,6 +138,6 @@ private:
   detected_object::vector_t m_detected_objects;
 };
 
-} }
+} } // end namespace
 
 #endif

@@ -30,66 +30,48 @@
 
 /**
  * \file
- * \brief Interface of matlab image object detector
+ * \brief Interface to template process.
  */
 
-#ifndef VITAL_BINDINGS_MATLAB_ARRAY_H
-#define VITAL_BINDINGS_MATLAB_ARRAY_H
+#ifndef KWIVER_MATLAB_PROCESS_H_
+#define KWIVER_MATLAB_PROCESS_H_
 
-#include <vital/bindings/matlab/vital_matlab_export.h>
+#include <sprokit/pipeline/process.h>
 
-#include <matrix.h>  // matlab include
+#include "kwiver_matlab_processes_export.h"
 
 #include <memory>
 
 namespace kwiver {
-namespace vital {
 namespace matlab {
 
-typedef std::shared_ptr<mxArray> mxArraySptr;
-
-/** \defgroup create_matlab_array Create Matlab Array
- * Factory functions to create managed Matlab arrays.
- * @{
- */
-
+// ----------------------------------------------------------------
 /**
- * @brief Create empty Matlab managed array.
+ * @brief brief description
  *
- * This function is a factory for managed Matlab arrays.
- *
- * @param r - number of rows in the array
- * @param c - number of columns in the array
- *
- * @return Managed pointer to the newly allocated array.
  */
-VITAL_MATLAB_EXPORT mxArraySptr create_mxByteArray( size_t r, size_t c );
+class KWIVER_MATLAB_PROCESSES_NO_EXPORT matlab_process
+  : public sprokit::process
+{
+public:
+  matlab_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~matlab_process();
 
-/**
- * @brief Create empty Matlab managed array.
- *
- * This function is a factory for managed Matlab arrays.
- *
- * @param r - number of rows in the array
- * @param c - number of columns in the array
- *
- * @return Managed pointer to the newly allocated array.
- */
-VITAL_MATLAB_EXPORT mxArraySptr create_mxIntArray( size_t r, size_t c );
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-/**
- * @brief Create empty Matlab managed array.
- *
- * This function is a factory for managed Matlab arrays.
- *
- * @param r - number of rows in the array
- * @param c - number of columns in the array
- *
- * @return Managed pointer to the newly allocated array.
- */
-VITAL_MATLAB_EXPORT mxArraySptr create_mxDoubleArray( size_t r, size_t c );
-//@}
+  virtual void _init();
 
-} } } // end namespace
+private:
+  void make_ports();
+  void make_config();
 
-#endif /* VITAL_BINDINGS_MATLAB_ARRAY_H */
+  class priv;
+  const std::unique_ptr<priv> d;
+
+}; // end class
+
+} } // end namespace
+
+#endif // KWIVER_MATLAB_PROCESS_H_

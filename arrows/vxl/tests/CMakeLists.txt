@@ -7,6 +7,7 @@ set(test_libraries     kwiver_algo_vxl)
 ##############################
 # Algorithms VXL tests
 ##############################
+kwiver_discover_tests(vxl_bounding_box                 test_libraries test_bounding_box.cxx)
 kwiver_discover_tests(vxl_bundle_adjust                test_libraries test_bundle_adjust.cxx)
 kwiver_discover_tests(vxl_camera                       test_libraries test_camera.cxx)
 kwiver_discover_tests(vxl_estimate_essential_matrix    test_libraries test_estimate_essential_matrix.cxx)

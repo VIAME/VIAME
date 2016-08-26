@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,36 +30,26 @@
 
 /**
  * \file
- * \brief Interface to matlab exceptions
+ * \brief Matlab algorithm registration function
  */
 
-#ifndef KWIVER_VITAL_MATLAB_EXCEPTION_H
-#define KWIVER_VITAL_MATLAB_EXCEPTION_H
+#ifndef KWIVER_ARROWS_MATLAB_REGISTER_ALGORITHMS_H_
+#define KWIVER_ARROWS_MATLAB_REGISTER_ALGORITHMS_H_
+
 
 #include <vital/vital_config.h>
-#include <vital/bindings/matlab/vital_matlab_export.h>
-#include <vital/exceptions/base.h>
+#include <arrows/matlab/kwiver_algo_matlab_export.h>
+
+#include <vital/registrar.h>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace matlab {
 
-// -----------------------------------------------------------------
-/**
- *
- *
- */
-class VITAL_MATLAB_EXPORT matlab_exception
-  : public vital_core_base_exception
-{
-public:
-  // -- CONSTRUCTORS --
-  matlab_exception(const std::string& msg) VITAL_NOTHROW;
-
-  virtual ~matlab_exception() VITAL_NOTHROW;
-
-}; // end class matlab_exception
+/// Register MATLAB algorithm implementations with the given or global registrar
+KWIVER_ALGO_MATLAB_EXPORT
+int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } } } // end namespace
 
-#endif /* KWIVER_VITAL_MATLAB_EXCEPTION_H */
+#endif // KWIVER_ARROWS_MATLAB_REGISTER_ALGORITHMS_H_

@@ -29,7 +29,7 @@
  * passing through the ports. For larger systems, it may make sense to
  * establish a hierarchical name space. One way to do this is to
  * separate the levels with a ':' character as shown in the
- * examples. Using qualified names reduces the change of name
+ * examples. Using qualified names reduces the chance of name
  * collisions when two subsystems pick the same logical name for
  * different underlying types.
  */

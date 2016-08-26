@@ -11,6 +11,8 @@ set(KWIVER_INCLUDE_DIRS
   "@KWIVER_SOURCE_DIR@" "@KWIVER_SOURCE_DIR@/vital"
   "@KWIVER_BINARY_DIR@" "@KWIVER_BINARY_DIR@/vital"
   "@KWIVER_BINARY_DIR@/vital/kwiversys"
+  "@KWIVER_SOURCE_DIR@/sprokit/src"
+  "@KWIVER_BINARY_DIR@/sprokit/src"
   "@EIGEN3_INCLUDE_DIR@" )
 
 if (WIN32)
@@ -26,4 +28,5 @@ set(KWIVER_MODULE_DIR          "${KWIVER_LIBRARY_DIR}/modules")
 set(KWIVER_DOCUMENTATION_DIR   "@KWIVER_BINARY_DIR@/doc")
 set(KWIVER_CMAKE_DIR           "@KWIVER_CMAKE_DIR@")
 
+set(KWIVER_DIR "@KWIVER_BINARY_DIR@")
 set(fletch_DIR "@fletch_DIR@" CACHE PATH "Path to fletch package")

@@ -27,35 +27,37 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-//++ The above header applies to this template code. Feel free to use your own
-//++ license header.
 
 /**
  * \file
  * \brief Implementation of template process.
  */
 
-//++ include process class/interface
-#include "template_process.h"
+#include "matlab_process.h"
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <vital/types/timestamp.h>
+#include <vital/vital_foreach.h>
+
+#include <arrows/matlab/matlab_engine.h>
+#include <arrows/matlab/matlab_util.h>
 #include <arrows/ocv/image_container.h>
+#include <kwiversys/SystemTools.hxx>
 
 #include <opencv2/core/core.hpp>
 
-//++ You can put all of your processes in the same namespace
-namespace group_ns {
+#include <string>
+#include <sstream>
+#include <fstream>
 
-//++ Insert process documentation here. Don't be shy about adding detail.
-//++ This description is collected by doxygen for the on-line documentation.
-//++ Since the header file is mostly boiler-plate, the process docomentation
-//++ is in the implementation file where it is more likely to be read and updated.
+namespace kwiver {
+namespace matlab {
+
 // ----------------------------------------------------------------
 /**
- * \class template_process
+ * \class matlab_process
  *
- * \brief Process template
+ * \brief Matlab interface template
  *
  * \iports
  *
@@ -74,39 +76,37 @@ namespace group_ns {
  * \config{footer} Footer text (string)
  */
 
-//++ Configuration traits are used to declare configurable items. Be sure to supply a complete
-//++ description/specification of the item, since this will serve as the primary documentation
-//++ for the parameter. Feel free to use multiple lines, but no new-lines are needed since this
-//++ text is wrapped when it is displayed.
-//++ Define configurable items here.
 // config items
 // <name>, <type>, <default string>, <description string>
-create_config_trait( header, std::string, "top", "Header text for image display." );
-create_config_trait( footer, std::string, "bottom", "Footer text for image display. Displayed centered at bottom of image." );
-create_config_trait( gsd, double, "3.14159", "Meters per pixel scaling." );
+create_config_trait( program_file, std::string, "", "Name of matlab process to interface to." );
+
 
 //----------------------------------------------------------------
 // Private implementation class
-class template_process::priv
+class matlab_process::priv
 {
 public:
-  priv();
+  priv( matlab_process* parent );
   ~priv();
 
-  cv::Mat process_image( cv::Mat img ) { return img; }
+  void check_result();
+  void eval( const std::string& expr );
+
+  matlab_process* m_parent;
 
   // Configuration values
-  std::string m_header;
-  std::string m_footer;
-  double m_gsd;
+  std::string m_program_file;
+
+  // MatLab support. The engine is allocated at the latest time.
+  std::shared_ptr< kwiver::arrows::matlab::matlab_engine > m_matlab_engine;
+
 }; // end priv class
 
 // ================================================================
-//++ This is the standard form for a constructor.
-template_process
-::template_process( kwiver::vital::config_block_sptr const& config )
+matlab_process
+::matlab_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new template_process::priv )
+    d( new matlab_process::priv( this ) )
 {
   attach_logger( kwiver::vital::get_logger( name() ) );
   make_ports(); // create process ports
@@ -114,8 +114,8 @@ template_process
 }
 
 
-template_process
-::~template_process()
+matlab_process
+::~matlab_process()
 {
 }
 
@@ -128,29 +128,49 @@ template_process
  * process to configure itself.
  */
 void
-template_process
+matlab_process
 ::_configure()
 {
-  //++ Use config traits to access the value for the parameters.
-  //++ Values are usually stored in the private structure.
-  //++ These config items are not really used in this process.
-  //++ There are shown here as an example.
-  d->m_header = config_value_using_trait( header );
-  d->m_footer = config_value_using_trait( footer );
-  d->m_gsd    = config_value_using_trait( gsd ); // converted to double
+  // Need to delay creating engine because it is heavyweight
+  d->m_matlab_engine = std::make_shared< kwiver::arrows::matlab::matlab_engine >();
+
+  d->m_program_file = config_value_using_trait( program_file );
+
+  // Create path to program file so we can do addpath('path');
+  std::string full_path = kwiversys::SystemTools::CollapseFullPath( d->m_program_file );
+  full_path = kwiversys::SystemTools::GetFilenamePath( full_path );
+
+  d->eval( "addpath('" + full_path + "')" );
+
+  // Get config values for this algorithm by extracting the subblock
+  auto algo_config = this->get_config()->subblock( "matlab_config" );
+
+  // Iterate over all values in this config block and pass the values
+  // to the matlab as variable assignments.
+  auto keys = algo_config->available_values();
+  VITAL_FOREACH( auto k, keys )
+  {
+    std::stringstream config_command;
+    config_command <<  k << "=" << algo_config->get_value<std::string>( k ) << ";";
+    LOG_DEBUG( logger(), "Sending config value: " << config_command.str() );
+
+    d->eval( config_command.str() );
+  }// end foreach
+
+  // Call matlab function to complete the config
+  d->eval( "configure_process()" );
 }
 
 
 // ----------------------------------------------------------------
 void
-template_process
+matlab_process
 ::_step()
 {
   kwiver::vital::timestamp frame_time;
 
   // See if optional input port has been connected.
   // Get input only if connected.
-  //++ Best practice - checking if an optional input port is connected.
   if ( has_input_port_edge_using_trait( timestamp ) )
   {
     frame_time = grab_from_port_using_trait( timestamp );
@@ -160,58 +180,35 @@ template_process
 
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
+  // Convert inputs to matlab format and send to matlab engine
+  // Need to establish an interface to the matlab function.
+  // Could use parameters or well known names.
 
-  //++ Here is where the process does its work.
-  kwiver::vital::image_container_sptr out_image (new kwiver::arrows::ocv::image_container( d->process_image( in_image ) ) );
+  // Sending an image to matlab
+  kwiver::arrows::matlab::MxArraySptr mx_image = kwiver::arrows::matlab::convert_mx_image( img );
+  d->m_matlab_engine->put_variable( "in_image", mx_image );
+
+  // Call matlab step function
+  d->eval( "step( in_image );" );
+
+  kwiver::arrows::matlab::MxArraySptr mx_out_image = d->m_matlab_engine->get_variable( "out_image" );
+  kwiver::vital::image_container_sptr out_image = kwiver::arrows::matlab::convert_mx_image( mx_out_image );
 
   push_to_port_using_trait( image, out_image );
 }
 
 
 // ------------------------------------------------------------------
-//++ This method is called after all connections have been made to
-//++ this process. The process can analyze connections and adapt its
-//++ processing if needed. This is not usually needed for basic processes.
-//++ If post-connection processing is not needed, delete this method.
 void
-template_process
+matlab_process
 ::_init()
-{ }
-
-
-// ------------------------------------------------------------------
-//++ This method is called when the pipeline is reset.
-void
-template_process
-::_reset()
-{ }
-
-
-// ------------------------------------------------------------------
-//++ This method is called when there is a flush on one of the input ports.
-//++ Flush usually indicates a break in the data flow; an end of one stream
-//++ and start of a new one.
-void
-template_process
-::_flush()
-{ }
-
-
-// ------------------------------------------------------------------
-//++ This method is called when the pipeline is reconfigured. This is where new
-//++ configuration values are supplied to the process. Use reconfig_value_using_trait( conf, ... )
-//++ to get the new config values from the supplied config
-void
-template_process
-::_reconfigure(kwiver::vital::config_block_sptr const& conf)
-{ }
-
+{
+}
 
 
 // ----------------------------------------------------------------
 void
-template_process
+matlab_process
 ::make_ports()
 {
   // Set up for required ports
@@ -230,29 +227,47 @@ template_process
 
 // ----------------------------------------------------------------
 void
-template_process
+matlab_process
 ::make_config()
 {
-  //++ Declaring config items using the traits created at the top of the file.
-  //++ This makes the configuration items visible to sprokit pipeline framework.
-  declare_config_using_trait( header );
-  declare_config_using_trait( footer );
-  declare_config_using_trait( gsd );
+  declare_config_using_trait( program_file );
 }
 
 
 // ================================================================
-//++ Initialize any private data here
-template_process::priv
-::priv()
-  : m_gsd( 0.1122 )
+matlab_process::priv
+::priv( matlab_process* parent)
+  : m_parent( parent )
 {
 }
 
 
-template_process::priv
+matlab_process::priv
 ::~priv()
 {
 }
 
-} // end namespace
+// ------------------------------------------------------------------
+void
+matlab_process::priv
+::check_result()
+{
+  const std::string& results( m_matlab_engine->output() );
+  if ( results.size() > 0 )
+  {
+    LOG_INFO( m_parent->logger(), "Matlab output: " << results );
+  }
+}
+
+
+// ------------------------------------------------------------------
+void
+matlab_process::priv
+::eval( const std::string& expr )
+{
+  LOG_DEBUG( m_parent->logger(), "Matlab eval: " << expr );
+  m_matlab_engine->eval( expr );
+  check_result();
+}
+
+} } // end namespace
